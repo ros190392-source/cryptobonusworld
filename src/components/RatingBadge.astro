@@ -3,17 +3,44 @@ interface Props {
   rating: number;
 }
 const { rating } = Astro.props;
-const color = rating >= 9.5 ? '#4ade80' : rating >= 9.0 ? '#facc15' : rating >= 8.5 ? '#fb923c' : '#f87171';
+
+const color     = rating >= 9.5 ? '#4ade80'
+                : rating >= 9.0 ? '#f5c542'
+                : rating >= 8.5 ? '#fb923c'
+                : '#f87171';
+const bgColor   = rating >= 9.5 ? 'rgba(74,222,128,0.1)'
+                : rating >= 9.0 ? 'rgba(245,197,66,0.1)'
+                : rating >= 8.5 ? 'rgba(251,146,60,0.1)'
+                : 'rgba(248,113,113,0.1)';
+const bdColor   = rating >= 9.5 ? 'rgba(74,222,128,0.22)'
+                : rating >= 9.0 ? 'rgba(245,197,66,0.22)'
+                : rating >= 8.5 ? 'rgba(251,146,60,0.22)'
+                : 'rgba(248,113,113,0.22)';
 ---
 
-<span class="rating-badge" style={`color: ${color}`}>
-  ★ {rating.toFixed(1)}
+<span
+  class="rating-badge"
+  style={`color:${color}; background:${bgColor}; border-color:${bdColor};`}
+  aria-label={`Rating: ${rating.toFixed(1)} out of 10`}
+>
+  <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+  </svg>
+  {rating.toFixed(1)}
 </span>
 
 <style>
   .rating-badge {
-    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.75rem;
     font-weight: 700;
+    padding: 0.25rem 0.55rem;
+    border-radius: var(--radius-pill, 100px);
+    border: 1px solid;
     white-space: nowrap;
+    line-height: 1;
+    letter-spacing: -0.01em;
   }
 </style>

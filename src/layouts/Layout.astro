@@ -39,17 +39,85 @@ const { title, description, canonical, schema, noindex } = Astro.props;
 
 <style is:global>
   :root {
-    --color-bg: #0a0a0a;
+    /* ── Core palette ── */
+    --color-bg:           #0a0a0a;
     --color-bg-secondary: #111111;
-    --color-bg-tertiary: #1a1a1a;
-    --color-border: #222222;
-    --color-accent: #f5c542;
-    --color-accent-dim: #3a3010;
-    --color-text-primary: #f0f0f0;
-    --color-text-secondary: #aaaaaa;
-    --color-text-muted: #666666;
+    --color-bg-tertiary:  #1a1a1a;
+    --color-border:       #252525;
+    --color-border-subtle:#1c1c1c;
 
-    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+    /* ── Accent / gold ── */
+    --color-accent:       #f5c542;
+    --color-accent-warm:  #fbbf24;
+    --color-accent-deep:  #d97706;
+    --color-accent-dim:   rgba(245, 197, 66, 0.15);
+    --color-accent-glow:  rgba(245, 197, 66, 0.22);
+    --color-accent-muted: rgba(245, 197, 66, 0.08);
+
+    /* ── Surfaces ── */
+    --surface-base:      #0a0a0a;
+    --surface-raised:    #111111;
+    --surface-elevated:  #151515;
+    --surface-overlay:   #1a1a1a;
+    --surface-featured:  #16160a;
+
+    /* ── Text ── */
+    --color-text-primary:   #f0f0f0;
+    --color-text-secondary: #aaaaaa;
+    --color-text-muted:     #606060;
+
+    /* ── Typography scale ── */
+    --text-xs:   0.75rem;    /* 12px */
+    --text-sm:   0.875rem;   /* 14px */
+    --text-base: 1rem;       /* 16px */
+    --text-lg:   1.125rem;   /* 18px */
+    --text-xl:   1.25rem;    /* 20px */
+    --text-2xl:  1.5rem;     /* 24px */
+    --text-3xl:  2rem;       /* 32px */
+    --text-4xl:  2.5rem;     /* 40px */
+
+    /* ── Border radius ── */
+    --radius-xs:   4px;
+    --radius-sm:   6px;
+    --radius-md:   10px;
+    --radius-lg:   14px;
+    --radius-xl:   20px;
+    --radius-2xl:  28px;
+    --radius-pill: 100px;
+
+    /* ── Shadow system (elevation) ── */
+    --shadow-xs: 0 1px 3px rgba(0,0,0,0.45);
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.5);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.5), 0 1px 4px rgba(0,0,0,0.3);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.6), 0 2px 8px rgba(0,0,0,0.4);
+    --shadow-xl: 0 16px 48px rgba(0,0,0,0.7), 0 4px 12px rgba(0,0,0,0.5);
+
+    /* ── Glow system ── */
+    --glow-gold-sm: 0 0 12px rgba(245,197,66,0.2);
+    --glow-gold-md: 0 0 24px rgba(245,197,66,0.25), 0 0 8px rgba(245,197,66,0.12);
+    --glow-gold-lg: 0 0 40px rgba(245,197,66,0.3),  0 0 16px rgba(245,197,66,0.18);
+    --glow-card:    0 4px 24px rgba(245,197,66,0.12), 0 1px 6px rgba(245,197,66,0.08);
+    --glow-cta:     0 4px 20px rgba(245,197,66,0.35), 0 1px 8px rgba(245,197,66,0.2);
+
+    /* ── Gradient system ── */
+    --gradient-gold:         linear-gradient(135deg, #fbbf24 0%, #f5c542 45%, #d97706 100%);
+    --gradient-gold-text:    linear-gradient(135deg, #fbbf24 0%, #f5c542 50%, #f59e0b 100%);
+    --gradient-gold-subtle:  linear-gradient(135deg, rgba(245,197,66,0.1) 0%, rgba(245,197,66,0.03) 100%);
+    --gradient-surface:      linear-gradient(180deg, #151515 0%, #111111 100%);
+    --gradient-featured:     linear-gradient(135deg, #1a1a08 0%, #111111 100%);
+    --gradient-hero-glow:    radial-gradient(ellipse at 30% 40%, rgba(245,197,66,0.1) 0%, transparent 65%);
+
+    /* ── Animation system ── */
+    --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-spring:   cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease-out:      cubic-bezier(0, 0, 0.2, 1);
+    --ease-in:       cubic-bezier(0.4, 0, 1, 1);
+    --duration-fast: 120ms;
+    --duration-base: 200ms;
+    --duration-slow: 320ms;
+
+    /* ── Layout ── */
+    --font-sans:     'Inter', system-ui, -apple-system, sans-serif;
     --container-max: 1200px;
     --container-pad: 1.5rem;
   }
@@ -96,9 +164,37 @@ const { title, description, canonical, schema, noindex } = Astro.props;
 
   a { color: inherit; }
 
+  /* Global focus ring — keyboard nav only */
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+    border-radius: var(--radius-sm);
+  }
+
   img { max-width: 100%; height: auto; }
 
   p { margin: 0 0 1rem; color: var(--color-text-secondary); }
+
+  /* Reusable section heading with gold accent */
+  .section-heading {
+    font-size: var(--text-xl);
+    font-weight: 700;
+    color: var(--color-text-primary);
+    letter-spacing: -0.01em;
+    margin: 0 0 1.25rem;
+    position: relative;
+    padding-left: 0.875rem;
+  }
+  .section-heading::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.15em;
+    bottom: 0.15em;
+    width: 3px;
+    background: var(--gradient-gold);
+    border-radius: var(--radius-pill);
+  }
 
   .page-header {
     padding: 3rem 0 2rem;

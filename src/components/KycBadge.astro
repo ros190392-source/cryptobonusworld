@@ -11,15 +11,25 @@ const { required } = Astro.props;
 
 <style>
   .kyc-badge {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
     font-size: 0.7rem;
     font-weight: 700;
-    padding: 0.2rem 0.5rem;
-    border-radius: 4px;
+    padding: 0.25rem 0.6rem;
+    border-radius: var(--radius-pill, 100px);
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.05em;
     white-space: nowrap;
+    line-height: 1;
   }
-  .kyc-badge--required { background: #3a1a1a; color: #f87171; }
-  .kyc-badge--none { background: #1a3a2a; color: #4ade80; }
+  .kyc-badge--required {
+    background: rgba(248, 113, 113, 0.1);
+    color: #f87171;
+    border: 1px solid rgba(248, 113, 113, 0.22);
+  }
+  .kyc-badge--none {
+    background: rgba(74, 222, 128, 0.1);
+    color: #4ade80;
+    border: 1px solid rgba(74, 222, 128, 0.22);
+  }
 </style>
