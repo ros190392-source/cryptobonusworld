@@ -80,6 +80,12 @@ const top3 = [...filtered].sort((a, b) => b.rating - a.rating).slice(0, 3);
   </div>
 </Layout>
 
+<!-- Mobile sticky CTA -->
+<div class="cat-sticky">
+  <span class="cat-sticky-label">{cat.name} — {filtered.length} exchanges</span>
+  <a href="/bonuses/" class="cat-sticky-btn">All Bonuses →</a>
+</div>
+
 <style>
   .section { margin-top: 2rem; }
   .category-intro { margin: 1rem 0 1.5rem; }
@@ -97,5 +103,59 @@ const top3 = [...filtered].sort((a, b) => b.rating - a.rating).slice(0, 3);
     margin: 0;
     font-size: 0.875rem;
     color: var(--color-text-secondary);
+  }
+
+  /* ── Mobile sticky CTA ── */
+  .cat-sticky {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 150;
+    background: rgba(10, 10, 10, 0.97);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-top: 1px solid var(--color-border);
+    padding: 0.75rem 1rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.875rem;
+  }
+  .cat-sticky-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    min-width: 0;
+  }
+  .cat-sticky-btn {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0.625rem 1.25rem;
+    background: var(--color-accent);
+    color: #000;
+    font-weight: 700;
+    font-size: 0.875rem;
+    border-radius: 10px;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: opacity 0.15s;
+  }
+  .cat-sticky-btn:hover { opacity: 0.88; }
+
+  @media (max-width: 768px) {
+    .cat-sticky { display: flex; }
+    :global(body) { padding-bottom: 72px; }
+    .cta-section {
+      flex-direction: column;
+      align-items: flex-start;
+      text-align: left;
+    }
   }
 </style>

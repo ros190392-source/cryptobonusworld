@@ -249,6 +249,33 @@ const siteSchema = {
   </div>
 </Layout>
 
+<!-- Mobile sticky CTA (scroll-triggered, hidden on desktop) -->
+<div class="hp-sticky" id="hp-sticky" aria-hidden="true">
+  <div class="hp-sticky-left">
+    <span class="hp-sticky-headline">Up to 30,000 USDT</span>
+    <span class="hp-sticky-sub">Compare 12 exchange bonuses</span>
+  </div>
+  <a href="/bonuses/" class="hp-sticky-btn">Compare Now →</a>
+</div>
+
+<script>
+  const hpSticky = document.getElementById('hp-sticky');
+  if (hpSticky) {
+    let ticking = false;
+    window.addEventListener('scroll', () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          const show = window.scrollY > 480;
+          hpSticky.classList.toggle('hp-sticky--visible', show);
+          hpSticky.setAttribute('aria-hidden', String(!show));
+          ticking = false;
+        });
+        ticking = true;
+      }
+    }, { passive: true });
+  }
+</script>
+
 <style>
   /* ── HERO ─────────────────────────────────────── */
   .hero {
@@ -581,13 +608,92 @@ const siteSchema = {
     .hbc--featured::before { display: none; }
     .how-it-works { grid-template-columns: repeat(2, 1fr); }
   }
+
+  @media (max-width: 768px) {
+    /* extra padding-bottom for sticky CTA bar */
+    :global(body) { padding-bottom: 72px; }
+  }
+
   @media (max-width: 640px) {
-    .hero { padding: 3rem 0 0; }
-    .hero-container { padding-bottom: 2.5rem; }
+    .hero { padding: 2rem 0 0; }
+    .hero-container { padding-bottom: 2rem; }
     .hero-right { grid-template-columns: 1fr; }
-    .hero-title { font-size: 2rem; }
+    .hero-title { font-size: clamp(1.75rem, 7vw, 2.25rem); }
+    .hero-subtitle { font-size: 0.9375rem; }
+    .hero-badge { font-size: 0.7rem; }
+    .hero-ctas { flex-direction: column; }
+    .hero-ctas :global(.cta-btn) { width: 100%; justify-content: center; }
     .hero-stats { gap: 0; }
     .hero-stat { padding: 0 0.875rem; }
+    .hero-stat:first-child { padding-left: 0; }
     .how-it-works { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 400px) {
+    .hero-stats { flex-wrap: nowrap; overflow-x: auto; }
+    .hero-stat { flex-shrink: 0; padding: 0 0.75rem; }
+    .hero-stat-sep { flex-shrink: 0; }
+  }
+
+  /* ── Mobile sticky CTA ── */
+  .hp-sticky {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 150;
+    background: rgba(10, 10, 10, 0.97);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-top: 1px solid var(--color-border);
+    padding: 0.75rem 1rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .hp-sticky--visible {
+    transform: translateY(0);
+  }
+  .hp-sticky-left {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 0;
+  }
+  .hp-sticky-headline {
+    font-size: 0.875rem;
+    font-weight: 800;
+    color: var(--color-accent);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .hp-sticky-sub {
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
+    font-weight: 500;
+  }
+  .hp-sticky-btn {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0.625rem 1.25rem;
+    background: var(--color-accent);
+    color: #000;
+    font-weight: 700;
+    font-size: 0.875rem;
+    border-radius: 10px;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: opacity 0.15s;
+  }
+  .hp-sticky-btn:hover { opacity: 0.88; }
+
+  @media (max-width: 768px) {
+    .hp-sticky { display: flex; }
   }
 </style>

@@ -56,11 +56,13 @@ const { title, description, canonical, schema, noindex } = Astro.props;
 
   *, *::before, *::after {
     box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
   }
 
   html {
     font-size: 16px;
     scroll-behavior: smooth;
+    scroll-padding-top: 64px;
   }
 
   body {
@@ -70,6 +72,15 @@ const { title, description, canonical, schema, noindex } = Astro.props;
     font-family: var(--font-sans);
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 
   .container {
@@ -141,12 +152,18 @@ const { title, description, canonical, schema, noindex } = Astro.props;
   @media (max-width: 768px) {
     .grid-3 { grid-template-columns: repeat(2, 1fr); }
     :root { --container-pad: 1rem; }
+    .page-header { padding: 1.5rem 0 1rem; }
+    .page-header h1 { font-size: clamp(1.4rem, 5.5vw, 2rem); }
   }
 
   @media (max-width: 520px) {
     .grid-2,
     .grid-3,
     .grid-4 { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 375px) {
+    :root { --container-pad: 0.875rem; }
   }
 
   /* Prose */

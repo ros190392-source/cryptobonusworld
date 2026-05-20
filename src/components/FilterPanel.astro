@@ -95,8 +95,11 @@ const {
     gap: 0.375rem;
   }
   .filter-chip {
-    display: inline-block;
-    padding: 0.35rem 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    /* minimum 44px touch target */
+    min-height: 44px;
+    padding: 0.5rem 0.875rem;
     font-size: 0.8rem;
     font-weight: 500;
     color: var(--color-text-secondary);
@@ -116,5 +119,24 @@ const {
     color: #000;
     border-color: var(--color-accent);
     font-weight: 700;
+  }
+
+  /* Mobile: horizontal scroll instead of wrapping */
+  @media (max-width: 640px) {
+    .filter-panel { padding: 1rem; }
+    .filter-chips {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 4px;
+      /* hide scrollbar visually */
+      scrollbar-width: none;
+    }
+    .filter-chips::-webkit-scrollbar { display: none; }
+    .filter-chip {
+      scroll-snap-align: start;
+      flex-shrink: 0;
+    }
   }
 </style>

@@ -639,8 +639,12 @@ const schema = {
     }
   }
 
-  @media (max-width: 640px) {
+  /* Sticky CTA shows at ≤768px — need matching padding */
+  @media (max-width: 768px) {
     .ex-page { padding-bottom: 80px; }
+  }
+
+  @media (max-width: 640px) {
     .bonus-tiers { grid-template-columns: 1fr; }
     .conditions-grid { grid-template-columns: 1fr 1fr; }
   }
