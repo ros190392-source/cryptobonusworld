@@ -7,96 +7,265 @@ interface Props {
 }
 const { requirements, kycRequired, depositRequired, futuresRequired } = Astro.props;
 
-const steps = [
-  { label: 'Register', desc: 'Create your account using the referral link', always: true },
-  { label: 'KYC Verification', desc: 'Submit identity documents', required: kycRequired },
-  { label: 'Make a Deposit', desc: 'Fund your account with qualifying amount', required: depositRequired },
-  { label: 'Trade', desc: 'Complete required trading volume', always: true },
-  { label: 'Futures Trading', desc: 'Trade futures contracts to unlock bonus', required: futuresRequired },
-].filter(s => s.always || s.required);
+const allSteps = [
+  {
+    num: 1,
+    icon: '🔗',
+    label: 'Click Referral Link',
+    desc: 'Use our affiliate link to open the exchange registration page.',
+    always: true,
+  },
+  {
+    num: 2,
+    icon: '📧',
+    label: 'Create Account',
+    desc: 'Register with email or phone. Takes about 2 minutes.',
+    always: true,
+  },
+  {
+    num: 3,
+    icon: '🪪',
+    label: 'KYC Verification',
+    desc: 'Submit a government-issued ID to verify your identity.',
+    required: kycRequired,
+  },
+  {
+    num: 4,
+    icon: '💰',
+    label: 'Make a Deposit',
+    desc: 'Fund your account with the minimum qualifying amount.',
+    required: depositRequired,
+  },
+  {
+    num: 5,
+    icon: '📈',
+    label: 'Start Trading',
+    desc: 'Complete the required trading volume to unlock bonus tiers.',
+    always: true,
+  },
+  {
+    num: 6,
+    icon: '🎁',
+    label: 'Claim Bonus',
+    desc: 'Bonus is credited automatically or via the rewards center.',
+    always: true,
+  },
+];
+
+const steps = allSteps.filter(s => s.always || s.required);
 ---
 
-<div class="requirements-block">
-  <h3 class="req-title">How to Claim This Bonus</h3>
-  <ol class="req-steps">
+<div class="req-block">
+  <h2 class="req-heading">How to Claim This Bonus</h2>
+
+  <div class="req-timeline" style={`--step-count: ${steps.length};`}>
     {steps.map((step, i) => (
-      <li class="req-step">
-        <div class="req-step-num" aria-hidden="true">{i + 1}</div>
-        <div class="req-step-content">
-          <strong>{step.label}</strong>
-          <p>{step.desc}</p>
+      <div class:list={['req-step', i === steps.length - 1 && 'req-step--last']}>
+        <div class="req-step-marker">
+          <div class="req-step-circle">
+            <span class="req-step-num">{i + 1}</span>
+          </div>
+          {i < steps.length - 1 && <div class="req-step-line" aria-hidden="true" />}
         </div>
-      </li>
+        <div class="req-step-body">
+          <div class="req-step-icon" aria-hidden="true">{step.icon}</div>
+          <div class="req-step-text">
+            <strong class="req-step-label">{step.label}</strong>
+            <p class="req-step-desc">{step.desc}</p>
+          </div>
+        </div>
+      </div>
     ))}
-  </ol>
+  </div>
+
   {requirements && (
     <div class="req-note">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
       <p>{requirements}</p>
     </div>
   )}
 </div>
 
 <style>
-  .requirements-block {
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
-    border-radius: 12px;
-    padding: 1.5rem;
-    margin: 1.5rem 0;
+  .req-block {
+    margin: 2rem 0;
   }
-  .req-title {
-    font-size: 1.1rem;
+
+  .req-heading {
+    font-size: 1.25rem;
     font-weight: 700;
-    margin: 0 0 1.25rem;
     color: var(--color-text-primary);
+    margin: 0 0 1.5rem;
   }
-  .req-steps {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+
+  /* Desktop: horizontal timeline */
+  .req-timeline {
+    display: grid;
+    grid-template-columns: repeat(var(--step-count, 5), 1fr);
+    gap: 0;
+    position: relative;
   }
+
   .req-step {
     display: flex;
-    gap: 1rem;
-    align-items: flex-start;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    padding: 0 0.5rem;
   }
-  .req-step-num {
+
+  .req-step-marker {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 0.875rem;
+    position: relative;
+  }
+
+  .req-step-circle {
     flex-shrink: 0;
-    width: 28px;
-    height: 28px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
     background: var(--color-accent);
     color: #000;
-    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
+    z-index: 1;
+    margin: 0 auto;
+    box-shadow: 0 0 12px rgba(245, 197, 66, 0.3);
+  }
+
+  .req-step-num {
     font-size: 0.8rem;
     font-weight: 800;
-    margin-top: 2px;
   }
-  .req-step-content strong {
-    display: block;
-    font-size: 0.9rem;
-    color: var(--color-text-primary);
-    margin-bottom: 0.15rem;
+
+  /* Connecting line between circles */
+  .req-step-line {
+    position: absolute;
+    top: 18px;
+    left: calc(50% + 18px);
+    right: calc(-50% + 18px);
+    height: 2px;
+    background: linear-gradient(90deg, var(--color-accent), var(--color-accent-dim));
+    z-index: 0;
   }
-  .req-step-content p {
+
+  .req-step--last .req-step-line { display: none; }
+
+  .req-step-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.875rem 0.5rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    width: 100%;
+    min-height: 100px;
+    transition: border-color 0.15s;
+  }
+
+  .req-step-body:hover {
+    border-color: var(--color-accent-dim);
+  }
+
+  .req-step-icon {
+    font-size: 1.375rem;
+    line-height: 1;
+  }
+
+  .req-step-label {
     font-size: 0.8rem;
-    color: var(--color-text-secondary);
+    font-weight: 700;
+    color: var(--color-text-primary);
+    display: block;
+    line-height: 1.3;
+  }
+
+  .req-step-desc {
+    font-size: 0.72rem;
+    color: var(--color-text-muted);
     margin: 0;
+    line-height: 1.5;
   }
+
   .req-note {
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--color-border);
+    display: flex;
+    gap: 0.625rem;
+    align-items: flex-start;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    padding: 0.875rem 1rem;
+    margin-top: 1.25rem;
+    color: var(--color-text-muted);
   }
+
+  .req-note svg { flex-shrink: 0; margin-top: 1px; }
+
   .req-note p {
     font-size: 0.8rem;
     color: var(--color-text-muted);
     margin: 0;
     line-height: 1.6;
+  }
+
+  /* Mobile: vertical timeline */
+  @media (max-width: 700px) {
+    .req-timeline {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+
+    .req-step {
+      flex-direction: row;
+      text-align: left;
+      align-items: flex-start;
+      padding: 0;
+      gap: 0.875rem;
+    }
+
+    .req-step-marker {
+      flex-direction: column;
+      align-items: center;
+      width: 36px;
+      flex-shrink: 0;
+      margin-bottom: 0;
+    }
+
+    .req-step-circle { margin: 0; }
+
+    /* Vertical connecting line */
+    .req-step-line {
+      position: static;
+      width: 2px;
+      height: 100%;
+      min-height: 24px;
+      flex: 1;
+      background: linear-gradient(180deg, var(--color-accent), var(--color-accent-dim));
+      margin: 4px 0;
+    }
+
+    .req-step-body {
+      flex-direction: row;
+      align-items: flex-start;
+      text-align: left;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+      min-height: unset;
+      padding: 0.875rem;
+    }
+
+    .req-step-icon {
+      font-size: 1.25rem;
+      flex-shrink: 0;
+    }
   }
 </style>

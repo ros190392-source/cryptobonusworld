@@ -1,14 +1,13 @@
 ---
 import BonusBadge from './BonusBadge.astro';
 import KycBadge from './KycBadge.astro';
-import RatingBadge from './RatingBadge.astro';
 import CTAButton from './CTAButton.astro';
-import LastUpdated from './LastUpdated.astro';
 
 interface Props {
   name: string;
   slug: string;
   rating: number;
+  pageTitle: string;
   bonusTitle: string;
   bonusAmount: number;
   bonusCurrency: string;
@@ -18,171 +17,509 @@ interface Props {
   affiliateUrl: string;
   promoCode: string;
   updatedAt: string;
+  countries: string[];
+  paymentMethods: string[];
 }
 
 const props = Astro.props;
+
+const brandColors: Record<string, string> = {
+  bybit: '#F7A600',
+  mexc: '#0BCDFF',
+  okx: '#EEEEEE',
+  bitget: '#00E5BE',
+  bingx: '#1B78F2',
+  'gate-io': '#2354E6',
+  kucoin: '#24AE8F',
+  htx: '#2856EE',
+  coinex: '#00CFC5',
+  phemex: '#BE79DF',
+  bitunix: '#F97316',
+  lbank: '#3B82F6',
+};
+
+const brand = brandColors[props.slug] ?? '#F5C542';
+
+const ratingFull = Math.floor(props.rating / 2);
+const ratingHalf = (props.rating / 2) % 1 >= 0.5;
+
+const quickFacts = [
+  {
+    icon: '🌍',
+    val: `${props.countries.length} region${props.countries.length !== 1 ? 's' : ''}`,
+    sub: 'Available in',
+  },
+  {
+    icon: props.kycRequired ? '🪪' : '✓',
+    val: props.kycRequired ? 'KYC Required' : 'No KYC',
+    sub: 'Identity',
+    highlight: !props.kycRequired,
+  },
+  {
+    icon: props.depositRequired ? '💰' : '✓',
+    val: props.depositRequired ? 'Deposit Needed' : 'No Deposit',
+    sub: 'Funding',
+    highlight: !props.depositRequired,
+  },
+  {
+    icon: '💳',
+    val: props.paymentMethods.slice(0, 2).map(m => m.toUpperCase()).join(' · '),
+    sub: 'Payment',
+  },
+];
 ---
 
-<div class="exchange-hero">
-  <div class="exchange-hero-left">
-    <div class="exchange-hero-identity">
-      <div class="exchange-hero-logo" aria-hidden="true">
-        {props.name.charAt(0)}
+<div class="exhero" style={`--brand: ${brand};`}>
+  <div class="exhero-glow" aria-hidden="true"></div>
+
+  <div class="exhero-inner">
+    <h1 class="exhero-page-title">{props.pageTitle}</h1>
+
+    <div class="exhero-grid">
+      <!-- Left: identity -->
+      <div class="exhero-left">
+        <div class="exhero-identity">
+          <div class="exhero-logo" aria-hidden="true">
+            <span>{props.name.charAt(0)}</span>
+          </div>
+          <div class="exhero-id-text">
+            <div class="exhero-name">{props.name}</div>
+            <div class="exhero-rating-row">
+              <div class="exhero-stars" aria-label={`Rating ${props.rating} out of 10`}>
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <svg width="13" height="13" viewBox="0 0 24 24"
+                    fill={i < ratingFull ? 'currentColor' : 'none'}
+                    stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                  </svg>
+                ))}
+              </div>
+              <span class="exhero-rating-num">{props.rating}/10</span>
+            </div>
+            <div class="exhero-badges">
+              {props.bonusTypes.map(t => <BonusBadge type={t} />)}
+              <KycBadge required={props.kycRequired} />
+            </div>
+          </div>
+        </div>
+
+        <div class="exhero-trust-row">
+          <span class="exhero-trust-item">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            Licensed Exchange
+          </span>
+          <span class="exhero-trust-item">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            Cold Wallet Storage
+          </span>
+          <span class="exhero-trust-item">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            24/7 Support
+          </span>
+        </div>
       </div>
-      <div>
-        <div class="exchange-hero-name">{props.name}</div>
-        <RatingBadge rating={props.rating} />
+
+      <!-- Right: bonus display + CTA -->
+      <div class="exhero-right">
+        <div class="exhero-bonus-display">
+          <div class="exhero-bonus-eyebrow">Welcome Bonus</div>
+          <div class="exhero-bonus-amount">
+            Up to {props.bonusAmount.toLocaleString()} {props.bonusCurrency}
+          </div>
+          <div class="exhero-bonus-sub">{props.bonusTitle}</div>
+        </div>
+
+        {props.promoCode && (
+          <div class="exhero-promo">
+            <span class="exhero-promo-label">Promo code</span>
+            <button class="exhero-promo-code" data-code={props.promoCode} aria-label={`Copy promo code ${props.promoCode}`}>
+              <span class="exhero-promo-val">{props.promoCode}</span>
+              <span class="exhero-promo-copy">copy</span>
+            </button>
+          </div>
+        )}
+
+        <div class="exhero-ctas">
+          <CTAButton href={props.affiliateUrl} exchange={props.name} size="lg" fullWidth />
+          <CTAButton href="/bonuses/" label="Compare all bonuses" variant="outline" size="md" fullWidth />
+        </div>
+
+        <p class="exhero-updated-note">Last updated: {props.updatedAt} · Affiliate link</p>
       </div>
     </div>
-
-    <div class="exchange-hero-badges">
-      {props.bonusTypes.map(t => <BonusBadge type={t} />)}
-      <KycBadge required={props.kycRequired} />
-    </div>
-
-    <div class="exchange-hero-meta">
-      {props.depositRequired && (
-        <span class="meta-tag">Deposit Required</span>
-      )}
-    </div>
-
-    <LastUpdated date={props.updatedAt} />
   </div>
 
-  <div class="exchange-hero-right">
-    <div class="exchange-hero-bonus">
-      <div class="exchange-hero-bonus-label">Welcome Bonus</div>
-      <div class="exchange-hero-bonus-amount">
-        Up to {props.bonusAmount.toLocaleString()} {props.bonusCurrency}
+  <!-- Quick facts bar -->
+  <div class="exhero-facts">
+    {quickFacts.map(f => (
+      <div class:list={['exhero-fact', f.highlight && 'exhero-fact--highlight']}>
+        <span class="exhero-fact-icon">{f.icon}</span>
+        <div>
+          <div class="exhero-fact-val">{f.val}</div>
+          <div class="exhero-fact-sub">{f.sub}</div>
+        </div>
       </div>
-      <div class="exchange-hero-bonus-title">{props.bonusTitle}</div>
-    </div>
-
-    {props.promoCode && (
-      <div class="exchange-hero-promo">
-        <span class="promo-label">Promo Code:</span>
-        <code class="promo-code">{props.promoCode}</code>
-      </div>
-    )}
-
-    <div class="exchange-hero-ctas">
-      <CTAButton href={props.affiliateUrl} exchange={props.name} size="lg" fullWidth />
-      <CTAButton href="/bonuses/" label="Compare with others" variant="outline" size="md" fullWidth />
-    </div>
+    ))}
   </div>
 </div>
 
+<!-- Mobile sticky CTA bar -->
+<div class="exhero-sticky" id="exhero-sticky">
+  <div class="exhero-sticky-info">
+    <span class="exhero-sticky-name">{props.name}</span>
+    <span class="exhero-sticky-bonus">Up to {props.bonusAmount.toLocaleString()} {props.bonusCurrency}</span>
+  </div>
+  <CTAButton href={props.affiliateUrl} exchange={props.name} size="md" />
+</div>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('.exhero-promo-code').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const code = btn.dataset.code ?? '';
+      await navigator.clipboard.writeText(code).catch(() => {});
+      const val = btn.querySelector('.exhero-promo-val');
+      const copy = btn.querySelector('.exhero-promo-copy');
+      if (val) val.textContent = '✓ Copied!';
+      if (copy) copy.textContent = '';
+      setTimeout(() => {
+        if (val) val.textContent = code;
+        if (copy) copy.textContent = 'copy';
+      }, 2000);
+    });
+  });
+</script>
+
 <style>
-  .exchange-hero {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
+  .exhero {
+    position: relative;
     background: var(--color-bg-secondary);
     border: 1px solid var(--color-border);
-    border-radius: 16px;
-    padding: 2rem;
-    margin: 1.5rem 0;
+    border-radius: 20px;
+    overflow: hidden;
+    margin: 1.25rem 0 2rem;
   }
-  .exchange-hero-left {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+
+  .exhero-glow {
+    position: absolute;
+    top: -80px;
+    right: -80px;
+    width: 440px;
+    height: 440px;
+    background: radial-gradient(
+      circle,
+      color-mix(in srgb, var(--brand) 18%, transparent) 0%,
+      transparent 65%
+    );
+    pointer-events: none;
+    z-index: 0;
   }
-  .exchange-hero-identity {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
+
+  .exhero-inner {
+    position: relative;
+    z-index: 1;
+    padding: 2rem 2rem 1.5rem;
   }
-  .exchange-hero-logo {
-    width: 60px;
-    height: 60px;
-    border-radius: 14px;
-    background: var(--color-bg-tertiary);
-    border: 1px solid var(--color-border);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: var(--color-accent);
-  }
-  .exchange-hero-name {
-    font-size: 1.5rem;
+
+  .exhero-page-title {
+    font-size: 1.35rem;
     font-weight: 800;
     color: var(--color-text-primary);
-    margin-bottom: 0.25rem;
+    margin: 0 0 1.5rem;
+    line-height: 1.3;
+    max-width: 700px;
   }
-  .exchange-hero-badges {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.375rem;
+
+  .exhero-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.5rem;
   }
-  .meta-tag {
-    display: inline-block;
-    font-size: 0.72rem;
-    color: var(--color-text-muted);
-    background: var(--color-bg-tertiary);
-    padding: 0.2rem 0.5rem;
-    border-radius: 4px;
-    border: 1px solid var(--color-border);
-  }
-  .exchange-hero-right {
+
+  /* Left */
+  .exhero-left {
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
+  }
+
+  .exhero-identity {
+    display: flex;
+    gap: 1.25rem;
+    align-items: flex-start;
+  }
+
+  .exhero-logo {
+    flex-shrink: 0;
+    width: 68px;
+    height: 68px;
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--brand) 14%, #111);
+    border: 1.5px solid color-mix(in srgb, var(--brand) 35%, transparent);
+    display: flex;
+    align-items: center;
     justify-content: center;
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: var(--brand);
+    box-shadow: 0 4px 24px color-mix(in srgb, var(--brand) 18%, transparent);
   }
-  .exchange-hero-bonus {
-    background: var(--color-bg-tertiary);
-    border: 1px solid var(--color-border);
-    border-radius: 12px;
+
+  .exhero-id-text { flex: 1; }
+
+  .exhero-name {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: var(--color-text-primary);
+    margin-bottom: 0.3rem;
+    line-height: 1.1;
+  }
+
+  .exhero-rating-row {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.625rem;
+  }
+
+  .exhero-stars {
+    display: flex;
+    gap: 1px;
+    color: var(--color-accent);
+  }
+
+  .exhero-rating-num {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--color-accent);
+  }
+
+  .exhero-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+  }
+
+  .exhero-trust-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .exhero-trust-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #4ade80;
+    background: rgba(74, 222, 128, 0.08);
+    border: 1px solid rgba(74, 222, 128, 0.18);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+  }
+
+  /* Right */
+  .exhero-right {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .exhero-bonus-display {
     padding: 1.25rem;
-    text-align: center;
+    background: color-mix(in srgb, var(--brand) 5%, var(--color-bg-tertiary));
+    border: 1px solid color-mix(in srgb, var(--brand) 20%, var(--color-border));
+    border-radius: 14px;
   }
-  .exchange-hero-bonus-label {
-    font-size: 0.75rem;
+
+  .exhero-bonus-eyebrow {
+    font-size: 0.68rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.1em;
     color: var(--color-text-muted);
     margin-bottom: 0.375rem;
   }
-  .exchange-hero-bonus-amount {
-    font-size: 2rem;
-    font-weight: 800;
+
+  .exhero-bonus-amount {
+    font-size: 2.25rem;
+    font-weight: 900;
     color: var(--color-accent);
-    line-height: 1.1;
-    margin-bottom: 0.25rem;
+    line-height: 1;
+    margin-bottom: 0.375rem;
+    text-shadow: 0 0 28px rgba(245, 197, 66, 0.28);
   }
-  .exchange-hero-bonus-title {
+
+  .exhero-bonus-sub {
     font-size: 0.8rem;
-    color: var(--color-text-muted);
+    color: var(--color-text-secondary);
   }
-  .exchange-hero-promo {
+
+  .exhero-promo {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    justify-content: center;
+    gap: 0.625rem;
+    flex-wrap: wrap;
   }
-  .promo-label { font-size: 0.8rem; color: var(--color-text-muted); }
-  .promo-code {
+
+  .exhero-promo-label {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+
+  .exhero-promo-code {
+    display: inline-flex;
+    align-items: center;
+    gap: 0;
     font-family: monospace;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
     font-weight: 700;
     color: var(--color-accent);
-    background: var(--color-bg-tertiary);
-    padding: 0.25rem 0.625rem;
-    border-radius: 6px;
+    background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+    padding: 0.3rem 0;
+    border-radius: 8px;
     border: 1px dashed var(--color-accent-dim);
+    cursor: pointer;
+    transition: background 0.15s;
+    overflow: hidden;
   }
-  .exchange-hero-ctas {
+
+  .exhero-promo-code:hover {
+    background: color-mix(in srgb, var(--color-accent) 14%, transparent);
+  }
+
+  .exhero-promo-val {
+    padding: 0 0.75rem;
+  }
+
+  .exhero-promo-copy {
+    font-size: 0.62rem;
+    font-family: sans-serif;
+    font-weight: 700;
+    color: #000;
+    background: var(--color-accent);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.3rem 0.5rem;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    transition: opacity 0.15s;
+  }
+
+  .exhero-ctas {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
   }
-  @media (max-width: 640px) {
-    .exchange-hero {
+
+  .exhero-updated-note {
+    font-size: 0.68rem;
+    color: var(--color-text-muted);
+    margin: 0;
+    text-align: center;
+  }
+
+  /* Quick facts bar */
+  .exhero-facts {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-top: 1px solid var(--color-border);
+    background: color-mix(in srgb, var(--brand) 4%, var(--color-bg-tertiary));
+  }
+
+  .exhero-fact {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.875rem 1.25rem;
+    border-right: 1px solid var(--color-border);
+    transition: background 0.15s;
+  }
+
+  .exhero-fact:last-child { border-right: none; }
+
+  .exhero-fact--highlight .exhero-fact-val {
+    color: #4ade80;
+  }
+
+  .exhero-fact-icon { font-size: 1.1rem; line-height: 1; }
+
+  .exhero-fact-val {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    line-height: 1.2;
+  }
+
+  .exhero-fact-sub {
+    font-size: 0.66rem;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 1px;
+  }
+
+  /* Mobile sticky CTA */
+  .exhero-sticky {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 200;
+    background: rgba(10, 10, 10, 0.96);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-top: 1px solid var(--color-border);
+    padding: 0.75rem 1rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .exhero-sticky-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .exhero-sticky-name {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .exhero-sticky-bonus {
+    font-size: 0.72rem;
+    color: var(--color-accent);
+    font-weight: 600;
+  }
+
+  @media (max-width: 860px) {
+    .exhero-grid {
       grid-template-columns: 1fr;
+      gap: 1.5rem;
     }
+    .exhero-page-title { font-size: 1.15rem; }
+    .exhero-bonus-amount { font-size: 1.875rem; }
+  }
+
+  @media (max-width: 640px) {
+    .exhero-inner { padding: 1.25rem 1.25rem 1rem; }
+    .exhero-facts { grid-template-columns: repeat(2, 1fr); }
+    .exhero-fact:nth-child(2) { border-right: none; }
+    .exhero-fact:nth-child(3) { border-top: 1px solid var(--color-border); }
+    .exhero-fact:nth-child(4) { border-top: 1px solid var(--color-border); border-right: none; }
+    .exhero-sticky { display: flex; }
   }
 </style>

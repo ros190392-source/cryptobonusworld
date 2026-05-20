@@ -6,13 +6,11 @@ import BonusBadge from '../../components/BonusBadge.astro';
 import ProsConsBlock from '../../components/ProsConsBlock.astro';
 import RequirementsBlock from '../../components/RequirementsBlock.astro';
 import CountryAvailability from '../../components/CountryAvailability.astro';
-import PromoCodeBox from '../../components/PromoCodeBox.astro';
 import AlternativesBlock from '../../components/AlternativesBlock.astro';
 import FAQBlock from '../../components/FAQBlock.astro';
 import RiskDisclaimer from '../../components/RiskDisclaimer.astro';
 import AffiliateDisclosure from '../../components/AffiliateDisclosure.astro';
 import CTAButton from '../../components/CTAButton.astro';
-import LastUpdated from '../../components/LastUpdated.astro';
 
 import exchanges from '../../data/exchanges.json';
 
@@ -25,9 +23,92 @@ export async function getStaticPaths() {
 
 const { exchange: ex } = Astro.props;
 
+const pageTitle = `${ex.name} Bonus 2026: ${ex.bonusTitle}`;
+
+// Bonus type definitions for the breakdown section
+const bonusTypeDefs: Record<string, { icon: string; title: string; desc: string }> = {
+  signup: {
+    icon: '🎉',
+    title: 'Signup Bonus',
+    desc: 'Earn a reward just for registering your account using our referral link.',
+  },
+  deposit: {
+    icon: '💰',
+    title: 'Deposit Bonus',
+    desc: 'Make a qualifying deposit and receive a bonus on top of your funds.',
+  },
+  futures: {
+    icon: '📈',
+    title: 'Futures Bonus',
+    desc: 'Unlock additional rewards by trading futures contracts on the platform.',
+  },
+  'no-deposit': {
+    icon: '✨',
+    title: 'No Deposit Bonus',
+    desc: 'Claim a bonus without needing to fund your account first.',
+  },
+  'trading-rewards': {
+    icon: '🏆',
+    title: 'Trading Rewards',
+    desc: 'Earn rewards based on your trading volume milestones.',
+  },
+  referral: {
+    icon: '👥',
+    title: 'Referral Bonus',
+    desc: 'Invite friends and earn a share of their trading fees.',
+  },
+  welcome: {
+    icon: '🎊',
+    title: 'Welcome Package',
+    desc: 'A bundled welcome offer combining multiple bonus types into one package.',
+  },
+};
+
+const activeBonusTiers = ex.bonusTypes
+  .map(t => bonusTypeDefs[t])
+  .filter(Boolean);
+
+// Conditions data for icon grid
+const conditions = [
+  {
+    icon: '💰',
+    label: 'Max Bonus',
+    value: `${ex.bonusAmount.toLocaleString()} ${ex.bonusCurrency}`,
+    highlight: true,
+  },
+  {
+    icon: '🪪',
+    label: 'KYC Required',
+    value: ex.kycRequired ? 'Yes — ID verification' : 'No KYC needed',
+    ok: !ex.kycRequired,
+  },
+  {
+    icon: '🏦',
+    label: 'Deposit Required',
+    value: ex.depositRequired ? 'Minimum deposit required' : 'No deposit needed',
+    ok: !ex.depositRequired,
+  },
+  {
+    icon: '📈',
+    label: 'Futures Trading',
+    value: ex.futuresRequired ? 'Required for full bonus' : 'Not required',
+    ok: !ex.futuresRequired,
+  },
+  {
+    icon: '💳',
+    label: 'Payment Methods',
+    value: ex.paymentMethods.join(', '),
+  },
+  {
+    icon: '🏷️',
+    label: 'Promo Code',
+    value: ex.promoCode || 'None required',
+  },
+];
+
 const faqItems = [
   {
-    question: `Is ${ex.name} bonus legitimate?`,
+    question: `Is the ${ex.name} bonus legitimate?`,
     answer: `${ex.name} is a registered crypto exchange. Their bonus promotion is available to eligible new users. As with all crypto exchange promotions, conditions apply including${ex.kycRequired ? ' KYC verification,' : ''} ${ex.depositRequired ? 'minimum deposit,' : ''} and trading volume requirements. Always verify current terms on the official ${ex.name} website.`,
   },
   {
@@ -44,53 +125,53 @@ const faqItems = [
       ? `Yes, ${ex.name} requires identity verification (KYC) to access the full welcome bonus. You will need to submit a government-issued ID.`
       : `${ex.name} does not require full KYC verification for basic account access and initial bonus eligibility. However, non-KYC accounts may have withdrawal limits.`,
   },
+  {
+    question: `How long does the ${ex.name} bonus last?`,
+    answer: `${ex.name} bonus promotions typically have a limited validity window after registration. You must complete the required steps — including deposits or trading volume — within the specified timeframe. Check the official promotion page for exact expiry details.`,
+  },
 ];
 
 const schema = {
-  "@context": "https://schema.org",
-  "@type": "Product",
-  "name": `${ex.name} Welcome Bonus`,
-  "description": ex.shortDescription,
-  "url": `https://cryptobonusworld.com/exchanges/${ex.slug}/`,
-  "offers": {
-    "@type": "Offer",
-    "description": ex.bonusTitle,
-    "priceCurrency": ex.bonusCurrency,
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  name: `${ex.name} Welcome Bonus`,
+  description: ex.shortDescription,
+  url: `https://cryptobonusworld.com/exchanges/${ex.slug}/`,
+  offers: {
+    '@type': 'Offer',
+    description: ex.bonusTitle,
+    priceCurrency: ex.bonusCurrency,
   },
-  "aggregateRating": {
-    "@type": "AggregateRating",
-    "ratingValue": ex.rating,
-    "bestRating": 10,
-    "ratingCount": 1,
+  aggregateRating: {
+    '@type': 'AggregateRating',
+    ratingValue: ex.rating,
+    bestRating: 10,
+    ratingCount: 1,
   },
 };
 ---
 
 <Layout
-  title={`${ex.name} Bonus 2026: ${ex.bonusTitle} — Claim Guide`}
+  title={`${pageTitle} — Claim Guide`}
   description={`${ex.name} welcome bonus: ${ex.bonusTitle}. Learn the conditions, KYC requirements, country availability and how to claim. Updated ${ex.updatedAt}.`}
   canonical={`/exchanges/${ex.slug}/`}
   schema={schema}
 >
-  <div class="container">
+  <div class="container ex-page">
     <Breadcrumbs crumbs={[
       { label: 'Home', href: '/' },
       { label: 'Exchanges', href: '/exchanges/' },
       { label: ex.name },
     ]} />
 
-    <div class="page-header">
-      <h1>{ex.name} Bonus 2026: {ex.bonusTitle}</h1>
-      <p class="lead">{ex.shortDescription}</p>
-      <LastUpdated date={ex.updatedAt} />
-    </div>
-
     <AffiliateDisclosure compact />
 
+    <!-- Full-width hero with h1 -->
     <ExchangeHero
       name={ex.name}
       slug={ex.slug}
       rating={ex.rating}
+      pageTitle={pageTitle}
       bonusTitle={ex.bonusTitle}
       bonusAmount={ex.bonusAmount}
       bonusCurrency={ex.bonusCurrency}
@@ -100,159 +181,471 @@ const schema = {
       affiliateUrl={ex.affiliateUrl}
       promoCode={ex.promoCode}
       updatedAt={ex.updatedAt}
+      countries={ex.countries}
+      paymentMethods={ex.paymentMethods}
     />
 
-    {ex.promoCode && (
-      <PromoCodeBox code={ex.promoCode} exchange={ex.name} />
-    )}
+    <!-- Two-column layout: main content + sticky sidebar -->
+    <div class="ex-layout">
 
-    <!-- Key Conditions Table -->
-    <section class="section">
-      <h2>Key Bonus Conditions</h2>
-      <div class="conditions-table-wrap">
-        <table class="conditions-table">
-          <tbody>
-            <tr>
-              <th scope="row">Bonus Amount</th>
-              <td>Up to {ex.bonusAmount.toLocaleString()} {ex.bonusCurrency}</td>
-            </tr>
-            <tr>
-              <th scope="row">Bonus Title</th>
-              <td>{ex.bonusTitle}</td>
-            </tr>
-            <tr>
-              <th scope="row">Bonus Types</th>
-              <td>
-                <div class="badge-group">
-                  {ex.bonusTypes.map(t => <BonusBadge type={t} />)}
+      <!-- ── MAIN CONTENT ── -->
+      <div class="ex-main">
+
+        <!-- Bonus types breakdown -->
+        {activeBonusTiers.length > 0 && (
+          <section class="ex-section">
+            <h2 class="ex-section-title">What's Included in This Bonus</h2>
+            <div class="bonus-tiers">
+              {activeBonusTiers.map(tier => (
+                <div class="bonus-tier">
+                  <div class="bonus-tier-icon">{tier.icon}</div>
+                  <div>
+                    <div class="bonus-tier-title">{tier.title}</div>
+                    <div class="bonus-tier-desc">{tier.desc}</div>
+                  </div>
                 </div>
-              </td>
-            </tr>
-            <tr>
-              <th scope="row">KYC Required</th>
-              <td>{ex.kycRequired ? 'Yes' : 'No'}</td>
-            </tr>
-            <tr>
-              <th scope="row">Deposit Required</th>
-              <td>{ex.depositRequired ? 'Yes' : 'No'}</td>
-            </tr>
-            <tr>
-              <th scope="row">Futures Trading Required</th>
-              <td>{ex.futuresRequired ? 'Yes' : 'No'}</td>
-            </tr>
-            <tr>
-              <th scope="row">Promo Code</th>
-              <td>{ex.promoCode || 'None required'}</td>
-            </tr>
-            <tr>
-              <th scope="row">Payment Methods</th>
-              <td>{ex.paymentMethods.join(', ')}</td>
-            </tr>
-            <tr>
-              <th scope="row">Last Updated</th>
-              <td><LastUpdated date={ex.updatedAt} /></td>
-            </tr>
-          </tbody>
-        </table>
+              ))}
+            </div>
+          </section>
+        )}
+
+        <!-- Key conditions — icon grid -->
+        <section class="ex-section">
+          <h2 class="ex-section-title">Key Bonus Conditions</h2>
+          <div class="conditions-grid">
+            {conditions.map(c => (
+              <div class:list={['cond-card', c.highlight && 'cond-card--highlight', c.ok === true && 'cond-card--ok', c.ok === false && 'cond-card--warn']}>
+                <span class="cond-icon">{c.icon}</span>
+                <div>
+                  <div class="cond-label">{c.label}</div>
+                  <div class="cond-value">{c.value}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {ex.bonusTypes.length > 0 && (
+            <div class="cond-bonus-types">
+              <span class="cond-types-label">Bonus types:</span>
+              {ex.bonusTypes.map(t => <BonusBadge type={t} />)}
+            </div>
+          )}
+        </section>
+
+        <!-- How to claim — timeline -->
+        <RequirementsBlock
+          requirements={ex.requirements}
+          kycRequired={ex.kycRequired}
+          depositRequired={ex.depositRequired}
+          futuresRequired={ex.futuresRequired}
+        />
+
+        <!-- About exchange -->
+        <section class="ex-section">
+          <h2 class="ex-section-title">About {ex.name}</h2>
+          <p class="ex-prose">{ex.longDescription}</p>
+        </section>
+
+        <!-- Pros & Cons -->
+        <section class="ex-section">
+          <h2 class="ex-section-title">Pros & Cons</h2>
+          <ProsConsBlock pros={ex.pros} cons={ex.cons} />
+        </section>
+
+        <!-- Country availability -->
+        <section class="ex-section">
+          <h2 class="ex-section-title">Country Availability</h2>
+          <CountryAvailability countries={ex.countries} excludedCountries={ex.excludedCountries} />
+        </section>
+
+        <!-- FAQ -->
+        <FAQBlock items={faqItems} title={`${ex.name} Bonus — FAQ`} />
+
       </div>
-    </section>
 
-    <!-- Requirements -->
-    <RequirementsBlock
-      requirements={ex.requirements}
-      kycRequired={ex.kycRequired}
-      depositRequired={ex.depositRequired}
-      futuresRequired={ex.futuresRequired}
-    />
+      <!-- ── STICKY SIDEBAR ── -->
+      <aside class="ex-sidebar">
+        <div class="sidebar-card">
+          <div class="sidebar-label">Bonus Summary</div>
+          <div class="sidebar-amount">
+            Up to {ex.bonusAmount.toLocaleString()} {ex.bonusCurrency}
+          </div>
+          <div class="sidebar-title">{ex.bonusTitle}</div>
 
-    <!-- About Exchange -->
-    <section class="section prose">
-      <h2>About {ex.name}</h2>
-      <p>{ex.longDescription}</p>
-    </section>
+          <div class="sidebar-stats">
+            <div class:list={['sidebar-stat', !ex.kycRequired && 'sidebar-stat--ok']}>
+              <span class="sidebar-stat-icon">{ex.kycRequired ? '🪪' : '✓'}</span>
+              <span>{ex.kycRequired ? 'KYC Required' : 'No KYC'}</span>
+            </div>
+            <div class:list={['sidebar-stat', !ex.depositRequired && 'sidebar-stat--ok']}>
+              <span class="sidebar-stat-icon">{ex.depositRequired ? '💰' : '✓'}</span>
+              <span>{ex.depositRequired ? 'Deposit Required' : 'No Deposit'}</span>
+            </div>
+            <div class="sidebar-stat">
+              <span class="sidebar-stat-icon">⭐</span>
+              <span>Rating: {ex.rating}/10</span>
+            </div>
+          </div>
 
-    <!-- Pros & Cons -->
-    <ProsConsBlock pros={ex.pros} cons={ex.cons} />
+          {ex.promoCode && (
+            <div class="sidebar-promo">
+              <div class="sidebar-promo-label">Promo code</div>
+              <div class="sidebar-promo-val">{ex.promoCode}</div>
+            </div>
+          )}
 
-    <!-- Country Availability -->
-    <section class="section">
-      <h2>Country Availability</h2>
-      <CountryAvailability countries={ex.countries} excludedCountries={ex.excludedCountries} />
-    </section>
+          <div class="sidebar-cta">
+            <CTAButton href={ex.affiliateUrl} exchange={ex.name} size="lg" fullWidth />
+          </div>
 
-    <!-- CTA Block -->
-    <div class="cta-block">
-      <div class="cta-block-content">
-        <h3>Ready to claim the {ex.name} bonus?</h3>
-        <p>{ex.riskNotes}</p>
-        <CTAButton href={ex.affiliateUrl} exchange={ex.name} size="lg" />
-      </div>
+          {ex.termsUrl && (
+            <a href={ex.termsUrl} target="_blank" rel="noopener noreferrer nofollow" class="sidebar-terms">
+              View official terms ↗
+            </a>
+          )}
+
+          <p class="sidebar-risk">{ex.riskNotes}</p>
+        </div>
+
+        <!-- Trust block -->
+        <div class="sidebar-trust">
+          <div class="sidebar-trust-title">Why we list this exchange</div>
+          <ul class="sidebar-trust-list">
+            <li>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+              Established platform with track record
+            </li>
+            <li>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+              Cold storage asset protection
+            </li>
+            <li>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+              Verified bonus conditions
+            </li>
+            <li>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+              Available in {ex.countries.length}+ regions
+            </li>
+          </ul>
+        </div>
+      </aside>
+
     </div>
 
-    <!-- Alternatives -->
+    <!-- Full-width sections below two-column -->
     <AlternativesBlock currentSlug={ex.slug} exchanges={exchanges} />
-
-    <!-- FAQ -->
-    <FAQBlock items={faqItems} title={`${ex.name} Bonus — FAQ`} />
 
     <RiskDisclaimer />
   </div>
 </Layout>
 
 <style>
-  .section { margin: 2rem 0; }
-  .section h2 {
-    font-size: 1.3rem;
+  .ex-page {
+    padding-bottom: 2rem;
+  }
+
+  /* Two-column layout */
+  .ex-layout {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 2rem;
+    align-items: start;
+    margin-top: 0.5rem;
+  }
+
+  /* Sidebar */
+  .ex-sidebar {
+    position: sticky;
+    top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .sidebar-card {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .sidebar-label {
+    font-size: 0.68rem;
     font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-text-muted);
+  }
+
+  .sidebar-amount {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: var(--color-accent);
+    line-height: 1;
+  }
+
+  .sidebar-title {
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+    margin-top: -0.5rem;
+  }
+
+  .sidebar-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.875rem;
+    background: var(--color-bg-tertiary);
+    border-radius: 10px;
+    border: 1px solid var(--color-border);
+  }
+
+  .sidebar-stat {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+    font-weight: 500;
+  }
+
+  .sidebar-stat--ok { color: #4ade80; }
+
+  .sidebar-stat-icon { font-size: 0.875rem; }
+
+  .sidebar-promo {
+    background: rgba(245, 197, 66, 0.06);
+    border: 1px dashed var(--color-accent-dim);
+    border-radius: 8px;
+    padding: 0.75rem;
+    text-align: center;
+  }
+
+  .sidebar-promo-label {
+    font-size: 0.68rem;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+
+  .sidebar-promo-val {
+    font-family: monospace;
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--color-accent);
+    letter-spacing: 0.05em;
+  }
+
+  .sidebar-cta { margin-top: 0.25rem; }
+
+  .sidebar-terms {
+    display: block;
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    text-decoration: none;
+    transition: color 0.15s;
+    margin-top: -0.25rem;
+  }
+
+  .sidebar-terms:hover { color: var(--color-accent); }
+
+  .sidebar-risk {
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
+    margin: 0;
+    line-height: 1.5;
+    padding-top: 0.625rem;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .sidebar-trust {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    padding: 1.25rem;
+  }
+
+  .sidebar-trust-title {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .sidebar-trust-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .sidebar-trust-list li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.78rem;
+    color: var(--color-text-secondary);
+  }
+
+  .sidebar-trust-list svg { color: #4ade80; flex-shrink: 0; }
+
+  /* Section styles */
+  .ex-section { margin-bottom: 2rem; }
+
+  .ex-section-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
     margin: 0 0 1rem;
+  }
+
+  .ex-prose {
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    line-height: 1.75;
+    margin: 0;
+  }
+
+  /* Bonus tiers */
+  .bonus-tiers {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.875rem;
+  }
+
+  .bonus-tier {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+    padding: 1rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    transition: border-color 0.15s;
+  }
+
+  .bonus-tier:hover { border-color: var(--color-accent-dim); }
+
+  .bonus-tier-icon {
+    font-size: 1.5rem;
+    line-height: 1;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .bonus-tier-title {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: 0.25rem;
+  }
+
+  .bonus-tier-desc {
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    line-height: 1.5;
+  }
+
+  /* Conditions grid */
+  .conditions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .cond-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+  }
+
+  .cond-card--highlight {
+    border-color: var(--color-accent-dim);
+    background: rgba(245, 197, 66, 0.04);
+  }
+
+  .cond-card--ok {
+    border-color: rgba(74, 222, 128, 0.25);
+  }
+
+  .cond-card--warn {
+    border-color: rgba(248, 113, 113, 0.2);
+  }
+
+  .cond-icon { font-size: 1.1rem; margin-top: 1px; }
+
+  .cond-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+    margin-bottom: 0.2rem;
+  }
+
+  .cond-value {
+    font-size: 0.85rem;
+    font-weight: 600;
     color: var(--color-text-primary);
   }
 
-  .conditions-table-wrap {
-    border-radius: 10px;
-    border: 1px solid var(--color-border);
-    overflow: hidden;
-  }
-  .conditions-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.875rem;
-  }
-  .conditions-table tr { border-bottom: 1px solid var(--color-border); }
-  .conditions-table tr:last-child { border-bottom: none; }
-  .conditions-table tr:nth-child(even) { background: var(--color-bg-tertiary); }
-  .conditions-table th {
-    padding: 0.75rem 1rem;
-    text-align: left;
-    font-weight: 600;
-    color: var(--color-text-muted);
-    width: 40%;
-    font-size: 0.8rem;
-    background: var(--color-bg-secondary);
-  }
-  .conditions-table td {
-    padding: 0.75rem 1rem;
-    color: var(--color-text-secondary);
-  }
-  .badge-group { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+  .cond-card--ok .cond-value { color: #4ade80; }
+  .cond-card--warn .cond-value { color: #f87171; }
+  .cond-card--highlight .cond-value { color: var(--color-accent); }
 
-  .cta-block {
-    background: linear-gradient(135deg, #1a1a0a 0%, #111111 100%);
-    border: 1px solid var(--color-accent-dim);
-    border-radius: 16px;
-    padding: 2rem;
-    text-align: center;
-    margin: 2rem 0;
+  .cond-bonus-types {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
   }
-  .cta-block h3 {
-    font-size: 1.3rem;
-    font-weight: 800;
-    margin: 0 0 0.5rem;
-  }
-  .cta-block p {
-    font-size: 0.8rem;
+
+  .cond-types-label {
+    font-size: 0.75rem;
     color: var(--color-text-muted);
-    margin: 0 auto 1.25rem;
-    max-width: 480px;
+    font-weight: 600;
+  }
+
+  /* Mobile: stack layout, pad bottom for sticky CTA */
+  @media (max-width: 960px) {
+    .ex-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .ex-sidebar {
+      position: static;
+      order: -1;
+    }
+
+    .sidebar-card {
+      border-left: 3px solid var(--color-accent);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .ex-page { padding-bottom: 80px; }
+    .bonus-tiers { grid-template-columns: 1fr; }
+    .conditions-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  @media (max-width: 400px) {
+    .conditions-grid { grid-template-columns: 1fr; }
   }
 </style>

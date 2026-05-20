@@ -1,6 +1,5 @@
 ---
 import CTAButton from './CTAButton.astro';
-import RatingBadge from './RatingBadge.astro';
 
 interface Exchange {
   name: string;
@@ -10,6 +9,8 @@ interface Exchange {
   bonusAmount: number;
   bonusCurrency: string;
   affiliateUrl: string;
+  kycRequired: boolean;
+  depositRequired: boolean;
 }
 
 interface Props {
@@ -20,104 +21,242 @@ interface Props {
 
 const { currentSlug, exchanges, count = 3 } = Astro.props;
 const alternatives = exchanges.filter(e => e.slug !== currentSlug).slice(0, count);
+
+const brandColors: Record<string, string> = {
+  bybit: '#F7A600',
+  mexc: '#0BCDFF',
+  okx: '#EEEEEE',
+  bitget: '#00E5BE',
+  bingx: '#1B78F2',
+  'gate-io': '#2354E6',
+  kucoin: '#24AE8F',
+  htx: '#2856EE',
+  coinex: '#00CFC5',
+  phemex: '#BE79DF',
+  bitunix: '#F97316',
+  lbank: '#3B82F6',
+};
 ---
 
-<div class="alternatives-block">
-  <h3 class="alt-title">Compare with Other Exchanges</h3>
-  <div class="alt-list">
-    {alternatives.map(ex => (
-      <div class="alt-item">
-        <div class="alt-logo" aria-hidden="true">{ex.name.charAt(0)}</div>
-        <div class="alt-info">
-          <a href={`/exchanges/${ex.slug}/`} class="alt-name">{ex.name}</a>
-          <span class="alt-bonus">Up to {ex.bonusAmount.toLocaleString()} {ex.bonusCurrency}</span>
-        </div>
-        <div class="alt-actions">
-          <RatingBadge rating={ex.rating} />
-          <CTAButton href={ex.affiliateUrl} exchange={ex.name} size="sm" />
-        </div>
-      </div>
-    ))}
+<div class="alt-block">
+  <div class="alt-header">
+    <h2 class="alt-title">Compare Other Top Bonuses</h2>
+    <a href="/bonuses/" class="alt-see-all">View all exchanges →</a>
   </div>
-  <a href="/bonuses/" class="alt-view-all">View all exchanges →</a>
+
+  <div class="alt-grid">
+    {alternatives.map(ex => {
+      const brand = brandColors[ex.slug] ?? '#F5C542';
+      const tags = [];
+      if (!ex.kycRequired) tags.push('No KYC');
+      if (!ex.depositRequired) tags.push('No Deposit');
+      return (
+        <div class="alt-card" style={`--brand: ${brand};`}>
+          <div class="alt-card-glow" aria-hidden="true" />
+
+          <div class="alt-card-top">
+            <div class="alt-logo" aria-hidden="true">
+              {ex.name.charAt(0)}
+            </div>
+            <div class="alt-info">
+              <a href={`/exchanges/${ex.slug}/`} class="alt-name">{ex.name}</a>
+              <div class="alt-rating">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                <span>{ex.rating}/10</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="alt-bonus-amount">
+            Up to {ex.bonusAmount.toLocaleString()} {ex.bonusCurrency}
+          </div>
+          <div class="alt-bonus-title">{ex.bonusTitle}</div>
+
+          {tags.length > 0 && (
+            <div class="alt-tags">
+              {tags.map(t => <span class="alt-tag">{t}</span>)}
+            </div>
+          )}
+
+          <div class="alt-cta">
+            <CTAButton href={ex.affiliateUrl} exchange={ex.name} size="sm" fullWidth />
+          </div>
+
+          <a href={`/exchanges/${ex.slug}/`} class="alt-details-link">View full review →</a>
+        </div>
+      );
+    })}
+  </div>
 </div>
 
 <style>
-  .alternatives-block {
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
-    border-radius: 12px;
-    padding: 1.5rem;
-    margin: 1.5rem 0;
+  .alt-block { margin: 2.5rem 0; }
+
+  .alt-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+    gap: 1rem;
   }
+
   .alt-title {
-    font-size: 1.1rem;
+    font-size: 1.25rem;
     font-weight: 700;
-    margin: 0 0 1.25rem;
     color: var(--color-text-primary);
+    margin: 0;
   }
-  .alt-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-  .alt-item {
-    display: flex;
-    align-items: center;
-    gap: 0.875rem;
-    padding: 0.75rem;
-    background: var(--color-bg-tertiary);
-    border-radius: 8px;
-    border: 1px solid var(--color-border);
-  }
-  .alt-logo {
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.875rem;
-    font-weight: 800;
-    color: var(--color-accent);
-    flex-shrink: 0;
-  }
-  .alt-info {
-    flex: 1;
-    min-width: 0;
-  }
-  .alt-name {
-    display: block;
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--color-text-primary);
-    text-decoration: none;
-    transition: color 0.15s;
-  }
-  .alt-name:hover { color: var(--color-accent); }
-  .alt-bonus {
-    display: block;
-    font-size: 0.75rem;
-    color: var(--color-accent);
-    font-weight: 600;
-  }
-  .alt-actions {
-    display: flex;
-    align-items: center;
-    gap: 0.625rem;
-    flex-shrink: 0;
-  }
-  .alt-view-all {
-    display: block;
-    text-align: center;
-    margin-top: 1rem;
+
+  .alt-see-all {
     font-size: 0.85rem;
     color: var(--color-accent);
     text-decoration: none;
     font-weight: 600;
+    white-space: nowrap;
     transition: opacity 0.15s;
   }
-  .alt-view-all:hover { opacity: 0.8; }
+
+  .alt-see-all:hover { opacity: 0.8; }
+
+  .alt-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  .alt-card {
+    position: relative;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    padding: 1.25rem;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    transition: border-color 0.2s, transform 0.15s;
+  }
+
+  .alt-card:hover {
+    border-color: color-mix(in srgb, var(--brand) 40%, var(--color-border));
+    transform: translateY(-2px);
+  }
+
+  .alt-card-glow {
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    width: 160px;
+    height: 160px;
+    background: radial-gradient(
+      circle,
+      color-mix(in srgb, var(--brand) 14%, transparent) 0%,
+      transparent 65%
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .alt-card-top {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .alt-logo {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--brand) 14%, #111);
+    border: 1px solid color-mix(in srgb, var(--brand) 30%, transparent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: 900;
+    color: var(--brand);
+  }
+
+  .alt-info { flex: 1; min-width: 0; }
+
+  .alt-name {
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    text-decoration: none;
+    transition: color 0.15s;
+    margin-bottom: 0.15rem;
+  }
+
+  .alt-name:hover { color: var(--color-accent); }
+
+  .alt-rating {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-accent);
+  }
+
+  .alt-bonus-amount {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--color-accent);
+    position: relative;
+    z-index: 1;
+  }
+
+  .alt-bonus-title {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    margin-top: -0.5rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .alt-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .alt-tag {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #4ade80;
+    background: rgba(74, 222, 128, 0.08);
+    border: 1px solid rgba(74, 222, 128, 0.2);
+    padding: 0.15rem 0.45rem;
+    border-radius: 4px;
+  }
+
+  .alt-cta {
+    position: relative;
+    z-index: 1;
+    margin-top: auto;
+  }
+
+  .alt-details-link {
+    font-size: 0.72rem;
+    color: var(--color-text-muted);
+    text-decoration: none;
+    text-align: center;
+    display: block;
+    transition: color 0.15s;
+    position: relative;
+    z-index: 1;
+  }
+
+  .alt-details-link:hover { color: var(--color-accent); }
+
+  @media (max-width: 700px) {
+    .alt-grid { grid-template-columns: 1fr; }
+  }
 </style>
