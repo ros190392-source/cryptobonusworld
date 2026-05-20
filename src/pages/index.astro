@@ -1,0 +1,300 @@
+---
+import Layout from '../layouts/Layout.astro';
+import BonusTable from '../components/BonusTable.astro';
+import ExchangeCard from '../components/ExchangeCard.astro';
+import FilterPanel from '../components/FilterPanel.astro';
+import CategoryCard from '../components/CategoryCard.astro';
+import CountryCard from '../components/CountryCard.astro';
+import FAQBlock from '../components/FAQBlock.astro';
+import RiskDisclaimer from '../components/RiskDisclaimer.astro';
+import AffiliateDisclosure from '../components/AffiliateDisclosure.astro';
+import CTAButton from '../components/CTAButton.astro';
+import MethodologyBlock from '../components/MethodologyBlock.astro';
+
+import exchanges from '../data/exchanges.json';
+import categories from '../data/categories.json';
+import countries from '../data/countries.json';
+
+const topExchanges = [...exchanges].sort((a, b) => b.rating - a.rating).slice(0, 5);
+
+const faqItems = [
+  {
+    question: "What is a crypto exchange bonus?",
+    answer: "A crypto exchange bonus is a promotional reward offered by a crypto exchange when you register, deposit or start trading — often through an affiliate or referral link. Bonuses may include cash rewards, trading fee vouchers or deposit match promotions.",
+  },
+  {
+    question: "Are crypto bonuses free money?",
+    answer: "No. Crypto bonuses are promotional rewards that come with conditions. Most require KYC verification, a minimum deposit, and a minimum trading volume before you can access or withdraw the bonus. Always read the official terms before claiming.",
+  },
+  {
+    question: "Which crypto exchange has the best bonus?",
+    answer: "Based on our comparison, Bybit offers up to 30,000 USDT for new users, one of the highest headline bonus amounts. However, the best bonus depends on your country, whether you can meet KYC requirements, and your planned trading volume.",
+  },
+  {
+    question: "Can I get a crypto bonus without KYC?",
+    answer: "Yes. MEXC, KuCoin, CoinEx and Bitunix offer bonuses without requiring full identity verification. However, non-KYC accounts often have withdrawal limits and restricted features.",
+  },
+  {
+    question: "How do I claim a crypto bonus?",
+    answer: "Register on the exchange through a referral or affiliate link, complete any required KYC, make a qualifying deposit, and complete the required trading volume. Bonus amounts usually unlock progressively as you complete each milestone.",
+  },
+  {
+    question: "Do crypto bonuses expire?",
+    answer: "Yes. Most bonuses have expiration dates ranging from 7 to 30 days. Unused bonuses or unmet conditions may result in forfeiture of the reward. Always check the expiration window in the official promotion terms.",
+  },
+];
+
+const siteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "CryptoBonusWorld",
+  "url": "https://cryptobonusworld.com",
+  "description": "Compare crypto exchange signup bonuses, deposit bonuses and futures promotions from top exchanges worldwide.",
+};
+---
+
+<Layout
+  title="Best Crypto Exchange Bonuses 2026 — Compare & Claim"
+  description="Compare signup rewards, deposit bonuses, futures bonuses and crypto trading promotions from top exchanges. Find the best crypto bonus for your country and trading goals."
+  canonical="/"
+  schema={siteSchema}
+>
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-content">
+        <div class="hero-badge">Updated May 2026 · 12 Exchanges</div>
+        <h1 class="hero-title">Best Crypto Exchange Bonuses in 2026</h1>
+        <p class="hero-subtitle">
+          Compare signup rewards, deposit bonuses, futures bonuses and crypto trading promotions from top exchanges. Find the best offer for your country and trading goals.
+        </p>
+        <div class="hero-ctas">
+          <CTAButton href="/bonuses/" label="Compare All Bonuses" size="lg" />
+          <CTAButton href="/exchanges/bybit/" label="Best Bonus: Bybit" variant="outline" size="lg" />
+        </div>
+        <div class="hero-trust">
+          <span>✓ 12 exchanges compared</span>
+          <span>✓ Updated May 2026</span>
+          <span>✓ No guaranteed profit claims</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Affiliate Disclosure -->
+  <div class="container">
+    <AffiliateDisclosure compact />
+  </div>
+
+  <!-- Filters -->
+  <div class="container">
+    <FilterPanel />
+  </div>
+
+  <!-- Bonus Table -->
+  <section class="container section">
+    <h2 class="section-title">Top Crypto Exchange Bonuses</h2>
+    <BonusTable exchanges={exchanges} />
+    <MethodologyBlock compact />
+  </section>
+
+  <!-- Top Exchange Cards -->
+  <section class="container section">
+    <h2 class="section-title">Top Bonus Offers This Month</h2>
+    <div class="grid-3">
+      {topExchanges.slice(0, 3).map(ex => (
+        <ExchangeCard {...ex} />
+      ))}
+    </div>
+    <div class="grid-2" style="margin-top: 1rem">
+      {topExchanges.slice(3, 5).map(ex => (
+        <ExchangeCard {...ex} />
+      ))}
+    </div>
+    <div class="view-all-wrap">
+      <CTAButton href="/bonuses/" label="View All 12 Exchanges" variant="outline" size="md" />
+    </div>
+  </section>
+
+  <!-- Categories -->
+  <section class="container section">
+    <h2 class="section-title">Bonuses by Category</h2>
+    <div class="grid-2">
+      {categories.slice(0, 6).map(cat => (
+        <CategoryCard
+          name={cat.name}
+          slug={cat.slug}
+          description={cat.description}
+          bonusType={cat.bonusType}
+          exchangeCount={exchanges.filter(e => e.bonusTypes.includes(cat.bonusType) || (cat.bonusType === 'no-kyc' && !e.kycRequired) || (cat.bonusType === 'welcome' && e.bonusTypes.includes('signup'))).length}
+        />
+      ))}
+    </div>
+  </section>
+
+  <!-- Countries -->
+  <section class="container section">
+    <h2 class="section-title">Bonuses by Country</h2>
+    <div class="grid-4">
+      {countries.slice(0, 8).map(c => (
+        <CountryCard
+          name={c.name}
+          slug={c.slug}
+          flag={c.flag}
+          description={c.description}
+          exchangeCount={exchanges.filter(e => e.countries.includes(c.slug)).length}
+        />
+      ))}
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section class="container section">
+    <h2 class="section-title">How Crypto Bonuses Work</h2>
+    <div class="how-it-works">
+      <div class="how-step">
+        <div class="how-step-num">1</div>
+        <h3>Compare Bonuses</h3>
+        <p>Use our comparison table to find the best bonus for your country, trading style and KYC preference.</p>
+      </div>
+      <div class="how-step">
+        <div class="how-step-num">2</div>
+        <h3>Read the Conditions</h3>
+        <p>Every bonus has conditions — KYC requirements, deposit minimums and trading volume. Check them before registering.</p>
+      </div>
+      <div class="how-step">
+        <div class="how-step-num">3</div>
+        <h3>Register via Referral Link</h3>
+        <p>Use the affiliate or referral link on this page to ensure the bonus is applied to your new account.</p>
+      </div>
+      <div class="how-step">
+        <div class="how-step-num">4</div>
+        <h3>Complete the Requirements</h3>
+        <p>Deposit qualifying funds, complete KYC if required, and trade the minimum volume to unlock your bonus.</p>
+      </div>
+    </div>
+    <div style="margin-top: 1.25rem">
+      <a href="/guides/how-crypto-bonuses-work/" class="text-link">Learn more: How crypto bonuses work →</a>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="container section">
+    <FAQBlock items={faqItems} />
+  </section>
+
+  <!-- Risk Disclaimer -->
+  <div class="container">
+    <RiskDisclaimer />
+  </div>
+</Layout>
+
+<style>
+  .hero {
+    background: linear-gradient(180deg, #111111 0%, #0a0a0a 100%);
+    border-bottom: 1px solid var(--color-border);
+    padding: 4rem 0 3rem;
+  }
+  .hero-content { max-width: 680px; }
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--color-accent);
+    background: var(--color-accent-dim);
+    padding: 0.3rem 0.75rem;
+    border-radius: 100px;
+    margin-bottom: 1.25rem;
+    border: 1px solid rgba(245, 197, 66, 0.2);
+  }
+  .hero-title {
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    margin: 0 0 1rem;
+    line-height: 1.1;
+  }
+  .hero-subtitle {
+    font-size: 1.05rem;
+    color: var(--color-text-secondary);
+    line-height: 1.65;
+    margin: 0 0 1.75rem;
+  }
+  .hero-ctas {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+  .hero-trust {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+  }
+
+  .section { padding: 2.5rem 0 0; }
+
+  .view-all-wrap {
+    display: flex;
+    justify-content: center;
+    margin-top: 1.5rem;
+  }
+
+  .how-it-works {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+  }
+  .how-step {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    position: relative;
+  }
+  .how-step-num {
+    width: 32px;
+    height: 32px;
+    background: var(--color-accent);
+    color: #000;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    font-weight: 800;
+    margin-bottom: 0.75rem;
+  }
+  .how-step h3 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin: 0 0 0.4rem;
+  }
+  .how-step p {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    line-height: 1.55;
+    margin: 0;
+  }
+
+  .text-link {
+    font-size: 0.875rem;
+    color: var(--color-accent);
+    text-decoration: none;
+    font-weight: 600;
+    transition: opacity 0.15s;
+  }
+  .text-link:hover { opacity: 0.8; }
+
+  @media (max-width: 1024px) {
+    .how-it-works { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 640px) {
+    .hero { padding: 2.5rem 0 2rem; }
+    .how-it-works { grid-template-columns: 1fr; }
+  }
+</style>

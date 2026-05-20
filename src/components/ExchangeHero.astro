@@ -1,0 +1,188 @@
+---
+import BonusBadge from './BonusBadge.astro';
+import KycBadge from './KycBadge.astro';
+import RatingBadge from './RatingBadge.astro';
+import CTAButton from './CTAButton.astro';
+import LastUpdated from './LastUpdated.astro';
+
+interface Props {
+  name: string;
+  slug: string;
+  rating: number;
+  bonusTitle: string;
+  bonusAmount: number;
+  bonusCurrency: string;
+  bonusTypes: string[];
+  kycRequired: boolean;
+  depositRequired: boolean;
+  affiliateUrl: string;
+  promoCode: string;
+  updatedAt: string;
+}
+
+const props = Astro.props;
+---
+
+<div class="exchange-hero">
+  <div class="exchange-hero-left">
+    <div class="exchange-hero-identity">
+      <div class="exchange-hero-logo" aria-hidden="true">
+        {props.name.charAt(0)}
+      </div>
+      <div>
+        <div class="exchange-hero-name">{props.name}</div>
+        <RatingBadge rating={props.rating} />
+      </div>
+    </div>
+
+    <div class="exchange-hero-badges">
+      {props.bonusTypes.map(t => <BonusBadge type={t} />)}
+      <KycBadge required={props.kycRequired} />
+    </div>
+
+    <div class="exchange-hero-meta">
+      {props.depositRequired && (
+        <span class="meta-tag">Deposit Required</span>
+      )}
+    </div>
+
+    <LastUpdated date={props.updatedAt} />
+  </div>
+
+  <div class="exchange-hero-right">
+    <div class="exchange-hero-bonus">
+      <div class="exchange-hero-bonus-label">Welcome Bonus</div>
+      <div class="exchange-hero-bonus-amount">
+        Up to {props.bonusAmount.toLocaleString()} {props.bonusCurrency}
+      </div>
+      <div class="exchange-hero-bonus-title">{props.bonusTitle}</div>
+    </div>
+
+    {props.promoCode && (
+      <div class="exchange-hero-promo">
+        <span class="promo-label">Promo Code:</span>
+        <code class="promo-code">{props.promoCode}</code>
+      </div>
+    )}
+
+    <div class="exchange-hero-ctas">
+      <CTAButton href={props.affiliateUrl} exchange={props.name} size="lg" fullWidth />
+      <CTAButton href="/bonuses/" label="Compare with others" variant="outline" size="md" fullWidth />
+    </div>
+  </div>
+</div>
+
+<style>
+  .exchange-hero {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    padding: 2rem;
+    margin: 1.5rem 0;
+  }
+  .exchange-hero-left {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .exchange-hero-identity {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .exchange-hero-logo {
+    width: 60px;
+    height: 60px;
+    border-radius: 14px;
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--color-accent);
+  }
+  .exchange-hero-name {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--color-text-primary);
+    margin-bottom: 0.25rem;
+  }
+  .exchange-hero-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+  }
+  .meta-tag {
+    display: inline-block;
+    font-size: 0.72rem;
+    color: var(--color-text-muted);
+    background: var(--color-bg-tertiary);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    border: 1px solid var(--color-border);
+  }
+  .exchange-hero-right {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    justify-content: center;
+  }
+  .exchange-hero-bonus {
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    text-align: center;
+  }
+  .exchange-hero-bonus-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-muted);
+    margin-bottom: 0.375rem;
+  }
+  .exchange-hero-bonus-amount {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--color-accent);
+    line-height: 1.1;
+    margin-bottom: 0.25rem;
+  }
+  .exchange-hero-bonus-title {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+  .exchange-hero-promo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: center;
+  }
+  .promo-label { font-size: 0.8rem; color: var(--color-text-muted); }
+  .promo-code {
+    font-family: monospace;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--color-accent);
+    background: var(--color-bg-tertiary);
+    padding: 0.25rem 0.625rem;
+    border-radius: 6px;
+    border: 1px dashed var(--color-accent-dim);
+  }
+  .exchange-hero-ctas {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  @media (max-width: 640px) {
+    .exchange-hero {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

@@ -1,0 +1,78 @@
+---
+interface Props {
+  href: string;
+  label?: string;
+  variant?: 'primary' | 'secondary' | 'outline';
+  size?: 'sm' | 'md' | 'lg';
+  fullWidth?: boolean;
+  exchange?: string;
+  rel?: string;
+}
+
+const {
+  href,
+  label = 'Claim Bonus',
+  variant = 'primary',
+  size = 'md',
+  fullWidth = false,
+  exchange,
+  rel = 'noopener noreferrer nofollow sponsored',
+} = Astro.props;
+
+const isExternal = href.startsWith('http') || href === '#';
+const target = isExternal ? '_blank' : undefined;
+const displayLabel = exchange ? `Claim ${exchange} Bonus` : label;
+---
+
+<a
+  href={href}
+  class:list={['cta-btn', `cta-btn--${variant}`, `cta-btn--${size}`, fullWidth && 'cta-btn--full']}
+  target={target}
+  rel={isExternal ? rel : undefined}
+  aria-label={displayLabel}
+>
+  {displayLabel}
+  {isExternal && <span class="cta-arrow" aria-hidden="true">→</span>}
+</a>
+
+<style>
+  .cta-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    font-weight: 700;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: opacity 0.15s, transform 0.1s;
+    cursor: pointer;
+    border: 2px solid transparent;
+    white-space: nowrap;
+  }
+  .cta-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+  .cta-btn:active { transform: translateY(0); }
+
+  .cta-btn--primary {
+    background: var(--color-accent);
+    color: #000;
+    border-color: var(--color-accent);
+  }
+  .cta-btn--secondary {
+    background: var(--color-bg-tertiary);
+    color: var(--color-text-primary);
+    border-color: var(--color-border);
+  }
+  .cta-btn--outline {
+    background: transparent;
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+  }
+  .cta-btn--outline:hover { background: var(--color-accent); color: #000; }
+
+  .cta-btn--sm { font-size: 0.8rem; padding: 0.4rem 0.875rem; }
+  .cta-btn--md { font-size: 0.9rem; padding: 0.6rem 1.25rem; }
+  .cta-btn--lg { font-size: 1rem; padding: 0.75rem 1.75rem; }
+  .cta-btn--full { width: 100%; }
+
+  .cta-arrow { font-size: 0.9em; }
+</style>

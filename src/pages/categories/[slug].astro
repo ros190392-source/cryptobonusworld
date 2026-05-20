@@ -1,0 +1,101 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import BonusTable from '../../components/BonusTable.astro';
+import ExchangeCard from '../../components/ExchangeCard.astro';
+import FilterPanel from '../../components/FilterPanel.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import FAQBlock from '../../components/FAQBlock.astro';
+import RiskDisclaimer from '../../components/RiskDisclaimer.astro';
+import AffiliateDisclosure from '../../components/AffiliateDisclosure.astro';
+import CTAButton from '../../components/CTAButton.astro';
+
+import exchanges from '../../data/exchanges.json';
+import categories from '../../data/categories.json';
+
+export async function getStaticPaths() {
+  return categories.map(cat => ({
+    params: { slug: cat.slug },
+    props: { category: cat },
+  }));
+}
+
+const { category: cat } = Astro.props;
+
+const filtered = exchanges.filter(ex => {
+  if (cat.bonusType === 'no-kyc') return !ex.kycRequired;
+  if (cat.bonusType === 'no-deposit') return !ex.depositRequired;
+  if (cat.bonusType === 'welcome') return ex.bonusTypes.includes('signup');
+  return ex.bonusTypes.includes(cat.bonusType);
+});
+
+const top3 = [...filtered].sort((a, b) => b.rating - a.rating).slice(0, 3);
+---
+
+<Layout
+  title={cat.seoTitle}
+  description={cat.seoDescription}
+  canonical={`/categories/${cat.slug}/`}
+>
+  <div class="container">
+    <Breadcrumbs crumbs={[
+      { label: 'Home', href: '/' },
+      { label: 'Categories', href: '/bonuses/' },
+      { label: cat.name },
+    ]} />
+
+    <div class="page-header">
+      <h1>{cat.title}</h1>
+      <p class="lead">{cat.description} {filtered.length} exchanges available.</p>
+    </div>
+
+    <AffiliateDisclosure compact />
+
+    <FilterPanel activeType={cat.bonusType} />
+
+    {cat.intro && (
+      <div class="category-intro prose">
+        <p>{cat.intro}</p>
+      </div>
+    )}
+
+    <BonusTable exchanges={filtered} />
+
+    <section class="section">
+      <h2 class="section-title">Top {cat.name} Picks</h2>
+      <div class="grid-3">
+        {top3.map(ex => <ExchangeCard {...ex} />)}
+      </div>
+    </section>
+
+    <div class="cta-section">
+      <p>Not what you're looking for?</p>
+      <CTAButton href="/bonuses/" label="Compare All Bonuses" variant="outline" size="md" />
+    </div>
+
+    {cat.faq && cat.faq.length > 0 && (
+      <FAQBlock items={cat.faq} />
+    )}
+
+    <RiskDisclaimer />
+  </div>
+</Layout>
+
+<style>
+  .section { margin-top: 2rem; }
+  .category-intro { margin: 1rem 0 1.5rem; }
+  .cta-section {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 2rem 0;
+    padding: 1.25rem;
+    background: var(--color-bg-secondary);
+    border-radius: 10px;
+    border: 1px solid var(--color-border);
+  }
+  .cta-section p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+  }
+</style>

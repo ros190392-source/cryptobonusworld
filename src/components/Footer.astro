@@ -1,0 +1,176 @@
+---
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="/" class="footer-logo">
+          <span class="logo-icon">₿</span>
+          <span>CryptoBonusWorld</span>
+        </a>
+        <p class="footer-tagline">Compare crypto exchange bonuses and claim the best rewards for your trading goals.</p>
+        <p class="footer-disclosure">
+          CryptoBonusWorld may receive compensation when users register through affiliate links on this site.
+          <a href="/affiliate-disclosure/">Learn more</a>
+        </p>
+      </div>
+
+      <div class="footer-links">
+        <h4>Bonus Categories</h4>
+        <ul>
+          <li><a href="/categories/signup-bonuses/">Signup Bonuses</a></li>
+          <li><a href="/categories/no-deposit-bonuses/">No Deposit Bonuses</a></li>
+          <li><a href="/categories/deposit-bonuses/">Deposit Bonuses</a></li>
+          <li><a href="/categories/futures-bonuses/">Futures Bonuses</a></li>
+          <li><a href="/categories/welcome-bonuses/">Welcome Bonuses</a></li>
+          <li><a href="/categories/no-kyc-bonuses/">No KYC Bonuses</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-links">
+        <h4>Top Exchanges</h4>
+        <ul>
+          <li><a href="/exchanges/bybit/">Bybit Bonus</a></li>
+          <li><a href="/exchanges/mexc/">MEXC Bonus</a></li>
+          <li><a href="/exchanges/okx/">OKX Bonus</a></li>
+          <li><a href="/exchanges/bitget/">Bitget Bonus</a></li>
+          <li><a href="/exchanges/bingx/">BingX Bonus</a></li>
+          <li><a href="/exchanges/kucoin/">KuCoin Bonus</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-links">
+        <h4>Bonuses by Country</h4>
+        <ul>
+          <li><a href="/countries/global/">Global</a></li>
+          <li><a href="/countries/turkey/">Turkey</a></li>
+          <li><a href="/countries/india/">India</a></li>
+          <li><a href="/countries/indonesia/">Indonesia</a></li>
+          <li><a href="/countries/nigeria/">Nigeria</a></li>
+          <li><a href="/countries/brazil/">Brazil</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-links">
+        <h4>About</h4>
+        <ul>
+          <li><a href="/methodology/">Our Methodology</a></li>
+          <li><a href="/about/">About Us</a></li>
+          <li><a href="/affiliate-disclosure/">Affiliate Disclosure</a></li>
+          <li><a href="/disclaimer/">Disclaimer</a></li>
+          <li><a href="/privacy-policy/">Privacy Policy</a></li>
+          <li><a href="/contact/">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p class="risk-notice">
+        <strong>Risk Warning:</strong> Crypto trading involves significant risk of loss. Bonuses may include KYC requirements, deposit conditions, trading volume requirements and expiration dates. This website does not constitute financial or investment advice. Always read official promotion terms before claiming any bonus.
+      </p>
+      <div class="footer-legal">
+        <span>© {year} CryptoBonusWorld.com — All rights reserved</span>
+        <a href="/affiliate-disclosure/">Affiliate Disclosure</a>
+        <a href="/disclaimer/">Disclaimer</a>
+        <a href="/privacy-policy/">Privacy Policy</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    background: var(--color-bg-secondary);
+    border-top: 1px solid var(--color-border);
+    margin-top: 4rem;
+  }
+  .footer-inner { padding: 3rem 0 2rem; }
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 2fr repeat(4, 1fr);
+    gap: 2rem;
+    margin-bottom: 2rem;
+  }
+  .footer-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    color: var(--color-text-primary);
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+  }
+  .logo-icon { color: var(--color-accent); font-size: 1.25rem; }
+  .footer-tagline {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+    margin-bottom: 0.75rem;
+  }
+  .footer-disclosure {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    line-height: 1.5;
+  }
+  .footer-disclosure a {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+  .footer-links h4 {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-muted);
+    margin-bottom: 0.75rem;
+  }
+  .footer-links ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .footer-links a {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .footer-links a:hover { color: var(--color-text-primary); }
+  .footer-bottom {
+    border-top: 1px solid var(--color-border);
+    padding-top: 1.5rem;
+  }
+  .risk-notice {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+  }
+  .footer-legal {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+  .footer-legal a {
+    color: var(--color-text-muted);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .footer-legal a:hover { color: var(--color-text-secondary); }
+  @media (max-width: 1024px) {
+    .footer-grid { grid-template-columns: repeat(3, 1fr); }
+    .footer-brand { grid-column: 1 / -1; }
+  }
+  @media (max-width: 640px) {
+    .footer-grid { grid-template-columns: repeat(2, 1fr); }
+    .footer-legal { flex-direction: column; gap: 0.5rem; }
+  }
+</style>

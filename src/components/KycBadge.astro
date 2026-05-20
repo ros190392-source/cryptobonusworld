@@ -1,0 +1,25 @@
+---
+interface Props {
+  required: boolean;
+}
+const { required } = Astro.props;
+---
+
+<span class:list={['kyc-badge', required ? 'kyc-badge--required' : 'kyc-badge--none']}>
+  {required ? 'KYC Required' : 'No KYC'}
+</span>
+
+<style>
+  .kyc-badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+  .kyc-badge--required { background: #3a1a1a; color: #f87171; }
+  .kyc-badge--none { background: #1a3a2a; color: #4ade80; }
+</style>

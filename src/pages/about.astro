@@ -1,0 +1,55 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+---
+
+<Layout
+  title="About CryptoBonusWorld — Crypto Bonus Comparison Platform"
+  description="About CryptoBonusWorld.com — a conversion-focused crypto exchange bonus comparison platform. Our mission, team and approach."
+  canonical="/about/"
+>
+  <div class="container">
+    <Breadcrumbs crumbs={[
+      { label: 'Home', href: '/' },
+      { label: 'About' },
+    ]} />
+    <div class="page-header">
+      <h1>About CryptoBonusWorld</h1>
+      <p class="lead">A conversion-focused crypto exchange bonus comparison platform.</p>
+    </div>
+    <div class="prose">
+      <h2>What We Do</h2>
+      <p>CryptoBonusWorld.com helps users compare crypto exchange bonus offers and find the best promotion for their trading goals and country of residence.</p>
+      <p>We are not a news site, not a blog, and not a general crypto information portal. Our focus is entirely on one thing: helping you understand crypto exchange bonus offers and make an informed decision about which exchange to register on.</p>
+
+      <h2>Our Mission</h2>
+      <p>The crypto bonus landscape is complex, misleading and constantly changing. Our mission is to cut through the noise and present clear, accurate, condition-verified bonus data — with proper risk disclosures — so that users can make informed decisions.</p>
+
+      <h2>What We Cover</h2>
+      <ul>
+        <li>Welcome and signup bonuses</li>
+        <li>No deposit bonuses</li>
+        <li>Deposit match bonuses</li>
+        <li>Futures trading bonuses</li>
+        <li>No-KYC bonus options</li>
+        <li>Country-specific bonus availability</li>
+        <li>Exchange comparison tables</li>
+      </ul>
+
+      <h2>Our Principles</h2>
+      <ul>
+        <li>We never promise profits or guaranteed income.</li>
+        <li>We always include risk disclosures.</li>
+        <li>We always disclose our affiliate relationships.</li>
+        <li>We verify bonus data against official sources.</li>
+        <li>We show both pros and cons for every exchange.</li>
+      </ul>
+
+      <h2>Affiliate Relationships</h2>
+      <p>CryptoBonusWorld earns income through affiliate partnerships with crypto exchanges. We receive compensation when users register through our links. This is disclosed on every page. See our <a href="/affiliate-disclosure/">Affiliate Disclosure</a> for full details.</p>
+
+      <h2>Contact</h2>
+      <p>For questions, data corrections or business inquiries, visit our <a href="/contact/">Contact page</a>.</p>
+    </div>
+  </div>
+</Layout>

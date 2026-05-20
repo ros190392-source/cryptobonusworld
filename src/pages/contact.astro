@@ -1,0 +1,159 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+---
+
+<Layout
+  title="Contact — CryptoBonusWorld"
+  description="Contact CryptoBonusWorld. Report incorrect bonus data, suggest an exchange, or send a business inquiry."
+  canonical="/contact/"
+  noindex
+>
+  <div class="container">
+    <Breadcrumbs crumbs={[
+      { label: 'Home', href: '/' },
+      { label: 'Contact' },
+    ]} />
+    <div class="page-header">
+      <h1>Contact</h1>
+      <p class="lead">Report incorrect bonus data, suggest an exchange, or send a business inquiry.</p>
+    </div>
+
+    <div class="contact-grid">
+      <div class="contact-reasons">
+        <h2>What You Can Contact Us About</h2>
+        <ul>
+          <li><strong>Incorrect bonus data</strong> — If you notice a bonus amount, condition or availability that is out of date, please let us know.</li>
+          <li><strong>Exchange suggestions</strong> — Want to see an exchange added to our comparison? Send us details.</li>
+          <li><strong>Affiliate partnerships</strong> — If you represent an exchange and want to discuss affiliate program inclusion.</li>
+          <li><strong>Content corrections</strong> — Factual errors or misleading statements on any page.</li>
+          <li><strong>Technical issues</strong> — Broken links, display problems or other technical feedback.</li>
+        </ul>
+        <div class="contact-note">
+          <strong>Please note:</strong> We cannot assist with exchange account issues, withdrawal problems or disputes with individual exchanges. Contact the exchange's support team directly for those issues.
+        </div>
+      </div>
+
+      <div class="contact-form-wrap">
+        <form class="contact-form" name="contact" method="POST" data-netlify="true" action="/contact/?sent=true">
+          <input type="hidden" name="form-name" value="contact" />
+          <div class="form-group">
+            <label for="name">Name</label>
+            <input type="text" id="name" name="name" placeholder="Your name" required />
+          </div>
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" placeholder="your@email.com" required />
+          </div>
+          <div class="form-group">
+            <label for="subject">Subject</label>
+            <select id="subject" name="subject">
+              <option value="bonus-data">Incorrect bonus data</option>
+              <option value="exchange-suggestion">Exchange suggestion</option>
+              <option value="affiliate">Affiliate partnership</option>
+              <option value="content">Content correction</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="message">Message</label>
+            <textarea id="message" name="message" rows="5" placeholder="Describe your request in detail..." required></textarea>
+          </div>
+          <button type="submit" class="form-submit">Send Message</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    margin-top: 2rem;
+  }
+  .contact-reasons h2 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 0 0 1rem;
+  }
+  .contact-reasons ul {
+    padding-left: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+    margin: 0 0 1.25rem;
+  }
+  .contact-reasons li {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    padding-left: 1rem;
+    border-left: 2px solid var(--color-border);
+  }
+  .contact-reasons li strong { color: var(--color-text-primary); }
+  .contact-note {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 0.875rem;
+    line-height: 1.6;
+  }
+  .contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+  .form-group label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 0.625rem 0.875rem;
+    color: var(--color-text-primary);
+    font-size: 0.9rem;
+    font-family: inherit;
+    transition: border-color 0.15s;
+    outline: none;
+  }
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    border-color: var(--color-accent);
+  }
+  .form-group select option { background: var(--color-bg-secondary); }
+  .form-group textarea { resize: vertical; min-height: 120px; }
+  .form-submit {
+    padding: 0.7rem 1.5rem;
+    background: var(--color-accent);
+    color: #000;
+    font-size: 0.9rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    align-self: flex-start;
+  }
+  .form-submit:hover { opacity: 0.85; }
+  @media (max-width: 768px) {
+    .contact-grid { grid-template-columns: 1fr; }
+  }
+</style>

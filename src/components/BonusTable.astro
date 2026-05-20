@@ -1,0 +1,211 @@
+---
+import BonusBadge from './BonusBadge.astro';
+import KycBadge from './KycBadge.astro';
+import RatingBadge from './RatingBadge.astro';
+import CTAButton from './CTAButton.astro';
+import LastUpdated from './LastUpdated.astro';
+
+interface Exchange {
+  name: string;
+  slug: string;
+  logo: string;
+  rating: number;
+  bonusTitle: string;
+  bonusAmount: number;
+  bonusCurrency: string;
+  bonusTypes: string[];
+  kycRequired: boolean;
+  countries: string[];
+  affiliateUrl: string;
+  updatedAt: string;
+}
+
+interface Props {
+  exchanges: Exchange[];
+  filterCountry?: string;
+  filterType?: string;
+}
+
+const { exchanges, filterCountry, filterType } = Astro.props;
+
+let filtered = exchanges;
+if (filterCountry) {
+  filtered = filtered.filter(e => e.countries.includes(filterCountry));
+}
+if (filterType) {
+  filtered = filtered.filter(e => e.bonusTypes.includes(filterType));
+}
+
+const schema = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "Crypto Exchange Bonuses",
+  "itemListElement": filtered.map((ex, i) => ({
+    "@type": "ListItem",
+    "position": i + 1,
+    "url": `https://cryptobonusworld.com/exchanges/${ex.slug}/`,
+    "name": `${ex.name} Bonus — ${ex.bonusTitle}`,
+  })),
+};
+---
+
+<div class="bonus-table-wrap">
+  <table class="bonus-table" role="table" aria-label="Crypto exchange bonus comparison">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">Exchange</th>
+        <th scope="col">Bonus</th>
+        <th scope="col">Type</th>
+        <th scope="col">KYC</th>
+        <th scope="col">Rating</th>
+        <th scope="col">Updated</th>
+        <th scope="col">Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {filtered.map((ex, i) => (
+        <tr>
+          <td class="col-rank">
+            <span class="rank">{i + 1}</span>
+          </td>
+          <td class="col-exchange">
+            <a href={`/exchanges/${ex.slug}/`} class="exchange-name-link">
+              <div class="exchange-logo-placeholder" aria-hidden="true">
+                {ex.name.charAt(0)}
+              </div>
+              <span class="exchange-name">{ex.name}</span>
+            </a>
+          </td>
+          <td class="col-bonus">
+            <span class="bonus-amount">
+              {ex.bonusAmount.toLocaleString()} {ex.bonusCurrency}
+            </span>
+            <span class="bonus-label">{ex.bonusTitle}</span>
+          </td>
+          <td class="col-types">
+            <div class="badge-group">
+              {ex.bonusTypes.slice(0, 2).map(t => <BonusBadge type={t} />)}
+            </div>
+          </td>
+          <td class="col-kyc">
+            <KycBadge required={ex.kycRequired} />
+          </td>
+          <td class="col-rating">
+            <RatingBadge rating={ex.rating} />
+          </td>
+          <td class="col-updated">
+            <LastUpdated date={ex.updatedAt} />
+          </td>
+          <td class="col-cta">
+            <CTAButton
+              href={ex.affiliateUrl}
+              exchange={ex.name}
+              size="sm"
+            />
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+
+<script type="application/ld+json" set:html={JSON.stringify(schema)} />
+
+<style>
+  .bonus-table-wrap {
+    overflow-x: auto;
+    border-radius: 12px;
+    border: 1px solid var(--color-border);
+    margin: 1.5rem 0;
+  }
+  .bonus-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    min-width: 700px;
+  }
+  .bonus-table thead {
+    background: var(--color-bg-tertiary);
+    position: sticky;
+    top: 64px;
+  }
+  .bonus-table th {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+    border-bottom: 1px solid var(--color-border);
+    white-space: nowrap;
+  }
+  .bonus-table td {
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid var(--color-border);
+    vertical-align: middle;
+  }
+  .bonus-table tbody tr:last-child td { border-bottom: none; }
+  .bonus-table tbody tr:hover { background: var(--color-bg-tertiary); }
+
+  .col-rank { width: 40px; }
+  .rank {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: var(--color-bg-tertiary);
+    border-radius: 50%;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--color-text-muted);
+  }
+
+  .exchange-name-link {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    text-decoration: none;
+  }
+  .exchange-logo-placeholder {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--color-accent);
+    flex-shrink: 0;
+  }
+  .exchange-name {
+    font-weight: 600;
+    color: var(--color-text-primary);
+    transition: color 0.15s;
+  }
+  .exchange-name-link:hover .exchange-name { color: var(--color-accent); }
+
+  .bonus-amount {
+    display: block;
+    font-weight: 700;
+    color: var(--color-accent);
+    font-size: 0.95rem;
+  }
+  .bonus-label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    margin-top: 2px;
+  }
+
+  .badge-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+</style>

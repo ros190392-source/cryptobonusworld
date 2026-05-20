@@ -1,0 +1,49 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+---
+
+<Layout
+  title="Privacy Policy — CryptoBonusWorld"
+  description="Privacy Policy for CryptoBonusWorld.com. How we collect, use and protect your data."
+  canonical="/privacy-policy/"
+  noindex
+>
+  <div class="container">
+    <Breadcrumbs crumbs={[
+      { label: 'Home', href: '/' },
+      { label: 'Privacy Policy' },
+    ]} />
+    <div class="page-header">
+      <h1>Privacy Policy</h1>
+    </div>
+    <div class="prose">
+      <h2>Data We Collect</h2>
+      <p>CryptoBonusWorld.com is a static informational website. We do not require registration or collect personal information directly. The following data may be collected through third-party tools:</p>
+      <ul>
+        <li><strong>Analytics</strong> — We may use analytics tools (such as Google Analytics or Cloudflare Web Analytics) that collect aggregated, anonymized data about page views, referral sources, and browser information.</li>
+        <li><strong>Affiliate Click Tracking</strong> — When you click affiliate links, the destination exchange may use cookies and tracking pixels to attribute your registration. This is controlled by the exchange's own privacy policy.</li>
+      </ul>
+
+      <h2>Cookies</h2>
+      <p>Our website may use cookies for analytics purposes only. We do not use cookies for advertising profiling. You can disable cookies in your browser settings.</p>
+
+      <h2>Third-Party Links</h2>
+      <p>This website contains links to third-party exchanges and services. We are not responsible for the privacy practices of those third parties. Review the privacy policy of each exchange before registering.</p>
+
+      <h2>Data Retention</h2>
+      <p>We do not store personal data on our servers. Analytics data is retained according to the third-party provider's policies.</p>
+
+      <h2>Your Rights</h2>
+      <p>Depending on your jurisdiction, you may have rights to access, correct or delete data held about you. Contact us if you have privacy-related requests.</p>
+
+      <h2>Changes to This Policy</h2>
+      <p>We may update this Privacy Policy from time to time. Continued use of the website after changes constitutes acceptance of the updated policy.</p>
+
+      <h2>Contact</h2>
+      <p>For privacy-related questions, please use our <a href="/contact/">contact page</a>.</p>
+
+      <p><em>Last updated: May 2026</em></p>
+    </div>
+  </div>
+</Layout>

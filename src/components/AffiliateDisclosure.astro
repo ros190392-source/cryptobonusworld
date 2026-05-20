@@ -1,0 +1,46 @@
+---
+interface Props {
+  compact?: boolean;
+}
+const { compact = false } = Astro.props;
+---
+
+<div class:list={['affiliate-disclosure', compact && 'affiliate-disclosure--compact']}>
+  <svg class="info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+  </svg>
+  <p>
+    {compact
+      ? <>Affiliate Disclosure: CryptoBonusWorld may earn a commission when you register through links on this site. <a href="/affiliate-disclosure/">Learn more</a>.</>
+      : <>CryptoBonusWorld may receive compensation when users register through affiliate or referral links on this website. This does not affect our comparison methodology, but it may influence which offers are shown and their ordering. We only list exchanges we consider reputable. Always verify current promotion terms on the official exchange website.</>
+    }
+  </p>
+</div>
+
+<style>
+  .affiliate-disclosure {
+    display: flex;
+    gap: 0.6rem;
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 0.875rem 1rem;
+    margin: 1rem 0;
+  }
+  .affiliate-disclosure--compact { padding: 0.5rem 0.75rem; }
+  .info-icon {
+    flex-shrink: 0;
+    color: var(--color-text-muted);
+    margin-top: 2px;
+  }
+  .affiliate-disclosure p {
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    line-height: 1.6;
+  }
+  .affiliate-disclosure a {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+</style>

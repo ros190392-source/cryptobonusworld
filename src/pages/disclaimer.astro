@@ -1,0 +1,52 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+---
+
+<Layout
+  title="Disclaimer — CryptoBonusWorld"
+  description="Read the full disclaimer for CryptoBonusWorld.com. Risk warning, no financial advice, and bonus availability information."
+  canonical="/disclaimer/"
+  noindex
+>
+  <div class="container">
+    <Breadcrumbs crumbs={[
+      { label: 'Home', href: '/' },
+      { label: 'Disclaimer' },
+    ]} />
+    <div class="page-header">
+      <h1>Disclaimer</h1>
+    </div>
+    <div class="prose">
+      <h2>No Financial Advice</h2>
+      <p>The content on CryptoBonusWorld.com is for informational purposes only. Nothing on this website constitutes financial, investment, legal or tax advice. You should not treat any content on this website as a substitute for professional financial advice.</p>
+
+      <h2>Risk Warning</h2>
+      <p>Crypto trading involves significant risk. The value of cryptocurrencies can rise or fall dramatically. You may lose some or all of your invested capital. Only trade with funds you can afford to lose.</p>
+      <p>Bonus promotions add additional complexity. Bonuses typically require meeting trading volume requirements which may incentivize trading beyond what is financially appropriate for your situation.</p>
+
+      <h2>Bonus Terms</h2>
+      <p>Bonus amounts, conditions, expiration dates and availability shown on CryptoBonusWorld are based on information from official exchange sources. However:</p>
+      <ul>
+        <li>Bonus terms can change without notice.</li>
+        <li>Availability may vary by country, account type and current promotion status.</li>
+        <li>We cannot guarantee that any bonus will be honored in your specific case.</li>
+        <li>Always verify current terms directly on the official exchange website before registering.</li>
+      </ul>
+
+      <h2>No Profit Guarantee</h2>
+      <p>CryptoBonusWorld does not guarantee any income, profit, or financial return from using any exchange, bonus, or trading product listed on this website. Past performance of any asset is not indicative of future results.</p>
+
+      <h2>Exchange Availability</h2>
+      <p>Not all exchanges are available in all countries. Regulatory requirements differ by jurisdiction. It is your responsibility to verify that an exchange is legally available in your country of residence before registering.</p>
+
+      <h2>Affiliate Relationships</h2>
+      <p>CryptoBonusWorld has affiliate relationships with some exchanges listed on this website. We may receive compensation when users register through our links. See our <a href="/affiliate-disclosure/">Affiliate Disclosure</a> for full details.</p>
+
+      <h2>Accuracy of Information</h2>
+      <p>While we make reasonable efforts to ensure the accuracy of information, we make no warranties regarding the completeness, accuracy or timeliness of any content. All data should be verified with official exchange sources.</p>
+
+      <p><em>Last updated: May 2026</em></p>
+    </div>
+  </div>
+</Layout>

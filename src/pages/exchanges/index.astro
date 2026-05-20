@@ -1,0 +1,37 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import ExchangeCard from '../../components/ExchangeCard.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import AffiliateDisclosure from '../../components/AffiliateDisclosure.astro';
+import RiskDisclaimer from '../../components/RiskDisclaimer.astro';
+
+import exchanges from '../../data/exchanges.json';
+
+const sorted = [...exchanges].sort((a, b) => b.rating - a.rating);
+---
+
+<Layout
+  title="Crypto Exchange Bonus Reviews 2026 — All Exchanges"
+  description="Read bonus reviews for 12 top crypto exchanges. Compare conditions, KYC requirements, country availability and claim the best bonus."
+  canonical="/exchanges/"
+>
+  <div class="container">
+    <Breadcrumbs crumbs={[
+      { label: 'Home', href: '/' },
+      { label: 'Exchanges' },
+    ]} />
+
+    <div class="page-header">
+      <h1>Crypto Exchange Bonuses — All Exchanges</h1>
+      <p class="lead">Compare welcome bonuses, conditions and requirements from {sorted.length} top crypto exchanges.</p>
+    </div>
+
+    <AffiliateDisclosure compact />
+
+    <div class="grid-3" style="margin-top: 1.5rem">
+      {sorted.map(ex => <ExchangeCard {...ex} />)}
+    </div>
+
+    <RiskDisclaimer />
+  </div>
+</Layout>

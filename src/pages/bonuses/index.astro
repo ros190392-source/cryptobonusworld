@@ -1,0 +1,59 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import BonusTable from '../../components/BonusTable.astro';
+import FilterPanel from '../../components/FilterPanel.astro';
+import AffiliateDisclosure from '../../components/AffiliateDisclosure.astro';
+import RiskDisclaimer from '../../components/RiskDisclaimer.astro';
+import MethodologyBlock from '../../components/MethodologyBlock.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import FAQBlock from '../../components/FAQBlock.astro';
+
+import exchanges from '../../data/exchanges.json';
+
+const sorted = [...exchanges].sort((a, b) => b.rating - a.rating);
+
+const faqItems = [
+  {
+    question: "How are exchanges ranked on this page?",
+    answer: "Exchanges are ranked by our editorial rating, which factors in bonus amount, conditions clarity, KYC requirements, country availability, platform reputation and ease of claiming the bonus.",
+  },
+  {
+    question: "Are these the most current bonus amounts?",
+    answer: "We manually verify bonus data against official exchange promotion pages. Each entry shows a 'last updated' date. Bonus terms change frequently — always verify on the official exchange website before registering.",
+  },
+  {
+    question: "Which exchanges offer bonuses without KYC?",
+    answer: "MEXC, KuCoin, CoinEx and Bitunix offer bonuses without requiring full identity verification. Non-KYC accounts may have withdrawal limits.",
+  },
+];
+---
+
+<Layout
+  title="Compare All Crypto Exchange Bonuses 2026"
+  description="Compare signup bonuses, deposit rewards and futures promotions from 12 top crypto exchanges. Filter by bonus type, KYC requirements and country availability."
+  canonical="/bonuses/"
+>
+  <div class="container">
+    <Breadcrumbs crumbs={[
+      { label: 'Home', href: '/' },
+      { label: 'All Bonuses' },
+    ]} />
+
+    <div class="page-header">
+      <h1>Compare All Crypto Exchange Bonuses</h1>
+      <p class="lead">
+        {sorted.length} exchanges compared. Filter by bonus type, KYC requirements and country availability to find the best offer for you.
+      </p>
+    </div>
+
+    <AffiliateDisclosure compact />
+    <FilterPanel />
+
+    <BonusTable exchanges={sorted} />
+
+    <MethodologyBlock />
+
+    <FAQBlock items={faqItems} />
+    <RiskDisclaimer />
+  </div>
+</Layout>

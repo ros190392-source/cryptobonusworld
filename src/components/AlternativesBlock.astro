@@ -1,0 +1,123 @@
+---
+import CTAButton from './CTAButton.astro';
+import RatingBadge from './RatingBadge.astro';
+
+interface Exchange {
+  name: string;
+  slug: string;
+  rating: number;
+  bonusTitle: string;
+  bonusAmount: number;
+  bonusCurrency: string;
+  affiliateUrl: string;
+}
+
+interface Props {
+  currentSlug: string;
+  exchanges: Exchange[];
+  count?: number;
+}
+
+const { currentSlug, exchanges, count = 3 } = Astro.props;
+const alternatives = exchanges.filter(e => e.slug !== currentSlug).slice(0, count);
+---
+
+<div class="alternatives-block">
+  <h3 class="alt-title">Compare with Other Exchanges</h3>
+  <div class="alt-list">
+    {alternatives.map(ex => (
+      <div class="alt-item">
+        <div class="alt-logo" aria-hidden="true">{ex.name.charAt(0)}</div>
+        <div class="alt-info">
+          <a href={`/exchanges/${ex.slug}/`} class="alt-name">{ex.name}</a>
+          <span class="alt-bonus">Up to {ex.bonusAmount.toLocaleString()} {ex.bonusCurrency}</span>
+        </div>
+        <div class="alt-actions">
+          <RatingBadge rating={ex.rating} />
+          <CTAButton href={ex.affiliateUrl} exchange={ex.name} size="sm" />
+        </div>
+      </div>
+    ))}
+  </div>
+  <a href="/bonuses/" class="alt-view-all">View all exchanges →</a>
+</div>
+
+<style>
+  .alternatives-block {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+  }
+  .alt-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0 0 1.25rem;
+    color: var(--color-text-primary);
+  }
+  .alt-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .alt-item {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    padding: 0.75rem;
+    background: var(--color-bg-tertiary);
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+  }
+  .alt-logo {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    font-weight: 800;
+    color: var(--color-accent);
+    flex-shrink: 0;
+  }
+  .alt-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .alt-name {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .alt-name:hover { color: var(--color-accent); }
+  .alt-bonus {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--color-accent);
+    font-weight: 600;
+  }
+  .alt-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    flex-shrink: 0;
+  }
+  .alt-view-all {
+    display: block;
+    text-align: center;
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    color: var(--color-accent);
+    text-decoration: none;
+    font-weight: 600;
+    transition: opacity 0.15s;
+  }
+  .alt-view-all:hover { opacity: 0.8; }
+</style>

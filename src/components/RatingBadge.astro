@@ -1,0 +1,19 @@
+---
+interface Props {
+  rating: number;
+}
+const { rating } = Astro.props;
+const color = rating >= 9.5 ? '#4ade80' : rating >= 9.0 ? '#facc15' : rating >= 8.5 ? '#fb923c' : '#f87171';
+---
+
+<span class="rating-badge" style={`color: ${color}`}>
+  ★ {rating.toFixed(1)}
+</span>
+
+<style>
+  .rating-badge {
+    font-size: 0.85rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+</style>

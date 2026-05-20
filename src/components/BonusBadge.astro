@@ -1,0 +1,43 @@
+---
+interface Props {
+  type: string;
+}
+
+const { type } = Astro.props;
+
+const labels: Record<string, string> = {
+  signup: 'Signup',
+  deposit: 'Deposit',
+  futures: 'Futures',
+  'no-deposit': 'No Deposit',
+  welcome: 'Welcome',
+  'no-kyc': 'No KYC',
+  'trading-rewards': 'Trading',
+  referral: 'Referral',
+};
+
+const label = labels[type] ?? type;
+---
+
+<span class:list={['bonus-badge', `bonus-badge--${type}`]}>{label}</span>
+
+<style>
+  .bonus-badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+  .bonus-badge--signup { background: #1a3a2a; color: #4ade80; }
+  .bonus-badge--deposit { background: #1a2a3a; color: #60a5fa; }
+  .bonus-badge--futures { background: #2a1a3a; color: #c084fc; }
+  .bonus-badge--no-deposit { background: #3a2a1a; color: #fb923c; }
+  .bonus-badge--welcome { background: #3a2a1a; color: #fbbf24; }
+  .bonus-badge--no-kyc { background: #1a3a3a; color: #34d399; }
+  .bonus-badge--trading-rewards { background: #2a2a1a; color: #facc15; }
+  .bonus-badge--referral { background: #1a1a3a; color: #818cf8; }
+</style>

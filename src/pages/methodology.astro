@@ -1,0 +1,61 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+---
+
+<Layout
+  title="Our Methodology — How We Rate Crypto Exchange Bonuses"
+  description="Learn how CryptoBonusWorld evaluates and rates crypto exchange bonus offers. Our methodology, data sources and rating criteria explained."
+  canonical="/methodology/"
+>
+  <div class="container">
+    <Breadcrumbs crumbs={[
+      { label: 'Home', href: '/' },
+      { label: 'Methodology' },
+    ]} />
+
+    <div class="page-header">
+      <h1>Our Methodology</h1>
+      <p class="lead">How CryptoBonusWorld evaluates and rates crypto exchange bonus offers.</p>
+    </div>
+
+    <div class="prose">
+      <h2>What We Do</h2>
+      <p>CryptoBonusWorld is a crypto exchange bonus comparison platform. We research, verify and compare promotional offers from crypto exchanges to help users find bonuses that match their trading goals and country of residence.</p>
+      <p>We do not place deposits, we do not trade, and we do not execute any financial transactions. We compare publicly available promotional information.</p>
+
+      <h2>Data Sources</h2>
+      <p>All bonus data is sourced from official exchange promotion pages, terms and conditions documents, and public announcements. We do not rely on third-party aggregators or user-submitted data as primary sources.</p>
+      <p>Each exchange entry includes a "Last Updated" date indicating when the data was last manually verified.</p>
+
+      <h2>Rating Criteria</h2>
+      <p>Our editorial rating (1–10) is based on the following factors:</p>
+      <ul>
+        <li><strong>Bonus Value (25%)</strong> — The headline bonus amount relative to industry average. Higher amounts score better, but we account for conditions.</li>
+        <li><strong>Conditions Clarity (20%)</strong> — How clearly the exchange communicates requirements, expiration dates and trading volume conditions.</li>
+        <li><strong>KYC Requirements (15%)</strong> — Accessibility without mandatory identity verification. Exchanges offering no-KYC options score higher in this category.</li>
+        <li><strong>Country Availability (15%)</strong> — How many of our tracked countries the exchange serves. Wider availability scores higher.</li>
+        <li><strong>Exchange Reputation (15%)</strong> — Based on operating history, security track record and industry standing.</li>
+        <li><strong>Ease of Claiming (10%)</strong> — Simplicity of the claim process, number of steps and time to receive the bonus.</li>
+      </ul>
+
+      <h2>What We Do Not Do</h2>
+      <ul>
+        <li>We do not guarantee any bonus amount or availability.</li>
+        <li>We do not promise profit or income from trading.</li>
+        <li>We do not make investment or financial advice.</li>
+        <li>We do not verify that bonuses will be honored in your specific case.</li>
+      </ul>
+
+      <h2>Affiliate Disclosure</h2>
+      <p>CryptoBonusWorld may receive compensation when users register through affiliate or referral links on this website. This compensation may influence which exchanges are featured and how they are ordered, but it does not change our rating methodology or factual bonus data.</p>
+      <p>We only list exchanges we consider reputable and that have active promotional programs. <a href="/affiliate-disclosure/">Read our full affiliate disclosure</a>.</p>
+
+      <h2>Data Update Policy</h2>
+      <p>We aim to verify bonus data at least monthly. Bonus terms can change without notice. Always check the official exchange promotion page before registering or making a deposit. The "Last Updated" date on each exchange page indicates the most recent manual verification.</p>
+
+      <h2>Contact</h2>
+      <p>If you notice incorrect bonus data or want to report a change in promotion terms, please <a href="/contact/">contact us</a>.</p>
+    </div>
+  </div>
+</Layout>

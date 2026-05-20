@@ -1,0 +1,93 @@
+---
+interface Props {
+  pros: string[];
+  cons: string[];
+}
+const { pros, cons } = Astro.props;
+---
+
+<div class="pros-cons">
+  <div class="pros-cons-col pros-col">
+    <h4 class="pros-cons-title pros-title">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+      Pros
+    </h4>
+    <ul class="pros-cons-list">
+      {pros.map(item => <li>{item}</li>)}
+    </ul>
+  </div>
+  <div class="pros-cons-col cons-col">
+    <h4 class="pros-cons-title cons-title">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+      Cons
+    </h4>
+    <ul class="pros-cons-list">
+      {cons.map(item => <li>{item}</li>)}
+    </ul>
+  </div>
+</div>
+
+<style>
+  .pros-cons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+  .pros-cons-col {
+    border-radius: 10px;
+    padding: 1rem 1.125rem;
+  }
+  .pros-col { background: #1a3a2a; border: 1px solid #1f4d38; }
+  .cons-col { background: #3a1a1a; border: 1px solid #4d1f1f; }
+  .pros-cons-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 0 0 0.75rem;
+  }
+  .pros-title { color: #4ade80; }
+  .cons-title { color: #f87171; }
+  .pros-cons-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .pros-cons-list li {
+    font-size: 0.825rem;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+    padding-left: 0.875rem;
+    position: relative;
+  }
+  .pros-col .pros-cons-list li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: #4ade80;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+  .cons-col .pros-cons-list li::before {
+    content: '×';
+    position: absolute;
+    left: 0;
+    color: #f87171;
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+  @media (max-width: 600px) {
+    .pros-cons { grid-template-columns: 1fr; }
+  }
+</style>

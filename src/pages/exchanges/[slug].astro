@@ -1,0 +1,258 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import ExchangeHero from '../../components/ExchangeHero.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import BonusBadge from '../../components/BonusBadge.astro';
+import ProsConsBlock from '../../components/ProsConsBlock.astro';
+import RequirementsBlock from '../../components/RequirementsBlock.astro';
+import CountryAvailability from '../../components/CountryAvailability.astro';
+import PromoCodeBox from '../../components/PromoCodeBox.astro';
+import AlternativesBlock from '../../components/AlternativesBlock.astro';
+import FAQBlock from '../../components/FAQBlock.astro';
+import RiskDisclaimer from '../../components/RiskDisclaimer.astro';
+import AffiliateDisclosure from '../../components/AffiliateDisclosure.astro';
+import CTAButton from '../../components/CTAButton.astro';
+import LastUpdated from '../../components/LastUpdated.astro';
+
+import exchanges from '../../data/exchanges.json';
+
+export async function getStaticPaths() {
+  return exchanges.map(ex => ({
+    params: { slug: ex.slug },
+    props: { exchange: ex },
+  }));
+}
+
+const { exchange: ex } = Astro.props;
+
+const faqItems = [
+  {
+    question: `Is ${ex.name} bonus legitimate?`,
+    answer: `${ex.name} is a registered crypto exchange. Their bonus promotion is available to eligible new users. As with all crypto exchange promotions, conditions apply including${ex.kycRequired ? ' KYC verification,' : ''} ${ex.depositRequired ? 'minimum deposit,' : ''} and trading volume requirements. Always verify current terms on the official ${ex.name} website.`,
+  },
+  {
+    question: `Can I withdraw the ${ex.name} bonus?`,
+    answer: `Most exchange bonuses including ${ex.name}'s cannot be withdrawn directly. They are typically trading credits or vouchers. Profits generated through trading with the bonus may be withdrawable after meeting trading volume requirements. Check official terms for details.`,
+  },
+  {
+    question: `What countries is ${ex.name} available in?`,
+    answer: `${ex.name} is available in most countries globally${ex.excludedCountries.length > 0 ? `, but not in ${ex.excludedCountries.join(', ')}` : ''}. Availability may vary based on local regulations and exchange policies.`,
+  },
+  {
+    question: `Does ${ex.name} require KYC for the bonus?`,
+    answer: ex.kycRequired
+      ? `Yes, ${ex.name} requires identity verification (KYC) to access the full welcome bonus. You will need to submit a government-issued ID.`
+      : `${ex.name} does not require full KYC verification for basic account access and initial bonus eligibility. However, non-KYC accounts may have withdrawal limits.`,
+  },
+];
+
+const schema = {
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": `${ex.name} Welcome Bonus`,
+  "description": ex.shortDescription,
+  "url": `https://cryptobonusworld.com/exchanges/${ex.slug}/`,
+  "offers": {
+    "@type": "Offer",
+    "description": ex.bonusTitle,
+    "priceCurrency": ex.bonusCurrency,
+  },
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": ex.rating,
+    "bestRating": 10,
+    "ratingCount": 1,
+  },
+};
+---
+
+<Layout
+  title={`${ex.name} Bonus 2026: ${ex.bonusTitle} — Claim Guide`}
+  description={`${ex.name} welcome bonus: ${ex.bonusTitle}. Learn the conditions, KYC requirements, country availability and how to claim. Updated ${ex.updatedAt}.`}
+  canonical={`/exchanges/${ex.slug}/`}
+  schema={schema}
+>
+  <div class="container">
+    <Breadcrumbs crumbs={[
+      { label: 'Home', href: '/' },
+      { label: 'Exchanges', href: '/exchanges/' },
+      { label: ex.name },
+    ]} />
+
+    <div class="page-header">
+      <h1>{ex.name} Bonus 2026: {ex.bonusTitle}</h1>
+      <p class="lead">{ex.shortDescription}</p>
+      <LastUpdated date={ex.updatedAt} />
+    </div>
+
+    <AffiliateDisclosure compact />
+
+    <ExchangeHero
+      name={ex.name}
+      slug={ex.slug}
+      rating={ex.rating}
+      bonusTitle={ex.bonusTitle}
+      bonusAmount={ex.bonusAmount}
+      bonusCurrency={ex.bonusCurrency}
+      bonusTypes={ex.bonusTypes}
+      kycRequired={ex.kycRequired}
+      depositRequired={ex.depositRequired}
+      affiliateUrl={ex.affiliateUrl}
+      promoCode={ex.promoCode}
+      updatedAt={ex.updatedAt}
+    />
+
+    {ex.promoCode && (
+      <PromoCodeBox code={ex.promoCode} exchange={ex.name} />
+    )}
+
+    <!-- Key Conditions Table -->
+    <section class="section">
+      <h2>Key Bonus Conditions</h2>
+      <div class="conditions-table-wrap">
+        <table class="conditions-table">
+          <tbody>
+            <tr>
+              <th scope="row">Bonus Amount</th>
+              <td>Up to {ex.bonusAmount.toLocaleString()} {ex.bonusCurrency}</td>
+            </tr>
+            <tr>
+              <th scope="row">Bonus Title</th>
+              <td>{ex.bonusTitle}</td>
+            </tr>
+            <tr>
+              <th scope="row">Bonus Types</th>
+              <td>
+                <div class="badge-group">
+                  {ex.bonusTypes.map(t => <BonusBadge type={t} />)}
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">KYC Required</th>
+              <td>{ex.kycRequired ? 'Yes' : 'No'}</td>
+            </tr>
+            <tr>
+              <th scope="row">Deposit Required</th>
+              <td>{ex.depositRequired ? 'Yes' : 'No'}</td>
+            </tr>
+            <tr>
+              <th scope="row">Futures Trading Required</th>
+              <td>{ex.futuresRequired ? 'Yes' : 'No'}</td>
+            </tr>
+            <tr>
+              <th scope="row">Promo Code</th>
+              <td>{ex.promoCode || 'None required'}</td>
+            </tr>
+            <tr>
+              <th scope="row">Payment Methods</th>
+              <td>{ex.paymentMethods.join(', ')}</td>
+            </tr>
+            <tr>
+              <th scope="row">Last Updated</th>
+              <td><LastUpdated date={ex.updatedAt} /></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Requirements -->
+    <RequirementsBlock
+      requirements={ex.requirements}
+      kycRequired={ex.kycRequired}
+      depositRequired={ex.depositRequired}
+      futuresRequired={ex.futuresRequired}
+    />
+
+    <!-- About Exchange -->
+    <section class="section prose">
+      <h2>About {ex.name}</h2>
+      <p>{ex.longDescription}</p>
+    </section>
+
+    <!-- Pros & Cons -->
+    <ProsConsBlock pros={ex.pros} cons={ex.cons} />
+
+    <!-- Country Availability -->
+    <section class="section">
+      <h2>Country Availability</h2>
+      <CountryAvailability countries={ex.countries} excludedCountries={ex.excludedCountries} />
+    </section>
+
+    <!-- CTA Block -->
+    <div class="cta-block">
+      <div class="cta-block-content">
+        <h3>Ready to claim the {ex.name} bonus?</h3>
+        <p>{ex.riskNotes}</p>
+        <CTAButton href={ex.affiliateUrl} exchange={ex.name} size="lg" />
+      </div>
+    </div>
+
+    <!-- Alternatives -->
+    <AlternativesBlock currentSlug={ex.slug} exchanges={exchanges} />
+
+    <!-- FAQ -->
+    <FAQBlock items={faqItems} title={`${ex.name} Bonus — FAQ`} />
+
+    <RiskDisclaimer />
+  </div>
+</Layout>
+
+<style>
+  .section { margin: 2rem 0; }
+  .section h2 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 0 0 1rem;
+    color: var(--color-text-primary);
+  }
+
+  .conditions-table-wrap {
+    border-radius: 10px;
+    border: 1px solid var(--color-border);
+    overflow: hidden;
+  }
+  .conditions-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+  .conditions-table tr { border-bottom: 1px solid var(--color-border); }
+  .conditions-table tr:last-child { border-bottom: none; }
+  .conditions-table tr:nth-child(even) { background: var(--color-bg-tertiary); }
+  .conditions-table th {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    width: 40%;
+    font-size: 0.8rem;
+    background: var(--color-bg-secondary);
+  }
+  .conditions-table td {
+    padding: 0.75rem 1rem;
+    color: var(--color-text-secondary);
+  }
+  .badge-group { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+
+  .cta-block {
+    background: linear-gradient(135deg, #1a1a0a 0%, #111111 100%);
+    border: 1px solid var(--color-accent-dim);
+    border-radius: 16px;
+    padding: 2rem;
+    text-align: center;
+    margin: 2rem 0;
+  }
+  .cta-block h3 {
+    font-size: 1.3rem;
+    font-weight: 800;
+    margin: 0 0 0.5rem;
+  }
+  .cta-block p {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    margin: 0 auto 1.25rem;
+    max-width: 480px;
+  }
+</style>

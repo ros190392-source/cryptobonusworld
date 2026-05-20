@@ -1,0 +1,146 @@
+---
+import BonusBadge from './BonusBadge.astro';
+import KycBadge from './KycBadge.astro';
+import RatingBadge from './RatingBadge.astro';
+import CTAButton from './CTAButton.astro';
+import LastUpdated from './LastUpdated.astro';
+
+interface Props {
+  name: string;
+  slug: string;
+  rating: number;
+  bonusTitle: string;
+  bonusAmount: number;
+  bonusCurrency: string;
+  bonusTypes: string[];
+  kycRequired: boolean;
+  affiliateUrl: string;
+  shortDescription: string;
+  updatedAt: string;
+}
+
+const props = Astro.props;
+---
+
+<article class="exchange-card">
+  <div class="exchange-card-header">
+    <div class="exchange-card-identity">
+      <div class="exchange-card-logo" aria-hidden="true">
+        {props.name.charAt(0)}
+      </div>
+      <div>
+        <h3 class="exchange-card-name">
+          <a href={`/exchanges/${props.slug}/`}>{props.name}</a>
+        </h3>
+        <RatingBadge rating={props.rating} />
+      </div>
+    </div>
+    <div class="exchange-card-bonus">
+      <span class="exchange-bonus-amount">
+        Up to {props.bonusAmount.toLocaleString()} {props.bonusCurrency}
+      </span>
+    </div>
+  </div>
+
+  <p class="exchange-card-desc">{props.shortDescription}</p>
+
+  <div class="exchange-card-badges">
+    {props.bonusTypes.map(t => <BonusBadge type={t} />)}
+    <KycBadge required={props.kycRequired} />
+  </div>
+
+  <div class="exchange-card-footer">
+    <LastUpdated date={props.updatedAt} />
+    <div class="exchange-card-actions">
+      <a href={`/exchanges/${props.slug}/`} class="details-link">View Details</a>
+      <CTAButton href={props.affiliateUrl} exchange={props.name} size="sm" />
+    </div>
+  </div>
+</article>
+
+<style>
+  .exchange-card {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .exchange-card:hover {
+    border-color: var(--color-accent-dim);
+    box-shadow: 0 4px 20px rgba(245, 197, 66, 0.08);
+  }
+  .exchange-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .exchange-card-identity { display: flex; align-items: center; gap: 0.75rem; }
+  .exchange-card-logo {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--color-accent);
+    flex-shrink: 0;
+  }
+  .exchange-card-name {
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0 0 0.2rem;
+  }
+  .exchange-card-name a {
+    color: var(--color-text-primary);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .exchange-card-name a:hover { color: var(--color-accent); }
+  .exchange-bonus-amount {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-accent);
+    text-align: right;
+    display: block;
+  }
+  .exchange-card-desc {
+    font-size: 0.825rem;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    margin: 0;
+  }
+  .exchange-card-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+  .exchange-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: auto;
+  }
+  .exchange-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .details-link {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    text-decoration: none;
+    transition: color 0.15s;
+    white-space: nowrap;
+  }
+  .details-link:hover { color: var(--color-text-primary); }
+</style>
