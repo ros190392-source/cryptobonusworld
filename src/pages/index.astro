@@ -10,10 +10,15 @@ import RiskDisclaimer from '../components/RiskDisclaimer.astro';
 import AffiliateDisclosure from '../components/AffiliateDisclosure.astro';
 import CTAButton from '../components/CTAButton.astro';
 import MethodologyBlock from '../components/MethodologyBlock.astro';
+import AdaptiveRecommendation from '../components/AdaptiveRecommendation.astro';
 
 import exchanges from '../data/exchanges.json';
 import categories from '../data/categories.json';
 import countries from '../data/countries.json';
+import type { RecommendableExchange } from '../utils/recommendationEngine';
+
+import { buildWebSiteSchema, buildOrganizationSchema } from '../utils/seo';
+import type { PageContext } from '../utils/analytics';
 
 const topExchanges = [...exchanges].sort((a, b) => b.rating - a.rating).slice(0, 5);
 
@@ -44,13 +49,10 @@ const faqItems = [
   },
 ];
 
-const siteSchema = {
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  "name": "CryptoBonusWorld",
-  "url": "https://cryptobonusworld.com",
-  "description": "Compare crypto exchange signup bonuses, deposit bonuses and futures promotions from top exchanges worldwide.",
-};
+// SEO: richer schema array — WebSite + Organization together
+const siteSchema = [buildWebSiteSchema(), buildOrganizationSchema()];
+
+const analyticsContext: PageContext = { pageType: 'homepage' };
 ---
 
 <Layout
@@ -58,6 +60,7 @@ const siteSchema = {
   description="Compare signup rewards, deposit bonuses, futures bonuses and crypto trading promotions from top exchanges. Find the best crypto bonus for your country and trading goals."
   canonical="/"
   schema={siteSchema}
+  analyticsContext={analyticsContext}
 >
   <!-- Hero -->
   <section class="hero">
@@ -155,6 +158,11 @@ const siteSchema = {
   <section class="container section">
     <h2 class="section-title">Top Crypto Exchange Bonuses</h2>
     <BonusTable exchanges={exchanges} />
+    <AdaptiveRecommendation
+      exchanges={exchanges as unknown as RecommendableExchange[]}
+      pageType="homepage"
+      showHint={true}
+    />
     <MethodologyBlock compact />
   </section>
 
@@ -234,7 +242,7 @@ const siteSchema = {
       </div>
     </div>
     <div style="margin-top: 1.25rem">
-      <a href="/guides/how-crypto-bonuses-work/" class="text-link">Learn more: How crypto bonuses work →</a>
+      <a href="/methodology/" class="text-link">Learn more: How we review crypto bonuses →</a>
     </div>
   </section>
 
@@ -610,8 +618,8 @@ const siteSchema = {
   }
 
   @media (max-width: 768px) {
-    /* extra padding-bottom for sticky CTA bar */
-    :global(body) { padding-bottom: 72px; }
+    /* extra padding-bottom for sticky CTA bar — never overlaps content */
+    :global(body) { padding-bottom: 76px; }
   }
 
   @media (max-width: 640px) {
