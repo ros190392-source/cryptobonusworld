@@ -4,70 +4,285 @@
     "slug": "bybit",
     "logo": "/logos/bybit.svg",
     "rating": 9.8,
-    "bonusTitle": "Up to 30,000 USDT Bonus",
+    "topChoice": true,
+    "bonusTitle": "Up to 30,000 USDT Welcome Package",
     "bonusAmount": 30000,
     "bonusCurrency": "USDT",
-    "bonusTypes": ["signup", "deposit", "futures"],
+    "bonusTypes": [
+      "signup",
+      "deposit",
+      "futures"
+    ],
+    "bonusTiers": [
+      {
+        "type": "signup",
+        "title": "Registration Reward",
+        "amount": 20,
+        "currency": "USDT",
+        "condition": "Register via referral link and verify email",
+        "note": "Credited as trading voucher"
+      },
+      {
+        "type": "deposit",
+        "title": "Deposit Bonus",
+        "amount": 200,
+        "currency": "USDT",
+        "condition": "Make your first qualifying deposit",
+        "note": "Amount scales with deposit size"
+      },
+      {
+        "type": "futures",
+        "title": "Futures Trading Rewards",
+        "amount": 29780,
+        "currency": "USDT",
+        "condition": "Complete futures trading volume milestones",
+        "note": "Distributed across multiple tiers; high-volume required for maximum"
+      }
+    ],
+    "bonusExpiry": {
+      "days": 30,
+      "note": "Bonus vouchers expire 30 days after issuance; tasks must be completed within the window"
+    },
     "kycRequired": true,
     "depositRequired": true,
     "futuresRequired": false,
-    "promoCode": "",
-    "affiliateUrl": "#",
+    "minDeposit": {
+      "amount": 100,
+      "currency": "USDT"
+    },
+    "tradingVolumeRequired": {
+      "amount": 10000,
+      "currency": "USDT",
+      "note": "For upper bonus tiers"
+    },
+    "affiliateUrl": "https://partner.bybit.com/b/CRYPTOBONUSW",
+    "affiliateLinks": {
+      "default": "https://partner.bybit.com/b/CRYPTOBONUSW",
+      "geo": {
+        "tr": "#",
+        "in": "#",
+        "id": "#",
+        "ng": "#",
+        "br": "#",
+        "vn": "#",
+        "ph": "#"
+      }
+    },
+    "commissionType": "hybrid",
+    "promoCode": "CRYPTOBONUSW",
+    "promoCodes": [
+      {
+        "code": "CRYPTOBONUSW",
+        "region": "global",
+        "description": "General referral registration bonus"
+      }
+    ],
     "termsUrl": "https://www.bybit.com/en/promo/global/welcome-gifts/",
-    "countries": ["global", "turkey", "india", "indonesia", "nigeria", "brazil", "vietnam", "philippines"],
-    "excludedCountries": ["us", "uk", "canada"],
-    "paymentMethods": ["crypto", "card", "p2p"],
+    "countries": [
+      "global",
+      "turkey",
+      "india",
+      "indonesia",
+      "nigeria",
+      "brazil",
+      "vietnam",
+      "philippines"
+    ],
+    "excludedCountries": [
+      "us",
+      "uk",
+      "canada"
+    ],
+    "paymentMethods": [
+      "crypto",
+      "card",
+      "p2p"
+    ],
+    "founded": 2018,
+    "users": "30M+",
+    "headquarters": "Dubai, UAE",
+    "licences": [
+      "Dubai VARA"
+    ],
+    "featureBadges": [
+      "copy-trading",
+      "web3-wallet",
+      "spot",
+      "futures",
+      "options",
+      "earn",
+      "launchpad",
+      "p2p"
+    ],
     "pros": [
-      "One of the highest welcome bonus packages",
-      "Strong futures and derivatives platform",
-      "Wide range of crypto products including copy trading",
+      "One of the highest welcome bonus packages in the industry",
+      "Strong derivatives and futures trading platform",
+      "Copy trading lets beginners follow professional traders",
+      "Web3 wallet integrated directly into the exchange app",
       "Available in most countries globally"
     ],
     "cons": [
-      "Bonus conditions require trading volume",
-      "KYC required for full bonus access",
-      "Not available in US, UK and Canada"
+      "Full bonus requires significant trading volume milestones",
+      "KYC verification required for full access",
+      "Not available for US, UK or Canada residents"
     ],
-    "requirements": "New users must register, complete KYC, deposit funds and meet trading volume requirements to unlock the full bonus amount. Bonus is distributed in tiers.",
-    "riskNotes": "Bonus terms may change without notice. Always check official promotion page before claiming. Crypto trading involves significant risk.",
+    "requirements": "New users must register via referral link, complete email and KYC verification, deposit funds and meet tiered trading volume requirements to unlock the full bonus package. Bonus is distributed as trading vouchers across multiple milestone tasks.",
+    "riskNotes": "Bonus terms may change without notice. Bonus vouchers cannot be withdrawn directly — only profits from trading with them may be eligible. Always check the official promotion page before claiming. Crypto trading involves significant risk of loss.",
     "shortDescription": "Bybit offers one of the most competitive crypto welcome bonus packages with up to 30,000 USDT for new users who deposit and trade.",
-    "longDescription": "Bybit is a major global crypto exchange known for derivatives, spot trading, copy trading and aggressive promotional campaigns. Founded in 2018, Bybit offers a wide range of trading products including futures, options, and a growing spot market. Their welcome bonus for new users is among the highest in the industry, though it requires meeting deposit and trading volume milestones to unlock the full amount.",
+    "bestFor": [
+      "Futures traders",
+      "Copy trading beginners",
+      "High-volume users",
+      "Web3 & DeFi users"
+    ],
+    "longDescription": "Bybit is a major global crypto exchange known for derivatives, spot trading, copy trading and aggressive promotional campaigns. Founded in 2018 and headquartered in Dubai, Bybit serves over 30 million users worldwide with a wide range of trading products including futures, options, and a growing spot market. Their welcome bonus for new users is among the highest in the industry, distributed across tiered tasks that reward registration, first deposit, and trading volume milestones. Bybit holds a Virtual Asset license from Dubai VARA and has expanded significantly into Web3 wallet and DeFi products.",
+    "editorNote": "Top pick for serious traders. The 30K USDT ceiling is industry-leading but requires meaningful trading volume to unlock all tiers. Copy trading and Web3 wallet integration are genuinely best-in-class. Not for no-KYC users.",
+    "lastVerified": "2026-05-20",
     "updatedAt": "2026-05-20",
-    "status": "active"
+    "status": "active",
+    "sources": [
+      {
+        "url": "https://www.bybit.com/en/promo/global/welcome-gifts/",
+        "type": "official-promo",
+        "fetchedAt": "2026-05-20T00:00:00.000Z",
+        "notes": "Manual verification — bonus tiers, expiry window, KYC requirement confirmed"
+      }
+    ],
+    "changeLog": []
   },
   {
     "name": "MEXC",
     "slug": "mexc",
     "logo": "/logos/mexc.svg",
     "rating": 9.4,
+    "topChoice": false,
     "bonusTitle": "Up to 1,000 USDT Signup Bonus",
     "bonusAmount": 1000,
     "bonusCurrency": "USDT",
-    "bonusTypes": ["signup", "deposit", "futures"],
+    "bonusTypes": [
+      "signup",
+      "deposit",
+      "futures"
+    ],
+    "bonusTiers": [
+      {
+        "type": "signup",
+        "title": "Registration Bonus",
+        "amount": 10,
+        "currency": "USDT",
+        "condition": "Register and complete signup tasks",
+        "note": "No KYC or deposit required for initial reward"
+      },
+      {
+        "type": "deposit",
+        "title": "First Deposit Reward",
+        "amount": 50,
+        "currency": "USDT",
+        "condition": "Make a qualifying first deposit",
+        "note": "Scales with deposit amount"
+      },
+      {
+        "type": "futures",
+        "title": "Futures Trading Vouchers",
+        "amount": 940,
+        "currency": "USDT",
+        "condition": "Complete futures trading volume tasks",
+        "note": "Trading vouchers distributed per milestone"
+      }
+    ],
+    "bonusExpiry": {
+      "days": 30,
+      "note": "Signup tasks and bonus vouchers must be claimed and used within 30 days"
+    },
     "kycRequired": false,
     "depositRequired": false,
     "futuresRequired": false,
-    "promoCode": "",
-    "affiliateUrl": "#",
+    "minDeposit": {
+      "amount": 0,
+      "currency": "USDT"
+    },
+    "tradingVolumeRequired": {
+      "amount": 1000,
+      "currency": "USDT",
+      "note": "For upper bonus tiers"
+    },
+    "affiliateUrl": "https://www.mexc.com/ru-RU/acquisition/custom-sign-up?shareCode=mexc-CryptoBonus",
+    "affiliateLinks": {
+      "default": "https://www.mexc.com/ru-RU/acquisition/custom-sign-up?shareCode=mexc-CryptoBonus",
+      "geo": {
+        "tr": "#",
+        "in": "#",
+        "id": "#",
+        "ng": "#",
+        "br": "#",
+        "vn": "#",
+        "ph": "#"
+      }
+    },
+    "commissionType": "cpa",
+    "promoCode": "mexc-CryptoBonus",
+    "promoCodes": [
+      {
+        "code": "mexc-CryptoBonus",
+        "region": "global",
+        "description": "General referral registration bonus"
+      }
+    ],
     "termsUrl": "https://www.mexc.com/activity/new-user",
-    "countries": ["global", "turkey", "india", "indonesia", "nigeria", "brazil", "vietnam", "philippines"],
-    "excludedCountries": ["us"],
-    "paymentMethods": ["crypto", "card", "p2p"],
+    "countries": [
+      "global",
+      "turkey",
+      "india",
+      "indonesia",
+      "nigeria",
+      "brazil",
+      "vietnam",
+      "philippines"
+    ],
+    "excludedCountries": [
+      "us"
+    ],
+    "paymentMethods": [
+      "crypto",
+      "card",
+      "p2p"
+    ],
+    "founded": 2018,
+    "users": "10M+",
+    "headquarters": "Seychelles",
+    "licences": [],
+    "featureBadges": [
+      "spot",
+      "futures",
+      "copy-trading",
+      "staking",
+      "launchpad",
+      "p2p",
+      "no-kyc"
+    ],
     "pros": [
-      "No KYC required for basic access",
-      "No deposit required for initial bonus",
-      "Huge selection of altcoins and new listings",
-      "Available in most countries"
+      "No KYC required for basic trading access",
+      "No deposit required for initial signup bonus",
+      "Huge selection of altcoins including early new listings",
+      "Available in most countries worldwide"
     ],
     "cons": [
-      "Smaller bonus amount compared to Bybit",
-      "Some bonus features require trading activity",
-      "Not available for US users"
+      "Smaller overall bonus ceiling compared to Bybit",
+      "Upper bonus tiers require trading activity",
+      "Not available for US residents"
     ],
-    "requirements": "Register with email or phone. No KYC required for basic trading. Some bonuses require completing tasks like trading a minimum volume.",
-    "riskNotes": "Bonus conditions and availability may change. MEXC lists many low-cap altcoins which carry higher volatility risk. Always read official terms.",
-    "shortDescription": "MEXC offers a no-KYC-required signup bonus of up to 1,000 USDT, making it one of the most accessible exchanges for new users.",
-    "longDescription": "MEXC is a global crypto exchange known for its extensive altcoin listings and relatively low KYC requirements. Founded in 2018, MEXC is popular among traders looking for early access to new token listings. Their welcome bonus is accessible without identity verification, making it attractive for users in regions with limited KYC options.",
+    "requirements": "Register with email or phone. No KYC required for basic trading. Complete signup tasks to claim initial reward. Additional bonuses unlock through first deposit and trading volume milestones.",
+    "riskNotes": "Bonus conditions and availability may change. MEXC lists many low-cap altcoins which carry higher volatility risk. Non-KYC accounts may face withdrawal limits. Always read official promotion terms before claiming.",
+    "shortDescription": "MEXC offers a no-KYC-required signup bonus of up to 1,000 USDT, making it one of the most accessible exchanges for new users who want fast account access.",
+    "bestFor": [
+      "No-KYC users",
+      "Altcoin traders",
+      "No-deposit start",
+      "Privacy-focused users"
+    ],
+    "longDescription": "MEXC is a global crypto exchange known for its extensive altcoin listings and low KYC requirements. Founded in 2018, MEXC is popular among traders looking for early access to new token listings and those who prefer trading without full identity verification. Their welcome bonus structure is accessible from registration without requiring a deposit, making it one of the most entry-friendly bonus programs available. The exchange supports spot and futures trading alongside copy trading and staking products.",
+    "editorNote": "Best no-KYC choice with zero upfront commitment � a rare combination. 1,000 USDT ceiling is modest but the frictionless signup is unmatched. Wide altcoin selection makes it ideal for privacy-focused or emerging-market traders.",
+    "lastVerified": "2026-05-20",
     "updatedAt": "2026-05-20",
     "status": "active"
   },
@@ -76,34 +291,141 @@
     "slug": "okx",
     "logo": "/logos/okx.svg",
     "rating": 9.6,
+    "topChoice": true,
     "bonusTitle": "Up to 10,000 USDT Mystery Box",
     "bonusAmount": 10000,
     "bonusCurrency": "USDT",
-    "bonusTypes": ["signup", "deposit", "futures", "trading-rewards"],
+    "bonusTypes": [
+      "signup",
+      "deposit",
+      "futures",
+      "trading-rewards"
+    ],
+    "bonusTiers": [
+      {
+        "type": "signup",
+        "title": "Welcome Mystery Box",
+        "amount": 60,
+        "currency": "USDT",
+        "condition": "Register and complete basic account tasks",
+        "note": "Randomized reward value; average around $10–$60"
+      },
+      {
+        "type": "deposit",
+        "title": "Deposit Mystery Box",
+        "amount": 500,
+        "currency": "USDT",
+        "condition": "Make a qualifying first deposit and trade",
+        "note": "Higher deposit unlocks higher-value mystery box tiers"
+      },
+      {
+        "type": "futures",
+        "title": "Futures Milestone Rewards",
+        "amount": 9440,
+        "currency": "USDT",
+        "condition": "Reach cumulative futures trading volume tiers",
+        "note": "Maximum reward requires significant trading activity"
+      }
+    ],
+    "bonusExpiry": {
+      "days": 30,
+      "note": "Mystery box tasks must be completed within 30 days of registration"
+    },
     "kycRequired": true,
     "depositRequired": true,
     "futuresRequired": false,
-    "promoCode": "",
-    "affiliateUrl": "#",
+    "minDeposit": {
+      "amount": 50,
+      "currency": "USDT"
+    },
+    "tradingVolumeRequired": {
+      "amount": 10000,
+      "currency": "USDT",
+      "note": "For maximum mystery box tier"
+    },
+    "affiliateUrl": "https://okx.com/join/CRYPTOBONUSW",
+    "affiliateLinks": {
+      "default": "https://okx.com/join/CRYPTOBONUSW",
+      "geo": {
+        "tr": "#",
+        "id": "#",
+        "ng": "#",
+        "br": "#",
+        "vn": "#",
+        "ph": "#"
+      }
+    },
+    "commissionType": "hybrid",
+    "promoCode": "CRYPTOBONUSW",
+    "promoCodes": [
+      {
+        "code": "CRYPTOBONUSW",
+        "region": "global",
+        "description": "General referral registration bonus"
+      }
+    ],
     "termsUrl": "https://www.okx.com/learn/okx-new-user-rewards",
-    "countries": ["global", "turkey", "indonesia", "nigeria", "brazil", "vietnam", "philippines"],
-    "excludedCountries": ["us", "uk", "canada", "india"],
-    "paymentMethods": ["crypto", "card", "p2p", "bank"],
+    "countries": [
+      "global",
+      "turkey",
+      "indonesia",
+      "nigeria",
+      "brazil",
+      "vietnam",
+      "philippines"
+    ],
+    "excludedCountries": [
+      "us",
+      "uk",
+      "canada",
+      "india"
+    ],
+    "paymentMethods": [
+      "crypto",
+      "card",
+      "p2p",
+      "bank"
+    ],
+    "founded": 2017,
+    "users": "50M+",
+    "headquarters": "Seychelles",
+    "licences": [
+      "Dubai VARA",
+      "Bahamas SCB"
+    ],
+    "featureBadges": [
+      "spot",
+      "futures",
+      "options",
+      "web3-wallet",
+      "earn",
+      "defi",
+      "nft",
+      "p2p"
+    ],
     "pros": [
-      "Reputable tier-1 exchange with strong track record",
-      "Mystery box bonus adds excitement",
-      "Excellent trading tools and charting",
-      "Strong Web3 wallet integration"
+      "Reputable tier-1 exchange with a strong global track record",
+      "Mystery box mechanic adds excitement to the onboarding experience",
+      "Excellent trading tools including advanced charting and analytics",
+      "Integrated Web3 wallet supporting hundreds of blockchains"
     ],
     "cons": [
       "Not available in the US, UK, Canada or India",
-      "KYC and deposit required for full rewards",
-      "Mystery box value is variable"
+      "KYC and qualifying deposit required to access rewards",
+      "Mystery box reward value is randomized and not guaranteed"
     ],
-    "requirements": "New users register, complete identity verification, make a qualifying deposit and trade to unlock mystery box rewards. Specific amounts depend on deposit and trading tiers.",
-    "riskNotes": "Mystery box rewards are randomized and not guaranteed. Trading volume requirements apply. Always verify current promotion terms on the official OKX website.",
-    "shortDescription": "OKX rewards new users with mystery boxes worth up to 10,000 USDT, unlocked through deposits and trading activity on one of the industry's most trusted platforms.",
-    "longDescription": "OKX is a top-tier global crypto exchange offering spot, futures, options, DeFi and Web3 products. Known for strong liquidity, advanced trading tools and a growing ecosystem. Their welcome promotion uses a mystery box mechanic where new users receive randomized rewards based on deposit and trading milestones, adding a gamified element to the onboarding experience.",
+    "requirements": "Register and complete identity verification (KYC). Make a qualifying deposit and begin trading to unlock mystery box rewards. Specific reward values depend on deposit size and trading volume tier reached within the promotion window.",
+    "riskNotes": "Mystery box rewards are randomized — the stated maximum is not typical. Trading volume requirements apply for upper tiers. Futures trading involves leverage and significant risk of loss. Always verify current promotion terms on the official OKX website.",
+    "shortDescription": "OKX rewards new users with mystery boxes worth up to 10,000 USDT, unlocked through deposits and trading activity on one of the industry's most trusted tier-1 platforms.",
+    "bestFor": [
+      "Advanced traders",
+      "DeFi & Web3 users",
+      "High-volume futures traders",
+      "Multi-chain users"
+    ],
+    "longDescription": "OKX is a top-tier global crypto exchange offering spot, futures, options, DeFi and Web3 products. Founded in 2017 and serving over 50 million users, OKX is known for strong liquidity, advanced trading tools and a growing multi-chain ecosystem. Their welcome promotion uses a gamified mystery box mechanic where new users receive randomized rewards based on deposit and trading milestones. OKX holds regulatory licenses in Dubai and the Bahamas, positioning itself as one of the more compliance-focused major exchanges outside the US.",
+    "editorNote": "One of the most established names here. Mystery box structure adds engagement but real bonus value requires active futures trading. Dual VARA + SCB licences and 50M+ users make this our benchmark for exchange trust.",
+    "lastVerified": "2026-05-20",
     "updatedAt": "2026-05-20",
     "status": "active"
   },
@@ -112,34 +434,136 @@
     "slug": "bitget",
     "logo": "/logos/bitget.svg",
     "rating": 9.3,
+    "topChoice": false,
     "bonusTitle": "Up to 6,200 USDT New User Bonus",
     "bonusAmount": 6200,
     "bonusCurrency": "USDT",
-    "bonusTypes": ["signup", "deposit", "futures"],
+    "bonusTypes": [
+      "signup",
+      "deposit",
+      "futures"
+    ],
+    "bonusTiers": [
+      {
+        "type": "signup",
+        "title": "Registration Reward",
+        "amount": 50,
+        "currency": "USDT",
+        "condition": "Complete registration and KYC verification",
+        "note": "Credited as futures trading voucher"
+      },
+      {
+        "type": "deposit",
+        "title": "Deposit Match Bonus",
+        "amount": 200,
+        "currency": "USDT",
+        "condition": "Make a qualifying first deposit",
+        "note": "Bonus scales with deposit amount"
+      },
+      {
+        "type": "futures",
+        "title": "Futures Milestone Rewards",
+        "amount": 5950,
+        "currency": "USDT",
+        "condition": "Reach cumulative futures trading volume tiers",
+        "note": "Distributed across multiple milestone levels"
+      }
+    ],
+    "bonusExpiry": {
+      "days": 30,
+      "note": "New user tasks and vouchers expire 30 days after account registration"
+    },
     "kycRequired": true,
     "depositRequired": true,
     "futuresRequired": false,
-    "promoCode": "",
-    "affiliateUrl": "#",
+    "minDeposit": {
+      "amount": 100,
+      "currency": "USDT"
+    },
+    "tradingVolumeRequired": {
+      "amount": 5000,
+      "currency": "USDT",
+      "note": "For upper bonus tiers"
+    },
+    "affiliateUrl": "https://partner.bitget.com/bg/CryptoBonW",
+    "affiliateLinks": {
+      "default": "https://partner.bitget.com/bg/CryptoBonW",
+      "geo": {
+        "tr": "#",
+        "in": "#",
+        "id": "#",
+        "ng": "#",
+        "br": "#",
+        "vn": "#",
+        "ph": "#"
+      }
+    },
+    "commissionType": "hybrid",
+    "promoCode": "CryptoBonW",
+    "promoCodes": [
+      {
+        "code": "CryptoBonW",
+        "region": "global",
+        "description": "General referral registration bonus"
+      }
+    ],
     "termsUrl": "https://www.bitget.com/en/activity/newcomer-rewards",
-    "countries": ["global", "turkey", "india", "indonesia", "nigeria", "brazil", "vietnam", "philippines"],
-    "excludedCountries": ["us", "uk", "canada"],
-    "paymentMethods": ["crypto", "card", "p2p"],
+    "countries": [
+      "global",
+      "turkey",
+      "india",
+      "indonesia",
+      "nigeria",
+      "brazil",
+      "vietnam",
+      "philippines"
+    ],
+    "excludedCountries": [
+      "us",
+      "uk",
+      "canada"
+    ],
+    "paymentMethods": [
+      "crypto",
+      "card",
+      "p2p"
+    ],
+    "founded": 2018,
+    "users": "20M+",
+    "headquarters": "Singapore",
+    "licences": [
+      "ASIC Australia"
+    ],
+    "featureBadges": [
+      "copy-trading",
+      "spot",
+      "futures",
+      "earn",
+      "launchpad",
+      "p2p"
+    ],
     "pros": [
-      "Strong copy trading platform",
-      "Competitive futures bonus",
-      "Good mobile app experience",
-      "Wide country availability"
+      "Industry-leading copy trading platform with thousands of verified traders",
+      "Competitive futures welcome bonus with clear milestone structure",
+      "Strong mobile app with intuitive interface",
+      "Wide country availability across emerging markets"
     ],
     "cons": [
-      "KYC required for full access",
-      "Bonus requires deposit and trading",
-      "Not available in US, UK, Canada"
+      "KYC required for full account access and bonus unlocking",
+      "Full bonus ceiling requires substantial deposit and trading activity",
+      "Not available for US, UK or Canada residents"
     ],
-    "requirements": "Complete registration and KYC verification. Deposit qualifying amount and complete trading tasks to unlock bonus tiers up to 6,200 USDT.",
-    "riskNotes": "Bonus amounts are conditional on meeting deposit and trading milestones. Terms subject to change. Futures trading carries high risk of loss.",
+    "requirements": "Complete registration and KYC identity verification. Deposit a qualifying amount and complete trading milestones to unlock bonus tiers up to 6,200 USDT. Tasks must be completed within the 30-day window after registration.",
+    "riskNotes": "Bonus amounts are conditional on meeting deposit and trading milestones. Futures trading carries high risk of loss including leverage risk. Terms are subject to change. Always verify current conditions on the official Bitget promotion page.",
     "shortDescription": "Bitget offers new users up to 6,200 USDT in welcome bonuses with a strong focus on copy trading and futures markets.",
-    "longDescription": "Bitget is a globally recognized crypto exchange specializing in derivatives and copy trading. With over 20 million users, Bitget is known for its copy trading feature that lets users automatically replicate trades from professional traders. Their welcome package rewards new users through tiered deposit and trading milestones.",
+    "bestFor": [
+      "Copy trading users",
+      "Futures traders",
+      "Intermediate traders"
+    ],
+    "longDescription": "Bitget is a globally recognized crypto exchange specializing in derivatives and copy trading. Founded in 2018 and headquartered in Singapore, Bitget has grown to serve over 20 million users worldwide. Their copy trading feature — which lets users automatically replicate professional traders' positions — is one of the most developed in the industry. The welcome package rewards new users through tiered deposit and futures trading milestones, making it especially attractive for traders who intend to use the derivatives platform.",
+    "editorNote": "The copy trading leader with ASIC regulation and a polished UX. 6,200 USDT package is solid and bonus conditions are clearer than most. Best for intermediate traders who want to follow professional strategies hands-free.",
+    "lastVerified": "2026-05-20",
     "updatedAt": "2026-05-20",
     "status": "active"
   },
@@ -148,34 +572,132 @@
     "slug": "bingx",
     "logo": "/logos/bingx.svg",
     "rating": 9.0,
+    "topChoice": false,
     "bonusTitle": "Up to 5,000 USDT Welcome Bonus",
     "bonusAmount": 5000,
     "bonusCurrency": "USDT",
-    "bonusTypes": ["signup", "deposit", "futures"],
+    "bonusTypes": [
+      "signup",
+      "deposit",
+      "futures"
+    ],
+    "bonusTiers": [
+      {
+        "type": "signup",
+        "title": "Registration Bonus",
+        "amount": 20,
+        "currency": "USDT",
+        "condition": "Complete registration and verify account",
+        "note": "Credited as trading voucher"
+      },
+      {
+        "type": "deposit",
+        "title": "First Deposit Reward",
+        "amount": 100,
+        "currency": "USDT",
+        "condition": "Make a qualifying first deposit",
+        "note": "Scales with deposit amount"
+      },
+      {
+        "type": "futures",
+        "title": "Futures Trading Vouchers",
+        "amount": 4880,
+        "currency": "USDT",
+        "condition": "Complete futures trading volume milestones",
+        "note": "Vouchers distributed across multiple levels"
+      }
+    ],
+    "bonusExpiry": {
+      "days": 30,
+      "note": "New user tasks must be completed within 30 days of registration"
+    },
     "kycRequired": true,
     "depositRequired": true,
     "futuresRequired": false,
+    "minDeposit": {
+      "amount": 50,
+      "currency": "USDT"
+    },
+    "tradingVolumeRequired": {
+      "amount": 5000,
+      "currency": "USDT",
+      "note": "For upper bonus tiers"
+    },
+    "affiliateUrl": "https://bingxdao.com/partner/VipClient/",
+    "affiliateLinks": {
+      "default": "https://bingxdao.com/partner/VipClient/",
+      "geo": {
+        "tr": "#",
+        "in": "#",
+        "id": "#",
+        "ng": "#",
+        "br": "#",
+        "vn": "#",
+        "ph": "#"
+      }
+    },
+    "commissionType": "cpa",
     "promoCode": "",
-    "affiliateUrl": "#",
+    "promoCodes": [
+      {
+        "code": "",
+        "region": "global",
+        "description": "General referral registration bonus"
+      }
+    ],
     "termsUrl": "https://bingx.com/en-us/activity/new-user-reward/",
-    "countries": ["global", "turkey", "india", "indonesia", "nigeria", "brazil", "vietnam", "philippines"],
-    "excludedCountries": ["us"],
-    "paymentMethods": ["crypto", "card", "p2p"],
+    "countries": [
+      "global",
+      "turkey",
+      "india",
+      "indonesia",
+      "nigeria",
+      "brazil",
+      "vietnam",
+      "philippines"
+    ],
+    "excludedCountries": [
+      "us"
+    ],
+    "paymentMethods": [
+      "crypto",
+      "card",
+      "p2p"
+    ],
+    "founded": 2018,
+    "users": "10M+",
+    "headquarters": "Singapore",
+    "licences": [],
+    "featureBadges": [
+      "copy-trading",
+      "spot",
+      "futures",
+      "earn",
+      "p2p",
+      "social-trading"
+    ],
     "pros": [
-      "Beginner-friendly interface",
-      "Social trading features",
-      "Copy trading available",
-      "Available in many countries"
+      "Beginner-friendly interface designed for new traders",
+      "Social and copy trading features ideal for learning",
+      "Available in most countries globally",
+      "P2P trading for easy fiat on-ramp"
     ],
     "cons": [
-      "Smaller trading volume than top exchanges",
-      "KYC and deposit required",
-      "Not available for US users"
+      "Smaller overall trading volume compared to top-tier exchanges",
+      "KYC and deposit required to unlock full bonus",
+      "Not available for US residents"
     ],
-    "requirements": "Register, complete KYC and deposit to unlock welcome bonus tiers. Trading activity required to fully unlock rewards.",
-    "riskNotes": "Bonus conditions and amounts may vary by region. Trading involves significant risk. Read official promotion terms before claiming.",
+    "requirements": "Register, complete KYC verification and make a qualifying deposit to unlock welcome bonus tiers. Futures trading activity unlocks additional reward levels. Tasks must be completed within 30 days.",
+    "riskNotes": "Bonus conditions and amounts may vary by region. Trading involves significant risk. Read official promotion terms before claiming. Copy trading does not guarantee profitability.",
     "shortDescription": "BingX provides a beginner-friendly welcome bonus of up to 5,000 USDT with social and copy trading features ideal for new crypto users.",
-    "longDescription": "BingX is a crypto exchange with a focus on social and copy trading, making it popular with beginners and intermediate traders. Founded in 2018, BingX has grown to serve millions of users globally. Their welcome promotion rewards new users with deposit-based bonus tiers and trading vouchers.",
+    "bestFor": [
+      "Beginner traders",
+      "Social & copy trading",
+      "P2P fiat users"
+    ],
+    "longDescription": "BingX is a crypto exchange with a strong focus on social and copy trading, making it popular with beginners and intermediate traders. Founded in 2018 and headquartered in Singapore, BingX has grown to serve over 10 million users globally. Their social trading infrastructure lets users follow and automatically copy experienced traders, reducing the learning curve for new market participants. Their welcome promotion rewards new users with deposit-based bonus tiers and futures trading vouchers.",
+    "editorNote": "Easiest onboarding for complete beginners. Social trading features and strong P2P support lower the entry barrier significantly. Bonus conditions are fair. Not the highest ceiling but the most accessible all-around.",
+    "lastVerified": "2026-05-20",
     "updatedAt": "2026-05-20",
     "status": "active"
   },
@@ -184,34 +706,135 @@
     "slug": "gate-io",
     "logo": "/logos/gate-io.svg",
     "rating": 9.1,
+    "topChoice": false,
     "bonusTitle": "Up to 3,000 USDT Signup Bonus",
     "bonusAmount": 3000,
     "bonusCurrency": "USDT",
-    "bonusTypes": ["signup", "deposit", "trading-rewards"],
+    "bonusTypes": [
+      "signup",
+      "deposit",
+      "trading-rewards"
+    ],
+    "bonusTiers": [
+      {
+        "type": "signup",
+        "title": "New User Welcome Reward",
+        "amount": 30,
+        "currency": "USDT",
+        "condition": "Register and complete account verification",
+        "note": "Credited as spot trading voucher"
+      },
+      {
+        "type": "deposit",
+        "title": "Deposit Bonus",
+        "amount": 200,
+        "currency": "USDT",
+        "condition": "Complete qualifying first deposit",
+        "note": "Amount scales with deposit tier"
+      },
+      {
+        "type": "trading-rewards",
+        "title": "Trading Rewards",
+        "amount": 2770,
+        "currency": "USDT",
+        "condition": "Reach cumulative spot and futures trading volume milestones",
+        "note": "Distributed as fee rebate vouchers"
+      }
+    ],
+    "bonusExpiry": {
+      "days": 30,
+      "note": "New user tasks must be completed within 30 days of first login"
+    },
     "kycRequired": true,
     "depositRequired": true,
     "futuresRequired": false,
-    "promoCode": "",
-    "affiliateUrl": "#",
+    "minDeposit": {
+      "amount": 50,
+      "currency": "USDT"
+    },
+    "tradingVolumeRequired": {
+      "amount": 5000,
+      "currency": "USDT",
+      "note": "For upper reward tiers"
+    },
+    "affiliateUrl": "https://www.gate.com/share/BONUSCBW",
+    "affiliateLinks": {
+      "default": "https://www.gate.com/share/BONUSCBW",
+      "geo": {
+        "tr": "#",
+        "in": "#",
+        "id": "#",
+        "ng": "#",
+        "br": "#",
+        "vn": "#",
+        "ph": "#"
+      }
+    },
+    "commissionType": "hybrid",
+    "promoCode": "BONUSCBW",
+    "promoCodes": [
+      {
+        "code": "BONUSCBW",
+        "region": "global",
+        "description": "General referral registration bonus"
+      }
+    ],
     "termsUrl": "https://www.gate.io/en/activity/new-user-bonus",
-    "countries": ["global", "turkey", "india", "indonesia", "nigeria", "brazil", "vietnam", "philippines"],
-    "excludedCountries": ["us"],
-    "paymentMethods": ["crypto", "card", "bank"],
+    "countries": [
+      "global",
+      "turkey",
+      "india",
+      "indonesia",
+      "nigeria",
+      "brazil",
+      "vietnam",
+      "philippines"
+    ],
+    "excludedCountries": [
+      "us"
+    ],
+    "paymentMethods": [
+      "crypto",
+      "card",
+      "bank"
+    ],
+    "founded": 2013,
+    "users": "13M+",
+    "headquarters": "Cayman Islands",
+    "licences": [],
+    "featureBadges": [
+      "spot",
+      "futures",
+      "options",
+      "earn",
+      "staking",
+      "nft",
+      "p2p",
+      "lending"
+    ],
     "pros": [
-      "One of the largest altcoin selections",
-      "Long-standing exchange with strong reputation",
-      "Strong spot and futures markets",
-      "Supports many trading pairs"
+      "One of the largest altcoin selections of any exchange globally",
+      "Long-standing exchange operating since 2013 with strong reputation",
+      "Comprehensive spot and futures markets with deep liquidity",
+      "Wide range of DeFi, staking and earning products"
     ],
     "cons": [
-      "Interface can be complex for beginners",
-      "KYC required",
-      "Not available in the US"
+      "Interface can be overwhelming for beginner traders",
+      "KYC verification required to access full bonus",
+      "Not available for US residents"
     ],
-    "requirements": "Register and complete KYC. Deposit qualifying amount and complete tasks to earn signup bonus rewards up to 3,000 USDT.",
-    "riskNotes": "Gate.io lists many altcoins with high volatility. Bonus conditions may change. Always check official promotion terms.",
+    "requirements": "Register and complete KYC verification. Make a qualifying deposit and complete trading tasks to earn signup bonus rewards up to 3,000 USDT. Tasks must be completed within the 30-day new user window.",
+    "riskNotes": "Gate.io lists many altcoins with high volatility risk. Bonus conditions may change without notice. Always verify current promotion terms on the official Gate.io website.",
     "shortDescription": "Gate.io offers new users up to 3,000 USDT in welcome rewards on one of the largest and most established crypto exchanges by altcoin selection.",
-    "longDescription": "Gate.io is one of the oldest crypto exchanges, founded in 2013. Known for its enormous selection of altcoins and trading pairs, Gate.io appeals to experienced traders looking for diverse market exposure. Their welcome bonus is accessible to new users who complete KYC and deposit qualifying amounts.",
+    "bestFor": [
+      "Altcoin traders",
+      "Experienced traders",
+      "Options traders",
+      "Long-term investors"
+    ],
+    "longDescription": "Gate.io is one of the oldest active crypto exchanges, founded in 2013. Known for its enormous selection of thousands of trading pairs and altcoin listings, Gate.io appeals to experienced traders looking for diverse market exposure. The exchange has maintained a strong reputation for over a decade and offers a comprehensive suite of trading products beyond spot and futures, including options, lending and an active NFT marketplace.",
+    "editorNote": "Founded 2013 � the most experienced exchange on this list. 1,700+ token pairs is an unmatched altcoin selection. Bonus is moderate but the real value is platform depth and longevity. Best for experienced altcoin hunters.",
+    "lastVerified": "2026-05-20",
     "updatedAt": "2026-05-20",
     "status": "active"
   },
@@ -220,34 +843,134 @@
     "slug": "kucoin",
     "logo": "/logos/kucoin.svg",
     "rating": 9.2,
+    "topChoice": false,
     "bonusTitle": "Up to 500 USDT Welcome Bonus",
     "bonusAmount": 500,
     "bonusCurrency": "USDT",
-    "bonusTypes": ["signup", "deposit", "futures"],
+    "bonusTypes": [
+      "signup",
+      "deposit",
+      "futures"
+    ],
+    "bonusTiers": [
+      {
+        "type": "signup",
+        "title": "Registration Bonus",
+        "amount": 5,
+        "currency": "USDT",
+        "condition": "Register and complete signup steps",
+        "note": "No KYC required for initial reward"
+      },
+      {
+        "type": "deposit",
+        "title": "First Deposit Reward",
+        "amount": 50,
+        "currency": "USDT",
+        "condition": "Make a qualifying first deposit",
+        "note": "Scales with deposit amount"
+      },
+      {
+        "type": "futures",
+        "title": "Futures Voucher",
+        "amount": 445,
+        "currency": "USDT",
+        "condition": "Complete futures trading volume milestones",
+        "note": "Futures vouchers credited after meeting volume targets"
+      }
+    ],
+    "bonusExpiry": {
+      "days": 30,
+      "note": "New user bonus tasks expire 30 days after registration"
+    },
     "kycRequired": false,
     "depositRequired": true,
     "futuresRequired": false,
-    "promoCode": "",
-    "affiliateUrl": "#",
+    "minDeposit": {
+      "amount": 50,
+      "currency": "USDT"
+    },
+    "tradingVolumeRequired": {
+      "amount": 1000,
+      "currency": "USDT",
+      "note": "For upper bonus tiers"
+    },
+    "affiliateUrl": "https://www.kucoin.com/r/af/CRYPTOBONW",
+    "affiliateLinks": {
+      "default": "https://www.kucoin.com/r/af/CRYPTOBONW",
+      "geo": {
+        "tr": "#",
+        "in": "#",
+        "id": "#",
+        "ng": "#",
+        "br": "#",
+        "vn": "#",
+        "ph": "#"
+      }
+    },
+    "commissionType": "hybrid",
+    "promoCode": "CRYPTOBONW",
+    "promoCodes": [
+      {
+        "code": "CRYPTOBONW",
+        "region": "global",
+        "description": "General referral registration bonus"
+      }
+    ],
     "termsUrl": "https://www.kucoin.com/activity/new-user-rewards",
-    "countries": ["global", "turkey", "india", "indonesia", "nigeria", "brazil", "vietnam", "philippines"],
-    "excludedCountries": ["us"],
-    "paymentMethods": ["crypto", "card", "p2p"],
+    "countries": [
+      "global",
+      "turkey",
+      "india",
+      "indonesia",
+      "nigeria",
+      "brazil",
+      "vietnam",
+      "philippines"
+    ],
+    "excludedCountries": [
+      "us"
+    ],
+    "paymentMethods": [
+      "crypto",
+      "card",
+      "p2p"
+    ],
+    "founded": 2017,
+    "users": "30M+",
+    "headquarters": "Seychelles",
+    "licences": [],
+    "featureBadges": [
+      "spot",
+      "futures",
+      "copy-trading",
+      "earn",
+      "staking",
+      "p2p",
+      "lending",
+      "no-kyc"
+    ],
     "pros": [
-      "No KYC required for basic trading",
-      "Wide altcoin selection",
-      "Strong mobile app",
-      "P2P trading available"
+      "No KYC required for basic trading and initial bonus access",
+      "Wide altcoin selection including many early-stage projects",
+      "Strong mobile app with comprehensive feature set",
+      "P2P trading supports many fiat currencies"
     ],
     "cons": [
-      "Lower bonus amount compared to top competitors",
-      "Deposit required for bonus unlock",
-      "Not available in US"
+      "Lower welcome bonus ceiling compared to top exchanges",
+      "Deposit required to unlock meaningful bonus tiers",
+      "Not available for US residents"
     ],
-    "requirements": "Register and deposit to unlock welcome bonus. KYC not required for basic access. Bonus tiers unlock based on deposit and trading volume.",
-    "riskNotes": "Bonus amounts and conditions subject to change. KuCoin is not licensed in all jurisdictions. Check availability in your region before registering.",
+    "requirements": "Register to access initial bonus. KYC not required for basic trading access. Deposit qualifying amount and complete trading volume milestones to unlock bonus tiers. KYC may be required for withdrawal above certain limits.",
+    "riskNotes": "Bonus amounts and conditions are subject to change. KuCoin is not licensed in all jurisdictions. Non-KYC accounts have withdrawal limits. Check availability and limits in your region before registering.",
     "shortDescription": "KuCoin offers a no-KYC welcome bonus of up to 500 USDT, making it popular with traders who prefer accessing crypto markets without full identity verification.",
-    "longDescription": "KuCoin is a major global crypto exchange known as 'The People's Exchange' for its accessible approach including optional KYC. Founded in 2017, KuCoin serves over 30 million users worldwide with spot, futures, lending and staking products. Their welcome bonus caters to users who want quick access without identity verification requirements.",
+    "bestFor": [
+      "No-KYC preferred",
+      "Altcoin hunters",
+      "Privacy-focused traders"
+    ],
+    "longDescription": "KuCoin is a major global crypto exchange founded in 2017 and often called 'The People's Exchange' for its accessible, low-barrier approach. With over 30 million registered users, KuCoin's optional KYC policy is a significant differentiator in markets where users prefer privacy or face barriers to identity verification. The exchange supports spot, futures, copy trading, staking and a lending marketplace. Their welcome bonus is accessible without identity verification, though higher withdrawal limits and full feature access require KYC completion.",
+    "editorNote": "30M+ users with no KYC for basic access � a strong combination. The 500 USDT bonus ceiling is low but the platform depth is excellent. A deposit is required to activate the bonus. Good fallback for privacy-focused users.",
+    "lastVerified": "2026-05-20",
     "updatedAt": "2026-05-20",
     "status": "active"
   },
@@ -256,34 +979,133 @@
     "slug": "htx",
     "logo": "/logos/htx.svg",
     "rating": 8.9,
+    "topChoice": false,
     "bonusTitle": "Up to 2,000 USDT New User Rewards",
     "bonusAmount": 2000,
     "bonusCurrency": "USDT",
-    "bonusTypes": ["signup", "deposit", "futures"],
+    "bonusTypes": [
+      "signup",
+      "deposit",
+      "futures"
+    ],
+    "bonusTiers": [
+      {
+        "type": "signup",
+        "title": "Welcome Registration Bonus",
+        "amount": 20,
+        "currency": "USDT",
+        "condition": "Complete registration and account verification",
+        "note": "Credited as trading voucher"
+      },
+      {
+        "type": "deposit",
+        "title": "First Deposit Reward",
+        "amount": 100,
+        "currency": "USDT",
+        "condition": "Make a qualifying first deposit",
+        "note": "Scales with deposit size"
+      },
+      {
+        "type": "futures",
+        "title": "Trading Milestone Rewards",
+        "amount": 1880,
+        "currency": "USDT",
+        "condition": "Complete trading volume milestones",
+        "note": "Distributed across multiple tiers"
+      }
+    ],
+    "bonusExpiry": {
+      "days": 30,
+      "note": "New user promotion tasks must be completed within 30 days"
+    },
     "kycRequired": true,
     "depositRequired": true,
     "futuresRequired": false,
-    "promoCode": "",
-    "affiliateUrl": "#",
+    "minDeposit": {
+      "amount": 100,
+      "currency": "USDT"
+    },
+    "tradingVolumeRequired": {
+      "amount": 5000,
+      "currency": "USDT",
+      "note": "For upper reward tiers"
+    },
+    "affiliateUrl": "https://www.htx.com.ph/invite/ru-ru/1h?invite_code=cryptobonusw",
+    "affiliateLinks": {
+      "default": "https://www.htx.com.ph/invite/ru-ru/1h?invite_code=cryptobonusw",
+      "geo": {
+        "tr": "#",
+        "id": "#",
+        "ng": "#",
+        "br": "#",
+        "vn": "#",
+        "ph": "#"
+      }
+    },
+    "commissionType": "cpa",
+    "promoCode": "cryptobonusw",
+    "promoCodes": [
+      {
+        "code": "cryptobonusw",
+        "region": "global",
+        "description": "General referral registration bonus"
+      }
+    ],
     "termsUrl": "https://www.htx.com/en-us/activity/",
-    "countries": ["global", "turkey", "indonesia", "nigeria", "brazil", "vietnam", "philippines"],
-    "excludedCountries": ["us", "uk", "canada", "india"],
-    "paymentMethods": ["crypto", "card", "p2p"],
+    "countries": [
+      "global",
+      "turkey",
+      "indonesia",
+      "nigeria",
+      "brazil",
+      "vietnam",
+      "philippines"
+    ],
+    "excludedCountries": [
+      "us",
+      "uk",
+      "canada",
+      "india"
+    ],
+    "paymentMethods": [
+      "crypto",
+      "card",
+      "p2p"
+    ],
+    "founded": 2013,
+    "users": "8M+",
+    "headquarters": "Seychelles",
+    "licences": [],
+    "featureBadges": [
+      "spot",
+      "futures",
+      "options",
+      "earn",
+      "staking",
+      "p2p"
+    ],
     "pros": [
-      "Long-established exchange (formerly Huobi)",
-      "Strong Asian market presence",
-      "Wide trading product range",
-      "Institutional-grade liquidity"
+      "Long-established exchange with over a decade of operating history",
+      "Strong liquidity in Asian crypto markets",
+      "Wide trading product range including spot, futures and options",
+      "Institutional-grade matching engine and infrastructure"
     ],
     "cons": [
-      "KYC and deposit required",
-      "Not available in several major markets",
-      "Rebranding from Huobi may cause confusion"
+      "KYC and qualifying deposit required for bonus",
+      "Not available in several major markets including US, UK and India",
+      "Rebranding from Huobi may cause confusion for returning users"
     ],
-    "requirements": "Complete registration and KYC. Deposit and trade to unlock reward tiers up to 2,000 USDT. Specific tasks vary by current promotion.",
-    "riskNotes": "HTX was formerly known as Huobi. Bonus terms and regional availability may change. Always verify current promotion terms on the official website.",
+    "requirements": "Complete registration and KYC identity verification. Deposit qualifying amount and complete trading tasks to unlock reward tiers up to 2,000 USDT. Specific milestone requirements may vary by current promotion.",
+    "riskNotes": "HTX was formerly known as Huobi Global. Bonus terms and regional availability may change. Always verify current promotion terms on the official HTX website before registering.",
     "shortDescription": "HTX (formerly Huobi) offers new users up to 2,000 USDT in welcome rewards on one of the longest-running crypto exchanges in the industry.",
-    "longDescription": "HTX, formerly known as Huobi Global, is one of the oldest crypto exchanges founded in 2013. After rebranding to HTX in 2023, the exchange continues to serve a large global user base particularly strong in Asian markets. Their welcome bonuses target new users through deposit and trading milestones.",
+    "bestFor": [
+      "Asian market traders",
+      "Experienced users",
+      "Institutional-grade trading"
+    ],
+    "longDescription": "HTX, formerly known as Huobi Global, is one of the oldest crypto exchanges in the world, founded in 2013 in China. After a major rebrand to HTX in 2023, the exchange continues to serve a large global user base with particularly strong presence in Asian markets. The exchange offers a comprehensive product range including spot, futures, options, ETFs and DeFi products. Their welcome bonuses target new users through a tiered structure of deposit and trading milestones.",
+    "editorNote": "Legacy Huobi brand with a smaller footprint post-rebrand. Still reliable for Asian market access and institutional derivatives. 2,000 USDT bonus is fair. Solid backup choice; not our first recommendation for new users.",
+    "lastVerified": "2026-05-20",
     "updatedAt": "2026-05-20",
     "status": "active"
   },
@@ -292,34 +1114,122 @@
     "slug": "coinex",
     "logo": "/logos/coinex.svg",
     "rating": 8.7,
+    "topChoice": false,
     "bonusTitle": "Up to 500 USDT Signup Bonus",
     "bonusAmount": 500,
     "bonusCurrency": "USDT",
-    "bonusTypes": ["signup", "deposit"],
+    "bonusTypes": [
+      "signup",
+      "deposit"
+    ],
+    "bonusTiers": [
+      {
+        "type": "signup",
+        "title": "Registration Reward",
+        "amount": 10,
+        "currency": "USDT",
+        "condition": "Register an account — no KYC required",
+        "note": "Credited immediately upon registration"
+      },
+      {
+        "type": "deposit",
+        "title": "First Deposit Bonus",
+        "amount": 490,
+        "currency": "USDT",
+        "condition": "Make a qualifying first deposit",
+        "note": "Bonus scales with deposit amount"
+      }
+    ],
+    "bonusExpiry": {
+      "days": 30,
+      "note": "Signup and deposit tasks must be completed within 30 days"
+    },
     "kycRequired": false,
     "depositRequired": false,
     "futuresRequired": false,
-    "promoCode": "",
+    "minDeposit": {
+      "amount": 0,
+      "currency": "USDT"
+    },
+    "tradingVolumeRequired": {
+      "amount": 0,
+      "currency": "USDT",
+      "note": "No volume requirement for initial signup bonus"
+    },
     "affiliateUrl": "#",
+    "affiliateLinks": {
+      "default": "#",
+      "geo": {
+        "tr": "#",
+        "in": "#",
+        "id": "#",
+        "ng": "#",
+        "br": "#",
+        "vn": "#",
+        "ph": "#"
+      }
+    },
+    "commissionType": "cpa",
+    "promoCode": "",
+    "promoCodes": [
+      {
+        "code": "",
+        "region": "global",
+        "description": "General referral registration bonus"
+      }
+    ],
     "termsUrl": "https://www.coinex.com/activity",
-    "countries": ["global", "turkey", "india", "indonesia", "nigeria", "brazil", "vietnam", "philippines"],
-    "excludedCountries": ["us"],
-    "paymentMethods": ["crypto", "card"],
+    "countries": [
+      "global",
+      "turkey",
+      "india",
+      "indonesia",
+      "nigeria",
+      "brazil",
+      "vietnam",
+      "philippines"
+    ],
+    "excludedCountries": [
+      "us"
+    ],
+    "paymentMethods": [
+      "crypto",
+      "card"
+    ],
+    "founded": 2017,
+    "users": "5M+",
+    "headquarters": "Hong Kong",
+    "licences": [],
+    "featureBadges": [
+      "spot",
+      "futures",
+      "earn",
+      "p2p",
+      "amm",
+      "no-kyc"
+    ],
     "pros": [
-      "No KYC required",
-      "Low trading fees",
-      "Beginner-friendly interface",
-      "Wide country availability"
+      "No KYC required — signup bonus accessible immediately",
+      "Low and transparent trading fees",
+      "Beginner-friendly interface with clear navigation",
+      "Wide global availability across most countries"
     ],
     "cons": [
-      "Smaller exchange with lower liquidity",
-      "Smaller bonus amount",
-      "Limited payment methods compared to larger exchanges"
+      "Smaller exchange with lower liquidity on some trading pairs",
+      "Smaller overall bonus ceiling compared to major exchanges",
+      "Fewer payment method options"
     ],
-    "requirements": "Register to receive signup reward. No KYC required for basic access. Deposit bonuses require qualifying deposit amounts.",
-    "riskNotes": "CoinEx has lower trading volumes which may affect liquidity for some pairs. Bonus terms subject to change.",
-    "shortDescription": "CoinEx offers an accessible signup bonus of up to 500 USDT with no KYC requirement, ideal for users seeking a simple entry into crypto trading.",
-    "longDescription": "CoinEx is a global crypto exchange founded in 2017 with a focus on simplicity and accessibility. Supporting hundreds of trading pairs with competitive fees, CoinEx appeals to users who prefer trading without identity verification requirements. Their welcome bonus is available immediately upon registration.",
+    "requirements": "Register to receive the signup reward — no KYC required. Deposit bonuses require a qualifying deposit amount. No trading volume requirement for the initial registration reward.",
+    "riskNotes": "CoinEx has lower trading volumes on some pairs which may affect execution quality. Bonus terms are subject to change. Non-KYC accounts may face withdrawal limits.",
+    "shortDescription": "CoinEx offers an accessible signup bonus of up to 500 USDT with no KYC requirement, ideal for users seeking a simple, low-barrier entry into crypto trading.",
+    "bestFor": [
+      "No-KYC beginners",
+      "Low-fee traders",
+      "No-deposit start"
+    ],
+    "longDescription": "CoinEx is a global crypto exchange founded in 2017 with a focus on simplicity, accessibility and low fees. The exchange supports hundreds of trading pairs with an automated market maker alongside traditional order books, making it one of the few exchanges to combine both models. CoinEx's no-KYC approach makes it attractive to users in regions with limited access to financial identity documents. Their signup bonus is available immediately upon registration.",
+    "editorNote": "Lowest barrier to entry on this list � no KYC, no deposit required. Bonus is modest and the platform smaller, but it is the cleanest no-commitment option for users testing the waters before committing real funds.",
+    "lastVerified": "2026-05-20",
     "updatedAt": "2026-05-20",
     "status": "active"
   },
@@ -328,34 +1238,132 @@
     "slug": "phemex",
     "logo": "/logos/phemex.svg",
     "rating": 8.8,
+    "topChoice": false,
     "bonusTitle": "Up to 8,800 USDT Bonus",
     "bonusAmount": 8800,
     "bonusCurrency": "USDT",
-    "bonusTypes": ["signup", "deposit", "futures"],
+    "bonusTypes": [
+      "signup",
+      "deposit",
+      "futures"
+    ],
+    "bonusTiers": [
+      {
+        "type": "signup",
+        "title": "Registration Reward",
+        "amount": 20,
+        "currency": "USDT",
+        "condition": "Register and complete account setup",
+        "note": "Credited as futures trading voucher"
+      },
+      {
+        "type": "deposit",
+        "title": "Deposit Bonus",
+        "amount": 200,
+        "currency": "USDT",
+        "condition": "Make a qualifying deposit",
+        "note": "Scales with deposit tier"
+      },
+      {
+        "type": "futures",
+        "title": "Futures Volume Rewards",
+        "amount": 8580,
+        "currency": "USDT",
+        "condition": "Complete futures contract trading volume milestones",
+        "note": "Maximum tier requires high trading volume; suited to active derivatives traders"
+      }
+    ],
+    "bonusExpiry": {
+      "days": 30,
+      "note": "New user bonus tasks must be completed within 30 days of registration"
+    },
     "kycRequired": false,
     "depositRequired": true,
     "futuresRequired": true,
-    "promoCode": "",
+    "minDeposit": {
+      "amount": 100,
+      "currency": "USDT"
+    },
+    "tradingVolumeRequired": {
+      "amount": 10000,
+      "currency": "USDT",
+      "note": "Futures volume required for maximum tier"
+    },
     "affiliateUrl": "#",
+    "affiliateLinks": {
+      "default": "#",
+      "geo": {
+        "tr": "#",
+        "in": "#",
+        "id": "#",
+        "ng": "#",
+        "br": "#",
+        "vn": "#",
+        "ph": "#"
+      }
+    },
+    "commissionType": "cpa",
+    "promoCode": "",
+    "promoCodes": [
+      {
+        "code": "",
+        "region": "global",
+        "description": "General referral registration bonus"
+      }
+    ],
     "termsUrl": "https://phemex.com/welcome-bonus",
-    "countries": ["global", "turkey", "india", "indonesia", "nigeria", "brazil", "vietnam", "philippines"],
-    "excludedCountries": ["us", "uk", "canada"],
-    "paymentMethods": ["crypto", "card"],
+    "countries": [
+      "global",
+      "turkey",
+      "india",
+      "indonesia",
+      "nigeria",
+      "brazil",
+      "vietnam",
+      "philippines"
+    ],
+    "excludedCountries": [
+      "us",
+      "uk",
+      "canada"
+    ],
+    "paymentMethods": [
+      "crypto",
+      "card"
+    ],
+    "founded": 2019,
+    "users": "5M+",
+    "headquarters": "Singapore",
+    "licences": [],
+    "featureBadges": [
+      "spot",
+      "futures",
+      "copy-trading",
+      "earn",
+      "no-kyc"
+    ],
     "pros": [
-      "High bonus ceiling for futures traders",
-      "No KYC for basic access",
-      "Strong contract trading platform",
-      "Fast order execution"
+      "High bonus ceiling specifically designed for active futures traders",
+      "No KYC required for basic account access and initial rewards",
+      "Strong derivatives trading engine with fast order execution",
+      "Founded by former professional trading executives"
     ],
     "cons": [
-      "High bonus requires significant deposit and futures trading",
-      "Primarily suited for derivatives traders",
-      "Not available in US, UK, Canada"
+      "Maximum bonus requires substantial futures trading activity",
+      "Primarily suited for derivatives-focused traders",
+      "Not available in US, UK or Canada"
     ],
-    "requirements": "Register and deposit qualifying amounts. Futures trading required to unlock higher bonus tiers. Up to 8,800 USDT available through deposit and trading milestones.",
-    "riskNotes": "Futures trading involves the risk of losing more than your initial investment. High bonus amounts require significant trading activity. Always read official terms.",
-    "shortDescription": "Phemex targets futures traders with a bonus of up to 8,800 USDT, combining no-KYC access with high-ceiling rewards for active derivatives traders.",
-    "longDescription": "Phemex is a derivatives-focused crypto exchange founded in 2019 by former Morgan Stanley executives. Known for its fast execution engine and futures trading products, Phemex has built a reputation among professional traders. Their welcome bonus is structured to reward active futures trading with tiered deposit and volume milestones.",
+    "requirements": "Register and deposit qualifying amounts. Futures trading activity is required to unlock higher bonus tiers. The maximum 8,800 USDT is distributed across multiple volume milestones requiring significant futures trading.",
+    "riskNotes": "Futures trading involves the risk of losing more than your initial investment due to leverage. The stated maximum bonus requires significant trading activity and is not representative of typical user rewards. Always read official terms before claiming.",
+    "shortDescription": "Phemex targets active futures traders with a bonus of up to 8,800 USDT, combining no-KYC access with high-ceiling rewards for derivatives-focused users.",
+    "bestFor": [
+      "Active futures traders",
+      "No-KYC preferred",
+      "Professional derivatives users"
+    ],
+    "longDescription": "Phemex is a derivatives-focused crypto exchange founded in 2019 by a team of former Morgan Stanley executives. Built for speed and professional trading, Phemex offers contract trading with high leverage alongside spot and copy trading products. Their welcome bonus structure is specifically designed to reward active futures trading, with the majority of the bonus ceiling only accessible to users who reach significant trading volume milestones. The no-KYC basic access makes onboarding fast for users in restricted regions.",
+    "editorNote": "Built for professional derivatives traders. The unusual combination of no-KYC access and an 8,800 USDT ceiling makes it uniquely positioned. Best for experienced traders comfortable with leverage and risk management.",
+    "lastVerified": "2026-05-20",
     "updatedAt": "2026-05-20",
     "status": "active"
   },
@@ -364,34 +1372,128 @@
     "slug": "bitunix",
     "logo": "/logos/bitunix.svg",
     "rating": 8.5,
+    "topChoice": false,
     "bonusTitle": "Up to 1,000 USDT Welcome Bonus",
     "bonusAmount": 1000,
     "bonusCurrency": "USDT",
-    "bonusTypes": ["signup", "deposit", "futures"],
+    "bonusTypes": [
+      "signup",
+      "deposit",
+      "futures"
+    ],
+    "bonusTiers": [
+      {
+        "type": "signup",
+        "title": "Registration Bonus",
+        "amount": 10,
+        "currency": "USDT",
+        "condition": "Register — no KYC required",
+        "note": "Instant registration reward"
+      },
+      {
+        "type": "deposit",
+        "title": "First Deposit Reward",
+        "amount": 90,
+        "currency": "USDT",
+        "condition": "Make a qualifying first deposit",
+        "note": "Scales with deposit amount"
+      },
+      {
+        "type": "futures",
+        "title": "Futures Vouchers",
+        "amount": 900,
+        "currency": "USDT",
+        "condition": "Complete futures trading milestones",
+        "note": "Trading vouchers distributed per milestone"
+      }
+    ],
+    "bonusExpiry": {
+      "days": 30,
+      "note": "New user tasks must be completed within 30 days of registration"
+    },
     "kycRequired": false,
     "depositRequired": true,
     "futuresRequired": false,
-    "promoCode": "",
+    "minDeposit": {
+      "amount": 50,
+      "currency": "USDT"
+    },
+    "tradingVolumeRequired": {
+      "amount": 1000,
+      "currency": "USDT",
+      "note": "For upper bonus tiers"
+    },
     "affiliateUrl": "#",
+    "affiliateLinks": {
+      "default": "#",
+      "geo": {
+        "tr": "#",
+        "in": "#",
+        "id": "#",
+        "ng": "#",
+        "br": "#",
+        "vn": "#",
+        "ph": "#"
+      }
+    },
+    "commissionType": "cpa",
+    "promoCode": "",
+    "promoCodes": [
+      {
+        "code": "",
+        "region": "global",
+        "description": "General referral registration bonus"
+      }
+    ],
     "termsUrl": "https://www.bitunix.com/activity",
-    "countries": ["global", "turkey", "india", "indonesia", "nigeria", "brazil", "vietnam", "philippines"],
-    "excludedCountries": ["us"],
-    "paymentMethods": ["crypto", "card"],
+    "countries": [
+      "global",
+      "turkey",
+      "india",
+      "indonesia",
+      "nigeria",
+      "brazil",
+      "vietnam",
+      "philippines"
+    ],
+    "excludedCountries": [
+      "us"
+    ],
+    "paymentMethods": [
+      "crypto",
+      "card"
+    ],
+    "founded": 2022,
+    "users": "1M+",
+    "headquarters": "Unknown",
+    "licences": [],
+    "featureBadges": [
+      "spot",
+      "futures",
+      "no-kyc"
+    ],
     "pros": [
-      "No KYC required",
-      "Competitive futures trading fees",
-      "Easy signup process",
-      "Wide country coverage"
+      "No KYC required — fastest onboarding process",
+      "Competitive futures trading fee structure",
+      "Simple, clean trading interface",
+      "Wide country coverage including emerging markets"
     ],
     "cons": [
-      "Newer exchange with less history",
-      "Lower trading volumes",
-      "Limited payment methods"
+      "Newer exchange with shorter operating history",
+      "Lower trading volumes and liquidity",
+      "Limited product range beyond spot and futures"
     ],
-    "requirements": "Register without KYC. Deposit qualifying amount to unlock welcome bonus. Additional rewards available through futures trading activity.",
-    "riskNotes": "Bitunix is a newer exchange. Exercise due diligence before depositing significant funds. Bonus conditions and terms subject to change.",
-    "shortDescription": "Bitunix offers a no-KYC welcome bonus of up to 1,000 USDT with competitive futures trading fees for users seeking quick and easy exchange access.",
-    "longDescription": "Bitunix is an emerging crypto futures exchange offering competitive trading fees and a no-KYC approach for new users. While newer to the market, Bitunix has attracted traders looking for accessible derivatives trading with minimal verification requirements. Their welcome bonus rewards new users through deposit milestones.",
+    "requirements": "Register without KYC. Deposit a qualifying amount to unlock the main welcome bonus tiers. Additional futures trading rewards unlock through volume milestones.",
+    "riskNotes": "Bitunix is a relatively new exchange. Exercise additional due diligence before depositing significant funds. Bonus conditions and terms are subject to change. Lower liquidity may affect execution quality on larger orders.",
+    "shortDescription": "Bitunix offers a no-KYC welcome bonus of up to 1,000 USDT with competitive futures trading fees for users seeking quick, low-barrier exchange access.",
+    "bestFor": [
+      "No-KYC users",
+      "Futures newcomers",
+      "Fast onboarding seekers"
+    ],
+    "longDescription": "Bitunix is an emerging crypto futures exchange offering competitive trading fees and a no-KYC approach for new users. While newer to the market compared to established competitors, Bitunix has attracted traders looking for accessible derivatives trading with minimal verification requirements. Their simple interface and fast onboarding make it appealing for users who want to start trading quickly. Welcome bonuses reward new users through deposit milestones and futures trading activity.",
+    "editorNote": "Newest exchange here (2022). Fast no-KYC onboarding and competitive futures fees. Bonus is real but counterparty risk is higher than established platforms. Recommended for experienced users only � not for beginners.",
+    "lastVerified": "2026-05-20",
     "updatedAt": "2026-05-20",
     "status": "active"
   },
@@ -400,34 +1502,132 @@
     "slug": "lbank",
     "logo": "/logos/lbank.svg",
     "rating": 8.4,
+    "topChoice": false,
     "bonusTitle": "Up to 500 USDT New User Bonus",
     "bonusAmount": 500,
     "bonusCurrency": "USDT",
-    "bonusTypes": ["signup", "deposit", "trading-rewards"],
+    "bonusTypes": [
+      "signup",
+      "deposit",
+      "trading-rewards"
+    ],
+    "bonusTiers": [
+      {
+        "type": "signup",
+        "title": "Registration Reward",
+        "amount": 5,
+        "currency": "USDT",
+        "condition": "Register and complete KYC verification",
+        "note": "Credited upon successful KYC"
+      },
+      {
+        "type": "deposit",
+        "title": "First Deposit Bonus",
+        "amount": 45,
+        "currency": "USDT",
+        "condition": "Make a qualifying first deposit",
+        "note": "Scales with deposit amount"
+      },
+      {
+        "type": "trading-rewards",
+        "title": "Trading Volume Rewards",
+        "amount": 450,
+        "currency": "USDT",
+        "condition": "Reach trading volume milestones within 30 days",
+        "note": "Fee rebate vouchers distributed per milestone"
+      }
+    ],
+    "bonusExpiry": {
+      "days": 30,
+      "note": "New user promotion tasks must be completed within 30 days of registration"
+    },
     "kycRequired": true,
     "depositRequired": true,
     "futuresRequired": false,
-    "promoCode": "",
+    "minDeposit": {
+      "amount": 50,
+      "currency": "USDT"
+    },
+    "tradingVolumeRequired": {
+      "amount": 1000,
+      "currency": "USDT",
+      "note": "For upper trading reward tiers"
+    },
     "affiliateUrl": "#",
+    "affiliateLinks": {
+      "default": "#",
+      "geo": {
+        "tr": "#",
+        "in": "#",
+        "id": "#",
+        "ng": "#",
+        "br": "#",
+        "vn": "#",
+        "ph": "#"
+      }
+    },
+    "commissionType": "cpa",
+    "promoCode": "",
+    "promoCodes": [
+      {
+        "code": "",
+        "region": "global",
+        "description": "General referral registration bonus"
+      }
+    ],
     "termsUrl": "https://www.lbank.com/activity/",
-    "countries": ["global", "turkey", "india", "indonesia", "nigeria", "brazil", "vietnam", "philippines"],
-    "excludedCountries": ["us", "uk"],
-    "paymentMethods": ["crypto", "card", "p2p"],
+    "countries": [
+      "global",
+      "turkey",
+      "india",
+      "indonesia",
+      "nigeria",
+      "brazil",
+      "vietnam",
+      "philippines"
+    ],
+    "excludedCountries": [
+      "us",
+      "uk"
+    ],
+    "paymentMethods": [
+      "crypto",
+      "card",
+      "p2p"
+    ],
+    "founded": 2015,
+    "users": "7M+",
+    "headquarters": "British Virgin Islands",
+    "licences": [],
+    "featureBadges": [
+      "spot",
+      "futures",
+      "earn",
+      "p2p",
+      "early-listings"
+    ],
     "pros": [
-      "Wide selection of altcoins including early listings",
-      "Available in most countries",
-      "P2P trading available",
-      "Beginner-friendly"
+      "Wide selection of altcoins with frequent new token listings",
+      "Available across most countries in Asia, Africa and Latin America",
+      "P2P trading supporting multiple local fiat currencies",
+      "Long operating history since 2015"
     ],
     "cons": [
-      "KYC required",
-      "Smaller bonus amount",
-      "Lower liquidity on some pairs"
+      "KYC required before accessing bonus rewards",
+      "Smaller overall bonus ceiling",
+      "Lower liquidity on some trading pairs"
     ],
-    "requirements": "Register and complete KYC. Deposit qualifying amount and complete trading tasks to earn welcome bonus rewards up to 500 USDT.",
-    "riskNotes": "LBank lists many low-cap tokens with high volatility risk. Bonus conditions and availability subject to change.",
-    "shortDescription": "LBank offers new users a welcome bonus of up to 500 USDT with access to a wide range of altcoins and early token listings.",
-    "longDescription": "LBank is a global crypto exchange founded in 2015 known for listing emerging altcoins and providing P2P trading services. Operating in over 100 countries, LBank appeals to users looking for early exposure to new token projects. Their welcome bonus is accessible after KYC completion and qualifying deposits.",
+    "requirements": "Register and complete KYC identity verification. Make a qualifying deposit and complete trading tasks to earn welcome bonus rewards up to 500 USDT. Tasks must be completed within the 30-day new user window.",
+    "riskNotes": "LBank lists many low-cap and early-stage tokens with high volatility risk. Bonus conditions and availability are subject to change. Always verify current promotion terms on the official LBank website.",
+    "shortDescription": "LBank offers new users a welcome bonus of up to 500 USDT with access to a wide range of altcoins and a focus on early token listings across emerging markets.",
+    "bestFor": [
+      "Emerging market users",
+      "Early token hunters",
+      "P2P fiat traders"
+    ],
+    "longDescription": "LBank is a global crypto exchange founded in 2015 with a focus on listing emerging altcoins and providing P2P trading services across emerging markets. Operating in over 100 countries, LBank has built a significant user base in Asia, Africa and Latin America by providing early access to new token projects. Their P2P marketplace supports a wide range of local currencies, making it accessible in markets with limited fiat on-ramp options.",
+    "editorNote": "Veteran exchange (est. 2015) focused on emerging markets and early-stage token listings. P2P support for local currencies is a strength. Better suited for speculative early-token plays than mainstream spot or futures trading.",
+    "lastVerified": "2026-05-20",
     "updatedAt": "2026-05-20",
     "status": "active"
   }
