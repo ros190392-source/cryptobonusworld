@@ -1,7 +1,12 @@
 ---
 import SeoHead from '../components/SeoHead.astro';
 import Header from '../components/Header.astro';
+import TrustStrip from '../components/TrustStrip.astro';
 import Footer from '../components/Footer.astro';
+import Analytics from '../components/Analytics.astro';
+import ExperimentProvider from '../components/ExperimentProvider.astro';
+import type { PageContext } from '../utils/analytics';
+import { getHtmlLang, type LocaleCode, type HreflangLink } from '../utils/i18n';
 
 interface Props {
   title: string;
@@ -9,13 +14,64 @@ interface Props {
   canonical?: string;
   schema?: object | object[];
   noindex?: boolean;
+  /**
+   * Full absolute URL to the OG / social share image (1200×630).
+   * When omitted, Layout falls back to the site-wide og-default.png.
+   */
+  ogImage?: string;
+  /** Optional page context for richer analytics dimensions */
+  analyticsContext?: PageContext;
+  /**
+   * BCP-47 locale code for this page (default: 'en').
+   * Sets <html lang>, og:locale, and hreflang self-reference.
+   * English pages do not need to pass this — 'en' is the default.
+   */
+  locale?: LocaleCode;
+  /**
+   * Hreflang alternate links for multilingual pages.
+   * English-only pages omit this — SeoHead emits en + x-default automatically.
+   * Localized pages: build with buildHreflangLinks() from src/utils/i18n.ts.
+   */
+  hreflangLinks?: HreflangLink[];
 }
 
-const { title, description, canonical, schema, noindex } = Astro.props;
+const {
+  title,
+  description,
+  canonical,
+  schema,
+  noindex,
+  ogImage,
+  analyticsContext,
+  locale = 'en',
+  hreflangLinks,
+} = Astro.props;
+
+// Site-level OG fallback — always a valid image
+const siteUrl   = 'https://cryptobonusworld.com';
+const ogImageUrl = ogImage ?? `${siteUrl}/og-default.png`;
+
+const htmlLang = getHtmlLang(locale);
+
+// ── Third-party analytics provider IDs (set in .env / server env vars) ──
+// None of these are required — each provider activates only when its ID is set.
+// NEVER hardcode IDs here. Set them in .env or the hosting environment.
+//
+//   GTM_ID=GTM-XXXXXXX      → Google Tag Manager (recommended for GA4 + all tags)
+//   GA4_ID=G-XXXXXXXXXX     → Google Analytics 4 standalone (skip if using GTM)
+//   CLARITY_ID=xxxxxxxxxx   → Microsoft Clarity heatmaps
+//   METRIKA_ID=12345678     → Yandex Metrika
+//
+// Priority: GTM takes precedence — if GTM_ID is set, it manages GA4 itself.
+// Set GA4_ID only as a standalone without GTM.
+const gtmId     = import.meta.env.GTM_ID     ?? null;
+const ga4Id     = !gtmId ? (import.meta.env.GA4_ID ?? null) : null; // skip if GTM handles it
+const clarityId = import.meta.env.CLARITY_ID ?? null;
+const metrikaId = import.meta.env.METRIKA_ID ?? null;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={htmlLang}>
   <head>
     <SeoHead
       title={title}
@@ -23,17 +79,52 @@ const { title, description, canonical, schema, noindex } = Astro.props;
       canonical={canonical}
       schema={schema}
       noindex={noindex}
+      ogImage={ogImageUrl}
+      locale={locale}
+      hreflangLinks={hreflangLinks}
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+    {/* ── Google Tag Manager (head) ── */}
+    {gtmId && (
+      <script define:vars={{ __gtmId: gtmId }} is:inline>{`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','${__gtmId}');`}</script>
+    )}
+
+    {/* ── Google Analytics 4 standalone (only when GTM is not used) ── */}
+    {ga4Id && <script async src={`https://www.googletagmanager.com/gtag/js?id=${ga4Id}`}></script>}
+    {ga4Id && (
+      <script define:vars={{ __ga4Id: ga4Id }} is:inline>{`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${__ga4Id}',{send_page_view:false});`}</script>
+    )}
+
+    {/* ── Microsoft Clarity ── */}
+    {clarityId && (
+      <script define:vars={{ __clarityId: clarityId }} is:inline>{`(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window,document,"clarity","script","${__clarityId}");`}</script>
+    )}
+
+    {/* ── Yandex Metrika ── */}
+    {metrikaId && (
+      <script define:vars={{ __metrikaId: metrikaId }} is:inline>{`(function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})(window,document,"script","https://mc.yandex.ru/metrika/tag.js","ym");ym(${__metrikaId},"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true,webvisor:false});`}</script>
+    )}
   </head>
   <body>
+    {/* ── GTM noscript fallback (immediately after <body>) ── */}
+    {gtmId && <noscript><iframe src={`https://www.googletagmanager.com/ns.html?id=${gtmId}`} height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>}
+    {/* ── Yandex Metrika noscript ── */}
+    {metrikaId && <noscript><div><img src={`https://mc.yandex.ru/watch/${metrikaId}`} style="position:absolute;left:-9999px;" alt="" /></div></noscript>}
+
     <Header />
+    <TrustStrip />
     <main id="main-content">
       <slot />
     </main>
     <Footer />
+
+    <!-- Analytics runtime: GEO detection, click tracking, impressions, scroll depth -->
+    <Analytics context={analyticsContext} />
+    <!-- Experiment runtime: variant assignment, DOM transforms, conversion tracking -->
+    <ExperimentProvider />
   </body>
 </html>
 
@@ -130,7 +221,7 @@ const { title, description, canonical, schema, noindex } = Astro.props;
   html {
     font-size: 16px;
     scroll-behavior: smooth;
-    scroll-padding-top: 64px;
+    scroll-padding-top: 97px; /* header 64px + trust strip ~33px */
   }
 
   body {
@@ -138,8 +229,9 @@ const { title, description, canonical, schema, noindex } = Astro.props;
     background: var(--color-bg);
     color: var(--color-text-primary);
     font-family: var(--font-sans);
-    line-height: 1.6;
+    line-height: 1.65;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
   }
 
@@ -267,7 +359,40 @@ const { title, description, canonical, schema, noindex } = Astro.props;
   .prose h3 { font-size: 1.1rem; font-weight: 700; margin: 1.5rem 0 0.5rem; }
   .prose p { color: var(--color-text-secondary); line-height: 1.75; margin-bottom: 1rem; }
   .prose ul, .prose ol { color: var(--color-text-secondary); padding-left: 1.5rem; margin-bottom: 1rem; }
-  .prose li { margin-bottom: 0.375rem; line-height: 1.6; }
+  .prose li { margin-bottom: 0.375rem; line-height: 1.65; }
   .prose a { color: var(--color-accent); text-decoration: underline; text-underline-offset: 3px; }
   .prose strong { color: var(--color-text-primary); }
+
+  /* ── In-content anchor links — subtle, editorial feel ── */
+  .guide-section-body a,
+  .ex-prose a {
+    color: var(--color-accent);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+    transition: opacity 0.12s;
+  }
+  .guide-section-body a:hover,
+  .ex-prose a:hover { opacity: 0.8; }
+
+  /* ── Scrollable table wrapper (no horizontal page scroll on mobile) ── */
+  .table-scroll {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ── Skip-to-content accessibility ── */
+  .skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    z-index: 9999;
+    padding: 0.5rem 1rem;
+    background: var(--color-accent);
+    color: #000;
+    font-weight: 700;
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  }
+  .skip-link:focus { left: 1rem; }
 </style>

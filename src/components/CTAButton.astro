@@ -1,27 +1,70 @@
 ---
 interface Props {
   href: string;
+  /** Full label override — takes precedence over `exchange`-derived label */
   label?: string;
   variant?: 'primary' | 'secondary' | 'outline';
   size?: 'sm' | 'md' | 'lg';
   fullWidth?: boolean;
+  /** Exchange name — used to build default "Claim {name} Bonus" label */
   exchange?: string;
   rel?: string;
+
+  // ── Tracking (affiliate click analytics) ──────────────────────────────
+  /** Where on the page this button sits: hero | sidebar | table | card | compare | sticky | alternatives */
+  trackPlacement?: string;
+  /** Bonus amount for tracking (passed as data-bonus) */
+  trackBonus?: number;
+
+  // ── GEO-aware affiliate link ──────────────────────────────────────────
+  /**
+   * Map of geo code → affiliate URL.
+   * Serialised as data-geo-href JSON. Client script swaps href on page load
+   * when user timezone matches a known GEO. Only non-placeholder URLs are used.
+   * e.g. { tr: "https://bybit.com/?ref=tr", in: "https://bybit.com/?ref=in" }
+   */
+  geoHrefs?: Record<string, string>;
+
+  // ── A/B experiment text opt-in ─────────────────────────────────────────
+  /**
+   * Opt this button's label text into an experiment transform.
+   * Format: "{expId}:{variantId}:{text}|{expId}:{variantId}:{text}|..."
+   * Passed directly to data-exp-text on the label span.
+   * ExperimentProvider.astro handles the swap client-side.
+   *
+   * Example:
+   *   experimentText="cta-copy-v1:get-started:Get Started|cta-copy-v1:view-offer:View Offer"
+   */
+  experimentText?: string;
 }
 
 const {
   href,
-  label = 'Claim Bonus',
+  label,
   variant = 'primary',
   size = 'md',
   fullWidth = false,
   exchange,
   rel = 'noopener noreferrer nofollow sponsored',
+  trackPlacement,
+  trackBonus,
+  geoHrefs,
+  experimentText,
 } = Astro.props;
 
 const isExternal = href.startsWith('http') || href === '#';
 const target = isExternal ? '_blank' : undefined;
-const displayLabel = exchange ? `Claim ${exchange} Bonus` : label;
+const displayLabel = label ?? (exchange ? `View ${exchange} Offer` : 'View offer');
+
+// Tracking data attributes — only for external affiliate links
+const isAffiliate = isExternal;
+const exchangeKey = exchange?.toLowerCase().replace(/\s+/g, '-') ?? null;
+
+// GEO href — filter out placeholders (#) before serialising
+const filteredGeoHrefs = geoHrefs
+  ? Object.fromEntries(Object.entries(geoHrefs).filter(([, v]) => v && v !== '#'))
+  : null;
+const hasGeoHrefs = filteredGeoHrefs && Object.keys(filteredGeoHrefs).length > 0;
 ---
 
 <a
@@ -30,8 +73,13 @@ const displayLabel = exchange ? `Claim ${exchange} Bonus` : label;
   target={target}
   rel={isExternal ? rel : undefined}
   aria-label={displayLabel}
+  data-track={isAffiliate ? 'affiliate-cta' : undefined}
+  data-exchange={isAffiliate && exchangeKey ? exchangeKey : undefined}
+  data-placement={isAffiliate && trackPlacement ? trackPlacement : undefined}
+  data-bonus={isAffiliate && trackBonus !== undefined ? String(trackBonus) : undefined}
+  data-geo-href={hasGeoHrefs ? JSON.stringify(filteredGeoHrefs) : undefined}
 >
-  {displayLabel}
+  <span class="cta-label" data-exp-text={experimentText ?? undefined}>{displayLabel}</span>
   {isExternal && <span class="cta-arrow" aria-hidden="true">→</span>}
 </a>
 
@@ -65,17 +113,41 @@ const displayLabel = exchange ? `Claim ${exchange} Bonus` : label;
 
   /* ── Primary ── */
   .cta-btn--primary {
-    background: var(--color-accent);
+    background: var(--gradient-gold, var(--color-accent));
     color: #000;
     border-color: var(--color-accent);
     font-weight: 800;
     letter-spacing: -0.01em;
+    animation: cta-pulse 8s ease-in-out infinite;
   }
   .cta-btn--primary:hover {
-    box-shadow: var(--glow-cta, 0 4px 20px rgba(245,197,66,0.35));
-    transform: translateY(-2px);
+    box-shadow: var(--glow-cta, 0 4px 20px rgba(245,197,66,0.35)), 0 8px 32px rgba(245,197,66,0.2);
+    transform: translateY(-3px);
     background: var(--color-accent-warm, #fbbf24);
     border-color: var(--color-accent-warm, #fbbf24);
+    animation: none;
+  }
+  .cta-btn--primary:focus-visible {
+    animation: none;
+    box-shadow: 0 0 0 3px rgba(245,197,66,0.5);
+  }
+
+  /* Subtle periodic glow pulse — attention signal without fake urgency */
+  @keyframes cta-pulse {
+    0%, 82%, 100% {
+      box-shadow: none;
+    }
+    88% {
+      box-shadow: 0 0 0 3px rgba(245,197,66,0.2), 0 4px 20px rgba(245,197,66,0.28);
+    }
+    94% {
+      box-shadow: 0 0 0 5px rgba(245,197,66,0.1), 0 6px 28px rgba(245,197,66,0.38);
+    }
+  }
+
+  /* Respect reduced-motion: disable pulse */
+  @media (prefers-reduced-motion: reduce) {
+    .cta-btn--primary { animation: none; }
   }
 
   /* ── Secondary ── */
@@ -123,11 +195,24 @@ const displayLabel = exchange ? `Claim ${exchange} Bonus` : label;
   }
   .cta-btn--full { width: 100%; }
 
+  /* label wrapper — purely for experiment targeting, no visual impact */
+  .cta-label { display: contents; }
+
   .cta-arrow {
     font-size: 0.875em;
-    transition: transform var(--duration-base, 200ms) var(--ease-out, ease);
+    display: inline-block;
+    transition: transform var(--duration-base, 200ms) var(--ease-spring, cubic-bezier(0.34,1.56,0.64,1));
+    will-change: transform;
   }
   .cta-btn:hover .cta-arrow {
-    transform: translateX(3px);
+    transform: translateX(4px);
+  }
+
+  /* Mobile: lg primary buttons go full-width for easier tap */
+  @media (max-width: 640px) {
+    .cta-btn--lg.cta-btn--primary {
+      width: 100%;
+      justify-content: center;
+    }
   }
 </style>

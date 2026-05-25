@@ -1,6 +1,18 @@
 ---
 import BonusBadge from './BonusBadge.astro';
+import BonusTrustLabel from './BonusTrustLabel.astro';
 import CTAButton from './CTAButton.astro';
+import ExchangeLogo from './ExchangeLogo.astro';
+import { getCtaLabel } from '../utils/affiliateUtils';
+
+interface BonusRange {
+  min: number;
+  max: number;
+  typicalMin?: number;
+  typicalMax?: number;
+  currency: string;
+  typicalNote?: string;
+}
 
 interface Exchange {
   name: string;
@@ -17,6 +29,17 @@ interface Exchange {
   affiliateUrl: string;
   updatedAt: string;
   shortDescription?: string;
+  bestFor?: string[];
+  topChoice?: boolean;
+  users?: string;
+  // Accuracy fields
+  bonusDisplayMode?: 'up-to' | 'range' | 'fixed' | 'regional' | 'campaign';
+  bonusRange?: BonusRange;
+  verificationStatus?: 'verified' | 'needs-review' | 'outdated' | 'unverified';
+  offerLastChecked?: string;
+  bonusExpiry?: { days: number; note?: string } | null;
+  excludedCountries?: string[];
+  realisticUserExpectation?: string;
 }
 
 interface Props {
@@ -33,32 +56,26 @@ if (filterType)    filtered = filtered.filter(e => e.bonusTypes.includes(filterT
 
 const maxBonus = Math.max(...filtered.map(e => e.bonusAmount));
 
-// Brand colors per exchange
-const brandColor: Record<string, string> = {
-  bybit:    '#F7A600',
-  mexc:     '#0BCDFF',
-  okx:      '#EEEEEE',
-  bitget:   '#00E5BE',
-  bingx:    '#1B78F2',
-  'gate-io':'#2354E6',
-  kucoin:   '#24AE8F',
-  htx:      '#2856EE',
-  coinex:   '#00CFC5',
-  phemex:   '#BE79DF',
-  bitunix:  '#F97316',
-  lbank:    '#3B82F6',
-};
+import { getBrandColor } from '../utils/logoConfig';
 
 // Rank medal colors
 const rankColor = ['#F5C542', '#C0C0C0', '#CD7F32'];
 
-// Editorial labels — derived from data, no JSON changes
+// Editorial labels — derived from real exchange data, no invented claims
 function getLabel(ex: Exchange, rank: number): { text: string; cls: string } | null {
   if (rank === 0) return { text: '🏆 Top Choice', cls: 'lbl--gold' };
   if (!ex.kycRequired && !ex.depositRequired) return { text: '✓ No KYC · No Deposit', cls: 'lbl--green' };
   if (!ex.kycRequired) return { text: '✓ No KYC', cls: 'lbl--green' };
   if (ex.bonusTypes.includes('futures') && ex.bonusAmount >= 5000) return { text: '📈 Best Futures', cls: 'lbl--purple' };
   if (ex.rating >= 9.5 && rank > 0) return { text: '⭐ Top Rated', cls: 'lbl--blue' };
+  return null;
+}
+
+// Social proof from real data — only shown when user count is significant
+function getUsersLabel(ex: Exchange): string | null {
+  if (!ex.users) return null;
+  const n = parseInt(ex.users.replace(/[^0-9]/g, ''), 10);
+  if (n >= 20) return `${ex.users} users`;
   return null;
 }
 
@@ -93,12 +110,13 @@ const schema = {
     <tbody>
       {filtered.map((ex, i) => {
         const barPct = Math.round((ex.bonusAmount / maxBonus) * 100);
-        const color  = brandColor[ex.slug] ?? '#f5c542';
+        const color  = getBrandColor(ex.slug);
         const medal  = rankColor[i] ?? null;
         const label  = getLabel(ex, i);
+        const usersLabel = getUsersLabel(ex);
         const featured = i === 0;
         return (
-          <tr class:list={['bt-row', featured && 'bt-row--featured']}>
+          <tr class:list={['bt-row', featured && 'bt-row--featured']} data-slug={ex.slug}>
 
             {/* Rank */}
             <td class="td-rank">
@@ -110,13 +128,17 @@ const schema = {
             {/* Exchange */}
             <td class="td-exchange">
               <a href={`/exchanges/${ex.slug}/`} class="ex-link">
-                <div class="ex-logo" style={`--brand:${color}`} aria-hidden="true">
-                  {ex.name.charAt(0)}
-                </div>
+                <ExchangeLogo slug={ex.slug} name={ex.name} size={80} variant="square" />
                 <div class="ex-meta">
                   <span class="ex-name">{ex.name}</span>
                   {label && (
                     <span class:list={['ex-label', label.cls]}>{label.text}</span>
+                  )}
+                  {ex.bestFor && ex.bestFor.length > 0 && (
+                    <span class="ex-bestfor">Best for: {ex.bestFor.slice(0, 2).join(' · ')}</span>
+                  )}
+                  {usersLabel && (
+                    <span class="ex-users">{usersLabel}</span>
                   )}
                 </div>
               </a>
@@ -124,15 +146,41 @@ const schema = {
 
             {/* Bonus */}
             <td class="td-bonus">
-              <span class="bonus-amount">
-                {ex.bonusAmount >= 1000
-                  ? (ex.bonusAmount / 1000).toFixed(ex.bonusAmount % 1000 === 0 ? 0 : 1) + 'K'
-                  : ex.bonusAmount} {ex.bonusCurrency}
-              </span>
-              <div class="bonus-bar-track" title={`${ex.bonusTitle}`}>
+              <div class="bonus-amount-row">
+                {ex.bonusDisplayMode === 'campaign' ? (
+                  <span class="bonus-campaign-label">Active offer</span>
+                ) : (
+                  <>
+                    <span class="bonus-eyebrow">
+                      {ex.bonusDisplayMode === 'fixed' ? '' : 'UP TO'}
+                    </span>
+                    <span class="bonus-amount">
+                      {ex.bonusAmount >= 1000
+                        ? (ex.bonusAmount / 1000).toFixed(ex.bonusAmount % 1000 === 0 ? 0 : 1) + 'K'
+                        : ex.bonusAmount} {ex.bonusCurrency}
+                    </span>
+                  </>
+                )}
+              </div>
+              <div class="bonus-bar-track" title={ex.bonusTitle}>
                 <div class="bonus-bar-fill" style={`width:${barPct}%; background:${color};`}></div>
               </div>
-              <span class="bonus-sub">{ex.bonusTitle}</span>
+              <div class="bonus-meta-row">
+                <BonusTrustLabel
+                  verificationStatus={ex.verificationStatus ?? 'needs-review'}
+                  offerLastChecked={ex.offerLastChecked ?? ex.updatedAt}
+                  hasExpiry={!!(ex as any).bonusExpiry}
+                  isRegional={(ex.excludedCountries ?? []).length > 0}
+                  variant="chip"
+                />
+              </div>
+              {(ex.bonusRange?.typicalNote ?? (ex as any).realisticUserExpectation) && (
+                <div class="bonus-typical-row">
+                  {ex.bonusRange?.typicalNote
+                    ? ex.bonusRange.typicalNote
+                    : (ex as any).realisticUserExpectation?.split(';')[0]}
+                </div>
+              )}
             </td>
 
             {/* Types */}
@@ -166,14 +214,15 @@ const schema = {
 
             {/* CTA */}
             <td class="td-cta">
-              {featured
-                ? <CTAButton href={ex.affiliateUrl} exchange={ex.name} size="sm" />
-                : (
-                  <a href={ex.affiliateUrl} class="cta-compact" target="_blank" rel="noopener noreferrer nofollow sponsored">
-                    Claim →
-                  </a>
-                )
-              }
+              <CTAButton
+                href={ex.affiliateUrl}
+                label={featured ? getCtaLabel(ex as any) : (!ex.kycRequired ? 'No KYC →' : 'View →')}
+                exchange={ex.name}
+                size={featured ? 'md' : 'sm'}
+                variant={featured ? 'primary' : 'outline'}
+                trackPlacement={featured ? 'table-featured' : 'table'}
+                trackBonus={ex.bonusAmount}
+              />
             </td>
 
           </tr>
@@ -185,28 +234,40 @@ const schema = {
   <!-- ── MOBILE CARDS ───────────────────────── -->
   <div class="bt-mobile">
     {filtered.map((ex, i) => {
-      const color = brandColor[ex.slug] ?? '#f5c542';
+      const color = getBrandColor(ex.slug);
       const label = getLabel(ex, i);
+      const mobileUsersLabel = getUsersLabel(ex);
       const featured = i === 0;
       return (
-        <div class:list={['mc', featured && 'mc--featured']}>
+        <div class:list={['mc', featured && 'mc--featured']} data-slug={ex.slug}>
           <div class="mc-top">
             <a href={`/exchanges/${ex.slug}/`} class="mc-identity">
-              <div class="mc-logo" style={`--brand:${color}`} aria-hidden="true">
-                {ex.name.charAt(0)}
-              </div>
+              <ExchangeLogo slug={ex.slug} name={ex.name} size={68} variant="square" />
               <div class="mc-meta">
                 <span class="mc-name">{ex.name}</span>
                 {label && <span class:list={['ex-label', label.cls]}>{label.text}</span>}
               </div>
             </a>
             <div class="mc-bonus">
-              <span class="mc-amount">
-                {ex.bonusAmount >= 1000
-                  ? (ex.bonusAmount / 1000).toFixed(0) + 'K'
-                  : ex.bonusAmount} {ex.bonusCurrency}
-              </span>
-              <span class="mc-bonus-title">{ex.bonusTitle}</span>
+              <div class="mc-amount-row">
+                {ex.bonusDisplayMode === 'campaign' ? (
+                  <span class="mc-campaign-label">Active offer</span>
+                ) : (
+                  <>
+                    {ex.bonusDisplayMode !== 'fixed' && <span class="mc-eyebrow">Up to</span>}
+                    <span class="mc-amount">
+                      {ex.bonusAmount >= 1000
+                        ? (ex.bonusAmount / 1000).toFixed(0) + 'K'
+                        : ex.bonusAmount} {ex.bonusCurrency}
+                    </span>
+                  </>
+                )}
+              </div>
+              <BonusTrustLabel
+                verificationStatus={ex.verificationStatus ?? 'needs-review'}
+                offerLastChecked={ex.offerLastChecked ?? ex.updatedAt}
+                variant="chip"
+              />
             </div>
           </div>
 
@@ -217,11 +278,19 @@ const schema = {
               : <span class="kyc kyc--none">No KYC</span>
             }
             <span class="mc-score">★ {ex.rating.toFixed(1)}</span>
+            {mobileUsersLabel && <span class="mc-users">{mobileUsersLabel}</span>}
           </div>
 
           <div class="mc-footer">
-            <a href={`/exchanges/${ex.slug}/`} class="mc-details">View details</a>
-            <CTAButton href={ex.affiliateUrl} exchange={ex.name} size="sm" />
+            <a href={`/exchanges/${ex.slug}/`} class="mc-details">Full details →</a>
+            <CTAButton
+              href={ex.affiliateUrl}
+              label={!ex.kycRequired ? 'No KYC →' : 'View →'}
+              exchange={ex.name}
+              size="sm"
+              trackPlacement={featured ? 'mobile-card-featured' : 'mobile-card'}
+              trackBonus={ex.bonusAmount}
+            />
           </div>
         </div>
       );
@@ -229,6 +298,7 @@ const schema = {
   </div>
 
 </div>
+<p class="bt-terms-note">Bonus amounts are advertised maximums in the exchange's native currency (USDT, USD, etc.) and are not guaranteed. Actual rewards depend on deposit size, trading volume, tasks completed and regional eligibility. <a href="/affiliate-disclosure/">Affiliate disclosure</a> · <a href="/methodology/">How we rank</a> · <a href="/disclaimer/">Full disclaimer</a>.</p>
 
 <script type="application/ld+json" set:html={JSON.stringify(schema)} />
 
@@ -237,7 +307,9 @@ const schema = {
   .bt-wrap {
     border-radius: 14px;
     border: 1px solid var(--color-border);
-    overflow: hidden;
+    /* clip-path preserves rounded corners without creating a scroll context,
+       which would break position:sticky on the thead. Never use overflow:hidden here. */
+    clip-path: inset(0 round 14px);
     margin: 1.5rem 0;
   }
 
@@ -248,13 +320,15 @@ const schema = {
     font-size: 0.875rem;
   }
 
-  /* Sticky header */
+  /* Sticky header — offset = site header (64px) + trust strip (~33px) */
   .bt-head {
     position: sticky;
-    top: 64px;
+    top: 97px;
     z-index: 10;
-    background: #161616;
-    border-bottom: 1px solid var(--color-border);
+    background: var(--surface-elevated, #151515);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-bottom: 2px solid var(--color-border);
   }
   .bt-head th {
     padding: 0.875rem 1rem;
@@ -280,16 +354,41 @@ const schema = {
   .bt-row:hover { background: rgba(255,255,255,0.025); }
   .bt-row:hover .ex-name { color: var(--color-accent); }
 
-  /* Featured row */
+  /* Featured row — higher visual weight for #1 pick */
   .bt-row--featured {
+    background: linear-gradient(90deg, rgba(245,197,66,0.06) 0%, rgba(245,197,66,0.02) 100%);
+    border-left: 4px solid var(--color-accent);
+    box-shadow: inset 0 0 0 1px rgba(245,197,66,0.06);
+  }
+  .bt-row--featured:hover {
+    background: linear-gradient(90deg, rgba(245,197,66,0.09) 0%, rgba(245,197,66,0.04) 100%);
+  }
+  /* Featured rank: bigger gold number */
+  .bt-row--featured .rank-num {
+    font-size: 1rem;
+    color: var(--color-accent);
+  }
+  /* Featured bonus amount: slightly larger */
+  .bt-row--featured .bonus-amount {
+    font-size: 1.15rem;
+  }
+
+  /* Contextually featured by recommendation engine — subtle pulse on first render */
+  [data-ctx-featured="true"] {
     background: rgba(245,197,66,0.04);
     border-left: 3px solid var(--color-accent);
   }
-  .bt-row--featured:hover { background: rgba(245,197,66,0.07); }
+  [data-ctx-featured="true"]:hover { background: rgba(245,197,66,0.07); }
+
+  /* Mobile card ctx-featured */
+  .mc[data-ctx-featured="true"] {
+    border-color: var(--color-accent);
+    background: rgba(245,197,66,0.03);
+  }
 
   /* Cells */
   .bt-row td {
-    padding: 1rem 1rem;
+    padding: 1.125rem 1rem;
     vertical-align: middle;
   }
 
@@ -306,26 +405,13 @@ const schema = {
   .ex-link {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 1rem;
     text-decoration: none;
   }
-  .ex-logo {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    background: color-mix(in srgb, var(--brand) 12%, #1a1a1a);
-    border: 1px solid color-mix(in srgb, var(--brand) 30%, transparent);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1rem;
-    font-weight: 900;
-    color: var(--brand);
-    flex-shrink: 0;
-    transition: box-shadow 0.15s;
-  }
-  .bt-row:hover .ex-logo {
-    box-shadow: 0 0 12px color-mix(in srgb, var(--brand) 25%, transparent);
+  :global(.bt-row:hover .exlogo) {
+    box-shadow: 0 0 14px rgba(245,197,66,0.18), 0 2px 8px rgba(0,0,0,0.35);
+    border-color: rgba(245,197,66,0.2);
+    transition: box-shadow 0.15s, border-color 0.15s;
   }
   .ex-meta {
     display: flex;
@@ -333,10 +419,43 @@ const schema = {
     gap: 0.2rem;
   }
   .ex-name {
-    font-size: 0.9rem;
+    font-size: 1rem;
     font-weight: 700;
     color: var(--color-text-primary);
     transition: color 0.15s;
+    white-space: nowrap;
+  }
+
+  /* Best-for micro-copy */
+  .ex-bestfor {
+    display: block;
+    font-size: 0.63rem;
+    color: var(--color-text-muted);
+    margin-top: 0.2rem;
+    line-height: 1.3;
+  }
+
+  /* Social proof — user count from real data */
+  .ex-users {
+    display: block;
+    font-size: 0.63rem;
+    color: #60a5fa;
+    margin-top: 0.1rem;
+    line-height: 1.3;
+    font-weight: 600;
+  }
+
+  /* Mobile card users badge */
+  .mc-users {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: #60a5fa;
+    background: rgba(96,165,250,0.08);
+    border: 1px solid rgba(96,165,250,0.15);
+    border-radius: 4px;
+    padding: 0.15rem 0.45rem;
     white-space: nowrap;
   }
 
@@ -357,13 +476,65 @@ const schema = {
 
   /* ── BONUS ──────────────────────────────── */
   .td-bonus { min-width: 160px; }
+
+  .bonus-amount-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.2rem;
+    line-height: 1.1;
+  }
+  .bonus-eyebrow {
+    font-size: 0.62rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+  }
   .bonus-amount {
-    display: block;
     font-size: 1.05rem;
     font-weight: 800;
     color: var(--color-accent);
     letter-spacing: -0.02em;
     line-height: 1.1;
+  }
+  .bonus-meta-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin-top: 0.2rem;
+  }
+  .bonus-typical {
+    font-size: 0.62rem;
+    color: var(--color-text-muted);
+    opacity: 0.75;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 160px;
+  }
+  .bonus-typical-row {
+    font-size: 0.6rem;
+    color: var(--color-text-muted);
+    margin-top: 0.3rem;
+    line-height: 1.4;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-style: italic;
+  }
+  .bonus-campaign-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--color-accent);
+    letter-spacing: 0.01em;
+  }
+  .mc-campaign-label {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--color-accent);
   }
   .bonus-bar-track {
     width: 100%;
@@ -376,7 +547,7 @@ const schema = {
   .bonus-bar-fill {
     height: 100%;
     border-radius: 2px;
-    opacity: 0.7;
+    opacity: 0.88;
     transition: width 0.4s ease;
   }
   .bonus-sub {
@@ -476,24 +647,9 @@ const schema = {
   .mc-identity {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.875rem;
     text-decoration: none;
-    /* ensure tappable area */
-    min-height: 44px;
-  }
-  .mc-logo {
-    width: 42px;
-    height: 42px;
-    border-radius: 10px;
-    background: color-mix(in srgb, var(--brand) 12%, #1a1a1a);
-    border: 1px solid color-mix(in srgb, var(--brand) 30%, transparent);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1rem;
-    font-weight: 900;
-    color: var(--brand);
-    flex-shrink: 0;
+    min-height: 68px;
   }
   .mc-meta {
     display: flex;
@@ -506,8 +662,20 @@ const schema = {
     color: var(--color-text-primary);
   }
   .mc-bonus { text-align: right; flex-shrink: 0; }
+  .mc-amount-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: flex-end;
+    gap: 0.2rem;
+  }
+  .mc-eyebrow {
+    font-size: 0.6rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
   .mc-amount {
-    display: block;
     font-size: 1.1rem;
     font-weight: 800;
     color: var(--color-accent);
@@ -560,10 +728,45 @@ const schema = {
   .mc-details:hover { color: var(--color-text-primary); }
   .mc-details::after { content: ' →'; }
 
+  /* ── BONUS TERMS NOTE ───────────────────── */
+  .bt-terms-note {
+    font-size: 0.72rem;
+    color: var(--color-text-muted);
+    margin: 0.75rem 0 0;
+    line-height: 1.5;
+    opacity: 0.8;
+  }
+  .bt-terms-note a {
+    color: var(--color-text-muted);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    transition: color 0.15s;
+  }
+  .bt-terms-note a:hover { color: var(--color-text-secondary); }
+
   /* ── RESPONSIVE ─────────────────────────── */
   @media (max-width: 768px) {
     .bt { display: none; }
     .bt-mobile { display: block; }
     .bt-wrap { border-radius: 12px; }
+  }
+
+  /* Featured mobile card: full-width CTA for max conversion surface */
+  @media (max-width: 768px) {
+    .mc--featured .mc-footer {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.5rem;
+    }
+    .mc--featured .mc-footer .mc-details {
+      display: none; /* details link redundant on featured — card header links there */
+    }
+    /* Full-width CTA button on featured mobile card */
+    .mc--featured .mc-footer :global(.cta-btn) {
+      width: 100%;
+      justify-content: center;
+      min-height: 48px;
+      font-size: 0.9375rem;
+    }
   }
 </style>

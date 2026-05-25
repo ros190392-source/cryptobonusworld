@@ -1,0 +1,136 @@
+---
+/**
+ * TrustStrip.astro
+ *
+ * Compact trust signals displayed globally under the header.
+ * Desktop: centered horizontal pills.
+ * Mobile: horizontal scroll chips (no overflow clipping the layout).
+ *
+ * All claims are factual. No fake urgency, no invented numbers.
+ */
+---
+
+<!--
+  trust-strip-v1:
+  control     = Updated · 12 Reviewed · Editorial · No fake urgency
+  social-first = 150M+ traders · 12 Reviewed · Updated · Editorial
+
+  data-exp-text format: "{expId}:{variantId}:{newText}"
+  SVG icons are preserved — only the text node following them changes.
+  We target the pill wrapper and swap its text label via a dedicated <span class="ts-label">.
+-->
+<div class="ts" role="complementary" aria-label="Trust indicators">
+  <div class="container ts-inner">
+    <span class="ts-pill">
+      <svg class="ts-icon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+      <span
+        class="ts-label"
+        data-exp-text="trust-strip-v1:social-first:150M+ traders globally"
+      >Updated May 2026</span>
+    </span>
+    <span class="ts-sep" aria-hidden="true"></span>
+    <span class="ts-pill">
+      <svg class="ts-icon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+      <span class="ts-label">14 Exchanges Reviewed</span>
+    </span>
+    <span class="ts-sep" aria-hidden="true"></span>
+    <span class="ts-pill">
+      <svg class="ts-icon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+      <span
+        class="ts-label"
+        data-exp-text="trust-strip-v1:social-first:Updated May 2026"
+      >Manual Editorial Review</span>
+    </span>
+    <span class="ts-sep" aria-hidden="true"></span>
+    <span class="ts-pill ts-pill--dim">
+      <svg class="ts-icon ts-icon--muted" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span
+        class="ts-label"
+        data-exp-text="trust-strip-v1:social-first:Manual Editorial Review"
+      >No fake urgency</span>
+    </span>
+  </div>
+</div>
+
+<style>
+  .ts {
+    background: rgba(17, 17, 17, 0.95);
+    border-bottom: 1px solid var(--color-border-subtle, #1c1c1c);
+    padding: 0.4rem 0;
+    overflow: hidden;
+  }
+
+  .ts-inner {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .ts-inner::-webkit-scrollbar { display: none; }
+
+  .ts-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding: 0.25rem 0.75rem;
+    letter-spacing: 0.01em;
+  }
+
+  .ts-pill--dim {
+    color: var(--color-text-muted);
+  }
+
+  .ts-icon {
+    color: #4ade80;
+    flex-shrink: 0;
+    stroke: #4ade80;
+  }
+  .ts-icon--muted {
+    color: var(--color-text-muted);
+    stroke: var(--color-text-muted);
+  }
+
+  .ts-sep {
+    display: inline-block;
+    width: 1px;
+    height: 12px;
+    background: var(--color-border, #252525);
+    flex-shrink: 0;
+  }
+
+  /* Desktop: center the strip */
+  @media (min-width: 769px) {
+    .ts-inner {
+      justify-content: center;
+    }
+    .ts-pill {
+      padding: 0.25rem 1rem;
+    }
+  }
+
+  /* Mobile: left-aligned scrollable chips, add slight left padding so first pill has breathing room */
+  @media (max-width: 768px) {
+    .ts-inner {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+    .ts-pill {
+      background: var(--color-bg-tertiary);
+      border: 1px solid var(--color-border);
+      border-radius: 100px;
+      padding: 0.2rem 0.625rem;
+      margin-right: 0.375rem;
+      font-size: 0.68rem;
+    }
+    .ts-sep { display: none; }
+  }
+</style>

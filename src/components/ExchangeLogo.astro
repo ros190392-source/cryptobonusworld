@@ -2,20 +2,20 @@
 /**
  * ExchangeLogo.astro — Normalized exchange logo renderer
  *
- * Loads /public/logos/{slug}.svg when the file exists.
- * Falls back to a brand-colored letter avatar when no logo file is present.
+ * Visual consistency system:
+ *   - All logos render in a fixed-size square container
+ *   - PNG loads first (official brand icons), SVG fallback second
+ *   - Safe-area padding per exchange prevents optical size disparities
+ *   - object-fit: contain — never crops logos
+ *   - Letter avatar fallback when no image available
  *
- * Sizing:
- *   All logos render in a fixed-size container so cards, tables and nav
- *   stay visually balanced regardless of the actual SVG proportions.
- *
- * Dark-mode:
- *   SVGs stored in /public/logos/ should use currentColor or explicit
- *   dark-safe fills. The container itself is transparent.
- *
- * Usage:
- *   <ExchangeLogo slug="bybit" name="Bybit" size={40} />
- *   <ExchangeLogo slug="mexc"  name="MEXC"  size={32} variant="pill" />
+ * Sizes used across the site:
+ *   BonusTable desktop: 80px
+ *   BonusTable mobile:  68px
+ *   ExchangeHero:       64px
+ *   RelatedGuides:      56px
+ *   Navigation:         32px
+ *   Inline chips:       24px
  */
 
 interface Props {
@@ -43,26 +43,51 @@ const {
 import { getBrandColor } from '../utils/logoConfig';
 const bgColor = getBrandColor(slug);
 const initial   = name.charAt(0).toUpperCase();
-// Try PNG first (official logomarks), fall back to SVG (text avatars), then letter
 const logoPath  = `/logos/${slug}.png`;
 const radiusPx  = variant === 'pill' ? size / 2 : variant === 'square' ? Math.round(size * 0.22) : 0;
 const fontSize  = Math.round(size * 0.44);
+
+/**
+ * Safe-area padding system — optical alignment tweaks.
+ * Some PNG logos have extra whitespace built in (reduces effective icon size).
+ * Some have tight crops (icon fills edge to edge → needs breathing room).
+ * Values are % of container size used as inner padding.
+ */
+const LOGO_PADDING: Record<string, number> = {
+  bybit:    8,   // tight logo on orange — add breathing room
+  binance:  6,
+  okx:      8,   // white on black — add padding
+  mexc:     6,
+  bitget:   6,
+  bingx:    8,
+  kucoin:   6,
+  htx:      6,
+  coinex:   8,
+  phemex:   8,
+  bitunix:  6,
+  'gate-io':6,
+  coinbase: 6,   // circle mark — slight padding looks cleaner
+  lbank:    8,
+};
+const padPct = LOGO_PADDING[slug] ?? 6;
+const padPx = Math.round(size * padPct / 100);
 ---
 
 <div
   class:list={['exlogo', `exlogo--${variant}`, extraClass]}
-  style={`width:${size}px;height:${size}px;border-radius:${radiusPx}px;font-size:${fontSize}px;`}
+  style={`width:${size}px;height:${size}px;border-radius:${radiusPx}px;`}
   aria-label={name}
   role="img"
 >
   <img
     src={logoPath}
     alt={name}
-    width={size}
-    height={size}
+    width={size - padPx * 2}
+    height={size - padPx * 2}
     loading={lazy ? 'lazy' : 'eager'}
     decoding="async"
     class="exlogo-img"
+    style={`padding:${padPx}px;`}
     data-slug={slug}
     onerror="var s=this.dataset.slug;if(this.src.indexOf('.png')>-1){this.src='/logos/'+s+'.svg';}else{this.style.display='none';this.nextElementSibling.style.display='flex';}"
   />
@@ -80,8 +105,8 @@ const fontSize  = Math.round(size * 0.44);
     justify-content: center;
     overflow: hidden;
     flex-shrink: 0;
-    background: var(--surface-overlay, #111);
-    border: 1px solid var(--color-border, #1c1c1c);
+    background: var(--surface-overlay, #1a1a1a);
+    border: 1px solid var(--color-border, #252525);
     position: relative;
   }
   .exlogo--raw {
@@ -94,10 +119,13 @@ const fontSize  = Math.round(size * 0.44);
     height: 100%;
     object-fit: contain;
     object-position: center;
-    border-radius: inherit;
+    border-radius: 0;
     image-rendering: auto;
+    /* padding applied inline per-exchange for safe-area */
+    box-sizing: border-box;
   }
   .exlogo-fallback {
+    display: none;
     align-items: center;
     justify-content: center;
     font-weight: 800;
