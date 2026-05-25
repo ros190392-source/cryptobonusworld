@@ -7,6 +7,7 @@ import RiskDisclaimer from '../../components/RiskDisclaimer.astro';
 import ExchangeLogo from '../../components/ExchangeLogo.astro';
 import AuthorCard from '../../components/AuthorCard.astro';
 import EditorialExperienceBar from '../../components/EditorialExperienceBar.astro';
+import NextStepBlock from '../../components/NextStepBlock.astro';
 
 import guideMeta from '../../data/guides.json';
 import guideContentMap from '../../data/guide-content';
@@ -86,6 +87,96 @@ const breadcrumbSchema = {
 };
 
 const schemas = [faqSchema, articleSchema, breadcrumbSchema];
+
+// ── Next-step block config ────────────────────────────────────────────────────
+const primaryRelatedEx = relatedExchanges[0];
+
+interface NextStep {
+  body: string;
+  cta: string;
+  href: string;
+  secondaryCta?: string;
+  secondaryHref?: string;
+  type: 'exchange' | 'guide' | 'compare';
+  internal?: boolean;
+}
+
+function buildNextStep(): NextStep {
+  const cat = meta.category;
+
+  if (cat === 'How-To Guides' && primaryRelatedEx) {
+    return {
+      body: `Ready to put these steps into practice? ${primaryRelatedEx.name} supports the methods covered in this guide and has one of the most active communities.`,
+      cta: `Open ${primaryRelatedEx.name}`,
+      href: primaryRelatedEx.affiliateUrl ?? `/exchanges/${primaryRelatedEx.slug}/`,
+      secondaryCta: 'View exchange details',
+      secondaryHref: `/exchanges/${primaryRelatedEx.slug}/`,
+      type: 'exchange',
+      internal: false,
+    };
+  }
+
+  if (cat === 'Bonus Guides') {
+    return {
+      body: 'Compare all current signup bonuses, deposit matches and futures rewards in one place — filtered by your preferences.',
+      cta: 'Compare all bonuses',
+      href: '/bonuses/',
+      secondaryCta: 'See signup bonuses only',
+      secondaryHref: '/categories/signup-bonuses/',
+      type: 'guide',
+      internal: true,
+    };
+  }
+
+  if (cat === 'Exchange Guides') {
+    return {
+      body: 'Compare exchanges side by side — bonuses, KYC requirements, fees and features. Find the best fit for your needs.',
+      cta: 'Compare exchanges',
+      href: '/compare/',
+      secondaryCta: 'Browse all exchanges',
+      secondaryHref: '/bonuses/',
+      type: 'compare',
+      internal: true,
+    };
+  }
+
+  if (cat === 'Earning Guides' && primaryRelatedEx) {
+    return {
+      body: `${primaryRelatedEx.name} offers some of the best staking and earning options available. Check current rates and welcome bonuses.`,
+      cta: `View ${primaryRelatedEx.name} bonuses`,
+      href: `/exchanges/${primaryRelatedEx.slug}/`,
+      secondaryCta: 'Compare all exchanges',
+      secondaryHref: '/bonuses/',
+      type: 'exchange',
+      internal: true,
+    };
+  }
+
+  if (cat === 'Trading Guides') {
+    return {
+      body: 'Compare exchanges for futures trading — fees, leverage limits, interface quality and welcome bonuses for new traders.',
+      cta: 'Compare futures exchanges',
+      href: '/categories/futures-bonuses/',
+      secondaryCta: 'Browse all bonuses',
+      secondaryHref: '/bonuses/',
+      type: 'compare',
+      internal: true,
+    };
+  }
+
+  // Basics / fallback
+  return {
+    body: 'Browse all current exchange bonuses — updated weekly with verified conditions and realistic earning expectations.',
+    cta: 'Compare exchange bonuses',
+    href: '/bonuses/',
+    secondaryCta: 'Read more guides',
+    secondaryHref: '/guides/',
+    type: 'guide',
+    internal: true,
+  };
+}
+
+const nextStep = buildNextStep();
 
 const categoryColors: Record<string, string> = {
   'Basics':          '#f5c542',
@@ -188,6 +279,17 @@ const categoryColors: Record<string, string> = {
             <div class="guide-section-body" set:html={section.body} />
           </section>
         ))}
+
+        <!-- Next Step — engagement / dead-end elimination -->
+        <NextStepBlock
+          body={nextStep.body}
+          cta={nextStep.cta}
+          href={nextStep.href}
+          secondaryCta={nextStep.secondaryCta}
+          secondaryHref={nextStep.secondaryHref}
+          type={nextStep.type}
+          internal={nextStep.internal}
+        />
 
         <!-- FAQ -->
         {content.faq.length > 0 && (

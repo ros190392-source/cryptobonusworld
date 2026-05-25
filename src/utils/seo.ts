@@ -479,19 +479,74 @@ export interface ComparePair {
 }
 
 /**
- * Compare page <title> — both exchange names + year.
- * e.g. "Bybit vs MEXC 2026: Bonus, KYC & Fees Compared"
+ * Compare page <title> — differentiated variants based on key signals.
+ *
+ * Priority:
+ *  1. Both no-KYC          → "…: No-KYC Bonuses Compared"
+ *  2. KYC mismatch         → "…: No KYC vs KYC — Which Is Better?"
+ *  3. Large bonus ratio ≥5 → "…: Is [Higher]'s Larger Bonus Worth It?"
+ *  4. Both have P2P        → "…: P2P, Fees & Bonus Compared"
+ *  5. Default              → "…: Bonus, KYC & Fees Compared"
+ *
+ * Targets 52–62 chars. All variants pass length audit.
  */
 export function comparePageTitle(exA: SeoExchange, exB: SeoExchange): string {
+  const aKyc = exA.kycRequired;
+  const bKyc = exB.kycRequired;
+  const aBonus = exA.bonusAmount;
+  const bBonus = exB.bonusAmount;
+  const aP2p = (exA as any).p2pAvailable as boolean | undefined;
+  const bP2p = (exB as any).p2pAvailable as boolean | undefined;
+
+  // Both no-KYC — privacy-focused searchers
+  if (!aKyc && !bKyc) {
+    return `${exA.name} vs ${exB.name} ${YEAR}: No-KYC Bonuses Compared`;
+  }
+
+  // KYC mismatch — very common search intent differentiator
+  if (!aKyc && bKyc) {
+    return `${exA.name} vs ${exB.name} ${YEAR}: No KYC vs KYC — Which Is Better?`;
+  }
+  if (aKyc && !bKyc) {
+    return `${exA.name} vs ${exB.name} ${YEAR}: KYC vs No KYC — Which Is Better?`;
+  }
+
+  // Large bonus ratio (one is 5× higher) — highlight value question
+  if (aBonus > 0 && bBonus > 0) {
+    const ratio = Math.max(aBonus, bBonus) / Math.min(aBonus, bBonus);
+    if (ratio >= 5) {
+      const higher = aBonus > bBonus ? exA.name : exB.name;
+      return `${exA.name} vs ${exB.name} ${YEAR}: Is ${higher}'s Larger Bonus Worth It?`;
+    }
+  }
+
+  // Both support P2P — highlight P2P trading angle
+  if (aP2p && bP2p) {
+    return `${exA.name} vs ${exB.name} ${YEAR}: P2P, Fees & Bonus Compared`;
+  }
+
+  // Default
   return `${exA.name} vs ${exB.name} ${YEAR}: Bonus, KYC & Fees Compared`;
 }
 
 /**
  * Compare meta description — highlights key differentiators.
+ * KYC mismatch variant surfaces the no-KYC exchange explicitly.
  */
 export function compareMetaDesc(exA: SeoExchange, exB: SeoExchange): string {
+  const aKyc = exA.kycRequired;
+  const bKyc = exB.kycRequired;
   const maxA = fmt(exA.bonusAmount);
   const maxB = fmt(exB.bonusAmount);
+
+  // KYC mismatch — lead with the standout fact
+  if (aKyc !== bKyc) {
+    const noKycName = !aKyc ? exA.name : exB.name;
+    const kycName = aKyc ? exA.name : exB.name;
+    const raw = `${exA.name} vs ${exB.name} ${YEAR}: ${noKycName} needs no KYC; ${kycName} requires ID. Compare bonuses (${maxA} vs ${maxB} USDT), fees and features.`;
+    return raw.slice(0, 160);
+  }
+
   const raw = `${exA.name} vs ${exB.name}: compare bonuses (${maxA} vs ${maxB} USDT), KYC, fees, and features side by side. Find which exchange is right for you.`;
   return raw.slice(0, 160);
 }

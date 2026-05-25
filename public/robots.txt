@@ -2,4 +2,31 @@ User-agent: *
 Allow: /
 Disallow: /go/
 
+# Crawl-delay for well-behaved bots (not Googlebot — it ignores this)
+Crawl-delay: 2
+
+# Sitemap location
 Sitemap: https://cryptobonusworld.com/sitemap.xml
+
+# Host directive for Yandex
+Host: cryptobonusworld.com
+
+# IndexNow key location
+# https://cryptobonusworld.com/a1b2c3d4e5f6789012345678901234ab.txt
+
+# Googlebot — no restrictions beyond /go/ redirect pages
+User-agent: Googlebot
+Allow: /
+Disallow: /go/
+
+# Bingbot — honour crawl-delay
+User-agent: Bingbot
+Allow: /
+Disallow: /go/
+Crawl-delay: 2
+
+# Yandex
+User-agent: Yandex
+Allow: /
+Disallow: /go/
+Crawl-delay: 2
