@@ -203,29 +203,91 @@ export const GET: APIRoute = () => {
   // When hasMultipleLocales is true, add SITEMAP_XHTML_NS to urlset.
   const xhtmlNs = hasMultipleLocales ? ` ${SITEMAP_XHTML_NS}` : '';
 
-  // Image sitemap entries for exchanges with OG images
+  // Image sitemap entries
+  // Exchange pages: OG card + real screenshots (ui, bonus, app) if files exist
+  // Real screenshots live at /media/exchanges/{slug}/{type}-{YYYY-MM}.webp
+  // Registry maps slug → screenshot dates (null = not yet captured)
   const imageNs = ' xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"';
-  const exchangesWithOgImages = new Set(exchanges.map((ex: any) => ex.slug));
 
-  function buildImageTag(url: string, pageUrl: string): string {
-    const slug = pageUrl.replace('/exchanges/', '').replace('/bonuses/', '').replace('-bonus/', '').replace('/', '');
-    if (!exchangesWithOgImages.has(slug)) return '';
-    return `
+  // Screenshot registry — populate capturedAt as real screenshots land
+  // null = placeholder only, skip from sitemap
+  const screenshotRegistry: Record<string, {
+    ui?: string;      // YYYY-MM
+    bonus?: string;   // YYYY-MM
+    app?: string;     // YYYY-MM
+    p2p?: string;     // YYYY-MM
+    futures?: string; // YYYY-MM
+  }> = {
+    // Add entries here as screenshots are captured, e.g.:
+    // bybit: { ui: '2026-05', bonus: '2026-05', p2p: '2026-05', futures: '2026-05' },
+    // binance: { ui: '2026-05', bonus: '2026-05', p2p: '2026-05' },
+  };
+
+  function buildImageTags(pageUrl: string): string {
+    const slug = pageUrl.replace('/exchanges/', '').replace(/\/$/, '');
+    const ex = exchanges.find((e: any) => e.slug === slug) as any;
+    if (!ex) return '';
+
+    const tags: string[] = [];
+    const reg = screenshotRegistry[slug] ?? {};
+    const exName = ex.name as string;
+
+    // Always include OG card
+    tags.push(`
     <image:image>
       <image:loc>${site}/og/exchange-${slug}.png</image:loc>
-      <image:title>${slug.charAt(0).toUpperCase() + slug.slice(1)} — CryptoBonusWorld</image:title>
-    </image:image>`;
+      <image:title>${exName} Bonus &amp; Review — CryptoBonusWorld</image:title>
+      <image:caption>${exName} crypto exchange — bonus offer and review card</image:caption>
+    </image:image>`);
+
+    // Real screenshots — only included when captured
+    if (reg.ui) tags.push(`
+    <image:image>
+      <image:loc>${site}/media/exchanges/${slug}/ui-${reg.ui}.webp</image:loc>
+      <image:title>${exName} trading interface — ${reg.ui}</image:title>
+      <image:caption>${exName} spot trading interface screenshot, captured ${reg.ui}</image:caption>
+    </image:image>`);
+
+    if (reg.bonus) tags.push(`
+    <image:image>
+      <image:loc>${site}/media/exchanges/${slug}/bonus-${reg.bonus}.webp</image:loc>
+      <image:title>${exName} welcome bonus page — ${reg.bonus}</image:title>
+      <image:caption>${exName} new user bonus offer page screenshot, captured ${reg.bonus}</image:caption>
+    </image:image>`);
+
+    if (reg.app) tags.push(`
+    <image:image>
+      <image:loc>${site}/media/exchanges/${slug}/app-${reg.app}.webp</image:loc>
+      <image:title>${exName} mobile app — ${reg.app}</image:title>
+      <image:caption>${exName} mobile app screenshot on iOS, captured ${reg.app}</image:caption>
+    </image:image>`);
+
+    if (reg.p2p) tags.push(`
+    <image:image>
+      <image:loc>${site}/media/exchanges/${slug}/p2p-${reg.p2p}.webp</image:loc>
+      <image:title>${exName} P2P trading marketplace — ${reg.p2p}</image:title>
+      <image:caption>${exName} P2P marketplace screenshot, captured ${reg.p2p}</image:caption>
+    </image:image>`);
+
+    if (reg.futures) tags.push(`
+    <image:image>
+      <image:loc>${site}/media/exchanges/${slug}/futures-${reg.futures}.webp</image:loc>
+      <image:title>${exName} futures trading interface — ${reg.futures}</image:title>
+      <image:caption>${exName} perpetual futures interface screenshot, captured ${reg.futures}</image:caption>
+    </image:image>`);
+
+    return tags.join('');
   }
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"${xhtmlNs}${imageNs}>
 ${pageEntries.map(page => {
-  const imgTag = (page.type === 'exchange') ? buildImageTag(page.url, page.url) : '';
+  const imgTags = (page.type === 'exchange') ? buildImageTags(page.url) : '';
   return `  <url>
     <loc>${site}${page.url}</loc>
     <lastmod>${'lastmod' in page ? page.lastmod : today}</lastmod>
     <changefreq>${page.changefreq}</changefreq>
-    <priority>${page.priority}</priority>${page.alternates ? '\n' + page.alternates : ''}${imgTag}
+    <priority>${page.priority}</priority>${page.alternates ? '\n' + page.alternates : ''}${imgTags}
   </url>`;
 }).join('\n')}
 </urlset>`;

@@ -440,6 +440,8 @@ const rnrItems = [
                     capturedAt={step.capturedAt ?? flow.lastVerified}
                     device={step.device ?? 'desktop'}
                     aspectRatio={step.aspectRatio ?? '16/9'}
+                    width={step.width ?? (step.device === 'mobile' ? 390 : 1280)}
+                    height={step.height ?? (step.device === 'mobile' ? 844 : 720)}
                     warning={step.warning}
                     tip={step.tip}
                     region={step.region}

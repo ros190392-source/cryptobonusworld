@@ -17,6 +17,10 @@ interface Props {
   capturedAt?: string;
   device?: 'desktop' | 'mobile' | 'none';
   aspectRatio?: string;
+  /** Pixel width — required when src is set to prevent CLS */
+  width?: number;
+  /** Pixel height — required when src is set to prevent CLS */
+  height?: number;
   warning?: string;
   tip?: string;
   region?: string;
@@ -38,6 +42,8 @@ const {
   capturedAt,
   device = 'desktop',
   aspectRatio = '16/9',
+  width,
+  height,
   warning,
   tip,
   region,
@@ -71,10 +77,13 @@ const {
       capturedAt={capturedAt}
       device={device}
       aspectRatio={aspectRatio}
+      width={width}
+      height={height}
       lightboxGroup={lightboxGroup}
       label={label ?? title}
       mediaCategory={mediaCategory}
-      lazy
+      schema={!!src}
+      lazy={step > 1}
     />
   </div>
 

@@ -28,6 +28,16 @@ export interface WalkthroughStep {
   capturedAt?: string;
   device?: WalkthroughDevice;
   aspectRatio?: string;
+  /**
+   * Pixel width of the screenshot — required for CLS prevention when src is set.
+   * Matches MEDIA_DIMENSIONS: desktop=1280, guide-step=800, mobile=390
+   */
+  width?: number;
+  /**
+   * Pixel height of the screenshot — required for CLS prevention when src is set.
+   * Matches MEDIA_DIMENSIONS: desktop=720, guide-step=500, mobile=844
+   */
+  height?: number;
   /** Orange callout — critical warning */
   warning?: string;
   /** Green callout — pro tip */
