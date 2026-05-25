@@ -10,6 +10,7 @@ import AuthorCard from '../../components/AuthorCard.astro';
 import guideMeta from '../../data/guides.json';
 import guideContentMap from '../../data/guide-content';
 import exchanges from '../../data/exchanges.json';
+import { USE_CASES } from '../../data/use-cases';
 
 export function getStaticPaths() {
   return guideMeta.map(g => ({
@@ -30,6 +31,16 @@ const relatedExchanges = exchanges.filter(ex => meta.relatedExchanges?.includes(
 
 // Related guide data
 const relatedGuides = guideMeta.filter(g => meta.relatedGuides?.includes(g.slug)).slice(0, 3);
+
+// Related use-cases based on guide tags
+const guideTags: string[] = (meta as any).tags ?? [];
+const relatedUseCases = USE_CASES.filter(uc =>
+  guideTags.some(tag =>
+    uc.slug.includes(tag) || tag.includes(uc.slug.split('-')[0])
+  ) || (meta.relatedExchanges ?? []).some(slug =>
+    Array.isArray(uc.exchangePool) ? uc.exchangePool.includes(slug) : true
+  )
+).slice(0, 5);
 
 // FAQ schema
 const faqSchema = {
@@ -178,6 +189,20 @@ const categoryColors: Record<string, string> = {
                   <span class="guide-related-cat" style={`color: ${categoryColors[g.category] ?? '#f5c542'}`}>{g.category}</span>
                   <span class="guide-related-title">{g.title}</span>
                   <span class="guide-related-time">{g.readTime} read →</span>
+                </a>
+              ))}
+            </div>
+          </section>
+        )}
+
+        <!-- Use-case cross-links -->
+        {relatedUseCases.length > 0 && (
+          <section class="guide-section guide-uc-links">
+            <h3 class="guide-uc-title">Related Use Cases</h3>
+            <div class="guide-uc-chips">
+              {relatedUseCases.map(uc => (
+                <a href={`/use-cases/${uc.slug}/`} class="guide-uc-chip">
+                  {uc.label} →
                 </a>
               ))}
             </div>
@@ -663,5 +688,38 @@ const categoryColors: Record<string, string> = {
   @media (max-width: 640px) {
     :global(.guide-table) { font-size: 0.75rem; display: block; overflow-x: auto; }
     .guide-related-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ── Use-case cross-links ── */
+  .guide-uc-links { border-top: 1px solid var(--color-border); padding-top: 1rem; }
+  .guide-uc-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-secondary);
+    margin-bottom: 0.6rem;
+  }
+  .guide-uc-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .guide-uc-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.7rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 20px;
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .guide-uc-chip:hover {
+    border-color: rgba(245,197,66,0.35);
+    color: var(--color-accent);
   }
 </style>

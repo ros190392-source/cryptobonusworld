@@ -15,12 +15,14 @@ import ReviewerBlock from '../../components/ReviewerBlock.astro';
 import EditorialNote from '../../components/EditorialNote.astro';
 import HowWeEvaluate from '../../components/HowWeEvaluate.astro';
 import AuthorCard from '../../components/AuthorCard.astro';
+import OfferRealism from '../../components/OfferRealism.astro';
 
 import exchanges from '../../data/exchanges.json';
 import categories from '../../data/categories.json';
 import countries from '../../data/countries.json';
 import comparePairs from '../../data/compare-pairs.json';
 import allGuides from '../../data/guides.json';
+import { USE_CASES } from '../../data/use-cases';
 
 import RelatedCategoriesBlock from '../../components/RelatedCategoriesBlock.astro';
 import CountryCrossLinksBlock from '../../components/CountryCrossLinksBlock.astro';
@@ -144,6 +146,12 @@ const schema = buildProductSchema(ex as any);
 const relatedGuides = allGuides
   .filter(g => g.relatedExchanges?.includes(ex.slug))
   .slice(0, 4);
+
+// Related use cases — use cases where this exchange is in the pool
+const relatedUseCases = USE_CASES.filter(uc =>
+  uc.exchangePool === 'all' ||
+  (Array.isArray(uc.exchangePool) && uc.exchangePool.includes(ex.slug))
+).slice(0, 6);
 ---
 
 <Layout
@@ -229,6 +237,21 @@ const relatedGuides = allGuides
 
       <!-- ── MAIN CONTENT ── -->
       <div class="ex-main">
+
+        <!-- Offer transparency / realism block -->
+        {((ex as any).offerConfidenceScore != null || (ex as any).realisticUserExpectation) && (
+          <section class="ex-section">
+            <OfferRealism
+              exchangeName={ex.name}
+              offerConfidenceScore={(ex as any).offerConfidenceScore ?? null}
+              realisticUserExpectation={(ex as any).realisticUserExpectation ?? null}
+              verificationLastChecked={(ex as any).verificationLastChecked ?? null}
+              bonusConditionSummary={(ex as any).bonusConditionSummary ?? null}
+              bonusDisplayMode={(ex as any).bonusDisplayMode ?? 'up-to'}
+              termsUrl={ex.termsUrl ?? null}
+            />
+          </section>
+        )}
 
         <!-- Bonus tiers breakdown -->
         {activeBonusTiers.length > 0 && (
@@ -376,6 +399,20 @@ const relatedGuides = allGuides
               heading="Related Guides"
               variant="full"
             />
+          </section>
+        )}
+
+        <!-- Use-case cross-links -->
+        {relatedUseCases.length > 0 && (
+          <section class="ex-section ex-use-case-links">
+            <h3 class="ex-section-sub-title">{ex.name} is recommended for:</h3>
+            <div class="ex-uc-chips">
+              {relatedUseCases.map(uc => (
+                <a href={`/use-cases/${uc.slug}/`} class="ex-uc-chip">
+                  {uc.label}
+                </a>
+              ))}
+            </div>
           </section>
         )}
 
@@ -1037,4 +1074,37 @@ const relatedGuides = allGuides
     transition: opacity 0.15s;
   }
   .bonus-page-link-cta:hover { opacity: 0.85; }
+
+  /* ── Use-case cross-links ── */
+  .ex-use-case-links { padding: 0; }
+  .ex-section-sub-title {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--color-text-secondary);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .ex-uc-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .ex-uc-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.7rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .ex-uc-chip:hover {
+    border-color: rgba(245,197,66,0.35);
+    color: var(--color-accent);
+  }
 </style>

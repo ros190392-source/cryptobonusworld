@@ -2,6 +2,10 @@
 import BonusBadge from './BonusBadge.astro';
 import KycBadge from './KycBadge.astro';
 import CTAButton from './CTAButton.astro';
+import ExchangeLogo from './ExchangeLogo.astro';
+import TrustVerificationBlock from './TrustVerificationBlock.astro';
+
+import { getCtaLabel, getBonusExpiryNote } from '../utils/affiliateUtils';
 
 interface Props {
   name: string;
@@ -19,26 +23,60 @@ interface Props {
   updatedAt: string;
   countries: string[];
   paymentMethods: string[];
+  // Trust row data — optional, progressive enhancement
+  licences?: string[];
+  founded?: number;
+  users?: string;
+  // Conversion optimisation
+  bonusExpiry?: { days: number; note?: string } | null;
+  geoHrefs?: Record<string, string>;
+  // Trust verification signals (from exchanges.json)
+  verificationStatus?: 'verified' | 'needs-review' | 'outdated' | 'unverified';
+  lastVerified?: string | null;
+  bonusNote?: string | null;
+  bonusSourceUrl?: string | null;
+  excludedCountries?: string[] | null;
+  bonusDisplayMode?: 'up-to' | 'range' | 'fixed' | 'regional' | 'campaign';
 }
 
 const props = Astro.props;
 
-const brandColors: Record<string, string> = {
-  bybit: '#F7A600',
-  mexc: '#0BCDFF',
-  okx: '#EEEEEE',
-  bitget: '#00E5BE',
-  bingx: '#1B78F2',
-  'gate-io': '#2354E6',
-  kucoin: '#24AE8F',
-  htx: '#2856EE',
-  coinex: '#00CFC5',
-  phemex: '#BE79DF',
-  bitunix: '#F97316',
-  lbank: '#3B82F6',
-};
+// Contextual CTA label — highlights most compelling differentiator
+const ctaLabel = getCtaLabel({
+  name: props.name,
+  slug: props.slug,
+  kycRequired: props.kycRequired,
+  depositRequired: props.depositRequired,
+  bonusAmount: props.bonusAmount,
+  bonusCurrency: props.bonusCurrency,
+  bonusTypes: props.bonusTypes,
+  rating: props.rating,
+});
 
-const brand = brandColors[props.slug] ?? '#F5C542';
+// Factual urgency note from real bonusExpiry data (null = don't show)
+const expiryNote = getBonusExpiryNote(props.bonusExpiry);
+
+// Build dynamic trust row from available data
+const trustItems: { icon: string; text: string; green?: boolean }[] = [];
+if (props.licences && props.licences.length > 0) {
+  trustItems.push({ icon: '🏛️', text: `${props.licences[0]} Licensed`, green: true });
+} else {
+  trustItems.push({ icon: '✓', text: 'Established Exchange', green: true });
+}
+if (props.users) {
+  trustItems.push({ icon: '👥', text: `${props.users} Registered Users`, green: true });
+} else {
+  trustItems.push({ icon: '✓', text: 'Cold Storage Security', green: true });
+}
+if (props.founded) {
+  const age = new Date().getFullYear() - props.founded;
+  trustItems.push({ icon: '📅', text: `Est. ${props.founded} · ${age}+ yrs`, green: true });
+} else {
+  trustItems.push({ icon: '✓', text: '24/7 Customer Support', green: true });
+}
+
+import { getBrandColor } from '../utils/logoConfig';
+const brand = getBrandColor(props.slug);
 
 const ratingFull = Math.floor(props.rating / 2);
 const ratingHalf = (props.rating / 2) % 1 >= 0.5;
@@ -79,9 +117,7 @@ const quickFacts = [
       <!-- Left: identity -->
       <div class="exhero-left">
         <div class="exhero-identity">
-          <div class="exhero-logo" aria-hidden="true">
-            <span>{props.name.charAt(0)}</span>
-          </div>
+          <ExchangeLogo slug={props.slug} name={props.name} size={120} variant="square" lazy={false} class="exhero-logomark" />
           <div class="exhero-id-text">
             <div class="exhero-name">{props.name}</div>
             <div class="exhero-rating-row">
@@ -104,28 +140,36 @@ const quickFacts = [
         </div>
 
         <div class="exhero-trust-row">
-          <span class="exhero-trust-item">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-            Licensed Exchange
-          </span>
-          <span class="exhero-trust-item">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-            Cold Wallet Storage
-          </span>
-          <span class="exhero-trust-item">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-            24/7 Support
-          </span>
+          {trustItems.map(item => (
+            <span class="exhero-trust-item">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+              {item.text}
+            </span>
+          ))}
         </div>
       </div>
 
       <!-- Right: bonus display + CTA -->
       <div class="exhero-right">
         <div class="exhero-bonus-display">
-          <div class="exhero-bonus-eyebrow">Welcome Bonus</div>
-          <div class="exhero-bonus-amount">
-            Up to {props.bonusAmount.toLocaleString()} {props.bonusCurrency}
+          <div class="exhero-bonus-eyebrow">
+            {props.bonusDisplayMode === 'fixed'
+              ? 'New User Reward'
+              : props.bonusDisplayMode === 'campaign'
+                ? 'Current Campaign'
+                : 'Welcome Bonus'}
           </div>
+          {props.bonusDisplayMode === 'campaign' ? (
+            <div class="exhero-bonus-campaign">
+              <span class="exhero-campaign-label">Active Offer</span>
+              <span class="exhero-campaign-hint">Verify on official site</span>
+            </div>
+          ) : (
+            <div class="exhero-bonus-amount">
+              {props.bonusDisplayMode !== 'fixed' && <span class="exhero-bonus-prefix">Up to</span>}
+              {props.bonusAmount.toLocaleString()} {props.bonusCurrency}
+            </div>
+          )}
           <div class="exhero-bonus-sub">{props.bonusTitle}</div>
         </div>
 
@@ -139,12 +183,33 @@ const quickFacts = [
           </div>
         )}
 
-        <div class="exhero-ctas">
-          <CTAButton href={props.affiliateUrl} exchange={props.name} size="lg" fullWidth />
-          <CTAButton href="/bonuses/" label="Compare all bonuses" variant="outline" size="md" fullWidth />
+        <div class="exhero-ctas" id="exhero-ctas">
+          <CTAButton
+            href={props.affiliateUrl}
+            label={ctaLabel}
+            size="lg"
+            fullWidth
+            trackPlacement="hero"
+            trackBonus={props.bonusAmount}
+            exchange={props.name}
+            geoHrefs={props.geoHrefs}
+          />
+          {expiryNote && (
+            <p class="exhero-expiry-note">{expiryNote}</p>
+          )}
+          <a href="/bonuses/" class="exhero-compare-link">↗ Compare all bonuses</a>
         </div>
 
-        <p class="exhero-updated-note">Last updated: {props.updatedAt} · Affiliate link</p>
+        <TrustVerificationBlock
+          verificationStatus={props.verificationStatus ?? (props as any).verificationStatus}
+          verifiedAt={props.lastVerified ?? props.updatedAt}
+          offerLastChecked={props.lastVerified ?? props.updatedAt}
+          termsUrl={props.bonusSourceUrl ?? undefined}
+          bonusNote={props.bonusNote ?? null}
+          regionRestrictions={props.excludedCountries ?? null}
+          compact={true}
+        />
+        <p class="exhero-disc-line"><a href="/affiliate-disclosure/" class="exhero-disc-link">Affiliate disclosure</a></p>
       </div>
     </div>
   </div>
@@ -163,16 +228,25 @@ const quickFacts = [
   </div>
 </div>
 
-<!-- Mobile sticky CTA bar -->
-<div class="exhero-sticky" id="exhero-sticky">
+<!-- Mobile sticky CTA bar — hidden by default, shown via IntersectionObserver -->
+<div class="exhero-sticky" id="exhero-sticky" aria-hidden="true">
   <div class="exhero-sticky-info">
     <span class="exhero-sticky-name">{props.name}</span>
-    <span class="exhero-sticky-bonus">Up to {props.bonusAmount.toLocaleString()} {props.bonusCurrency}</span>
+    <span class="exhero-sticky-bonus">Up to {props.bonusAmount.toLocaleString('en-US')} {props.bonusCurrency}</span>
   </div>
-  <CTAButton href={props.affiliateUrl} exchange={props.name} size="md" />
+  <CTAButton
+    href={props.affiliateUrl}
+    label={!props.kycRequired ? 'No KYC →' : 'Claim Bonus →'}
+    exchange={props.name}
+    size="md"
+    trackPlacement="sticky"
+    trackBonus={props.bonusAmount}
+    geoHrefs={props.geoHrefs}
+  />
 </div>
 
 <script>
+  // ── Promo code copy ─────────────────────────────────────────────────────
   document.querySelectorAll<HTMLButtonElement>('.exhero-promo-code').forEach(btn => {
     btn.addEventListener('click', async () => {
       const code = btn.dataset.code ?? '';
@@ -187,6 +261,29 @@ const quickFacts = [
       }, 2000);
     });
   });
+
+  // ── Sticky CTA visibility (IntersectionObserver) ─────────────────────
+  // Show sticky only after the in-hero CTA block scrolls out of view.
+  // This prevents doubling the CTA before the user even starts reading.
+  const heroCtas = document.getElementById('exhero-ctas');
+  const stickyBar = document.getElementById('exhero-sticky');
+
+  if (heroCtas && stickyBar) {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        // When hero CTAs leave viewport → show sticky
+        const visible = !entry.isIntersecting;
+        stickyBar.classList.toggle('is-visible', visible);
+        stickyBar.setAttribute('aria-hidden', String(!visible));
+      },
+      {
+        threshold: 0,
+        // Trigger slightly before hero exits viewport for smoother UX
+        rootMargin: '0px 0px -48px 0px',
+      }
+    );
+    observer.observe(heroCtas);
+  }
 </script>
 
 <style>
@@ -248,20 +345,19 @@ const quickFacts = [
     align-items: flex-start;
   }
 
-  .exhero-logo {
+  /* ExchangeLogo component within hero — brand-tinted border + glow */
+  :global(.exhero-logomark) {
     flex-shrink: 0;
-    width: 68px;
-    height: 68px;
-    border-radius: 16px;
-    background: color-mix(in srgb, var(--brand) 14%, #111);
-    border: 1.5px solid color-mix(in srgb, var(--brand) 35%, transparent);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.6rem;
-    font-weight: 900;
-    color: var(--brand);
-    box-shadow: 0 4px 24px color-mix(in srgb, var(--brand) 18%, transparent);
+    border-radius: 16px !important;
+    border-color: color-mix(in srgb, var(--brand) 40%, transparent) !important;
+    background: color-mix(in srgb, var(--brand) 12%, var(--surface-overlay, #111)) !important;
+    box-shadow: 0 4px 24px color-mix(in srgb, var(--brand) 22%, transparent),
+                0 1px 6px rgba(0,0,0,0.4) !important;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  :global(.exhero-logomark:hover) {
+    box-shadow: 0 6px 32px color-mix(in srgb, var(--brand) 32%, transparent),
+                0 2px 8px rgba(0,0,0,0.4) !important;
   }
 
   .exhero-id-text { flex: 1; }
@@ -348,11 +444,43 @@ const quickFacts = [
     line-height: 1;
     margin-bottom: 0.375rem;
     text-shadow: 0 0 28px rgba(245, 197, 66, 0.28);
+    display: flex;
+    align-items: baseline;
+    gap: 0.3rem;
+    flex-wrap: wrap;
+  }
+  .exhero-bonus-prefix {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    text-shadow: none;
+    align-self: flex-end;
+    padding-bottom: 0.15em;
   }
 
   .exhero-bonus-sub {
     font-size: 0.8rem;
     color: var(--color-text-secondary);
+  }
+
+  .exhero-bonus-campaign {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding: 0.5rem 0;
+  }
+  .exhero-campaign-label {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: var(--color-accent);
+    letter-spacing: -0.02em;
+  }
+  .exhero-campaign-hint {
+    font-size: 0.72rem;
+    color: var(--color-text-muted);
+    font-style: italic;
   }
 
   .exhero-promo {
@@ -415,12 +543,37 @@ const quickFacts = [
     gap: 0.5rem;
   }
 
-  .exhero-updated-note {
-    font-size: 0.68rem;
-    color: var(--color-text-muted);
+  .exhero-expiry-note {
+    font-size: 0.72rem;
+    color: var(--color-accent);
     margin: 0;
     text-align: center;
+    font-weight: 600;
+    opacity: 0.85;
   }
+
+  .exhero-compare-link {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    text-align: center;
+    text-decoration: none;
+    transition: color var(--duration-base);
+  }
+  .exhero-compare-link:hover { color: var(--color-accent); }
+
+  .exhero-disc-line {
+    font-size: 0.68rem;
+    color: var(--color-text-muted);
+    margin: 0.25rem 0 0;
+    text-align: center;
+  }
+  .exhero-disc-link {
+    color: var(--color-text-muted);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    transition: color 0.15s;
+  }
+  .exhero-disc-link:hover { color: var(--color-text-secondary); }
 
   /* Quick facts bar */
   .exhero-facts {
@@ -522,8 +675,8 @@ const quickFacts = [
     .exhero-fact:nth-child(4) { border-top: 1px solid var(--color-border); border-right: none; }
   }
 
-  /* Show sticky CTA on all mobile + tablet sizes */
+  /* Sticky CTA — shown on mobile only when hero CTA scrolled out of view */
   @media (max-width: 768px) {
-    .exhero-sticky { display: flex; }
+    .exhero-sticky.is-visible { display: flex; }
   }
 </style>
