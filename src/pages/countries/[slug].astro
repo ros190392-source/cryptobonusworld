@@ -6,9 +6,29 @@ import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import FAQBlock from '../../components/FAQBlock.astro';
 import RiskDisclaimer from '../../components/RiskDisclaimer.astro';
 import AffiliateDisclosure from '../../components/AffiliateDisclosure.astro';
+import AnswerBox from '../../components/AnswerBox.astro';
 
 import exchanges from '../../data/exchanges.json';
 import countries from '../../data/countries.json';
+import categories from '../../data/categories.json';
+
+import RelatedCategoriesBlock from '../../components/RelatedCategoriesBlock.astro';
+
+import {
+  countryPageTitle,
+  countryMetaDesc,
+  buildItemListSchema,
+  getCountryCategoryLinks,
+  rankExchangesForCountry,
+} from '../../utils/seo';
+import type { PageContext } from '../../utils/analytics';
+import {
+  generateCountryFAQs,
+  applyFAQOverrides,
+  type ContentCountry,
+  type ContentExchange,
+} from '../../utils/contentEngine';
+import contentOverrides from '../../data/content-overrides.json';
 
 export async function getStaticPaths() {
   return countries.map(c => ({
@@ -19,36 +39,132 @@ export async function getStaticPaths() {
 
 const { country } = Astro.props;
 
-const available = exchanges.filter(ex =>
-  ex.countries.includes(country.slug) || ex.countries.includes('global')
+// Country-aware ranking: boosts top-pick, no-KYC in evolving markets, payment overlap
+const rankedAvailable = rankExchangesForCountry(
+  country.slug,
+  (country as any).topExchangeSlug,
+  (country as any).regulatoryStatus,
+  country.paymentMethods,
+  exchanges as any
 );
-const top3 = [...available].sort((a, b) => b.rating - a.rating).slice(0, 3);
 
-const faqItems = [
-  {
-    question: `Is crypto trading legal in ${country.name}?`,
-    answer: `Crypto regulations vary by country and change frequently. CryptoBonusWorld does not provide legal advice. Always check the current regulatory status of crypto trading in ${country.name} before registering on any exchange.`,
-  },
-  {
-    question: `Which payment methods are available in ${country.name}?`,
-    answer: `Common payment methods for crypto in ${country.name} include: ${country.paymentMethods.join(', ')}. Availability depends on the specific exchange and may change.`,
-  },
-  {
-    question: `Do I need KYC to trade in ${country.name}?`,
-    answer: `KYC requirements depend on the exchange. Some exchanges like MEXC and KuCoin offer access without full KYC. However, to access full features and withdraw, most major exchanges require identity verification.`,
-  },
-];
+const top3 = rankedAvailable.slice(0, 3);
+
+// KPIs for the page
+const noKycCount = rankedAvailable.filter((ex: any) => !ex.kycRequired).length;
+const maxBonus = rankedAvailable.length > 0
+  ? Math.max(...rankedAvailable.map((ex: any) => ex.bonusAmount))
+  : 0;
+const maxBonusFmt = maxBonus.toLocaleString('en-US');
+
+// SEO: cross-link to relevant categories
+const relatedCats = getCountryCategoryLinks(rankedAvailable as any, categories as any);
+
+// SEO: dynamic title + description
+const pageTitle = countryPageTitle(country.seoTitle, rankedAvailable.length);
+const pageDesc = countryMetaDesc(country as any, rankedAvailable as any);
+
+// SEO: ItemList schema for available exchanges
+const itemListSchema = buildItemListSchema(
+  rankedAvailable
+    .map((ex: any) => ({
+      name: `${ex.name} Bonus`,
+      url: `/exchanges/${ex.slug}/`,
+      description: ex.shortDescription,
+    })),
+  `Best Crypto Exchange Bonuses in ${country.name}`
+);
+
+// Typed GEO fields
+const regulatoryStatus = (country as any).regulatoryStatus as string | undefined;
+const cryptoAdoptionRank = (country as any).cryptoAdoptionRank as string | undefined;
+const marketContext = (country as any).marketContext as string | undefined;
+const topExchangeSlug = (country as any).topExchangeSlug as string | undefined;
+const noKycNote = (country as any).noKycNote as string | undefined;
+const fiatOnRamp = (country as any).fiatOnRamp as Array<{ method: string; note: string }> | undefined;
+const banks = (country as any).banks as string[] | undefined;
+const p2pWorkflow = (country as any).p2pWorkflow as string[] | undefined;
+const localTip = (country as any).localTip as string | undefined;
+
+// Regulatory status display
+const statusConfig: Record<string, { label: string; color: string; note: string }> = {
+  active:   { label: 'Active Market', color: '#4ade80', note: 'Crypto trading openly permitted with established framework.' },
+  evolving: { label: 'Evolving Regulations', color: '#fbbf24', note: 'Regulatory framework is developing. Trading is active but rules may change.' },
+  'p2p-focused': { label: 'P2P-Dominant Market', color: '#fb923c', note: 'Direct exchange deposits limited; P2P is the primary on-ramp.' },
+};
+const statusInfo = regulatoryStatus ? (statusConfig[regulatoryStatus] ?? statusConfig['evolving']) : null;
+
+// Adoption rank display
+const adoptionConfig: Record<string, string> = {
+  'very-high': 'Very High Adoption',
+  'high':      'High Adoption',
+  'medium':    'Growing Adoption',
+};
+const adoptionLabel = cryptoAdoptionRank ? (adoptionConfig[cryptoAdoptionRank] ?? 'Active Market') : null;
+
+// Payment method support per top-3 exchange
+// Normalize methods to canonical categories for matching
+function normPay(m: string): string {
+  const ml = m.toLowerCase().trim();
+  if (ml === 'p2p') return 'p2p';
+  if (ml.includes('card') || ml.includes('visa') || ml.includes('master')) return 'card';
+  if (ml.includes('bank') || ml === 'upi' || ml === 'pix' || ml.includes('transfer')) return 'bank';
+  if (ml === 'crypto') return 'crypto';
+  return ml;
+}
+
+const countryPayNorm = country.paymentMethods.map(normPay);
+
+function getPaymentOverlap(exchangePaymentMethods: string[]): string[] {
+  const exNorm = exchangePaymentMethods.map(normPay);
+  const shared: string[] = [];
+  for (const m of exNorm) {
+    if (countryPayNorm.includes(m) && !shared.includes(m)) shared.push(m);
+  }
+  return shared;
+}
+
+// Payment method display labels
+const payLabels: Record<string, string> = {
+  p2p: 'P2P',
+  card: 'Card',
+  bank: 'Bank',
+  crypto: 'Crypto',
+};
+
+// FAQ — generated centrally, then editorial overrides applied
+const topExchangeName = top3[0]?.name ?? 'major exchanges';
+const excludedFromCountry = exchanges.filter((ex: any) =>
+  (ex.excludedCountries ?? []).includes(country.slug)
+);
+const excludedNames = excludedFromCountry.map((ex: any) => ex.name);
+
+const _faqGenerated = generateCountryFAQs({
+  country: country as unknown as ContentCountry,
+  availableExchanges: rankedAvailable as unknown as ContentExchange[],
+  noKycCount,
+  maxBonus,
+});
+const _faqOverride = (contentOverrides.countries as Record<string, any>)[country.slug];
+const faqItems = applyFAQOverrides(_faqGenerated, _faqOverride);
+
+const analyticsContext: PageContext = {
+  pageType: 'country',
+  countrySlug: country.slug,
+};
 ---
 
 <Layout
-  title={country.seoTitle}
-  description={country.seoDescription}
+  title={pageTitle}
+  description={pageDesc}
   canonical={`/countries/${country.slug}/`}
+  schema={itemListSchema}
+  analyticsContext={analyticsContext}
 >
   <div class="container">
     <Breadcrumbs crumbs={[
       { label: 'Home', href: '/' },
-      { label: 'Countries' },
+      { label: 'Bonuses by Country', href: '/countries/' },
       { label: country.name },
     ]} />
 
@@ -57,38 +173,186 @@ const faqItems = [
         <span class="country-flag" aria-hidden="true">{country.flag}</span>
         <h1>{country.title}</h1>
       </div>
-      <p class="lead">{country.description} {available.length} exchanges available.</p>
+      <p class="lead">
+        {country.description}
+        {rankedAvailable.length} exchanges available.
+        {noKycCount > 0 && <span>{noKycCount} without KYC.</span>}
+        {maxBonus > 0 && <span>Best bonus: up to {maxBonusFmt} USDT.</span>}
+      </p>
     </div>
 
     <AffiliateDisclosure compact />
 
+    {top3.length > 0 && (
+      <AnswerBox
+        question={`What is the best crypto exchange in ${country.name}?`}
+        answer={`The best crypto exchange in ${country.name} in ${new Date().getFullYear()} is ${top3[0].name} — offering up to ${(top3[0] as any).bonusAmount?.toLocaleString('en-US')} USDT${!(top3[0] as any).kycRequired ? ', no KYC required' : ''}. ${rankedAvailable.length} exchanges are available in ${country.name}${noKycCount > 0 ? `, including ${noKycCount} without KYC` : ''}.`}
+        updatedDate="May 2026"
+        compact={true}
+      />
+    )}
+
+    <!-- GEO Context block -->
+    {(marketContext || statusInfo || adoptionLabel) && (
+      <div class="geo-context">
+        <div class="geo-context-main">
+          {marketContext && (
+            <p class="geo-market-context">{marketContext}</p>
+          )}
+          <div class="geo-signals">
+            {statusInfo && (
+              <div class="geo-signal" style={`--signal-color: ${statusInfo.color};`}>
+                <span class="geo-signal-dot" aria-hidden="true"></span>
+                <div>
+                  <span class="geo-signal-label">{statusInfo.label}</span>
+                  <span class="geo-signal-note">{statusInfo.note}</span>
+                </div>
+              </div>
+            )}
+            {adoptionLabel && (
+              <div class="geo-signal" style="--signal-color: #818cf8;">
+                <span class="geo-signal-dot" aria-hidden="true"></span>
+                <div>
+                  <span class="geo-signal-label">{adoptionLabel}</span>
+                  <span class="geo-signal-note">Based on global adoption indices and trading volume data.</span>
+                </div>
+              </div>
+            )}
+            {noKycCount > 0 && (
+              <div class="geo-signal" style="--signal-color: #4ade80;">
+                <span class="geo-signal-dot" aria-hidden="true"></span>
+                <div>
+                  <span class="geo-signal-label">{noKycCount} No-KYC Exchange{noKycCount !== 1 ? 's' : ''}</span>
+                  <span class="geo-signal-note">Trade without full identity verification. Withdrawal limits apply.</span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    )}
+
+    <!-- Local info bar -->
     <div class="local-info">
       <div class="local-info-row">
         <div class="local-info-item">
-          <span class="local-info-label">Currency</span>
+          <span class="local-info-label">Local Currency</span>
           <span class="local-info-value">{country.currency}</span>
         </div>
         <div class="local-info-item">
           <span class="local-info-label">Payment Methods</span>
-          <span class="local-info-value">{country.paymentMethods.join(', ')}</span>
+          <span class="local-info-value">{country.paymentMethods.join(' · ')}</span>
         </div>
+        {banks && banks.length > 0 && (
+          <div class="local-info-item local-info-item--banks">
+            <span class="local-info-label">Supported Banks</span>
+            <span class="local-info-value local-info-banks">{banks.join(' · ')}</span>
+          </div>
+        )}
         <div class="local-info-item">
           <span class="local-info-label">Available Exchanges</span>
-          <span class="local-info-value">{available.length}</span>
+          <span class="local-info-value">{rankedAvailable.length}</span>
         </div>
+        {noKycCount > 0 && (
+          <div class="local-info-item">
+            <span class="local-info-label">No-KYC Options</span>
+            <span class="local-info-value local-info-value--green">{noKycCount}</span>
+          </div>
+        )}
       </div>
       {country.localNotes && (
         <p class="local-notes">{country.localNotes}</p>
       )}
     </div>
 
-    <h2 class="section-title" style="margin-top: 2rem">Top Exchanges for {country.name}</h2>
-    <div class="grid-3" style="margin: 1rem 0 2rem">
-      {top3.map(ex => <ExchangeCard {...ex} />)}
+    <!-- Top picks — country-ranked -->
+    <div class="top3-header">
+      <h2 class="section-title">Top {top3.length} Exchanges for {country.name}</h2>
+      <p class="top3-subtitle">Ranked by local payment support, KYC policy and exchange quality.</p>
+    </div>
+    <div class="top3-grid">
+      {top3.map((ex: any, i: number) => {
+        const isTopPick = ex.slug === topExchangeSlug;
+        const payOverlap = getPaymentOverlap(ex.paymentMethods ?? []);
+        return (
+          <div class="top3-slot">
+            {isTopPick && (
+              <div class="top3-pick-label">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                Top Pick for {country.name}
+              </div>
+            )}
+            <ExchangeCard {...ex} />
+            {payOverlap.length > 0 && (
+              <div class="top3-pay-note">
+                <span class="top3-pay-icon">💳</span>
+                <span>Supports: {payOverlap.map(m => payLabels[m] ?? m).join(' · ')}</span>
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
 
-    <h2 class="section-title">All Available Exchanges in {country.name}</h2>
-    <BonusTable exchanges={available} filterCountry={country.slug} />
+    <!-- All exchanges table -->
+    <h2 class="section-title" style="margin-top: 2rem">All Available Exchanges in {country.name}</h2>
+    <BonusTable exchanges={rankedAvailable as any} filterCountry={country.slug} />
+
+    <!-- Fiat on-ramp section -->
+    {fiatOnRamp && fiatOnRamp.length > 0 && (
+      <section class="fiat-onramp">
+        <h2 class="fiat-onramp-title">How to Fund Your Exchange in {country.name}</h2>
+        <p class="fiat-onramp-intro">
+          These are the most common ways to deposit funds onto a crypto exchange from {country.name}.
+          Availability depends on the specific exchange — check the deposit page after registering.
+        </p>
+        <div class="fiat-onramp-methods">
+          {fiatOnRamp.map((item, i) => (
+            <div class="fiat-method">
+              <div class="fiat-method-num">{i + 1}</div>
+              <div class="fiat-method-body">
+                <div class="fiat-method-name">{item.method}</div>
+                <div class="fiat-method-note">{item.note}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <p class="fiat-onramp-disclaimer">
+          Always verify current deposit methods on the official exchange website before registering.
+          Methods and availability can change without notice.
+        </p>
+      </section>
+    )}
+
+    <!-- P2P step-by-step workflow -->
+    {p2pWorkflow && p2pWorkflow.length > 0 && (
+      <section class="p2p-workflow">
+        <h2 class="p2p-workflow-title">How to Buy Crypto in {country.name} — Step by Step</h2>
+        <p class="p2p-workflow-intro">
+          P2P trading is the most reliable method for {country.currency} on-ramps in {country.name}.
+          Here is the full process from registration to receiving your first USDT.
+        </p>
+        <ol class="p2p-workflow-steps">
+          {p2pWorkflow.map((step) => (
+            <li class="p2p-step">{step}</li>
+          ))}
+        </ol>
+        {localTip && (
+          <div class="p2p-local-tip">
+            <span class="p2p-tip-icon" aria-hidden="true">💡</span>
+            <p>{localTip}</p>
+          </div>
+        )}
+      </section>
+    )}
+
+    {relatedCats.length > 0 && (
+      <RelatedCategoriesBlock
+        categories={relatedCats as any}
+        heading={`Bonus Types Available in ${country.name}`}
+        subheading={`Browse bonus categories with at least one exchange available in ${country.name}.`}
+      />
+    )}
 
     <FAQBlock items={faqItems} title={`Crypto Bonuses in ${country.name} — FAQ`} />
 
@@ -98,11 +362,12 @@ const faqItems = [
 
 <!-- Mobile sticky CTA -->
 <div class="cty-sticky">
-  <span class="cty-sticky-label">{country.flag} {country.name} — {available.length} exchanges</span>
+  <span class="cty-sticky-label">{country.flag} {country.name} — {rankedAvailable.length} exchanges</span>
   <a href="/bonuses/" class="cty-sticky-btn">All Bonuses →</a>
 </div>
 
 <style>
+  /* ── Headings ── */
   .country-heading {
     display: flex;
     align-items: center;
@@ -112,12 +377,72 @@ const faqItems = [
   .country-flag { font-size: 2.5rem; line-height: 1; }
   .country-heading h1 { margin: 0; }
 
+  /* ── GEO context block ── */
+  .geo-context {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    padding: 1.25rem 1.5rem;
+    margin: 1.25rem 0;
+  }
+
+  .geo-market-context {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    margin: 0 0 1rem;
+  }
+
+  .geo-signals {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .geo-signal {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.625rem;
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .geo-signal-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--signal-color, #4ade80);
+    flex-shrink: 0;
+    margin-top: 3px;
+    box-shadow: 0 0 6px var(--signal-color, #4ade80);
+  }
+
+  .geo-signal-label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--signal-color, var(--color-text-primary));
+    margin-bottom: 0.2rem;
+  }
+
+  .geo-signal-note {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--color-text-muted);
+    line-height: 1.45;
+  }
+
+  /* ── Local info bar ── */
   .local-info {
     background: var(--color-bg-secondary);
     border: 1px solid var(--color-border);
     border-radius: 12px;
     padding: 1.25rem;
-    margin: 1.5rem 0;
+    margin: 1rem 0 1.5rem;
   }
   .local-info-row {
     display: flex;
@@ -137,8 +462,8 @@ const faqItems = [
     font-size: 0.9rem;
     font-weight: 600;
     color: var(--color-text-primary);
-    text-transform: capitalize;
   }
+  .local-info-value--green { color: #4ade80; }
   .local-notes {
     font-size: 0.8rem;
     color: var(--color-text-muted);
@@ -146,6 +471,227 @@ const faqItems = [
     margin: 0.75rem 0 0;
     padding-top: 0.75rem;
     border-top: 1px solid var(--color-border);
+  }
+
+  /* ── Top 3 section ── */
+  .top3-header { margin-top: 2rem; }
+  .top3-subtitle {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    margin: 0.25rem 0 1rem;
+  }
+
+  .top3-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .top3-slot {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+
+  .top3-pick-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--color-accent);
+    background: rgba(245, 197, 66, 0.1);
+    border: 1px solid rgba(245, 197, 66, 0.25);
+    border-radius: var(--radius-pill, 100px);
+    padding: 0.2rem 0.65rem;
+    align-self: flex-start;
+  }
+
+  .top3-pick-label svg { flex-shrink: 0; }
+
+  .top3-pay-note {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.72rem;
+    color: var(--color-text-muted);
+    padding: 0.35rem 0.625rem;
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+  }
+
+  .top3-pay-icon { font-size: 0.875rem; }
+
+  /* ── Fiat on-ramp section ── */
+  .fiat-onramp {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    padding: 1.5rem;
+    margin: 2rem 0;
+  }
+
+  .fiat-onramp-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin: 0 0 0.5rem;
+  }
+
+  .fiat-onramp-intro {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    line-height: 1.65;
+    margin: 0 0 1.25rem;
+  }
+
+  .fiat-onramp-methods {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .fiat-method {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    padding: 0.875rem 1rem;
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+  }
+
+  .fiat-method-num {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(245, 197, 66, 0.12);
+    border: 1.5px solid rgba(245, 197, 66, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: var(--color-accent);
+  }
+
+  .fiat-method-body { flex: 1; }
+
+  .fiat-method-name {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: 0.2rem;
+  }
+
+  .fiat-method-note {
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    line-height: 1.55;
+  }
+
+  .fiat-onramp-disclaimer {
+    font-size: 0.72rem;
+    color: var(--color-text-muted);
+    margin: 0;
+    font-style: italic;
+    line-height: 1.5;
+  }
+
+  /* ── Banks in local info ── */
+  .local-info-item--banks { flex-basis: 100%; }
+  .local-info-banks {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+  }
+
+  /* ── P2P workflow section ── */
+  .p2p-workflow {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    padding: 1.5rem;
+    margin: 2rem 0;
+  }
+
+  .p2p-workflow-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin: 0 0 0.5rem;
+  }
+
+  .p2p-workflow-intro {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    line-height: 1.65;
+    margin: 0 0 1.25rem;
+  }
+
+  .p2p-workflow-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0;
+    margin: 0 0 1.25rem;
+    list-style: none;
+    counter-reset: p2p-step;
+  }
+
+  .p2p-step {
+    counter-increment: p2p-step;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.875rem;
+    padding: 0.75rem 1rem;
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    line-height: 1.55;
+  }
+
+  .p2p-step::before {
+    content: counter(p2p-step);
+    flex-shrink: 0;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: rgba(245, 197, 66, 0.12);
+    border: 1.5px solid rgba(245, 197, 66, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: var(--color-accent);
+  }
+
+  .p2p-local-tip {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: rgba(245, 197, 66, 0.06);
+    border: 1px solid rgba(245, 197, 66, 0.2);
+    border-radius: 10px;
+  }
+
+  .p2p-tip-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+
+  .p2p-local-tip p {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
   }
 
   /* ── Mobile sticky CTA ── */
@@ -192,10 +738,20 @@ const faqItems = [
   }
   .cty-sticky-btn:hover { opacity: 0.88; }
 
+  @media (max-width: 900px) {
+    .top3-grid { grid-template-columns: 1fr 1fr; }
+  }
+
   @media (max-width: 768px) {
     .cty-sticky { display: flex; }
     :global(body) { padding-bottom: 72px; }
     .local-info-row { gap: 1.25rem; }
     .country-flag { font-size: 2rem; }
+    .geo-signals { flex-direction: column; }
+  }
+
+  @media (max-width: 600px) {
+    .top3-grid { grid-template-columns: 1fr; }
+    .geo-context { padding: 1rem; }
   }
 </style>

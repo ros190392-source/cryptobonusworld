@@ -38,6 +38,18 @@
       { "method": "Bank Transfer", "note": "Turkish bank transfers accepted via P2P counterparties. Some third-party payment providers also support TRY deposits." },
       { "method": "Card", "note": "Visa and Mastercard debit cards widely accepted for crypto purchases on most international exchanges." }
     ],
+    "banks": ["Ziraat Bankası", "Garanti BBVA", "İş Bankası", "Akbank", "Yapı Kredi"],
+    "p2pWorkflow": [
+      "Register on Bybit — email verification only, no KYC required for P2P access.",
+      "Click Buy Crypto → P2P Trading at the top of the site.",
+      "Select USDT, set currency to TRY, and click Buy.",
+      "Filter merchants by 98%+ completion rate and at least 500 lifetime trades.",
+      "Choose Bank Transfer and select a trusted merchant with the Merchant badge.",
+      "Enter your TRY amount and confirm — USDT is held in escrow immediately.",
+      "Transfer TRY to the merchant's Turkish bank account (Ziraat, Garanti, İş Bankası, etc.).",
+      "Upload your payment confirmation in the Bybit chat — USDT releases within 5–15 minutes."
+    ],
+    "localTip": "Turkish P2P traders consistently offer the best TRY/USDT rates on Bybit. Look for merchants with the Merchant badge and 1,000+ lifetime trades for the safest experience.",
     "title": "Best Crypto Bonuses in Turkey",
     "description": "Compare crypto exchange bonuses available for users in Turkey. Check local payment methods and conditions.",
     "paymentMethods": ["p2p", "card", "bank transfer", "crypto"],
@@ -199,6 +211,18 @@
       { "method": "Card", "note": "Visa and Mastercard widely accepted across major exchanges. UAE banks generally permit crypto-related card transactions." },
       { "method": "P2P Trading", "note": "Buy USDT with AED via P2P desks on Bybit, Binance and OKX. Strong AED liquidity given UAE's large crypto-active population." }
     ],
+    "banks": ["Emirates NBD", "FAB (First Abu Dhabi Bank)", "ADCB", "Dubai Islamic Bank", "Mashreq Bank"],
+    "p2pWorkflow": [
+      "Register on Bybit (VARA-licensed in Dubai) and complete KYC.",
+      "Go to Buy Crypto → P2P Trading and select USDT.",
+      "Set currency to AED and click Buy.",
+      "Choose Bank Transfer — UAE AED P2P has strong liquidity on Bybit and Binance.",
+      "Filter merchants with 98%+ completion rate and select one with the Merchant badge.",
+      "Confirm the order — USDT is locked in escrow by the exchange.",
+      "Transfer AED to the merchant's UAE bank account (Emirates NBD, FAB, ADCB, etc.).",
+      "Mark payment as sent — USDT is released to your wallet within 5–20 minutes."
+    ],
+    "localTip": "UAE residents benefit from deep AED P2P liquidity driven by the country's large crypto-active expat population. Bybit and Binance both hold VARA licences, making them the safest options for UAE-based users.",
     "title": "Best Crypto Exchange Bonuses in the UAE",
     "description": "Compare crypto exchange bonuses available for users in the United Arab Emirates. Dubai VARA regulated and internationally available platforms.",
     "paymentMethods": ["bank transfer", "card", "p2p", "crypto"],
@@ -222,6 +246,18 @@
       { "method": "EasyPaisa / JazzCash", "note": "Pakistan's leading mobile money apps are widely accepted by P2P sellers on major exchanges for instant PKR-to-USDT swaps." },
       { "method": "Bank Transfer", "note": "HBL, UBL, and other major Pakistani banks support P2P transfers via counterparties on exchanges, though direct crypto deposits from banks are limited." }
     ],
+    "banks": ["HBL (Habib Bank)", "UBL (United Bank)", "MCB Bank", "Bank Alfalah", "Meezan Bank"],
+    "p2pWorkflow": [
+      "Register on Bybit — no KYC required for initial P2P access.",
+      "Click Buy Crypto → P2P Trading and select USDT.",
+      "Set currency to PKR and choose Buy.",
+      "Select EasyPaisa or JazzCash as your payment method for instant transfers.",
+      "Filter merchants with 98%+ completion rate and at least 200 lifetime trades.",
+      "Enter your PKR amount and confirm — USDT goes into escrow immediately.",
+      "Send PKR via EasyPaisa or JazzCash to the merchant's mobile number.",
+      "Upload your payment screenshot in chat — merchant releases USDT within 10–20 minutes."
+    ],
+    "localTip": "EasyPaisa and JazzCash are the fastest and most accepted P2P payment methods in Pakistan. Avoid merchants with less than 95% completion rate to minimise dispute risk.",
     "title": "Best Crypto Exchange Bonuses in Pakistan",
     "description": "Compare crypto exchange bonuses for Pakistani users. P2P trading with EasyPaisa, JazzCash, and bank transfer. Best welcome bonuses in 2026.",
     "paymentMethods": ["p2p", "EasyPaisa", "JazzCash", "bank transfer", "crypto"],
@@ -245,6 +281,18 @@
       { "method": "Bank Transfer", "note": "Equity Bank, KCB, Co-operative Bank and other Kenyan banks accepted via P2P counterparties on major exchanges." },
       { "method": "P2P Trading", "note": "Buy USDT with KES directly via P2P on Bybit, Binance and MEXC using M-Pesa or bank transfer. Strong KES liquidity in the P2P market." }
     ],
+    "banks": ["Equity Bank", "KCB (Kenya Commercial Bank)", "Co-operative Bank", "NCBA Bank", "Stanbic Bank"],
+    "p2pWorkflow": [
+      "Register on Bybit — accessible in Kenya, no initial KYC restriction for P2P.",
+      "Click Buy Crypto → P2P Trading and choose USDT.",
+      "Set currency to KES and select Buy.",
+      "Choose M-Pesa as your payment method — it has the deepest KES liquidity.",
+      "Select a merchant with 98%+ completion rate and at least 200 lifetime trades.",
+      "Confirm the order — USDT is locked in escrow by Bybit.",
+      "Send KES via M-Pesa to the merchant's Safaricom number provided in the order.",
+      "Share your M-Pesa confirmation message in chat — USDT releases within 5–15 minutes."
+    ],
+    "localTip": "M-Pesa is by far the most widely accepted payment method for KES P2P in Kenya. Bybit and Binance both maintain strong KES liquidity with hundreds of active verified Kenyan merchants.",
     "title": "Best Crypto Exchange Bonuses in Kenya",
     "description": "Compare crypto exchange bonuses for Kenyan users. M-Pesa P2P trading, best welcome bonuses and exchange availability in Kenya 2026.",
     "paymentMethods": ["M-Pesa", "p2p", "bank transfer", "crypto"],
@@ -268,6 +316,18 @@
       { "method": "P2P Trading", "note": "Buy USDT with UAH via P2P on Binance and Bybit — the most popular method for Ukrainians. Deep UAH P2P liquidity available on major exchanges." },
       { "method": "Card", "note": "Visa and Mastercard widely accepted on most international exchanges, though some card issuers may restrict international crypto purchases during wartime." }
     ],
+    "banks": ["PrivatBank", "Monobank", "Oschadbank", "Raiffeisen Bank Aval", "Sense Bank"],
+    "p2pWorkflow": [
+      "Register on Binance or Bybit — both platforms are legally accessible in Ukraine.",
+      "Go to Buy Crypto → P2P Trading and select USDT.",
+      "Set currency to UAH and choose Buy.",
+      "Select Bank Transfer and filter by Monobank or PrivatBank for fastest settlement.",
+      "Pick a merchant with 98%+ completion rate and at least 500 lifetime trades.",
+      "Confirm the order — USDT is held in escrow immediately.",
+      "Transfer UAH via Monobank or PrivatBank to the merchant's card number.",
+      "Send a payment screenshot via in-app chat — USDT releases within 5–15 minutes."
+    ],
+    "localTip": "Monobank is the preferred UAH P2P payment method in Ukraine due to its instant transfer speed and near-universal adoption. Binance has the deepest UAH P2P liquidity of any platform.",
     "title": "Best Crypto Exchange Bonuses in Ukraine",
     "description": "Compare crypto exchange bonuses for Ukrainian users. UAH P2P trading, Monobank/PrivatBank support, and best welcome bonuses in 2026.",
     "paymentMethods": ["bank transfer", "p2p", "card", "crypto"],
@@ -292,6 +352,18 @@
       { "method": "P2P Trading", "note": "Buy USDT with MXN via P2P on Binance, Bybit, and OKX using SPEI or OXXO. Good MXN liquidity on major P2P platforms." },
       { "method": "Card", "note": "Visa and Mastercard widely accepted on most international exchanges for direct MXN-to-crypto purchases." }
     ],
+    "banks": ["BBVA México", "Banamex (Citibanamex)", "Banorte", "HSBC México", "Santander México"],
+    "p2pWorkflow": [
+      "Register on Binance or Bybit — both accept Mexican users.",
+      "Go to Buy Crypto → P2P Trading and select USDT.",
+      "Set currency to MXN and choose Buy.",
+      "Select SPEI as your payment method for same-day settlement.",
+      "Choose a merchant with 98%+ completion rate and at least 300 lifetime trades.",
+      "Confirm the order — USDT is locked in escrow immediately.",
+      "Transfer MXN via SPEI from your Mexican bank (BBVA, Banamex, Banorte, etc.).",
+      "Upload your SPEI transfer receipt in chat — USDT releases within 15–30 minutes."
+    ],
+    "localTip": "SPEI is the gold standard for MXN P2P in Mexico — instant, free from most banks, and accepted by all major merchants. OXXO Pay is an alternative for unbanked users but adds a 1-day delay.",
     "title": "Best Crypto Exchange Bonuses in Mexico",
     "description": "Compare crypto exchange bonuses for Mexican users. SPEI, OXXO, and P2P trading with MXN. Best welcome bonuses in Mexico 2026.",
     "paymentMethods": ["SPEI", "OXXO", "p2p", "card", "crypto"],
@@ -316,6 +388,18 @@
       { "method": "Mercado Pago", "note": "Argentina's leading digital wallet — widely accepted by P2P crypto sellers as a fast and accessible payment method for USDT purchases." },
       { "method": "Card", "note": "Debit and credit cards accepted on major exchanges, though Argentine banks sometimes flag international crypto purchases. Using a prepaid card can help." }
     ],
+    "banks": ["Banco Nación", "Banco Galicia", "Santander Argentina", "BBVA Argentina", "Banco Macro"],
+    "p2pWorkflow": [
+      "Register on Bybit or Binance — both accept Argentine users.",
+      "Go to Buy Crypto → P2P Trading and select USDT.",
+      "Set currency to ARS and choose Buy.",
+      "Select Mercado Pago for fastest transfers, or Bank Transfer for larger amounts.",
+      "Choose a merchant with 98%+ completion rate — ARS P2P has deep liquidity.",
+      "Confirm the order — USDT is locked in escrow immediately.",
+      "Send ARS via Mercado Pago or transfer to the merchant's bank account (Banco Nación, Galicia, etc.).",
+      "Upload payment proof in chat — USDT releases within 10–20 minutes."
+    ],
+    "localTip": "Mercado Pago is the fastest and most popular ARS P2P payment method in Argentina. P2P rates typically reflect the 'blue dollar' parallel exchange rate — significantly better value than the official ARS/USD rate.",
     "title": "Best Crypto Exchange Bonuses in Argentina",
     "description": "Compare crypto exchange bonuses for Argentine users. P2P with ARS, Mercado Pago, inflation-hedge USDT strategies, and welcome bonuses 2026.",
     "paymentMethods": ["p2p", "bank transfer", "Mercado Pago", "card", "crypto"],
