@@ -22,6 +22,10 @@ interface Props {
   region?: string;
   whatHappensNext?: string;
   lightboxGroup?: string;
+  /** Label shown on placeholder when src is absent */
+  label?: string;
+  /** Media category tag for screenshot caption */
+  mediaCategory?: string;
 }
 
 const {
@@ -39,6 +43,8 @@ const {
   region,
   whatHappensNext,
   lightboxGroup,
+  label,
+  mediaCategory,
 } = Astro.props;
 ---
 
@@ -56,20 +62,21 @@ const {
   <slot />
 
   <!-- Screenshot -->
-  {src && (
-    <div class="wsi-img-wrap">
-      <ScreenshotCard
-        src={src}
-        alt={alt ?? title}
-        caption={caption}
-        capturedAt={capturedAt}
-        device={device}
-        aspectRatio={aspectRatio}
-        lightboxGroup={lightboxGroup}
-        lazy
-      />
-    </div>
-  )}
+  {/* Show placeholder when src absent (maintains layout — no CLS) */}
+  <div class="wsi-img-wrap">
+    <ScreenshotCard
+      src={src}
+      alt={alt ?? title}
+      caption={caption}
+      capturedAt={capturedAt}
+      device={device}
+      aspectRatio={aspectRatio}
+      lightboxGroup={lightboxGroup}
+      label={label ?? title}
+      mediaCategory={mediaCategory}
+      lazy
+    />
+  </div>
 
   <!-- Annotations -->
   {warning && (

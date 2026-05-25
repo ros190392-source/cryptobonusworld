@@ -30,6 +30,8 @@ import CountryCrossLinksBlock from '../../components/CountryCrossLinksBlock.astr
 import EditorSummary from '../../components/EditorSummary.astro';
 import GeoContentBlock from '../../components/GeoContentBlock.astro';
 import RelatedGuidesBlock from '../../components/RelatedGuidesBlock.astro';
+import WalkthroughFlow from '../../components/WalkthroughFlow.astro';
+import WalkthroughStepImage from '../../components/WalkthroughStepImage.astro';
 
 import {
   exchangePageTitle,
@@ -38,6 +40,7 @@ import {
   getRelatedCategories,
   getCountryCrossLinks,
 } from '../../utils/seo';
+import { getFlowsBySlug } from '../../data/exchange-walkthroughs';
 import type { PageContext } from '../../utils/analytics';
 import {
   generateExchangeFAQs,
@@ -153,6 +156,9 @@ const relatedUseCases = USE_CASES.filter(uc =>
   uc.exchangePool === 'all' ||
   (Array.isArray(uc.exchangePool) && uc.exchangePool.includes(ex.slug))
 ).slice(0, 6);
+
+// Visual walkthroughs — only available for select exchanges (bybit, binance, mexc)
+const walkthroughFlows = getFlowsBySlug(ex.slug);
 ---
 
 <Layout
@@ -366,6 +372,51 @@ const relatedUseCases = USE_CASES.filter(uc =>
           bonusAmount={ex.bonusAmount}
           bonusCurrency={ex.bonusCurrency}
         />
+
+        <!-- Visual walkthroughs — only rendered for exchanges with walkthrough data -->
+        {walkthroughFlows.length > 0 && (
+          <section class="ex-section" id="walkthroughs">
+            <h2 class="ex-section-title">Step-by-Step Walkthroughs</h2>
+            <p class="ex-prose" style="margin-bottom: 1.5rem">
+              Our editorial team tested all flows below on the live {ex.name} platform. Screenshots reflect the interface as of the last verification date.
+            </p>
+            {walkthroughFlows.map((flow) => (
+              <WalkthroughFlow
+                id={flow.id}
+                title={flow.title}
+                description={flow.description}
+                stepCount={flow.stepCount}
+                lastVerified={flow.lastVerified}
+                exchangeName={ex.name}
+                exchangeSlug={ex.slug}
+                affiliateUrl={ex.affiliateUrl}
+                ctaLabel={flow.cta?.label}
+                ctaBody={flow.cta?.body}
+                showCTA={true}
+              >
+                {flow.steps.map((step, i) => (
+                  <WalkthroughStepImage
+                    step={i + 1}
+                    title={step.title}
+                    description={step.description}
+                    src={step.src}
+                    alt={step.alt}
+                    caption={step.caption}
+                    capturedAt={step.capturedAt ?? flow.lastVerified}
+                    device={step.device ?? 'desktop'}
+                    aspectRatio={step.aspectRatio ?? '16/9'}
+                    warning={step.warning}
+                    tip={step.tip}
+                    region={step.region}
+                    whatHappensNext={step.whatHappensNext}
+                    lightboxGroup={flow.id}
+                    label={step.screenshotLabel}
+                  />
+                ))}
+              </WalkthroughFlow>
+            ))}
+          </section>
+        )}
 
         <!-- About exchange -->
         <section class="ex-section">

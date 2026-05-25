@@ -8,6 +8,7 @@ import ExchangeLogo from '../../components/ExchangeLogo.astro';
 import AuthorCard from '../../components/AuthorCard.astro';
 import EditorialExperienceBar from '../../components/EditorialExperienceBar.astro';
 import NextStepBlock from '../../components/NextStepBlock.astro';
+import WalkthroughFlow from '../../components/WalkthroughFlow.astro';
 
 import guideMeta from '../../data/guides.json';
 import guideContentMap from '../../data/guide-content';
@@ -273,12 +274,33 @@ const categoryColors: Record<string, string> = {
         <div class="guide-intro" set:html={content.intro} />
 
         <!-- Main sections -->
-        {content.sections.map(section => (
-          <section class="guide-section" id={section.id}>
-            <h2 class="guide-section-title">{section.heading}</h2>
-            <div class="guide-section-body" set:html={section.body} />
-          </section>
-        ))}
+        {content.sections.map(section => {
+          const wt = content.walkthroughMeta;
+          const isWalkthroughSection = wt && wt.sectionId === section.id;
+          if (isWalkthroughSection && wt) {
+            return (
+              <WalkthroughFlow
+                id={section.id}
+                title={section.heading}
+                lastVerified={wt.lastVerified}
+                exchangeName={wt.testedOnExchange}
+                exchangeSlug={wt.exchangeSlug}
+                affiliateUrl={wt.affiliateUrl}
+                ctaLabel={wt.ctaLabel}
+                ctaBody={wt.ctaBody}
+                showCTA={true}
+              >
+                <div class="guide-section-body" set:html={section.body} />
+              </WalkthroughFlow>
+            );
+          }
+          return (
+            <section class="guide-section" id={section.id}>
+              <h2 class="guide-section-title">{section.heading}</h2>
+              <div class="guide-section-body" set:html={section.body} />
+            </section>
+          );
+        })}
 
         <!-- Next Step — engagement / dead-end elimination -->
         <NextStepBlock

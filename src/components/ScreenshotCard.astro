@@ -24,6 +24,12 @@ interface Props {
   device?: Device;           // adds chrome frame
   label?: string;            // shown on placeholder + lightbox
   class?: string;
+  /** Emit schema.org ImageObject JSON-LD for this image */
+  schema?: boolean;
+  /** Absolute URL for schema.org contentUrl (falls back to src) */
+  canonicalUrl?: string;
+  /** Media category tag shown in caption (e.g. "P2P Trading", "Futures") */
+  mediaCategory?: string;
 }
 
 const {
@@ -39,6 +45,9 @@ const {
   device = 'none',
   label,
   class: extraClass,
+  schema: emitSchema = false,
+  canonicalUrl,
+  mediaCategory,
 } = Astro.props;
 
 function fmtMonth(ym: string): string {
@@ -51,14 +60,32 @@ function fmtMonth(ym: string): string {
 const isPlaceholder = !src;
 const hasLightbox = !!lightboxGroup && !!src;
 const displayAlt = alt ?? label ?? 'Screenshot';
+
+// schema.org ImageObject JSON-LD
+const SITE_URL = 'https://cryptobonusworld.com';
+const schemaData = emitSchema && src ? {
+  '@context': 'https://schema.org',
+  '@type': 'ImageObject',
+  contentUrl: canonicalUrl ?? (src.startsWith('http') ? src : `${SITE_URL}${src}`),
+  name: displayAlt,
+  description: caption ?? displayAlt,
+  ...(capturedAt ? { datePublished: capturedAt + '-01' } : {}),
+  ...(width ? { width } : {}),
+  ...(height ? { height } : {}),
+} : null;
 ---
 
+{schemaData && (
+  <script type="application/ld+json" set:html={JSON.stringify(schemaData)} />
+)}
 <figure
   class={`sc-wrap ${extraClass ?? ''}`}
   data-lightbox-group={lightboxGroup}
   data-lightbox-src={src}
   data-lightbox-alt={displayAlt}
   data-lightbox-caption={caption}
+  itemscope={emitSchema && !!src ? '' : undefined}
+  itemtype={emitSchema && !!src ? 'https://schema.org/ImageObject' : undefined}
 >
   {device === 'desktop' && (
     <div class="sc-chrome sc-chrome--desktop" aria-hidden="true">
@@ -112,8 +139,12 @@ const displayAlt = alt ?? label ?? 'Screenshot';
     )}
   </div>
 
-  {caption && (
-    <figcaption class="sc-caption">{caption}</figcaption>
+  {(caption || mediaCategory) && (
+    <figcaption class="sc-caption">
+      {mediaCategory && <span class="sc-cat-tag">{mediaCategory}</span>}
+      {caption && <span>{caption}</span>}
+      {capturedAt && !caption && <span>Captured {fmtMonth(capturedAt)}</span>}
+    </figcaption>
   )}
 </figure>
 
@@ -265,12 +296,28 @@ const displayAlt = alt ?? label ?? 'Screenshot';
 
   /* ── Caption ── */
   .sc-caption {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
     margin-top: 0.35rem;
     font-size: 0.72rem;
     color: var(--color-text-muted, #666);
     text-align: center;
     line-height: 1.4;
     font-style: italic;
+  }
+  .sc-cat-tag {
+    font-style: normal;
+    font-weight: 700;
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-accent, #f5c542);
+    background: rgba(245,197,66,0.08);
+    border: 1px solid rgba(245,197,66,0.2);
+    border-radius: 3px;
+    padding: 1px 5px;
   }
 </style>

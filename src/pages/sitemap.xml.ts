@@ -196,14 +196,31 @@ export const GET: APIRoute = () => {
   // When hasMultipleLocales is true, add SITEMAP_XHTML_NS to urlset.
   const xhtmlNs = hasMultipleLocales ? ` ${SITEMAP_XHTML_NS}` : '';
 
+  // Image sitemap entries for exchanges with OG images
+  const imageNs = ' xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"';
+  const exchangesWithOgImages = new Set(exchanges.map((ex: any) => ex.slug));
+
+  function buildImageTag(url: string, pageUrl: string): string {
+    const slug = pageUrl.replace('/exchanges/', '').replace('/bonuses/', '').replace('-bonus/', '').replace('/', '');
+    if (!exchangesWithOgImages.has(slug)) return '';
+    return `
+    <image:image>
+      <image:loc>${site}/og/exchange-${slug}.png</image:loc>
+      <image:title>${slug.charAt(0).toUpperCase() + slug.slice(1)} — CryptoBonusWorld</image:title>
+    </image:image>`;
+  }
+
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"${xhtmlNs}>
-${pageEntries.map(page => `  <url>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"${xhtmlNs}${imageNs}>
+${pageEntries.map(page => {
+  const imgTag = (page.type === 'exchange') ? buildImageTag(page.url, page.url) : '';
+  return `  <url>
     <loc>${site}${page.url}</loc>
     <lastmod>${'lastmod' in page ? page.lastmod : today}</lastmod>
     <changefreq>${page.changefreq}</changefreq>
-    <priority>${page.priority}</priority>${page.alternates ? '\n' + page.alternates : ''}
-  </url>`).join('\n')}
+    <priority>${page.priority}</priority>${page.alternates ? '\n' + page.alternates : ''}${imgTag}
+  </url>`;
+}).join('\n')}
 </urlset>`;
 
   return new Response(xml, {

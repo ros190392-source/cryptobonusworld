@@ -8,6 +8,30 @@ export interface GuideSection {
   id: string;
   heading: string;
   body: string;
+  /** If true, this section gets a WalkthroughFlow wrapper in the template */
+  isWalkthrough?: boolean;
+}
+
+/**
+ * Optional metadata for How-To guides with visual walkthrough content.
+ * Used by the guide template to wrap the step-by-step section with
+ * WalkthroughFlow, adding verification badges and CTAs.
+ */
+export interface WalkthroughMeta {
+  /** "YYYY-MM" — when the editorial team last walked through this flow */
+  lastVerified: string;
+  /** Exchange name used for the walkthrough (e.g. "Bybit") */
+  testedOnExchange: string;
+  /** Exchange slug for CTA link */
+  exchangeSlug: string;
+  /** Affiliate URL for the CTA button */
+  affiliateUrl: string;
+  /** CTA label text */
+  ctaLabel: string;
+  /** CTA body text */
+  ctaBody: string;
+  /** Section ID this walkthrough wraps (must match a section.id) */
+  sectionId: string;
 }
 
 export interface GuideContent {
@@ -19,6 +43,8 @@ export interface GuideContent {
     headers: string[];
     rows: (string | boolean)[][];
   };
+  /** Walkthrough metadata for How-To guides */
+  walkthroughMeta?: WalkthroughMeta;
 }
 
 const guides: Record<string, GuideContent> = {
@@ -1513,6 +1539,15 @@ const guides: Record<string, GuideContent> = {
         answer: 'Yes — by selling crypto via P2P, you can receive local currency directly in your bank account, mobile wallet, or preferred payment method, without a bank card linked to the exchange.',
       },
     ],
+    walkthroughMeta: {
+      lastVerified: '2026-05',
+      testedOnExchange: 'Bybit',
+      exchangeSlug: 'bybit',
+      affiliateUrl: 'https://www.bybit.com/en/register/',
+      ctaLabel: 'Try P2P on Bybit',
+      ctaBody: 'Bybit P2P has the best liquidity for most currencies and charges zero fees. Our team tested this full flow on the live platform.',
+      sectionId: 'step-by-step-buy',
+    },
   },
 
   /* ═══════════════════════════════════════════════════════════════════
@@ -1703,6 +1738,15 @@ const guides: Record<string, GuideContent> = {
         answer: 'MEXC currently offers free USDT TRC-20 withdrawals — the lowest in the industry. Bybit and Binance charge 1 USDT. For BTC, fees vary by network conditions rather than exchange setting.',
       },
     ],
+    walkthroughMeta: {
+      lastVerified: '2026-05',
+      testedOnExchange: 'Bybit',
+      exchangeSlug: 'bybit',
+      affiliateUrl: 'https://www.bybit.com/en/register/',
+      ctaLabel: 'Withdraw from Bybit',
+      ctaBody: 'This walkthrough was tested on Bybit, which offers the clearest withdrawal interface and supports all major networks.',
+      sectionId: 'step-by-step',
+    },
   },
 
   /* ═══════════════════════════════════════════════════════════════════
@@ -1888,6 +1932,15 @@ const guides: Record<string, GuideContent> = {
         answer: 'USDT-margined futures use USDT as collateral and settle P&L in USDT. Coin-margined futures use the base cryptocurrency as collateral. USDT-margined are simpler for beginners since your P&L is always in stable dollars rather than fluctuating with the base coin.',
       },
     ],
+    walkthroughMeta: {
+      lastVerified: '2026-05',
+      testedOnExchange: 'Bybit',
+      exchangeSlug: 'bybit',
+      affiliateUrl: 'https://www.bybit.com/en/register/',
+      ctaLabel: 'Try futures on Bybit',
+      ctaBody: 'Bybit offers a free testnet where you can practise futures trading with virtual funds before risking real money. This guide was tested on the live platform.',
+      sectionId: 'step-by-step',
+    },
   },
 
   /* ═══════════════════════════════════════════════════════════════════

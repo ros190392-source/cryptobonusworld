@@ -1,0 +1,179 @@
+---
+/**
+ * ClickGuideCard.astro — "Where to click" instruction card.
+ *
+ * Renders a visual instruction box that tells the user exactly
+ * what to find and click on an exchange screen, with an optional
+ * screenshot + annotation label.
+ *
+ * Usage:
+ *   <ClickGuideCard
+ *     label="Find the 'P2P Trading' tab"
+ *     instruction="Look in the top navigation bar. On desktop it appears between Spot and Derivatives. On mobile, tap the grid icon first."
+ *     locationHint="Top navigation bar → P2P"
+ *     src="/screenshots/bybit-nav-p2p.webp"
+ *     alt="Bybit navigation bar showing P2P tab"
+ *     warning="The interface may look slightly different after Bybit updates. The P2P link is always in the main nav."
+ *   />
+ */
+
+import ScreenshotCard from './ScreenshotCard.astro';
+
+interface Props {
+  label: string;                       // Short "Find X" instruction
+  instruction: string;                 // Full text explaining what/where to click
+  locationHint?: string;               // e.g. "Top nav → P2P" — shown as breadcrumb path
+  src?: string;                        // Optional screenshot
+  alt?: string;
+  warning?: string;                    // Orange callout
+  tip?: string;                        // Green callout
+  device?: 'desktop' | 'mobile' | 'none';
+  capturedAt?: string;
+  lightboxGroup?: string;
+}
+
+const {
+  label,
+  instruction,
+  locationHint,
+  src,
+  alt,
+  warning,
+  tip,
+  device = 'desktop',
+  capturedAt,
+  lightboxGroup,
+} = Astro.props;
+---
+
+<div class="cgc-card">
+  <!-- Click icon + label -->
+  <div class="cgc-header">
+    <span class="cgc-icon" aria-hidden="true">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+        <path d="M9 9l-3 12 4-4 4 4 1-12"/>
+        <circle cx="12" cy="4" r="2"/>
+      </svg>
+    </span>
+    <span class="cgc-label">{label}</span>
+  </div>
+
+  <!-- Location hint breadcrumb -->
+  {locationHint && (
+    <div class="cgc-location" aria-label="Location on screen">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="10" r="3"/><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
+      {locationHint}
+    </div>
+  )}
+
+  <!-- Instruction text -->
+  <p class="cgc-instruction" set:html={instruction} />
+
+  <!-- Screenshot (optional) -->
+  {src && (
+    <div class="cgc-screenshot">
+      <ScreenshotCard
+        src={src}
+        alt={alt ?? label}
+        device={device}
+        capturedAt={capturedAt}
+        lightboxGroup={lightboxGroup}
+        lazy
+      />
+    </div>
+  )}
+
+  <!-- Callouts -->
+  {warning && (
+    <div class="cgc-callout cgc-callout--warning" role="alert">
+      <span aria-hidden="true">⚠️</span>
+      <span set:html={warning} />
+    </div>
+  )}
+  {tip && (
+    <div class="cgc-callout cgc-callout--tip">
+      <span aria-hidden="true">💡</span>
+      <span set:html={tip} />
+    </div>
+  )}
+</div>
+
+<style>
+  .cgc-card {
+    background: var(--surface-raised, rgba(255,255,255,0.025));
+    border: 1px solid var(--color-border, #252525);
+    border-left: 3px solid #60a5fa;
+    border-radius: 0 10px 10px 0;
+    padding: 1rem 1.25rem;
+    margin: 0.875rem 0;
+  }
+
+  .cgc-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .cgc-icon {
+    display: flex;
+    align-items: center;
+    color: #60a5fa;
+    flex-shrink: 0;
+  }
+
+  .cgc-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #60a5fa;
+    letter-spacing: 0.01em;
+  }
+
+  .cgc-location {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--color-text-muted, #555);
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--color-border, #252525);
+    border-radius: 4px;
+    padding: 1px 6px;
+    margin-bottom: 0.5rem;
+    font-family: monospace;
+    letter-spacing: 0.02em;
+  }
+
+  .cgc-instruction {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary, #9aa5b8);
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  .cgc-screenshot {
+    margin-top: 0.875rem;
+  }
+
+  .cgc-callout {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-size: 0.825rem;
+    line-height: 1.5;
+    padding: 0.6rem 0.875rem;
+    border-radius: 6px;
+    margin-top: 0.625rem;
+  }
+  .cgc-callout--warning {
+    background: rgba(251,146,60,0.08);
+    border: 1px solid rgba(251,146,60,0.2);
+    color: var(--color-text-secondary);
+  }
+  .cgc-callout--tip {
+    background: rgba(74,222,128,0.07);
+    border: 1px solid rgba(74,222,128,0.18);
+    color: var(--color-text-secondary);
+  }
+</style>

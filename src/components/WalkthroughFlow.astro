@@ -1,0 +1,262 @@
+---
+/**
+ * WalkthroughFlow.astro
+ *
+ * Container for a series of WalkthroughStepImage steps.
+ * Adds:
+ *  - Section header with flow name + numbered step count
+ *  - "Last visually verified" badge (Task 5)
+ *  - "Screenshots may change" disclaimer (Task 5)
+ *  - Step content via <slot>
+ *  - Optional post-flow CTA (Task 6)
+ *
+ * Usage:
+ *   <WalkthroughFlow
+ *     title="How to Create a Bybit Account"
+ *     description="Complete walkthrough for new users..."
+ *     stepCount={5}
+ *     lastVerified="2026-05"
+ *     exchangeName="Bybit"
+ *     exchangeSlug="bybit"
+ *     affiliateUrl="https://..."
+ *     ctaLabel="Open Bybit account"
+ *   >
+ *     <WalkthroughStepImage step={1} ... />
+ *     ...
+ *   </WalkthroughFlow>
+ */
+
+interface Props {
+  title: string;
+  description?: string;
+  stepCount?: number;
+  lastVerified?: string;     // "YYYY-MM"
+  exchangeName?: string;
+  exchangeSlug?: string;
+  affiliateUrl?: string;
+  ctaLabel?: string;
+  ctaBody?: string;
+  /** If true, renders a post-flow CTA after steps */
+  showCTA?: boolean;
+  id?: string;
+}
+
+const {
+  title,
+  description,
+  stepCount,
+  lastVerified,
+  exchangeName,
+  exchangeSlug,
+  affiliateUrl,
+  ctaLabel,
+  ctaBody,
+  showCTA = !!affiliateUrl,
+  id,
+} = Astro.props;
+
+function fmtMonth(ym: string): string {
+  try {
+    const d = new Date(ym + '-01');
+    return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  } catch { return ym; }
+}
+
+const verifiedLabel = lastVerified ? fmtMonth(lastVerified) : null;
+---
+
+<section class="wf-section" id={id}>
+
+  <!-- Flow header -->
+  <div class="wf-header">
+    <div class="wf-header-left">
+      <h2 class="wf-title">{title}</h2>
+      {description && <p class="wf-desc">{description}</p>}
+    </div>
+    <div class="wf-header-meta">
+      {stepCount && (
+        <span class="wf-step-count">{stepCount} steps</span>
+      )}
+      {verifiedLabel && (
+        <span class="wf-verified-badge" title="Our team visually checked this flow on this date">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+          Verified {verifiedLabel}
+        </span>
+      )}
+    </div>
+  </div>
+
+  <!-- Screenshot disclaimer -->
+  <p class="wf-disclaimer">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    Exchange interfaces change after updates. If a screen looks different, the underlying steps remain the same.
+  </p>
+
+  <!-- Steps slot -->
+  <div class="wf-steps">
+    <slot />
+  </div>
+
+  <!-- Post-flow CTA -->
+  {showCTA && affiliateUrl && (
+    <div class="wf-cta-block">
+      <div class="wf-cta-text">
+        {ctaBody ?? `You've seen exactly how ${exchangeName ?? 'this exchange'} works. Ready to get started?`}
+      </div>
+      <a
+        href={affiliateUrl}
+        class="wf-cta-btn"
+        rel="noopener noreferrer sponsored"
+        target="_blank"
+      >
+        {ctaLabel ?? `Open ${exchangeName ?? 'Exchange'} account`}
+        <span aria-hidden="true">↗</span>
+      </a>
+      {exchangeSlug && (
+        <a href={`/exchanges/${exchangeSlug}/`} class="wf-cta-link">
+          View full review →
+        </a>
+      )}
+    </div>
+  )}
+
+</section>
+
+<style>
+  .wf-section {
+    margin: 2.5rem 0;
+  }
+
+  /* ── Header ── */
+  .wf-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .wf-header-left { flex: 1; min-width: 0; }
+
+  .wf-title {
+    font-size: clamp(1.15rem, 2.5vw, 1.35rem);
+    font-weight: 800;
+    margin: 0 0 0.3rem;
+    color: var(--color-text-primary);
+    letter-spacing: -0.02em;
+  }
+  .wf-desc {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--color-text-secondary, #9aa5b8);
+    line-height: 1.55;
+  }
+
+  .wf-header-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.35rem;
+    flex-shrink: 0;
+  }
+
+  .wf-step-count {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-text-muted, #555);
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--color-border, #252525);
+    border-radius: 4px;
+    padding: 2px 7px;
+  }
+
+  .wf-verified-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: #4ade80;
+    background: rgba(74, 222, 128, 0.07);
+    border: 1px solid rgba(74, 222, 128, 0.2);
+    border-radius: 4px;
+    padding: 2px 7px;
+    white-space: nowrap;
+    cursor: help;
+  }
+
+  /* ── Screenshot disclaimer ── */
+  .wf-disclaimer {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.7rem;
+    color: var(--color-text-muted, #555);
+    margin: 0 0 1.25rem;
+    line-height: 1.4;
+  }
+  .wf-disclaimer svg { flex-shrink: 0; opacity: 0.6; }
+
+  /* ── Steps ── */
+  .wf-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  /* ── Post-flow CTA ── */
+  .wf-cta-block {
+    margin-top: 1.5rem;
+    padding: 1.25rem 1.5rem;
+    background: rgba(212, 160, 23, 0.06);
+    border: 1px solid rgba(212, 160, 23, 0.18);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+  }
+
+  .wf-cta-text {
+    flex: 1;
+    font-size: 0.9rem;
+    color: var(--color-text-secondary, #9aa5b8);
+    min-width: 200px;
+    line-height: 1.5;
+  }
+
+  .wf-cta-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.6rem 1.3rem;
+    background: var(--color-accent, #f5c542);
+    color: #0a0a0a;
+    font-size: 0.875rem;
+    font-weight: 700;
+    border-radius: 8px;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background 0.15s ease;
+  }
+  .wf-cta-btn:hover { background: #d4a017; }
+
+  .wf-cta-link {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-accent, #f5c542);
+    text-decoration: none;
+    opacity: 0.8;
+    white-space: nowrap;
+  }
+  .wf-cta-link:hover { opacity: 1; }
+
+  @media (max-width: 600px) {
+    .wf-header { flex-direction: column; gap: 0.75rem; }
+    .wf-header-meta { flex-direction: row; align-items: center; }
+    .wf-cta-block { flex-direction: column; align-items: stretch; }
+    .wf-cta-btn { justify-content: center; }
+  }
+</style>
