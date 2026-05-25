@@ -32,6 +32,8 @@ import GeoContentBlock from '../../components/GeoContentBlock.astro';
 import RelatedGuidesBlock from '../../components/RelatedGuidesBlock.astro';
 import WalkthroughFlow from '../../components/WalkthroughFlow.astro';
 import WalkthroughStepImage from '../../components/WalkthroughStepImage.astro';
+import FeeSnippetBlock from '../../components/FeeSnippetBlock.astro';
+import RelatedNextReads from '../../components/RelatedNextReads.astro';
 
 import {
   exchangePageTitle,
@@ -159,6 +161,25 @@ const relatedUseCases = USE_CASES.filter(uc =>
 
 // Visual walkthroughs — only available for select exchanges (bybit, binance, mexc)
 const walkthroughFlows = getFlowsBySlug(ex.slug);
+
+// Related Next Reads — top compare pairs + related guides for internal distribution
+const rnrItems = [
+  ...myComparePairs.slice(0, 2).map(p => {
+    const otherSlug = p.a === ex.slug ? p.b : p.a;
+    const other = exMap[otherSlug] as any;
+    return {
+      type: 'compare' as const,
+      label: `${ex.name} vs ${other?.name ?? otherSlug} — Fees, Bonuses & KYC`,
+      href: `/compare/${p.pair}/`,
+    };
+  }),
+  ...relatedGuides.slice(0, 2).map(g => ({
+    type: 'guide' as const,
+    label: g.title,
+    href: `/guides/${g.slug}/`,
+    meta: g.readTime + ' read',
+  })),
+];
 ---
 
 <Layout
@@ -360,6 +381,20 @@ const walkthroughFlows = getFlowsBySlug(ex.slug);
           )}
         </section>
 
+        <!-- Fee snippet block — featured snippet targeting for fee queries -->
+        {((ex as any).spotMakerFee !== undefined || (ex as any).futuresMakerFee !== undefined) && (
+          <FeeSnippetBlock
+            exchangeName={ex.name}
+            spotMakerFee={(ex as any).spotMakerFee}
+            spotTakerFee={(ex as any).spotTakerFee}
+            futuresMakerFee={(ex as any).futuresMakerFee}
+            futuresTakerFee={(ex as any).futuresTakerFee}
+            p2pFee={(ex as any).p2pAvailable ? '0%' : undefined}
+            maxLeverage={(ex as any).maxFuturesLeverage}
+            lastVerified={(ex as any).lastVerified ?? ex.updatedAt}
+          />
+        )}
+
         <!-- How to claim — timeline -->
         <RequirementsBlock
           requirements={ex.requirements}
@@ -485,6 +520,15 @@ const walkthroughFlows = getFlowsBySlug(ex.slug);
               ))}
             </div>
           </section>
+        )}
+
+        <!-- Related Next Reads — internal distribution, dead-end elimination -->
+        {rnrItems.length > 0 && (
+          <RelatedNextReads
+            heading="Explore next"
+            items={rnrItems}
+            compact
+          />
         )}
 
         <!-- Bonus landing page link -->

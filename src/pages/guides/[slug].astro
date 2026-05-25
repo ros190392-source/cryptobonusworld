@@ -9,6 +9,7 @@ import AuthorCard from '../../components/AuthorCard.astro';
 import EditorialExperienceBar from '../../components/EditorialExperienceBar.astro';
 import NextStepBlock from '../../components/NextStepBlock.astro';
 import WalkthroughFlow from '../../components/WalkthroughFlow.astro';
+import RelatedNextReads from '../../components/RelatedNextReads.astro';
 
 import guideMeta from '../../data/guides.json';
 import guideContentMap from '../../data/guide-content';
@@ -88,6 +89,22 @@ const breadcrumbSchema = {
 };
 
 const schemas = [faqSchema, articleSchema, breadcrumbSchema];
+
+// ── Related Next Reads — related exchanges + guides for internal distribution ──
+const guideRnrItems = [
+  ...relatedExchanges.slice(0, 2).map(ex => ({
+    type: 'exchange' as const,
+    label: `${ex.name} — Up to ${ex.bonusAmount.toLocaleString()} ${ex.bonusCurrency} Bonus`,
+    href: `/exchanges/${ex.slug}/`,
+    meta: `${ex.bonusAmount.toLocaleString()} ${ex.bonusCurrency}`,
+  })),
+  ...relatedGuides.slice(0, 2).map(g => ({
+    type: 'guide' as const,
+    label: g.title,
+    href: `/guides/${g.slug}/`,
+    meta: g.readTime + ' read',
+  })),
+];
 
 // ── Next-step block config ────────────────────────────────────────────────────
 const primaryRelatedEx = relatedExchanges[0];
@@ -348,6 +365,15 @@ const categoryColors: Record<string, string> = {
               ))}
             </div>
           </section>
+        )}
+
+        <!-- Related Next Reads — internal distribution, dead-end elimination -->
+        {guideRnrItems.length > 0 && (
+          <RelatedNextReads
+            heading="Explore next"
+            items={guideRnrItems}
+            compact
+          />
         )}
 
         <RiskDisclaimer />

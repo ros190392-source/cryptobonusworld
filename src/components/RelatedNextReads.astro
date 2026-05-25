@@ -1,0 +1,179 @@
+---
+/**
+ * RelatedNextReads.astro — "Read next" block for internal distribution.
+ *
+ * Renders 2–4 contextual links to reduce dead-ends, improve session depth,
+ * and distribute crawl budget to related pages.
+ *
+ * Item types: 'exchange' | 'guide' | 'compare' | 'category' | 'country'
+ *
+ * Usage:
+ *   <RelatedNextReads
+ *     heading="Explore next"
+ *     items={[
+ *       { type: 'compare', label: 'Bybit vs Binance — Full Comparison', href: '/compare/bybit-vs-binance/' },
+ *       { type: 'guide',   label: 'How to Use P2P Trading', href: '/guides/how-to-use-p2p/' },
+ *       { type: 'exchange', label: 'Bybit Bonus 2026: Up to 30,000 USDT', href: '/exchanges/bybit/' },
+ *     ]}
+ *   />
+ */
+
+type ItemType = 'exchange' | 'guide' | 'compare' | 'category' | 'country' | 'bonus';
+
+interface ReadItem {
+  type: ItemType;
+  label: string;
+  href: string;
+  meta?: string;     // e.g. "11 min read" or "Up to 30,000 USDT"
+}
+
+interface Props {
+  heading?: string;
+  items: ReadItem[];
+  compact?: boolean;
+}
+
+const {
+  heading = 'Explore next',
+  items,
+  compact = false,
+} = Astro.props;
+
+const typeIcons: Record<ItemType, string> = {
+  exchange: '🏛️',
+  guide:    '📖',
+  compare:  '⚖️',
+  category: '🏷️',
+  country:  '🌍',
+  bonus:    '🎁',
+};
+
+const typeLabels: Record<ItemType, string> = {
+  exchange: 'Exchange Review',
+  guide:    'Guide',
+  compare:  'Comparison',
+  category: 'Category',
+  country:  'Country',
+  bonus:    'Bonus',
+};
+---
+
+{items.length > 0 && (
+  <nav class:list={['rnr', compact && 'rnr--compact']} aria-label="Related reads">
+    <div class="rnr-header">
+      <span class="rnr-heading">{heading}</span>
+    </div>
+    <div class="rnr-grid">
+      {items.map(item => (
+        <a href={item.href} class="rnr-item">
+          <span class="rnr-icon" aria-hidden="true">{typeIcons[item.type]}</span>
+          <div class="rnr-content">
+            <span class="rnr-type">{typeLabels[item.type]}</span>
+            <span class="rnr-label">{item.label}</span>
+            {item.meta && <span class="rnr-meta">{item.meta}</span>}
+          </div>
+          <span class="rnr-arrow" aria-hidden="true">→</span>
+        </a>
+      ))}
+    </div>
+  </nav>
+)}
+
+<style>
+  .rnr {
+    margin: 1.75rem 0;
+    border: 1px solid var(--color-border, #252525);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .rnr-header {
+    padding: 0.6rem 1rem;
+    background: rgba(255,255,255,0.025);
+    border-bottom: 1px solid var(--color-border, #252525);
+  }
+
+  .rnr-heading {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--color-text-muted, #555);
+  }
+
+  .rnr-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
+
+  .rnr-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    text-decoration: none;
+    border-right: 1px solid var(--color-border, #252525);
+    border-bottom: 1px solid var(--color-border, #252525);
+    transition: background 0.12s ease;
+    min-width: 0;
+  }
+  .rnr-item:hover { background: rgba(245,197,66,0.04); }
+
+  .rnr-icon {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+
+  .rnr-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .rnr-type {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-text-muted, #555);
+  }
+
+  .rnr-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    line-height: 1.35;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .rnr-item:hover .rnr-label { color: var(--color-accent, #f5c542); }
+
+  .rnr-meta {
+    font-size: 0.68rem;
+    color: var(--color-text-muted, #555);
+  }
+
+  .rnr-arrow {
+    flex-shrink: 0;
+    font-size: 0.8rem;
+    color: var(--color-text-muted, #555);
+    transition: transform 0.12s, color 0.12s;
+  }
+  .rnr-item:hover .rnr-arrow {
+    transform: translateX(2px);
+    color: var(--color-accent, #f5c542);
+  }
+
+  /* Compact variant */
+  .rnr--compact .rnr-item { padding: 0.625rem 0.875rem; }
+  .rnr--compact .rnr-icon { font-size: 0.9rem; }
+  .rnr--compact .rnr-label { font-size: 0.78rem; }
+
+  @media (max-width: 480px) {
+    .rnr-grid { grid-template-columns: 1fr; }
+  }
+</style>

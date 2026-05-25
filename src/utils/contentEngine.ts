@@ -184,6 +184,33 @@ export function generateExchangeFAQs(ex: ContentExchange): FAQItem[] {
   const depositCondition = ex.depositRequired ? 'a qualifying deposit' : 'no deposit required for basic eligibility';
   const legitimacyAnswer = `${foundedLine}${usersLine}${licenceLine} The welcome bonus is a real promotional offer for new users who register via a referral link. Conditions include ${kycCondition} and ${depositCondition}. Bonus vouchers are real but they have strings attached — read the full terms on ${ex.name}'s official site before deciding.`;
 
+  // ── Fee answer — use structured data if available ─────────────────────
+  const spotMaker: number | undefined = (ex as any).spotMakerFee;
+  const spotTaker: number | undefined = (ex as any).spotTakerFee;
+  const feeAnswer = (spotMaker !== undefined && spotTaker !== undefined)
+    ? `${ex.name} charges a ${spotMaker}% maker fee and a ${spotTaker}% taker fee on spot trades. Futures fees are typically lower. VIP and high-volume traders get further discounts. ${spotMaker === 0 ? `${ex.name} currently offers 0% maker fees — one of the lowest available. ` : ''}Welcome bonus vouchers can offset part of your fee costs during the initial trading period.`
+    : `${ex.name} uses a tiered maker/taker fee model — standard spot fees typically fall in the 0.02%–0.1% range, with lower rates for higher-volume accounts. Bonus vouchers can reduce your effective fee cost during the initial trading period. Check the official fee schedule on ${ex.name}'s website for the latest rates.`;
+
+  // ── Safety / legitimacy short answer ──────────────────────────────────
+  const licenceNote = exLicences && exLicences.length > 0
+    ? `It holds regulatory licences from ${exLicences.join(' and ')}.`
+    : 'It is one of the established platforms in the industry.';
+  const safetyAnswer = `${ex.name} is a legitimate, established crypto exchange. ${foundedLine} ${licenceNote}${usersLine} As with all centralised exchanges, do not keep large amounts on the platform long-term — use a personal hardware wallet for significant holdings. Enable 2FA immediately after registration.`;
+
+  // ── Beginner answer ────────────────────────────────────────────────────
+  const beginnerAnswer = ex.kycRequired
+    ? `${ex.name} is suitable for beginners but requires identity verification (KYC) — have a passport or national ID ready. The interface has a guided onboarding flow. Start with spot trading before exploring futures or leveraged products. The welcome bonus tasks also serve as a structured introduction to the platform's features.`
+    : `${ex.name} is very beginner-friendly — no identity documents are needed to start trading. Registration takes under 2 minutes and you can trade immediately. The welcome bonus tasks guide you through the main features. Stick to spot trading to start; futures and leverage carry significant risk for new traders.`;
+
+  // ── P2P answer ─────────────────────────────────────────────────────────
+  const p2pAvailable: boolean | undefined = (ex as any).p2pAvailable;
+  const p2pAnswer = p2pAvailable
+    ? `Yes — ${ex.name} has an active P2P trading desk. You can buy and sell crypto directly with other users using your local bank transfer, mobile wallet or cash payment. No intermediary or currency conversion fee. P2P is especially useful for users without access to bank cards or in regions where direct fiat deposits are limited.`
+    : `${ex.name} does not operate a native P2P trading desk. To fund your account with local currency, use the Deposit section and select a supported fiat payment method (bank transfer or card), or transfer crypto from another wallet. Bybit, Binance and MEXC are alternatives with active P2P markets if that is your primary requirement.`;
+
+  // ── Withdrawal answer — crypto-specific ───────────────────────────────
+  const cryptoWithdrawAnswer = `To withdraw crypto from ${ex.name}: go to Assets → Withdraw, select the coin (e.g. USDT), choose the network (TRC-20 is cheapest for USDT), paste your destination wallet address, enter the amount and confirm with 2FA. Always send a small test withdrawal first. Standard processing time is 1–30 minutes depending on network congestion. ${ex.kycRequired ? 'KYC must be completed before withdrawing.' : 'No KYC is required for standard withdrawals up to the daily limit.'}`;
+
   return [
     {
       question: `Is the ${ex.name} bonus real?`,
@@ -207,7 +234,23 @@ export function generateExchangeFAQs(ex: ContentExchange): FAQItem[] {
     },
     {
       question: `What are ${ex.name}'s trading fees?`,
-      answer: `Fees are a separate matter from the welcome bonus. ${ex.name} uses a tiered maker/taker model — standard spot fees typically fall in the 0.02%–0.1% range, with lower rates for higher-volume accounts. Bonus vouchers can reduce your effective fee cost during the initial trading period. Check the official fee schedule on ${ex.name}'s website for the latest rates.`,
+      answer: feeAnswer,
+    },
+    {
+      question: `Is ${ex.name} safe and legitimate?`,
+      answer: safetyAnswer,
+    },
+    {
+      question: `Is ${ex.name} good for beginners?`,
+      answer: beginnerAnswer,
+    },
+    {
+      question: `Does ${ex.name} have P2P trading?`,
+      answer: p2pAnswer,
+    },
+    {
+      question: `How do I withdraw crypto from ${ex.name}?`,
+      answer: cryptoWithdrawAnswer,
     },
   ];
 }
@@ -281,6 +324,20 @@ export function generateCountryFAQs(input: CountryFAQInput): FAQItem[] {
         ? `Yes — ${noKycCount} exchanges available in ${country.name} allow trading without full identity verification: ${noKycExchanges.join(', ')}${noKycExchanges.length < noKycCount ? ' and others' : ''}. No-KYC accounts typically have daily withdrawal limits. ${country.noKycNote ? country.noKycNote + ' ' : ''}Note that regulations may require KYC for larger transactions or fiat withdrawals.`
         : `Most exchanges available in ${country.name} require KYC verification. This is standard practice for regulated platforms and protects users. Some platforms may offer limited access without full verification — check individual exchange terms.`,
     },
+    {
+      question: `How do I deposit money on a crypto exchange in ${country.name}?`,
+      answer: (() => {
+        const methods = country.fiatOnRamp ?? [];
+        if (methods.length === 0) return `You can fund your crypto exchange account via bank transfer, debit/credit card, or by transferring crypto from another wallet. The available methods depend on the specific exchange — check the Deposit section after registration.`;
+        const topMethod = methods[0];
+        const others = methods.slice(1).map(m => m.method).join(', ');
+        return `The most popular funding method for ${country.name} users is ${topMethod.method}: ${topMethod.note}${others ? ` Other available methods include ${others}.` : ''} Availability varies by exchange — check the Deposit section after registration for your account's options.`;
+      })(),
+    },
+    {
+      question: `Is crypto safe in ${country.name}?`,
+      answer: `Crypto exchanges themselves do not eliminate all risk. To trade safely in ${country.name}: (1) Use regulated or established exchanges with a track record — see our recommendations above. (2) Enable two-factor authentication immediately after registration. (3) Do not store large amounts on exchanges — use a hardware wallet for significant holdings. (4) Use P2P only with verified, high-rating counterparties. CryptoBonusWorld does not provide investment advice. Crypto is highly volatile and regulations in ${country.name} may change.`,
+    },
   ];
 }
 
@@ -337,6 +394,43 @@ export function generateCompareFAQs(input: CompareFAQInput): FAQItem[] {
     {
       question: `Can I claim bonuses on both ${exA.name} and ${exB.name}?`,
       answer: `Yes — welcome bonuses are one-time offers per exchange, not mutually exclusive between platforms. You can open accounts on both ${exA.name} and ${exB.name} and claim each platform's welcome bonus independently, provided you meet the individual requirements for each.`,
+    },
+    {
+      question: `Which has lower trading fees — ${exA.name} or ${exB.name}?`,
+      answer: (() => {
+        const aM: number | undefined = (exA as any).spotMakerFee;
+        const aT: number | undefined = (exA as any).spotTakerFee;
+        const bM: number | undefined = (exB as any).spotMakerFee;
+        const bT: number | undefined = (exB as any).spotTakerFee;
+        if (aM !== undefined && bM !== undefined) {
+          const lowerMaker = aM < bM ? exA.name : bM < aM ? exB.name : null;
+          const lowerTaker = aT !== undefined && bT !== undefined ? (aT < bT ? exA.name : bT < aT ? exB.name : null) : null;
+          return `${exA.name} charges ${aM}% maker / ${aT ?? '?'}% taker on spot. ${exB.name} charges ${bM}% maker / ${bT ?? '?'}% taker. ${lowerMaker ? `${lowerMaker} has lower maker fees. ` : 'Maker fees are equal. '}${lowerTaker ? `${lowerTaker} has the lower taker rate.` : ''} Both platforms reduce fees for high-volume traders.`;
+        }
+        return `Both ${exA.name} and ${exB.name} use tiered maker/taker fee models — standard spot fees are typically in the 0.02%–0.1% range. Higher-volume traders get discounts. Check each platform's official fee schedule for the most up-to-date rates.`;
+      })(),
+    },
+    {
+      question: `Which is better for beginners — ${exA.name} or ${exB.name}?`,
+      answer: (() => {
+        // Simpler = no KYC (lower friction) + lower minDeposit
+        const aScore = (!exA.kycRequired ? 2 : 0) + (!exA.depositRequired ? 1 : 0);
+        const bScore = (!exB.kycRequired ? 2 : 0) + (!exB.depositRequired ? 1 : 0);
+        if (aScore > bScore) return `For beginners, ${exA.name} has lower friction — ${!exA.kycRequired ? 'no KYC required, ' : ''}${!exA.depositRequired ? 'no minimum deposit' : 'lower deposit barrier'}. This makes it faster to start. That said, both platforms are established and usable for new traders. Start with spot trading and avoid leveraged products until you understand the market.`;
+        if (bScore > aScore) return `For beginners, ${exB.name} is the easier starting point — ${!exB.kycRequired ? 'no KYC required, ' : ''}${!exB.depositRequired ? 'no minimum deposit' : 'lower deposit barrier'}. Both platforms are legitimate and accessible for new traders. Start with spot trades and leave futures for later.`;
+        return `Both ${exA.name} and ${exB.name} are accessible to beginners. Neither has a clear usability advantage — the right choice comes down to which payment methods you want to use and which trading interface you find more intuitive. Both offer educational resources for new traders.`;
+      })(),
+    },
+    {
+      question: `Does ${exA.name} or ${exB.name} have P2P trading?`,
+      answer: (() => {
+        const aP2p: boolean | undefined = (exA as any).p2pAvailable;
+        const bP2p: boolean | undefined = (exB as any).p2pAvailable;
+        if (aP2p && bP2p) return `Both ${exA.name} and ${exB.name} offer P2P trading. You can buy and sell crypto directly with other users using local bank transfers, mobile wallets or cash. Compare the available payment methods and local currency options on each platform to find the better P2P desk for your region.`;
+        if (aP2p && !bP2p) return `${exA.name} has P2P trading — you can buy crypto directly with local payment methods without going through the exchange's order book. ${exB.name} does not have a native P2P desk; use its standard deposit methods instead.`;
+        if (!aP2p && bP2p) return `${exB.name} has P2P trading — you can buy crypto directly using local payment methods. ${exA.name} does not have a native P2P desk. If P2P is your main funding method, ${exB.name} is the better choice between the two.`;
+        return `Neither ${exA.name} nor ${exB.name} has a native P2P trading desk. Both rely on standard fiat deposit methods: bank transfer, card or third-party payment processors. If P2P trading is important to you, consider Bybit or Binance which operate active P2P markets.`;
+      })(),
     },
   ];
 }

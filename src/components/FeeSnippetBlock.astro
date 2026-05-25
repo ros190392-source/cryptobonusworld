@@ -1,0 +1,209 @@
+---
+/**
+ * FeeSnippetBlock.astro — Featured-snippet-targeted fee summary table.
+ *
+ * Renders a concise, scannable fee summary for exchange pages.
+ * Format chosen to match Google's featured snippet extraction patterns:
+ *  - Labelled rows with specific numbers
+ *  - Short descriptive labels
+ *  - No fluff text
+ *
+ * Usage on exchange pages:
+ *   <FeeSnippetBlock
+ *     exchangeName="Bybit"
+ *     spotMakerFee={0.1}
+ *     spotTakerFee={0.1}
+ *     futuresMakerFee={0.02}
+ *     futuresTakerFee={0.055}
+ *     withdrawalFeeNote="1 USDT (TRC-20)"
+ *     p2pFee="0%"
+ *     lastVerified="2026-05"
+ *   />
+ */
+
+interface Props {
+  exchangeName: string;
+  spotMakerFee?: number;
+  spotTakerFee?: number;
+  futuresMakerFee?: number;
+  futuresTakerFee?: number;
+  /** Free text: e.g. "1 USDT (TRC-20), 0.0005 BTC" */
+  withdrawalFeeNote?: string;
+  p2pFee?: string;
+  maxLeverage?: number;
+  lastVerified?: string;
+}
+
+const {
+  exchangeName,
+  spotMakerFee,
+  spotTakerFee,
+  futuresMakerFee,
+  futuresTakerFee,
+  withdrawalFeeNote,
+  p2pFee = '0%',
+  maxLeverage,
+  lastVerified,
+} = Astro.props;
+
+function pct(n: number | undefined): string {
+  if (n === undefined || n === null) return '—';
+  if (n === 0) return '0% (free)';
+  return `${n}%`;
+}
+
+function fmtVerified(ym: string | undefined): string {
+  if (!ym) return '';
+  try {
+    const d = new Date(ym + '-01');
+    return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  } catch { return ym; }
+}
+
+const rows: Array<{ label: string; value: string; highlight?: boolean }> = [];
+
+if (spotMakerFee !== undefined) rows.push({ label: 'Spot maker fee', value: pct(spotMakerFee), highlight: spotMakerFee === 0 });
+if (spotTakerFee !== undefined) rows.push({ label: 'Spot taker fee', value: pct(spotTakerFee) });
+if (futuresMakerFee !== undefined) rows.push({ label: 'Futures maker fee', value: pct(futuresMakerFee), highlight: futuresMakerFee === 0 });
+if (futuresTakerFee !== undefined) rows.push({ label: 'Futures taker fee', value: pct(futuresTakerFee) });
+if (p2pFee) rows.push({ label: 'P2P trading fee', value: p2pFee, highlight: p2pFee === '0%' });
+if (withdrawalFeeNote) rows.push({ label: 'Withdrawal fee (USDT TRC-20)', value: withdrawalFeeNote });
+if (maxLeverage) rows.push({ label: 'Max futures leverage', value: `${maxLeverage}×` });
+---
+
+{rows.length > 0 && (
+  <div class="fsb">
+    <div class="fsb-header">
+      <span class="fsb-title">{exchangeName} Fee Summary</span>
+      {lastVerified && (
+        <span class="fsb-verified">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+          Verified {fmtVerified(lastVerified)}
+        </span>
+      )}
+    </div>
+
+    <table class="fsb-table" aria-label={`${exchangeName} fee schedule`}>
+      <thead class="sr-only">
+        <tr><th>Fee type</th><th>Rate</th></tr>
+      </thead>
+      <tbody>
+        {rows.map(row => (
+          <tr class:list={['fsb-row', row.highlight && 'fsb-row--highlight']}>
+            <td class="fsb-label">{row.label}</td>
+            <td class="fsb-value">{row.value}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+
+    <p class="fsb-note">
+      Fees are subject to change. VIP and high-volume traders receive discounts.
+      <a href={`https://www.${exchangeName.toLowerCase()}.com`} target="_blank" rel="noopener noreferrer nofollow" class="fsb-link">
+        Official fee schedule ↗
+      </a>
+    </p>
+  </div>
+)}
+
+<style>
+  .fsb {
+    margin: 1.5rem 0;
+    border: 1px solid var(--color-border, #252525);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .fsb-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: rgba(255,255,255,0.025);
+    border-bottom: 1px solid var(--color-border, #252525);
+  }
+
+  .fsb-title {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-text-secondary, #9aa5b8);
+  }
+
+  .fsb-verified {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.67rem;
+    font-weight: 600;
+    color: #4ade80;
+    opacity: 0.85;
+  }
+
+  .fsb-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .fsb-row {
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    transition: background 0.1s;
+  }
+  .fsb-row:last-child { border-bottom: none; }
+  .fsb-row:hover { background: rgba(255,255,255,0.02); }
+
+  .fsb-row--highlight .fsb-value {
+    color: #4ade80;
+    font-weight: 700;
+  }
+
+  .fsb-label {
+    padding: 0.55rem 1rem;
+    font-size: 0.82rem;
+    color: var(--color-text-secondary, #9aa5b8);
+  }
+
+  .fsb-value {
+    padding: 0.55rem 1rem 0.55rem 0.5rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .fsb-note {
+    padding: 0.5rem 1rem;
+    font-size: 0.68rem;
+    color: var(--color-text-muted, #555);
+    background: rgba(255,255,255,0.015);
+    border-top: 1px solid var(--color-border, #252525);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .fsb-link {
+    font-weight: 600;
+    color: var(--color-accent, #f5c542);
+    text-decoration: none;
+    opacity: 0.8;
+    font-size: 0.68rem;
+  }
+  .fsb-link:hover { opacity: 1; }
+
+  .sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    border: 0;
+  }
+</style>

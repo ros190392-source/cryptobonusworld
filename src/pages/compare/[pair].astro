@@ -9,6 +9,7 @@ import ExchangeLogo from '../../components/ExchangeLogo.astro';
 import AnswerBox from '../../components/AnswerBox.astro';
 import ComparisonSummaryBlock from '../../components/ComparisonSummaryBlock.astro';
 import AuthorCard from '../../components/AuthorCard.astro';
+import RelatedNextReads from '../../components/RelatedNextReads.astro';
 
 import exchanges from '../../data/exchanges.json';
 import comparePairs from '../../data/compare-pairs.json';
@@ -274,6 +275,34 @@ const _faqGenerated = generateCompareFAQs({
 });
 const _faqOverride = (contentOverrides.compare as Record<string, any>)[pairDef.pair];
 const faqItems = applyFAQOverrides(_faqGenerated, _faqOverride);
+
+// ── Related Next Reads — both exchange reviews + contextual guides ─────────────
+const compareRnrItems = [
+  {
+    type: 'exchange' as const,
+    label: `${exA.name} Bonus ${YEAR} — Full Review`,
+    href: `/exchanges/${exA.slug}/`,
+    meta: `${exA.bonusAmount.toLocaleString()} ${exA.bonusCurrency}`,
+  },
+  {
+    type: 'exchange' as const,
+    label: `${exB.name} Bonus ${YEAR} — Full Review`,
+    href: `/exchanges/${exB.slug}/`,
+    meta: `${exB.bonusAmount.toLocaleString()} ${exB.bonusCurrency}`,
+  },
+  ...(exA.p2pAvailable || exB.p2pAvailable ? [{
+    type: 'guide' as const,
+    label: 'How to Use P2P Trading to Buy Crypto',
+    href: '/guides/how-to-use-p2p/',
+    meta: '8 min read',
+  }] : []),
+  ...(((exA.maxFuturesLeverage ?? 0) > 0 || (exB.maxFuturesLeverage ?? 0) > 0) ? [{
+    type: 'guide' as const,
+    label: 'How to Trade Crypto Futures for Beginners',
+    href: '/guides/how-to-trade-futures/',
+    meta: '12 min read',
+  }] : []),
+];
 
 // ── Analytics context ─────────────────────────────────────────────────────────
 const analyticsContext: PageContext = {
@@ -800,6 +829,14 @@ const analyticsContext: PageContext = {
           })}
         </div>
       </section>
+    )}
+
+    <!-- ── RELATED NEXT READS ────────────────────────────────────────────── -->
+    {compareRnrItems.length > 0 && (
+      <RelatedNextReads
+        heading="Explore next"
+        items={compareRnrItems}
+      />
     )}
 
     <RiskDisclaimer />
