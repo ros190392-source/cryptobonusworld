@@ -44,21 +44,21 @@ export const GET: APIRoute = () => {
   let hasMultipleLocales = false;
 
   const staticPages = [
-    { url: '/', priority: '1.0', changefreq: 'daily', type: 'static' as const },
-    { url: '/bonuses/', priority: '0.9', changefreq: 'daily', type: 'static' as const },
-    { url: '/exchanges/', priority: '0.85', changefreq: 'weekly', type: 'static' as const },
-    { url: '/countries/', priority: '0.75', changefreq: 'monthly', type: 'static' as const },
-    { url: '/compare/', priority: '0.8', changefreq: 'weekly', type: 'static' as const },
-    { url: '/guides/', priority: '0.75', changefreq: 'weekly', type: 'static' as const },
-    // New programmatic SEO hubs
-    { url: '/coins/', priority: '0.85', changefreq: 'weekly', type: 'static' as const },
-    { url: '/use-cases/', priority: '0.85', changefreq: 'weekly', type: 'static' as const },
-    { url: '/bonus-codes/', priority: '0.9', changefreq: 'weekly', type: 'static' as const },
-    { url: '/methodology/', priority: '0.5', changefreq: 'monthly', type: 'static' as const },
-    { url: '/about/', priority: '0.4', changefreq: 'monthly', type: 'static' as const },
-    { url: '/affiliate-disclosure/', priority: '0.3', changefreq: 'monthly', type: 'static' as const },
-    { url: '/disclaimer/', priority: '0.3', changefreq: 'monthly', type: 'static' as const },
-    { url: '/privacy-policy/', priority: '0.3', changefreq: 'monthly', type: 'static' as const },
+    { url: '/', priority: '1.0', changefreq: 'daily', lastmod: today, type: 'static' as const },
+    { url: '/bonuses/', priority: '0.9', changefreq: 'daily', lastmod: today, type: 'static' as const },
+    { url: '/exchanges/', priority: '0.85', changefreq: 'weekly', lastmod: today, type: 'static' as const },
+    { url: '/countries/', priority: '0.75', changefreq: 'monthly', lastmod: today, type: 'static' as const },
+    { url: '/compare/', priority: '0.8', changefreq: 'weekly', lastmod: today, type: 'static' as const },
+    { url: '/guides/', priority: '0.75', changefreq: 'weekly', lastmod: today, type: 'static' as const },
+    // Programmatic SEO hubs
+    { url: '/coins/', priority: '0.85', changefreq: 'weekly', lastmod: today, type: 'static' as const },
+    { url: '/use-cases/', priority: '0.85', changefreq: 'weekly', lastmod: today, type: 'static' as const },
+    { url: '/bonus-codes/', priority: '0.9', changefreq: 'weekly', lastmod: today, type: 'static' as const },
+    { url: '/methodology/', priority: '0.5', changefreq: 'monthly', lastmod: today, type: 'static' as const },
+    { url: '/about/', priority: '0.4', changefreq: 'monthly', lastmod: today, type: 'static' as const },
+    { url: '/affiliate-disclosure/', priority: '0.3', changefreq: 'monthly', lastmod: today, type: 'static' as const },
+    { url: '/disclaimer/', priority: '0.3', changefreq: 'monthly', lastmod: today, type: 'static' as const },
+    { url: '/privacy-policy/', priority: '0.3', changefreq: 'monthly', lastmod: today, type: 'static' as const },
   ];
 
   // Top-tier money pages get boosted priority for crawl budget signalling
@@ -117,16 +117,23 @@ export const GET: APIRoute = () => {
     };
   });
 
+  const exLastVerifiedMap = Object.fromEntries(
+    exchanges.map(e => [e.slug, (e as any).lastVerified ?? e.updatedAt ?? today])
+  );
   const comparePages = comparePairs.map(p => {
     // Top-tier pairs (both exchanges in top set) get priority boost
     const [slugA, slugB] = (p.pair ?? '').split('-vs-');
     const isTopPair = TOP_COMPARE_SLUGS.has(slugA) || TOP_COMPARE_SLUGS.has(slugB);
     const bothTop = TOP_COMPARE_SLUGS.has(slugA) && TOP_COMPARE_SLUGS.has(slugB);
+    // lastmod = most recently verified exchange in the pair
+    const lastmodA = exLastVerifiedMap[slugA] ?? today;
+    const lastmodB = exLastVerifiedMap[slugB] ?? today;
+    const pairLastmod = lastmodA > lastmodB ? lastmodA : lastmodB;
     return {
       url: `/compare/${p.pair}/`,
       priority: bothTop ? '0.85' : isTopPair ? '0.78' : '0.70',
       changefreq: 'weekly',
-      lastmod: today,
+      lastmod: pairLastmod,
       type: 'compare' as const,
       slug: p.pair,
     };
