@@ -1,0 +1,109 @@
+---
+/**
+ * ExchangeLogo.astro — Normalized exchange logo renderer
+ *
+ * Loads /public/logos/{slug}.svg when the file exists.
+ * Falls back to a brand-colored letter avatar when no logo file is present.
+ *
+ * Sizing:
+ *   All logos render in a fixed-size container so cards, tables and nav
+ *   stay visually balanced regardless of the actual SVG proportions.
+ *
+ * Dark-mode:
+ *   SVGs stored in /public/logos/ should use currentColor or explicit
+ *   dark-safe fills. The container itself is transparent.
+ *
+ * Usage:
+ *   <ExchangeLogo slug="bybit" name="Bybit" size={40} />
+ *   <ExchangeLogo slug="mexc"  name="MEXC"  size={32} variant="pill" />
+ */
+
+interface Props {
+  slug: string;
+  name: string;
+  /** Container size in px (width = height). Default 40. */
+  size?: number;
+  /** 'square' = rounded square, 'pill' = fully rounded, 'raw' = no container */
+  variant?: 'square' | 'pill' | 'raw';
+  /** Extra CSS classes on the wrapper */
+  class?: string;
+  /** Lazy load the image (default true) */
+  lazy?: boolean;
+}
+
+const {
+  slug,
+  name,
+  size = 40,
+  variant = 'square',
+  class: extraClass = '',
+  lazy = true,
+} = Astro.props;
+
+import { getBrandColor } from '../utils/logoConfig';
+const bgColor = getBrandColor(slug);
+const initial   = name.charAt(0).toUpperCase();
+// Try PNG first (official logomarks), fall back to SVG (text avatars), then letter
+const logoPath  = `/logos/${slug}.png`;
+const radiusPx  = variant === 'pill' ? size / 2 : variant === 'square' ? Math.round(size * 0.22) : 0;
+const fontSize  = Math.round(size * 0.44);
+---
+
+<div
+  class:list={['exlogo', `exlogo--${variant}`, extraClass]}
+  style={`width:${size}px;height:${size}px;border-radius:${radiusPx}px;font-size:${fontSize}px;`}
+  aria-label={name}
+  role="img"
+>
+  <img
+    src={logoPath}
+    alt={name}
+    width={size}
+    height={size}
+    loading={lazy ? 'lazy' : 'eager'}
+    decoding="async"
+    class="exlogo-img"
+    data-slug={slug}
+    onerror="var s=this.dataset.slug;if(this.src.indexOf('.png')>-1){this.src='/logos/'+s+'.svg';}else{this.style.display='none';this.nextElementSibling.style.display='flex';}"
+  />
+  <span
+    class="exlogo-fallback"
+    style={`background:${bgColor};display:none;width:${size}px;height:${size}px;border-radius:${radiusPx}px;font-size:${fontSize}px;`}
+    aria-hidden="true"
+  >{initial}</span>
+</div>
+
+<style>
+  .exlogo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--surface-overlay, #111);
+    border: 1px solid var(--color-border, #1c1c1c);
+    position: relative;
+  }
+  .exlogo--raw {
+    background: transparent;
+    border: none;
+  }
+  .exlogo-img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+    border-radius: inherit;
+    image-rendering: auto;
+  }
+  .exlogo-fallback {
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.02em;
+    position: absolute;
+    inset: 0;
+  }
+</style>
