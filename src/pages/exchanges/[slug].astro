@@ -11,8 +11,38 @@ import FAQBlock from '../../components/FAQBlock.astro';
 import RiskDisclaimer from '../../components/RiskDisclaimer.astro';
 import AffiliateDisclosure from '../../components/AffiliateDisclosure.astro';
 import CTAButton from '../../components/CTAButton.astro';
+import ReviewerBlock from '../../components/ReviewerBlock.astro';
+import EditorialNote from '../../components/EditorialNote.astro';
+import HowWeEvaluate from '../../components/HowWeEvaluate.astro';
+import AuthorCard from '../../components/AuthorCard.astro';
 
 import exchanges from '../../data/exchanges.json';
+import categories from '../../data/categories.json';
+import countries from '../../data/countries.json';
+import comparePairs from '../../data/compare-pairs.json';
+import allGuides from '../../data/guides.json';
+
+import RelatedCategoriesBlock from '../../components/RelatedCategoriesBlock.astro';
+import CountryCrossLinksBlock from '../../components/CountryCrossLinksBlock.astro';
+import EditorSummary from '../../components/EditorSummary.astro';
+import GeoContentBlock from '../../components/GeoContentBlock.astro';
+import RelatedGuidesBlock from '../../components/RelatedGuidesBlock.astro';
+
+import {
+  exchangePageTitle,
+  exchangeMetaDesc,
+  buildProductSchema,
+  getRelatedCategories,
+  getCountryCrossLinks,
+} from '../../utils/seo';
+import type { PageContext } from '../../utils/analytics';
+import {
+  generateExchangeFAQs,
+  applyFAQOverrides,
+  BONUS_TYPE_DEFS,
+  type ContentExchange,
+} from '../../utils/contentEngine';
+import contentOverrides from '../../data/content-overrides.json';
 
 export async function getStaticPaths() {
   return exchanges.map(ex => ({
@@ -23,52 +53,28 @@ export async function getStaticPaths() {
 
 const { exchange: ex } = Astro.props;
 
+// SEO: dynamic title, meta description, cross-link data
+const seoTitle = exchangePageTitle(ex as any);
+const seoDesc = exchangeMetaDesc(ex as any);
+const relatedCats = getRelatedCategories(ex.bonusTypes, ex.kycRequired, ex.depositRequired, categories as any);
+const countryCrossLinks = getCountryCrossLinks(ex.countries, countries as any);
+
 const pageTitle = `${ex.name} Bonus 2026: ${ex.bonusTitle}`;
 
-// Bonus type definitions for the breakdown section
-const bonusTypeDefs: Record<string, { icon: string; title: string; desc: string }> = {
-  signup: {
-    icon: '🎉',
-    title: 'Signup Bonus',
-    desc: 'Earn a reward just for registering your account using our referral link.',
-  },
-  deposit: {
-    icon: '💰',
-    title: 'Deposit Bonus',
-    desc: 'Make a qualifying deposit and receive a bonus on top of your funds.',
-  },
-  futures: {
-    icon: '📈',
-    title: 'Futures Bonus',
-    desc: 'Unlock additional rewards by trading futures contracts on the platform.',
-  },
-  'no-deposit': {
-    icon: '✨',
-    title: 'No Deposit Bonus',
-    desc: 'Claim a bonus without needing to fund your account first.',
-  },
-  'trading-rewards': {
-    icon: '🏆',
-    title: 'Trading Rewards',
-    desc: 'Earn rewards based on your trading volume milestones.',
-  },
-  referral: {
-    icon: '👥',
-    title: 'Referral Bonus',
-    desc: 'Invite friends and earn a share of their trading fees.',
-  },
-  welcome: {
-    icon: '🎊',
-    title: 'Welcome Package',
-    desc: 'A bundled welcome offer combining multiple bonus types into one package.',
-  },
-};
+// Bonus type definitions — centralised in contentEngine.ts
+const bonusTypeDefs = BONUS_TYPE_DEFS;
 
-const activeBonusTiers = ex.bonusTypes
-  .map(t => bonusTypeDefs[t])
-  .filter(Boolean);
+// Use structured bonusTiers from data if available, else fall back to bonusTypeDefs
+const activeBonusTiers = (ex as any).bonusTiers?.length
+  ? (ex as any).bonusTiers
+  : ex.bonusTypes.map(t => bonusTypeDefs[t]).filter(Boolean);
+const hasBonusTierData = !!(ex as any).bonusTiers?.length;
 
 // Conditions data for icon grid
+const minDeposit = (ex as any).minDeposit;
+const tradingVol = (ex as any).tradingVolumeRequired;
+const bonusExpiry = (ex as any).bonusExpiry;
+
 const conditions = [
   {
     icon: '💰',
@@ -84,78 +90,69 @@ const conditions = [
   },
   {
     icon: '🏦',
-    label: 'Deposit Required',
-    value: ex.depositRequired ? 'Minimum deposit required' : 'No deposit needed',
-    ok: !ex.depositRequired,
+    label: 'Min Deposit',
+    value: minDeposit
+      ? (minDeposit.amount > 0 ? `${minDeposit.amount.toLocaleString()} ${minDeposit.currency}` : 'No deposit needed')
+      : (ex.depositRequired ? 'Deposit required' : 'No deposit needed'),
+    ok: minDeposit ? minDeposit.amount === 0 : !ex.depositRequired,
   },
   {
     icon: '📈',
-    label: 'Futures Trading',
-    value: ex.futuresRequired ? 'Required for full bonus' : 'Not required',
-    ok: !ex.futuresRequired,
+    label: 'Trading Volume',
+    value: tradingVol && tradingVol.amount > 0
+      ? `${tradingVol.amount.toLocaleString()} ${tradingVol.currency}`
+      : 'None required',
+    ok: !tradingVol || tradingVol.amount === 0,
+  },
+  {
+    icon: '⏳',
+    label: 'Bonus Expiry',
+    value: bonusExpiry ? `${bonusExpiry.days} days after signup` : 'See official terms',
   },
   {
     icon: '💳',
     label: 'Payment Methods',
     value: ex.paymentMethods.join(', '),
   },
-  {
-    icon: '🏷️',
-    label: 'Promo Code',
-    value: ex.promoCode || 'None required',
-  },
 ];
 
-const faqItems = [
-  {
-    question: `Is the ${ex.name} bonus legitimate?`,
-    answer: `${ex.name} is a registered crypto exchange. Their bonus promotion is available to eligible new users. As with all crypto exchange promotions, conditions apply including${ex.kycRequired ? ' KYC verification,' : ''} ${ex.depositRequired ? 'minimum deposit,' : ''} and trading volume requirements. Always verify current terms on the official ${ex.name} website.`,
-  },
-  {
-    question: `Can I withdraw the ${ex.name} bonus?`,
-    answer: `Most exchange bonuses including ${ex.name}'s cannot be withdrawn directly. They are typically trading credits or vouchers. Profits generated through trading with the bonus may be withdrawable after meeting trading volume requirements. Check official terms for details.`,
-  },
-  {
-    question: `What countries is ${ex.name} available in?`,
-    answer: `${ex.name} is available in most countries globally${ex.excludedCountries.length > 0 ? `, but not in ${ex.excludedCountries.join(', ')}` : ''}. Availability may vary based on local regulations and exchange policies.`,
-  },
-  {
-    question: `Does ${ex.name} require KYC for the bonus?`,
-    answer: ex.kycRequired
-      ? `Yes, ${ex.name} requires identity verification (KYC) to access the full welcome bonus. You will need to submit a government-issued ID.`
-      : `${ex.name} does not require full KYC verification for basic account access and initial bonus eligibility. However, non-KYC accounts may have withdrawal limits.`,
-  },
-  {
-    question: `How long does the ${ex.name} bonus last?`,
-    answer: `${ex.name} bonus promotions typically have a limited validity window after registration. You must complete the required steps — including deposits or trading volume — within the specified timeframe. Check the official promotion page for exact expiry details.`,
-  },
-];
+// FAQ — generated centrally, then editorial overrides applied
+const _faqGenerated = generateExchangeFAQs(ex as unknown as ContentExchange);
+const _faqOverride = (contentOverrides.exchanges as Record<string, any>)[ex.slug];
+const faqItems = applyFAQOverrides(_faqGenerated, _faqOverride);
 
-const schema = {
-  '@context': 'https://schema.org',
-  '@type': 'Product',
-  name: `${ex.name} Welcome Bonus`,
-  description: ex.shortDescription,
-  url: `https://cryptobonusworld.com/exchanges/${ex.slug}/`,
-  offers: {
-    '@type': 'Offer',
-    description: ex.bonusTitle,
-    priceCurrency: ex.bonusCurrency,
-  },
-  aggregateRating: {
-    '@type': 'AggregateRating',
-    ratingValue: ex.rating,
-    bestRating: 10,
-    ratingCount: 1,
-  },
+// Analytics context
+const analyticsContext: PageContext = {
+  pageType:        'exchange',
+  exchangeSlug:    ex.slug,
+  exchangeRating:  ex.rating,
+  exchangeBonus:   ex.bonusAmount,
+  exchangeKyc:     ex.kycRequired,
+  exchangeDeposit: ex.depositRequired,
 };
+
+// Compare pairs for this exchange
+const exMap = Object.fromEntries(exchanges.map(e => [e.slug, e]));
+const myComparePairs = comparePairs
+  .filter(p => p.a === ex.slug || p.b === ex.slug)
+  .slice(0, 6);
+
+// SEO: use utility builder for richer, consistent Product schema
+const schema = buildProductSchema(ex as any);
+
+// Related guides — pick guides that reference this exchange
+const relatedGuides = allGuides
+  .filter(g => g.relatedExchanges?.includes(ex.slug))
+  .slice(0, 4);
 ---
 
 <Layout
-  title={`${pageTitle} — Claim Guide`}
-  description={`${ex.name} welcome bonus: ${ex.bonusTitle}. Learn the conditions, KYC requirements, country availability and how to claim. Updated ${ex.updatedAt}.`}
+  title={seoTitle}
+  description={seoDesc}
   canonical={`/exchanges/${ex.slug}/`}
   schema={schema}
+  analyticsContext={analyticsContext}
+  ogImage={`https://cryptobonusworld.com/og/exchange-${ex.slug}.png`}
 >
   <div class="container ex-page">
     <Breadcrumbs crumbs={[
@@ -165,6 +162,13 @@ const schema = {
     ]} />
 
     <AffiliateDisclosure compact />
+
+    <AuthorCard
+      compact
+      verb="Reviewed by"
+      reviewedAt={(ex as any).lastVerified ?? ex.updatedAt}
+      profileUrl="/reviewers/editorial-team/"
+    />
 
     <!-- Full-width hero with h1 -->
     <ExchangeHero
@@ -183,6 +187,41 @@ const schema = {
       updatedAt={ex.updatedAt}
       countries={ex.countries}
       paymentMethods={ex.paymentMethods}
+      licences={(ex as any).licences}
+      founded={(ex as any).founded}
+      users={(ex as any).users}
+      bonusExpiry={(ex as any).bonusExpiry ?? null}
+      geoHrefs={(ex as any).affiliateLinks?.geo ?? undefined}
+      lastVerified={(ex as any).lastVerified}
+      verificationStatus={(ex as any).verificationStatus}
+      bonusNote={(ex as any).bonusNote ?? null}
+      bonusSourceUrl={(ex as any).bonusSourceUrl ?? null}
+      excludedCountries={(ex as any).excludedCountries ?? null}
+      bonusDisplayMode={(ex as any).bonusDisplayMode ?? 'up-to'}
+    />
+
+    <!-- Editorial summary: verdict, best-for, feature badges (EEAT anchor) -->
+    <EditorSummary
+      name={ex.name}
+      rating={ex.rating}
+      shortDescription={ex.shortDescription}
+      bestFor={(ex as any).bestFor ?? []}
+      featureBadges={(ex as any).featureBadges ?? []}
+      lastVerified={(ex as any).lastVerified ?? ex.updatedAt}
+      topChoice={(ex as any).topChoice ?? false}
+      founded={(ex as any).founded}
+      users={(ex as any).users}
+      editorNote={
+        // Content override takes priority over exchange data field
+        (_faqOverride?.editorNote?.length > 0 ? _faqOverride.editorNote : null) ??
+        ((ex as any).editorNote?.length > 0 ? (ex as any).editorNote : undefined)
+      }
+    />
+
+    <!-- E-E-A-T: Editorial reviewer block — emits Person schema JSON-LD -->
+    <ReviewerBlock
+      reviewedAt={(ex as any).lastVerified ?? ex.updatedAt}
+      verb="Reviewed by"
     />
 
     <!-- Two-column layout: main content + sticky sidebar -->
@@ -191,23 +230,63 @@ const schema = {
       <!-- ── MAIN CONTENT ── -->
       <div class="ex-main">
 
-        <!-- Bonus types breakdown -->
+        <!-- Bonus tiers breakdown -->
         {activeBonusTiers.length > 0 && (
           <section class="ex-section">
             <h2 class="ex-section-title">What's Included in This Bonus</h2>
             <div class="bonus-tiers">
-              {activeBonusTiers.map(tier => (
-                <div class="bonus-tier">
-                  <div class="bonus-tier-icon">{tier.icon}</div>
-                  <div>
-                    <div class="bonus-tier-title">{tier.title}</div>
-                    <div class="bonus-tier-desc">{tier.desc}</div>
-                  </div>
-                </div>
-              ))}
+              {hasBonusTierData
+                ? activeBonusTiers.map((tier: any) => (
+                    <div class="bonus-tier bonus-tier--data">
+                      <div class="bonus-tier-icon">
+                        {bonusTypeDefs[tier.type]?.icon ?? '🎁'}
+                      </div>
+                      <div class="bonus-tier-content">
+                        <div class="bonus-tier-header">
+                          <div class="bonus-tier-title">{tier.title}</div>
+                          {tier.amount > 0 && (
+                            <div class="bonus-tier-amount">
+                              {tier.amount >= 1000
+                                ? `${(tier.amount / 1000).toFixed(0)}K`
+                                : tier.amount} {tier.currency}
+                            </div>
+                          )}
+                        </div>
+                        <div class="bonus-tier-desc">{tier.condition}</div>
+                        {tier.note && (
+                          <div class="bonus-tier-note">{tier.note}</div>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                : activeBonusTiers.map((tier: any) => (
+                    <div class="bonus-tier">
+                      <div class="bonus-tier-icon">{tier.icon}</div>
+                      <div>
+                        <div class="bonus-tier-title">{tier.title}</div>
+                        <div class="bonus-tier-desc">{tier.desc}</div>
+                      </div>
+                    </div>
+                  ))
+              }
             </div>
           </section>
         )}
+
+        <!-- Geo-aware payment method tip -->
+        <GeoContentBlock
+          geoContent={{
+            tr: { body: "P2P trading with TRY is the most popular deposit method in Turkey. Most exchanges including Bybit and MEXC offer P2P desks with strong TRY liquidity." },
+            in: { body: "UPI and P2P trading with INR are the standard on-ramps for Indian users. Note: OKX does not currently accept Indian users." },
+            id: { body: "P2P trading with IDR (via BCA, Mandiri, BRI) is the primary funding method in Indonesia. Most major exchanges support this." },
+            ng: { body: "P2P trading with NGN is essential in Nigeria due to banking restrictions on direct crypto transfers. MEXC and Bybit have the strongest NGN P2P desks." },
+            br: { body: "PIX instant payments are the fastest BRL on-ramp in Brazil. Available via P2P counterparties on Bybit and several other exchanges." },
+            vn: { body: "P2P trading with VND is the standard method for Vietnamese users. Bybit and MEXC have the most active VND P2P markets." },
+            ph: { body: "P2P trading with PHP via BDO, BPI or GCash is the most popular method in the Philippines. Most major exchanges support this." },
+          }}
+          defaultContent="Check the exchange's supported payment methods and country availability before registering."
+          type="tip"
+        />
 
         <!-- Key conditions — icon grid -->
         <section class="ex-section">
@@ -238,12 +317,23 @@ const schema = {
           kycRequired={ex.kycRequired}
           depositRequired={ex.depositRequired}
           futuresRequired={ex.futuresRequired}
+          exchangeName={ex.name}
+          minDeposit={minDeposit}
+          affiliateUrl={ex.affiliateUrl}
+          bonusAmount={ex.bonusAmount}
+          bonusCurrency={ex.bonusCurrency}
         />
 
         <!-- About exchange -->
         <section class="ex-section">
           <h2 class="ex-section-title">About {ex.name}</h2>
           <p class="ex-prose">{ex.longDescription}</p>
+          {((ex as any).editorNote?.length > 30 || (_faqOverride?.editorNote?.length > 30)) && (
+            <EditorialNote
+              note={(_faqOverride?.editorNote?.length > 30 ? _faqOverride.editorNote : null) ?? (ex as any).editorNote}
+              reviewedAt={(ex as any).lastVerified ?? ex.updatedAt}
+            />
+          )}
         </section>
 
         <!-- Pros & Cons -->
@@ -252,11 +342,56 @@ const schema = {
           <ProsConsBlock pros={ex.pros} cons={ex.cons} />
         </section>
 
-        <!-- Country availability -->
+        <!-- Country availability + cross-links -->
         <section class="ex-section">
           <h2 class="ex-section-title">Country Availability</h2>
           <CountryAvailability countries={ex.countries} excludedCountries={ex.excludedCountries} />
+          {countryCrossLinks.length > 0 && (
+            <CountryCrossLinksBlock
+              countries={countryCrossLinks as any}
+              heading="Explore Country-Specific Bonus Guides"
+            />
+          )}
         </section>
+
+        <!-- Related bonus categories (internal linking) -->
+        {relatedCats.length > 0 && (
+          <section class="ex-section">
+            <h2 class="ex-section-title">Compare by Bonus Type</h2>
+            <p class="ex-prose" style="margin-bottom: 0.75rem">
+              {ex.name} qualifies across multiple bonus categories. Browse the full comparison for each type:
+            </p>
+            <RelatedCategoriesBlock
+              categories={relatedCats as any}
+              heading="Bonus Categories"
+            />
+          </section>
+        )}
+
+        <!-- Related Guides (internal linking) -->
+        {relatedGuides.length > 0 && (
+          <section class="ex-section">
+            <RelatedGuidesBlock
+              guides={relatedGuides}
+              heading="Related Guides"
+              variant="full"
+            />
+          </section>
+        )}
+
+        <!-- Bonus landing page link -->
+        <section class="ex-section">
+          <div class="bonus-page-link-strip">
+            <div>
+              <div class="bonus-page-link-label">Step-by-step bonus guide</div>
+              <div class="bonus-page-link-title">How to Claim the {ex.name} Bonus</div>
+            </div>
+            <a href={`/bonuses/${ex.slug}-bonus/`} class="bonus-page-link-cta">Claim Guide →</a>
+          </div>
+        </section>
+
+        <!-- How we evaluate — compact E-E-A-T methodology reference -->
+        <HowWeEvaluate variant="compact" />
 
         <!-- FAQ -->
         <FAQBlock items={faqItems} title={`${ex.name} Bonus — FAQ`} />
@@ -279,13 +414,45 @@ const schema = {
             </div>
             <div class:list={['sidebar-stat', !ex.depositRequired && 'sidebar-stat--ok']}>
               <span class="sidebar-stat-icon">{ex.depositRequired ? '💰' : '✓'}</span>
-              <span>{ex.depositRequired ? 'Deposit Required' : 'No Deposit'}</span>
+              <span>
+                {minDeposit && minDeposit.amount > 0
+                  ? `Min deposit: ${minDeposit.amount} ${minDeposit.currency}`
+                  : ex.depositRequired ? 'Deposit Required' : 'No Deposit'}
+              </span>
             </div>
             <div class="sidebar-stat">
               <span class="sidebar-stat-icon">⭐</span>
               <span>Rating: {ex.rating}/10</span>
             </div>
+            {bonusExpiry && (
+              <div class="sidebar-stat">
+                <span class="sidebar-stat-icon">⏳</span>
+                <span>Expires in {bonusExpiry.days} days</span>
+              </div>
+            )}
           </div>
+          {((ex as any).founded || (ex as any).users || (ex as any).headquarters) && (
+            <div class="sidebar-meta">
+              {(ex as any).founded && (
+                <div class="sidebar-meta-row">
+                  <span class="sidebar-meta-label">Founded</span>
+                  <span class="sidebar-meta-val">{(ex as any).founded}</span>
+                </div>
+              )}
+              {(ex as any).users && (
+                <div class="sidebar-meta-row">
+                  <span class="sidebar-meta-label">Users</span>
+                  <span class="sidebar-meta-val">{(ex as any).users}</span>
+                </div>
+              )}
+              {(ex as any).headquarters && (
+                <div class="sidebar-meta-row">
+                  <span class="sidebar-meta-label">HQ</span>
+                  <span class="sidebar-meta-val">{(ex as any).headquarters}</span>
+                </div>
+              )}
+            </div>
+          )}
 
           {ex.promoCode && (
             <div class="sidebar-promo">
@@ -295,7 +462,20 @@ const schema = {
           )}
 
           <div class="sidebar-cta">
-            <CTAButton href={ex.affiliateUrl} exchange={ex.name} size="lg" fullWidth />
+            <CTAButton
+              href={ex.affiliateUrl}
+              label={!ex.kycRequired && !ex.depositRequired
+                ? `Get ${ex.name} Bonus`
+                : !ex.kycRequired
+                  ? `Claim — No KYC`
+                  : `Claim ${ex.name} Bonus`}
+              exchange={ex.name}
+              size="lg"
+              fullWidth
+              trackPlacement="sidebar"
+              trackBonus={ex.bonusAmount}
+              geoHrefs={(ex as any).affiliateLinks?.geo ?? undefined}
+            />
           </div>
 
           {ex.termsUrl && (
@@ -309,15 +489,20 @@ const schema = {
 
         <!-- Trust block -->
         <div class="sidebar-trust">
+          {(ex as any).topChoice && (
+            <div class="sidebar-top-choice">⭐ Editor's Top Pick</div>
+          )}
           <div class="sidebar-trust-title">Why we list this exchange</div>
           <ul class="sidebar-trust-list">
             <li>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-              Established platform with track record
+              {(ex as any).founded
+                ? `Established ${(ex as any).founded} — ${new Date().getFullYear() - (ex as any).founded}+ years operating`
+                : 'Established platform with track record'}
             </li>
             <li>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-              Cold storage asset protection
+              {(ex as any).users ? `${(ex as any).users} registered users` : 'Cold storage asset protection'}
             </li>
             <li>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
@@ -327,6 +512,12 @@ const schema = {
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
               Available in {ex.countries.length}+ regions
             </li>
+            {(ex as any).licences?.length > 0 && (
+              <li>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                Licensed: {(ex as any).licences.join(', ')}
+              </li>
+            )}
           </ul>
         </div>
       </aside>
@@ -336,6 +527,31 @@ const schema = {
     <!-- Full-width sections below two-column -->
     <AlternativesBlock currentSlug={ex.slug} exchanges={exchanges} />
 
+    <!-- Compare vs. section -->
+    {myComparePairs.length > 0 && (
+      <section class="compare-vs-section">
+        <h2 class="section-heading">Compare {ex.name} vs Alternatives</h2>
+        <div class="compare-vs-grid">
+          {myComparePairs.map(p => {
+            const otherSlug = p.a === ex.slug ? p.b : p.a;
+            const other = exMap[otherSlug] as any;
+            if (!other) return null;
+            return (
+              <a href={`/compare/${p.pair}/`} class="compare-vs-card">
+                <div class="compare-vs-logos">
+                  <img src={`/logos/${ex.slug}.svg`} alt={ex.name} width="44" height="44" />
+                  <span class="compare-vs-divider">vs</span>
+                  <img src={other.logo} alt={other.name} width="44" height="44" />
+                </div>
+                <span class="compare-vs-label">{ex.name} vs {other.name}</span>
+                <span class="compare-vs-arrow">→</span>
+              </a>
+            );
+          })}
+        </div>
+      </section>
+    )}
+
     <RiskDisclaimer />
   </div>
 </Layout>
@@ -344,6 +560,50 @@ const schema = {
   .ex-page {
     padding-bottom: 2rem;
   }
+
+  /* Compare vs section */
+  .compare-vs-section { margin: 2rem 0; }
+  .compare-vs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+  .compare-vs-card {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--surface-raised);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 0.75rem 1rem;
+    text-decoration: none;
+    color: var(--color-text-primary);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    transition: border-color var(--duration-base), box-shadow var(--duration-base), transform var(--duration-base);
+  }
+  .compare-vs-card:hover {
+    border-color: var(--color-accent);
+    box-shadow: var(--glow-card);
+    transform: translateY(-1px);
+  }
+  .compare-vs-logos {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-shrink: 0;
+  }
+  .compare-vs-logos img {
+    width: 44px; height: 44px;
+    object-fit: contain;
+    border-radius: 8px;
+    background: var(--surface-overlay);
+    padding: 2px;
+  }
+  .compare-vs-divider { font-size: 0.65rem; color: var(--color-text-muted); font-weight: 400; }
+  .compare-vs-label { flex: 1; font-size: var(--text-sm); }
+  .compare-vs-arrow { color: var(--color-accent); font-weight: 700; flex-shrink: 0; }
 
   /* Two-column layout */
   .ex-layout {
@@ -500,6 +760,55 @@ const schema = {
 
   .sidebar-trust-list svg { color: #4ade80; flex-shrink: 0; }
 
+  .sidebar-top-choice {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-accent);
+    background: rgba(245, 197, 66, 0.1);
+    border: 1px solid rgba(245, 197, 66, 0.25);
+    border-radius: var(--radius-pill, 100px);
+    padding: 0.25rem 0.65rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .sidebar-meta {
+    padding: 0.75rem;
+    background: var(--color-bg-tertiary);
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-top: -0.25rem;
+  }
+
+  .sidebar-meta-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .sidebar-meta-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+  }
+
+  .sidebar-meta-val {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    text-align: right;
+  }
+
   /* Section styles */
   .ex-section { margin-bottom: 2rem; }
 
@@ -555,6 +864,40 @@ const schema = {
     font-size: 0.78rem;
     color: var(--color-text-muted);
     line-height: 1.5;
+  }
+
+  /* Rich tier card layout when using structured bonusTiers data */
+  .bonus-tier--data { align-items: flex-start; }
+
+  .bonus-tier-content { flex: 1; min-width: 0; }
+
+  .bonus-tier-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .bonus-tier-amount {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: var(--color-accent);
+    background: rgba(245, 197, 66, 0.1);
+    border: 1px solid rgba(245, 197, 66, 0.2);
+    border-radius: var(--radius-pill, 100px);
+    padding: 0.15rem 0.5rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+    line-height: 1.4;
+  }
+
+  .bonus-tier-note {
+    font-size: 0.72rem;
+    color: var(--color-text-muted);
+    margin-top: 0.3rem;
+    font-style: italic;
+    line-height: 1.4;
   }
 
   /* Conditions grid */
@@ -623,6 +966,8 @@ const schema = {
     font-weight: 600;
   }
 
+  /* ReviewerBlock compact is rendered by the component itself */
+
   /* Mobile: stack layout, pad bottom for sticky CTA */
   @media (max-width: 960px) {
     .ex-layout {
@@ -652,4 +997,44 @@ const schema = {
   @media (max-width: 400px) {
     .conditions-grid { grid-template-columns: 1fr; }
   }
+
+  /* Bonus page link strip */
+  .bonus-page-link-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background: rgba(245,197,66,0.05);
+    border: 1px solid rgba(245,197,66,0.2);
+    border-radius: 12px;
+    flex-wrap: wrap;
+  }
+  .bonus-page-link-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--color-text-muted);
+    margin-bottom: 0.2rem;
+  }
+  .bonus-page-link-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+  }
+  .bonus-page-link-cta {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background: var(--color-accent);
+    color: #000;
+    font-weight: 700;
+    font-size: 0.825rem;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: opacity 0.15s;
+  }
+  .bonus-page-link-cta:hover { opacity: 0.85; }
 </style>

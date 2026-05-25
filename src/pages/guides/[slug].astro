@@ -1,0 +1,667 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import FAQBlock from '../../components/FAQBlock.astro';
+import CTAButton from '../../components/CTAButton.astro';
+import RiskDisclaimer from '../../components/RiskDisclaimer.astro';
+import ExchangeLogo from '../../components/ExchangeLogo.astro';
+import AuthorCard from '../../components/AuthorCard.astro';
+
+import guideMeta from '../../data/guides.json';
+import guideContentMap from '../../data/guide-content';
+import exchanges from '../../data/exchanges.json';
+
+export function getStaticPaths() {
+  return guideMeta.map(g => ({
+    params: { slug: g.slug },
+    props: { meta: g },
+  }));
+}
+
+const { meta } = Astro.props;
+const content = guideContentMap[meta.slug];
+
+if (!content) {
+  return Astro.redirect('/guides/');
+}
+
+// Related exchange data
+const relatedExchanges = exchanges.filter(ex => meta.relatedExchanges?.includes(ex.slug)).slice(0, 4);
+
+// Related guide data
+const relatedGuides = guideMeta.filter(g => meta.relatedGuides?.includes(g.slug)).slice(0, 3);
+
+// FAQ schema
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: content.faq.map(item => ({
+    '@type': 'Question',
+    name: item.question,
+    acceptedAnswer: { '@type': 'Answer', text: item.answer },
+  })),
+};
+
+// Article schema for E-E-A-T
+const articleSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: meta.title,
+  description: meta.metaDesc,
+  dateModified: meta.lastUpdated,
+  datePublished: meta.lastUpdated,
+  author: {
+    '@type': 'Organization',
+    name: 'CryptoBonusWorld Editorial Team',
+    url: 'https://cryptobonusworld.com/about/',
+  },
+  publisher: {
+    '@type': 'Organization',
+    name: 'CryptoBonusWorld',
+    url: 'https://cryptobonusworld.com',
+  },
+  mainEntityOfPage: `https://cryptobonusworld.com/guides/${meta.slug}/`,
+};
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://cryptobonusworld.com/' },
+    { '@type': 'ListItem', position: 2, name: 'Guides', item: 'https://cryptobonusworld.com/guides/' },
+    { '@type': 'ListItem', position: 3, name: meta.title, item: `https://cryptobonusworld.com/guides/${meta.slug}/` },
+  ],
+};
+
+const schemas = [faqSchema, articleSchema, breadcrumbSchema];
+
+const categoryColors: Record<string, string> = {
+  'Basics':          '#f5c542',
+  'Exchange Guides': '#60a5fa',
+  'How-To Guides':   '#34d399',
+  'Bonus Guides':    '#f59e0b',
+  'Earning Guides':  '#a78bfa',
+};
+---
+
+<Layout
+  title={meta.metaTitle}
+  description={meta.metaDesc}
+  canonical={`/guides/${meta.slug}/`}
+  schema={schemas}
+>
+  <div class="container guide-page">
+    <Breadcrumbs crumbs={[
+      { label: 'Home', href: '/' },
+      { label: 'Guides', href: '/guides/' },
+      { label: meta.title },
+    ]} />
+
+    <!-- Guide Hero -->
+    <header class="guide-hero">
+      <div class="guide-hero-meta">
+        <span class="guide-cat-badge" style={`color: ${categoryColors[meta.category] ?? '#f5c542'}`}>
+          {meta.category}
+        </span>
+        <span class="guide-sep">·</span>
+        <span class="guide-read-time">{meta.readTime} read</span>
+        <span class="guide-sep">·</span>
+        <span class="guide-updated">Updated {meta.lastUpdated}</span>
+      </div>
+      <h1 class="guide-title">{meta.title}</h1>
+    </header>
+
+    <!-- E-E-A-T Attribution Bar -->
+    <div class="guide-eeat-bar">
+      <div class="guide-eeat-left">
+        <span class="guide-eeat-item">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          <strong>Written by</strong> CryptoBonusWorld Editorial Team
+        </span>
+        <span class="guide-eeat-sep">·</span>
+        <span class="guide-eeat-item">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <strong>Last updated:</strong> {meta.lastUpdated}
+        </span>
+      </div>
+      <a href="/methodology/" class="guide-eeat-method">Our methodology →</a>
+    </div>
+
+    <AuthorCard
+      compact
+      verb="Reviewed by"
+      reviewedAt={meta.lastUpdated}
+      profileUrl="/reviewers/editorial-team/"
+    />
+
+    <div class="guide-layout">
+
+      <!-- Main content column -->
+      <main class="guide-main">
+
+        <!-- Quick Answer box (for AI search / featured snippets) -->
+        {meta.quickAnswer && (
+          <div class="guide-quick-answer">
+            <div class="guide-qa-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+              Quick Answer
+            </div>
+            <p class="guide-qa-text">{meta.quickAnswer}</p>
+          </div>
+        )}
+
+        <!-- Intro -->
+        <div class="guide-intro" set:html={content.intro} />
+
+        <!-- Main sections -->
+        {content.sections.map(section => (
+          <section class="guide-section" id={section.id}>
+            <h2 class="guide-section-title">{section.heading}</h2>
+            <div class="guide-section-body" set:html={section.body} />
+          </section>
+        ))}
+
+        <!-- FAQ -->
+        {content.faq.length > 0 && (
+          <section class="guide-section" id="faq">
+            <FAQBlock items={content.faq} title="Frequently Asked Questions" />
+          </section>
+        )}
+
+        <!-- Related guides -->
+        {relatedGuides.length > 0 && (
+          <section class="guide-section guide-related-guides">
+            <h2 class="guide-section-title">Related Guides</h2>
+            <div class="guide-related-grid">
+              {relatedGuides.map(g => (
+                <a href={`/guides/${g.slug}/`} class="guide-related-card">
+                  <span class="guide-related-cat" style={`color: ${categoryColors[g.category] ?? '#f5c542'}`}>{g.category}</span>
+                  <span class="guide-related-title">{g.title}</span>
+                  <span class="guide-related-time">{g.readTime} read →</span>
+                </a>
+              ))}
+            </div>
+          </section>
+        )}
+
+        <RiskDisclaimer />
+      </main>
+
+      <!-- Sidebar -->
+      <aside class="guide-sidebar">
+
+        <!-- Table of Contents -->
+        {meta.toc && meta.toc.length > 0 && (
+          <div class="guide-toc">
+            <div class="guide-toc-label">In this guide</div>
+            <nav aria-label="Table of contents">
+              {meta.toc.map(item => (
+                <a href={`#${item.id}`} class="guide-toc-link">{item.label}</a>
+              ))}
+            </nav>
+          </div>
+        )}
+
+        <!-- Related Exchanges -->
+        {relatedExchanges.length > 0 && (
+          <div class="guide-sidebar-card">
+            <div class="guide-sidebar-label">Featured Exchanges</div>
+            {relatedExchanges.map(ex => (
+              <a href={`/exchanges/${ex.slug}/`} class="guide-ex-row">
+                <ExchangeLogo slug={ex.slug} name={ex.name} size={56} variant="square" />
+                <div class="guide-ex-info">
+                  <span class="guide-ex-name">{ex.name}</span>
+                  <span class="guide-ex-bonus">Up to {ex.bonusAmount.toLocaleString()} {ex.bonusCurrency}</span>
+                </div>
+                <span class="guide-ex-arrow">→</span>
+              </a>
+            ))}
+            <CTAButton href="/bonuses/" label="Compare All Bonuses" size="sm" variant="outline" />
+          </div>
+        )}
+
+        <!-- Quick links -->
+        <div class="guide-sidebar-links">
+          <div class="guide-sidebar-label">Explore More</div>
+          <a href="/bonuses/" class="guide-sidebar-link">🏆 All Exchange Bonuses</a>
+          <a href="/categories/no-kyc-bonuses/" class="guide-sidebar-link">🔓 No-KYC Bonuses</a>
+          <a href="/categories/signup-bonuses/" class="guide-sidebar-link">🚀 Signup Bonuses</a>
+          <a href="/compare/" class="guide-sidebar-link">⚖️ Compare Exchanges</a>
+          <a href="/guides/" class="guide-sidebar-link">📚 All Guides</a>
+        </div>
+      </aside>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .guide-page { padding-bottom: 3rem; }
+
+  /* ── Hero ── */
+  .guide-hero {
+    padding: 2rem 0 1.25rem;
+  }
+  .guide-hero-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.875rem;
+    flex-wrap: wrap;
+  }
+  .guide-cat-badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+  }
+  .guide-sep { color: var(--color-border); font-size: 0.75rem; }
+  .guide-read-time,
+  .guide-updated {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+  }
+  .guide-title {
+    font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    margin: 0;
+  }
+
+  /* ── E-E-A-T bar ── */
+  .guide-eeat-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: rgba(255,255,255,0.025);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
+  }
+  .guide-eeat-left {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .guide-eeat-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+  }
+  .guide-eeat-item strong {
+    color: var(--color-text-secondary);
+    font-weight: 600;
+  }
+  .guide-eeat-sep { color: var(--color-border); font-size: 0.75rem; }
+  .guide-eeat-method {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-accent);
+    text-decoration: none;
+    opacity: 0.8;
+    transition: opacity 0.15s;
+    white-space: nowrap;
+  }
+  .guide-eeat-method:hover { opacity: 1; }
+
+  /* ── Layout ── */
+  .guide-layout {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 2.5rem;
+    align-items: start;
+  }
+
+  /* ── Quick Answer ── */
+  .guide-quick-answer {
+    background: rgba(245,197,66,0.06);
+    border: 1px solid rgba(245,197,66,0.25);
+    border-left: 3px solid var(--color-accent);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.75rem;
+  }
+  .guide-qa-label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-accent);
+    margin-bottom: 0.5rem;
+  }
+  .guide-qa-label svg { color: var(--color-accent); }
+  .guide-qa-text {
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    line-height: 1.65;
+    margin: 0;
+  }
+
+  /* ── Intro ── */
+  .guide-intro {
+    margin-bottom: 0.5rem;
+  }
+  :global(.guide-intro p) {
+    font-size: 1rem;
+    color: var(--color-text-secondary);
+    line-height: 1.75;
+    margin: 0 0 1rem;
+  }
+
+  /* ── Sections ── */
+  .guide-section { margin-bottom: 2.5rem; }
+  .guide-section-title {
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin: 1.5rem 0 1rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+  }
+  :global(.guide-section-body p) {
+    font-size: 0.925rem;
+    color: var(--color-text-secondary);
+    line-height: 1.75;
+    margin: 0 0 0.875rem;
+  }
+  :global(.guide-section-body h3) {
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin: 1.5rem 0 0.625rem;
+    color: var(--color-text-primary);
+  }
+  :global(.guide-section-body ul),
+  :global(.guide-section-body ol) {
+    padding-left: 1.25rem;
+    margin: 0 0 0.875rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  :global(.guide-section-body li) {
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+  }
+  :global(.guide-section-body strong) { color: var(--color-text-primary); }
+  :global(.guide-section-body a) {
+    color: var(--color-accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  /* Tables */
+  :global(.guide-table) {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.825rem;
+    margin: 1rem 0 1.25rem;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  :global(.guide-table th) {
+    background: var(--color-bg-tertiary);
+    padding: 0.625rem 0.875rem;
+    text-align: left;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+    border-bottom: 1px solid var(--color-border);
+  }
+  :global(.guide-table td) {
+    padding: 0.625rem 0.875rem;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    color: var(--color-text-secondary);
+    vertical-align: top;
+  }
+  :global(.guide-table tr:last-child td) { border-bottom: none; }
+  :global(.guide-table tr:hover td) { background: rgba(255,255,255,0.02); }
+
+  /* Callout boxes */
+  :global(.guide-callout) {
+    padding: 0.875rem 1rem;
+    border-radius: 10px;
+    border-left: 3px solid;
+    margin: 1rem 0 1.25rem;
+    font-size: 0.875rem;
+    line-height: 1.65;
+    color: var(--color-text-secondary);
+  }
+  :global(.guide-callout--info) {
+    background: rgba(96,165,250,0.06);
+    border-color: #60a5fa;
+  }
+  :global(.guide-callout--warn) {
+    background: rgba(248,113,113,0.06);
+    border-color: #f87171;
+  }
+  :global(.guide-callout strong) { display: block; margin-bottom: 0.3rem; color: var(--color-text-primary); }
+
+  /* Step-by-step lists */
+  :global(.guide-steps) {
+    list-style: none !important;
+    padding: 0 !important;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem !important;
+  }
+  :global(.guide-steps li) {
+    display: flex !important;
+    gap: 1rem;
+    align-items: flex-start;
+    padding: 0.875rem 1rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+  }
+  :global(.guide-step-num) {
+    width: 28px;
+    height: 28px;
+    background: var(--color-accent);
+    color: #000;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 800;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  :global(.guide-steps li strong) {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--color-text-primary);
+    margin-bottom: 0.25rem;
+  }
+  :global(.guide-steps li p) {
+    margin: 0 !important;
+    font-size: 0.85rem !important;
+    color: var(--color-text-muted) !important;
+  }
+
+  /* Related guides */
+  .guide-related-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.75rem;
+  }
+  .guide-related-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: 1rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    text-decoration: none;
+    transition: border-color 0.15s, transform 0.15s;
+  }
+  .guide-related-card:hover { border-color: rgba(245,197,66,0.3); transform: translateY(-1px); }
+  .guide-related-cat {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .guide-related-title {
+    font-size: 0.825rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    line-height: 1.4;
+  }
+  .guide-related-time {
+    font-size: 0.72rem;
+    color: var(--color-accent);
+    font-weight: 600;
+    margin-top: auto;
+  }
+
+  /* ── Sidebar ── */
+  .guide-sidebar {
+    position: sticky;
+    top: calc(97px + 1.25rem); /* header 64px + trust strip ~33px + breathing room */
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-height: calc(100vh - 97px - 2.5rem);
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+  .guide-sidebar::-webkit-scrollbar { display: none; }
+
+  .guide-toc {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    padding: 1.25rem;
+  }
+  .guide-toc-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-text-muted);
+    margin-bottom: 0.75rem;
+  }
+  .guide-toc-link {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    padding: 0.3rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    transition: color 0.15s;
+    line-height: 1.4;
+  }
+  .guide-toc-link:last-child { border-bottom: none; }
+  .guide-toc-link:hover { color: var(--color-accent); }
+
+  .guide-sidebar-card {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .guide-sidebar-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-text-muted);
+  }
+
+  .guide-ex-row {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.5rem 0.625rem;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: background 0.15s;
+  }
+  .guide-ex-row:hover { background: var(--color-bg-tertiary); }
+  .guide-ex-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 0;
+  }
+  .guide-ex-name {
+    font-size: 0.825rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+  }
+  .guide-ex-bonus {
+    font-size: 0.72rem;
+    color: var(--color-accent);
+    font-weight: 600;
+  }
+  .guide-ex-arrow {
+    font-size: 0.75rem;
+    color: var(--color-accent);
+    font-weight: 700;
+    flex-shrink: 0;
+    opacity: 0.6;
+  }
+  .guide-ex-row:hover .guide-ex-arrow { opacity: 1; }
+
+  .guide-sidebar-links {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+  .guide-sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.825rem;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    padding: 0.4rem 0.5rem;
+    border-radius: 6px;
+    transition: color 0.15s, background 0.15s;
+  }
+  .guide-sidebar-link:hover {
+    color: var(--color-accent);
+    background: rgba(245,197,66,0.06);
+  }
+
+  /* Mobile */
+  @media (max-width: 960px) {
+    .guide-layout {
+      grid-template-columns: 1fr;
+    }
+    .guide-sidebar {
+      position: static;
+      order: -1;
+    }
+    .guide-toc { display: none; } /* collapsed on mobile — use anchor links */
+  }
+
+  @media (max-width: 640px) {
+    :global(.guide-table) { font-size: 0.75rem; display: block; overflow-x: auto; }
+    .guide-related-grid { grid-template-columns: 1fr; }
+  }
+</style>
