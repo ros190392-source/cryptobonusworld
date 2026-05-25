@@ -2157,6 +2157,897 @@ const guides: Record<string, GuideContent> = {
     ],
   },
 
+  /* ═══════════════════════════════════════════════════════════════════
+   * WHAT IS KYC IN CRYPTO
+   * ═══════════════════════════════════════════════════════════════════ */
+  'what-is-kyc-crypto': {
+    intro: `<p>KYC — Know Your Customer — is the identity verification process that most regulated crypto exchanges use to confirm who their users are. When you sign up for an exchange and are asked to upload a passport or driver's licence, you're going through KYC.</p>
+<p>Whether you find KYC intrusive or completely reasonable, understanding how it works helps you make better decisions about which exchange to use and what your rights are. This guide explains what KYC involves, why exchanges require it, and what your alternatives are.</p>`,
+
+    sections: [
+      {
+        id: 'what-is-kyc',
+        heading: 'What Is KYC?',
+        body: `<p>KYC stands for Know Your Customer. It's a regulatory standard originally developed in traditional banking that requires financial institutions to verify the identity of their clients before providing services.</p>
+<p>In crypto, KYC typically means you must provide:</p>
+<ul>
+  <li>A government-issued photo ID (passport, national ID card, or driver's licence)</li>
+  <li>A selfie or short video to confirm you are the person in the document</li>
+  <li>Proof of address for higher verification tiers (utility bill, bank statement)</li>
+</ul>
+<p>KYC data is processed either automatically by an AI verification system or reviewed manually by a compliance team. Most major exchanges have adopted automated systems that can approve applications in minutes.</p>
+<div class="guide-callout guide-callout--info"><strong>Editorial note:</strong> KYC requirements vary significantly by exchange and jurisdiction. An exchange licensed in a strict regulatory environment (US, EU, UK) typically enforces more thorough KYC than one operating from a permissive jurisdiction.</div>`,
+      },
+      {
+        id: 'why-exchanges-require-kyc',
+        heading: 'Why Do Crypto Exchanges Require KYC?',
+        body: `<p>Exchanges require KYC to comply with anti-money laundering (AML) and counter-terrorism financing (CTF) regulations. These are legal obligations, not optional policies. Failure to comply can result in regulatory action, fines, or licence revocation.</p>
+<p>The primary regulatory frameworks driving crypto KYC include:</p>
+<ul>
+  <li><strong>FATF Recommendations:</strong> The Financial Action Task Force sets global standards that member countries translate into local law. The "Travel Rule" requires exchanges to collect and share sender and recipient information for transfers above a threshold.</li>
+  <li><strong>5th/6th Anti-Money Laundering Directives (EU):</strong> Require crypto asset service providers to conduct customer due diligence.</li>
+  <li><strong>Bank Secrecy Act (US):</strong> Applies to licensed US exchanges, requiring customer identification and suspicious activity reporting.</li>
+</ul>
+<p>Beyond compliance, KYC helps exchanges enforce withdrawal limits, prevent account sharing, and respond to law enforcement inquiries when user accounts are involved in fraud.</p>`,
+      },
+      {
+        id: 'kyc-documents',
+        heading: 'What Documents Do Exchanges Require?',
+        body: `<p>Most exchanges operate a tiered system where more verification unlocks higher account limits:</p>
+<table class="guide-table">
+  <thead><tr><th>Verification Tier</th><th>Documents Required</th><th>Typical Limits Unlocked</th></tr></thead>
+  <tbody>
+    <tr><td>Level 1 (Basic)</td><td>Email + phone verification only</td><td>Spot trading, limited withdrawals (~2 BTC/day on MEXC)</td></tr>
+    <tr><td>Level 2 (Standard)</td><td>Government ID + selfie</td><td>Full spot and futures access, withdrawals to $50,000+/day</td></tr>
+    <tr><td>Level 3 (Enhanced)</td><td>ID + proof of address + source of funds</td><td>Institutional-level limits, fiat wire transfers</td></tr>
+  </tbody>
+</table>
+<p><strong>Accepted ID documents</strong> typically include passports, national ID cards (EU), and driver's licences. Some exchanges only accept passports for non-resident users — check the exchange's specific requirements before starting the process.</p>
+<p><strong>What exchanges do NOT accept:</strong> expired documents, screenshots, photocopies, and documents with obscured or cropped information. Selfies must show your face clearly alongside the document.</p>`,
+      },
+      {
+        id: 'kyc-levels',
+        heading: 'KYC Levels on Major Exchanges',
+        body: `<p>Here's how the major exchanges we review structure their KYC tiers:</p>
+<table class="guide-table">
+  <thead><tr><th>Exchange</th><th>No-KYC Access</th><th>Standard KYC Required For</th></tr></thead>
+  <tbody>
+    <tr><td>Bybit</td><td>Limited spot trading, ~20,000 USDT/day withdrawal</td><td>Futures bonuses, fiat deposits, higher limits</td></tr>
+    <tr><td>Binance</td><td>Very limited — ~$2,000/day withdrawal unverified</td><td>Full platform access and bonuses</td></tr>
+    <tr><td>MEXC</td><td>Full spot and futures access without KYC</td><td>Higher withdrawal tiers, fiat on-ramp</td></tr>
+    <tr><td>KuCoin</td><td>Spot trading, ~2 BTC/day withdrawal</td><td>Fiat deposits, higher withdrawal limits</td></tr>
+    <tr><td>Coinbase</td><td>None — KYC mandatory from registration</td><td>All features require verified identity</td></tr>
+    <tr><td>CoinEx</td><td>Full trading access without KYC</td><td>Higher daily limits</td></tr>
+  </tbody>
+</table>
+<p>The data above reflects our most recent review. Exchange policies change — always verify on the exchange's official website before making a decision based on KYC requirements.</p>`,
+      },
+      {
+        id: 'kyc-time',
+        heading: 'How Long Does KYC Verification Take?',
+        body: `<p>Verification speed has improved dramatically. Most major exchanges now use automated identity verification systems that process standard applications in under 10 minutes. Manual review for rejected or unclear submissions typically takes 24–72 hours.</p>
+<p><strong>Factors that slow down KYC:</strong></p>
+<ul>
+  <li>Poor photo quality (blurry, low contrast, glare on document)</li>
+  <li>Partially obscured information</li>
+  <li>Mismatch between your name on the exchange account and your ID</li>
+  <li>High submission volumes during exchange promotions or market events</li>
+  <li>Documents from certain countries that require manual review</li>
+</ul>
+<p><strong>Tips for fast approval:</strong> Use a neutral background, ensure all four corners of the document are visible, take the photo in good lighting, and use a current document that matches your account registration details exactly.</p>`,
+      },
+      {
+        id: 'no-kyc-options',
+        heading: 'Can You Trade Crypto Without KYC?',
+        body: `<p>Yes — several reputable exchanges offer full or partial access without mandatory identity verification. This is a legitimate option for users who value privacy or live in jurisdictions with fewer regulatory requirements.</p>
+<p><strong>Exchanges with no mandatory KYC for basic trading:</strong></p>
+<ul>
+  <li><a href="/exchanges/mexc/"><strong>MEXC</strong></a> — Full spot and futures trading without KYC. Up to 10 BTC/day withdrawal unverified. Bonus: up to 1,000 USDT available without KYC.</li>
+  <li><a href="/exchanges/kucoin/"><strong>KuCoin</strong></a> — Spot and futures without KYC, 2 BTC/day withdrawal limit.</li>
+  <li><a href="/exchanges/coinex/"><strong>CoinEx</strong></a> — No-KYC access to full trading features.</li>
+  <li><a href="/exchanges/bitunix/"><strong>Bitunix</strong></a> — No mandatory KYC for new accounts.</li>
+</ul>
+<p><strong>Important trade-off:</strong> Unverified accounts always have withdrawal limits. If you plan to deposit and trade large amounts, the withdrawal restrictions will eventually force you to complete KYC or move funds slowly over multiple days.</p>
+<div class="guide-callout guide-callout--warn"><strong>Regulatory note:</strong> The landscape for no-KYC exchanges is changing. Regulatory pressure is increasing globally. Exchanges that don't require KYC today may enforce it in the future. Don't build a trading strategy that fundamentally depends on avoiding verification if your trading volume is growing.</div>`,
+      },
+      {
+        id: 'kyc-safety',
+        heading: 'Is It Safe to Submit KYC to a Crypto Exchange?',
+        body: `<p>Submitting identity documents to a reputable, regulated exchange is generally safe — these companies have data protection obligations, compliance teams, and security infrastructure. That said, the risk is not zero.</p>
+<p><strong>What reputable exchanges do with your KYC data:</strong></p>
+<ul>
+  <li>Encrypt and store documents in compliance with GDPR or local equivalents</li>
+  <li>Retain data for the legally required period (often 5–7 years after account closure)</li>
+  <li>Use third-party verification providers (Jumio, Onfido, Sumsub) who specialise in document security</li>
+  <li>Do not sell your personal data to advertisers</li>
+</ul>
+<p><strong>Risk factors to consider:</strong></p>
+<ul>
+  <li>Data breaches — even large exchanges have been compromised. Your ID documents could be exposed.</li>
+  <li>Smaller, unregulated exchanges with less clear data handling practices.</li>
+  <li>Jurisdictional risk — exchanges in some countries may share data with local authorities on request.</li>
+</ul>
+<p>Our recommendation: only submit KYC to exchanges with clear regulatory licences, published privacy policies, and a track record. Avoid completing KYC on exchanges you can't verify are legitimate.</p>`,
+      },
+    ],
+
+    faq: [
+      {
+        question: 'Is KYC mandatory on all crypto exchanges?',
+        answer: 'No. Several exchanges — including MEXC, KuCoin, CoinEx and Bitunix — allow basic trading without KYC verification. However, all exchanges have withdrawal limits for unverified accounts, and KYC requirements are tightening globally under regulatory pressure.',
+      },
+      {
+        question: 'What happens if my KYC verification is rejected?',
+        answer: 'Most exchanges explain why a submission was rejected and allow you to resubmit. Common reasons: blurry document photo, expired ID, name mismatch with your account, or partially obscured information. Retake the photo in better lighting and ensure all document details are clearly visible.',
+      },
+      {
+        question: 'Can I use the same KYC documents on multiple exchanges?',
+        answer: 'Yes. You can submit the same government ID and selfie to multiple exchanges. Each exchange runs its own verification — there is no shared database. Completing KYC on one exchange does not affect your status on others.',
+      },
+      {
+        question: 'Does KYC prevent me from trading anonymously?',
+        answer: 'Yes. Once you complete KYC, your exchange account is linked to your real identity. The exchange can connect your trading activity to you personally. If you require privacy for legitimate reasons, use no-KYC exchanges with awareness of their withdrawal limits.',
+      },
+      {
+        question: 'How long does crypto KYC verification take?',
+        answer: 'Most exchanges use automated systems that approve standard submissions in under 10 minutes. If manual review is required — due to document quality issues or nationality — expect 24–72 hours. During high-traffic periods (new exchange promotions, market surges), delays can extend to several days.',
+      },
+    ],
+  },
+
+  /* ═══════════════════════════════════════════════════════════════════
+   * HOW TO AVOID HIGH CRYPTO FEES
+   * ═══════════════════════════════════════════════════════════════════ */
+  'how-to-avoid-high-crypto-fees': {
+    intro: `<p>Crypto exchange fees are easy to underestimate. A 0.1% taker fee sounds trivial until you realise that an active trader executing $10,000 of volume per day pays $100 weekly — over $5,000 per year — in fees alone. Add withdrawal fees, spread costs, and futures funding rates, and the total is often much higher.</p>
+<p>This guide covers where fees actually hide, which ones have the biggest impact on your returns, and seven concrete strategies to reduce your trading costs — starting today.</p>`,
+
+    sections: [
+      {
+        id: 'why-fees-matter',
+        heading: 'Why Crypto Fees Add Up Faster Than You Think',
+        body: `<p>The compounding effect of repeated fees is the primary reason why many retail traders underperform. Consider a trader who executes 10 trades per week at an average size of $1,000:</p>
+<ul>
+  <li>At 0.1% taker fee: $1 per trade = $520/year</li>
+  <li>At 0.5% fee (like older Coinbase plans): $5 per trade = $2,600/year</li>
+  <li>Plus: withdrawal fees ($1–5 per withdrawal), funding rates on futures positions, spread on purchases</li>
+</ul>
+<p>Even modest fee differences become significant at scale. Switching from a 0.5% to a 0.1% platform on the same trading volume reduces costs by 80%.</p>
+<p>The less obvious cost is <strong>spread</strong> — the gap between the buy and sell price on the exchange. On a thinly-traded pair, spread can cost 0.3–0.5% on every round-trip trade, invisible in your account but real in your P&L.</p>`,
+      },
+      {
+        id: 'fee-types',
+        heading: 'The Four Types of Crypto Exchange Fees',
+        body: `<p>Before you can reduce fees, you need to know where they come from:</p>
+<ol>
+  <li><strong>Spot trading fees</strong> — charged as a percentage of each trade. Maker fees (limit orders) are typically lower than taker fees (market orders). Rates range from 0% promotional to 0.6% on some platforms.</li>
+  <li><strong>Futures trading fees</strong> — similar structure to spot, but rates are lower (typically 0.02–0.06%). However, perpetual contracts also charge <strong>funding rates</strong> — small payments every 8 hours between long and short position holders depending on market skew.</li>
+  <li><strong>Withdrawal fees</strong> — fixed fee per withdrawal, dependent on the cryptocurrency and network. USDT on TRC-20 costs ~$1; on ERC-20 it can be $5–20 depending on network congestion.</li>
+  <li><strong>Deposit fees</strong> — most exchanges charge nothing for crypto deposits. Fiat deposits via bank transfer are typically free; card purchases add 1.5–3.5% processing fees.</li>
+</ol>`,
+      },
+      {
+        id: 'maker-taker',
+        heading: 'Maker vs Taker: How to Pay Less on Every Trade',
+        body: `<p>The single most impactful fee reduction for active traders is consistently achieving maker status rather than taker status on your trades. The difference is structural, not arbitrary:</p>
+<ul>
+  <li><strong>Maker orders</strong> add liquidity to the order book. You place a limit order at a price away from the current market. The exchange rewards this by charging a lower fee.</li>
+  <li><strong>Taker orders</strong> remove liquidity. You place a market order or a limit order that immediately executes. The exchange charges more because you're consuming existing liquidity.</li>
+</ul>
+<p>On Bybit, for example, spot maker fee is 0.1% and taker is 0.1% — identical. But on futures, maker is 0.02% and taker is 0.055% — a 2.75× difference. On MEXC, spot maker/taker are both 0% for standard users (promotional rate). On Binance, standard spot is 0.1% maker / 0.1% taker, reducing to 0.09% with BNB payment.</p>
+<p>In practice: when you don't need immediate execution, use limit orders placed slightly away from the market. This is maker behaviour and consistently earns the lower rate.</p>`,
+      },
+      {
+        id: 'seven-ways',
+        heading: '7 Practical Ways to Reduce Your Crypto Trading Fees',
+        body: `<ol>
+  <li><strong>Use limit orders (achieve maker status).</strong> Place limit orders instead of market orders for non-urgent trades. Even a small price offset from the current market is enough to qualify as a maker order on most exchanges.</li>
+  <li><strong>Choose the right exchange for your use case.</strong> For spot trading, MEXC currently offers some of the lowest fees. For futures, Bybit and Bitget have competitive rates. Don't use a high-fee platform out of habit when lower-cost alternatives exist.</li>
+  <li><strong>Hold the exchange's native token for discounts.</strong> Binance (BNB), OKX (OKB), and KuCoin (KCS) all offer fee discounts of 20–25% when you pay fees in their native token. If you're a regular user of these platforms, holding a small amount pays off.</li>
+  <li><strong>Use TRC-20 for USDT withdrawals.</strong> USDT on the Tron network (TRC-20) typically costs $0.5–1 per withdrawal. The same transfer on Ethereum (ERC-20) can cost $5–20. Always check the available networks before initiating a withdrawal.</li>
+  <li><strong>Trade higher volume to unlock better tiers.</strong> All major exchanges have VIP/fee tier systems where 30-day trading volume determines your rate. If you're approaching the next tier, consolidating your trading onto one platform can push you into a meaningfully lower fee bracket.</li>
+  <li><strong>Use P2P for fiat on-ramps.</strong> Buying crypto via card charges 1.5–3.5% processing fees. P2P trading platforms charge 0% platform fee — the only cost is the spread the merchant builds into their price. For regular fiat purchases, P2P is consistently cheaper.</li>
+  <li><strong>Monitor and avoid high-spread pairs.</strong> Obscure altcoin pairs have wider bid-ask spreads than major pairs. A spread of 0.5% on a round-trip trade is a real cost. Stick to high-liquidity pairs (BTC/USDT, ETH/USDT) where spreads are tight.</li>
+</ol>`,
+      },
+      {
+        id: 'fee-comparison',
+        heading: 'Low-Fee Exchanges Compared',
+        body: `<p>Fee rates as of May 2026 (standard non-VIP accounts):</p>
+<table class="guide-table">
+  <thead><tr><th>Exchange</th><th>Spot Maker</th><th>Spot Taker</th><th>Futures Maker</th><th>Futures Taker</th><th>USDT TRC-20 Withdrawal</th></tr></thead>
+  <tbody>
+    <tr><td><a href="/exchanges/mexc/">MEXC</a></td><td>0% (promo)</td><td>0% (promo)</td><td>0%</td><td>0.01%</td><td>~1 USDT</td></tr>
+    <tr><td><a href="/exchanges/bybit/">Bybit</a></td><td>0.1%</td><td>0.1%</td><td>0.02%</td><td>0.055%</td><td>1 USDT</td></tr>
+    <tr><td><a href="/exchanges/binance/">Binance</a></td><td>0.1%</td><td>0.1%</td><td>0.02%</td><td>0.05%</td><td>1 USDT</td></tr>
+    <tr><td><a href="/exchanges/okx/">OKX</a></td><td>0.08%</td><td>0.1%</td><td>0.02%</td><td>0.05%</td><td>1 USDT</td></tr>
+    <tr><td><a href="/exchanges/coinbase/">Coinbase</a></td><td>0.4%</td><td>0.6%</td><td>N/A</td><td>N/A</td><td>Varies</td></tr>
+  </tbody>
+</table>
+<p><em>MEXC's 0% spot rate is a promotional rate subject to change. Always verify current rates on the exchange's official fee page.</em></p>`,
+      },
+      {
+        id: 'hidden-fees',
+        heading: 'Hidden Fees: What to Watch Out For',
+        body: `<p>Beyond the headline trading fee, watch out for:</p>
+<ul>
+  <li><strong>Funding rates on futures.</strong> Perpetual contracts settle funding every 8 hours. If you hold a leveraged long during a strongly bullish market, you can pay 0.05–0.1% per 8-hour period — that's 0.15–0.3% per day just for holding the position. This adds up significantly on multi-day holds.</li>
+  <li><strong>Currency conversion fees.</strong> Some exchanges apply a conversion spread (0.1–0.5%) when you convert between currencies. Check whether you're being charged a conversion fee on top of your trading fee.</li>
+  <li><strong>Network congestion on ERC-20.</strong> Ethereum gas fees fluctuate with network demand. A withdrawal that costs $5 normally can spike to $50+ during congestion periods. Always use TRC-20 or BEP-20 for USDT unless the receiving platform doesn't support them.</li>
+  <li><strong>Minimum withdrawal amounts.</strong> Some exchanges enforce minimums that mean you can't withdraw small balances without them being consumed by fees. Consolidate small balances before withdrawing.</li>
+</ul>`,
+      },
+    ],
+
+    faq: [
+      {
+        question: 'What is the cheapest crypto exchange to use?',
+        answer: 'For spot trading, MEXC currently offers promotional 0% maker and taker fees (rates subject to change). For futures, Bybit and Binance are competitive at 0.02% maker / 0.05–0.055% taker. For beginners wanting low overall costs including fiat on-ramps, MEXC and Bybit consistently rank among the cheapest options.',
+      },
+      {
+        question: 'How can I avoid high withdrawal fees?',
+        answer: 'Choose your withdrawal network carefully. USDT on TRC-20 costs $0.5–1; on ERC-20 it costs $5–20 or more. For Bitcoin withdrawals, timing matters — Bitcoin network fees fluctuate. Withdrawing during low-congestion periods (typically late night UTC) can save money. SOL, XRP, and TRX also have very low withdrawal fees.',
+      },
+      {
+        question: 'Does holding BNB, KCS, or MX token reduce my fees?',
+        answer: 'Yes. Binance offers a 25% discount when you pay fees using BNB. KuCoin gives a 20% discount with KCS. OKX offers OKB fee discounts. The saving is meaningful only if you\'re an active trader on that specific platform — holding an exchange token primarily for fee reduction only makes sense if the trading volume justifies it.',
+      },
+      {
+        question: 'What is a crypto spread and why does it cost money?',
+        answer: 'A spread is the difference between the best available buy price and best available sell price on an exchange. If Bitcoin is listed at $69,000 bid and $69,050 ask, the spread is $50. When you execute a market order, you pay the ask (or receive the bid), absorbing the full spread. On liquid pairs this is tiny; on thinly-traded altcoins it can be 0.5–2% per trade.',
+      },
+    ],
+  },
+
+  /* ═══════════════════════════════════════════════════════════════════
+   * HOW TO TRANSFER CRYPTO BETWEEN EXCHANGES
+   * ═══════════════════════════════════════════════════════════════════ */
+  'how-to-transfer-crypto-between-exchanges': {
+    intro: `<p>Transferring crypto between exchanges is a routine task for active traders — whether you're moving USDT to access a better bonus, shifting funds to trade a specific pair, or consolidating accounts. When done correctly, it's straightforward and cheap. When done incorrectly, it can result in permanent loss of funds.</p>
+<p>This guide covers every step of the process, with emphasis on the network selection decision that most tutorials gloss over — the single most common cause of lost transfers.</p>`,
+
+    sections: [
+      {
+        id: 'before-transfer',
+        heading: 'Before You Transfer: Three Critical Checks',
+        body: `<p>Before initiating any transfer, confirm three things:</p>
+<ol>
+  <li><strong>Both exchanges support the same network for the cryptocurrency you're moving.</strong> If you want to send USDT from Bybit to MEXC via TRC-20, both exchanges must support the TRC-20 network for USDT. Most major exchanges support TRC-20, ERC-20, and BEP-20 for USDT — but verify this before proceeding.</li>
+  <li><strong>Your destination exchange has no maintenance on the relevant network.</strong> Exchanges sometimes pause deposits on specific networks for maintenance. Check the exchange status page before sending.</li>
+  <li><strong>You know the minimum deposit amount.</strong> Some exchanges don't credit deposits below a minimum threshold (e.g., 10 USDT). Sending 5 USDT to an exchange with a 10 USDT minimum doesn't necessarily result in lost funds — it often sits unconfirmed until you send more — but it delays your access to the funds.</li>
+</ol>
+<div class="guide-callout guide-callout--warn"><strong>Always send a test amount first.</strong> When sending to a new address for the first time, send a small test amount (e.g., 5–10 USDT) and confirm it arrives before sending the full amount. This costs a few cents in extra fees and protects against large losses from address errors.</div>`,
+      },
+      {
+        id: 'deposit-address',
+        heading: 'Step 1: Find Your Deposit Address on the Receiving Exchange',
+        body: `<p>On the exchange you want to receive funds:</p>
+<ol>
+  <li>Navigate to <strong>Assets</strong> or <strong>Wallet</strong> in the main menu</li>
+  <li>Select the cryptocurrency you want to deposit (e.g., USDT)</li>
+  <li>Click <strong>Deposit</strong></li>
+  <li>Select the network you want to use (crucial step — covered in detail below)</li>
+  <li>Copy the deposit address that appears</li>
+</ol>
+<p><strong>Important:</strong> Deposit addresses are long strings of letters and numbers. They look like this: <code>TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE</code> (a TRC-20 address).</p>
+<p>Copy the full address using the copy button — do not type it manually. A single incorrect character means your funds are sent to an address that either doesn't exist or belongs to someone else. Both outcomes result in permanent loss.</p>
+<p><strong>On some networks (like Ripple/XRP and Stellar/XLM), you also need a destination tag or memo.</strong> This is an additional number that identifies your specific account within the exchange's shared deposit system. Missing it can cause significant delays in crediting — contact the exchange's support immediately if this happens.</p>`,
+      },
+      {
+        id: 'initiating-withdrawal',
+        heading: 'Step 2: Initiate the Withdrawal on the Sending Exchange',
+        body: `<p>On the exchange you're sending from:</p>
+<ol>
+  <li>Navigate to <strong>Assets → Withdraw</strong> (or Wallet → Withdraw)</li>
+  <li>Select the cryptocurrency to withdraw</li>
+  <li>Paste the deposit address from the receiving exchange into the address field</li>
+  <li><strong>Select the exact same network</strong> that you selected on the receiving exchange</li>
+  <li>Enter the amount</li>
+  <li>Review the fee shown — this is deducted from your withdrawal amount or balance</li>
+  <li>Confirm with 2FA (authentication code, email code, or SMS)</li>
+</ol>
+<p>After submitting, the exchange will process your withdrawal. This typically happens within a few minutes for hot wallet withdrawals. Some exchanges add a review period for large withdrawals for security reasons.</p>`,
+      },
+      {
+        id: 'choosing-network',
+        heading: 'Choosing the Right Network: The Decision That Matters Most',
+        body: `<p>Network selection is where most transfer mistakes happen. Using the wrong network is the most common cause of "lost" crypto transfers — and it can be very difficult or impossible to recover.</p>
+<table class="guide-table">
+  <thead><tr><th>Network</th><th>Full Name</th><th>USDT Transfer Cost</th><th>Speed</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td>TRC-20</td><td>Tron Network</td><td>~$1</td><td>1–3 min</td><td>Cheapest option for USDT — recommended for most transfers</td></tr>
+    <tr><td>BEP-20</td><td>BNB Smart Chain</td><td>~$0.10</td><td>1–2 min</td><td>Very cheap, but not supported by all exchanges</td></tr>
+    <tr><td>ERC-20</td><td>Ethereum</td><td>$3–20+</td><td>5–15 min</td><td>Most widely supported but expensive. Use only if necessary</td></tr>
+    <tr><td>Solana (SOL)</td><td>Solana</td><td>&lt;$0.01</td><td>Under 1 min</td><td>Excellent for SOL and SPL tokens; not for USDT transfers to all exchanges</td></tr>
+    <tr><td>Arbitrum</td><td>Ethereum L2</td><td>&lt;$0.10</td><td>2–5 min</td><td>Cheap ETH L2, but not all exchanges support deposits</td></tr>
+  </tbody>
+</table>
+<p><strong>The rule:</strong> If both exchanges support TRC-20 for USDT transfers, use TRC-20. It's fast, cheap, and universally supported by major exchanges. Only use ERC-20 if there is no alternative.</p>
+<div class="guide-callout guide-callout--warn"><strong>Network mismatch warning:</strong> If you send USDT via TRC-20 to an ERC-20 deposit address, the funds go to the TRC-20 address that happens to share the same string as the ERC-20 address. On Tron's network, this address likely belongs to no one. The funds are effectively gone. This is a permanent loss in most cases.</div>`,
+      },
+      {
+        id: 'transfer-time',
+        heading: 'How Long Does a Crypto Transfer Between Exchanges Take?',
+        body: `<p>Most transfers complete in 5–30 minutes. The main variables are:</p>
+<ul>
+  <li><strong>Network confirmation requirements:</strong> Exchanges require a minimum number of network confirmations before crediting a deposit. Bybit requires 15 confirmations for TRC-20 (about 15 seconds per block = under 5 minutes). Bitcoin requires 1–3 confirmations (10–30 minutes).</li>
+  <li><strong>Network congestion:</strong> During periods of very high activity (major market moves), Ethereum transactions can take hours. Tron and BNB Chain rarely experience significant delays.</li>
+  <li><strong>Exchange processing time:</strong> Some exchanges add an additional 10–30 minute internal review after network confirmations complete, especially for large amounts or new withdrawal addresses.</li>
+</ul>
+<p>If your transfer hasn't appeared after 1 hour, check the blockchain explorer for the relevant network (Tronscan for TRC-20, Etherscan for ERC-20). Search for your transaction using the transaction hash provided by the sending exchange. If the transaction shows confirmed on-chain but not credited, contact the receiving exchange's support with the transaction hash.</p>`,
+      },
+      {
+        id: 'common-mistakes',
+        heading: 'Common Mistakes When Transferring Crypto (and How to Avoid Them)',
+        body: `<ul>
+  <li><strong>Wrong network selection:</strong> The most dangerous mistake. Always double-check that the network you selected on the receiving exchange matches the network on the sending exchange — before you hit confirm.</li>
+  <li><strong>Missing memo/tag for XRP or XLM:</strong> Ripple (XRP) and Stellar (XLM) transfers require a destination tag or memo in addition to the address. Sending without the tag may delay credit or require manual recovery by exchange support (which can take weeks).</li>
+  <li><strong>Using an outdated deposit address:</strong> Most exchanges generate permanent deposit addresses that don't change. However, some legacy systems generate one-time addresses. If you saved an address from a long time ago, verify it's still valid before using it.</li>
+  <li><strong>Not accounting for the withdrawal fee:</strong> The withdrawal fee is deducted from your balance, not added on top. If you have exactly 100 USDT and try to withdraw 100 USDT, the transaction will often fail or only send 99 USDT (after deducting the 1 USDT fee). Check the fee before specifying the amount.</li>
+  <li><strong>Sending to an exchange wallet that's in maintenance:</strong> If the destination exchange has paused deposits for the asset or network you're using, funds may arrive on-chain but won't be credited until maintenance ends. Always check the status page first.</li>
+</ul>`,
+      },
+      {
+        id: 'cheapest-crypto-to-transfer',
+        heading: 'Which Cryptocurrency Is Cheapest to Transfer Between Exchanges?',
+        body: `<p>If you have flexibility in which asset you move, these are consistently the cheapest options:</p>
+<ul>
+  <li><strong>USDT on TRC-20:</strong> The standard for moving stablecoins. ~$1 flat fee, 1–3 minutes.</li>
+  <li><strong>XRP (Ripple):</strong> Under $0.01 per transaction, very fast (~4 seconds). Supported by most major exchanges.</li>
+  <li><strong>SOL (Solana):</strong> Less than 1 cent per transaction. Fast and widely supported — good for moving SOL or SPL tokens.</li>
+  <li><strong>TRX (Tron):</strong> Very low fees. Useful if you specifically need Tron network assets.</li>
+  <li><strong>Avoid:</strong> Ethereum (ERC-20 gas fees), Bitcoin (can be $2–20+ depending on congestion), any ERC-20 token.</li>
+</ul>
+<p>The practical recommendation for most users: if you need to move USDT between exchanges, TRC-20 is the right choice in almost all circumstances.</p>`,
+      },
+    ],
+
+    faq: [
+      {
+        question: 'What happens if I send crypto to the wrong network?',
+        answer: 'In most cases, funds sent to the wrong network are very difficult to recover. If you sent to an address on the correct exchange but the wrong network, contact exchange support immediately — some exchanges can manually recover funds but charge a recovery fee and it can take weeks. If the address belongs to no one on the target network, the funds may be permanently lost.',
+      },
+      {
+        question: 'How do I know my crypto transfer was successful?',
+        answer: 'You can track any transfer using a blockchain explorer. For TRC-20, use Tronscan.org. For Ethereum/ERC-20, use Etherscan.io. Search for your wallet address or the transaction hash (TXID) provided by the sending exchange. When you see the required number of confirmations, the receiving exchange should credit your account within minutes.',
+      },
+      {
+        question: 'Why is my withdrawal still pending after 30 minutes?',
+        answer: 'Common reasons: (1) The sending exchange is processing your withdrawal request — some add a security review period. (2) Network congestion, especially on Ethereum. (3) The receiving exchange has paused deposits on that network. Check the transaction status on a blockchain explorer. If the transaction is confirmed on-chain but not credited, contact the receiving exchange support with your transaction hash.',
+      },
+      {
+        question: 'How long does a Bitcoin transfer between exchanges take?',
+        answer: 'Bitcoin transfers typically take 10–60 minutes depending on network activity and the number of confirmations the receiving exchange requires. Most exchanges require 1–3 confirmations; each Bitcoin block takes approximately 10 minutes. During periods of high network activity, your transaction may wait in the mempool before being included in a block.',
+      },
+    ],
+  },
+
+  /* ═══════════════════════════════════════════════════════════════════
+   * HOW TO BUY BITCOIN WITH CREDIT CARD
+   * ═══════════════════════════════════════════════════════════════════ */
+  'how-to-buy-bitcoin-with-credit-card': {
+    intro: `<p>Buying Bitcoin with a credit or debit card is the fastest way to enter crypto — the process takes under 10 minutes and you have Bitcoin in your exchange wallet almost immediately. However, card purchases come with fees that are significantly higher than bank transfers, and some banks block crypto purchases entirely.</p>
+<p>This guide covers which exchanges accept card purchases, how to complete a card purchase step by step, what fees to expect, and when it makes sense to use a cheaper alternative.</p>`,
+
+    sections: [
+      {
+        id: 'can-you',
+        heading: 'Can You Really Buy Bitcoin with a Credit Card?',
+        body: `<p>Yes — the majority of major crypto exchanges accept Visa and Mastercard for direct Bitcoin purchases. The process is almost identical to buying anything else online: enter your card details, specify the amount, and confirm.</p>
+<p>A few things to know before you start:</p>
+<ul>
+  <li><strong>Not all banks allow it.</strong> Some UK, US, and European banks block card-to-crypto transactions by default. Chase UK, for example, has historically blocked crypto card purchases. If your card is declined, call your bank to confirm it's not blocked.</li>
+  <li><strong>Credit cards vs debit cards:</strong> Most exchanges accept both. Some credit card issuers classify crypto purchases as cash advances, which carry higher interest rates and no grace period. Check your card's terms if you're using credit (not debit).</li>
+  <li><strong>American Express:</strong> Accepted on fewer platforms than Visa/Mastercard and sometimes subject to lower limits.</li>
+  <li><strong>You need to complete at least basic account registration</strong> before purchasing — typically email verification and sometimes phone verification.</li>
+</ul>`,
+      },
+      {
+        id: 'exchanges-with-cards',
+        heading: 'Which Exchanges Accept Card Purchases in 2026?',
+        body: `<table class="guide-table">
+  <thead><tr><th>Exchange</th><th>Cards Accepted</th><th>Processing Fee</th><th>Min Purchase</th><th>Limits</th></tr></thead>
+  <tbody>
+    <tr><td><a href="/exchanges/bybit/">Bybit</a></td><td>Visa, Mastercard</td><td>~1.5–3.5%</td><td>$20</td><td>Up to $20,000/day</td></tr>
+    <tr><td><a href="/exchanges/binance/">Binance</a></td><td>Visa, Mastercard</td><td>~1.8%</td><td>$15</td><td>Up to $50,000/day (verified)</td></tr>
+    <tr><td><a href="/exchanges/coinbase/">Coinbase</a></td><td>Visa, Mastercard</td><td>~2.99%</td><td>$2</td><td>Varies by country/verification</td></tr>
+    <tr><td><a href="/exchanges/okx/">OKX</a></td><td>Visa, Mastercard</td><td>~1.8–3%</td><td>$20</td><td>Varies by region</td></tr>
+  </tbody>
+</table>
+<p><em>Processing fees are approximate and vary by region, card type, and third-party payment processor. Always check the final fee at checkout before confirming your purchase.</em></p>
+<p>Card purchases on these exchanges are processed through third-party payment providers (Moonpay, Banxa, Simplex) — you'll often see one of these names appear in the flow. This is normal and expected.</p>`,
+      },
+      {
+        id: 'card-fees',
+        heading: 'Card Purchase Fees: What to Expect',
+        body: `<p>Card purchases are the most expensive way to buy Bitcoin. A typical card purchase adds 1.5–3.5% on top of the current market price. On a $500 purchase, that's $7.50–$17.50 in fees before you even account for any trading fee.</p>
+<p>Why card purchases cost more:</p>
+<ul>
+  <li><strong>Credit card network fees:</strong> Visa and Mastercard charge interchange fees of ~1.5–2% on transactions to the processor.</li>
+  <li><strong>Chargeback risk:</strong> Crypto transactions are irreversible. If a buyer successfully disputes a charge, the exchange or processor bears the loss. Higher risk = higher fee.</li>
+  <li><strong>Third-party processor margin:</strong> Moonpay, Banxa, and similar services add their own margin on top of network fees.</li>
+</ul>
+<p>For context: buying $1,000 of Bitcoin via bank transfer on Binance costs about $0 in deposit fees and 0.1% (–$1) in trading fees. Via card, the same purchase costs approximately $18–35. The gap is significant for larger amounts.</p>`,
+      },
+      {
+        id: 'step-by-step',
+        heading: 'Step-by-Step: Buy Bitcoin with a Card on Bybit',
+        body: `<ol class="guide-steps">
+  <li><span class="guide-step-num">1</span><div><strong>Create a Bybit account</strong><p>Go to bybit.com and register with your email address. Verify your email via the confirmation link.</p></div></li>
+  <li><span class="guide-step-num">2</span><div><strong>Navigate to Buy Crypto</strong><p>From the main menu, select <em>Buy Crypto → Express Buy</em> or look for the "Buy Crypto" section in the top navigation bar.</p></div></li>
+  <li><span class="guide-step-num">3</span><div><strong>Select Bitcoin and your currency</strong><p>Choose BTC as the cryptocurrency and your local currency (USD, EUR, GBP, etc.) as the payment currency.</p></div></li>
+  <li><span class="guide-step-num">4</span><div><strong>Enter your purchase amount</strong><p>Type the fiat amount you want to spend. You'll see the estimated BTC you'll receive and the fee clearly shown before proceeding.</p></div></li>
+  <li><span class="guide-step-num">5</span><div><strong>Select Card as payment method</strong><p>Choose credit or debit card from the available payment options. You'll be directed to the card entry form.</p></div></li>
+  <li><span class="guide-step-num">6</span><div><strong>Enter your card details</strong><p>Provide your card number, expiry, and CVV. Your bank may require 3D Secure authentication (a code sent to your phone).</p></div></li>
+  <li><span class="guide-step-num">7</span><div><strong>Confirm and receive Bitcoin</strong><p>After bank approval, Bitcoin is credited to your Bybit spot wallet within minutes. You can see the balance immediately in Assets → Spot.</p></div></li>
+</ol>`,
+      },
+      {
+        id: 'payment-comparison',
+        heading: 'Card vs Bank Transfer vs P2P: Which Method Is Best?',
+        body: `<table class="guide-table">
+  <thead><tr><th>Method</th><th>Speed</th><th>Typical Fee</th><th>Best For</th><th>Downsides</th></tr></thead>
+  <tbody>
+    <tr><td>Credit/Debit Card</td><td>Instant</td><td>1.5–3.5%</td><td>First-time buyers, urgent purchases</td><td>Highest fees, bank blocking risk</td></tr>
+    <tr><td>Bank Transfer (SEPA/ACH)</td><td>1–3 days</td><td>0–0.5%</td><td>Regular buyers, larger amounts</td><td>Slow, requires bank setup</td></tr>
+    <tr><td>P2P Trading</td><td>15–60 min</td><td>0% platform fee (spread applies)</td><td>Buyers in regions with limited fiat options</td><td>Requires counterparty selection</td></tr>
+    <tr><td>PayPal / Apple Pay</td><td>Instant</td><td>1.5–2.5%</td><td>Users who prefer not to enter card details</td><td>Not supported everywhere, similar fees to card</td></tr>
+  </tbody>
+</table>
+<p><strong>Recommendation:</strong> Use a card purchase for your first buy or when you need funds urgently. For regular investing or larger purchases, set up a bank transfer or SEPA link — the fee saving is substantial over time.</p>`,
+      },
+      {
+        id: 'card-declined',
+        heading: 'Card Declined? Common Reasons and Solutions',
+        body: `<p>If your card is declined when buying crypto, the issue is almost always with your bank rather than the exchange. Common reasons and fixes:</p>
+<ul>
+  <li><strong>Bank blocks crypto transactions:</strong> Contact your bank directly and ask them to allow crypto purchases on your card. Many allow it on a per-transaction basis or as a permanent setting in online banking.</li>
+  <li><strong>3D Secure authentication not completing:</strong> Ensure your phone number on file with your bank is correct. The authentication SMS goes to the number registered with your bank, not the exchange.</li>
+  <li><strong>Card is flagged for unusual activity:</strong> Large or first-time crypto purchases trigger fraud prevention. Call your bank to confirm the transaction and try again.</li>
+  <li><strong>Card not supported in your region:</strong> Some payment processors don't operate in certain countries. Try a different exchange that uses a different payment provider.</li>
+  <li><strong>Insufficient funds / credit limit:</strong> Check that your available balance or credit limit covers the purchase amount plus the processing fee.</li>
+</ul>`,
+      },
+      {
+        id: 'alternatives',
+        heading: 'Cheaper Alternatives to Card Purchases',
+        body: `<p>If card fees are too high for your use case, these alternatives offer lower entry costs:</p>
+<ul>
+  <li><strong>SEPA bank transfer (Europe):</strong> Free on most exchanges. Funds arrive in 1–3 business days. For anyone in the EU or UK, this is the standard low-cost option for buying Bitcoin regularly.</li>
+  <li><strong>ACH transfer (US):</strong> Available on Coinbase and Binance US. Low or no fee, arrives in 3–5 business days.</li>
+  <li><strong>P2P trading:</strong> Buy directly from another user using your local bank transfer. No platform fee — the cost is the spread the seller builds into their price, which is often less than card processing fees for local currency transfers.</li>
+  <li><strong>Crypto vouchers:</strong> Available in some countries through convenience stores and petrol stations. Useful if you don't have a bank account, but typically charge a higher premium.</li>
+</ul>`,
+      },
+    ],
+
+    faq: [
+      {
+        question: 'Is buying Bitcoin with a credit card instant?',
+        answer: 'Yes — credit and debit card purchases are processed in real-time. Once your bank approves the transaction and 3D Secure verification completes (usually under 2 minutes), the Bitcoin is credited to your exchange wallet immediately. The entire process typically takes 5–10 minutes from start to finish.',
+      },
+      {
+        question: 'What fee do exchanges charge for card Bitcoin purchases?',
+        answer: 'Typical card processing fees range from 1.5% (Bybit, best case) to 3.5% (some Coinbase plans) of the purchase amount. This is on top of the exchange rate. A $500 purchase would cost an additional $7.50–$17.50. The exact fee is shown before you confirm the transaction.',
+      },
+      {
+        question: 'Can I use a Visa prepaid card to buy Bitcoin?',
+        answer: 'It depends on the exchange and the specific card issuer. Many exchanges accept Visa and Mastercard prepaid cards, but some payment processors decline them due to higher chargeback risk. If a prepaid card is declined, try a regular debit or credit card.',
+      },
+      {
+        question: 'Why was my bank card declined when buying crypto?',
+        answer: 'Most card declines when buying crypto are triggered by the bank, not the exchange. Your bank may block crypto purchases by default. Log into your banking app or call your bank to enable international/crypto transactions on your card. Once your bank approves, the exchange purchase will process normally.',
+      },
+    ],
+  },
+
+  /* ═══════════════════════════════════════════════════════════════════
+   * SAFEST CRYPTO EXCHANGES
+   * ═══════════════════════════════════════════════════════════════════ */
+  'safest-crypto-exchanges': {
+    intro: `<p>Exchange security is the single most important factor most new crypto users overlook. When you hold crypto on an exchange, you're trusting that platform with your assets. Exchanges have been hacked, have mismanaged funds, and have failed — sometimes taking user deposits with them.</p>
+<p>This guide explains what actually makes an exchange safe, how to verify the claims exchanges make about their security, and what you can do to protect yourself regardless of which platform you use.</p>`,
+
+    sections: [
+      {
+        id: 'what-makes-safe',
+        heading: 'What Actually Makes a Crypto Exchange Safe?',
+        body: `<p>Safety for a crypto exchange comes down to four factors:</p>
+<ol>
+  <li><strong>Asset custody practices:</strong> How the exchange stores your crypto. The standard is cold wallet storage for the majority of user funds — hardware systems not connected to the internet that can't be remotely hacked. Exchanges that keep most funds in hot wallets (internet-connected) are significantly more vulnerable.</li>
+  <li><strong>Regulatory compliance and licensing:</strong> Exchanges regulated by credible authorities (FCA, MAS, VARA, SEC) face independent audits, capital requirements, and are held to conduct standards. Regulation doesn't guarantee safety, but it creates accountability that purely offshore exchanges lack.</li>
+  <li><strong>Transparent financial operations:</strong> Proof of Reserves publications, independent audits, and clear ownership structures. The FTX collapse happened partly because no independent verification of their financials was available until it was too late.</li>
+  <li><strong>Operational history and incident response:</strong> How the exchange has handled past security incidents. Bybit suffered a $1.5 billion security incident in 2025 and covered all losses from its own reserves — a meaningful demonstration of financial resilience. Exchanges that have been hacked and handled it responsibly can still be trusted.</li>
+</ol>`,
+      },
+      {
+        id: 'security-features',
+        heading: 'Five Security Features to Verify Before You Deposit',
+        body: `<ol>
+  <li><strong>Two-factor authentication (2FA) enforcement:</strong> Any reputable exchange requires 2FA for withdrawals and account changes. Use an authenticator app (Google Authenticator, Authy) rather than SMS — SIM swapping attacks are a real threat.</li>
+  <li><strong>Withdrawal address whitelisting:</strong> This feature locks your account so withdrawals can only go to pre-approved addresses. Even if someone gains access to your account, they cannot withdraw to a new address without going through a confirmation process that takes 24–48 hours — enough time to notice the breach and respond.</li>
+  <li><strong>Anti-phishing code:</strong> A custom code you set that appears in all official exchange emails. If you receive an email claiming to be from the exchange without your code, it's a phishing attempt.</li>
+  <li><strong>Cold wallet percentage:</strong> The best exchanges store 90–95%+ of user funds in cold wallets. This figure is rarely advertised but can sometimes be found in security policy documents or Proof of Reserves reports.</li>
+  <li><strong>Insurance fund (SAFU):</strong> Some exchanges maintain a reserve fund specifically to cover user losses from security incidents. Bybit's SAFU and Binance's SAFU are examples. These provide a layer of protection even if the exchange is breached.</li>
+</ol>`,
+      },
+      {
+        id: 'proof-of-reserves',
+        heading: 'What Is Proof of Reserves and How to Verify It',
+        body: `<p>Proof of Reserves (PoR) is a cryptographic attestation that an exchange holds the assets it claims to hold on behalf of users. It was popularised after the FTX collapse, when it became clear that the exchange had been using customer funds for other purposes.</p>
+<p><strong>How it works:</strong> The exchange takes a snapshot of all user balances, creates a cryptographic hash tree (Merkle tree), and publishes the root hash. A third-party auditor verifies that the exchange's on-chain wallet holdings match or exceed the total user balances shown in the tree. Individual users can verify their specific balance is included in the proof.</p>
+<p><strong>Which exchanges publish regular Proof of Reserves:</strong></p>
+<ul>
+  <li><a href="/exchanges/bybit/">Bybit</a> — Monthly PoR reports published publicly</li>
+  <li><a href="/exchanges/binance/">Binance</a> — Regular PoR with third-party auditor</li>
+  <li><a href="/exchanges/okx/">OKX</a> — Monthly PoR reports with individual verification</li>
+  <li><a href="/exchanges/kucoin/">KuCoin</a> — PoR published</li>
+</ul>
+<p><strong>Limitation of PoR:</strong> It proves assets exist but doesn't prove there are no corresponding liabilities (debts, loans using customer funds as collateral). A more complete picture requires a full audit, which very few exchanges provide.</p>`,
+      },
+      {
+        id: 'safety-assessment',
+        heading: 'Safety Assessment: Our View on Major Platforms',
+        body: `<p>Based on regulatory status, operational history, security practices, and transparency:</p>
+<table class="guide-table">
+  <thead><tr><th>Exchange</th><th>Key Safety Indicators</th><th>Notable Points</th></tr></thead>
+  <tbody>
+    <tr><td><a href="/exchanges/coinbase/">Coinbase</a></td><td>SEC-regulated, publicly listed, FDIC-insured USD balances</td><td>The most regulated major exchange. Most conservative option, especially for US users. Higher fees are the trade-off.</td></tr>
+    <tr><td><a href="/exchanges/bybit/">Bybit</a></td><td>VARA (Dubai) licensed, $5B+ SAFU fund, monthly PoR</td><td>Demonstrated financial resilience by covering the 2025 security incident in full. Strong operational track record.</td></tr>
+    <tr><td><a href="/exchanges/binance/">Binance</a></td><td>Regulated in multiple jurisdictions, large SAFU fund, monthly PoR</td><td>World's largest exchange. History of regulatory friction (2023 US settlement), but global operations remain robust. PoR transparency is good.</td></tr>
+    <tr><td><a href="/exchanges/okx/">OKX</a></td><td>Monthly PoR, Seychelles-headquartered, multiple licences</td><td>Strong PoR publication standard. Recovered well from the OKEx withdrawal freeze in 2020.</td></tr>
+    <tr><td><a href="/exchanges/mexc/">MEXC</a></td><td>Seychelles-based, no major incidents, PoR available</td><td>Good operational history. Fewer regulatory certifications than top tier — acceptable risk for lower-value trading accounts.</td></tr>
+  </tbody>
+</table>
+<p><em>This reflects our editorial assessment as of May 2026. Security situations change — ongoing due diligence is warranted for large holdings.</em></p>`,
+      },
+      {
+        id: 'if-hacked',
+        heading: 'What Happens if an Exchange Gets Hacked?',
+        body: `<p>Exchange hacks are a reality of the industry. The outcome for users depends entirely on whether the exchange has the financial resources and the willingness to cover losses.</p>
+<p><strong>Best-case scenario (full coverage):</strong> Bybit's $1.5 billion hack in February 2025 was the largest in crypto history at the time. Bybit covered all affected user balances from its own reserves within 24 hours. No user lost funds. This is the gold standard response.</p>
+<p><strong>Partial recovery:</strong> The Bitfinex hack in 2016 ($72 million in BTC stolen) socialised losses across all users (everyone's balance was cut 36%) and compensated over time through a token system. Most users were eventually made whole, but it took years.</p>
+<p><strong>No recovery:</strong> Mt. Gox (2014, $450M), QuadrigaCX (2019, ~$190M), and FTX (2022, $8B+) resulted in years of legal proceedings with only partial user recovery at best.</p>
+<p>The lesson: exchange hacks happen, but the financial resilience and corporate ethics of the platform determine whether you lose money. Stick to exchanges with demonstrably large reserves and a track record of treating user assets as their primary obligation.</p>`,
+      },
+      {
+        id: 'self-custody',
+        heading: 'How to Protect Yourself Regardless of Exchange',
+        body: `<p>Even on the safest exchange, there are practical steps you should take to minimise your risk:</p>
+<ul>
+  <li><strong>Enable 2FA with an authenticator app</strong> (not SMS). Google Authenticator or Authy. Enable it immediately after registration.</li>
+  <li><strong>Set up withdrawal address whitelisting.</strong> Add your personal wallet addresses as whitelisted destinations. This prevents hackers from sending funds to unknown addresses even with account access.</li>
+  <li><strong>Set an anti-phishing code.</strong> Available on Bybit, Binance, OKX. Every legitimate email from the exchange includes this code — anything without it is fake.</li>
+  <li><strong>Don't keep more on an exchange than you're actively trading.</strong> Funds you're not actively using belong in a personal wallet (hardware wallet for large amounts, software wallet for smaller). The principle: if it's not on the exchange, it can't be taken from the exchange.</li>
+  <li><strong>Use a dedicated email address</strong> for each major exchange. This reduces the attack surface from phishing and credential stuffing attacks.</li>
+</ul>`,
+      },
+      {
+        id: 'red-flags',
+        heading: 'Red Flags: Signs of an Unsafe Exchange',
+        body: `<p>Avoid exchanges that show any of these warning signs:</p>
+<ul>
+  <li><strong>No regulatory licence in any major jurisdiction</strong> and no clear corporate entity</li>
+  <li><strong>Anonymous founding team</strong> with no verifiable real-world identities</li>
+  <li><strong>Unrealistic yield promises</strong> (guaranteed 10–20% monthly returns on staking, high-yield products, "trading bots")</li>
+  <li><strong>No Proof of Reserves</strong> and refusal to publish financial transparency</li>
+  <li><strong>Withdrawal difficulties</strong> — users in forums reporting they can't get funds out</li>
+  <li><strong>Very new platform with very large bonuses</strong> that seem designed to attract deposits quickly</li>
+  <li><strong>No verifiable office address</strong> or customer support that only communicates via Telegram</li>
+</ul>`,
+      },
+    ],
+
+    faq: [
+      {
+        question: 'Which crypto exchange has the best security track record?',
+        answer: 'Coinbase has the strongest regulatory compliance record (US-listed, SEC-regulated). Among global exchanges, Bybit demonstrated exceptional financial resilience by covering the full $1.5B hack in 2025 with no user losses. Binance has a large SAFU fund and strong PoR publication. For most users, choosing any of Coinbase, Bybit, Binance, or OKX provides a reasonable level of security.',
+      },
+      {
+        question: 'Is it safe to keep crypto on Bybit long-term?',
+        answer: 'Bybit has a strong safety record, VARA regulatory licence, and demonstrated its commitment to users during the 2025 hack. For amounts you\'re actively trading, keeping funds on Bybit is reasonable. For long-term holdings you won\'t trade for months, a hardware wallet provides better security — not because Bybit is unsafe, but because self-custody eliminates exchange risk entirely.',
+      },
+      {
+        question: 'What is a SAFU fund?',
+        answer: 'SAFU stands for Secure Asset Fund for Users. It\'s an emergency reserve that exchanges set aside to cover user losses in the event of a security incident. Binance established the concept in 2018 by allocating 10% of trading fees to the fund. Bybit, OKX, and other major exchanges maintain similar emergency reserves. The existence of a meaningful SAFU fund is a positive safety indicator.',
+      },
+      {
+        question: 'Should I use a hardware wallet instead of an exchange?',
+        answer: 'For large holdings you don\'t need to trade actively, yes — a hardware wallet (Ledger, Trezor) provides better security than any exchange. Your private keys are stored offline and can\'t be accessed remotely. However, hardware wallets have their own risks (device loss, forgetting seed phrase) and are less convenient for active trading. The practical approach: keep trading funds on a reputable exchange, keep long-term holdings in cold storage.',
+      },
+    ],
+  },
+
+  /* ═══════════════════════════════════════════════════════════════════
+   * CRYPTO EXCHANGE FEES EXPLAINED
+   * ═══════════════════════════════════════════════════════════════════ */
+  'crypto-exchange-fees-explained': {
+    intro: `<p>Every crypto exchange charges fees — but most beginners only notice the headline trading fee. In reality, you'll encounter four distinct fee types, each working differently and with different strategies for minimising them.</p>
+<p>Understanding how each fee type works — and how exchanges structure their tier systems — is foundational knowledge for anyone trading more than casually. This guide explains everything clearly, with real numbers.</p>`,
+
+    sections: [
+      {
+        id: 'four-fee-types',
+        heading: 'The Four Types of Crypto Exchange Fees',
+        body: `<p>Before diving into the details, here's a quick overview of all fee types you'll encounter:</p>
+<ol>
+  <li><strong>Spot trading fees:</strong> Charged as a percentage of each trade you execute on the spot market. Typically 0.02–0.6% per trade depending on the exchange and your account tier.</li>
+  <li><strong>Futures trading fees:</strong> Similar to spot fees but usually lower (0.01–0.06%), plus an additional 8-hourly cost called a <em>funding rate</em> for holding perpetual contract positions.</li>
+  <li><strong>Withdrawal fees:</strong> Fixed fee charged when you move crypto off the exchange, set by the exchange and varying by cryptocurrency and blockchain network.</li>
+  <li><strong>Deposit fees:</strong> Most exchanges charge nothing for crypto deposits. Fiat deposits via bank transfer are typically free; card deposits carry processing fees of 1.5–3.5%.</li>
+</ol>
+<p>There's a fifth implicit cost many traders miss: <strong>spread</strong> — the difference between the buy price and sell price in the order book. On highly liquid pairs (BTC/USDT, ETH/USDT), spread is negligible. On low-volume altcoin pairs, it can be 0.5–2% per round-trip trade.</p>`,
+      },
+      {
+        id: 'maker-taker',
+        heading: 'Maker vs Taker Fees: The Most Important Distinction',
+        body: `<p>Every exchange with a limit order book distinguishes between maker and taker trades:</p>
+<ul>
+  <li><strong>Maker orders</strong> add liquidity to the order book. You place a limit order at a price that doesn't immediately match an existing order — your order sits in the book and waits. Because you're providing liquidity that other traders can use, exchanges reward this with lower fees.</li>
+  <li><strong>Taker orders</strong> remove liquidity from the order book. A market order always takes liquidity. A limit order that immediately matches an existing order (placed at or beyond the current market price) also counts as a taker. You pay more because you're consuming existing liquidity.</li>
+</ul>
+<p>In practical terms:</p>
+<ul>
+  <li>A <strong>buy market order</strong> = taker fee</li>
+  <li>A <strong>sell market order</strong> = taker fee</li>
+  <li>A <strong>buy limit order below the current ask</strong> = maker fee (if it doesn't fill immediately)</li>
+  <li>A <strong>buy limit order at or above the current ask</strong> = taker fee (fills immediately, removing liquidity)</li>
+</ul>
+<p>For futures trading, the difference is particularly significant. On Bybit, maker is 0.02% and taker is 0.055% — that's 2.75× more expensive. An active futures trader who consistently uses limit orders instead of market orders can cut their trading costs by more than half.</p>`,
+      },
+      {
+        id: 'withdrawal-fees',
+        heading: 'Withdrawal Fees: Why They Vary So Much',
+        body: `<p>Withdrawal fees are charged per withdrawal and vary by cryptocurrency and network. The exchange doesn't pocket most of this fee — a significant portion covers the blockchain network fee that the exchange must pay to broadcast your transaction.</p>
+<p>The most dramatic example is USDT:</p>
+<table class="guide-table">
+  <thead><tr><th>Network</th><th>Typical Withdrawal Fee</th><th>Transfer Time</th></tr></thead>
+  <tbody>
+    <tr><td>TRC-20 (Tron)</td><td>~1 USDT</td><td>1–3 minutes</td></tr>
+    <tr><td>BEP-20 (BNB Chain)</td><td>~0.5 USDT</td><td>1–2 minutes</td></tr>
+    <tr><td>ERC-20 (Ethereum)</td><td>$3–20+ (variable)</td><td>5–20 minutes</td></tr>
+    <tr><td>Solana SPL</td><td>&lt;$0.01</td><td>Under 1 minute</td></tr>
+  </tbody>
+</table>
+<p>The practical implication: always use TRC-20 for USDT withdrawals when supported, unless you specifically need funds on the Ethereum network. Using ERC-20 when TRC-20 is available wastes $3–19 per withdrawal for no benefit.</p>
+<p>Some exchanges charge a markup above actual network costs — this is part of their business model. On high-volume networks like Ethereum, the actual cost to the exchange fluctuates with gas prices; the exchange typically charges a fixed fee regardless, which may be above or below the actual network cost at any given time.</p>`,
+      },
+      {
+        id: 'futures-fees',
+        heading: 'Futures Fees and Funding Rates',
+        body: `<p>Perpetual futures contracts — the most popular product on crypto derivatives exchanges — have two fee components:</p>
+<p><strong>1. Trading fee:</strong> Same maker/taker structure as spot, but lower rates. Bybit charges 0.02% maker / 0.055% taker on USDT-margined perpetuals. This is charged only when you open or close a position.</p>
+<p><strong>2. Funding rate:</strong> Unique to perpetual contracts. This is a payment made every 8 hours between long position holders and short position holders, calibrated to keep the perpetual contract price close to the spot price.</p>
+<ul>
+  <li>When the market is bullish (more longs than shorts), longs pay shorts. This is the most common scenario in crypto bull markets.</li>
+  <li>When the market is bearish (more shorts than longs), shorts pay longs.</li>
+  <li>Typical funding rate: 0.01% every 8 hours = 0.03%/day = ~11% annualised at flat rates. During highly bullish periods, rates spike to 0.1%+ per 8 hours.</li>
+</ul>
+<div class="guide-callout guide-callout--warn"><strong>Funding rate warning:</strong> If you hold a leveraged long position during a sustained bull market, funding payments accumulate continuously. At 0.05% per 8 hours (a moderate bullish rate), holding $10,000 long for 7 days costs $105 in funding alone, regardless of whether the price moves. Factor this into any position-holding strategy.</div>`,
+      },
+      {
+        id: 'fee-tiers',
+        heading: 'VIP Tiers and How to Reduce Your Fees',
+        body: `<p>All major exchanges use tiered fee structures where higher trading volume unlocks lower rates. Tier upgrades are based on your 30-day rolling trading volume:</p>
+<table class="guide-table">
+  <thead><tr><th>Exchange</th><th>Standard Tier</th><th>VIP 1 Threshold</th><th>VIP 1 Spot Taker</th></tr></thead>
+  <tbody>
+    <tr><td>Bybit</td><td>0.1%</td><td>$1M/month</td><td>0.085%</td></tr>
+    <tr><td>Binance</td><td>0.1%</td><td>50 BNB + $1M vol</td><td>0.09% (with BNB)</td></tr>
+    <tr><td>OKX</td><td>0.1%</td><td>$1M/month</td><td>0.08%</td></tr>
+    <tr><td>MEXC</td><td>0% (promo)</td><td>N/A (promotional)</td><td>—</td></tr>
+  </tbody>
+</table>
+<p><strong>Native token discounts</strong> offer fee reductions without hitting volume thresholds:</p>
+<ul>
+  <li><strong>Binance BNB:</strong> 25% discount when paying fees in BNB</li>
+  <li><strong>OKX OKB:</strong> Various discounts based on OKB held</li>
+  <li><strong>KuCoin KCS:</strong> 20% discount with sufficient KCS holding</li>
+  <li><strong>MEXC MX token:</strong> Discounts on futures fees</li>
+</ul>`,
+      },
+      {
+        id: 'fee-comparison-table',
+        heading: 'Fee Comparison: Major Exchanges (2026)',
+        body: `<table class="guide-table">
+  <thead><tr><th>Exchange</th><th>Spot Maker</th><th>Spot Taker</th><th>Futures Maker</th><th>Futures Taker</th><th>USDT Withdrawal (TRC-20)</th></tr></thead>
+  <tbody>
+    <tr><td><a href="/exchanges/mexc/">MEXC</a></td><td>0%</td><td>0%</td><td>0%</td><td>0.01%</td><td>~1 USDT</td></tr>
+    <tr><td><a href="/exchanges/bybit/">Bybit</a></td><td>0.1%</td><td>0.1%</td><td>0.02%</td><td>0.055%</td><td>1 USDT</td></tr>
+    <tr><td><a href="/exchanges/binance/">Binance</a></td><td>0.1%</td><td>0.1%</td><td>0.02%</td><td>0.05%</td><td>1 USDT</td></tr>
+    <tr><td><a href="/exchanges/okx/">OKX</a></td><td>0.08%</td><td>0.1%</td><td>0.02%</td><td>0.05%</td><td>1 USDT</td></tr>
+    <tr><td><a href="/exchanges/bitget/">Bitget</a></td><td>0.1%</td><td>0.1%</td><td>0.02%</td><td>0.06%</td><td>1 USDT</td></tr>
+    <tr><td><a href="/exchanges/coinbase/">Coinbase</a></td><td>0.4%</td><td>0.6%</td><td>N/A</td><td>N/A</td><td>Varies</td></tr>
+  </tbody>
+</table>
+<p><em>Rates reflect standard non-VIP accounts. MEXC's 0% rate is a promotional offer subject to change. Verify current rates on each exchange's official fee page before making trading decisions.</em></p>`,
+      },
+      {
+        id: 'calculating-costs',
+        heading: 'How to Calculate Your True Trading Cost',
+        body: `<p>The complete cost of a round-trip trade (open + close) is:</p>
+<pre><code>Total cost = (Entry fee + Exit fee) + Withdrawal fee + Funding rate × holding period</code></pre>
+<p><strong>Example: $5,000 spot trade on Bybit</strong></p>
+<ul>
+  <li>Buy $5,000 of BTC at taker (market order): $5,000 × 0.1% = $5.00</li>
+  <li>Sell $5,000 of BTC at taker: $5,000 × 0.1% = $5.00</li>
+  <li>Total trading cost: $10.00</li>
+  <li>Withdraw USDT via TRC-20: $1.00</li>
+  <li><strong>Total round-trip cost: $11.00 (0.22% of position size)</strong></li>
+</ul>
+<p><strong>The same trade using limit orders (maker fees):</strong></p>
+<ul>
+  <li>Buy with limit order: $5.00</li>
+  <li>Sell with limit order: $5.00</li>
+  <li>Total: $11.00 — same, because Bybit spot maker = taker = 0.1%</li>
+</ul>
+<p><strong>On Bybit futures (0.02% maker / 0.055% taker):</strong></p>
+<ul>
+  <li>Open long at taker: $5,000 × 0.055% = $2.75</li>
+  <li>Close long at taker: $5,000 × 0.055% = $2.75</li>
+  <li>Futures total: $5.50 vs $10.00 for spot — nearly half the cost</li>
+</ul>`,
+      },
+    ],
+
+    faq: [
+      {
+        question: 'What is the difference between maker and taker fees?',
+        answer: 'Maker fees apply when your order adds liquidity to the order book (limit orders that don\'t fill immediately). Taker fees apply when your order removes existing liquidity (market orders, or limit orders that fill immediately). Maker fees are always lower. On Bybit futures, the difference is 0.02% (maker) vs 0.055% (taker) — using limit orders instead of market orders saves 63% on futures trading costs.',
+      },
+      {
+        question: 'Which crypto exchange has the lowest fees?',
+        answer: 'For spot trading, MEXC currently offers 0% maker and taker fees as a promotional rate. For futures, Bybit and Binance are among the most competitive at 0.02% maker / 0.05-0.055% taker. Coinbase is notably expensive at 0.4-0.6% spot taker, making it the most expensive for active traders.',
+      },
+      {
+        question: 'What are crypto futures funding rates?',
+        answer: 'Funding rates are periodic payments (every 8 hours on most exchanges) between long and short position holders in perpetual futures contracts. When there are more longs than shorts (bullish market), longs pay shorts. The rate is typically 0.01% per 8 hours but can spike during volatile markets. Holding positions for extended periods in trending markets can result in significant funding costs that eat into profits.',
+      },
+      {
+        question: 'Can I reduce my fees by holding exchange native tokens?',
+        answer: 'Yes. Binance offers 25% off fees when paying with BNB. OKX and KuCoin offer similar programs. The saving is meaningful if you trade frequently on that specific platform. For example, a trader paying $200/month in Binance fees saves $50/month by holding enough BNB to pay fees. The value of holding the token for the discount depends on your trading volume.',
+      },
+    ],
+  },
+
+  /* ═══════════════════════════════════════════════════════════════════
+   * HOW TO USE BINANCE P2P
+   * ═══════════════════════════════════════════════════════════════════ */
+  'how-to-use-binance-p2p': {
+    intro: `<p>Binance P2P is one of the most widely used peer-to-peer crypto marketplaces in the world, with active markets in over 100 fiat currencies. It lets you buy and sell crypto directly with other users using local payment methods — bank transfer, mobile wallets, cash apps, and more — without Binance acting as a financial intermediary.</p>
+<p>This guide explains how Binance P2P works, how to complete a trade safely, how the escrow system protects you, and how to spot and avoid the most common scam attempts.</p>`,
+
+    sections: [
+      {
+        id: 'what-is-binance-p2p',
+        heading: 'What Is Binance P2P and How Does It Work?',
+        body: `<p>Binance P2P is a marketplace within the Binance platform where users buy and sell cryptocurrency directly with each other. Unlike the regular Binance exchange where Binance is the counterparty to every trade, P2P trades are between individual users. Binance's role is to operate the marketplace, enforce the escrow system, and mediate disputes.</p>
+<p><strong>How a typical P2P trade works:</strong></p>
+<ol>
+  <li>A seller (maker) lists their crypto at a chosen price with their preferred payment methods</li>
+  <li>A buyer (taker) finds the listing and places an order</li>
+  <li>Binance's escrow system locks the seller's crypto immediately — the seller cannot move it</li>
+  <li>The buyer sends the fiat payment directly to the seller using the agreed method</li>
+  <li>The buyer marks payment as sent</li>
+  <li>The seller verifies receipt of payment and confirms — Binance releases the escrow crypto to the buyer</li>
+</ol>
+<p><strong>What Binance charges:</strong> 0% platform fee for standard trades. Binance earns indirectly through the trading activity that P2P brings to the platform. The only cost to you is the spread built into the merchant's price versus market rate — typically 0.5–2% above spot price.</p>`,
+      },
+      {
+        id: 'escrow-explained',
+        heading: 'How the Escrow System Protects Both Parties',
+        body: `<p>The escrow system is the core safety mechanism of Binance P2P. Here's exactly how it works:</p>
+<ul>
+  <li><strong>When a buyer places an order:</strong> Binance immediately locks the seller's crypto in escrow. The seller cannot withdraw, transfer, or cancel once the escrow is active (without agreement from the buyer or a dispute resolution).</li>
+  <li><strong>While payment is in progress:</strong> The buyer has a set time window (typically 15–60 minutes depending on the listing) to send the fiat payment. If time expires without payment sent, the order cancels automatically and the escrow is released back to the seller.</li>
+  <li><strong>After buyer confirms payment sent:</strong> The seller receives notification to check their payment account. The seller must verify the payment before releasing.</li>
+  <li><strong>If there's a dispute:</strong> Either party can raise a dispute. Binance customer service reviews the evidence (payment receipts, screenshots, chat logs) and decides. This process takes 1–7 days typically.</li>
+</ul>
+<div class="guide-callout guide-callout--warn"><strong>Critical safety rule:</strong> Never release the escrow (never click "Release" or "Confirm Release") before you have independently verified the payment in your bank account or wallet. Screenshots can be faked. Check your account directly.</div>`,
+      },
+      {
+        id: 'how-to-buy',
+        heading: 'How to Buy Crypto on Binance P2P: Step by Step',
+        body: `<ol class="guide-steps">
+  <li><span class="guide-step-num">1</span><div><strong>Navigate to Binance P2P</strong><p>In the Binance app or website, go to <em>Trade → P2P Trading</em> (or search "P2P" in the navigation). You'll see the P2P marketplace.</p></div></li>
+  <li><span class="guide-step-num">2</span><div><strong>Select the cryptocurrency and your currency</strong><p>Choose the crypto you want to buy (USDT is the most liquid) and your local fiat currency (e.g., NGN, INR, TRY, ARS). Set to "Buy" mode.</p></div></li>
+  <li><span class="guide-step-num">3</span><div><strong>Filter by payment method</strong><p>Select your preferred payment method (bank transfer, specific bank, mobile wallet). The listing will narrow to merchants who accept that method.</p></div></li>
+  <li><span class="guide-step-num">4</span><div><strong>Select a merchant and check their stats</strong><p>Look for merchants with high order count (500+), high completion rate (above 95%), and positive feedback. Verified merchant badge adds additional trust.</p></div></li>
+  <li><span class="guide-step-num">5</span><div><strong>Enter your purchase amount</strong><p>Type the amount of fiat you want to spend. The system shows you how much crypto you'll receive at the merchant's rate.</p></div></li>
+  <li><span class="guide-step-num">6</span><div><strong>Place the order and complete payment</strong><p>Click Buy. Escrow is immediately activated. The merchant's payment details appear (bank account number, mobile wallet, etc.). Transfer the exact fiat amount immediately — don't wait.</p></div></li>
+  <li><span class="guide-step-num">7</span><div><strong>Mark payment as sent and wait for release</strong><p>After sending, click "Transfer, next". Upload payment proof if prompted. The merchant verifies and releases — this typically takes 5–30 minutes. The crypto appears in your spot wallet.</p></div></li>
+</ol>`,
+      },
+      {
+        id: 'how-to-sell',
+        heading: 'How to Sell Crypto on Binance P2P: Step by Step',
+        body: `<p>Selling on Binance P2P is the reverse process — you're the one sending the crypto (which goes into escrow) and receiving fiat payment:</p>
+<ol class="guide-steps">
+  <li><span class="guide-step-num">1</span><div><strong>Set to "Sell" mode on the P2P marketplace</strong><p>Navigate to P2P and switch to "Sell". Select your crypto and fiat currency.</p></div></li>
+  <li><span class="guide-step-num">2</span><div><strong>Choose a buy offer or create your own listing</strong><p>You can either sell to an existing buy order (immediate) or post your own sell advertisement to wait for buyers at your preferred price.</p></div></li>
+  <li><span class="guide-step-num">3</span><div><strong>Confirm the order and your payment details</strong><p>Once a buyer places an order against your listing, provide your payment details (your bank account number, mobile wallet handle, etc.).</p></div></li>
+  <li><span class="guide-step-num">4</span><div><strong>Wait for buyer to send payment</strong><p>The buyer has a limited time window to send payment. Do not release crypto until payment arrives.</p></div></li>
+  <li><span class="guide-step-num">5</span><div><strong>Verify payment receipt independently</strong><p>Check your actual bank account or wallet — not just the screenshot the buyer provides. Confirm the correct amount from the correct source.</p></div></li>
+  <li><span class="guide-step-num">6</span><div><strong>Release the escrow</strong><p>Once you've confirmed payment in your account, click "Release" to transfer the crypto to the buyer. The transaction is complete.</p></div></li>
+</ol>`,
+      },
+      {
+        id: 'p2p-fees',
+        heading: 'Binance P2P Fees Explained',
+        body: `<p>Binance charges <strong>0% platform fee</strong> for P2P trades. This is one of the main reasons for Binance P2P's popularity — you don't pay a percentage of each transaction to the platform.</p>
+<p><strong>Where the cost actually is:</strong> Merchants build a spread into their advertised price. A merchant buying USDT/NGN at market rate of 1,580 NGN per USDT might advertise at 1,595 NGN — a 0.95% implicit spread. This is the merchant's profit margin and your effective cost.</p>
+<p>To find competitive prices: compare multiple merchants' rates. Rates vary by payment method and time of day. High-demand payment methods (certain popular banks) sometimes attract tighter spreads due to more competition among merchants.</p>
+<p><strong>For ad posters (advanced users):</strong> Creating your own buy/sell advertisement is free. If you post at a competitive price and wait for counterparties, you can effectively trade at zero spread — but you have to wait for matches.</p>`,
+      },
+      {
+        id: 'choosing-merchant',
+        heading: 'How to Choose a Reliable Merchant',
+        body: `<p>Merchant selection is the most important factor in a smooth P2P experience. Use these criteria:</p>
+<table class="guide-table">
+  <thead><tr><th>Indicator</th><th>What to Look For</th><th>Why It Matters</th></tr></thead>
+  <tbody>
+    <tr><td>Total orders</td><td>500+ orders completed</td><td>Experience with the P2P process; less likely to be a new scam account</td></tr>
+    <tr><td>Completion rate</td><td>95%+ (ideally 98%+)</td><td>Low completion rate means frequent cancellations — wastes your time</td></tr>
+    <tr><td>Response time</td><td>Under 5 minutes shown</td><td>A slow merchant delays your trade and sometimes allows the window to expire</td></tr>
+    <tr><td>User reviews</td><td>Read recent negative reviews</td><td>Negative review patterns reveal problems — occasional is normal, patterns are red flags</td></tr>
+    <tr><td>Verified merchant badge</td><td>Blue checkmark</td><td>Binance has verified their identity and they've met volume/performance thresholds</td></tr>
+    <tr><td>Online status</td><td>Currently online</td><td>Means they're available to confirm quickly</td></tr>
+  </tbody>
+</table>
+<p>New accounts with very few orders and high volume limits should be approached with extra caution — they haven't established a track record.</p>`,
+      },
+      {
+        id: 'p2p-safety',
+        heading: 'Safety Practices That Prevent the Most Common Scams',
+        body: `<p>P2P trading has specific scam patterns you need to know. These are the most common:</p>
+<ul>
+  <li><strong>Fake payment screenshots:</strong> A buyer sends a screenshot claiming to have paid, but the payment never arrived. <strong>Prevention: Never release until you see the funds in your account — not a screenshot.</strong></li>
+  <li><strong>"I'll pay more" chargeback fraud:</strong> A buyer pays via a reversible method (credit card, PayPal) and later files a chargeback after receiving crypto. <strong>Prevention: Only accept irreversible payment methods for crypto sales — bank transfers, local bank apps, mobile wallets that don't allow chargebacks in your region.</strong></li>
+  <li><strong>Third-party payment scams:</strong> Payment comes from a different bank account than the buyer's name. This is a red flag — the funds may be from fraud elsewhere. Binance's policy requires merchant name to match buyer identity. <strong>Prevention: Refuse and report any payment that doesn't match the buyer's verified name.</strong></li>
+  <li><strong>Pressure to use external communication:</strong> Someone asks you to continue the trade via WhatsApp, Telegram, or email outside Binance. <strong>Prevention: Never conduct P2P trades outside the Binance platform. All communication must stay in Binance chat for dispute eligibility.</strong></li>
+</ul>`,
+      },
+      {
+        id: 'alternatives',
+        heading: 'Binance P2P Alternatives Worth Considering',
+        body: `<p>Binance P2P is the largest P2P marketplace by volume, but competing platforms are worth knowing:</p>
+<table class="guide-table">
+  <thead><tr><th>Platform</th><th>Platform Fee</th><th>Strength</th><th>Best For</th></tr></thead>
+  <tbody>
+    <tr><td><a href="/exchanges/bybit/">Bybit P2P</a></td><td>0%</td><td>Strong USDT liquidity, good bonus offer</td><td>Users also wanting a futures bonus</td></tr>
+    <tr><td><a href="/exchanges/okx/">OKX P2P</a></td><td>0%</td><td>High liquidity in Asia/Middle East</td><td>Users in UAE, Turkey, South Korea</td></tr>
+    <tr><td><a href="/exchanges/mexc/">MEXC P2P</a></td><td>0%</td><td>Strong NGN and African currency liquidity</td><td>Nigerian users, East African markets</td></tr>
+    <tr><td><a href="/exchanges/htx/">HTX P2P</a></td><td>0%</td><td>Russian, CIS currency support</td><td>Eastern European and CIS users</td></tr>
+  </tbody>
+</table>
+<p>For most users, Binance P2P is the default choice due to liquidity depth. Try Bybit P2P if you're also interested in their exchange bonus, or MEXC for NGN/KES/GHS market trades.</p>`,
+      },
+    ],
+
+    faq: [
+      {
+        question: 'Is Binance P2P safe for beginners?',
+        answer: 'Yes, with care. The escrow system provides strong protection for buyers. As a buyer, the most important rule is: never release funds (if you\'re a seller) or confirm trade completion until you independently verify payment. Read the merchant\'s reviews and choose established merchants (500+ orders, 97%+ completion rate). Binance\'s dispute resolution system is reliable if something goes wrong.',
+      },
+      {
+        question: 'What are the fees for Binance P2P?',
+        answer: 'Binance charges 0% platform fee for P2P trades. The only cost is the spread that merchants build into their price — typically 0.5–2% above market rate depending on currency, payment method, and market conditions. Creating your own buy/sell advertisements allows you to set your own rate and wait for matches.',
+      },
+      {
+        question: 'How long does a Binance P2P trade take?',
+        answer: 'A standard P2P trade takes 10–60 minutes from order placement to crypto receipt, depending on the payment method and merchant response time. Bank transfers can take 1–10 minutes for the fiat to reflect. Instant payment apps (UPI in India, PIX in Brazil, Instapay) are faster. The merchant then typically releases within 5–15 minutes of confirming payment.',
+      },
+      {
+        question: 'What payment methods does Binance P2P support?',
+        answer: 'Binance P2P supports hundreds of payment methods across 100+ currencies. Common methods include: bank transfer, IMPS/UPI (India), PIX (Brazil), Alipay/WeChat Pay (China), PayPal (limited), Wise, and local bank apps in most countries. The available methods depend on your region and the merchants active in your currency pair.',
+      },
+      {
+        question: 'What should I do if a Binance P2P trade goes wrong?',
+        answer: 'If a seller doesn\'t release after you\'ve paid, click "Appeal" within the order interface. Do this before the order timer expires. Upload your payment proof (bank statement screenshot, transaction receipt). Binance customer support reviews the evidence, typically within 1–3 days. Keep all communication within Binance chat — off-platform conversations are not accepted as evidence in disputes.',
+      },
+    ],
+  },
+
 };
 
 export default guides;
