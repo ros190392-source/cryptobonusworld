@@ -165,7 +165,15 @@
     "offerConfidenceScore": 72,
     "realisticUserExpectation": "Most users earn 200–600 USDT completing deposit + trading tasks; 30,000 USDT max requires very high trading volume over 30 days",
     "verificationLastChecked": "2026-05-25",
-    "bonusConditionSummary": "Complete KYC + deposit + trading volume tasks within 30 days"
+    "bonusConditionSummary": "Complete KYC + deposit + trading volume tasks within 30 days",
+    "spotMakerFee": 0.1,
+    "spotTakerFee": 0.1,
+    "futuresMakerFee": 0.01,
+    "futuresTakerFee": 0.06,
+    "p2pAvailable": true,
+    "maxFuturesLeverage": 100,
+    "proofOfReserves": true,
+    "tradingPairsCount": 1600
   },
   {
     "name": "MEXC",
@@ -318,7 +326,15 @@
     "offerConfidenceScore": 84,
     "realisticUserExpectation": "Typical reward is 30–150 USDT; accessible without KYC for standard tiers; tasks are straightforward",
     "verificationLastChecked": "2026-05-25",
-    "bonusConditionSummary": "Register + complete trading tasks; most tiers available without KYC"
+    "bonusConditionSummary": "Register + complete trading tasks; most tiers available without KYC",
+    "spotMakerFee": 0,
+    "spotTakerFee": 0.2,
+    "futuresMakerFee": 0,
+    "futuresTakerFee": 0.01,
+    "p2pAvailable": true,
+    "maxFuturesLeverage": 200,
+    "proofOfReserves": false,
+    "tradingPairsCount": 1500
   },
   {
     "name": "OKX",
@@ -479,7 +495,15 @@
     "offerConfidenceScore": 68,
     "realisticUserExpectation": "Mystery box value varies; typical users receive 50–300 USDT equivalent; value depends on active campaigns",
     "verificationLastChecked": "2026-05-25",
-    "bonusConditionSummary": "Deposit required; mystery box rewards vary by campaign; check official site for current offer"
+    "bonusConditionSummary": "Deposit required; mystery box rewards vary by campaign; check official site for current offer",
+    "spotMakerFee": 0.08,
+    "spotTakerFee": 0.1,
+    "futuresMakerFee": 0.02,
+    "futuresTakerFee": 0.05,
+    "p2pAvailable": true,
+    "maxFuturesLeverage": 100,
+    "proofOfReserves": true,
+    "tradingPairsCount": 600
   },
   {
     "name": "Bitget",
@@ -634,7 +658,15 @@
     "offerConfidenceScore": 74,
     "realisticUserExpectation": "Typical new user earns 100–400 USDT completing KYC, deposit and futures trial tasks",
     "verificationLastChecked": "2026-05-25",
-    "bonusConditionSummary": "Complete KYC + deposit + futures trading task within 30 days"
+    "bonusConditionSummary": "Complete KYC + deposit + futures trading task within 30 days",
+    "spotMakerFee": 0.1,
+    "spotTakerFee": 0.1,
+    "futuresMakerFee": 0.02,
+    "futuresTakerFee": 0.06,
+    "p2pAvailable": false,
+    "maxFuturesLeverage": 125,
+    "proofOfReserves": true,
+    "tradingPairsCount": 800
   },
   {
     "name": "BingX",
@@ -785,7 +817,15 @@
     "offerConfidenceScore": 74,
     "realisticUserExpectation": "Most users earn 50–250 USDT through deposit bonuses and copy-trading trial rewards",
     "verificationLastChecked": "2026-05-25",
-    "bonusConditionSummary": "Deposit + enable copy-trading or complete trading volume tasks"
+    "bonusConditionSummary": "Deposit + enable copy-trading or complete trading volume tasks",
+    "spotMakerFee": 0.1,
+    "spotTakerFee": 0.1,
+    "futuresMakerFee": 0.02,
+    "futuresTakerFee": 0.05,
+    "p2pAvailable": false,
+    "maxFuturesLeverage": 150,
+    "proofOfReserves": false,
+    "tradingPairsCount": 500
   },
   {
     "name": "Gate.io",
@@ -939,7 +979,15 @@
     "offerConfidenceScore": 75,
     "realisticUserExpectation": "Typical welcome reward is 50–200 USDT; accessible through standard deposit and spot trading",
     "verificationLastChecked": "2026-05-25",
-    "bonusConditionSummary": "Complete KYC + deposit + spot or futures trading task"
+    "bonusConditionSummary": "Complete KYC + deposit + spot or futures trading task",
+    "spotMakerFee": 0.2,
+    "spotTakerFee": 0.2,
+    "futuresMakerFee": 0.015,
+    "futuresTakerFee": 0.05,
+    "p2pAvailable": true,
+    "maxFuturesLeverage": 100,
+    "proofOfReserves": true,
+    "tradingPairsCount": 2000
   },
   {
     "name": "KuCoin",
@@ -1092,7 +1140,15 @@
     "offerConfidenceScore": 82,
     "realisticUserExpectation": "Typical no-KYC users earn 20–100 USDT; straightforward deposit tasks with no identity verification required",
     "verificationLastChecked": "2026-05-25",
-    "bonusConditionSummary": "Deposit + trade; no KYC required for lower tiers; higher tiers require identity verification"
+    "bonusConditionSummary": "Deposit + trade; no KYC required for lower tiers; higher tiers require identity verification",
+    "spotMakerFee": 0.1,
+    "spotTakerFee": 0.1,
+    "futuresMakerFee": 0.02,
+    "futuresTakerFee": 0.06,
+    "p2pAvailable": true,
+    "maxFuturesLeverage": 100,
+    "proofOfReserves": true,
+    "tradingPairsCount": 700
   },
   {
     "name": "HTX",
@@ -1245,7 +1301,15 @@
     "offerConfidenceScore": 74,
     "realisticUserExpectation": "Most users earn 50–200 USDT through deposit and spot trading tasks; campaign availability varies by region",
     "verificationLastChecked": "2026-05-25",
-    "bonusConditionSummary": "Deposit + complete trading tasks within campaign period"
+    "bonusConditionSummary": "Deposit + complete trading tasks within campaign period",
+    "spotMakerFee": 0.2,
+    "spotTakerFee": 0.2,
+    "futuresMakerFee": 0.02,
+    "futuresTakerFee": 0.05,
+    "p2pAvailable": true,
+    "maxFuturesLeverage": 100,
+    "proofOfReserves": false,
+    "tradingPairsCount": 600
   },
   {
     "name": "CoinEx",
@@ -1386,7 +1450,15 @@
     "offerConfidenceScore": 87,
     "realisticUserExpectation": "Signup bonus is genuinely no-condition; typical users receive 10–60 USDT automatically upon registration and first trade",
     "verificationLastChecked": "2026-05-25",
-    "bonusConditionSummary": "Register + complete first trade; no deposit required for base reward"
+    "bonusConditionSummary": "Register + complete first trade; no deposit required for base reward",
+    "spotMakerFee": 0,
+    "spotTakerFee": 0.1,
+    "futuresMakerFee": 0.03,
+    "futuresTakerFee": 0.05,
+    "p2pAvailable": false,
+    "maxFuturesLeverage": 100,
+    "proofOfReserves": false,
+    "tradingPairsCount": 800
   },
   {
     "name": "Phemex",
@@ -1537,7 +1609,15 @@
     "offerConfidenceScore": 66,
     "realisticUserExpectation": "Bonus availability changes frequently; current campaigns typically offer 50–200 USDT; verify on official site before signing up",
     "verificationLastChecked": "2026-05-25",
-    "bonusConditionSummary": "Campaign-based; deposit + trading volume required; terms change regularly"
+    "bonusConditionSummary": "Campaign-based; deposit + trading volume required; terms change regularly",
+    "spotMakerFee": 0.1,
+    "spotTakerFee": 0.1,
+    "futuresMakerFee": 0.01,
+    "futuresTakerFee": 0.06,
+    "p2pAvailable": false,
+    "maxFuturesLeverage": 100,
+    "proofOfReserves": false,
+    "tradingPairsCount": 200
   },
   {
     "name": "Bitunix",
@@ -1684,7 +1764,15 @@
     "offerConfidenceScore": 78,
     "realisticUserExpectation": "Newer exchange; typical users earn 30–120 USDT through deposit and futures trading tasks; high-tier bonuses require significant volume",
     "verificationLastChecked": "2026-05-25",
-    "bonusConditionSummary": "Deposit + futures trading volume tasks; KYC required for higher tiers"
+    "bonusConditionSummary": "Deposit + futures trading volume tasks; KYC required for higher tiers",
+    "spotMakerFee": 0.1,
+    "spotTakerFee": 0.1,
+    "futuresMakerFee": 0.02,
+    "futuresTakerFee": 0.06,
+    "p2pAvailable": false,
+    "maxFuturesLeverage": 100,
+    "proofOfReserves": false,
+    "tradingPairsCount": 200
   },
   {
     "name": "LBank",
@@ -1835,7 +1923,15 @@
     "offerConfidenceScore": 68,
     "realisticUserExpectation": "Smaller exchange with campaign-based offers; typical current promotions offer 20–100 USDT; verify on official site",
     "verificationLastChecked": "2026-05-25",
-    "bonusConditionSummary": "Campaign-based; deposit + trading task; terms vary by active promotion"
+    "bonusConditionSummary": "Campaign-based; deposit + trading task; terms vary by active promotion",
+    "spotMakerFee": 0.1,
+    "spotTakerFee": 0.1,
+    "futuresMakerFee": 0.02,
+    "futuresTakerFee": 0.05,
+    "p2pAvailable": true,
+    "maxFuturesLeverage": 100,
+    "proofOfReserves": false,
+    "tradingPairsCount": 600
   },
   {
     "name": "Binance",
@@ -1986,7 +2082,15 @@
     "offerConfidenceScore": 88,
     "realisticUserExpectation": "100 USDT max is achievable with standard KYC + deposit; straightforward conditions, widely accessible",
     "verificationLastChecked": "2026-05-25",
-    "bonusConditionSummary": "Complete KYC + make first deposit; standard trading activity required"
+    "bonusConditionSummary": "Complete KYC + make first deposit; standard trading activity required",
+    "spotMakerFee": 0.1,
+    "spotTakerFee": 0.1,
+    "futuresMakerFee": 0.02,
+    "futuresTakerFee": 0.05,
+    "p2pAvailable": true,
+    "maxFuturesLeverage": 125,
+    "proofOfReserves": true,
+    "tradingPairsCount": 1400
   },
   {
     "name": "Coinbase",
@@ -2149,6 +2253,14 @@
     "offerConfidenceScore": 95,
     "realisticUserExpectation": "$10 in BTC is received reliably upon completing first trade; no gimmicks, no volume requirements",
     "verificationLastChecked": "2026-05-25",
-    "bonusConditionSummary": "Buy or sell $100+ of crypto; $10 BTC credited automatically"
+    "bonusConditionSummary": "Buy or sell $100+ of crypto; $10 BTC credited automatically",
+    "spotMakerFee": 0.4,
+    "spotTakerFee": 0.6,
+    "futuresMakerFee": 0,
+    "futuresTakerFee": 0.03,
+    "p2pAvailable": false,
+    "maxFuturesLeverage": 20,
+    "proofOfReserves": true,
+    "tradingPairsCount": 300
   }
 ]

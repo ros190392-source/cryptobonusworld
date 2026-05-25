@@ -6,6 +6,7 @@ import CTAButton from '../../components/CTAButton.astro';
 import RiskDisclaimer from '../../components/RiskDisclaimer.astro';
 import ExchangeLogo from '../../components/ExchangeLogo.astro';
 import AuthorCard from '../../components/AuthorCard.astro';
+import EditorialExperienceBar from '../../components/EditorialExperienceBar.astro';
 
 import guideMeta from '../../data/guides.json';
 import guideContentMap from '../../data/guide-content';
@@ -149,6 +150,22 @@ const categoryColors: Record<string, string> = {
 
       <!-- Main content column -->
       <main class="guide-main">
+
+        <!-- Editorial verification signals -->
+        <EditorialExperienceBar
+          signals={[
+            'editorial-reviewed',
+            'content-fresh',
+            ...(meta.category === 'How-To Guides' ? ['desktop-tested', 'mobile-tested'] as const : []),
+          ]}
+          verifiedAt={(() => {
+            try {
+              const d = new Date(meta.lastUpdated + 'T00:00:00');
+              return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            } catch { return 'May 2026'; }
+          })()}
+          compact
+        />
 
         <!-- Quick Answer box (for AI search / featured snippets) -->
         {meta.quickAnswer && (

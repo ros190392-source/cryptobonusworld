@@ -541,16 +541,82 @@ const guides: Record<string, GuideContent> = {
       },
       {
         id: 'step-by-step',
-        heading: 'Step-by-Step: How to Buy USDT',
-        body: `<p>Here's the quickest path to buying USDT for a new user:</p>
-<ol class="guide-steps">
-  <li><div class="guide-step-num">1</div><div><strong>Choose an exchange</strong><p>Register on Bybit or MEXC. Both support P2P, card purchases and welcome bonuses. Use an affiliate link to activate any signup bonus.</p></div></li>
-  <li><div class="guide-step-num">2</div><div><strong>Complete basic verification</strong><p>Verify your email and phone. For card purchases, KYC (ID verification) is usually required. P2P may work with just email verification on some platforms.</p></div></li>
-  <li><div class="guide-step-num">3</div><div><strong>Navigate to Buy Crypto / P2P</strong><p>Most exchanges have a prominent "Buy Crypto" button. Select USDT as the asset and your local currency. Compare the available methods and their fees.</p></div></li>
-  <li><div class="guide-step-num">4</div><div><strong>Select P2P or Card</strong><p>For small amounts (under $500), card is fastest. For larger amounts, P2P is usually cheaper. On P2P, filter by payment method and choose a merchant with 100+ trades and 95%+ completion rate.</p></div></li>
-  <li><div class="guide-step-num">5</div><div><strong>Complete the transaction</strong><p>Follow the on-screen instructions. For P2P, you'll pay the seller directly via your chosen method and confirm once they've released the USDT from escrow.</p></div></li>
-  <li><div class="guide-step-num">6</div><div><strong>Verify receipt</strong><p>Check your USDT balance in the Spot wallet. You can now use it to trade, transfer, or hold as a stable store of value.</p></div></li>
-</ol>`,
+        heading: 'Step-by-Step: How to Buy USDT (Full Walkthrough)',
+        body: `<ol class="guide-steps">
+  <li>
+    <div class="guide-step-num">1</div>
+    <div>
+      <strong>Create your exchange account</strong>
+      <p>Open Bybit, MEXC, or Binance and register with your email. Use an affiliate or referral link from this site — it activates your welcome bonus automatically. Standard registration (direct on the exchange homepage) often does not qualify for bonus packages.</p>
+      <div class="guide-callout guide-callout--info"><strong>Tip:</strong> The registration email is permanent on most exchanges. Use one you actively monitor — bonus notifications and security alerts go there.</div>
+    </div>
+  </li>
+  <li>
+    <div class="guide-step-num">2</div>
+    <div>
+      <strong>Verify your email and phone number</strong>
+      <p>Check your inbox for the verification email. Click the link within 24 hours. Then add your phone number for SMS 2FA — this also unlocks most signup bonus tiers and reduces daily withdrawal limits restrictions.</p>
+      <div class="guide-callout guide-callout--warning"><strong>Watch out:</strong> If buying via card, KYC (photo ID) will be required. This takes 2–10 minutes on most platforms. P2P trading often works without KYC, but withdrawal limits apply.</div>
+    </div>
+  </li>
+  <li>
+    <div class="guide-step-num">3</div>
+    <div>
+      <strong>Navigate to Buy Crypto</strong>
+      <p>On Bybit: top menu → "Buy Crypto". On Binance: top menu → "Buy Crypto" or "P2P". On MEXC: "Buy Crypto" button at the top. You'll see options for Quick Buy (card), P2P, and sometimes Bank Transfer.</p>
+      <p>Select <strong>USDT</strong> as the coin. Enter your local currency (USD, EUR, GBP, INR, etc.).</p>
+    </div>
+  </li>
+  <li>
+    <div class="guide-step-num">4</div>
+    <div>
+      <strong>Choose your purchase method</strong>
+      <p><strong>Card purchase:</strong> Fastest (under 5 minutes). Fees: 1.8–3.5% of the purchase amount. Best for amounts under $200 or when you need USDT quickly. Simply enter card details and confirm.</p>
+      <p><strong>P2P (recommended for $200+):</strong> Zero platform fee. You pay a seller directly through bank transfer, PayPal, or local wallet. The exchange holds the USDT in escrow until you confirm payment. Typically completes in 15–30 minutes.</p>
+      <div class="guide-callout guide-callout--info"><strong>Fee comparison:</strong> On a $500 purchase: card costs ~$10–17 in fees. P2P costs ~$2–7 in spread. For anything over $300, P2P saves money.</div>
+    </div>
+  </li>
+  <li>
+    <div class="guide-step-num">5</div>
+    <div>
+      <strong>Select a P2P seller (if using P2P)</strong>
+      <p>Filter by your preferred payment method. Sort by price (ascending). Look for sellers with:</p>
+      <ul>
+        <li>Completion rate: 95% or higher</li>
+        <li>Trades completed: 100+ (500+ is excellent)</li>
+        <li>Online status: active now or "recently online"</li>
+        <li>Response time: under 5 minutes shown</li>
+      </ul>
+      <p>Click "Buy" on a seller that meets your criteria. Enter your amount.</p>
+      <div class="guide-callout guide-callout--warning"><strong>Beginner mistake:</strong> Choosing the cheapest price regardless of seller quality. A seller offering $0.998 per USDT but with 85% completion rate will waste your time. Choose reliability over fractionally better price.</div>
+    </div>
+  </li>
+  <li>
+    <div class="guide-step-num">6</div>
+    <div>
+      <strong>Send payment and confirm</strong>
+      <p>Once you place the order, the seller's USDT is locked in escrow. You'll see the seller's payment details (bank account number, PayPal email, etc.) and a countdown timer (usually 15 minutes).</p>
+      <p>Transfer the exact fiat amount through your bank or payment app. Then click "I've Paid" in the P2P order screen.</p>
+      <div class="guide-callout guide-callout--warning"><strong>Critical:</strong> Only click "I've Paid" after you have actually sent the payment. Clicking it before sending is a violation of P2P rules and your order may be cancelled.</div>
+    </div>
+  </li>
+  <li>
+    <div class="guide-step-num">7</div>
+    <div>
+      <strong>Receive your USDT</strong>
+      <p>The seller verifies payment on their end and releases the USDT from escrow. This typically takes 2–10 minutes after you mark as paid. The USDT lands in your exchange Spot or Funding wallet.</p>
+      <p><strong>What happens next:</strong> You can now trade USDT for any coin on the exchange, transfer it to another platform, or use it to claim trading bonuses.</p>
+      <div class="guide-callout guide-callout--info"><strong>Regional note:</strong> In India, Nigeria, Turkey, Brazil and Vietnam, P2P is the primary method for buying crypto due to banking restrictions. Local payment methods (UPI, M-Pesa, PIX, local bank transfer) are well-supported on Bybit and Binance P2P.</div>
+    </div>
+  </li>
+</ol>
+<h3>Common Beginner Mistakes</h3>
+<ul>
+  <li>Clicking "I've Paid" before actually sending — order gets cancelled or disputed</li>
+  <li>Sending payment to the wrong bank account — always verify seller's payment details in the P2P order screen, not from a chat or external message</li>
+  <li>Buying USDT via card without activating the welcome bonus first — register via referral link before purchasing</li>
+  <li>Choosing ERC-20 for USDT transfer when TRC-20 is available — ERC-20 fees can be 10–20x higher</li>
+</ul>`,
       },
       {
         id: 'fees-compared',
@@ -1310,16 +1376,64 @@ const guides: Record<string, GuideContent> = {
       {
         id: 'step-by-step-buy',
         heading: 'Step-by-Step: Buying Crypto via P2P',
-        body: `<ol>
-  <li><strong>Open P2P marketplace</strong> — Go to your exchange's P2P section (Bybit: "Buy Crypto" → "P2P Trading"; Binance: "Buy Crypto" → "P2P")</li>
-  <li><strong>Select coin and currency</strong> — Choose USDT or BTC, select your local currency</li>
-  <li><strong>Filter by payment method</strong> — Choose your preferred method (bank transfer, mobile wallet, etc.)</li>
-  <li><strong>Review offers</strong> — Check the seller's completion rate (aim for 95%+), number of trades (100+ preferred), and online status</li>
-  <li><strong>Enter amount</strong> — Type the fiat amount you want to spend; verify the crypto amount you'll receive</li>
-  <li><strong>Place order</strong> — The seller's crypto is locked in escrow immediately</li>
-  <li><strong>Send payment</strong> — Transfer the exact fiat amount to the seller's details within the time window</li>
-  <li><strong>Mark as paid</strong> — Click "I've Paid" in the app after sending</li>
-  <li><strong>Receive crypto</strong> — Once the seller confirms, crypto is released to your exchange wallet</li>
+        body: `<ol class="guide-steps">
+  <li>
+    <div class="guide-step-num">1</div>
+    <div>
+      <strong>Open the P2P marketplace</strong>
+      <p>On <strong>Bybit:</strong> Top menu → "Buy Crypto" → "P2P Trading". On <strong>Binance:</strong> Top menu → "Buy Crypto" → "P2P". On <strong>OKX:</strong> "P2P Trading" under Buy Crypto. On <strong>MEXC:</strong> "Buy Crypto" → "C2C".</p>
+      <p>You land on a list of active sell offers. Each shows the seller's price, available quantity, accepted payment methods, and reputation stats.</p>
+    </div>
+  </li>
+  <li>
+    <div class="guide-step-num">2</div>
+    <div>
+      <strong>Filter offers to match your needs</strong>
+      <p>Set: Coin (USDT is most common), your local currency (USD, EUR, INR, NGN, etc.), and payment method. The offer list updates to show only compatible sellers.</p>
+      <div class="guide-callout guide-callout--info"><strong>Tip:</strong> Sort by "Best Price" to see the closest-to-market-rate offers first. Avoid the absolute cheapest if the seller has under 100 trades completed.</div>
+    </div>
+  </li>
+  <li>
+    <div class="guide-step-num">3</div>
+    <div>
+      <strong>Evaluate the seller</strong>
+      <p>Before clicking Buy, check: <strong>Completion rate</strong> (95%+ recommended), <strong>Total trades</strong> (100+ minimum, 500+ preferred), <strong>Response time</strong> (under 5 minutes), and <strong>Online status</strong>. Read recent reviews for any patterns of slow release or disputes.</p>
+      <div class="guide-callout guide-callout--warning"><strong>Red flag:</strong> New accounts (under 30 trades), very high prices with no explanation, or sellers asking you to move the conversation outside the exchange chat. These are common scam indicators.</div>
+    </div>
+  </li>
+  <li>
+    <div class="guide-step-num">4</div>
+    <div>
+      <strong>Enter your purchase amount and place the order</strong>
+      <p>Enter how much local currency you want to spend or how much USDT you want to receive. The platform calculates the other side automatically.</p>
+      <p>Click "Buy USDT" (or equivalent). The order is created — the seller's crypto is immediately locked in escrow. You cannot be cheated from this point: the crypto is secured until you either receive it or the order is cancelled/disputed.</p>
+      <p><strong>What happens next:</strong> The seller's payment details appear — bank account number, PayPal email, or other method. A countdown timer starts (typically 15–30 minutes).</p>
+    </div>
+  </li>
+  <li>
+    <div class="guide-step-num">5</div>
+    <div>
+      <strong>Send payment through your bank or wallet</strong>
+      <p>Open your banking app or payment wallet and transfer exactly the amount shown. Include any reference number if specified. Do not send from a business account if the seller specifies personal accounts only — this causes payment matching issues.</p>
+      <div class="guide-callout guide-callout--warning"><strong>Critical:</strong> Transfer the exact amount. Do not round up or add "tips". Some payment systems flag unusual amounts for review, delaying release.</div>
+    </div>
+  </li>
+  <li>
+    <div class="guide-step-num">6</div>
+    <div>
+      <strong>Click "I've Paid" — then wait</strong>
+      <p>After your payment is sent, return to the P2P order screen and click "Transfer, next" or "I've Paid". This notifies the seller to check their account.</p>
+      <p>The seller typically releases within 2–10 minutes of verifying. If they don't release within 15 minutes, use the in-app chat to follow up politely. If no response after 20 minutes, file a dispute through the platform.</p>
+    </div>
+  </li>
+  <li>
+    <div class="guide-step-num">7</div>
+    <div>
+      <strong>Receive crypto in your wallet</strong>
+      <p>Once the seller confirms receipt and releases escrow, the USDT appears in your exchange Spot or Funding wallet instantly. You'll receive an app notification.</p>
+      <div class="guide-callout guide-callout--info"><strong>Regional note:</strong> In Nigeria, bank transfers often take 1–5 minutes to appear. In Turkey (Papara/Garanti), typically instant. In India (UPI), usually under 30 seconds. Factor in payment system speed when choosing your payment method.</div>
+    </div>
+  </li>
 </ol>`,
       },
       {
@@ -1440,17 +1554,94 @@ const guides: Record<string, GuideContent> = {
       },
       {
         id: 'step-by-step',
-        heading: 'Step-by-Step Withdrawal',
-        body: `<ol>
-  <li><strong>Go to Withdraw</strong> — Find the Wallet or Assets section; click Withdraw</li>
-  <li><strong>Select the coin</strong> — Choose USDT, BTC, ETH, or whichever asset you want to withdraw</li>
-  <li><strong>Paste the address</strong> — Copy the deposit address from your destination wallet/exchange. Never type it manually</li>
-  <li><strong>Select the network</strong> — Match the network to what the destination address supports</li>
-  <li><strong>Enter amount</strong> — The fee is deducted from the amount; verify the "amount received" shown</li>
-  <li><strong>Verify with 2FA</strong> — Most exchanges require email code + Google Authenticator or SMS</li>
-  <li><strong>Send a test withdrawal first</strong> — For a new address, send $5–10 first and confirm it arrives before sending a large amount</li>
-  <li><strong>Track on blockchain explorer</strong> — Use Tronscan (TRC-20), Etherscan (ERC-20), or BSCScan (BEP-20) to verify the transaction</li>
-</ol>`,
+        heading: 'Step-by-Step: Withdrawing Crypto (Full Walkthrough)',
+        body: `<ol class="guide-steps">
+  <li>
+    <div class="guide-step-num">1</div>
+    <div>
+      <strong>Get the deposit address from your destination</strong>
+      <p>Before starting the withdrawal, go to the exchange or wallet you're sending to and generate a deposit address. <strong>On exchanges:</strong> Wallet → Deposit → select the coin → select the network → copy the address. <strong>On hardware wallets:</strong> open the coin app and copy the receive address.</p>
+      <div class="guide-callout guide-callout--warning"><strong>Critical first step:</strong> Confirm which networks the destination supports before you choose a network on the sending side. Not all exchanges support all networks for every coin.</div>
+    </div>
+  </li>
+  <li>
+    <div class="guide-step-num">2</div>
+    <div>
+      <strong>Go to Withdraw on the sending exchange</strong>
+      <p>On <strong>Bybit:</strong> Assets → Withdraw → enter coin name. On <strong>Binance:</strong> Wallet → Withdraw → select coin. On <strong>MEXC:</strong> Assets → Withdraw → search coin. On <strong>KuCoin:</strong> Main Account → Withdrawal.</p>
+      <p>You'll see a form with: Address field, Network selector, and Amount field.</p>
+    </div>
+  </li>
+  <li>
+    <div class="guide-step-num">3</div>
+    <div>
+      <strong>Paste the address — never type it</strong>
+      <p>Copy the deposit address from your destination wallet (Step 1) and paste it into the address field. After pasting, <strong>visually verify</strong> the first 6 and last 6 characters match the original.</p>
+      <div class="guide-callout guide-callout--warning"><strong>Clipboard hijacking:</strong> Certain malware replaces copied crypto addresses with the attacker's address. Always verify pasted addresses character-by-character before confirming. This is how people lose thousands.</div>
+    </div>
+  </li>
+  <li>
+    <div class="guide-step-num">4</div>
+    <div>
+      <strong>Select the network — this is the most important step</strong>
+      <p>The network must match between sender and receiver. For USDT:</p>
+      <ul>
+        <li><strong>TRC-20</strong> — Best choice for most transfers. ~1 USDT fee, ~1 minute</li>
+        <li><strong>BEP-20</strong> — Very cheap. Only use if destination supports it</li>
+        <li><strong>ERC-20</strong> — Required for DeFi/Ethereum ecosystem. Higher fees ($3–25+)</li>
+        <li><strong>SOL</strong> — Fastest and cheapest. Only if both sides support Solana</li>
+      </ul>
+      <p>For coins with memos (XRP, XLM, EOS, TON): you'll see a separate Memo/Tag field. This is mandatory — leave it blank and funds are unrecoverable.</p>
+    </div>
+  </li>
+  <li>
+    <div class="guide-step-num">5</div>
+    <div>
+      <strong>Enter the amount and review fees</strong>
+      <p>Enter the amount you want to send. The exchange shows the withdrawal fee and the amount your recipient will actually receive. Verify the "Amount Received" is correct before proceeding.</p>
+      <div class="guide-callout guide-callout--info"><strong>Tip:</strong> MEXC offers free USDT TRC-20 withdrawals (0 fee). Bybit and Binance charge ~1 USDT. For large amounts, this difference is negligible. For frequent small withdrawals, use MEXC.</div>
+    </div>
+  </li>
+  <li>
+    <div class="guide-step-num">6</div>
+    <div>
+      <strong>Send a test withdrawal first (recommended)</strong>
+      <p>For any new destination address — especially the first time you're sending to a hardware wallet, new exchange, or friend — send $5–10 first and wait for confirmation before sending the full amount. This costs slightly more in fees but is worth it for any amount over $100.</p>
+      <p><strong>What happens next:</strong> You'll receive an email confirmation request. Click "Confirm Withdrawal" in the email within a few minutes.</p>
+    </div>
+  </li>
+  <li>
+    <div class="guide-step-num">7</div>
+    <div>
+      <strong>Complete 2FA verification</strong>
+      <p>Most exchanges require: email confirmation link + Google Authenticator (6-digit code) or SMS code. Complete both. The withdrawal is broadcast to the blockchain once confirmed.</p>
+      <div class="guide-callout guide-callout--warning"><strong>If you don't have 2FA set up:</strong> Many exchanges will refuse or heavily delay withdrawals without 2FA. Set up Google Authenticator before you need to withdraw — not during a time-sensitive situation.</div>
+    </div>
+  </li>
+  <li>
+    <div class="guide-step-num">8</div>
+    <div>
+      <strong>Track on a block explorer</strong>
+      <p>Once submitted, copy the transaction hash (TxID) from the withdrawal history. Paste it into:</p>
+      <ul>
+        <li><strong>TRC-20:</strong> tronscan.org</li>
+        <li><strong>ERC-20:</strong> etherscan.io</li>
+        <li><strong>BEP-20:</strong> bscscan.com</li>
+        <li><strong>Bitcoin:</strong> mempool.space</li>
+      </ul>
+      <p>The explorer shows current confirmations and estimated completion. TRC-20 typically shows 1 confirmation within 60 seconds.</p>
+    </div>
+  </li>
+</ol>
+<h3>Checklist Before Every Withdrawal</h3>
+<ul>
+  <li>✓ Destination address copied fresh (not from memory or old screenshot)</li>
+  <li>✓ Network matches on both sides</li>
+  <li>✓ Memo/Tag included if required (XRP, XLM, etc.)</li>
+  <li>✓ Test withdrawal done for new addresses</li>
+  <li>✓ 2FA is active and accessible</li>
+  <li>✓ No active bonus lock that restricts withdrawal</li>
+</ul>`,
       },
       {
         id: 'fees-compared',
@@ -1572,17 +1763,85 @@ const guides: Record<string, GuideContent> = {
       {
         id: 'step-by-step',
         heading: 'Step-by-Step: Your First Futures Trade',
-        body: `<ol>
-  <li><strong>Open a futures account</strong> — On Bybit: go to Derivatives → USDT Perpetual. On Binance: Futures → USDT-M Futures</li>
-  <li><strong>Transfer margin</strong> — Move USDT from your spot wallet to your futures wallet</li>
-  <li><strong>Select a trading pair</strong> — Start with BTCUSDT Perpetual (most liquid)</li>
-  <li><strong>Set leverage</strong> — Click the leverage button and set to 2–5x for your first trade</li>
-  <li><strong>Choose order type</strong> — Limit order (set your price) or Market order (execute immediately at best available)</li>
-  <li><strong>Set your stop-loss</strong> — Before placing the order, calculate the stop-loss level. A stop-loss at 2% below entry limits loss to ~10% of margin at 5x leverage</li>
-  <li><strong>Enter position size</strong> — Start small: $50–100 for learning</li>
-  <li><strong>Place the order</strong> — Review all details: direction, size, leverage, estimated liquidation price</li>
-  <li><strong>Monitor and manage</strong> — Watch the funding rate; avoid holding positions through high negative funding periods if long</li>
-  <li><strong>Close the trade</strong> — Use a limit order to close at your target price, or market order to exit immediately</li>
+        body: `<ol class="guide-steps">
+  <li>
+    <div class="guide-step-num">1</div>
+    <div>
+      <strong>Activate your futures account</strong>
+      <p>On <strong>Bybit:</strong> Derivatives → USDT Perpetual → "Activate" if first time. On <strong>Binance:</strong> Derivatives → USDT-M Futures → "Open Now". On <strong>OKX:</strong> Trading → Derivatives → Perpetual Swaps.</p>
+      <p>Some exchanges require KYC before futures access. Bybit requires KYC for full futures access. MEXC allows some futures without KYC.</p>
+      <div class="guide-callout guide-callout--info"><strong>Before proceeding:</strong> Use the exchange's <strong>testnet</strong> first. Bybit Testnet (testnet.bybit.com) and Binance Testnet give you fake USDT to practice with — zero financial risk. Spend at least 2–3 hours here before touching real funds.</div>
+    </div>
+  </li>
+  <li>
+    <div class="guide-step-num">2</div>
+    <div>
+      <strong>Transfer margin to your futures wallet</strong>
+      <p>Futures are funded from a separate wallet. Go to Assets → Transfer → move USDT from your Spot wallet to your USDT Perpetual (or Derivatives) wallet.</p>
+      <p>Start with a small amount — $50–100 is enough for learning. This limits maximum possible loss while you practice.</p>
+      <div class="guide-callout guide-callout--warning"><strong>Beginner mistake:</strong> Transferring your entire balance into futures. Keep most funds in your spot wallet. Futures is the high-risk portion — allocate accordingly.</div>
+    </div>
+  </li>
+  <li>
+    <div class="guide-step-num">3</div>
+    <div>
+      <strong>Open the BTCUSDT Perpetual chart</strong>
+      <p>Select BTCUSDT or ETHUSDT from the futures trading pairs list. These have the highest liquidity, tightest spreads, and lowest slippage. Avoid altcoin futures until you understand the mechanics.</p>
+      <p>The interface shows: Price chart (TradingView), Order book (bids and asks), Trade history, Position panel, and Order entry form.</p>
+    </div>
+  </li>
+  <li>
+    <div class="guide-step-num">4</div>
+    <div>
+      <strong>Set leverage — start at 3x or lower</strong>
+      <p>Find the leverage selector (usually near the order form or displayed as "3x" or "10x"). Click it and set to <strong>3x maximum</strong> for your first trade.</p>
+      <p>At 3x leverage with $100 margin, your position controls $300. A 10% price move in your favour = 30% profit. A 33% adverse move = liquidation.</p>
+      <div class="guide-callout guide-callout--warning"><strong>Important:</strong> High leverage (20x, 50x, 100x) is not for beginners. Even professional traders frequently lose using 20x+. At 20x, a 5% adverse move wipes your margin. Set cross-margin or isolated margin before proceeding — <em>isolated margin</em> limits losses to only the margin allocated to that position.</div>
+    </div>
+  </li>
+  <li>
+    <div class="guide-step-num">5</div>
+    <div>
+      <strong>Calculate your liquidation price before placing the order</strong>
+      <p>Every exchange shows the estimated liquidation price as you set up your order. This is the price at which your margin runs out and the position is forcibly closed. Make sure you're comfortable with that level.</p>
+      <p>Example: BTC at $100,000, 3x leverage, $100 margin. Long position = $300. Liquidation price ≈ $67,000 (a 33% drop). If you expect BTC to stay above $67,000, this trade has acceptable liquidation risk.</p>
+    </div>
+  </li>
+  <li>
+    <div class="guide-step-num">6</div>
+    <div>
+      <strong>Set a stop-loss before placing the entry order</strong>
+      <p>A stop-loss automatically closes your position if price moves against you past a threshold. This is the most important risk control in futures trading.</p>
+      <p>Rule of thumb: Stop-loss should limit your loss to 2% of your total account. With a $100 futures wallet and 3x leverage, set a stop-loss that limits loss to $2.</p>
+      <p>To set it: in the order form, check "Stop Loss" and enter the price or percentage. Confirm it appears in your active orders after entry.</p>
+    </div>
+  </li>
+  <li>
+    <div class="guide-step-num">7</div>
+    <div>
+      <strong>Place a limit order (not market order)</strong>
+      <p>Switch to "Limit" order type. Enter your desired entry price and position size. A limit order only executes if price reaches your specified level — you pay the maker fee (lower) instead of taker fee.</p>
+      <p><strong>For your first trade:</strong> Set the limit price at current market price or slightly below (for a long). Enter $50 in position size. Review all parameters, then click "Buy/Long".</p>
+      <p><strong>What happens next:</strong> Your order appears in "Open Orders". When price touches your limit, it fills and moves to "Positions".</p>
+    </div>
+  </li>
+  <li>
+    <div class="guide-step-num">8</div>
+    <div>
+      <strong>Monitor funding rate and position health</strong>
+      <p>Check the funding rate (shown near the pair name). Positive funding = longs pay shorts every 8 hours. At 0.1% funding with a $300 position, you pay $0.30 per 8-hour period (~$1/day). Holding long positions through high positive funding reduces profitability.</p>
+      <p>Watch your unrealised P&L and margin ratio. If margin ratio drops below 15–20%, consider reducing position size.</p>
+    </div>
+  </li>
+  <li>
+    <div class="guide-step-num">9</div>
+    <div>
+      <strong>Close the position at your target</strong>
+      <p>When price reaches your target, place a limit order to close. In "Positions", click "Close" and set a limit price at your target. Alternatively, use "Take Profit" when entering the trade to set an automated exit.</p>
+      <p>Realised profit/loss is settled in USDT and returned to your futures wallet immediately upon close.</p>
+      <div class="guide-callout guide-callout--info"><strong>Expert tip:</strong> Don't move stop-losses in the wrong direction — if a trade goes against you, don't lower your stop-loss to avoid being stopped out. Accept the loss and preserve capital for the next opportunity.</div>
+    </div>
+  </li>
 </ol>`,
       },
       {

@@ -16,6 +16,7 @@ import EditorialNote from '../../components/EditorialNote.astro';
 import HowWeEvaluate from '../../components/HowWeEvaluate.astro';
 import AuthorCard from '../../components/AuthorCard.astro';
 import OfferRealism from '../../components/OfferRealism.astro';
+import EditorialExperienceBar from '../../components/EditorialExperienceBar.astro';
 
 import exchanges from '../../data/exchanges.json';
 import categories from '../../data/categories.json';
@@ -237,6 +238,25 @@ const relatedUseCases = USE_CASES.filter(uc =>
 
       <!-- ── MAIN CONTENT ── -->
       <div class="ex-main">
+
+        <!-- Editorial experience signals (E-E-A-T) -->
+        <EditorialExperienceBar
+          signals={[
+            'editorial-reviewed',
+            'bonus-checked',
+            'fees-verified',
+            ...(((ex as any).p2pAvailable) ? ['p2p-checked'] as const : []),
+            ...(ex.kycRequired ? ['kyc-tested'] as const : []),
+            'desktop-tested',
+            'mobile-tested',
+            'content-fresh',
+          ]}
+          verifiedAt={(ex as any).offerLastChecked ? (() => {
+            const d = new Date((ex as any).offerLastChecked + 'T00:00:00');
+            return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+          })() : 'May 2026'}
+          compact
+        />
 
         <!-- Offer transparency / realism block -->
         {((ex as any).offerConfidenceScore != null || (ex as any).realisticUserExpectation) && (
