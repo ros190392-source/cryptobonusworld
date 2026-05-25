@@ -2,6 +2,8 @@
 import Layout from '../layouts/Layout.astro';
 import BonusTable from '../components/BonusTable.astro';
 import ExchangeCard from '../components/ExchangeCard.astro';
+import ExchangeLogo from '../components/ExchangeLogo.astro';
+import QuickPicks from '../components/QuickPicks.astro';
 import FilterPanel from '../components/FilterPanel.astro';
 import CategoryCard from '../components/CategoryCard.astro';
 import CountryCard from '../components/CountryCard.astro';
@@ -15,12 +17,34 @@ import AdaptiveRecommendation from '../components/AdaptiveRecommendation.astro';
 import exchanges from '../data/exchanges.json';
 import categories from '../data/categories.json';
 import countries from '../data/countries.json';
+import comparePairs from '../data/compare-pairs.json';
 import type { RecommendableExchange } from '../utils/recommendationEngine';
 
 import { buildWebSiteSchema, buildOrganizationSchema } from '../utils/seo';
 import type { PageContext } from '../utils/analytics';
+import guides from '../data/guides.json';
 
 const topExchanges = [...exchanges].sort((a, b) => b.rating - a.rating).slice(0, 5);
+
+// Top comparison pairs — curated by search demand (most-searched head terms first)
+const TOP_COMPARE_SLUGS = [
+  'binance-vs-bybit',
+  'bybit-vs-mexc',
+  'coinbase-vs-binance',
+  'binance-vs-okx',
+  'coinbase-vs-bybit',
+  'okx-vs-binance',
+];
+const exMap = Object.fromEntries(exchanges.map(e => [e.slug, e]));
+const topComparePairs = TOP_COMPARE_SLUGS
+  .map(slug => comparePairs.find(p => p.pair === slug))
+  .filter(Boolean)
+  .map(p => {
+    const ea = exMap[p!.a] as any;
+    const eb = exMap[p!.b] as any;
+    return ea && eb ? { pair: p!.pair, nameA: ea.name, nameB: eb.name, slugA: ea.slug, slugB: eb.slug } : null;
+  })
+  .filter(Boolean) as Array<{ pair: string; nameA: string; nameB: string; slugA: string; slugB: string }>;
 
 const faqItems = [
   {
@@ -61,6 +85,7 @@ const analyticsContext: PageContext = { pageType: 'homepage' };
   canonical="/"
   schema={siteSchema}
   analyticsContext={analyticsContext}
+  ogImage="https://cryptobonusworld.com/og-default.png"
 >
   <!-- Hero -->
   <section class="hero">
@@ -74,7 +99,7 @@ const analyticsContext: PageContext = { pageType: 'homepage' };
       <div class="hero-left">
         <div class="hero-badge">
           <span class="hero-badge-dot"></span>
-          Live Data &middot; 12 Exchanges &middot; Updated May 2026
+          Live Data &middot; 13 Exchanges &middot; Updated May 2026
         </div>
 
         <h1 class="hero-title">
@@ -98,7 +123,7 @@ const analyticsContext: PageContext = { pageType: 'homepage' };
           </div>
           <div class="hero-stat-sep"></div>
           <div class="hero-stat">
-            <span class="hero-stat-num">12</span>
+            <span class="hero-stat-num">13</span>
             <span class="hero-stat-label">Exchanges</span>
           </div>
           <div class="hero-stat-sep"></div>
@@ -118,7 +143,7 @@ const analyticsContext: PageContext = { pageType: 'homepage' };
       <div class="hero-right" aria-label="Top bonus offers">
         {topExchanges.slice(0, 3).map((ex, i) => (
           <a href={`/exchanges/${ex.slug}/`} class:list={['hbc', i === 0 && 'hbc--featured']}>
-            <div class="hbc-logo" aria-hidden="true">{ex.name.charAt(0)}</div>
+            <ExchangeLogo slug={ex.slug} name={ex.name} size={64} variant="square" lazy={false} />
             <div class="hbc-info">
               <span class="hbc-name">{ex.name}</span>
               <span class="hbc-amount">Up to {ex.bonusAmount.toLocaleString()} {ex.bonusCurrency}</span>
@@ -157,6 +182,7 @@ const analyticsContext: PageContext = { pageType: 'homepage' };
   <!-- Bonus Table -->
   <section class="container section">
     <h2 class="section-title">Top Crypto Exchange Bonuses</h2>
+    <QuickPicks exchanges={exchanges} />
     <BonusTable exchanges={exchanges} />
     <AdaptiveRecommendation
       exchanges={exchanges as unknown as RecommendableExchange[]}
@@ -180,7 +206,103 @@ const analyticsContext: PageContext = { pageType: 'homepage' };
       ))}
     </div>
     <div class="view-all-wrap">
-      <CTAButton href="/bonuses/" label="View All 12 Exchanges" variant="outline" size="md" />
+      <CTAButton href="/bonuses/" label="View All 13 Exchanges" variant="outline" size="md" />
+    </div>
+  </section>
+
+  <!-- Quick Find — visual category grid -->
+  <section class="container section">
+    <h2 class="section-title">Find the Right Bonus</h2>
+    <p class="section-subtitle">Browse by bonus type, exchange or country — find the offer that fits your needs.</p>
+    <div class="qf-grid">
+      <a href="/bonuses/" class="qf-card qf-card--featured">
+        <span class="qf-icon">🏆</span>
+        <div class="qf-info">
+          <span class="qf-label">Top Bonus Exchanges</span>
+          <span class="qf-meta">Up to 30,000 USDT available</span>
+        </div>
+        <span class="qf-arrow">→</span>
+      </a>
+      <a href="/categories/no-kyc-bonuses/" class="qf-card">
+        <span class="qf-icon">🔓</span>
+        <div class="qf-info">
+          <span class="qf-label">No-KYC Bonuses</span>
+          <span class="qf-meta">Trade without ID verification</span>
+        </div>
+        <span class="qf-arrow">→</span>
+      </a>
+      <a href="/categories/signup-bonuses/" class="qf-card">
+        <span class="qf-icon">🚀</span>
+        <div class="qf-info">
+          <span class="qf-label">Signup Bonuses</span>
+          <span class="qf-meta">Free rewards for new users</span>
+        </div>
+        <span class="qf-arrow">→</span>
+      </a>
+      <a href="/categories/futures-bonuses/" class="qf-card">
+        <span class="qf-icon">📈</span>
+        <div class="qf-info">
+          <span class="qf-label">Futures Bonuses</span>
+          <span class="qf-meta">For derivatives & perpetuals</span>
+        </div>
+        <span class="qf-arrow">→</span>
+      </a>
+      <a href="/compare/" class="qf-card">
+        <span class="qf-icon">⚖️</span>
+        <div class="qf-info">
+          <span class="qf-label">Compare Exchanges</span>
+          <span class="qf-meta">Side-by-side bonus analysis</span>
+        </div>
+        <span class="qf-arrow">→</span>
+      </a>
+      <a href="/countries/" class="qf-card">
+        <span class="qf-icon">🌍</span>
+        <div class="qf-info">
+          <span class="qf-label">Bonuses by Country</span>
+          <span class="qf-meta">Check availability in your region</span>
+        </div>
+        <span class="qf-arrow">→</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- Bonus Landing Page Links -->
+  <section class="container section">
+    <h2 class="section-title">Claim Your Exchange Bonus</h2>
+    <p class="section-subtitle">Step-by-step guides to claim the best bonus from each exchange.</p>
+    <div class="bonus-links-grid">
+      {exchanges.slice(0, 6).map(ex => (
+        <a href={`/bonuses/${ex.slug}-bonus/`} class="bonus-link-card">
+          <span class="bonus-link-name">{ex.name}</span>
+          <span class="bonus-link-amount">Up to {ex.bonusAmount.toLocaleString()} {ex.bonusCurrency}</span>
+          <span class="bonus-link-cta">Claim Guide →</span>
+        </a>
+      ))}
+    </div>
+    <div class="view-all-wrap">
+      <a href="/bonuses/" class="text-link">View all bonus claim guides →</a>
+    </div>
+  </section>
+
+  <!-- Top Comparisons — money page priority boost -->
+  <section class="container section">
+    <h2 class="section-title">Compare Exchanges Side by Side</h2>
+    <p class="section-subtitle">Fees, bonuses, KYC requirements and features — compared in one place.</p>
+    <div class="compare-grid">
+      {topComparePairs.map(p => (
+        <a href={`/compare/${p.pair}/`} class="compare-hp-card">
+          <div class="compare-hp-logos">
+            <img src={`/logos/${p.slugA}.svg`} alt={p.nameA} width="32" height="32" loading="lazy" />
+            <span class="compare-hp-vs">vs</span>
+            <img src={`/logos/${p.slugB}.svg`} alt={p.nameB} width="32" height="32" loading="lazy" />
+          </div>
+          <span class="compare-hp-label">{p.nameA} vs {p.nameB}</span>
+          <span class="compare-hp-arrow">→</span>
+        </a>
+      ))}
+    </div>
+    <div class="view-all-wrap">
+      <a href="/compare/" class="text-link">View all exchange comparisons →</a>
     </div>
   </section>
 
@@ -243,6 +365,24 @@ const analyticsContext: PageContext = { pageType: 'homepage' };
     </div>
     <div style="margin-top: 1.25rem">
       <a href="/methodology/" class="text-link">Learn more: How we review crypto bonuses →</a>
+    </div>
+  </section>
+
+  <!-- Guides -->
+  <section class="container section">
+    <h2 class="section-title">In-Depth Guides</h2>
+    <p class="section-subtitle">Learn how crypto bonuses, exchanges and passive income strategies really work.</p>
+    <div class="guides-strip">
+      {guides.slice(0, 6).map(g => (
+        <a href={`/guides/${g.slug}/`} class="guide-strip-card">
+          <span class="guide-strip-cat">{g.category}</span>
+          <span class="guide-strip-title">{g.title}</span>
+          <span class="guide-strip-meta">{g.readTime} read →</span>
+        </a>
+      ))}
+    </div>
+    <div class="view-all-wrap">
+      <a href="/guides/" class="text-link">View all {guides.length} guides →</a>
     </div>
   </section>
 
@@ -469,20 +609,7 @@ const analyticsContext: PageContext = { pageType: 'homepage' };
     border-radius: 100px;
     letter-spacing: 0.04em;
   }
-  .hbc-logo {
-    width: 38px;
-    height: 38px;
-    border-radius: 9px;
-    background: var(--color-bg-tertiary);
-    border: 1px solid var(--color-border);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.9rem;
-    font-weight: 800;
-    color: var(--color-accent);
-    flex-shrink: 0;
-  }
+  /* .hbc-logo removed — replaced by ExchangeLogo component */
   .hbc-info {
     flex: 1;
     display: flex;
@@ -703,5 +830,230 @@ const analyticsContext: PageContext = { pageType: 'homepage' };
 
   @media (max-width: 768px) {
     .hp-sticky { display: flex; }
+  }
+
+  /* ── Guides strip ── */
+  .guides-strip {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+  .guide-strip-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.875rem 1rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    text-decoration: none;
+    transition: border-color 0.15s, transform 0.15s;
+  }
+  .guide-strip-card:hover { border-color: rgba(245,197,66,0.3); transform: translateY(-1px); }
+  .guide-strip-cat {
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-accent);
+    opacity: 0.8;
+  }
+  .guide-strip-title {
+    font-size: 0.825rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    line-height: 1.4;
+  }
+  .guide-strip-meta {
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
+    font-weight: 500;
+    margin-top: 0.1rem;
+  }
+  .guide-strip-card:hover .guide-strip-meta { color: var(--color-accent); }
+
+  @media (max-width: 768px) { .guides-strip { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 480px) { .guides-strip { grid-template-columns: 1fr; } }
+
+  /* ── Section subtitle ── */
+  .section-subtitle {
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+    margin: -0.5rem 0 1.25rem;
+    line-height: 1.6;
+  }
+
+  /* ── Quick Find grid ── */
+  .qf-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+  }
+  .qf-card {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    text-decoration: none;
+    transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+  }
+  .qf-card:hover {
+    border-color: rgba(245,197,66,0.35);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+  }
+  .qf-card--featured {
+    border-color: rgba(245,197,66,0.3);
+    background: linear-gradient(135deg, rgba(245,197,66,0.06) 0%, var(--color-bg-secondary) 100%);
+  }
+  .qf-icon {
+    font-size: 1.375rem;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+  .qf-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+  }
+  .qf-label {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+  }
+  .qf-meta {
+    font-size: 0.72rem;
+    color: var(--color-text-muted);
+    font-weight: 500;
+  }
+  .qf-arrow {
+    font-size: 0.875rem;
+    color: var(--color-accent);
+    font-weight: 700;
+    flex-shrink: 0;
+    opacity: 0.6;
+    transition: opacity 0.15s, transform 0.15s;
+  }
+  .qf-card:hover .qf-arrow { opacity: 1; transform: translateX(3px); }
+
+  @media (max-width: 768px) {
+    .qf-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 480px) {
+    .qf-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ── Bonus Landing Links grid ── */
+  .bonus-links-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+  }
+  .bonus-link-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding: 0.875rem 1rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    text-decoration: none;
+    transition: border-color 0.15s, transform 0.15s;
+  }
+  .bonus-link-card:hover {
+    border-color: rgba(245,197,66,0.3);
+    transform: translateY(-2px);
+  }
+  .bonus-link-name {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+  }
+  .bonus-link-amount {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--color-accent);
+  }
+  .bonus-link-cta {
+    font-size: 0.72rem;
+    color: var(--color-text-muted);
+    font-weight: 500;
+    margin-top: 0.25rem;
+    transition: color 0.15s;
+  }
+  .bonus-link-card:hover .bonus-link-cta { color: var(--color-accent); }
+
+  @media (max-width: 768px) {
+    .bonus-links-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 480px) {
+    .bonus-links-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ── Top Comparisons grid ── */
+  .compare-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+  .compare-hp-card {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    text-decoration: none;
+    transition: border-color 0.15s, transform 0.15s;
+  }
+  .compare-hp-card:hover {
+    border-color: var(--color-accent-dim, rgba(245,197,66,0.3));
+    transform: translateY(-1px);
+  }
+  .compare-hp-logos {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-shrink: 0;
+  }
+  .compare-hp-logos img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    border-radius: 6px;
+    background: var(--surface-overlay, rgba(255,255,255,0.05));
+    padding: 2px;
+  }
+  .compare-hp-vs {
+    font-size: 0.62rem;
+    color: var(--color-text-muted);
+    font-weight: 500;
+  }
+  .compare-hp-label {
+    flex: 1;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    line-height: 1.3;
+  }
+  .compare-hp-arrow {
+    color: var(--color-accent);
+    font-weight: 700;
+    flex-shrink: 0;
+    font-size: 0.85rem;
+  }
+  @media (max-width: 768px) {
+    .compare-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 480px) {
+    .compare-grid { grid-template-columns: 1fr; }
   }
 </style>

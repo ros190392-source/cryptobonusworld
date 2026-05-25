@@ -185,27 +185,38 @@ export function injectNoKycTitle(baseTitle: string, noKycCount: number): string 
 /**
  * Exchange meta description — trust signals + key facts + action.
  * Avoids "guaranteed", "best", "amazing" — focuses on verifiable claims.
+ * Includes fee angle when competitively low to target fee-related SERP queries.
  */
 export function exchangeMetaDesc(ex: SeoExchange): string {
   const displayMode: string = (ex as any).bonusDisplayMode ?? 'up-to';
   const verificationStatus: string = (ex as any).verificationStatus ?? 'verified';
+  const spotMakerFee: number | undefined = (ex as any).spotMakerFee;
+  const spotTakerFee: number | undefined = (ex as any).spotTakerFee;
 
-  const kyc = ex.kycRequired ? 'KYC required' : 'no KYC needed';
-  const deposit = ex.depositRequired ? 'deposit required' : 'no minimum deposit';
-  const trustTag = verificationStatus === 'verified' ? 'Verified offer.' : '';
-  const noKycHighlight = !ex.kycRequired ? 'No identity verification required. ' : '';
+  const kyc = ex.kycRequired ? 'KYC required' : 'no KYC';
+  const deposit = ex.depositRequired ? 'deposit required' : 'no deposit';
+  const trustTag = verificationStatus === 'verified' ? 'Verified.' : '';
+  const noKycHighlight = !ex.kycRequired ? 'No KYC. ' : '';
+
+  // Fee signal — include when maker=0% or taker ≤0.1% (notable CTR hook for fee queries)
+  let feeNote = '';
+  if (spotMakerFee === 0) {
+    feeNote = '0% maker fee. ';
+  } else if (spotTakerFee !== undefined && spotTakerFee <= 0.1) {
+    feeNote = `${spotTakerFee}% spot fee. `;
+  }
 
   if (displayMode === 'fixed') {
-    const raw = `${ex.name} signup bonus ${YEAR}: fixed reward for new users. ${trustTag} ${kyc}, ${deposit}. Full conditions and claim guide.`;
+    const raw = `${ex.name} signup bonus ${YEAR}: fixed reward for new users. ${noKycHighlight}${feeNote}${trustTag} ${kyc}, ${deposit}. Full conditions and claim guide.`;
     return raw.replace(/\s+/g, ' ').trim().slice(0, 160);
   }
 
   if (displayMode === 'campaign') {
-    const raw = `${ex.name} welcome offer ${YEAR}: campaign-based bonus for new users. ${noKycHighlight}Verify current offer on official site. ${trustTag} ${kyc}. Step-by-step claim guide.`;
+    const raw = `${ex.name} welcome offer ${YEAR}: campaign bonus for new users. ${noKycHighlight}${feeNote}Verify on official site. ${trustTag} ${kyc}. Step-by-step guide.`;
     return raw.replace(/\s+/g, ' ').trim().slice(0, 160);
   }
 
-  const raw = `${ex.name} bonus ${YEAR}: up to ${fmt(ex.bonusAmount)} ${ex.bonusCurrency}. ${noKycHighlight}${trustTag} ${kyc}, ${deposit}. Verified conditions + step-by-step guide.`;
+  const raw = `${ex.name} bonus ${YEAR}: up to ${fmt(ex.bonusAmount)} ${ex.bonusCurrency}. ${noKycHighlight}${feeNote}${trustTag} ${kyc}, ${deposit}. Verified conditions + guide.`;
   return raw.replace(/\s+/g, ' ').trim().slice(0, 160);
 }
 
