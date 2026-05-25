@@ -343,6 +343,25 @@ const analyticsContext: PageContext = {
             <p>{localTip}</p>
           </div>
         )}
+        <div class="p2p-guide-links">
+          {topExchangeSlug === 'binance' ? (
+            <a href="/guides/how-to-use-binance-p2p/" class="p2p-guide-link">
+              <span class="p2p-guide-link-icon" aria-hidden="true">📖</span>
+              Full guide: How to Use Binance P2P →
+            </a>
+          ) : (
+            <a href="/guides/how-to-use-p2p/" class="p2p-guide-link">
+              <span class="p2p-guide-link-icon" aria-hidden="true">📖</span>
+              Full guide: How to Use P2P Crypto Trading →
+            </a>
+          )}
+          {topExchangeSlug && (
+            <a href={`/exchanges/${topExchangeSlug}/`} class="p2p-guide-link p2p-guide-link--exchange">
+              <span class="p2p-guide-link-icon" aria-hidden="true">🏦</span>
+              {rankedAvailable[0]?.name ?? topExchangeSlug} full review →
+            </a>
+          )}
+        </div>
       </section>
     )}
 
@@ -693,6 +712,40 @@ const analyticsContext: PageContext = {
     color: var(--color-text-secondary);
     line-height: 1.6;
   }
+
+  /* ── P2P guide links ── */
+  .p2p-guide-links {
+    display: flex;
+    gap: 0.625rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+  }
+
+  .p2p-guide-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 0.875rem;
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-accent);
+    text-decoration: none;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .p2p-guide-link:hover {
+    border-color: var(--color-accent);
+    background: rgba(245, 197, 66, 0.06);
+  }
+  .p2p-guide-link--exchange {
+    color: var(--color-text-secondary);
+  }
+  .p2p-guide-link--exchange:hover {
+    color: var(--color-accent);
+  }
+  .p2p-guide-link-icon { font-size: 0.875rem; flex-shrink: 0; }
 
   /* ── Mobile sticky CTA ── */
   .cty-sticky {
