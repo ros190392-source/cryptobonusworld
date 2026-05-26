@@ -8,10 +8,24 @@ interface Props {
 }
 
 const { name, slug, flag, description, exchangeCount = 0 } = Astro.props;
+
+function flagToIso(f: string): string {
+  try {
+    const pts = [...f].map(c => c.codePointAt(0) ?? 0);
+    if (pts.length < 2 || pts[0] < 0x1F1E6 || pts[0] > 0x1F1FF) return '';
+    return pts.map(p => String.fromCharCode(p - 0x1F1A5)).join('').toLowerCase();
+  } catch { return ''; }
+}
+const iso = flagToIso(flag);
 ---
 
 <a href={`/countries/${slug}/`} class="country-card">
-  <div class="country-card-flag" aria-hidden="true">{flag}</div>
+  <div class="country-card-flag" aria-hidden="true">
+    {iso
+      ? <img src={`https://flagcdn.com/w40/${iso}.png`} srcset={`https://flagcdn.com/w80/${iso}.png 2x`} width="40" height="30" alt={name} class="flag-img" loading="lazy" />
+      : flag
+    }
+  </div>
   <div class="country-card-content">
     <h3 class="country-card-name">{name}</h3>
     <p class="country-card-desc">{description}</p>
@@ -40,7 +54,14 @@ const { name, slug, flag, description, exchangeCount = 0 } = Astro.props;
     border-color: var(--color-accent-dim);
     box-shadow: 0 2px 12px rgba(245, 197, 66, 0.06);
   }
-  .country-card-flag { font-size: 1.75rem; flex-shrink: 0; }
+  .country-card-flag { font-size: 1.75rem; flex-shrink: 0; line-height: 1; }
+  .country-card-flag .flag-img {
+    width: 40px;
+    height: auto;
+    border-radius: 3px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    display: block;
+  }
   .country-card-content { flex: 1; min-width: 0; }
   .country-card-name {
     font-size: 0.95rem;
