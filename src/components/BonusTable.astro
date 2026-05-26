@@ -3,7 +3,7 @@ import BonusBadge from './BonusBadge.astro';
 import BonusTrustLabel from './BonusTrustLabel.astro';
 import CTAButton from './CTAButton.astro';
 import ExchangeLogo from './ExchangeLogo.astro';
-import { getCtaLabel } from '../utils/affiliateUtils';
+import { getCtaLabel, getCtaLabelShort } from '../utils/affiliateUtils';
 
 interface BonusRange {
   min: number;
@@ -216,7 +216,7 @@ const schema = {
             <td class="td-cta">
               <CTAButton
                 href={ex.affiliateUrl}
-                label={featured ? getCtaLabel(ex as any) : (!ex.kycRequired ? 'No KYC →' : 'View →')}
+                label={featured ? getCtaLabelShort(ex as any) : (!ex.kycRequired ? 'No KYC →' : 'View →')}
                 exchange={ex.name}
                 size={featured ? 'md' : 'sm'}
                 variant={featured ? 'primary' : 'outline'}
@@ -597,7 +597,7 @@ const schema = {
   }
 
   /* ── CTA ────────────────────────────────── */
-  .td-cta { text-align: right; white-space: nowrap; }
+  .td-cta { text-align: right; white-space: nowrap; min-width: 180px; }
   .cta-compact {
     display: inline-block;
     font-size: 0.78rem;
