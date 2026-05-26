@@ -1,0 +1,346 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import { EDITORIAL_TEAM, getActiveReviewers } from '../../data/reviewers';
+import { SITE_NAME } from '../../utils/seo';
+import exchanges from '../../data/exchanges.json';
+
+export function getStaticPaths() {
+  return EDITORIAL_TEAM
+    .filter(r => r.status === 'active')
+    .map(r => ({ params: { slug: r.slug } }));
+}
+
+const { slug } = Astro.params;
+const reviewer = EDITORIAL_TEAM.find(r => r.slug === slug)!;
+
+const reviewedExchangeData = exchanges.filter(e =>
+  reviewer.reviewedExchanges.includes(e.slug)
+);
+
+const pageTitle = `${reviewer.name} — ${reviewer.title} | ${SITE_NAME}`;
+const pageDesc  = reviewer.bio.slice(0, 155);
+
+function fmtDate(iso: string): string {
+  try {
+    return new Date(iso).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+  } catch { return iso; }
+}
+
+const personSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: reviewer.name,
+  jobTitle: reviewer.title,
+  description: reviewer.bio,
+  url: `https://cryptobonusworld.com/reviewers/${reviewer.slug}/`,
+  worksFor: {
+    '@type': 'Organization',
+    name: SITE_NAME,
+    url: 'https://cryptobonusworld.com',
+  },
+  knowsAbout: reviewer.expertise,
+};
+
+const crumbs = [
+  { label: 'Home', href: '/' },
+  { label: 'Our Team', href: '/reviewers/' },
+  { label: reviewer.name },
+];
+---
+
+<Layout title={pageTitle} description={pageDesc} canonical={`/reviewers/${reviewer.slug}/`} schema={personSchema}>
+  <div class="container">
+    <Breadcrumbs crumbs={crumbs} />
+
+    <div class="reviewer-hero" itemscope itemtype="https://schema.org/Person">
+      <div class="reviewer-hero__avatar" aria-hidden="true">
+        {reviewer.photo
+          ? <img src={reviewer.photo} alt={reviewer.name} width="120" height="120" class="reviewer-hero__photo" />
+          : <span class="reviewer-hero__initials">{reviewer.initials}</span>
+        }
+      </div>
+      <div class="reviewer-hero__info">
+        <div class="reviewer-hero__role">{reviewer.roleTag}</div>
+        <h1 class="reviewer-hero__name" itemprop="name">{reviewer.name}</h1>
+        <div class="reviewer-hero__title" itemprop="jobTitle">{reviewer.title}</div>
+        <div class="reviewer-hero__meta">
+          <span class="meta-item">📅 On team since {fmtDate(reviewer.joinedAt)}</span>
+          <span class="meta-item">🔄 Last active {fmtDate(reviewer.lastActiveAt)}</span>
+          <span class="meta-item credibility">
+            {reviewer.credibilityScore >= 90 ? '⭐' : '✓'} Credibility {reviewer.credibilityScore}/100
+          </span>
+        </div>
+      </div>
+      <div class="reviewer-hero__stats">
+        <div class="stat-box">
+          <span class="stat-box__num">{reviewer.reviewCount}</span>
+          <span class="stat-box__label">Exchanges Reviewed</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-box__num">{reviewer.articleCount}</span>
+          <span class="stat-box__label">Articles Written</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-box__num">{reviewer.reviewedExchanges.length}</span>
+          <span class="stat-box__label">Platforms Covered</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="reviewer-body">
+      <div class="reviewer-main">
+        <section class="section">
+          <h2>About {reviewer.name}</h2>
+          {reviewer.fullBio.map(para => (
+            <p itemprop="description">{para}</p>
+          ))}
+        </section>
+
+        <section class="section">
+          <h2>Areas of Expertise</h2>
+          <ul class="expertise-list">
+            {reviewer.expertise.map(skill => (
+              <li itemprop="knowsAbout">{skill}</li>
+            ))}
+          </ul>
+        </section>
+
+        {reviewedExchangeData.length > 0 && (
+          <section class="section">
+            <h2>Exchanges Reviewed</h2>
+            <div class="exchange-list">
+              {reviewedExchangeData.map(ex => (
+                <a href={`/exchanges/${ex.slug}/`} class="ex-chip">
+                  <img src={ex.logo} alt={ex.name} width="28" height="28" loading="lazy" />
+                  <span>{ex.name}</span>
+                </a>
+              ))}
+            </div>
+          </section>
+        )}
+      </div>
+
+      <aside class="reviewer-sidebar">
+        <div class="sidebar-card">
+          <div class="sidebar-card__title">Editorial Standards</div>
+          <ul class="sidebar-card__list">
+            <li>All data verified against official exchange pages</li>
+            <li>No payment accepted for ratings</li>
+            <li>Affiliate links disclosed on every page</li>
+            <li>Data re-verified every 30–45 days</li>
+          </ul>
+          <a href="/editorial-policy/" class="sidebar-card__link">Read editorial policy →</a>
+        </div>
+        <div class="sidebar-card">
+          <div class="sidebar-card__title">Methodology</div>
+          <p class="sidebar-card__text">
+            Our rating system weighs bonus value, conditions clarity, KYC requirements,
+            country availability, reputation, and ease of claiming.
+          </p>
+          <a href="/methodology/" class="sidebar-card__link">Full methodology →</a>
+        </div>
+      </aside>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .container { max-width: var(--container-max); margin: 0 auto; padding: 0 var(--container-pad); }
+
+  /* ── Hero ── */
+  .reviewer-hero {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 1.5rem;
+    align-items: start;
+    padding: 2.5rem 0 2rem;
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: 2.5rem;
+  }
+  .reviewer-hero__avatar { flex-shrink: 0; }
+  .reviewer-hero__photo {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: center top;
+    border: 3px solid rgba(245,197,66,0.45);
+    box-shadow: 0 0 0 1px rgba(245,197,66,0.15), 0 4px 20px rgba(0,0,0,0.4);
+    display: block;
+  }
+  .reviewer-hero__initials {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: rgba(245,197,66,0.12);
+    border: 3px solid rgba(245,197,66,0.3);
+    color: var(--color-accent);
+    font-size: 2rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .reviewer-hero__role {
+    font-size: var(--text-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-accent);
+    margin-bottom: 0.4rem;
+  }
+  .reviewer-hero__name {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 800;
+    margin: 0 0 0.3rem;
+  }
+  .reviewer-hero__title {
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    margin-bottom: 0.75rem;
+  }
+  .reviewer-hero__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .meta-item {
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+  }
+  .credibility {
+    color: var(--color-accent);
+    font-weight: 600;
+  }
+  .reviewer-hero__stats {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: flex-end;
+  }
+  .stat-box {
+    text-align: right;
+  }
+  .stat-box__num {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--color-accent);
+    line-height: 1;
+  }
+  .stat-box__label {
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+  }
+
+  /* ── Body layout ── */
+  .reviewer-body {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 2.5rem;
+    margin-bottom: 3rem;
+  }
+  .section {
+    margin-bottom: 2rem;
+  }
+  .section h2 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 0 0 1rem;
+  }
+  .section p {
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    margin: 0 0 0.875rem;
+  }
+  .expertise-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .expertise-list li {
+    font-size: var(--text-sm);
+    background: var(--surface-raised);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    padding: 0.35rem 0.875rem;
+    color: var(--color-text-secondary);
+  }
+  .exchange-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .ex-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.75rem;
+    background: var(--surface-raised);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    text-decoration: none;
+    font-size: var(--text-sm);
+    color: var(--color-text-primary);
+    font-weight: 600;
+    transition: border-color var(--duration-base);
+  }
+  .ex-chip:hover { border-color: var(--color-accent); }
+  .ex-chip img { border-radius: 6px; }
+
+  /* ── Sidebar ── */
+  .reviewer-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .sidebar-card {
+    padding: 1.25rem;
+    background: var(--surface-raised);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+  }
+  .sidebar-card__title {
+    font-size: var(--text-sm);
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: 0.75rem;
+  }
+  .sidebar-card__list {
+    padding: 0 0 0 1rem;
+    margin: 0 0 0.875rem;
+  }
+  .sidebar-card__list li {
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    margin-bottom: 0.35rem;
+    line-height: 1.5;
+  }
+  .sidebar-card__text {
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    line-height: 1.6;
+    margin: 0 0 0.875rem;
+  }
+  .sidebar-card__link {
+    font-size: var(--text-xs);
+    font-weight: 700;
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  @media (max-width: 900px) {
+    .reviewer-hero { grid-template-columns: auto 1fr; }
+    .reviewer-hero__stats { flex-direction: row; align-items: center; grid-column: 1 / -1; }
+    .stat-box { text-align: left; }
+    .reviewer-body { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) {
+    .reviewer-hero { grid-template-columns: 1fr; justify-items: start; }
+    .reviewer-hero__initials { width: 72px; height: 72px; font-size: 1.3rem; }
+  }
+</style>
