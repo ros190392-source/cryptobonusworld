@@ -62,10 +62,10 @@ export function getCtaLabel(ex: AffiliateExchange): string {
  * Max ~30 chars. Calm and factual — not aggressive.
  */
 export function getCtaLabelShort(ex: AffiliateExchange): string {
-  if (!ex.kycRequired && !ex.depositRequired) return 'Open — No KYC →';
-  if (!ex.kycRequired) return 'View — No KYC →';
-  if (!ex.depositRequired) return 'No deposit →';
-  return 'View offer →';
+  if (!ex.kycRequired && !ex.depositRequired) return 'Open — No KYC';
+  if (!ex.kycRequired) return 'View — No KYC';
+  if (!ex.depositRequired) return 'No Deposit';
+  return 'View Offer';
 }
 
 // ── Editorial priority score ──────────────────────────────────────────────────
