@@ -1939,8 +1939,8 @@
     "logo": "/logos/binance.png",
     "rating": 9.5,
     "topChoice": false,
-    "bonusTitle": "Up to 100 USDT Welcome Bonus",
-    "bonusAmount": 100,
+    "bonusTitle": "Up to 19,800 USDT New User Rewards",
+    "bonusAmount": 19800,
     "bonusCurrency": "USDT",
     "bonusTypes": [
       "signup",
@@ -1953,16 +1953,24 @@
         "title": "Registration Reward",
         "amount": 20,
         "currency": "USDT",
-        "condition": "Register via referral link",
-        "note": "Trading fee voucher"
+        "condition": "Register via referral link and verify email",
+        "note": "Trading fee voucher, credited immediately"
       },
       {
         "type": "deposit",
         "title": "Deposit Bonus",
-        "amount": 80,
+        "amount": 180,
         "currency": "USDT",
         "condition": "Make a qualifying first deposit",
-        "note": "Scales with deposit amount"
+        "note": "Scales with deposit size"
+      },
+      {
+        "type": "futures",
+        "title": "Futures Trading Rewards",
+        "amount": 19600,
+        "currency": "USDT",
+        "condition": "Complete futures trading volume milestones",
+        "note": "Distributed across multiple tiers; high-volume required for maximum"
       }
     ],
     "bonusExpiry": {
@@ -2052,7 +2060,7 @@
       "Complex KYC process in some jurisdictions",
       "Regulatory scrutiny in multiple countries"
     ],
-    "requirements": "Register via referral link. Complete KYC verification. Make a qualifying deposit and complete trading tasks to unlock welcome bonus. All tasks must be completed within 30 days.",
+    "requirements": "Register via referral link. Complete KYC verification. Make a qualifying deposit and complete trading tasks to unlock welcome bonus. Futures trading volume milestones unlock the higher reward tiers. All tasks must be completed within 30 days.",
     "riskNotes": "Binance has faced regulatory actions in multiple jurisdictions. Always verify current availability and compliance status in your country before registering.",
     "shortDescription": "Binance is the world's largest crypto exchange by trading volume, offering a comprehensive ecosystem including spot, futures, P2P and DeFi services.",
     "bestFor": [
@@ -2067,20 +2075,20 @@
     "updatedAt": "2026-05-23",
     "status": "active",
     "verificationStatus": "verified",
-    "bonusNote": "Up to 100 USDT welcome reward — reliable, verifiable offer with standard KYC and deposit conditions",
+    "bonusNote": "Up to 19,800 USDT across all reward tasks — typical first-week reward is 100–200 USDT for standard deposits; maximum requires significant futures trading volume",
     "bonusSourceUrl": "https://www.binance.com/en/activity/referral",
     "bonusDisplayMode": "up-to",
     "bonusRange": {
-      "min": 10,
-      "max": 100,
-      "typicalMin": 20,
-      "typicalMax": 100,
+      "min": 20,
+      "max": 19800,
+      "typicalMin": 50,
+      "typicalMax": 200,
       "currency": "USDT",
-      "typicalNote": "Regional; most earn 20–100 USDT"
+      "typicalNote": "Most users earn 50–200 USDT; 19,800 USDT max requires high futures volume"
     },
-    "offerLastChecked": "2026-05-23",
-    "offerConfidenceScore": 88,
-    "realisticUserExpectation": "100 USDT max is achievable with standard KYC + deposit; straightforward conditions, widely accessible",
+    "offerLastChecked": "2026-05-26",
+    "offerConfidenceScore": 90,
+    "realisticUserExpectation": "50–200 USDT realistic for standard users; full 19,800 USDT requires active futures trading across multiple volume milestones",
     "verificationLastChecked": "2026-05-25",
     "bonusConditionSummary": "Complete KYC + make first deposit; standard trading activity required",
     "spotMakerFee": 0.1,
