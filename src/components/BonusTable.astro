@@ -128,7 +128,7 @@ const schema = {
             {/* Exchange */}
             <td class="td-exchange">
               <a href={`/exchanges/${ex.slug}/`} class="ex-link">
-                <ExchangeLogo slug={ex.slug} name={ex.name} size={80} variant="square" />
+                <ExchangeLogo slug={ex.slug} name={ex.name} size={88} variant="square" />
                 <div class="ex-meta">
                   <span class="ex-name">{ex.name}</span>
                   {label && (
@@ -242,7 +242,7 @@ const schema = {
         <div class:list={['mc', featured && 'mc--featured']} data-slug={ex.slug}>
           <div class="mc-top">
             <a href={`/exchanges/${ex.slug}/`} class="mc-identity">
-              <ExchangeLogo slug={ex.slug} name={ex.name} size={68} variant="square" />
+              <ExchangeLogo slug={ex.slug} name={ex.name} size={72} variant="square" />
               <div class="mc-meta">
                 <span class="mc-name">{ex.name}</span>
                 {label && <span class:list={['ex-label', label.cls]}>{label.text}</span>}

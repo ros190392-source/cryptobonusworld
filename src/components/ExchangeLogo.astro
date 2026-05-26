@@ -48,28 +48,30 @@ const radiusPx  = variant === 'pill' ? size / 2 : variant === 'square' ? Math.ro
 const fontSize  = Math.round(size * 0.44);
 
 /**
- * Safe-area padding system — optical alignment tweaks.
- * Some PNG logos have extra whitespace built in (reduces effective icon size).
- * Some have tight crops (icon fills edge to edge → needs breathing room).
- * Values are % of container size used as inner padding.
+ * Safe-area padding system — minimal breathing room only.
+ * Target fill: ~90-94% of container (premium app-icon feel).
+ * Values are % of container used as inner padding PER SIDE.
+ *   3% → 94% fill   4% → 92% fill   5% → 90% fill
+ * Keep values low — object-fit:contain + natural logo whitespace
+ * already prevents hard-edge clipping.
  */
 const LOGO_PADDING: Record<string, number> = {
-  bybit:    8,   // tight logo on orange — add breathing room
-  binance:  6,
-  okx:      8,   // white on black — add padding
-  mexc:     6,
-  bitget:   6,
-  bingx:    8,
-  kucoin:   6,
-  htx:      6,
-  coinex:   8,
-  phemex:   8,
-  bitunix:  6,
-  'gate-io':6,
-  coinbase: 6,   // circle mark — slight padding looks cleaner
-  lbank:    8,
+  bybit:    3,
+  binance:  2,
+  okx:      3,
+  mexc:     2,
+  bitget:   2,
+  bingx:    3,
+  kucoin:   2,
+  htx:      2,
+  coinex:   3,
+  phemex:   3,
+  bitunix:  2,
+  'gate-io':2,
+  coinbase: 2,
+  lbank:    3,
 };
-const padPct = LOGO_PADDING[slug] ?? 6;
+const padPct = LOGO_PADDING[slug] ?? 2;
 const padPx = Math.round(size * padPct / 100);
 ---
 
@@ -106,7 +108,6 @@ const padPx = Math.round(size * padPct / 100);
     overflow: hidden;
     flex-shrink: 0;
     background: var(--surface-overlay, #1a1a1a);
-    border: 1px solid var(--color-border, #252525);
     position: relative;
   }
   .exlogo--raw {

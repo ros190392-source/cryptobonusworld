@@ -1,0 +1,168 @@
+---
+/**
+ * QuickPicks.astro — compact recommendation bar above the bonus table.
+ *
+ * Surfaces 3-4 high-confidence picks for common user intents:
+ *   - Highest bonus (all users)
+ *   - No-KYC fastest access
+ *   - Best for beginners
+ *   - Best for US-adjacent (no US) regions
+ *
+ * Purely editorial — no invented claims. Uses real exchange data only.
+ */
+
+import ExchangeLogo from './ExchangeLogo.astro';
+
+interface Exchange {
+  name: string;
+  slug: string;
+  bonusAmount: number;
+  bonusCurrency: string;
+  kycRequired: boolean;
+  depositRequired: boolean;
+  rating: number;
+  topChoice?: boolean;
+}
+
+interface Props {
+  exchanges: Exchange[];
+}
+
+const { exchanges } = Astro.props;
+
+// Find picks from real data
+const sorted      = [...exchanges].sort((a, b) => b.bonusAmount - a.bonusAmount);
+const topBonus    = sorted[0];
+const noKyc       = exchanges.filter(e => !e.kycRequired && !e.depositRequired)
+                              .sort((a, b) => b.rating - a.rating)[0];
+const noKycDeposit= exchanges.filter(e => !e.kycRequired)
+                              .sort((a, b) => b.bonusAmount - a.bonusAmount)[0];
+const topRated    = [...exchanges].sort((a, b) => b.rating - a.rating)[0];
+
+// Deduplicate and build pick list
+const picks: { label: string; hint: string; exchange: Exchange; href: string }[] = [];
+const seen = new Set<string>();
+
+function addPick(label: string, hint: string, ex: Exchange | undefined) {
+  if (!ex || seen.has(ex.slug)) return;
+  seen.add(ex.slug);
+  picks.push({
+    label,
+    hint,
+    exchange: ex,
+    href: `/exchanges/${ex.slug}/`,
+  });
+}
+
+addPick('Highest Bonus',     `Up to ${topBonus.bonusAmount.toLocaleString()} ${topBonus.bonusCurrency}`, topBonus);
+addPick('No KYC · No Deposit', 'Start instantly, no ID needed',                                          noKyc);
+addPick('No KYC Required',   'No identity verification needed',                                          noKycDeposit);
+addPick('Top Rated',         `${topRated.rating}/10 editorial score`,                                    topRated);
+---
+
+{picks.length > 0 && (
+  <div class="qp" role="region" aria-label="Quick pick recommendations">
+    <span class="qp-label">Quick picks</span>
+    <div class="qp-list">
+      {picks.slice(0, 4).map(p => (
+        <a href={p.href} class="qp-item" aria-label={`${p.label}: ${p.exchange.name}`}>
+          <ExchangeLogo slug={p.exchange.slug} name={p.exchange.name} size={56} variant="square" />
+          <div class="qp-text">
+            <span class="qp-item-label">{p.label}</span>
+            <span class="qp-item-name">{p.exchange.name} · <span class="qp-item-hint">{p.hint}</span></span>
+          </div>
+          <span class="qp-arrow" aria-hidden="true">→</span>
+        </a>
+      ))}
+    </div>
+  </div>
+)}
+
+<style>
+  .qp {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 0.875rem 1rem;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg, 14px);
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .qp-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+    padding-top: 0.1rem;
+    flex-shrink: 0;
+  }
+
+  .qp-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    flex: 1;
+  }
+
+  .qp-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.3rem 0.625rem 0.3rem 0.375rem;
+    border-radius: var(--radius-md, 10px);
+    border: 1px solid var(--color-border);
+    background: var(--surface-overlay, #1a1a1a);
+    text-decoration: none;
+    transition: border-color 0.15s, background 0.15s;
+    min-height: 56px;
+  }
+  .qp-item:hover {
+    border-color: rgba(245,197,66,0.3);
+    background: rgba(245,197,66,0.04);
+  }
+
+  .qp-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.05rem;
+  }
+
+  .qp-item-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    white-space: nowrap;
+  }
+
+  .qp-item-name {
+    font-size: 0.62rem;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+  }
+
+  .qp-item-hint {
+    color: var(--color-accent);
+    font-weight: 600;
+  }
+
+  .qp-arrow {
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
+    margin-left: 0.1rem;
+    transition: transform 0.15s, color 0.15s;
+  }
+  .qp-item:hover .qp-arrow {
+    transform: translateX(2px);
+    color: var(--color-accent);
+  }
+
+  @media (max-width: 640px) {
+    .qp { flex-direction: column; gap: 0.75rem; }
+    .qp-item { flex: 1; min-width: 140px; }
+  }
+</style>
