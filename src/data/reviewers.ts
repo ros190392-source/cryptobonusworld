@@ -60,7 +60,7 @@ export const EDITORIAL_TEAM: ReviewerProfile[] = [
     title: 'Crypto Exchange Analyst & Editor-in-Chief',
     roleTag: 'Editor-in-Chief',
     initials: 'AS',
-    photo: '/avatars/alexandr-shadurskyi.webp',
+    photo: '/avatars/editor.jpg',
     bio: 'Alexandr Shadurskyi is the founder and editor-in-chief of CryptoBonusWorld. He personally evaluates exchange bonus structures, KYC policies, and platform reliability, with a focus on helping traders get real value from signup offers.',
     fullBio: [
       'Alexandr Shadurskyi founded CryptoBonusWorld with a single goal: give traders an honest, independently verified source for crypto exchange bonus information — free of inflated claims and hidden conditions.',
