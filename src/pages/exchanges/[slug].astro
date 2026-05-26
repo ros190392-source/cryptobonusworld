@@ -15,6 +15,7 @@ import ReviewerBlock from '../../components/ReviewerBlock.astro';
 import EditorialNote from '../../components/EditorialNote.astro';
 import HowWeEvaluate from '../../components/HowWeEvaluate.astro';
 import AuthorCard from '../../components/AuthorCard.astro';
+import ExchangeLogo from '../../components/ExchangeLogo.astro';
 import OfferRealism from '../../components/OfferRealism.astro';
 import EditorialExperienceBar from '../../components/EditorialExperienceBar.astro';
 
@@ -693,9 +694,9 @@ const rnrItems = [
             return (
               <a href={`/compare/${p.pair}/`} class="compare-vs-card">
                 <div class="compare-vs-logos">
-                  <img src={`/logos/${ex.slug}.svg`} alt={ex.name} width="44" height="44" />
+                  <ExchangeLogo slug={ex.slug} name={ex.name} size={44} variant="square" lazy={false} />
                   <span class="compare-vs-divider">vs</span>
-                  <img src={other.logo} alt={other.name} width="44" height="44" />
+                  <ExchangeLogo slug={otherSlug} name={other.name} size={44} variant="square" lazy={false} />
                 </div>
                 <span class="compare-vs-label">{ex.name} vs {other.name}</span>
                 <span class="compare-vs-arrow">→</span>
@@ -748,13 +749,7 @@ const rnrItems = [
     gap: 0.35rem;
     flex-shrink: 0;
   }
-  .compare-vs-logos img {
-    width: 44px; height: 44px;
-    object-fit: contain;
-    border-radius: 8px;
-    background: var(--surface-overlay);
-    padding: 2px;
-  }
+  /* ExchangeLogo handles its own sizing — no img override needed */
   .compare-vs-divider { font-size: 0.65rem; color: var(--color-text-muted); font-weight: 400; }
   .compare-vs-label { flex: 1; font-size: var(--text-sm); }
   .compare-vs-arrow { color: var(--color-accent); font-weight: 700; flex-shrink: 0; }
