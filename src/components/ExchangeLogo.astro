@@ -62,22 +62,46 @@ const LOGO_PADDING: Record<string, number> = {
   mexc:     2,
   bitget:   2,
   bingx:    3,
-  kucoin:   2,
-  htx:      2,
-  coinex:   3,
-  phemex:   3,
-  bitunix:  2,
+  kucoin:   0,   // white bg matched in container — no gap to hide
+  htx:      0,   // white bg matched in container — no gap to hide
+  coinex:   0,   // white bg matched in container — no gap to hide
+  phemex:   0,   // dark bg matched in container — no gap to hide
+  bitunix:  0,   // dark bg matched in container — no gap to hide
   'gate-io':2,
   coinbase: 2,
-  lbank:    3,
+  lbank:    0,   // yellow bg matched in container — no gap to hide
 };
 const padPct = LOGO_PADDING[slug] ?? 2;
 const padPx = Math.round(size * padPct / 100);
+
+/**
+ * Container background matching — eliminates dark gap artefacts.
+ *
+ * Some PNG logos have a baked-in background shape (white circle for HTX,
+ * white rounded square for CoinEx, yellow square for LBank, dark square
+ * for Phemex/Bitunix). Transparent pixels outside that shape expose the
+ * container's dark surface. Setting the container bg to match the logo's
+ * own bg colour makes the seam invisible.
+ *
+ * Exchanges NOT in this map use the default dark surface (correct for
+ * logos that already fill edge-to-edge or sit on a transparent field).
+ */
+const LOGO_CONTAINER_BG: Record<string, string> = {
+  htx:     '#FFFFFF',   // white circle
+  coinex:  '#FFFFFF',   // white/light rounded square
+  lbank:   '#F5C100',   // yellow rounded square
+  phemex:  '#0C0C0C',   // near-black rounded square
+  bitunix: '#0C0C0C',   // dark bg with green leaf mark
+  kucoin:  '#FFFFFF',   // white rounded square
+};
+const containerBg = variant !== 'raw'
+  ? (LOGO_CONTAINER_BG[slug] ?? 'var(--surface-overlay, #1a1a1a)')
+  : 'transparent';
 ---
 
 <div
   class:list={['exlogo', `exlogo--${variant}`, extraClass]}
-  style={`width:${size}px;height:${size}px;border-radius:${radiusPx}px;`}
+  style={`width:${size}px;height:${size}px;border-radius:${radiusPx}px;background:${containerBg};`}
   aria-label={name}
   role="img"
 >
