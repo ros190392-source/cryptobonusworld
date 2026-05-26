@@ -152,6 +152,21 @@ const analyticsContext: PageContext = {
   pageType: 'country',
   countrySlug: country.slug,
 };
+
+/**
+ * Extract ISO 3166-1 alpha-2 code from a flag emoji.
+ * Flag emojis are Regional Indicator Symbol Letters (U+1F1E6–U+1F1FF).
+ * Subtracting 0x1F1A5 converts each codepoint back to its ASCII letter.
+ * Returns empty string for non-flag emoji (e.g. 🌍 globe).
+ */
+function flagEmojiToIso(flag: string): string {
+  try {
+    const codePoints = [...flag].map(c => c.codePointAt(0) ?? 0);
+    if (codePoints.length < 2 || codePoints[0] < 0x1F1E6 || codePoints[0] > 0x1F1FF) return '';
+    return codePoints.map(p => String.fromCharCode(p - 0x1F1A5)).join('').toLowerCase();
+  } catch { return ''; }
+}
+const countryIso = flagEmojiToIso(country.flag);
 ---
 
 <Layout
@@ -170,7 +185,10 @@ const analyticsContext: PageContext = {
 
     <div class="page-header">
       <div class="country-heading">
-        <span class="country-flag" aria-hidden="true">{country.flag}</span>
+        {countryIso
+          ? <img src={`https://flagcdn.com/w40/${countryIso}.png`} srcset={`https://flagcdn.com/w80/${countryIso}.png 2x`} width="40" height="30" alt={country.name} class="country-flag-img" loading="eager" />
+          : <span class="country-flag" aria-hidden="true">{country.flag}</span>
+        }
         <h1>{country.title}</h1>
       </div>
       <p class="lead">
@@ -381,7 +399,13 @@ const analyticsContext: PageContext = {
 
 <!-- Mobile sticky CTA -->
 <div class="cty-sticky">
-  <span class="cty-sticky-label">{country.flag} {country.name} — {rankedAvailable.length} exchanges</span>
+  <span class="cty-sticky-label">
+    {countryIso
+      ? <img src={`https://flagcdn.com/w40/${countryIso}.png`} width="20" height="15" alt="" loading="lazy" style="vertical-align:middle;border-radius:2px;" />
+      : country.flag
+    }
+    {' '}{country.name} — {rankedAvailable.length} exchanges
+  </span>
   <a href="/bonuses/" class="cty-sticky-btn">All Bonuses →</a>
 </div>
 
@@ -394,6 +418,13 @@ const analyticsContext: PageContext = {
     margin-bottom: 0.5rem;
   }
   .country-flag { font-size: 2.5rem; line-height: 1; }
+  .country-flag-img {
+    width: 52px;
+    height: auto;
+    border-radius: 4px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+    flex-shrink: 0;
+  }
   .country-heading h1 { margin: 0; }
 
   /* ── GEO context block ── */
