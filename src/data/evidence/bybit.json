@@ -338,60 +338,60 @@
   ],
   "screenshots": {
     "registration": {
-      "status": "needs_manual_capture",
-      "path": null,
-      "capturedAt": null,
+      "status": "available",
+      "path": "/screenshots/bybit/registration/global-desktop-2026-06.webp",
+      "capturedAt": "2026-06",
       "geo": "GLOBAL",
       "device": "desktop",
-      "notes": ""
+      "notes": "Registration form — step 1. Source: media/walkthroughs/bybit/bybit-step-01.webp"
     },
     "kyc": {
-      "status": "needs_manual_capture",
-      "path": null,
-      "capturedAt": null,
+      "status": "available",
+      "path": "/screenshots/bybit/kyc/global-desktop-2026-06.webp",
+      "capturedAt": "2026-06",
       "geo": "GLOBAL",
       "device": "desktop",
-      "notes": ""
+      "notes": "KYC entry screen — step 1. Source: media/walkthroughs/bybit/bybit-kyc-01-ec66df38.webp"
     },
     "bonus": {
-      "status": "needs_manual_capture",
-      "path": null,
-      "capturedAt": null,
+      "status": "available",
+      "path": "/screenshots/bybit/bonus/global-desktop-2026-06.jpg",
+      "capturedAt": "2026-06",
       "geo": "GLOBAL",
       "device": "desktop",
-      "notes": ""
+      "notes": "Bonus chart overview. Source: media/walkthroughs/bybit/bybit-bonus-chart.jpg. No webp version available — recapture as webp when refreshing."
     },
     "deposit": {
-      "status": "needs_manual_capture",
-      "path": null,
-      "capturedAt": null,
+      "status": "available",
+      "path": "/screenshots/bybit/deposit/global-desktop-2026-06.webp",
+      "capturedAt": "2026-06",
       "geo": "GLOBAL",
       "device": "desktop",
-      "notes": ""
+      "notes": "Assets / deposit screen. Source: media/walkthroughs/bybit/bybit-dep-01-aad722a3.webp"
     },
     "p2p": {
-      "status": "needs_manual_capture",
-      "path": null,
-      "capturedAt": null,
+      "status": "available",
+      "path": "/screenshots/bybit/p2p/global-desktop-2026-06.webp",
+      "capturedAt": "2026-06",
       "geo": "GLOBAL",
       "device": "desktop",
-      "notes": ""
+      "notes": "P2P marketplace overview — step 1. Source: media/walkthroughs/bybit/bybit-p2p-01.webp"
     },
     "spot": {
-      "status": "needs_manual_capture",
-      "path": null,
-      "capturedAt": null,
+      "status": "available",
+      "path": "/screenshots/bybit/spot/global-desktop-2026-06.webp",
+      "capturedAt": "2026-06",
       "geo": "GLOBAL",
       "device": "desktop",
-      "notes": ""
+      "notes": "Spot trading overview — step 1. Source: media/walkthroughs/bybit/bybit-spot-01-20abb8ba.webp"
     },
     "futures": {
-      "status": "needs_manual_capture",
-      "path": null,
-      "capturedAt": null,
+      "status": "available",
+      "path": "/screenshots/bybit/futures/global-desktop-2026-06.webp",
+      "capturedAt": "2026-06",
       "geo": "GLOBAL",
       "device": "desktop",
-      "notes": ""
+      "notes": "Futures trading overview — step 1. Source: media/walkthroughs/bybit/bybit-fut-01-400c4d95.webp"
     },
     "fees": {
       "status": "needs_manual_capture",
@@ -399,7 +399,7 @@
       "capturedAt": null,
       "geo": "GLOBAL",
       "device": "desktop",
-      "notes": ""
+      "notes": "Raw fee screenshots archived. Need clean desktop capture of fee schedule page."
     },
     "mobile_app": {
       "status": "needs_manual_capture",
@@ -407,7 +407,7 @@
       "capturedAt": null,
       "geo": "GLOBAL",
       "device": "mobile",
-      "notes": ""
+      "notes": "No mobile app screenshot available. Capture Bybit iOS app home screen."
     },
     "proof_of_reserves": {
       "status": "needs_manual_capture",
@@ -415,7 +415,7 @@
       "capturedAt": null,
       "geo": "GLOBAL",
       "device": "desktop",
-      "notes": ""
+      "notes": "No proof-of-reserves screenshot available. Capture bybit.com/en/proof-of-reserves/"
     }
   }
 }
