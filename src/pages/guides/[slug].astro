@@ -337,7 +337,7 @@ const categoryColors: Record<string, string> = {
         <!-- FAQ -->
         {content.faq.length > 0 && (
           <section class="guide-section" id="faq">
-            <FAQBlock items={content.faq} title="Frequently Asked Questions" />
+            <FAQBlock items={content.faq} title="Frequently Asked Questions" suppressSchema={true} />
           </section>
         )}
 

@@ -197,7 +197,7 @@ export const CAPTURE_URLS: Readonly<Record<string, Partial<Record<ScreenshotCate
     proof_of_reserves:  'https://www.bitget.com/en/proof-of-reserves',
   },
   bingx: {
-    registration:       'https://bingx.com/invite/register',
+    registration:       'https://bingxdao.com/partner/CRYPTOBONUSWORLD/',
     kyc:                'https://bingx.com/account/kyc',
     bonus:              'https://bingx.com/en-us/activity/',
     deposit:            'https://bingx.com/en-us/asset/',

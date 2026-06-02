@@ -135,7 +135,7 @@ const analyticsContext: PageContext = { pageType: 'category' };
     <!-- Exchange table -->
     <section class="section">
       <h2 class="section-title">All Exchanges That Support {coin.symbol}</h2>
-      <BonusTable exchanges={ranked} />
+      <BonusTable exchanges={ranked} suppressSchema={true} />
     </section>
 
     <!-- No-KYC section -->
@@ -225,7 +225,7 @@ const analyticsContext: PageContext = { pageType: 'category' };
     )}
 
     <!-- FAQ -->
-    <FAQBlock items={coin.faq} />
+    <FAQBlock items={coin.faq} suppressSchema={true} />
 
     <!-- Related guides -->
     {relatedGuides.length > 0 && (

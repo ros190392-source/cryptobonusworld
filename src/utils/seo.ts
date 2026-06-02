@@ -563,14 +563,34 @@ export function buildProductSchema(ex: SeoExchange, pageUrl?: string): Record<st
 }
 
 /**
+ * Reviewer data for ReviewPage schema — pass when a named reviewer is known.
+ * Falls back to Organization author when omitted.
+ */
+export interface ReviewerEntity {
+  name: string;
+  url: string;
+}
+
+/**
  * ReviewPage schema for exchange review pages.
  * Complements Product schema — tells Google this URL is a professional review.
+ *
+ * @param reviewer — optional Person entity. When provided, `author` is the
+ *   reviewer (Person). When omitted, `author` falls back to Organization.
+ *   `reviewedBy` always mirrors the reviewer / org for maximum signal.
  */
-export function buildReviewPageSchema(ex: SeoExchange): Record<string, unknown> {
+export function buildReviewPageSchema(
+  ex: SeoExchange,
+  reviewer?: ReviewerEntity,
+): Record<string, unknown> {
   const updatedAt: string = (ex as any).updatedAt ?? '';
   const lastVerified: string = (ex as any).lastVerified ?? updatedAt;
   const licences: string[] = (ex as any).licences ?? [];
   const users: string = (ex as any).users ?? '';
+
+  const authorEntity: Record<string, unknown> = reviewer
+    ? { '@type': 'Person', name: reviewer.name, url: reviewer.url }
+    : { '@type': 'Organization', name: SITE_NAME, url: SITE_URL };
 
   return {
     '@context': 'https://schema.org',
@@ -587,11 +607,8 @@ export function buildReviewPageSchema(ex: SeoExchange): Record<string, unknown> 
       url: SITE_URL,
       logo: { '@type': 'ImageObject', url: `${SITE_URL}/brand/cryptobonusworld-logo.svg` },
     },
-    author: {
-      '@type': 'Organization',
-      name: SITE_NAME,
-      url: SITE_URL,
-    },
+    author: authorEntity,
+    reviewedBy: authorEntity,
     mainEntity: {
       '@type': 'FinancialProduct',
       name: `${ex.name} Cryptocurrency Exchange`,

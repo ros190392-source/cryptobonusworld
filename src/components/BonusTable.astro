@@ -46,9 +46,14 @@ interface Props {
   exchanges: Exchange[];
   filterCountry?: string;
   filterType?: string;
+  /**
+   * Set true when the parent page already emits an ItemList schema (e.g. via
+   * buildItemListSchema in its schema array). Prevents a duplicate JSON-LD block.
+   */
+  suppressSchema?: boolean;
 }
 
-const { exchanges, filterCountry, filterType } = Astro.props;
+const { exchanges, filterCountry, filterType, suppressSchema = false } = Astro.props;
 
 let filtered = [...exchanges];
 if (filterCountry) filtered = filtered.filter(e => e.countries.includes(filterCountry));
@@ -300,7 +305,7 @@ const schema = {
 </div>
 <p class="bt-terms-note">Bonus amounts are advertised maximums in the exchange's native currency (USDT, USD, etc.) and are not guaranteed. Actual rewards depend on deposit size, trading volume, tasks completed and regional eligibility. <a href="/affiliate-disclosure/">Affiliate disclosure</a> · <a href="/methodology/">How we rank</a> · <a href="/disclaimer/">Full disclaimer</a>.</p>
 
-<script type="application/ld+json" set:html={JSON.stringify(schema)} />
+{!suppressSchema && <script type="application/ld+json" set:html={JSON.stringify(schema)} />}
 
 <style>
   /* ── WRAPPER ────────────────────────────── */

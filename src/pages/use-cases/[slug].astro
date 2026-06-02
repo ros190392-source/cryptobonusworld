@@ -169,7 +169,7 @@ const ucRobotsDirective = ranked.length === 0 ? 'noindex, nofollow' : undefined;
       <h2 class="section-title">
         {ranked.length} Best Exchange{ranked.length !== 1 ? 's' : ''} for {useCase.label}
       </h2>
-      <BonusTable exchanges={ranked} />
+      <BonusTable exchanges={ranked} suppressSchema={true} />
     </section>
 
     <!-- No-KYC sub-section (only if use case doesn't require it — avoid duplication) -->
@@ -222,7 +222,7 @@ const ucRobotsDirective = ranked.length === 0 ? 'noindex, nofollow' : undefined;
     <HowWeEvaluate variant="compact" />
 
     <!-- FAQ -->
-    <FAQBlock items={useCase.faq} />
+    <FAQBlock items={useCase.faq} suppressSchema={true} />
 
     <!-- Related guides -->
     {relatedGuides.length > 0 && (

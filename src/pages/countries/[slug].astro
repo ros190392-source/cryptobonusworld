@@ -325,7 +325,7 @@ const countryIso = flagEmojiToIso(country.flag);
 
     <!-- All exchanges table -->
     <h2 class="section-title" style="margin-top: 2rem">All Available Exchanges in {country.name}</h2>
-    <BonusTable exchanges={rankedAvailable as any} filterCountry={country.slug} />
+    <BonusTable exchanges={rankedAvailable as any} filterCountry={country.slug} suppressSchema={true} />
 
     <!-- Fiat on-ramp section -->
     {fiatOnRamp && fiatOnRamp.length > 0 && (

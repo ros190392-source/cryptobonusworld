@@ -121,7 +121,7 @@ const analyticsContext: PageContext = { pageType: 'category' };
     <!-- Full ranked table -->
     <section>
       <h2 class="section-title">All {ranked.length} Exchanges Ranked for {useCase.label}</h2>
-      <BonusTable exchanges={ranked} />
+      <BonusTable exchanges={ranked} suppressSchema={true} />
     </section>
 
     <!-- Why it matters -->

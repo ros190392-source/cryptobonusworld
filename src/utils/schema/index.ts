@@ -36,8 +36,6 @@ export {
   // Helpers / constants
   toIsoCurrency,
   parseUserCount,
-  SITE_URL,
-  SITE_NAME,
   YEAR,
   // Types
   type FAQItem,
@@ -45,6 +43,7 @@ export {
   type SeoExchange,
   type SeoCategory,
   type SeoCountry,
+  type ReviewerEntity,
 } from '../seo';
 
 import { SITE_URL, SITE_NAME, toIsoCurrency } from '../seo';

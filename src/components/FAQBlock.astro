@@ -9,9 +9,14 @@ interface Props {
   pageUrl?: string;
   /** Exchange slug for tracking (e.g. 'bybit'). Leave empty on non-exchange pages. */
   exchangeSlug?: string;
+  /**
+   * Set true when the parent page already emits a FAQPage schema (e.g. via
+   * buildFAQSchema in its schema array). Prevents a duplicate JSON-LD block.
+   */
+  suppressSchema?: boolean;
 }
 
-const { items, title = 'Frequently Asked Questions', pageUrl, exchangeSlug = '' } = Astro.props;
+const { items, title = 'Frequently Asked Questions', pageUrl, exchangeSlug = '', suppressSchema = false } = Astro.props;
 
 const schema = {
   "@context": "https://schema.org",
@@ -46,7 +51,7 @@ const schema = {
   </div>
 </section>
 
-<script type="application/ld+json" set:html={JSON.stringify(schema)} />
+{!suppressSchema && <script type="application/ld+json" set:html={JSON.stringify(schema)} />}
 
 <script>
   import { analytics } from '../lib/analytics';

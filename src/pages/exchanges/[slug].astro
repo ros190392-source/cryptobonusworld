@@ -181,7 +181,12 @@ const myComparePairs = comparePairs
 
 // SEO: use utility builder for richer, consistent Product schema
 const schema = buildProductSchema(ex as any);
-const reviewPageSchema = buildReviewPageSchema(ex as any);
+// Pass primary reviewer as Person entity when available (E-E-A-T signal).
+// Falls back to Organization author when no reviewer is assigned.
+const _reviewerEntity = _primaryReviewer
+  ? { name: _primaryReviewer.name, url: `https://cryptobonusworld.com/reviewers/${_primaryReviewer.slug}/` }
+  : undefined;
+const reviewPageSchema = buildReviewPageSchema(ex as any, _reviewerEntity);
 // FinancialService schema — standalone entity with licences, areaServed, serviceType
 const financialServiceSchema = buildFinancialServiceSchema(ex as any);
 // FAQ schema — emits FAQPage JSON-LD for the FAQ block rendered below
@@ -908,7 +913,7 @@ const rnrItems = [
         <HowWeEvaluate variant="compact" />
 
         <!-- FAQ -->
-        <FAQBlock items={faqItems} title={`${ex.name} Bonus — FAQ`} exchangeSlug={ex.slug} />
+        <FAQBlock items={faqItems} title={`${ex.name} Bonus — FAQ`} exchangeSlug={ex.slug} suppressSchema={!!faqSchema} />
 
       </div>
 
