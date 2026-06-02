@@ -485,7 +485,7 @@ export const BONUS_CODES: BonusCodeEntry[] = [
       '$10 in Bitcoin is credited to your account automatically',
     ],
     codes: [],
-    affiliateUrl: 'https://www.coinbase.com/join/cryptobonusworld',
+    affiliateUrl: 'https://www.coinbase.com/',
     bonusAmount: 10,
     bonusCurrency: 'USD',
     bonusNote: 'Fixed $10 in BTC credited after first qualifying trade of $100+. KYC mandatory. No further trading milestones — straightforward single-step bonus.',
