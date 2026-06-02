@@ -65,6 +65,31 @@ jobs:
         run: npm run seo:check
         continue-on-error: false
 
+      # ── Schema Audit ───────────────────────────────────────────────────────
+
+      - name: Schema audit
+        id: schema_audit
+        # Broken JSON-LD / missing required fields = CI fail.
+        # Warnings (duplicate types, missing breadcrumbs) do NOT fail CI.
+        run: npm run schema:check
+        continue-on-error: false
+
+      # ── Freshness Audit ────────────────────────────────────────────────────
+
+      - name: Freshness audit
+        id: freshness_audit
+        # Warnings only — stale content does not block deployment.
+        run: npm run freshness:audit
+        continue-on-error: true
+
+      # ── Internal Links Audit ───────────────────────────────────────────────
+
+      - name: Internal links audit
+        id: links_audit
+        # Warnings only — orphans / deep pages do not block deployment.
+        run: npm run links:audit
+        continue-on-error: true
+
       # ── HTTP Health Checks ──────────────────────────────────────────────────
 
       - name: Check HEALTHCHECK_URL
@@ -109,7 +134,7 @@ jobs:
         run: |
           TIMESTAMP=$(date -u '+%Y-%m-%d %H:%M UTC')
           RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          MESSAGE=$(printf 'OK *CryptoBonusWorld - All checks passed*\n\nRepo: %s\nBranch: %s\nTime: %s\nRun: %s\n\nBuild OK | Affiliate audit OK | Screenshots OK | SEO titles OK | Healthcheck OK | sitemap.xml OK | robots.txt OK' \
+          MESSAGE=$(printf 'OK *CryptoBonusWorld - All checks passed*\n\nRepo: %s\nBranch: %s\nTime: %s\nRun: %s\n\nBuild OK | Affiliate audit OK | Screenshots OK | SEO titles OK | Schema audit OK | Healthcheck OK | sitemap.xml OK | robots.txt OK' \
             '${{ github.repository }}' \
             '${{ github.ref_name }}' \
             "${TIMESTAMP}" \
@@ -138,6 +163,7 @@ jobs:
           elif [ "${{ steps.affiliate_audit.outcome }}" = "failure" ]; then FAILED_STEP="Affiliate link audit (npm run affiliate:audit:strict)"
           elif [ "${{ steps.screenshot_audit.outcome }}" = "failure" ];  then FAILED_STEP="Screenshot audit — broken available screenshot(s)"
           elif [ "${{ steps.seo_titles.outcome }}" = "failure" ];      then FAILED_STEP="SEO title audit — title >80 chars or /cdn-cgi/ leak"
+          elif [ "${{ steps.schema_audit.outcome }}" = "failure" ];   then FAILED_STEP="Schema audit — broken JSON-LD or missing required fields"
           elif [ "${{ steps.healthcheck.outcome }}" = "failure" ];     then FAILED_STEP="HEALTHCHECK_URL (HTTP ${{ steps.healthcheck.outputs.status }})"
           elif [ "${{ steps.sitemap.outcome }}" = "failure" ];     then FAILED_STEP="sitemap.xml (HTTP ${{ steps.sitemap.outputs.status }})"
           elif [ "${{ steps.robots.outcome }}" = "failure" ];      then FAILED_STEP="robots.txt (HTTP ${{ steps.robots.outputs.status }})"

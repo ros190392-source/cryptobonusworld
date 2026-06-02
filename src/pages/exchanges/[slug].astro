@@ -56,6 +56,8 @@ import {
   getRelatedCategories,
   getCountryCrossLinks,
 } from '../../utils/seo';
+import { buildFinancialServiceSchema } from '../../utils/schema';
+import FreshnessLabel from '../../components/FreshnessLabel.astro';
 import { getFlowsBySlug } from '../../data/exchange-walkthroughs';
 import { getReviewersForExchange } from '../../data/reviewers';
 import type { PageContext } from '../../utils/analytics';
@@ -180,6 +182,8 @@ const myComparePairs = comparePairs
 // SEO: use utility builder for richer, consistent Product schema
 const schema = buildProductSchema(ex as any);
 const reviewPageSchema = buildReviewPageSchema(ex as any);
+// FinancialService schema — standalone entity with licences, areaServed, serviceType
+const financialServiceSchema = buildFinancialServiceSchema(ex as any);
 // FAQ schema — emits FAQPage JSON-LD for the FAQ block rendered below
 const faqSchema = faqItems.length > 0 ? buildFAQSchema(faqItems) : null;
 
@@ -308,7 +312,7 @@ const rnrItems = [
   title={seoTitle}
   description={seoDesc}
   canonical={`/exchanges/${ex.slug}/`}
-  schema={faqSchema ? [schema, reviewPageSchema, faqSchema] : [schema, reviewPageSchema]}
+  schema={faqSchema ? [schema, reviewPageSchema, financialServiceSchema, faqSchema] : [schema, reviewPageSchema, financialServiceSchema]}
   analyticsContext={analyticsContext}
   ogImage={`https://cryptobonusworld.com/og/exchange-${ex.slug}.png`}
   ogType="article"
@@ -334,6 +338,12 @@ const rnrItems = [
       reviewedAt={(ex as any).lastVerified ?? ex.updatedAt}
       profileUrl="/reviewers/alexandr-shadurskyi/"
     />
+    <div class="ex-freshness-row">
+      <FreshnessLabel dateStr={(ex as any).lastVerified ?? ex.updatedAt} variant="review" />
+      {(ex as any).offerLastChecked && (
+        <FreshnessLabel dateStr={(ex as any).offerLastChecked} variant="bonus" />
+      )}
+    </div>
 
     <!-- Full-width hero with h1 -->
     <ExchangeHero
@@ -1063,6 +1073,14 @@ const rnrItems = [
 <style>
   .ex-page {
     padding-bottom: 2rem;
+  }
+
+  /* ── Freshness row ── */
+  .ex-freshness-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0.5rem 0 0.875rem;
   }
 
   /* ── "Why trust this review?" details block ── */

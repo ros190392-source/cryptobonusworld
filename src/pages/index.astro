@@ -20,7 +20,7 @@ import countries from '../data/countries.json';
 import comparePairs from '../data/compare-pairs.json';
 import type { RecommendableExchange } from '../utils/recommendationEngine';
 
-import { buildWebSiteSchema, buildOrganizationSchema } from '../utils/seo';
+import { buildWebSiteSchema, buildOrganizationSchema, buildFAQSchema } from '../utils/seo';
 import type { PageContext } from '../utils/analytics';
 import guides from '../data/guides.json';
 
@@ -73,8 +73,8 @@ const faqItems = [
   },
 ];
 
-// SEO: richer schema array — WebSite + Organization together
-const siteSchema = [buildWebSiteSchema(), buildOrganizationSchema()];
+// SEO: WebSite + Organization + FAQPage (homepage FAQ section has 6 items)
+const siteSchema = [buildWebSiteSchema(), buildOrganizationSchema(), buildFAQSchema(faqItems)];
 
 const analyticsContext: PageContext = { pageType: 'homepage' };
 ---

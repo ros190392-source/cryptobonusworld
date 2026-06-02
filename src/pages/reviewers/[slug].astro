@@ -4,6 +4,7 @@ import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import AvatarPremium from '../../components/AvatarPremium.astro';
 import { EDITORIAL_TEAM, getActiveReviewers } from '../../data/reviewers';
 import { SITE_NAME } from '../../utils/seo';
+import { buildPersonSchema } from '../../utils/schema';
 import exchanges from '../../data/exchanges.json';
 
 export function getStaticPaths() {
@@ -30,20 +31,18 @@ function fmtDate(iso: string): string {
   } catch { return iso; }
 }
 
-const personSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'Person',
-  name: reviewer.name,
-  jobTitle: reviewer.title,
-  description: reviewer.bio,
-  url: `https://cryptobonusworld.com/reviewers/${reviewer.slug}/`,
-  worksFor: {
-    '@type': 'Organization',
-    name: SITE_NAME,
-    url: 'https://cryptobonusworld.com',
-  },
-  knowsAbout: reviewer.expertise,
-};
+// Use centralised schema utility for consistent Person entity output
+const personSchema = buildPersonSchema({
+  slug:      reviewer.slug,
+  name:      reviewer.name,
+  title:     reviewer.title,
+  bio:       reviewer.bio,
+  photo:     reviewer.photo ?? null,
+  expertise: reviewer.expertise,
+  links:     reviewer.links,
+  joinedAt:  reviewer.joinedAt,
+  lastActiveAt: reviewer.lastActiveAt,
+});
 
 const crumbs = [
   { label: 'Home', href: '/' },
