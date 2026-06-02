@@ -40,6 +40,13 @@ jobs:
         id: build
         run: npm run build
 
+      # ── Affiliate Link Audit ────────────────────────────────────────────────
+
+      - name: Affiliate link audit
+        id: affiliate_audit
+        run: npm run affiliate:audit:strict
+        continue-on-error: false
+
       # ── HTTP Health Checks ──────────────────────────────────────────────────
 
       - name: Check HEALTHCHECK_URL
@@ -109,8 +116,9 @@ jobs:
           if   [ "${{ steps.checkout.outcome }}" = "failure" ];   then FAILED_STEP="Checkout"
           elif [ "${{ steps.node.outcome }}" = "failure" ];        then FAILED_STEP="Setup Node"
           elif [ "${{ steps.install.outcome }}" = "failure" ];     then FAILED_STEP="npm ci"
-          elif [ "${{ steps.build.outcome }}" = "failure" ];       then FAILED_STEP="npm run build"
-          elif [ "${{ steps.healthcheck.outcome }}" = "failure" ]; then FAILED_STEP="HEALTHCHECK_URL (HTTP ${{ steps.healthcheck.outputs.status }})"
+          elif [ "${{ steps.build.outcome }}" = "failure" ];          then FAILED_STEP="npm run build"
+          elif [ "${{ steps.affiliate_audit.outcome }}" = "failure" ]; then FAILED_STEP="Affiliate link audit (npm run affiliate:audit:strict)"
+          elif [ "${{ steps.healthcheck.outcome }}" = "failure" ];     then FAILED_STEP="HEALTHCHECK_URL (HTTP ${{ steps.healthcheck.outputs.status }})"
           elif [ "${{ steps.sitemap.outcome }}" = "failure" ];     then FAILED_STEP="sitemap.xml (HTTP ${{ steps.sitemap.outputs.status }})"
           elif [ "${{ steps.robots.outcome }}" = "failure" ];      then FAILED_STEP="robots.txt (HTTP ${{ steps.robots.outputs.status }})"
           else FAILED_STEP="Unknown step"

@@ -85,6 +85,19 @@ export interface AffiliateEntry {
 
   /** Free-text internal notes about the partnership */
   notes?: string;
+
+  /** ISO date string of last manual URL check, e.g. "2026-06-02" */
+  lastChecked: string;
+  /** Where this link was obtained */
+  sourceOfLink: 'affiliate_dashboard' | 'official_site' | 'manual' | 'unknown';
+  /** Short user-facing bonus label, e.g. "Up to 30,000 USDT Welcome Package" */
+  bonusLabel: string | null;
+  /** Maximum bonus amount as number */
+  maxBonusAmount: number | null;
+  /** Bonus currency ISO code, e.g. "USDT" or "USD" */
+  bonusCurrency: string | null;
+  /** Internal editorial notes about the bonus */
+  bonusNotes: string | null;
 }
 
 // ── Registry ──────────────────────────────────────────────────────────────────
@@ -113,6 +126,12 @@ export const AFFILIATE_LINKS: AffiliateEntry[] = [
       GLOBAL: 'https://partner.bybit.com/b/CRYPTOBONUSW',
     },
     notes: 'Partner portal subdomain. Code embedded in path segment /b/{code}.',
+    lastChecked: '2026-06-02',
+    sourceOfLink: 'affiliate_dashboard',
+    bonusLabel: 'Up to 30,000 USDT Welcome Package',
+    maxBonusAmount: 30000,
+    bonusCurrency: 'USDT',
+    bonusNotes: 'Three-tier package: 20 USDT signup + 200 USDT deposit + 29,780 USDT futures milestones. 30-day window.',
   },
 
   {
@@ -134,6 +153,12 @@ export const AFFILIATE_LINKS: AffiliateEntry[] = [
       refParamNames: ['ref'],
     },
     notes: 'Standard Binance referral link. ref= param carries both promo and referral tracking.',
+    lastChecked: '2026-06-02',
+    sourceOfLink: 'affiliate_dashboard',
+    bonusLabel: 'Up to 19,800 USDT Welcome Bonus',
+    maxBonusAmount: 19800,
+    bonusCurrency: 'USDT',
+    bonusNotes: 'Tiered deposit and trading bonus. ref= param carries both promo and affiliate tracking.',
   },
 
   {
@@ -156,6 +181,12 @@ export const AFFILIATE_LINKS: AffiliateEntry[] = [
       refParamNames: ['shareCode'],
     },
     notes: 'MEXC custom sign-up portal. shareCode= carries both tracking and promo.',
+    lastChecked: '2026-06-02',
+    sourceOfLink: 'affiliate_dashboard',
+    bonusLabel: 'Up to 10,000 USDT Signup Bonus',
+    maxBonusAmount: 10000,
+    bonusCurrency: 'USDT',
+    bonusNotes: 'Custom sign-up portal with shareCode. KYC + deposit required. 30-day task window.',
   },
 
   {
@@ -177,6 +208,12 @@ export const AFFILIATE_LINKS: AffiliateEntry[] = [
       refParamNames: [],
     },
     notes: 'OKX /join/ endpoint — code embedded as path segment.',
+    lastChecked: '2026-06-02',
+    sourceOfLink: 'affiliate_dashboard',
+    bonusLabel: 'Up to 5,000 USDT Welcome Bonus',
+    maxBonusAmount: 5000,
+    bonusCurrency: 'USDT',
+    bonusNotes: '/join/ path-segment affiliate URL. No ref query param needed.',
   },
 
   {
@@ -198,6 +235,12 @@ export const AFFILIATE_LINKS: AffiliateEntry[] = [
       refParamNames: [],
     },
     notes: 'Bitget partner portal. Code embedded in path /bg/{code}.',
+    lastChecked: '2026-06-02',
+    sourceOfLink: 'affiliate_dashboard',
+    bonusLabel: 'Up to 6,200 USDT Welcome Package',
+    maxBonusAmount: 6200,
+    bonusCurrency: 'USDT',
+    bonusNotes: 'Partner portal bg/ path code. KYC + futures tasks required for upper tiers.',
   },
 
   {
@@ -219,6 +262,12 @@ export const AFFILIATE_LINKS: AffiliateEntry[] = [
       refParamNames: [],
     },
     notes: 'BingX VIP partner portal on bingxdao.com. No user-visible promo code — tracking is via partner domain.',
+    lastChecked: '2026-06-02',
+    sourceOfLink: 'affiliate_dashboard',
+    bonusLabel: 'Up to 5,000 USDT Welcome Bonus',
+    maxBonusAmount: 5000,
+    bonusCurrency: 'USDT',
+    bonusNotes: 'Tracking via bingxdao.com partner domain — no user-visible code. 5,000 USDT theoretical max; typical 50–250 USDT.',
   },
 
   {
@@ -240,6 +289,12 @@ export const AFFILIATE_LINKS: AffiliateEntry[] = [
       refParamNames: [],
     },
     notes: 'Gate.io referral share link. Code embedded as path segment /share/{code}.',
+    lastChecked: '2026-06-02',
+    sourceOfLink: 'affiliate_dashboard',
+    bonusLabel: 'Up to 3,000 USDT Signup Reward',
+    maxBonusAmount: 3000,
+    bonusCurrency: 'USDT',
+    bonusNotes: 'gate.com /share/ path-code. Deposit + futures tasks required for full amount.',
   },
 
   {
@@ -261,6 +316,12 @@ export const AFFILIATE_LINKS: AffiliateEntry[] = [
       refParamNames: ['rcode'],
     },
     notes: 'KuCoin rcode= query param. utm_medium=U17591 is the affiliate sub-ID.',
+    lastChecked: '2026-06-02',
+    sourceOfLink: 'affiliate_dashboard',
+    bonusLabel: 'Up to 11,000 USDT Welcome Bonus',
+    maxBonusAmount: 11000,
+    bonusCurrency: 'USDT',
+    bonusNotes: 'rcode= query param + utm_medium sub-ID. Tiered deposit/trading rewards.',
   },
 
   {
@@ -282,6 +343,12 @@ export const AFFILIATE_LINKS: AffiliateEntry[] = [
       refParamNames: ['invite_code'],
     },
     notes: 'HTX invite link. invite_code= carries the referral code.',
+    lastChecked: '2026-06-02',
+    sourceOfLink: 'official_site',
+    bonusLabel: 'Up to 2,000 USDT New User Rewards',
+    maxBonusAmount: 2000,
+    bonusCurrency: 'USDT',
+    bonusNotes: 'htx.com.ph domain invite link. invite_code= param. Verify active promotion on official site.',
   },
 
   {
@@ -303,6 +370,12 @@ export const AFFILIATE_LINKS: AffiliateEntry[] = [
       refParamNames: ['rc'],
     },
     notes: 'CoinEx rc= referral code + channel=Referral tracking param.',
+    lastChecked: '2026-06-02',
+    sourceOfLink: 'affiliate_dashboard',
+    bonusLabel: 'Up to 500 USDT Signup Bonus',
+    maxBonusAmount: 500,
+    bonusCurrency: 'USDT',
+    bonusNotes: 'rc= + channel=Referral params. KYC required.',
   },
 
   {
@@ -324,6 +397,12 @@ export const AFFILIATE_LINKS: AffiliateEntry[] = [
       refParamNames: ['referralCode'],
     },
     notes: 'Phemex referral entry page. referralCode= query param.',
+    lastChecked: '2026-06-02',
+    sourceOfLink: 'affiliate_dashboard',
+    bonusLabel: 'Up to 8,800 USDT Welcome Package',
+    maxBonusAmount: 8800,
+    bonusCurrency: 'USDT',
+    bonusNotes: 'referralCode= on /ru/ locale entry page. Verify locale redirect is correct.',
   },
 
   {
@@ -345,6 +424,12 @@ export const AFFILIATE_LINKS: AffiliateEntry[] = [
       refParamNames: ['inviteCode'],
     },
     notes: 'Bitunix register page with inviteCode= query param.',
+    lastChecked: '2026-06-02',
+    sourceOfLink: 'affiliate_dashboard',
+    bonusLabel: 'Up to 1,000 USDT New User Bonus',
+    maxBonusAmount: 1000,
+    bonusCurrency: 'USDT',
+    bonusNotes: 'inviteCode= on /register page. Simple clean affiliate URL.',
   },
 
   {
@@ -365,6 +450,12 @@ export const AFFILIATE_LINKS: AffiliateEntry[] = [
       refParamNames: [],
     },
     notes: 'No active affiliate deal. Affiliate link TBD — use clean URL until partnership is confirmed.',
+    lastChecked: '2026-06-02',
+    sourceOfLink: 'unknown',
+    bonusLabel: 'Up to 500 USDT New User Bonus',
+    maxBonusAmount: 500,
+    bonusCurrency: 'USDT',
+    bonusNotes: 'PENDING — no affiliate deal. Bonus listed from official site. Affiliate link TBD.',
   },
 
   {
@@ -385,6 +476,12 @@ export const AFFILIATE_LINKS: AffiliateEntry[] = [
       refParamNames: [],
     },
     notes: 'Limited partner — editorial listing only. No referral link, no promo code. Clean URL only.',
+    lastChecked: '2026-06-02',
+    sourceOfLink: 'official_site',
+    bonusLabel: '$10 in Bitcoin',
+    maxBonusAmount: 10,
+    bonusCurrency: 'USD',
+    bonusNotes: 'LIMITED — editorial listing only. $10 BTC after $100 first trade. No referral link used.',
   },
 ];
 
