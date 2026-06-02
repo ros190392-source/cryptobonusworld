@@ -19,7 +19,9 @@ const reviewedExchangeData = exchanges.filter(e =>
   reviewer.reviewedExchanges.includes(e.slug)
 );
 
-const pageTitle = `${reviewer.name} — ${reviewer.title} | ${SITE_NAME}`;
+// Drop | SITE_NAME suffix — reviewer.title already contains full role description;
+// "Name — Role" stays within 60 chars for most reviewer profiles.
+const pageTitle = `${reviewer.name} — ${reviewer.title}`;
 const pageDesc  = reviewer.bio.slice(0, 155);
 
 function fmtDate(iso: string): string {

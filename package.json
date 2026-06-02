@@ -44,7 +44,11 @@
     "affiliate:inventory": "node scripts/affiliate-link-inventory.mjs",
     "affiliate:inventory:write": "node scripts/affiliate-link-inventory.mjs --md --write && node scripts/affiliate-link-inventory.mjs --json --write",
     "affiliate:report": "node scripts/affiliate-link-inventory.mjs --md --write && node scripts/affiliate-link-inventory.mjs --json --write && node scripts/audit-affiliate-links.mjs",
-    "affiliate:check": "node scripts/audit-affiliate-links.mjs --fail-on-issues && node scripts/affiliate-link-inventory.mjs"
+    "affiliate:check": "node scripts/audit-affiliate-links.mjs --fail-on-issues && node scripts/affiliate-link-inventory.mjs",
+    "seo:titles": "node scripts/audit-seo-titles.mjs --write",
+    "seo:titles:json": "node scripts/audit-seo-titles.mjs --json",
+    "seo:check": "node scripts/audit-seo-titles.mjs --fail-on-ci",
+    "seo:check:strict": "node scripts/audit-seo-titles.mjs --fail-on-error"
   },
   "dependencies": {
     "astro": "^4.15.0"

@@ -47,6 +47,15 @@ jobs:
         run: npm run affiliate:audit:strict
         continue-on-error: false
 
+      # ── SEO Title Audit ────────────────────────────────────────────────────
+
+      - name: SEO title audit
+        id: seo_titles
+        # Warning mode: fail only if any title exceeds 80 chars or /cdn-cgi/ leaks found.
+        # Titles 61-80 chars produce console output but do NOT fail CI.
+        run: npm run seo:check
+        continue-on-error: false
+
       # ── HTTP Health Checks ──────────────────────────────────────────────────
 
       - name: Check HEALTHCHECK_URL
@@ -91,7 +100,7 @@ jobs:
         run: |
           TIMESTAMP=$(date -u '+%Y-%m-%d %H:%M UTC')
           RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          MESSAGE=$(printf 'OK *CryptoBonusWorld - All checks passed*\n\nRepo: %s\nBranch: %s\nTime: %s\nRun: %s\n\nBuild OK | Healthcheck OK | sitemap.xml OK | robots.txt OK' \
+          MESSAGE=$(printf 'OK *CryptoBonusWorld - All checks passed*\n\nRepo: %s\nBranch: %s\nTime: %s\nRun: %s\n\nBuild OK | Affiliate audit OK | SEO titles OK | Healthcheck OK | sitemap.xml OK | robots.txt OK' \
             '${{ github.repository }}' \
             '${{ github.ref_name }}' \
             "${TIMESTAMP}" \
@@ -118,6 +127,7 @@ jobs:
           elif [ "${{ steps.install.outcome }}" = "failure" ];     then FAILED_STEP="npm ci"
           elif [ "${{ steps.build.outcome }}" = "failure" ];          then FAILED_STEP="npm run build"
           elif [ "${{ steps.affiliate_audit.outcome }}" = "failure" ]; then FAILED_STEP="Affiliate link audit (npm run affiliate:audit:strict)"
+          elif [ "${{ steps.seo_titles.outcome }}" = "failure" ];      then FAILED_STEP="SEO title audit — title >80 chars or /cdn-cgi/ leak"
           elif [ "${{ steps.healthcheck.outcome }}" = "failure" ];     then FAILED_STEP="HEALTHCHECK_URL (HTTP ${{ steps.healthcheck.outputs.status }})"
           elif [ "${{ steps.sitemap.outcome }}" = "failure" ];     then FAILED_STEP="sitemap.xml (HTTP ${{ steps.sitemap.outputs.status }})"
           elif [ "${{ steps.robots.outcome }}" = "failure" ];      then FAILED_STEP="robots.txt (HTTP ${{ steps.robots.outputs.status }})"

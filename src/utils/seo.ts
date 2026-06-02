@@ -155,17 +155,38 @@ export function bonusPageTitle(ex: SeoExchange): string {
 }
 
 /**
- * Category page <title> — includes exchange count for freshness signal.
+ * Category page <title> — includes exchange count.
+ *
+ * Uses the primary keyword phrase (part before any em-dash in seoTitle)
+ * to stay within 55–65 chars. The seoTitle already carries the year,
+ * so we do NOT append (YEAR) again.
+ *
+ * Examples:
+ *   "Best Crypto Welcome Bonuses 2026 — 5 Verified Exchanges"  (55)
+ *   "Best Crypto Bonuses Without KYC 2026 — 8 Verified Exchanges" (59)
  */
 export function categoryPageTitle(seoTitle: string, count: number): string {
-  return `${seoTitle} — ${count} Verified Exchange${count !== 1 ? 's' : ''} (${YEAR})`;
+  // Extract primary phrase before em-dash if present; seoTitle already has year
+  const primary = seoTitle.includes(' — ') ? seoTitle.split(' — ')[0] : seoTitle;
+  return `${primary} — ${count} Verified Exchange${count !== 1 ? 's' : ''}`;
 }
 
 /**
  * Country page <title> — includes exchange count.
+ *
+ * Appends ` — N Exchanges` suffix only when the result fits within 65 chars.
+ * Falls back to seoTitle alone for very long titles (e.g. UAE with sub-descriptor).
+ * seoTitle already carries the year, so YEAR is not duplicated in the suffix.
+ *
+ * Examples:
+ *   "Best Crypto Exchange Bonuses in Turkey 2026 — 12 Exchanges"   (58)
+ *   "Best Crypto Exchange Bonuses in Philippines 2026 — 12 Exchanges" (63)
+ *   "Best Crypto Exchange Bonuses in UAE 2026 | Dubai VARA Regulated" (62, fallback)
  */
 export function countryPageTitle(seoTitle: string, count: number): string {
-  return `${seoTitle} — ${count} Exchange${count !== 1 ? 's' : ''} Available (${YEAR})`;
+  const suffix = ` — ${count} Exchange${count !== 1 ? 's' : ''}`;
+  const full = seoTitle + suffix;
+  return full.length <= 65 ? full : seoTitle;
 }
 
 /**

@@ -1065,7 +1065,7 @@ const mexc: ExchangeWalkthrough = {
           screenshotLabel: 'MEXC email verification code screen',
           alt: 'MEXC email verification screen with code input field',
           mediaCategory: 'Sign Up',
-          tip: 'Check spam if the email does not arrive. MEXC emails come from noreply@mexc.com.',
+          tip: 'Check spam if the email does not arrive. MEXC emails come from noreply [at] mexc.com.',
           whatHappensNext: 'Your account is created. You can start trading immediately — no KYC is required for standard spot trading.',
         },
         {

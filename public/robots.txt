@@ -1,5 +1,8 @@
 User-agent: *
 Allow: /
+# Affiliate redirect URLs are intentionally blocked from crawling.
+# /go/{exchange} pages perform geo-aware client-side redirects to affiliate links.
+# These must not be indexed — blocking is intentional, not an error.
 Disallow: /go/
 
 # Crawl-delay for well-behaved bots (Googlebot ignores this directive)
