@@ -6,6 +6,7 @@
  */
 
 import ScreenshotCard from './ScreenshotCard.astro';
+import ScreenshotPlaceholder from './screenshots/ScreenshotPlaceholder.astro';
 
 interface Props {
   step: number;
@@ -39,14 +40,22 @@ interface Props {
    */
   fit?: 'cover' | 'contain' | 'natural';
   /**
-   * Screenshot registry entry from the evidence system.
-   * When provided and status !== 'available', the screenshot slot is suppressed
-   * entirely from the public view (text-only step, no broken placeholder).
-   * When status === 'available', entry.path overrides the src prop.
+   * Screenshot registry status from the evidence system.
+   * When 'available', screenshotPath overrides the src prop.
+   * When non-available (and no direct src), renders a ScreenshotPlaceholder.
+   * When 'not_applicable', the entire screenshot slot is omitted.
    */
-  screenshotStatus?: 'missing' | 'available' | 'outdated' | 'not_applicable' | 'needs_manual_capture';
+  screenshotStatus?: 'missing' | 'available' | 'outdated' | 'not_applicable' | 'needs_manual_capture' | 'archived';
   /** Override src from evidence registry when screenshotStatus === 'available' */
   screenshotPath?: string | null;
+  /** Exchange slug — passed to ScreenshotPlaceholder for audit data attributes */
+  exchange?: string;
+  /** Screenshot category — drives placeholder icon and tint */
+  screenshotCategory?: 'registration' | 'kyc' | 'bonus' | 'deposit' | 'p2p' | 'spot' | 'futures' | 'fees' | 'mobile_app' | 'proof_of_reserves';
+  /** Geographic variant — passed to ScreenshotPlaceholder */
+  screenshotGeo?: string;
+  /** Capture priority band — passed to ScreenshotPlaceholder for queue ordering */
+  capturePriority?: 'P1' | 'P2' | 'P3' | 'P4';
 }
 
 const {
@@ -72,22 +81,31 @@ const {
   fit = 'natural',
   screenshotStatus,
   screenshotPath,
+  exchange,
+  screenshotCategory,
+  screenshotGeo = 'GLOBAL',
+  capturePriority,
 } = Astro.props;
 
 // Resolve the actual src to render:
 //   1. If evidence registry says 'available', use the registry path
 //   2. Otherwise fall back to the prop src
-//   3. If status is missing/needs_manual_capture/not_applicable → suppress entirely
 const registryAvailable = screenshotStatus === 'available' && !!screenshotPath;
 const src = registryAvailable ? screenshotPath! : srcProp;
 
-// Suppress the screenshot block (including placeholder) for public users when
-// the evidence registry says the screenshot hasn't been captured yet.
-// This prevents "Screenshot in preparation" placeholders from showing in production.
-const suppressScreenshot =
+// Determine whether to show the real image, a structured placeholder, or nothing.
+//   'available' + src present  → show real image
+//   'not_applicable'           → omit screenshot slot entirely
+//   any other status + no src  → show ScreenshotPlaceholder
+//   no screenshotStatus + no src → show ScreenshotCard (legacy neutral placeholder)
+const omitScreenshot = screenshotStatus === 'not_applicable';
+const showPlaceholder =
+  !omitScreenshot &&
   screenshotStatus != null &&
   screenshotStatus !== 'available' &&
-  !src; // still show if a direct src was passed
+  !src;
+// legacy: no status provided and no src → fall through to ScreenshotCard which renders its own placeholder
+const suppressScreenshot = omitScreenshot;
 ---
 
 <div class="wsi-step">
@@ -108,8 +126,8 @@ const suppressScreenshot =
     <div class="wsi-table-wrap" set:html={tableContent} />
   )}
 
-  <!-- Screenshot — only render when we have a real image or when no status is set (legacy/neutral) -->
-  {!suppressScreenshot && (
+  <!-- Screenshot: real image, structured placeholder, or nothing (not_applicable) -->
+  {!suppressScreenshot && !showPlaceholder && (
     <div class="wsi-img-wrap">
       <ScreenshotCard
         src={src}
@@ -126,6 +144,21 @@ const suppressScreenshot =
         schema={!!src}
         lazy={step > 1}
         fit={fit}
+      />
+    </div>
+  )}
+  {showPlaceholder && (
+    <div class="wsi-img-wrap">
+      <ScreenshotPlaceholder
+        status={screenshotStatus!}
+        exchange={exchange}
+        category={screenshotCategory}
+        geo={screenshotGeo}
+        device={device === 'none' ? 'desktop' : device}
+        lastVerified={capturedAt ?? null}
+        capturePriority={capturePriority}
+        label={label ?? title}
+        aspectRatio={aspectRatio}
       />
     </div>
   )}

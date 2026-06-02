@@ -283,6 +283,14 @@ function calcCoverage(entries) {
       else if (e.status === 'outdated') rec.outdated++;
       else rec.missing++;
     }
+    // placeholder_rendered = entries that show ScreenshotPlaceholder in production
+    // = applicable, non-available (missing / needs_manual_capture / outdated / archived)
+    if (
+      e.status !== 'not_applicable' &&
+      e.status !== 'available'
+    ) {
+      rec.placeholder = (rec.placeholder ?? 0) + 1;
+    }
     if (e.status === 'missing' || e.status === 'needs_manual_capture') {
       rec.missingCategories.push(e.category);
     }
@@ -321,6 +329,7 @@ function buildMarkdown({ errors, warnings, coverage, captureQueue, entries }) {
   const totalAvailable  = coverage.reduce((s, r) => s + r.available, 0);
   const totalMissing    = coverage.reduce((s, r) => s + r.missing, 0);
   const totalOutdated   = coverage.reduce((s, r) => s + r.outdated, 0);
+  const totalPlaceholder = coverage.reduce((s, r) => s + (r.placeholder ?? 0), 0);
   const overallPct      = totalApplicable > 0
     ? Math.round((totalAvailable / totalApplicable) * 100) : 0;
 
@@ -336,6 +345,7 @@ function buildMarkdown({ errors, warnings, coverage, captureQueue, entries }) {
   lines.push(`| Available (captured) | ${totalAvailable} |`);
   lines.push(`| Missing / pending | ${totalMissing} |`);
   lines.push(`| Outdated | ${totalOutdated} |`);
+  lines.push(`| Placeholder-rendered | ${totalPlaceholder} |`);
   lines.push(`| Overall coverage | **${overallPct}%** |`);
   lines.push(`| CI errors | ${errors.length} |`);
   lines.push(`| Warnings | ${warnings.length} |`);
@@ -434,25 +444,27 @@ async function main() {
   const coverage     = calcCoverage(exchangeEntries);
   const captureQueue = buildCaptureQueue(exchangeEntries);
 
-  const totalApplicable = coverage.reduce((s, r) => s + r.applicable, 0);
-  const totalAvailable  = coverage.reduce((s, r) => s + r.available, 0);
-  const totalMissing    = coverage.reduce((s, r) => s + r.missing, 0);
-  const totalOutdated   = coverage.reduce((s, r) => s + r.outdated, 0);
-  const overallPct      = totalApplicable > 0
+  const totalApplicable  = coverage.reduce((s, r) => s + r.applicable, 0);
+  const totalAvailable   = coverage.reduce((s, r) => s + r.available, 0);
+  const totalMissing     = coverage.reduce((s, r) => s + r.missing, 0);
+  const totalOutdated    = coverage.reduce((s, r) => s + r.outdated, 0);
+  const totalPlaceholder = coverage.reduce((s, r) => s + (r.placeholder ?? 0), 0);
+  const overallPct       = totalApplicable > 0
     ? Math.round((totalAvailable / totalApplicable) * 100) : 0;
 
   // JSON report object
   const jsonReport = {
     generatedAt:   NOW,
     stats: {
-      exchanges:     coverage.length,
-      applicable:    totalApplicable,
-      available:     totalAvailable,
-      missing:       totalMissing,
-      outdated:      totalOutdated,
-      coveragePct:   overallPct,
-      errors:        errors.length,
-      warnings:      warnings.length,
+      exchanges:           coverage.length,
+      applicable:          totalApplicable,
+      available:           totalAvailable,
+      missing:             totalMissing,
+      outdated:            totalOutdated,
+      placeholder_rendered: totalPlaceholder,
+      coveragePct:         overallPct,
+      errors:              errors.length,
+      warnings:            warnings.length,
     },
     coverage,
     captureQueue: captureQueue.slice(0, 40).map(e => ({
@@ -490,6 +502,7 @@ async function main() {
   console.log(`  Available   : ${totalAvailable}   (${overallPct}% coverage)`);
   console.log(`  Missing     : ${totalMissing}   (warnings — not CI errors)`);
   console.log(`  Outdated    : ${totalOutdated}`);
+  console.log(`  Placeholder : ${totalPlaceholder}  (rendered as ScreenshotPlaceholder in production)`);
   console.log(`  CI Errors   : ${errors.length}   (broken available screenshots)`);
   console.log(`  Warnings    : ${warnings.length}`);
   console.log('──────────────────────────────────────────────────────────────');

@@ -177,13 +177,15 @@ export interface ExchangeSourceRegistry {
  *   outdated             — screenshot exists but capturedAt > 90 days old
  *   not_applicable       — feature/category doesn't exist on this exchange
  *   needs_manual_capture — same as missing; signals editorial action required
+ *   archived             — superseded by a newer capture; moved to _archive/
  */
 export type ScreenshotStatus =
   | 'missing'
   | 'available'
   | 'outdated'
   | 'not_applicable'
-  | 'needs_manual_capture';
+  | 'needs_manual_capture'
+  | 'archived';
 
 /**
  * The ten canonical screenshot categories every exchange review can have.
