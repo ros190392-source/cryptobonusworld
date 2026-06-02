@@ -1,0 +1,60 @@
+{
+  "_comment": "Design config for dynamically-generated desktop browser frames in process-screenshot.mjs",
+  "desktop": {
+    "height": 40,
+    "background": "#16162A",
+    "border": "rgba(255,255,255,0.06)",
+    "trafficLights": {
+      "fill": "#2D2D42",
+      "radius": 6,
+      "positions": [20, 36, 52],
+      "cy": 20
+    },
+    "urlBar": {
+      "background": "#1E1E30",
+      "textColor": "#9CA3AF",
+      "height": 22,
+      "width": 400,
+      "radius": 4,
+      "fontSize": 12,
+      "fontFamily": "Inter, -apple-system, sans-serif"
+    },
+    "favicon": {
+      "size": 14,
+      "marginRight": 6
+    }
+  },
+  "mobile": {
+    "file": "frame-390-mobile.svg",
+    "height": 48,
+    "width": 390
+  },
+  "exchangeDisplayUrls": {
+    "binance":  "www.binance.com",
+    "okx":      "www.okx.com",
+    "mexc":     "www.mexc.com",
+    "bitget":   "www.bitget.com",
+    "coinbase": "www.coinbase.com",
+    "bingx":    "bingx.com",
+    "bybit":    "www.bybit.com",
+    "gate-io":  "www.gate.io",
+    "kucoin":   "www.kucoin.com",
+    "htx":      "www.htx.com",
+    "coinex":   "www.coinex.com",
+    "phemex":   "phemex.com",
+    "bitunix":  "www.bitunix.com",
+    "lbank":    "www.lbank.com"
+  },
+  "categoryPageHints": {
+    "registration":      "/register",
+    "kyc":               "/verify",
+    "bonus":             "/activity",
+    "deposit":           "/assets/deposit",
+    "p2p":               "/p2p",
+    "spot":              "/trade/BTC-USDT",
+    "futures":           "/futures/BTCUSDT",
+    "fees":              "/fee",
+    "mobile_app":        "App Store",
+    "proof_of_reserves": "/proof-of-reserves"
+  }
+}

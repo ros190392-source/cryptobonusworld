@@ -55,6 +55,8 @@
     "screenshots:report:json": "node scripts/audit-exchange-screenshots.mjs --json",
     "screenshots:process": "node scripts/process-screenshot.mjs",
     "screenshots:process:dry": "node scripts/process-screenshot.mjs --dry-run --verbose",
+    "screenshots:annotate": "node scripts/annotate-screenshot.mjs",
+    "screenshots:annotate:dry": "node scripts/annotate-screenshot.mjs --dry-run --verbose",
     "schema:audit": "node scripts/audit-schema.mjs --verbose",
     "schema:audit:json": "node scripts/audit-schema.mjs --json",
     "schema:audit:write": "node scripts/audit-schema.mjs --write --verbose",

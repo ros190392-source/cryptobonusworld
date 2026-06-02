@@ -1,0 +1,60 @@
+{
+  "version": "1.0",
+  "exchange": "binance",
+  "category": "registration",
+  "date": "2026-06",
+  "screenshotWidth": 1200,
+  "screenshotHeight": 750,
+  "notes": "Example annotation config. Shows how to guide a user through the Binance registration form. 3 annotations: focus on email field → arrow → callout.",
+
+  "annotations": [
+    {
+      "type": "blur",
+      "rect": [850, 10, 200, 20],
+      "radius": 12,
+      "reason": "email",
+      "_note": "Blur any pre-filled email if screenshot was taken on a real account"
+    },
+    {
+      "type": "focus",
+      "rect": [480, 320, 360, 52],
+      "radius": 6,
+      "intensity": "normal",
+      "_note": "Highlight the email input field"
+    },
+    {
+      "type": "step",
+      "n": 1,
+      "x": 468,
+      "y": 346,
+      "_note": "Step 1 badge on the left edge of the email field"
+    },
+    {
+      "type": "arrow",
+      "from": [550, 420],
+      "to": [550, 378],
+      "style": "curved",
+      "_note": "Arrow pointing down toward the email field from the callout"
+    },
+    {
+      "type": "callout",
+      "text": "Enter your email address",
+      "anchor": [550, 418],
+      "side": "below",
+      "style": "glass",
+      "_note": "Callout below the arrow — tells user what to do"
+    }
+  ],
+
+  "aiReady": false,
+  "aiCandidates": [
+    {
+      "type": "focus",
+      "rect": [480, 400, 360, 52],
+      "confidence": 0.87,
+      "detectedElement": "password input",
+      "approved": false,
+      "_note": "AI suggested also highlighting the password field — not yet approved"
+    }
+  ]
+}
