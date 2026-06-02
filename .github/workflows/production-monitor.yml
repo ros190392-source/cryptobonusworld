@@ -1,0 +1,139 @@
+name: Production Monitor
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/30 * * * *'
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: production-monitor
+  cancel-in-progress: false
+
+jobs:
+  monitor:
+    name: Build & Health Checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      # ── Setup ──────────────────────────────────────────────────────────────
+
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        id: node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        id: install
+        run: npm ci
+
+      - name: Build
+        id: build
+        run: npm run build
+
+      # ── HTTP Health Checks ──────────────────────────────────────────────────
+
+      - name: Check HEALTHCHECK_URL
+        id: healthcheck
+        run: |
+          STATUS=$(curl -o /dev/null -s -w "%{http_code}" --max-time 15 "$HEALTHCHECK_URL")
+          echo "status=$STATUS" >> "$GITHUB_OUTPUT"
+          if [ "$STATUS" != "200" ]; then
+            echo "::error::HEALTHCHECK_URL returned HTTP $STATUS (expected 200)"
+            exit 1
+          fi
+          echo "HEALTHCHECK_URL → HTTP $STATUS OK"
+        env:
+          HEALTHCHECK_URL: ${{ secrets.HEALTHCHECK_URL }}
+
+      - name: Check sitemap.xml
+        id: sitemap
+        run: |
+          STATUS=$(curl -o /dev/null -s -w "%{http_code}" --max-time 15 "https://cryptobonusworld.com/sitemap.xml")
+          echo "status=$STATUS" >> "$GITHUB_OUTPUT"
+          if [ "$STATUS" != "200" ]; then
+            echo "::error::sitemap.xml returned HTTP $STATUS (expected 200)"
+            exit 1
+          fi
+          echo "sitemap.xml → HTTP $STATUS OK"
+
+      - name: Check robots.txt
+        id: robots
+        run: |
+          STATUS=$(curl -o /dev/null -s -w "%{http_code}" --max-time 15 "https://cryptobonusworld.com/robots.txt")
+          echo "status=$STATUS" >> "$GITHUB_OUTPUT"
+          if [ "$STATUS" != "200" ]; then
+            echo "::error::robots.txt returned HTTP $STATUS (expected 200)"
+            exit 1
+          fi
+          echo "robots.txt → HTTP $STATUS OK"
+
+      # ── Success alert (manual runs only) ───────────────────────────────────
+
+      - name: Telegram — all checks passed (manual run)
+        if: success() && github.event_name == 'workflow_dispatch'
+        run: |
+          TIMESTAMP=$(date -u '+%Y-%m-%d %H:%M UTC')
+          MESSAGE="✅ *CryptoBonusWorld — All checks passed*
+
+🔗 Repo: \`${{ github.repository }}\`
+🌿 Branch: \`${{ github.ref_name }}\`
+🕐 Time: ${TIMESTAMP}
+🔗 [View run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+
+Checks: Build ✅ · Healthcheck ✅ · sitemap.xml ✅ · robots.txt ✅"
+
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+            --data-urlencode "text=${MESSAGE}" \
+            --data-urlencode "parse_mode=Markdown" \
+            --data-urlencode "disable_web_page_preview=true" \
+            -o /dev/null -w "Telegram response: %{http_code}\n"
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
+      # ── Failure alert (all triggers) ───────────────────────────────────────
+
+      - name: Telegram — failure alert
+        if: failure()
+        run: |
+          TIMESTAMP=$(date -u '+%Y-%m-%d %H:%M UTC')
+
+          # Determine which step failed
+          if   [ "${{ steps.checkout.outcome }}" = "failure" ];    then FAILED_STEP="Checkout"
+          elif [ "${{ steps.node.outcome }}" = "failure" ];         then FAILED_STEP="Setup Node"
+          elif [ "${{ steps.install.outcome }}" = "failure" ];      then FAILED_STEP="npm ci"
+          elif [ "${{ steps.build.outcome }}" = "failure" ];        then FAILED_STEP="npm run build"
+          elif [ "${{ steps.healthcheck.outcome }}" = "failure" ];  then FAILED_STEP="HEALTHCHECK_URL (HTTP ${{ steps.healthcheck.outputs.status }})"
+          elif [ "${{ steps.sitemap.outcome }}" = "failure" ];      then FAILED_STEP="sitemap.xml (HTTP ${{ steps.sitemap.outputs.status }})"
+          elif [ "${{ steps.robots.outcome }}" = "failure" ];       then FAILED_STEP="robots.txt (HTTP ${{ steps.robots.outputs.status }})"
+          else FAILED_STEP="Unknown step"
+          fi
+
+          MESSAGE="🚨 *CryptoBonusWorld — Production check FAILED*
+
+🔗 Repo: \`${{ github.repository }}\`
+🌿 Branch: \`${{ github.ref_name }}\`
+❌ Failed step: ${FAILED_STEP}
+🕐 Time: ${TIMESTAMP}
+🔗 [View run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+            --data-urlencode "text=${MESSAGE}" \
+            --data-urlencode "parse_mode=Markdown" \
+            --data-urlencode "disable_web_page_preview=true" \
+            -o /dev/null -w "Telegram response: %{http_code}\n"
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
