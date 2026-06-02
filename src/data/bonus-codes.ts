@@ -333,7 +333,7 @@ export const BONUS_CODES: BonusCodeEntry[] = [
         expiresAt: null,
       },
     ],
-    affiliateUrl: 'https://bingx.com/invite/CRYPTOBW',
+    affiliateUrl: 'https://bingxdao.com/partner/CRYPTOBONUSWORLD/',
     bonusAmount: 5000,
     bonusCurrency: 'USDT',
     bonusNote: 'Maximum 5,000 USDT bonus requires KYC verification, qualifying deposit, and completion of spot and futures trading milestones. Bonus is distributed as trading vouchers.',
