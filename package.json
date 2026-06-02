@@ -48,7 +48,11 @@
     "seo:titles": "node scripts/audit-seo-titles.mjs --write",
     "seo:titles:json": "node scripts/audit-seo-titles.mjs --json",
     "seo:check": "node scripts/audit-seo-titles.mjs --fail-on-ci",
-    "seo:check:strict": "node scripts/audit-seo-titles.mjs --fail-on-error"
+    "seo:check:strict": "node scripts/audit-seo-titles.mjs --fail-on-error",
+    "screenshots:audit": "node scripts/audit-exchange-screenshots.mjs --verbose",
+    "screenshots:report": "node scripts/audit-exchange-screenshots.mjs --write --verbose",
+    "screenshots:check": "node scripts/audit-exchange-screenshots.mjs --fail-on-errors",
+    "screenshots:report:json": "node scripts/audit-exchange-screenshots.mjs --json"
   },
   "dependencies": {
     "astro": "^4.15.0"

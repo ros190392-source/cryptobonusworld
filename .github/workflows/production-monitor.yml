@@ -47,6 +47,15 @@ jobs:
         run: npm run affiliate:audit:strict
         continue-on-error: false
 
+      # ── Screenshot Audit ───────────────────────────────────────────────────
+
+      - name: Screenshot audit
+        id: screenshot_audit
+        # Fail only on broken available screenshots (file on disk missing / bad path).
+        # Missing screenshots (not yet captured) are warnings — they do NOT fail CI.
+        run: npm run screenshots:check
+        continue-on-error: false
+
       # ── SEO Title Audit ────────────────────────────────────────────────────
 
       - name: SEO title audit
@@ -100,7 +109,7 @@ jobs:
         run: |
           TIMESTAMP=$(date -u '+%Y-%m-%d %H:%M UTC')
           RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          MESSAGE=$(printf 'OK *CryptoBonusWorld - All checks passed*\n\nRepo: %s\nBranch: %s\nTime: %s\nRun: %s\n\nBuild OK | Affiliate audit OK | SEO titles OK | Healthcheck OK | sitemap.xml OK | robots.txt OK' \
+          MESSAGE=$(printf 'OK *CryptoBonusWorld - All checks passed*\n\nRepo: %s\nBranch: %s\nTime: %s\nRun: %s\n\nBuild OK | Affiliate audit OK | Screenshots OK | SEO titles OK | Healthcheck OK | sitemap.xml OK | robots.txt OK' \
             '${{ github.repository }}' \
             '${{ github.ref_name }}' \
             "${TIMESTAMP}" \
@@ -127,6 +136,7 @@ jobs:
           elif [ "${{ steps.install.outcome }}" = "failure" ];     then FAILED_STEP="npm ci"
           elif [ "${{ steps.build.outcome }}" = "failure" ];          then FAILED_STEP="npm run build"
           elif [ "${{ steps.affiliate_audit.outcome }}" = "failure" ]; then FAILED_STEP="Affiliate link audit (npm run affiliate:audit:strict)"
+          elif [ "${{ steps.screenshot_audit.outcome }}" = "failure" ];  then FAILED_STEP="Screenshot audit — broken available screenshot(s)"
           elif [ "${{ steps.seo_titles.outcome }}" = "failure" ];      then FAILED_STEP="SEO title audit — title >80 chars or /cdn-cgi/ leak"
           elif [ "${{ steps.healthcheck.outcome }}" = "failure" ];     then FAILED_STEP="HEALTHCHECK_URL (HTTP ${{ steps.healthcheck.outputs.status }})"
           elif [ "${{ steps.sitemap.outcome }}" = "failure" ];     then FAILED_STEP="sitemap.xml (HTTP ${{ steps.sitemap.outputs.status }})"
