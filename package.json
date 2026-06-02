@@ -68,13 +68,23 @@
     "links:audit": "node scripts/audit-internal-links.mjs",
     "links:audit:json": "node scripts/audit-internal-links.mjs --json",
     "links:audit:write": "node scripts/audit-internal-links.mjs --write",
-    "links:audit:verbose": "node scripts/audit-internal-links.mjs --verbose"
+    "links:audit:verbose": "node scripts/audit-internal-links.mjs --verbose",
+    "screenshots:auth-login": "node scripts/auth-login-exchange.mjs",
+    "screenshots:harvest": "node scripts/harvest-exchange-screenshots.mjs",
+    "screenshots:harvest:binance": "node scripts/harvest-exchange-screenshots.mjs --exchange binance",
+    "screenshots:harvest:okx": "node scripts/harvest-exchange-screenshots.mjs --exchange okx",
+    "screenshots:harvest:mexc": "node scripts/harvest-exchange-screenshots.mjs --exchange mexc",
+    "screenshots:harvest:bybit": "node scripts/harvest-exchange-screenshots.mjs --exchange bybit",
+    "screenshots:harvest:bitget": "node scripts/harvest-exchange-screenshots.mjs --exchange bitget",
+    "screenshots:approve": "node scripts/approve-screenshots.mjs",
+    "screenshots:process:manual": "node scripts/process-screenshot.mjs --verbose"
   },
   "dependencies": {
     "astro": "^4.15.0"
   },
   "devDependencies": {
     "@astrojs/sitemap": "^3.1.6",
+    "playwright": "^1.60.0",
     "typescript": "^5.5.0"
   }
 }

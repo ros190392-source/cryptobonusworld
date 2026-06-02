@@ -15,3 +15,10 @@ public/avatars/alexandr-shadurskyi-src.jpg
 public/avatars/ChatGPT*
 public/avatars/изображение*
 _brand_assets/
+# Screenshot harvester — session auth, raw captures, manual captures
+.auth/
+_raw-screenshots/
+_manual-screenshots/
+*.har
+storageState*.json
+cookies*.json
