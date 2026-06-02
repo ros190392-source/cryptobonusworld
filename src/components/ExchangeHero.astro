@@ -6,6 +6,7 @@ import ExchangeLogo from './ExchangeLogo.astro';
 import TrustVerificationBlock from './TrustVerificationBlock.astro';
 
 import { getCtaLabel, getBonusExpiryNote } from '../utils/affiliateUtils';
+import { type PartnerStatus, isLimited } from '../utils/partnerStatus';
 
 interface Props {
   name: string;
@@ -37,9 +38,12 @@ interface Props {
   bonusSourceUrl?: string | null;
   excludedCountries?: string[] | null;
   bonusDisplayMode?: 'up-to' | 'range' | 'fixed' | 'regional' | 'campaign';
+  // Partner relationship tier
+  partnerStatus?: PartnerStatus;
 }
 
 const props = Astro.props;
+const limited = isLimited({ partner_status: props.partnerStatus });
 
 // Contextual CTA label — highlights most compelling differentiator
 const ctaLabel = getCtaLabel({
@@ -54,7 +58,8 @@ const ctaLabel = getCtaLabel({
 });
 
 // Factual urgency note from real bonusExpiry data (null = don't show)
-const expiryNote = getBonusExpiryNote(props.bonusExpiry);
+// Suppressed for limited partners — no bonus to claim
+const expiryNote = !limited ? getBonusExpiryNote(props.bonusExpiry) : null;
 
 // Build dynamic trust row from available data
 const trustItems: { icon: string; text: string; green?: boolean }[] = [];
@@ -151,29 +156,41 @@ const quickFacts = [
 
       <!-- Right: bonus display + CTA -->
       <div class="exhero-right">
-        <div class="exhero-bonus-display">
-          <div class="exhero-bonus-eyebrow">
-            {props.bonusDisplayMode === 'fixed'
-              ? 'New User Reward'
-              : props.bonusDisplayMode === 'campaign'
-                ? 'Current Campaign'
-                : 'Welcome Bonus'}
+        {limited ? (
+          /* ── Limited partner: neutral info block, no bonus CTA ── */
+          <div class="exhero-bonus-display exhero-bonus-display--neutral">
+            <div class="exhero-bonus-eyebrow">Exchange Info</div>
+            <div class="exhero-bonus-amount exhero-bonus-amount--neutral">
+              {props.name}
+            </div>
+            <div class="exhero-bonus-sub">Visit the official site for current offers</div>
           </div>
-          {props.bonusDisplayMode === 'campaign' ? (
-            <div class="exhero-bonus-campaign">
-              <span class="exhero-campaign-label">Active Offer</span>
-              <span class="exhero-campaign-hint">Verify on official site</span>
+        ) : (
+          /* ── Full partner: standard bonus display ── */
+          <div class="exhero-bonus-display">
+            <div class="exhero-bonus-eyebrow">
+              {props.bonusDisplayMode === 'fixed'
+                ? 'New User Reward'
+                : props.bonusDisplayMode === 'campaign'
+                  ? 'Current Campaign'
+                  : 'Welcome Bonus'}
             </div>
-          ) : (
-            <div class="exhero-bonus-amount">
-              {props.bonusDisplayMode !== 'fixed' && <span class="exhero-bonus-prefix">Up to</span>}
-              {props.bonusAmount.toLocaleString()} {props.bonusCurrency}
-            </div>
-          )}
-          <div class="exhero-bonus-sub">{props.bonusTitle}</div>
-        </div>
+            {props.bonusDisplayMode === 'campaign' ? (
+              <div class="exhero-bonus-campaign">
+                <span class="exhero-campaign-label">Active Offer</span>
+                <span class="exhero-campaign-hint">Verify on official site</span>
+              </div>
+            ) : (
+              <div class="exhero-bonus-amount">
+                {props.bonusDisplayMode !== 'fixed' && <span class="exhero-bonus-prefix">Up to</span>}
+                {props.bonusAmount.toLocaleString()} {props.bonusCurrency}
+              </div>
+            )}
+            <div class="exhero-bonus-sub">{props.bonusTitle}</div>
+          </div>
+        )}
 
-        {props.promoCode && (
+        {!limited && props.promoCode && (
           <div class="exhero-promo">
             <span class="exhero-promo-label">Promo code</span>
             <button
@@ -190,16 +207,30 @@ const quickFacts = [
         )}
 
         <div class="exhero-ctas" id="exhero-ctas">
-          <CTAButton
-            href={props.affiliateUrl}
-            label={ctaLabel}
-            size="lg"
-            fullWidth
-            trackPlacement="hero"
-            trackBonus={props.bonusAmount}
-            exchange={props.name}
-            geoHrefs={props.geoHrefs}
-          />
+          {limited ? (
+            /* Neutral visit button — no tracking redirect, no bonus framing */
+            <CTAButton
+              href={props.affiliateUrl}
+              label={`Visit ${props.name} →`}
+              variant="secondary"
+              size="lg"
+              fullWidth
+              rel="noopener noreferrer nofollow"
+              exchange={props.name}
+              trackPlacement="hero"
+            />
+          ) : (
+            <CTAButton
+              href={props.affiliateUrl}
+              label={ctaLabel}
+              size="lg"
+              fullWidth
+              trackPlacement="hero"
+              trackBonus={props.bonusAmount}
+              exchange={props.name}
+              geoHrefs={props.geoHrefs}
+            />
+          )}
           {expiryNote && (
             <p class="exhero-expiry-note">{expiryNote}</p>
           )}

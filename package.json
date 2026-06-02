@@ -37,7 +37,10 @@
     "seo:intake:inbox": "node scripts/seo-issue-intake.mjs --status new",
     "seo:intake:json": "node scripts/seo-issue-intake.mjs --format json",
     "indexnow": "node scripts/indexnow.mjs",
-    "indexnow:dry": "node scripts/indexnow.mjs --dry-run"
+    "indexnow:dry": "node scripts/indexnow.mjs --dry-run",
+    "affiliate:audit": "node scripts/audit-affiliate-links.mjs",
+    "affiliate:audit:json": "node scripts/audit-affiliate-links.mjs --json",
+    "affiliate:audit:strict": "node scripts/audit-affiliate-links.mjs --fail-on-issues"
   },
   "dependencies": {
     "astro": "^4.15.0"

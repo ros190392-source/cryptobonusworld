@@ -26,6 +26,8 @@ interface Props {
   bonusNote?: string;
   /** Controls bonus prefix: 'up-to' | 'fixed' | 'campaign' | 'range' */
   bonusDisplayMode?: 'up-to' | 'range' | 'fixed' | 'regional' | 'campaign';
+  /** Partner relationship tier */
+  partnerStatus?: PartnerStatus;
   /** Show verification checkmark when verified */
   verificationStatus?: 'verified' | 'needs-review' | 'outdated' | 'unverified';
   /** Exchange regulatory licences for trust badge */
@@ -39,7 +41,9 @@ interface Props {
 }
 
 import { getCtaLabel } from '../utils/affiliateUtils';
+import { type PartnerStatus, isLimited } from '../utils/partnerStatus';
 const props = Astro.props;
+const limited = isLimited({ partner_status: (props as any).partnerStatus });
 const showUsers = props.users && parseInt(props.users.replace(/[^0-9]/g, ''), 10) >= 10;
 const isVerified = props.verificationStatus === 'verified';
 const bonusPrefix = props.bonusDisplayMode === 'fixed' ? '' : props.bonusDisplayMode === 'campaign' ? '' : 'Up to ';
@@ -93,13 +97,17 @@ if (hasFutures && props.maxFuturesLeverage && props.maxFuturesLeverage > 1)
       {props.topChoice && (
         <span class="exchange-card-top-pick" aria-label="Editor's top pick">⭐ Top Pick</span>
       )}
-      <span class="exchange-bonus-amount">
-        {props.bonusDisplayMode === 'campaign'
-          ? 'Active Offer'
-          : <>{bonusPrefix}{props.bonusAmount.toLocaleString()} {props.bonusCurrency}</>
-        }
-      </span>
-      {props.bonusNote && (
+      {limited ? (
+        <span class="exchange-bonus-amount exchange-bonus-amount--neutral">Direct link</span>
+      ) : (
+        <span class="exchange-bonus-amount">
+          {props.bonusDisplayMode === 'campaign'
+            ? 'Active Offer'
+            : <>{bonusPrefix}{props.bonusAmount.toLocaleString()} {props.bonusCurrency}</>
+          }
+        </span>
+      )}
+      {!limited && props.bonusNote && (
         <span class="exchange-bonus-note">{props.bonusNote}</span>
       )}
     </div>
@@ -142,14 +150,26 @@ if (hasFutures && props.maxFuturesLeverage && props.maxFuturesLeverage > 1)
     <LastUpdated date={props.updatedAt} />
     <div class="exchange-card-actions">
       <a href={`/exchanges/${props.slug}/`} class="details-link">Details</a>
-      <CTAButton
-        href={props.affiliateUrl}
-        label={!props.kycRequired ? 'No KYC' : 'View Offer'}
-        exchange={props.name}
-        size="sm"
-        trackPlacement="card"
-        trackBonus={props.bonusAmount}
-      />
+      {limited ? (
+        <CTAButton
+          href={props.affiliateUrl}
+          label={`Visit ${props.name}`}
+          variant="secondary"
+          exchange={props.name}
+          size="sm"
+          rel="noopener noreferrer nofollow"
+          trackPlacement="card"
+        />
+      ) : (
+        <CTAButton
+          href={props.affiliateUrl}
+          label={!props.kycRequired ? 'No KYC' : 'View Offer'}
+          exchange={props.name}
+          size="sm"
+          trackPlacement="card"
+          trackBonus={props.bonusAmount}
+        />
+      )}
     </div>
   </div>
 </article>

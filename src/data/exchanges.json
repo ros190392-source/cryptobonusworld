@@ -1045,9 +1045,9 @@
       "currency": "USDT",
       "note": "For upper bonus tiers"
     },
-    "affiliateUrl": "https://www.kucoin.com/?&rcode=CRYPTOBONW&utm_medium=U17591",
+    "affiliateUrl": "https://www.kucoin.com/?rcode=CRYPTOBONW&utm_medium=U17591",
     "affiliateLinks": {
-      "default": "https://www.kucoin.com/?&rcode=CRYPTOBONW&utm_medium=U17591",
+      "default": "https://www.kucoin.com/?rcode=CRYPTOBONW&utm_medium=U17591",
       "geo": {
         "tr": "#",
         "in": "#",
@@ -1126,7 +1126,7 @@
     "status": "active",
     "verificationStatus": "verified",
     "bonusNote": "Up to 11,000 USDT welcome rewards — typical reward 20–100 USDT; no-KYC tiers are genuinely accessible",
-    "bonusSourceUrl": "https://www.kucoin.com/?&rcode=CRYPTOBONW&utm_medium=U17591",
+    "bonusSourceUrl": "https://www.kucoin.com/?rcode=CRYPTOBONW&utm_medium=U17591",
     "bonusDisplayMode": "up-to",
     "bonusRange": {
       "min": 0,
@@ -1780,6 +1780,7 @@
     "logo": "/logos/lbank.png",
     "rating": 8.4,
     "topChoice": false,
+    "partner_status": "pending",
     "bonusTitle": "Up to 500 USDT New User Bonus",
     "bonusAmount": 500,
     "bonusCurrency": "USDT",
@@ -1830,9 +1831,9 @@
       "currency": "USDT",
       "note": "For upper trading reward tiers"
     },
-    "affiliateUrl": "#",
+    "affiliateUrl": "https://www.lbank.com/",
     "affiliateLinks": {
-      "default": "#",
+      "default": "https://www.lbank.com/",
       "geo": {
         "tr": "#",
         "in": "#",
@@ -2106,6 +2107,7 @@
     "logo": "/logos/coinbase.svg",
     "rating": 8.6,
     "topChoice": false,
+    "partner_status": "limited",
     "bonusTitle": "$10 in Bitcoin",
     "bonusAmount": 10,
     "bonusCurrency": "USD",

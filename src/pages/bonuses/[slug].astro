@@ -28,6 +28,7 @@ import comparePairs from '../../data/compare-pairs.json';
 
 import { buildProductSchema, buildBreadcrumbSchema, bonusPageTitle, SITE_URL, YEAR } from '../../utils/seo';
 import { goRedirectUrl } from '../../utils/affiliateUtils';
+import { isLimited } from '../../utils/partnerStatus';
 import type { PageContext } from '../../utils/analytics';
 
 // Generate one page per exchange: /bonuses/{slug}-bonus/
@@ -65,11 +66,17 @@ const minDeposit = (ex as any).minDeposit;
 const tradingVol = (ex as any).tradingVolumeRequired;
 const bonusExpiry = (ex as any).bonusExpiry;
 
+// --- Partner status ---
+const limited = isLimited(ex);
+
 // --- CTA URL ---
 const affiliateUrl = ex.affiliateUrl;
-const ctaUrl = affiliateUrl && affiliateUrl !== '#'
-  ? goRedirectUrl(ex.slug, 'bonus-page-hero', 'bonus-page')
-  : `/exchanges/${ex.slug}/`;
+// limited partners: skip /go/ redirect (no tracking, no referral params)
+const ctaUrl = limited
+  ? (affiliateUrl && affiliateUrl !== '#' ? affiliateUrl : `/exchanges/${ex.slug}/`)
+  : (affiliateUrl && affiliateUrl !== '#'
+      ? goRedirectUrl(ex.slug, 'bonus-page-hero', 'bonus-page')
+      : `/exchanges/${ex.slug}/`);
 
 // --- Compare pairs featuring this exchange ---
 const relatedCompare = comparePairs
@@ -180,15 +187,27 @@ const analyticsContext: PageContext = { pageType: 'bonus-page', exchange: ex.slu
       </div>
 
       <div class="bp-hero-cta">
-        <CTAButton
-          href={ctaUrl}
-          exchange={ex.name}
-          label={`Claim ${ex.name} Bonus →`}
-          size="lg"
-          trackPlacement="bonus-page-hero"
-          trackBonus={ex.bonusAmount}
-        />
-        {promoCode && (
+        {limited ? (
+          <CTAButton
+            href={ctaUrl}
+            exchange={ex.name}
+            label={`Visit ${ex.name} →`}
+            variant="secondary"
+            size="lg"
+            rel="noopener noreferrer nofollow"
+            trackPlacement="bonus-page-hero"
+          />
+        ) : (
+          <CTAButton
+            href={ctaUrl}
+            exchange={ex.name}
+            label={`Claim ${ex.name} Bonus →`}
+            size="lg"
+            trackPlacement="bonus-page-hero"
+            trackBonus={ex.bonusAmount}
+          />
+        )}
+        {!limited && promoCode && (
           <div class="bp-code-inline">
             Use code: <strong class="bp-code-val">{promoCode}</strong>
           </div>
