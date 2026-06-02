@@ -15,6 +15,9 @@
  *  10. No duplicate conflicting URLs for the same exchange
  *  11. No USDT used as ISO currency in schema offers (must be USD-equivalent note instead)
  *  12. exchanges.json parity: partner_status + affiliateUrl must match registry
+ *  13. every full partner must have GLOBAL/en registration_with_bonus in localizedLinks
+ *  14. no affiliate URLs on evidence-purpose localizedLinks without allowedForEvidence
+ *  15. limited/pending must have clean registration entry + no affiliate bonus reg
  *
  * Usage:
  *   node scripts/audit-affiliate-links.mjs
@@ -297,6 +300,78 @@ if (affiliateLinks) {
       if (registryUrl && registryUrl !== '#' && jsonUrl !== registryUrl) {
         warn(`[${ex.slug}] exchanges.json affiliateUrl differs from registry:\n  json:     ${jsonUrl}\n  registry: ${registryUrl}`);
       }
+    }
+  }
+}
+
+// ── RULES 13–15: localizedLinks integrity ────────────────────────────────────
+
+if (affiliateLinks) {
+  const EVIDENCE_PURPOSES = ['fees', 'kyc', 'proof_of_reserves', 'support', 'app', 'spot', 'futures', 'p2p'];
+
+  for (const entry of affiliateLinks) {
+    const ll = entry.localizedLinks ?? [];
+
+    // ── RULE 13: every full partner must have a GLOBAL/en registration link ──
+    if (entry.partnerStatus === 'full') {
+      // "GLOBAL/en" = a registration_with_bonus entry with no geo and no locale (global default)
+      const hasGlobalReg = ll.some(l =>
+        l.purpose === 'registration_with_bonus' && !l.geo && !l.locale
+      );
+      // Also accept an explicit GLOBAL geo entry
+      const hasGlobalGeoReg = ll.some(l =>
+        l.purpose === 'registration_with_bonus' && (l.geo === 'GLOBAL' || !l.geo)
+      );
+      if (!hasGlobalReg && !hasGlobalGeoReg) {
+        fail(`[${entry.slug}] Full partner is missing a GLOBAL/en registration_with_bonus entry in localizedLinks`);
+      }
+    }
+
+    // ── RULE 14: no affiliate URLs on official evidence pages ─────────────────
+    for (const l of ll) {
+      if (EVIDENCE_PURPOSES.includes(l.purpose) && l.isAffiliate && !l.allowedForEvidence) {
+        fail(`[${entry.slug}] localizedLinks.${l.purpose} has isAffiliate=true without allowedForEvidence=true — affiliate URLs must not be used on evidence pages`);
+      }
+    }
+
+    // ── RULE 15: limited/pending must have clean fallback ────────────────────
+    if (entry.partnerStatus === 'limited' || entry.partnerStatus === 'pending') {
+      const hasCleanReg = ll.some(l =>
+        l.purpose === 'registration' && !l.isAffiliate && isValidUrl(l.url)
+      );
+      if (!hasCleanReg) {
+        fail(`[${entry.slug}] ${entry.partnerStatus} partner is missing a clean registration entry in localizedLinks`);
+      }
+      // Must not have registration_with_bonus entries
+      const hasBonusReg = ll.some(l => l.purpose === 'registration_with_bonus' && l.isAffiliate);
+      if (hasBonusReg) {
+        fail(`[${entry.slug}] ${entry.partnerStatus} partner must not have isAffiliate=true registration_with_bonus entries`);
+      }
+    }
+
+    // Validate all URLs in localizedLinks
+    for (const l of ll) {
+      if (!isValidUrl(l.url)) {
+        fail(`[${entry.slug}] localizedLinks.${l.purpose} has invalid URL: "${l.url}"`);
+      }
+      if (entry.slug === 'coinbase' && l.isAffiliate) {
+        fail(`[coinbase] localizedLinks.${l.purpose} has isAffiliate=true — Coinbase must be clean-only`);
+      }
+      if (entry.slug === 'coinbase' && hasReferralParams(l.url)) {
+        fail(`[coinbase] localizedLinks.${l.purpose} URL contains referral params: "${l.url}"`);
+      }
+    }
+
+    // Warn if supportedLocales is missing (only if entry is active)
+    if (!entry.supportedLocales || entry.supportedLocales.length === 0) {
+      warn(`[${entry.slug}] supportedLocales is empty — add at least ["en"]`);
+    }
+  }
+
+  // Warn if localizedLinks is missing/empty for any full partner
+  for (const entry of affiliateLinks) {
+    if (entry.partnerStatus === 'full' && (!entry.localizedLinks || entry.localizedLinks.length === 0)) {
+      warn(`[${entry.slug}] Full partner has no localizedLinks entries — add at minimum registration and registration_with_bonus`);
     }
   }
 }

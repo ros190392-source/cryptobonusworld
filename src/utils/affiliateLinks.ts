@@ -8,7 +8,14 @@
  *   import { getExchangeOutboundUrl, shouldShowPromoCode } from '../utils/affiliateLinks';
  */
 
-import { AFFILIATE_LINKS_MAP, type AffiliateEntry, type GeoRegion } from '../data/affiliate-links';
+import {
+  AFFILIATE_LINKS_MAP,
+  type AffiliateEntry,
+  type GeoRegion,
+  type Locale,
+  type LinkPurpose,
+  type LocalizedLinkEntry,
+} from '../data/affiliate-links';
 
 // ── Options ───────────────────────────────────────────────────────────────────
 
@@ -286,4 +293,232 @@ export function validateAffiliateLink(slug: string): ValidationResult {
 export function validateAllAffiliateLinks(): ValidationResult[] {
   const { AFFILIATE_LINKS } = require('../data/affiliate-links') as typeof import('../data/affiliate-links');
   return AFFILIATE_LINKS.map(e => validateAffiliateLink(e.slug));
+}
+
+// ── Multi-locale / multi-geo link resolution ──────────────────────────────────
+
+export interface LinkResolutionOptions {
+  /** Target locale — uses global default when omitted */
+  locale?: Locale;
+  /** Target geo region — uses GLOBAL fallback when omitted */
+  geo?: GeoRegion | string;
+  /**
+   * When true, forces the clean (non-affiliate) URL regardless of partnerStatus.
+   * Use in editorial/review/comparison contexts.
+   */
+  forceClean?: boolean;
+  /**
+   * When true, applies evidence-safety rules: affiliate URLs are suppressed
+   * for evidence purposes (fees, kyc, proof_of_reserves, support, app, spot,
+   * futures, p2p) unless the entry explicitly sets allowedForEvidence = true.
+   */
+  forEvidence?: boolean;
+}
+
+export interface ResolvedLink {
+  url: string;
+  isAffiliate: boolean;
+  hasBonus: boolean;
+  promoCode: string | null | undefined;
+  purpose: LinkPurpose;
+  locale: Locale | undefined;
+  geo: GeoRegion | string | undefined;
+  source: 'exact' | 'geo_only' | 'locale_only' | 'global_default' | 'any_match' | 'clean_fallback';
+}
+
+// Purposes that must never serve affiliate URLs on evidence pages
+const EVIDENCE_PURPOSES: LinkPurpose[] = [
+  'fees', 'kyc', 'proof_of_reserves', 'support', 'app',
+  'spot', 'futures', 'p2p',
+];
+
+function isBlockedForEvidence(entry: LocalizedLinkEntry, forEvidence?: boolean): boolean {
+  if (!forEvidence) return false;
+  if (!entry.isAffiliate) return false;
+  if (entry.allowedForEvidence) return false;
+  if (EVIDENCE_PURPOSES.includes(entry.purpose)) return true;
+  return false;
+}
+
+/**
+ * Primary multi-purpose link resolver.
+ *
+ * Fallback chain (highest → lowest priority):
+ *   1. Exact geo + locale match
+ *   2. Geo only (locale-agnostic entry for this geo)
+ *   3. Locale only (geo-agnostic entry for this locale)
+ *   4. Global default (no geo, no locale — universal fallback)
+ *   5. Any matching purpose entry
+ *   6. links.clean (ultimate fallback)
+ */
+export function getExchangeLink(
+  slug: string,
+  purpose: LinkPurpose,
+  opts: LinkResolutionOptions = {}
+): string {
+  return resolveExchangeLink(slug, purpose, opts).url;
+}
+
+/**
+ * Like getExchangeLink but returns the full ResolvedLink object,
+ * including metadata about how the URL was resolved.
+ */
+export function resolveExchangeLink(
+  slug: string,
+  purpose: LinkPurpose,
+  opts: LinkResolutionOptions = {}
+): ResolvedLink {
+  const entry = getEntry(slug);
+  const cleanFallback: ResolvedLink = {
+    url: entry?.links.clean ?? '#',
+    isAffiliate: false,
+    hasBonus: false,
+    promoCode: null,
+    purpose,
+    locale: opts.locale as Locale | undefined,
+    geo: opts.geo as GeoRegion | undefined,
+    source: 'clean_fallback',
+  };
+
+  if (!entry) return { ...cleanFallback, url: '#' };
+  if (entry.partnerStatus === 'disabled') return { ...cleanFallback, url: '#' };
+
+  const { locale, geo, forceClean, forEvidence } = opts;
+
+  // limited/pending always get clean URL — never affiliate
+  const forceCleanFinal =
+    forceClean ||
+    entry.partnerStatus === 'limited' ||
+    entry.partnerStatus === 'pending';
+
+  const candidates = (entry.localizedLinks ?? []).filter(
+    l => l.purpose === purpose
+  );
+
+  if (candidates.length === 0) return cleanFallback;
+
+  function canUse(l: LocalizedLinkEntry): boolean {
+    if (forceCleanFinal && l.isAffiliate) return false;
+    if (isBlockedForEvidence(l, forEvidence)) return false;
+    return true;
+  }
+
+  function toResolved(l: LocalizedLinkEntry, source: ResolvedLink['source']): ResolvedLink {
+    return {
+      url: l.url,
+      isAffiliate: l.isAffiliate,
+      hasBonus: l.hasBonus,
+      promoCode: l.promoCode ?? null,
+      purpose,
+      locale: l.locale,
+      geo: l.geo,
+      source,
+    };
+  }
+
+  // 1. Exact geo + locale
+  if (geo && locale) {
+    const m = candidates.find(l => l.geo === geo && l.locale === locale && canUse(l));
+    if (m) return toResolved(m, 'exact');
+  }
+
+  // 2. Geo only (no locale constraint on the entry)
+  if (geo) {
+    const m = candidates.find(l => l.geo === geo && !l.locale && canUse(l));
+    if (m) return toResolved(m, 'geo_only');
+  }
+
+  // 3. Locale only (no geo constraint on the entry)
+  if (locale) {
+    const m = candidates.find(l => !l.geo && l.locale === locale && canUse(l));
+    if (m) return toResolved(m, 'locale_only');
+  }
+
+  // 4. Global default — entry has no geo and no locale (universal)
+  const globalDefault = candidates.find(l => !l.geo && !l.locale && canUse(l));
+  if (globalDefault) return toResolved(globalDefault, 'global_default');
+
+  // 5. Any matching purpose entry that passes filters
+  const anyMatch = candidates.find(l => canUse(l));
+  if (anyMatch) return toResolved(anyMatch, 'any_match');
+
+  // 6. Clean fallback
+  return cleanFallback;
+}
+
+/**
+ * Returns the best URL for a given purpose and locale, using GLOBAL geo.
+ */
+export function getLocalizedExchangeLink(
+  slug: string,
+  purpose: LinkPurpose,
+  locale: Locale
+): string {
+  return getExchangeLink(slug, purpose, { locale });
+}
+
+/**
+ * Returns the best URL for a given purpose and geo region, using default locale (en).
+ */
+export function getGeoExchangeLink(
+  slug: string,
+  purpose: LinkPurpose,
+  geo: GeoRegion | string
+): string {
+  return getExchangeLink(slug, purpose, { geo, locale: 'en' });
+}
+
+/**
+ * Returns the safe global/en fallback URL for a purpose.
+ * Equivalent to getExchangeLink with no locale/geo — resolves to global default or clean.
+ */
+export function getFallbackExchangeLink(
+  slug: string,
+  purpose: LinkPurpose
+): string {
+  return getExchangeLink(slug, purpose, {});
+}
+
+/**
+ * Returns the clean (non-affiliate, no tracking) registration URL.
+ * Alias for getExchangeLink(slug, 'registration', { forceClean: true }).
+ */
+export function getRegistrationCleanUrl(slug: string): string {
+  return getExchangeLink(slug, 'registration', { forceClean: true });
+}
+
+/**
+ * Returns the affiliate registration-with-bonus URL for full partners,
+ * or the clean URL for limited/pending/disabled.
+ */
+export function getRegistrationAffiliateUrl(
+  slug: string,
+  opts: Pick<LinkResolutionOptions, 'locale' | 'geo'> = {}
+): string {
+  return getExchangeLink(slug, 'registration_with_bonus', opts);
+}
+
+/**
+ * Returns all localizedLinks entries for a given purpose, regardless of locale/geo.
+ * Useful for generating sitemaps or pre-rendering locale variants.
+ */
+export function getAllPurposeLinks(
+  slug: string,
+  purpose: LinkPurpose
+): LocalizedLinkEntry[] {
+  return getEntry(slug)?.localizedLinks?.filter(l => l.purpose === purpose) ?? [];
+}
+
+/**
+ * Returns the supported locales for an exchange.
+ */
+export function getSupportedLocales(slug: string): Locale[] {
+  return getEntry(slug)?.supportedLocales ?? ['en'];
+}
+
+/**
+ * Checks whether a given locale is supported for this exchange.
+ */
+export function isLocaleSupported(slug: string, locale: Locale): boolean {
+  return getSupportedLocales(slug).includes(locale);
 }

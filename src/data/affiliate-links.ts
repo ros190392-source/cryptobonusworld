@@ -25,7 +25,56 @@ export type LinkType =
 
 export type PartnerStatus = 'full' | 'limited' | 'pending' | 'disabled';
 
-export type GeoRegion = 'GLOBAL' | 'EU' | 'CIS' | 'tr' | 'in' | 'id' | 'ng' | 'br' | 'vn' | 'ph';
+export type GeoRegion =
+  | 'GLOBAL' | 'EU' | 'CIS'
+  // Uppercase region codes — used in localizedLinks (preferred for new code)
+  | 'PL' | 'TR' | 'IN' | 'ID' | 'NG' | 'BR' | 'VN' | 'PH'
+  // Lowercase legacy codes — kept for backwards-compatible geoLinks field
+  | 'tr' | 'in' | 'id' | 'ng' | 'br' | 'vn' | 'ph';
+
+export type Locale = 'en' | 'ru' | 'pl' | 'tr' | 'es' | 'pt' | 'id' | 'hi';
+
+export type LinkPurpose =
+  | 'registration'           // basic sign-up, no bonus implied
+  | 'registration_with_bonus' // sign-up via affiliate link; bonus offered
+  | 'fees'                   // official fee schedule page
+  | 'bonus_terms'            // bonus/promotion terms or source page
+  | 'kyc'                    // identity verification help/flow
+  | 'p2p'                    // P2P marketplace
+  | 'spot'                   // spot trading page
+  | 'futures'                // futures/derivatives trading page
+  | 'app'                    // mobile app download
+  | 'proof_of_reserves'      // proof-of-reserves page
+  | 'support';               // support / help center
+
+export interface LocalizedLinkEntry {
+  /** What this URL is used for */
+  purpose: LinkPurpose;
+  /**
+   * Target locale — omit to match any locale (global default).
+   * When locale is set, this entry is only returned when the requested locale matches.
+   */
+  locale?: Locale;
+  /**
+   * Target geo region — omit to match any geo / act as GLOBAL fallback.
+   * When geo is set, this entry is preferred when the visitor's region matches.
+   */
+  geo?: GeoRegion;
+  url: string;
+  /** True if this URL contains affiliate/tracking parameters */
+  isAffiliate: boolean;
+  /** True if following this URL leads to a bonused registration flow */
+  hasBonus: boolean;
+  /** Promo/referral code embedded in or associated with this URL */
+  promoCode?: string | null;
+  /**
+   * When true, this URL may be used on official evidence/documentation pages
+   * even if isAffiliate = true.
+   * Use only for official partner program pages that also serve as terms sources.
+   */
+  allowedForEvidence?: boolean;
+  notes?: string;
+}
 
 export interface AppendRules {
   /** Can the promo code be appended to the clean URL as a query param? */
@@ -98,6 +147,17 @@ export interface AffiliateEntry {
   bonusCurrency: string | null;
   /** Internal editorial notes about the bonus */
   bonusNotes: string | null;
+  /**
+   * Locales for which this exchange has content-ready pages.
+   * Currently only 'en' is active; others are reserved for future i18n rollout.
+   */
+  supportedLocales: Locale[];
+  /**
+   * Purpose-driven, locale/geo-aware link table.
+   * Consumed by getExchangeLink() for precise URL resolution.
+   * Fallback chain: exact geo+locale → geo only → locale only → global/en → links.clean
+   */
+  localizedLinks: LocalizedLinkEntry[];
 }
 
 // ── Registry ──────────────────────────────────────────────────────────────────
@@ -132,6 +192,14 @@ export const AFFILIATE_LINKS: AffiliateEntry[] = [
     maxBonusAmount: 30000,
     bonusCurrency: 'USDT',
     bonusNotes: 'Three-tier package: 20 USDT signup + 200 USDT deposit + 29,780 USDT futures milestones. 30-day window.',
+    supportedLocales: ['en'],
+    localizedLinks: [
+      { purpose: 'registration', url: 'https://www.bybit.com/', isAffiliate: false, hasBonus: false },
+      { purpose: 'registration_with_bonus', url: 'https://partner.bybit.com/b/CRYPTOBONUSW', isAffiliate: true, hasBonus: true, promoCode: 'CRYPTOBONUSW', notes: 'GLOBAL default; code embedded in path /b/CODE' },
+      { purpose: 'bonus_terms', url: 'https://www.bybit.com/en/promo/global/welcome-gifts/', isAffiliate: false, hasBonus: false, allowedForEvidence: true },
+      { purpose: 'fees', url: 'https://www.bybit.com/en/help-center/article/Trading-Fee-Structure', isAffiliate: false, hasBonus: false, allowedForEvidence: true },
+      { purpose: 'proof_of_reserves', url: 'https://www.bybit.com/en/proof-of-reserves/', isAffiliate: false, hasBonus: false, allowedForEvidence: true },
+    ],
   },
 
   {
@@ -159,6 +227,14 @@ export const AFFILIATE_LINKS: AffiliateEntry[] = [
     maxBonusAmount: 19800,
     bonusCurrency: 'USDT',
     bonusNotes: 'Tiered deposit and trading bonus. ref= param carries both promo and affiliate tracking.',
+    supportedLocales: ['en'],
+    localizedLinks: [
+      { purpose: 'registration', url: 'https://www.binance.com/', isAffiliate: false, hasBonus: false },
+      { purpose: 'registration_with_bonus', url: 'https://www.binance.com/join?ref=CRYPTOBONUSW', isAffiliate: true, hasBonus: true, promoCode: 'CRYPTOBONUSW' },
+      { purpose: 'bonus_terms', url: 'https://www.binance.com/en/activity/referral', isAffiliate: false, hasBonus: false, allowedForEvidence: true },
+      { purpose: 'fees', url: 'https://www.binance.com/en/fee/schedule', isAffiliate: false, hasBonus: false, allowedForEvidence: true },
+      { purpose: 'proof_of_reserves', url: 'https://www.binance.com/en/proof-of-reserves', isAffiliate: false, hasBonus: false, allowedForEvidence: true },
+    ],
   },
 
   {
@@ -187,6 +263,12 @@ export const AFFILIATE_LINKS: AffiliateEntry[] = [
     maxBonusAmount: 10000,
     bonusCurrency: 'USDT',
     bonusNotes: 'Custom sign-up portal with shareCode. KYC + deposit required. 30-day task window.',
+    supportedLocales: ['en'],
+    localizedLinks: [
+      { purpose: 'registration', url: 'https://www.mexc.com/', isAffiliate: false, hasBonus: false },
+      { purpose: 'registration_with_bonus', url: 'https://www.mexc.com/acquisition/custom-sign-up?shareCode=mexc-CryptoBonus', isAffiliate: true, hasBonus: true, promoCode: 'mexc-CryptoBonus' },
+      { purpose: 'fees', url: 'https://www.mexc.com/fee', isAffiliate: false, hasBonus: false, allowedForEvidence: true },
+    ],
   },
 
   {
@@ -214,6 +296,13 @@ export const AFFILIATE_LINKS: AffiliateEntry[] = [
     maxBonusAmount: 5000,
     bonusCurrency: 'USDT',
     bonusNotes: '/join/ path-segment affiliate URL. No ref query param needed.',
+    supportedLocales: ['en'],
+    localizedLinks: [
+      { purpose: 'registration', url: 'https://www.okx.com/', isAffiliate: false, hasBonus: false },
+      { purpose: 'registration_with_bonus', url: 'https://okx.com/join/CRYPTOBONUSW', isAffiliate: true, hasBonus: true, promoCode: 'CRYPTOBONUSW', notes: 'Code embedded in path /join/CODE' },
+      { purpose: 'fees', url: 'https://www.okx.com/fees', isAffiliate: false, hasBonus: false, allowedForEvidence: true },
+      { purpose: 'proof_of_reserves', url: 'https://www.okx.com/proof-of-reserves', isAffiliate: false, hasBonus: false, allowedForEvidence: true },
+    ],
   },
 
   {
@@ -241,6 +330,12 @@ export const AFFILIATE_LINKS: AffiliateEntry[] = [
     maxBonusAmount: 6200,
     bonusCurrency: 'USDT',
     bonusNotes: 'Partner portal bg/ path code. KYC + futures tasks required for upper tiers.',
+    supportedLocales: ['en'],
+    localizedLinks: [
+      { purpose: 'registration', url: 'https://www.bitget.com/', isAffiliate: false, hasBonus: false },
+      { purpose: 'registration_with_bonus', url: 'https://partner.bitget.com/bg/CryptoBonW', isAffiliate: true, hasBonus: true, promoCode: 'CryptoBonW', notes: 'Partner portal; code embedded in path /bg/CODE' },
+      { purpose: 'fees', url: 'https://www.bitget.com/fee/index', isAffiliate: false, hasBonus: false, allowedForEvidence: true },
+    ],
   },
 
   {
@@ -268,6 +363,12 @@ export const AFFILIATE_LINKS: AffiliateEntry[] = [
     maxBonusAmount: 5000,
     bonusCurrency: 'USDT',
     bonusNotes: 'Tracking via bingxdao.com partner domain — no user-visible code. 5,000 USDT theoretical max; typical 50–250 USDT.',
+    supportedLocales: ['en'],
+    localizedLinks: [
+      { purpose: 'registration', url: 'https://bingx.com/', isAffiliate: false, hasBonus: false },
+      { purpose: 'registration_with_bonus', url: 'https://bingxdao.com/partner/VipClient/', isAffiliate: true, hasBonus: true, promoCode: null, notes: 'Tracking via partner domain only; no user-visible code' },
+      { purpose: 'fees', url: 'https://bingx.com/en-us/rate/', isAffiliate: false, hasBonus: false, allowedForEvidence: true },
+    ],
   },
 
   {
@@ -295,6 +396,12 @@ export const AFFILIATE_LINKS: AffiliateEntry[] = [
     maxBonusAmount: 3000,
     bonusCurrency: 'USDT',
     bonusNotes: 'gate.com /share/ path-code. Deposit + futures tasks required for full amount.',
+    supportedLocales: ['en'],
+    localizedLinks: [
+      { purpose: 'registration', url: 'https://www.gate.io/', isAffiliate: false, hasBonus: false },
+      { purpose: 'registration_with_bonus', url: 'https://www.gate.com/share/BONUSCBW', isAffiliate: true, hasBonus: true, promoCode: 'BONUSCBW', notes: 'Code embedded in path /share/CODE on gate.com' },
+      { purpose: 'fees', url: 'https://www.gate.io/fee', isAffiliate: false, hasBonus: false, allowedForEvidence: true },
+    ],
   },
 
   {
@@ -322,6 +429,13 @@ export const AFFILIATE_LINKS: AffiliateEntry[] = [
     maxBonusAmount: 11000,
     bonusCurrency: 'USDT',
     bonusNotes: 'rcode= query param + utm_medium sub-ID. Tiered deposit/trading rewards.',
+    supportedLocales: ['en'],
+    localizedLinks: [
+      { purpose: 'registration', url: 'https://www.kucoin.com/', isAffiliate: false, hasBonus: false },
+      { purpose: 'registration_with_bonus', url: 'https://www.kucoin.com/?rcode=CRYPTOBONW&utm_medium=U17591', isAffiliate: true, hasBonus: true, promoCode: 'CRYPTOBONW' },
+      { purpose: 'fees', url: 'https://www.kucoin.com/vip/privilege', isAffiliate: false, hasBonus: false, allowedForEvidence: true },
+      { purpose: 'proof_of_reserves', url: 'https://www.kucoin.com/proof-of-reserves', isAffiliate: false, hasBonus: false, allowedForEvidence: true },
+    ],
   },
 
   {
@@ -349,6 +463,12 @@ export const AFFILIATE_LINKS: AffiliateEntry[] = [
     maxBonusAmount: 2000,
     bonusCurrency: 'USDT',
     bonusNotes: 'htx.com.ph domain invite link. invite_code= param. Verify active promotion on official site.',
+    supportedLocales: ['en'],
+    localizedLinks: [
+      { purpose: 'registration', url: 'https://www.htx.com/', isAffiliate: false, hasBonus: false },
+      { purpose: 'registration_with_bonus', url: 'https://www.htx.com.ph/invite/ru-ru/1h?invite_code=cryptobonusw', isAffiliate: true, hasBonus: true, promoCode: 'cryptobonusw' },
+      { purpose: 'fees', url: 'https://www.htx.com/en-us/fee/', isAffiliate: false, hasBonus: false, allowedForEvidence: true },
+    ],
   },
 
   {
@@ -376,6 +496,12 @@ export const AFFILIATE_LINKS: AffiliateEntry[] = [
     maxBonusAmount: 500,
     bonusCurrency: 'USDT',
     bonusNotes: 'rc= + channel=Referral params. KYC required.',
+    supportedLocales: ['en'],
+    localizedLinks: [
+      { purpose: 'registration', url: 'https://www.coinex.com/', isAffiliate: false, hasBonus: false },
+      { purpose: 'registration_with_bonus', url: 'https://www.coinex.com/register?rc=2my4f&channel=Referral', isAffiliate: true, hasBonus: true, promoCode: '2my4f' },
+      { purpose: 'fees', url: 'https://www.coinex.com/fees', isAffiliate: false, hasBonus: false, allowedForEvidence: true },
+    ],
   },
 
   {
@@ -403,6 +529,12 @@ export const AFFILIATE_LINKS: AffiliateEntry[] = [
     maxBonusAmount: 8800,
     bonusCurrency: 'USDT',
     bonusNotes: 'referralCode= on /ru/ locale entry page. Verify locale redirect is correct.',
+    supportedLocales: ['en'],
+    localizedLinks: [
+      { purpose: 'registration', url: 'https://phemex.com/', isAffiliate: false, hasBonus: false },
+      { purpose: 'registration_with_bonus', url: 'https://phemex.com/ru/account/referral/invite-friends-entry?referralCode=GJFJA5', isAffiliate: true, hasBonus: true, promoCode: 'GJFJA5' },
+      { purpose: 'fees', url: 'https://phemex.com/fees/trading-fee', isAffiliate: false, hasBonus: false, allowedForEvidence: true },
+    ],
   },
 
   {
@@ -430,6 +562,11 @@ export const AFFILIATE_LINKS: AffiliateEntry[] = [
     maxBonusAmount: 1000,
     bonusCurrency: 'USDT',
     bonusNotes: 'inviteCode= on /register page. Simple clean affiliate URL.',
+    supportedLocales: ['en'],
+    localizedLinks: [
+      { purpose: 'registration', url: 'https://www.bitunix.com/', isAffiliate: false, hasBonus: false },
+      { purpose: 'registration_with_bonus', url: 'https://www.bitunix.com/register?inviteCode=phpZuw', isAffiliate: true, hasBonus: true, promoCode: 'phpZuw' },
+    ],
   },
 
   {
@@ -456,6 +593,11 @@ export const AFFILIATE_LINKS: AffiliateEntry[] = [
     maxBonusAmount: 500,
     bonusCurrency: 'USDT',
     bonusNotes: 'PENDING — no affiliate deal. Bonus listed from official site. Affiliate link TBD.',
+    supportedLocales: ['en'],
+    localizedLinks: [
+      { purpose: 'registration', url: 'https://www.lbank.com/', isAffiliate: false, hasBonus: false, notes: 'PENDING — no affiliate deal; clean URL only until partnership confirmed' },
+      { purpose: 'bonus_terms', url: 'https://www.lbank.com/activity/', isAffiliate: false, hasBonus: false, allowedForEvidence: true },
+    ],
   },
 
   {
@@ -482,6 +624,12 @@ export const AFFILIATE_LINKS: AffiliateEntry[] = [
     maxBonusAmount: 10,
     bonusCurrency: 'USD',
     bonusNotes: 'LIMITED — editorial listing only. $10 BTC after $100 first trade. No referral link used.',
+    supportedLocales: ['en'],
+    localizedLinks: [
+      { purpose: 'registration', url: 'https://www.coinbase.com/', isAffiliate: false, hasBonus: false, notes: 'LIMITED — editorial listing only; no referral link' },
+      { purpose: 'fees', url: 'https://www.coinbase.com/legal/user_agreement', isAffiliate: false, hasBonus: false, allowedForEvidence: true },
+      { purpose: 'support', url: 'https://help.coinbase.com/', isAffiliate: false, hasBonus: false, allowedForEvidence: true },
+    ],
   },
 ];
 
