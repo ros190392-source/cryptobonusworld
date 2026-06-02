@@ -30,6 +30,12 @@ interface Props {
   type?: 'exchange' | 'guide' | 'compare';
   /** Disable affiliate noopener warning (for internal links) */
   internal?: boolean;
+  /** Exchange slug — enables affiliate click tracking on external exchange CTAs */
+  exchange?: string;
+  /** Analytics placement label e.g. 'guide-next-step' */
+  trackPlacement?: string;
+  /** Bonus amount for click payload */
+  trackBonus?: number;
 }
 
 const {
@@ -41,7 +47,13 @@ const {
   secondaryHref,
   type = 'guide',
   internal = false,
+  exchange,
+  trackPlacement,
+  trackBonus,
 } = Astro.props;
+
+// Affiliate tracking — only fire when this is an external exchange CTA
+const isTracked = !internal && !!exchange;
 
 const rel = internal ? undefined : 'noopener noreferrer sponsored';
 const target = internal ? undefined : '_blank';
@@ -62,6 +74,10 @@ const target = internal ? undefined : '_blank';
         class="nsb__cta nsb__cta--primary"
         rel={rel}
         target={target}
+        data-track={isTracked ? 'affiliate-cta' : undefined}
+        data-exchange={isTracked ? exchange : undefined}
+        data-placement={isTracked && trackPlacement ? trackPlacement : undefined}
+        data-bonus={isTracked && trackBonus !== undefined ? String(trackBonus) : undefined}
       >
         {cta}
         {!internal && <span class="nsb__ext-icon" aria-hidden="true">↗</span>}

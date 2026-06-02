@@ -1,0 +1,482 @@
+---
+/**
+ * EditorSummary — editorial bridge between hero and technical content
+ *
+ * Shows: editorial score (with SVG ring), verdict text, best-for chips, feature badges.
+ * Placed full-width between ExchangeHero and the two-column layout.
+ * Serves as the primary EEAT anchor for Google evaluation.
+ */
+
+interface Props {
+  name: string;
+  rating: number;
+  shortDescription: string;
+  bestFor: string[];
+  featureBadges: string[];
+  lastVerified: string;
+  topChoice?: boolean;
+  founded?: number;
+  users?: string;
+  editorNote?: string;
+}
+
+const {
+  name,
+  rating,
+  shortDescription,
+  bestFor,
+  featureBadges,
+  lastVerified,
+  topChoice = false,
+  founded,
+  users,
+  editorNote,
+} = Astro.props;
+
+// Feature badge label + icon map
+const badgeMeta: Record<string, { label: string; icon: string }> = {
+  'copy-trading':    { label: 'Copy Trading',    icon: '👥' },
+  'web3-wallet':     { label: 'Web3 Wallet',     icon: '🔗' },
+  'spot':            { label: 'Spot',            icon: '💱' },
+  'futures':         { label: 'Futures',         icon: '📈' },
+  'options':         { label: 'Options',         icon: '⚡' },
+  'earn':            { label: 'Earn',            icon: '💰' },
+  'launchpad':       { label: 'Launchpad',       icon: '🚀' },
+  'p2p':             { label: 'P2P',             icon: '🤝' },
+  'staking':         { label: 'Staking',         icon: '🔒' },
+  'defi':            { label: 'DeFi',            icon: '⛓️' },
+  'nft':             { label: 'NFT',             icon: '🎨' },
+  'lending':         { label: 'Lending',         icon: '🏦' },
+  'no-kyc':          { label: 'No KYC',          icon: '🔓' },
+  'amm':             { label: 'AMM',             icon: '🔄' },
+  'early-listings':  { label: 'Early Listings',  icon: '🔍' },
+  'social-trading':  { label: 'Social Trading',  icon: '📊' },
+};
+
+// Score visuals
+const scoreColor = rating >= 9.5 ? '#4ade80' : rating >= 9.0 ? '#F5C542' : '#fb923c';
+const scoreLabel = rating >= 9.5 ? 'Outstanding' : rating >= 9.0 ? 'Excellent' : 'Good';
+
+// SVG ring math — 100px circle (r=40), circumference = 2π×40 ≈ 251.3
+const RING_C = 251.3;
+const ringFill = (rating / 10) * RING_C;
+const ringGap  = RING_C - ringFill;
+
+// Last verified — human-friendly
+const verifiedDate = new Date(lastVerified).toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric',
+});
+
+// Trust line
+const contextParts: string[] = [];
+if (founded) contextParts.push(`Est. ${founded}`);
+if (users) contextParts.push(`${users} users`);
+const contextLine = contextParts.join(' · ');
+---
+
+<div class="es-card" style={`--score-color: ${scoreColor};`}>
+
+  <!-- Accent bar top -->
+  <div class="es-accent-bar"></div>
+
+  <!-- Main body -->
+  <div class="es-main">
+
+    <!-- Left: score column -->
+    <div class="es-score-col">
+      {topChoice && (
+        <div class="es-pick-badge">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          Editor's Pick
+        </div>
+      )}
+
+      <!-- SVG ring score -->
+      <div class="es-ring-wrap">
+        <svg class="es-ring-svg" viewBox="0 0 100 100" aria-hidden="true">
+          <!-- Track -->
+          <circle cx="50" cy="50" r="40" fill="none"
+            stroke="currentColor" stroke-width="6"
+            class="es-ring-track" />
+          <!-- Fill -->
+          <circle cx="50" cy="50" r="40" fill="none"
+            stroke="var(--score-color)" stroke-width="6"
+            stroke-linecap="round"
+            stroke-dasharray={`${ringFill} ${ringGap}`}
+            stroke-dashoffset="62.8"
+            class="es-ring-fill" />
+        </svg>
+        <div class="es-ring-inner">
+          <span class="es-score-num">{rating}</span>
+        </div>
+      </div>
+
+      <div class="es-score-denom">out of 10</div>
+      <div class="es-score-label">{scoreLabel}</div>
+
+      {contextLine && (
+        <div class="es-context">{contextLine}</div>
+      )}
+    </div>
+
+    <!-- Right: verdict column -->
+    <div class="es-verdict-col">
+      <div class="es-verdict-header">
+        <span class="es-verdict-eyebrow">Editorial Verdict</span>
+        <span class="es-verdict-name">{name}</span>
+      </div>
+
+      <p class="es-verdict-text">{shortDescription}</p>
+
+      {editorNote && (
+        <div class="es-our-take">
+          <div class="es-our-take__header">
+            <div class="es-our-take__icon">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            </div>
+            <span class="es-our-take__label">Our Take</span>
+          </div>
+          <p class="es-our-take__text">{editorNote}</p>
+        </div>
+      )}
+
+      {bestFor.length > 0 && (
+        <div class="es-bestfor">
+          <span class="es-bestfor-label">Best for</span>
+          <div class="es-bestfor-chips">
+            {bestFor.map(tag => (
+              <span class="es-bestfor-chip">{tag}</span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+
+  </div>
+
+  <!-- Footer: features + verified -->
+  {featureBadges.length > 0 && (
+    <div class="es-footer">
+      <div class="es-features">
+        <span class="es-features-label">Features</span>
+        <div class="es-feature-chips">
+          {featureBadges.map(badge => {
+            const meta = badgeMeta[badge];
+            if (!meta) return null;
+            return (
+              <span class="es-feature-chip">
+                <span aria-hidden="true">{meta.icon}</span>
+                {meta.label}
+              </span>
+            );
+          })}
+        </div>
+      </div>
+      <div class="es-verified">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        Verified {verifiedDate}
+      </div>
+    </div>
+  )}
+</div>
+
+<style>
+  /* ── Card shell ── */
+  .es-card {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+    position: relative;
+  }
+
+  /* Gold top accent line */
+  .es-accent-bar {
+    height: 3px;
+    background: linear-gradient(90deg,
+      var(--score-color, #F5C542) 0%,
+      color-mix(in srgb, var(--score-color, #F5C542) 40%, transparent) 100%);
+  }
+
+  /* ── Main body ── */
+  .es-main {
+    display: flex;
+    gap: 2rem;
+    padding: 1.5rem 1.75rem;
+    align-items: flex-start;
+  }
+
+  /* ── Score column ── */
+  .es-score-col {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    min-width: 90px;
+  }
+
+  .es-pick-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.6rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--color-accent);
+    background: rgba(245, 197, 66, 0.1);
+    border: 1px solid rgba(245, 197, 66, 0.3);
+    border-radius: 6px;
+    padding: 0.25rem 0.55rem;
+    white-space: nowrap;
+    margin-bottom: 0.2rem;
+  }
+  .es-pick-badge svg {
+    color: var(--color-accent);
+    flex-shrink: 0;
+  }
+
+  /* SVG ring */
+  .es-ring-wrap {
+    position: relative;
+    width: 86px;
+    height: 86px;
+  }
+  .es-ring-svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+    /* counter-rotate compensated in offset above */
+  }
+  .es-ring-track {
+    color: color-mix(in srgb, var(--score-color, #F5C542) 12%, transparent);
+  }
+  .es-ring-fill {
+    filter: drop-shadow(0 0 4px color-mix(in srgb, var(--score-color) 50%, transparent));
+    transition: stroke-dasharray 0.6s ease;
+  }
+  .es-ring-inner {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .es-score-num {
+    font-size: 1.75rem;
+    font-weight: 900;
+    color: var(--score-color, #F5C542);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .es-score-denom {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    line-height: 1;
+    letter-spacing: 0.01em;
+  }
+  .es-score-label {
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--score-color, #F5C542);
+  }
+  .es-context {
+    font-size: 0.68rem;
+    color: var(--color-text-muted);
+    text-align: center;
+    line-height: 1.4;
+    margin-top: 0.1rem;
+  }
+
+  /* ── Verdict column ── */
+  .es-verdict-col {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .es-verdict-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+  .es-verdict-eyebrow {
+    font-size: 0.62rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-text-muted);
+  }
+  .es-verdict-name {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--color-text-primary);
+    letter-spacing: -0.01em;
+  }
+
+  .es-verdict-text {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    margin: 0;
+  }
+
+  /* Our Take callout */
+  .es-our-take {
+    background: color-mix(in srgb, var(--score-color, #F5C542) 5%, transparent);
+    border: 1px solid color-mix(in srgb, var(--score-color, #F5C542) 20%, transparent);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+  }
+  .es-our-take__header {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-bottom: 0.4rem;
+  }
+  .es-our-take__icon {
+    display: flex;
+    align-items: center;
+    color: var(--score-color, #F5C542);
+  }
+  .es-our-take__label {
+    font-size: 0.62rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--score-color, #F5C542);
+  }
+  .es-our-take__text {
+    font-size: 0.82rem;
+    color: var(--color-text-secondary);
+    line-height: 1.65;
+    margin: 0;
+  }
+
+  /* Best for */
+  .es-bestfor {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .es-bestfor-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+  }
+  .es-bestfor-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+  .es-bestfor-chip {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--color-accent);
+    background: rgba(245, 197, 66, 0.08);
+    border: 1px solid rgba(245, 197, 66, 0.25);
+    border-radius: 100px;
+    padding: 0.22rem 0.7rem;
+    white-space: nowrap;
+  }
+
+  /* ── Footer ── */
+  .es-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.625rem 1.75rem;
+    background: var(--color-bg-tertiary);
+    border-top: 1px solid var(--color-border);
+    flex-wrap: wrap;
+  }
+  .es-features {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    flex: 1;
+    min-width: 0;
+  }
+  .es-features-label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .es-feature-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+  }
+  .es-feature-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 100px;
+    padding: 0.18rem 0.55rem;
+    white-space: nowrap;
+  }
+  .es-verified {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.68rem;
+    color: #4ade80;
+    font-weight: 600;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .es-verified svg { color: #4ade80; }
+
+  /* ── Responsive ── */
+  @media (max-width: 640px) {
+    .es-main {
+      flex-direction: column;
+      align-items: center;
+      padding: 1.25rem 1.25rem;
+      gap: 1.25rem;
+    }
+    .es-score-col {
+      flex-direction: row;
+      align-items: center;
+      gap: 1rem;
+      min-width: unset;
+      width: 100%;
+    }
+    .es-ring-wrap { width: 72px; height: 72px; }
+    .es-score-num { font-size: 1.3rem; }
+    .es-pick-badge { margin-bottom: 0; }
+    .es-footer {
+      padding: 0.625rem 1.25rem;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+    .es-context { text-align: left; }
+  }
+</style>

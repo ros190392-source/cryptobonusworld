@@ -1,0 +1,365 @@
+{
+  "exchange": "lbank",
+  "updatedAt": "2026-06-01",
+  "sources": {
+    "fees": {
+      "url": "https://www.lbank.com/en-US/docs/fees.html",
+      "label": "LBank — Fee Schedule",
+      "type": "official-fees",
+      "lastAccessed": "2026-05-25",
+      "notes": "Spot maker 0.10%, taker 0.10%. Futures maker 0.02%, taker 0.05%."
+    },
+    "kyc": {
+      "url": "https://www.lbank.com/en-US/help/detail/1003",
+      "label": "LBank — KYC Verification Guide",
+      "type": "official-kyc",
+      "lastAccessed": "2026-05-25",
+      "notes": "KYC required for full withdrawal access and fiat services."
+    },
+    "bonus": {
+      "url": "https://www.lbank.com/activity/",
+      "label": "LBank — Promotions & Activities",
+      "type": "official-promo",
+      "lastAccessed": "2026-05-25",
+      "notes": "Up to 500 USDT in new user promotions. Deposit and trading required."
+    },
+    "restricted_countries": {
+      "url": "https://www.lbank.com/en-US/privacy-terms/",
+      "label": "LBank — Terms of Service (Restricted Regions)",
+      "type": "official-legal",
+      "lastAccessed": "2026-05-25",
+      "notes": "US, UK restricted"
+    },
+    "terms": {
+      "url": "https://www.lbank.com/en-US/privacy-terms/",
+      "label": "LBank — Terms of Service",
+      "type": "official-legal",
+      "lastAccessed": "2026-05-25"
+    },
+    "p2p": {
+      "url": "https://www.lbank.com/en-US/otc/",
+      "label": "LBank — OTC/P2P Trading",
+      "type": "official-p2p",
+      "lastAccessed": "2026-05-25"
+    },
+    "app_ios": {
+      "url": "https://apps.apple.com/app/lbank-buy-sell-bitcoin/id1546396892",
+      "label": "LBank iOS App — App Store",
+      "type": "official-app",
+      "lastAccessed": "2026-05-25"
+    },
+    "app_android": {
+      "url": "https://play.google.com/store/apps/details?id=io.lbank.view",
+      "label": "LBank Android App — Google Play",
+      "type": "official-app",
+      "lastAccessed": "2026-05-25"
+    },
+    "futures": {
+      "url": "https://www.lbank.com/en-US/futures/",
+      "label": "LBank — Futures Trading",
+      "type": "official-other",
+      "lastAccessed": "2026-05-25",
+      "notes": "Up to 100x leverage"
+    },
+    "affiliate": {
+      "url": "https://www.lbank.com/en-US/promotions/",
+      "label": "LBank — Referral Program",
+      "type": "official-affiliate",
+      "lastAccessed": "2026-05-25"
+    }
+  },
+  "facts": [
+    {
+      "field": "bonus_amount",
+      "currentValue": 500,
+      "unit": "USDT",
+      "officialSourceKey": "bonus",
+      "officialSourceUrl": "https://www.lbank.com/activity/",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.27,
+      "conflictStatus": "outdated",
+      "manualReviewRequired": true,
+      "notes": "Up to 500 USDT new user rewards. Needs daily re-check."
+    },
+    {
+      "field": "bonus_currency",
+      "currentValue": "USDT",
+      "officialSourceKey": "bonus",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.63,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "bonus_expiry_days",
+      "currentValue": 30,
+      "unit": "days",
+      "officialSourceKey": "bonus",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.27,
+      "conflictStatus": "outdated",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "bonus_requires_kyc",
+      "currentValue": true,
+      "officialSourceKey": "kyc",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.72,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "bonus_requires_deposit",
+      "currentValue": true,
+      "officialSourceKey": "bonus",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.27,
+      "conflictStatus": "outdated",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "spot_maker_fee",
+      "currentValue": 0.1,
+      "unit": "%",
+      "officialSourceKey": "fees",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.72,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "spot_taker_fee",
+      "currentValue": 0.1,
+      "unit": "%",
+      "officialSourceKey": "fees",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.72,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "futures_maker_fee",
+      "currentValue": 0.02,
+      "unit": "%",
+      "officialSourceKey": "fees",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.72,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "futures_taker_fee",
+      "currentValue": 0.05,
+      "unit": "%",
+      "officialSourceKey": "fees",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.72,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "max_futures_leverage",
+      "currentValue": 100,
+      "unit": "x",
+      "officialSourceKey": "futures",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.72,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "kyc_required",
+      "currentValue": true,
+      "officialSourceKey": "kyc",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.72,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "p2p_available",
+      "currentValue": true,
+      "officialSourceKey": "p2p",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.76,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "futures_available",
+      "currentValue": true,
+      "officialSourceKey": "futures",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.72,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "proof_of_reserves",
+      "currentValue": false,
+      "officialSourceUrl": "https://www.lbank.com/en-US/about/",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.55,
+      "conflictStatus": "unverified",
+      "manualReviewRequired": true,
+      "notes": "No public Proof of Reserves found for LBank. Verify on official site."
+    },
+    {
+      "field": "headquarters",
+      "currentValue": "British Virgin Islands",
+      "officialSourceUrl": "https://www.lbank.com/en-US/about/",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.65,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "founded_year",
+      "currentValue": 2015,
+      "officialSourceUrl": "https://www.lbank.com/en-US/about/",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.72,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "restricted_us",
+      "currentValue": true,
+      "officialSourceKey": "restricted_countries",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.72,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "mobile_app_ios",
+      "currentValue": true,
+      "officialSourceKey": "app_ios",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.76,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "mobile_app_android",
+      "currentValue": true,
+      "officialSourceKey": "app_android",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.76,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "trading_pairs_count",
+      "currentValue": 600,
+      "officialSourceUrl": "https://www.lbank.com/en-US/markets/",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.65,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    }
+  ],
+  "screenshots": {
+    "registration": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "kyc": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "bonus": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "deposit": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "p2p": {
+      "status": "not_applicable",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": "P2P availability unverified; pending confirmation"
+    },
+    "spot": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "futures": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "fees": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "mobile_app": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "mobile",
+      "notes": ""
+    },
+    "proof_of_reserves": {
+      "status": "not_applicable",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": "Proof of reserves not published; screenshot not applicable"
+    }
+  }
+}

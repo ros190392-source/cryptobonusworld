@@ -1,10 +1,10 @@
 ---
 const navLinks = [
-  { href: '/bonuses/', label: 'All Bonuses' },
-  { href: '/exchanges/', label: 'Exchanges' },
-  { href: '/categories/signup-bonuses/', label: 'Signup Bonuses' },
-  { href: '/categories/no-deposit-bonuses/', label: 'No Deposit' },
-  { href: '/categories/futures-bonuses/', label: 'Futures' },
+  { href: '/bonuses/',    label: 'All Bonuses', icon: '🏆' },
+  { href: '/exchanges/',  label: 'Exchanges',   icon: '🏦' },
+  { href: '/compare/',    label: 'Compare',     icon: '⚖️' },
+  { href: '/use-cases/',  label: 'By Goal',     icon: '🎯' },
+  { href: '/guides/',     label: 'Guides',      icon: '📚' },
 ];
 
 const currentPath = Astro.url.pathname;
@@ -13,23 +13,24 @@ const currentPath = Astro.url.pathname;
 <header class="site-header">
   <div class="container header-inner">
     <a href="/" class="logo" aria-label="CryptoBonusWorld Home">
-      <!-- Coin mark -->
+      <!-- Minimal C mark -->
       <svg class="logo-mark" width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
         <defs>
-          <linearGradient id="hdr-ring" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#fbbf24"/>
+          <linearGradient id="hdr-gold" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#fcd34d"/>
             <stop offset="100%" stop-color="#d97706"/>
           </linearGradient>
-          <linearGradient id="hdr-inner" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#141408"/>
-            <stop offset="100%" stop-color="#0a0a0a"/>
-          </linearGradient>
         </defs>
-        <circle cx="16" cy="16" r="15.5" fill="url(#hdr-ring)"/>
-        <circle cx="16" cy="16" r="11.5" fill="url(#hdr-inner)"/>
-        <rect x="10" y="7.5" width="2.5" height="17" rx="1.25" fill="#f5c542"/>
-        <path d="M12.5 7.5 h3.5 a4 4 0 0 1 0 8 h-3.5 z" fill="#f5c542"/>
-        <path d="M12.5 15.5 h4 a4.5 4.5 0 0 1 0 9 h-4 z" fill="#f5c542"/>
+        <circle cx="16" cy="16" r="16" fill="#0a0c14"/>
+        <circle
+          cx="16" cy="16" r="10.75"
+          fill="none"
+          stroke="url(#hdr-gold)"
+          stroke-width="4.5"
+          stroke-linecap="butt"
+          stroke-dasharray="48.78 18.76"
+          transform="rotate(50 16 16)"
+        />
       </svg>
       <!-- Wordmark -->
       <span class="logo-wordmark" aria-hidden="true">
@@ -75,15 +76,30 @@ const currentPath = Astro.url.pathname;
             href={link.href}
             class={`mobile-nav-link ${currentPath.startsWith(link.href) ? 'mobile-nav-link--active' : ''}`}
           >
-            {link.label}
+            <span class="mnl-icon" aria-hidden="true">{link.icon}</span>
+            <span class="mnl-label">{link.label}</span>
+            {currentPath.startsWith(link.href) && (
+              <span class="mnl-active-pip" aria-hidden="true"></span>
+            )}
           </a>
         </li>
       ))}
+
+      <li class="mnl-sep" role="separator" aria-hidden="true"></li>
+
       <li>
         <a href="/bonuses/" class="mobile-nav-cta">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
           Compare All Bonuses
         </a>
+      </li>
+
+      <li class="mnl-trust" aria-hidden="true">
+        <span>🔒 Independent</span>
+        <span class="mnl-trust-dot">·</span>
+        <span>Zero paid reviews</span>
+        <span class="mnl-trust-dot">·</span>
+        <span>14 exchanges</span>
       </li>
     </ul>
   </nav>
@@ -275,16 +291,16 @@ const currentPath = Astro.url.pathname;
     border-top: 1px solid var(--color-border);
     max-height: 0;
     overflow: hidden;
-    transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: max-height 0.32s cubic-bezier(0.4, 0, 0.2, 1);
   }
   .mobile-nav.open {
-    max-height: 480px;
+    max-height: 560px;
   }
 
   .mobile-nav-list {
     list-style: none;
     margin: 0;
-    padding: 0.5rem 0.75rem 0.875rem;
+    padding: 0.5rem 0.75rem 0.75rem;
     display: flex;
     flex-direction: column;
     gap: 0.125rem;
@@ -293,41 +309,92 @@ const currentPath = Astro.url.pathname;
   .mobile-nav-link {
     display: flex;
     align-items: center;
-    padding: 0.75rem 1rem;
-    min-height: 48px;
+    gap: 0.75rem;
+    padding: 0.75rem 0.875rem;
+    min-height: 52px;
     font-size: 0.9375rem;
     font-weight: 500;
     color: var(--color-text-secondary);
     text-decoration: none;
-    border-radius: 8px;
-    transition: background 0.15s, color 0.15s;
+    border-radius: 10px;
+    border-left: 3px solid transparent;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    position: relative;
   }
-  .mobile-nav-link:hover,
-  .mobile-nav-link--active {
+  .mobile-nav-link:hover {
     background: var(--color-bg-tertiary);
     color: var(--color-text-primary);
   }
   .mobile-nav-link--active {
+    background: rgba(245,197,66,0.06);
     color: var(--color-accent);
     font-weight: 600;
+    border-left-color: var(--color-accent);
   }
+
+  .mnl-icon {
+    font-size: 1.05rem;
+    line-height: 1;
+    flex-shrink: 0;
+    width: 22px;
+    text-align: center;
+    filter: grayscale(0.2);
+  }
+  .mnl-label { flex: 1; }
+
+  /* Active state pip (tiny dot on the right) */
+  .mnl-active-pip {
+    width: 6px;
+    height: 6px;
+    background: var(--color-accent);
+    border-radius: 50%;
+    flex-shrink: 0;
+    box-shadow: 0 0 6px rgba(245,197,66,0.6);
+  }
+
+  /* Separator */
+  .mnl-sep {
+    height: 1px;
+    background: var(--color-border);
+    margin: 0.375rem 0;
+    opacity: 0.6;
+  }
+
+  /* Trust row */
+  .mnl-trust {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    padding: 0.5rem 0.5rem 0.25rem;
+    font-size: 0.67rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    letter-spacing: 0.01em;
+    opacity: 0.75;
+  }
+  .mnl-trust-dot { opacity: 0.4; }
 
   .mobile-nav-cta {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 0.5rem;
     padding: 0.875rem 1rem;
     min-height: 52px;
-    margin-top: 0.375rem;
     font-size: 0.9375rem;
-    font-weight: 700;
+    font-weight: 800;
     color: #000;
     background: var(--color-accent);
     text-decoration: none;
-    border-radius: 10px;
-    transition: opacity 0.15s;
+    border-radius: 12px;
+    letter-spacing: -0.01em;
+    transition: opacity 0.15s, transform 0.15s;
+    box-shadow: 0 4px 16px rgba(245,197,66,0.25);
   }
-  .mobile-nav-cta:hover { opacity: 0.88; }
+  .mobile-nav-cta:hover { opacity: 0.9; transform: translateY(-1px); }
+  .mobile-nav-cta:active { transform: scale(0.97); }
 
   /* ── Backdrop ── */
   .mobile-backdrop {

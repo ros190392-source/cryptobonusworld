@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 56" role="img" aria-label="CryptoBonusWorld — Monochrome">
+
+  <!-- ── Icon mark ── -->
+  <circle cx="28" cy="28" r="28" fill="#000000"/>
+  <circle
+    cx="28" cy="28" r="18.875"
+    fill="none"
+    stroke="#ffffff"
+    stroke-width="7.9"
+    stroke-linecap="butt"
+    stroke-dasharray="85.65 32.95"
+    transform="rotate(50 28 28)"
+  />
+
+  <!-- ── Wordmark ── -->
+  <text x="74" y="33"
+    font-family="'Inter','SF Pro Display','Helvetica Neue',Arial,sans-serif"
+    font-size="26" font-weight="400" letter-spacing="-0.4"
+    fill="#555555">Crypto</text>
+  <text x="184" y="33"
+    font-family="'Inter','SF Pro Display','Helvetica Neue',Arial,sans-serif"
+    font-size="26" font-weight="800" letter-spacing="-0.5"
+    fill="#000000">Bonus</text>
+  <text x="291" y="33"
+    font-family="'Inter','SF Pro Display','Helvetica Neue',Arial,sans-serif"
+    font-size="26" font-weight="700" letter-spacing="-0.4"
+    fill="#111111">World</text>
+
+  <!-- Tagline -->
+  <text x="75" y="50"
+    font-family="'Inter','SF Pro Display','Helvetica Neue',Arial,sans-serif"
+    font-size="9" font-weight="600" letter-spacing="2.2"
+    fill="#999999">GLOBAL CRYPTO INTELLIGENCE</text>
+</svg>

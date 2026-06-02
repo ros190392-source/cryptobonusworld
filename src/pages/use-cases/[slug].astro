@@ -102,6 +102,12 @@ const faqSchema = {
 };
 
 const analyticsContext: PageContext = { pageType: 'category' };
+
+// ── Thin content guard ────────────────────────────────────────────────────────
+// If the ranking engine returns 0 exchanges for a use-case (e.g. a newly added
+// use-case with an unsatisfied requireFeatureBadge filter), block indexation.
+// Normal use-cases should always rank ≥3 exchanges.
+const ucRobotsDirective = ranked.length === 0 ? 'noindex, nofollow' : undefined;
 ---
 
 <Layout
@@ -110,6 +116,7 @@ const analyticsContext: PageContext = { pageType: 'category' };
   canonical={`/use-cases/${useCase.slug}/`}
   schema={[itemListSchema, faqSchema]}
   analyticsContext={analyticsContext}
+  robots={ucRobotsDirective}
 >
   <div class="container">
     <Breadcrumbs crumbs={[

@@ -1,0 +1,360 @@
+---
+/**
+ * GeoAwareCTA.astro
+ * =================
+ * GEO-aware CTA button with availability handling.
+ *
+ * Renders the default CTA immediately (SSG-safe, SEO-safe).
+ * Client-side JS reads cbw_geo and upgrades to geo-specific state:
+ *  - Normal available: may change label, href, domain note
+ *  - P2P recommended: adds routing note below button
+ *  - Limited: shows limited disclaimer
+ *  - Redirects-to-regional-version: changes label to "Open [Region] Version"
+ *  - Unavailable: disables button, shows alternative suggestion
+ *
+ * SEO safety:
+ *  - Default (non-geo) state is what search engines see
+ *  - Canonical URL is never changed by this component
+ *  - No cloaking — same HTML delivered to all crawlers
+ *
+ * Props:
+ *   exchange        — Exchange object (slug, name, affiliateUrl, affiliateLinks)
+ *   variant         — Button style: 'primary' | 'secondary' | 'outline'
+ *   size            — Button size: 'sm' | 'md' | 'lg'
+ *   fullWidth       — Whether button fills container width
+ *   trackPlacement  — Analytics placement identifier
+ *   trackBonus      — Bonus amount for click tracking
+ *   defaultLabel    — Override the default button label
+ *   rel             — Link rel attribute
+ *
+ * The component uses serializeGeoConfigsForExchange() to bake all known
+ * geo configs into data attributes. No runtime data fetching required.
+ */
+
+import type { GeoExchange } from '../utils/geoConfig';
+import { serializeGeoConfigsForExchange, REGION_MAP } from '../utils/geoConfig';
+
+interface ExchangeProp {
+  slug: string;
+  name: string;
+  affiliateUrl: string;
+  bonusAmount?: number;
+  affiliateLinks?: {
+    default?: string;
+    geo?: Record<string, string>;
+  };
+}
+
+interface Props {
+  exchange: ExchangeProp;
+  variant?: 'primary' | 'secondary' | 'outline';
+  size?: 'sm' | 'md' | 'lg';
+  fullWidth?: boolean;
+  trackPlacement?: string;
+  trackBonus?: number;
+  defaultLabel?: string;
+  rel?: string;
+  /** Unique block id — auto-generated if omitted */
+  blockId?: string;
+}
+
+const {
+  exchange: ex,
+  variant = 'primary',
+  size = 'md',
+  fullWidth = false,
+  trackPlacement,
+  trackBonus,
+  defaultLabel,
+  rel = 'noopener noreferrer nofollow sponsored',
+  blockId = `geo-cta-${Math.random().toString(36).slice(2, 8)}`,
+} = Astro.props;
+
+// Resolve default href
+const defaultHref =
+  ex.affiliateLinks?.default ??
+  ex.affiliateUrl ??
+  `/exchanges/${ex.slug}/`;
+
+const displayLabel = defaultLabel ?? `View ${ex.name} Offer`;
+
+// Serialize all geo configs for this exchange for client-side use
+const geoConfigs = serializeGeoConfigsForExchange(ex as GeoExchange);
+const geoConfigsJson = JSON.stringify(geoConfigs);
+const regionMapJson = JSON.stringify(REGION_MAP);
+
+const isExternal = defaultHref.startsWith('http') || defaultHref === '#';
+---
+
+<div class="geo-cta-wrapper" id={blockId} data-exchange-slug={ex.slug}>
+  <!-- Primary CTA button — default state, visible to all including crawlers -->
+  <a
+    class:list={['cta-btn', `cta-btn--${variant}`, `cta-btn--${size}`, fullWidth && 'cta-btn--full']}
+    href={defaultHref}
+    target={isExternal ? '_blank' : undefined}
+    rel={isExternal ? rel : undefined}
+    aria-label={displayLabel}
+    data-track="affiliate-cta"
+    data-exchange={ex.slug}
+    data-placement={trackPlacement}
+    data-bonus={trackBonus !== undefined ? String(trackBonus) : undefined}
+    data-geo-cta-btn
+  >
+    <span class="cta-label" data-geo-cta-label>{displayLabel}</span>
+    {isExternal && <span class="cta-arrow" aria-hidden="true">→</span>}
+  </a>
+
+  <!-- Geo-aware note (hidden by default, shown by JS when geo match found) -->
+  <p
+    class="geo-cta-note"
+    data-geo-cta-note
+    aria-live="polite"
+    style="display: none;"
+  ></p>
+
+  <!-- Unavailable state (hidden by default) -->
+  <div
+    class="geo-cta-unavailable"
+    data-geo-cta-unavailable
+    aria-live="polite"
+    style="display: none;"
+  >
+    <span class="geo-cta-unavailable__icon">⚠️</span>
+    <p class="geo-cta-unavailable__msg" data-geo-cta-unavailable-msg></p>
+  </div>
+
+  <!-- Standard availability + bonus disclaimer -->
+  <p class="geo-cta-disclaimer">
+    Availability and bonus conditions may vary by country. Always verify current terms on the exchange website.
+  </p>
+</div>
+
+<script define:vars={{ blockId, geoConfigsJson, regionMapJson, defaultHref, displayLabel }}>
+  (function () {
+    const wrapper = document.getElementById(blockId);
+    if (!wrapper) return;
+
+    const btn = wrapper.querySelector('[data-geo-cta-btn]');
+    const labelEl = wrapper.querySelector('[data-geo-cta-label]');
+    const noteEl = wrapper.querySelector('[data-geo-cta-note]');
+    const unavailableEl = wrapper.querySelector('[data-geo-cta-unavailable]');
+    const unavailableMsgEl = wrapper.querySelector('[data-geo-cta-unavailable-msg]');
+
+    const geoConfigs = JSON.parse(geoConfigsJson);
+    const regionMap = JSON.parse(regionMapJson);
+
+    // Availability statuses that should disable the CTA
+    const UNAVAILABLE_STATUSES = ['unavailable'];
+    // Statuses that show a note below the button
+    const NOTE_STATUSES = ['p2p-only-recommended', 'limited', 'redirects-to-regional-version', 'restricted'];
+
+    function resolveConfig(countryCode) {
+      if (!countryCode) return null;
+      var cc = countryCode.toLowerCase();
+      if (geoConfigs[cc]) return geoConfigs[cc];
+      var region = regionMap[cc];
+      if (region && geoConfigs['region:' + region]) return geoConfigs['region:' + region];
+      return null;
+    }
+
+    function applyGeoConfig(config) {
+      if (!config) return; // No override — keep default
+
+      var status = config.availabilityStatus || 'available';
+
+      if (UNAVAILABLE_STATUSES.includes(status)) {
+        // Hide button, show unavailable message
+        if (btn) {
+          btn.setAttribute('aria-disabled', 'true');
+          btn.style.opacity = '0.4';
+          btn.style.pointerEvents = 'none';
+          btn.style.cursor = 'not-allowed';
+        }
+        if (unavailableEl && unavailableMsgEl) {
+          var msg = config.ctaNote || ('This exchange may not be available in your country. Check the exchange website for current availability.');
+          unavailableMsgEl.textContent = msg;
+          unavailableEl.style.display = 'flex';
+        }
+        // Hide the note
+        if (noteEl) noteEl.style.display = 'none';
+        return;
+      }
+
+      // Update href — use override URL or regional domain hint
+      if (btn && config.affiliateUrl && config.affiliateUrl !== defaultHref) {
+        btn.href = config.affiliateUrl;
+      }
+
+      // Update label
+      if (labelEl && config.ctaLabel && config.ctaLabel !== displayLabel) {
+        labelEl.textContent = config.ctaLabel;
+        if (btn) btn.setAttribute('aria-label', config.ctaLabel);
+      }
+
+      // Show note for P2P / limited / regional redirect statuses
+      if (noteEl && config.ctaNote && (NOTE_STATUSES.includes(status) || config.ctaNote)) {
+        noteEl.textContent = config.ctaNote;
+        noteEl.style.display = 'block';
+      }
+    }
+
+    function tryApply() {
+      var geo = null;
+      try { geo = localStorage.getItem('cbw_geo'); } catch (e) {}
+      if (!geo) return;
+      var config = resolveConfig(geo);
+      applyGeoConfig(config);
+    }
+
+    // Apply immediately (geo may already be cached from previous page)
+    tryApply();
+
+    // Also re-apply when geo is detected asynchronously
+    window.addEventListener('cbw:geo', function () { tryApply(); });
+  })();
+</script>
+
+<style>
+  .geo-cta-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  /* ── CTA button (mirrors CTAButton.astro styles) ── */
+  .cta-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    font-weight: 700;
+    text-decoration: none;
+    border-radius: var(--radius-md, 10px);
+    transition:
+      background var(--duration-base, 200ms) var(--ease-standard, ease),
+      box-shadow var(--duration-base, 200ms) var(--ease-standard, ease),
+      transform var(--duration-fast, 120ms) var(--ease-spring, ease),
+      opacity var(--duration-fast, 120ms) var(--ease-standard, ease);
+    cursor: pointer;
+    border: 2px solid transparent;
+    white-space: nowrap;
+    min-height: 44px;
+    position: relative;
+    isolation: isolate;
+  }
+  .cta-btn:active { transform: scale(0.96) !important; }
+
+  .cta-btn--primary {
+    background: var(--gradient-gold, var(--color-accent));
+    color: #000;
+    border-color: var(--color-accent);
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    animation: cta-pulse 8s ease-in-out infinite;
+  }
+  .cta-btn--primary:hover {
+    box-shadow: var(--glow-cta, 0 4px 20px rgba(245,197,66,0.35)), 0 8px 32px rgba(245,197,66,0.2);
+    transform: translateY(-3px);
+    background: var(--color-accent-warm, #fbbf24);
+    border-color: var(--color-accent-warm, #fbbf24);
+    animation: none;
+  }
+  .cta-btn--primary:focus-visible {
+    animation: none;
+    box-shadow: 0 0 0 3px rgba(245,197,66,0.5);
+  }
+  @keyframes cta-pulse {
+    0%, 82%, 100% { box-shadow: none; }
+    88% { box-shadow: 0 0 0 3px rgba(245,197,66,0.2), 0 4px 20px rgba(245,197,66,0.28); }
+    94% { box-shadow: 0 0 0 5px rgba(245,197,66,0.1), 0 6px 28px rgba(245,197,66,0.38); }
+  }
+  @media (prefers-reduced-motion: reduce) { .cta-btn--primary { animation: none; } }
+
+  .cta-btn--secondary {
+    background: var(--surface-overlay, #1a1a1a);
+    color: var(--color-text-primary);
+    border-color: var(--color-border, #252525);
+  }
+  .cta-btn--secondary:hover {
+    background: var(--surface-elevated, #151515);
+    border-color: var(--color-accent-dim, rgba(245,197,66,0.15));
+    transform: translateY(-1px);
+  }
+
+  .cta-btn--outline {
+    background: transparent;
+    color: var(--color-accent);
+    border-color: var(--color-accent-dim, rgba(245,197,66,0.35));
+  }
+  .cta-btn--outline:hover {
+    background: var(--color-accent);
+    color: #000;
+    border-color: var(--color-accent);
+    transform: translateY(-1px);
+  }
+
+  .cta-btn--sm { font-size: 0.875rem; padding: 0.4rem 1rem; min-height: 40px; border-radius: 6px; }
+  .cta-btn--md { font-size: 0.875rem; padding: 0.6rem 1.375rem; }
+  .cta-btn--lg { font-size: 1rem; padding: 0.8rem 1.875rem; letter-spacing: -0.01em; }
+  .cta-btn--full { width: 100%; }
+
+  .cta-label { display: contents; }
+
+  .cta-arrow {
+    font-size: 0.875em;
+    display: inline-block;
+    transition: transform 200ms cubic-bezier(0.34,1.56,0.64,1);
+    will-change: transform;
+  }
+  .cta-btn:hover .cta-arrow { transform: translateX(4px); }
+
+  @media (max-width: 640px) {
+    .cta-btn--lg.cta-btn--primary { width: 100%; justify-content: center; }
+  }
+
+  /* ── Geo-aware note ── */
+  .geo-cta-note {
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    margin: 0;
+    padding: 0.375rem 0.625rem;
+    background: var(--color-bg-secondary);
+    border-left: 2px solid var(--color-accent-dim, rgba(245,197,66,0.3));
+    border-radius: 0 4px 4px 0;
+    line-height: 1.5;
+    animation: geo-fadein 0.2s ease;
+  }
+
+  /* ── Unavailable state ── */
+  .geo-cta-unavailable {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.625rem 0.875rem;
+    background: color-mix(in srgb, #ef4444 8%, transparent);
+    border: 1px solid color-mix(in srgb, #ef4444 25%, transparent);
+    border-radius: 8px;
+    animation: geo-fadein 0.2s ease;
+  }
+  .geo-cta-unavailable__icon { font-size: 1rem; flex-shrink: 0; margin-top: 2px; }
+  .geo-cta-unavailable__msg {
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  /* ── Disclaimer ── */
+  .geo-cta-disclaimer {
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
+    margin: 0;
+    line-height: 1.4;
+    opacity: 0.75;
+  }
+
+  @keyframes geo-fadein {
+    from { opacity: 0; transform: translateY(-3px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+</style>

@@ -32,6 +32,8 @@ interface Props {
   p2pFee?: string;
   maxLeverage?: number;
   lastVerified?: string;
+  /** Official fee schedule URL from evidence registry — overrides auto-generated generic URL */
+  feeSourceUrl?: string;
 }
 
 const {
@@ -44,7 +46,10 @@ const {
   p2pFee = '0%',
   maxLeverage,
   lastVerified,
+  feeSourceUrl,
 } = Astro.props;
+
+const feeLink = feeSourceUrl ?? `https://www.${exchangeName.toLowerCase()}.com`;
 
 function pct(n: number | undefined): string {
   if (n === undefined || n === null) return '—';
@@ -99,7 +104,7 @@ if (maxLeverage) rows.push({ label: 'Max futures leverage', value: `${maxLeverag
 
     <p class="fsb-note">
       Fees are subject to change. VIP and high-volume traders receive discounts.
-      <a href={`https://www.${exchangeName.toLowerCase()}.com`} target="_blank" rel="noopener noreferrer nofollow" class="fsb-link">
+      <a href={feeLink} target="_blank" rel="noopener noreferrer nofollow" class="fsb-link">
         Official fee schedule ↗
       </a>
     </p>

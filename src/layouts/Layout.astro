@@ -5,6 +5,7 @@ import TrustStrip from '../components/TrustStrip.astro';
 import Footer from '../components/Footer.astro';
 import Analytics from '../components/Analytics.astro';
 import ExperimentProvider from '../components/ExperimentProvider.astro';
+import LightboxPortal from '../components/LightboxPortal.astro';
 import type { PageContext } from '../utils/analytics';
 import { getHtmlLang, type LocaleCode, type HreflangLink } from '../utils/i18n';
 
@@ -15,10 +16,25 @@ interface Props {
   schema?: object | object[];
   noindex?: boolean;
   /**
+   * Custom robots meta content string — overrides `noindex` flag.
+   * See SeoHead.astro for full documentation of supported values.
+   * Examples: "noindex, follow" | "noindex, nofollow" | "noarchive"
+   */
+  robots?: string;
+  /**
    * Full absolute URL to the OG / social share image (1200×630).
    * When omitted, Layout falls back to the site-wide og-default.png.
    */
   ogImage?: string;
+  /**
+   * og:type — defaults to 'website'.
+   * Pass 'article' for review pages, guides, and editorial content.
+   */
+  ogType?: 'website' | 'article';
+  /** ISO 8601 publish date — emit article:published_time when ogType='article' */
+  publishedTime?: string;
+  /** ISO 8601 modified date — emit article:modified_time when ogType='article' */
+  modifiedTime?: string;
   /** Optional page context for richer analytics dimensions */
   analyticsContext?: PageContext;
   /**
@@ -41,7 +57,11 @@ const {
   canonical,
   schema,
   noindex,
+  robots,
   ogImage,
+  ogType,
+  publishedTime,
+  modifiedTime,
   analyticsContext,
   locale = 'en',
   hreflangLinks,
@@ -54,20 +74,13 @@ const ogImageUrl = ogImage ?? `${siteUrl}/og-default.png`;
 const htmlLang = getHtmlLang(locale);
 
 // ── Third-party analytics provider IDs (set in .env / server env vars) ──
-// None of these are required — each provider activates only when its ID is set.
-// NEVER hardcode IDs here. Set them in .env or the hosting environment.
-//
-//   GTM_ID=GTM-XXXXXXX      → Google Tag Manager (recommended for GA4 + all tags)
-//   GA4_ID=G-XXXXXXXXXX     → Google Analytics 4 standalone (skip if using GTM)
+// Optional third-party analytics providers — activate by setting env vars.
+//   GTM_ID=GTM-XXXXXXX      → Google Tag Manager
 //   CLARITY_ID=xxxxxxxxxx   → Microsoft Clarity heatmaps
-//   METRIKA_ID=12345678     → Yandex Metrika
 //
-// Priority: GTM takes precedence — if GTM_ID is set, it manages GA4 itself.
-// Set GA4_ID only as a standalone without GTM.
-const gtmId     = import.meta.env.GTM_ID     ?? null;
-const ga4Id     = !gtmId ? (import.meta.env.GA4_ID ?? null) : null; // skip if GTM handles it
-const clarityId = import.meta.env.CLARITY_ID ?? null;
-const metrikaId = import.meta.env.METRIKA_ID ?? null;
+// GA4 (G-60W73TMHYF) and Clarity (x08rl4dvmu) are hardcoded below — always active.
+//
+const gtmId = import.meta.env.GTM_ID ?? null;
 ---
 
 <!doctype html>
@@ -79,7 +92,11 @@ const metrikaId = import.meta.env.METRIKA_ID ?? null;
       canonical={canonical}
       schema={schema}
       noindex={noindex}
+      robots={robots}
       ogImage={ogImageUrl}
+      ogType={ogType}
+      publishedTime={publishedTime}
+      modifiedTime={modifiedTime}
       locale={locale}
       hreflangLinks={hreflangLinks}
     />
@@ -92,28 +109,85 @@ const metrikaId = import.meta.env.METRIKA_ID ?? null;
       <script define:vars={{ __gtmId: gtmId }} is:inline>{`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','${__gtmId}');`}</script>
     )}
 
-    {/* ── Google Analytics 4 standalone (only when GTM is not used) ── */}
-    {ga4Id && <script async src={`https://www.googletagmanager.com/gtag/js?id=${ga4Id}`}></script>}
-    {ga4Id && (
-      <script define:vars={{ __ga4Id: ga4Id }} is:inline>{`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${__ga4Id}',{send_page_view:false});`}</script>
-    )}
+    {/* ── Google Analytics 4 — G-60W73TMHYF ── */}
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-60W73TMHYF" is:inline></script>
+    <script is:inline>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-60W73TMHYF');
+    </script>
 
-    {/* ── Microsoft Clarity ── */}
-    {clarityId && (
-      <script define:vars={{ __clarityId: clarityId }} is:inline>{`(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window,document,"clarity","script","${__clarityId}");`}</script>
-    )}
+    <!-- Microsoft Clarity — x08rl4dvmu -->
+    <script type="text/javascript" is:inline>
+    (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "x08rl4dvmu");
+    </script>
+    <!-- /Microsoft Clarity -->
 
-    {/* ── Yandex Metrika ── */}
-    {metrikaId && (
-      <script define:vars={{ __metrikaId: metrikaId }} is:inline>{`(function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})(window,document,"script","https://mc.yandex.ru/metrika/tag.js","ym");ym(${__metrikaId},"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true,webvisor:false});`}</script>
-    )}
+    <!-- Yandex.Metrika counter -->
+    <script type="text/javascript" is:inline>
+    (function(m,e,t,r,i,k,a){
+        m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+        m[i].l=1*new Date();
+        for (var j = 0; j < document.scripts.length; j++) {
+            if (document.scripts[j].src === r) { return; }
+        }
+        k=e.createElement(t),
+        a=e.getElementsByTagName(t)[0],
+        k.async=1,
+        k.src=r,
+        a.parentNode.insertBefore(k,a)
+    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=109562447', 'ym');
+
+    ym(109562447, 'init', {
+        ssr:true,
+        webvisor:true,
+        clickmap:true,
+        ecommerce:"dataLayer",
+        referrer: document.referrer,
+        url: location.href,
+        accurateTrackBounce:true,
+        trackLinks:true
+    });
+    </script>
+    <noscript>
+    <div>
+    <img src="https://mc.yandex.ru/watch/109562447"
+    style="position:absolute; left:-9999px;" alt="" />
+    </div>
+    </noscript>
+    <!-- /Yandex.Metrika counter -->
+
+    <!-- cbwTrackYM helper — analytics bridge dependency -->
+    <script is:inline>
+    window.dataLayer = window.dataLayer || [];
+    window.cbwTrackYM = function(eventName, params) {
+      if (typeof ym === 'function') {
+        ym(109562447, 'reachGoal', eventName, params || {});
+      }
+    };
+    document.addEventListener('astro:after-swap', function() {
+      if (typeof ym === 'function') {
+        ym(109562447, 'hit', window.location.href, {
+          title:   document.title,
+          referer: document.referrer,
+        });
+      }
+      if (typeof gtag === 'function') {
+        gtag('config', 'G-60W73TMHYF', {
+          page_path: window.location.pathname,
+        });
+      }
+    });
+    </script>
   </head>
   <body>
     {/* ── GTM noscript fallback (immediately after <body>) ── */}
     {gtmId && <noscript><iframe src={`https://www.googletagmanager.com/ns.html?id=${gtmId}`} height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>}
-    {/* ── Yandex Metrika noscript ── */}
-    {metrikaId && <noscript><div><img src={`https://mc.yandex.ru/watch/${metrikaId}`} style="position:absolute;left:-9999px;" alt="" /></div></noscript>}
-
     <Header />
     <TrustStrip />
     <main id="main-content">
@@ -125,6 +199,8 @@ const metrikaId = import.meta.env.METRIKA_ID ?? null;
     <Analytics context={analyticsContext} />
     <!-- Experiment runtime: variant assignment, DOM transforms, conversion tracking -->
     <ExperimentProvider />
+    <!-- Premium screenshot viewer — portal injected once, used by all ScreenshotCard instances -->
+    <LightboxPortal />
   </body>
 </html>
 
@@ -309,22 +385,23 @@ const metrikaId = import.meta.env.METRIKA_ID ?? null;
   }
 
   .section-title {
-    font-size: 1.4rem;
-    font-weight: 700;
-    margin: 0 0 1rem;
-    letter-spacing: -0.01em;
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin: 0 0 1.25rem;
+    letter-spacing: -0.025em;
+    color: var(--color-text-primary);
   }
 
   .grid-2 {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
+    gap: 1.25rem;
   }
 
   .grid-3 {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
+    gap: 1.25rem;
   }
 
   .grid-4 {
@@ -395,4 +472,127 @@ const metrikaId = import.meta.env.METRIKA_ID ?? null;
     border-radius: 0 0 var(--radius-sm) var(--radius-sm);
   }
   .skip-link:focus { left: 1rem; }
+
+  /* ══════════════════════════════════════════════════════════
+     PREMIUM BRAND LAYER — visual identity upgrades
+  ══════════════════════════════════════════════════════════ */
+
+  /* ── Subtle noise grain overlay — editorial matte finish
+       (Vercel / Linear / Stripe style — 0.03 opacity, barely perceptible,
+        adds depth and premium texture to pure-black backgrounds)       ── */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9998;
+    opacity: 0.032;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)'/%3E%3C/svg%3E");
+    background-size: 200px 200px;
+    mix-blend-mode: overlay;
+  }
+
+  /* ── Premium text selection ── */
+  ::selection {
+    background: rgba(245, 197, 66, 0.22);
+    color: #fff;
+  }
+
+  /* ── Custom scrollbar (WebKit/Blink) ── */
+  ::-webkit-scrollbar            { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track      { background: var(--color-bg); }
+  ::-webkit-scrollbar-thumb      { background: var(--color-border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #3a3a3a; }
+
+  /* ── Gold gradient text utility ── */
+  .text-gradient-gold {
+    background: var(--gradient-gold-text);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* ── Editorial section divider ── */
+  .section-rule {
+    border: none;
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, var(--color-border) 20%, var(--color-border) 80%, transparent 100%);
+    margin: 2.5rem 0;
+  }
+  .section-rule--gold {
+    background: linear-gradient(90deg, transparent 0%, rgba(245,197,66,0.2) 20%, rgba(245,197,66,0.2) 80%, transparent 100%);
+  }
+
+  /* ── Premium inline code ── */
+  code:not([class]) {
+    font-family: 'SF Mono', 'Fira Code', 'Fira Mono', 'Roboto Mono', monospace;
+    font-size: 0.875em;
+    background: var(--color-bg-tertiary);
+    color: var(--color-accent);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xs);
+    padding: 0.1em 0.4em;
+    white-space: nowrap;
+  }
+
+  /* ── Blockquote — editorial callout style ── */
+  blockquote {
+    margin: 1.5rem 0;
+    padding: 1rem 1.25rem;
+    border-left: 3px solid var(--color-accent);
+    background: rgba(245, 197, 66, 0.04);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    color: var(--color-text-secondary);
+    font-style: italic;
+    line-height: 1.7;
+  }
+  blockquote p { color: inherit; margin: 0; }
+
+  /* ── Premium card hover shine effect ──
+       Adds a subtle sweep highlight on hover (applied to exchange cards) ── */
+  @keyframes shine-sweep {
+    from { transform: translateX(-100%) skewX(-15deg); }
+    to   { transform: translateX(250%) skewX(-15deg); }
+  }
+
+  /* ── Number / stat callout ── */
+  .stat-callout {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    background: var(--gradient-gold-text);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+  }
+
+  /* ── Verified / trust badge utility ── */
+  .trust-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #4ade80;
+    background: rgba(74, 222, 128, 0.07);
+    border: 1px solid rgba(74, 222, 128, 0.18);
+    border-radius: var(--radius-xs);
+    padding: 0.15rem 0.5rem;
+    white-space: nowrap;
+  }
+
+  /* ── Editorial highlight label (used in exchange pages) ── */
+  .highlight-label {
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-accent);
+    background: var(--color-accent-muted);
+    border: 1px solid rgba(245, 197, 66, 0.18);
+    border-radius: var(--radius-xs);
+    padding: 0.15rem 0.55rem;
+    white-space: nowrap;
+  }
 </style>

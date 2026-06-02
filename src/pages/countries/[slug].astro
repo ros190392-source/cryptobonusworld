@@ -57,6 +57,15 @@ const maxBonus = rankedAvailable.length > 0
   : 0;
 const maxBonusFmt = maxBonus.toLocaleString('en-US');
 
+// ── Thin content guard ────────────────────────────────────────────────────────
+// If a country page has zero available exchanges it has no unique content to offer
+// searchers. Block indexation to protect crawl budget and avoid thin-page penalties.
+// In practice this should never trigger — all countries in countries.json have
+// at least one global exchange. Guard exists for data-integrity safety.
+const hasMinContent = rankedAvailable.length >= 1;
+// Pages with 1–2 exchanges are thin but acceptable; 0 = noindex.
+const pageRobotsDirective = !hasMinContent ? 'noindex, nofollow' : undefined;
+
 // SEO: cross-link to relevant categories
 const relatedCats = getCountryCategoryLinks(rankedAvailable as any, categories as any);
 
@@ -175,6 +184,8 @@ const countryIso = flagEmojiToIso(country.flag);
   canonical={`/countries/${country.slug}/`}
   schema={itemListSchema}
   analyticsContext={analyticsContext}
+  ogImage={`https://cryptobonusworld.com/og/country-${country.slug}.png`}
+  robots={pageRobotsDirective}
 >
   <div class="container">
     <Breadcrumbs crumbs={[

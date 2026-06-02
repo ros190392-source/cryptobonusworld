@@ -1,0 +1,381 @@
+{
+  "exchange": "mexc",
+  "updatedAt": "2026-06-01",
+  "sources": {
+    "fees": {
+      "url": "https://www.mexc.com/fee",
+      "label": "MEXC — Trading Fee Schedule",
+      "type": "official-fees",
+      "lastAccessed": "2026-05-27",
+      "notes": "Spot maker 0%, taker 0.20% standard. Futures maker 0%, taker 0.01%."
+    },
+    "kyc": {
+      "url": "https://www.mexc.com/support/articles/17285765816855",
+      "label": "MEXC — KYC Verification Guide",
+      "type": "official-kyc",
+      "lastAccessed": "2026-05-27",
+      "notes": "No KYC required for basic trading; KYC unlocks higher withdrawal limits. No-KYC: 10 BTC/day withdrawal limit."
+    },
+    "bonus": {
+      "url": "https://www.mexc.com/acquisition/custom-sign-up?shareCode=mexc-CryptoBonus",
+      "label": "MEXC — New User Bonus",
+      "type": "official-promo",
+      "lastAccessed": "2026-05-27",
+      "notes": "Up to 10,000 USDT in new user bonuses. No deposit required for initial tasks."
+    },
+    "restricted_countries": {
+      "url": "https://www.mexc.com/support/articles/360012110852",
+      "label": "MEXC — Restricted Regions",
+      "type": "official-legal",
+      "lastAccessed": "2026-05-27",
+      "notes": "US residents restricted from MEXC.com"
+    },
+    "terms": {
+      "url": "https://www.mexc.com/support/articles/360012110852",
+      "label": "MEXC — Terms of Service",
+      "type": "official-legal",
+      "lastAccessed": "2026-05-27"
+    },
+    "p2p": {
+      "url": "https://www.mexc.com/otc/",
+      "label": "MEXC — OTC/P2P Trading",
+      "type": "official-p2p",
+      "lastAccessed": "2026-05-27"
+    },
+    "app_ios": {
+      "url": "https://apps.apple.com/app/mexc-buy-bitcoin-btc-crypto/id1536185475",
+      "label": "MEXC iOS App — App Store",
+      "type": "official-app",
+      "lastAccessed": "2026-05-27"
+    },
+    "app_android": {
+      "url": "https://play.google.com/store/apps/details?id=com.mexc.exchange",
+      "label": "MEXC Android App — Google Play",
+      "type": "official-app",
+      "lastAccessed": "2026-05-27"
+    },
+    "futures": {
+      "url": "https://futures.mexc.com/",
+      "label": "MEXC — Futures Trading",
+      "type": "official-other",
+      "lastAccessed": "2026-05-27",
+      "notes": "Up to 200x leverage on USDT-margined perpetuals"
+    },
+    "affiliate": {
+      "url": "https://www.mexc.com/referral",
+      "label": "MEXC — Referral Program",
+      "type": "official-affiliate",
+      "lastAccessed": "2026-05-27"
+    }
+  },
+  "facts": [
+    {
+      "field": "bonus_amount",
+      "currentValue": 10000,
+      "unit": "USDT",
+      "officialSourceKey": "bonus",
+      "officialSourceUrl": "https://www.mexc.com/acquisition/custom-sign-up?shareCode=mexc-CryptoBonus",
+      "lastChecked": "2026-05-27",
+      "checkedBy": "human",
+      "confidenceScore": 0.27,
+      "conflictStatus": "outdated",
+      "manualReviewRequired": true,
+      "notes": "Up to 10,000 USDT. No deposit required for registration bonus tasks. Needs daily re-check."
+    },
+    {
+      "field": "bonus_currency",
+      "currentValue": "USDT",
+      "officialSourceKey": "bonus",
+      "lastChecked": "2026-05-27",
+      "checkedBy": "human",
+      "confidenceScore": 0.63,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "bonus_expiry_days",
+      "currentValue": 30,
+      "unit": "days",
+      "officialSourceKey": "bonus",
+      "lastChecked": "2026-05-27",
+      "checkedBy": "human",
+      "confidenceScore": 0.27,
+      "conflictStatus": "outdated",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "bonus_requires_kyc",
+      "currentValue": false,
+      "officialSourceKey": "kyc",
+      "lastChecked": "2026-05-27",
+      "checkedBy": "human",
+      "confidenceScore": 0.76,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false,
+      "notes": "No KYC required for initial bonus tasks; KYC unlocks higher withdrawal limits"
+    },
+    {
+      "field": "bonus_requires_deposit",
+      "currentValue": false,
+      "officialSourceKey": "bonus",
+      "lastChecked": "2026-05-27",
+      "checkedBy": "human",
+      "confidenceScore": 0.27,
+      "conflictStatus": "outdated",
+      "manualReviewRequired": false,
+      "notes": "Registration bonus tasks available without deposit"
+    },
+    {
+      "field": "spot_maker_fee",
+      "currentValue": 0,
+      "unit": "%",
+      "officialSourceKey": "fees",
+      "lastChecked": "2026-05-27",
+      "checkedBy": "human",
+      "confidenceScore": 0.80,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false,
+      "notes": "0% spot maker fee — MEXC promotional rate"
+    },
+    {
+      "field": "spot_taker_fee",
+      "currentValue": 0.2,
+      "unit": "%",
+      "officialSourceKey": "fees",
+      "lastChecked": "2026-05-27",
+      "checkedBy": "human",
+      "confidenceScore": 0.80,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "futures_maker_fee",
+      "currentValue": 0,
+      "unit": "%",
+      "officialSourceKey": "fees",
+      "lastChecked": "2026-05-27",
+      "checkedBy": "human",
+      "confidenceScore": 0.80,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false,
+      "notes": "0% futures maker fee"
+    },
+    {
+      "field": "futures_taker_fee",
+      "currentValue": 0.01,
+      "unit": "%",
+      "officialSourceKey": "fees",
+      "lastChecked": "2026-05-27",
+      "checkedBy": "human",
+      "confidenceScore": 0.80,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "max_futures_leverage",
+      "currentValue": 200,
+      "unit": "x",
+      "officialSourceKey": "futures",
+      "lastChecked": "2026-05-27",
+      "checkedBy": "human",
+      "confidenceScore": 0.85,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "kyc_required",
+      "currentValue": false,
+      "officialSourceKey": "kyc",
+      "lastChecked": "2026-05-27",
+      "checkedBy": "human",
+      "confidenceScore": 0.80,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false,
+      "notes": "No KYC needed for basic trading. 10 BTC/day withdrawal limit without KYC."
+    },
+    {
+      "field": "no_kyc_withdrawal_limit",
+      "currentValue": 10,
+      "unit": "BTC/day",
+      "officialSourceKey": "kyc",
+      "lastChecked": "2026-05-27",
+      "checkedBy": "human",
+      "confidenceScore": 0.76,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "p2p_available",
+      "currentValue": true,
+      "officialSourceKey": "p2p",
+      "lastChecked": "2026-05-27",
+      "checkedBy": "human",
+      "confidenceScore": 0.90,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "futures_available",
+      "currentValue": true,
+      "officialSourceKey": "futures",
+      "lastChecked": "2026-05-27",
+      "checkedBy": "human",
+      "confidenceScore": 0.85,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "proof_of_reserves",
+      "currentValue": false,
+      "officialSourceUrl": "https://www.mexc.com/about",
+      "lastChecked": "2026-05-27",
+      "checkedBy": "human",
+      "confidenceScore": 0.65,
+      "conflictStatus": "unverified",
+      "manualReviewRequired": true,
+      "notes": "No public Proof of Reserves page found as of last check. Verify on official site."
+    },
+    {
+      "field": "headquarters",
+      "currentValue": "Seychelles",
+      "officialSourceUrl": "https://www.mexc.com/about",
+      "lastChecked": "2026-05-27",
+      "checkedBy": "human",
+      "confidenceScore": 0.80,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "founded_year",
+      "currentValue": 2018,
+      "officialSourceUrl": "https://www.mexc.com/about",
+      "lastChecked": "2026-05-27",
+      "checkedBy": "human",
+      "confidenceScore": 0.80,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "restricted_us",
+      "currentValue": true,
+      "officialSourceKey": "restricted_countries",
+      "lastChecked": "2026-05-27",
+      "checkedBy": "human",
+      "confidenceScore": 0.76,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "mobile_app_ios",
+      "currentValue": true,
+      "officialSourceKey": "app_ios",
+      "lastChecked": "2026-05-27",
+      "checkedBy": "human",
+      "confidenceScore": 0.85,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "mobile_app_android",
+      "currentValue": true,
+      "officialSourceKey": "app_android",
+      "lastChecked": "2026-05-27",
+      "checkedBy": "human",
+      "confidenceScore": 0.85,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "trading_pairs_count",
+      "currentValue": 1500,
+      "officialSourceUrl": "https://www.mexc.com/markets",
+      "lastChecked": "2026-05-27",
+      "checkedBy": "human",
+      "confidenceScore": 0.80,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    }
+  ],
+  "screenshots": {
+    "registration": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "kyc": {
+      "status": "not_applicable",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": "KYC not required on this exchange"
+    },
+    "bonus": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "deposit": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "p2p": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "spot": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "futures": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "fees": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "mobile_app": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "mobile",
+      "notes": ""
+    },
+    "proof_of_reserves": {
+      "status": "not_applicable",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": "Proof of reserves not published; screenshot not applicable"
+    }
+  }
+}

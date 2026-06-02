@@ -1,0 +1,267 @@
+﻿---
+/**
+ * ReviewerBlock — E-E-A-T reviewer / author attribution block.
+ *
+ * Signals editorial expertise and human review to both users and AI search systems.
+ * Renders Person schema for Google's author understanding.
+ *
+ * Usage:
+ *  - Exchange review pages (below hero, above main content)
+ *  - Guide pages (after intro)
+ *  - Methodology-heavy pages
+ *
+ * The `reviewer` data should come from the central team registry at
+ * src/data/reviewers.ts — import getReviewer() and map to this interface.
+ * See [slug].astro for the canonical usage pattern.
+ */
+
+interface Reviewer {
+  name: string;
+  title: string;
+  bio: string;
+  /** ISO date of this specific review/update */
+  reviewedAt: string;
+  /** Profile URL — relative (/reviewers/slug/) for internal, absolute for external */
+  profileUrl?: string;
+  /** Initials fallback if no avatar image */
+  initials?: string;
+  /** Avatar image src — if set, shows image instead of initials */
+  avatarSrc?: string;
+  /** Areas of expertise — emitted as schema.org knowsAbout */
+  expertise?: string[];
+}
+
+interface Props {
+  reviewer?: Reviewer;
+  reviewedAt?: string;
+  /** Show a compact inline version (for exchange tables, cards) */
+  compact?: boolean;
+  /** "Reviewed by" | "Written by" | "Verified by" */
+  verb?: 'Reviewed by' | 'Written by' | 'Verified by' | 'Updated by';
+}
+
+const {
+  reviewer,
+  reviewedAt,
+  compact = false,
+  verb = 'Reviewed by',
+} = Astro.props;
+
+// Default reviewer — named editor-in-chief (not generic team fallback)
+const defaultReviewer: Reviewer = {
+  name: 'Oleksandr Shadurskyi',
+  title: 'Crypto Exchange Analyst & Editor-in-Chief',
+  bio: 'Oleksandr Shadurskyi is a crypto affiliate marketer with 15 years in the industry and a hands-on crypto trader since 2019. He founded CryptoBonusWorld to cut through inflated bonus claims with independently verified, real-account data.',
+  reviewedAt: reviewedAt ?? new Date().toISOString().split('T')[0],
+  initials: 'AS',
+  avatarSrc: '/avatars/alexandr-shadurskyi.webp',
+  profileUrl: '/reviewers/alexandr-shadurskyi/',
+  expertise: [
+    'Crypto exchange bonus structure analysis',
+    'KYC and registration flow testing',
+    'Deposit and withdrawal verification',
+    'Exchange fee and spread comparison',
+    'Futures and derivatives products',
+  ],
+};
+
+const r = reviewer ?? defaultReviewer;
+
+// Format date as "20 May 2026"
+function fmtDate(iso: string): string {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+  } catch { return iso; }
+}
+
+const dateLabel = fmtDate(r.reviewedAt);
+
+// Build canonical profile URL (internal or absolute)
+const profileAbsUrl = r.profileUrl
+  ? (r.profileUrl.startsWith('http')
+      ? r.profileUrl
+      : `https://cryptobonusworld.com${r.profileUrl}`)
+  : null;
+
+// Richer Person schema for E-E-A-T (consistent with /reviewers/[slug] page)
+const personSchema: Record<string, unknown> = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: r.name,
+  jobTitle: r.title,
+  description: r.bio,
+  ...(profileAbsUrl ? { url: profileAbsUrl } : {}),
+  worksFor: {
+    '@type': 'Organization',
+    name: 'CryptoBonusWorld',
+    url: 'https://cryptobonusworld.com',
+  },
+  ...(r.expertise?.length ? { knowsAbout: r.expertise } : {}),
+  ...(r.avatarSrc && !r.avatarSrc.includes('favicon')
+    ? { image: `https://cryptobonusworld.com${r.avatarSrc}` }
+    : {}),
+};
+---
+
+{compact ? (
+  <div class="rb-compact" itemprop="author" itemscope itemtype="https://schema.org/Person">
+    <div class="rb-compact-avatar" aria-hidden="true">
+    {r.avatarSrc
+      ? <img src={r.avatarSrc} alt="" width="14" height="14" />
+      : (r.initials ?? r.name.charAt(0))
+    }
+  </div>
+    <span class="rb-compact-text">
+      <span itemprop="name">{verb}: {r.name}</span>
+      <time class="rb-compact-date" datetime={r.reviewedAt}> · {dateLabel}</time>
+    </span>
+  </div>
+) : (
+  <div class="rb" itemscope itemtype="https://schema.org/Article">
+    <script type="application/ld+json" set:html={JSON.stringify(personSchema)} />
+    <div class="rb-inner">
+      <div class="rb-avatar" aria-hidden="true">
+        {r.avatarSrc
+          ? <img src={r.avatarSrc} alt="" width="36" height="36" class="rb-avatar-img" />
+          : (r.initials ?? r.name.charAt(0))
+        }
+      </div>
+      <div class="rb-content">
+        <div class="rb-meta">
+          <span class="rb-verb">{verb}</span>
+          <span class="rb-name" itemprop="author" itemscope itemtype="https://schema.org/Person">
+            {r.profileUrl
+              ? <a href={r.profileUrl} class="rb-name-link" itemprop="url"><span itemprop="name">{r.name}</span></a>
+              : <span itemprop="name">{r.name}</span>
+            }
+            <span class="rb-title">, {r.title}</span>
+          </span>
+        </div>
+        <time class="rb-date" datetime={r.reviewedAt} itemprop="datePublished">{dateLabel}</time>
+        {!compact && <p class="rb-bio">{r.bio}</p>}
+      </div>
+    </div>
+  </div>
+)}
+
+<style>
+  /* ── Compact ── */
+  .rb-compact {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    margin-bottom: 0.875rem;
+  }
+  .rb-compact-avatar {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: rgba(245,197,66,0.15);
+    color: var(--color-accent);
+    font-size: 0.6rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .rb-compact-text { line-height: 1; }
+  .rb-compact-date { opacity: 0.7; }
+
+  /* ── Full ── */
+  .rb {
+    padding: 0.875rem 1rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    margin-bottom: 1.25rem;
+  }
+
+  .rb-inner {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .rb-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(245,197,66,0.12);
+    color: var(--color-accent);
+    font-size: 0.78rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 1px solid rgba(245,197,66,0.18);
+    overflow: hidden;
+  }
+  .rb-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    display: block;
+    border-radius: 50%;
+  }
+
+  .rb-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+  }
+
+  .rb-meta {
+    display: flex;
+    align-items: baseline;
+    gap: 0.3rem;
+    flex-wrap: wrap;
+  }
+
+  .rb-verb {
+    font-size: 0.72rem;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    font-weight: 600;
+  }
+
+  .rb-name {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+  }
+  .rb-name-link {
+    color: inherit;
+    text-decoration: none;
+  }
+  .rb-name-link:hover {
+    text-decoration: underline;
+    text-decoration-color: var(--color-accent);
+    text-underline-offset: 2px;
+  }
+
+  .rb-title {
+    font-weight: 400;
+    color: var(--color-text-muted);
+    font-size: 0.78rem;
+  }
+
+  .rb-date {
+    font-size: 0.72rem;
+    color: var(--color-text-muted);
+  }
+
+  .rb-bio {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    line-height: 1.6;
+    margin: 0.25rem 0 0;
+  }
+</style>

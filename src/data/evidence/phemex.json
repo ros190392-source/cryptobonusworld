@@ -1,0 +1,362 @@
+{
+  "exchange": "phemex",
+  "updatedAt": "2026-06-01",
+  "sources": {
+    "fees": {
+      "url": "https://phemex.com/fees-conditions",
+      "label": "Phemex — Fee Structure",
+      "type": "official-fees",
+      "lastAccessed": "2026-05-25",
+      "notes": "Spot maker 0.10%, taker 0.10% standard. Futures maker 0.01%, taker 0.06%."
+    },
+    "kyc": {
+      "url": "https://phemex.com/user-guides/phemex-kyc",
+      "label": "Phemex — KYC Verification Guide",
+      "type": "official-kyc",
+      "lastAccessed": "2026-05-25",
+      "notes": "No KYC required for basic trading; KYC unlocks higher withdrawal limits and bonus claims."
+    },
+    "bonus": {
+      "url": "https://phemex.com/welcome-bonus",
+      "label": "Phemex — Welcome Bonus",
+      "type": "official-promo",
+      "lastAccessed": "2026-05-20",
+      "notes": "Up to 8,800 USDT in welcome bonuses. Deposit and trading tasks required."
+    },
+    "restricted_countries": {
+      "url": "https://phemex.com/terms-conditions",
+      "label": "Phemex — Terms & Conditions (Restricted Regions)",
+      "type": "official-legal",
+      "lastAccessed": "2026-05-25",
+      "notes": "US, UK, Canada restricted"
+    },
+    "terms": {
+      "url": "https://phemex.com/terms-conditions",
+      "label": "Phemex — Terms & Conditions",
+      "type": "official-legal",
+      "lastAccessed": "2026-05-25"
+    },
+    "app_ios": {
+      "url": "https://apps.apple.com/app/phemex-crypto-trade-platform/id1456296940",
+      "label": "Phemex iOS App — App Store",
+      "type": "official-app",
+      "lastAccessed": "2026-05-25"
+    },
+    "app_android": {
+      "url": "https://play.google.com/store/apps/details?id=com.phemex.app",
+      "label": "Phemex Android App — Google Play",
+      "type": "official-app",
+      "lastAccessed": "2026-05-25"
+    },
+    "futures": {
+      "url": "https://phemex.com/trade/BTCUSDT",
+      "label": "Phemex — Perpetual Contracts",
+      "type": "official-other",
+      "lastAccessed": "2026-05-25",
+      "notes": "Up to 100x leverage on BTC/USDT perpetual"
+    },
+    "affiliate": {
+      "url": "https://phemex.com/referral",
+      "label": "Phemex — Referral Program",
+      "type": "official-affiliate",
+      "lastAccessed": "2026-05-20"
+    }
+  },
+  "facts": [
+    {
+      "field": "bonus_amount",
+      "currentValue": 8800,
+      "unit": "USDT",
+      "officialSourceKey": "bonus",
+      "officialSourceUrl": "https://phemex.com/welcome-bonus",
+      "lastChecked": "2026-05-20",
+      "checkedBy": "human",
+      "confidenceScore": 0.27,
+      "conflictStatus": "outdated",
+      "manualReviewRequired": true,
+      "notes": "Up to 8,800 USDT welcome bonus. Needs daily re-check."
+    },
+    {
+      "field": "bonus_currency",
+      "currentValue": "USDT",
+      "officialSourceKey": "bonus",
+      "lastChecked": "2026-05-20",
+      "checkedBy": "human",
+      "confidenceScore": 0.63,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "bonus_expiry_days",
+      "currentValue": 30,
+      "unit": "days",
+      "officialSourceKey": "bonus",
+      "lastChecked": "2026-05-20",
+      "checkedBy": "human",
+      "confidenceScore": 0.27,
+      "conflictStatus": "outdated",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "bonus_requires_kyc",
+      "currentValue": false,
+      "officialSourceKey": "kyc",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.76,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false,
+      "notes": "No KYC required for initial bonus tasks; KYC boosts withdrawal limits"
+    },
+    {
+      "field": "bonus_requires_deposit",
+      "currentValue": true,
+      "officialSourceKey": "bonus",
+      "lastChecked": "2026-05-20",
+      "checkedBy": "human",
+      "confidenceScore": 0.27,
+      "conflictStatus": "outdated",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "spot_maker_fee",
+      "currentValue": 0.1,
+      "unit": "%",
+      "officialSourceKey": "fees",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.76,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "spot_taker_fee",
+      "currentValue": 0.1,
+      "unit": "%",
+      "officialSourceKey": "fees",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.76,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "futures_maker_fee",
+      "currentValue": 0.01,
+      "unit": "%",
+      "officialSourceKey": "fees",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.76,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false,
+      "notes": "0.01% futures maker — competitive rate"
+    },
+    {
+      "field": "futures_taker_fee",
+      "currentValue": 0.06,
+      "unit": "%",
+      "officialSourceKey": "fees",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.76,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "max_futures_leverage",
+      "currentValue": 100,
+      "unit": "x",
+      "officialSourceKey": "futures",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.85,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "kyc_required",
+      "currentValue": false,
+      "officialSourceKey": "kyc",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.76,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "p2p_available",
+      "currentValue": false,
+      "officialSourceUrl": "https://phemex.com/",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.65,
+      "conflictStatus": "unverified",
+      "manualReviewRequired": true,
+      "notes": "No dedicated P2P marketplace found on Phemex as of last check."
+    },
+    {
+      "field": "futures_available",
+      "currentValue": true,
+      "officialSourceKey": "futures",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.85,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "proof_of_reserves",
+      "currentValue": false,
+      "officialSourceUrl": "https://phemex.com/about",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.55,
+      "conflictStatus": "unverified",
+      "manualReviewRequired": true,
+      "notes": "No public Proof of Reserves page found for Phemex. Verify on official site."
+    },
+    {
+      "field": "headquarters",
+      "currentValue": "Singapore",
+      "officialSourceUrl": "https://phemex.com/about",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.80,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "founded_year",
+      "currentValue": 2019,
+      "officialSourceUrl": "https://phemex.com/about",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.80,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "restricted_us",
+      "currentValue": true,
+      "officialSourceKey": "restricted_countries",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.76,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "mobile_app_ios",
+      "currentValue": true,
+      "officialSourceKey": "app_ios",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.85,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "mobile_app_android",
+      "currentValue": true,
+      "officialSourceKey": "app_android",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.85,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "trading_pairs_count",
+      "currentValue": 200,
+      "officialSourceUrl": "https://phemex.com/spot-trading",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.70,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    }
+  ],
+  "screenshots": {
+    "registration": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "kyc": {
+      "status": "not_applicable",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": "KYC not required on this exchange"
+    },
+    "bonus": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "deposit": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "p2p": {
+      "status": "not_applicable",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": "P2P availability unverified; pending confirmation"
+    },
+    "spot": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "futures": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "fees": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "mobile_app": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "mobile",
+      "notes": ""
+    },
+    "proof_of_reserves": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    }
+  }
+}

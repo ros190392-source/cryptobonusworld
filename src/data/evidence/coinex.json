@@ -1,0 +1,374 @@
+{
+  "exchange": "coinex",
+  "updatedAt": "2026-06-01",
+  "sources": {
+    "fees": {
+      "url": "https://www.coinex.com/fees",
+      "label": "CoinEx — Fee Schedule",
+      "type": "official-fees",
+      "lastAccessed": "2026-05-25",
+      "notes": "Spot maker 0%, taker 0.10% standard. Futures maker 0.03%, taker 0.05%."
+    },
+    "kyc": {
+      "url": "https://www.coinex.com/support/articles/900005733866",
+      "label": "CoinEx — KYC Verification Guide",
+      "type": "official-kyc",
+      "lastAccessed": "2026-05-25",
+      "notes": "No KYC required for trading. Unverified withdrawal limit: 10,000 USDT/day."
+    },
+    "bonus": {
+      "url": "https://www.coinex.com/activity",
+      "label": "CoinEx — Promotions & Activities",
+      "type": "official-promo",
+      "lastAccessed": "2026-05-20",
+      "notes": "Up to 500 USDT in new user rewards. No deposit required for registration bonus."
+    },
+    "restricted_countries": {
+      "url": "https://www.coinex.com/about/user-agreement",
+      "label": "CoinEx — User Agreement (Restricted Regions)",
+      "type": "official-legal",
+      "lastAccessed": "2026-05-25",
+      "notes": "US restricted"
+    },
+    "terms": {
+      "url": "https://www.coinex.com/about/user-agreement",
+      "label": "CoinEx — User Agreement",
+      "type": "official-legal",
+      "lastAccessed": "2026-05-25"
+    },
+    "app_ios": {
+      "url": "https://apps.apple.com/app/coinex-crypto-bitcoin-exchange/id1626135024",
+      "label": "CoinEx iOS App — App Store",
+      "type": "official-app",
+      "lastAccessed": "2026-05-25"
+    },
+    "app_android": {
+      "url": "https://play.google.com/store/apps/details?id=com.coinex.trade.play",
+      "label": "CoinEx Android App — Google Play",
+      "type": "official-app",
+      "lastAccessed": "2026-05-25"
+    },
+    "futures": {
+      "url": "https://www.coinex.com/futures/BTCUSDT",
+      "label": "CoinEx — Futures Trading",
+      "type": "official-other",
+      "lastAccessed": "2026-05-25",
+      "notes": "Up to 100x leverage on perpetual contracts"
+    },
+    "affiliate": {
+      "url": "https://www.coinex.com/invite",
+      "label": "CoinEx — Referral Program",
+      "type": "official-affiliate",
+      "lastAccessed": "2026-05-20"
+    }
+  },
+  "facts": [
+    {
+      "field": "bonus_amount",
+      "currentValue": 500,
+      "unit": "USDT",
+      "officialSourceKey": "bonus",
+      "officialSourceUrl": "https://www.coinex.com/activity",
+      "lastChecked": "2026-05-20",
+      "checkedBy": "human",
+      "confidenceScore": 0.27,
+      "conflictStatus": "outdated",
+      "manualReviewRequired": true,
+      "notes": "Up to 500 USDT new user rewards. Needs daily re-check."
+    },
+    {
+      "field": "bonus_currency",
+      "currentValue": "USDT",
+      "officialSourceKey": "bonus",
+      "lastChecked": "2026-05-20",
+      "checkedBy": "human",
+      "confidenceScore": 0.63,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "bonus_expiry_days",
+      "currentValue": 30,
+      "unit": "days",
+      "officialSourceKey": "bonus",
+      "lastChecked": "2026-05-20",
+      "checkedBy": "human",
+      "confidenceScore": 0.27,
+      "conflictStatus": "outdated",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "bonus_requires_kyc",
+      "currentValue": false,
+      "officialSourceKey": "kyc",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.80,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false,
+      "notes": "No KYC required for basic trading and initial bonus tasks"
+    },
+    {
+      "field": "bonus_requires_deposit",
+      "currentValue": false,
+      "officialSourceKey": "bonus",
+      "lastChecked": "2026-05-20",
+      "checkedBy": "human",
+      "confidenceScore": 0.27,
+      "conflictStatus": "outdated",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "spot_maker_fee",
+      "currentValue": 0,
+      "unit": "%",
+      "officialSourceKey": "fees",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.76,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false,
+      "notes": "0% spot maker fee"
+    },
+    {
+      "field": "spot_taker_fee",
+      "currentValue": 0.1,
+      "unit": "%",
+      "officialSourceKey": "fees",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.76,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "futures_maker_fee",
+      "currentValue": 0.03,
+      "unit": "%",
+      "officialSourceKey": "fees",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.76,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "futures_taker_fee",
+      "currentValue": 0.05,
+      "unit": "%",
+      "officialSourceKey": "fees",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.76,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "max_futures_leverage",
+      "currentValue": 100,
+      "unit": "x",
+      "officialSourceKey": "futures",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.85,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "kyc_required",
+      "currentValue": false,
+      "officialSourceKey": "kyc",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.80,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false,
+      "notes": "No KYC required for basic trading. 10,000 USDT/day withdrawal without verification."
+    },
+    {
+      "field": "no_kyc_withdrawal_limit",
+      "currentValue": 10000,
+      "unit": "USDT/day",
+      "officialSourceKey": "kyc",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.76,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "p2p_available",
+      "currentValue": false,
+      "officialSourceUrl": "https://www.coinex.com/",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.65,
+      "conflictStatus": "unverified",
+      "manualReviewRequired": true,
+      "notes": "No dedicated P2P marketplace found on CoinEx as of last check."
+    },
+    {
+      "field": "futures_available",
+      "currentValue": true,
+      "officialSourceKey": "futures",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.85,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "proof_of_reserves",
+      "currentValue": false,
+      "officialSourceUrl": "https://www.coinex.com/about",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.55,
+      "conflictStatus": "unverified",
+      "manualReviewRequired": true,
+      "notes": "No public Proof of Reserves found. Verify on official site."
+    },
+    {
+      "field": "headquarters",
+      "currentValue": "Hong Kong",
+      "officialSourceUrl": "https://www.coinex.com/about",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.70,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "founded_year",
+      "currentValue": 2017,
+      "officialSourceUrl": "https://www.coinex.com/about",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.80,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "restricted_us",
+      "currentValue": true,
+      "officialSourceKey": "restricted_countries",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.76,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "mobile_app_ios",
+      "currentValue": true,
+      "officialSourceKey": "app_ios",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.85,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "mobile_app_android",
+      "currentValue": true,
+      "officialSourceKey": "app_android",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.85,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "trading_pairs_count",
+      "currentValue": 800,
+      "officialSourceUrl": "https://www.coinex.com/markets",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.75,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    }
+  ],
+  "screenshots": {
+    "registration": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "kyc": {
+      "status": "not_applicable",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": "KYC not required on this exchange"
+    },
+    "bonus": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "deposit": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "p2p": {
+      "status": "not_applicable",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": "P2P availability unverified; pending confirmation"
+    },
+    "spot": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "futures": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "fees": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "mobile_app": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "mobile",
+      "notes": ""
+    },
+    "proof_of_reserves": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    }
+  }
+}

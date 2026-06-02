@@ -1,0 +1,136 @@
+---
+/**
+ * FactCheckBadge — Inline trust signal for a single fact
+ *
+ * Shows a compact "✓ Checked [month]" badge with colour-coded
+ * confidence. Designed to be placed inline next to a specific
+ * claim (e.g. next to a fee amount or bonus value).
+ *
+ * Sizes:
+ *   xs  — tiny chip for table cells
+ *   sm  — default inline badge
+ *   md  — larger badge for section headers
+ */
+
+import type { EvidenceFact, ExchangeEvidence } from '../data/evidence/_schema';
+import { calculateConfidence, resolveConflictStatus, getConfidenceDisplay } from '../utils/evidenceEngine';
+
+interface Props {
+  fact: EvidenceFact;
+  evidence: ExchangeEvidence;
+  size?: 'xs' | 'sm' | 'md';
+  /** Show source link inline */
+  showSource?: boolean;
+}
+
+const { fact, evidence, size = 'sm', showSource = false } = Astro.props;
+
+const liveConf   = calculateConfidence(fact, evidence);
+const display    = getConfidenceDisplay(liveConf);
+const status     = resolveConflictStatus(fact);
+
+// Format lastChecked → "May 2026"
+function fmtDate(d: string): string {
+  const dt = new Date(d + (d.length === 10 ? 'T00:00:00' : ''));
+  return dt.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+}
+
+const checkedLabel = fmtDate(fact.lastChecked);
+const isStale      = status === 'outdated';
+const isConflict   = status === 'conflict';
+const isUnverified = status === 'unverified';
+
+const icon = isConflict ? '⚠' : isUnverified ? '?' : '✓';
+
+// Source URL for inline link
+const sourceUrl = fact.officialSourceUrl
+  ?? (fact.officialSourceKey && evidence.sources[fact.officialSourceKey]?.url)
+  ?? fact.secondarySourceUrl
+  ?? null;
+---
+
+<span
+  class:list={['fcb', `fcb--${size}`, isStale && 'fcb--stale', isConflict && 'fcb--conflict', isUnverified && 'fcb--unverified']}
+  title={`${display.description} — Checked ${checkedLabel}`}
+  aria-label={`Fact check: ${display.label}. Checked ${checkedLabel}.`}
+>
+  <span class="fcb__icon" aria-hidden="true">{icon}</span>
+  <span class="fcb__text">
+    {isConflict ? 'Source conflict' : isUnverified ? 'Unverified' : `Checked ${checkedLabel}`}
+  </span>
+  {showSource && sourceUrl && (
+    <a
+      href={sourceUrl}
+      class="fcb__source"
+      target="_blank"
+      rel="noopener noreferrer nofollow"
+      aria-label="View official source"
+    >↗</a>
+  )}
+</span>
+
+<style>
+  .fcb {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2em;
+    border-radius: 4px;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    vertical-align: middle;
+    border: 1px solid;
+    transition: opacity 0.12s;
+  }
+
+  /* Sizes */
+  .fcb--xs  { font-size: 0.60rem; padding: 0.1rem 0.3rem; }
+  .fcb--sm  { font-size: 0.68rem; padding: 0.15rem 0.4rem; }
+  .fcb--md  { font-size: 0.75rem; padding: 0.2rem 0.5rem; }
+
+  /* Default — verified/ok */
+  .fcb {
+    color: #4ade80;
+    background: rgba(74, 222, 128, 0.07);
+    border-color: rgba(74, 222, 128, 0.20);
+  }
+
+  /* Stale */
+  .fcb--stale {
+    color: #fb923c;
+    background: rgba(251, 146, 60, 0.07);
+    border-color: rgba(251, 146, 60, 0.20);
+  }
+
+  /* Conflict */
+  .fcb--conflict {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.07);
+    border-color: rgba(239, 68, 68, 0.20);
+  }
+
+  /* Unverified */
+  .fcb--unverified {
+    color: var(--color-text-muted);
+    background: rgba(255,255,255,0.04);
+    border-color: var(--color-border);
+  }
+
+  .fcb__icon {
+    font-size: 0.8em;
+    font-style: normal;
+  }
+
+  .fcb__text {
+    /* inherits */
+  }
+
+  .fcb__source {
+    color: inherit;
+    opacity: 0.75;
+    text-decoration: none;
+    margin-left: 0.1em;
+    transition: opacity 0.12s;
+  }
+  .fcb__source:hover { opacity: 1; }
+</style>

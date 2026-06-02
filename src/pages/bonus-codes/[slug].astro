@@ -1,0 +1,483 @@
+---
+/**
+ * /bonus-codes/[exchange-slug]/ — Exchange bonus code pages.
+ *
+ * Architecture:
+ *  - Static paths from BONUS_CODES data (src/data/bonus-codes.ts)
+ *  - Exchange data pulled from exchanges.json for logo, rating, CTA
+ *  - Renders: code display, how-to steps, trust block, terms, FAQ
+ *  - Structured data: Product + FAQPage
+ *
+ * Target intents:
+ *  "[exchange] bonus code"
+ *  "[exchange] referral code 2026"
+ *  "[exchange] promo code working"
+ *  "[exchange] coupon code"
+ */
+
+import Layout from '../../layouts/Layout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import AffiliateDisclosure from '../../components/AffiliateDisclosure.astro';
+import ExchangeLogo from '../../components/ExchangeLogo.astro';
+import CTAButton from '../../components/CTAButton.astro';
+import TrustVerificationBlock from '../../components/TrustVerificationBlock.astro';
+import FAQBlock from '../../components/FAQBlock.astro';
+import RiskDisclaimer from '../../components/RiskDisclaimer.astro';
+import PromoCodeBox from '../../components/PromoCodeBox.astro';
+
+import { BONUS_CODES, getBonusCodeByExchangeSlug } from '../../data/bonus-codes';
+import exchanges from '../../data/exchanges.json';
+import { YEAR, SITE_URL, toIsoCurrency } from '../../utils/seo';
+import type { PageContext } from '../../utils/analytics';
+
+export async function getStaticPaths() {
+  return BONUS_CODES.map(entry => ({
+    params: { slug: entry.exchangeSlug },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+
+// Exchange data for logo + rating display
+const ex = exchanges.find(e => e.slug === entry.exchangeSlug);
+
+// Structured data
+const productSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  name: `${ex?.name ?? entry.exchangeSlug} Bonus Code ${YEAR}`,
+  description: entry.metaDesc,
+  url: `${SITE_URL}/bonus-codes/${entry.exchangeSlug}/`,
+  ...(ex ? {
+    brand: { '@type': 'Brand', name: ex.name },
+    offers: {
+      '@type': 'Offer',
+      description: `Up to ${entry.bonusAmount.toLocaleString('en-US')} ${entry.bonusCurrency}`,
+      // GSC fix: priceCurrency must be ISO 4217 — map USDT/BTC/etc. → USD
+      priceCurrency: toIsoCurrency(entry.bonusCurrency),
+      availability: 'https://schema.org/InStock',
+      url: entry.affiliateUrl,
+    },
+  } : {}),
+};
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: entry.faq.map(f => ({
+    '@type': 'Question',
+    name: f.question,
+    acceptedAnswer: { '@type': 'Answer', text: f.answer },
+  })),
+};
+
+const analyticsContext: PageContext = { pageType: 'exchange', exchangeSlug: entry.exchangeSlug };
+---
+
+<Layout
+  title={entry.seoTitle}
+  description={entry.metaDesc}
+  canonical={`/bonus-codes/${entry.exchangeSlug}/`}
+  schema={[productSchema, faqSchema]}
+  analyticsContext={analyticsContext}
+>
+  <div class="container">
+    <Breadcrumbs crumbs={[
+      { label: 'Home', href: '/' },
+      { label: 'Bonus Codes', href: '/bonus-codes/' },
+      { label: ex?.name ?? entry.exchangeSlug },
+    ]} />
+
+    <AffiliateDisclosure compact />
+
+    <!-- Hero -->
+    <div class="bc-hero">
+      {ex && (
+        <div class="bc-hero-identity">
+          <ExchangeLogo slug={ex.slug} name={ex.name} size={96} variant="square" />
+          <div>
+            <div class="bc-hero-badge">Bonus Code {YEAR}</div>
+            <h1 class="bc-hero-title">{entry.heading}</h1>
+          </div>
+        </div>
+      )}
+      {!ex && <h1>{entry.heading}</h1>}
+
+      <p class="bc-hero-intro">{entry.intro}</p>
+
+      <!-- Trust block -->
+      <TrustVerificationBlock
+        verificationStatus="verified"
+        verifiedAt={entry.verifiedAt}
+        offerLastChecked={entry.verifiedAt}
+        termsUrl={entry.termsUrl}
+        bonusNote={entry.bonusNote}
+        regionRestrictions={entry.regionNote ? [entry.regionNote] : null}
+        compact={true}
+      />
+    </div>
+
+    <!-- Codes block -->
+    {entry.codes.length > 0 ? (
+      <section class="section" aria-label="Bonus codes">
+        <h2 class="section-title">Working {ex?.name} Bonus Code{entry.codes.length > 1 ? 's' : ''}</h2>
+        <div class="codes-list">
+          {entry.codes.filter(c => !c.deprecated).map(code => (
+            <div class="code-card">
+              <div class="code-card-info">
+                <span class="code-card-desc">{code.description}</span>
+                {code.region !== 'global' && (
+                  <span class="code-card-region">Region: {code.region}</span>
+                )}
+                {code.expiresAt && (
+                  <span class="code-card-expiry">⏰ Expires: {code.expiresAt}</span>
+                )}
+                {!code.expiresAt && (
+                  <span class="code-card-noexpiry">✅ No expiry date</span>
+                )}
+              </div>
+              <div class="code-display-wrap">
+                <PromoCodeBox code={code.code} exchange={ex?.name ?? entry.exchangeSlug} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    ) : (
+      <div class="no-code-notice">
+        <span class="no-code-icon">🔗</span>
+        <div>
+          <strong>No code needed</strong> — this bonus is activated automatically through the affiliate link below.
+          Clicking the button applies the full bonus package to your account.
+        </div>
+      </div>
+    )}
+
+    <!-- Main CTA -->
+    <div class="bc-cta-block">
+      <div class="bc-cta-bonus">
+        <span class="bc-cta-amount">Up to {entry.bonusAmount.toLocaleString('en-US')} {entry.bonusCurrency}</span>
+        <span class="bc-cta-label">Welcome Bonus</span>
+      </div>
+      <CTAButton
+        href={entry.affiliateUrl}
+        label={`Claim ${ex?.name ?? 'Bonus'} →`}
+        variant="primary"
+        size="lg"
+      />
+    </div>
+
+    <!-- How to use -->
+    <section class="section">
+      <h2 class="section-title">How to Use the {ex?.name} Bonus Code</h2>
+      <ol class="how-to-list">
+        {entry.howToUse.map((step, i) => (
+          <li class="how-to-item">
+            <span class="how-to-num">{i + 1}</span>
+            <span class="how-to-step">{step}</span>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <!-- Bonus details -->
+    <section class="section">
+      <h2 class="section-title">Bonus Details & Terms</h2>
+      <div class="bonus-details">
+        <div class="bd-row">
+          <span class="bd-label">Maximum bonus</span>
+          <span class="bd-value">{entry.bonusAmount.toLocaleString('en-US')} {entry.bonusCurrency}</span>
+        </div>
+        <div class="bd-row">
+          <span class="bd-label">Verified</span>
+          <span class="bd-value">{entry.verifiedAt}</span>
+        </div>
+        {entry.regionNote && (
+          <div class="bd-row">
+            <span class="bd-label">Restrictions</span>
+            <span class="bd-value">{entry.regionNote}</span>
+          </div>
+        )}
+        {entry.expiryNote && (
+          <div class="bd-row">
+            <span class="bd-label">Expiry</span>
+            <span class="bd-value">{entry.expiryNote}</span>
+          </div>
+        )}
+        {entry.termsUrl && (
+          <div class="bd-row">
+            <span class="bd-label">Official terms</span>
+            <span class="bd-value">
+              <a href={entry.termsUrl} target="_blank" rel="noopener noreferrer" class="terms-link">
+                View on official exchange →
+              </a>
+            </span>
+          </div>
+        )}
+      </div>
+      <p class="bonus-note">{entry.bonusNote}</p>
+    </section>
+
+    <!-- Exchange page link -->
+    {ex && (
+      <div class="exchange-link-block">
+        <span>Read the full {ex.name} review:</span>
+        <a href={`/exchanges/${ex.slug}/`} class="exchange-review-link">{ex.name} Bonus & Review →</a>
+      </div>
+    )}
+
+    <FAQBlock items={entry.faq} />
+
+    <RiskDisclaimer />
+  </div>
+</Layout>
+
+<style>
+  .bc-hero {
+    margin-bottom: 1.75rem;
+  }
+
+  .bc-hero-identity {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .bc-hero-badge {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-accent);
+    margin-bottom: 0.2rem;
+  }
+
+  .bc-hero-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--color-text-primary);
+    margin: 0;
+    line-height: 1.25;
+  }
+
+  .bc-hero-intro {
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    margin-bottom: 1rem;
+  }
+
+  .section { margin: 1.75rem 0; }
+  .section-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--color-text-primary);
+  }
+
+  /* Codes list */
+  .codes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .code-card {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid rgba(245,197,66,0.2);
+    border-radius: 12px;
+    flex-wrap: wrap;
+  }
+
+  .code-card-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .code-card-desc {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+  }
+
+  .code-card-region { font-size: 0.75rem; color: var(--color-text-muted); }
+  .code-card-expiry { font-size: 0.75rem; color: #fb923c; }
+  .code-card-noexpiry { font-size: 0.75rem; color: #4ade80; }
+
+  .code-display-wrap { flex-shrink: 0; }
+
+  /* No-code notice */
+  .no-code-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    background: rgba(245,197,66,0.05);
+    border: 1px solid rgba(245,197,66,0.15);
+    border-radius: 10px;
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+  }
+  .no-code-icon { font-size: 1.25rem; flex-shrink: 0; }
+  .no-code-notice strong { color: var(--color-text-primary); }
+
+  /* Main CTA */
+  .bc-cta-block {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(90deg, rgba(245,197,66,0.08) 0%, rgba(245,197,66,0.02) 100%);
+    border: 1px solid rgba(245,197,66,0.2);
+    border-radius: 14px;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .bc-cta-bonus {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+
+  .bc-cta-amount {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--color-accent);
+    line-height: 1.1;
+  }
+
+  .bc-cta-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  /* How-to steps */
+  .how-to-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+    counter-reset: none;
+  }
+
+  .how-to-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.875rem;
+    padding: 0.75rem 1rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+  }
+
+  .how-to-num {
+    width: 26px;
+    height: 26px;
+    background: rgba(245,197,66,0.15);
+    color: var(--color-accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+
+  .how-to-step {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+    padding-top: 0.2rem;
+  }
+
+  /* Bonus details table */
+  .bonus-details {
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 0.875rem;
+  }
+
+  .bd-row {
+    display: grid;
+    grid-template-columns: minmax(120px, 35%) 1fr;
+    gap: 0.5rem;
+    padding: 0.625rem 1rem;
+    border-bottom: 1px solid var(--color-border);
+    align-items: start;
+  }
+  .bd-row:last-child { border-bottom: none; }
+
+  .bd-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+  }
+  .bd-value {
+    font-size: 0.82rem;
+    color: var(--color-text-primary);
+  }
+  .terms-link {
+    color: var(--color-accent);
+    text-decoration: none;
+    font-size: 0.82rem;
+  }
+  .terms-link:hover { text-decoration: underline; }
+
+  .bonus-note {
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    line-height: 1.6;
+    font-style: italic;
+    padding: 0.5rem 0.75rem;
+    border-left: 2px solid var(--color-border);
+  }
+
+  /* Exchange link */
+  .exchange-link-block {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    font-size: 0.825rem;
+    color: var(--color-text-muted);
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .exchange-review-link {
+    color: var(--color-accent);
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .exchange-review-link:hover { text-decoration: underline; }
+
+  @media (max-width: 640px) {
+    .bc-hero-title { font-size: 1.2rem; }
+    .bc-cta-block { flex-direction: column; align-items: flex-start; }
+    .code-card { flex-direction: column; }
+    .bd-row { grid-template-columns: 1fr; gap: 0.05rem; }
+  }
+</style>

@@ -1,0 +1,389 @@
+---
+/**
+ * FactCheckPanel — Full-width trust block for exchange review pages
+ *
+ * Replaces/enhances EvidenceVerificationBlock with data-driven source
+ * URLs pulled from the evidence registry. Shows:
+ *  - Overall evidence health score
+ *  - Per-fact verification rows with live confidence and source links
+ *  - Stale / conflict / unverified flags
+ *  - Links to official source pages
+ *
+ * Key facts displayed (those most relevant to readers):
+ *   bonus_amount, spot_maker_fee, spot_taker_fee, kyc_required,
+ *   p2p_available, proof_of_reserves, restricted_us
+ *
+ * Used in /exchanges/[slug].astro to replace or augment the existing
+ * EvidenceVerificationBlock.
+ */
+
+import type { ExchangeEvidence } from '../data/evidence/_schema';
+import {
+  calculateConfidence,
+  resolveConflictStatus,
+  getConfidenceDisplay,
+  getFact,
+  getSourceUrl,
+  computeExchangeHealth,
+  factAgeDays,
+} from '../utils/evidenceEngine';
+
+interface Props {
+  evidence: ExchangeEvidence;
+  exchangeName: string;
+}
+
+const { evidence, exchangeName } = Astro.props;
+
+// Compute aggregate health for score display
+const health = computeExchangeHealth(evidence);
+
+// Key consumer-facing facts to display
+const KEY_FACTS = [
+  { field: 'bonus_amount',  icon: '🎁', label: 'Welcome bonus' },
+  { field: 'spot_maker_fee', icon: '💳', label: 'Spot maker fee' },
+  { field: 'spot_taker_fee', icon: '💳', label: 'Spot taker fee' },
+  { field: 'kyc_required',   icon: '🪪', label: 'KYC required' },
+  { field: 'p2p_available',  icon: '🔄', label: 'P2P available' },
+  { field: 'proof_of_reserves', icon: '🔐', label: 'Proof of reserves' },
+  { field: 'restricted_us',  icon: '🌍', label: 'US restricted' },
+  { field: 'futures_available', icon: '📈', label: 'Futures trading' },
+];
+
+// Enrich each key fact with live data
+const rows = KEY_FACTS.map(kf => {
+  const fact = getFact(evidence, kf.field);
+  if (!fact) return null;
+
+  const liveConf   = calculateConfidence(fact, evidence);
+  const display    = getConfidenceDisplay(liveConf);
+  const status     = resolveConflictStatus(fact);
+  const sourceUrl  = getSourceUrl(evidence, kf.field);
+  const ageDays    = Math.round(factAgeDays(fact));
+
+  // Human-readable value
+  let valueStr = '';
+  if (typeof fact.currentValue === 'boolean') {
+    valueStr = fact.currentValue ? 'Yes' : 'No';
+  } else if (typeof fact.currentValue === 'number') {
+    valueStr = fact.unit ? `${fact.currentValue}${fact.unit}` : String(fact.currentValue);
+  } else if (Array.isArray(fact.currentValue)) {
+    valueStr = (fact.currentValue as string[]).join(', ');
+  } else {
+    valueStr = String(fact.currentValue ?? '—');
+  }
+
+  // Date format
+  const dt = new Date(fact.lastChecked + (fact.lastChecked.length === 10 ? 'T00:00:00' : ''));
+  const checkedLabel = dt.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+
+  return {
+    ...kf,
+    fact,
+    liveConf,
+    display,
+    status,
+    sourceUrl,
+    ageDays,
+    valueStr,
+    checkedLabel,
+  };
+}).filter(Boolean) as NonNullable<ReturnType<typeof rows[number]>>[];
+
+// Score colour
+function scoreColor(s: number): string {
+  if (s >= 75) return '#4ade80';
+  if (s >= 55) return '#86efac';
+  if (s >= 40) return '#fbbf24';
+  return '#fb923c';
+}
+
+const scoreCol = scoreColor(health.overallScore);
+---
+
+<div class="fcp" aria-label={`Evidence health for ${exchangeName}`}>
+
+  <!-- Header with aggregate score -->
+  <div class="fcp-header">
+    <div class="fcp-title">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+      How We Verified This Review
+    </div>
+    <div class="fcp-meta">
+      <div class="fcp-score" style={`color: ${scoreCol}`} title={`Evidence health score: ${health.overallScore}/100`}>
+        {health.overallScore}<span class="fcp-score-unit">/100</span>
+      </div>
+      <div class="fcp-meta-text">
+        <span class="fcp-meta-label">Evidence health</span>
+        <span class="fcp-meta-sub">{health.totalFacts} facts · {health.staleFacts > 0 ? `${health.staleFacts} stale` : 'up to date'}{health.conflictedFacts > 0 ? ` · ${health.conflictedFacts} conflict` : ''}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fact rows -->
+  <div class="fcp-facts">
+    {rows.map(row => (
+      <div
+        class:list={[
+          'fcp-fact',
+          row.status === 'outdated' && 'fcp-fact--stale',
+          row.status === 'conflict' && 'fcp-fact--conflict',
+          row.status === 'unverified' && 'fcp-fact--unverified',
+        ]}
+      >
+        <span class="fcp-fact-icon" aria-hidden="true">{row.icon}</span>
+        <div class="fcp-fact-body">
+          <span class="fcp-fact-label">{row.label}</span>
+          <span class="fcp-fact-value">{row.valueStr}</span>
+        </div>
+        <div class="fcp-fact-right">
+          <span
+            class:list={[
+              'fcp-conf-badge',
+              row.status === 'outdated' && 'fcp-conf-badge--stale',
+              row.status === 'conflict' && 'fcp-conf-badge--conflict',
+              row.status === 'unverified' && 'fcp-conf-badge--unverified',
+            ]}
+            title={row.display.description}
+          >
+            {row.status === 'conflict' ? '⚠ Conflict' :
+             row.status === 'unverified' ? '? Unverified' :
+             row.status === 'outdated' ? '⟳ Stale' :
+             `✓ ${row.checkedLabel}`}
+          </span>
+          {row.sourceUrl && (
+            <a
+              href={row.sourceUrl}
+              class="fcp-source-link"
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              aria-label={`Official source for ${row.label}`}
+            >↗</a>
+          )}
+        </div>
+      </div>
+    ))}
+  </div>
+
+  <!-- Footer -->
+  <div class="fcp-footer">
+    <p class="fcp-disclaimer">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      Fact data sourced from official exchange pages. Bonus terms change frequently — always verify on the official site before registering.
+      <a href="/methodology/">Methodology →</a>
+    </p>
+    {health.criticalFieldsMissing.length > 0 && (
+      <p class="fcp-missing" aria-live="polite">
+        Awaiting verification: {health.criticalFieldsMissing.join(', ')}
+      </p>
+    )}
+  </div>
+</div>
+
+<style>
+  .fcp {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+    font-size: 0.8rem;
+  }
+
+  /* Header */
+  .fcp-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.625rem 1rem;
+    background: rgba(74, 222, 128, 0.03);
+    border-bottom: 1px solid var(--color-border);
+    flex-wrap: wrap;
+  }
+
+  .fcp-title {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #4ade80;
+  }
+
+  .fcp-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+  }
+
+  .fcp-score {
+    font-size: 1.1rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .fcp-score-unit {
+    font-size: 0.65rem;
+    font-weight: 600;
+    opacity: 0.7;
+  }
+
+  .fcp-meta-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.05rem;
+  }
+  .fcp-meta-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .fcp-meta-sub {
+    font-size: 0.65rem;
+    color: var(--color-text-muted);
+  }
+
+  /* Fact rows */
+  .fcp-facts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .fcp-fact {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.875rem;
+    border-bottom: 1px solid var(--color-border);
+    border-right: 1px solid var(--color-border);
+    transition: background 0.1s;
+    min-width: 0;
+  }
+  .fcp-fact:nth-child(even) { border-right: none; }
+  .fcp-fact:nth-last-child(-n+2) { border-bottom: none; }
+  .fcp-fact:last-child:nth-child(odd) { border-right: none; }
+  .fcp-fact:hover { background: rgba(255,255,255,0.01); }
+
+  /* Status variants */
+  .fcp-fact--stale     { background: rgba(251,146,60,0.03); }
+  .fcp-fact--conflict  { background: rgba(239,68,68,0.04); }
+  .fcp-fact--unverified{ background: rgba(255,255,255,0.01); }
+
+  .fcp-fact-icon {
+    font-size: 0.85rem;
+    flex-shrink: 0;
+  }
+
+  .fcp-fact-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.05rem;
+  }
+
+  .fcp-fact-label {
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
+    line-height: 1.2;
+  }
+  .fcp-fact-value {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .fcp-fact-right {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    flex-shrink: 0;
+  }
+
+  /* Confidence badges */
+  .fcp-conf-badge {
+    font-size: 0.62rem;
+    font-weight: 600;
+    padding: 0.1rem 0.35rem;
+    border-radius: 3px;
+    white-space: nowrap;
+    background: rgba(74,222,128,0.07);
+    color: #4ade80;
+    border: 1px solid rgba(74,222,128,0.18);
+  }
+  .fcp-conf-badge--stale {
+    background: rgba(251,146,60,0.07);
+    color: #fb923c;
+    border-color: rgba(251,146,60,0.20);
+  }
+  .fcp-conf-badge--conflict {
+    background: rgba(239,68,68,0.07);
+    color: #ef4444;
+    border-color: rgba(239,68,68,0.20);
+  }
+  .fcp-conf-badge--unverified {
+    background: rgba(255,255,255,0.03);
+    color: var(--color-text-muted);
+    border-color: var(--color-border);
+  }
+
+  .fcp-source-link {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--color-accent);
+    text-decoration: none;
+    opacity: 0.7;
+    transition: opacity 0.12s;
+  }
+  .fcp-source-link:hover { opacity: 1; }
+
+  /* Footer */
+  .fcp-footer {
+    padding: 0.5rem 1rem;
+    border-top: 1px solid var(--color-border);
+    background: rgba(255,255,255,0.008);
+  }
+
+  .fcp-disclaimer {
+    margin: 0;
+    font-size: 0.65rem;
+    color: var(--color-text-muted);
+    line-height: 1.5;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+  }
+  .fcp-disclaimer svg { flex-shrink: 0; margin-top: 0.1em; }
+  .fcp-disclaimer a {
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    margin-left: auto;
+    white-space: nowrap;
+  }
+  .fcp-disclaimer a:hover { color: var(--color-accent); }
+
+  .fcp-missing {
+    margin: 0.375rem 0 0;
+    font-size: 0.63rem;
+    color: #fb923c;
+    opacity: 0.8;
+  }
+
+  @media (max-width: 480px) {
+    .fcp-facts { grid-template-columns: 1fr; }
+    .fcp-fact  { border-right: none; }
+    .fcp-fact:last-child { border-bottom: none; }
+  }
+</style>

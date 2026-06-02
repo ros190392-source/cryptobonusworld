@@ -1,0 +1,154 @@
+---
+/**
+ * ComparisonSummaryBlock — AI-readable side-by-side comparison summary.
+ *
+ * Optimised for:
+ *  - Google AI Overviews (structured comparison tables)
+ *  - Perplexity (clear head-to-head format)
+ *  - ChatGPT citations (table-parseable format)
+ *
+ * Renders a semantic table with schema.org Table markup.
+ * Keep rows concise — max 6 rows recommended.
+ */
+
+export interface ComparisonRow {
+  attribute: string;
+  a: string;
+  b: string;
+  /** Optionally highlight which side wins on this attribute */
+  winner?: 'a' | 'b' | 'tie';
+}
+
+interface Props {
+  labelA: string;
+  labelB: string;
+  rows: ComparisonRow[];
+  heading?: string;
+  verdict?: string;
+}
+
+const { labelA, labelB, rows, heading, verdict } = Astro.props;
+---
+
+<div
+  class="csb"
+  itemscope
+  itemtype="https://schema.org/Table"
+  role="region"
+  aria-label={heading ?? `${labelA} vs ${labelB} comparison`}
+>
+  {heading && <h3 class="csb-heading" itemprop="name">{heading}</h3>}
+
+  <table class="csb-table">
+    <thead>
+      <tr>
+        <th class="csb-th csb-th--attr" scope="col">Feature</th>
+        <th class="csb-th csb-th--a" scope="col">{labelA}</th>
+        <th class="csb-th csb-th--b" scope="col">{labelB}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {rows.map(row => (
+        <tr class="csb-row">
+          <td class="csb-attr">{row.attribute}</td>
+          <td class:list={['csb-val', row.winner === 'a' && 'csb-val--winner', row.winner === 'tie' && 'csb-val--tie']}>
+            {row.a}
+            {row.winner === 'a' && <span class="csb-win-marker" aria-label="winner">✓</span>}
+          </td>
+          <td class:list={['csb-val', row.winner === 'b' && 'csb-val--winner', row.winner === 'tie' && 'csb-val--tie']}>
+            {row.b}
+            {row.winner === 'b' && <span class="csb-win-marker" aria-label="winner">✓</span>}
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+
+  {verdict && (
+    <p class="csb-verdict">{verdict}</p>
+  )}
+</div>
+
+<style>
+  .csb {
+    margin-bottom: 1.5rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .csb-heading {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin: 0 0 0.75rem;
+  }
+
+  .csb-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .csb-th {
+    padding: 0.6rem 0.875rem;
+    background: rgba(255,255,255,0.03);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--color-text-muted);
+    text-align: left;
+    border-bottom: 1px solid var(--color-border);
+    white-space: nowrap;
+  }
+
+  .csb-th--attr { width: 35%; }
+
+  .csb-row:not(:last-child) td {
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .csb-attr {
+    padding: 0.55rem 0.875rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    vertical-align: top;
+  }
+
+  .csb-val {
+    padding: 0.55rem 0.875rem;
+    color: var(--color-text-secondary);
+    vertical-align: top;
+    line-height: 1.45;
+  }
+
+  .csb-val--winner {
+    color: var(--color-text-primary);
+    background: rgba(74,222,128,0.04);
+  }
+
+  .csb-val--tie {
+    color: var(--color-text-secondary);
+  }
+
+  .csb-win-marker {
+    display: inline-block;
+    margin-left: 0.3rem;
+    font-size: 0.65rem;
+    color: #4ade80;
+    font-weight: 800;
+    vertical-align: super;
+  }
+
+  .csb-verdict {
+    margin-top: 0.625rem;
+    font-size: 0.82rem;
+    color: var(--color-text-secondary);
+    line-height: 1.65;
+    font-style: italic;
+  }
+</style>

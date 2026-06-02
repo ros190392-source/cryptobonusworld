@@ -1,0 +1,384 @@
+{
+  "exchange": "kucoin",
+  "updatedAt": "2026-06-01",
+  "sources": {
+    "fees": {
+      "url": "https://www.kucoin.com/vip/privilege",
+      "label": "KuCoin — Trading Fee Schedule",
+      "type": "official-fees",
+      "lastAccessed": "2026-05-27",
+      "notes": "Spot maker 0.10%, taker 0.10% at standard tier. Futures maker 0.02%, taker 0.06%."
+    },
+    "kyc": {
+      "url": "https://www.kucoin.com/support/categories/360002023553",
+      "label": "KuCoin — KYC Verification",
+      "type": "official-kyc",
+      "lastAccessed": "2026-05-27",
+      "notes": "No KYC required for basic trading. 1 BTC/day withdrawal without KYC. KYC increases limits."
+    },
+    "bonus": {
+      "url": "https://www.kucoin.com/activity/new-user-rewards",
+      "label": "KuCoin — New User Rewards",
+      "type": "official-promo",
+      "lastAccessed": "2026-05-27",
+      "notes": "Up to 11,000 USDT in new user bonus tasks. Deposit required for most tasks."
+    },
+    "restricted_countries": {
+      "url": "https://www.kucoin.com/support/articles/360015552591",
+      "label": "KuCoin — Restricted Regions",
+      "type": "official-legal",
+      "lastAccessed": "2026-05-27",
+      "notes": "US restricted"
+    },
+    "terms": {
+      "url": "https://www.kucoin.com/legal/terms-of-use",
+      "label": "KuCoin — Terms of Use",
+      "type": "official-legal",
+      "lastAccessed": "2026-05-27"
+    },
+    "proof_of_reserves": {
+      "url": "https://www.kucoin.com/proof-of-reserves",
+      "label": "KuCoin — Proof of Reserves",
+      "type": "official-reserves",
+      "lastAccessed": "2026-05-27",
+      "notes": "Merkle tree PoR published"
+    },
+    "p2p": {
+      "url": "https://www.kucoin.com/otc/",
+      "label": "KuCoin — P2P/OTC Trading",
+      "type": "official-p2p",
+      "lastAccessed": "2026-05-27"
+    },
+    "app_ios": {
+      "url": "https://apps.apple.com/app/kucoin-buy-bitcoin-crypto/id1378956601",
+      "label": "KuCoin iOS App — App Store",
+      "type": "official-app",
+      "lastAccessed": "2026-05-27"
+    },
+    "app_android": {
+      "url": "https://play.google.com/store/apps/details?id=com.kubi.kucoin",
+      "label": "KuCoin Android App — Google Play",
+      "type": "official-app",
+      "lastAccessed": "2026-05-27"
+    },
+    "futures": {
+      "url": "https://www.kucoin.com/futures/XBTUSDTM",
+      "label": "KuCoin — Futures Trading",
+      "type": "official-other",
+      "lastAccessed": "2026-05-27",
+      "notes": "Up to 100x leverage on perpetuals"
+    },
+    "affiliate": {
+      "url": "https://www.kucoin.com/referral",
+      "label": "KuCoin — Referral Program",
+      "type": "official-affiliate",
+      "lastAccessed": "2026-05-27"
+    }
+  },
+  "facts": [
+    {
+      "field": "bonus_amount",
+      "currentValue": 11000,
+      "unit": "USDT",
+      "officialSourceKey": "bonus",
+      "officialSourceUrl": "https://www.kucoin.com/activity/new-user-rewards",
+      "lastChecked": "2026-05-27",
+      "checkedBy": "human",
+      "confidenceScore": 0.27,
+      "conflictStatus": "outdated",
+      "manualReviewRequired": true,
+      "notes": "Up to 11,000 USDT in new user rewards. Needs daily re-check."
+    },
+    {
+      "field": "bonus_currency",
+      "currentValue": "USDT",
+      "officialSourceKey": "bonus",
+      "lastChecked": "2026-05-27",
+      "checkedBy": "human",
+      "confidenceScore": 0.63,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "bonus_expiry_days",
+      "currentValue": 30,
+      "unit": "days",
+      "officialSourceKey": "bonus",
+      "lastChecked": "2026-05-27",
+      "checkedBy": "human",
+      "confidenceScore": 0.27,
+      "conflictStatus": "outdated",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "bonus_requires_kyc",
+      "currentValue": false,
+      "officialSourceKey": "kyc",
+      "lastChecked": "2026-05-27",
+      "checkedBy": "human",
+      "confidenceScore": 0.80,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false,
+      "notes": "No KYC required for basic bonus tasks; KYC unlocks higher withdrawal limits"
+    },
+    {
+      "field": "bonus_requires_deposit",
+      "currentValue": true,
+      "officialSourceKey": "bonus",
+      "lastChecked": "2026-05-27",
+      "checkedBy": "human",
+      "confidenceScore": 0.27,
+      "conflictStatus": "outdated",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "spot_maker_fee",
+      "currentValue": 0.1,
+      "unit": "%",
+      "officialSourceKey": "fees",
+      "lastChecked": "2026-05-27",
+      "checkedBy": "human",
+      "confidenceScore": 0.80,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "spot_taker_fee",
+      "currentValue": 0.1,
+      "unit": "%",
+      "officialSourceKey": "fees",
+      "lastChecked": "2026-05-27",
+      "checkedBy": "human",
+      "confidenceScore": 0.80,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "futures_maker_fee",
+      "currentValue": 0.02,
+      "unit": "%",
+      "officialSourceKey": "fees",
+      "lastChecked": "2026-05-27",
+      "checkedBy": "human",
+      "confidenceScore": 0.80,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "futures_taker_fee",
+      "currentValue": 0.06,
+      "unit": "%",
+      "officialSourceKey": "fees",
+      "lastChecked": "2026-05-27",
+      "checkedBy": "human",
+      "confidenceScore": 0.80,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "max_futures_leverage",
+      "currentValue": 100,
+      "unit": "x",
+      "officialSourceKey": "futures",
+      "lastChecked": "2026-05-27",
+      "checkedBy": "human",
+      "confidenceScore": 0.85,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "kyc_required",
+      "currentValue": false,
+      "officialSourceKey": "kyc",
+      "lastChecked": "2026-05-27",
+      "checkedBy": "human",
+      "confidenceScore": 0.80,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false,
+      "notes": "No KYC needed for basic trading. 1 BTC/day withdrawal without KYC."
+    },
+    {
+      "field": "no_kyc_withdrawal_limit",
+      "currentValue": 1,
+      "unit": "BTC/day",
+      "officialSourceKey": "kyc",
+      "lastChecked": "2026-05-27",
+      "checkedBy": "human",
+      "confidenceScore": 0.76,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "p2p_available",
+      "currentValue": true,
+      "officialSourceKey": "p2p",
+      "lastChecked": "2026-05-27",
+      "checkedBy": "human",
+      "confidenceScore": 0.90,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "futures_available",
+      "currentValue": true,
+      "officialSourceKey": "futures",
+      "lastChecked": "2026-05-27",
+      "checkedBy": "human",
+      "confidenceScore": 0.85,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "proof_of_reserves",
+      "currentValue": true,
+      "officialSourceKey": "proof_of_reserves",
+      "lastChecked": "2026-05-27",
+      "checkedBy": "human",
+      "confidenceScore": 0.95,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "headquarters",
+      "currentValue": "Seychelles",
+      "officialSourceUrl": "https://www.kucoin.com/about",
+      "lastChecked": "2026-05-27",
+      "checkedBy": "human",
+      "confidenceScore": 0.80,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "founded_year",
+      "currentValue": 2017,
+      "officialSourceUrl": "https://www.kucoin.com/about",
+      "lastChecked": "2026-05-27",
+      "checkedBy": "human",
+      "confidenceScore": 0.80,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "restricted_us",
+      "currentValue": true,
+      "officialSourceKey": "restricted_countries",
+      "lastChecked": "2026-05-27",
+      "checkedBy": "human",
+      "confidenceScore": 0.76,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "mobile_app_ios",
+      "currentValue": true,
+      "officialSourceKey": "app_ios",
+      "lastChecked": "2026-05-27",
+      "checkedBy": "human",
+      "confidenceScore": 0.85,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "mobile_app_android",
+      "currentValue": true,
+      "officialSourceKey": "app_android",
+      "lastChecked": "2026-05-27",
+      "checkedBy": "human",
+      "confidenceScore": 0.85,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "trading_pairs_count",
+      "currentValue": 700,
+      "officialSourceUrl": "https://www.kucoin.com/markets",
+      "lastChecked": "2026-05-27",
+      "checkedBy": "human",
+      "confidenceScore": 0.80,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    }
+  ],
+  "screenshots": {
+    "registration": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "kyc": {
+      "status": "not_applicable",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": "KYC not required on this exchange"
+    },
+    "bonus": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "deposit": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "p2p": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "spot": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "futures": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "fees": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "mobile_app": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "mobile",
+      "notes": ""
+    },
+    "proof_of_reserves": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    }
+  }
+}

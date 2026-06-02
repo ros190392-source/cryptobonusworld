@@ -1,5 +1,8 @@
 ---
 import CTAButton from './CTAButton.astro';
+import ExchangeLogo from './ExchangeLogo.astro';
+import { getRelatedExchanges } from '../utils/seo';
+import { getCtaLabel } from '../utils/affiliateUtils';
 
 interface Exchange {
   name: string;
@@ -11,6 +14,8 @@ interface Exchange {
   affiliateUrl: string;
   kycRequired: boolean;
   depositRequired: boolean;
+  bonusTypes: string[];
+  countries: string[];
 }
 
 interface Props {
@@ -20,7 +25,8 @@ interface Props {
 }
 
 const { currentSlug, exchanges, count = 3 } = Astro.props;
-const alternatives = exchanges.filter(e => e.slug !== currentSlug).slice(0, count);
+// Relevance-sorted: shared bonus types + KYC policy + countries win over insertion order
+const alternatives = getRelatedExchanges(currentSlug, exchanges as any, count);
 
 const brandColors: Record<string, string> = {
   bybit: '#F7A600',
@@ -55,9 +61,7 @@ const brandColors: Record<string, string> = {
           <div class="alt-card-glow" aria-hidden="true" />
 
           <div class="alt-card-top">
-            <div class="alt-logo" aria-hidden="true">
-              {ex.name.charAt(0)}
-            </div>
+            <ExchangeLogo slug={ex.slug} name={ex.name} size={80} variant="square" />
             <div class="alt-info">
               <a href={`/exchanges/${ex.slug}/`} class="alt-name">{ex.name}</a>
               <div class="alt-rating">
@@ -79,7 +83,15 @@ const brandColors: Record<string, string> = {
           )}
 
           <div class="alt-cta">
-            <CTAButton href={ex.affiliateUrl} exchange={ex.name} size="sm" fullWidth />
+            <CTAButton
+              href={ex.affiliateUrl}
+              label={getCtaLabel(ex as any)}
+              exchange={ex.name}
+              size="sm"
+              fullWidth
+              trackPlacement="alternatives"
+              trackBonus={ex.bonusAmount}
+            />
           </div>
 
           <a href={`/exchanges/${ex.slug}/`} class="alt-details-link">View full review →</a>
@@ -160,25 +172,11 @@ const brandColors: Record<string, string> = {
   .alt-card-top {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 1rem;
     position: relative;
     z-index: 1;
   }
 
-  .alt-logo {
-    flex-shrink: 0;
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    background: color-mix(in srgb, var(--brand) 14%, #111);
-    border: 1px solid color-mix(in srgb, var(--brand) 30%, transparent);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1rem;
-    font-weight: 900;
-    color: var(--brand);
-  }
 
   .alt-info { flex: 1; min-width: 0; }
 

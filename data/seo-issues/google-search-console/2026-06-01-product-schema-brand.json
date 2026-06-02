@@ -1,0 +1,46 @@
+[
+  {
+    "id": "gsc:schema:invalid-brand-type:product-brand-organization",
+    "source": "google-search-console",
+    "issueType": "schema:invalid-brand-type",
+    "severity": "high",
+    "affectedUrls": [
+      "/exchanges/bybit/",
+      "/exchanges/binance/",
+      "/exchanges/mexc/",
+      "/exchanges/okx/",
+      "/exchanges/bitget/",
+      "/exchanges/bingx/",
+      "/exchanges/kucoin/",
+      "/exchanges/gate-io/",
+      "/exchanges/htx/",
+      "/exchanges/coinex/",
+      "/exchanges/phemex/",
+      "/exchanges/bitunix/",
+      "/exchanges/lbank/",
+      "/exchanges/coinbase/",
+      "/bonuses/bybit/",
+      "/bonuses/binance/",
+      "/bonuses/mexc/",
+      "/bonuses/okx/"
+    ],
+    "detectedAt": "2026-06-01",
+    "rawMessage": "Merchant listing: Invalid value in field 'brand'. The 'brand' field must use @type 'Brand'. Got: 'Organization'.",
+    "screenshotPath": null,
+    "status": "fixed",
+    "recommendedFix": "Change brand object @type from 'Organization' to 'Brand' in buildProductSchema(). Brand type does not support a url field — remove it. The bonus-codes/[slug].astro page already uses the correct Brand type.",
+    "autoFixPolicy": "safe",
+    "relatedFiles": [
+      "src/utils/seo.ts"
+    ],
+    "validationSteps": [
+      "Build site: npm run build",
+      "Check dist/exchanges/bybit/index.html — grep for '\"@type\":\"Brand\"' in JSON-LD",
+      "Verify no '\"@type\":\"Organization\"' appears inside brand field",
+      "Paste /exchanges/bybit/ URL into Google Rich Results Test — no brand type errors"
+    ],
+    "fixedAt": "2026-06-02",
+    "fixDescription": "Changed brand @type from 'Organization' to 'Brand' in buildProductSchema() in src/utils/seo.ts. Removed the url field from the brand object (Brand schema does not use url). The bonus-codes page was already correct.",
+    "notes": "Schema.org Product.brand accepts Brand or Organization types per spec, but Google's validator is strict and requires Brand for product brand attribution."
+  }
+]

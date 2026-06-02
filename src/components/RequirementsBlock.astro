@@ -4,50 +4,74 @@ interface Props {
   kycRequired: boolean;
   depositRequired: boolean;
   futuresRequired: boolean;
+  exchangeName?: string;
+  minDeposit?: { amount: number; currency: string } | null;
+  affiliateUrl?: string;
+  bonusAmount?: number;
+  bonusCurrency?: string;
 }
-const { requirements, kycRequired, depositRequired, futuresRequired } = Astro.props;
+const {
+  requirements,
+  kycRequired,
+  depositRequired,
+  futuresRequired,
+  exchangeName,
+  minDeposit,
+  affiliateUrl,
+  bonusAmount,
+  bonusCurrency,
+} = Astro.props;
+
+// Build exchange-specific step descriptions
+const step1Desc = exchangeName
+  ? `Use our ${exchangeName} referral link to open the sign-up page — it activates your welcome bonus automatically.`
+  : 'Use our affiliate link to open the exchange registration page. The bonus is activated through the referral link.';
+
+const step4Desc = minDeposit && minDeposit.amount > 0
+  ? `Transfer at least ${minDeposit.amount.toLocaleString('en-US')} ${minDeposit.currency} to your account. Crypto deposits are typically confirmed within minutes.`
+  : 'Deposit when you are ready — no minimum is required to start earning your first bonus reward.';
 
 const allSteps = [
   {
     num: 1,
     icon: '🔗',
     label: 'Click Referral Link',
-    desc: 'Use our affiliate link to open the exchange registration page.',
+    desc: step1Desc,
     always: true,
   },
   {
     num: 2,
     icon: '📧',
     label: 'Create Account',
-    desc: 'Register with email or phone. Takes about 2 minutes.',
+    desc: 'Register with your email or phone number. Account creation takes under 2 minutes.',
     always: true,
   },
   {
     num: 3,
     icon: '🪪',
     label: 'KYC Verification',
-    desc: 'Submit a government-issued ID to verify your identity.',
+    desc: 'Upload a government-issued ID photo for identity verification. Required before claiming the full bonus.',
     required: kycRequired,
   },
   {
     num: 4,
     icon: '💰',
     label: 'Make a Deposit',
-    desc: 'Fund your account with the minimum qualifying amount.',
+    desc: step4Desc,
     required: depositRequired,
   },
   {
     num: 5,
     icon: '📈',
     label: 'Start Trading',
-    desc: 'Complete the required trading volume to unlock bonus tiers.',
+    desc: 'Complete trading tasks to hit volume milestones. Each tier unlocks additional bonus rewards automatically.',
     always: true,
   },
   {
     num: 6,
     icon: '🎁',
     label: 'Claim Bonus',
-    desc: 'Bonus is credited automatically or via the rewards center.',
+    desc: 'Bonus vouchers are credited automatically or via the Rewards Center in your account dashboard.',
     always: true,
   },
 ];
@@ -84,6 +108,29 @@ const steps = allSteps.filter(s => s.always || s.required);
         <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
       </svg>
       <p>{requirements}</p>
+    </div>
+  )}
+
+  {affiliateUrl && affiliateUrl !== '#' && (
+    <div class="req-cta-bar">
+      <div class="req-cta-left">
+        <span class="req-cta-label">Ready to claim?</span>
+        {bonusAmount && bonusCurrency && (
+          <span class="req-cta-amount">Up to {bonusAmount.toLocaleString()} {bonusCurrency}</span>
+        )}
+      </div>
+      <a
+        href={affiliateUrl}
+        class="req-cta-btn"
+        target="_blank"
+        rel="noopener noreferrer nofollow sponsored"
+        data-track="affiliate-cta"
+        data-exchange={exchangeName?.toLowerCase().replace(/\s+/g, '-') ?? ''}
+        data-placement="requirements-cta"
+        data-bonus={bonusAmount ? String(bonusAmount) : undefined}
+      >
+        {kycRequired ? `Claim ${exchangeName ?? ''} Bonus →` : `Claim — No KYC →`}
+      </a>
     </div>
   )}
 </div>
@@ -215,6 +262,71 @@ const steps = allSteps.filter(s => s.always || s.required);
     color: var(--color-text-muted);
     margin: 0;
     line-height: 1.6;
+  }
+
+  /* ── CTA bar after steps ────────────────── */
+  .req-cta-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    padding: 1rem 1.25rem;
+    background: linear-gradient(135deg, rgba(245,197,66,0.07) 0%, rgba(245,197,66,0.03) 100%);
+    border: 1px solid rgba(245,197,66,0.2);
+    border-radius: 12px;
+  }
+
+  .req-cta-left {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .req-cta-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+  }
+
+  .req-cta-amount {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--color-accent);
+  }
+
+  .req-cta-btn {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0.6rem 1.375rem;
+    background: var(--color-accent);
+    color: #000;
+    font-size: 0.875rem;
+    font-weight: 800;
+    border-radius: 10px;
+    text-decoration: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+  }
+  .req-cta-btn:hover {
+    background: var(--color-accent-warm, #fbbf24);
+    transform: translateY(-2px);
+    box-shadow: var(--glow-cta, 0 4px 20px rgba(245,197,66,0.35));
+  }
+  .req-cta-btn:active {
+    transform: scale(0.97);
+  }
+
+  @media (max-width: 600px) {
+    .req-cta-bar {
+      flex-direction: column;
+      align-items: stretch;
+      text-align: center;
+    }
+    .req-cta-left { align-items: center; }
+    .req-cta-btn { width: 100%; justify-content: center; }
   }
 
   /* Mobile: vertical timeline */

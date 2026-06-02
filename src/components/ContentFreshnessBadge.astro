@@ -1,0 +1,118 @@
+---
+/**
+ * ContentFreshnessBadge.astro
+ *
+ * Displays a color-coded freshness indicator based on how recently
+ * data was verified. Three states:
+ *
+ *   fresh   (0–14 days)   — green   "Verified X days ago"
+ *   warn    (15–30 days)  — amber   "Verified X days ago — review pending"
+ *   stale   (31+ days)    — red     "Data may be outdated"
+ *
+ * Props:
+ *   dateStr  — ISO date string (YYYY-MM-DD or full ISO) for last verification
+ *   label    — Optional custom label (default: "Last verified")
+ *   compact  — Show only dot + short label, no date detail
+ *
+ * Usage:
+ *   <ContentFreshnessBadge dateStr={ex.lastVerified} />
+ *   <ContentFreshnessBadge dateStr={ex.updatedAt} compact />
+ */
+
+interface Props {
+  dateStr: string;
+  label?: string;
+  compact?: boolean;
+}
+
+const { dateStr, label = 'Last verified', compact = false } = Astro.props;
+
+const WARN_DAYS = 14;
+const STALE_DAYS = 30;
+
+// Calculate age in days
+const verifiedMs = new Date(dateStr).getTime();
+const nowMs = Date.now();
+const ageDays = Math.floor((nowMs - verifiedMs) / (1000 * 60 * 60 * 24));
+
+type FreshnessStatus = 'fresh' | 'warn' | 'stale' | 'invalid';
+
+let status: FreshnessStatus;
+if (isNaN(ageDays)) {
+  status = 'invalid';
+} else if (ageDays <= WARN_DAYS) {
+  status = 'fresh';
+} else if (ageDays <= STALE_DAYS) {
+  status = 'warn';
+} else {
+  status = 'stale';
+}
+
+const STATUS_CONFIG = {
+  fresh:   { color: '#4ade80', dot: '●', text: ageDays === 0 ? 'Today' : ageDays === 1 ? '1 day ago' : `${ageDays} days ago` },
+  warn:    { color: '#fbbf24', dot: '●', text: `${ageDays} days ago` },
+  stale:   { color: '#f87171', dot: '●', text: 'May be outdated' },
+  invalid: { color: '#606060', dot: '○', text: 'Date unknown' },
+};
+
+const cfg = STATUS_CONFIG[status];
+
+// Human-readable date
+const displayDate = isNaN(verifiedMs)
+  ? ''
+  : new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+
+const warnSuffix = status === 'warn' ? ' — review pending' : '';
+const displayText = compact ? cfg.text : `${cfg.text}${warnSuffix}`;
+---
+
+<span
+  class:list={['freshness-badge', `freshness-badge--${status}`, compact && 'freshness-badge--compact']}
+  title={displayDate ? `${label}: ${displayDate}` : label}
+  aria-label={`${label}: ${displayText}`}
+>
+  <span class="freshness-badge__dot" aria-hidden="true">{cfg.dot}</span>
+  {!compact && <span class="freshness-badge__label">{label}:</span>}
+  <span class="freshness-badge__text">{displayText}</span>
+</span>
+
+<style>
+  .freshness-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: var(--text-xs, 0.75rem);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .freshness-badge__dot {
+    font-size: 0.55rem;
+    line-height: 1;
+  }
+
+  .freshness-badge__label {
+    color: var(--color-text-muted);
+    font-weight: 600;
+  }
+
+  .freshness-badge--fresh .freshness-badge__dot,
+  .freshness-badge--fresh .freshness-badge__text { color: #4ade80; }
+
+  .freshness-badge--warn .freshness-badge__dot,
+  .freshness-badge--warn .freshness-badge__text  { color: #fbbf24; }
+
+  .freshness-badge--stale .freshness-badge__dot,
+  .freshness-badge--stale .freshness-badge__text { color: #f87171; }
+
+  .freshness-badge--invalid .freshness-badge__dot,
+  .freshness-badge--invalid .freshness-badge__text { color: var(--color-text-muted); }
+
+  .freshness-badge--warn .freshness-badge__label,
+  .freshness-badge--stale .freshness-badge__label { color: inherit; }
+
+  /* Compact: just dot + short text */
+  .freshness-badge--compact {
+    font-size: 0.7rem;
+  }
+</style>

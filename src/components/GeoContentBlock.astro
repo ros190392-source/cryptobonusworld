@@ -1,0 +1,155 @@
+---
+/**
+ * GeoContentBlock.astro
+ *
+ * GEO-aware editorial content block. Renders different content based on
+ * the user's detected country from the Analytics/GEO system.
+ *
+ * Works via client-side JS: reads the `cbw_geo` localStorage/cookie value
+ * set by the Analytics component's GEO detection, then shows the matching
+ * localized tip if one is configured.
+ *
+ * Falls back to the `defaultContent` if no geo match or no detection.
+ *
+ * Props:
+ *   geoContent   — Record<geoCode, { title?, body, type? }> per-country variants
+ *   defaultContent — Shown when geo is unknown or has no variant
+ *   type           — Default callout type (can be overridden per-geo)
+ *   title          — Default title (can be overridden per-geo)
+ *   alwaysShow     — If true, always render even without geo match (uses default)
+ *
+ * GEO codes: 'tr' | 'in' | 'id' | 'ng' | 'br' | 'vn' | 'ph'
+ *
+ * Usage (exchange page — payment method tip):
+ *   <GeoContentBlock
+ *     geoContent={{
+ *       tr: { body: "P2P with TRY is the most popular on-ramp in Turkey. Bybit and MEXC have the deepest TRY liquidity." },
+ *       in: { body: "UPI payments via P2P desks are the standard for Indian users. MEXC and Bybit both support this." },
+ *     }}
+ *     defaultContent="Check the exchange's payment methods page for supported deposit options in your country."
+ *   />
+ */
+
+export interface GeoVariant {
+  body: string;
+  title?: string;
+  type?: 'tip' | 'warning' | 'info' | 'bonus';
+}
+
+interface Props {
+  geoContent?: Record<string, GeoVariant>;
+  defaultContent?: string;
+  type?: 'tip' | 'warning' | 'info' | 'bonus';
+  title?: string;
+  alwaysShow?: boolean;
+  /** Unique id for this block — used by the client script to find the right element */
+  blockId?: string;
+}
+
+const {
+  geoContent = {},
+  defaultContent,
+  type = 'info',
+  title,
+  alwaysShow = true,
+  blockId = `geo-block-${Math.random().toString(36).slice(2, 8)}`,
+} = Astro.props;
+
+// Serialise geoContent for the client script
+const geoContentJson = JSON.stringify(geoContent);
+const defaultContentJson = JSON.stringify(defaultContent ?? null);
+---
+
+{(alwaysShow || Object.keys(geoContent).length > 0) && (
+  <div
+    class:list={['geo-block', `callout callout--${type}`]}
+    id={blockId}
+    data-geo-content={geoContentJson}
+    data-default-content={defaultContentJson}
+    data-default-type={type}
+    data-default-title={title ?? ''}
+    style="display: none;"
+    aria-live="polite"
+  >
+    <!-- Content injected by client script -->
+    <span class="callout__icon" aria-hidden="true"></span>
+    <div class="callout__content">
+      <strong class="callout__title geo-block__title"></strong>
+      <p class="callout__body geo-block__body"></p>
+    </div>
+  </div>
+)}
+
+<script define:vars={{ blockId, geoContentJson, defaultContentJson, type, title }}>
+  (function () {
+    const el = document.getElementById(blockId);
+    if (!el) return;
+
+    const TYPE_ICONS = { tip: '💡', warning: '⚠️', info: 'ℹ️', bonus: '🎁' };
+
+    function render(body, blockTitle, blockType) {
+      if (!body) return;
+      const icon = el.querySelector('.callout__icon');
+      const titleEl = el.querySelector('.geo-block__title');
+      const bodyEl = el.querySelector('.geo-block__body');
+
+      if (icon) icon.textContent = TYPE_ICONS[blockType] ?? 'ℹ️';
+      if (titleEl) {
+        titleEl.textContent = blockTitle ?? '';
+        titleEl.style.display = blockTitle ? 'block' : 'none';
+      }
+      if (bodyEl) bodyEl.textContent = body;
+
+      // Update callout color class
+      el.className = el.className.replace(/callout--\w+/, `callout--${blockType}`);
+      el.style.display = 'flex';
+    }
+
+    function tryRender() {
+      const geoContent = JSON.parse(el.dataset.geoContent || '{}');
+      const defaultContent = JSON.parse(el.dataset.defaultContent || 'null');
+      const defaultType = el.dataset.defaultType || 'info';
+      const defaultTitle = el.dataset.defaultTitle || '';
+
+      // Read geo from cbw_geo (set by Analytics GEO detection)
+      let geo = null;
+      try {
+        geo = localStorage.getItem('cbw_geo');
+      } catch (e) {}
+
+      if (geo && geoContent[geo]) {
+        const variant = geoContent[geo];
+        render(variant.body, variant.title ?? defaultTitle, variant.type ?? defaultType);
+      } else if (defaultContent) {
+        render(defaultContent, defaultTitle, defaultType);
+      }
+      // If no geo and no default: stays hidden
+    }
+
+    // Try immediately (geo may already be cached)
+    tryRender();
+
+    // Also listen for geo detection event (fired by Analytics after async lookup)
+    window.addEventListener('cbw:geo', function (e) {
+      tryRender();
+    });
+  })();
+</script>
+
+<style>
+  /* Inherits all .callout styles from ContentCallout + Layout global styles */
+  .geo-block {
+    /* Additional override: smooth appearance */
+    animation: geo-fadein 0.25s ease;
+  }
+
+  @keyframes geo-fadein {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Hide title element when empty */
+  .geo-block__title:empty {
+    display: none !important;
+  }
+</style>

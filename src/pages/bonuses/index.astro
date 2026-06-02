@@ -7,10 +7,23 @@ import RiskDisclaimer from '../../components/RiskDisclaimer.astro';
 import MethodologyBlock from '../../components/MethodologyBlock.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import FAQBlock from '../../components/FAQBlock.astro';
+import ContextualFeatured from '../../components/ContextualFeatured.astro';
+import AdaptiveRecommendation from '../../components/AdaptiveRecommendation.astro';
+import AiSummaryBlock from '../../components/AiSummaryBlock.astro';
+import QuickPicks from '../../components/QuickPicks.astro';
 
 import exchanges from '../../data/exchanges.json';
+import type { RecommendableExchange } from '../../utils/recommendationEngine';
+import type { PageContext } from '../../utils/analytics';
+import { getBonusSummaryItems } from '../../utils/offerValidation';
 
 const sorted = [...exchanges].sort((a, b) => b.rating - a.rating);
+const topPick = sorted[0]?.slug;
+
+// ── Quick Summary items — generated from exchanges.json, never hardcoded ──────
+// Order is editorial curation; values are always live from the data source.
+const QUICK_SUMMARY_SLUGS = ['bybit', 'binance', 'okx', 'mexc', 'bitget', 'bingx', 'kucoin'];
+const quickSummaryItems = getBonusSummaryItems(exchanges as any, QUICK_SUMMARY_SLUGS);
 
 const faqItems = [
   {
@@ -26,12 +39,15 @@ const faqItems = [
     answer: "MEXC, KuCoin, CoinEx and Bitunix offer bonuses without requiring full identity verification. Non-KYC accounts may have withdrawal limits.",
   },
 ];
+
+const analyticsContext: PageContext = { pageType: 'bonuses' };
 ---
 
 <Layout
-  title="Compare All Crypto Exchange Bonuses 2026"
-  description="Compare signup bonuses, deposit rewards and futures promotions from 12 top crypto exchanges. Filter by bonus type, KYC requirements and country availability."
+  title={`Best Crypto Exchange Bonuses 2026 — ${sorted.length} Exchanges Compared`}
+  description={`Compare signup bonuses, deposit rewards and futures promotions from ${sorted.length} top crypto exchanges. Filter by bonus type, KYC requirements and country availability.`}
   canonical="/bonuses/"
+  analyticsContext={analyticsContext}
 >
   <div class="container">
     <Breadcrumbs crumbs={[
@@ -47,13 +63,124 @@ const faqItems = [
     </div>
 
     <AffiliateDisclosure compact />
+
+    <AiSummaryBlock
+      title="Best Crypto Exchange Bonuses 2026 — Quick Summary"
+      intro="These are the top crypto exchange bonuses currently available, ranked by real-world value. All figures verified against official exchange promotion pages as of May 2026."
+      updatedDate="May 2026"
+      items={quickSummaryItems}
+    />
+
+    <ContextualFeatured
+      exchanges={sorted as unknown as RecommendableExchange[]}
+      defaultSlug={topPick}
+      heading="Best Bonus for You"
+      showReason={true}
+    />
+
     <FilterPanel />
 
+    <QuickPicks exchanges={sorted} />
     <BonusTable exchanges={sorted} />
+
+    <AdaptiveRecommendation
+      exchanges={sorted as unknown as RecommendableExchange[]}
+      pageType="bonuses"
+      showHint={true}
+    />
 
     <MethodologyBlock />
 
     <FAQBlock items={faqItems} />
+
+    <section class="hub-crosslinks" aria-label="Explore more on CryptoBonusWorld">
+      <h2 class="hub-crosslinks__title">More Ways to Compare Crypto Exchanges</h2>
+      <div class="hub-crosslinks__grid">
+        <a href="/exchanges/" class="hub-crosslinks__card">
+          <span class="hub-crosslinks__icon">🏦</span>
+          <div>
+            <strong>Read Full Exchange Reviews</strong>
+            <p>Deep-dive reviews for all {sorted.length} exchanges — fees, KYC conditions, walkthroughs and editor ratings.</p>
+          </div>
+          <span class="hub-crosslinks__arrow">→</span>
+        </a>
+        <a href="/compare/" class="hub-crosslinks__card">
+          <span class="hub-crosslinks__icon">⚖️</span>
+          <div>
+            <strong>Compare Two Exchanges Side by Side</strong>
+            <p>Bybit vs Binance, OKX vs Bitget, MEXC vs KuCoin — pick any two and see all metrics in a single table.</p>
+          </div>
+          <span class="hub-crosslinks__arrow">→</span>
+        </a>
+        <a href="/categories/no-kyc-bonuses/" class="hub-crosslinks__card">
+          <span class="hub-crosslinks__icon">🔓</span>
+          <div>
+            <strong>Best No-KYC Exchange Bonuses</strong>
+            <p>Claim bonuses without identity verification. See all exchanges that let you trade without submitting ID.</p>
+          </div>
+          <span class="hub-crosslinks__arrow">→</span>
+        </a>
+        <a href="/guides/" class="hub-crosslinks__card">
+          <span class="hub-crosslinks__icon">📖</span>
+          <div>
+            <strong>Bonus Claim Guides</strong>
+            <p>Step-by-step walkthroughs: how to activate bonuses, meet volume requirements, and withdraw rewards.</p>
+          </div>
+          <span class="hub-crosslinks__arrow">→</span>
+        </a>
+      </div>
+    </section>
+
     <RiskDisclaimer />
   </div>
 </Layout>
+
+<style>
+  .hub-crosslinks { margin: 2.5rem 0; }
+  .hub-crosslinks__title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0 0 1.25rem;
+    color: var(--color-text-primary);
+  }
+  .hub-crosslinks__grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.875rem;
+  }
+  .hub-crosslinks__card {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.875rem;
+    padding: 1.125rem 1.25rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg, 14px);
+    text-decoration: none;
+    color: var(--color-text-primary);
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .hub-crosslinks__card:hover {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 1px var(--color-accent, #f5c542) inset;
+  }
+  .hub-crosslinks__icon { font-size: 1.25rem; flex-shrink: 0; margin-top: 0.1rem; }
+  .hub-crosslinks__card div { flex: 1; min-width: 0; }
+  .hub-crosslinks__card strong {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin-bottom: 0.2rem;
+    color: var(--color-text-primary);
+  }
+  .hub-crosslinks__card p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+  }
+  .hub-crosslinks__arrow { font-size: 0.9rem; color: var(--color-accent); flex-shrink: 0; margin-top: 0.1rem; }
+  @media (max-width: 640px) {
+    .hub-crosslinks__grid { grid-template-columns: 1fr; }
+  }
+</style>

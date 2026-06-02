@@ -1,0 +1,574 @@
+---
+/**
+ * ExperimentProvider.astro — CryptoBonusWorld A/B Experiment Runtime
+ *
+ * Responsibilities:
+ *  1. Assign variants for all active experiments (deterministic, per-session stable)
+ *  2. Persist assignments to localStorage
+ *  3. Apply DOM transforms (text swaps, class additions, show/hide)
+ *  4. Fire cbw_experiment_view analytics events for each active assignment
+ *  5. Register conversion listeners (fire cbw_experiment_conversion on clicks)
+ *  6. Expose window.cbwExperiments public API
+ *  7. Render debug panel when ?exp_debug=1 or on localhost
+ *
+ * SEO guarantee:
+ *  All transforms are client-side only. Server HTML is never modified.
+ *  Crawlers always see the control variant (stable editorial markup).
+ *
+ * Placement: after Analytics.astro in Layout.astro (reads window.cbw.meta).
+ *
+ * DOM transform system:
+ *  Elements opt in via data attributes — no component changes required:
+ *
+ *  data-exp-text="{id}:{variant}:{text}|{id}:{variant}:{text}|..."
+ *    → Swap innerText when assigned variant matches
+ *
+ *  data-exp-class="{id}:{variant}:{className}|..."
+ *    → Add CSS class when assigned variant matches
+ *
+ *  data-exp-show="{id}:{variant}"
+ *    → Remove 'hidden' attribute and set display when assigned variant matches
+ *
+ *  data-exp-hide="{id}:{variant}"
+ *    → Set display:none when assigned variant matches
+ *
+ *  data-exp-attr="{id}:{variant}:{attrName}:{attrValue}|..."
+ *    → Set an attribute when assigned variant matches
+ */
+
+import { EXPERIMENTS } from '../data/experiments';
+---
+
+<script define:vars={{ __experiments: EXPERIMENTS }} is:inline>
+(function () {
+  'use strict';
+
+  // ── Guard ─────────────────────────────────────────────────────────────────
+  if (window.__CBW_EXP_INIT) return;
+  window.__CBW_EXP_INIT = true;
+
+  // ── Constants ─────────────────────────────────────────────────────────────
+  var LS_PREFIX    = 'cbw_exp_';
+  var SCHEMA_V     = 1;
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+
+  /** djb2 hash → unsigned 32-bit int */
+  function hashDjb2(str) {
+    var hash = 5381;
+    for (var i = 0; i < str.length; i++) {
+      hash = ((hash << 5) + hash) ^ str.charCodeAt(i);
+      hash = hash >>> 0;
+    }
+    return hash;
+  }
+
+  /** Map session + experiment to a stable bucket 0–99 */
+  function getBucket(experimentId, sessionId) {
+    return hashDjb2(experimentId + ':' + sessionId) % 100;
+  }
+
+  /** Select variant by cumulative weight buckets */
+  function selectVariant(variants, bucket) {
+    var cumulative = 0;
+    for (var i = 0; i < variants.length; i++) {
+      cumulative += variants[i].weight;
+      if (bucket < cumulative) return variants[i];
+    }
+    return variants[0]; // fallback
+  }
+
+  /** Check if experiment is in date range */
+  function inDateRange(exp) {
+    var now = Date.now();
+    if (exp.startDate && new Date(exp.startDate).getTime() > now) return false;
+    if (exp.endDate   && new Date(exp.endDate).getTime()   < now) return false;
+    return true;
+  }
+
+  // ── Read visitor context ──────────────────────────────────────────────────
+  // Try window.cbw.meta first (set by Analytics.astro), fall back to localStorage
+  var meta = (window.cbw && window.cbw.meta) || {};
+  var sessionId = meta.sessionId || 'fallback';
+  var geo       = meta.geoCode   || 'unknown';
+  var device    = meta.deviceType|| 'unknown';
+  var pageType  = meta.pageType  || 'other';
+
+  try { sessionId = sessionId || sessionStorage.getItem('cbw_sid') || 'fallback'; } catch(_) {}
+  try { geo    = geo    !== 'unknown' ? geo    : (localStorage.getItem('cbw_geo')    || 'unknown'); } catch(_) {}
+  try { device = device !== 'unknown' ? device : (localStorage.getItem('cbw_device') || 'unknown'); } catch(_) {}
+
+  // ── Parse URL override params: ?exp_{id}={variantId} ─────────────────────
+  var urlOverrides = {};
+  try {
+    var params = new URLSearchParams(location.search);
+    params.forEach(function(val, key) {
+      if (key.startsWith('exp_') && key !== 'exp_debug') {
+        urlOverrides[key.slice(4)] = val; // strip 'exp_' prefix
+      }
+    });
+  } catch(_) {}
+
+  var debugMode = false;
+  try {
+    debugMode = new URLSearchParams(location.search).get('exp_debug') === '1'
+      || location.hostname === 'localhost'
+      || location.hostname === '127.0.0.1';
+  } catch(_) {}
+
+  // ── Assign variants for all eligible experiments ──────────────────────────
+  var assignments = {}; // { experimentId: { variantId, variantLabel, source } }
+
+  for (var ei = 0; ei < __experiments.length; ei++) {
+    var exp = __experiments[ei];
+
+    if (!exp.active) continue;
+    if (!inDateRange(exp)) continue;
+
+    // Page targeting
+    if (exp.targetPages.indexOf('all') === -1 && pageType) {
+      if (exp.targetPages.indexOf(pageType) === -1) continue;
+    }
+
+    // GEO targeting
+    if (exp.targetGeos && geo !== 'unknown') {
+      if (exp.targetGeos.indexOf(geo) === -1) continue;
+    }
+
+    // Device targeting
+    if (exp.targetDevices && device !== 'unknown') {
+      if (exp.targetDevices.indexOf(device) === -1) continue;
+    }
+
+    var assignedVariantId   = null;
+    var assignedVariantLabel = null;
+    var assignmentSource    = 'new-assignment';
+
+    // 1. URL override
+    if (urlOverrides[exp.id]) {
+      var uv = urlOverrides[exp.id];
+      var uvDef = null;
+      for (var vi = 0; vi < exp.variants.length; vi++) {
+        if (exp.variants[vi].id === uv) { uvDef = exp.variants[vi]; break; }
+      }
+      if (uvDef) {
+        assignedVariantId    = uvDef.id;
+        assignedVariantLabel = uvDef.label;
+        assignmentSource     = 'url-override';
+        // Persist URL override to localStorage
+        try { localStorage.setItem(LS_PREFIX + exp.id, uvDef.id); } catch(_) {}
+      }
+    }
+
+    // 2. localStorage (stability)
+    if (!assignedVariantId) {
+      try {
+        var stored = localStorage.getItem(LS_PREFIX + exp.id);
+        if (stored) {
+          var storedDef = null;
+          for (var si = 0; si < exp.variants.length; si++) {
+            if (exp.variants[si].id === stored) { storedDef = exp.variants[si]; break; }
+          }
+          if (storedDef) {
+            assignedVariantId    = storedDef.id;
+            assignedVariantLabel = storedDef.label;
+            assignmentSource     = 'localStorage';
+          }
+        }
+      } catch(_) {}
+    }
+
+    // 3. New deterministic assignment
+    if (!assignedVariantId) {
+      var bucket    = getBucket(exp.id, sessionId);
+      var variant   = selectVariant(exp.variants, bucket);
+      assignedVariantId    = variant.id;
+      assignedVariantLabel = variant.label;
+      assignmentSource     = 'new-assignment';
+      try { localStorage.setItem(LS_PREFIX + exp.id, variant.id); } catch(_) {}
+    }
+
+    assignments[exp.id] = {
+      variantId:    assignedVariantId,
+      variantLabel: assignedVariantLabel,
+      source:       assignmentSource,
+      experiment:   exp,
+    };
+  }
+
+  // ── Write assignments back to window.cbw.meta ────────────────────────────
+  try {
+    if (window.cbw && window.cbw.meta) {
+      var expSummary = {};
+      Object.keys(assignments).forEach(function(id) {
+        expSummary[id] = assignments[id].variantId;
+      });
+      window.cbw.meta.experiments = expSummary;
+    }
+  } catch(_) {}
+
+  // ── Apply DOM transforms ──────────────────────────────────────────────────
+  // Runs synchronously — elements are already in the DOM at this point
+  // since this script runs after the document is parsed (is:inline, end of body)
+
+  function parseTransformAttr(attrValue) {
+    // Format: "{expId}:{variantId}:{payload}|{expId}:{variantId}:{payload}|..."
+    // Returns array of { expId, variantId, payload }
+    if (!attrValue) return [];
+    return attrValue.split('|').map(function(part) {
+      var firstColon  = part.indexOf(':');
+      var secondColon = part.indexOf(':', firstColon + 1);
+      if (firstColon === -1 || secondColon === -1) return null;
+      return {
+        expId:     part.slice(0, firstColon),
+        variantId: part.slice(firstColon + 1, secondColon),
+        payload:   part.slice(secondColon + 1),
+      };
+    }).filter(Boolean);
+  }
+
+  function getAssignedVariant(expId) {
+    return assignments[expId] ? assignments[expId].variantId : null;
+  }
+
+  // data-exp-text: swap innerText
+  document.querySelectorAll('[data-exp-text]').forEach(function(el) {
+    var transforms = parseTransformAttr(el.getAttribute('data-exp-text'));
+    for (var i = 0; i < transforms.length; i++) {
+      var t = transforms[i];
+      if (getAssignedVariant(t.expId) === t.variantId) {
+        el.textContent = t.payload;
+        break; // apply first match only
+      }
+    }
+  });
+
+  // data-exp-class: add CSS class
+  document.querySelectorAll('[data-exp-class]').forEach(function(el) {
+    var transforms = parseTransformAttr(el.getAttribute('data-exp-class'));
+    for (var i = 0; i < transforms.length; i++) {
+      var t = transforms[i];
+      if (getAssignedVariant(t.expId) === t.variantId) {
+        el.classList.add(t.payload);
+      }
+    }
+  });
+
+  // data-exp-show: remove hidden, set visibility
+  document.querySelectorAll('[data-exp-show]').forEach(function(el) {
+    var raw = el.getAttribute('data-exp-show') || '';
+    var parts = raw.split(':');
+    if (parts.length >= 2) {
+      var expId = parts[0], variantId = parts[1];
+      if (getAssignedVariant(expId) === variantId) {
+        el.removeAttribute('hidden');
+        el.style.display = '';
+      }
+    }
+  });
+
+  // data-exp-hide: hide element
+  document.querySelectorAll('[data-exp-hide]').forEach(function(el) {
+    var raw = el.getAttribute('data-exp-hide') || '';
+    var parts = raw.split(':');
+    if (parts.length >= 2) {
+      var expId = parts[0], variantId = parts[1];
+      if (getAssignedVariant(expId) === variantId) {
+        el.style.display = 'none';
+      }
+    }
+  });
+
+  // data-exp-attr: set attribute
+  document.querySelectorAll('[data-exp-attr]').forEach(function(el) {
+    var transforms = parseTransformAttr(el.getAttribute('data-exp-attr'));
+    for (var i = 0; i < transforms.length; i++) {
+      var t = transforms[i];
+      if (getAssignedVariant(t.expId) === t.variantId) {
+        // payload format: "attrName=attrValue"
+        var eqIdx = t.payload.indexOf('=');
+        if (eqIdx > 0) {
+          el.setAttribute(t.payload.slice(0, eqIdx), t.payload.slice(eqIdx + 1));
+        }
+      }
+    }
+  });
+
+  // ── Experiment-specific transforms ───────────────────────────────────────
+  // These are transforms that can't be expressed with data attributes alone
+  // (e.g. they affect behaviour in other components)
+
+  // sticky-cta-threshold-v1: update scroll threshold on homepage sticky bar
+  if (assignments['sticky-cta-threshold-v1'] &&
+      assignments['sticky-cta-threshold-v1'].variantId === 'early') {
+    try {
+      // Override the sticky CTA scroll threshold — fires earlier (200px vs 480px)
+      window.__cbwStickyThreshold = 200;
+    } catch(_) {}
+  }
+
+  // onboarding-hint-v1: hide hint for returning visitors
+  if (assignments['onboarding-hint-v1'] &&
+      assignments['onboarding-hint-v1'].variantId === 'new-only') {
+    try {
+      var pCount = parseInt(sessionStorage.getItem('cbw_pcount') || '1', 10);
+      if (pCount > 2) {
+        document.querySelectorAll('[data-onboarding-hint]').forEach(function(el) {
+          el.style.display = 'none';
+        });
+      }
+    } catch(_) {}
+  }
+
+  // ── Fire cbw_experiment_view events ─────────────────────────────────────
+  var expIds = Object.keys(assignments);
+  for (var ai = 0; ai < expIds.length; ai++) {
+    var expId = expIds[ai];
+    var a     = assignments[expId];
+
+    var viewEvent = {
+      schema_version: SCHEMA_V,
+      event:          'cbw_experiment_view',
+      experiment_id:  expId,
+      variant_id:     a.variantId,
+      variant_label:  a.variantLabel,
+      source:         a.source,
+      page_type:      pageType,
+      geo_code:       geo,
+      device_type:    device,
+      session_id:     sessionId,
+      ts:             Date.now(),
+    };
+
+    // Internal log
+    try {
+      if (window.cbw && Array.isArray(window.cbw.events)) {
+        window.cbw.events.push(viewEvent);
+      }
+    } catch(_) {}
+
+    // Dispatch cbw:event for local listeners
+    try {
+      document.dispatchEvent(new CustomEvent('cbw:event', { detail: viewEvent, bubbles: true }));
+    } catch(_) {}
+
+    // GTM dataLayer
+    try {
+      if (window.dataLayer && Array.isArray(window.dataLayer)) {
+        window.dataLayer.push(Object.assign({ event: 'cbw_experiment_view' }, viewEvent));
+      }
+    } catch(_) {}
+
+    // PostHog
+    try {
+      if (typeof window.posthog !== 'undefined' && typeof window.posthog.capture === 'function') {
+        window.posthog.capture('cbw_experiment_view', viewEvent);
+      }
+    } catch(_) {}
+  }
+
+  // ── Conversion listener ───────────────────────────────────────────────────
+  // When an affiliate click fires, tag it with active experiment variants
+  document.addEventListener('cbw:click', function(e) {
+    try {
+      var clickDetail = e.detail;
+      if (!clickDetail || clickDetail.event !== 'cbw_affiliate_click') return;
+
+      var convExpIds = Object.keys(assignments);
+      for (var ci = 0; ci < convExpIds.length; ci++) {
+        var cExpId = convExpIds[ci];
+        var ca     = assignments[cExpId];
+
+        var convEvent = {
+          schema_version:  SCHEMA_V,
+          event:           'cbw_experiment_conversion',
+          experiment_id:   cExpId,
+          variant_id:      ca.variantId,
+          conversion_type: 'affiliate_click',
+          exchange:        clickDetail.exchange,
+          placement:       clickDetail.placement,
+          page_type:       pageType,
+          geo_code:        geo,
+          device_type:     device,
+          session_id:      sessionId,
+          ts:              Date.now(),
+        };
+
+        // Log internally
+        try {
+          if (window.cbw && Array.isArray(window.cbw.events)) window.cbw.events.push(convEvent);
+        } catch(_) {}
+
+        // GTM
+        try {
+          if (window.dataLayer && Array.isArray(window.dataLayer)) {
+            window.dataLayer.push(Object.assign({ event: 'cbw_experiment_conversion' }, convEvent));
+          }
+        } catch(_) {}
+
+        // Custom event
+        try {
+          document.dispatchEvent(new CustomEvent('cbw:event', { detail: convEvent, bubbles: true }));
+        } catch(_) {}
+
+        // PostHog
+        try {
+          if (typeof window.posthog !== 'undefined' && typeof window.posthog.capture === 'function') {
+            window.posthog.capture('cbw_experiment_conversion', convEvent);
+          }
+        } catch(_) {}
+      }
+    } catch(_) {}
+  });
+
+  // ── window.cbwExperiments public API ─────────────────────────────────────
+  window.cbwExperiments = {
+    /** Get the assigned variant ID for a specific experiment */
+    getVariant: function(experimentId) {
+      var a = assignments[experimentId];
+      return a ? a.variantId : null;
+    },
+
+    /** Get all current assignments as a plain object { expId: variantId } */
+    getAllVariants: function() {
+      var result = {};
+      Object.keys(assignments).forEach(function(id) {
+        result[id] = assignments[id].variantId;
+      });
+      return result;
+    },
+
+    /** Get full assignment detail for an experiment (includes source, label) */
+    getAssignment: function(experimentId) {
+      return assignments[experimentId] || null;
+    },
+
+    /** Force a specific variant for an experiment (writes to localStorage, reloads) */
+    forceVariant: function(experimentId, variantId) {
+      try {
+        localStorage.setItem(LS_PREFIX + experimentId, variantId);
+        location.reload();
+      } catch(_) {}
+    },
+
+    /** Reset a specific experiment assignment (removes localStorage key, reloads) */
+    reset: function(experimentId) {
+      try {
+        localStorage.removeItem(LS_PREFIX + experimentId);
+        location.reload();
+      } catch(_) {}
+    },
+
+    /** Reset ALL experiment assignments (reloads) */
+    resetAll: function() {
+      try {
+        Object.keys(localStorage).forEach(function(key) {
+          if (key.startsWith(LS_PREFIX)) localStorage.removeItem(key);
+        });
+        location.reload();
+      } catch(_) {}
+    },
+
+    /** Raw assignments map (read-only reference) */
+    _assignments: assignments,
+    /** Full experiment definitions (read-only reference) */
+    _definitions: __experiments,
+  };
+
+  // ── Debug panel ───────────────────────────────────────────────────────────
+  if (debugMode) {
+    // Defer to avoid blocking page render
+    setTimeout(function() {
+      try { renderDebugPanel(assignments); } catch(_) {}
+    }, 300);
+  }
+
+  function renderDebugPanel(assignments) {
+    var activeIds = Object.keys(assignments);
+    var allExps   = __experiments;
+
+    var panel = document.createElement('div');
+    panel.id  = 'cbw-exp-debug';
+    panel.setAttribute('role', 'complementary');
+    panel.setAttribute('aria-label', 'Experiment debug panel');
+
+    var rows = allExps.map(function(exp) {
+      var a = assignments[exp.id];
+      var assigned = a ? a.variantId : '—';
+      var source   = a ? a.source   : '—';
+      var status   = exp.active ? '🟢' : '⚫';
+      var isActive = !!a;
+      return '<tr style="background:' + (isActive ? 'rgba(245,197,66,0.06)' : 'transparent') + '">'
+        + '<td style="padding:4px 8px;font-size:11px;color:#888;">' + status + '</td>'
+        + '<td style="padding:4px 8px;font-size:11px;color:#ddd;font-family:monospace;">' + exp.id + '</td>'
+        + '<td style="padding:4px 8px;font-size:11px;color:' + (isActive ? '#f5c542' : '#555') + ';font-family:monospace;">'
+          + assigned + '</td>'
+        + '<td style="padding:4px 8px;font-size:11px;color:#606060;">' + source + '</td>'
+        + '</tr>';
+    }).join('');
+
+    panel.innerHTML = ''
+      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">'
+      + '  <strong style="font-size:12px;color:#f5c542;letter-spacing:0.04em;">CBW EXPERIMENTS</strong>'
+      + '  <div style="display:flex;gap:8px;font-size:10px;color:#555;">'
+      + '    <span>geo: <b style="color:#aaa">' + geo + '</b></span>'
+      + '    <span>device: <b style="color:#aaa">' + device + '</b></span>'
+      + '    <span>page: <b style="color:#aaa">' + pageType + '</b></span>'
+      + '  </div>'
+      + '  <button id="cbw-exp-debug-close" style="background:none;border:none;color:#555;cursor:pointer;font-size:14px;padding:0 4px;line-height:1;" aria-label="Close debug panel">✕</button>'
+      + '</div>'
+      + '<table style="width:100%;border-collapse:collapse;">'
+      + '  <thead><tr>'
+      + '    <th style="padding:4px 8px;font-size:10px;color:#555;text-align:left;text-transform:uppercase;letter-spacing:0.08em;">On</th>'
+      + '    <th style="padding:4px 8px;font-size:10px;color:#555;text-align:left;text-transform:uppercase;letter-spacing:0.08em;">Experiment</th>'
+      + '    <th style="padding:4px 8px;font-size:10px;color:#555;text-align:left;text-transform:uppercase;letter-spacing:0.08em;">Variant</th>'
+      + '    <th style="padding:4px 8px;font-size:10px;color:#555;text-align:left;text-transform:uppercase;letter-spacing:0.08em;">Source</th>'
+      + '  </tr></thead>'
+      + '  <tbody>' + rows + '</tbody>'
+      + '</table>'
+      + '<div style="margin-top:10px;padding-top:8px;border-top:1px solid #1c1c1c;font-size:10px;color:#444;">'
+      + '  Session: <span style="color:#555;font-family:monospace;">' + sessionId + '</span>'
+      + '  &nbsp;·&nbsp; <span style="color:#555;">cbwExperiments API available in console</span>'
+      + '  &nbsp;·&nbsp; Force: <code style="color:#60a5fa;font-size:10px;">?exp_{id}={variant}</code>'
+      + '</div>';
+
+    Object.assign(panel.style, {
+      position:   'fixed',
+      bottom:     '16px',
+      right:      '16px',
+      zIndex:     '9999',
+      background: '#0e0e0e',
+      border:     '1px solid #2a2a2a',
+      borderRadius: '10px',
+      padding:    '14px 16px',
+      maxWidth:   '560px',
+      width:      'calc(100vw - 32px)',
+      boxShadow:  '0 8px 32px rgba(0,0,0,0.7)',
+      fontFamily: 'Inter, system-ui, sans-serif',
+      color:      '#aaa',
+    });
+
+    document.body.appendChild(panel);
+
+    document.getElementById('cbw-exp-debug-close')?.addEventListener('click', function() {
+      panel.remove();
+    });
+
+    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+      console.group('[CBW Experiments] Active assignments');
+      console.table(
+        Object.fromEntries(
+          Object.entries(assignments).map(function(entry) {
+            var id = entry[0], a = entry[1];
+            return [id, { variant: a.variantId, source: a.source }];
+          })
+        )
+      );
+      console.info('API: window.cbwExperiments');
+      console.info('Force variant: ?exp_{id}={variantId}');
+      console.groupEnd();
+    }
+  }
+
+})();
+</script>

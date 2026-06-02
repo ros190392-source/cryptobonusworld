@@ -1,0 +1,209 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import AffiliateDisclosure from '../../components/AffiliateDisclosure.astro';
+import ExchangeLogo from '../../components/ExchangeLogo.astro';
+import RiskDisclaimer from '../../components/RiskDisclaimer.astro';
+
+import { BONUS_CODES } from '../../data/bonus-codes';
+import exchanges from '../../data/exchanges.json';
+import { YEAR } from '../../utils/seo';
+import type { PageContext } from '../../utils/analytics';
+
+// Enrich with exchange data for display
+const entries = BONUS_CODES.map(entry => ({
+  ...entry,
+  exchange: exchanges.find(e => e.slug === entry.exchangeSlug),
+})).sort((a, b) => {
+  const prioOrder: Record<string, number> = { 'very-high': 0, high: 1, medium: 2 };
+  return (prioOrder[a.priority] ?? 3) - (prioOrder[b.priority] ?? 3);
+});
+
+const analyticsContext: PageContext = { pageType: 'bonuses' };
+---
+
+<Layout
+  title={`Crypto Exchange Bonus Codes ${YEAR}: Working Referral Codes`}
+  description={`Find working crypto exchange bonus codes and referral codes for ${YEAR}. Verified promo codes for Bybit, MEXC, Binance, OKX, Bitget and more.`}
+  canonical="/bonus-codes/"
+  analyticsContext={analyticsContext}
+>
+  <div class="container">
+    <Breadcrumbs crumbs={[
+      { label: 'Home', href: '/' },
+      { label: 'Bonus Codes' },
+    ]} />
+
+    <div class="page-header">
+      <h1>Crypto Exchange Bonus Codes {YEAR}</h1>
+      <p class="lead">
+        Working referral and promo codes for top crypto exchanges. All codes manually verified.
+        Click any exchange to see the code and full claiming instructions.
+      </p>
+    </div>
+
+    <AffiliateDisclosure compact />
+
+    <div class="bc-grid">
+      {entries.map(entry => (
+        <a href={`/bonus-codes/${entry.exchangeSlug}/`} class="bc-card">
+          <div class="bc-card-top">
+            {entry.exchange && (
+              <ExchangeLogo
+                slug={entry.exchange.slug}
+                name={entry.exchange.name}
+                size={72}
+                variant="square"
+              />
+            )}
+            <div class="bc-card-identity">
+              <span class="bc-card-name">{entry.exchange?.name ?? entry.exchangeSlug}</span>
+              <span class="bc-card-amount">
+                Up to {entry.bonusAmount.toLocaleString('en-US')} {entry.bonusCurrency}
+              </span>
+            </div>
+            {entry.codes.length > 0 && (
+              <span class="bc-has-code">Has Code</span>
+            )}
+          </div>
+          <p class="bc-card-desc">{entry.intro.split('.')[0]}.</p>
+          <div class="bc-card-footer">
+            {entry.codes.filter(c => !c.deprecated).map(c => (
+              <span class="bc-code-preview">{c.code}</span>
+            ))}
+            {entry.codes.length === 0 && (
+              <span class="bc-link-only">Via link — no code needed</span>
+            )}
+            <span class="bc-card-cta">Get Code →</span>
+          </div>
+        </a>
+      ))}
+    </div>
+
+    <div class="bc-note">
+      <strong>About these codes:</strong> All bonus codes and referral links are manually verified against
+      official exchange promotion pages. Bonus terms can change — always confirm the latest conditions on
+      the official exchange website before registering.
+    </div>
+
+    <RiskDisclaimer />
+  </div>
+</Layout>
+
+<style>
+  .page-header { margin-bottom: 1.75rem; }
+
+  .bc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .bc-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+    padding: 1rem 1.125rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    text-decoration: none;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .bc-card:hover {
+    border-color: rgba(245,197,66,0.3);
+    background: rgba(245,197,66,0.02);
+  }
+
+  .bc-card-top {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .bc-card-identity {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 0.05rem;
+    min-width: 0;
+  }
+
+  .bc-card-name {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+  }
+
+  .bc-card-amount {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--color-accent);
+  }
+
+  .bc-has-code {
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #4ade80;
+    background: rgba(74,222,128,0.1);
+    border-radius: 4px;
+    padding: 0.15rem 0.4rem;
+    flex-shrink: 0;
+  }
+
+  .bc-card-desc {
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    margin: 0;
+    line-height: 1.5;
+    flex: 1;
+  }
+
+  .bc-card-footer {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.25rem;
+  }
+
+  .bc-code-preview {
+    font-size: 0.72rem;
+    font-weight: 800;
+    font-family: monospace;
+    color: var(--color-accent);
+    background: rgba(245,197,66,0.08);
+    border: 1px solid rgba(245,197,66,0.2);
+    border-radius: 5px;
+    padding: 0.15rem 0.5rem;
+    letter-spacing: 0.04em;
+  }
+
+  .bc-link-only {
+    font-size: 0.72rem;
+    color: var(--color-text-muted);
+    font-style: italic;
+  }
+
+  .bc-card-cta {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--color-accent);
+    margin-left: auto;
+  }
+
+  .bc-note {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    line-height: 1.65;
+    padding: 0.875rem 1rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
+  }
+  .bc-note strong { color: var(--color-text-secondary); }
+</style>

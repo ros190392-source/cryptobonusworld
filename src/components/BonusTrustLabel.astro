@@ -1,0 +1,167 @@
+---
+/**
+ * BonusTrustLabel — compact trust signal for bonus offers.
+ *
+ * Renders one of:
+ *   ✓ Verified          — green, confirmed against official source
+ *   ⏱ Updated Recently  — blue, checked within 7 days
+ *   ⚠ Needs Review      — amber, data may be stale
+ *   ⏳ Limited-time      — purple, offer has known expiry
+ *   🌍 Regional          — grey, availability varies by region
+ *   ~ Estimated          — muted, amount is indicative only
+ *
+ * Used in: BonusTable, ExchangeHero, BonusCard
+ */
+
+interface Props {
+  verificationStatus?: 'verified' | 'needs-review' | 'outdated' | 'unverified';
+  offerLastChecked?: string | null;
+  hasExpiry?: boolean;
+  isRegional?: boolean;
+  isEstimated?: boolean;
+  /** "chip" (default) or "dot" (inline, minimal) */
+  variant?: 'chip' | 'dot';
+}
+
+const {
+  verificationStatus = 'needs-review',
+  offerLastChecked,
+  hasExpiry = false,
+  isRegional = false,
+  isEstimated = false,
+  variant = 'chip',
+} = Astro.props;
+
+function daysSince(iso: string | null | undefined): number {
+  if (!iso) return 999;
+  try {
+    return Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000));
+  } catch { return 999; }
+}
+
+const age = daysSince(offerLastChecked);
+const recentlyUpdated = age <= 7;
+
+// Determine primary label to show
+type LabelDef = { text: string; cls: string; title: string };
+
+function getLabel(): LabelDef {
+  if (verificationStatus === 'verified' && recentlyUpdated) {
+    return { text: 'Updated recently', cls: 'btl--updated', title: `Offer checked ${age === 0 ? 'today' : age + 'd ago'}` };
+  }
+  if (verificationStatus === 'verified') {
+    return { text: 'Verified', cls: 'btl--verified', title: `Confirmed against official source · ${age}d ago` };
+  }
+  if (verificationStatus === 'needs-review' || verificationStatus === 'outdated') {
+    return { text: 'Needs review', cls: 'btl--review', title: 'Bonus data due for re-verification' };
+  }
+  if (isEstimated) {
+    return { text: 'Estimated', cls: 'btl--estimated', title: 'Amount is indicative — actual reward varies' };
+  }
+  return { text: 'Unverified', cls: 'btl--review', title: 'Not yet verified against official source' };
+}
+
+const primary = getLabel();
+---
+
+<span class:list={['btl', `btl--${variant}`, primary.cls]} title={primary.title} aria-label={primary.title}>
+  {variant === 'chip' && (
+    <>
+      {verificationStatus === 'verified' && !recentlyUpdated && (
+        <svg width="9" height="9" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+          <path d="M10 3L5 9 2 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      )}
+      {recentlyUpdated && verificationStatus === 'verified' && (
+        <svg width="9" height="9" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+          <circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M6 3v3l2 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      )}
+      {(verificationStatus === 'needs-review' || verificationStatus === 'outdated') && (
+        <svg width="9" height="9" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+          <circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M6 4v2.5M6 8v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      )}
+      <span>{primary.text}</span>
+    </>
+  )}
+  {variant === 'dot' && <span class="btl-dot" aria-hidden="true"></span>}
+
+  {hasExpiry && variant === 'chip' && (
+    <span class="btl-extra btl-extra--expiry" title="Limited-time offer">⏳ Limited</span>
+  )}
+  {isRegional && variant === 'chip' && (
+    <span class="btl-extra btl-extra--regional" title="Regional availability varies">🌍 Regional</span>
+  )}
+</span>
+
+<style>
+  .btl {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+    vertical-align: middle;
+  }
+
+  /* Chip variant */
+  .btl--chip {
+    padding: 0.1rem 0.4rem;
+    border-radius: 100px;
+    border: 1px solid transparent;
+  }
+
+  .btl--verified {
+    background: rgba(74, 222, 128, 0.08);
+    color: #4ade80;
+    border-color: rgba(74, 222, 128, 0.18);
+  }
+
+  .btl--updated {
+    background: rgba(96, 165, 250, 0.08);
+    color: #60a5fa;
+    border-color: rgba(96, 165, 250, 0.18);
+  }
+
+  .btl--review {
+    background: rgba(250, 204, 21, 0.08);
+    color: #facc15;
+    border-color: rgba(250, 204, 21, 0.2);
+  }
+
+  .btl--estimated {
+    background: rgba(148, 163, 184, 0.08);
+    color: var(--color-text-muted);
+    border-color: rgba(148, 163, 184, 0.15);
+  }
+
+  /* Dot variant (minimal inline) */
+  .btl--dot {
+    padding: 0;
+    border: none;
+    background: transparent;
+  }
+  .btl-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+  .btl--verified.btl--dot .btl-dot   { background: #4ade80; }
+  .btl--updated.btl--dot  .btl-dot   { background: #60a5fa; }
+  .btl--review.btl--dot   .btl-dot   { background: #facc15; }
+  .btl--estimated.btl--dot .btl-dot  { background: var(--color-text-muted); }
+
+  /* Extra badges */
+  .btl-extra {
+    font-size: 0.58rem;
+    opacity: 0.85;
+    padding-left: 0.2rem;
+  }
+</style>

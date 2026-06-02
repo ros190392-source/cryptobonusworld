@@ -2,21 +2,31 @@
 /**
  * ScreenshotCard.astro
  * Production-ready screenshot component.
- * - Dark frame with rounded corners
- * - Optional browser/mobile chrome
- * - Lightbox trigger via data-lightbox-group
- * - Lazy loading, responsive scaling
- * - Placeholder mode when src is absent
+ *
+ * FIT MODES (controls how image renders inside the frame):
+ *   'cover'   — (default) fill container, may crop. Good for grids/galleries.
+ *   'contain' — fit inside box with dark letterboxing. No cropping.
+ *   'natural' — image at its true proportions, frame height follows image.
+ *               Preferred for step-by-step tutorial screenshots.
+ *
+ * Other features:
+ *   - Dark frame with rounded corners
+ *   - Optional browser/mobile chrome
+ *   - Lightbox trigger via data-lightbox-group
+ *   - Lazy loading, responsive scaling
+ *   - Placeholder mode when src is absent (always uses aspect-ratio for layout stability)
+ *   - CLS prevention: aspect-ratio on <img> when fit=natural and no width/height given
  */
 
 type Device = 'desktop' | 'mobile' | 'none';
+type Fit    = 'cover' | 'contain' | 'natural';
 
 interface Props {
   src?: string;
   alt?: string;
   caption?: string;
   capturedAt?: string;       // "YYYY-MM"
-  aspectRatio?: string;      // CSS value: "16/9" | "9/16" | "4/3" etc.
+  aspectRatio?: string;      // CSS value: "16/9" | "2/1" | "4/3" etc.
   width?: number;
   height?: number;
   lazy?: boolean;
@@ -30,6 +40,13 @@ interface Props {
   canonicalUrl?: string;
   /** Media category tag shown in caption (e.g. "P2P Trading", "Futures") */
   mediaCategory?: string;
+  /**
+   * How the image fills its frame:
+   *   'cover'   — fill+crop (default, backward-compat for galleries)
+   *   'contain' — fit with dark bars, no crop
+   *   'natural' — no forced aspect-ratio on container, image at true proportions
+   */
+  fit?: Fit;
 }
 
 const {
@@ -48,6 +65,7 @@ const {
   schema: emitSchema = false,
   canonicalUrl,
   mediaCategory,
+  fit = 'cover',
 } = Astro.props;
 
 function fmtMonth(ym: string): string {
@@ -58,8 +76,24 @@ function fmtMonth(ym: string): string {
 }
 
 const isPlaceholder = !src;
-const hasLightbox = !!lightboxGroup && !!src;
-const displayAlt = alt ?? label ?? 'Screenshot';
+const hasLightbox   = !!lightboxGroup && !!src;
+const displayAlt    = alt ?? label ?? 'Screenshot';
+
+// Determine whether the frame gets a fixed aspect-ratio:
+//   - Placeholders always get it (layout stability while image is being prepared)
+//   - 'natural' + real image → no frame ratio, image determines height
+//   - 'cover' or 'contain'  → frame ratio enforced
+//   - mobile + no explicit ratio → skip (mobile portrait logic)
+const useFrameRatio = isPlaceholder
+  || (fit !== 'natural')
+  || (device === 'mobile' && aspectRatio === '16/9');
+
+// Style string for the frame element
+const frameStyle = useFrameRatio ? `aspect-ratio: ${aspectRatio}` : '';
+
+// For 'natural' + real image: put aspect-ratio on <img> for CLS prevention
+// (browser reserves space before image loads even without width/height attrs)
+const imgCLSStyle = (fit === 'natural' && !!src && !width) ? `aspect-ratio: ${aspectRatio}` : '';
 
 // schema.org ImageObject JSON-LD
 const SITE_URL = 'https://cryptobonusworld.com';
@@ -79,11 +113,13 @@ const schemaData = emitSchema && src ? {
   <script type="application/ld+json" set:html={JSON.stringify(schemaData)} />
 )}
 <figure
-  class={`sc-wrap ${extraClass ?? ''}`}
+  class={`sc-wrap ${device === 'mobile' ? 'sc-wrap--portrait' : ''} ${hasLightbox ? 'sc-wrap--clickable' : ''} ${extraClass ?? ''}`}
   data-lightbox-group={lightboxGroup}
   data-lightbox-src={src}
   data-lightbox-alt={displayAlt}
   data-lightbox-caption={caption}
+  data-lightbox-category={mediaCategory ?? ''}
+  data-lightbox-date={capturedAt ?? ''}
   itemscope={emitSchema && !!src ? '' : undefined}
   itemtype={emitSchema && !!src ? 'https://schema.org/ImageObject' : undefined}
 >
@@ -102,8 +138,8 @@ const schemaData = emitSchema && src ? {
   )}
 
   <div
-    class={`sc-frame ${device !== 'none' ? 'sc-frame--chrome' : ''} ${isPlaceholder ? 'sc-frame--placeholder' : ''} ${hasLightbox ? 'sc-frame--lightbox' : ''}`}
-    style={`aspect-ratio: ${aspectRatio}`}
+    class={`sc-frame sc-frame--${fit} ${device !== 'none' ? 'sc-frame--chrome' : ''} ${isPlaceholder ? 'sc-frame--placeholder' : ''} ${hasLightbox ? 'sc-frame--lightbox' : ''}`}
+    style={frameStyle || undefined}
   >
     {src ? (
       <>
@@ -115,6 +151,7 @@ const schemaData = emitSchema && src ? {
           loading={lazy ? 'lazy' : 'eager'}
           decoding="async"
           class="sc-img"
+          style={imgCLSStyle || undefined}
         />
         {capturedAt && (
           <span class="sc-date-badge">Updated {fmtMonth(capturedAt)}</span>
@@ -206,6 +243,8 @@ const schemaData = emitSchema && src ? {
     border-radius: 8px;
     border: 1px solid var(--color-border, #2a2a2a);
     background: #0f0f0f;
+    /* Subtle inner highlight — enterprise polish */
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
   }
   .sc-frame--chrome {
     border-radius: 0 0 8px 8px;
@@ -214,18 +253,72 @@ const schemaData = emitSchema && src ? {
   .sc-frame--placeholder {
     border-style: dashed;
     border-color: #333;
+    box-shadow: none;
   }
   .sc-frame--lightbox {
     cursor: zoom-in;
   }
   .sc-frame--lightbox:hover .sc-zoom-btn { opacity: 1; }
 
-  /* ── Image ── */
+  /* Entire card is clickable when lightbox is active */
+  .sc-wrap--clickable {
+    cursor: zoom-in;
+  }
+  .sc-wrap--clickable .sc-chrome--desktop,
+  .sc-wrap--clickable .sc-chrome--mobile {
+    cursor: zoom-in;
+  }
+
+  /* ── Image: base (cover mode, backward-compat default) ── */
   .sc-img {
     display: block;
     width: 100%;
     height: 100%;
     object-fit: cover;
+  }
+
+  /* ── Contain mode: fit within box, dark bars, NO cropping ── */
+  .sc-frame--contain .sc-img {
+    object-fit: contain;
+    /* height stays 100% — image scales down to fit inside the aspect-ratio box */
+  }
+
+  /* ── Natural mode: image at true proportions, zero cropping ── */
+  .sc-frame--natural {
+    /* No forced aspect-ratio on the frame — height follows image */
+  }
+  .sc-frame--natural .sc-img {
+    height: auto;           /* natural height — never cropped */
+    object-fit: unset;      /* no fit enforcement */
+    display: block;
+    width: 100%;
+    /* aspect-ratio set inline on <img> for CLS prevention when width/height absent */
+  }
+
+  /* ── Portrait / mobile layout ── */
+  .sc-wrap--portrait {
+    max-width: 360px;
+    margin: 0 auto;
+  }
+  .sc-wrap--portrait .sc-chrome--mobile {
+    border-radius: 20px 20px 0 0;
+  }
+  .sc-wrap--portrait .sc-frame {
+    aspect-ratio: unset;
+    height: auto;
+  }
+  /* portrait + no ratio = full image (contain) */
+  .sc-wrap--portrait .sc-img {
+    object-fit: contain;
+    height: auto;
+    width: 100%;
+    display: block;
+  }
+  /* portrait + explicit ratio = crop to amount area */
+  .sc-wrap--portrait .sc-frame[style] .sc-img {
+    object-fit: cover;
+    object-position: center 45%;
+    height: 100%;
   }
 
   /* ── Date badge ── */

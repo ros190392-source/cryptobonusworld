@@ -1,0 +1,367 @@
+{
+  "exchange": "htx",
+  "updatedAt": "2026-06-01",
+  "sources": {
+    "fees": {
+      "url": "https://www.htx.com/en-us/about/fee/",
+      "label": "HTX — Trading Fee Schedule",
+      "type": "official-fees",
+      "lastAccessed": "2026-05-25",
+      "notes": "Spot maker 0.20%, taker 0.20% standard. Futures maker 0.02%, taker 0.05%."
+    },
+    "kyc": {
+      "url": "https://www.htx.com/en-us/support/article/360000110131",
+      "label": "HTX — KYC Verification Guide",
+      "type": "official-kyc",
+      "lastAccessed": "2026-05-25",
+      "notes": "KYC required for withdrawals. Multiple verification tiers."
+    },
+    "bonus": {
+      "url": "https://www.htx.com/en-us/activity/",
+      "label": "HTX — New User Activity & Promotions",
+      "type": "official-promo",
+      "lastAccessed": "2026-05-20",
+      "notes": "Up to 2,000 USDT in new user promotions. Deposit and trading required."
+    },
+    "restricted_countries": {
+      "url": "https://www.htx.com/en-us/support/article/htx-restricted-regions",
+      "label": "HTX — Restricted Regions",
+      "type": "official-legal",
+      "lastAccessed": "2026-05-25",
+      "notes": "US, UK, Canada, India restricted"
+    },
+    "terms": {
+      "url": "https://www.htx.com/en-us/about/legal/",
+      "label": "HTX — Terms of Service",
+      "type": "official-legal",
+      "lastAccessed": "2026-05-25"
+    },
+    "p2p": {
+      "url": "https://www.htx.com/en-us/fiat/",
+      "label": "HTX — Fiat/P2P Trading",
+      "type": "official-p2p",
+      "lastAccessed": "2026-05-25"
+    },
+    "app_ios": {
+      "url": "https://apps.apple.com/app/htx-buy-bitcoin-crypto/id378544918",
+      "label": "HTX iOS App — App Store",
+      "type": "official-app",
+      "lastAccessed": "2026-05-25"
+    },
+    "app_android": {
+      "url": "https://play.google.com/store/apps/details?id=com.huobi.usversion",
+      "label": "HTX Android App — Google Play",
+      "type": "official-app",
+      "lastAccessed": "2026-05-25"
+    },
+    "futures": {
+      "url": "https://www.htx.com/en-us/futures/linear_swap/exchange/",
+      "label": "HTX — Futures Trading",
+      "type": "official-other",
+      "lastAccessed": "2026-05-25",
+      "notes": "Up to 100x leverage on USDT perpetuals"
+    },
+    "affiliate": {
+      "url": "https://www.htx.com/en-us/referral/",
+      "label": "HTX — Referral Program",
+      "type": "official-affiliate",
+      "lastAccessed": "2026-05-20"
+    }
+  },
+  "facts": [
+    {
+      "field": "bonus_amount",
+      "currentValue": 2000,
+      "unit": "USDT",
+      "officialSourceKey": "bonus",
+      "officialSourceUrl": "https://www.htx.com/en-us/activity/",
+      "lastChecked": "2026-05-20",
+      "checkedBy": "human",
+      "confidenceScore": 0.27,
+      "conflictStatus": "outdated",
+      "manualReviewRequired": true,
+      "notes": "Up to 2,000 USDT. Needs daily re-check — HTX promotional terms change frequently."
+    },
+    {
+      "field": "bonus_currency",
+      "currentValue": "USDT",
+      "officialSourceKey": "bonus",
+      "lastChecked": "2026-05-20",
+      "checkedBy": "human",
+      "confidenceScore": 0.63,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "bonus_expiry_days",
+      "currentValue": 30,
+      "unit": "days",
+      "officialSourceKey": "bonus",
+      "lastChecked": "2026-05-20",
+      "checkedBy": "human",
+      "confidenceScore": 0.27,
+      "conflictStatus": "outdated",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "bonus_requires_kyc",
+      "currentValue": true,
+      "officialSourceKey": "kyc",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.76,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "bonus_requires_deposit",
+      "currentValue": true,
+      "officialSourceKey": "bonus",
+      "lastChecked": "2026-05-20",
+      "checkedBy": "human",
+      "confidenceScore": 0.27,
+      "conflictStatus": "outdated",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "spot_maker_fee",
+      "currentValue": 0.2,
+      "unit": "%",
+      "officialSourceKey": "fees",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.76,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "spot_taker_fee",
+      "currentValue": 0.2,
+      "unit": "%",
+      "officialSourceKey": "fees",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.76,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "futures_maker_fee",
+      "currentValue": 0.02,
+      "unit": "%",
+      "officialSourceKey": "fees",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.76,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "futures_taker_fee",
+      "currentValue": 0.05,
+      "unit": "%",
+      "officialSourceKey": "fees",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.76,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "max_futures_leverage",
+      "currentValue": 100,
+      "unit": "x",
+      "officialSourceKey": "futures",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.85,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "kyc_required",
+      "currentValue": true,
+      "officialSourceKey": "kyc",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.76,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "p2p_available",
+      "currentValue": true,
+      "officialSourceKey": "p2p",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.85,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "futures_available",
+      "currentValue": true,
+      "officialSourceKey": "futures",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.85,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "proof_of_reserves",
+      "currentValue": false,
+      "officialSourceUrl": "https://www.htx.com/en-us/about/",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.55,
+      "conflictStatus": "unverified",
+      "manualReviewRequired": true,
+      "notes": "No public Proof of Reserves page found for HTX as of last check. Verify on official site."
+    },
+    {
+      "field": "headquarters",
+      "currentValue": "Seychelles",
+      "officialSourceUrl": "https://www.htx.com/en-us/about/",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.80,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false,
+      "notes": "HTX (formerly Huobi) rebranded and relocated"
+    },
+    {
+      "field": "founded_year",
+      "currentValue": 2013,
+      "officialSourceUrl": "https://www.htx.com/en-us/about/",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.80,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false,
+      "notes": "Founded as Huobi in 2013; rebranded to HTX in 2023"
+    },
+    {
+      "field": "restricted_us",
+      "currentValue": true,
+      "officialSourceKey": "restricted_countries",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.76,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "mobile_app_ios",
+      "currentValue": true,
+      "officialSourceKey": "app_ios",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.85,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "mobile_app_android",
+      "currentValue": true,
+      "officialSourceKey": "app_android",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.85,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "trading_pairs_count",
+      "currentValue": 600,
+      "officialSourceUrl": "https://www.htx.com/en-us/markets/",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.70,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    }
+  ],
+  "screenshots": {
+    "registration": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "kyc": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "bonus": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "deposit": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "p2p": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "spot": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "futures": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "fees": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "mobile_app": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "mobile",
+      "notes": ""
+    },
+    "proof_of_reserves": {
+      "status": "not_applicable",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": "Proof of reserves not published; screenshot not applicable"
+    }
+  }
+}

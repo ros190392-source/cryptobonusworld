@@ -176,7 +176,13 @@ const quickFacts = [
         {props.promoCode && (
           <div class="exhero-promo">
             <span class="exhero-promo-label">Promo code</span>
-            <button class="exhero-promo-code" data-code={props.promoCode} aria-label={`Copy promo code ${props.promoCode}`}>
+            <button
+              class="exhero-promo-code"
+              data-code={props.promoCode}
+              data-exchange={props.slug}
+              data-track="bonus_copy"
+              aria-label={`Copy promo code ${props.promoCode}`}
+            >
               <span class="exhero-promo-val">{props.promoCode}</span>
               <span class="exhero-promo-copy">copy</span>
             </button>
@@ -236,7 +242,7 @@ const quickFacts = [
   </div>
   <CTAButton
     href={props.affiliateUrl}
-    label={!props.kycRequired ? 'No KYC →' : 'Claim Bonus →'}
+    label={ctaLabel}
     exchange={props.name}
     size="md"
     trackPlacement="sticky"
@@ -247,18 +253,23 @@ const quickFacts = [
 
 <script>
   // ── Promo code copy ─────────────────────────────────────────────────────
-  document.querySelectorAll<HTMLButtonElement>('.exhero-promo-code').forEach(btn => {
+  import { analytics } from '../lib/analytics';
+
+  document.querySelectorAll<HTMLButtonElement>('[data-track="bonus_copy"].exhero-promo-code').forEach(btn => {
     btn.addEventListener('click', async () => {
-      const code = btn.dataset.code ?? '';
+      const code     = btn.dataset.code     ?? '';
+      const exchange = btn.dataset.exchange ?? '';
       await navigator.clipboard.writeText(code).catch(() => {});
-      const val = btn.querySelector('.exhero-promo-val');
+      const val  = btn.querySelector('.exhero-promo-val');
       const copy = btn.querySelector('.exhero-promo-copy');
-      if (val) val.textContent = '✓ Copied!';
+      if (val)  val.textContent  = '✓ Copied!';
       if (copy) copy.textContent = '';
       setTimeout(() => {
-        if (val) val.textContent = code;
+        if (val)  val.textContent  = code;
         if (copy) copy.textContent = 'copy';
       }, 2000);
+      // Track: bonus_copy goal
+      analytics.trackBonusCopy({ exchange, code });
     });
   });
 

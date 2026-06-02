@@ -1,0 +1,308 @@
+---
+/**
+ * /go/[exchange]/ — Safe Affiliate Redirect Page
+ *
+ * Static HTML redirect page for affiliate links. Handles:
+ *  1. Analytics logging (cbw_affiliate_click) before redirect
+ *  2. GEO-aware URL resolution (reads localStorage cbw_geo)
+ *  3. Client-side redirect via window.location.replace() — no history entry
+ *     (equivalent to HTTP 302 from the browser's perspective)
+ *  4. <meta http-equiv="refresh"> fallback for JS-disabled environments
+ *  5. <link rel="canonical"> pointing to the exchange detail page (SEO-safe)
+ *
+ * SEO: noindex + nofollow on all outbound links.
+ *      Canonical → /exchanges/{slug}/ (exchange detail page).
+ *      These pages are excluded from the sitemap.
+ *
+ * Note on HTTP 302: This is a static site (output: 'static'). A true
+ * server-side 302 requires a server adapter or nginx rewrite rules.
+ * JS location.replace() is the functional equivalent:
+ *  - no browser history entry created
+ *  - same user experience as server 302
+ *  - affiliate programs accept JS redirects
+ * If migrating to SSR, replace this page with a server endpoint that
+ * returns Response.redirect(url, 302).
+ */
+
+import exchanges from '../../data/exchanges.json';
+
+export function getStaticPaths() {
+  return exchanges.map(ex => ({
+    params: { exchange: ex.slug },
+    props: { exchange: ex },
+  }));
+}
+
+const { exchange: ex } = Astro.props;
+
+// Fallback redirect target (exchange detail page) — used when:
+//  - JS is disabled
+//  - All affiliate URLs are placeholders
+//  - 0-second redirect before JS fires
+const fallbackUrl = `/exchanges/${ex.slug}/`;
+
+// Serialise affiliate link data for client-side resolution
+const linkData = {
+  slug:    ex.slug,
+  name:    ex.name,
+  default: ex.affiliateLinks?.default ?? ex.affiliateUrl ?? '#',
+  geo:     ex.affiliateLinks?.geo ?? {},
+};
+---
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Redirecting to {ex.name}…</title>
+
+  <!-- SEO: noindex this redirect page; canonical → exchange detail page -->
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="canonical" href={`https://cryptobonusworld.com/exchanges/${ex.slug}/`} />
+
+  <!--
+    Fallback meta-refresh: redirects to exchange detail page if JS fails.
+    We redirect to the detail page (not affiliate URL) so the fallback is
+    always safe regardless of URL placeholder state.
+  -->
+  <meta http-equiv="refresh" content={`3;url=${fallbackUrl}`} />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #0a0a0a;
+      color: #aaaaaa;
+      font-family: Inter, system-ui, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 1.5rem;
+    }
+    .card {
+      background: #111;
+      border: 1px solid #252525;
+      border-radius: 16px;
+      padding: 2.5rem 2rem;
+      text-align: center;
+      max-width: 380px;
+      width: 100%;
+    }
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid #252525;
+      border-top-color: #f5c542;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 1.5rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    h1 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #f0f0f0;
+      margin: 0 0 0.5rem;
+    }
+    p {
+      font-size: 0.85rem;
+      color: #606060;
+      margin: 0 0 1.5rem;
+      line-height: 1.5;
+    }
+    .fallback-link {
+      font-size: 0.8rem;
+      color: #f5c542;
+      text-decoration: none;
+    }
+    .fallback-link:hover { opacity: 0.8; }
+    .disclaimer {
+      font-size: 0.68rem;
+      color: #3a3a3a;
+      margin-top: 1.5rem;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="spinner" aria-hidden="true"></div>
+    <h1>Redirecting to {ex.name}</h1>
+    <p>You're being securely redirected to the {ex.name} bonus offer.</p>
+    <a
+      href={fallbackUrl}
+      class="fallback-link"
+      rel="nofollow"
+    >
+      Taking too long? Click here →
+    </a>
+    <p class="disclaimer">
+      Conditions apply. Always verify bonus terms on the official exchange website before registering.
+    </p>
+  </div>
+
+  <!--
+    Affiliate redirect script.
+    Runs immediately — define:vars inlines the link data so no fetch needed.
+    Reads localStorage cbw_geo (set by Analytics.astro) for GEO-aware routing.
+    Fires cbw_affiliate_click before redirect.
+    Uses window.location.replace() — equivalent to HTTP 302 (no history entry).
+  -->
+  <script define:vars={{ __linkData: linkData, __exchangeSlug: ex.slug, __fallbackUrl: fallbackUrl }} is:inline>
+  (function () {
+    'use strict';
+
+    var PLACEHOLDER = '#';
+    var SITE_BASE   = 'https://cryptobonusworld.com';
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+    function isPlaceholder(url) {
+      return !url || url === PLACEHOLDER || url.trim() === '' || url === 'null';
+    }
+    function isValidUrl(url) {
+      try { var u = new URL(url); return u.protocol === 'https:' || u.protocol === 'http:'; }
+      catch(_) { return false; }
+    }
+
+    // ── Read visitor context ──────────────────────────────────────────────────
+    var geo = 'unknown', device = 'unknown', sid = 'unknown', abVariant = 'control', sessionPageCount = 0;
+    try {
+      geo    = localStorage.getItem('cbw_geo')    || 'unknown';
+      device = localStorage.getItem('cbw_device') || 'unknown';
+    } catch(_) {}
+    try {
+      sid              = sessionStorage.getItem('cbw_sid')    || 'unknown';
+      sessionPageCount = parseInt(sessionStorage.getItem('cbw_pcount') || '0', 10);
+    } catch(_) {}
+    try { abVariant = localStorage.getItem('cbw_ab') || 'control'; } catch(_) {}
+
+    // Read URL params (placement, pageType, comparePair passed from referring page)
+    var searchParams = new URLSearchParams(location.search);
+    var placement    = searchParams.get('pl')   || 'go-redirect';
+    var pageType     = searchParams.get('pt')   || 'unknown';
+    var comparePair  = searchParams.get('cp')   || null;
+    var ctxRank      = searchParams.get('rank') ? parseInt(searchParams.get('rank'), 10) : null;
+    var geoOverride  = searchParams.get('geo');
+    if (geoOverride) geo = geoOverride;
+
+    // ── Resolve affiliate URL ─────────────────────────────────────────────────
+    var resolvedUrl  = null;
+    var linkSource   = 'fallback-page';
+
+    // 1. GEO URL
+    if (geo !== 'unknown' && __linkData.geo && __linkData.geo[geo]) {
+      var geoUrl = __linkData.geo[geo];
+      if (!isPlaceholder(geoUrl) && isValidUrl(geoUrl)) {
+        resolvedUrl = geoUrl;
+        linkSource  = 'geo';
+      }
+    }
+
+    // 2. Default URL
+    if (!resolvedUrl && !isPlaceholder(__linkData.default) && isValidUrl(__linkData.default)) {
+      resolvedUrl = __linkData.default;
+      linkSource  = 'default';
+    }
+
+    // 3. Safe internal fallback
+    if (!resolvedUrl) {
+      resolvedUrl = SITE_BASE + '/exchanges/' + __exchangeSlug + '/';
+      linkSource  = 'fallback-page';
+    }
+
+    // ── Build SubID and tracked URL ───────────────────────────────────────────
+    function buildSubId() {
+      var parts = ['cbw', __exchangeSlug, placement];
+      if (geo !== 'unknown')    parts.push(geo);
+      if (device !== 'unknown') parts.push(device);
+      return parts.join('_').replace(/[^a-z0-9_-]/gi, '-');
+    }
+
+    function appendTracking(url) {
+      if (linkSource === 'fallback-page') return url; // don't append to internal URLs
+      try {
+        var u = new URL(url);
+        u.searchParams.set('subid', buildSubId());
+        if (!u.searchParams.has('utm_source'))   u.searchParams.set('utm_source',   'cbw');
+        if (!u.searchParams.has('utm_medium'))   u.searchParams.set('utm_medium',   'affiliate');
+        if (!u.searchParams.has('utm_campaign')) u.searchParams.set('utm_campaign', __exchangeSlug + '-bonus');
+        return u.toString();
+      } catch(_) { return url; }
+    }
+
+    var finalUrl = appendTracking(resolvedUrl);
+
+    // ── Fire analytics ────────────────────────────────────────────────────────
+    var clickEvent = {
+      schema_version:  1,
+      event:           'cbw_affiliate_click',
+      timestamp:       new Date().toISOString(),
+      ts:              Date.now(),
+      exchange:        __exchangeSlug,
+      placement:       placement,
+      page_type:       pageType,
+      path:            document.referrer ? new URL(document.referrer).pathname : '/',
+      geo_code:        geo,
+      device_type:     device,
+      session_id:      sid,
+      ab_variant:      abVariant,
+      link_source:     linkSource,
+      href:            finalUrl,
+      is_go_redirect:  true,
+      contextual_rank: ctxRank,
+      compare_pair:    comparePair,
+    };
+
+    // Internal event log (window.cbw may not exist here — it's set by Analytics.astro on referrer page)
+    try {
+      if (window.cbw && Array.isArray(window.cbw.events)) window.cbw.events.push(clickEvent);
+    } catch(_) {}
+
+    // GTM dataLayer
+    try {
+      if (window.dataLayer && Array.isArray(window.dataLayer)) {
+        window.dataLayer.push(Object.assign({ event: clickEvent.event }, clickEvent));
+      }
+    } catch(_) {}
+
+    // Plausible
+    try {
+      if (typeof window.plausible === 'function') {
+        window.plausible('cbw_affiliate_click', { props: {
+          exchange:        String(clickEvent.exchange),
+          placement:       String(clickEvent.placement),
+          page_type:       String(clickEvent.page_type),
+          geo_code:        String(clickEvent.geo_code),
+          device_type:     String(clickEvent.device_type),
+          link_source:     String(clickEvent.link_source),
+        }});
+      }
+    } catch(_) {}
+
+    // Custom event (BI listeners)
+    try {
+      document.dispatchEvent(new CustomEvent('cbw:click', { detail: clickEvent, bubbles: true }));
+    } catch(_) {}
+
+    // PostHog
+    try {
+      if (typeof window.posthog !== 'undefined' && typeof window.posthog.capture === 'function') {
+        window.posthog.capture('cbw_affiliate_click', clickEvent);
+      }
+    } catch(_) {}
+
+    // ─ Dev console ────────────────────────────────────────────────────────────
+    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+      console.info('[CBW /go/] Resolved:', { slug: __exchangeSlug, linkSource, finalUrl, geo, device });
+    }
+
+    // ── Redirect ──────────────────────────────────────────────────────────────
+    // Use location.replace() so /go/ doesn't appear in browser history (302 semantics)
+    window.location.replace(finalUrl);
+
+  })();
+  </script>
+</body>
+</html>

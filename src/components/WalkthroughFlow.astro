@@ -26,6 +26,13 @@
  *   </WalkthroughFlow>
  */
 
+interface SchemaStep {
+  position: number;
+  name: string;
+  text: string;
+  image?: string;
+}
+
 interface Props {
   title: string;
   description?: string;
@@ -39,6 +46,10 @@ interface Props {
   /** If true, renders a post-flow CTA after steps */
   showCTA?: boolean;
   id?: string;
+  /** HowTo schema steps for JSON-LD rich results */
+  schemaSteps?: SchemaStep[];
+  /** ISO 8601 duration, e.g. "PT10M" */
+  totalTime?: string;
 }
 
 const {
@@ -53,7 +64,25 @@ const {
   ctaBody,
   showCTA = !!affiliateUrl,
   id,
+  schemaSteps,
+  totalTime,
 } = Astro.props;
+
+// Build HowTo JSON-LD when steps are available
+const howToSchema = (schemaSteps && schemaSteps.length > 0) ? JSON.stringify({
+  '@context': 'https://schema.org',
+  '@type': 'HowTo',
+  'name': title,
+  ...(description ? { 'description': description.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim().slice(0, 300) } : {}),
+  ...(totalTime ? { 'totalTime': totalTime } : {}),
+  'step': schemaSteps.map(s => ({
+    '@type': 'HowToStep',
+    'position': s.position,
+    'name': s.name,
+    'text': s.text,
+    ...(s.image ? { 'image': { '@type': 'ImageObject', 'url': s.image } } : {}),
+  })),
+}) : null;
 
 function fmtMonth(ym: string): string {
   try {
@@ -65,13 +94,17 @@ function fmtMonth(ym: string): string {
 const verifiedLabel = lastVerified ? fmtMonth(lastVerified) : null;
 ---
 
+{howToSchema && (
+  <script type="application/ld+json" set:html={howToSchema} />
+)}
+
 <section class="wf-section" id={id}>
 
   <!-- Flow header -->
   <div class="wf-header">
     <div class="wf-header-left">
       <h2 class="wf-title">{title}</h2>
-      {description && <p class="wf-desc">{description}</p>}
+      {description && <p class="wf-desc" set:html={description} />}
     </div>
     <div class="wf-header-meta">
       {stepCount && (

@@ -1,0 +1,248 @@
+---
+/**
+ * BestForBlock — "Best exchange for X" ranked summary block.
+ *
+ * Optimised for:
+ *  - Google AI Overviews: "best crypto exchange for [use case]" queries
+ *  - Google Featured Snippets: ranked list format (3–5 items)
+ *  - ChatGPT / Perplexity: structured comparison citations
+ *  - schema.org ItemList markup for machine-readable ranking
+ *
+ * Usage:
+ *   <BestForBlock
+ *     heading="Best Crypto Exchanges for Day Trading"
+ *     items={[
+ *       { rank: 1, exchange: 'Bybit', reason: 'Deepest BTC liquidity, 0.055% taker fee', href: '/exchanges/bybit/' },
+ *       { rank: 2, exchange: 'OKX',   reason: 'Best TradingView integration',           href: '/exchanges/okx/' },
+ *     ]}
+ *   />
+ *
+ * Keep items to 3–5 for optimal snippet capture.
+ * reason should be one short phrase (under 12 words).
+ */
+
+interface BestForItem {
+  rank: number;
+  exchange: string;
+  exchangeSlug?: string;   // for logo lookup
+  reason: string;          // short "best for" justification
+  bonusNote?: string;      // e.g. "Up to 30,000 USDT bonus"
+  href?: string;           // link to exchange page
+}
+
+interface Props {
+  heading: string;
+  items: BestForItem[];
+  updatedDate?: string;
+  /** Show affiliate CTAs inline */
+  showCTAs?: boolean;
+  compact?: boolean;
+}
+
+const {
+  heading,
+  items,
+  updatedDate,
+  showCTAs = false,
+  compact = false,
+} = Astro.props;
+---
+
+<div
+  class:list={['bfb', compact && 'bfb--compact']}
+  itemscope
+  itemtype="https://schema.org/ItemList"
+>
+  <meta itemprop="name" content={heading} />
+  <meta itemprop="numberOfItems" content={String(items.length)} />
+
+  <div class="bfb-header">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+      <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>
+    </svg>
+    <span class="bfb-label">Top Picks</span>
+    {updatedDate && <span class="bfb-date">Updated {updatedDate}</span>}
+  </div>
+
+  {!compact && <h2 class="bfb-heading">{heading}</h2>}
+
+  <ol class="bfb-list" role="list">
+    {items.map((item) => (
+      <li
+        class="bfb-item"
+        itemprop="itemListElement"
+        itemscope
+        itemtype="https://schema.org/ListItem"
+      >
+        <meta itemprop="position" content={String(item.rank)} />
+        <span class="bfb-rank" aria-label={`Rank ${item.rank}`}>{item.rank}</span>
+        <div class="bfb-content">
+          <div class="bfb-name-row">
+            {item.href
+              ? <a class="bfb-name" href={item.href} itemprop="url">{item.exchange}</a>
+              : <span class="bfb-name" itemprop="name">{item.exchange}</span>
+            }
+            {item.bonusNote && (
+              <span class="bfb-bonus">{item.bonusNote}</span>
+            )}
+          </div>
+          <span class="bfb-reason">{item.reason}</span>
+        </div>
+        {showCTAs && item.href && (
+          <a class="bfb-cta" href={item.href} rel="noopener nofollow">
+            View
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+              <path d="M5 12h14"/><path d="M12 5l7 7-7 7"/>
+            </svg>
+          </a>
+        )}
+      </li>
+    ))}
+  </ol>
+</div>
+
+<style>
+  .bfb {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.75rem;
+  }
+  .bfb--compact {
+    padding: 0.875rem 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .bfb-header {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.625rem;
+  }
+  .bfb-header svg { color: var(--color-accent); }
+  .bfb-label {
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-accent);
+    flex: 1;
+  }
+  .bfb-date {
+    font-size: 0.65rem;
+    color: var(--color-text-muted);
+  }
+
+  .bfb-heading {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--color-text-primary);
+    margin: 0 0 1rem;
+    line-height: 1.35;
+  }
+
+  .bfb-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .bfb-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 0.75rem;
+    background: rgba(255,255,255,0.025);
+    border: 1px solid rgba(255,255,255,0.04);
+    border-radius: 8px;
+    transition: border-color 0.15s;
+  }
+  .bfb-item:hover {
+    border-color: rgba(245,197,66,0.2);
+  }
+
+  .bfb-rank {
+    width: 24px;
+    height: 24px;
+    background: rgba(245,197,66,0.12);
+    color: var(--color-accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.72rem;
+    font-weight: 900;
+    flex-shrink: 0;
+  }
+  /* Gold for #1 */
+  .bfb-item:first-child .bfb-rank {
+    background: rgba(245,197,66,0.25);
+  }
+
+  .bfb-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .bfb-name-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .bfb-name {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    text-decoration: none;
+  }
+  a.bfb-name:hover { color: var(--color-accent); }
+
+  .bfb-bonus {
+    font-size: 0.7rem;
+    color: var(--color-accent);
+    background: rgba(245,197,66,0.1);
+    border: 1px solid rgba(245,197,66,0.2);
+    border-radius: 4px;
+    padding: 0.1rem 0.4rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .bfb-reason {
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    line-height: 1.4;
+  }
+
+  .bfb-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.3rem 0.75rem;
+    background: rgba(245,197,66,0.1);
+    color: var(--color-accent);
+    border: 1px solid rgba(245,197,66,0.25);
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: background 0.15s;
+  }
+  .bfb-cta:hover { background: rgba(245,197,66,0.18); }
+
+  @media (max-width: 480px) {
+    .bfb-cta { display: none; }
+    .bfb-item { padding: 0.5rem; }
+  }
+</style>

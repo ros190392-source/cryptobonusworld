@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 56" role="img" aria-label="CryptoBonusWorld">
+  <defs>
+    <linearGradient id="lg-gold" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fcd34d"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+    <linearGradient id="lg-bonus" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#fcd34d"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+
+  <!-- ── Icon mark ── -->
+  <!-- Background circle -->
+  <circle cx="28" cy="28" r="28" fill="#0a0c14"/>
+
+  <!--
+    C mark: r=18.875, stroke-width=7.9 → same proportions as favicon scaled ×1.75
+    Circumference ≈ 118.6  |  fill=260°=85.65  |  gap=100°=32.95
+    rotate(50°) to open right
+  -->
+  <circle
+    cx="28" cy="28" r="18.875"
+    fill="none"
+    stroke="url(#lg-gold)"
+    stroke-width="7.9"
+    stroke-linecap="butt"
+    stroke-dasharray="85.65 32.95"
+    transform="rotate(50 28 28)"
+  />
+
+  <!-- ── Wordmark ── -->
+  <!-- "Crypto" — muted -->
+  <text
+    x="74" y="33"
+    font-family="'Inter','SF Pro Display','Helvetica Neue',Arial,sans-serif"
+    font-size="26" font-weight="400" letter-spacing="-0.4"
+    fill="#607080">Crypto</text>
+
+  <!-- "Bonus" — gold -->
+  <text
+    x="184" y="33"
+    font-family="'Inter','SF Pro Display','Helvetica Neue',Arial,sans-serif"
+    font-size="26" font-weight="800" letter-spacing="-0.5"
+    fill="url(#lg-bonus)">Bonus</text>
+
+  <!-- "World" — white/bright -->
+  <text
+    x="291" y="33"
+    font-family="'Inter','SF Pro Display','Helvetica Neue',Arial,sans-serif"
+    font-size="26" font-weight="700" letter-spacing="-0.4"
+    fill="#eef0f2">World</text>
+
+  <!-- Tagline -->
+  <text
+    x="75" y="50"
+    font-family="'Inter','SF Pro Display','Helvetica Neue',Arial,sans-serif"
+    font-size="9" font-weight="600" letter-spacing="2.2"
+    fill="#3a4a58">GLOBAL CRYPTO INTELLIGENCE</text>
+</svg>

@@ -1,19 +1,126 @@
 ---
+import {
+  getOgLocale,
+  getOgLocaleAlternates,
+  getHtmlLang,
+  buildEnglishHreflangLinks,
+  type HreflangLink,
+  type LocaleCode,
+} from '../utils/i18n';
+
 interface Props {
   title: string;
   description: string;
   canonical?: string;
+  /**
+   * Full absolute URL to an OG/social share image (1200×630 recommended).
+   * When omitted, no og:image tag is emitted — better than pointing to a 404.
+   * Set this per-page for high-value pages (exchange reviews, guides, etc.).
+   */
   ogImage?: string;
+  /**
+   * og:type — defaults to 'website'.
+   * Use 'article' for review pages, guides, and comparison articles.
+   */
+  ogType?: 'website' | 'article';
+  /**
+   * ISO 8601 date string for og:article:published_time.
+   * Required when ogType = 'article' for freshness signals.
+   */
+  publishedTime?: string;
+  /**
+   * ISO 8601 date string for og:article:modified_time.
+   * Required when ogType = 'article' for update signals.
+   */
+  modifiedTime?: string;
   schema?: object | object[];
   noindex?: boolean;
+  /**
+   * Custom robots meta content — overrides the `noindex` convenience flag.
+   * Use when you need fine-grained control:
+   *   robots="noindex, follow"        — crawl links but don't index the page
+   *   robots="index, nofollow"        — index the page but don't follow links
+   *   robots="noindex, nofollow"      — same as noindex=true
+   *   robots="noarchive"              — index but prevent cached copy
+   *   robots="noindex, nofollow, noimageindex" — full exclusion incl. images
+   * When omitted: noindex=true → "noindex, nofollow"; noindex=false → no tag.
+   */
+  robots?: string;
+  /**
+   * BCP-47 locale code for this page (default: 'en').
+   * Controls <html lang>, og:locale, and hreflang self-reference.
+   */
+  locale?: LocaleCode;
+  /**
+   * Hreflang link objects for multilingual pages.
+   * When omitted: English self-referencing hreflang is emitted automatically
+   * (hreflang="en" + hreflang="x-default" both pointing to the canonical URL).
+   * When provided: emit the supplied links verbatim (caller is responsible for
+   * including all available locales + x-default).
+   */
+  hreflangLinks?: HreflangLink[];
 }
 
-const { title, description, canonical, ogImage, schema, noindex = false } = Astro.props;
+const {
+  title,
+  description,
+  canonical,
+  ogImage,
+  ogType = 'website',
+  publishedTime,
+  modifiedTime,
+  schema,
+  noindex = false,
+  robots,
+  locale = 'en',
+  hreflangLinks,
+} = Astro.props;
+
+// Resolve the robots meta content:
+//  1. Explicit `robots` string → use as-is (full control)
+//  2. noindex=true → "noindex, nofollow" (convenience shorthand)
+//  3. Otherwise → no robots meta tag (default: index, follow)
+const robotsMeta: string | null = robots !== undefined
+  ? robots
+  : noindex ? 'noindex, nofollow' : null;
+
 const siteUrl = 'https://cryptobonusworld.com';
 const canonicalUrl = canonical ? `${siteUrl}${canonical}` : `${siteUrl}${Astro.url.pathname}`;
-const ogImageUrl = ogImage ?? `${siteUrl}/og-default.png`;
+// Only use ogImage when explicitly provided — never fall back to a non-existent file
+const ogImageUrl = ogImage ?? null;
+
+// Webmaster verification tokens — set in .env / Netlify/Vercel env vars
+// GOOGLE_SITE_VERIFICATION=xxxxx
+// BING_SITE_VERIFICATION is handled by /BingSiteAuth.xml (already in /public)
+// YANDEX_SITE_VERIFICATION=xxxxx
+const googleVerification = import.meta.env.GOOGLE_SITE_VERIFICATION ?? null;
+const yandexVerification = import.meta.env.YANDEX_SITE_VERIFICATION ?? '3f08b23be6be3cd6';
+
+// Twitter/X handle for twitter:site (no @ prefix needed in meta content)
+const twitterHandle = '@CryptoBonusWrld';
+
+// Locale-aware OG properties
+const ogLocaleValue = getOgLocale(locale);
+
+// If no hreflangLinks provided, auto-generate English self-reference
+const resolvedHreflangLinks: HreflangLink[] = hreflangLinks?.length
+  ? hreflangLinks
+  : buildEnglishHreflangLinks(canonical ?? Astro.url.pathname, siteUrl);
+
+// For og:locale:alternate — show other locales from hreflangLinks
+const ogLocaleAlternates: string[] = hreflangLinks?.length
+  ? hreflangLinks
+      .filter(l => l.hreflang !== 'x-default' && l.hreflang !== locale)
+      .map(l => {
+        // Convert BCP-47 to og:locale format (e.g. 'pt-BR' → 'pt_BR')
+        return l.hreflang.replace('-', '_');
+      })
+  : [];
 
 const schemaArray = schema ? (Array.isArray(schema) ? schema : [schema]) : [];
+
+// HTML lang attribute — use BCP-47 format required by HTML spec
+const htmlLang = getHtmlLang(locale);
 ---
 
 <meta charset="utf-8" />
@@ -24,25 +131,54 @@ const schemaArray = schema ? (Array.isArray(schema) ? schema : [schema]) : [];
 <title>{title}</title>
 <meta name="description" content={description} />
 <link rel="canonical" href={canonicalUrl} />
-{noindex && <meta name="robots" content="noindex, nofollow" />}
+{robotsMeta && <meta name="robots" content={robotsMeta} />}
+
+<!-- Webmaster verification -->
+<!-- Bing: handled by /BingSiteAuth.xml (already in /public) -->
+{googleVerification && <meta name="google-site-verification" content={googleVerification} />}
+{yandexVerification && <meta name="yandex-verification" content={yandexVerification} />}
 
 <!-- Favicon + touch icons -->
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-<link rel="apple-touch-icon" href="/favicon.svg" />
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 
-<!-- Open Graph -->
-<meta property="og:type" content="website" />
+<!-- Hreflang: locale alternates for multilingual SEO -->
+{resolvedHreflangLinks.map((link) => (
+  <link rel="alternate" hreflang={link.hreflang} href={link.href} />
+))}
+
+<!-- Open Graph — core -->
+<meta property="og:type" content={ogType} />
 <meta property="og:title" content={title} />
 <meta property="og:description" content={description} />
 <meta property="og:url" content={canonicalUrl} />
-<meta property="og:image" content={ogImageUrl} />
 <meta property="og:site_name" content="CryptoBonusWorld" />
+<meta property="og:locale" content={ogLocaleValue} />
+{ogLocaleAlternates.map((altLocale) => (
+  <meta property="og:locale:alternate" content={altLocale} />
+))}
 
-<!-- Twitter -->
-<meta name="twitter:card" content="summary_large_image" />
+<!-- Open Graph — image -->
+{ogImageUrl && <meta property="og:image" content={ogImageUrl} />}
+{ogImageUrl && <meta property="og:image:width" content="1200" />}
+{ogImageUrl && <meta property="og:image:height" content="630" />}
+{ogImageUrl && <meta property="og:image:type" content="image/png" />}
+{ogImageUrl && <meta property="og:image:alt" content={`${title} · CryptoBonusWorld`} />}
+
+<!-- Open Graph — article metadata (review + guide pages) -->
+{ogType === 'article' && publishedTime && <meta property="article:published_time" content={publishedTime} />}
+{ogType === 'article' && modifiedTime && <meta property="article:modified_time" content={modifiedTime} />}
+{ogType === 'article' && <meta property="article:author" content="https://cryptobonusworld.com/about/" />}
+{ogType === 'article' && <meta property="article:section" content="Cryptocurrency" />}
+
+<!-- Twitter / X Cards -->
+<meta name="twitter:card" content={ogImageUrl ? 'summary_large_image' : 'summary'} />
+<meta name="twitter:site" content={twitterHandle} />
 <meta name="twitter:title" content={title} />
 <meta name="twitter:description" content={description} />
-<meta name="twitter:image" content={ogImageUrl} />
+{ogImageUrl && <meta name="twitter:image" content={ogImageUrl} />}
+{ogImageUrl && <meta name="twitter:image:alt" content={`${title} · CryptoBonusWorld`} />}
 
 <!-- Schema -->
 {schemaArray.map((s) => (

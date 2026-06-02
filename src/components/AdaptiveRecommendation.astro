@@ -1,0 +1,409 @@
+---
+/**
+ * AdaptiveRecommendation.astro
+ *
+ * Client-side recommendation adaptation layer for CryptoBonusWorld.
+ *
+ * What it does:
+ *  1. Reads visitor context from window.cbw.meta (set by Analytics.astro)
+ *  2. Scores all exchanges using recommendationEngine.ts logic (embedded)
+ *  3. Updates the DOM with contextual signals — no full reorder:
+ *     - Adds "Best for you" badge on the contextually top exchange row/card
+ *     - Updates CTA button copy on the featured exchange (if text-only)
+ *     - Shows an onboarding hint callout for first-time visitors
+ *     - Fires cbw_recommendation event for analytics
+ *
+ * What it does NOT do:
+ *  - Does NOT reorder exchange rows (editorial order is preserved)
+ *  - Does NOT hide any exchanges
+ *  - Does NOT fake GEO or manipulate search crawlers
+ *  - Does NOT boost exchanges beyond the TRUST_CAP (2.0 pts)
+ *
+ * Usage:
+ *   Place ONCE on pages that have a BonusTable or ExchangeCard list.
+ *   Pass the full exchanges array so the engine can score contextually.
+ *
+ *   <AdaptiveRecommendation exchanges={exchanges} pageType="bonuses" />
+ *
+ * Dependencies:
+ *   - Analytics.astro must run first (sets window.cbw.meta)
+ *   - BonusTable rows must have data-slug={ex.slug} (see BonusTable.astro)
+ */
+
+import type { RecommendableExchange } from '../utils/recommendationEngine';
+
+interface Props {
+  exchanges: RecommendableExchange[];
+  pageType?: string;
+  categorySlug?: string;
+  /** Show the onboarding hint callout (default: true) */
+  showHint?: boolean;
+}
+
+const {
+  exchanges,
+  pageType = 'bonuses',
+  categorySlug,
+  showHint = true,
+} = Astro.props;
+
+// Serialise exchanges for client-side scoring
+const exchangesJson = JSON.stringify(
+  exchanges.map(ex => ({
+    slug:            ex.slug,
+    name:            ex.name,
+    rating:          ex.rating,
+    kycRequired:     ex.kycRequired,
+    depositRequired: ex.depositRequired,
+    bonusAmount:     ex.bonusAmount,
+    bonusCurrency:   ex.bonusCurrency,
+    bonusTypes:      ex.bonusTypes,
+    paymentMethods:  ex.paymentMethods ?? [],
+    countries:       ex.countries ?? [],
+    excludedCountries: ex.excludedCountries ?? [],
+    topChoice:       (ex as any).topChoice ?? false,
+    status:          (ex as any).status ?? 'active',
+    minDeposit:      (ex as any).minDeposit ?? null,
+  }))
+);
+---
+
+{showHint && (
+  <div
+    id="cbw-onboarding-hint"
+    class="cbw-onboarding-hint callout"
+    style="display:none;"
+    aria-live="polite"
+    role="note"
+    data-onboarding-hint="true"
+  >
+    <span class="callout__icon" aria-hidden="true">💡</span>
+    <div class="callout__content">
+      <p class="callout__body cbw-hint-body"></p>
+    </div>
+  </div>
+)}
+
+<script define:vars={{ __cbwExchanges: exchangesJson, __cbwPageType: pageType, __cbwCategorySlug: categorySlug ?? null, __cbwShowHint: showHint }}>
+(function () {
+  'use strict';
+
+  // ── Embedded recommendation logic (mirrors recommendationEngine.ts) ───────
+  // Embedded here to avoid module loading — this runs is:inline after Analytics.
+
+  var TRUST_CAP    = 2.0;
+  var RATING_FLOOR = 8.5;
+
+  var NOKYCPREF_GEOS = { tr:1, in:1, id:1, ng:1, vn:1 };
+
+  var GEO_PAYMENT_PREF = {
+    tr: ['p2p','bank transfer'],
+    in: ['p2p','upi'],
+    id: ['p2p','bank transfer'],
+    ng: ['p2p','crypto'],
+    br: ['pix','bank transfer','p2p'],
+    vn: ['p2p','bank transfer'],
+    ph: ['p2p','bank transfer','card'],
+  };
+
+  var GEO_TO_COUNTRY_SLUG = {
+    tr:'turkey', in:'india', id:'indonesia',
+    ng:'nigeria', br:'brazil', vn:'vietnam', ph:'philippines',
+  };
+
+  function editorialBase(ex) {
+    var s = ex.rating * 2.0;
+    if (!ex.kycRequired)    s += 1.5;
+    if (!ex.depositRequired) s += 1.0;
+    if (ex.topChoice)        s += 2.5;
+    s += Math.log10(ex.bonusAmount + 1) * 0.5;
+    return s;
+  }
+
+  function contextBoost(ex, ctx) {
+    var statusMul = (ex.status && ex.status !== 'active') ? 0.5 : 1.0;
+    var boost = 0;
+
+    // GEO boost
+    if (ctx.geo !== 'unknown') {
+      var countrySlug = GEO_TO_COUNTRY_SLUG[ctx.geo] || ctx.geo;
+      var excluded = (ex.excludedCountries || []);
+      if (excluded.indexOf(countrySlug) !== -1 || excluded.indexOf(ctx.geo) !== -1) {
+        return -999;
+      }
+      var available = ex.countries.indexOf('global') !== -1 ||
+                      ex.countries.indexOf(countrySlug) !== -1 ||
+                      ex.countries.indexOf(ctx.geo) !== -1;
+      if (available) {
+        if (NOKYCPREF_GEOS[ctx.geo] && !ex.kycRequired) {
+          boost += ctx.geo === 'ng' ? 1.2 : 0.8;
+        }
+        var prefMethods = GEO_PAYMENT_PREF[ctx.geo] || [];
+        var exMethods   = (ex.paymentMethods || []).map(function(m){ return m.toLowerCase(); });
+        var overlap = prefMethods.filter(function(p) {
+          return exMethods.some(function(m){ return m.indexOf(p) !== -1; });
+        }).length;
+        boost += Math.min(overlap * 0.3, 0.6);
+      }
+    }
+
+    // Device boost
+    if (ctx.device === 'mobile') {
+      if (!ex.kycRequired)    boost += 0.2;
+      if (!ex.depositRequired) boost += 0.2;
+    } else if (ctx.device === 'desktop') {
+      if (ex.bonusTypes.indexOf('futures') !== -1 && ex.bonusAmount >= 5000) boost += 0.2;
+    }
+
+    // Intent boost
+    switch (ctx.intent) {
+      case 'beginner':
+        if (!ex.kycRequired)     boost += 0.4;
+        if (!ex.depositRequired) boost += 0.3;
+        if (ex.minDeposit && ex.minDeposit.amount <= 50) boost += 0.1;
+        break;
+      case 'no-kyc':
+        if (!ex.kycRequired)     boost += 0.7;
+        if (!ex.depositRequired) boost += 0.3;
+        break;
+      case 'futures':
+        if (ex.bonusTypes.indexOf('futures') !== -1) boost += 0.4;
+        if (ex.bonusAmount >= 5000)                  boost += 0.3;
+        break;
+      case 'high-value':
+      case 'experienced':
+        if (ex.bonusAmount >= 5000) boost += 0.4;
+        if (ex.rating >= 9.5)       boost += 0.3;
+        break;
+    }
+
+    return Math.min(boost * statusMul, TRUST_CAP);
+  }
+
+  function inferIntent(pageType, catSlug) {
+    if (catSlug === 'no-kyc' || (catSlug || '').indexOf('no-kyc') !== -1) return 'no-kyc';
+    if ((catSlug || '').indexOf('futures') !== -1) return 'futures';
+    if (pageType === 'compare') return 'experienced';
+    if (pageType === 'homepage' || pageType === 'bonuses') return 'beginner';
+    return 'unknown';
+  }
+
+  function getContextReason(ex, ctx) {
+    var GEO_NAMES = { tr:'Turkey', in:'India', id:'Indonesia', ng:'Nigeria', br:'Brazil', vn:'Vietnam', ph:'Philippines' };
+    if (ctx.geo !== 'unknown' && NOKYCPREF_GEOS[ctx.geo] && !ex.kycRequired) {
+      return 'Best for ' + (GEO_NAMES[ctx.geo] || 'your region');
+    }
+    switch (ctx.intent) {
+      case 'beginner':
+        if (!ex.kycRequired && !ex.depositRequired) return 'Easiest to start';
+        if (!ex.kycRequired) return 'No ID required';
+        break;
+      case 'no-kyc': if (!ex.kycRequired) return 'No KYC required'; break;
+      case 'futures': if (ex.bonusTypes.indexOf('futures') !== -1) return 'Best futures bonus'; break;
+    }
+    if (ex.topChoice) return 'Top editorial pick';
+    if (!ex.kycRequired) return 'No KYC required';
+    return 'Top rated';
+  }
+
+  function getAdaptiveCTAShort(ex, ctx) {
+    if ((NOKYCPREF_GEOS[ctx.geo] || ctx.intent === 'no-kyc') && !ex.kycRequired && !ex.depositRequired) return 'No KYC \xb7 No Deposit →';
+    if ((NOKYCPREF_GEOS[ctx.geo] || ctx.intent === 'no-kyc') && !ex.kycRequired) return 'Claim — No KYC →';
+    if (!ex.kycRequired && !ex.depositRequired) return 'No KYC \xb7 No Deposit →';
+    if (!ex.kycRequired) return 'Claim — No KYC →';
+    if (!ex.depositRequired) return 'No Deposit →';
+    return 'Claim Bonus →';
+  }
+
+  function getOnboardingHint(ctx) {
+    var GEO_HINTS = {
+      ng: { type:'tip',  body:'Most Nigerian users fund via P2P trading (NGN → USDT) — no bank required. Filter by No KYC for the fastest start.' },
+      tr: { type:'tip',  body:'P2P with TRY is the most popular on-ramp in Turkey. Look for exchanges with strong P2P desks.' },
+      in: { type:'info', body:'Note: OKX does not accept Indian users. MEXC, Bybit and Bitget are all available in India.' },
+      vn: { type:'tip',  body:'P2P trading with VND is the standard method for Vietnamese users. Bybit and MEXC have the deepest VND liquidity.' },
+      id: { type:'tip',  body:'Indonesian users can fund via P2P with IDR through major local banks (BCA, Mandiri, BRI).' },
+      br: { type:'tip',  body:'Brazilian users can use PIX for fast BRL deposits via P2P counterparties on most major exchanges.' },
+      ph: { type:'tip',  body:'P2P trading with PHP is the main funding method for Filipino users. GCash and major banks are widely supported.' },
+    };
+    if (ctx.geo !== 'unknown' && GEO_HINTS[ctx.geo]) return GEO_HINTS[ctx.geo];
+    if (ctx.intent === 'beginner' && ctx.isFirstVisit) {
+      return { type:'tip', body:'New to crypto bonuses? Filter by "No KYC" to find exchanges where you can start without submitting identity documents.' };
+    }
+    if (ctx.intent === 'no-kyc') {
+      return { type:'info', body:'No-KYC accounts typically have lower daily withdrawal limits. Full KYC unlocks higher limits if you need them later.' };
+    }
+    return null;
+  }
+
+  // ── Main function ─────────────────────────────────────────────────────────
+
+  function run() {
+    // Build visitor context
+    var cbwMeta = (window.cbw && window.cbw.meta) ? window.cbw.meta : {};
+    var geo    = cbwMeta.geoCode    || localStorage.getItem('cbw_geo')    || 'unknown';
+    var device = cbwMeta.deviceType || localStorage.getItem('cbw_device') || 'desktop';
+    var pCount = 1;
+    try { pCount = parseInt(sessionStorage.getItem('cbw_pcount') || '1', 10); } catch(_){}
+
+    var ctx = {
+      geo:            geo,
+      device:         device,
+      intent:         inferIntent(__cbwPageType, __cbwCategorySlug),
+      noKycPreference: !!(geo !== 'unknown' && NOKYCPREF_GEOS[geo]),
+      isFirstVisit:   pCount <= 1,
+    };
+
+    // Parse and score exchanges
+    var exchanges;
+    try { exchanges = JSON.parse(__cbwExchanges); } catch(_) { return; }
+
+    var scored = exchanges.map(function(ex) {
+      var boost = contextBoost(ex, ctx);
+      var base  = editorialBase(ex);
+      return {
+        ex:    ex,
+        base:  base,
+        boost: boost,
+        total: boost === -999 ? -Infinity : base + Math.min(boost, TRUST_CAP),
+      };
+    }).sort(function(a,b){ return b.total - a.total; });
+
+    // Find the trust-safe featured exchange
+    var featuredIdx = -1;
+    for (var i = 0; i < scored.length; i++) {
+      if (scored[i].total > -Infinity && scored[i].ex.rating >= RATING_FLOOR) {
+        featuredIdx = i;
+        break;
+      }
+    }
+    if (featuredIdx === -1) return; // Nothing qualifies
+
+    var featured    = scored[featuredIdx].ex;
+    var ctaShort    = getAdaptiveCTAShort(featured, ctx);
+    var reason      = getContextReason(featured, ctx);
+    var onboardHint = __cbwShowHint ? getOnboardingHint(ctx) : null;
+
+    // ── DOM updates ───────────────────────────────────────────────────────────
+
+    // 1. Mark the contextually featured row in BonusTable
+    document.querySelectorAll('[data-slug]').forEach(function(el) {
+      el.removeAttribute('data-ctx-featured');
+    });
+    var featuredRows = document.querySelectorAll('[data-slug="' + featured.slug + '"]');
+    featuredRows.forEach(function(el) {
+      el.setAttribute('data-ctx-featured', 'true');
+    });
+
+    // 2. Update or inject "Best for you" badge
+    featuredRows.forEach(function(el) {
+      var existing = el.querySelector('.cbw-ctx-badge');
+      if (!existing) {
+        var badge = document.createElement('span');
+        badge.className = 'cbw-ctx-badge';
+        badge.setAttribute('aria-label', reason);
+        badge.textContent = reason;
+        var nameEl = el.querySelector('.ex-name, .mc-name, [class*="ex-name"]');
+        if (nameEl && nameEl.parentNode) {
+          nameEl.parentNode.insertBefore(badge, nameEl.nextSibling);
+        } else {
+          el.prepend(badge);
+        }
+      } else {
+        existing.textContent = reason;
+      }
+    });
+
+    // 3. Update CTA short label on featured rows (only on mobile or no-kyc context)
+    if (ctx.device === 'mobile' || ctx.noKycPreference || ctx.intent === 'no-kyc') {
+      featuredRows.forEach(function(el) {
+        var ctaEl = el.querySelector('[data-track="affiliate-cta"]');
+        if (ctaEl) {
+          // Only update if it's a "short" placement (table/card rows, not hero)
+          var placement = ctaEl.getAttribute('data-placement') || '';
+          if (placement.indexOf('table') !== -1 || placement.indexOf('card') !== -1) {
+            var arrowEl = ctaEl.querySelector('.cta-arrow');
+            var hasArrow = !!arrowEl;
+            // Rebuild label preserving the arrow span
+            var textNode = Array.from(ctaEl.childNodes).find(function(n){ return n.nodeType === 3; });
+            if (textNode) textNode.textContent = ctaShort.replace(/→$/, '').trim() + ' ';
+          }
+        }
+      });
+    }
+
+    // 4. Show onboarding hint
+    if (onboardHint) {
+      var hintEl = document.getElementById('cbw-onboarding-hint');
+      if (hintEl) {
+        var bodyEl = hintEl.querySelector('.cbw-hint-body');
+        if (bodyEl) bodyEl.textContent = onboardHint.body;
+        hintEl.className = 'cbw-onboarding-hint callout callout--' + onboardHint.type;
+        var iconEl = hintEl.querySelector('.callout__icon');
+        if (iconEl) iconEl.textContent = onboardHint.type === 'warning' ? '⚠️' : onboardHint.type === 'info' ? 'ℹ️' : '💡';
+        hintEl.style.display = 'flex';
+      }
+    }
+
+    // 5. Fire analytics event
+    if (window.cbw && window.cbw.track) {
+      window.cbw.track('cbw_recommendation', {
+        featured_slug: featured.slug,
+        context_geo:   ctx.geo,
+        context_device: ctx.device,
+        context_intent: ctx.intent,
+        context_reason: reason,
+        nokycpref:      ctx.noKycPreference,
+      });
+    }
+  }
+
+  // Run after Analytics initialises (or immediately if already done)
+  if (window.cbw && window.cbw.meta) {
+    run();
+  } else {
+    window.addEventListener('cbw:geo', run, { once: true });
+    // Fallback if cbw:geo never fires (e.g., geo=unknown)
+    if (document.readyState === 'complete') {
+      setTimeout(run, 100);
+    } else {
+      window.addEventListener('load', function(){ setTimeout(run, 50); }, { once: true });
+    }
+  }
+
+})();
+</script>
+
+<style>
+  /* Contextually featured exchange badge */
+  .cbw-ctx-badge {
+    display: inline-block;
+    font-size: 0.62rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #000;
+    background: var(--color-accent, #f5c542);
+    border-radius: 4px;
+    padding: 0.15rem 0.45rem;
+    margin-left: 0.4rem;
+    vertical-align: middle;
+    white-space: nowrap;
+    animation: cbw-badge-in 0.2s ease;
+  }
+
+  @keyframes cbw-badge-in {
+    from { opacity: 0; transform: scale(0.85); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  /* Onboarding hint inherits callout styles from Layout.astro global CSS */
+  .cbw-onboarding-hint {
+    animation: cbw-hint-in 0.3s ease;
+    margin-bottom: 1rem;
+  }
+
+  @keyframes cbw-hint-in {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+</style>

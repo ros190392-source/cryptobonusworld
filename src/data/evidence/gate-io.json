@@ -1,0 +1,373 @@
+{
+  "exchange": "gate-io",
+  "updatedAt": "2026-06-01",
+  "sources": {
+    "fees": {
+      "url": "https://www.gate.io/fee",
+      "label": "Gate.io — Fee Schedule",
+      "type": "official-fees",
+      "lastAccessed": "2026-05-25",
+      "notes": "Spot maker 0.20%, taker 0.20% standard. Futures maker 0.015%, taker 0.05%."
+    },
+    "kyc": {
+      "url": "https://www.gate.io/help/guide/guide_kyc",
+      "label": "Gate.io — KYC Verification Guide",
+      "type": "official-kyc",
+      "lastAccessed": "2026-05-25",
+      "notes": "KYC required for full account access and withdrawals. 3 tiers of verification."
+    },
+    "bonus": {
+      "url": "https://www.gate.io/en/activity/new-user-bonus",
+      "label": "Gate.io — New User Bonus",
+      "type": "official-promo",
+      "lastAccessed": "2026-05-20",
+      "notes": "Up to 3,000 USDT new user rewards. Deposit and trading tasks required."
+    },
+    "restricted_countries": {
+      "url": "https://www.gate.io/help/gate-terms-of-service",
+      "label": "Gate.io — Terms of Service (Restricted Regions)",
+      "type": "official-legal",
+      "lastAccessed": "2026-05-25",
+      "notes": "US restricted"
+    },
+    "terms": {
+      "url": "https://www.gate.io/help/gate-terms-of-service",
+      "label": "Gate.io — Terms of Service",
+      "type": "official-legal",
+      "lastAccessed": "2026-05-25"
+    },
+    "proof_of_reserves": {
+      "url": "https://www.gate.io/proof_of_reserve",
+      "label": "Gate.io — Proof of Reserves",
+      "type": "official-reserves",
+      "lastAccessed": "2026-05-25",
+      "notes": "PoR published; independently verified"
+    },
+    "p2p": {
+      "url": "https://www.gate.io/c2c/",
+      "label": "Gate.io — C2C/P2P Trading",
+      "type": "official-p2p",
+      "lastAccessed": "2026-05-25"
+    },
+    "app_ios": {
+      "url": "https://apps.apple.com/app/gate-io-bitcoin-crypto-trade/id1294998195",
+      "label": "Gate.io iOS App — App Store",
+      "type": "official-app",
+      "lastAccessed": "2026-05-25"
+    },
+    "app_android": {
+      "url": "https://play.google.com/store/apps/details?id=com.gateio.gateio",
+      "label": "Gate.io Android App — Google Play",
+      "type": "official-app",
+      "lastAccessed": "2026-05-25"
+    },
+    "futures": {
+      "url": "https://www.gate.io/futures_trade/USDT/BTC_USDT",
+      "label": "Gate.io — USDT Perpetual Futures",
+      "type": "official-other",
+      "lastAccessed": "2026-05-25",
+      "notes": "Up to 100x leverage"
+    },
+    "affiliate": {
+      "url": "https://www.gate.io/referral",
+      "label": "Gate.io — Referral Program",
+      "type": "official-affiliate",
+      "lastAccessed": "2026-05-20"
+    }
+  },
+  "facts": [
+    {
+      "field": "bonus_amount",
+      "currentValue": 3000,
+      "unit": "USDT",
+      "officialSourceKey": "bonus",
+      "officialSourceUrl": "https://www.gate.io/en/activity/new-user-bonus",
+      "lastChecked": "2026-05-20",
+      "checkedBy": "human",
+      "confidenceScore": 0.27,
+      "conflictStatus": "outdated",
+      "manualReviewRequired": true,
+      "notes": "Up to 3,000 USDT new user rewards. Needs daily re-check."
+    },
+    {
+      "field": "bonus_currency",
+      "currentValue": "USDT",
+      "officialSourceKey": "bonus",
+      "lastChecked": "2026-05-20",
+      "checkedBy": "human",
+      "confidenceScore": 0.63,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "bonus_expiry_days",
+      "currentValue": 30,
+      "unit": "days",
+      "officialSourceKey": "bonus",
+      "lastChecked": "2026-05-20",
+      "checkedBy": "human",
+      "confidenceScore": 0.27,
+      "conflictStatus": "outdated",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "bonus_requires_kyc",
+      "currentValue": true,
+      "officialSourceKey": "kyc",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.76,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "bonus_requires_deposit",
+      "currentValue": true,
+      "officialSourceKey": "bonus",
+      "lastChecked": "2026-05-20",
+      "checkedBy": "human",
+      "confidenceScore": 0.27,
+      "conflictStatus": "outdated",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "spot_maker_fee",
+      "currentValue": 0.2,
+      "unit": "%",
+      "officialSourceKey": "fees",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.76,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false,
+      "notes": "Gate.io has higher spot fees than most competitors at 0.20%/0.20%"
+    },
+    {
+      "field": "spot_taker_fee",
+      "currentValue": 0.2,
+      "unit": "%",
+      "officialSourceKey": "fees",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.76,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "futures_maker_fee",
+      "currentValue": 0.015,
+      "unit": "%",
+      "officialSourceKey": "fees",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.76,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "futures_taker_fee",
+      "currentValue": 0.05,
+      "unit": "%",
+      "officialSourceKey": "fees",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.76,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "max_futures_leverage",
+      "currentValue": 100,
+      "unit": "x",
+      "officialSourceKey": "futures",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.85,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "kyc_required",
+      "currentValue": true,
+      "officialSourceKey": "kyc",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.76,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "p2p_available",
+      "currentValue": true,
+      "officialSourceKey": "p2p",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.90,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "futures_available",
+      "currentValue": true,
+      "officialSourceKey": "futures",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.85,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "proof_of_reserves",
+      "currentValue": true,
+      "officialSourceKey": "proof_of_reserves",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.95,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "headquarters",
+      "currentValue": "Cayman Islands",
+      "officialSourceUrl": "https://www.gate.io/about",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.80,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "founded_year",
+      "currentValue": 2013,
+      "officialSourceUrl": "https://www.gate.io/about",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.80,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "restricted_us",
+      "currentValue": true,
+      "officialSourceKey": "restricted_countries",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.76,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "mobile_app_ios",
+      "currentValue": true,
+      "officialSourceKey": "app_ios",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.85,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "mobile_app_android",
+      "currentValue": true,
+      "officialSourceKey": "app_android",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.85,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "trading_pairs_count",
+      "currentValue": 2000,
+      "officialSourceUrl": "https://www.gate.io/marketlist",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.80,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false,
+      "notes": "Gate.io offers one of the largest token selections with 2000+ trading pairs"
+    }
+  ],
+  "screenshots": {
+    "registration": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "kyc": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "bonus": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "deposit": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "p2p": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "spot": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "futures": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "fees": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "mobile_app": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "mobile",
+      "notes": ""
+    },
+    "proof_of_reserves": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    }
+  }
+}

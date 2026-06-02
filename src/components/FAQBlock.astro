@@ -7,9 +7,11 @@ interface Props {
   items: FAQItem[];
   title?: string;
   pageUrl?: string;
+  /** Exchange slug for tracking (e.g. 'bybit'). Leave empty on non-exchange pages. */
+  exchangeSlug?: string;
 }
 
-const { items, title = 'Frequently Asked Questions', pageUrl } = Astro.props;
+const { items, title = 'Frequently Asked Questions', pageUrl, exchangeSlug = '' } = Astro.props;
 
 const schema = {
   "@context": "https://schema.org",
@@ -25,11 +27,11 @@ const schema = {
 };
 ---
 
-<section class="faq-block">
+<section class="faq-block" data-faq-exchange={exchangeSlug}>
   <h2 class="faq-title">{title}</h2>
   <div class="faq-list">
     {items.map((item, i) => (
-      <details class="faq-item" open={i === 0}>
+      <details class="faq-item" data-faq-question={item.question.slice(0, 80)} open={i === 0}>
         <summary class="faq-question">
           <span>{item.question}</span>
           <svg class="faq-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -45,6 +47,22 @@ const schema = {
 </section>
 
 <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+
+<script>
+  import { analytics } from '../lib/analytics';
+
+  // Track FAQ opens (not closes, not the pre-opened first item via server render).
+  // 'toggle' only fires on user-initiated state changes — safe to track all opens.
+  document.querySelectorAll<HTMLDetailsElement>('.faq-item').forEach(details => {
+    details.addEventListener('toggle', () => {
+      if (!details.open) return;  // skip close events
+      const question = details.dataset.faqQuestion ?? '';
+      const exchange = (details.closest('[data-faq-exchange]') as HTMLElement | null)
+        ?.dataset.faqExchange ?? '';
+      analytics.trackFAQExpand({ question, exchange });
+    });
+  });
+</script>
 
 <style>
   .faq-block { margin: 2.5rem 0; }

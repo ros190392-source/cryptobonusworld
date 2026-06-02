@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 36" role="img" aria-label="CryptoBonusWorld Editorial Team">
+  <defs>
+    <linearGradient id="tl-gold" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fcd34d"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+    <linearGradient id="tl-bonus" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#fcd34d"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+
+  <!-- ── Icon mark (18px radius = 36px total height) ── -->
+  <circle cx="18" cy="18" r="18" fill="#0a0c14"/>
+
+  <!--
+    C mark: r=12.1, stroke-width=5.1
+    Circumference ≈ 76.03  |  fill=55.09  |  gap=20.94
+    rotate(50°) → opens right
+  -->
+  <circle
+    cx="18" cy="18" r="12.1"
+    fill="none"
+    stroke="url(#tl-gold)"
+    stroke-width="5.1"
+    stroke-linecap="butt"
+    stroke-dasharray="55.09 20.94"
+    transform="rotate(50 18 18)"
+  />
+
+  <!-- ── Wordmark (single line, compact) ── -->
+  <text x="46" y="22"
+    font-family="'Inter','SF Pro Display','Helvetica Neue',Arial,sans-serif"
+    font-size="16" font-weight="400" letter-spacing="-0.2"
+    fill="#607080">Crypto</text>
+
+  <text x="117" y="22"
+    font-family="'Inter','SF Pro Display','Helvetica Neue',Arial,sans-serif"
+    font-size="16" font-weight="800" letter-spacing="-0.3"
+    fill="url(#tl-bonus)">Bonus</text>
+
+  <text x="184" y="22"
+    font-family="'Inter','SF Pro Display','Helvetica Neue',Arial,sans-serif"
+    font-size="16" font-weight="700" letter-spacing="-0.2"
+    fill="#eef0f2">World</text>
+</svg>

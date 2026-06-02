@@ -1,12 +1,26 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
+import { buildOrganizationSchema, SITE_URL } from '../utils/seo';
+
+const orgSchema = buildOrganizationSchema();
+// Augment with about page reference for E-E-A-T
+const aboutSchema = {
+  ...orgSchema,
+  mainEntityOfPage: {
+    '@type': 'AboutPage',
+    '@id': `${SITE_URL}/about/`,
+    name: 'About CryptoBonusWorld',
+    url: `${SITE_URL}/about/`,
+  },
+};
 ---
 
 <Layout
   title="About CryptoBonusWorld — Crypto Bonus Comparison Platform"
-  description="About CryptoBonusWorld.com — a conversion-focused crypto exchange bonus comparison platform. Our mission, team and approach."
+  description="About CryptoBonusWorld.com — an independent editorial platform comparing crypto exchange bonus offers worldwide. Our mission, standards and approach."
   canonical="/about/"
+  schema={aboutSchema}
 >
   <div class="container">
     <Breadcrumbs crumbs={[

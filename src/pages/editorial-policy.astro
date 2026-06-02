@@ -1,0 +1,305 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import { SITE_NAME, SITE_URL, buildArticleSchema } from '../utils/seo';
+
+const pageTitle = `Editorial Policy — ${SITE_NAME}`;
+const pageDesc  = 'CryptoBonusWorld editorial policy: how we research, verify and rate crypto exchange bonus offers. Independence standards, data sources, and conflict-of-interest rules.';
+
+const crumbs = [
+  { label: 'Home', href: '/' },
+  { label: 'Editorial Policy' },
+];
+
+const editorialSchema = buildArticleSchema({
+  headline: pageTitle,
+  description: pageDesc,
+  url: `${SITE_URL}/editorial-policy/`,
+  datePublished: '2024-01-01',
+  dateModified: '2026-05-25',
+  authorName: 'CryptoBonusWorld Editorial Team',
+  authorUrl: `${SITE_URL}/about/`,
+});
+---
+
+<Layout
+  title={pageTitle}
+  description={pageDesc}
+  canonical="/editorial-policy/"
+  schema={editorialSchema}
+  ogType="article"
+  publishedTime="2024-01-01"
+  modifiedTime="2026-05-25"
+>
+  <div class="container">
+    <Breadcrumbs crumbs={crumbs} />
+
+    <div class="page-header">
+      <div class="header-badge">📋 Editorial Policy</div>
+      <h1>Editorial Policy</h1>
+      <p class="lead">
+        Our commitment to accurate, independent, and transparent crypto exchange bonus research.
+      </p>
+      <p class="meta">Last reviewed: <time datetime="2026-05-25">May 2026</time></p>
+    </div>
+
+    <div class="prose">
+
+      <h2>1. Our Mission</h2>
+      <p>
+        CryptoBonusWorld exists to help crypto traders find exchange bonuses that genuinely match
+        their needs — before they deposit funds. Our mission requires us to be accurate above all
+        else: a user who claims a bonus based on incorrect data loses money. That risk shapes every
+        editorial decision we make.
+      </p>
+      <p>
+        We do not provide financial advice, trading signals, or investment recommendations. We
+        compare publicly available promotional offers and present the conditions clearly so users
+        can make informed decisions.
+      </p>
+
+      <h2>2. Editorial Independence</h2>
+      <p>
+        CryptoBonusWorld earns revenue through affiliate commissions — a percentage of fees or
+        a fixed payment when users register through our links. This relationship creates a potential
+        conflict of interest that we manage through the following rules:
+      </p>
+      <ul>
+        <li>
+          <strong>No pay-for-placement.</strong> No exchange can pay to improve its rating, move
+          higher in a comparison table, or receive a more favourable written review.
+        </li>
+        <li>
+          <strong>No embargo on negative facts.</strong> We publish cons, conditions, and
+          restrictions regardless of our affiliate relationship with an exchange. If a bonus
+          requires excessive trading volume to unlock, we say so.
+        </li>
+        <li>
+          <strong>Affiliate status does not determine listing eligibility.</strong> We have listed
+          exchanges with no affiliate relationship when they offer significant user value. Conversely,
+          we have declined to list exchanges we consider high-risk even when a commercial
+          arrangement was offered.
+        </li>
+        <li>
+          <strong>Scoring is mechanical, not negotiated.</strong> Our rating methodology is
+          applied consistently using defined criteria. No editorial team member may alter a score
+          in response to commercial pressure.
+        </li>
+      </ul>
+
+      <h2>3. Data Verification Standards</h2>
+      <p>Every piece of bonus data published on this site must meet the following standards before publication:</p>
+
+      <h3>Primary Sources</h3>
+      <ul>
+        <li>Official exchange promotion page (URL stored internally as a source reference)</li>
+        <li>Exchange terms and conditions document</li>
+        <li>Official announcement (blog post, email, social media) where applicable</li>
+      </ul>
+
+      <h3>We Do Not Accept as Primary Sources</h3>
+      <ul>
+        <li>Other affiliate or comparison websites</li>
+        <li>User-submitted data</li>
+        <li>Social media rumours or unverified screenshots</li>
+        <li>AI-generated content without manual verification</li>
+      </ul>
+
+      <h3>Verification Checklist</h3>
+      <p>Before each exchange listing goes live or is updated, a reviewer checks:</p>
+      <ul>
+        <li>Headline bonus amount — does it match the official page exactly?</li>
+        <li>Conditions — are trading volume, deposit minimum, and expiry documented?</li>
+        <li>KYC requirements — tested via sign-up flow where possible</li>
+        <li>Country availability — confirmed against official country restriction list</li>
+        <li>Affiliate link — tested to confirm correct tracking and landing page</li>
+      </ul>
+
+      <h2>4. Rating Methodology</h2>
+      <p>
+        Our editorial rating (1.0 – 10.0) is computed using six weighted criteria. Weights are
+        fixed and not adjustable on a per-exchange basis. Full methodology at
+        <a href="/methodology/">cryptobonusworld.com/methodology/</a>.
+      </p>
+      <div class="criteria-table">
+        <div class="criteria-row header">
+          <span>Criterion</span><span>Weight</span><span>What It Measures</span>
+        </div>
+        <div class="criteria-row">
+          <span>Bonus Value</span><span>25%</span>
+          <span>Headline amount vs industry average; adjusted for conditions</span>
+        </div>
+        <div class="criteria-row">
+          <span>Conditions Clarity</span><span>20%</span>
+          <span>How transparently the exchange communicates bonus requirements</span>
+        </div>
+        <div class="criteria-row">
+          <span>KYC Requirements</span><span>15%</span>
+          <span>Accessibility without mandatory identity verification</span>
+        </div>
+        <div class="criteria-row">
+          <span>Country Availability</span><span>15%</span>
+          <span>Number of tracked countries served without restriction</span>
+        </div>
+        <div class="criteria-row">
+          <span>Exchange Reputation</span><span>15%</span>
+          <span>Operating history, security record, regulatory status</span>
+        </div>
+        <div class="criteria-row">
+          <span>Ease of Claiming</span><span>10%</span>
+          <span>Steps required, time to receive bonus, support quality</span>
+        </div>
+      </div>
+
+      <h2>5. Update and Freshness Policy</h2>
+      <p>
+        Bonus data can change without notice. We operate the following update schedule:
+      </p>
+      <ul>
+        <li><strong>Exchange pages:</strong> Re-verified every 30 days at minimum</li>
+        <li><strong>Bonus landing pages:</strong> Re-verified every 30 days</li>
+        <li><strong>Bonus code pages:</strong> Re-verified every 21 days (codes expire quickly)</li>
+        <li><strong>Compare pages:</strong> Updated when either compared exchange changes</li>
+        <li><strong>Guide content:</strong> Reviewed every 90 days for accuracy</li>
+      </ul>
+      <p>
+        A "Last Verified" date is displayed on each exchange page. If you notice data that appears
+        outdated, please <a href="/contact/">contact us</a> and we will re-verify within 48 hours.
+      </p>
+      <p>
+        <a href="/update-policy/">Read our full content update policy →</a>
+      </p>
+
+      <h2>6. Corrections Policy</h2>
+      <p>
+        When we identify an error in published data — whether found internally or reported by a
+        user — we:
+      </p>
+      <ol>
+        <li>Correct the data within 24 hours of confirmation</li>
+        <li>Update the "Last Verified" date</li>
+        <li>If the error was material (wrong bonus amount, incorrect KYC status), add a correction
+            note to the affected page for 14 days</li>
+        <li>Log the correction internally for methodology review</li>
+      </ol>
+      <p>
+        We do not silently delete incorrect claims. If data changes, we update it with the new
+        verified information.
+      </p>
+
+      <h2>7. Conflicts of Interest</h2>
+      <p>
+        Our editorial team members are not permitted to:
+      </p>
+      <ul>
+        <li>Hold personal affiliate accounts with exchanges they review</li>
+        <li>Accept gifts, promotional credits, or free services from exchanges</li>
+        <li>Publish reviews of exchanges where they have a financial position</li>
+        <li>Alter published ratings in response to complaints from exchanges</li>
+      </ul>
+      <p>
+        If a conflict of interest is identified, the relevant team member is recused from that
+        exchange's review and an independent reviewer is assigned.
+      </p>
+
+      <h2>8. AI and Automated Content</h2>
+      <p>
+        CryptoBonusWorld uses AI-assisted tools to help structure and draft content. All AI-assisted
+        content is:
+      </p>
+      <ul>
+        <li>Reviewed and approved by a human editorial team member before publication</li>
+        <li>Verified against primary sources for all factual claims</li>
+        <li>Edited for accuracy, tone, and compliance with this policy</li>
+      </ul>
+      <p>
+        AI tools are not used as data sources. They are used for drafting, formatting, and
+        structural organisation only.
+      </p>
+
+      <h2>9. Contact the Editorial Team</h2>
+      <p>
+        For editorial queries, corrections, or to report inaccurate data:
+        <a href="/contact/">Contact us</a>
+      </p>
+      <p>
+        For affiliate partnership enquiries:
+        <a href="/contact/">Contact us</a>
+        (Note: partnership status does not affect editorial ratings.)
+      </p>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .container { max-width: 820px; margin: 0 auto; padding: 0 var(--container-pad); }
+
+  .page-header {
+    padding: 3rem 0 2.5rem;
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: 2.5rem;
+  }
+  .header-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: var(--text-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-accent);
+    background: var(--color-accent-muted);
+    border: 1px solid rgba(245,197,66,0.2);
+    border-radius: var(--radius-pill);
+    padding: 0.3rem 0.75rem;
+    margin-bottom: 1rem;
+  }
+  .page-header h1 {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-weight: 800;
+    margin: 0 0 0.75rem;
+    letter-spacing: -0.02em;
+  }
+  .page-header .lead {
+    font-size: 1.05rem;
+    color: var(--color-text-secondary);
+    margin: 0 0 0.5rem;
+  }
+  .page-header .meta {
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    margin: 0;
+  }
+
+  .criteria-table {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    margin: 1rem 0 1.5rem;
+  }
+  .criteria-row {
+    display: grid;
+    grid-template-columns: 160px 80px 1fr;
+    gap: 0;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--color-border);
+    font-size: var(--text-sm);
+  }
+  .criteria-row:last-child { border-bottom: none; }
+  .criteria-row.header {
+    background: var(--surface-raised);
+    font-weight: 700;
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+  }
+  .criteria-row span:first-child { font-weight: 600; color: var(--color-text-primary); }
+  .criteria-row span:nth-child(2) { color: var(--color-accent); font-weight: 700; }
+  .criteria-row span:last-child { color: var(--color-text-secondary); }
+
+  @media (max-width: 600px) {
+    .criteria-row { grid-template-columns: 1fr 60px; }
+    .criteria-row span:last-child { grid-column: 1 / -1; color: var(--color-text-muted); font-size: var(--text-xs); margin-top: 0.2rem; }
+  }
+</style>

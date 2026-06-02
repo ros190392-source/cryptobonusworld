@@ -50,12 +50,26 @@ export const GET: APIRoute = () => {
     { url: '/countries/', priority: '0.75', changefreq: 'monthly', lastmod: today, type: 'static' as const },
     { url: '/compare/', priority: '0.8', changefreq: 'weekly', lastmod: today, type: 'static' as const },
     { url: '/guides/', priority: '0.75', changefreq: 'weekly', lastmod: today, type: 'static' as const },
+    { url: '/categories/', priority: '0.7', changefreq: 'weekly', lastmod: today, type: 'static' as const },
     // Programmatic SEO hubs
     { url: '/coins/', priority: '0.85', changefreq: 'weekly', lastmod: today, type: 'static' as const },
     { url: '/use-cases/', priority: '0.85', changefreq: 'weekly', lastmod: today, type: 'static' as const },
     { url: '/bonus-codes/', priority: '0.9', changefreq: 'weekly', lastmod: today, type: 'static' as const },
+    // E-E-A-T / trust pages
+    { url: '/reviewers/', priority: '0.55', changefreq: 'monthly', lastmod: today, type: 'static' as const },
+    { url: '/reviewers/alexandr-shadurskyi/', priority: '0.55', changefreq: 'monthly', lastmod: today, type: 'static' as const },
+    { url: '/reviewers/editorial-team/', priority: '0.5', changefreq: 'monthly', lastmod: today, type: 'static' as const },
+    { url: '/reviewers/alex-morgan/', priority: '0.5', changefreq: 'monthly', lastmod: today, type: 'static' as const },
+    { url: '/reviewers/sarah-chen/', priority: '0.5', changefreq: 'monthly', lastmod: today, type: 'static' as const },
+    { url: '/reviewers/james-okonkwo/', priority: '0.5', changefreq: 'monthly', lastmod: today, type: 'static' as const },
+    // Site info / methodology — indexed for E-E-A-T signals
     { url: '/methodology/', priority: '0.5', changefreq: 'monthly', lastmod: today, type: 'static' as const },
     { url: '/about/', priority: '0.4', changefreq: 'monthly', lastmod: today, type: 'static' as const },
+    { url: '/editorial-policy/', priority: '0.4', changefreq: 'monthly', lastmod: today, type: 'static' as const },
+    { url: '/update-policy/', priority: '0.35', changefreq: 'monthly', lastmod: today, type: 'static' as const },
+    // Trust / legal pages — indexed for transparency signals (affiliate disclosure, disclaimer, privacy policy)
+    // NOTE: /contact/ is intentionally excluded — it carries noindex meta and provides no crawl value.
+    // Rule: noindexed pages must NOT appear in the sitemap (conflicting signals confuse crawlers).
     { url: '/affiliate-disclosure/', priority: '0.3', changefreq: 'monthly', lastmod: today, type: 'static' as const },
     { url: '/disclaimer/', priority: '0.3', changefreq: 'monthly', lastmod: today, type: 'static' as const },
     { url: '/privacy-policy/', priority: '0.3', changefreq: 'monthly', lastmod: today, type: 'static' as const },

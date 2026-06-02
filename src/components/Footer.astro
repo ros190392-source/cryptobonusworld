@@ -9,28 +9,33 @@ const year = new Date().getFullYear();
         <a href="/" class="footer-logo" aria-label="CryptoBonusWorld Home">
           <svg width="20" height="20" viewBox="0 0 32 32" aria-hidden="true" style="flex-shrink:0">
             <defs>
-              <linearGradient id="ftr-ring" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#fbbf24"/>
+              <linearGradient id="ftr-gold" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#fcd34d"/>
                 <stop offset="100%" stop-color="#d97706"/>
               </linearGradient>
             </defs>
-            <circle cx="16" cy="16" r="15.5" fill="url(#ftr-ring)"/>
-            <circle cx="16" cy="16" r="11.5" fill="#0a0a0a"/>
-            <rect x="10" y="7.5" width="2.5" height="17" rx="1.25" fill="#f5c542"/>
-            <path d="M12.5 7.5 h3.5 a4 4 0 0 1 0 8 h-3.5 z" fill="#f5c542"/>
-            <path d="M12.5 15.5 h4 a4.5 4.5 0 0 1 0 9 h-4 z" fill="#f5c542"/>
+            <circle cx="16" cy="16" r="16" fill="#0a0c14"/>
+            <circle
+              cx="16" cy="16" r="10.75"
+              fill="none"
+              stroke="url(#ftr-gold)"
+              stroke-width="4.5"
+              stroke-linecap="butt"
+              stroke-dasharray="48.78 18.76"
+              transform="rotate(50 16 16)"
+            />
           </svg>
           <span>Crypto<strong style="background:linear-gradient(135deg,#fbbf24,#f5c542,#d97706);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Bonus</strong>World</span>
         </a>
         <p class="footer-tagline">Compare crypto exchange bonuses and claim the best rewards for your trading goals.</p>
         <p class="footer-disclosure">
           CryptoBonusWorld may receive compensation when users register through affiliate links on this site.
-          <a href="/affiliate-disclosure/">Learn more</a>
+          <a href="/affiliate-disclosure/">Read our affiliate disclosure</a>
         </p>
       </div>
 
       <div class="footer-links">
-        <h4>Bonus Categories</h4>
+        <h4><a href="/categories/" class="footer-h4-link">Bonus Categories</a></h4>
         <ul>
           <li><a href="/categories/signup-bonuses/">Signup Bonuses</a></li>
           <li><a href="/categories/no-deposit-bonuses/">No Deposit Bonuses</a></li>
@@ -38,6 +43,8 @@ const year = new Date().getFullYear();
           <li><a href="/categories/futures-bonuses/">Futures Bonuses</a></li>
           <li><a href="/categories/welcome-bonuses/">Welcome Bonuses</a></li>
           <li><a href="/categories/no-kyc-bonuses/">No KYC Bonuses</a></li>
+          <li><a href="/categories/trading-rewards/">Trading Rewards</a></li>
+          <li><a href="/categories/referral-bonuses/">Referral Bonuses</a></li>
         </ul>
       </div>
 
@@ -45,31 +52,88 @@ const year = new Date().getFullYear();
         <h4>Top Exchanges</h4>
         <ul>
           <li><a href="/exchanges/bybit/">Bybit Bonus</a></li>
-          <li><a href="/exchanges/mexc/">MEXC Bonus</a></li>
+          <li><a href="/exchanges/binance/">Binance Bonus</a></li>
           <li><a href="/exchanges/okx/">OKX Bonus</a></li>
+          <li><a href="/exchanges/mexc/">MEXC Bonus</a></li>
           <li><a href="/exchanges/bitget/">Bitget Bonus</a></li>
-          <li><a href="/exchanges/bingx/">BingX Bonus</a></li>
           <li><a href="/exchanges/kucoin/">KuCoin Bonus</a></li>
+          <li><a href="/exchanges/coinbase/">Coinbase Bonus</a></li>
+          <li><a href="/exchanges/">All 14 Exchanges →</a></li>
         </ul>
       </div>
 
       <div class="footer-links">
-        <h4>Bonuses by Country</h4>
+        <h4><a href="/use-cases/" class="footer-h4-link">By Trading Goal</a></h4>
+        <ul>
+          <li><a href="/use-cases/beginners/">Best for Beginners</a></li>
+          <li><a href="/use-cases/futures/">Futures Trading</a></li>
+          <li><a href="/use-cases/no-kyc/">No KYC Exchanges</a></li>
+          <li><a href="/use-cases/copy-trading/">Copy Trading</a></li>
+          <li><a href="/use-cases/low-fees/">Low Fee Exchanges</a></li>
+          <li><a href="/use-cases/p2p/">P2P Trading</a></li>
+          <li><a href="/use-cases/altcoins/">Altcoin Trading</a></li>
+          <li><a href="/use-cases/high-leverage/">High Leverage</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-links">
+        <h4><a href="/coins/" class="footer-h4-link">Buy Crypto</a></h4>
+        <ul>
+          <li><a href="/coins/bitcoin/">Buy Bitcoin (BTC)</a></li>
+          <li><a href="/coins/ethereum/">Buy Ethereum (ETH)</a></li>
+          <li><a href="/coins/usdt/">Buy USDT</a></li>
+          <li><a href="/coins/solana/">Buy Solana (SOL)</a></li>
+          <li><a href="/coins/bnb/">Buy BNB</a></li>
+          <li><a href="/coins/xrp/">Buy XRP</a></li>
+          <li><a href="/coins/doge/">Buy Dogecoin</a></li>
+          <li><a href="/coins/">All 15 Coins →</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-links">
+        <h4><a href="/bonus-codes/" class="footer-h4-link">Bonus Codes</a></h4>
+        <ul>
+          <li><a href="/bonus-codes/bybit/">Bybit Promo Code</a></li>
+          <li><a href="/bonus-codes/binance/">Binance Referral Code</a></li>
+          <li><a href="/bonus-codes/okx/">OKX Promo Code</a></li>
+          <li><a href="/bonus-codes/mexc/">MEXC Referral Code</a></li>
+          <li><a href="/bonus-codes/bitget/">Bitget Promo Code</a></li>
+          <li><a href="/bonus-codes/kucoin/">KuCoin Referral Code</a></li>
+          <li><a href="/bonus-codes/bingx/">BingX Promo Code</a></li>
+          <li><a href="/bonus-codes/coinbase/">Coinbase Promo Code</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-links">
+        <h4><a href="/countries/" class="footer-h4-link">By Country</a></h4>
         <ul>
           <li><a href="/countries/global/">Global</a></li>
-          <li><a href="/countries/turkey/">Turkey</a></li>
           <li><a href="/countries/india/">India</a></li>
-          <li><a href="/countries/indonesia/">Indonesia</a></li>
+          <li><a href="/countries/turkey/">Turkey</a></li>
           <li><a href="/countries/nigeria/">Nigeria</a></li>
+          <li><a href="/countries/indonesia/">Indonesia</a></li>
           <li><a href="/countries/brazil/">Brazil</a></li>
+          <li><a href="/countries/united-states/">United States</a></li>
+          <li><a href="/countries/united-arab-emirates/">UAE</a></li>
+          <li><a href="/countries/vietnam/">Vietnam</a></li>
+          <li><a href="/countries/philippines/">Philippines</a></li>
+          <li><a href="/countries/mexico/">Mexico</a></li>
+          <li><a href="/countries/argentina/">Argentina</a></li>
+          <li><a href="/countries/kenya/">Kenya</a></li>
+          <li><a href="/countries/ukraine/">Ukraine</a></li>
+          <li><a href="/countries/pakistan/">Pakistan</a></li>
         </ul>
       </div>
 
       <div class="footer-links">
-        <h4>About</h4>
+        <h4>Resources</h4>
         <ul>
+          <li><a href="/guides/">Trading Guides</a></li>
+          <li><a href="/compare/">Compare Exchanges</a></li>
+          <li><a href="/reviewers/">Our Reviewers</a></li>
           <li><a href="/methodology/">Our Methodology</a></li>
           <li><a href="/about/">About Us</a></li>
+          <li><a href="/editorial-policy/">Editorial Policy</a></li>
           <li><a href="/affiliate-disclosure/">Affiliate Disclosure</a></li>
           <li><a href="/disclaimer/">Disclaimer</a></li>
           <li><a href="/privacy-policy/">Privacy Policy</a></li>
@@ -101,8 +165,8 @@ const year = new Date().getFullYear();
   .footer-inner { padding: 3rem 0 2rem; }
   .footer-grid {
     display: grid;
-    grid-template-columns: 2fr repeat(4, 1fr);
-    gap: 2rem;
+    grid-template-columns: 1.4fr repeat(7, 1fr);
+    gap: 1.5rem 1.25rem;
     margin-bottom: 2rem;
   }
   .footer-logo {
@@ -177,12 +241,38 @@ const year = new Date().getFullYear();
     transition: color 0.15s;
   }
   .footer-legal a:hover { color: var(--color-text-secondary); }
-  @media (max-width: 1024px) {
+  /* Clickable heading links */
+  .footer-h4-link {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .footer-h4-link:hover { color: var(--color-accent); }
+
+  @media (max-width: 1280px) {
+    .footer-grid { grid-template-columns: 1.4fr repeat(4, 1fr); }
+    .footer-brand { grid-column: 1 / -1; }
+  }
+  @media (max-width: 900px) {
     .footer-grid { grid-template-columns: repeat(3, 1fr); }
     .footer-brand { grid-column: 1 / -1; }
   }
   @media (max-width: 640px) {
-    .footer-grid { grid-template-columns: repeat(2, 1fr); }
-    .footer-legal { flex-direction: column; gap: 0.5rem; }
+    .footer-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem 1.25rem;
+    }
+    .footer-brand { grid-column: 1 / -1; }
+    .footer-inner { padding: 2.5rem 0 1.5rem; }
+    .footer-legal {
+      flex-direction: column;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+    }
+    .risk-notice { font-size: 0.72rem; }
+    .footer-bottom { padding-top: 1.25rem; }
+  }
+  @media (max-width: 400px) {
+    .footer-grid { grid-template-columns: 1fr; }
   }
 </style>

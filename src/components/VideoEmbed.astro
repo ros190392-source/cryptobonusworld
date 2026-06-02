@@ -1,0 +1,297 @@
+---
+/**
+ * VideoEmbed — Privacy-enhanced video embed component.
+ *
+ * Features:
+ *   - Click-to-load pattern: shows thumbnail until user clicks (no tracking cookies on page load)
+ *   - Schema.org VideoObject markup for rich results
+ *   - Responsive 16:9 container
+ *   - YouTube (privacy-enhanced), Vimeo (DNT mode), and Loom support
+ *   - Fallback link if JS is disabled
+ *
+ * Usage:
+ *   <VideoEmbed
+ *     provider="youtube"
+ *     videoId="dQw4w9WgXcQ"
+ *     title="How to Claim a Bybit Welcome Bonus"
+ *     thumbnail="/media/guides/bybit-bonus/thumb.webp"
+ *     duration={240}
+ *   />
+ */
+
+import { buildVideoEmbedUrl, buildVideoSchema } from '../utils/mediaConfig';
+
+interface Props {
+  provider: 'youtube' | 'vimeo' | 'loom';
+  videoId: string;
+  title: string;
+  /** Description for schema.org */
+  description?: string;
+  /** Thumbnail src (local path or full URL). Falls back to YouTube auto-thumb. */
+  thumbnail?: string;
+  /** Duration in seconds (for schema.org) */
+  duration?: number;
+  /** ISO upload date */
+  uploadedAt?: string;
+  /** If false, embeds immediately (no click-to-load). Default: true */
+  privacyMode?: boolean;
+  /** Caption below the video */
+  caption?: string;
+}
+
+const {
+  provider,
+  videoId,
+  title,
+  description = title,
+  thumbnail,
+  duration,
+  uploadedAt,
+  privacyMode = true,
+  caption,
+} = Astro.props;
+
+// Resolve thumbnail URL
+let thumbSrc = thumbnail;
+if (!thumbSrc && provider === 'youtube') {
+  thumbSrc = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+}
+
+const embedUrl = buildVideoEmbedUrl({ provider, videoId, title, privacyMode, durationSeconds: duration, uploadedAt });
+const uniqueId = `ve-${videoId.replace(/[^a-zA-Z0-9]/g, '')}`;
+
+const videoSchema = {
+  '@context': 'https://schema.org',
+  ...buildVideoSchema(
+    { provider, videoId, title, durationSeconds: duration, uploadedAt, thumbnailSrc: thumbnail, privacyMode },
+    description,
+  ),
+};
+
+function fmtDuration(s: number): string {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${m}:${sec.toString().padStart(2, '0')}`;
+}
+---
+
+<div class="ve" id={uniqueId}>
+  <script type="application/ld+json" set:html={JSON.stringify(videoSchema)} />
+
+  {privacyMode ? (
+    <div class="ve-placeholder" data-embed={embedUrl} data-title={title} role="button" tabindex="0" aria-label={`Play video: ${title}`}>
+      {thumbSrc && (
+        <img
+          src={thumbSrc}
+          alt={`Video thumbnail: ${title}`}
+          class="ve-thumb"
+          loading="lazy"
+          decoding="async"
+          width="1280"
+          height="720"
+        />
+      )}
+      {!thumbSrc && (
+        <div class="ve-thumb-placeholder" aria-hidden="true">▶</div>
+      )}
+      <div class="ve-play-overlay" aria-hidden="true">
+        <div class="ve-play-btn">▶</div>
+        <div class="ve-play-info">
+          <span class="ve-play-title">{title}</span>
+          {duration && <span class="ve-play-duration">{fmtDuration(duration)}</span>}
+        </div>
+      </div>
+      <div class="ve-privacy-badge" aria-hidden="true">
+        🔒 No tracking until you play
+      </div>
+    </div>
+  ) : (
+    <div class="ve-frame">
+      <iframe
+        src={embedUrl}
+        title={title}
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen
+        loading="lazy"
+      ></iframe>
+    </div>
+  )}
+
+  {caption && <p class="ve-caption">{caption}</p>}
+
+  {/* No-JS fallback */}
+  {privacyMode && (
+    <noscript>
+      <a href={`https://${provider === 'youtube' ? 'youtube.com/watch?v=' : provider === 'vimeo' ? 'vimeo.com/' : 'loom.com/share/'}${videoId}`} target="_blank" rel="noopener noreferrer" class="ve-noscript">
+        ▶ Watch: {title} (opens in new tab)
+      </a>
+    </noscript>
+  )}
+</div>
+
+{privacyMode && (
+  <script>
+    document.querySelectorAll('.ve-placeholder').forEach(el => {
+      function activate() {
+        const embedUrl = (el as HTMLElement).dataset.embed;
+        const title = (el as HTMLElement).dataset.title ?? 'Video';
+        if (!embedUrl) return;
+        const wrapper = document.createElement('div');
+        wrapper.className = 've-frame';
+        const iframe = document.createElement('iframe');
+        iframe.src = embedUrl + '&autoplay=1';
+        iframe.title = title;
+        iframe.setAttribute('frameborder', '0');
+        iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
+        iframe.setAttribute('allowfullscreen', '');
+        wrapper.appendChild(iframe);
+        el.replaceWith(wrapper);
+      }
+      el.addEventListener('click', activate);
+      el.addEventListener('keydown', (e: Event) => {
+        const ke = e as KeyboardEvent;
+        if (ke.key === 'Enter' || ke.key === ' ') { ke.preventDefault(); activate(); }
+      });
+    });
+  </script>
+)}
+
+<style>
+  .ve { margin: 1.5rem 0; }
+
+  /* ── Click-to-load placeholder ── */
+  .ve-placeholder {
+    position: relative;
+    aspect-ratio: 16/9;
+    background: var(--surface-raised);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ve-placeholder:hover .ve-play-btn { transform: scale(1.1); background: var(--color-accent); color: #000; }
+  .ve-placeholder:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; }
+
+  .ve-thumb {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .ve-thumb-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: var(--color-text-muted);
+    background: var(--surface-overlay);
+  }
+
+  .ve-play-overlay {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    text-align: center;
+  }
+
+  .ve-play-btn {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.75);
+    color: #fff;
+    font-size: 1.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid rgba(255,255,255,0.3);
+    transition: transform var(--duration-base), background var(--duration-base), color var(--duration-base);
+    flex-shrink: 0;
+  }
+
+  .ve-play-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .ve-play-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+    max-width: 400px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .ve-play-duration {
+    font-size: var(--text-xs);
+    color: rgba(255,255,255,0.7);
+    font-weight: 600;
+  }
+
+  .ve-privacy-badge {
+    position: absolute;
+    bottom: 0.5rem;
+    right: 0.5rem;
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.7);
+    background: rgba(0,0,0,0.55);
+    padding: 0.2rem 0.5rem;
+    border-radius: var(--radius-pill);
+    pointer-events: none;
+  }
+
+  /* ── Iframe embed ── */
+  .ve-frame {
+    position: relative;
+    aspect-ratio: 16/9;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+  }
+  .ve-frame iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* ── Caption ── */
+  .ve-caption {
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    margin: 0.5rem 0 0;
+    text-align: center;
+  }
+
+  /* ── No-JS fallback ── */
+  .ve-noscript {
+    display: block;
+    padding: 1rem;
+    background: var(--surface-raised);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+    color: var(--color-accent);
+    font-weight: 600;
+    text-align: center;
+  }
+</style>

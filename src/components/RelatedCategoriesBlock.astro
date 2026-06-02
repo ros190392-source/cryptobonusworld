@@ -1,0 +1,133 @@
+---
+/**
+ * RelatedCategoriesBlock
+ *
+ * Shows category cross-links for an exchange based on its bonus types and flags.
+ * Used on exchange pages, country pages, and as "see also" between categories.
+ *
+ * Intent: build the Exchange → Category internal linking graph.
+ */
+
+import { BONUS_TYPE_ICONS } from '../utils/seo';
+
+interface Category {
+  name: string;
+  slug: string;
+  bonusType: string;
+  seoTitle?: string;
+  intro?: string;
+}
+
+interface Props {
+  categories: Category[];
+  heading?: string;
+  subheading?: string;
+  compact?: boolean;
+}
+
+const {
+  categories,
+  heading = 'Available Bonus Categories',
+  subheading,
+  compact = false,
+} = Astro.props;
+
+if (categories.length === 0) return;
+
+const getIcon = (bonusType: string) =>
+  BONUS_TYPE_ICONS[bonusType] ?? '🎁';
+---
+
+<section class:list={['rcb', compact && 'rcb--compact']}>
+  <div class="rcb-header">
+    <h3 class="rcb-heading">{heading}</h3>
+    {subheading && <p class="rcb-subheading">{subheading}</p>}
+  </div>
+  <div class:list={['rcb-grid', compact && 'rcb-grid--compact']}>
+    {categories.map(cat => (
+      <a
+        href={`/categories/${cat.slug}/`}
+        class="rcb-chip"
+        aria-label={`View ${cat.name}`}
+      >
+        <span class="rcb-chip-icon" aria-hidden="true">
+          {getIcon(cat.bonusType)}
+        </span>
+        <span class="rcb-chip-label">{cat.name}</span>
+        <svg class="rcb-chip-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </a>
+    ))}
+  </div>
+</section>
+
+<style>
+  .rcb { margin: 1.5rem 0; }
+  .rcb--compact { margin: 1rem 0; }
+
+  .rcb-header { margin-bottom: 0.75rem; }
+
+  .rcb-heading {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-muted);
+    margin: 0 0 0.25rem;
+  }
+
+  .rcb-subheading {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    margin: 0;
+  }
+
+  .rcb-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .rcb-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.75rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill, 100px);
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    transition:
+      border-color var(--duration-base, 200ms),
+      color var(--duration-base, 200ms),
+      background var(--duration-base, 200ms);
+    white-space: nowrap;
+  }
+
+  .rcb-chip:hover {
+    border-color: var(--color-accent-dim);
+    color: var(--color-accent);
+    background: rgba(245, 197, 66, 0.04);
+  }
+
+  .rcb-chip-icon { font-size: 0.9rem; line-height: 1; }
+
+  .rcb-chip-arrow {
+    color: var(--color-text-muted);
+    opacity: 0;
+    transition: opacity 0.15s, transform 0.15s;
+    flex-shrink: 0;
+  }
+
+  .rcb-chip:hover .rcb-chip-arrow {
+    opacity: 1;
+    transform: translateX(2px);
+  }
+
+  .rcb--compact .rcb-heading { display: none; }
+  .rcb--compact .rcb-chip { font-size: 0.75rem; padding: 0.35rem 0.6rem; }
+</style>

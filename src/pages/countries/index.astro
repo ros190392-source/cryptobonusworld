@@ -1,0 +1,182 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import RiskDisclaimer from '../../components/RiskDisclaimer.astro';
+import AffiliateDisclosure from '../../components/AffiliateDisclosure.astro';
+
+import exchanges from '../../data/exchanges.json';
+import countries from '../../data/countries.json';
+
+import { buildItemListSchema, countryPageTitle, SITE_URL } from '../../utils/seo';
+
+// Build per-country exchange counts
+const countriesWithCounts = countries.map(c => {
+  const available = exchanges.filter(ex =>
+    ex.countries.includes(c.slug) || ex.countries.includes('global')
+  );
+  return { ...c, exchangeCount: available.length };
+});
+
+const itemListSchema = buildItemListSchema(
+  countries.map(c => ({
+    name: `Crypto Bonuses in ${c.name}`,
+    url: `/countries/${c.slug}/`,
+    description: c.seoDescription,
+  })),
+  'Crypto Exchange Bonuses by Country'
+);
+---
+
+<Layout
+  title="Crypto Exchange Bonuses by Country 2026 — Find Your Local Offers"
+  description={`Compare crypto exchange bonuses available in your country. Find signup rewards, deposit bonuses and no-KYC offers across ${countries.length} regions. Updated ${new Date().getFullYear()}.`}
+  canonical="/countries/"
+  schema={itemListSchema}
+>
+  <div class="container">
+    <Breadcrumbs crumbs={[
+      { label: 'Home', href: '/' },
+      { label: 'Bonuses by Country' },
+    ]} />
+
+    <div class="page-header">
+      <h1>Crypto Bonuses by Country</h1>
+      <p class="lead">
+        Find the best crypto exchange bonuses available in your country.
+        Compare local payment methods, KYC requirements and availability across {countries.length} regions.
+      </p>
+    </div>
+
+    <AffiliateDisclosure compact />
+
+    <div class="countries-grid">
+      {countriesWithCounts.map(c => (
+        <a href={`/countries/${c.slug}/`} class="country-card">
+          <span class="country-card-flag" aria-hidden="true">{c.flag}</span>
+          <div class="country-card-info">
+            <span class="country-card-name">{c.name}</span>
+            <span class="country-card-count">{c.exchangeCount} exchanges</span>
+          </div>
+          <svg class="country-card-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </a>
+      ))}
+    </div>
+
+    <section class="hub-info">
+      <h2>About Our Country-Specific Bonus Guides</h2>
+      <p>
+        Not all crypto exchanges and bonuses are available in every country.
+        Regulations, payment infrastructure and exchange licensing differ significantly by region.
+        Our country pages show exactly which exchanges accept users from your location,
+        which payment methods are supported, and which bonuses you can actually claim.
+      </p>
+      <p>
+        Each country guide includes a ranked list of available exchanges, local payment method information,
+        regulatory notes and a comparison table you can filter by bonus type and KYC requirements.
+      </p>
+    </section>
+
+    <RiskDisclaimer />
+  </div>
+</Layout>
+
+<style>
+  .countries-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 0.75rem;
+    margin: 1.5rem 0 2.5rem;
+  }
+
+  .country-card {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    padding: 1rem 1.125rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg, 14px);
+    text-decoration: none;
+    transition:
+      border-color var(--duration-base, 200ms),
+      transform var(--duration-base, 200ms),
+      box-shadow var(--duration-base, 200ms);
+  }
+
+  .country-card:hover {
+    border-color: var(--color-accent-dim);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md, 0 4px 16px rgba(0,0,0,0.3));
+  }
+
+  .country-card-flag {
+    font-size: 2rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .country-card-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .country-card-name {
+    font-size: 0.925rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+  }
+
+  .country-card-count {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    font-weight: 500;
+  }
+
+  .country-card-arrow {
+    color: var(--color-text-muted);
+    flex-shrink: 0;
+    transition: transform 0.15s, color 0.15s;
+  }
+
+  .country-card:hover .country-card-arrow {
+    color: var(--color-accent);
+    transform: translateX(3px);
+  }
+
+  .hub-info {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg, 14px);
+    padding: 1.75rem;
+    margin: 1.5rem 0;
+  }
+
+  .hub-info h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0 0 0.875rem;
+    color: var(--color-text-primary);
+  }
+
+  .hub-info p {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    line-height: 1.75;
+    margin: 0 0 0.75rem;
+  }
+
+  .hub-info p:last-child { margin-bottom: 0; }
+
+  @media (max-width: 640px) {
+    .countries-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  @media (max-width: 400px) {
+    .countries-grid { grid-template-columns: 1fr; }
+  }
+</style>

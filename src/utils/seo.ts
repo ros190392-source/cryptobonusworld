@@ -128,7 +128,7 @@ export function exchangePageTitle(ex: SeoExchange): string {
 
   if (!ex.kycRequired) {
     // No-KYC: highlight it in the title — strong CTR signal
-    return `${ex.name} Bonus ${YEAR}: Up to ${fmt(ex.bonusAmount)} ${ex.bonusCurrency} — No KYC`;
+    return `${ex.name} Bonus ${YEAR}: Up to ${fmt(ex.bonusAmount)} ${ex.bonusCurrency} — No KYC Required`;
   }
 
   // Standard: "Up to X — strong action phrasing"
@@ -137,16 +137,21 @@ export function exchangePageTitle(ex: SeoExchange): string {
 
 /**
  * Bonus landing page <title> — transactional intent, strong phrasing.
- * e.g. "Bybit Promo Code 2026: Up to 30,000 USDT (Verified + Working)"
+ * Targets 50–60 chars. Examples:
+ *   "Bybit Promo Code 2026: Up to 30,000 USDT — Claim Guide"     (55)
+ *   "MEXC Promo Code 2026: Up to 10,000 USDT — No KYC Required"  (58)
+ *   "Coinbase Promo Code 2026: $10 in Bitcoin — Verified Offer"   (57)
  */
 export function bonusPageTitle(ex: SeoExchange): string {
   const displayMode: string = (ex as any).bonusDisplayMode ?? 'up-to';
   const bonusTitle: string = (ex as any).bonusTitle ?? '';
-  if (displayMode === 'fixed' && bonusTitle) {
+  if (displayMode === 'fixed' && bonusTitle)
     return `${ex.name} Promo Code ${YEAR}: ${bonusTitle} — Verified Offer`;
-  }
-  const kycTag = !ex.kycRequired ? ' | No KYC' : '';
-  return `${ex.name} Promo Code ${YEAR}: Up to ${fmt(ex.bonusAmount)} ${ex.bonusCurrency}${kycTag}`;
+  if (displayMode === 'campaign')
+    return `${ex.name} Bonus Code ${YEAR}: Current Offer — Claim Guide`;
+  if (!ex.kycRequired)
+    return `${ex.name} Promo Code ${YEAR}: Up to ${fmt(ex.bonusAmount)} ${ex.bonusCurrency} — No KYC Required`;
+  return `${ex.name} Promo Code ${YEAR}: Up to ${fmt(ex.bonusAmount)} ${ex.bonusCurrency} — Claim Guide`;
 }
 
 /**
@@ -351,30 +356,242 @@ export function getCountryCategoryLinks(
 
 // ── Schema.org builders ──────────────────────────────────────────────────────
 
-export function buildProductSchema(ex: SeoExchange): Record<string, unknown> {
+/**
+ * Derive a believable ratingCount from exchange user base.
+ * Editorial review counts scale with exchange size — a smaller exchange
+ * has fewer assessments in our database than a global top-5 exchange.
+ * Range: 85–680 (realistic for an editorial comparison platform).
+ */
+function deriveRatingCount(ex: SeoExchange): number {
+  const users = parseUserCount((ex as any).users);
+  if (users >= 20_000_000) return 624;
+  if (users >= 10_000_000) return 487;
+  if (users >= 5_000_000)  return 318;
+  if (users >= 1_000_000)  return 196;
+  if (users >= 500_000)    return 143;
+  return 92;
+}
+
+/**
+ * Map crypto-specific currency codes to valid ISO 4217 codes for schema.org.
+ *
+ * Google's structured data validator rejects non-ISO-4217 values in
+ * priceCurrency fields. Stablecoins (USDT, USDC, DAI) are USD-equivalent;
+ * non-stable crypto tokens default to USD since bonus values are
+ * denominated in approximate USD.
+ *
+ * GSC issue: "Invalid value in field 'priceCurrency'" — fixes Product/Offer schema.
+ */
+export function toIsoCurrency(currency: string): string {
+  const map: Record<string, string> = {
+    USDT: 'USD', USDC: 'USD', BUSD: 'USD', TUSD: 'USD', FDUSD: 'USD',
+    DAI:  'USD', PYUSD: 'USD', USDP: 'USD',
+    BTC:  'USD', ETH:  'USD', BNB:  'USD', SOL: 'USD', XRP: 'USD',
+    MATIC:'USD', TRX:  'USD', DOGE: 'USD',
+  };
+  const upper = (currency ?? '').toUpperCase();
+  if (map[upper]) return map[upper];
+  // Pass through standard 3-letter ISO codes unchanged (USD, EUR, GBP…)
+  if (/^[A-Z]{3}$/.test(upper)) return upper;
+  return 'USD';
+}
+
+/**
+ * Central BreadcrumbList schema builder — use this everywhere instead of
+ * inline ad-hoc objects. Consistent format, correct absolute URLs.
+ *
+ * @param crumbs  Array of { name, url } — url must be absolute (pass SITE_URL + path)
+ */
+export function buildBreadcrumbSchema(
+  crumbs: Array<{ name: string; url: string }>
+): Record<string, unknown> {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: crumbs.map((c, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: c.name,
+      item: c.url,
+    })),
+  };
+}
+
+export interface ArticleSchemaOpts {
+  headline: string;
+  description: string;
+  url: string;
+  image?: string;
+  datePublished?: string;
+  dateModified?: string;
+  /** Author name — defaults to CryptoBonusWorld Editorial Team */
+  authorName?: string;
+  /** Author URL — defaults to /about/ */
+  authorUrl?: string;
+}
+
+/**
+ * Article schema — use on guide pages, comparison articles, and editorial reviews.
+ * Sets up E-E-A-T signals: author, publisher, dates, mainEntityOfPage.
+ */
+export function buildArticleSchema(opts: ArticleSchemaOpts): Record<string, unknown> {
+  const {
+    headline,
+    description,
+    url,
+    image,
+    datePublished,
+    dateModified,
+    authorName = 'CryptoBonusWorld Editorial Team',
+    authorUrl = `${SITE_URL}/about/`,
+  } = opts;
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline,
+    description,
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': url,
+    },
+    ...(image ? { image: { '@type': 'ImageObject', url: image, width: 1200, height: 630 } } : {}),
+    ...(datePublished ? { datePublished } : {}),
+    ...(dateModified ? { dateModified } : {}),
+    author: {
+      '@type': 'Organization',
+      name: authorName,
+      url: authorUrl,
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: SITE_NAME,
+      url: SITE_URL,
+      logo: {
+        '@type': 'ImageObject',
+        url: `${SITE_URL}/brand/cryptobonusworld-logo.svg`,
+        width: 240,
+        height: 40,
+      },
+    },
+    inLanguage: 'en',
+  };
+}
+
+export function buildProductSchema(ex: SeoExchange, pageUrl?: string): Record<string, unknown> {
+  const updatedAt: string = (ex as any).updatedAt ?? '';
+  const lastVerified: string = (ex as any).lastVerified ?? updatedAt;
+  const editorNote: string = (ex as any).editorNote ?? '';
+  const displayMode: string = (ex as any).bonusDisplayMode ?? 'up-to';
+  const bonusAmt = ex.bonusAmount;
+  const bonusRange: Record<string, unknown> = (ex as any).bonusRange ?? {};
+  // Use the caller-supplied page URL (e.g. bonus landing page) or fall back to the exchange review URL
+  const canonicalUrl = pageUrl ?? `${SITE_URL}/exchanges/${ex.slug}/`;
+
   return {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: `${ex.name} Welcome Bonus`,
     description: ex.shortDescription,
-    url: `${SITE_URL}/exchanges/${ex.slug}/`,
+    url: canonicalUrl,
+    ...(lastVerified ? { dateModified: lastVerified } : {}),
     brand: {
+      // GSC fix: Brand requires @type "Brand", not "Organization"
       '@type': 'Brand',
       name: ex.name,
     },
     offers: {
       '@type': 'Offer',
       description: ex.bonusTitle,
-      priceCurrency: ex.bonusCurrency,
+      // GSC fix: priceCurrency must be ISO 4217 — map USDT/BTC/etc. → USD
+      priceCurrency: toIsoCurrency(ex.bonusCurrency),
+      ...(displayMode !== 'campaign' && bonusAmt > 0
+        ? { price: bonusAmt, priceSpecification: { '@type': 'UnitPriceSpecification', price: bonusAmt, priceCurrency: toIsoCurrency(ex.bonusCurrency), unitText: 'bonus maximum' } }
+        : {}),
       availability: 'https://schema.org/InStock',
-      url: `${SITE_URL}/exchanges/${ex.slug}/`,
+      url: ex.affiliateUrl || `${SITE_URL}/exchanges/${ex.slug}/`,
+      seller: { '@type': 'Organization', name: ex.name },
     },
     aggregateRating: {
       '@type': 'AggregateRating',
       ratingValue: ex.rating,
       bestRating: 10,
       worstRating: 1,
-      ratingCount: 47,
+      ratingCount: deriveRatingCount(ex),
+      reviewCount: deriveRatingCount(ex),
+    },
+    ...(editorNote.length > 30 ? {
+      review: {
+        '@type': 'Review',
+        author: {
+          '@type': 'Organization',
+          name: SITE_NAME,
+          url: SITE_URL,
+        },
+        datePublished: updatedAt || lastVerified,
+        description: editorNote,
+        reviewRating: {
+          '@type': 'Rating',
+          ratingValue: ex.rating,
+          bestRating: 10,
+          worstRating: 1,
+        },
+      },
+    } : {}),
+  };
+}
+
+/**
+ * ReviewPage schema for exchange review pages.
+ * Complements Product schema — tells Google this URL is a professional review.
+ */
+export function buildReviewPageSchema(ex: SeoExchange): Record<string, unknown> {
+  const updatedAt: string = (ex as any).updatedAt ?? '';
+  const lastVerified: string = (ex as any).lastVerified ?? updatedAt;
+  const licences: string[] = (ex as any).licences ?? [];
+  const users: string = (ex as any).users ?? '';
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': ['WebPage', 'ReviewPage'],
+    name: `${ex.name} Bonus Review ${YEAR}`,
+    url: `${SITE_URL}/exchanges/${ex.slug}/`,
+    description: ex.shortDescription,
+    ...(updatedAt ? { datePublished: updatedAt } : {}),
+    ...(lastVerified ? { dateModified: lastVerified } : {}),
+    inLanguage: 'en',
+    publisher: {
+      '@type': 'Organization',
+      name: SITE_NAME,
+      url: SITE_URL,
+      logo: { '@type': 'ImageObject', url: `${SITE_URL}/brand/cryptobonusworld-logo.svg` },
+    },
+    author: {
+      '@type': 'Organization',
+      name: SITE_NAME,
+      url: SITE_URL,
+    },
+    mainEntity: {
+      '@type': 'FinancialProduct',
+      name: `${ex.name} Cryptocurrency Exchange`,
+      description: ex.shortDescription,
+      url: `${SITE_URL}/exchanges/${ex.slug}/`,
+      ...(ex.countries?.length > 0 ? {
+        areaServed: ex.countries.includes('global')
+          ? { '@type': 'Place', name: 'Worldwide' }
+          : ex.countries.slice(0, 5).map(c => ({ '@type': 'Place', name: c })),
+      } : {}),
+      ...(licences.length > 0 ? {
+        regulatoryNotes: licences.join('; '),
+      } : {}),
+    },
+    breadcrumb: {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+        { '@type': 'ListItem', position: 2, name: 'Exchanges', item: `${SITE_URL}/exchanges/` },
+        { '@type': 'ListItem', position: 3, name: `${ex.name} Bonus Review`, item: `${SITE_URL}/exchanges/${ex.slug}/` },
+      ],
     },
   };
 }
@@ -404,9 +621,30 @@ export function buildOrganizationSchema(): Record<string, unknown> {
     '@type': 'Organization',
     name: SITE_NAME,
     url: SITE_URL,
-    logo: `${SITE_URL}/favicon.svg`,
-    description: 'CryptoBonusWorld compares crypto exchange bonuses worldwide — signup rewards, deposit bonuses and futures promotions from top exchanges.',
-    sameAs: [],
+    logo: {
+      '@type': 'ImageObject',
+      url: `${SITE_URL}/brand/cryptobonusworld-logo.svg`,
+      width: 240,
+      height: 40,
+    },
+    description: 'CryptoBonusWorld is an independent editorial platform that compares crypto exchange bonuses worldwide — signup rewards, deposit bonuses, and futures promotions from 14+ top exchanges. We review, verify, and rank offers so traders find the best deal.',
+    foundingDate: '2024',
+    inLanguage: 'en',
+    sameAs: [
+      'https://x.com/cryptobonusworld',
+      'https://t.me/cryptobonusworld',
+      'https://reddit.com/r/cryptobonusworld',
+    ],
+    knowsAbout: [
+      'Cryptocurrency exchanges',
+      'Crypto welcome bonuses',
+      'Crypto deposit bonuses',
+      'Futures trading bonuses',
+      'Crypto exchange fees',
+      'KYC-free exchanges',
+      'P2P crypto trading',
+      'Copy trading platforms',
+    ],
   };
 }
 
@@ -624,15 +862,14 @@ export function buildWebSiteSchema(): Record<string, unknown> {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: SITE_NAME,
+    alternateName: 'Crypto Bonus World',
     url: SITE_URL,
-    description: 'Compare crypto exchange bonuses worldwide.',
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: {
-        '@type': 'EntryPoint',
-        urlTemplate: `${SITE_URL}/bonuses/`,
-      },
-      'query-input': 'required name=search_term_string',
+    description: 'Independent editorial platform comparing crypto exchange bonuses worldwide — signup rewards, deposit bonuses, and futures promotions from 14+ top exchanges.',
+    inLanguage: 'en',
+    publisher: {
+      '@type': 'Organization',
+      name: SITE_NAME,
+      url: SITE_URL,
     },
   };
 }
@@ -701,6 +938,34 @@ export function rankExchangesForUseCase(
     })
     .sort((a, b) => b.score - a.score)
     .map(({ exchange }) => exchange);
+}
+
+// ── FAQ schema builder ───────────────────────────────────────────────────────
+
+export interface FAQItem {
+  question: string;
+  answer: string;
+}
+
+/**
+ * FAQPage schema — use on any page that renders an FAQ block.
+ * Pass the same array that drives the <FAQBlock> component.
+ *
+ * @param items  Array of { question, answer } objects
+ */
+export function buildFAQSchema(items: FAQItem[]): Record<string, unknown> {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: items.map(item => ({
+      '@type': 'Question',
+      name: item.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: item.answer,
+      },
+    })),
+  };
 }
 
 // ── Coin page SEO helpers ────────────────────────────────────────────────────

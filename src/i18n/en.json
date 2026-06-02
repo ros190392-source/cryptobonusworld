@@ -1,0 +1,142 @@
+{
+  "_meta": {
+    "locale": "en",
+    "version": "1.0",
+    "updatedAt": "2026-05-20",
+    "translatedBy": "editorial",
+    "completeness": 100,
+    "note": "This is the authoritative English reference catalog. All other locale catalogs must mirror this structure. Missing keys in other locales fall back to these values."
+  },
+  "site": {
+    "name": "CryptoBonusWorld",
+    "tagline": "Compare Crypto Exchange Bonuses",
+    "description": "Compare crypto exchange bonuses worldwide — signup rewards, deposit bonuses and futures promotions from top exchanges."
+  },
+  "nav": {
+    "allBonuses": "All Bonuses",
+    "exchanges": "Exchanges",
+    "compare": "Compare",
+    "signupBonuses": "Signup Bonuses",
+    "noDeposit": "No Deposit",
+    "compareBonuses": "Compare Bonuses",
+    "home": "Home",
+    "countries": "Countries",
+    "categories": "Categories"
+  },
+  "common": {
+    "rating": "Rating",
+    "bonus": "Bonus",
+    "kycRequired": "KYC Required",
+    "kycNotRequired": "KYC Not Required",
+    "noKyc": "No KYC",
+    "depositRequired": "Deposit Required",
+    "noDeposit": "No Deposit Required",
+    "minDeposit": "Min. Deposit",
+    "tradingVolume": "Trading Volume",
+    "countries": "Countries",
+    "lastUpdated": "Last Updated",
+    "verified": "Verified",
+    "viewAll": "View All",
+    "learnMore": "Learn More",
+    "bestFor": "Best For",
+    "upTo": "Up to",
+    "free": "Free",
+    "yes": "Yes",
+    "no": "No",
+    "none": "None",
+    "global": "Global",
+    "available": "Available",
+    "notAvailable": "Not Available"
+  },
+  "cta": {
+    "claimBonus": "Claim Bonus",
+    "getBonus": "Get Bonus",
+    "claimNow": "Claim Now",
+    "noKycArrow": "No KYC →",
+    "claimBonusArrow": "Claim Bonus →",
+    "compareBonuses": "Compare Bonuses",
+    "viewExchange": "View Exchange",
+    "visitExchange": "Visit Exchange",
+    "noKycNoDeposit": "Get {{name}} Bonus — No KYC or Deposit",
+    "claimNoKyc": "Claim {{name}} Bonus — No KYC",
+    "claimNoDeposit": "Claim {{name}} — No Deposit Needed"
+  },
+  "exchange": {
+    "welcomeBonus": "Welcome Bonus",
+    "howToClaim": "How to Claim",
+    "bonusConditions": "Bonus Conditions",
+    "requirements": "Requirements",
+    "pros": "Pros",
+    "cons": "Cons",
+    "alternatives": "Alternatives",
+    "compareWith": "Compare with...",
+    "bonusTiers": "Bonus Tiers",
+    "bonusExpiry": "Bonus Expiry",
+    "features": "Features",
+    "licences": "Licences",
+    "founded": "Founded",
+    "users": "Users",
+    "headquarters": "Headquarters"
+  },
+  "table": {
+    "exchange": "Exchange",
+    "bonus": "Bonus",
+    "rating": "Rating",
+    "kyc": "KYC",
+    "minDeposit": "Min Deposit",
+    "availability": "Availability",
+    "action": "Action",
+    "bonusType": "Bonus Type"
+  },
+  "compare": {
+    "winner": "Winner",
+    "tie": "Tie",
+    "vs": "vs",
+    "overallWinner": "Overall Winner",
+    "verdict": "Verdict",
+    "chooseIf": "Choose {{name}} if...",
+    "categories": {
+      "bonusAmount": "Bonus Amount",
+      "rating": "Overall Rating",
+      "kycRequirement": "KYC Requirement",
+      "minDeposit": "Min Deposit",
+      "tradingVolume": "Trading Volume",
+      "established": "Established",
+      "users": "User Base",
+      "licences": "Regulatory Licences",
+      "features": "Product Features",
+      "countries": "Country Coverage"
+    }
+  },
+  "category": {
+    "exchangesAvailable": "{{count}} exchanges available",
+    "filterBy": "Filter by",
+    "showingAll": "Showing all {{count}} exchanges"
+  },
+  "country": {
+    "availableExchanges": "{{count}} exchanges available in {{country}}",
+    "paymentMethods": "Payment Methods",
+    "localNotes": "Local Notes",
+    "noKycOptions": "{{count}} no-KYC options",
+    "topBonus": "Top bonus: up to {{amount}} {{currency}}"
+  },
+  "footer": {
+    "disclaimer": "Crypto trading involves significant risk of loss. Always read the official terms and conditions before claiming any bonus. Bonus availability may vary by country.",
+    "affiliateDisclosure": "This site contains affiliate links. We may earn a commission when you register through our links. This does not affect our editorial ratings or reviews.",
+    "allRightsReserved": "All rights reserved.",
+    "riskWarning": "Crypto trading is high risk. Never invest more than you can afford to lose."
+  },
+  "breadcrumbs": {
+    "home": "Home",
+    "exchanges": "Exchanges",
+    "categories": "Categories",
+    "countries": "Countries",
+    "compare": "Compare",
+    "bonuses": "All Bonuses"
+  },
+  "errors": {
+    "notFound": "Page not found",
+    "noExchanges": "No exchanges found for this filter.",
+    "dataUnavailable": "Data temporarily unavailable. Please check back soon."
+  }
+}

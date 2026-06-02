@@ -26,7 +26,7 @@ import ExchangeLogo from '../../components/ExchangeLogo.astro';
 import exchanges from '../../data/exchanges.json';
 import comparePairs from '../../data/compare-pairs.json';
 
-import { buildProductSchema, SITE_URL, YEAR } from '../../utils/seo';
+import { buildProductSchema, buildBreadcrumbSchema, bonusPageTitle, SITE_URL, YEAR } from '../../utils/seo';
 import { goRedirectUrl } from '../../utils/affiliateUtils';
 import type { PageContext } from '../../utils/analytics';
 
@@ -47,8 +47,10 @@ const bonusPrefix = bonusDisplayMode === 'fixed' ? '' : 'Up to ';
 const bonusLabel  = bonusDisplayMode === 'fixed'
   ? ex.bonusTitle
   : `Up to ${ex.bonusAmount.toLocaleString()} ${ex.bonusCurrency}`;
-const pageTitle = `${ex.name} Bonus Code ${YEAR}: ${bonusLabel} — How to Claim`;
-const metaDesc = `Claim the ${ex.name} welcome bonus ${YEAR}: ${bonusLabel.toLowerCase()}. Step-by-step guide, promo code, requirements and full conditions. ${ex.kycRequired ? 'KYC required.' : 'No KYC needed.'}`.slice(0, 160);
+// Use centralised title generator (targets 50-60 chars)
+const pageTitle = bonusPageTitle(ex as any);
+const kycNote = ex.kycRequired ? 'KYC required.' : 'No KYC needed.';
+const metaDesc = `Claim the ${ex.name} bonus ${YEAR}: ${bonusLabel}. Step-by-step guide, promo code, requirements and verified conditions. ${kycNote}`.slice(0, 160);
 const canonicalPath = `/bonuses/${ex.slug}-bonus/`;
 
 // --- Bonus tiers ---
@@ -120,15 +122,11 @@ const schemaArray = [
       acceptedAnswer: { '@type': 'Answer', text: f.answer },
     })),
   },
-  {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL + '/' },
-      { '@type': 'ListItem', position: 2, name: 'All Bonuses', item: SITE_URL + '/bonuses/' },
-      { '@type': 'ListItem', position: 3, name: `${ex.name} Bonus`, item: SITE_URL + canonicalPath },
-    ],
-  },
+  buildBreadcrumbSchema([
+    { name: 'Home',       url: SITE_URL + '/' },
+    { name: 'All Bonuses', url: SITE_URL + '/bonuses/' },
+    { name: `${ex.name} Bonus`, url: SITE_URL + canonicalPath },
+  ]),
 ];
 
 const analyticsContext: PageContext = { pageType: 'bonus-page', exchange: ex.slug };
@@ -141,6 +139,9 @@ const analyticsContext: PageContext = { pageType: 'bonus-page', exchange: ex.slu
   schema={schemaArray}
   analyticsContext={analyticsContext}
   ogImage={`https://cryptobonusworld.com/og/exchange-${ex.slug}.png`}
+  ogType="article"
+  publishedTime={(ex as any).updatedAt}
+  modifiedTime={(ex as any).lastVerified ?? (ex as any).updatedAt}
 >
   <div class="container">
 
@@ -159,7 +160,7 @@ const analyticsContext: PageContext = { pageType: 'bonus-page', exchange: ex.slu
         <div class="bp-hero-text">
           <div class="bp-freshness">
             <span class="bp-freshness-dot"></span>
-            Verified {(ex as any).lastVerified ?? (ex as any).updatedAt ?? `May ${YEAR}`} · Reviewed by <a href="/reviewers/alexandr-shadurskyi/" class="bp-reviewer-link">Alexandr Shadurskyi</a>
+            Verified {(ex as any).lastVerified ?? (ex as any).updatedAt ?? `May ${YEAR}`} · Reviewed by <a href="/reviewers/alexandr-shadurskyi/" class="bp-reviewer-link">Oleksandr Shadurskyi</a>
           </div>
           <h1 class="bp-h1">{ex.name} Bonus {YEAR}: {bonusLabel}</h1>
           <p class="bp-subtitle">{(ex as any).shortDescription}</p>

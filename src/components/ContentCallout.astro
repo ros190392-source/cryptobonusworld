@@ -1,0 +1,116 @@
+---
+/**
+ * ContentCallout.astro
+ *
+ * Reusable editorial callout/highlight block.
+ * Use for tips, warnings, bonus highlights, and editorial notes.
+ *
+ * Props:
+ *   type    — Visual style: 'tip' | 'warning' | 'info' | 'bonus'
+ *   title   — Optional heading (default: type label)
+ *   body    — The callout text content
+ *   compact — Render in compact mode (smaller padding, no icon title)
+ *
+ * Usage:
+ *   <ContentCallout type="tip" body="No KYC required — register in under 2 minutes." />
+ *   <ContentCallout type="warning" title="Expiry alert" body="Bonus expires 30 days after signup." />
+ *   <ContentCallout type="bonus" body="Unlock up to 30,000 USDT by completing 5 trading tasks." />
+ */
+
+interface Props {
+  type?: 'tip' | 'warning' | 'info' | 'bonus';
+  title?: string;
+  body: string;
+  compact?: boolean;
+}
+
+const { type = 'info', title, body, compact = false } = Astro.props;
+
+const CONFIG = {
+  tip:     { icon: '💡', label: 'Tip',     colorVar: '--callout-tip' },
+  warning: { icon: '⚠️', label: 'Warning', colorVar: '--callout-warning' },
+  info:    { icon: 'ℹ️', label: 'Note',    colorVar: '--callout-info' },
+  bonus:   { icon: '🎁', label: 'Bonus',   colorVar: '--callout-bonus' },
+};
+
+const { icon, label } = CONFIG[type];
+const displayTitle = title ?? (compact ? undefined : label);
+---
+
+<div class:list={['callout', `callout--${type}`, compact && 'callout--compact']}>
+  <span class="callout__icon" aria-hidden="true">{icon}</span>
+  <div class="callout__content">
+    {displayTitle && <strong class="callout__title">{displayTitle}</strong>}
+    <p class="callout__body">{body}</p>
+  </div>
+</div>
+
+<style>
+  .callout {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+    padding: 0.875rem 1rem;
+    border-radius: var(--radius-md);
+    border-left: 3px solid;
+    margin: 1rem 0;
+    font-size: var(--text-sm);
+    line-height: 1.6;
+  }
+
+  .callout--compact {
+    padding: 0.6rem 0.875rem;
+    margin: 0.5rem 0;
+  }
+
+  /* Tip — blue-green */
+  .callout--tip {
+    background: rgba(52, 211, 153, 0.07);
+    border-color: rgba(52, 211, 153, 0.5);
+  }
+
+  /* Warning — amber */
+  .callout--warning {
+    background: rgba(251, 191, 36, 0.07);
+    border-color: rgba(251, 191, 36, 0.5);
+  }
+
+  /* Info — blue */
+  .callout--info {
+    background: rgba(96, 165, 250, 0.07);
+    border-color: rgba(96, 165, 250, 0.4);
+  }
+
+  /* Bonus — gold */
+  .callout--bonus {
+    background: var(--color-accent-muted, rgba(245, 197, 66, 0.08));
+    border-color: var(--color-accent, #f5c542);
+  }
+
+  .callout__icon {
+    font-size: 1rem;
+    line-height: 1.5;
+    flex-shrink: 0;
+    margin-top: 0.05rem;
+  }
+
+  .callout__content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .callout__title {
+    display: block;
+    font-size: var(--text-sm);
+    font-weight: 700;
+    margin-bottom: 0.2rem;
+    color: var(--color-text-primary);
+  }
+
+  .callout__body {
+    margin: 0;
+    color: var(--color-text-secondary);
+    font-size: var(--text-sm);
+    line-height: 1.65;
+  }
+</style>

@@ -1,0 +1,170 @@
+---
+/**
+ * ConstitutionGeoWarning.astro
+ * ============================
+ * Renders a geo-aware warning on compare pages when one of the exchanges
+ * has a constitution restriction for the visitor's detected country.
+ *
+ * Uses constitution data baked at build time + client-side geo detection.
+ * Only shows when cbw_geo matches a rule with restricted/unavailable status.
+ *
+ * SEO safe: hidden by default, never changes canonical, no cloaking.
+ *
+ * Props:
+ *   exchangeA  — { slug, name }
+ *   exchangeB  — { slug, name }
+ */
+
+import {
+  resolveGeoRule,
+  getDisplayWordingByConfidence,
+  type CompareGeoWarning,
+} from '../utils/constitutionEngine';
+import { REGION_MAP } from '../data/geo-overrides';
+import { EXCHANGE_CONSTITUTIONS } from '../data/exchange-constitution';
+
+interface Props {
+  exchangeA: { slug: string; name: string };
+  exchangeB: { slug: string; name: string };
+}
+
+const { exchangeA, exchangeB } = Astro.props;
+
+// Serialize all geo rules for both exchanges for client-side use
+function serializeGeoRulesForClient(slug: string) {
+  const c = EXCHANGE_CONSTITUTIONS.find(x => x.exchangeSlug === slug);
+  if (!c) return {};
+  const map: Record<string, { status: string; confidence: number; altSlugs?: string[] }> = {};
+  for (const rule of c.geoRules) {
+    map[rule.geoKey] = {
+      status: rule.availabilityStatus,
+      confidence: rule.confidenceScore,
+      altSlugs: rule.alternativeExchangeSlugs,
+    };
+  }
+  return map;
+}
+
+const rulesA = serializeGeoRulesForClient(exchangeA.slug);
+const rulesB = serializeGeoRulesForClient(exchangeB.slug);
+
+const blockId = `cgw-${Math.random().toString(36).slice(2, 7)}`;
+const regionMapJson = JSON.stringify(REGION_MAP);
+const rulesAJson = JSON.stringify(rulesA);
+const rulesBJson = JSON.stringify(rulesB);
+---
+
+<div
+  class="cgw"
+  id={blockId}
+  style="display:none;"
+  aria-live="polite"
+>
+  <!-- filled by client script -->
+</div>
+
+<script define:vars={{
+  blockId,
+  regionMapJson,
+  rulesAJson,
+  rulesBJson,
+  nameA: exchangeA.name,
+  nameB: exchangeB.name,
+  slugA: exchangeA.slug,
+  slugB: exchangeB.slug,
+}}>
+  (function () {
+    const el = document.getElementById(blockId);
+    if (!el) return;
+
+    const regionMap = JSON.parse(regionMapJson);
+    const rulesA = JSON.parse(rulesAJson);
+    const rulesB = JSON.parse(rulesBJson);
+
+    function resolveRule(rules, countryCode) {
+      const cc = countryCode.toLowerCase();
+      if (rules[cc]) return rules[cc];
+      const region = regionMap[cc];
+      if (region && rules[region]) return rules[region];
+      if (rules['global']) return rules['global'];
+      return null;
+    }
+
+    function tryRender() {
+      var geo = null;
+      try { geo = localStorage.getItem('cbw_geo'); } catch(e) {}
+      if (!geo) return;
+
+      var ruleA = resolveRule(rulesA, geo);
+      var ruleB = resolveRule(rulesB, geo);
+
+      var warnings = [];
+
+      [
+        { rule: ruleA, name: nameA, slug: slugA },
+        { rule: ruleB, name: nameB, slug: slugB },
+      ].forEach(function(item) {
+        var r = item.rule;
+        if (!r) return;
+        if (r.status === 'unavailable') {
+          var alts = r.altSlugs && r.altSlugs.length ? ' Consider ' + r.altSlugs.join(', ') + ' as alternatives.' : '';
+          warnings.push({
+            severity: 'critical',
+            html: '<strong>' + item.name + '</strong> is not available in your region.' + alts
+          });
+        } else if (r.status === 'restricted' || r.status === 'needs-review') {
+          warnings.push({
+            severity: 'warning',
+            html: '<strong>' + item.name + '</strong> availability in your region is limited or unverified. Verify on the exchange website before registering.'
+          });
+        }
+      });
+
+      if (!warnings.length) return;
+
+      el.style.display = 'block';
+      el.innerHTML = warnings.map(function(w) {
+        return '<div class="cgw__item cgw__item--' + w.severity + '">' +
+          '<span class="cgw__icon">' + (w.severity === 'critical' ? '🚫' : '⚠️') + '</span>' +
+          '<p class="cgw__text">' + w.html + '</p>' +
+          '</div>';
+      }).join('');
+    }
+
+    tryRender();
+    window.addEventListener('cbw:geo', function() { tryRender(); });
+  })();
+</script>
+
+<style>
+  .cgw {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin: 1rem 0;
+    animation: fadein 0.2s ease;
+  }
+  .cgw__item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.625rem 0.875rem;
+    border-radius: 8px;
+    font-size: 0.82rem;
+  }
+  .cgw__item--critical {
+    background: color-mix(in srgb, #ef4444 8%, transparent);
+    border: 1px solid color-mix(in srgb, #ef4444 25%, transparent);
+  }
+  .cgw__item--warning {
+    background: color-mix(in srgb, #f59e0b 7%, transparent);
+    border: 1px solid color-mix(in srgb, #f59e0b 22%, transparent);
+  }
+  .cgw__icon { flex-shrink: 0; font-size: 0.9rem; margin-top: 2px; }
+  .cgw__text {
+    margin: 0;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+  }
+  @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+</style>

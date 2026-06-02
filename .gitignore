@@ -5,3 +5,13 @@ node_modules/
 .DS_Store
 *.log
 .wrangler/
+# IndexNow submission log — local only, not tracked in git
+logs/
+# Generated editorial reports — regenerated on demand, not tracked
+reports/
+# Raw source images — large originals kept locally only
+public/avatars/alexandr-shadurskyi-src.jpg
+"public/avatars/ChatGPT Image*"
+public/avatars/ChatGPT*
+public/avatars/изображение*
+_brand_assets/

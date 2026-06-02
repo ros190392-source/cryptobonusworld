@@ -1,0 +1,166 @@
+---
+/**
+ * DefinitionBlock — machine-readable concept definition block.
+ *
+ * Optimised for:
+ *  - Google AI Overviews: "What is [X]?" definitional queries
+ *  - Google Featured Snippets: direct definition format
+ *  - ChatGPT / Perplexity citations: structured concept explanation
+ *  - schema.org DefinedTerm markup for semantic clarity
+ *
+ * Usage:
+ *   <DefinitionBlock
+ *     term="Welcome Bonus"
+ *     definition="A welcome bonus is a reward offered by a crypto exchange..."
+ *     keyPoints={['No deposit required on some exchanges', ...]}
+ *     learnMoreHref="/methodology/"
+ *   />
+ *
+ * Keep definition between 40–80 words for optimal snippet capture.
+ * keyPoints should be 3–5 scannable bullet facts.
+ */
+
+interface Props {
+  term: string;
+  definition: string;
+  /** 3–5 key facts about the term (short phrases, not full sentences) */
+  keyPoints?: string[];
+  learnMoreHref?: string;
+  learnMoreLabel?: string;
+  /** If true, renders smaller without the term heading */
+  compact?: boolean;
+}
+
+const {
+  term,
+  definition,
+  keyPoints,
+  learnMoreHref,
+  learnMoreLabel = 'Learn more',
+  compact = false,
+} = Astro.props;
+---
+
+<div
+  class:list={['def-block', compact && 'def-block--compact']}
+  itemscope
+  itemtype="https://schema.org/DefinedTerm"
+>
+  {!compact && (
+    <div class="def-eyebrow">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+        <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
+      </svg>
+      <span>Definition</span>
+    </div>
+    <h3 class="def-term" itemprop="name">{term}</h3>
+  )}
+
+  <p class="def-text" itemprop="description">{definition}</p>
+
+  {keyPoints && keyPoints.length > 0 && (
+    <ul class="def-points" aria-label={`Key facts about ${term}`}>
+      {keyPoints.map(point => (
+        <li class="def-point">{point}</li>
+      ))}
+    </ul>
+  )}
+
+  {learnMoreHref && (
+    <a class="def-link" href={learnMoreHref}>
+      {learnMoreLabel}
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+        <path d="M5 12h14"/><path d="M12 5l7 7-7 7"/>
+      </svg>
+    </a>
+  )}
+</div>
+
+<style>
+  .def-block {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-left: 3px solid rgba(245,197,66,0.5);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.75rem;
+  }
+  .def-block--compact {
+    padding: 0.875rem 1rem;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+  }
+
+  .def-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-bottom: 0.5rem;
+  }
+  .def-eyebrow svg { color: var(--color-text-muted); }
+  .def-eyebrow span {
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-text-muted);
+  }
+
+  .def-term {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--color-text-primary);
+    margin: 0 0 0.625rem;
+    line-height: 1.3;
+  }
+
+  .def-text {
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    margin: 0 0 0.875rem;
+  }
+  .def-block--compact .def-text {
+    margin-bottom: 0.5rem;
+  }
+
+  .def-points {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 0.875rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .def-point {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-size: 0.82rem;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+  }
+  .def-point::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    flex-shrink: 0;
+    margin-top: 0.45em;
+  }
+
+  .def-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-accent);
+    text-decoration: none;
+    transition: opacity 0.15s;
+  }
+  .def-link:hover { opacity: 0.8; }
+  .def-link svg { flex-shrink: 0; }
+</style>

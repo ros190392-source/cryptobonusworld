@@ -22,11 +22,50 @@ interface Props {
   bestFor?: string[];
   topChoice?: boolean;
   users?: string;
+  /** Short honest note about typical user expectation — e.g. "Most users earn 200–600 USDT" */
+  bonusNote?: string;
+  /** Controls bonus prefix: 'up-to' | 'fixed' | 'campaign' | 'range' */
+  bonusDisplayMode?: 'up-to' | 'range' | 'fixed' | 'regional' | 'campaign';
+  /** Show verification checkmark when verified */
+  verificationStatus?: 'verified' | 'needs-review' | 'outdated' | 'unverified';
+  /** Exchange regulatory licences for trust badge */
+  licences?: string[];
+  /** Number of trading pairs */
+  tradingPairsCount?: number;
+  /** Spot taker fee as percentage (e.g. 0.1 = 0.10%) */
+  spotTakerFee?: number;
+  /** Maximum futures leverage multiplier */
+  maxFuturesLeverage?: number;
 }
 
 import { getCtaLabel } from '../utils/affiliateUtils';
 const props = Astro.props;
 const showUsers = props.users && parseInt(props.users.replace(/[^0-9]/g, ''), 10) >= 10;
+const isVerified = props.verificationStatus === 'verified';
+const bonusPrefix = props.bonusDisplayMode === 'fixed' ? '' : props.bonusDisplayMode === 'campaign' ? '' : 'Up to ';
+
+// Regulation badge — only show for meaningfully regulated exchanges
+interface RegBadge { label: string; tier: 'premium' | 'regulated'; }
+function getRegBadge(licences: string[] = []): RegBadge | null {
+  if (licences.includes('SEC')) return { label: 'SEC · FCA', tier: 'premium' };
+  if (licences.includes('FCA'))  return { label: 'FCA', tier: 'premium' };
+  if (licences.includes('Dubai VARA')) return { label: 'VARA', tier: 'regulated' };
+  if (licences.includes('ASIC Australia')) return { label: 'ASIC', tier: 'regulated' };
+  if (licences.includes('MAS')) return { label: 'MAS', tier: 'regulated' };
+  if (licences.includes('Multiple regional licences')) return { label: 'Multi-licensed', tier: 'regulated' };
+  return null;
+}
+const regBadge = getRegBadge(props.licences ?? []);
+
+// Quick stats — pairs count, spot fee, max leverage
+const hasFutures = props.bonusTypes.includes('futures');
+const statsItems: string[] = [];
+if (props.tradingPairsCount && props.tradingPairsCount > 0)
+  statsItems.push(`${props.tradingPairsCount.toLocaleString()}+ pairs`);
+if (props.spotTakerFee !== undefined)
+  statsItems.push(`${props.spotTakerFee.toFixed(2)}% spot fee`);
+if (hasFutures && props.maxFuturesLeverage && props.maxFuturesLeverage > 1)
+  statsItems.push(`${props.maxFuturesLeverage}× max leverage`);
 ---
 
 <article class="exchange-card">
@@ -42,17 +81,42 @@ const showUsers = props.users && parseInt(props.users.replace(/[^0-9]/g, ''), 10
           {showUsers && (
             <span class="card-users">{props.users} users</span>
           )}
+          {regBadge && (
+            <span class={`card-reg-badge card-reg-badge--${regBadge.tier}`} title={`Regulated by ${regBadge.label}`}>
+              🏛️ {regBadge.label}
+            </span>
+          )}
         </div>
       </div>
     </div>
     <div class="exchange-card-bonus">
+      {props.topChoice && (
+        <span class="exchange-card-top-pick" aria-label="Editor's top pick">⭐ Top Pick</span>
+      )}
       <span class="exchange-bonus-amount">
-        Up to {props.bonusAmount.toLocaleString()} {props.bonusCurrency}
+        {props.bonusDisplayMode === 'campaign'
+          ? 'Active Offer'
+          : <>{bonusPrefix}{props.bonusAmount.toLocaleString()} {props.bonusCurrency}</>
+        }
       </span>
+      {props.bonusNote && (
+        <span class="exchange-bonus-note">{props.bonusNote}</span>
+      )}
     </div>
   </div>
 
   <p class="exchange-card-desc">{props.shortDescription}</p>
+
+  {statsItems.length > 0 && (
+    <div class="card-stats" aria-label={`${props.name} quick stats`}>
+      {statsItems.map((stat, i) => (
+        <>
+          <span class="card-stat">{stat}</span>
+          {i < statsItems.length - 1 && <span class="card-stat-sep" aria-hidden="true">·</span>}
+        </>
+      ))}
+    </div>
+  )}
 
   {props.bestFor && props.bestFor.length > 0 && (
     <div class="exchange-card-bestfor">
@@ -66,15 +130,21 @@ const showUsers = props.users && parseInt(props.users.replace(/[^0-9]/g, ''), 10
   <div class="exchange-card-badges">
     {props.bonusTypes.map(t => <BonusBadge type={t} />)}
     <KycBadge required={props.kycRequired} />
+    {isVerified && (
+      <span class="exchange-card-verified" title="Offer conditions verified">
+        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+        Verified
+      </span>
+    )}
   </div>
 
   <div class="exchange-card-footer">
     <LastUpdated date={props.updatedAt} />
     <div class="exchange-card-actions">
-      <a href={`/exchanges/${props.slug}/`} class="details-link">View Details</a>
+      <a href={`/exchanges/${props.slug}/`} class="details-link">Details</a>
       <CTAButton
         href={props.affiliateUrl}
-        label={!props.kycRequired ? 'No KYC' : 'Claim'}
+        label={!props.kycRequired ? 'No KYC' : 'View Offer'}
         exchange={props.name}
         size="sm"
         trackPlacement="card"
@@ -89,7 +159,7 @@ const showUsers = props.users && parseInt(props.users.replace(/[^0-9]/g, ''), 10
     background: var(--surface-raised, #111111);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg, 14px);
-    padding: 1.25rem;
+    padding: 1.375rem;
     display: flex;
     flex-direction: column;
     gap: 0.875rem;
@@ -102,6 +172,14 @@ const showUsers = props.users && parseInt(props.users.replace(/[^0-9]/g, ''), 10
     border-color: var(--color-accent-dim, rgba(245,197,66,0.15));
     box-shadow: var(--glow-card, 0 4px 24px rgba(245,197,66,0.12));
     transform: translateY(-2px);
+  }
+  /* Top-choice cards get a gold top border accent */
+  .exchange-card:has(.exchange-card-top-pick) {
+    border-color: rgba(245,197,66,0.22);
+    background: linear-gradient(180deg, rgba(245,197,66,0.03) 0%, var(--surface-raised, #111111) 60px);
+  }
+  .exchange-card:has(.exchange-card-top-pick):hover {
+    border-color: rgba(245,197,66,0.35);
   }
   .exchange-card-header {
     display: flex;
@@ -140,12 +218,87 @@ const showUsers = props.users && parseInt(props.users.replace(/[^0-9]/g, ''), 10
     padding: 0.1rem 0.4rem;
     white-space: nowrap;
   }
-  .exchange-bonus-amount {
-    font-size: 1rem;
+
+  /* Regulation badge — shown for licensed exchanges */
+  .card-reg-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15rem;
+    font-size: 0.6rem;
     font-weight: 700;
+    border-radius: 4px;
+    padding: 0.1rem 0.4rem;
+    white-space: nowrap;
+  }
+  .card-reg-badge--premium {
+    color: #93c5fd;
+    background: rgba(147,197,253,0.08);
+    border: 1px solid rgba(147,197,253,0.2);
+  }
+  .card-reg-badge--regulated {
+    color: #4ade80;
+    background: rgba(74,222,128,0.07);
+    border: 1px solid rgba(74,222,128,0.18);
+  }
+
+  /* Quick stats strip */
+  .card-stats {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+    margin-top: -0.25rem;
+  }
+  .card-stat {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+  }
+  .card-stat-sep {
+    font-size: 0.6rem;
+    color: var(--color-border);
+  }
+  /* Top pick badge — above bonus amount, right-aligned */
+  .exchange-card-top-pick {
+    display: block;
+    font-size: 0.6rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--color-accent);
+    background: rgba(245,197,66,0.1);
+    border: 1px solid rgba(245,197,66,0.22);
+    border-radius: 4px;
+    padding: 0.1rem 0.4rem;
+    margin-bottom: 0.3rem;
+    white-space: nowrap;
+    text-align: right;
+    width: fit-content;
+    margin-left: auto;
+  }
+
+  .exchange-bonus-amount {
+    font-size: 0.9375rem;
+    font-weight: 800;
     color: var(--color-accent);
     text-align: right;
     display: block;
+    white-space: nowrap;
+  }
+
+  /* Honest bonus note — realistic expectation under the amount */
+  .exchange-bonus-note {
+    display: block;
+    font-size: 0.63rem;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    opacity: 0.7;
+    text-align: right;
+    line-height: 1.35;
+    margin-top: 0.25rem;
+    font-style: italic;
+    max-width: 140px;
+    margin-left: auto;
   }
   .exchange-card-desc {
     font-size: 0.825rem;
@@ -196,6 +349,21 @@ const showUsers = props.users && parseInt(props.users.replace(/[^0-9]/g, ''), 10
     align-items: center;
     gap: 0.5rem;
   }
+  /* Verified badge inline with other badges */
+  .exchange-card-verified {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: #4ade80;
+    background: rgba(74,222,128,0.07);
+    border: 1px solid rgba(74,222,128,0.18);
+    border-radius: 4px;
+    padding: 0.1rem 0.35rem;
+    white-space: nowrap;
+  }
+
   .details-link {
     font-size: 0.8rem;
     color: var(--color-text-muted);

@@ -1,0 +1,60 @@
+[
+  {
+    "id": "gsc:schema:invalid-currency:product-offer-pricecurrency",
+    "source": "google-search-console",
+    "issueType": "schema:invalid-currency",
+    "severity": "high",
+    "affectedUrls": [
+      "/exchanges/bybit/",
+      "/exchanges/binance/",
+      "/exchanges/mexc/",
+      "/exchanges/okx/",
+      "/exchanges/bitget/",
+      "/exchanges/bingx/",
+      "/exchanges/kucoin/",
+      "/exchanges/gate-io/",
+      "/exchanges/htx/",
+      "/exchanges/coinex/",
+      "/exchanges/phemex/",
+      "/exchanges/bitunix/",
+      "/exchanges/lbank/",
+      "/exchanges/coinbase/",
+      "/bonus-codes/bybit/",
+      "/bonus-codes/binance/",
+      "/bonus-codes/mexc/",
+      "/bonus-codes/okx/",
+      "/bonus-codes/bitget/",
+      "/bonus-codes/bingx/",
+      "/bonus-codes/kucoin/",
+      "/bonus-codes/gate-io/",
+      "/bonus-codes/htx/",
+      "/bonus-codes/coinex/",
+      "/bonus-codes/phemex/",
+      "/bonus-codes/bitunix/",
+      "/bonus-codes/lbank/",
+      "/bonuses/bybit/",
+      "/bonuses/binance/",
+      "/bonuses/mexc/",
+      "/bonuses/okx/"
+    ],
+    "detectedAt": "2026-06-01",
+    "rawMessage": "Product: Invalid value in field 'priceCurrency'. The value provided for priceCurrency is not a valid ISO 4217 currency code. Value: 'USDT'",
+    "screenshotPath": null,
+    "status": "fixed",
+    "recommendedFix": "Map crypto currency codes (USDT, BTC, ETH, etc.) to valid ISO 4217 codes. USDT/USDC/stablecoins → USD. Other crypto → USD as approximate denomination. Add toIsoCurrency() helper to seo.ts and call it wherever priceCurrency is set.",
+    "autoFixPolicy": "safe",
+    "relatedFiles": [
+      "src/utils/seo.ts",
+      "src/pages/bonus-codes/[slug].astro"
+    ],
+    "validationSteps": [
+      "Run: node -e \"const {toIsoCurrency}=await import('./src/utils/seo.ts'); console.log(toIsoCurrency('USDT'))\" — should output USD",
+      "Build site: npm run build",
+      "Check dist/exchanges/bybit/index.html — grep for priceCurrency, value must be 'USD' not 'USDT'",
+      "Paste any exchange page URL into Google Rich Results Test — no currency errors"
+    ],
+    "fixedAt": "2026-06-02",
+    "fixDescription": "Added toIsoCurrency() helper to src/utils/seo.ts mapping USDT/USDC/BTC/ETH etc. → 'USD'. Updated buildProductSchema() to call toIsoCurrency(ex.bonusCurrency) for all priceCurrency fields. Updated bonus-codes/[slug].astro to import and use toIsoCurrency().",
+    "notes": "USDT is pegged 1:1 to USD so mapping to 'USD' is semantically accurate. The original crypto currency name is preserved in the Offer.description field for display purposes."
+  }
+]

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Editorial Team Registry — CryptoBonusWorld
  * =============================================
  *
@@ -56,17 +56,17 @@ export interface ReviewerProfile {
 export const EDITORIAL_TEAM: ReviewerProfile[] = [
   {
     slug: 'alexandr-shadurskyi',
-    name: 'Alexandr Shadurskyi',
+    name: 'Oleksandr Shadurskyi',
     title: 'Crypto Exchange Analyst & Editor-in-Chief',
     roleTag: 'Editor-in-Chief',
     initials: 'AS',
-    photo: '/avatars/avatar2.png',
-    bio: 'Alexandr Shadurskyi is the founder and editor-in-chief of CryptoBonusWorld. He personally evaluates exchange bonus structures, KYC policies, and platform reliability, with a focus on helping traders get real value from signup offers.',
+    photo: '/avatars/alexandr-shadurskyi.webp',
+    bio: 'Oleksandr Shadurskyi is a crypto affiliate marketer with 15 years in the industry and a hands-on crypto trader since 2019. He founded CryptoBonusWorld to cut through inflated bonus claims with independently verified, real-account data.',
     fullBio: [
-      'Alexandr Shadurskyi founded CryptoBonusWorld with a single goal: give traders an honest, independently verified source for crypto exchange bonus information — free of inflated claims and hidden conditions.',
-      'He has personally tested registration flows, bonus activation steps, and withdrawal conditions across all major exchanges featured on this site, using real accounts rather than relying solely on published terms.',
-      'Alexandr\'s evaluation methodology is built on transparency: every bonus amount shown on this site reflects what most users actually earn under standard conditions, not the theoretical maximum a top-tier depositor might reach. When a bonus requires a $10,000 deposit to unlock, that is stated clearly.',
-      'His background spans crypto market research, affiliate marketing, and platform UX analysis — a combination that informs both the editorial standards and the practical, user-first framing of every review.',
+      'Oleksandr Shadurskyi has been working in affiliate marketing since 2011 — a time when SEO meant link directories and "content marketing" was not yet a phrase. Over 15 years he has built and operated traffic projects across finance, software, and e-commerce verticals, developing a sharp eye for the gap between what platforms promise and what users actually receive.',
+      'He entered the crypto space in 2019 as a trader, not a spectator. Going through exchange registrations, bonus activations, KYC queues, and withdrawal processes firsthand gave him a perspective most review sites lack: the frustration of a real user hitting a hidden condition at the worst possible moment.',
+      'That frustration is the reason CryptoBonusWorld exists. Oleksandr built the site with one editorial rule: every bonus amount shown reflects what a typical user earns under standard conditions, not the theoretical ceiling reserved for six-figure depositors. When a bonus requires a $10,000 deposit to unlock its headline number, that is stated plainly — not buried in a footnote.',
+      'Today he personally tests registration flows, bonus activation steps, and withdrawal conditions across all exchanges on the site using real accounts, cross-referencing against official terms pages. His affiliate background means he understands how exchange promotional copy is written — and exactly where to look for the catches.',
     ],
     expertise: [
       'Crypto exchange bonus structure analysis',

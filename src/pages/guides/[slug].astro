@@ -15,6 +15,7 @@ import guideMeta from '../../data/guides.json';
 import guideContentMap from '../../data/guide-content';
 import exchanges from '../../data/exchanges.json';
 import { USE_CASES } from '../../data/use-cases';
+import { buildArticleSchema, buildBreadcrumbSchema, SITE_URL } from '../../utils/seo';
 
 export function getStaticPaths() {
   return guideMeta.map(g => ({
@@ -57,36 +58,22 @@ const faqSchema = {
   })),
 };
 
-// Article schema for E-E-A-T
-const articleSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'Article',
+// Article schema for E-E-A-T — built via central utility
+const articleSchema = buildArticleSchema({
   headline: meta.title,
   description: meta.metaDesc,
-  dateModified: meta.lastUpdated,
+  url: `${SITE_URL}/guides/${meta.slug}/`,
+  image: `${SITE_URL}/og/guide-${meta.slug}.png`,
   datePublished: meta.lastUpdated,
-  author: {
-    '@type': 'Organization',
-    name: 'CryptoBonusWorld Editorial Team',
-    url: 'https://cryptobonusworld.com/about/',
-  },
-  publisher: {
-    '@type': 'Organization',
-    name: 'CryptoBonusWorld',
-    url: 'https://cryptobonusworld.com',
-  },
-  mainEntityOfPage: `https://cryptobonusworld.com/guides/${meta.slug}/`,
-};
+  dateModified: meta.lastUpdated,
+});
 
-const breadcrumbSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'BreadcrumbList',
-  itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://cryptobonusworld.com/' },
-    { '@type': 'ListItem', position: 2, name: 'Guides', item: 'https://cryptobonusworld.com/guides/' },
-    { '@type': 'ListItem', position: 3, name: meta.title, item: `https://cryptobonusworld.com/guides/${meta.slug}/` },
-  ],
-};
+// BreadcrumbList — built via central utility
+const breadcrumbSchema = buildBreadcrumbSchema([
+  { name: 'Home',   url: `${SITE_URL}/` },
+  { name: 'Guides', url: `${SITE_URL}/guides/` },
+  { name: meta.title, url: `${SITE_URL}/guides/${meta.slug}/` },
+]);
 
 const schemas = [faqSchema, articleSchema, breadcrumbSchema];
 
@@ -117,6 +104,9 @@ interface NextStep {
   secondaryHref?: string;
   type: 'exchange' | 'guide' | 'compare';
   internal?: boolean;
+  exchange?: string;
+  trackPlacement?: string;
+  trackBonus?: number;
 }
 
 function buildNextStep(): NextStep {
@@ -131,6 +121,9 @@ function buildNextStep(): NextStep {
       secondaryHref: `/exchanges/${primaryRelatedEx.slug}/`,
       type: 'exchange',
       internal: false,
+      exchange: primaryRelatedEx.slug,
+      trackPlacement: 'guide-next-step',
+      trackBonus: (primaryRelatedEx as any).bonusAmount as number | undefined,
     };
   }
 
@@ -210,6 +203,10 @@ const categoryColors: Record<string, string> = {
   description={meta.metaDesc}
   canonical={`/guides/${meta.slug}/`}
   schema={schemas}
+  ogImage={`https://cryptobonusworld.com/og/guide-${meta.slug}.png`}
+  ogType="article"
+  publishedTime={meta.lastUpdated}
+  modifiedTime={meta.lastUpdated}
 >
   <div class="container guide-page">
     <Breadcrumbs crumbs={[
@@ -251,7 +248,7 @@ const categoryColors: Record<string, string> = {
     <AuthorCard
       compact
       verb="Written by"
-      name="Alexandr Shadurskyi"
+      name="Oleksandr Shadurskyi"
       title="Crypto Exchange Analyst & Editor-in-Chief"
       initials="AS"
       photo="/avatars/avatar2.png"
@@ -332,6 +329,9 @@ const categoryColors: Record<string, string> = {
           secondaryHref={nextStep.secondaryHref}
           type={nextStep.type}
           internal={nextStep.internal}
+          exchange={nextStep.exchange}
+          trackPlacement={nextStep.trackPlacement}
+          trackBonus={nextStep.trackBonus}
         />
 
         <!-- FAQ -->

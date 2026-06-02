@@ -2,8 +2,11 @@
 interface Props {
   code: string;
   exchange: string;
+  /** Exchange slug for tracking (e.g. 'bybit'). Falls back to lowercased name. */
+  slug?: string;
 }
-const { code, exchange } = Astro.props;
+const { code, exchange, slug } = Astro.props;
+const exchangeKey = slug ?? exchange.toLowerCase().replace(/\s+/g, '-');
 ---
 
 {code && (
@@ -20,7 +23,13 @@ const { code, exchange } = Astro.props;
     </div>
     <div class="promo-code-value-wrap">
       <code class="promo-code-value" id="promo-code-value">{code}</code>
-      <button class="promo-copy-btn" data-code={code} aria-label={`Copy promo code ${code}`}>
+      <button
+        class="promo-copy-btn"
+        data-code={code}
+        data-exchange={exchangeKey}
+        data-track="bonus_copy"
+        aria-label={`Copy promo code ${code}`}
+      >
         Copy
       </button>
     </div>
@@ -28,12 +37,17 @@ const { code, exchange } = Astro.props;
 )}
 
 <script>
-  document.querySelectorAll('.promo-copy-btn').forEach(btn => {
+  import { analytics } from '../lib/analytics';
+
+  document.querySelectorAll<HTMLButtonElement>('[data-track="bonus_copy"]').forEach(btn => {
     btn.addEventListener('click', async () => {
-      const code = (btn as HTMLElement).dataset.code ?? '';
+      const code     = btn.dataset.code     ?? '';
+      const exchange = btn.dataset.exchange ?? '';
       await navigator.clipboard.writeText(code).catch(() => {});
       btn.textContent = 'Copied!';
       setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+      // Track: bonus_copy goal
+      analytics.trackBonusCopy({ exchange, code });
     });
   });
 </script>

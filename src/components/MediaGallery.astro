@@ -1,0 +1,342 @@
+---
+/**
+ * MediaGallery — Exchange UI screenshot gallery component.
+ *
+ * Renders a responsive image grid with optional lightbox, lazy loading,
+ * and schema.org ImageObject markup.
+ *
+ * Degrades gracefully: if no images provided, renders nothing.
+ *
+ * Usage:
+ *   <MediaGallery
+ *     images={[
+ *       { src: '/media/exchanges/bybit/ui-2026-05.webp', alt: 'Bybit trading interface', width: 1280, height: 720 },
+ *     ]}
+ *     heading="Platform Screenshots"
+ *   />
+ */
+
+interface GalleryImage {
+  src: string;
+  alt: string;
+  width: number;
+  height: number;
+  caption?: string;
+  /** ISO date screenshot was taken — shown as badge */
+  capturedAt?: string;
+}
+
+interface Props {
+  images: GalleryImage[];
+  heading?: string;
+  /** Max columns (default 2) */
+  columns?: 1 | 2 | 3;
+  /** Enable click-to-expand lightbox */
+  lightbox?: boolean;
+  /** Lazy load all images (default true) */
+  lazy?: boolean;
+  /** Show "Updated: date" badges */
+  showDates?: boolean;
+  /** Compact layout (smaller images, no heading) */
+  compact?: boolean;
+}
+
+const {
+  images     = [],
+  heading,
+  columns    = 2,
+  lightbox   = true,
+  lazy       = true,
+  showDates  = false,
+  compact    = false,
+} = Astro.props;
+
+if (images.length === 0) return;
+
+function fmtDate(iso: string): string {
+  try {
+    return new Date(iso).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
+  } catch { return iso; }
+}
+
+// schema.org ImageObject for each image
+const imageSchemas = images.map(img => ({
+  '@type': 'ImageObject',
+  url: `https://cryptobonusworld.com${img.src}`,
+  name: img.alt,
+  width: img.width,
+  height: img.height,
+  ...(img.caption ? { description: img.caption } : {}),
+}));
+---
+
+{images.length > 0 && (
+  <div class:list={['mg', compact && 'mg--compact']}>
+    <script type="application/ld+json" set:html={JSON.stringify(imageSchemas)} />
+
+    {heading && !compact && (
+      <h3 class="mg-heading">{heading}</h3>
+    )}
+
+    <div class:list={['mg-grid', `mg-grid--${columns}`]} data-lightbox={lightbox ? 'true' : 'false'}>
+      {images.map((img, i) => (
+        <figure class="mg-item">
+          {lightbox
+            ? (
+              <button
+                class="mg-btn"
+                aria-label={`Expand: ${img.alt}`}
+                data-src={img.src}
+                data-alt={img.alt}
+                data-index={i}
+              >
+                <img
+                  src={img.src}
+                  alt={img.alt}
+                  width={img.width}
+                  height={img.height}
+                  loading={lazy ? 'lazy' : 'eager'}
+                  decoding="async"
+                  class="mg-img"
+                />
+                <span class="mg-expand-icon" aria-hidden="true">⛶</span>
+              </button>
+            )
+            : (
+              <img
+                src={img.src}
+                alt={img.alt}
+                width={img.width}
+                height={img.height}
+                loading={lazy ? 'lazy' : 'eager'}
+                decoding="async"
+                class="mg-img"
+              />
+            )
+          }
+          {showDates && img.capturedAt && (
+            <div class="mg-date-badge">
+              📷 {fmtDate(img.capturedAt)}
+            </div>
+          )}
+          {img.caption && (
+            <figcaption class="mg-caption">{img.caption}</figcaption>
+          )}
+        </figure>
+      ))}
+    </div>
+
+    {lightbox && (
+      <div class="mg-lightbox" id="mg-lightbox" role="dialog" aria-modal="true" aria-label="Image viewer" hidden>
+        <button class="mg-lb-close" aria-label="Close image viewer">✕</button>
+        <button class="mg-lb-prev" aria-label="Previous image">‹</button>
+        <button class="mg-lb-next" aria-label="Next image">›</button>
+        <div class="mg-lb-content">
+          <img class="mg-lb-img" src="" alt="" />
+          <p class="mg-lb-caption"></p>
+        </div>
+      </div>
+    )}
+  </div>
+)}
+
+{lightbox && images.length > 0 && (
+  <script>
+    (function () {
+      const gallery = document.querySelector('[data-lightbox="true"]');
+      if (!gallery) return;
+
+      const lb      = document.getElementById('mg-lightbox');
+      if (!lb) return;
+
+      const lbImg   = lb.querySelector('.mg-lb-img') as HTMLImageElement;
+      const lbCap   = lb.querySelector('.mg-lb-caption') as HTMLElement;
+      const closeBtn = lb.querySelector('.mg-lb-close') as HTMLButtonElement;
+      const prevBtn  = lb.querySelector('.mg-lb-prev') as HTMLButtonElement;
+      const nextBtn  = lb.querySelector('.mg-lb-next') as HTMLButtonElement;
+
+      let currentIndex = 0;
+      const btns = [...gallery.querySelectorAll('[data-src]')] as HTMLButtonElement[];
+
+      function open(index: number) {
+        currentIndex = index;
+        const btn = btns[index];
+        lbImg.src = btn.dataset.src ?? '';
+        lbImg.alt = btn.dataset.alt ?? '';
+        lbCap.textContent = btn.dataset.alt ?? '';
+        lb.hidden = false;
+        document.body.style.overflow = 'hidden';
+        closeBtn.focus();
+      }
+      function close() {
+        lb.hidden = true;
+        document.body.style.overflow = '';
+      }
+
+      btns.forEach((btn, i) => btn.addEventListener('click', () => open(i)));
+      closeBtn.addEventListener('click', close);
+      prevBtn.addEventListener('click', () => open((currentIndex - 1 + btns.length) % btns.length));
+      nextBtn.addEventListener('click', () => open((currentIndex + 1) % btns.length));
+      lb.addEventListener('click', (e) => { if (e.target === lb) close(); });
+      document.addEventListener('keydown', (e) => {
+        if (lb.hidden) return;
+        if (e.key === 'Escape') close();
+        if (e.key === 'ArrowLeft') open((currentIndex - 1 + btns.length) % btns.length);
+        if (e.key === 'ArrowRight') open((currentIndex + 1) % btns.length);
+      });
+    })();
+  </script>
+)}
+
+<style>
+  .mg { margin: 1.5rem 0; }
+  .mg--compact { margin: 0.75rem 0; }
+
+  .mg-heading {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin: 0 0 0.875rem;
+  }
+
+  .mg-grid {
+    display: grid;
+    gap: 0.75rem;
+  }
+  .mg-grid--1 { grid-template-columns: 1fr; }
+  .mg-grid--2 { grid-template-columns: repeat(2, 1fr); }
+  .mg-grid--3 { grid-template-columns: repeat(3, 1fr); }
+
+  .mg-item {
+    position: relative;
+    margin: 0;
+    background: var(--surface-raised);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  .mg-btn {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: zoom-in;
+    position: relative;
+  }
+  .mg-btn:hover .mg-expand-icon { opacity: 1; }
+
+  .mg-img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16/9;
+    object-fit: cover;
+    transition: opacity var(--duration-base);
+  }
+  .mg-btn:hover .mg-img { opacity: 0.9; }
+
+  .mg-expand-icon {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: rgba(0,0,0,0.6);
+    color: #fff;
+    font-size: 1rem;
+    padding: 0.2rem 0.4rem;
+    border-radius: 6px;
+    opacity: 0;
+    transition: opacity var(--duration-base);
+    pointer-events: none;
+  }
+
+  .mg-date-badge {
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+    font-size: 0.65rem;
+    background: rgba(0,0,0,0.65);
+    color: #e5e5e5;
+    padding: 0.2rem 0.5rem;
+    border-radius: var(--radius-pill);
+    font-weight: 600;
+  }
+
+  .mg-caption {
+    padding: 0.5rem 0.75rem;
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    border-top: 1px solid var(--color-border);
+    margin: 0;
+  }
+
+  /* ── Lightbox ── */
+  .mg-lightbox {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.92);
+    z-index: 9000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .mg-lightbox[hidden] { display: none; }
+
+  .mg-lb-content {
+    max-width: min(90vw, 1200px);
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .mg-lb-img {
+    max-width: 100%;
+    max-height: 80vh;
+    object-fit: contain;
+    border-radius: var(--radius-lg);
+    display: block;
+  }
+  .mg-lb-caption {
+    font-size: var(--text-sm);
+    color: rgba(255,255,255,0.7);
+    text-align: center;
+    margin: 0;
+    max-width: 600px;
+  }
+
+  .mg-lb-close,
+  .mg-lb-prev,
+  .mg-lb-next {
+    position: absolute;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: background var(--duration-base);
+    z-index: 1;
+  }
+  .mg-lb-close:hover,
+  .mg-lb-prev:hover,
+  .mg-lb-next:hover { background: rgba(255,255,255,0.25); }
+
+  .mg-lb-close { top: 1rem; right: 1rem; }
+  .mg-lb-prev  { left: 1rem; top: 50%; transform: translateY(-50%); }
+  .mg-lb-next  { right: 1rem; top: 50%; transform: translateY(-50%); }
+
+  @media (max-width: 640px) {
+    .mg-grid--2,
+    .mg-grid--3 { grid-template-columns: 1fr; }
+    .mg-lb-prev { left: 0.5rem; }
+    .mg-lb-next { right: 0.5rem; }
+  }
+</style>

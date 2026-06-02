@@ -1,0 +1,555 @@
+---
+/**
+ * Analytics.astro — CryptoBonusWorld client-side tracking runtime.
+ *
+ * Replaces the two inline scripts previously in Layout.astro.
+ * Receives optional rich page context from server; infers the rest from URL.
+ *
+ * Systems:
+ *  1.  window.cbw namespace + event queue
+ *  2.  Session ID   (sessionStorage — no persistent user tracking)
+ *  3.  GEO detection (IANA timezone → 2-letter code, no IP lookup)
+ *  4.  Device type  (viewport-width breakpoints)
+ *  5.  A/B variant  (localStorage — consistent across sessions)
+ *  6.  GEO href swap (affiliate links, placeholder-filtered)
+ *  7.  Page view event  (cbw_page_view)
+ *  8.  Page-type specific event  (cbw_exchange_view / cbw_compare_view / …)
+ *  9.  Affiliate click tracking  (cbw_affiliate_click)
+ *  10. CTA impression tracking   (cbw_cta_impression, IntersectionObserver)
+ *  11. Scroll depth tracking     (cbw_scroll_depth, 25/50/75/90%)
+ *
+ * Provider adapters (all noop until wired up):
+ *  - window.dataLayer (GTM)
+ *  - window.plausible (Plausible.io)
+ *  - CustomEvent 'cbw:event' on document (local listeners)
+ *
+ * Privacy: no cookies, no fingerprinting, no PII, no cross-site tracking.
+ */
+
+import type { PageContext } from '../utils/analytics';
+
+interface Props {
+  /** Optional rich context from the hosting page. URL inference handles the rest. */
+  context?: PageContext;
+}
+
+const { context = {} } = Astro.props;
+---
+
+<!--
+  Analytics runtime — single IIFE, end-of-body, is:inline so it runs
+  immediately (not deferred/async) for accurate first-paint tracking.
+  define:vars serialises the server-side PageContext into the script scope.
+-->
+<script define:vars={{ __cbwCtx: context }} is:inline>
+(function () {
+  'use strict';
+
+  // ── 0. Guard: single execution ──────────────────────────────────────────
+  if (window.__CBW_INIT) return;
+  window.__CBW_INIT = true;
+
+  // ── 1. Namespace initialisation ─────────────────────────────────────────
+  window.cbw = {
+    version: '1.1',
+    events:  [],          // full event log — wire to any provider
+    track:   null,        // populated below
+    meta:    null,        // populated below
+  };
+
+  // ── 2. Helpers ───────────────────────────────────────────────────────────
+
+  function inferPageType(p) {
+    if (p === '/' || p === '') return 'homepage';
+    if (/^\/bonuses/.test(p)) return 'bonuses';
+    if (/^\/exchanges\/[^/]+\//.test(p)) return 'exchange';
+    if (p === '/compare/' || p === '/compare') return 'compare-hub';
+    if (/^\/compare\/[^/]+\//.test(p)) return 'compare';
+    if (/^\/categories\/[^/]+\//.test(p)) return 'category';
+    if (/^\/countries\/[^/]+\//.test(p)) return 'country';
+    return 'other';
+  }
+
+  function inferSlugs(p, type) {
+    var parts = p.replace(/^\/|\/$/g, '').split('/');
+    switch (type) {
+      case 'exchange':    return { exchange_slug:  parts[1] || null };
+      case 'compare':     return { compare_pair:   parts[1] || null };
+      case 'compare-hub': return {};
+      case 'category':    return { category_slug:  parts[1] || null };
+      case 'country':     return { country_slug:   parts[1] || null };
+      default:            return {};
+    }
+  }
+
+  // ── 3. Context resolution ────────────────────────────────────────────────
+  var serverCtx = __cbwCtx || {};
+  var path      = location.pathname;
+  var pageType  = serverCtx.pageType || inferPageType(path);
+  var urlSlugs  = inferSlugs(path, pageType);
+
+  // ── 4. Session ID (sessionStorage — expires on tab close) ────────────────
+  var sid = 'x';
+  try {
+    sid = sessionStorage.getItem('cbw_sid') || '';
+    if (!sid) {
+      sid = Math.random().toString(36).slice(2, 9) + Date.now().toString(36);
+      sessionStorage.setItem('cbw_sid', sid);
+    }
+  } catch (_) { sid = 'nostorage'; }
+
+  // ── 5. GEO detection (IANA timezone → 2-letter code) ────────────────────
+  var TZ_MAP = {
+    'Europe/Istanbul':    'tr',
+    'Asia/Kolkata':       'in', 'Asia/Calcutta':      'in',
+    'Asia/Jakarta':       'id', 'Asia/Makassar':      'id', 'Asia/Jayapura': 'id',
+    'Africa/Lagos':       'ng', 'Africa/Abuja':       'ng',
+    'America/Sao_Paulo':  'br', 'America/Fortaleza':  'br',
+    'America/Recife':     'br', 'America/Manaus':     'br',
+    'Asia/Ho_Chi_Minh':   'vn', 'Asia/Saigon':        'vn',
+    'Asia/Manila':        'ph',
+  };
+  var tz = '';
+  var geoCode = serverCtx.countryGeo || 'unknown';
+  try {
+    tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    geoCode = TZ_MAP[tz] || geoCode;
+  } catch (_) {}
+
+  // ── 6. Device type (viewport breakpoints) ────────────────────────────────
+  var w = window.innerWidth || 1024;
+  var deviceType = w <= 640 ? 'mobile' : w <= 1024 ? 'tablet' : 'desktop';
+
+  // ── 7. A/B variant (localStorage — consistent across sessions) ───────────
+  var abVariant = 'control';
+  var abExperiment = serverCtx.abExperiment || 'none';
+  try {
+    // Allow URL param override for QA: ?cbw_ab=variant_a
+    var abParam = new URLSearchParams(location.search).get('cbw_ab');
+    if (abParam) {
+      localStorage.setItem('cbw_ab', abParam);
+      abVariant = abParam;
+    } else {
+      abVariant = serverCtx.abVariant || localStorage.getItem('cbw_ab') || 'control';
+    }
+  } catch (_) {}
+
+  // ── 8. Metadata snapshot ─────────────────────────────────────────────────
+  var meta = {
+    pageType:     pageType,
+    deviceType:   deviceType,
+    geoCode:      geoCode,
+    abVariant:    abVariant,
+    abExperiment: abExperiment,
+    sessionId:    sid,
+    timezone:     tz,
+    // experiments: populated by ExperimentProvider.astro after this runs
+    experiments:  {},
+  };
+  window.cbw.meta = meta;
+
+  // ── 9. Event builder ─────────────────────────────────────────────────────
+  function buildBase(extra) {
+    return Object.assign({
+      page_type:    pageType,
+      device_type:  deviceType,
+      geo_code:     geoCode,
+      ab_variant:   abVariant,
+      ab_experiment: abExperiment,
+      session_id:   sid,
+      ts:           Date.now(),
+      path:         path,
+    }, extra || {});
+  }
+
+  // ── 10. Provider dispatch ─────────────────────────────────────────────────
+  function dispatch(ev) {
+    // Internal log
+    window.cbw.events.push(ev);
+
+    // CustomEvent — local listeners / future micro-integrations
+    try {
+      document.dispatchEvent(new CustomEvent('cbw:event', { detail: ev, bubbles: true }));
+    } catch (_) {}
+
+    // GTM dataLayer (noop until GTM is installed)
+    try {
+      if (window.dataLayer && Array.isArray(window.dataLayer)) {
+        window.dataLayer.push(Object.assign({ event: ev.event }, ev));
+      }
+    } catch (_) {}
+
+    // Plausible (noop until Plausible snippet is installed)
+    try {
+      if (typeof window.plausible === 'function') {
+        // Plausible only accepts string values for custom props
+        var pProps = {};
+        ['exchange', 'placement', 'page_type', 'geo_code', 'device_type',
+         'category_slug', 'country_slug', 'compare_pair', 'exchange_slug',
+         'milestone', 'ab_variant'].forEach(function (k) {
+          if (ev[k] !== undefined && ev[k] !== null) pProps[k] = String(ev[k]);
+        });
+        window.plausible(ev.event, { props: pProps });
+      }
+    } catch (_) {}
+  }
+
+  function track(eventName, props) {
+    dispatch(buildBase(Object.assign({ event: eventName }, props || {})));
+  }
+
+  // Expose public API
+  window.cbw.track = track;
+
+  // Legacy compat — keep cbw:affiliateClick CustomEvent for any existing listeners
+  function fireLegacyClick(exchange, placement) {
+    try {
+      document.dispatchEvent(new CustomEvent('cbw:affiliateClick', {
+        detail: { exchange: exchange, placement: placement },
+        bubbles: true,
+      }));
+    } catch (_) {}
+  }
+
+  // ── 11. GEO href swap + persist context ────────────────────────────────
+  // Persist geo + device to localStorage for GeoContentBlock, AdaptiveRecommendation
+  // and any other client components that need context on subsequent renders.
+  try {
+    if (geoCode !== 'unknown') {
+      localStorage.setItem('cbw_geo',    geoCode);
+      localStorage.setItem('cbw_device', deviceType);
+    }
+    // Fire custom event so components initialised before Analytics can react
+    window.dispatchEvent(new CustomEvent('cbw:geo', { detail: { geoCode: geoCode, deviceType: deviceType } }));
+  } catch (_) {}
+
+  if (geoCode !== 'unknown') {
+    document.querySelectorAll('[data-geo-href]').forEach(function (el) {
+      try {
+        var hrefs = JSON.parse(el.getAttribute('data-geo-href') || '{}');
+        if (hrefs[geoCode] && hrefs[geoCode] !== '#') {
+          el.setAttribute('href', hrefs[geoCode]);
+        }
+      } catch (_) {}
+    });
+    document.querySelectorAll('[data-geo-show]').forEach(function (el) {
+      if (el.getAttribute('data-geo-show') === geoCode) el.removeAttribute('hidden');
+    });
+    // Tag body for optional CSS geo-specific overrides
+    try { document.body.setAttribute('data-geo', geoCode); } catch (_) {}
+  }
+
+  // Expose session page count for first-visit detection
+  try {
+    var pCount = parseInt(sessionStorage.getItem('cbw_pcount') || '0', 10) + 1;
+    sessionStorage.setItem('cbw_pcount', String(pCount));
+    meta.sessionPageCount = pCount;
+  } catch (_) {}
+
+  // ── 12. Page view event ──────────────────────────────────────────────────
+  var referrerHost = 'direct';
+  try {
+    if (document.referrer) referrerHost = new URL(document.referrer).hostname;
+  } catch (_) {}
+
+  var pageViewProps = Object.assign({
+    event:    'cbw_page_view',
+    title:    document.title.slice(0, 120),
+    referrer: referrerHost,
+  }, urlSlugs);
+
+  // Enrich from server context when available
+  if (serverCtx.exchangeSlug)   pageViewProps.exchange_slug  = serverCtx.exchangeSlug;
+  if (serverCtx.comparePair)    pageViewProps.compare_pair   = serverCtx.comparePair;
+  if (serverCtx.categorySlug)   pageViewProps.category_slug  = serverCtx.categorySlug;
+  if (serverCtx.countrySlug)    pageViewProps.country_slug   = serverCtx.countrySlug;
+
+  dispatch(buildBase(pageViewProps));
+
+  // ── 13. Page-type specific view events ───────────────────────────────────
+  switch (pageType) {
+    case 'exchange':
+      track('cbw_exchange_view', {
+        exchange_slug:    serverCtx.exchangeSlug   || urlSlugs.exchange_slug,
+        exchange_rating:  serverCtx.exchangeRating  || null,
+        exchange_bonus:   serverCtx.exchangeBonus   || null,
+        exchange_kyc:     serverCtx.exchangeKyc     !== undefined ? serverCtx.exchangeKyc : null,
+        exchange_deposit: serverCtx.exchangeDeposit !== undefined ? serverCtx.exchangeDeposit : null,
+      });
+      break;
+    case 'compare':
+      track('cbw_compare_view', {
+        compare_pair:      serverCtx.comparePair    || urlSlugs.compare_pair,
+        compare_exchange_a: serverCtx.compareExchangeA || null,
+        compare_exchange_b: serverCtx.compareExchangeB || null,
+        compare_winner:    serverCtx.compareWinner  || null,
+      });
+      break;
+    case 'category':
+      track('cbw_category_view', {
+        category_slug:  serverCtx.categorySlug  || urlSlugs.category_slug,
+        category_count: serverCtx.categoryCount || null,
+      });
+      break;
+    case 'country':
+      track('cbw_country_view', {
+        country_slug: serverCtx.countrySlug || urlSlugs.country_slug,
+        country_geo:  serverCtx.countryGeo  || geoCode,
+      });
+      break;
+  }
+
+  // ── 14. Affiliate click tracking ─────────────────────────────────────────
+  document.addEventListener('click', function (e) {
+    var btn = e.target && e.target.closest
+      ? e.target.closest('[data-track="affiliate-cta"]')
+      : null;
+    if (!btn) return;
+
+    var exch  = btn.getAttribute('data-exchange')  || 'unknown';
+    var place = btn.getAttribute('data-placement') || 'unknown';
+    var bonus = btn.getAttribute('data-bonus');
+    var href  = btn.getAttribute('href') || '';
+    var isGoRedirect = href.includes('/go/');
+
+    // Resolve compare pair from path if on a compare page
+    var comparePairFromPath = null;
+    if (pageType === 'compare') {
+      var pParts = path.replace(/^\/|\/$/g,'').split('/');
+      if (pParts.length >= 2) comparePairFromPath = pParts[1] || null;
+    }
+
+    // Normalized v1 click event — aligned with clickEvents.ts AffiliateClickEvent schema
+    var clickEvent = {
+      schema_version:  1,
+      event:           'cbw_affiliate_click',
+      timestamp:       new Date().toISOString(),
+      ts:              Date.now(),
+      exchange:        exch,
+      placement:       place,
+      page_type:       pageType,
+      path:            path,
+      geo_code:        geoCode,
+      device_type:     deviceType,
+      session_id:      sid,
+      ab_variant:      abVariant,
+      ab_experiment:   abExperiment,
+      link_source:     isGoRedirect ? 'go-redirect' : 'direct',
+      href:            href,
+      is_go_redirect:  isGoRedirect,
+      contextual_rank: null,    // set by AdaptiveRecommendation if available
+      compare_pair:    comparePairFromPath || (serverCtx.comparePair || null),
+      exchange_slug:   serverCtx.exchangeSlug || urlSlugs.exchange_slug || null,
+      bonus_amount:    bonus ? Number(bonus) : null,
+      bonus_currency:  'USDT',
+    };
+
+    // Internal log
+    window.cbw.events.push(clickEvent);
+
+    // GTM
+    try {
+      if (window.dataLayer && Array.isArray(window.dataLayer)) {
+        window.dataLayer.push(Object.assign({ event: clickEvent.event }, clickEvent));
+      }
+    } catch(_) {}
+
+    // Plausible
+    try {
+      if (typeof window.plausible === 'function') {
+        window.plausible('cbw_affiliate_click', { props: {
+          exchange:       String(exch),
+          placement:      String(place),
+          page_type:      String(pageType),
+          geo_code:       String(geoCode),
+          device_type:    String(deviceType),
+          link_source:    String(clickEvent.link_source),
+          compare_pair:   comparePairFromPath ? String(comparePairFromPath) : undefined,
+        }});
+      }
+    } catch(_) {}
+
+    // PostHog
+    try {
+      if (typeof window.posthog !== 'undefined' && typeof window.posthog.capture === 'function') {
+        window.posthog.capture('cbw_affiliate_click', clickEvent);
+      }
+    } catch(_) {}
+
+    // Custom BI event
+    try {
+      document.dispatchEvent(new CustomEvent('cbw:click', { detail: clickEvent, bubbles: true }));
+    } catch(_) {}
+
+    fireLegacyClick(exch, place);
+  }, true /* capture phase */);
+
+  // ── 15. CTA impression tracking (IntersectionObserver) ───────────────────
+  try {
+    var impObs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        var el = entry.target;
+        // One-shot: fire once per element per page load
+        if (el.dataset.cbwImpFired) return;
+        el.dataset.cbwImpFired = '1';
+        impObs.unobserve(el);
+
+        track('cbw_cta_impression', {
+          exchange:  el.getAttribute('data-exchange')  || 'unknown',
+          placement: el.getAttribute('data-placement') || 'unknown',
+          bonus:     el.getAttribute('data-bonus') ? Number(el.getAttribute('data-bonus')) : null,
+        });
+      });
+    }, {
+      threshold: 0.5,   // 50% of button visible
+      rootMargin: '0px',
+    });
+
+    document.querySelectorAll('[data-track="affiliate-cta"]').forEach(function (el) {
+      impObs.observe(el);
+    });
+  } catch (_) {}
+
+  // ── 16. Scroll depth tracking (25 / 50 / 75 / 90%) ──────────────────────
+  var scrollFired = {};
+  var scrollLastTs = 0;
+  var MILESTONES = [25, 50, 75, 90];
+
+  function onScroll() {
+    var now = Date.now();
+    if (now - scrollLastTs < 200) return; // 200ms throttle
+    scrollLastTs = now;
+
+    var scrollTop = window.scrollY || document.documentElement.scrollTop || 0;
+    var docH = Math.max(1,
+      document.documentElement.scrollHeight - (window.innerHeight || document.documentElement.clientHeight));
+    var pct = Math.min(100, Math.round(scrollTop / docH * 100));
+
+    for (var i = 0; i < MILESTONES.length; i++) {
+      var m = MILESTONES[i];
+      if (pct >= m && !scrollFired[m]) {
+        scrollFired[m] = true;
+        track('cbw_scroll_depth', { milestone: m });
+      }
+    }
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+
+  // ── 17. Dev console helpers (localhost only) ─────────────────────────────
+  if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+    // Expose readable event log
+    window.cbw.debugEvents = function () {
+      console.table(window.cbw.events.map(function (e) {
+        return { event: e.event, exchange: e.exchange || e.exchange_slug || '-',
+          placement: e.placement || '-', milestone: e.milestone || '-',
+          page_type: e.page_type, geo: e.geo_code, device: e.device_type };
+      }));
+    };
+    console.info('[CBW Analytics] Initialized. meta:', meta);
+    console.info('[CBW Analytics] Run window.cbw.debugEvents() to inspect event log.');
+  }
+
+})();
+</script>
+
+<!--
+  Analytics bridge — module script (deferred, bundled by Vite).
+  Imports analytics.ts and wires it to:
+    • cbw:event bus  (affiliate clicks, scroll depth, page-type views)
+    • DOM delegation (compare_click, verdict_interaction, faq_expand, bonus_copy)
+  Processes already-dispatched events from window.cbw.events (handles race
+  between the is:inline script above and this deferred module script).
+-->
+<script>
+  import { analytics } from '../lib/analytics';
+
+  // ── Bridge: cbw internal events → analytics.ts ──────────────────────────
+  // Called for each event — both queued past events and new ones.
+  function bridgeCbwEvent(ev: Record<string, unknown>): void {
+    const event = ev.event as string;
+
+    // Affiliate CTA click → exchange_click + affiliate_outbound
+    if (event === 'cbw_affiliate_click') {
+      analytics.trackExchangeClick({
+        exchange:  String(ev.exchange  ?? 'unknown'),
+        placement: String(ev.placement ?? 'unknown'),
+      });
+      analytics.trackAffiliateOutbound({
+        exchange:  String(ev.exchange  ?? 'unknown'),
+        url:       String(ev.href      ?? ''),
+        placement: String(ev.placement ?? 'unknown'),
+      });
+      return;
+    }
+
+    // Scroll depth 50 / 90 → scroll_50 / scroll_90
+    if (event === 'cbw_scroll_depth') {
+      const m = Number(ev.milestone);
+      if (m === 50) analytics.trackScrollDepth({ depth: 50 });
+      if (m === 90) analytics.trackScrollDepth({ depth: 90 });
+      return;
+    }
+
+    // Country page view → country_page_visit
+    if (event === 'cbw_country_view') {
+      analytics.trackCountryPageVisit({
+        slug: String(ev.country_slug ?? ev.country_geo ?? ''),
+      });
+      return;
+    }
+
+    // Compare page view → compare_click (as a page-visit signal)
+    if (event === 'cbw_compare_view') {
+      analytics.trackCompareClick({
+        pair:      String(ev.compare_pair      ?? ''),
+        exchange_a: String(ev.compare_exchange_a ?? ''),
+        exchange_b: String(ev.compare_exchange_b ?? ''),
+        placement: 'page-view',
+      });
+      return;
+    }
+  }
+
+  // Replay events already dispatched by the is:inline script above
+  // (this module is deferred, so some events fire before it loads)
+  const queue: unknown[] = (window as any).cbw?.events ?? [];
+  queue.forEach(ev => bridgeCbwEvent(ev as Record<string, unknown>));
+
+  // Listen for all future cbw events
+  document.addEventListener('cbw:event', (e: Event) => {
+    bridgeCbwEvent((e as CustomEvent).detail);
+  });
+
+  // ── Coin page visit — detected from URL (no cbw event exists for /coins/) ─
+  if (/^\/coins\/[^/]+\//.test(location.pathname)) {
+    const slug = location.pathname.replace(/^\/|\/$/g, '').split('/')[1] ?? '';
+    if (slug) analytics.trackCoinPageVisit({ slug });
+  }
+
+  // ── Delegated: compare_click (PeopleAlsoCompare cards + other compare links) ─
+  document.addEventListener('click', (e: MouseEvent) => {
+    const el = (e.target as Element).closest('[data-track="compare_click"]') as HTMLElement | null;
+    if (!el) return;
+    analytics.trackCompareClick({
+      pair:       el.dataset.pair      ?? '',
+      exchange_a: el.dataset.exchangeA ?? '',
+      exchange_b: el.dataset.exchangeB ?? '',
+      placement:  el.dataset.placement ?? 'widget',
+    });
+  });
+
+  // ── Delegated: verdict_interaction (ExchangeVerdictBlock) ────────────────
+  document.addEventListener('click', (e: MouseEvent) => {
+    const verdict = (e.target as Element).closest('[data-track-verdict]') as HTMLElement | null;
+    if (!verdict) return;
+    const exchange = verdict.dataset.trackVerdict ?? '';
+    const target   = e.target as Element;
+    let section: 'best-for' | 'avoid-if' | 'limitation' | 'verdict' = 'verdict';
+    if (target.closest('.evb-col--good'))   section = 'best-for';
+    else if (target.closest('.evb-col--bad'))    section = 'avoid-if';
+    else if (target.closest('.evb-limitation'))  section = 'limitation';
+    analytics.trackVerdictInteraction({ exchange, section });
+  });
+</script>

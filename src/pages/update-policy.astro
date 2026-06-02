@@ -1,0 +1,224 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import { SITE_NAME } from '../utils/seo';
+
+const pageTitle = `Content Update Policy — ${SITE_NAME}`;
+const pageDesc  = 'How and when CryptoBonusWorld updates crypto exchange bonus data. Re-verification schedules, stale data procedures, and our 24-hour correction commitment.';
+
+const crumbs = [
+  { label: 'Home', href: '/' },
+  { label: 'Update Policy' },
+];
+
+const SCHEDULES = [
+  { type: 'Exchange Review Pages', frequency: 'Every 30 days', trigger: 'Bonus terms, KYC rules, or deposit conditions change', urgency: 'high' },
+  { type: 'Bonus Landing Pages',   frequency: 'Every 30 days', trigger: 'Bonus amount or activation method changes',             urgency: 'high' },
+  { type: 'Bonus Code Pages',      frequency: 'Every 21 days', trigger: 'Promo code expires or changes',                         urgency: 'high' },
+  { type: 'Compare Pages',         frequency: 'Every 45 days', trigger: 'Either compared exchange updates its offer',             urgency: 'medium' },
+  { type: 'Use-Case Pages',        frequency: 'Every 60 days', trigger: 'Featured exchange adds or removes a relevant feature',   urgency: 'medium' },
+  { type: 'Coin Pages',            frequency: 'Every 60 days', trigger: 'Exchange support or network availability changes',       urgency: 'medium' },
+  { type: 'Country Pages',         frequency: 'Every 90 days', trigger: 'Regulatory status change in that country',               urgency: 'medium' },
+  { type: 'Guide Content',         frequency: 'Every 90 days', trigger: 'Industry practices or linked products change',           urgency: 'low' },
+  { type: 'Static Pages',          frequency: 'Every 365 days',trigger: 'Policy or legal requirement changes',                    urgency: 'low' },
+];
+---
+
+<Layout title={pageTitle} description={pageDesc} canonical="/update-policy/">
+  <div class="container">
+    <Breadcrumbs crumbs={crumbs} />
+
+    <div class="page-header">
+      <div class="header-badge">🔄 Update Policy</div>
+      <h1>Content Update Policy</h1>
+      <p class="lead">
+        How we keep crypto exchange bonus data accurate — re-verification schedules,
+        stale-data procedures, and our correction commitments.
+      </p>
+      <p class="meta">Last reviewed: <time datetime="2026-05-25">May 2026</time></p>
+    </div>
+
+    <div class="prose">
+
+      <h2>Why Freshness Matters</h2>
+      <p>
+        Crypto exchange bonuses change frequently. A 30,000 USDT welcome offer may be
+        replaced by a 20,000 USDT offer without announcement. KYC requirements are
+        updated as exchanges respond to regulatory changes. Promo codes expire, sometimes
+        within days.
+      </p>
+      <p>
+        Outdated bonus data is not just unhelpful — it actively harms users who deposit
+        based on a bonus that no longer exists. Our update policy exists to prevent that.
+      </p>
+
+      <h2>Scheduled Re-Verification</h2>
+      <p>
+        Every page type has a maximum age before it is scheduled for re-verification,
+        regardless of whether we've received any reports of changes:
+      </p>
+
+      <div class="schedule-table">
+        <div class="schedule-row header">
+          <span>Page Type</span>
+          <span>Max Age</span>
+          <span>Re-Verification Trigger</span>
+        </div>
+        {SCHEDULES.map(s => (
+          <div class="schedule-row">
+            <span class="page-type">{s.type}</span>
+            <span class={`freq freq--${s.urgency}`}>{s.frequency}</span>
+            <span class="trigger">{s.trigger}</span>
+          </div>
+        ))}
+      </div>
+
+      <h2>Event-Triggered Updates</h2>
+      <p>
+        In addition to scheduled reviews, updates are triggered immediately when:
+      </p>
+      <ul>
+        <li>A user reports a data discrepancy via our <a href="/contact/">contact page</a></li>
+        <li>We detect an exchange announcement of a promotion change</li>
+        <li>An exchange updates its official terms and conditions document</li>
+        <li>Regulatory action is taken against an exchange in a listed country</li>
+        <li>A bonus code is reported as expired or invalid</li>
+      </ul>
+
+      <h2>What the "Last Verified" Date Means</h2>
+      <p>
+        Each exchange review page displays a "Last Verified" date. This is the date on
+        which a member of our editorial team manually checked the exchange's official
+        promotion page and confirmed the listed data remains accurate.
+      </p>
+      <p>
+        "Last Verified" does <strong>not</strong> mean the data was changed on that date —
+        only that it was confirmed correct. A page verified on the 1st of the month but
+        not changed since January still shows the latest verification date.
+      </p>
+
+      <h2>Stale Data Handling</h2>
+      <p>
+        If a page has not been re-verified within its maximum age threshold, our internal
+        monitoring system flags it for review. Pages in the following states are
+        automatically marked for urgent re-verification:
+      </p>
+      <ul>
+        <li>Exchange pages older than 45 days without re-verification</li>
+        <li>Bonus code pages older than 21 days without re-verification</li>
+        <li>Any page where the linked affiliate URL returns a 404 or redirect to a
+            different promotion</li>
+      </ul>
+      <p>
+        While flagged for re-verification, no additional changes are made to the page
+        until the data is confirmed current.
+      </p>
+
+      <h2>Correction Commitments</h2>
+      <p>
+        When an error is identified and confirmed:
+      </p>
+      <ul>
+        <li><strong>Minor data correction</strong> (e.g., wrong fee percentage, minor
+            wording): corrected within 24 hours</li>
+        <li><strong>Material error</strong> (e.g., wrong bonus amount, incorrect KYC
+            status, wrong affiliate link): corrected within 6 hours, correction note
+            added to page for 14 days</li>
+        <li><strong>Critical error</strong> (e.g., exchange is no longer operational,
+            funds at risk): page removed or suspended within 2 hours</li>
+      </ul>
+
+      <h2>Sunset Policy</h2>
+      <p>
+        Exchanges that no longer offer a welcome bonus, have ceased operations, or pose
+        credible user fund risk are removed from comparison tables and bonus listings.
+        Their standalone review page is preserved for transparency, marked clearly as
+        "No Longer Active" or "Bonus Discontinued".
+      </p>
+
+      <h2>Report a Data Issue</h2>
+      <p>
+        If you spot outdated data, an expired bonus code, or a change in KYC
+        requirements, please <a href="/contact/">contact us</a>. We investigate all
+        reports within 24 hours and credit confirmed reporters in our internal log.
+      </p>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .container { max-width: 820px; margin: 0 auto; padding: 0 var(--container-pad); }
+
+  .page-header {
+    padding: 3rem 0 2.5rem;
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: 2.5rem;
+  }
+  .header-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: var(--text-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-accent);
+    background: var(--color-accent-muted);
+    border: 1px solid rgba(245,197,66,0.2);
+    border-radius: var(--radius-pill);
+    padding: 0.3rem 0.75rem;
+    margin-bottom: 1rem;
+  }
+  .page-header h1 {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-weight: 800;
+    margin: 0 0 0.75rem;
+    letter-spacing: -0.02em;
+  }
+  .page-header .lead {
+    font-size: 1.05rem;
+    color: var(--color-text-secondary);
+    margin: 0 0 0.5rem;
+  }
+  .page-header .meta {
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    margin: 0;
+  }
+
+  .schedule-table {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    margin: 1rem 0 1.5rem;
+  }
+  .schedule-row {
+    display: grid;
+    grid-template-columns: 200px 120px 1fr;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--color-border);
+    font-size: var(--text-sm);
+    gap: 1rem;
+    align-items: center;
+  }
+  .schedule-row:last-child { border-bottom: none; }
+  .schedule-row.header {
+    background: var(--surface-raised);
+    font-weight: 700;
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+  }
+  .page-type { font-weight: 600; color: var(--color-text-primary); }
+  .freq { font-weight: 700; }
+  .freq--high   { color: #f59e0b; }
+  .freq--medium { color: var(--color-accent); }
+  .freq--low    { color: var(--color-text-muted); }
+  .trigger { color: var(--color-text-secondary); font-size: var(--text-xs); }
+
+  @media (max-width: 700px) {
+    .schedule-row { grid-template-columns: 1fr 100px; }
+    .trigger { grid-column: 1 / -1; font-size: var(--text-xs); color: var(--color-text-muted); margin-top: 0.2rem; }
+  }
+</style>

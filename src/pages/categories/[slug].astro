@@ -8,9 +8,20 @@ import FAQBlock from '../../components/FAQBlock.astro';
 import RiskDisclaimer from '../../components/RiskDisclaimer.astro';
 import AffiliateDisclosure from '../../components/AffiliateDisclosure.astro';
 import CTAButton from '../../components/CTAButton.astro';
+import AnswerBox from '../../components/AnswerBox.astro';
+import HowWeEvaluate from '../../components/HowWeEvaluate.astro';
 
 import exchanges from '../../data/exchanges.json';
 import categories from '../../data/categories.json';
+
+import RelatedCategoriesBlock from '../../components/RelatedCategoriesBlock.astro';
+
+import {
+  categoryPageTitle,
+  categoryMetaDesc,
+  buildItemListSchema,
+} from '../../utils/seo';
+import type { PageContext } from '../../utils/analytics';
 
 export async function getStaticPaths() {
   return categories.map(cat => ({
@@ -29,12 +40,39 @@ const filtered = exchanges.filter(ex => {
 });
 
 const top3 = [...filtered].sort((a, b) => b.rating - a.rating).slice(0, 3);
+
+// SEO: dynamic title + description with live count + best offer
+const pageTitle = categoryPageTitle(cat.seoTitle, filtered.length);
+const pageDesc = categoryMetaDesc(cat as any, filtered as any);
+
+// SEO: related categories (exclude self)
+const otherCats = (categories as any[]).filter(c => c.slug !== cat.slug);
+
+// SEO: ItemList schema for all matching exchanges
+const itemListSchema = buildItemListSchema(
+  [...filtered]
+    .sort((a, b) => b.rating - a.rating)
+    .map(ex => ({
+      name: `${ex.name} ${cat.name}`,
+      url: `/exchanges/${ex.slug}/`,
+      description: ex.shortDescription,
+    })),
+  cat.title
+);
+
+const analyticsContext: PageContext = {
+  pageType: 'category',
+  categorySlug: cat.slug,
+  categoryCount: filtered.length,
+};
 ---
 
 <Layout
-  title={cat.seoTitle}
-  description={cat.seoDescription}
+  title={pageTitle}
+  description={pageDesc}
   canonical={`/categories/${cat.slug}/`}
+  schema={itemListSchema}
+  analyticsContext={analyticsContext}
 >
   <div class="container">
     <Breadcrumbs crumbs={[
@@ -45,10 +83,19 @@ const top3 = [...filtered].sort((a, b) => b.rating - a.rating).slice(0, 3);
 
     <div class="page-header">
       <h1>{cat.title}</h1>
-      <p class="lead">{cat.description} {filtered.length} exchanges available.</p>
+      <p class="lead">{cat.description} {filtered.length} exchange{filtered.length !== 1 ? 's' : ''} available.</p>
     </div>
 
     <AffiliateDisclosure compact />
+
+    {top3.length > 0 && (
+      <AnswerBox
+        question={`What is the best ${cat.name.toLowerCase()} crypto exchange?`}
+        answer={`The best ${cat.name.toLowerCase()} exchange in ${new Date().getFullYear()} is ${top3[0].name} — offering up to ${top3[0].bonusAmount.toLocaleString('en-US')} ${top3[0].bonusCurrency}${!top3[0].kycRequired ? ', no KYC required' : ''}. ${filtered.length} exchanges currently offer ${cat.name.toLowerCase()}.${top3[1] ? ` ${top3[1].name} and ${top3[2]?.name ?? ''} are strong alternatives.`.replace(' and ', ' are strong alternatives.') : ''}`}
+        updatedDate="May 2026"
+        compact={true}
+      />
+    )}
 
     <FilterPanel activeType={cat.bonusType} />
 
@@ -71,6 +118,17 @@ const top3 = [...filtered].sort((a, b) => b.rating - a.rating).slice(0, 3);
       <p>Not what you're looking for?</p>
       <CTAButton href="/bonuses/" label="Compare All Bonuses" variant="outline" size="md" />
     </div>
+
+    {otherCats.length > 0 && (
+      <RelatedCategoriesBlock
+        categories={otherCats}
+        heading="Explore Other Bonus Types"
+        subheading="Browse other bonus categories to find the best offer for your situation."
+      />
+    )}
+
+    <!-- How we evaluate — E-E-A-T methodology reference above FAQ -->
+    <HowWeEvaluate variant="compact" />
 
     {cat.faq && cat.faq.length > 0 && (
       <FAQBlock items={cat.faq} />

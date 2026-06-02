@@ -1,0 +1,101 @@
+---
+/**
+ * CountryCrossLinksBlock
+ *
+ * Shows flag + country name links for countries where an exchange is available.
+ * Used on exchange pages and category pages.
+ *
+ * Intent: build the Exchange → Country internal linking graph.
+ */
+
+interface Country {
+  name: string;
+  slug: string;
+  flag: string;
+}
+
+interface Props {
+  countries: Country[];
+  heading?: string;
+  maxVisible?: number;
+}
+
+const {
+  countries,
+  heading = 'Available In',
+  maxVisible = 8,
+} = Astro.props;
+
+if (countries.length === 0) return;
+
+const visible = countries.slice(0, maxVisible);
+const remainder = countries.length - visible.length;
+---
+
+<section class="ccl">
+  <div class="ccl-heading">{heading}</div>
+  <div class="ccl-row">
+    {visible.map(c => (
+      <a
+        href={`/countries/${c.slug}/`}
+        class="ccl-chip"
+        title={`Crypto bonuses in ${c.name}`}
+      >
+        <span class="ccl-flag" aria-hidden="true">{c.flag}</span>
+        <span class="ccl-name">{c.name}</span>
+      </a>
+    ))}
+    {remainder > 0 && (
+      <a href="/countries/global/" class="ccl-chip ccl-chip--more">
+        +{remainder} more
+      </a>
+    )}
+  </div>
+</section>
+
+<style>
+  .ccl { margin: 1.25rem 0; }
+
+  .ccl-heading {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-muted);
+    margin-bottom: 0.5rem;
+  }
+
+  .ccl-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+  }
+
+  .ccl-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0.6rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill, 100px);
+    text-decoration: none;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    transition: border-color 0.15s, color 0.15s;
+    white-space: nowrap;
+  }
+
+  .ccl-chip:hover {
+    border-color: rgba(245, 197, 66, 0.3);
+    color: var(--color-text-primary);
+  }
+
+  .ccl-flag { font-size: 0.85rem; line-height: 1; }
+
+  .ccl-chip--more {
+    color: var(--color-text-muted);
+    font-style: italic;
+  }
+</style>

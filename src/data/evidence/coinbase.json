@@ -1,0 +1,398 @@
+{
+  "exchange": "coinbase",
+  "updatedAt": "2026-06-01",
+  "sources": {
+    "fees": {
+      "url": "https://www.coinbase.com/legal/fees",
+      "label": "Coinbase — Fee Disclosure",
+      "type": "official-fees",
+      "lastAccessed": "2026-05-25",
+      "notes": "Advanced Trade: maker 0.40%, taker 0.60% at lower tiers. Simple mode fees higher. Staking: no fees on some products."
+    },
+    "kyc": {
+      "url": "https://help.coinbase.com/en/coinbase/privacy-and-security/privacy/verify-my-identity",
+      "label": "Coinbase — Identity Verification Guide",
+      "type": "official-kyc",
+      "lastAccessed": "2026-05-25",
+      "notes": "Full KYC required for all users; regulated exchange with strict ID verification"
+    },
+    "bonus": {
+      "url": "https://www.coinbase.com/invite",
+      "label": "Coinbase — Referral Bonus",
+      "type": "official-promo",
+      "lastAccessed": "2026-05-24",
+      "notes": "$10 USD bonus after qualifying trade. Much smaller bonus than crypto-native exchanges."
+    },
+    "restricted_countries": {
+      "url": "https://help.coinbase.com/en/coinbase/getting-started/getting-started-with-coinbase/countries-regions-where-coinbase-operates",
+      "label": "Coinbase — Supported Countries",
+      "type": "official-legal",
+      "lastAccessed": "2026-05-25",
+      "notes": "US-based exchange; NOT available in Nigeria, Indonesia, Vietnam, Philippines, Turkey among others"
+    },
+    "terms": {
+      "url": "https://www.coinbase.com/legal/user_agreement",
+      "label": "Coinbase — User Agreement",
+      "type": "official-legal",
+      "lastAccessed": "2026-05-25"
+    },
+    "proof_of_reserves": {
+      "url": "https://www.coinbase.com/proof-of-reserves",
+      "label": "Coinbase — Proof of Reserves",
+      "type": "official-reserves",
+      "lastAccessed": "2026-05-25",
+      "notes": "Publicly traded (NASDAQ: COIN); financial statements provide transparency. PoR program exists."
+    },
+    "app_ios": {
+      "url": "https://apps.apple.com/app/coinbase-buy-bitcoin-ether/id886427730",
+      "label": "Coinbase iOS App — App Store",
+      "type": "official-app",
+      "lastAccessed": "2026-05-25"
+    },
+    "app_android": {
+      "url": "https://play.google.com/store/apps/details?id=com.coinbase.android",
+      "label": "Coinbase Android App — Google Play",
+      "type": "official-app",
+      "lastAccessed": "2026-05-25"
+    },
+    "futures": {
+      "url": "https://www.coinbase.com/advanced-trade/futures",
+      "label": "Coinbase Advanced — Futures",
+      "type": "official-other",
+      "lastAccessed": "2026-05-25",
+      "notes": "Regulated futures via CFTC-registered Coinbase Financial Markets; up to 20x leverage"
+    },
+    "affiliate": {
+      "url": "https://www.coinbase.com/affiliate",
+      "label": "Coinbase — Affiliate/Referral Program",
+      "type": "official-affiliate",
+      "lastAccessed": "2026-05-24"
+    }
+  },
+  "facts": [
+    {
+      "field": "bonus_amount",
+      "currentValue": 10,
+      "unit": "USD",
+      "officialSourceKey": "bonus",
+      "officialSourceUrl": "https://www.coinbase.com/invite",
+      "lastChecked": "2026-05-24",
+      "checkedBy": "human",
+      "confidenceScore": 0.27,
+      "conflictStatus": "outdated",
+      "manualReviewRequired": false,
+      "notes": "$10 USD bonus after first qualifying trade. Significantly smaller than crypto-native exchange bonuses. Needs daily re-check."
+    },
+    {
+      "field": "bonus_currency",
+      "currentValue": "USD",
+      "officialSourceKey": "bonus",
+      "lastChecked": "2026-05-24",
+      "checkedBy": "human",
+      "confidenceScore": 0.63,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "bonus_requires_kyc",
+      "currentValue": true,
+      "officialSourceKey": "kyc",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.95,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false,
+      "notes": "Full KYC mandatory for all Coinbase accounts — regulated US exchange"
+    },
+    {
+      "field": "bonus_requires_deposit",
+      "currentValue": true,
+      "officialSourceKey": "bonus",
+      "lastChecked": "2026-05-24",
+      "checkedBy": "human",
+      "confidenceScore": 0.27,
+      "conflictStatus": "outdated",
+      "manualReviewRequired": false,
+      "notes": "Qualifying first trade required to unlock $10 bonus"
+    },
+    {
+      "field": "spot_maker_fee",
+      "currentValue": 0.4,
+      "unit": "%",
+      "officialSourceKey": "fees",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.95,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false,
+      "notes": "Advanced Trade maker fee at lower tiers. Simple mode charges spreads (higher effective fees)."
+    },
+    {
+      "field": "spot_taker_fee",
+      "currentValue": 0.6,
+      "unit": "%",
+      "officialSourceKey": "fees",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.95,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false,
+      "notes": "Advanced Trade taker fee. Higher than most crypto-native competitors."
+    },
+    {
+      "field": "futures_maker_fee",
+      "currentValue": 0,
+      "unit": "%",
+      "officialSourceKey": "futures",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.76,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false,
+      "notes": "Nano futures maker fee — verify current schedule on official site"
+    },
+    {
+      "field": "futures_taker_fee",
+      "currentValue": 0.03,
+      "unit": "%",
+      "officialSourceKey": "futures",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.76,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "max_futures_leverage",
+      "currentValue": 20,
+      "unit": "x",
+      "officialSourceKey": "futures",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.76,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false,
+      "notes": "CFTC-regulated futures; much lower max leverage than unregulated exchanges"
+    },
+    {
+      "field": "kyc_required",
+      "currentValue": true,
+      "officialSourceKey": "kyc",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.95,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false,
+      "notes": "Mandatory full KYC for all users — SEC-regulated, NASDAQ-listed company"
+    },
+    {
+      "field": "p2p_available",
+      "currentValue": false,
+      "officialSourceUrl": "https://www.coinbase.com/",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.80,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false,
+      "notes": "No P2P trading marketplace on Coinbase"
+    },
+    {
+      "field": "futures_available",
+      "currentValue": true,
+      "officialSourceKey": "futures",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.85,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false,
+      "notes": "CFTC-regulated nano futures via Coinbase Advanced"
+    },
+    {
+      "field": "proof_of_reserves",
+      "currentValue": true,
+      "officialSourceKey": "proof_of_reserves",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.95,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false,
+      "notes": "Publicly traded (NASDAQ: COIN); quarterly financial disclosures provide strong transparency"
+    },
+    {
+      "field": "licences",
+      "currentValue": ["SEC", "FinCEN", "FCA", "MiCA"],
+      "officialSourceUrl": "https://www.coinbase.com/legal/licenses",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.90,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false,
+      "notes": "Most heavily regulated exchange in our list; licensed in US (FinCEN), UK (FCA), EU (MiCA), and other jurisdictions"
+    },
+    {
+      "field": "headquarters",
+      "currentValue": "San Francisco, USA",
+      "officialSourceUrl": "https://www.coinbase.com/about",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.95,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "founded_year",
+      "currentValue": 2012,
+      "officialSourceUrl": "https://www.coinbase.com/about",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.95,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "restricted_us",
+      "currentValue": false,
+      "officialSourceKey": "restricted_countries",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.95,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false,
+      "notes": "US-based exchange — explicitly available to US residents. Nigeria, Indonesia, Vietnam, Philippines, Turkey restricted."
+    },
+    {
+      "field": "restricted_eu",
+      "currentValue": false,
+      "officialSourceKey": "restricted_countries",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.90,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false,
+      "notes": "MiCA-licensed; EU access available"
+    },
+    {
+      "field": "fiat_deposit_methods",
+      "currentValue": ["bank transfer", "card", "PayPal"],
+      "officialSourceUrl": "https://help.coinbase.com/en/coinbase/trading-and-funding/funding-your-account",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.85,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "mobile_app_ios",
+      "currentValue": true,
+      "officialSourceKey": "app_ios",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.90,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "mobile_app_android",
+      "currentValue": true,
+      "officialSourceKey": "app_android",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.90,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false
+    },
+    {
+      "field": "trading_pairs_count",
+      "currentValue": 300,
+      "officialSourceUrl": "https://www.coinbase.com/markets",
+      "lastChecked": "2026-05-25",
+      "checkedBy": "human",
+      "confidenceScore": 0.80,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false,
+      "notes": "Fewer pairs than unregulated competitors — focus on regulated, established assets"
+    }
+  ],
+  "screenshots": {
+    "registration": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "kyc": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "bonus": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "deposit": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "p2p": {
+      "status": "not_applicable",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": "P2P not available on Coinbase"
+    },
+    "spot": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "futures": {
+      "status": "not_applicable",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": "Futures trading not available on Coinbase"
+    },
+    "fees": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": ""
+    },
+    "mobile_app": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "mobile",
+      "notes": ""
+    },
+    "proof_of_reserves": {
+      "status": "not_applicable",
+      "path": null,
+      "capturedAt": null,
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": "Proof of reserves not published; screenshot not applicable"
+    }
+  }
+}

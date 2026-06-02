@@ -25,18 +25,35 @@ interface Props {
   tip?: string;
   region?: string;
   whatHappensNext?: string;
+  /** HTML table injected between description and screenshot — for snippet-ready data tables */
+  tableContent?: string;
   lightboxGroup?: string;
   /** Label shown on placeholder when src is absent */
   label?: string;
   /** Media category tag for screenshot caption */
   mediaCategory?: string;
+  /**
+   * How the screenshot image fills its frame.
+   * Defaults to 'natural' — image renders at true proportions, zero cropping.
+   * Use 'contain' for dark letterbox bars. Use 'cover' only for decorative non-tutorial images.
+   */
+  fit?: 'cover' | 'contain' | 'natural';
+  /**
+   * Screenshot registry entry from the evidence system.
+   * When provided and status !== 'available', the screenshot slot is suppressed
+   * entirely from the public view (text-only step, no broken placeholder).
+   * When status === 'available', entry.path overrides the src prop.
+   */
+  screenshotStatus?: 'missing' | 'available' | 'outdated' | 'not_applicable' | 'needs_manual_capture';
+  /** Override src from evidence registry when screenshotStatus === 'available' */
+  screenshotPath?: string | null;
 }
 
 const {
   step,
   title,
   description,
-  src,
+  src: srcProp,
   alt,
   caption,
   capturedAt,
@@ -51,7 +68,26 @@ const {
   lightboxGroup,
   label,
   mediaCategory,
+  tableContent,
+  fit = 'natural',
+  screenshotStatus,
+  screenshotPath,
 } = Astro.props;
+
+// Resolve the actual src to render:
+//   1. If evidence registry says 'available', use the registry path
+//   2. Otherwise fall back to the prop src
+//   3. If status is missing/needs_manual_capture/not_applicable → suppress entirely
+const registryAvailable = screenshotStatus === 'available' && !!screenshotPath;
+const src = registryAvailable ? screenshotPath! : srcProp;
+
+// Suppress the screenshot block (including placeholder) for public users when
+// the evidence registry says the screenshot hasn't been captured yet.
+// This prevents "Screenshot in preparation" placeholders from showing in production.
+const suppressScreenshot =
+  screenshotStatus != null &&
+  screenshotStatus !== 'available' &&
+  !src; // still show if a direct src was passed
 ---
 
 <div class="wsi-step">
@@ -67,25 +103,32 @@ const {
   )}
   <slot />
 
-  <!-- Screenshot -->
-  {/* Show placeholder when src absent (maintains layout — no CLS) */}
-  <div class="wsi-img-wrap">
-    <ScreenshotCard
-      src={src}
-      alt={alt ?? title}
-      caption={caption}
-      capturedAt={capturedAt}
-      device={device}
-      aspectRatio={aspectRatio}
-      width={width}
-      height={height}
-      lightboxGroup={lightboxGroup}
-      label={label ?? title}
-      mediaCategory={mediaCategory}
-      schema={!!src}
-      lazy={step > 1}
-    />
-  </div>
+  <!-- Data table (snippet-ready, rendered before screenshot) -->
+  {tableContent && (
+    <div class="wsi-table-wrap" set:html={tableContent} />
+  )}
+
+  <!-- Screenshot — only render when we have a real image or when no status is set (legacy/neutral) -->
+  {!suppressScreenshot && (
+    <div class="wsi-img-wrap">
+      <ScreenshotCard
+        src={src}
+        alt={alt ?? title}
+        caption={caption}
+        capturedAt={capturedAt}
+        device={device}
+        aspectRatio={aspectRatio}
+        width={width}
+        height={height}
+        lightboxGroup={lightboxGroup}
+        label={label ?? title}
+        mediaCategory={mediaCategory}
+        schema={!!src}
+        lazy={step > 1}
+        fit={fit}
+      />
+    </div>
+  )}
 
   <!-- Annotations -->
   {warning && (
@@ -177,7 +220,8 @@ const {
   .wsi-img-wrap {
     margin: 1rem 0;
     border-radius: 8px;
-    overflow: hidden;
+    /* Removed overflow:hidden — sc-frame handles its own border-radius clipping.
+       Double overflow:hidden was masking the frame's outer shadow. */
   }
 
   /* ── Callouts ── */
@@ -215,6 +259,59 @@ const {
 
   .wsi-callout-icon { flex-shrink: 0; font-size: 1rem; margin-top: 1px; }
 
+  /* ── Data table ── */
+  .wsi-table-wrap {
+    margin: 0 0 1rem;
+    overflow-x: auto;
+    border-radius: 8px;
+    border: 1px solid var(--color-border, #252525);
+  }
+  .wsi-table-wrap :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+    background: var(--color-bg-secondary, #0f0f0f);
+  }
+  .wsi-table-wrap :global(thead) {
+    background: rgba(245,197,66,0.07);
+  }
+  .wsi-table-wrap :global(th) {
+    padding: 0.6rem 0.875rem;
+    text-align: left;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-accent, #f5c542);
+    border-bottom: 1px solid var(--color-border, #252525);
+    white-space: nowrap;
+  }
+  .wsi-table-wrap :global(td) {
+    padding: 0.55rem 0.875rem;
+    color: var(--color-text-secondary, #9aa5b8);
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    vertical-align: middle;
+  }
+  .wsi-table-wrap :global(tr:last-child td) {
+    border-bottom: none;
+  }
+  .wsi-table-wrap :global(tr.wsi-row--highlight td) {
+    background: rgba(74,222,128,0.04);
+    color: var(--color-text-primary, #e8e8e8);
+  }
+  .wsi-table-wrap :global(strong) {
+    color: var(--color-text-primary, #e8e8e8);
+    font-weight: 700;
+  }
+  .wsi-table-wrap :global(.tag-ok) {
+    color: #4ade80;
+    font-weight: 700;
+  }
+  .wsi-table-wrap :global(.tag-blocked) {
+    color: #f87171;
+    font-weight: 600;
+  }
+
   /* ── What happens next ── */
   .wsi-next {
     margin-top: 0.875rem;
@@ -230,5 +327,54 @@ const {
     font-weight: 700;
     color: var(--color-accent, #f5c542);
     margin-right: 0.375rem;
+  }
+
+  /* ── Mobile ── */
+  @media (max-width: 640px) {
+    .wsi-step {
+      padding: 1rem 0.875rem;
+      border-radius: 10px;
+      margin-bottom: 0.875rem;
+    }
+
+    .wsi-header {
+      gap: 0.625rem;
+      margin-bottom: 0.625rem;
+    }
+
+    .wsi-num {
+      width: 28px;
+      height: 28px;
+      font-size: 0.78rem;
+    }
+
+    .wsi-title {
+      font-size: 0.93rem;
+    }
+
+    .wsi-desc {
+      font-size: 0.85rem;
+      line-height: 1.6;
+    }
+
+    .wsi-callout {
+      padding: 0.625rem 0.75rem;
+      font-size: 0.82rem;
+    }
+
+    .wsi-img-wrap {
+      margin: 0.75rem 0;
+    }
+
+    .wsi-next {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.82rem;
+    }
+
+    /* Table: reduce cell padding on small screens */
+    .wsi-table-wrap :global(td),
+    .wsi-table-wrap :global(th) {
+      padding: 0.45rem 0.625rem;
+    }
   }
 </style>

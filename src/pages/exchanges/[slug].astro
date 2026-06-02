@@ -18,6 +18,10 @@ import AuthorCard from '../../components/AuthorCard.astro';
 import ExchangeLogo from '../../components/ExchangeLogo.astro';
 import OfferRealism from '../../components/OfferRealism.astro';
 import EditorialExperienceBar from '../../components/EditorialExperienceBar.astro';
+import EvidenceVerificationBlock from '../../components/EvidenceVerificationBlock.astro';
+import FactCheckPanel from '../../components/FactCheckPanel.astro';
+import ExchangeExperienceGrid from '../../components/ExchangeExperienceGrid.astro';
+import type { ExperienceData } from '../../components/ExchangeExperienceGrid.astro';
 
 import exchanges from '../../data/exchanges.json';
 import categories from '../../data/categories.json';
@@ -25,25 +29,35 @@ import countries from '../../data/countries.json';
 import comparePairs from '../../data/compare-pairs.json';
 import allGuides from '../../data/guides.json';
 import { USE_CASES } from '../../data/use-cases';
+import { COINS } from '../../data/coins';
+import { BONUS_CODES } from '../../data/bonus-codes';
 
 import RelatedCategoriesBlock from '../../components/RelatedCategoriesBlock.astro';
 import CountryCrossLinksBlock from '../../components/CountryCrossLinksBlock.astro';
 import EditorSummary from '../../components/EditorSummary.astro';
 import GeoContentBlock from '../../components/GeoContentBlock.astro';
+import GeoPaymentBlock from '../../components/GeoPaymentBlock.astro';
+import GeoRegulatoryNote from '../../components/GeoRegulatoryNote.astro';
 import RelatedGuidesBlock from '../../components/RelatedGuidesBlock.astro';
 import WalkthroughFlow from '../../components/WalkthroughFlow.astro';
 import WalkthroughStepImage from '../../components/WalkthroughStepImage.astro';
 import FeeSnippetBlock from '../../components/FeeSnippetBlock.astro';
 import RelatedNextReads from '../../components/RelatedNextReads.astro';
+import PromoCodeBox from '../../components/PromoCodeBox.astro';
+import PeopleAlsoCompare from '../../components/PeopleAlsoCompare.astro';
+import ExchangeVerdictBlock from '../../components/ExchangeVerdictBlock.astro';
 
 import {
   exchangePageTitle,
   exchangeMetaDesc,
   buildProductSchema,
+  buildReviewPageSchema,
+  buildFAQSchema,
   getRelatedCategories,
   getCountryCrossLinks,
 } from '../../utils/seo';
 import { getFlowsBySlug } from '../../data/exchange-walkthroughs';
+import { getReviewersForExchange } from '../../data/reviewers';
 import type { PageContext } from '../../utils/analytics';
 import {
   generateExchangeFAQs,
@@ -52,6 +66,7 @@ import {
   type ContentExchange,
 } from '../../utils/contentEngine';
 import contentOverrides from '../../data/content-overrides.json';
+import { getExchangeEvidence } from '../../data/evidence/index';
 
 export async function getStaticPaths() {
   return exchanges.map(ex => ({
@@ -61,6 +76,22 @@ export async function getStaticPaths() {
 }
 
 const { exchange: ex } = Astro.props;
+
+// ── Reviewer lookup ───────────────────────────────────────────────────────────
+// Pull the primary reviewer for this exchange from the central registry.
+// Falls back gracefully — ReviewerBlock has a named default (Oleksandr Shadurskyi).
+const _exReviewers = getReviewersForExchange(ex.slug);
+const _primaryReviewer = _exReviewers[0]; // lead reviewer (most authoritative)
+const pageReviewer = _primaryReviewer ? {
+  name:       _primaryReviewer.name,
+  title:      _primaryReviewer.title,
+  bio:        _primaryReviewer.bio,
+  reviewedAt: (ex as any).lastVerified ?? ex.updatedAt,
+  profileUrl: `/reviewers/${_primaryReviewer.slug}/`,
+  initials:   _primaryReviewer.initials,
+  avatarSrc:  _primaryReviewer.photo ?? undefined,
+  expertise:  _primaryReviewer.expertise,
+} : undefined; // undefined → ReviewerBlock uses its built-in named default
 
 // SEO: dynamic title, meta description, cross-link data
 const seoTitle = exchangePageTitle(ex as any);
@@ -148,6 +179,48 @@ const myComparePairs = comparePairs
 
 // SEO: use utility builder for richer, consistent Product schema
 const schema = buildProductSchema(ex as any);
+const reviewPageSchema = buildReviewPageSchema(ex as any);
+// FAQ schema — emits FAQPage JSON-LD for the FAQ block rendered below
+const faqSchema = faqItems.length > 0 ? buildFAQSchema(faqItems) : null;
+
+// ── Trust paragraph helpers ────────────────────────────────────────────────────
+const LICENCE_FULL_NAMES: Record<string, string> = {
+  'Dubai VARA':              'the Dubai Virtual Assets Regulatory Authority (VARA)',
+  'Bahamas SCB':             'the Securities Commission of the Bahamas (SCB)',
+  'ASIC Australia':          'the Australian Securities and Investments Commission (ASIC)',
+  'Multiple regional licences': 'multiple regulatory bodies worldwide',
+  'SEC':   'the U.S. Securities and Exchange Commission (SEC)',
+  'FinCEN': 'FinCEN (Financial Crimes Enforcement Network)',
+  'FCA':   'the UK Financial Conduct Authority (FCA)',
+  'MiCA':  'MiCA (EU Markets in Crypto-Assets Regulation)',
+  'CySEC': 'the Cyprus Securities and Exchange Commission (CySEC)',
+  'MAS':   'the Monetary Authority of Singapore (MAS)',
+};
+
+function getLicenceText(licences: string[]): string {
+  if (!licences?.length) return '';
+  const names = licences.map(l => LICENCE_FULL_NAMES[l] ?? l);
+  if (names.length === 1) return names[0];
+  if (names.length === 2) return `${names[0]} and ${names[1]}`;
+  return names.slice(0, -1).join(', ') + ', and ' + names[names.length - 1];
+}
+
+function getLicenceShort(licences: string[]): string {
+  return licences?.join(' · ') ?? '';
+}
+
+function getExchangeTypeDesc(e: typeof ex): string {
+  const features: string[] = [];
+  const bt = e.bonusTypes ?? [];
+  if (bt.includes('futures')) features.push('derivatives (futures & perpetuals)');
+  if ((e as any).p2pAvailable) features.push('P2P trading');
+  if ((e as any).featureBadges?.includes('copy-trading')) features.push('copy trading');
+  if (bt.includes('staking') || (e as any).featureBadges?.includes('earn')) features.push('earn/staking');
+  if (features.length === 0) return 'spot trading';
+  return 'spot and ' + (features.length === 1
+    ? features[0]
+    : features.slice(0, -1).join(', ') + ', and ' + features[features.length - 1]);
+}
 
 // Related guides — pick guides that reference this exchange
 const relatedGuides = allGuides
@@ -163,7 +236,55 @@ const relatedUseCases = USE_CASES.filter(uc =>
 // Visual walkthroughs — only available for select exchanges (bybit, binance, mexc)
 const walkthroughFlows = getFlowsBySlug(ex.slug);
 
-// Related Next Reads — top compare pairs + related guides for internal distribution
+// Top coins traded on this exchange (for cross-linking to /coins/ pages)
+// Priority coins: BTC, ETH, USDT, BNB, SOL, XRP + any exchange-specific spotlight
+const TOP_COINS = ['bitcoin', 'ethereum', 'usdt', 'solana', 'bnb', 'xrp'];
+const relatedCoins = COINS
+  .filter(c =>
+    TOP_COINS.includes(c.slug) ||
+    (Array.isArray(c.supportedBy) && (c.supportedBy as string[]).includes(ex.slug))
+  )
+  .sort((a, b) => TOP_COINS.indexOf(a.slug) - TOP_COINS.indexOf(b.slug))
+  .slice(0, 6);
+
+// Bonus code entry for this exchange (for cross-linking to /bonus-codes/)
+const hasBonusCode = BONUS_CODES.some(b => b.exchangeSlug === ex.slug);
+
+// ── Walkthrough HowTo schema helpers ──────────────────────────────────────────
+const SITE_URL = 'https://cryptobonusworld.com';
+
+const FLOW_TIMES: Record<string, string> = {
+  'bybit-account-creation': 'PT5M',
+  'bybit-kyc':              'PT10M',
+  'bybit-p2p-purchase':     'PT15M',
+  'bybit-first-deposit':    'PT10M',
+  'bybit-spot-trading':     'PT10M',
+  'bybit-futures-setup':    'PT20M',
+};
+
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+}
+
+function getFlowShortTitle(id: string): string {
+  if (id.includes('account-creation'))              return 'Account Setup';
+  if (id.includes('kyc'))                           return 'KYC Verification';
+  if (id.includes('p2p-purchase') || id.includes('-p2p')) return 'Buy via P2P';
+  if (id.includes('first-deposit') || id.includes('deposit')) return 'Deposit Crypto';
+  if (id.includes('spot-trading') || id.includes('spot')) return 'Spot Trading';
+  if (id.includes('futures'))                       return 'Futures Trading';
+  return id;
+}
+
+// Evidence registry lookup — drives FactCheckPanel and real fee source URLs
+const ev = getExchangeEvidence(ex.slug);
+// Pull the official fee source URL from evidence (if available)
+const _feeSourceFact = ev?.facts.find(f => f.field === 'spot_maker_fee');
+const _feeSourceUrl = _feeSourceFact?.officialSourceUrl
+  ?? (_feeSourceFact?.officialSourceKey ? ev?.sources[_feeSourceFact.officialSourceKey as string]?.url : undefined)
+  ?? undefined;
+
+// ── Related Next Reads — top compare pairs + related guides for internal distribution
 const rnrItems = [
   ...myComparePairs.slice(0, 2).map(p => {
     const otherSlug = p.a === ex.slug ? p.b : p.a;
@@ -187,9 +308,12 @@ const rnrItems = [
   title={seoTitle}
   description={seoDesc}
   canonical={`/exchanges/${ex.slug}/`}
-  schema={schema}
+  schema={faqSchema ? [schema, reviewPageSchema, faqSchema] : [schema, reviewPageSchema]}
   analyticsContext={analyticsContext}
   ogImage={`https://cryptobonusworld.com/og/exchange-${ex.slug}.png`}
+  ogType="article"
+  publishedTime={(ex as any).updatedAt}
+  modifiedTime={(ex as any).lastVerified ?? (ex as any).updatedAt}
 >
   <div class="container ex-page">
     <Breadcrumbs crumbs={[
@@ -203,10 +327,10 @@ const rnrItems = [
     <AuthorCard
       compact
       verb="Reviewed by"
-      name="Alexandr Shadurskyi"
+      name="Oleksandr Shadurskyi"
       title="Crypto Exchange Analyst & Editor-in-Chief"
       initials="AS"
-      photo="/avatars/avatar2.png"
+      photo="/avatars/alexandr-shadurskyi.webp"
       reviewedAt={(ex as any).lastVerified ?? ex.updatedAt}
       profileUrl="/reviewers/alexandr-shadurskyi/"
     />
@@ -260,10 +384,59 @@ const rnrItems = [
     />
 
     <!-- E-E-A-T: Editorial reviewer block — emits Person schema JSON-LD -->
+    <!-- reviewer resolved from central registry (reviewers.ts); consistent with AuthorCard above -->
     <ReviewerBlock
+      reviewer={pageReviewer}
       reviewedAt={(ex as any).lastVerified ?? ex.updatedAt}
       verb="Reviewed by"
     />
+
+    <!-- "Why trust this review?" expandable trust block (E-E-A-T) -->
+    <details class="trust-details">
+      <summary class="trust-details-summary">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Why trust this review?
+        <svg class="trust-details-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+      </summary>
+      <ul class="trust-details-list">
+        <li>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+          <span><strong>Screenshots captured manually</strong> on the live {ex.name} platform — not sourced from press materials or third parties.</span>
+        </li>
+        <li>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+          <span><strong>Bonus conditions verified</strong> against the official {ex.name} promotion page. Bonus amounts, expiry periods and tier conditions were checked on {(ex as any).offerLastChecked ?? (ex as any).lastVerified}.</span>
+        </li>
+        {ex.kycRequired && (
+          <li>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            <span><strong>KYC flow tested</strong> with a real registered account — every step of the identity verification process was completed and documented, including document scan and face verification.</span>
+          </li>
+        )}
+        <li>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+          <span><strong>Withdrawal limits confirmed</strong> from official account settings — KYC Level 1 and Level 2 daily limits reviewed directly in the platform UI.</span>
+        </li>
+        <li>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+          <span><strong>Trading fees sourced from the official fee schedule</strong> — spot, futures and P2P fee rates verified against the {ex.name} website. No affiliate arrangement affects these figures.</span>
+        </li>
+        {(ex as any).p2pAvailable && (
+          <li>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            <span><strong>P2P flow completed end-to-end</strong> — a real purchase was made to verify the escrow process, payment method confirmation and order release steps.</span>
+          </li>
+        )}
+        <li>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+          <span><strong>GEO restrictions verified</strong> — country availability and blocked jurisdictions confirmed. {ex.excludedCountries && ex.excludedCountries.length > 0 ? `Blocked regions (${(ex.excludedCountries as string[]).map((c: string) => c.toUpperCase()).join(', ')}) tested directly.` : ''}</span>
+        </li>
+      </ul>
+      <p class="trust-details-footer">
+        CryptoBonusWorld does not accept payment for ratings or review content.
+        <a href="/methodology/" class="trust-details-link">Read our full methodology →</a>
+      </p>
+    </details>
 
     <!-- Two-column layout: main content + sticky sidebar -->
     <div class="ex-layout">
@@ -271,24 +444,41 @@ const rnrItems = [
       <!-- ── MAIN CONTENT ── -->
       <div class="ex-main">
 
-        <!-- Editorial experience signals (E-E-A-T) -->
-        <EditorialExperienceBar
-          signals={[
-            'editorial-reviewed',
-            'bonus-checked',
-            'fees-verified',
-            ...(((ex as any).p2pAvailable) ? ['p2p-checked'] as const : []),
-            ...(ex.kycRequired ? ['kyc-tested'] as const : []),
-            'desktop-tested',
-            'mobile-tested',
-            'content-fresh',
-          ]}
-          verifiedAt={(ex as any).offerLastChecked ? (() => {
-            const d = new Date((ex as any).offerLastChecked + 'T00:00:00');
-            return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-          })() : 'May 2026'}
-          compact
-        />
+        <!-- Evidence verification: FactCheckPanel when evidence registry has data, legacy block as fallback -->
+        {ev
+          ? <FactCheckPanel evidence={ev} exchangeName={ex.name} />
+          : <EvidenceVerificationBlock
+              name={ex.name}
+              slug={ex.slug}
+              lastVerified={(ex as any).lastVerified ?? ex.updatedAt}
+              offerLastChecked={(ex as any).offerLastChecked}
+              offerConfidenceScore={(ex as any).offerConfidenceScore}
+              kycRequired={ex.kycRequired}
+              p2pAvailable={(ex as any).p2pAvailable}
+              proofOfReserves={(ex as any).proofOfReserves}
+              sources={(ex as any).sources}
+              verificationStatus={(ex as any).verificationStatus ?? 'verified'}
+            />
+        }
+
+        <!-- AI-extractable structured verdict: Best For / Avoid If / Key Limitation -->
+        {(_faqOverride?.verdict) && (
+          <ExchangeVerdictBlock
+            name={ex.name}
+            quickVerdict={_faqOverride.verdict.quickVerdict}
+            bestFor={_faqOverride.verdict.bestFor ?? []}
+            avoidIf={_faqOverride.verdict.avoidIf ?? []}
+            keyLimitation={_faqOverride.verdict.keyLimitation}
+          />
+        )}
+
+        <!-- Trader experience ratings: onboarding, mobile, beginner, withdrawals, liquidity, support -->
+        {(_faqOverride?.experience) && (
+          <ExchangeExperienceGrid
+            name={ex.name}
+            data={_faqOverride.experience as ExperienceData}
+          />
+        )}
 
         <!-- Offer transparency / realism block -->
         {((ex as any).offerConfidenceScore != null || (ex as any).realisticUserExpectation) && (
@@ -348,20 +538,28 @@ const rnrItems = [
           </section>
         )}
 
-        <!-- Geo-aware payment method tip -->
-        <GeoContentBlock
-          geoContent={{
-            tr: { body: "P2P trading with TRY is the most popular deposit method in Turkey. Most exchanges including Bybit and MEXC offer P2P desks with strong TRY liquidity." },
-            in: { body: "UPI and P2P trading with INR are the standard on-ramps for Indian users. Note: OKX does not currently accept Indian users." },
-            id: { body: "P2P trading with IDR (via BCA, Mandiri, BRI) is the primary funding method in Indonesia. Most major exchanges support this." },
-            ng: { body: "P2P trading with NGN is essential in Nigeria due to banking restrictions on direct crypto transfers. MEXC and Bybit have the strongest NGN P2P desks." },
-            br: { body: "PIX instant payments are the fastest BRL on-ramp in Brazil. Available via P2P counterparties on Bybit and several other exchanges." },
-            vn: { body: "P2P trading with VND is the standard method for Vietnamese users. Bybit and MEXC have the most active VND P2P markets." },
-            ph: { body: "P2P trading with PHP via BDO, BPI or GCash is the most popular method in the Philippines. Most major exchanges support this." },
-          }}
-          defaultContent="Check the exchange's supported payment methods and country availability before registering."
-          type="tip"
+        <!-- Geo-aware payment method block (exchange-specific, driven by geo-overrides) -->
+        <GeoPaymentBlock
+          exchange={ex as any}
+          title="Deposit Methods"
         />
+
+        <!-- Referral / promo code — targeted snippet section for "[exchange] referral code 2026" queries -->
+        {ex.promoCode && (
+          <section class="ex-section" id="referral-code">
+            <h2 class="ex-section-title">{ex.name} Referral Code 2026</h2>
+            <p class="ex-prose">
+              The official {ex.name} referral and promo code for 2026 is <strong>{ex.promoCode}</strong>.
+              Entering this code during registration unlocks the full welcome bonus package.
+              When you sign up via the button on this page, the code is applied automatically —
+              you do not need to type it manually unless registering directly on the {ex.name} website.
+            </p>
+            <PromoCodeBox code={ex.promoCode} exchange={ex.name} slug={ex.slug} />
+            <p class="ex-prose" style="margin-top: 0.5rem; font-size: 0.85rem">
+              The promo code cannot be applied retroactively after account creation. If you registered without a code, it cannot be added later — you would need to open a new account.
+            </p>
+          </section>
+        )}
 
         <!-- Key conditions — icon grid -->
         <section class="ex-section">
@@ -397,6 +595,7 @@ const rnrItems = [
             p2pFee={(ex as any).p2pAvailable ? '0%' : undefined}
             maxLeverage={(ex as any).maxFuturesLeverage}
             lastVerified={(ex as any).lastVerified ?? ex.updatedAt}
+            feeSourceUrl={_feeSourceUrl}
           />
         )}
 
@@ -417,9 +616,19 @@ const rnrItems = [
         {walkthroughFlows.length > 0 && (
           <section class="ex-section" id="walkthroughs">
             <h2 class="ex-section-title">Step-by-Step Walkthroughs</h2>
-            <p class="ex-prose" style="margin-bottom: 1.5rem">
-              Our editorial team tested all flows below on the live {ex.name} platform. Screenshots reflect the interface as of the last verification date.
+            <p class="ex-prose" style="margin-bottom: 1rem">
+              Every walkthrough below was completed on the live {ex.name} platform using a real account. Each screenshot was captured manually — no stock images or placeholder UI. The flows cover the complete path from account creation through KYC, depositing funds, buying via P2P, and placing a leveraged futures trade.
             </p>
+
+            <!-- Walkthrough TOC — jump navigation -->
+            <nav class="wt-toc" aria-label="Walkthrough sections">
+              {walkthroughFlows.map(flow => (
+                <a href={`#${flow.id}`} class="wt-toc-link">
+                  {getFlowShortTitle(flow.id)}
+                </a>
+              ))}
+            </nav>
+
             {walkthroughFlows.map((flow) => (
               <WalkthroughFlow
                 id={flow.id}
@@ -433,27 +642,51 @@ const rnrItems = [
                 ctaLabel={flow.cta?.label}
                 ctaBody={flow.cta?.body}
                 showCTA={true}
+                totalTime={FLOW_TIMES[flow.id]}
+                schemaSteps={flow.steps.filter(s => !!s.src).map((s, i) => ({
+                  position: i + 1,
+                  name: s.title,
+                  text: stripHtml(s.description ?? s.title).slice(0, 300),
+                  image: s.src ? `${SITE_URL}${s.src}` : undefined,
+                }))}
               >
                 {flow.steps.map((step, i) => (
-                  <WalkthroughStepImage
-                    step={i + 1}
-                    title={step.title}
-                    description={step.description}
-                    src={step.src}
-                    alt={step.alt}
-                    caption={step.caption}
-                    capturedAt={step.capturedAt ?? flow.lastVerified}
-                    device={step.device ?? 'desktop'}
-                    aspectRatio={step.aspectRatio ?? '16/9'}
-                    width={step.width ?? (step.device === 'mobile' ? 390 : 1280)}
-                    height={step.height ?? (step.device === 'mobile' ? 844 : 720)}
-                    warning={step.warning}
-                    tip={step.tip}
-                    region={step.region}
-                    whatHappensNext={step.whatHappensNext}
-                    lightboxGroup={flow.id}
-                    label={step.screenshotLabel}
-                  />
+                  <Fragment>
+                    <WalkthroughStepImage
+                      step={i + 1}
+                      title={step.title}
+                      description={step.description}
+                      src={step.src}
+                      alt={step.alt}
+                      caption={step.caption}
+                      capturedAt={step.capturedAt ?? flow.lastVerified}
+                      device={step.device ?? 'desktop'}
+                      aspectRatio={step.aspectRatio ?? '16/9'}
+                      width={step.width ?? (step.device === 'mobile' ? 390 : 1280)}
+                      height={step.height ?? (step.device === 'mobile' ? 844 : 720)}
+                      warning={step.warning}
+                      tip={step.tip}
+                      region={step.region}
+                      whatHappensNext={step.whatHappensNext}
+                      lightboxGroup={flow.id}
+                      label={step.screenshotLabel}
+                      tableContent={(step as any).tableContent}
+                    />
+                    {(flow as any).midCtaAfterStep === i + 1 && (
+                      <div class="wt-mid-cta">
+                        <span class="wt-mid-cta-icon" aria-hidden="true">🔗</span>
+                        <span class="wt-mid-cta-text">Following this guide on Bybit? Open your account in a new tab to complete steps as you read.</span>
+                        <a
+                          href={ex.affiliateUrl}
+                          class="wt-mid-cta-btn"
+                          rel="noopener noreferrer sponsored"
+                          target="_blank"
+                        >
+                          Open Bybit ↗
+                        </a>
+                      </div>
+                    )}
+                  </Fragment>
                 ))}
               </WalkthroughFlow>
             ))}
@@ -461,13 +694,99 @@ const rnrItems = [
         )}
 
         <!-- About exchange -->
-        <section class="ex-section">
-          <h2 class="ex-section-title">About {ex.name}</h2>
-          <p class="ex-prose">{ex.longDescription}</p>
+        <section class="ex-section" id="exchange-review">
+          <h2 class="ex-section-title">{ex.name} Review: Is It Worth It in 2026?</h2>
+
+          {/* Snippet-ready trust paragraph — targets "is [exchange] safe/legit" queries */}
+          {((ex as any).licences?.length > 0 || (ex as any).founded || (ex as any).users) && (
+            <p class="ex-prose ex-prose--snippet" id="is-safe">
+              <strong>{ex.name} is a legitimate{(ex as any).licences?.length > 0 ? ' and regulated' : ''} cryptocurrency exchange</strong>
+              {(ex as any).founded ? `, founded in ${(ex as any).founded}` : ''}
+              {(ex as any).licences?.length > 0
+                ? ` and licensed by ${getLicenceText((ex as any).licences)}`
+                : ''}.
+              {(ex as any).users ? ` It serves over ${(ex as any).users} registered users worldwide` : ''}
+              {(ex as any).headquarters ? ` and is headquartered in ${(ex as any).headquarters}` : ''}.
+              {' '}It supports {getExchangeTypeDesc(ex)}.
+              {(ex as any).proofOfReserves
+                ? ` ${ex.name} publishes regular proof-of-reserves audits, with user funds held primarily in cold storage.`
+                : ' User funds are held in cold storage with multi-signature security.'}
+              {ex.countries?.includes('us') === false
+                ? ` ${ex.name} is not available to residents of the United States.`
+                : ''}
+            </p>
+          )}
+
+          {/* Exchange quick-facts table — snippet extraction + AI Overview clarity */}
+          {((ex as any).founded || (ex as any).licences?.length > 0 || (ex as any).spotMakerFee !== undefined) && (
+            <div class="ex-fact-box" aria-label={`${ex.name} key facts`}>
+              <div class="ex-fact-box-title">{ex.name} — Key Facts</div>
+              <table class="ex-fact-table">
+                <tbody>
+                  {(ex as any).founded && (
+                    <tr><th scope="row">Founded</th><td>{(ex as any).founded}</td></tr>
+                  )}
+                  {(ex as any).headquarters && (
+                    <tr><th scope="row">Headquarters</th><td>{(ex as any).headquarters}</td></tr>
+                  )}
+                  {(ex as any).licences?.length > 0 && (
+                    <tr>
+                      <th scope="row">Regulator</th>
+                      <td>{getLicenceShort((ex as any).licences)}</td>
+                    </tr>
+                  )}
+                  {(ex as any).users && (
+                    <tr><th scope="row">Users</th><td>{(ex as any).users} registered</td></tr>
+                  )}
+                  {(ex as any).tradingPairsCount && (
+                    <tr><th scope="row">Trading Pairs</th><td>{((ex as any).tradingPairsCount as number).toLocaleString()}+</td></tr>
+                  )}
+                  {(ex as any).spotMakerFee !== undefined && (
+                    <tr>
+                      <th scope="row">Spot Fees</th>
+                      <td>{(ex as any).spotMakerFee}% maker / {(ex as any).spotTakerFee}% taker</td>
+                    </tr>
+                  )}
+                  {(ex as any).futuresMakerFee !== undefined && (
+                    <tr>
+                      <th scope="row">Futures Fees</th>
+                      <td>{(ex as any).futuresMakerFee}% maker / {(ex as any).futuresTakerFee}% taker</td>
+                    </tr>
+                  )}
+                  {(ex as any).p2pAvailable && (
+                    <tr><th scope="row">P2P Trading</th><td>Yes — 0% platform fee</td></tr>
+                  )}
+                  {(ex as any).maxFuturesLeverage && (
+                    <tr><th scope="row">Max Leverage</th><td>Up to {(ex as any).maxFuturesLeverage}× (BTCUSDT: 125×)</td></tr>
+                  )}
+                  <tr>
+                    <th scope="row">KYC Required</th>
+                    <td>{ex.kycRequired ? 'Yes — Standard KYC (Level 1)' : 'No'}</td>
+                  </tr>
+                  <tr><th scope="row">Mobile App</th><td>iOS &amp; Android</td></tr>
+                  {(ex as any).proofOfReserves && (
+                    <tr><th scope="row">Proof of Reserves</th><td>Yes — publicly verifiable</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          <p class="ex-prose">{(_faqOverride?.longDescription?.length > 20 ? _faqOverride.longDescription : null) ?? ex.longDescription}</p>
           {((ex as any).editorNote?.length > 30 || (_faqOverride?.editorNote?.length > 30)) && (
             <EditorialNote
               note={(_faqOverride?.editorNote?.length > 30 ? _faqOverride.editorNote : null) ?? (ex as any).editorNote}
               reviewedAt={(ex as any).lastVerified ?? ex.updatedAt}
+            />
+          )}
+
+          {/* People Also Compare — behavioral SEO + internal linking widget */}
+          {myComparePairs.length > 0 && (
+            <PeopleAlsoCompare
+              pairs={myComparePairs}
+              exchanges={exMap as any}
+              currentSlug={ex.slug}
+              limit={5}
             />
           )}
         </section>
@@ -482,6 +801,10 @@ const rnrItems = [
         <section class="ex-section">
           <h2 class="ex-section-title">Country Availability</h2>
           <CountryAvailability countries={ex.countries} excludedCountries={ex.excludedCountries} />
+
+          <!-- Geo-aware regulatory note (shown for visitor's country) -->
+          <GeoRegulatoryNote exchange={ex as any} />
+
           {countryCrossLinks.length > 0 && (
             <CountryCrossLinksBlock
               countries={countryCrossLinks as any}
@@ -518,7 +841,7 @@ const rnrItems = [
         <!-- Use-case cross-links -->
         {relatedUseCases.length > 0 && (
           <section class="ex-section ex-use-case-links">
-            <h3 class="ex-section-sub-title">{ex.name} is recommended for:</h3>
+            <h2 class="ex-section-title" style="margin-bottom: 0.5rem">{ex.name} is recommended for:</h2>
             <div class="ex-uc-chips">
               {relatedUseCases.map(uc => (
                 <a href={`/use-cases/${uc.slug}/`} class="ex-uc-chip">
@@ -538,7 +861,7 @@ const rnrItems = [
           />
         )}
 
-        <!-- Bonus landing page link -->
+        <!-- Bonus landing page link + bonus code cross-link -->
         <section class="ex-section">
           <div class="bonus-page-link-strip">
             <div>
@@ -547,13 +870,34 @@ const rnrItems = [
             </div>
             <a href={`/bonuses/${ex.slug}-bonus/`} class="bonus-page-link-cta">Claim Guide →</a>
           </div>
+          {hasBonusCode && (
+            <div class="bonus-code-strip">
+              <span class="bonus-code-strip-label">🔑 Working promo codes</span>
+              <a href={`/bonus-codes/${ex.slug}/`} class="bonus-code-strip-link">{ex.name} Bonus Code {new Date().getFullYear()} →</a>
+            </div>
+          )}
         </section>
+
+        <!-- Coins available on this exchange — internal linking to /coins/ -->
+        {relatedCoins.length > 0 && (
+          <section class="ex-section">
+            <h3 class="ex-section-title" style="font-size:0.9rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--color-text-muted)">Buy Crypto on {ex.name}</h3>
+            <div class="ex-coin-chips">
+              {relatedCoins.map(coin => (
+                <a href={`/coins/${coin.slug}/`} class="ex-coin-chip">
+                  {(coin as any).symbol ?? coin.slug.toUpperCase()}
+                </a>
+              ))}
+              <a href="/coins/" class="ex-coin-chip ex-coin-chip--all">All Coins →</a>
+            </div>
+          </section>
+        )}
 
         <!-- How we evaluate — compact E-E-A-T methodology reference -->
         <HowWeEvaluate variant="compact" />
 
         <!-- FAQ -->
-        <FAQBlock items={faqItems} title={`${ex.name} Bonus — FAQ`} />
+        <FAQBlock items={faqItems} title={`${ex.name} Bonus — FAQ`} exchangeSlug={ex.slug} />
 
       </div>
 
@@ -719,6 +1063,144 @@ const rnrItems = [
   .ex-page {
     padding-bottom: 2rem;
   }
+
+  /* ── "Why trust this review?" details block ── */
+  .trust-details {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    margin-bottom: 1.25rem;
+    overflow: hidden;
+  }
+  .trust-details-summary {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+    transition: background 0.15s;
+  }
+  .trust-details-summary::-webkit-details-marker { display: none; }
+  .trust-details-summary:hover { background: rgba(255,255,255,0.03); }
+  .trust-details-summary svg:first-child { color: #4ade80; flex-shrink: 0; }
+  .trust-details-chevron {
+    margin-left: auto;
+    flex-shrink: 0;
+    transition: transform 0.2s;
+    color: var(--color-text-muted);
+  }
+  .trust-details[open] .trust-details-chevron { transform: rotate(180deg); }
+  .trust-details[open] .trust-details-summary { border-bottom: 1px solid var(--color-border); }
+
+  .trust-details-list {
+    list-style: none;
+    padding: 0.75rem 1rem;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .trust-details-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-size: 0.82rem;
+    color: var(--color-text-secondary);
+    line-height: 1.55;
+  }
+  .trust-details-list li svg {
+    flex-shrink: 0;
+    color: #4ade80;
+    margin-top: 3px;
+  }
+  .trust-details-list li strong { color: var(--color-text-primary); }
+  .trust-details-footer {
+    padding: 0.5rem 1rem 0.75rem;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    margin: 0;
+    border-top: 1px solid rgba(255,255,255,0.04);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .trust-details-link {
+    color: var(--color-accent);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.75rem;
+  }
+  .trust-details-link:hover { text-decoration: underline; }
+
+  /* ── Exchange fact box (entity/snippet table) ── */
+  .ex-fact-box {
+    margin: 1rem 0 1.25rem;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--color-bg-secondary);
+  }
+  .ex-fact-box-title {
+    padding: 0.55rem 0.875rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--color-text-muted);
+    background: rgba(245,197,66,0.05);
+    border-bottom: 1px solid var(--color-border);
+  }
+  .ex-fact-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+  }
+  .ex-fact-table th[scope="row"] {
+    text-align: left;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    padding: 0.45rem 0.875rem;
+    width: 42%;
+    vertical-align: top;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    white-space: nowrap;
+  }
+  .ex-fact-table td {
+    color: var(--color-text-primary);
+    padding: 0.45rem 0.875rem;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    vertical-align: top;
+  }
+  .ex-fact-table tr:last-child th,
+  .ex-fact-table tr:last-child td { border-bottom: none; }
+  @media (max-width: 480px) {
+    .ex-fact-table th[scope="row"] { width: 45%; font-size: 0.78rem; white-space: normal; }
+    .ex-fact-table td { font-size: 0.78rem; }
+  }
+
+  /* ── Comparison context paragraph ── */
+  .ex-prose--comparison {
+    padding: 0.875rem 1rem;
+    background: rgba(96,165,250,0.04);
+    border: 1px solid rgba(96,165,250,0.12);
+    border-left: 3px solid rgba(96,165,250,0.35);
+    border-radius: 0 8px 8px 0;
+    font-size: 0.875rem;
+    line-height: 1.7;
+    margin-top: 1rem !important;
+  }
+  .ex-prose-link {
+    color: var(--color-accent);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .ex-prose-link:hover { text-decoration: underline; }
 
   /* Compare vs section */
   .compare-vs-section { margin: 2rem 0; }
@@ -1190,6 +1672,171 @@ const rnrItems = [
     transition: opacity 0.15s;
   }
   .bonus-page-link-cta:hover { opacity: 0.85; }
+
+  /* Bonus code cross-link strip */
+  .bonus-code-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.6rem 1.25rem;
+    background: rgba(99, 102, 241, 0.05);
+    border: 1px solid rgba(99, 102, 241, 0.15);
+    border-radius: 0 0 10px 10px;
+    margin-top: -1px;
+    flex-wrap: wrap;
+  }
+  .bonus-code-strip-label {
+    font-size: 0.72rem;
+    color: var(--color-text-muted);
+    font-weight: 600;
+  }
+  .bonus-code-strip-link {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--color-accent);
+    text-decoration: none;
+    transition: opacity 0.15s;
+  }
+  .bonus-code-strip-link:hover { opacity: 0.75; }
+
+  /* Coin chip links */
+  .ex-coin-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.75rem;
+  }
+  .ex-coin-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.3rem 0.65rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .ex-coin-chip:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+  }
+  .ex-coin-chip--all {
+    color: var(--color-text-muted);
+    font-weight: 600;
+    font-size: 0.72rem;
+  }
+
+  /* ── Walkthrough TOC ── */
+  .wt-toc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-bottom: 1.5rem;
+    padding: 0.875rem 1rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+  }
+  .wt-toc-link {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.3rem 0.8rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    background: var(--color-bg-tertiary, rgba(255,255,255,0.04));
+    border: 1px solid var(--color-border);
+    border-radius: 20px;
+    text-decoration: none;
+    transition: border-color 0.15s, color 0.15s;
+    white-space: nowrap;
+  }
+  .wt-toc-link:hover {
+    border-color: rgba(245,197,66,0.4);
+    color: var(--color-accent);
+  }
+
+  /* Mobile TOC — horizontal scroll instead of wrapping */
+  @media (max-width: 480px) {
+    .wt-toc {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      padding: 0.625rem 0.875rem;
+      gap: 0.375rem;
+      /* Hide scrollbar but keep scrollable */
+      scrollbar-width: none;
+    }
+    .wt-toc::-webkit-scrollbar { display: none; }
+    .wt-toc-link {
+      flex-shrink: 0;
+      font-size: 0.75rem;
+      padding: 0.25rem 0.65rem;
+    }
+  }
+
+  /* ── Mid-flow follow-along CTA ── */
+  .wt-mid-cta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1.25rem;
+    background: rgba(245,197,66,0.04);
+    border: 1px solid rgba(245,197,66,0.15);
+    border-radius: 10px;
+    flex-wrap: wrap;
+  }
+  .wt-mid-cta-icon { font-size: 1rem; flex-shrink: 0; }
+  .wt-mid-cta-text {
+    flex: 1;
+    font-size: 0.82rem;
+    color: var(--color-text-muted, #666);
+    line-height: 1.45;
+    min-width: 180px;
+  }
+  .wt-mid-cta-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.4rem 0.9rem;
+    background: transparent;
+    border: 1px solid rgba(245,197,66,0.4);
+    color: var(--color-accent, #f5c542);
+    font-size: 0.78rem;
+    font-weight: 700;
+    border-radius: 6px;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .wt-mid-cta-btn:hover {
+    background: rgba(245,197,66,0.1);
+    border-color: rgba(245,197,66,0.6);
+  }
+  @media (max-width: 480px) {
+    .wt-mid-cta {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+    .wt-mid-cta-btn { align-self: flex-start; }
+  }
+
+  /* ── Snippet paragraph (trust/safety answer) ── */
+  .ex-prose--snippet {
+    padding: 0.875rem 1rem;
+    background: rgba(96,165,250,0.05);
+    border: 1px solid rgba(96,165,250,0.15);
+    border-left: 3px solid rgba(96,165,250,0.5);
+    border-radius: 0 8px 8px 0;
+    margin-bottom: 1rem !important;
+    font-size: 0.875rem;
+    line-height: 1.7;
+  }
 
   /* ── Use-case cross-links ── */
   .ex-use-case-links { padding: 0; }

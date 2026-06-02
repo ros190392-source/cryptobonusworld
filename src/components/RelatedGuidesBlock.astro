@@ -1,0 +1,118 @@
+---
+/**
+ * RelatedGuidesBlock
+ * Compact internal link block surfacing relevant guides.
+ * Used on exchange pages, category pages, country pages, bonus pages.
+ */
+
+interface GuideItem {
+  slug: string;
+  title: string;
+  category: string;
+  readTime: string;
+}
+
+interface Props {
+  guides: GuideItem[];
+  heading?: string;
+  variant?: 'compact' | 'full';
+}
+
+const {
+  guides,
+  heading = 'Related Guides',
+  variant = 'compact',
+} = Astro.props;
+
+const categoryColors: Record<string, string> = {
+  'Basics':          '#f5c542',
+  'Exchange Guides': '#60a5fa',
+  'How-To Guides':   '#34d399',
+  'Bonus Guides':    '#f59e0b',
+  'Earning Guides':  '#a78bfa',
+};
+---
+
+{guides.length > 0 && (
+  <div class:list={['rgb-wrap', `rgb-wrap--${variant}`]}>
+    <div class="rgb-header">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
+      </svg>
+      <span class="rgb-label">{heading}</span>
+    </div>
+    <div class:list={['rgb-grid', variant === 'full' && 'rgb-grid--full']}>
+      {guides.map(g => (
+        <a href={`/guides/${g.slug}/`} class="rgb-card">
+          <span class="rgb-cat" style={`color: ${categoryColors[g.category] ?? '#f5c542'}`}>{g.category}</span>
+          <span class="rgb-title">{g.title}</span>
+          <span class="rgb-meta">{g.readTime} read →</span>
+        </a>
+      ))}
+    </div>
+  </div>
+)}
+
+<style>
+  .rgb-wrap {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 1rem 1.125rem;
+  }
+  .rgb-header {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.75rem;
+  }
+  .rgb-header svg { color: var(--color-text-muted); }
+  .rgb-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-muted);
+  }
+  .rgb-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+  .rgb-grid--full {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.5rem;
+  }
+  .rgb-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding: 0.5rem 0.625rem;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: background 0.15s;
+    border: 1px solid transparent;
+  }
+  .rgb-card:hover {
+    background: rgba(245,197,66,0.04);
+    border-color: rgba(245,197,66,0.15);
+  }
+  .rgb-cat {
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .rgb-title {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    line-height: 1.35;
+  }
+  .rgb-meta {
+    font-size: 0.7rem;
+    color: var(--color-accent);
+    font-weight: 500;
+  }
+</style>

@@ -5,6 +5,7 @@ import CTAButton from '../../components/CTAButton.astro';
 import FAQBlock from '../../components/FAQBlock.astro';
 import RiskDisclaimer from '../../components/RiskDisclaimer.astro';
 import AffiliateDisclosure from '../../components/AffiliateDisclosure.astro';
+import ConstitutionGeoWarning from '../../components/ConstitutionGeoWarning.astro';
 import ExchangeLogo from '../../components/ExchangeLogo.astro';
 import AnswerBox from '../../components/AnswerBox.astro';
 import ComparisonSummaryBlock from '../../components/ComparisonSummaryBlock.astro';
@@ -314,7 +315,7 @@ const analyticsContext: PageContext = {
 };
 ---
 
-<Layout title={seoTitle} description={seoDesc} canonical={canonical} schema={schema} analyticsContext={analyticsContext}>
+<Layout title={seoTitle} description={seoDesc} canonical={canonical} schema={schema} analyticsContext={analyticsContext} ogImage={`https://cryptobonusworld.com/og/compare-${pairDef.pair}.png`}>
   <div class="container">
     <Breadcrumbs crumbs={crumbs} />
 
@@ -395,10 +396,16 @@ const analyticsContext: PageContext = {
 
     <AffiliateDisclosure />
 
+    <!-- Constitution geo warning — shown when visitor's country has restrictions -->
+    <ConstitutionGeoWarning
+      exchangeA={{ slug: exA.slug, name: exA.name }}
+      exchangeB={{ slug: exB.slug, name: exB.name }}
+    />
+
     <AuthorCard
       compact
       verb="Reviewed by"
-      name="Alexandr Shadurskyi"
+      name="Oleksandr Shadurskyi"
       title="Crypto Exchange Analyst & Editor-in-Chief"
       initials="AS"
       photo="/avatars/avatar2.png"
@@ -739,6 +746,7 @@ const analyticsContext: PageContext = {
                   data-track="affiliate-cta"
                   data-exchange={rec.slug}
                   data-placement="compare-beginner"
+                  data-bonus={String((rec as any).bonusAmount ?? 0)}
                 >
                   {getCtaLabel(rec as any)} →
                 </a>
@@ -798,6 +806,56 @@ const analyticsContext: PageContext = {
             <a href={`/exchanges/${overallEx.slug}/`} class="verdict-review-link">
               Full {overallEx.name} review →
             </a>
+          </div>
+        </div>
+      </section>
+    )}
+
+    <!-- ── VERDICT CTA — TIE ───────────────────────────────────────── -->
+    {overallWinner === 'tie' && (
+      <section class="verdict-cta-section">
+        <div class="verdict-cta-card verdict-cta-card--tie">
+          <div class="verdict-cta-tie-header">
+            <div class="verdict-cta-badge">⚖️ Tied Result</div>
+            <h2 class="verdict-cta-title">Both are strong picks — choose by priority</h2>
+            <p class="verdict-cta-desc">
+              {exA.name} and {exB.name} scored evenly across our {verdicts.length} comparison
+              categories. Your best choice depends on KYC preference, country availability and
+              trading style.
+            </p>
+          </div>
+          <div class="verdict-cta-tie-grid">
+            <div class="verdict-cta-tie-col">
+              <ExchangeLogo slug={exA.slug} name={exA.name} size={72} variant="square" lazy={false} />
+              <div class="verdict-cta-bonus">Up to {fmt(exA.bonusAmount)} {exA.bonusCurrency}</div>
+              {!exA.kycRequired && <span class="verdict-cta-tie-tag">No KYC</span>}
+              <CTAButton
+                href={exA.affiliateUrl}
+                label={getCtaLabel(exA as any)}
+                exchange={exA.name}
+                size="md"
+                fullWidth
+                trackPlacement="compare-tie"
+                trackBonus={exA.bonusAmount}
+              />
+              <a href={`/exchanges/${exA.slug}/`} class="verdict-review-link">Read {exA.name} review →</a>
+            </div>
+            <div class="verdict-cta-tie-sep">or</div>
+            <div class="verdict-cta-tie-col">
+              <ExchangeLogo slug={exB.slug} name={exB.name} size={72} variant="square" lazy={false} />
+              <div class="verdict-cta-bonus">Up to {fmt(exB.bonusAmount)} {exB.bonusCurrency}</div>
+              {!exB.kycRequired && <span class="verdict-cta-tie-tag">No KYC</span>}
+              <CTAButton
+                href={exB.affiliateUrl}
+                label={getCtaLabel(exB as any)}
+                exchange={exB.name}
+                size="md"
+                fullWidth
+                trackPlacement="compare-tie"
+                trackBonus={exB.bonusAmount}
+              />
+              <a href={`/exchanges/${exB.slug}/`} class="verdict-review-link">Read {exB.name} review →</a>
+            </div>
           </div>
         </div>
       </section>
@@ -1353,6 +1411,49 @@ const analyticsContext: PageContext = {
     text-align: center;
   }
   .verdict-review-link:hover { color: var(--color-accent); }
+
+  /* ── VERDICT CTA — TIE ─────────────────────────────────────────── */
+  .verdict-cta-card--tie {
+    grid-template-columns: 1fr;
+  }
+  .verdict-cta-tie-header {
+    text-align: center;
+    margin-bottom: 1.75rem;
+  }
+  .verdict-cta-tie-grid {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 1.5rem;
+    align-items: center;
+  }
+  .verdict-cta-tie-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .verdict-cta-tie-sep {
+    font-size: var(--text-sm);
+    font-weight: 800;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+  .verdict-cta-tie-tag {
+    font-size: var(--text-xs);
+    font-weight: 700;
+    color: #4ade80;
+    background: rgba(74,222,128,0.1);
+    border: 1px solid rgba(74,222,128,0.25);
+    border-radius: var(--radius-pill);
+    padding: 0.2rem 0.6rem;
+  }
+  @media (max-width: 520px) {
+    .verdict-cta-tie-grid {
+      grid-template-columns: 1fr;
+    }
+    .verdict-cta-tie-sep { text-align: center; }
+  }
 
   /* ── RELATED ───────────────────────────────────────────────────────── */
   .related-grid {
