@@ -497,20 +497,42 @@ async function processRawScreenshot(rawPath, exchange, category, device) {
   const targetWidth     = TARGET_WIDTHS[device];
   const webpQuality     = WEBP_QUALITY[device];
 
-  let pipeline = sharp(rawPath, { failOnError: false })
+  // Mobile: skip trim() — App Store and mobile pages have meaningful edges;
+  // trim() clips to 388px which is narrower than the 390px mobile frame SVG.
+  // Desktop: trim safely removes browser chrome captured around the page.
+  const basePipeline = sharp(rawPath, { failOnError: false })
     .toColorspace('srgb')
-    .withMetadata({})
-    .trim({ background: { r: 255, g: 255, b: 255 }, threshold: 15 })
-    .resize(targetWidth, null, { fit: 'inside', withoutEnlargement: true, kernel: 'lanczos3' });
+    .withMetadata({});
 
-  let buffer = await pipeline.toBuffer();
-  const meta = await sharp(buffer).metadata();
-  const W = meta.width;
+  const trimmedPipeline = device === 'desktop'
+    ? basePipeline.trim({ background: { r: 255, g: 255, b: 255 }, threshold: 15 })
+    : basePipeline;
 
-  // Apply browser frame
+  let buffer = await trimmedPipeline
+    .resize(targetWidth, null, { fit: 'inside', withoutEnlargement: true, kernel: 'lanczos3' })
+    .toBuffer();
+
+  let meta = await sharp(buffer).metadata();
+  let W = meta.width;
+
+  // For mobile: if resize produced a canvas narrower than the frame, extend to frame width.
+  // This can happen when the input is portrait and withoutEnlargement kicks in.
+  if (device === 'mobile' && W < targetWidth) {
+    const extend = targetWidth - W;
+    buffer = await sharp(buffer)
+      .extend({ left: Math.floor(extend / 2), right: Math.ceil(extend / 2), top: 0, bottom: 0,
+                background: { r: 22, g: 22, b: 42, alpha: 1 } })
+      .toBuffer();
+    meta = await sharp(buffer).metadata();
+    W = meta.width;
+  }
+
+  // Apply browser frame — only composite if frame fits (same width or narrower)
   const composites = [];
   if (device === 'mobile' && existsSync(mobileFramePath)) {
-    composites.push({ input: readFileSync(mobileFramePath), gravity: 'north', blend: 'over' });
+    // Re-read SVG to confirm frame width matches
+    const frameSvg = readFileSync(mobileFramePath);
+    composites.push({ input: frameSvg, gravity: 'north', blend: 'over' });
   } else if (device === 'desktop') {
     composites.push({ input: Buffer.from(generateDesktopFrame(exchange, category, W)), gravity: 'north', blend: 'over' });
   }

@@ -337,10 +337,11 @@ function updateApprovalQueueRecommendations(results) {
 
   let updated = 0;
   for (const item of (queue.items ?? [])) {
-    // Match by exchange + category
-    const match = results.find(r =>
-      r.filePath && r.filePath.includes(`/${item.exchange}/`) && r.filePath.includes(`/${item.category}/`)
-    );
+    // Match by exchange + category — normalize to forward slashes for cross-platform
+    const match = results.find(r => {
+      const fp = (r.filePath ?? '').replace(/\\/g, '/');
+      return fp.includes(`/${item.exchange}/`) && fp.includes(`/${item.category}/`);
+    });
     if (match) {
       item.recommendedForApproval = match.recommendedForApproval;
       item.qualityFlags           = match.qualityFlags;

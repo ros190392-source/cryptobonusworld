@@ -303,14 +303,30 @@ async function processRawScreenshot(rawPath, exchange, category, device) {
   const targetWidth = TARGET_WIDTHS[device];
   const webpQuality = WEBP_QUALITY[device];
 
-  let buf = await sharp(rawPath, { failOnError: false })
-    .toColorspace('srgb')
-    .trim({ background: { r: 255, g: 255, b: 255 }, threshold: 15 })
+  // Mobile: skip trim() — trim clips mobile screenshots below frame width.
+  // Desktop: trim safely removes captured browser chrome.
+  const basePipeline = sharp(rawPath, { failOnError: false }).toColorspace('srgb');
+  const trimmedPipeline = device === 'desktop'
+    ? basePipeline.trim({ background: { r: 255, g: 255, b: 255 }, threshold: 15 })
+    : basePipeline;
+
+  let buf = await trimmedPipeline
     .resize(targetWidth, null, { fit: 'inside', withoutEnlargement: true, kernel: 'lanczos3' })
     .toBuffer();
 
-  const meta = await sharp(buf).metadata();
-  const W = meta.width;
+  let meta = await sharp(buf).metadata();
+  let W = meta.width;
+
+  // Extend canvas to frame width if mobile came out narrower after resize
+  if (device === 'mobile' && W < targetWidth) {
+    const extend = targetWidth - W;
+    buf = await sharp(buf)
+      .extend({ left: Math.floor(extend / 2), right: Math.ceil(extend / 2), top: 0, bottom: 0,
+                background: { r: 22, g: 22, b: 42, alpha: 1 } })
+      .toBuffer();
+    meta = await sharp(buf).metadata();
+    W = meta.width;
+  }
 
   const composites = [];
   if (device === 'mobile' && existsSync(MOBILE_FRAME)) {

@@ -88,7 +88,9 @@
     "screenshots:quality": "node scripts/validate-screenshot-quality.mjs",
     "screenshots:quality:binance": "node scripts/validate-screenshot-quality.mjs --exchange binance",
     "screenshots:quality:write": "node scripts/validate-screenshot-quality.mjs --write",
-    "screenshots:quality:strict": "node scripts/validate-screenshot-quality.mjs --write --fail-on-errors"
+    "screenshots:quality:strict": "node scripts/validate-screenshot-quality.mjs --write --fail-on-errors",
+    "screenshots:review": "node scripts/generate-screenshot-review.mjs",
+    "screenshots:review:binance": "node scripts/generate-screenshot-review.mjs --exchange binance"
   },
   "dependencies": {
     "astro": "^4.15.0"
