@@ -2,8 +2,36 @@
  * scripts/lib/telegram.mjs — Shared Telegram Notification Utility
  * ─────────────────────────────────────────────────────────────────
  * Reads TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID from process.env.
+ * Also auto-loads ROOT/.env so local runs work without exporting vars.
  * All functions are no-ops in dry-run mode — pass { dryRun: true }.
  */
+
+import { existsSync, readFileSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+// ── Auto-load .env (no dotenv dependency) ─────────────────────────────────────
+// Parses ROOT/.env and sets any KEY=VALUE pairs not already in process.env.
+
+const __telegramDir = dirname(fileURLToPath(import.meta.url));
+const __root        = join(__telegramDir, '..', '..');
+
+(function loadDotEnv() {
+  const envPath = join(__root, '.env');
+  if (!existsSync(envPath)) return;
+  try {
+    const lines = readFileSync(envPath, 'utf-8').split('\n');
+    for (const raw of lines) {
+      const line = raw.trim();
+      if (!line || line.startsWith('#')) continue;
+      const eq = line.indexOf('=');
+      if (eq === -1) continue;
+      const key = line.slice(0, eq).trim();
+      const val = line.slice(eq + 1).trim().replace(/^["']|["']$/g, '');
+      if (key && !(key in process.env)) process.env[key] = val;
+    }
+  } catch { /* .env is optional */ }
+})();
 
 const TG_API = (token) => `https://api.telegram.org/bot${token}`;
 
