@@ -77,7 +77,18 @@
     "screenshots:harvest:bybit": "node scripts/harvest-exchange-screenshots.mjs --exchange bybit",
     "screenshots:harvest:bitget": "node scripts/harvest-exchange-screenshots.mjs --exchange bitget",
     "screenshots:approve": "node scripts/approve-screenshots.mjs",
-    "screenshots:process:manual": "node scripts/process-screenshot.mjs --verbose"
+    "screenshots:process:manual": "node scripts/process-screenshot.mjs --verbose",
+    "screenshots:orchestrate": "node scripts/orchestrate-screenshot-capture.mjs",
+    "screenshots:orchestrate:binance": "node scripts/orchestrate-screenshot-capture.mjs --exchange binance",
+    "screenshots:orchestrate:okx": "node scripts/orchestrate-screenshot-capture.mjs --exchange okx",
+    "screenshots:orchestrate:mexc": "node scripts/orchestrate-screenshot-capture.mjs --exchange mexc",
+    "screenshots:orchestrate:all": "node scripts/orchestrate-screenshot-capture.mjs --all",
+    "screenshots:orchestrate:dry": "node scripts/orchestrate-screenshot-capture.mjs --exchange binance --dry-run",
+    "screenshots:dashboard": "node scripts/orchestrate-screenshot-capture.mjs --dashboard",
+    "screenshots:quality": "node scripts/validate-screenshot-quality.mjs",
+    "screenshots:quality:binance": "node scripts/validate-screenshot-quality.mjs --exchange binance",
+    "screenshots:quality:write": "node scripts/validate-screenshot-quality.mjs --write",
+    "screenshots:quality:strict": "node scripts/validate-screenshot-quality.mjs --write --fail-on-errors"
   },
   "dependencies": {
     "astro": "^4.15.0"
