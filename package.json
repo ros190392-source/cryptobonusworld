@@ -96,7 +96,18 @@
     "screenshots:quality:write": "node scripts/validate-screenshot-quality.mjs --write",
     "screenshots:quality:strict": "node scripts/validate-screenshot-quality.mjs --write --fail-on-errors",
     "screenshots:review": "node scripts/generate-screenshot-review.mjs",
-    "screenshots:review:binance": "node scripts/generate-screenshot-review.mjs --exchange binance"
+    "screenshots:review:binance": "node scripts/generate-screenshot-review.mjs --exchange binance",
+    "bonus:verify": "node scripts/verify-bonus-capture.mjs",
+    "bonus:verify:binance": "node scripts/verify-bonus-capture.mjs --exchange binance",
+    "bonus:verify:all": "node scripts/verify-bonus-capture.mjs --all --write",
+    "bonus:verify:dry": "node scripts/verify-bonus-capture.mjs --exchange binance --dry-run",
+    "bonus:verify:stale": "node scripts/verify-bonus-capture.mjs --stale-only",
+    "bonus:proposals": "node scripts/approve-bonus-updates.mjs --list",
+    "bonus:approve": "node scripts/approve-bonus-updates.mjs --approve",
+    "bonus:approve:all": "node scripts/approve-bonus-updates.mjs --approve-all",
+    "bonus:telegram-report": "node scripts/bonus-telegram-report.mjs",
+    "affiliate:telegram-report": "node scripts/affiliate-telegram-report.mjs",
+    "screenshots:telegram-report": "node scripts/screenshots-telegram-report.mjs"
   },
   "dependencies": {
     "astro": "^4.15.0"
