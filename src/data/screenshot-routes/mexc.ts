@@ -103,4 +103,42 @@ export const routes: RouteMap = {
     skipReason: 'not_applicable',
     notes: 'PoR not published on MEXC',
   },
+
+  bonus_referral_landing: {
+    // URL sourced from AFFILIATE_SNAPSHOT.mexc.affiliateUrl at runtime
+    url: 'https://www.mexc.com/acquisition/custom-sign-up?shareCode=mexc-CryptoBonus',
+    safety: 'AFFILIATE_PUBLIC',
+    fullPage: false,
+    waitForSelector: 'h1, [class*="referral"], [class*="bonus"], [class*="sign-up"], [class*="register"]',
+    waitForTimeout: 3500,
+    priority: 1,
+    notes: 'MEXC affiliate referral landing — shareCode=mexc-CryptoBonus, tracks param survival and bonus visibility (up to 10,000 USDT)',
+  },
+
+  kyc_info: {
+    url: 'https://www.mexc.com/support/articles/20244',
+    safety: 'PUBLIC',
+    fullPage: false,
+    waitForSelector: 'h1, [class*="article"], [class*="support"], article',
+    waitForTimeout: 2000,
+    priority: 3,
+    notes: 'MEXC KYC information article — explains basic vs advanced verification, zero personal data',
+  },
+
+  kyc_status_safe: {
+    safety: 'SKIP',
+    skipReason: 'not_applicable',
+    notes: 'MEXC does not mandate KYC for standard spot trading — verification status page not useful',
+  },
+
+  registration_mobile: {
+    url: 'https://www.mexc.com/register',
+    safety: 'PUBLIC',
+    device: 'mobile-web',
+    fullPage: false,
+    waitForSelector: 'input[type="email"], h1, [class*="register"]',
+    waitForTimeout: 2000,
+    priority: 2,
+    notes: 'MEXC registration at 390×844 with iPhone Safari UA — mobile-responsive layout',
+  },
 };

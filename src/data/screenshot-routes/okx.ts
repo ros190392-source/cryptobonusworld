@@ -101,4 +101,55 @@ export const routes: RouteMap = {
     safety: 'MANUAL',
     notes: 'OKX P2P availability varies by region',
   },
+
+  bonus_referral_landing: {
+    // URL sourced from AFFILIATE_SNAPSHOT.okx.affiliateUrl at runtime
+    url: 'https://okx.com/join/CRYPTOBONUSW',
+    safety: 'AFFILIATE_PUBLIC',
+    fullPage: false,
+    waitForSelector: 'h1, [class*="referral"], [class*="bonus"], [class*="register"], input[type="email"]',
+    waitForTimeout: 3500,
+    priority: 1,
+    notes: 'OKX affiliate referral landing — path-embedded code /CRYPTOBONUSW, tracks survival and bonus visibility (up to 5,000 USDT)',
+  },
+
+  kyc_info: {
+    url: 'https://www.okx.com/help/section/faq-kyc',
+    safety: 'PUBLIC',
+    fullPage: false,
+    waitForSelector: 'h1, [class*="article"], [class*="faq"], [class*="help"]',
+    waitForTimeout: 2000,
+    priority: 3,
+    notes: 'Public OKX help section for KYC FAQ — zero personal data',
+  },
+
+  kyc_status_safe: {
+    url: 'https://www.okx.com/account/identity-verification',
+    safety: 'AUTH_SAFE',
+    requiresAuth: true,
+    fullPage: false,
+    waitForSelector: '[class*="verification"], [class*="kyc-level"], h1',
+    waitForTimeout: 3000,
+    blurSelectors: [
+      '[class*="email" i]', '[class*="phone" i]', '[class*="uid" i]',
+      '[class*="user-name" i]', '[class*="account-info" i]',
+    ],
+    forbiddenSelectors: [
+      '[class*="document" i][class*="upload" i]', '[class*="id-card" i][class*="upload" i]',
+      '[class*="passport" i][class*="submit" i]', '[class*="selfie" i]',
+    ],
+    priority: 2,
+    notes: 'OKX KYC verification level — shows tier only, personal fields blurred, document upload screens abort',
+  },
+
+  registration_mobile: {
+    url: 'https://www.okx.com/join',
+    safety: 'PUBLIC',
+    device: 'mobile-web',
+    fullPage: false,
+    waitForSelector: 'input[type="email"], input[type="text"], h1',
+    waitForTimeout: 2000,
+    priority: 2,
+    notes: 'OKX registration at 390×844 with iPhone Safari UA — mobile-responsive layout',
+  },
 };

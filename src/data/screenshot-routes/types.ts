@@ -3,8 +3,27 @@
  * Canonical source for orchestrate-screenshot-capture.mjs and future Astro components
  */
 
-/** Safety classification for each route */
-export type SafetyLevel = 'PUBLIC' | 'AUTHED' | 'SKIP' | 'MANUAL';
+/**
+ * Safety classification for each route.
+ *
+ *   PUBLIC           — no login needed, no sensitive content possible
+ *   AFFILIATE_PUBLIC — navigate via affiliate URL; track ref-code survival + bonus visibility
+ *   AUTH_SAFE        — requires saved session; content is safe with blur applied;
+ *                      forbiddenSelectors checked at runtime — abort if triggered
+ *   AUTH_SENSITIVE   — NEVER automate; sensitive content that cannot be safely blurred
+ *                      (withdrawal, API keys, security settings, identity docs, QR codes)
+ *   AUTHED           — legacy alias for AUTH_SAFE (requires session + blur)
+ *   SKIP             — never automate; document upload, KYC identity, etc.
+ *   MANUAL           — too complex/region-restricted/unreliable for automation
+ */
+export type SafetyLevel =
+  | 'PUBLIC'
+  | 'AFFILIATE_PUBLIC'
+  | 'AUTH_SAFE'
+  | 'AUTH_SENSITIVE'
+  | 'AUTHED'
+  | 'SKIP'
+  | 'MANUAL';
 
 /** Capture priority: 1 = highest, 3 = lowest */
 export type Priority = 1 | 2 | 3;
@@ -52,6 +71,13 @@ export interface RouteConfig {
   forbiddenSelectors?: string[];
   /** Annotation preset name to apply from assets/annotations/ */
   annotationPreset?: string;
+  /**
+   * Capture device type.
+   *   desktop    — 1440×900, desktop Chrome UA (default)
+   *   mobile-web — 390×844, iPhone Safari UA, isMobile+touch enabled
+   *   mobile-app — App Store / Play Store listing at mobile viewport
+   */
+  device?: 'desktop' | 'mobile-web' | 'mobile-app';
   /** Human notes about this route */
   notes?: string;
 }

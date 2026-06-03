@@ -107,4 +107,56 @@ export const routes: RouteMap = {
     skipReason: 'identity_documents',
     notes: 'KYC flow involves identity document upload — never automate',
   },
+
+  bonus_referral_landing: {
+    // URL sourced from AFFILIATE_SNAPSHOT.binance.affiliateUrl at runtime
+    url: 'https://www.binance.com/join?ref=CRYPTOBONUSW',
+    safety: 'AFFILIATE_PUBLIC',
+    fullPage: false,
+    waitForSelector: 'h1, [class*="referral"], [class*="bonus"], [class*="register"], input[type="email"]',
+    waitForTimeout: 3500,
+    priority: 1,
+    notes: 'Affiliate referral landing — tracks ref=CRYPTOBONUSW survival and bonus amount visibility (up to 19,800 USDT)',
+  },
+
+  kyc_info: {
+    url: 'https://www.binance.com/en/support/faq/how-to-complete-identity-verification-360027287111',
+    safety: 'PUBLIC',
+    fullPage: false,
+    waitForSelector: 'article, [class*="article-content"], h1, [class*="faq"]',
+    waitForTimeout: 2000,
+    priority: 3,
+    notes: 'Public Binance support article explaining KYC process — zero personal data',
+  },
+
+  kyc_status_safe: {
+    url: 'https://www.binance.com/en/my/settings/profile',
+    safety: 'AUTH_SAFE',
+    requiresAuth: true,
+    fullPage: false,
+    waitForSelector: '[class*="verification-level"], [class*="identity-verify"], [class*="kyc"]',
+    waitForTimeout: 3000,
+    blurSelectors: [
+      '[class*="email" i]', '[class*="phone" i]', '[class*="real-name" i]',
+      '[class*="uid" i]', '[class*="user-info" i]', '[class*="profile-info" i]',
+    ],
+    forbiddenSelectors: [
+      '[class*="document-upload" i]', '[class*="id-upload" i]',
+      '[class*="passport" i]:not([class*="support" i])',
+      '[class*="driving-license" i]', '[class*="id-card-upload" i]',
+    ],
+    priority: 2,
+    notes: 'KYC verification status (level 1/2/3) — personal fields blurred, document screens abort capture',
+  },
+
+  registration_mobile: {
+    url: 'https://accounts.binance.com/en/register',
+    safety: 'PUBLIC',
+    device: 'mobile-web',
+    fullPage: false,
+    waitForSelector: 'input[name="email"], input[type="email"], h1',
+    waitForTimeout: 2000,
+    priority: 2,
+    notes: 'Binance registration at 390×844 with iPhone Safari UA — mobile-responsive layout',
+  },
 };

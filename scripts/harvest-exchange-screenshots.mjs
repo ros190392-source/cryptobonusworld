@@ -31,6 +31,8 @@
  * Options:
  *   --exchange  <slug>           Exchange to harvest (required)
  *   --category  <cat,cat,...>    Only harvest specific categories (default: all safe)
+ *   --affiliate-only             Capture only AFFILIATE_PUBLIC routes (referral landings)
+ *   --auth-safe                  Capture only AUTH_SAFE routes (requires saved session)
  *   --dry-run                   Print route map without opening browser
  *   --headed                    Run in visible browser (for debugging)
  *   --no-auth                   Skip loading saved session (public pages only)
@@ -45,6 +47,7 @@ import {
 } from 'fs';
 import { join, dirname, basename } from 'path';
 import { fileURLToPath } from 'url';
+import { getAffiliate, checkReferralSurvival } from './lib/affiliate-snapshot.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT      = join(__dirname, '..');
@@ -56,26 +59,36 @@ const flag       = (n)  => ARGV.includes(n);
 const opt        = (n, fb) => { const i = ARGV.indexOf(n); return i !== -1 && i+1 < ARGV.length ? ARGV[i+1] : (fb ?? null); };
 const optList    = (n)  => opt(n)?.split(',').map(s => s.trim()).filter(Boolean) ?? null;
 
-const EXCHANGE   = opt('--exchange');
-const CAT_FILTER = optList('--category');
-const DRY_RUN    = flag('--dry-run');
-const HEADED     = flag('--headed');
-const NO_AUTH    = flag('--no-auth');
-const NO_PROCESS = flag('--no-process');
-const NO_BLUR    = flag('--no-blur');
-const PAGE_TO    = parseInt(opt('--timeout', '20000'), 10);
-const VERBOSE    = flag('--verbose');
+const EXCHANGE        = opt('--exchange');
+const CAT_FILTER      = optList('--category');
+const AFFILIATE_ONLY  = flag('--affiliate-only');
+const AUTH_SAFE_ONLY  = flag('--auth-safe');
+const DRY_RUN         = flag('--dry-run');
+const HEADED          = flag('--headed');
+const NO_AUTH         = flag('--no-auth');
+const NO_PROCESS      = flag('--no-process');
+const NO_BLUR         = flag('--no-blur');
+const PAGE_TO         = parseInt(opt('--timeout', '20000'), 10);
+const VERBOSE         = flag('--verbose');
 
 const log  = (...a) => console.log(' ', ...a);
 const dbg  = (...a) => VERBOSE && console.log('  ·', ...a);
 const warn = (...a) => console.warn('  ⚠', ...a);
 const die  = (...a) => { console.error('\n  ✖', ...a, '\n'); process.exit(1); };
 
+// ── User-agent strings ────────────────────────────────────────────────────────
+
+const DESKTOP_UA    = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36';
+const MOBILE_WEB_UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1';
+
 // ── Route safety classifications ──────────────────────────────────────────────
-// PUBLIC   — no login needed, no sensitive content possible
-// AUTHED   — requires session, content is safe with blur applied
-// SKIP     — never automate; sensitive content that cannot be safely blurred
-// MANUAL   — page exists but is too complex or unreliable for automation
+// PUBLIC            — no login needed, no sensitive content possible
+// AFFILIATE_PUBLIC  — navigate via affiliate URL; track ref-code survival + bonus visibility
+// AUTH_SAFE         — requires session; content safe with blur; forbiddenSelectors abort capture
+// AUTH_SENSITIVE    — NEVER automate (withdrawal, API keys, identity docs, QR codes, etc.)
+// AUTHED            — legacy: same as AUTH_SAFE
+// SKIP              — never automate; identity document upload, KYC, etc.
+// MANUAL            — too complex or unreliable for automation
 
 // ── Global blur CSS ───────────────────────────────────────────────────────────
 // Applied to EVERY page before capture. Broad-stroke patterns.
@@ -583,7 +596,7 @@ const DANGER_PATTERNS = [
   /withdrawal/i, /api.?key/i, /secret.?key/i,
 ];
 
-async function safetyCheck(page, url) {
+async function safetyCheck(page, url, routeConfig) {
   const currentUrl = page.url();
 
   // If we got redirected to a known dangerous path, abort
@@ -600,6 +613,18 @@ async function safetyCheck(page, url) {
       }
     }
   } catch { /* ignore */ }
+
+  // For AUTH_SAFE routes: abort if any forbidden selector is visible
+  if (routeConfig?.forbiddenSelectors?.length > 0) {
+    for (const sel of routeConfig.forbiddenSelectors) {
+      try {
+        const el = await page.$(sel);
+        if (el && await el.isVisible()) {
+          return { safe: false, reason: `Forbidden selector visible: ${sel}` };
+        }
+      } catch { /* ignore */ }
+    }
+  }
 
   return { safe: true };
 }
@@ -634,8 +659,8 @@ async function captureCategory(context, exchange, category, routeConfig, date) {
       dbg('Network idle timeout — continuing anyway');
     }
 
-    // Safety check
-    const safety = await safetyCheck(page, routeConfig.url);
+    // Safety check (includes forbidden-selector check for AUTH_SAFE routes)
+    const safety = await safetyCheck(page, routeConfig.url, routeConfig);
     if (!safety.safe) {
       return { category, status: 'blocked_safety', reason: safety.reason, rawPath: null };
     }
@@ -723,28 +748,41 @@ async function processCapture(captureResult, exchange, category, date) {
 // ── Approval queue ────────────────────────────────────────────────────────────
 
 function generateApprovalQueue(exchange, results, date) {
-  const items = results.map(r => ({
-    id:            `${exchange}-${r.category}-${date}`,
-    exchange,
-    category:       r.category,
-    rawPath:        r.rawPath?.replace(ROOT, '').replace(/\\/g, '/') ?? null,
-    processedPath:  r.processedPath?.replace(ROOT, '').replace(/\\/g, '/') ?? null,
-    publicPath:     r.publicPath ?? null,
-    status:         r.processedPath ? 'pending_approval'
-                  : r.status === 'captured' ? 'processing_failed'
-                  : r.status === 'blocked_safety' ? 'safety_blocked'
-                  : r.status === 'skipped' ? 'skipped'
-                  : 'capture_failed',
-    capturedAt:    date,
-    device:        r.device ?? 'desktop',
-    geo:           'GLOBAL',
-    locale:        'en',
-    blurApplied:   !NO_BLUR,
-    reason:        r.reason ?? r.skipReason ?? null,
-    notes:         r.notes ?? '',
-    error:         r.error ?? null,
-    verified:      false,
-  }));
+  const items = results.map(r => {
+    const isAffiliate = r.originalUrl !== undefined;
+    return {
+      id:            `${exchange}-${r.category}-${date}`,
+      exchange,
+      category:       r.category,
+      rawPath:        r.rawPath?.replace(ROOT, '').replace(/\\/g, '/') ?? null,
+      processedPath:  r.processedPath?.replace(ROOT, '').replace(/\\/g, '/') ?? null,
+      publicPath:     r.publicPath ?? null,
+      status:         r.processedPath ? 'pending_approval'
+                    : r.status === 'captured' ? 'processing_failed'
+                    : r.status === 'blocked_safety' ? 'safety_blocked'
+                    : r.status === 'auth_sensitive_blocked' ? 'auth_sensitive_blocked'
+                    : r.status === 'skipped' ? 'skipped'
+                    : 'capture_failed',
+      capturedAt:    date,
+      device:        r.device ?? 'desktop',
+      geo:           'GLOBAL',
+      locale:        'en',
+      blurApplied:   !NO_BLUR,
+      reason:        r.reason ?? r.skipReason ?? null,
+      notes:         r.notes ?? '',
+      error:         r.error ?? null,
+      verified:      false,
+      // Affiliate tracking fields (only present for AFFILIATE_PUBLIC captures)
+      ...(isAffiliate ? {
+        affiliateCapture: true,
+        originalUrl:      r.originalUrl,
+        finalUrl:         r.finalUrl,
+        paramSurvived:    r.paramSurvived,
+        promoCodeVisible: r.promoCodeVisible,
+        bonusAmountVisible: r.bonusAmountVisible,
+      } : {}),
+    };
+  });
 
   const queueData = {
     generatedAt: new Date().toISOString(),
@@ -858,6 +896,150 @@ ${rows}
   log(`📋  Manual queue: reports/manual-screenshot-queue.md`);
 }
 
+// ── TS route map loader ───────────────────────────────────────────────────────
+// Strips TypeScript-only syntax from src/data/screenshot-routes/{exchange}.ts
+// then imports via data: URI so no ts-node / tsx is needed at runtime.
+
+async function loadRouteMap(exchange) {
+  const ROUTES_DIR = join(ROOT, 'src', 'data', 'screenshot-routes');
+  const tsPath = join(ROUTES_DIR, `${exchange}.ts`);
+  if (!existsSync(tsPath)) return null;
+  try {
+    let src = readFileSync(tsPath, 'utf-8');
+    src = src.replace(/^import type[^\n]+\n/gm, '');   // strip `import type` lines
+    src = src.replace(/: RouteMap\b/g, '');              // strip variable type annotation
+    const dataUri = `data:text/javascript;charset=utf-8,${encodeURIComponent(src)}`;
+    const mod = await import(dataUri);
+    return mod.routes ?? null;
+  } catch (e) {
+    warn(`Failed to load TS route map for ${exchange}: ${e.message}`);
+    return null;
+  }
+}
+
+// ── Affiliate referral landing capture ───────────────────────────────────────
+
+async function captureAffiliateRoute(browser, exchange, category, routeConfig, date) {
+  const affiliate = getAffiliate(exchange);
+  if (!affiliate) {
+    warn(`No affiliate snapshot entry for "${exchange}" — skipping ${category}`);
+    return { category, status: 'failed', reason: 'no_affiliate_entry', rawPath: null };
+  }
+
+  // Use the canonical affiliate URL (overrides routeConfig.url)
+  const originalUrl = affiliate.affiliateUrl;
+
+  const rawDir = join(ROOT, '_raw-screenshots', exchange, category);
+  if (!existsSync(rawDir)) mkdirSync(rawDir, { recursive: true });
+  const rawFilename = `raw-${date}-${Date.now()}.png`;
+  const rawPath     = join(rawDir, rawFilename);
+
+  // Fresh context — no saved session for affiliate landing pages
+  const ctx = await browser.newContext({
+    viewport: VIEWPORT_DESKTOP,
+    userAgent: DESKTOP_UA,
+    locale:     'en-US',
+    timezoneId: 'UTC',
+  });
+
+  const page = await ctx.newPage();
+  let finalUrl         = originalUrl;
+  let paramSurvived    = false;
+  let promoCodeVisible = false;
+  let bonusAmountVisible = false;
+
+  try {
+    await page.setViewportSize(VIEWPORT_DESKTOP);
+    dbg(`Affiliate navigate: ${originalUrl}`);
+
+    await page.goto(originalUrl, { waitUntil: 'domcontentloaded', timeout: PAGE_TO });
+
+    try {
+      await page.waitForLoadState('networkidle', { timeout: 8000 });
+    } catch { dbg('Network idle timeout — continuing'); }
+
+    finalUrl      = page.url();
+    paramSurvived = checkReferralSurvival(finalUrl, affiliate);
+
+    dbg(`Final URL: ${finalUrl}`);
+    dbg(`Param survived: ${paramSurvived}`);
+
+    // Safety check
+    const safety = await safetyCheck(page, originalUrl, routeConfig);
+    if (!safety.safe) {
+      return { category, status: 'blocked_safety', reason: safety.reason, rawPath: null,
+               originalUrl, finalUrl, paramSurvived };
+    }
+
+    await dismissCookieBanner(page);
+
+    if (routeConfig.waitForSelector) {
+      try {
+        await page.waitForSelector(routeConfig.waitForSelector, { timeout: 10000 });
+      } catch { dbg(`Expected selector not found: ${routeConfig.waitForSelector}`); }
+    }
+
+    await page.waitForTimeout(routeConfig.waitForTimeout ?? 3500);
+
+    // Check if promo code text appears on the page
+    if (affiliate.promoCode) {
+      try {
+        const text = await page.evaluate(() => document.body.innerText);
+        promoCodeVisible = text.toUpperCase().includes(affiliate.promoCode.toUpperCase());
+        dbg(`Promo code "${affiliate.promoCode}" visible: ${promoCodeVisible}`);
+      } catch { /* ignore */ }
+    }
+
+    // Check if bonus amount text appears on the page
+    if (affiliate.maxBonusAmount) {
+      try {
+        const text = await page.evaluate(() => document.body.innerText);
+        const amt  = affiliate.maxBonusAmount;
+        bonusAmountVisible = text.includes(amt.toLocaleString()) || text.includes(amt.toString());
+        dbg(`Bonus amount ${amt} visible: ${bonusAmountVisible}`);
+      } catch { /* ignore */ }
+    }
+
+    // Inject blur CSS
+    if (!NO_BLUR) {
+      const blurCSS = BLUR_CSS_GLOBAL + (BLUR_CSS_EXCHANGE[exchange] ?? '');
+      await page.addStyleTag({ content: blurCSS });
+      await page.waitForTimeout(300);
+    }
+
+    const screenshotBuffer = await page.screenshot({
+      fullPage: routeConfig.fullPage ?? false,
+      type: 'png',
+    });
+
+    writeFileSync(rawPath, screenshotBuffer);
+    dbg(`Raw saved: ${rawPath}`);
+
+    return {
+      category,
+      status: 'captured',
+      rawPath,
+      device: 'desktop',
+      originalUrl,
+      finalUrl,
+      paramSurvived,
+      promoCodeVisible,
+      bonusAmountVisible,
+      error: null,
+    };
+
+  } catch (e) {
+    const reason = e.message.includes('timeout') ? 'TIMEOUT'
+                 : e.message.includes('net::')   ? 'NETWORK_ERROR'
+                 : 'ERROR';
+    return { category, status: 'failed', reason, error: e.message, rawPath: null,
+             originalUrl, finalUrl, paramSurvived };
+  } finally {
+    await page.close();
+    await ctx.close();
+  }
+}
+
 // ── Dry-run output ────────────────────────────────────────────────────────────
 
 function printDryRun(exchange, routes, authPath) {
@@ -923,8 +1105,23 @@ async function main() {
     return;
   }
 
-  const routes = ROUTE_MAP[EXCHANGE];
-  if (!routes) die(`No route map for "${EXCHANGE}". Supported: ${Object.keys(ROUTE_MAP).join(', ')}`);
+  // Inline ROUTE_MAP is fallback; TS route file takes priority for known fields
+  let routes = ROUTE_MAP[EXCHANGE];
+  if (!routes) {
+    // Exchange not in inline map — still try the TS file
+    routes = {};
+  }
+
+  // Merge TS route file (adds new routes like bonus_referral_landing, registration_mobile, etc.)
+  const tsRoutes = await loadRouteMap(EXCHANGE);
+  if (tsRoutes) {
+    routes = { ...routes, ...tsRoutes };   // TS routes take priority
+    dbg(`Loaded TS route map for ${EXCHANGE}: ${Object.keys(tsRoutes).join(', ')}`);
+  }
+
+  if (Object.keys(routes).length === 0) {
+    die(`No route map for "${EXCHANGE}". Supported: ${Object.keys(ROUTE_MAP).join(', ')}`);
+  }
 
   const authPath = join(ROOT, '.auth', `${EXCHANGE}.json`);
   const hasAuth  = existsSync(authPath) && !NO_AUTH;
@@ -948,7 +1145,7 @@ async function main() {
 
   const contextOptions = {
     viewport: VIEWPORT_DESKTOP,
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+    userAgent: DESKTOP_UA,
     locale: 'en-US',
     timezoneId: 'UTC',
     ...(hasAuth ? { storageState: authPath } : {}),
@@ -956,8 +1153,28 @@ async function main() {
 
   const context = await browser.newContext(contextOptions);
 
+  // Mobile-web context (created on demand below if needed)
+  let mobileWebContext = null;
+  const getMobileWebContext = async () => {
+    if (!mobileWebContext) {
+      mobileWebContext = await browser.newContext({
+        viewport: VIEWPORT_MOBILE,
+        userAgent: MOBILE_WEB_UA,
+        locale: 'en-US',
+        timezoneId: 'UTC',
+        isMobile: true,
+        hasTouch: true,
+        ...(hasAuth ? { storageState: authPath } : {}),
+      });
+    }
+    return mobileWebContext;
+  };
+
+  const modeLabel = AFFILIATE_ONLY ? ' [affiliate-only]'
+                  : AUTH_SAFE_ONLY  ? ' [auth-safe]'
+                  : '';
   console.log('');
-  log(`📸  Harvesting ${EXCHANGE.toUpperCase()} — ${date}`);
+  log(`📸  Harvesting ${EXCHANGE.toUpperCase()}${modeLabel} — ${date}`);
   log('─'.repeat(60));
   log(`  Auth session: ${hasAuth ? '✅ loaded' : '⚠  not found (public pages only)'}`);
   if (NO_BLUR) warn('Blur disabled — !!! review screenshots before approving !!!');
@@ -972,7 +1189,15 @@ async function main() {
   for (const [category, routeConfig] of categoriesToRun) {
     const pad = (category + '                  ').slice(0, 20);
 
-    // Skip/Manual handling
+    // ── AUTH_SENSITIVE: never automate, abort immediately ──────────────────
+    if (routeConfig.safety === 'AUTH_SENSITIVE') {
+      log(`  ${pad}  🛡 AUTH_SENSITIVE — blocked (sensitive content never automated)`);
+      results.push({ category, status: 'auth_sensitive_blocked',
+                     reason: routeConfig.skipReason ?? 'auth_sensitive', notes: routeConfig.notes });
+      continue;
+    }
+
+    // ── SKIP / MANUAL ──────────────────────────────────────────────────────
     if (routeConfig.safety === 'SKIP') {
       log(`  ${pad}  — SKIP  ${routeConfig.skipReason ?? ''}`);
       results.push({ category, status: 'skipped', skipReason: routeConfig.skipReason, notes: routeConfig.notes });
@@ -985,30 +1210,74 @@ async function main() {
       continue;
     }
 
+    // ── Mode filters ───────────────────────────────────────────────────────
+    if (AFFILIATE_ONLY) {
+      // --affiliate-only: capture ONLY AFFILIATE_PUBLIC routes
+      if (routeConfig.safety !== 'AFFILIATE_PUBLIC') {
+        dbg(`  ${pad}  — skipped (affiliate-only mode)`);
+        continue;
+      }
+    } else if (AUTH_SAFE_ONLY) {
+      // --auth-safe: capture ONLY AUTH_SAFE / AUTHED routes
+      if (routeConfig.safety !== 'AUTH_SAFE' && routeConfig.safety !== 'AUTHED') {
+        dbg(`  ${pad}  — skipped (auth-safe mode)`);
+        continue;
+      }
+    } else {
+      // Default mode: capture PUBLIC routes only
+      // Exclude AFFILIATE_PUBLIC, AUTH_SAFE, AUTH_SENSITIVE (already handled above)
+      if (routeConfig.safety === 'AFFILIATE_PUBLIC' || routeConfig.safety === 'AUTH_SAFE') {
+        dbg(`  ${pad}  — skipped in default mode (use --affiliate-only or --auth-safe)`);
+        continue;
+      }
+    }
+
+    // ── Auth required check ────────────────────────────────────────────────
     if (routeConfig.requiresAuth && !hasAuth) {
       log(`  ${pad}  ⚠ SKIP (auth required — run screenshots:auth-login first)`);
       results.push({ category, status: 'auth_required', notes: routeConfig.notes });
       continue;
     }
 
-    // Capture
+    // ── Capture ────────────────────────────────────────────────────────────
     process.stdout.write(`  ${pad}  ⏳ capturing...`);
-    const captureResult = await captureCategory(context, EXCHANGE, category, routeConfig, date);
+    let captureResult;
+
+    if (routeConfig.safety === 'AFFILIATE_PUBLIC') {
+      // Affiliate capture: uses affiliate URL, tracks ref-code survival
+      captureResult = await captureAffiliateRoute(browser, EXCHANGE, category, routeConfig, date);
+
+    } else if (routeConfig.device === 'mobile-web') {
+      // Mobile-web capture: 390×844 viewport with iPhone Safari UA
+      const mobileCtx = await getMobileWebContext();
+      const mobileRouteConfig = { ...routeConfig, viewport: VIEWPORT_MOBILE };
+      captureResult = await captureCategory(mobileCtx, EXCHANGE, category, mobileRouteConfig, date);
+
+    } else {
+      // Standard capture (PUBLIC / AUTH_SAFE / AUTHED)
+      captureResult = await captureCategory(context, EXCHANGE, category, routeConfig, date);
+    }
 
     if (captureResult.status === 'captured') {
-      // Process
       const processed = await processCapture(captureResult, EXCHANGE, category, date);
       results.push({ ...processed, notes: routeConfig.notes });
       const size = processed.processedPath && existsSync(processed.processedPath)
         ? ` (${(readFileSync(processed.processedPath).length / 1024).toFixed(0)}KB)`
         : '';
-      process.stdout.write(`\r  ${pad}  ✅ done${size}\n`);
+
+      // Affiliate summary line
+      const affiliateSuffix = captureResult.originalUrl
+        ? ` [ref:${captureResult.paramSurvived ? '✓' : '✗'} promo:${captureResult.promoCodeVisible ? '✓' : '✗'} bonus:${captureResult.bonusAmountVisible ? '✓' : '✗'}]`
+        : '';
+      process.stdout.write(`\r  ${pad}  ✅ done${size}${affiliateSuffix}\n`);
+
     } else {
       results.push({ ...captureResult, notes: routeConfig.notes });
       process.stdout.write(`\r  ${pad}  ❌ ${captureResult.reason ?? captureResult.status}\n`);
     }
   }
 
+  if (mobileWebContext) await mobileWebContext.close();
   await browser.close();
 
   // ── Write approval queue ─────────────────────────────────────────────────
