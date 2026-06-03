@@ -44,74 +44,98 @@ function loadAuditReport() {
 
 // ── Format message ────────────────────────────────────────────────────────────
 
+function loadRefreshQueue() {
+  const p = join(ROOT, 'reports', 'screenshot-refresh-queue.json');
+  if (!existsSync(p)) return null;
+  try { return JSON.parse(readFileSync(p, 'utf-8')); } catch { return null; }
+}
+
 function buildScreenshotReportMessage(queue, quality, audit, date) {
+  // Compute overall severity
+  const pending  = queue?.summary?.pending  ?? 0;
+  const failed   = queue?.summary?.failed   ?? 0;
+  const missing  = audit?.summary?.missing  ?? 0;
+  const outdated = audit?.summary?.outdated ?? 0;
+  const qFailed  = quality ? ((quality.summary?.failed ?? 0)) : 0;
+  const issueCount = failed + qFailed;
+
+  const severityLevel = (failed > 0 || qFailed > 0)   ? 'CRITICAL'
+                      : (missing > 0 || outdated > 0)  ? 'WARNING'
+                      : pending > 0                    ? 'INFO'
+                      : 'OK';
+  const severityLine  = severityLevel === 'CRITICAL' ? '🚨 CRITICAL'
+                      : severityLevel === 'WARNING'   ? '⚠️ WARNING'
+                      : severityLevel === 'INFO'      ? 'ℹ️ INFO'
+                      : '✅ OK';
+
+  const checkedCount = quality?.summary?.checked ?? audit?.summary?.total ?? queue?.summary?.total ?? 0;
+
   const lines = [
-    `📸 <b>CryptoBonusWorld — Screenshot Report</b>`,
-    `<i>${date}</i>`,
+    `📸 <b>Screenshots</b>`,
+    `${severityLine}  |  ${date}`,
     '',
+    `Checked: <b>${checkedCount}</b>  |  Issues: ${issueCount}`,
   ];
 
   if (!queue && !quality && !audit) {
-    lines.push(
-      `ℹ️ No screenshot reports found.`,
-      `Run <code>npm run screenshots:quality:write</code> to generate.`,
-    );
+    lines.push(`ℹ️ No screenshot reports found yet.`);
   } else {
-    // Approval queue
+    // Approval queue summary
     if (queue) {
-      const { summary, items = [], exchange } = queue;
-      lines.push(`<b>Approval Queue</b> (${exchange ?? 'all exchanges'})`);
-      lines.push(`Total: ${summary.total ?? items.length}`);
-      if ((summary.pending ?? 0) > 0) lines.push(`⏳ Pending approval: ${summary.pending}`);
-      if ((summary.failed  ?? 0) > 0) lines.push(`❌ Failed: ${summary.failed}`);
-      if ((summary.skipped ?? 0) > 0) lines.push(`— Skipped: ${summary.skipped}`);
-      if ((summary.safety  ?? 0) > 0) lines.push(`🛡 Safety blocked: ${summary.safety}`);
+      const { summary, items = [] } = queue;
+      if (pending > 0)              lines.push(`⏳ Pending approval: ${pending}`);
+      if (failed > 0)               lines.push(`❌ Failed: ${failed}`);
+      if ((summary?.skipped ?? 0) > 0) lines.push(`— Skipped: ${summary.skipped}`);
+      if ((summary?.safety  ?? 0) > 0) lines.push(`🛡 Safety blocked: ${summary.safety}`);
 
-      // Affiliate captures with ref-tracking data
+      // Top 3 affiliate capture actions
       const affiliateItems = items.filter(i => i.affiliateCapture);
       if (affiliateItems.length > 0) {
-        lines.push('', '<b>Affiliate captures:</b>');
-        for (const item of affiliateItems) {
-          const ref   = item.paramSurvived    ? '✅' : '❌';
+        lines.push('', '<b>Top actions (affiliate):</b>');
+        for (const item of affiliateItems.slice(0, 3)) {
+          const ref   = item.paramSurvived     ? '✅' : '❌';
           const promo = item.promoCodeVisible  ? '✅' : '❓';
           const bonus = item.bonusAmountVisible ? '✅' : '❓';
-          lines.push(`${formatStatusEmoji(item.status)} <b>${item.exchange}/${item.category}</b>`);
-          lines.push(`   Ref param: ${ref}  Promo visible: ${promo}  Bonus visible: ${bonus}`);
-          if (item.finalUrl) lines.push(`   URL: <code>${item.finalUrl.slice(0, 80)}</code>`);
+          lines.push(`${formatStatusEmoji(item.status)} <b>${item.exchange}</b> — ref:${ref} promo:${promo} bonus:${bonus}`);
         }
+        if (affiliateItems.length > 3) lines.push(`   … and ${affiliateItems.length - 3} more`);
       }
-      lines.push('');
     }
 
     // Quality report
     if (quality) {
-      const { summary: qs } = quality;
+      const qs = quality.summary;
       const allOk = (qs?.failed ?? 0) === 0;
       lines.push(
-        `<b>Quality Check</b>`,
-        allOk ? `✅ All ${qs?.checked ?? '?'} screenshots passed` : `⚠️ ${qs?.failed} of ${qs?.checked} failed`,
+        '',
+        `<b>Quality:</b> ${allOk
+          ? `✅ All ${qs?.checked ?? '?'} passed`
+          : `🚨 ${qs?.failed}/${qs?.checked} failed`}`,
       );
-      if ((qs?.recommended ?? 0) > 0) lines.push(`⭐ Recommended for approval: ${qs.recommended}`);
-      lines.push('');
     }
 
     // Audit report
     if (audit) {
-      const { summary: as } = audit;
-      lines.push(
-        `<b>Screenshot Audit</b>`,
-        `Missing: ${as?.missing ?? 0}  Outdated: ${as?.outdated ?? 0}  Present: ${as?.present ?? 0}`,
-      );
-      lines.push('');
+      const as = audit.summary;
+      lines.push(`<b>Audit:</b> missing ${as?.missing ?? 0}  outdated ${as?.outdated ?? 0}  present ${as?.present ?? 0}`);
     }
   }
 
+  // Refresh queue (from evidence-snapshot system)
+  const refreshQueue = loadRefreshQueue();
+  const pendingRefresh = refreshQueue?.items?.filter(i => i.status === 'pending_approval') ?? [];
+  if (pendingRefresh.length > 0) {
+    lines.push('', `<b>Refresh queue (${pendingRefresh.length} pending):</b>`);
+    for (const item of pendingRefresh.slice(0, 3)) {
+      lines.push(`🔄 <b>${item.exchange}</b>/${item.region} — ${item.reason}`);
+    }
+    if (pendingRefresh.length > 3) lines.push(`   … and ${pendingRefresh.length - 3} more`);
+  }
+
   lines.push(
-    `📄 <b>Next steps:</b>`,
-    `<code>npm run screenshots:approve -- --list</code>`,
-    `<code>npm run screenshots:review</code>`,
     '',
-    `<i>Generated: ${date}</i>`,
+    `📄 <code>reports/screenshot-approval-queue.md</code>`,
+    `<i>${date}</i>`,
   );
 
   return lines.join('\n');

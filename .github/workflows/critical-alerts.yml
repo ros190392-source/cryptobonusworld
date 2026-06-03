@@ -1,15 +1,16 @@
-name: Telegram Reports
+name: Critical Alerts
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 */6 * * *'
+  # Uncomment to enable scheduled critical-only alerting:
+  # schedule:
+  #   - cron: '0 8 * * *'   # Daily at 08:00 UTC
 
 jobs:
-  send-reports:
-    name: Send Telegram Reports
+  critical-alert:
+    name: Send Critical Alerts
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
 
     env:
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -39,17 +40,5 @@ jobs:
       - name: Generate affiliate report
         run: npm run affiliate:report || npm run affiliate:audit:strict
 
-      - name: Generate screenshots report
-        run: npm run screenshots:report || npm run screenshots:check
-
-      - name: Send bonus report
-        run: npm run bonus:telegram-report -- --send
-
-      - name: Send affiliate report
-        run: npm run affiliate:telegram-report -- --send
-
-      - name: Send screenshots report
-        run: npm run screenshots:telegram-report -- --send
-
-      - name: Send consolidated summary
-        run: npm run monitor:telegram:summary -- --send
+      - name: Send critical alerts
+        run: npm run monitor:telegram:critical -- --send

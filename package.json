@@ -107,7 +107,11 @@
     "bonus:approve:all": "node scripts/approve-bonus-updates.mjs --approve-all",
     "bonus:telegram-report": "node scripts/bonus-telegram-report.mjs",
     "affiliate:telegram-report": "node scripts/affiliate-telegram-report.mjs",
-    "screenshots:telegram-report": "node scripts/screenshots-telegram-report.mjs"
+    "screenshots:telegram-report": "node scripts/screenshots-telegram-report.mjs",
+    "monitor:telegram:summary": "node scripts/monitor-telegram-summary.mjs",
+    "monitor:telegram:critical": "node scripts/monitor-telegram-critical.mjs",
+    "evidence:snapshot:index": "node scripts/evidence-snapshot.mjs --rebuild-index",
+    "evidence:snapshot:index:verbose": "node scripts/evidence-snapshot.mjs --rebuild-index --verbose"
   },
   "dependencies": {
     "astro": "^4.15.0"

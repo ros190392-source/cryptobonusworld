@@ -56,62 +56,68 @@ function loadAffiliateSnapshot() {
 // ── Format message ────────────────────────────────────────────────────────────
 
 function buildAffiliateReportMessage(auditData, date) {
-  const lines = [
-    `🔗 <b>CryptoBonusWorld — Affiliate Link Report</b>`,
-    `<i>${date}</i>`,
-    '',
-  ];
-
   if (!auditData) {
     const slugs = loadAffiliateSnapshot();
-    lines.push(
-      `ℹ️ Audit data not available — affiliate-snapshot loaded`,
-      `Tracked exchanges: ${slugs.length}`,
+    const lines = [
+      `🔗 <b>Affiliate Links</b>`,
+      `ℹ️ INFO  |  ${date}`,
       '',
-      `Run <code>npm run affiliate:audit</code> for full details.`,
-    );
-  } else {
-    const { summary, issues = [], exchanges = [] } = auditData;
+      `Checked: <b>${slugs.length}</b> exchanges  |  Issues: 0`,
+      `Audit data not available — using snapshot`,
+      '',
+      `📄 <code>reports/affiliate-link-inventory.md</code>`,
+      `<i>${date}</i>`,
+    ];
+    return lines.join('\n');
+  }
 
-    const severity = (summary?.errors ?? 0) > 0 ? '🚨 CRITICAL'
-                   : (summary?.warnings ?? 0) > 0 ? '⚠️ WARNING'
-                   : '✅ OK';
-    lines.push(severity, '');
+  const { summary, issues = [] } = auditData;
+  const errors   = summary?.errors   ?? 0;
+  const warnings = summary?.warnings ?? 0;
+  const total    = summary?.total    ?? 0;
+  const ok       = summary?.ok       ?? 0;
+  const issueCount = errors + warnings;
 
-    if (summary) {
-      lines.push(
-        `<b>Summary</b>`,
-        `Total exchanges: ${summary.total ?? '—'}`,
-        summary.errors   > 0 ? `🚨 Errors: ${summary.errors}`   : null,
-        summary.warnings > 0 ? `⚠️ Warnings: ${summary.warnings}` : null,
-        summary.ok       > 0 ? `✅ OK: ${summary.ok}` : null,
-      ).filter(Boolean);
+  const severityLevel = errors > 0   ? 'CRITICAL'
+                      : warnings > 0 ? 'WARNING'
+                      : 'OK';
+  const severityLine  = severityLevel === 'CRITICAL' ? '🚨 CRITICAL'
+                      : severityLevel === 'WARNING'   ? '⚠️ WARNING'
+                      : '✅ OK';
+
+  // Top 3 actions
+  const topIssues = issues
+    .filter(i => i.severity === 'error' || i.level === 'error' || i.severity === 'warning' || i.level === 'warning')
+    .slice(0, 3);
+
+  const lines = [
+    `🔗 <b>Affiliate Links</b>`,
+    `${severityLine}  |  ${date}`,
+    '',
+    `Checked: <b>${total}</b> exchanges  |  Issues: ${issueCount}`,
+    errors   > 0 ? `🚨 Errors: ${errors}`     : null,
+    warnings > 0 ? `⚠️ Warnings: ${warnings}` : null,
+    ok       > 0 ? `✅ OK: ${ok}`             : null,
+  ].filter(Boolean);
+
+  if (topIssues.length > 0) {
+    lines.push('', '<b>Top actions:</b>');
+    for (const issue of topIssues) {
+      const icon = (issue.severity === 'error' || issue.level === 'error') ? '🚨' : '⚠️';
+      const ex   = issue.exchange ?? issue.slug ?? '?';
+      const msg  = issue.message ?? issue.description ?? JSON.stringify(issue);
+      lines.push(`${icon} <b>${ex}</b>: ${String(msg).slice(0, 100)}`);
     }
-
-    const criticalIssues = issues.filter(i => i.severity === 'error' || i.level === 'error');
-    if (criticalIssues.length > 0) {
-      lines.push('', '<b>Issues:</b>');
-      for (const issue of criticalIssues.slice(0, 5)) {
-        const ex  = issue.exchange ?? issue.slug ?? '?';
-        const msg = issue.message ?? issue.description ?? JSON.stringify(issue);
-        lines.push(`🚨 <b>${ex}</b>: ${String(msg).slice(0, 120)}`);
-      }
-      if (criticalIssues.length > 5) {
-        lines.push(`… and ${criticalIssues.length - 5} more`);
-      }
-    }
+    if (issues.length > 3) lines.push(`   … and ${issues.length - 3} more`);
   }
 
   lines.push(
     '',
-    `📄 <b>Full audit:</b>`,
-    `<code>npm run affiliate:audit</code>`,
-    `<code>reports/affiliate-link-inventory.md</code>`,
-    '',
-    `<i>Generated: ${date}</i>`,
+    `📄 <code>reports/affiliate-link-inventory.md</code>`,
+    `<i>${date}</i>`,
   );
 
-  return lines.filter(l => l !== null).join('\n');
+  return lines.join('\n');
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────

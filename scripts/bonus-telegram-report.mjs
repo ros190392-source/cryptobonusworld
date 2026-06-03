@@ -46,72 +46,84 @@ function buildBonusReportMessage(report, proposals) {
     : '—';
 
   // Overall severity
-  const severity = summary.mismatch > 0                ? '🚨 CRITICAL'
-                 : summary.needsManualReview > 0        ? '⚠️ WARNING'
-                 : summary.unknown > 0                  ? 'ℹ️ INFO'
-                 : '✅ OK';
+  const severityLevel = summary.mismatch > 0         ? 'CRITICAL'
+                      : summary.needsManualReview > 0 ? 'WARNING'
+                      : summary.unknown > 0            ? 'INFO'
+                      : 'OK';
+  const severityLine  = severityLevel === 'CRITICAL' ? '🚨 CRITICAL'
+                      : severityLevel === 'WARNING'   ? '⚠️ WARNING'
+                      : severityLevel === 'INFO'      ? 'ℹ️ INFO'
+                      : '✅ OK';
 
-  const lines = [
-    `🎁 <b>CryptoBonusWorld — Bonus Verification Report</b>`,
-    `${severity}`,
-    '',
-    `<b>Summary</b>`,
-    `Checked: ${summary.total} exchanges`,
-    `✅ Matched: ${summary.matched}`,
-    summary.mismatch         > 0 ? `🚨 Mismatch: ${summary.mismatch}` : null,
-    summary.needsManualReview > 0 ? `⚠️ Needs review: ${summary.needsManualReview}` : null,
-    summary.unknown          > 0 ? `❓ Unknown: ${summary.unknown}` : null,
-  ].filter(Boolean);
+  // Screenshot changes
+  const changedScreenshots = records.filter(r => r.screenshotChanged);
 
-  // Top issues (mismatches + needs_manual_review first)
-  const issues = records
+  // Top 3 actions
+  const actionItems = records
     .filter(r => r.matchStatus !== 'matched' && r.matchStatus !== 'matched_with_copy_difference')
     .sort((a, b) => {
       const order = { critical: 0, high: 1, medium: 2, low: 3, none: 4 };
       return (order[a.mismatchSeverity] ?? 5) - (order[b.mismatchSeverity] ?? 5);
-    });
+    })
+    .slice(0, 3);
 
-  if (issues.length > 0) {
-    lines.push('', '<b>Issues requiring attention:</b>');
-    for (const r of issues.slice(0, 5)) { // max 5 issues
+  // Issue count (excluding unknown/low)
+  const issueCount = records.filter(r =>
+    r.matchStatus === 'mismatch' || r.matchStatus === 'needs_manual_review'
+  ).length;
+
+  const lines = [
+    `🎁 <b>Bonus Verification</b>`,
+    `${severityLine}  |  ${generatedAt}`,
+    '',
+    `Checked: <b>${summary.total}</b> exchanges`,
+    `✅ Matched: ${summary.matched}  |  Issues: ${issueCount}`,
+    summary.mismatch          > 0 ? `🚨 Mismatch: ${summary.mismatch}` : null,
+    summary.needsManualReview > 0 ? `⚠️ Needs review: ${summary.needsManualReview}` : null,
+    summary.unknown           > 0 ? `❓ Unknown: ${summary.unknown}` : null,
+    changedScreenshots.length > 0 ? `🔄 Screenshots changed: ${changedScreenshots.length}` : null,
+  ].filter(Boolean);
+
+  // Top 3 actions
+  if (actionItems.length > 0) {
+    lines.push('', '<b>Top actions:</b>');
+    for (const r of actionItems) {
       const icon = r.matchStatus === 'mismatch' ? '🚨'
-                 : r.matchStatus === 'needs_manual_review' ? '⚠️'
-                 : '❓';
+                 : r.matchStatus === 'needs_manual_review' ? '⚠️' : '❓';
       const det  = r.detectedBonus
-        ? `detected: ${r.detectedBonus.toLocaleString()} ${r.detectedBonusCurrency}`
+        ? `${r.detectedBonus.toLocaleString()} ${r.detectedBonusCurrency} detected`
         : 'not detected';
-      const exp  = r.expectedBonus
-        ? `expected: ${r.expectedBonus.toLocaleString()} ${r.expectedBonusCurrency}`
-        : '';
-      lines.push(`${icon} <b>${r.exchange}</b> — ${exp}${exp ? ', ' : ''}${det}`);
-      if (r.recommendedAction) {
-        lines.push(`   → ${r.recommendedAction}`);
-      }
+      const exp  = r.expectedBonus ? `exp: ${r.expectedBonus.toLocaleString()}` : '';
+      lines.push(`${icon} <b>${r.exchange}</b>${exp ? ` (${exp})` : ''} — ${det}`);
+      if (r.recommendedAction) lines.push(`   ↳ ${r.recommendedAction.slice(0, 100)}`);
     }
-    if (issues.length > 5) {
-      lines.push(`   … and ${issues.length - 5} more (see report)`);
+  }
+
+  // Screenshot changes
+  if (changedScreenshots.length > 0) {
+    lines.push('', '<b>Screenshot changes (pending approval):</b>');
+    for (const r of changedScreenshots.slice(0, 3)) {
+      lines.push(`🔄 <b>${r.exchange}</b>/${r.region ?? 'GLOBAL'} — hash changed`);
     }
+    if (changedScreenshots.length > 3) lines.push(`   … and ${changedScreenshots.length - 3} more`);
   }
 
   // Pending proposals
   const pendingProps = proposals?.proposals?.filter(p => p.status === 'pending') ?? [];
   if (pendingProps.length > 0) {
-    lines.push('', '<b>Pending update proposals:</b>');
+    lines.push('', `<b>Pending proposals: ${pendingProps.length}</b>`);
     for (const p of pendingProps.slice(0, 3)) {
       const risk = p.riskLevel === 'high' ? '🔴' : p.riskLevel === 'medium' ? '⚠️' : '🟡';
       lines.push(`${risk} ${p.exchange} — ${p.currentValue?.toLocaleString() ?? '?'} → ${p.detectedValue?.toLocaleString() ?? '?'} USDT`);
     }
-    lines.push(`To apply: <code>npm run bonus:approve -- --approve-all</code>`);
+    if (pendingProps.length > 3) lines.push(`   … and ${pendingProps.length - 3} more`);
+    lines.push(`<code>npm run bonus:approve -- --approve-all</code>`);
   }
 
-  // Footer
   lines.push(
     '',
-    `📄 <b>Reports:</b>`,
-    `<code>reports/bonus-verification-report.md</code>`,
-    `<code>reports/bonus-update-proposals.md</code>`,
-    ``,
-    `<i>Generated: ${generatedAt}</i>`,
+    `📄 <code>reports/bonus-verification-report.md</code>`,
+    `<i>${generatedAt}</i>`,
   );
 
   return lines.join('\n');

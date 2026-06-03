@@ -14,12 +14,17 @@
  *   reports/bonus-verification-report.json / .md
  *   reports/bonus-update-proposals.json / .md
  *   reports/evidence/{exchange}-bonus-{date}.txt  (page text snapshots)
+ *   reports/evidence-snapshots/{exchange}-{region}-{date}.json
+ *   reports/evidence-snapshots/index.json / index.md
+ *   reports/screenshot-refresh-queue.json         (pending approval entries)
  *
  * Usage:
  *   npm run bonus:verify -- --exchange binance
  *   npm run bonus:verify -- --all
  *   npm run bonus:verify -- --exchange binance --dry-run
  *   npm run bonus:verify -- --all --write
+ *   npm run bonus:verify -- --all --region GLOBAL
+ *   npm run bonus:verify -- --all --all-regions
  *   npm run bonus:verify:stale
  */
 
@@ -27,6 +32,13 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { AFFILIATE_SNAPSHOT, getAffiliate, checkReferralSurvival } from './lib/affiliate-snapshot.mjs';
+import {
+  saveEvidenceSnapshot,
+  buildIndex as buildEvidenceIndex,
+  detectScreenshotChange,
+  addToRefreshQueue,
+  hashFile,
+} from './evidence-snapshot.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT      = join(__dirname, '..');
@@ -37,13 +49,41 @@ const ARGV     = process.argv.slice(2);
 const flag     = (n) => ARGV.includes(n);
 const opt      = (n, fb) => { const i = ARGV.indexOf(n); return i !== -1 && i+1 < ARGV.length ? ARGV[i+1] : (fb ?? null); };
 
-const EXCHANGE  = opt('--exchange');
-const ALL       = flag('--all');
-const DRY_RUN   = flag('--dry-run');
-const STALE     = flag('--stale-only');
-const WRITE     = flag('--write');
-const VERBOSE   = flag('--verbose');
-const JSON_OUT  = flag('--json');
+const EXCHANGE    = opt('--exchange');
+const ALL         = flag('--all');
+const DRY_RUN     = flag('--dry-run');
+const STALE       = flag('--stale-only');
+const WRITE       = flag('--write');
+const VERBOSE     = flag('--verbose');
+const JSON_OUT    = flag('--json');
+const REGION_ARG  = opt('--region', 'GLOBAL');   // e.g. --region PL
+const ALL_REGIONS = flag('--all-regions');
+
+// ── Region loading (inline TS-strip, same pattern as route maps) ──────────────
+
+async function loadRegions() {
+  const tsPath = join(ROOT, 'src', 'data', 'verification-regions.ts');
+  if (!existsSync(tsPath)) {
+    return [{ code: 'GLOBAL', label: 'Global', locale: 'en-US', enabled: true, proxyEnvKey: null }];
+  }
+  try {
+    let src = readFileSync(tsPath, 'utf-8');
+    // Strip TypeScript-only syntax
+    src = src.replace(/^import type[^\n]+\n/gm, '');
+    src = src.replace(/^export interface[^{]*\{[^}]*\}/gms, '');
+    src = src.replace(/export function getRegion[^}]*\}/gs, '');
+    src = src.replace(/export function getEnabledRegions[^}]*\}/gs, '');
+    src = src.replace(/:\s*VerificationRegion(\[\])?/g, '');
+    src = src.replace(/:\s*string(\[\])?/g, '');
+    src = src.replace(/:\s*boolean/g, '');
+    const dataUri = `data:text/javascript;charset=utf-8,${encodeURIComponent(src)}`;
+    const mod = await import(dataUri);
+    return mod.VERIFICATION_REGIONS ?? [];
+  } catch (e) {
+    warn(`Could not load verification-regions.ts: ${e.message}`);
+    return [{ code: 'GLOBAL', label: 'Global', locale: 'en-US', enabled: true, proxyEnvKey: null }];
+  }
+}
 
 const log  = (...a) => !JSON_OUT && console.log(' ', ...a);
 const dbg  = (...a) => VERBOSE && !JSON_OUT && console.log('  ·', ...a);
@@ -152,7 +192,15 @@ function determineMatch(detected, expected, paramSurvived, promoVisible) {
 const PAGE_TO = 25000;
 const DESKTOP_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36';
 
-async function verifyExchangeLive(browser, exchange, affiliate) {
+/**
+ * @param {object} browser   Playwright browser instance
+ * @param {string} exchange
+ * @param {object} affiliate AffiliateSnapshot entry
+ * @param {object} [region]  VerificationRegion config (defaults to GLOBAL)
+ */
+async function verifyExchangeLive(browser, exchange, affiliate, region = null) {
+  const regionCode = region?.code ?? 'GLOBAL';
+  const locale     = region?.locale ?? 'en-US';
   const date       = dateStamp();
   const originalUrl = affiliate.affiliateUrl;
 
@@ -162,17 +210,33 @@ async function verifyExchangeLive(browser, exchange, affiliate) {
   let detectedPromo    = null;
   let pageText         = '';
   let captureError     = null;
+  let redirectChain    = [];
 
-  const ctx = await browser.newContext({
+  // Proxy setup
+  const contextOpts = {
     viewport: { width: 1440, height: 900 },
     userAgent: DESKTOP_UA,
-    locale: 'en-US',
+    locale,
     timezoneId: 'UTC',
-  });
+  };
+  if (region?.proxyEnvKey) {
+    const proxyUrl = process.env[region.proxyEnvKey];
+    if (proxyUrl) contextOpts.proxy = { server: proxyUrl };
+  }
+
+  const ctx = await browser.newContext(contextOpts);
   const page = await ctx.newPage();
 
   try {
-    dbg(`Visiting: ${originalUrl}`);
+    dbg(`Visiting: ${originalUrl} [region=${regionCode}]`);
+    // Track redirect chain
+    page.on('response', resp => {
+      const status = resp.status();
+      if (status >= 300 && status < 400) {
+        redirectChain.push({ from: resp.url(), status });
+      }
+    });
+
     await page.goto(originalUrl, { waitUntil: 'domcontentloaded', timeout: PAGE_TO });
     try { await page.waitForLoadState('networkidle', { timeout: 8000 }); } catch {}
 
@@ -206,9 +270,11 @@ async function verifyExchangeLive(browser, exchange, affiliate) {
   // Save text evidence
   const evidenceDir  = join(ROOT, 'reports', 'evidence');
   if (!existsSync(evidenceDir)) mkdirSync(evidenceDir, { recursive: true });
-  const textEvidencePath = join(evidenceDir, `${exchange}-bonus-${date}.txt`);
+  const textEvidencePath    = join(evidenceDir, `${exchange}-bonus-${date}.txt`);
+  const textEvidenceRelPath = `reports/evidence/${exchange}-bonus-${date}.txt`;
   const evidenceContent  = [
     `Exchange:   ${exchange}`,
+    `Region:     ${regionCode}`,
     `Date:       ${date}`,
     `OriginalURL:${originalUrl}`,
     `FinalURL:   ${finalUrl}`,
@@ -221,16 +287,41 @@ async function verifyExchangeLive(browser, exchange, affiliate) {
   ].join('\n');
   writeFileSync(textEvidencePath, evidenceContent, 'utf8');
 
+  // Screenshot hash — look for an existing processed screenshot
+  const screenshotAbsPath = join(
+    ROOT, 'public', 'screenshots', exchange, `bonus_referral_landing`,
+    `global-desktop-${date}.webp`
+  );
+  const screenshotRelPath = existsSync(screenshotAbsPath)
+    ? `public/screenshots/${exchange}/bonus_referral_landing/global-desktop-${date}.webp`
+    : null;
+  const screenshotHash = hashFile(screenshotAbsPath);
+
+  // Detect if screenshot changed vs previous snapshot
+  const { changed: screenshotChanged, previousHash: previousScreenshotHash } =
+    detectScreenshotChange(exchange, regionCode, screenshotHash);
+  if (screenshotChanged) {
+    dbg(`  Screenshot changed vs previous snapshot!`);
+  }
+
   return {
     exchange,
+    region: regionCode,
+    locale,
     originalUrl,
     finalUrl,
+    redirectChain,
     paramSurvived,
     detectedAmounts,
     detectedPromo,
-    promoVisible: detectedPromo !== null,
+    promoVisible:          detectedPromo !== null,
     captureError,
-    textEvidencePath: `reports/evidence/${exchange}-bonus-${date}.txt`,
+    textEvidencePath:      textEvidenceRelPath,
+    screenshotAbsPath:     existsSync(screenshotAbsPath) ? screenshotAbsPath : null,
+    screenshotRelPath,
+    screenshotHash,
+    screenshotChanged,
+    previousScreenshotHash,
   };
 }
 
@@ -301,8 +392,11 @@ function buildVerificationRecord(exchange, captureData, affiliate, exchangeData)
 
   return {
     exchange,
+    region:          captureData.region    ?? 'GLOBAL',
+    locale:          captureData.locale    ?? 'en-US',
     affiliateUrl:    captureData.originalUrl,
     finalUrl:        captureData.finalUrl,
+    redirectChain:   captureData.redirectChain ?? [],
     paramSurvived:   captureData.paramSurvived,
     expectedBonus,
     expectedBonusCurrency: expectedCurrency,
@@ -317,9 +411,13 @@ function buildVerificationRecord(exchange, captureData, affiliate, exchangeData)
     matchStatus,
     mismatchSeverity,
     recommendedAction,
+    screenshotHash:         captureData.screenshotHash ?? null,
+    screenshotChanged:      captureData.screenshotChanged ?? false,
+    previousScreenshotHash: captureData.previousScreenshotHash ?? null,
     dataSyncIssues,
     capturedAt:            dateStamp(),
-    screenshotPath:        `/screenshots/${exchange}/bonus_referral_landing/global-desktop-${dateStamp()}.webp`,
+    screenshotPath:        captureData.screenshotRelPath
+                             ?? `public/screenshots/${exchange}/bonus_referral_landing/global-desktop-${dateStamp()}.webp`,
     textEvidencePath:      captureData.textEvidencePath,
     dryRun:                captureData.dryRun ?? false,
     captureError:          captureData.captureError ?? null,
@@ -593,17 +691,21 @@ async function main() {
     exchangesToVerify = Object.keys(AFFILIATE_SNAPSHOT);
   } else {
     console.log(`
-  CryptoBonusWorld Bonus Verification v1
+  CryptoBonusWorld Bonus Verification v2 (region-aware)
 
   Usage:
     node scripts/verify-bonus-capture.mjs --exchange binance
     node scripts/verify-bonus-capture.mjs --all
     node scripts/verify-bonus-capture.mjs --all --dry-run
+    node scripts/verify-bonus-capture.mjs --all --region GLOBAL
+    node scripts/verify-bonus-capture.mjs --all --all-regions
     node scripts/verify-bonus-capture.mjs --stale-only
 
   Options:
     --exchange <slug>   Verify single exchange
     --all               Verify all exchanges in affiliate-snapshot
+    --region <code>     Region code (default: GLOBAL)
+    --all-regions       Run for all enabled regions
     --dry-run           Show what would be checked (uses existing queue data)
     --stale-only        Check freshness of existing reports only
     --write             Write reports even in dry-run mode
@@ -621,118 +723,210 @@ async function main() {
     }
   }
 
+  // Load regions
+  const allRegions = await loadRegions();
+  let regionsToRun;
+  if (ALL_REGIONS) {
+    regionsToRun = allRegions.filter(r => r.enabled);
+  } else {
+    const targetCode = (REGION_ARG ?? 'GLOBAL').toUpperCase();
+    const found = allRegions.find(r => r.code === targetCode);
+    if (!found) {
+      console.error(`  ✖ Unknown region: "${targetCode}". Available: ${allRegions.map(r => r.code).join(', ')}`);
+      process.exit(1);
+    }
+    regionsToRun = [found];
+  }
+
   // Load exchanges.json for cross-reference
   let exchangesData = {};
   try {
     const raw = JSON.parse(readFileSync(join(ROOT, 'src', 'data', 'exchanges.json'), 'utf-8'));
-    for (const ex of raw) {
-      exchangesData[ex.slug] = ex;
-    }
+    for (const ex of raw) exchangesData[ex.slug] = ex;
   } catch (e) {
     warn(`Could not load exchanges.json: ${e.message}`);
   }
 
   log('');
-  log(`🔍  Bonus Verification — ${exchangesToVerify.join(', ')}`);
+  log(`🔍  Bonus Verification — ${exchangesToVerify.join(', ')} × regions: ${regionsToRun.map(r => r.code).join(', ')}`);
   log('─'.repeat(60));
   if (DRY_RUN) log('  Mode: DRY-RUN (no browser launched)');
   log('');
 
-  const captureResults = [];
+  const allRecords   = [];
+  const allProposals = [];
 
-  if (!DRY_RUN) {
-    // Load playwright
-    const { chromium } = await import('playwright').catch(() => {
-      console.error('  ✖ Playwright not installed. Run: npm install -D playwright && npx playwright install chromium');
-      process.exit(1);
-    });
-    const browser = await chromium.launch({
-      headless: true,
-      args: ['--disable-blink-features=AutomationControlled'],
-    });
+  for (const region of regionsToRun) {
+    // Check proxy availability
+    if (region.proxyEnvKey && !process.env[region.proxyEnvKey]) {
+      warn(`  Region ${region.code}: proxy env var ${region.proxyEnvKey} not set — skipping`);
+      allRecords.push({
+        exchange: '*',
+        region:   region.code,
+        matchStatus: 'unknown',
+        mismatchSeverity: 'none',
+        captureError: `proxy_not_configured: ${region.proxyEnvKey}`,
+        capturedAt: dateStamp(),
+      });
+      continue;
+    }
 
-    try {
+    const captureResults = [];
+
+    if (!DRY_RUN) {
+      const { chromium } = await import('playwright').catch(() => {
+        console.error('  ✖ Playwright not installed. Run: npm install -D playwright && npx playwright install chromium');
+        process.exit(1);
+      });
+      const browser = await chromium.launch({
+        headless: true,
+        args: ['--disable-blink-features=AutomationControlled'],
+      });
+
+      try {
+        for (const exchange of exchangesToVerify) {
+          const affiliate = getAffiliate(exchange);
+          process.stdout.write(`  [${region.code}] ${(exchange + '              ').slice(0, 14)}  ⏳ checking...`);
+          const data = await verifyExchangeLive(browser, exchange, affiliate, region);
+          captureResults.push({ exchange, affiliate, data });
+          const amtStr  = data.detectedAmounts.length > 0 ? data.detectedAmounts[0].toLocaleString() + ' USDT' : 'none found';
+          const paramStr = data.paramSurvived ? 'ref:✓' : 'ref:✗';
+          const promoStr = data.promoVisible  ? 'promo:✓' : 'promo:✗';
+          const chgStr   = data.screenshotChanged ? ' 🔄chg' : '';
+          process.stdout.write(`\r  [${region.code}] ${(exchange + '              ').slice(0, 14)}  ✅ [${amtStr}] [${paramStr}] [${promoStr}]${chgStr}\n`);
+        }
+      } finally {
+        await browser.close();
+      }
+
+    } else {
       for (const exchange of exchangesToVerify) {
         const affiliate = getAffiliate(exchange);
-        process.stdout.write(`  ${(exchange + '              ').slice(0, 14)}  ⏳ checking...`);
-        const data = await verifyExchangeLive(browser, exchange, affiliate);
+        const data = verifyExchangeDryRun(exchange, affiliate);
+        // Attach region info to dry-run data
+        data.region = region.code;
+        data.locale = region.locale;
         captureResults.push({ exchange, affiliate, data });
-        const amtStr = data.detectedAmounts.length > 0
-          ? data.detectedAmounts[0].toLocaleString() + ' USDT'
-          : 'none found';
-        const paramStr = data.paramSurvived ? 'ref:✓' : 'ref:✗';
-        const promoStr = data.promoVisible  ? 'promo:✓' : 'promo:✗';
-        process.stdout.write(`\r  ${(exchange + '              ').slice(0, 14)}  ✅ done [${amtStr}] [${paramStr}] [${promoStr}]\n`);
+        log(`  [${region.code}] ${(exchange + '              ').slice(0, 14)}  📋 dry-run`);
       }
-    } finally {
-      await browser.close();
     }
 
-  } else {
-    // Dry-run: use existing queue data
-    for (const exchange of exchangesToVerify) {
-      const affiliate = getAffiliate(exchange);
-      const data = verifyExchangeDryRun(exchange, affiliate);
-      captureResults.push({ exchange, affiliate, data });
-      log(`  ${(exchange + '              ').slice(0, 14)}  📋 dry-run (from queue)`);
+    // Build records for this region
+    const regionRecords = captureResults.map(({ exchange, affiliate, data }) =>
+      buildVerificationRecord(exchange, data, affiliate, exchangesData[exchange] ?? null)
+    );
+
+    // Save evidence snapshots + update refresh queue
+    if (!DRY_RUN) {
+      for (const rec of regionRecords) {
+        const captureData = captureResults.find(c => c.exchange === rec.exchange)?.data;
+        const { snapshotPath } = saveEvidenceSnapshot({
+          exchange:              rec.exchange,
+          region:                rec.region,
+          locale:                rec.locale,
+          affiliateUrl:          rec.affiliateUrl,
+          finalUrl:              rec.finalUrl,
+          redirectChain:         rec.redirectChain ?? [],
+          expectedBonus:         rec.expectedBonus,
+          detectedBonus:         rec.detectedBonus,
+          expectedPromoCode:     rec.expectedPromoCode,
+          detectedPromoCode:     rec.detectedPromoCode,
+          matchStatus:           rec.matchStatus,
+          severity:              rec.mismatchSeverity ?? 'none',
+          textEvidencePath:      rec.textEvidencePath,
+          screenshotAbsPath:     captureData?.screenshotAbsPath ?? null,
+          screenshotRelPath:     captureData?.screenshotRelPath ?? null,
+          screenshotChanged:     rec.screenshotChanged,
+          previousScreenshotHash: rec.previousScreenshotHash,
+        });
+
+        // Auto-queue for refresh if mismatch, unknown (non-low), or screenshot changed
+        const needsRefresh = rec.matchStatus === 'mismatch'
+          || rec.screenshotChanged
+          || (rec.matchStatus === 'unknown' && rec.mismatchSeverity !== 'low' && rec.mismatchSeverity !== 'none');
+        if (needsRefresh) {
+          addToRefreshQueue({
+            exchange:          rec.exchange,
+            region:            rec.region,
+            matchStatus:       rec.matchStatus,
+            screenshotChanged: rec.screenshotChanged,
+            affiliateUrl:      rec.affiliateUrl,
+            finalUrl:          rec.finalUrl,
+            snapshotPath,
+          });
+        }
+      }
+
+      // Rebuild evidence index after all captures
+      buildEvidenceIndex();
+      dbg('Evidence index rebuilt.');
     }
+
+    const regionProposals = generateProposals(regionRecords);
+    allRecords.push(...regionRecords);
+    allProposals.push(...regionProposals);
   }
-
-  // Build verification records + compare against data sources
-  const records = captureResults.map(({ exchange, affiliate, data }) =>
-    buildVerificationRecord(exchange, data, affiliate, exchangesData[exchange] ?? null)
-  );
-
-  // Generate proposals
-  const proposals = generateProposals(records);
 
   // Output
   if (JSON_OUT) {
-    console.log(JSON.stringify({ records, proposals }, null, 2));
+    console.log(JSON.stringify({ records: allRecords, proposals: allProposals }, null, 2));
     return;
   }
 
   // Summary
   log('');
   log('─'.repeat(60));
-  const matched  = records.filter(r => r.matchStatus === 'matched' || r.matchStatus === 'matched_with_copy_difference').length;
-  const mismatch = records.filter(r => r.matchStatus === 'mismatch').length;
-  const unknown  = records.filter(r => r.matchStatus === 'unknown').length;
-  const manual   = records.filter(r => r.matchStatus === 'needs_manual_review').length;
-  log(`  Total:         ${records.length}`);
+  const matched  = allRecords.filter(r => r.matchStatus === 'matched' || r.matchStatus === 'matched_with_copy_difference').length;
+  const mismatch = allRecords.filter(r => r.matchStatus === 'mismatch').length;
+  const unknown  = allRecords.filter(r => r.matchStatus === 'unknown').length;
+  const manual   = allRecords.filter(r => r.matchStatus === 'needs_manual_review').length;
+  const changed  = allRecords.filter(r => r.screenshotChanged).length;
+  log(`  Total:         ${allRecords.length}`);
   log(`  ✅ Matched:    ${matched}`);
   if (mismatch > 0) log(`  🚨 Mismatch:   ${mismatch}`);
   if (unknown  > 0) log(`  ❓ Unknown:    ${unknown}`);
   if (manual   > 0) log(`  ⚠️  Manual:    ${manual}`);
-  if (proposals.length > 0) log(`  📋 Proposals:  ${proposals.length} update(s) suggested`);
+  if (changed  > 0) log(`  🔄 Screenshot changed: ${changed}`);
+  if (allProposals.length > 0) log(`  📋 Proposals:  ${allProposals.length} update(s) suggested`);
   log('');
 
-  // Detailed results
-  for (const r of records) {
-    const icon = r.matchStatus === 'matched' || r.matchStatus === 'matched_with_copy_difference' ? '✅'
-               : r.matchStatus === 'mismatch'             ? '🚨'
-               : r.matchStatus === 'needs_manual_review'  ? '⚠️ '
-               : '❓ ';
-    const det  = r.detectedBonus
-      ? `detected: ${r.detectedBonus.toLocaleString()} ${r.detectedBonusCurrency}`
-      : 'detected: —';
-    const exp  = r.expectedBonus
-      ? `expected: ${r.expectedBonus.toLocaleString()} ${r.expectedBonusCurrency}`
-      : 'expected: —';
-    log(`  ${icon}  ${(r.exchange + '            ').slice(0, 12)}  ${exp}  |  ${det}`);
-    if (r.recommendedAction) log(`         → ${r.recommendedAction}`);
-    if (r.dataSyncIssues.length > 0) {
-      for (const issue of r.dataSyncIssues) warn(`         data-sync: ${issue}`);
-    }
+  // Detailed results (grouped by region)
+  const byRegion = {};
+  for (const r of allRecords) {
+    const key = r.region ?? 'GLOBAL';
+    if (!byRegion[key]) byRegion[key] = [];
+    byRegion[key].push(r);
   }
-  log('');
+  for (const [regionCode, recs] of Object.entries(byRegion)) {
+    log(`  Region: ${regionCode}`);
+    for (const r of recs) {
+      if (!r.exchange || r.exchange === '*') continue;
+      const icon = r.matchStatus === 'matched' || r.matchStatus === 'matched_with_copy_difference' ? '✅'
+                 : r.matchStatus === 'mismatch'             ? '🚨'
+                 : r.matchStatus === 'needs_manual_review'  ? '⚠️ '
+                 : '❓ ';
+      const det = r.detectedBonus
+        ? `detected: ${r.detectedBonus.toLocaleString()} ${r.detectedBonusCurrency}`
+        : 'detected: —';
+      const exp = r.expectedBonus
+        ? `expected: ${r.expectedBonus.toLocaleString()} ${r.expectedBonusCurrency}`
+        : 'expected: —';
+      const chg = r.screenshotChanged ? ' 🔄' : '';
+      log(`    ${icon}  ${(r.exchange + '            ').slice(0, 12)}  ${exp}  |  ${det}${chg}`);
+      if (r.recommendedAction) log(`           → ${r.recommendedAction}`);
+      if (r.dataSyncIssues?.length > 0) {
+        for (const issue of r.dataSyncIssues) warn(`           data-sync: ${issue}`);
+      }
+    }
+    log('');
+  }
 
-  if (WRITE || (!DRY_RUN && proposals.length > 0)) {
-    const paths = writeReports(records, proposals);
+  if (WRITE || (!DRY_RUN && allProposals.length > 0)) {
+    const paths = writeReports(allRecords, allProposals);
     log(`📄  Reports written:`);
     log(`    ${paths.verMd}`);
     log(`    ${paths.verJson}`);
-    if (proposals.length > 0) {
+    if (allProposals.length > 0) {
       log(`    ${paths.propMd}`);
       log(`    ${paths.propJson}`);
       log('');
