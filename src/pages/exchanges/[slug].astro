@@ -179,8 +179,6 @@ const myComparePairs = comparePairs
   .filter(p => p.a === ex.slug || p.b === ex.slug)
   .slice(0, 6);
 
-// SEO: use utility builder for richer, consistent Product schema
-const schema = buildProductSchema(ex as any);
 // Pass primary reviewer as Person entity when available (E-E-A-T signal).
 // Falls back to Organization author when no reviewer is assigned.
 const _reviewerEntity = _primaryReviewer
@@ -292,6 +290,28 @@ const _feeSourceFact = ev?.facts.find(f => f.field === 'spot_maker_fee');
 const _feeSourceUrl = _feeSourceFact?.officialSourceUrl
   ?? (_feeSourceFact?.officialSourceKey ? ev?.sources[_feeSourceFact.officialSourceKey as string]?.url : undefined)
   ?? undefined;
+
+// Evidence-aware bonus trust flag — used in trust-details block
+const _bonusAmountFact = ev?.facts.find(f => f.field === 'bonus_amount');
+const _bonusTrustOutdated = _bonusAmountFact?.conflictStatus === 'outdated' || _bonusAmountFact?.manualReviewRequired === true;
+const _bonusCheckedDate = (ex as any).offerLastChecked ?? (ex as any).lastVerified;
+
+// Schema price safety: suppress machine-readable offers.price when bonus evidence
+// is not fully verified. All three conditions must hold: conflictStatus=ok,
+// no manual review flag, and confidenceScore ≥ 0.5.
+// Currently false for all 14 exchanges (all have bonus_amount.conflictStatus=outdated).
+// Will auto-enable per-exchange once live verification updates their evidence.
+const _bonusPriceSafe = !!(
+  _bonusAmountFact &&
+  _bonusAmountFact.conflictStatus === 'ok' &&
+  _bonusAmountFact.manualReviewRequired !== true &&
+  typeof _bonusAmountFact.confidenceScore === 'number' &&
+  (_bonusAmountFact.confidenceScore as number) >= 0.5
+);
+
+// SEO: use utility builder for richer, consistent Product schema.
+// Evidence guard passed so offers.price is only emitted when bonus data is verified.
+const schema = buildProductSchema(ex as any, undefined, { bonusPriceSafe: _bonusPriceSafe });
 
 // ── Related Next Reads — top compare pairs + related guides for internal distribution
 const rnrItems = [
@@ -421,7 +441,11 @@ const rnrItems = [
         </li>
         <li>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-          <span><strong>Bonus conditions verified</strong> against the official {ex.name} promotion page. Bonus amounts, expiry periods and tier conditions were checked on {(ex as any).offerLastChecked ?? (ex as any).lastVerified}.</span>
+          {_bonusTrustOutdated ? (
+            <span><strong>Bonus offer last checked</strong> on {_bonusCheckedDate}. Current bonus terms are under active review — verify the latest offer on the official {ex.name} promotion page before registering.</span>
+          ) : (
+            <span><strong>Bonus conditions verified</strong> against the official {ex.name} promotion page. Bonus amounts, expiry periods and tier conditions were checked on {_bonusCheckedDate}.</span>
+          )}
         </li>
         {ex.kycRequired && (
           <li>
@@ -691,14 +715,14 @@ const rnrItems = [
                     {(flow as any).midCtaAfterStep === i + 1 && (
                       <div class="wt-mid-cta">
                         <span class="wt-mid-cta-icon" aria-hidden="true">🔗</span>
-                        <span class="wt-mid-cta-text">Following this guide on Bybit? Open your account in a new tab to complete steps as you read.</span>
+                        <span class="wt-mid-cta-text">Following this guide on {ex.name}? Open your account in a new tab to complete steps as you read.</span>
                         <a
                           href={ex.affiliateUrl}
                           class="wt-mid-cta-btn"
                           rel="noopener noreferrer sponsored"
                           target="_blank"
                         >
-                          Open Bybit ↗
+                          Open {ex.name} ↗
                         </a>
                       </div>
                     )}

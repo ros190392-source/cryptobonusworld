@@ -30,6 +30,7 @@ import { buildProductSchema, buildBreadcrumbSchema, bonusPageTitle, SITE_URL, YE
 import { goRedirectUrl } from '../../utils/affiliateUtils';
 import { isLimited } from '../../utils/partnerStatus';
 import type { PageContext } from '../../utils/analytics';
+import { getExchangeEvidence } from '../../data/evidence/index';
 
 // Generate one page per exchange: /bonuses/{slug}-bonus/
 export async function getStaticPaths() {
@@ -83,8 +84,22 @@ const relatedCompare = comparePairs
   .filter(p => p.a === ex.slug || p.b === ex.slug)
   .slice(0, 3);
 
+// --- Evidence guard for Product schema ---
+// Suppress machine-readable offers.price when bonus evidence is outdated,
+// low-confidence, or requires manual review — mirrors the same guard used
+// on exchange pages (src/pages/exchanges/[slug].astro).
+const _ev = getExchangeEvidence(ex.slug);
+const _bonusAmountFact = _ev?.facts.find(f => f.field === 'bonus_amount');
+const _bonusPriceSafe = !!(
+  _bonusAmountFact &&
+  _bonusAmountFact.conflictStatus === 'ok' &&
+  _bonusAmountFact.manualReviewRequired !== true &&
+  typeof _bonusAmountFact.confidenceScore === 'number' &&
+  (_bonusAmountFact.confidenceScore as number) >= 0.5
+);
+
 // --- Schema ---
-const productSchema = buildProductSchema(ex as any, `${SITE_URL}${canonicalPath}`);
+const productSchema = buildProductSchema(ex as any, `${SITE_URL}${canonicalPath}`, { bonusPriceSafe: _bonusPriceSafe });
 const faqItems = [
   {
     question: `What is the ${ex.name} welcome bonus in ${YEAR}?`,

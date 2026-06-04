@@ -499,7 +499,24 @@ export function buildArticleSchema(opts: ArticleSchemaOpts): Record<string, unkn
   };
 }
 
-export function buildProductSchema(ex: SeoExchange, pageUrl?: string): Record<string, unknown> {
+/**
+ * Evidence guard options for buildProductSchema.
+ *
+ * bonusPriceSafe — when explicitly `false`, suppresses machine-readable
+ *   `offers.price` / `priceSpecification` to prevent stale or unverified
+ *   bonus amounts from being extracted by search engines as rich-result data.
+ *
+ *   Set to `false` when bonus_amount evidence has conflictStatus !== "ok",
+ *   manualReviewRequired === true, or confidenceScore < 0.5.
+ *
+ *   When omitted (undefined), falls back to the legacy display-mode guard
+ *   so existing callers (e.g. bonus landing pages) are unaffected.
+ */
+export interface EvidenceGuardOpts {
+  bonusPriceSafe?: boolean;
+}
+
+export function buildProductSchema(ex: SeoExchange, pageUrl?: string, evidenceOpts?: EvidenceGuardOpts): Record<string, unknown> {
   const updatedAt: string = (ex as any).updatedAt ?? '';
   const lastVerified: string = (ex as any).lastVerified ?? updatedAt;
   const editorNote: string = (ex as any).editorNote ?? '';
@@ -508,6 +525,12 @@ export function buildProductSchema(ex: SeoExchange, pageUrl?: string): Record<st
   const bonusRange: Record<string, unknown> = (ex as any).bonusRange ?? {};
   // Use the caller-supplied page URL (e.g. bonus landing page) or fall back to the exchange review URL
   const canonicalUrl = pageUrl ?? `${SITE_URL}/exchanges/${ex.slug}/`;
+
+  // Suppress machine-readable price when bonus evidence is outdated, low-confidence, or
+  // requires manual review — prevents stale amounts from appearing in Google rich results.
+  // evidenceOpts.bonusPriceSafe must be explicitly false to suppress; when undefined
+  // (legacy callers without evidence context), the original display-mode guard applies.
+  const _emitPrice = displayMode !== 'campaign' && bonusAmt > 0 && evidenceOpts?.bonusPriceSafe !== false;
 
   return {
     '@context': 'https://schema.org',
@@ -526,7 +549,7 @@ export function buildProductSchema(ex: SeoExchange, pageUrl?: string): Record<st
       description: ex.bonusTitle,
       // GSC fix: priceCurrency must be ISO 4217 — map USDT/BTC/etc. → USD
       priceCurrency: toIsoCurrency(ex.bonusCurrency),
-      ...(displayMode !== 'campaign' && bonusAmt > 0
+      ...(_emitPrice
         ? { price: bonusAmt, priceSpecification: { '@type': 'UnitPriceSpecification', price: bonusAmt, priceCurrency: toIsoCurrency(ex.bonusCurrency), unitText: 'bonus maximum' } }
         : {}),
       availability: 'https://schema.org/InStock',

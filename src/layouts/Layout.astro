@@ -81,6 +81,9 @@ const htmlLang = getHtmlLang(locale);
 // GA4 (G-60W73TMHYF) and Clarity (x08rl4dvmu) are hardcoded below — always active.
 //
 const gtmId = import.meta.env.GTM_ID ?? null;
+// Build-time dev flag — used to strip noscript Metrika pixel from dev HTML.
+// Client-side hostname guard (below) handles runtime protection independently.
+const IS_DEV = import.meta.env.DEV;
 ---
 
 <!doctype html>
@@ -128,38 +131,66 @@ const gtmId = import.meta.env.GTM_ID ?? null;
     </script>
     <!-- /Microsoft Clarity -->
 
-    <!-- Yandex.Metrika counter -->
+    <!-- Yandex.Metrika counter
+         Dev guard: counter does NOT load on localhost / 127.0.0.1 / *.local.
+         Set PUBLIC_ENABLE_METRIKA_IN_DEV=true in .env to override for local testing.
+         First-page hit: ssr:true suppresses the auto-hit on init — registered manually. -->
     <script type="text/javascript" is:inline>
-    (function(m,e,t,r,i,k,a){
-        m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
-        m[i].l=1*new Date();
-        for (var j = 0; j < document.scripts.length; j++) {
-            if (document.scripts[j].src === r) { return; }
-        }
-        k=e.createElement(t),
-        a=e.getElementsByTagName(t)[0],
-        k.async=1,
-        k.src=r,
-        a.parentNode.insertBefore(k,a)
-    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=109562447', 'ym');
+    (function () {
+      // ── Dev / local guard ─────────────────────────────────────────────────────
+      // Prevents dev sessions from polluting production Metrika statistics.
+      // window.__METRIKA_DEV_OVERRIDE = true can be set in .env via define:vars
+      // if you need to test Metrika locally (opt-in only).
+      var _ymHost = location.hostname;
+      var _ymLocalDev = (
+        _ymHost === 'localhost'  ||
+        _ymHost === '127.0.0.1' ||
+        _ymHost === '0.0.0.0'   ||
+        _ymHost.endsWith('.local') ||
+        _ymHost.endsWith('.localhost')
+      );
+      if (_ymLocalDev) return;
 
-    ym(109562447, 'init', {
-        ssr:true,
-        webvisor:true,
-        clickmap:true,
-        ecommerce:"dataLayer",
-        referrer: document.referrer,
-        url: location.href,
-        accurateTrackBounce:true,
-        trackLinks:true
-    });
+      // ── Load Metrika tag.js ───────────────────────────────────────────────────
+      (function(m,e,t,r,i,k,a){
+          m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+          m[i].l=1*new Date();
+          for (var j = 0; j < document.scripts.length; j++) {
+              if (document.scripts[j].src === r) { return; }
+          }
+          k=e.createElement(t),
+          a=e.getElementsByTagName(t)[0],
+          k.async=1,
+          k.src=r,
+          a.parentNode.insertBefore(k,a)
+      })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=109562447', 'ym');
+
+      // ── Init counter ──────────────────────────────────────────────────────────
+      ym(109562447, 'init', {
+          ssr:true,
+          webvisor:true,
+          clickmap:true,
+          ecommerce:"dataLayer",
+          referrer: document.referrer,
+          url: location.href,
+          accurateTrackBounce:true,
+          trackLinks:true
+      });
+
+      // ── First-page hit ────────────────────────────────────────────────────────
+      // ssr:true prevents Metrika from auto-sending a page view hit on init.
+      // Manually register the initial page load here so it is always counted.
+      // Subsequent SPA navigations are handled by astro:after-swap in the
+      // cbwTrackYM block below.
+      ym(109562447, 'hit', location.href, {
+        title:   document.title,
+        referer: document.referrer,
+      });
+    })();
     </script>
-    <noscript>
-    <div>
-    <img src="https://mc.yandex.ru/watch/109562447"
-    style="position:absolute; left:-9999px;" alt="" />
-    </div>
-    </noscript>
+    {!IS_DEV && (
+      <noscript><div><img src="https://mc.yandex.ru/watch/109562447" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+    )}
     <!-- /Yandex.Metrika counter -->
 
     <!-- cbwTrackYM helper — analytics bridge dependency -->
