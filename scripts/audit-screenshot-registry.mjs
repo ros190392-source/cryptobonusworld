@@ -41,10 +41,11 @@ const VERBOSE     = flag('--verbose');
 const FAIL_ON_ERR = flag('--fail-on-errors') || flag('--ci');
 const REPORT_ONLY = flag('--report');
 const JSON_OUT    = flag('--json');
+const MARKDOWN_ONLY = flag('--markdown');
 
-const log  = (...a) => !JSON_OUT && console.log(' ', ...a);
-const dbg  = (...a) => VERBOSE && !JSON_OUT && console.log('  ·', ...a);
-const warn = (...a) => !JSON_OUT && console.warn('  ⚠', ...a);
+const log  = (...a) => !JSON_OUT && !MARKDOWN_ONLY && console.log(' ', ...a);
+const dbg  = (...a) => VERBOSE && !JSON_OUT && !MARKDOWN_ONLY && console.log('  ·', ...a);
+const warn = (...a) => !JSON_OUT && !MARKDOWN_ONLY && console.warn('  ⚠', ...a);
 
 // ── Load registry via TS stripping ────────────────────────────────────────────
 
@@ -198,7 +199,7 @@ function scanScreenshotFiles() {
       const fullPath = join(dir, entry.name);
       if (entry.isDirectory() && entry.name !== '_archive') {
         scan(fullPath);
-      } else if (entry.isFile() && entry.name.endsWith('.webp')) {
+      } else if (entry.isFile() && /\.(webp|jpg|jpeg|png)$/i.test(entry.name)) {
         // Store as /screenshots/... path (relative to /public)
         const rel = '/' + relative(join(ROOT, 'public'), fullPath).replace(/\\/g, '/');
         files.add(rel);
@@ -311,6 +312,43 @@ async function runAudit() {
         addIssue('broken_evidence_path', 'warning', slug, cat,
           `Evidence JSON has path "${shot.path}" but file not found on disk`,
           `Re-capture or update src/data/evidence/${slug}.json`);
+      }
+    }
+  }
+
+  // ── 6b. Extension mismatch: evidence path ext ≠ registry .webp convention ─
+  for (const [slug, ev] of Object.entries(evidence)) {
+    for (const [cat, shot] of Object.entries(ev.screenshots ?? {})) {
+      if (!shot.path) continue;
+      const evidenceExt = shot.path.split('.').pop()?.toLowerCase();
+      if (evidenceExt && evidenceExt !== 'webp') {
+        // Check if the expected .webp counterpart does NOT exist on disk
+        const webpPath = shot.path.replace(/\.[^.]+$/, '.webp');
+        const diskHasWebp  = diskFiles.has(webpPath);
+        const diskHasOrig  = diskFiles.has(shot.path);
+        addIssue('extension_mismatch', 'warning', slug, cat,
+          `Evidence path is .${evidenceExt} (${shot.path}); registry convention is .webp.` +
+          (diskHasOrig ? ' File exists as .'+evidenceExt+' on disk.' : ' File NOT found on disk.') +
+          (diskHasWebp ? ' .webp counterpart exists — update evidence path.' : ' Recapture as .webp when refreshing.'),
+          'Do NOT rename the existing file. Recapture as .webp next refresh cycle and update evidence path.');
+      }
+    }
+  }
+
+  // ── 6c. File on disk but evidence not updated (status ≠ available) ────────
+  // Scan disk for files that match expected path patterns for known exchanges/categories
+  // and flag when evidence still shows needs_manual_capture
+  for (const [slug, ev] of Object.entries(evidence)) {
+    for (const [cat, shot] of Object.entries(ev.screenshots ?? {})) {
+      if (shot.status === 'needs_manual_capture' || shot.status === 'missing') {
+        // Check if any file on disk matches the pattern /screenshots/{slug}/{cat}/global-*
+        const expectedPrefix = `/screenshots/${slug}/${cat}/global-`;
+        const matchingDisk = [...diskFiles].filter(f => f.startsWith(expectedPrefix));
+        if (matchingDisk.length > 0) {
+          addIssue('disk_file_not_in_evidence', 'warning', slug, cat,
+            `Evidence shows "${shot.status}" but ${matchingDisk.length} file(s) exist on disk: ${matchingDisk[0]}`,
+            `Update src/data/evidence/${slug}.json: set status="available", path="${matchingDisk[0]}", capturedAt from filename.`);
+        }
       }
     }
   }
@@ -553,6 +591,91 @@ function printResults(result) {
   log('');
 }
 
+// ── Markdown-only write helper ────────────────────────────────────────────────
+
+function writeMarkdownOnly(result) {
+  const reportsDir = join(ROOT, 'reports');
+  if (!existsSync(reportsDir)) mkdirSync(reportsDir, { recursive: true });
+
+  // Re-use the same markdown-building logic from writeReports
+  const now = result.generatedAt.slice(0, 19) + 'Z';
+  const s   = result.summary;
+
+  const severityIcon = (sev) => sev === 'error' ? '🚨' : sev === 'warning' ? '⚠️' : 'ℹ️';
+
+  const grouped = {};
+  for (const issue of result.issues) {
+    if (!grouped[issue.type]) grouped[issue.type] = [];
+    grouped[issue.type].push(issue);
+  }
+
+  const issueGroups = Object.entries(grouped).map(([type, items]) => {
+    const rows = items.slice(0, 20).map(i =>
+      `| ${severityIcon(i.severity)} | \`${i.exchange}\` | \`${i.category}\` | ${i.message} |`
+    ).join('\n');
+    const more = items.length > 20 ? `\n\n_… and ${items.length - 20} more_` : '';
+    return `### ${type.replace(/_/g, ' ')} (${items.length})\n\n| | Exchange | Category | Message |\n|---|---|---|---|\n${rows}${more}`;
+  }).join('\n\n---\n\n');
+
+  const availableEntries = result.registry.filter(e => e.status === 'available').slice(0, 50);
+  const regRows = availableEntries.map(e =>
+    `| \`${e.id}\` | \`${e.category}\` | ${e.status} | P${e.priority} | \`${e.outputPath ?? '—'}\` |`
+  ).join('\n');
+
+  const md = `# Screenshot Registry Audit
+**Generated:** ${now}
+
+## Summary
+
+| Metric | Count |
+|---|---|
+| Total registry entries | ${s.totalEntries} |
+| ✅ Available | ${s.available} |
+| ❌ Missing | ${s.missing} |
+| ⏰ Outdated (stale >90d) | ${s.stale} |
+| — Not applicable | ${s.skipped} |
+| 🗄 Files on disk | ${s.filesOnDisk} |
+| 📁 Missing files | ${s.missingFiles} |
+| 👻 Orphan disk files | ${s.orphanDiskFiles} |
+| 🔗 Orphan evidence entries | ${s.orphanEvidenceEntries} |
+
+## Issues
+
+| Severity | Count |
+|---|---|
+| 🚨 Errors | ${s.errors} |
+| ⚠️ Warnings | ${s.warnings} |
+| ℹ️ Info | ${s.infos} |
+
+${issueGroups || '_No issues found._'}
+
+---
+
+## Available Screenshots (top 50)
+
+| ID | Category | Status | Priority | Output Path |
+|---|---|---|---|---|
+${regRows || '_None available yet._'}
+
+---
+
+## How to fix
+\`\`\`bash
+# Capture missing screenshots
+npm run screenshots:harvest:binance
+npm run screenshots:orchestrate:all
+
+# Re-run audit after capture
+npm run audit:screenshots
+\`\`\`
+
+*Audit report: \`reports/screenshot-registry-audit.json\`*
+`;
+
+  writeFileSync(join(reportsDir, 'screenshot-registry-audit.md'), md, 'utf8');
+  console.log('  Markdown report written: reports/screenshot-registry-audit.md');
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -561,6 +684,11 @@ async function main() {
 
     if (JSON_OUT) {
       console.log(JSON.stringify(result, null, 2));
+      return;
+    }
+
+    if (MARKDOWN_ONLY) {
+      writeMarkdownOnly(result);
       return;
     }
 

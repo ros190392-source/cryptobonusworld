@@ -15,6 +15,10 @@ public/avatars/alexandr-shadurskyi-src.jpg
 public/avatars/ChatGPT*
 public/avatars/изображение*
 _brand_assets/
+# Claude local workspace/session files — never commit
+.claude/
+# Browser profiles for authenticated screenshot capture — contents are local only
+.browser-profiles/
 # Screenshot harvester — session auth, raw captures, manual captures
 .auth/
 _raw-screenshots/
@@ -22,3 +26,11 @@ _manual-screenshots/
 *.har
 storageState*.json
 cookies*.json
+
+# Browser "Save as Complete Webpage" bundles — not production content
+# Chrome saves an HTML file + a *_files/ folder with CSS/JS/UI images.
+# These are design reference sessions accidentally placed in walkthroughs/.
+# NOTE: actual evidence screenshots (.webp/.jpg/.png) in the same directory
+# are NOT ignored and will continue to be tracked normally.
+public/media/walkthroughs/**/*_files/
+public/media/walkthroughs/**/*.html
