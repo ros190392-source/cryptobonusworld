@@ -1,6 +1,6 @@
 {
   "exchange": "binance",
-  "updatedAt": "2026-06-01",
+  "updatedAt": "2026-06-04",
   "sources": {
     "fees": {
       "url": "https://www.binance.com/en/fee/schedule",
@@ -83,12 +83,12 @@
       "unit": "USDT",
       "officialSourceKey": "bonus",
       "officialSourceUrl": "https://www.binance.com/en/activity/referral",
-      "lastChecked": "2026-05-26",
+      "lastChecked": "2026-06-04",
       "checkedBy": "human",
-      "confidenceScore": 0.27,
-      "conflictStatus": "outdated",
-      "manualReviewRequired": true,
-      "notes": "Up to 19,800 USDT across all tasks. Most users earn 50–200 USDT. Daily re-check required."
+      "confidenceScore": 0.85,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false,
+      "notes": "Public referral/registration landing page shows 'Up to 19,800 USD Sign Up Rewards'. Referral code CRYPTOBONUSW visible in screenshot (public/screenshots/binance/bonus_referral_landing/global-desktop-2026-06.webp). Vision analysis matched amount with confidence 0.97. Landing page uses 'USD' as marketing display; unit remains USDT based on Binance support and reward denomination research (official FAQ and embedded page data quoteAsset: USDT). Authenticated old account Bonus Hub does not show this new-user bonus — expected behaviour, not a contradiction. This is a new-user sign-up reward shown in the registration/referral flow only. 19,800 USDT is the maximum ceiling. Exact reward mechanics may vary by eligibility, tasks, region, and campaign. Deposit requirement not fully confirmed. Expiry not fully confirmed. Full eligibility criteria not fully confirmed."
     },
     {
       "field": "bonus_currency",
@@ -314,9 +314,9 @@
   ],
   "screenshots": {
     "registration": {
-      "status": "needs_manual_capture",
-      "path": null,
-      "capturedAt": null,
+      "status": "available",
+      "path": "/screenshots/binance/registration/global-desktop-2026-06.webp",
+      "capturedAt": "2026-06",
       "geo": "GLOBAL",
       "device": "desktop",
       "notes": ""
@@ -330,9 +330,9 @@
       "notes": ""
     },
     "bonus": {
-      "status": "needs_manual_capture",
-      "path": null,
-      "capturedAt": null,
+      "status": "available",
+      "path": "/screenshots/binance/bonus/global-desktop-2026-06.webp",
+      "capturedAt": "2026-06",
       "geo": "GLOBAL",
       "device": "desktop",
       "notes": ""
@@ -346,49 +346,49 @@
       "notes": ""
     },
     "p2p": {
-      "status": "needs_manual_capture",
-      "path": null,
-      "capturedAt": null,
+      "status": "available",
+      "path": "/screenshots/binance/p2p/global-desktop-2026-06.webp",
+      "capturedAt": "2026-06",
       "geo": "GLOBAL",
       "device": "desktop",
       "notes": ""
     },
     "spot": {
-      "status": "needs_manual_capture",
-      "path": null,
-      "capturedAt": null,
+      "status": "available",
+      "path": "/screenshots/binance/spot/global-desktop-2026-06.webp",
+      "capturedAt": "2026-06",
       "geo": "GLOBAL",
       "device": "desktop",
       "notes": ""
     },
     "futures": {
-      "status": "needs_manual_capture",
-      "path": null,
-      "capturedAt": null,
+      "status": "available",
+      "path": "/screenshots/binance/futures/global-desktop-2026-06.webp",
+      "capturedAt": "2026-06",
       "geo": "GLOBAL",
       "device": "desktop",
       "notes": ""
     },
     "fees": {
-      "status": "needs_manual_capture",
-      "path": null,
-      "capturedAt": null,
+      "status": "available",
+      "path": "/screenshots/binance/fees/global-desktop-2026-06.webp",
+      "capturedAt": "2026-06",
       "geo": "GLOBAL",
       "device": "desktop",
       "notes": ""
     },
     "mobile_app": {
-      "status": "needs_manual_capture",
-      "path": null,
-      "capturedAt": null,
+      "status": "available",
+      "path": "/screenshots/binance/mobile_app/global-mobile-2026-06.webp",
+      "capturedAt": "2026-06",
       "geo": "GLOBAL",
       "device": "mobile",
       "notes": ""
     },
     "proof_of_reserves": {
-      "status": "needs_manual_capture",
-      "path": null,
-      "capturedAt": null,
+      "status": "available",
+      "path": "/screenshots/binance/proof_of_reserves/global-desktop-2026-06.webp",
+      "capturedAt": "2026-06",
       "geo": "GLOBAL",
       "device": "desktop",
       "notes": ""

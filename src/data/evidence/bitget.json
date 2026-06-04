@@ -1,6 +1,6 @@
 {
   "exchange": "bitget",
-  "updatedAt": "2026-06-01",
+  "updatedAt": "2026-06-04",
   "sources": {
     "fees": {
       "url": "https://www.bitget.com/fee",
@@ -82,12 +82,12 @@
       "unit": "USDT",
       "officialSourceKey": "bonus",
       "officialSourceUrl": "https://www.bitget.com/en/activity/newcomer-rewards",
-      "lastChecked": "2026-05-20",
+      "lastChecked": "2026-06-04",
       "checkedBy": "human",
-      "confidenceScore": 0.27,
-      "conflictStatus": "outdated",
-      "manualReviewRequired": true,
-      "notes": "Up to 6,200 USDT across newcomer tasks. Needs daily re-check."
+      "confidenceScore": 0.85,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false,
+      "notes": "Public screenshot confirmed Claim Your Welcome Bonus of 6,200 USDT with referral code CryptoBonW visible. Vision analysis matched with confidenceScore 0.97. Live text verifier returned not_detected because Bitget redirects to a JS-rendered /expressly SPA page (HTTP 200) where bonus text is not accessible via DOM text at domcontentloaded. Deposit requirement is NOT confirmed by screenshot. Expiry is NOT confirmed. Eligibility and region may vary. 6,200 USDT is the displayed maximum welcome bonus ceiling. LaLiga campaign branding present — may be time-limited; re-verify when campaign ends. Only bonus_amount updated; bonus_requires_deposit and bonus_expiry_days unchanged."
     },
     {
       "field": "bonus_currency",
@@ -239,11 +239,13 @@
     },
     {
       "field": "licences",
-      "currentValue": ["ASIC Australia"],
+      "currentValue": [
+        "ASIC Australia"
+      ],
       "officialSourceUrl": "https://www.bitget.com/en/about/compliance",
       "lastChecked": "2026-05-25",
       "checkedBy": "human",
-      "confidenceScore": 0.70,
+      "confidenceScore": 0.7,
       "conflictStatus": "needs-check",
       "manualReviewRequired": true,
       "notes": "ASIC registration claimed; verify current regulatory status"
@@ -254,7 +256,7 @@
       "officialSourceUrl": "https://www.bitget.com/en/about/",
       "lastChecked": "2026-05-25",
       "checkedBy": "human",
-      "confidenceScore": 0.80,
+      "confidenceScore": 0.8,
       "conflictStatus": "ok",
       "manualReviewRequired": false
     },
@@ -264,7 +266,7 @@
       "officialSourceUrl": "https://www.bitget.com/en/about/",
       "lastChecked": "2026-05-25",
       "checkedBy": "human",
-      "confidenceScore": 0.80,
+      "confidenceScore": 0.8,
       "conflictStatus": "ok",
       "manualReviewRequired": false
     },
@@ -304,19 +306,19 @@
       "officialSourceUrl": "https://www.bitget.com/en/spot/",
       "lastChecked": "2026-05-25",
       "checkedBy": "human",
-      "confidenceScore": 0.80,
+      "confidenceScore": 0.8,
       "conflictStatus": "ok",
       "manualReviewRequired": false
     }
   ],
   "screenshots": {
     "registration": {
-      "status": "needs_manual_capture",
-      "path": null,
-      "capturedAt": null,
+      "status": "available",
+      "path": "/screenshots/bitget/registration/global-desktop-2026-06.webp",
+      "capturedAt": "2026-06",
       "geo": "GLOBAL",
       "device": "desktop",
-      "notes": ""
+      "notes": "Bitget referral landing page. Visible claim: Claim Your Welcome Bonus of 6,200 USDT. Referral code visible: CryptoBonW. Does not update bonus_amount evidence fact — supports future T09C verification only. Captured 2026-06-04."
     },
     "kyc": {
       "status": "needs_manual_capture",
@@ -367,12 +369,12 @@
       "notes": ""
     },
     "fees": {
-      "status": "needs_manual_capture",
-      "path": null,
-      "capturedAt": null,
+      "status": "available",
+      "path": "/screenshots/bitget/fees/global-desktop-2026-06.webp",
+      "capturedAt": "2026-06",
       "geo": "GLOBAL",
       "device": "desktop",
-      "notes": ""
+      "notes": "Bitget Fee Overview public page. Shows VIP tier spot fee rates starting VIP0: 0.1%/0.1% maker/taker. Captured 2026-06-04."
     },
     "mobile_app": {
       "status": "needs_manual_capture",

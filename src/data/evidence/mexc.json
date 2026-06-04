@@ -1,6 +1,6 @@
 {
   "exchange": "mexc",
-  "updatedAt": "2026-06-01",
+  "updatedAt": "2026-06-04",
   "sources": {
     "fees": {
       "url": "https://www.mexc.com/fee",
@@ -20,8 +20,8 @@
       "url": "https://www.mexc.com/acquisition/custom-sign-up?shareCode=mexc-CryptoBonus",
       "label": "MEXC — New User Bonus",
       "type": "official-promo",
-      "lastAccessed": "2026-05-27",
-      "notes": "Up to 10,000 USDT in new user bonuses. No deposit required for initial tasks."
+      "lastAccessed": "2026-06-03",
+      "notes": "Up to 10,000 USDT in new user bonuses. No deposit required for initial tasks. Owner manually verified 2026-06-03: registration page shows 'Sign Up to Claim 10,000 USDT' for referral code mexc-CryptoBonus."
     },
     "restricted_countries": {
       "url": "https://www.mexc.com/support/articles/360012110852",
@@ -75,12 +75,12 @@
       "unit": "USDT",
       "officialSourceKey": "bonus",
       "officialSourceUrl": "https://www.mexc.com/acquisition/custom-sign-up?shareCode=mexc-CryptoBonus",
-      "lastChecked": "2026-05-27",
+      "lastChecked": "2026-06-03",
       "checkedBy": "human",
-      "confidenceScore": 0.27,
-      "conflictStatus": "outdated",
-      "manualReviewRequired": true,
-      "notes": "Up to 10,000 USDT. No deposit required for registration bonus tasks. Needs daily re-check."
+      "confidenceScore": 0.85,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false,
+      "notes": "Automated Playwright clean screenshot capture and vision analysis confirmed MEXC referral registration page shows 'Sign Up to Claim 10,000 USDT' with referral code mexc-CryptoBonus. Evidence chain: step 1 owner manual browser observation 2026-06-03; step 2 automated Playwright capture HTTP 200 clean screenshot no popups text signals confirmed; step 3 vision analysis match confidenceScore 0.97. Deposit requirement, expiry, and eligibility/region terms are NOT confirmed by this evidence. Only bonus_amount is updated; bonus_requires_deposit and bonus_expiry_days are unchanged."
     },
     {
       "field": "bonus_currency",
@@ -132,7 +132,7 @@
       "officialSourceKey": "fees",
       "lastChecked": "2026-05-27",
       "checkedBy": "human",
-      "confidenceScore": 0.80,
+      "confidenceScore": 0.8,
       "conflictStatus": "ok",
       "manualReviewRequired": false,
       "notes": "0% spot maker fee — MEXC promotional rate"
@@ -144,7 +144,7 @@
       "officialSourceKey": "fees",
       "lastChecked": "2026-05-27",
       "checkedBy": "human",
-      "confidenceScore": 0.80,
+      "confidenceScore": 0.8,
       "conflictStatus": "ok",
       "manualReviewRequired": false
     },
@@ -155,7 +155,7 @@
       "officialSourceKey": "fees",
       "lastChecked": "2026-05-27",
       "checkedBy": "human",
-      "confidenceScore": 0.80,
+      "confidenceScore": 0.8,
       "conflictStatus": "ok",
       "manualReviewRequired": false,
       "notes": "0% futures maker fee"
@@ -167,7 +167,7 @@
       "officialSourceKey": "fees",
       "lastChecked": "2026-05-27",
       "checkedBy": "human",
-      "confidenceScore": 0.80,
+      "confidenceScore": 0.8,
       "conflictStatus": "ok",
       "manualReviewRequired": false
     },
@@ -188,7 +188,7 @@
       "officialSourceKey": "kyc",
       "lastChecked": "2026-05-27",
       "checkedBy": "human",
-      "confidenceScore": 0.80,
+      "confidenceScore": 0.8,
       "conflictStatus": "ok",
       "manualReviewRequired": false,
       "notes": "No KYC needed for basic trading. 10 BTC/day withdrawal limit without KYC."
@@ -210,7 +210,7 @@
       "officialSourceKey": "p2p",
       "lastChecked": "2026-05-27",
       "checkedBy": "human",
-      "confidenceScore": 0.90,
+      "confidenceScore": 0.9,
       "conflictStatus": "ok",
       "manualReviewRequired": false
     },
@@ -241,7 +241,7 @@
       "officialSourceUrl": "https://www.mexc.com/about",
       "lastChecked": "2026-05-27",
       "checkedBy": "human",
-      "confidenceScore": 0.80,
+      "confidenceScore": 0.8,
       "conflictStatus": "ok",
       "manualReviewRequired": false
     },
@@ -251,7 +251,7 @@
       "officialSourceUrl": "https://www.mexc.com/about",
       "lastChecked": "2026-05-27",
       "checkedBy": "human",
-      "confidenceScore": 0.80,
+      "confidenceScore": 0.8,
       "conflictStatus": "ok",
       "manualReviewRequired": false
     },
@@ -291,7 +291,7 @@
       "officialSourceUrl": "https://www.mexc.com/markets",
       "lastChecked": "2026-05-27",
       "checkedBy": "human",
-      "confidenceScore": 0.80,
+      "confidenceScore": 0.8,
       "conflictStatus": "ok",
       "manualReviewRequired": false
     }
@@ -354,12 +354,12 @@
       "notes": ""
     },
     "fees": {
-      "status": "needs_manual_capture",
-      "path": null,
-      "capturedAt": null,
+      "status": "available",
+      "path": "/screenshots/mexc/fees/global-desktop-2026-06.webp",
+      "capturedAt": "2026-06",
       "geo": "GLOBAL",
       "device": "desktop",
-      "notes": ""
+      "notes": "MEXC Fee Overview public page. Shows 0% spot maker fee, 0-0.05% taker. No bonus or deposit claims updated. Captured 2026-06-04."
     },
     "mobile_app": {
       "status": "needs_manual_capture",
