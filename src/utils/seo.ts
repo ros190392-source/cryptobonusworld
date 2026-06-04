@@ -111,7 +111,11 @@ function fmt(n: number): string {
  *
  * Targets 50–62 chars for strong SERP display.
  */
-export function exchangePageTitle(ex: SeoExchange): string {
+export function exchangePageTitle(ex: SeoExchange, opts?: { kycClaimSafe?: boolean }): string {
+  // kycClaimSafe defaults to true (current behaviour for callers that don't pass it).
+  // Pass kycClaimSafe:false when evidence for kycRequired=false is unverified —
+  // prevents "No KYC Required" from appearing in <title>/og:title/twitter:title.
+  const kycClaimSafe = opts?.kycClaimSafe ?? true;
   const displayMode: string = (ex as any).bonusDisplayMode ?? 'up-to';
   const bonusTitle: string = (ex as any).bonusTitle ?? '';
 
@@ -122,11 +126,11 @@ export function exchangePageTitle(ex: SeoExchange): string {
 
   if (displayMode === 'campaign') {
     // Campaign-based: don't lead with a potentially stale amount
-    const kycNote = !ex.kycRequired ? ' — No KYC' : '';
+    const kycNote = !ex.kycRequired && kycClaimSafe ? ' — No KYC' : '';
     return `${ex.name} Welcome Offer ${YEAR}: Current Bonus Campaign${kycNote}`;
   }
 
-  if (!ex.kycRequired) {
+  if (!ex.kycRequired && kycClaimSafe) {
     // No-KYC: highlight it in the title — strong CTR signal
     return `${ex.name} Bonus ${YEAR}: Up to ${fmt(ex.bonusAmount)} ${ex.bonusCurrency} — No KYC Required`;
   }
@@ -142,14 +146,17 @@ export function exchangePageTitle(ex: SeoExchange): string {
  *   "MEXC Promo Code 2026: Up to 10,000 USDT — No KYC Required"  (58)
  *   "Coinbase Promo Code 2026: $10 in Bitcoin — Verified Offer"   (57)
  */
-export function bonusPageTitle(ex: SeoExchange): string {
+export function bonusPageTitle(ex: SeoExchange, opts?: { kycClaimSafe?: boolean }): string {
+  // kycClaimSafe defaults to true (current behaviour). Pass false to suppress
+  // "No KYC Required" in bonus page <title>/og:title when KYC evidence is unverified.
+  const kycClaimSafe = opts?.kycClaimSafe ?? true;
   const displayMode: string = (ex as any).bonusDisplayMode ?? 'up-to';
   const bonusTitle: string = (ex as any).bonusTitle ?? '';
   if (displayMode === 'fixed' && bonusTitle)
     return `${ex.name} Promo Code ${YEAR}: ${bonusTitle} — Verified Offer`;
   if (displayMode === 'campaign')
     return `${ex.name} Bonus Code ${YEAR}: Current Offer — Claim Guide`;
-  if (!ex.kycRequired)
+  if (!ex.kycRequired && kycClaimSafe)
     return `${ex.name} Promo Code ${YEAR}: Up to ${fmt(ex.bonusAmount)} ${ex.bonusCurrency} — No KYC Required`;
   return `${ex.name} Promo Code ${YEAR}: Up to ${fmt(ex.bonusAmount)} ${ex.bonusCurrency} — Claim Guide`;
 }
@@ -213,16 +220,19 @@ export function injectNoKycTitle(baseTitle: string, noKycCount: number): string 
  * Avoids "guaranteed", "best", "amazing" — focuses on verifiable claims.
  * Includes fee angle when competitively low to target fee-related SERP queries.
  */
-export function exchangeMetaDesc(ex: SeoExchange): string {
+export function exchangeMetaDesc(ex: SeoExchange, opts?: { kycClaimSafe?: boolean }): string {
+  // kycClaimSafe defaults to true (current behaviour). Pass false to suppress
+  // "No KYC" and "No KYC. " in meta description when KYC evidence is unverified.
+  const kycClaimSafe = opts?.kycClaimSafe ?? true;
   const displayMode: string = (ex as any).bonusDisplayMode ?? 'up-to';
   const verificationStatus: string = (ex as any).verificationStatus ?? 'verified';
   const spotMakerFee: number | undefined = (ex as any).spotMakerFee;
   const spotTakerFee: number | undefined = (ex as any).spotTakerFee;
 
-  const kyc = ex.kycRequired ? 'KYC required' : 'no KYC';
+  const kyc = ex.kycRequired ? 'KYC required' : kycClaimSafe ? 'no KYC' : 'check KYC terms';
   const deposit = ex.depositRequired ? 'deposit required' : 'no deposit';
   const trustTag = verificationStatus === 'verified' ? 'Verified.' : '';
-  const noKycHighlight = !ex.kycRequired ? 'No KYC. ' : '';
+  const noKycHighlight = !ex.kycRequired && kycClaimSafe ? 'No KYC. ' : '';
 
   // Fee signal — include when maker=0% or taker ≤0.1% (notable CTR hook for fee queries)
   let feeNote = '';

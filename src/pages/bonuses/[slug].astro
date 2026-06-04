@@ -98,6 +98,31 @@ const _bonusPriceSafe = !!(
   (_bonusAmountFact.confidenceScore as number) >= 0.5
 );
 
+// ── KYC claim safety check ─────────────────────────────────────────────────
+// Mirrors the guard on the exchange page. See KYC_ACCESS_CLAIMS_POLICY.md §6.
+// A no-KYC claim requires: conflictStatus === 'ok', manualReviewRequired === false,
+// confidenceScore ≥ 0.70. kycRequired === true is always safe (factual, not promotional).
+const _kycFact = _ev?.facts.find(f => f.field === 'kyc_required');
+const _kycClaimSafe = ex.kycRequired === true || !!(
+  _kycFact &&
+  _kycFact.conflictStatus === 'ok' &&
+  _kycFact.manualReviewRequired !== true &&
+  typeof _kycFact.confidenceScore === 'number' &&
+  (_kycFact.confidenceScore as number) >= 0.70
+);
+
+// ── SEO safety overrides for KYC claims ────────────────────────────────────
+// Re-generates page title and meta description with kycClaimSafe:false when
+// evidence is unverified, removing "No KYC Required" from <title>, og:title,
+// twitter:title, meta description, og:description, twitter:description.
+// Also sanitises the kycNote inline meta desc built from kycNote at line ~54.
+const _pageTitleSafe = (!_kycClaimSafe && !ex.kycRequired)
+  ? bonusPageTitle(ex as any, { kycClaimSafe: false })
+  : pageTitle;
+const _metaDescSafe = (!_kycClaimSafe && !ex.kycRequired)
+  ? `Claim the ${ex.name} bonus ${YEAR}: ${bonusLabel}. Step-by-step guide, promo code, requirements and verified conditions. Check current KYC terms.`.slice(0, 160)
+  : metaDesc;
+
 // --- Schema ---
 const productSchema = buildProductSchema(ex as any, `${SITE_URL}${canonicalPath}`, { bonusPriceSafe: _bonusPriceSafe });
 const faqItems = [
@@ -113,7 +138,9 @@ const faqItems = [
     question: `Do I need KYC to get the ${ex.name} bonus?`,
     answer: ex.kycRequired
       ? `Yes. ${ex.name} requires identity verification (KYC) to access the full welcome bonus. KYC typically requires a government-issued ID and may include a selfie or proof of address.`
-      : `No. ${ex.name} allows you to claim the initial bonus without full identity verification. However, non-KYC accounts have withdrawal limits. Full KYC unlocks higher withdrawal tiers.`,
+      : _kycClaimSafe
+        ? `No. ${ex.name} allows you to claim the initial bonus without full identity verification. However, non-KYC accounts have withdrawal limits. Full KYC unlocks higher withdrawal tiers.`
+        : `${ex.name}'s verification requirements depend on account type, country, and product. Some features may be available before full identity verification — check the official help center for current limits and conditions before registering.`,
   },
   {
     question: `How long does the ${ex.name} bonus last?`,
@@ -155,8 +182,8 @@ const analyticsContext: PageContext = { pageType: 'bonus-page', exchange: ex.slu
 ---
 
 <Layout
-  title={pageTitle}
-  description={metaDesc}
+  title={_pageTitleSafe}
+  description={_metaDescSafe}
   canonical={canonicalPath}
   schema={schemaArray}
   analyticsContext={analyticsContext}
@@ -191,7 +218,7 @@ const analyticsContext: PageContext = { pageType: 'bonus-page', exchange: ex.slu
 
       <div class="bp-badges">
         {ex.bonusTypes.map(t => <BonusBadge type={t} />)}
-        <KycBadge required={ex.kycRequired} />
+        {(ex.kycRequired || _kycClaimSafe) && <KycBadge required={ex.kycRequired} />}
         <BonusTrustLabel
           verificationStatus={(ex as any).verificationStatus ?? 'needs-review'}
           offerLastChecked={(ex as any).offerLastChecked ?? (ex as any).lastVerified}
@@ -338,7 +365,7 @@ const analyticsContext: PageContext = { pageType: 'bonus-page', exchange: ex.slu
           <span class="bp-cond-icon">🪪</span>
           <div>
             <div class="bp-cond-label">KYC</div>
-            <div class="bp-cond-val">{ex.kycRequired ? 'Required' : 'Not required'}</div>
+            <div class="bp-cond-val">{ex.kycRequired ? 'Required' : _kycClaimSafe ? 'Not required' : 'Check current terms'}</div>
           </div>
         </div>
         <div class="bp-cond">

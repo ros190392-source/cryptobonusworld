@@ -112,6 +112,37 @@ const activeBonusTiers = (ex as any).bonusTiers?.length
   : ex.bonusTypes.map(t => bonusTypeDefs[t]).filter(Boolean);
 const hasBonusTierData = !!(ex as any).bonusTiers?.length;
 
+// ── KYC claim safety check ─────────────────────────────────────────────────
+// Prevents unverified no-KYC assertions from rendering on the page.
+// A "no KYC required" claim is only safe to display when evidence has:
+//   conflictStatus === 'ok', manualReviewRequired === false, confidenceScore ≥ 0.70
+// Per KYC_ACCESS_CLAIMS_POLICY.md §6 (CHECKED tier publish threshold).
+// kycRequired === true exchanges are always safe — claim is factual, not promotional.
+// Note: ev is also declared later (line ~287) for fee/bonus checks — this is a free Map
+// lookup so calling getExchangeEvidence twice at build time has zero cost.
+const _evKyc = getExchangeEvidence(ex.slug);
+const _kycFact = _evKyc?.facts.find(f => f.field === 'kyc_required');
+const _kycClaimSafe = ex.kycRequired === true || !!(
+  _kycFact &&
+  _kycFact.conflictStatus === 'ok' &&
+  _kycFact.manualReviewRequired !== true &&
+  typeof _kycFact.confidenceScore === 'number' &&
+  (_kycFact.confidenceScore as number) >= 0.70
+);
+
+// ── SEO safety overrides for KYC claims ────────────────────────────────────
+// Re-generates title/description with kycClaimSafe:false when evidence is
+// unverified, removing "No KYC Required" from <title>, og:title, twitter:title,
+// <meta name="description">, og:description, and twitter:description.
+// All six tags are driven by the same title+description props in Layout → SeoHead,
+// so this single override covers all of them.
+const _seoTitle = (!_kycClaimSafe && !ex.kycRequired)
+  ? exchangePageTitle(ex as any, { kycClaimSafe: false })
+  : seoTitle;
+const _seoDesc = (!_kycClaimSafe && !ex.kycRequired)
+  ? exchangeMetaDesc(ex as any, { kycClaimSafe: false })
+  : seoDesc;
+
 // Conditions data for icon grid
 const minDeposit = (ex as any).minDeposit;
 const tradingVol = (ex as any).tradingVolumeRequired;
@@ -127,8 +158,8 @@ const conditions = [
   {
     icon: '🪪',
     label: 'KYC Required',
-    value: ex.kycRequired ? 'Yes — ID verification' : 'No KYC needed',
-    ok: !ex.kycRequired,
+    value: ex.kycRequired ? 'Yes — ID verification' : _kycClaimSafe ? 'No KYC needed' : 'Check current requirements',
+    ok: !ex.kycRequired && _kycClaimSafe,
   },
   {
     icon: '🏦',
@@ -159,7 +190,7 @@ const conditions = [
 ];
 
 // FAQ — generated centrally, then editorial overrides applied
-const _faqGenerated = generateExchangeFAQs(ex as unknown as ContentExchange);
+const _faqGenerated = generateExchangeFAQs(ex as unknown as ContentExchange, { kycClaimSafe: _kycClaimSafe });
 const _faqOverride = (contentOverrides.exchanges as Record<string, any>)[ex.slug];
 const faqItems = applyFAQOverrides(_faqGenerated, _faqOverride);
 
@@ -334,8 +365,8 @@ const rnrItems = [
 ---
 
 <Layout
-  title={seoTitle}
-  description={seoDesc}
+  title={_seoTitle}
+  description={_seoDesc}
   canonical={`/exchanges/${ex.slug}/`}
   schema={faqSchema ? [schema, reviewPageSchema, financialServiceSchema, faqSchema] : [schema, reviewPageSchema, financialServiceSchema]}
   analyticsContext={analyticsContext}
@@ -801,7 +832,7 @@ const rnrItems = [
                   )}
                   <tr>
                     <th scope="row">KYC Required</th>
-                    <td>{ex.kycRequired ? 'Yes — Standard KYC (Level 1)' : 'No'}</td>
+                    <td>{ex.kycRequired ? 'Yes — Standard KYC (Level 1)' : _kycClaimSafe ? 'No' : 'Check official terms'}</td>
                   </tr>
                   <tr><th scope="row">Mobile App</th><td>iOS &amp; Android</td></tr>
                   {(ex as any).proofOfReserves && (
@@ -951,9 +982,9 @@ const rnrItems = [
           <div class="sidebar-title">{ex.bonusTitle}</div>
 
           <div class="sidebar-stats">
-            <div class:list={['sidebar-stat', !ex.kycRequired && 'sidebar-stat--ok']}>
-              <span class="sidebar-stat-icon">{ex.kycRequired ? '🪪' : '✓'}</span>
-              <span>{ex.kycRequired ? 'KYC Required' : 'No KYC'}</span>
+            <div class:list={['sidebar-stat', !ex.kycRequired && _kycClaimSafe && 'sidebar-stat--ok']}>
+              <span class="sidebar-stat-icon">{ex.kycRequired ? '🪪' : _kycClaimSafe ? '✓' : '⚠️'}</span>
+              <span>{ex.kycRequired ? 'KYC Required' : _kycClaimSafe ? 'No KYC' : 'Verify KYC terms'}</span>
             </div>
             <div class:list={['sidebar-stat', !ex.depositRequired && 'sidebar-stat--ok']}>
               <span class="sidebar-stat-icon">{ex.depositRequired ? '💰' : '✓'}</span>
@@ -1007,9 +1038,9 @@ const rnrItems = [
           <div class="sidebar-cta">
             <CTAButton
               href={ex.affiliateUrl}
-              label={!ex.kycRequired && !ex.depositRequired
+              label={!ex.kycRequired && _kycClaimSafe && !ex.depositRequired
                 ? `Get ${ex.name} Bonus`
-                : !ex.kycRequired
+                : !ex.kycRequired && _kycClaimSafe
                   ? `Claim — No KYC`
                   : `Claim ${ex.name} Bonus`}
               exchange={ex.name}

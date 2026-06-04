@@ -134,7 +134,11 @@ export function formatMinDeposit(minDeposit?: ContentExchange['minDeposit'] | nu
  * Uses structured exchange data for specific answers.
  * Phrase variants prevent identical patterns across all exchange pages.
  */
-export function generateExchangeFAQs(ex: ContentExchange): FAQItem[] {
+export function generateExchangeFAQs(ex: ContentExchange, opts?: { kycClaimSafe?: boolean }): FAQItem[] {
+  // kycClaimSafe defaults to true (existing behaviour). Pass false for exchanges where
+  // the kyc_required=false evidence is unverified — suppresses "no KYC" in FAQ answers.
+  // Per KYC_ACCESS_CLAIMS_POLICY.md §6: unverified no-KYC claims must use safe fallback.
+  const kycClaimSafe = opts?.kycClaimSafe ?? true;
   const exFounded = ex.founded;
   const exUsers = ex.users;
   const exLicences = ex.licences;
@@ -169,7 +173,9 @@ export function generateExchangeFAQs(ex: ContentExchange): FAQItem[] {
   // ── KYC answer variation by exchange characteristics ──────────────────
   const kycAnswer = ex.kycRequired
     ? `${ex.name} requires identity verification before you can access the full welcome bonus. This involves uploading a government-issued ID and typically a selfie. Most verifications are approved within a few hours. Unverified accounts have restricted bonus access and lower withdrawal limits.`
-    : `No — ${ex.name} lets you register and claim the initial bonus without submitting identity documents. This makes it one of the more accessible options for users who prefer not to go through a full KYC process upfront. Keep in mind that unverified accounts have lower withdrawal limits, and you will need KYC to unlock higher tiers or use certain fiat features.`;
+    : kycClaimSafe
+      ? `No — ${ex.name} lets you register and claim the initial bonus without submitting identity documents. This makes it one of the more accessible options for users who prefer not to go through a full KYC process upfront. Keep in mind that unverified accounts have lower withdrawal limits, and you will need KYC to unlock higher tiers or use certain fiat features.`
+      : `${ex.name}'s verification requirements depend on account type, product, and country — check the official help center for current limits before registering. Some features may be accessible before full identity verification, but withdrawal and fiat access typically require KYC.`;
 
   // ── Expiry answer ──────────────────────────────────────────────────────
   const expiryAnswer = bonusExpiry
@@ -180,7 +186,7 @@ export function generateExchangeFAQs(ex: ContentExchange): FAQItem[] {
   const withdrawalAnswer = `Welcome bonuses at ${ex.name} are issued as trading vouchers or credits — they are not withdrawable cash.${volLine} These vouchers can be used to offset trading fees or fund positions. Any trading profits you earn using bonus funds follow the platform's standard withdrawal rules. For the current terms, check the official bonus page on ${ex.name}'s website.`;
 
   // ── Legitimacy answer ──────────────────────────────────────────────────
-  const kycCondition = ex.kycRequired ? 'identity verification' : 'no KYC for initial access';
+  const kycCondition = ex.kycRequired ? 'identity verification' : kycClaimSafe ? 'no KYC for initial access' : 'account verification (check current requirements on the official site)';
   const depositCondition = ex.depositRequired ? 'a qualifying deposit' : 'no deposit required for basic eligibility';
   const legitimacyAnswer = `${foundedLine}${usersLine}${licenceLine} The welcome bonus is a real promotional offer for new users who register via a referral link. Conditions include ${kycCondition} and ${depositCondition}. Bonus vouchers are real but they have strings attached — read the full terms on ${ex.name}'s official site before deciding.`;
 
@@ -200,7 +206,9 @@ export function generateExchangeFAQs(ex: ContentExchange): FAQItem[] {
   // ── Beginner answer ────────────────────────────────────────────────────
   const beginnerAnswer = ex.kycRequired
     ? `${ex.name} is suitable for beginners but requires identity verification (KYC) — have a passport or national ID ready. The interface has a guided onboarding flow. Start with spot trading before exploring futures or leveraged products. The welcome bonus tasks also serve as a structured introduction to the platform's features.`
-    : `${ex.name} is very beginner-friendly — no identity documents are needed to start trading. Registration takes under 2 minutes and you can trade immediately. The welcome bonus tasks guide you through the main features. Stick to spot trading to start; futures and leverage carry significant risk for new traders.`;
+    : kycClaimSafe
+      ? `${ex.name} is very beginner-friendly — no identity documents are needed to start trading. Registration takes under 2 minutes and you can trade immediately. The welcome bonus tasks guide you through the main features. Stick to spot trading to start; futures and leverage carry significant risk for new traders.`
+      : `${ex.name} has a streamlined registration process. Check the official help center for current verification requirements and withdrawal limits before registering. The welcome bonus tasks guide you through the main features. Stick to spot trading to start; futures and leverage carry significant risk for new traders.`;
 
   // ── P2P answer ─────────────────────────────────────────────────────────
   const p2pAvailable: boolean | undefined = (ex as any).p2pAvailable;
@@ -209,7 +217,7 @@ export function generateExchangeFAQs(ex: ContentExchange): FAQItem[] {
     : `${ex.name} does not operate a native P2P trading desk. To fund your account with local currency, use the Deposit section and select a supported fiat payment method (bank transfer or card), or transfer crypto from another wallet. Bybit, Binance and MEXC are alternatives with active P2P markets if that is your primary requirement.`;
 
   // ── Withdrawal answer — crypto-specific ───────────────────────────────
-  const cryptoWithdrawAnswer = `To withdraw crypto from ${ex.name}: go to Assets → Withdraw, select the coin (e.g. USDT), choose the network (TRC-20 is cheapest for USDT), paste your destination wallet address, enter the amount and confirm with 2FA. Always send a small test withdrawal first. Standard processing time is 1–30 minutes depending on network congestion. ${ex.kycRequired ? 'KYC must be completed before withdrawing.' : 'No KYC is required for standard withdrawals up to the daily limit.'}`;
+  const cryptoWithdrawAnswer = `To withdraw crypto from ${ex.name}: go to Assets → Withdraw, select the coin (e.g. USDT), choose the network (TRC-20 is cheapest for USDT), paste your destination wallet address, enter the amount and confirm with 2FA. Always send a small test withdrawal first. Standard processing time is 1–30 minutes depending on network congestion. ${ex.kycRequired ? 'KYC must be completed before withdrawing.' : kycClaimSafe ? 'No KYC is required for standard withdrawals up to the daily limit.' : 'Check current withdrawal requirements and daily limits on the official help center before withdrawing.'}`;
 
   return [
     {
