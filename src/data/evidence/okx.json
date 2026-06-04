@@ -341,11 +341,11 @@
     },
     "bonus": {
       "status": "available",
-      "path": "/screenshots/okx/bonus_referral_landing/global-desktop-2026-06.webp",
+      "path": "/screenshots/okx/bonus/global-desktop-2026-06.webp",
       "capturedAt": "2026-06",
       "geo": "EU (auto-detected)",
       "device": "desktop",
-      "notes": "OKX EU variant. Same referral landing URL as registration. Shows OKX x CRYPTOBONUS branding and rewards up to 5,000 USDT claim. Maps to bonus screenshot slot in evidence schema. Captured 2026-06-04."
+      "notes": "OKX EU variant. Shows OKX x CRYPTOBONUS branding and rewards up to 5,000 USDT claim. File copied from bonus_referral_landing/ to bonus/ slot to match registry convention. Original bonus_referral_landing/ file retained as orphan. Sprint 03: T03-OKX-BONUS-SCREENSHOT path corrected."
     },
     "deposit": {
       "status": "needs_manual_capture",

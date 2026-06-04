@@ -355,11 +355,11 @@
     },
     "bonus": {
       "status": "available",
-      "path": "/screenshots/bybit/bonus/global-desktop-2026-06.jpg",
+      "path": "/screenshots/bybit/bonus/global-desktop-2026-06.webp",
       "capturedAt": "2026-06",
       "geo": "GLOBAL",
       "device": "desktop",
-      "notes": "Bonus chart overview. Source: media/walkthroughs/bybit/bybit-bonus-chart.jpg. No webp version available — recapture as webp when refreshing."
+      "notes": "Bonus chart overview. Converted from bybit-bonus-chart.jpg to webp (quality 85) via sharp 0.33.5. Original .jpg retained on disk. Sprint 03: T02-BYBIT-BONUS-WEBP resolved."
     },
     "deposit": {
       "status": "available",
