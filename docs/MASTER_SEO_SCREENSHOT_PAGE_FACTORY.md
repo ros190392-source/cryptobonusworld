@@ -40,6 +40,32 @@ Each role may be fulfilled by a human, an AI agent, or the owner acting in that 
 
 ---
 
+### Role 0 — Chief SEO Architect
+
+**Mission:** Design the complete page architecture before any implementation begins.
+
+**Blocking rule:** All other roles (1–6) are blocked until Role 0 brief is approved.
+
+**Responsibilities:**
+- Define page goal, primary intent, keyword cluster, target reader, and conversion goal
+- Map SERP + AI answer landscape; identify snippet and AI Overview opportunities
+- Design full H1→H2→H3 heading tree and section order
+- Produce evidence map: claim → source → confidence → lastChecked → owner approval needed
+- Produce screenshot request map: section → screenshot needed → classification (proof/contextual/rejected/awaiting-capture) → placement
+- Define visual asset plan: branding assets vs evidence assets, hero/OG specs
+- Define schema plan: permitted types, blocked types, safety rules
+- Define QA gates: automated checks + manual approval gates specific to this page
+
+**Key output:**
+`reports/{exchange}-chief-seo-architect-brief.md` + `.json` — approved before Stage 1 begins
+
+**Governance reference:** `docs/CHIEF_SEO_ARCHITECT_ROLE.md`
+
+**Hard rule:** No important page (exchange review, bonus page, comparison page) enters production
+without a completed and approved Chief SEO Architect brief.
+
+---
+
 ### Role 1 — SEO Strategist
 
 **Mission:** Define why the page will rank and for whom.
