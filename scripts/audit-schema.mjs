@@ -70,7 +70,11 @@ function detectPageType(urlPath) {
 const REQUIRED_FIELDS = {
   Organization:    ['name', 'url'],
   WebSite:         ['name', 'url'],
-  Product:         ['name', 'offers'],
+  // 'offers' intentionally omitted: Sprint 03 conditionally emits offers only when
+  // bonus price is evidence-confirmed (≥0.5 confidence). Schema.org does not mandate
+  // offers on Product; GSC only requires price *when* offers is present — which seo.ts
+  // guarantees. Requiring offers here caused false CI failures for unverified exchanges.
+  Product:         ['name'],
   FAQPage:         ['mainEntity'],
   BreadcrumbList:  ['itemListElement'],
   ItemList:        ['itemListElement'],
