@@ -1,0 +1,99 @@
+---
+/**
+ * ContextualEvidenceScreenshot
+ *
+ * Renders a single evidence screenshot contextually adjacent to the page section
+ * it supports. This is NOT a gallery — it is a per-section proof/contextual image.
+ *
+ * Safety rules (enforced at call site in [slug].astro):
+ * - Only receives screenshots with status === 'available' in evidence JSON
+ * - Never receives rejected screenshot paths (registration 100 USD, bonus $1,000 rebates)
+ * - Never receives reports/ paths
+ * - Path must start with /screenshots/ (enforced by _screenshotImages filter)
+ */
+
+interface Props {
+  /** Absolute path — must start with /screenshots/ */
+  src: string;
+  /** Descriptive alt text for accessibility and SEO */
+  alt: string;
+  /** Figcaption text — shown below the image */
+  caption: string;
+  /** Device type — controls aspect ratio class */
+  device?: 'desktop' | 'mobile' | 'none';
+  /** Optional capture date label — YYYY-MM format */
+  capturedAt?: string;
+}
+
+const { src, alt, caption, device = 'desktop', capturedAt } = Astro.props;
+
+// Safety: reject any path that doesn't start with /screenshots/ (defence-in-depth)
+const isSafe = src.startsWith('/screenshots/');
+---
+
+{isSafe && (
+  <figure class={`ce-shot ce-shot--${device === 'none' ? 'desktop' : device}`}>
+    <div class="ce-shot__frame">
+      <img
+        src={src}
+        alt={alt}
+        loading="lazy"
+        decoding="async"
+        class="ce-shot__img"
+      />
+    </div>
+    <figcaption class="ce-shot__caption">
+      {caption}
+      {capturedAt && <span class="ce-shot__date"> · Captured {capturedAt}</span>}
+    </figcaption>
+  </figure>
+)}
+
+<style>
+  .ce-shot {
+    margin: 1.5rem 0 0.5rem;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
+    background: var(--color-surface, #13131f);
+  }
+
+  .ce-shot__frame {
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .ce-shot--desktop .ce-shot__frame {
+    aspect-ratio: 16 / 9;
+  }
+
+  .ce-shot--mobile .ce-shot__frame {
+    aspect-ratio: 9 / 16;
+    max-width: 320px;
+    margin: 0 auto;
+  }
+
+  .ce-shot__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    display: block;
+  }
+
+  .ce-shot--mobile .ce-shot__img {
+    object-position: top center;
+  }
+
+  .ce-shot__caption {
+    padding: 0.5rem 0.875rem 0.625rem;
+    font-size: 0.8rem;
+    color: var(--color-text-muted, #888);
+    line-height: 1.45;
+    font-style: italic;
+  }
+
+  .ce-shot__date {
+    opacity: 0.7;
+  }
+</style>

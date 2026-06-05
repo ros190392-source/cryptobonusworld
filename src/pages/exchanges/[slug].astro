@@ -47,6 +47,7 @@ import PromoCodeBox from '../../components/PromoCodeBox.astro';
 import PeopleAlsoCompare from '../../components/PeopleAlsoCompare.astro';
 import ExchangeVerdictBlock from '../../components/ExchangeVerdictBlock.astro';
 import ScreenshotGallery from '../../components/ScreenshotGallery.astro';
+import ContextualEvidenceScreenshot from '../../components/ContextualEvidenceScreenshot.astro';
 
 import {
   exchangePageTitle,
@@ -352,6 +353,15 @@ const _screenshotImages = ev?.screenshots
         device:     (entry!.device ?? 'desktop') as 'desktop' | 'mobile' | 'none',
       }))
   : [];
+
+// Contextual evidence screenshot — bonus proof slot (bonus_referral_landing)
+// Resolved from the already-filtered _screenshotImages array (status: available, /screenshots/ paths only).
+// This is data-driven: any exchange with this slot available gets the contextual screenshot.
+// Rejected paths (registration 100 USD, bonus $1,000) are excluded because they have status: outdated
+// and are therefore absent from _screenshotImages.
+const _bonusProofScreenshot = _screenshotImages.find(img =>
+  img.src.includes('/bonus_referral_landing/')
+) ?? null;
 
 // Pull the official fee source URL from evidence (if available)
 const _feeSourceFact = ev?.facts.find(f => f.field === 'spot_maker_fee');
@@ -662,6 +672,20 @@ const rnrItems = [
               }
             </div>
           </section>
+        )}
+
+        <!-- Contextual bonus proof screenshot — rendered from evidence slot bonus_referral_landing -->
+        <!-- Data-driven: any exchange with this slot at status: available gets the screenshot. -->
+        <!-- Safety: sourced from _screenshotImages (status=available, /screenshots/ prefix).  -->
+        <!-- Outdated/rejected slots are excluded at the _screenshotImages filter stage.        -->
+        {_bonusProofScreenshot && (
+          <ContextualEvidenceScreenshot
+            src={_bonusProofScreenshot.src}
+            alt={`${ex.name} sign-up page via CryptoBonusWorld — ${ex.bonusAmount?.toLocaleString()} ${ex.bonusCurrency} sign-up rewards offer`}
+            caption={`${ex.name} referral landing page showing the ${ex.bonusAmount?.toLocaleString()} ${ex.bonusCurrency} sign-up rewards offer${ex.promoCode ? ` with CryptoBonusWorld promo code ${ex.promoCode}` : ''}.`}
+            device={_bonusProofScreenshot.device === 'none' ? 'desktop' : _bonusProofScreenshot.device}
+            capturedAt={_bonusProofScreenshot.capturedAt}
+          />
         )}
 
         <!-- Geo-aware payment method block (exchange-specific, driven by geo-overrides) -->
