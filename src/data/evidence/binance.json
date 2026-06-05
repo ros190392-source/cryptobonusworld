@@ -392,6 +392,14 @@
       "geo": "GLOBAL",
       "device": "desktop",
       "notes": ""
+    },
+    "bonus_referral_landing": {
+      "status": "available",
+      "path": "/screenshots/binance/bonus_referral_landing/global-desktop-2026-06.webp",
+      "capturedAt": "2026-06",
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": "Affiliate registration landing page (public URL with referral code). Shows Binance new-user welcome and bonus offer. Sprint 03 standardization: file was on disk as orphan, now registered."
     }
   }
 }
