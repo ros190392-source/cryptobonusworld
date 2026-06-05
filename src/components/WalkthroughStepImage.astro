@@ -104,8 +104,9 @@ const showPlaceholder =
   screenshotStatus != null &&
   screenshotStatus !== 'available' &&
   !src;
-// legacy: no status provided and no src → fall through to ScreenshotCard which renders its own placeholder
-const suppressScreenshot = omitScreenshot;
+// legacy: no status provided and no src → suppress entirely (avoid large "Screenshot in preparation" placeholder)
+// Steps authored without a real src yet will simply show no image until one is supplied.
+const suppressScreenshot = omitScreenshot || (!screenshotStatus && !src);
 ---
 
 <div class="wsi-step">

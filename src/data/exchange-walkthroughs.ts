@@ -837,6 +837,10 @@ const binance: ExchangeWalkthrough = {
         {
           title: 'Visit binance.com and click Register',
           description: 'Go to binance.com and click the <strong>Register</strong> button in the top-right corner. Choose to register with email or mobile number. If registering from a country with restrictions, Binance may redirect you to a regional version.',
+          src: '/screenshots/binance/registration/global-desktop-2026-06.webp',
+          capturedAt: '2026-06',
+          width: 1280,
+          height: 720,
           device: 'desktop',
           aspectRatio: '16/9',
           screenshotLabel: 'Binance homepage with Register button',
