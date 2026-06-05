@@ -314,12 +314,12 @@
   ],
   "screenshots": {
     "registration": {
-      "status": "available",
+      "status": "outdated",
       "path": "/screenshots/binance/registration/global-desktop-2026-06.webp",
       "capturedAt": "2026-06",
       "geo": "GLOBAL",
       "device": "desktop",
-      "notes": "Binance registration page. Use contextually near the account creation / How to Register section only. Note: Binance registration pages often display generic welcome offer banners (100–1,000 USDT type) that do not represent the CBW 19,800 USDT partner offer — do not use this screenshot as bonus proof."
+      "notes": "REJECTED. Do not use as CBW partner bonus proof. Screenshot shows generic 100 USD sign-up reward (plain /register URL without CBW referral parameter). Not the CBW 19,800 USDT offer. Must be recaptured via CBW referral link before any reuse. Use bonus_referral_landing instead."
     },
     "bonus_referral_landing": {
       "status": "available",
