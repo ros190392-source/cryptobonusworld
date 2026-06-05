@@ -26,6 +26,20 @@ import guides from '../data/guides.json';
 
 const topExchanges = [...exchanges].sort((a, b) => b.rating - a.rating).slice(0, 5);
 
+// Homepage priority order — owner-defined display sequence for BonusTable and Bonus Claim Guides.
+// Binance is position 13 in exchanges.json (added late) so raw order buries it.
+// This sort does not affect exchanges.json data, affiliate links, or evidence.
+const homepagePriority = [
+  'bybit', 'binance', 'okx', 'mexc', 'bitget',
+  'bingx', 'gate-io', 'kucoin', 'htx', 'coinex',
+  'phemex', 'bitunix', 'lbank', 'coinbase',
+];
+const homepageExchanges = [...exchanges].sort((a, b) => {
+  const ai = homepagePriority.indexOf(a.slug);
+  const bi = homepagePriority.indexOf(b.slug);
+  return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+});
+
 // Top comparison pairs — curated by search demand (most-searched head terms first)
 const TOP_COMPARE_SLUGS = [
   'binance-vs-bybit',
@@ -232,8 +246,8 @@ const analyticsContext: PageContext = { pageType: 'homepage' };
   <!-- Bonus Table -->
   <section class="container section">
     <h2 class="section-title">Top Crypto Exchange Bonuses</h2>
-    <QuickPicks exchanges={exchanges} />
-    <BonusTable exchanges={exchanges} />
+    <QuickPicks exchanges={homepageExchanges} />
+    <BonusTable exchanges={homepageExchanges} />
     <AdaptiveRecommendation
       exchanges={exchanges as unknown as RecommendableExchange[]}
       pageType="homepage"
@@ -321,7 +335,7 @@ const analyticsContext: PageContext = { pageType: 'homepage' };
     <h2 class="section-title">Bonus Claim Guides</h2>
     <p class="section-subtitle">How to register with a referral code and unlock each exchange's welcome offer — step by step.</p>
     <div class="bonus-links-grid">
-      {exchanges.slice(0, 6).map(ex => (
+      {homepageExchanges.slice(0, 6).map(ex => (
         <a href={`/bonuses/${ex.slug}-bonus/`} class="bonus-link-card">
           <ExchangeLogo slug={ex.slug} name={ex.name} size={44} variant="square" />
           <div class="bonus-link-info">
