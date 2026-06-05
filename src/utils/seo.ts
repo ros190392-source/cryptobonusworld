@@ -554,18 +554,27 @@ export function buildProductSchema(ex: SeoExchange, pageUrl?: string, evidenceOp
       '@type': 'Brand',
       name: ex.name,
     },
-    offers: {
-      '@type': 'Offer',
-      description: ex.bonusTitle,
-      // GSC fix: priceCurrency must be ISO 4217 — map USDT/BTC/etc. → USD
-      priceCurrency: toIsoCurrency(ex.bonusCurrency),
-      ...(_emitPrice
-        ? { price: bonusAmt, priceSpecification: { '@type': 'UnitPriceSpecification', price: bonusAmt, priceCurrency: toIsoCurrency(ex.bonusCurrency), unitText: 'bonus maximum' } }
-        : {}),
-      availability: 'https://schema.org/InStock',
-      url: ex.affiliateUrl || `${SITE_URL}/exchanges/${ex.slug}/`,
-      seller: { '@type': 'Organization', name: ex.name },
-    },
+    // GSC fix: omit offers entirely when price is not verified.
+    // An Offer without price/priceSpecification triggers "Missing price" critical error.
+    // Only emit offers when _emitPrice = true (evidence-confirmed price, confidence ≥ 0.5).
+    ...(_emitPrice ? {
+      offers: {
+        '@type': 'Offer',
+        description: ex.bonusTitle,
+        // GSC fix: priceCurrency must be ISO 4217 — map USDT/BTC/etc. → USD
+        price: bonusAmt,
+        priceCurrency: toIsoCurrency(ex.bonusCurrency),
+        priceSpecification: {
+          '@type': 'UnitPriceSpecification',
+          price: bonusAmt,
+          priceCurrency: toIsoCurrency(ex.bonusCurrency),
+          unitText: 'bonus maximum',
+        },
+        availability: 'https://schema.org/InStock',
+        url: ex.affiliateUrl || `${SITE_URL}/exchanges/${ex.slug}/`,
+        seller: { '@type': 'Organization', name: ex.name },
+      },
+    } : {}),
     aggregateRating: {
       '@type': 'AggregateRating',
       ratingValue: ex.rating,
