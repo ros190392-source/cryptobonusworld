@@ -46,6 +46,7 @@ import RelatedNextReads from '../../components/RelatedNextReads.astro';
 import PromoCodeBox from '../../components/PromoCodeBox.astro';
 import PeopleAlsoCompare from '../../components/PeopleAlsoCompare.astro';
 import ExchangeVerdictBlock from '../../components/ExchangeVerdictBlock.astro';
+import ScreenshotGallery from '../../components/ScreenshotGallery.astro';
 
 import {
   exchangePageTitle,
@@ -316,6 +317,42 @@ function getFlowShortTitle(id: string): string {
 
 // Evidence registry lookup — drives FactCheckPanel and real fee source URLs
 const ev = getExchangeEvidence(ex.slug);
+
+// ── Screenshot gallery images — public evidence only ──────────────────────
+// Only 'available' screenshots whose path starts with /screenshots/ are shown.
+// Authenticated pages, reports/, and nulls are silently excluded.
+const _SCREENSHOT_LABELS: Record<string, string> = {
+  registration:          'Registration',
+  kyc:                   'KYC flow',
+  bonus:                 'Bonus page',
+  deposit:               'Deposit',
+  p2p:                   'P2P',
+  spot:                  'Spot trading',
+  futures:               'Futures',
+  fees:                  'Fees',
+  mobile_app:            'Mobile app',
+  proof_of_reserves:     'Proof of reserves',
+  bonus_referral_landing:'Bonus landing',
+};
+
+const _screenshotImages = ev?.screenshots
+  ? Object.entries(ev.screenshots)
+      .filter(([, entry]) =>
+        entry?.status === 'available' &&
+        entry.path !== null &&
+        typeof entry.path === 'string' &&
+        (entry.path as string).startsWith('/screenshots/')
+      )
+      .map(([slot, entry]) => ({
+        src:        entry!.path as string,
+        alt:        `${ex.name} — ${_SCREENSHOT_LABELS[slot] ?? slot} screenshot`,
+        caption:    (entry!.notes && entry!.notes.length > 5) ? entry!.notes : undefined,
+        capturedAt: entry!.capturedAt ?? undefined,
+        label:      _SCREENSHOT_LABELS[slot] ?? slot,
+        device:     (entry!.device ?? 'desktop') as 'desktop' | 'mobile' | 'none',
+      }))
+  : [];
+
 // Pull the official fee source URL from evidence (if available)
 const _feeSourceFact = ev?.facts.find(f => f.field === 'spot_maker_fee');
 const _feeSourceUrl = _feeSourceFact?.officialSourceUrl
@@ -531,6 +568,22 @@ const rnrItems = [
               verificationStatus={(ex as any).verificationStatus ?? 'verified'}
             />
         }
+
+        <!-- Platform screenshots — public evidence captures from the live exchange -->
+        {_screenshotImages.length > 0 && (
+          <section class="ex-section" id="platform-screenshots">
+            <h2 class="ex-section-title">Platform Screenshots</h2>
+            <p class="ex-prose" style="margin-bottom: 1rem; font-size: 0.875rem; color: var(--color-text-muted)">
+              Public screenshots captured on the live {ex.name} platform for editorial verification. Click any image to expand.
+            </p>
+            <ScreenshotGallery
+              images={_screenshotImages}
+              layout="grid"
+              galleryId={`screenshots-${ex.slug}`}
+              lightbox={true}
+            />
+          </section>
+        )}
 
         <!-- AI-extractable structured verdict: Best For / Avoid If / Key Limitation -->
         {(_faqOverride?.verdict) && (
