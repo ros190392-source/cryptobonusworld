@@ -321,26 +321,26 @@
       "device": "desktop",
       "notes": ""
     },
-    "kyc": {
-      "status": "needs_manual_capture",
-      "path": null,
-      "capturedAt": null,
+    "bonus_referral_landing": {
+      "status": "available",
+      "path": "/screenshots/binance/bonus_referral_landing/global-desktop-2026-06.webp",
+      "capturedAt": "2026-06",
       "geo": "GLOBAL",
       "device": "desktop",
-      "notes": ""
+      "notes": "New-user bonus landing page — shows the 19,800 USDT max signup reward offer"
     },
-    "bonus": {
+    "fees": {
       "status": "available",
-      "path": "/screenshots/binance/bonus/global-desktop-2026-06.webp",
+      "path": "/screenshots/binance/fees/global-desktop-2026-06.webp",
       "capturedAt": "2026-06",
       "geo": "GLOBAL",
       "device": "desktop",
       "notes": ""
     },
-    "deposit": {
-      "status": "needs_manual_capture",
-      "path": null,
-      "capturedAt": null,
+    "proof_of_reserves": {
+      "status": "available",
+      "path": "/screenshots/binance/proof_of_reserves/global-desktop-2026-06.webp",
+      "capturedAt": "2026-06",
       "geo": "GLOBAL",
       "device": "desktop",
       "notes": ""
@@ -361,45 +361,45 @@
       "device": "desktop",
       "notes": ""
     },
+    "bonus": {
+      "status": "outdated",
+      "path": "/screenshots/binance/bonus/global-desktop-2026-06.webp",
+      "capturedAt": "2026-06",
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": "Secondary bonus page (Binance referral program). Superseded in gallery by bonus_referral_landing which shows the confirmed 19,800 USDT new-user offer. Recapture if bonus page content changes significantly."
+    },
     "futures": {
-      "status": "available",
+      "status": "outdated",
       "path": "/screenshots/binance/futures/global-desktop-2026-06.webp",
       "capturedAt": "2026-06",
       "geo": "GLOBAL",
       "device": "desktop",
-      "notes": ""
-    },
-    "fees": {
-      "status": "available",
-      "path": "/screenshots/binance/fees/global-desktop-2026-06.webp",
-      "capturedAt": "2026-06",
-      "geo": "GLOBAL",
-      "device": "desktop",
-      "notes": ""
+      "notes": "Futures trading interface. Excluded from primary gallery — spot screenshot provides equivalent trading view. Recapture with annotation markers if futures-specific content warrants inclusion."
     },
     "mobile_app": {
-      "status": "available",
-      "path": "/screenshots/binance/mobile_app/global-mobile-2026-06.webp",
-      "capturedAt": "2026-06",
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
       "geo": "GLOBAL",
       "device": "mobile",
-      "notes": ""
+      "notes": "File on disk (9,294 bytes) is anomalously small — likely captured during an error or failed page load. Do not display. Recapture from Binance mobile app showing the main dashboard or trading view. Source file: public/screenshots/binance/mobile_app/global-mobile-2026-06.webp"
     },
-    "proof_of_reserves": {
-      "status": "available",
-      "path": "/screenshots/binance/proof_of_reserves/global-desktop-2026-06.webp",
-      "capturedAt": "2026-06",
+    "kyc": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
       "geo": "GLOBAL",
       "device": "desktop",
       "notes": ""
     },
-    "bonus_referral_landing": {
-      "status": "available",
-      "path": "/screenshots/binance/bonus_referral_landing/global-desktop-2026-06.webp",
-      "capturedAt": "2026-06",
+    "deposit": {
+      "status": "needs_manual_capture",
+      "path": null,
+      "capturedAt": null,
       "geo": "GLOBAL",
       "device": "desktop",
-      "notes": "Affiliate registration landing page (public URL with referral code). Shows Binance new-user welcome and bonus offer. Sprint 03 standardization: file was on disk as orphan, now registered."
+      "notes": ""
     }
   }
 }
