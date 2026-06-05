@@ -357,11 +357,30 @@ const _screenshotImages = ev?.screenshots
 // Contextual evidence screenshot — bonus proof slot (bonus_referral_landing)
 // Resolved from the already-filtered _screenshotImages array (status: available, /screenshots/ paths only).
 // This is data-driven: any exchange with this slot available gets the contextual screenshot.
-// Rejected paths (registration 100 USD, bonus $1,000) are excluded because they have status: outdated
+// Rejected paths (registration outdated, bonus outdated) are excluded because they have status: outdated
 // and are therefore absent from _screenshotImages.
 const _bonusProofScreenshot = _screenshotImages.find(img =>
   img.src.includes('/bonus_referral_landing/')
 ) ?? null;
+
+// Contextual evidence screenshots — per-section placement slots
+// Opt-in per exchange via contextualSectionScreenshots: true in content-overrides.
+// Ensures new section screenshots only render for exchanges explicitly enabled.
+// All resolved from _screenshotImages (status: available, /screenshots/ prefix only).
+// Returns null when flag absent, slot absent, outdated, or not yet captured.
+const _contextualSectionScreenshots = (_faqOverride as any)?.contextualSectionScreenshots === true;
+const _kycScreenshot             = _contextualSectionScreenshots
+  ? (_screenshotImages.find(img => img.src.includes('/kyc/'))              ?? null) : null;
+const _mobileScreenshot          = _contextualSectionScreenshots
+  ? (_screenshotImages.find(img => img.src.includes('/mobile_app/'))       ?? null) : null;
+const _feesScreenshot            = _contextualSectionScreenshots
+  ? (_screenshotImages.find(img => img.src.includes('/fees/'))             ?? null) : null;
+const _p2pScreenshot             = _contextualSectionScreenshots
+  ? (_screenshotImages.find(img => img.src.includes('/p2p/'))              ?? null) : null;
+const _proofOfReservesScreenshot = _contextualSectionScreenshots
+  ? (_screenshotImages.find(img => img.src.includes('/proof_of_reserves/')) ?? null) : null;
+const _spotScreenshot            = _contextualSectionScreenshots
+  ? (_screenshotImages.find(img => img.src.includes('/spot/'))             ?? null) : null;
 
 // Pull the official fee source URL from evidence (if available)
 const _feeSourceFact = ev?.facts.find(f => f.field === 'spot_maker_fee');
@@ -616,6 +635,16 @@ const rnrItems = [
           />
         )}
 
+        {_mobileScreenshot && (
+          <ContextualEvidenceScreenshot
+            src={_mobileScreenshot.src}
+            alt={`${ex.name} mobile app page screenshot`}
+            caption={`${ex.name} mobile app page screenshot showing the public app download and mobile access experience.`}
+            device={_mobileScreenshot.device === 'none' ? 'desktop' : _mobileScreenshot.device}
+            capturedAt={_mobileScreenshot.capturedAt}
+          />
+        )}
+
         <!-- Offer transparency / realism block -->
         {((ex as any).offerConfidenceScore != null || (ex as any).realisticUserExpectation) && (
           <section class="ex-section">
@@ -749,6 +778,16 @@ const rnrItems = [
           />
         )}
 
+        {_feesScreenshot && (
+          <ContextualEvidenceScreenshot
+            src={_feesScreenshot.src}
+            alt={`${ex.name} fee schedule page screenshot`}
+            caption={`${ex.name} fee page screenshot used as supporting evidence for the fees section.`}
+            device={_feesScreenshot.device === 'none' ? 'desktop' : _feesScreenshot.device}
+            capturedAt={_feesScreenshot.capturedAt}
+          />
+        )}
+
         <!-- How to claim — timeline -->
         <RequirementsBlock
           requirements={ex.requirements}
@@ -780,6 +819,25 @@ const rnrItems = [
             </nav>
 
             {walkthroughFlows.map((flow) => (
+              <Fragment>
+                {flow.id.includes('kyc') && _kycScreenshot && (
+                  <ContextualEvidenceScreenshot
+                    src={_kycScreenshot.src}
+                    alt={`${ex.name} identity verification page screenshot`}
+                    caption={`${ex.name} Verification Center screenshot showing the account verification area. Owner-approved authenticated capture, with private data excluded.`}
+                    device={_kycScreenshot.device === 'none' ? 'desktop' : _kycScreenshot.device}
+                    capturedAt={_kycScreenshot.capturedAt}
+                  />
+                )}
+                {flow.id.includes('p2p') && _p2pScreenshot && (
+                  <ContextualEvidenceScreenshot
+                    src={_p2pScreenshot.src}
+                    alt={`${ex.name} P2P trading page screenshot`}
+                    caption={`${ex.name} P2P page screenshot used as supporting evidence for the P2P section.`}
+                    device={_p2pScreenshot.device === 'none' ? 'desktop' : _p2pScreenshot.device}
+                    capturedAt={_p2pScreenshot.capturedAt}
+                  />
+                )}
               <WalkthroughFlow
                 id={flow.id}
                 title={flow.title}
@@ -839,8 +897,19 @@ const rnrItems = [
                   </Fragment>
                 ))}
               </WalkthroughFlow>
+              </Fragment>
             ))}
           </section>
+        )}
+
+        {_spotScreenshot && (
+          <ContextualEvidenceScreenshot
+            src={_spotScreenshot.src}
+            alt={`${ex.name} spot trading interface screenshot`}
+            caption={`${ex.name} spot trading interface screenshot used as supporting evidence for the trading section.`}
+            device={_spotScreenshot.device === 'none' ? 'desktop' : _spotScreenshot.device}
+            capturedAt={_spotScreenshot.capturedAt}
+          />
         )}
 
         <!-- About exchange -->
@@ -920,6 +989,16 @@ const rnrItems = [
                 </tbody>
               </table>
             </div>
+          )}
+
+          {_proofOfReservesScreenshot && (
+            <ContextualEvidenceScreenshot
+              src={_proofOfReservesScreenshot.src}
+              alt={`${ex.name} proof-of-reserves page screenshot`}
+              caption={`${ex.name} proof-of-reserves screenshot used as supporting evidence for the trust and reserves section.`}
+              device={_proofOfReservesScreenshot.device === 'none' ? 'desktop' : _proofOfReservesScreenshot.device}
+              capturedAt={_proofOfReservesScreenshot.capturedAt}
+            />
           )}
 
           <p class="ex-prose">{(_faqOverride?.longDescription?.length > 20 ? _faqOverride.longDescription : null) ?? ex.longDescription}</p>
