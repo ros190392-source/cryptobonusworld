@@ -378,12 +378,12 @@
       "notes": "Futures trading interface. Excluded from primary gallery — spot screenshot provides equivalent trading view. Recapture with annotation markers if futures-specific content warrants inclusion."
     },
     "mobile_app": {
-      "status": "needs_manual_capture",
-      "path": null,
-      "capturedAt": null,
+      "status": "available",
+      "path": "/screenshots/binance/mobile_app/global-mobile-2026-06.webp",
+      "capturedAt": "2026-06",
       "geo": "GLOBAL",
       "device": "mobile",
-      "notes": "File on disk (9,294 bytes) is anomalously small — likely captured during an error or failed page load. Do not display. Recapture from Binance mobile app showing the main dashboard or trading view. Source file: public/screenshots/binance/mobile_app/global-mobile-2026-06.webp"
+      "notes": "Binance app download page at mobile viewport (390×844). Public page — no auth required. Shows Binance mobile app download section. Captured 2026-06. File: 24,208 bytes."
     },
     "kyc": {
       "status": "needs_manual_capture",
