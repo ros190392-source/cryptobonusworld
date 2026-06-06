@@ -32,6 +32,12 @@ This document defines the recurring process. It sits above the Page Factory (whi
 
 Every Monday, scan all active signals. Record findings in `reports/weekly-seo-intelligence-{YYYY-MM-DD}.md`.
 
+**Additional input (Sprint 05+):** The **Gold Page Specialist Squad Weekly Update**
+(`reports/weekly-specialist-update-{YYYY-MM-DD}.md`) feeds into this loop every Tuesday.
+Specialist notes from ROLES 14–30 are reviewed by the Chief Project Owner and Chief SEO
+Architect, then converted into concrete sprint tasks. See
+`docs/GOLD_PAGE_WAR_ROOM_AND_WEEKLY_TRAINING.md` for the full specialist protocol.
+
 ### Search Engine Signals
 
 | Source | Signal to capture | Owner action needed? |
@@ -785,5 +791,8 @@ git rev-list --count origin/master..HEAD
 ```
 
 ---
+
+*Document version 1.1 — 2026-06-06 — Sprint 05: Added Gold Page Specialist Squad weekly update as input (Section 2)*  
+*Document version 1.0 — 2026-06-05 — CryptoBonusWorld Sprint 03*
 
 *Document created: 2026-06-05 | Sprint 03 | CryptoBonusWorld Continuous SEO Improvement Loop v1.0*

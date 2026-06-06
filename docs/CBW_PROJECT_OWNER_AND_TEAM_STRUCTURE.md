@@ -839,11 +839,51 @@ Top 6 Sprint 05 tasks (priority order):
 
 ---
 
-## 8. Governance Reference Map
+## 8. Gold Page Specialist Squad — Roles 14–35
+
+For Gold Pages (money pages, high-value targets, pages with screenshots and affiliate offers),
+the **Gold Page Specialist Squad** activates in addition to the Core Production Team (ROLES 0–13).
+
+Full definitions, weekly duties, inputs, outputs, and approval powers for all specialist roles
+are in: **`docs/GOLD_PAGE_WAR_ROOM_AND_WEEKLY_TRAINING.md`**
+
+| Role | Title | Mission |
+|------|-------|---------|
+| ROLE 14 | SERP Analyst / Search Demand Researcher | Analyse SERPs, PAA clusters, competitor formats before page writing |
+| ROLE 15 | AI Search / GEO / AEO Optimization Lead | Optimise for AI Overviews, ChatGPT Search, Perplexity citations |
+| ROLE 16 | Offer Integrity Officer | Protect bonus amounts and promo codes from contradictions and stale screenshots |
+| ROLE 17 | Screenshot Capture Operator | Capture public/auth/manual screenshots per request matrix |
+| ROLE 18 | Screenshot Post-Production Editor | Crop, mask, convert, reject, and quality-gate captured screenshots |
+| ROLE 19 | Brand / Logo Asset Manager | Ensure exchange logos, comparison cards, and visual assets are premium |
+| ROLE 20 | Page Design Reviewer | Review final page layout, screenshot density, and visual hierarchy before deploy |
+| ROLE 21 | Human Quality Reviewer | Review the page as a real user before Gold deploy |
+| ROLE 22 | Conversion Copywriter | Improve CTA copy, offer framing, and benefit language |
+| ROLE 23 | Financial / Crypto Domain Reviewer | Review crypto terminology, fee language, and product accuracy |
+| ROLE 24 | Localization / GEO Relevance Lead | Ensure screenshots, currency, and language match the target GEO |
+| ROLE 25 | Freshness / Update Editor | Ensure all claims have visible dates; flag stale content |
+| ROLE 26 | Internal Linking Strategist | Design and audit the internal link graph between all page types |
+| ROLE 27 | Content Differentiation Strategist | Ensure pages are not generic templates; create unique editorial value |
+| ROLE 28 | Methodology / Trust Page Editor | Maintain methodology, evidence policy, and trust disclosures |
+| ROLE 29 | Performance / Core Web Vitals Reviewer | Protect speed and image weight as screenshots grow |
+| ROLE 30 | Legal / Terms Watcher | Monitor exchange terms and affiliate program rules |
+| ROLE 31 *(optional)* | Table / Data Presentation Specialist | Make tables and fact cards scannable and snippet-ready on all devices |
+| ROLE 32 *(optional)* | Mobile-First Readability Specialist | Ensure every Gold Page section works correctly at 375px viewport |
+| ROLE 33 *(optional)* | Screenshot Ethics / Privacy Reviewer | Hard-veto any screenshot containing private or sensitive data before `public/` |
+| ROLE 34 *(optional)* | Monetization / Affiliate CRO Strategist | Optimise CTA placement and offer explanation without damaging trust |
+| ROLE 35 *(optional)* | Final Executive Editor | Final editorial approval gate before ROLE 0 owner visual review |
+
+**Total roles: 36 (ROLE 0 through ROLE 35)**  
+**Core Production Team: ROLES 0–13 (14 roles)**  
+**Gold Page Specialist Squad: ROLES 14–35 (22 roles; ROLES 31–35 are optional)**
+
+---
+
+## 9. Governance Reference Map
 
 | Document | Owned by role | Purpose |
 |----------|--------------|---------|
 | `CBW_PROJECT_OWNER_AND_TEAM_STRUCTURE.md` (this doc) | ROLE 0 | Top-level structure; supersedes all role conflicts |
+| `GOLD_PAGE_WAR_ROOM_AND_WEEKLY_TRAINING.md` | ROLE 0 | Gold Page Specialist Squad (ROLES 14–35); weekly training protocol; 16-step Gold Page check chain |
 | `CHIEF_SEO_ARCHITECT_ROLE.md` | ROLE 1 | Page architecture definition + Stage 0 brief template |
 | `MASTER_SEO_SCREENSHOT_PAGE_FACTORY.md` | ROLE 1 + 0 | Full page production pipeline; Roles 1–6 definitions |
 | `SEO_INTELLIGENCE_AND_AI_SEARCH_OPS.md` | ROLE 2 | SERP data systems; AI answer monitoring; GSC/Yandex |
@@ -851,7 +891,7 @@ Top 6 Sprint 05 tasks (priority order):
 | `FULL_SITE_SEO_AUDIT_SCORECARD.md` | ROLE 12 | Site-wide SEO score system |
 | `KYC_ACCESS_CLAIMS_POLICY.md` | ROLE 11 | KYC claim evidence requirements |
 | `KYC_ACCESS_AUDITOR_ROLE.md` | ROLE 4 + 11 | KYC auditor operational guide |
-| `SCREENSHOT_STANDARD.md` | ROLE 5 | Screenshot naming, slots, file format |
+| `SCREENSHOT_STANDARD.md` | ROLE 5 | Screenshot naming, slots, quality rules (Sects. 12–13 added Sprint 05) |
 | `AUTHENTICATED_SCREENSHOT_CAPTURE.md` | ROLE 5 | Authenticated capture protocol |
 | `SCREENSHOT_COVERAGE_MATRIX.md` | ROLE 5 + 13 | Coverage targets per exchange |
 | `GOLD_STANDARD_EXCHANGE_TEMPLATE.md` | ROLE 1 + 3 | Reference spec for Gold Standard pages |
@@ -860,7 +900,7 @@ Top 6 Sprint 05 tasks (priority order):
 
 ---
 
-## 9. Anti-Patterns This Structure Prevents
+## 10. Anti-Patterns This Structure Prevents
 
 | Anti-pattern | Root cause | Prevention |
 |---|---|---|
@@ -877,6 +917,8 @@ Top 6 Sprint 05 tasks (priority order):
 
 ---
 
-*Document version 1.0 — 2026-06-05 — CryptoBonusWorld Sprint 04*
+*Document version 1.2 — 2026-06-06 — Sprint 05: Extended to ROLES 14–35; added Section 11 Gold Page Check Chain reference*  
+*Document version 1.1 — 2026-06-06 — Sprint 05: Added ROLES 14–30 Gold Page Specialist Squad*  
+*Document version 1.0 — 2026-06-05 — CryptoBonusWorld Sprint 04*  
 *Owner: Chief Project Owner (ROLE 0)*
 *Next review: Sprint 05 kickoff or when a new exchange enters Gold Standard pipeline*

@@ -13,6 +13,15 @@ This document defines the weekly operating system for monitoring modern SEO, AI 
 
 It extends the `docs/MASTER_SEO_SCREENSHOT_PAGE_FACTORY.md` with a continuous monitoring, auditing, and publishing cadence so that the site's content and technical SEO never stagnate.
 
+**Sprint 05 update:** The SEO Intelligence Lead (ROLE 2) now coordinates weekly with two specialist roles from the Gold Page Specialist Squad:
+
+- **ROLE 14 — SERP Analyst / Search Demand Researcher:** Provides live SERP data, PAA cluster analysis, competitor page format changes, and snippet opportunity mapping before any Gold Page is written. ROLE 2 and ROLE 14 produce the combined weekly search intelligence brief every Monday.
+- **ROLE 15 — AI Search / GEO / AEO Optimization Lead:** Monitors AI Overview citation patterns, ChatGPT Search and Perplexity answer formats, and GEO/AEO research. ROLE 2 incorporates ROLE 15's AI answer readiness findings into the weekly intelligence report.
+
+Together, ROLES 2, 14, and 15 form the **Search Intelligence Triad** — the front-line monitoring layer that feeds the Chief SEO Architect's Stage 0 brief and the weekly sprint planning cycle.
+
+See `docs/GOLD_PAGE_WAR_ROOM_AND_WEEKLY_TRAINING.md` for full ROLE 14 and ROLE 15 definitions.
+
 ---
 
 ## Table of Contents
@@ -737,7 +746,11 @@ Monitor for Google AI Overview citation on `binance bonus 2026`.
 | `src/data/content-overrides.json` | Editorial overrides (verdict, experience, FAQ) |
 | `logs/indexnow-submissions.jsonl` | IndexNow submission history |
 | `reports/` (gitignored) | Weekly intelligence reports, audit outputs |
+| `docs/GOLD_PAGE_WAR_ROOM_AND_WEEKLY_TRAINING.md` | ROLES 14–30 specialist squad; weekly training protocol; no-autopilot rule |
 
 ---
+
+*Document version 1.1 — 2026-06-06 — Sprint 05: Added Search Intelligence Triad (ROLE 2 + ROLE 14 + ROLE 15) coordination note*  
+*Document version 1.0 — 2026-06-05 — CryptoBonusWorld Sprint 03*
 
 *Document created: 2026-06-05 | Sprint 03 | CryptoBonusWorld SEO Intelligence & AI Search Operations System v1.0*
