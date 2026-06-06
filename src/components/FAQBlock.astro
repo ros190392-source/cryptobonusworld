@@ -26,7 +26,8 @@ const schema = {
     "name": item.question,
     "acceptedAnswer": {
       "@type": "Answer",
-      "text": item.answer,
+      // Strip any HTML tags for plain-text schema requirement (FAQPage spec)
+      "text": item.answer.replace(/<[^>]+>/g, ''),
     },
   })),
 };
@@ -44,7 +45,7 @@ const schema = {
           </svg>
         </summary>
         <div class="faq-answer">
-          <p>{item.answer}</p>
+          <p set:html={item.answer} />
         </div>
       </details>
     ))}
@@ -114,5 +115,13 @@ const schema = {
     font-size: 0.875rem;
     color: var(--color-text-secondary);
     line-height: 1.7;
+  }
+  .faq-answer p a {
+    color: var(--color-accent, #f0b90b);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .faq-answer p a:hover {
+    opacity: 0.85;
   }
 </style>

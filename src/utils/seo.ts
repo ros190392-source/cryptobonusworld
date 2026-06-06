@@ -1042,7 +1042,9 @@ export function buildFAQSchema(items: FAQItem[]): Record<string, unknown> {
       name: item.question,
       acceptedAnswer: {
         '@type': 'Answer',
-        text: item.answer,
+        // Strip HTML tags so schema text is plain-text as required by FAQPage spec.
+        // FAQ answers may contain inline <a>, <strong> etc. for rendered output.
+        text: item.answer.replace(/<[^>]+>/g, ''),
       },
     })),
   };
