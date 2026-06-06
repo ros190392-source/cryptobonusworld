@@ -161,7 +161,11 @@
     "monitor:telegram:summary": "node scripts/monitor-telegram-summary.mjs",
     "monitor:telegram:critical": "node scripts/monitor-telegram-critical.mjs",
     "evidence:snapshot:index": "node scripts/evidence-snapshot.mjs --rebuild-index",
-    "evidence:snapshot:index:verbose": "node scripts/evidence-snapshot.mjs --rebuild-index --verbose"
+    "evidence:snapshot:index:verbose": "node scripts/evidence-snapshot.mjs --rebuild-index --verbose",
+    "watch:availability": "node scripts/watch-exchange-availability.mjs",
+    "watch:availability:write": "node scripts/watch-exchange-availability.mjs --write",
+    "watch:availability:verbose": "node scripts/watch-exchange-availability.mjs --verbose",
+    "watch:availability:dry": "node scripts/watch-exchange-availability.mjs --dry-run"
   },
   "dependencies": {
     "astro": "^4.15.0"
