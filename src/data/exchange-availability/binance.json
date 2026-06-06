@@ -1,0 +1,355 @@
+{
+  "exchange": "binance",
+  "baselineCreatedAt": "2026-06-06",
+  "lastChecked": "2026-06-06",
+  "lastCheckStatus": "baseline_created",
+  "sourceStrategy": "positive_supported_regions_list",
+
+  "primarySource": {
+    "url": "https://www.binance.com/en-GB/support-region-list",
+    "title": "Countries/Regions where the Binance App is supported",
+    "sourceType": "official_binance_support",
+    "sourcePriority": "P0",
+    "binanceUpdatedDate": "2025-10-09",
+    "fetchedByWatcher": "2026-06-06",
+    "scope": "Binance App supported countries/regions",
+    "claimBoundary": "This source proves app support availability only. It does not prove that every missing country is fully banned from every Binance product. Country absence from this list must not be published as a 'banned' or 'prohibited' claim without a current official Binance prohibited-countries source and ROLE 0 approval."
+  },
+
+  "secondarySources": [
+    {
+      "url": "https://www.binance.com/en/terms",
+      "title": "Binance Terms of Use",
+      "sourceType": "official_terms",
+      "sourcePriority": "P0",
+      "monitoringMode": "manual_review_only",
+      "reason": "JavaScript-rendered — not reliable for automated country extraction. References a 'List of Prohibited Countries' document but that document's URL is currently 404.",
+      "reviewSchedule": "quarterly",
+      "reviewedBy": "ROLE 30 — Legal / Terms Watcher"
+    }
+  ],
+
+  "deadSourcesRejected": [
+    {
+      "url": "https://www.binance.com/en/legal/restricted-locations",
+      "reason": "HTTP 404 as of 2026-06-06. Original restricted-locations page removed by Binance.",
+      "checkedDate": "2026-06-06"
+    },
+    {
+      "url": "https://www.binance.com/en/legal/prohibited-countries",
+      "reason": "HTTP 404 as of 2026-06-06. Alternative candidate URL does not exist.",
+      "checkedDate": "2026-06-06"
+    }
+  ],
+
+  "availableCountriesFromPrimarySource": [
+    "Afghanistan",
+    "Albania",
+    "Algeria",
+    "Angola",
+    "Anguilla",
+    "Antigua and Barbuda",
+    "Argentina",
+    "Armenia",
+    "Australia",
+    "Austria",
+    "Azerbaijan",
+    "Bahamas (the)",
+    "Bahrain",
+    "Barbados",
+    "Belarus",
+    "Belgium",
+    "Belize",
+    "Benin",
+    "Bermuda",
+    "Bhutan",
+    "Bolivia (Plurinational State of)",
+    "Bosnia and Herzegovina",
+    "Botswana",
+    "Brazil",
+    "Brunei Darussalam",
+    "Bulgaria",
+    "Burkina Faso",
+    "Cabo Verde",
+    "Cambodia",
+    "Cameroon",
+    "Canada",
+    "Cayman Islands (the)",
+    "Chad",
+    "Chile",
+    "Colombia",
+    "Congo (the Democratic Republic of the)",
+    "Congo (the)",
+    "Costa Rica",
+    "Côte d'Ivoire",
+    "Croatia",
+    "Cyprus",
+    "Czechia",
+    "Denmark",
+    "Dominica",
+    "Dominican Republic (the)",
+    "Ecuador",
+    "Egypt",
+    "El Salvador",
+    "Estonia",
+    "Eswatini",
+    "Fiji",
+    "Finland",
+    "France",
+    "Gabon",
+    "Gambia (the)",
+    "Georgia",
+    "Germany",
+    "Ghana",
+    "Greece",
+    "Grenada",
+    "Guatemala",
+    "Guinea-Bissau",
+    "Guyana",
+    "Honduras",
+    "Hong Kong",
+    "Hungary",
+    "Iceland",
+    "Indonesia",
+    "Iraq",
+    "Ireland",
+    "Israel",
+    "Italy",
+    "Jamaica",
+    "Japan",
+    "Jordan",
+    "Kazakhstan",
+    "Kenya",
+    "Kosovo",
+    "Kuwait",
+    "Kyrgyzstan",
+    "Lao People's Democratic Republic (the)",
+    "Latvia",
+    "Lebanon",
+    "Liberia",
+    "Libya",
+    "Lithuania",
+    "Luxembourg",
+    "Macao",
+    "Madagascar",
+    "Malawi",
+    "Maldives",
+    "Mali",
+    "Malta",
+    "Mauritania",
+    "Mauritius",
+    "Mexico",
+    "Micronesia (Federated States of)",
+    "Moldova (the Republic of)",
+    "Mongolia",
+    "Montenegro",
+    "Montserrat",
+    "Morocco",
+    "Mozambique",
+    "Myanmar",
+    "Namibia",
+    "Nauru",
+    "Nepal",
+    "New Zealand",
+    "Nicaragua",
+    "Niger (the)",
+    "Nigeria",
+    "Norway",
+    "Oman",
+    "Pakistan",
+    "Palau",
+    "Panama",
+    "Papua New Guinea",
+    "Paraguay",
+    "Peru",
+    "Philippines (the)",
+    "Poland",
+    "Portugal",
+    "Qatar",
+    "Republic of North Macedonia",
+    "Romania",
+    "Russian Federation (the)",
+    "Rwanda",
+    "Saint Kitts and Nevis",
+    "Saint Lucia",
+    "Saint Vincent and the Grenadines",
+    "Sao Tome and Principe",
+    "Saudi Arabia",
+    "Senegal",
+    "Serbia",
+    "Seychelles",
+    "Sierra Leone",
+    "Singapore",
+    "Slovakia",
+    "Slovenia",
+    "Solomon Islands",
+    "South Africa",
+    "South Korea",
+    "Spain",
+    "Sri Lanka",
+    "Suriname",
+    "Sweden",
+    "Switzerland",
+    "Taiwan",
+    "Tajikistan",
+    "Tanzania (United Republic of)",
+    "Thailand",
+    "Tonga",
+    "Trinidad and Tobago",
+    "Tunisia",
+    "Turkey",
+    "Turkmenistan",
+    "Turks and Caicos Islands (the)",
+    "Uganda",
+    "Ukraine",
+    "United Arab Emirates (the)",
+    "United Kingdom of Great Britain and Northern Ireland (the)",
+    "Uruguay",
+    "Uzbekistan",
+    "Vanuatu",
+    "Venezuela (Bolivarian Republic of)",
+    "Viet Nam",
+    "Virgin Islands (British)",
+    "Yemen",
+    "Zambia",
+    "Zimbabwe"
+  ],
+  "availableCountryCount": 195,
+
+  "notListedInAppSupportedRegions": {
+    "_notice": "INTERNAL MONITORING DATA ONLY. Do NOT publish to any public page. Do NOT describe these as banned or prohibited. These are territories absent from the official Binance App supported-regions list as of the source date. Absence may reflect app distribution restrictions, regulatory status, separate product variants (e.g. Binance.US), or other factors. Requires ROLE 0 review before any public claim.",
+    "sourceDate": "2025-10-09",
+    "publicUse": "forbidden_without_role0_approval",
+    "list": [
+      {
+        "name": "United States of America",
+        "isoCode": "US",
+        "notes": "Not listed. Binance.com does not serve US residents. Separate product: Binance.US. Well-established regulatory separation."
+      },
+      {
+        "name": "China (People's Republic of — mainland)",
+        "isoCode": "CN",
+        "notes": "Not listed. Binance exited mainland China. Hong Kong is listed separately as available."
+      },
+      {
+        "name": "India",
+        "isoCode": "IN",
+        "notes": "Not listed. Significant absence given population size. Binance has faced regulatory challenges in India. Requires manual verification."
+      },
+      {
+        "name": "Cuba",
+        "isoCode": "CU",
+        "notes": "Not listed. Subject to OFAC sanctions referenced in Binance Terms of Use."
+      },
+      {
+        "name": "Iran (Islamic Republic of)",
+        "isoCode": "IR",
+        "notes": "Not listed. Subject to OFAC sanctions referenced in Binance Terms of Use."
+      },
+      {
+        "name": "Korea (Democratic People's Republic of — North Korea)",
+        "isoCode": "KP",
+        "notes": "Not listed. Subject to OFAC and UN Security Council sanctions referenced in Binance Terms of Use."
+      },
+      {
+        "name": "Syrian Arab Republic",
+        "isoCode": "SY",
+        "notes": "Not listed. Subject to OFAC sanctions referenced in Binance Terms of Use."
+      }
+    ],
+    "additionalTerritoriesNote": "A full ISO 3166-1 comparison would reveal additional territories not listed. The entries above are the monitoring-critical sovereign states. Full territory analysis deferred to Phase 3 (automated watcher)."
+  },
+  "notListedCountryCount": 7,
+
+  "restrictedCountries": {
+    "list": [],
+    "confidence": "not_claimed",
+    "reason": "No current official Binance prohibited-countries list was found. /legal/restricted-locations and /legal/prohibited-countries both return HTTP 404. The Terms of Use references a 'List of Prohibited Countries' but its URL is dead. Do NOT infer a legal banned list from the app supported-regions list. This field remains empty until an authoritative source is identified.",
+    "requiresOwnerApprovalToPopulate": true
+  },
+
+  "partialRestrictions": {
+    "list": [],
+    "notes": "No partial-restriction data from a current P0 source. Deferred."
+  },
+
+  "productRestrictions": [
+    {
+      "product": "Binance Pay B2C",
+      "sourceUrl": "https://www.binance.com/en/support/faq/detail/942c5c12e00b494e9bc3e2ab31f7da19",
+      "sourceDate": "2026-05-28",
+      "sourceStatus": "separate_product_specific_source",
+      "mustNotUseAsGeneralPlatformClaim": true,
+      "note": "Binance Pay Merchant B2C has its own country restriction list. ROLE 0 approved: this must NOT be used as a proxy for general Binance platform availability. Product restrictions are tracked separately.",
+      "restrictedCountriesForThisProduct": [
+        "American Samoa", "Canada", "Cuba", "Cyprus", "Guam", "Indonesia", "India",
+        "Iran", "Japan", "North Korea", "Northern Mariana Islands", "Philippines",
+        "Puerto Rico", "Russia", "Singapore", "Thailand",
+        "Ukraine (specific regions)", "United States Minor Outlying Islands",
+        "USA", "Vietnam", "Virgin Islands (U.S.)", "Malaysia", "Netherlands",
+        "United Arab Emirates", "United Kingdom"
+      ]
+    }
+  ],
+
+  "geoNotes": [
+    {
+      "country": "Russian Federation",
+      "isoCode": "RU",
+      "statusFromPrimarySource": "Available",
+      "sourceDate": "2025-10-09",
+      "publicUse": "monitor_only",
+      "requiresOwnerApprovalBeforePublicClaim": true,
+      "note": "Listed as Available in the official Binance App support list as of Oct 9 2025. However, given the geopolitical context and potential sanctions risk, ROLE 0 must explicitly approve before this is stated on any CBW page. Do not publish Russia availability claim without approval."
+    },
+    {
+      "country": "Canada",
+      "isoCode": "CA",
+      "statusFromPrimarySource": "Available",
+      "sourceDate": "2025-10-09",
+      "publicUse": "monitor_only",
+      "requiresOwnerApprovalBeforePublicClaim": false,
+      "note": "Listed as Available in app support list. Note: Canada appears in Binance Pay B2C restriction list. General trading platform may still be accessible. No conflict at platform level from P0 source."
+    },
+    {
+      "country": "India",
+      "isoCode": "IN",
+      "statusFromPrimarySource": "NotListed",
+      "sourceDate": "2025-10-09",
+      "publicUse": "forbidden",
+      "requiresOwnerApprovalBeforePublicClaim": true,
+      "note": "India is absent from the 195-country app support list. This is notable given market size. Binance has faced regulatory challenges in India. Must not be published as restricted/banned without a current P0 source confirming restriction."
+    }
+  ],
+
+  "confidence": "medium_high_for_app_supported_regions_only",
+  "manualReviewRequired": true,
+  "manualReviewReason": "restrictedCountries.list is empty pending identification of current official prohibited-countries source. geoNotes entries for Russia and India require ROLE 0 review before page integration.",
+  "changedSinceLastCheck": false,
+  "lastChangeSummary": "Initial baseline created 2026-06-06 from official Binance App supported countries/regions list (https://www.binance.com/en-GB/support-region-list, Binance last updated 2025-10-09). 195 countries listed as Available. Prohibited countries list URL (404) not recovered. Monitoring strategy: positive-list inversion.",
+
+  "pageIntegration": {
+    "status": "not_integrated",
+    "reason": "manualReviewRequired is true. No page integration until ROLE 0 approves specific claims.",
+    "exchangePage": false,
+    "bonusPage": false,
+    "faqBlock": false,
+    "riskDisclaimerBlock": false,
+    "countryPages": []
+  },
+
+  "monitoringConfig": {
+    "primaryCheckUrl": "https://www.binance.com/en-GB/support-region-list",
+    "checkFrequency": "daily",
+    "changeDetection": "positive_list_diff",
+    "changeEvents": {
+      "country_removed_from_list": "country_newly_restricted — HIGH severity — alert ROLE 0",
+      "country_added_to_list": "country_restriction_lifted — MEDIUM severity — alert ROLE 0",
+      "source_unavailable": "source_error — HIGH severity — alert ROLE 0",
+      "page_content_hash_changed": "verify diff — MEDIUM severity — create review report"
+    },
+    "scriptPlanned": "automation/runners/availability_watcher.py",
+    "scriptStatus": "not_yet_created",
+    "scriptSprint": "Sprint 06"
+  }
+}
