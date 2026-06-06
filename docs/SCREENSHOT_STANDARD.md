@@ -231,4 +231,92 @@ When a new cleanup sprint runs:
 
 ---
 
+---
+
+## 12. Contextual Screenshot Quality Rules (Added Sprint 05, 2026-06-06)
+
+After owner visual review of the first Binance contextual screenshot batch, the following mandatory quality rules are added to the standard. These apply to **all** contextual evidence screenshots (those placed via `ContextualEvidenceScreenshot.astro` near matching page sections).
+
+### 12.1 — Hard Reject Criteria
+
+A screenshot **must be rejected** (set to `needs_manual_capture`, removed from `contextualScreenshotSlots`) if it shows any of the following:
+
+| Condition | Example | Action |
+|-----------|---------|--------|
+| Error pages | "An Error Occurred", 404, 500 | Reject + recapture |
+| Loading/unfinished UI | Spinner, partial page load, empty containers | Reject + recapture |
+| Wrong market/locale/currency | CNY market on a global page, Russian locale | Reject + recapture with correct locale |
+| Rejected bonus amounts | 100 USD generic offer, $1,000 fee rebates | Reject permanently |
+| Private data | Account UID, email, phone, balance, real name | Reject + mask before reuse |
+| Non-matching section context | P2P screenshot in the fees section | Reject + relocate |
+
+### 12.2 — URL Bar Policy
+
+> **Hide, crop, or blur the browser address bar** in all screenshots unless the URL itself is the evidence (e.g. proving a page is on `binance.com/fee/schedule`).
+
+**Rationale:** Visible URL bars are distracting and may show URLs that differ from the target context (e.g. showing a locale-specific URL when the page claims to be global).
+
+**Method:** Use browser developer tools to hide the UI chrome, or crop the screenshot to exclude the address bar before saving.
+
+**Exception:** If the URL is part of the proof (e.g. showing the affiliate referral parameter `ref=CRYPTOBONUSW` in the address bar), the URL bar may remain visible. Annotate the notes field in evidence JSON accordingly.
+
+### 12.3 — Contextual Screenshot Approval Flow
+
+Before a screenshot slot is added to `contextualScreenshotSlots` in `content-overrides.json`:
+
+1. ✅ Screenshot is captured and placed at the correct `public/screenshots/` path
+2. ✅ Evidence JSON `status` is set to `"available"` with accurate notes
+3. ✅ `npm run audit:screenshots` — P1 errors = 0
+4. ✅ `npm run build` — 0 errors
+5. ✅ Screenshot is visually reviewed in the built HTML (local `dist/`) — not just file-on-disk
+6. ✅ **Owner visual review** — owner views the page in browser and explicitly approves the screenshot in context
+7. ✅ Slot name is added to `contextualScreenshotSlots` in content-overrides only after all above pass
+8. ✅ Final QA build + deploy
+
+Authenticated screenshots additionally require:
+- No real personal data visible (or data is masked)
+- Private data excluded from the frame (address bar blurred/hidden, financial data excluded)
+- Explicit note in evidence JSON: "Owner-approved authenticated capture, with private data excluded"
+
+### 12.4 — Registration Demo Screenshot Rules
+
+The future Binance registration demo screenshot (for the `registration` slot or walkthrough Step 1) must meet all of the following:
+
+| Requirement | Value |
+|-------------|-------|
+| Email field | `screenshots@cryptobonusworld.com` or `demo@cryptobonusworld.com` |
+| Bonus offer visible | 19,800 USDT (via CBW referral link `ref=CRYPTOBONUSW`) |
+| Promo code visible | CRYPTOBONUSW (if shown on landing page) |
+| Continue / Next button | Must be visible in frame |
+| Form submitted? | **NO — form must NOT be submitted** |
+| Real personal data | None — only demo email above |
+| URL bar | Hide or crop unless referral parameter is the evidence |
+
+**Rationale:** This ensures the screenshot demonstrates the correct partner offer without creating a real account or exposing personal data.
+
+### 12.5 — Slot Allowlist Governance
+
+The `contextualScreenshotSlots` array in `content-overrides.json` is the **sole** control for which screenshots render contextually on exchange pages. 
+
+**Rules:**
+- Never add a slot to the allowlist based on `status: "available"` alone — visual review is required
+- Slots removed after a failed review must be set to `needs_manual_capture` in evidence JSON
+- The allowlist should be treated as a curated editorial decision, not an automation output
+- Audit the allowlist slots quarterly or after any new contextual screenshot deployment
+
+---
+
+## 13. Recapture Queue (Updated Sprint 05, 2026-06-06)
+
+| Exchange | Slot | Status | Rejection Reason | Priority | Recapture Notes |
+|----------|------|--------|-----------------|----------|-----------------|
+| Binance | `mobile_app` | `needs_manual_capture` | Shows "An Error Occurred" | P2 | Capture Binance app download page at mobile viewport, no errors, URL bar hidden |
+| Binance | `kyc` | `needs_manual_capture` | Page still loading/unfinished at capture | P2 | Capture fully loaded Verification Center showing all KYC tiers, authenticated, URL bar hidden |
+| Binance | `p2p` | `needs_manual_capture` | Shows CNY market — wrong for global page | P2 | Capture P2P interface in USD/USDT or neutral global locale, URL bar hidden |
+| Binance | `registration` | `outdated` | Shows 100 USD generic offer (no CBW referral) | P1 | Must use CBW referral link; demo email only; form NOT submitted |
+
+---
+
+*Document updated: 2026-06-06 | Sprint 05 | Owner visual review findings*
+
 *Document created: 2026-06-05 | Sprint 03 | CryptoBonusWorld Screenshot Standardization*

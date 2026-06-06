@@ -354,32 +354,27 @@ const _screenshotImages = ev?.screenshots
       }))
   : [];
 
-// Contextual evidence screenshot — bonus proof slot (bonus_referral_landing)
-// Resolved from the already-filtered _screenshotImages array (status: available, /screenshots/ paths only).
-// This is data-driven: any exchange with this slot available gets the contextual screenshot.
-// Rejected paths (registration outdated, bonus outdated) are excluded because they have status: outdated
-// and are therefore absent from _screenshotImages.
-const _bonusProofScreenshot = _screenshotImages.find(img =>
-  img.src.includes('/bonus_referral_landing/')
-) ?? null;
-
-// Contextual evidence screenshots — per-section placement slots
-// Opt-in per exchange via contextualSectionScreenshots: true in content-overrides.
-// Ensures new section screenshots only render for exchanges explicitly enabled.
-// All resolved from _screenshotImages (status: available, /screenshots/ prefix only).
-// Returns null when flag absent, slot absent, outdated, or not yet captured.
-const _contextualSectionScreenshots = (_faqOverride as any)?.contextualSectionScreenshots === true;
-const _kycScreenshot             = _contextualSectionScreenshots
+// Contextual evidence screenshots — opt-in per slot via content-overrides.
+// contextualScreenshotSlots[] in content-overrides is the single source of truth.
+// A slot renders only when it is (a) listed in the allowlist AND (b) status: available
+// in evidence AND (c) path starts with /screenshots/ (enforced by _screenshotImages filter).
+// Slots not in the allowlist return null and produce no output — rendering is never automatic.
+// To add a new slot: capture screenshot, set status: available in evidence, add slot name here.
+const _contextualSlots: string[] =
+  ((_faqOverride as any)?.contextualScreenshotSlots as string[] | undefined) ?? [];
+const _bonusProofScreenshot      = _contextualSlots.includes('bonus_referral_landing')
+  ? (_screenshotImages.find(img => img.src.includes('/bonus_referral_landing/')) ?? null) : null;
+const _kycScreenshot             = _contextualSlots.includes('kyc')
   ? (_screenshotImages.find(img => img.src.includes('/kyc/'))              ?? null) : null;
-const _mobileScreenshot          = _contextualSectionScreenshots
+const _mobileScreenshot          = _contextualSlots.includes('mobile_app')
   ? (_screenshotImages.find(img => img.src.includes('/mobile_app/'))       ?? null) : null;
-const _feesScreenshot            = _contextualSectionScreenshots
+const _feesScreenshot            = _contextualSlots.includes('fees')
   ? (_screenshotImages.find(img => img.src.includes('/fees/'))             ?? null) : null;
-const _p2pScreenshot             = _contextualSectionScreenshots
+const _p2pScreenshot             = _contextualSlots.includes('p2p')
   ? (_screenshotImages.find(img => img.src.includes('/p2p/'))              ?? null) : null;
-const _proofOfReservesScreenshot = _contextualSectionScreenshots
+const _proofOfReservesScreenshot = _contextualSlots.includes('proof_of_reserves')
   ? (_screenshotImages.find(img => img.src.includes('/proof_of_reserves/')) ?? null) : null;
-const _spotScreenshot            = _contextualSectionScreenshots
+const _spotScreenshot            = _contextualSlots.includes('spot')
   ? (_screenshotImages.find(img => img.src.includes('/spot/'))             ?? null) : null;
 
 // Pull the official fee source URL from evidence (if available)

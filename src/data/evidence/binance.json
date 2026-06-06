@@ -346,12 +346,12 @@
       "notes": ""
     },
     "p2p": {
-      "status": "available",
+      "status": "needs_manual_capture",
       "path": "/screenshots/binance/p2p/global-desktop-2026-06.webp",
       "capturedAt": "2026-06",
       "geo": "GLOBAL",
       "device": "desktop",
-      "notes": ""
+      "notes": "Owner visual review 2026-06-06: REJECTED for contextual placement. Screenshot shows CNY market (Chinese locale/currency). Global Binance page targets a USD/USDT or neutral global audience. File retained on disk as raw evidence for reference. Needs USD/USDT or globally neutral P2P view recapture before contextual use. URL bar must be hidden/cropped. Slot removed from contextualScreenshotSlots until recaptured."
     },
     "spot": {
       "status": "available",
@@ -378,20 +378,20 @@
       "notes": "Futures trading interface. Excluded from primary gallery — spot screenshot provides equivalent trading view. Recapture with annotation markers if futures-specific content warrants inclusion."
     },
     "mobile_app": {
-      "status": "available",
+      "status": "needs_manual_capture",
       "path": "/screenshots/binance/mobile_app/global-mobile-2026-06.webp",
       "capturedAt": "2026-06",
       "geo": "GLOBAL",
       "device": "mobile",
-      "notes": "Binance app download page at mobile viewport (390×844). Public page — no auth required. Shows Binance mobile app download section. Captured 2026-06. File: 24,208 bytes."
+      "notes": "Owner visual review 2026-06-06: REJECTED. Current screenshot shows 'An Error Occurred' on the mobile app page. File retained on disk for reference. Needs clean public mobile app download page recapture without errors. URL bar must be hidden/cropped. Slot removed from contextualScreenshotSlots until recaptured."
     },
     "kyc": {
-      "status": "available",
+      "status": "needs_manual_capture",
       "path": "/screenshots/binance/kyc/global-desktop-2026-06.webp",
       "capturedAt": "2026-06",
       "geo": "GLOBAL",
       "device": "desktop",
-      "notes": "Binance Verification Center — shows KYC verification tier status. Authenticated capture. Owner-approved 2026-06-05."
+      "notes": "Owner visual review 2026-06-06: REJECTED. Current screenshot shows a loading/unfinished Identification screen — page did not fully load at capture time. File retained on disk for reference. Needs fully loaded Binance Verification Center page showing all KYC tier levels. URL bar must be hidden/cropped. Authenticated capture required. Slot removed from contextualScreenshotSlots until recaptured and re-approved."
     },
     "deposit": {
       "status": "needs_manual_capture",
