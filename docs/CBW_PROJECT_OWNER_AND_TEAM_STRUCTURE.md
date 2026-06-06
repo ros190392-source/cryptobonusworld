@@ -839,7 +839,7 @@ Top 6 Sprint 05 tasks (priority order):
 
 ---
 
-## 8. Gold Page Specialist Squad — Roles 14–35
+## 8. Gold Page Specialist Squad — Roles 14–36
 
 For Gold Pages (money pages, high-value targets, pages with screenshots and affiliate offers),
 the **Gold Page Specialist Squad** activates in addition to the Core Production Team (ROLES 0–13).
@@ -871,10 +871,11 @@ are in: **`docs/GOLD_PAGE_WAR_ROOM_AND_WEEKLY_TRAINING.md`**
 | ROLE 33 *(optional)* | Screenshot Ethics / Privacy Reviewer | Hard-veto any screenshot containing private or sensitive data before `public/` |
 | ROLE 34 *(optional)* | Monetization / Affiliate CRO Strategist | Optimise CTA placement and offer explanation without damaging trust |
 | ROLE 35 *(optional)* | Final Executive Editor | Final editorial approval gate before ROLE 0 owner visual review |
+| ROLE 36 | Exchange Availability / Restricted Countries Watcher | Monitor official exchange availability daily; detect restricted-country changes; alert owner; never auto-publishes |
 
-**Total roles: 36 (ROLE 0 through ROLE 35)**  
+**Total roles: 37 (ROLE 0 through ROLE 36)**  
 **Core Production Team: ROLES 0–13 (14 roles)**  
-**Gold Page Specialist Squad: ROLES 14–35 (22 roles; ROLES 31–35 are optional)**
+**Gold Page Specialist Squad: ROLES 14–36 (23 roles; ROLES 31–35 are optional)**
 
 ---
 
@@ -883,7 +884,8 @@ are in: **`docs/GOLD_PAGE_WAR_ROOM_AND_WEEKLY_TRAINING.md`**
 | Document | Owned by role | Purpose |
 |----------|--------------|---------|
 | `CBW_PROJECT_OWNER_AND_TEAM_STRUCTURE.md` (this doc) | ROLE 0 | Top-level structure; supersedes all role conflicts |
-| `GOLD_PAGE_WAR_ROOM_AND_WEEKLY_TRAINING.md` | ROLE 0 | Gold Page Specialist Squad (ROLES 14–35); weekly training protocol; 16-step Gold Page check chain |
+| `GOLD_PAGE_WAR_ROOM_AND_WEEKLY_TRAINING.md` | ROLE 0 | Gold Page Specialist Squad (ROLES 14–36); weekly training protocol; 16-step Gold Page check chain |
+| `EXCHANGE_AVAILABILITY_AND_RESTRICTED_COUNTRIES_WATCHER.md` | ROLE 36 + ROLE 0 | Daily availability monitoring governance; ROLE 36 data model; Binance pilot plan |
 | `CHIEF_SEO_ARCHITECT_ROLE.md` | ROLE 1 | Page architecture definition + Stage 0 brief template |
 | `MASTER_SEO_SCREENSHOT_PAGE_FACTORY.md` | ROLE 1 + 0 | Full page production pipeline; Roles 1–6 definitions |
 | `SEO_INTELLIGENCE_AND_AI_SEARCH_OPS.md` | ROLE 2 | SERP data systems; AI answer monitoring; GSC/Yandex |
@@ -917,6 +919,7 @@ are in: **`docs/GOLD_PAGE_WAR_ROOM_AND_WEEKLY_TRAINING.md`**
 
 ---
 
+*Document version 1.3 — 2026-06-06 — Sprint 05: Added ROLE 36 Exchange Availability Watcher; updated to ROLES 14–36*
 *Document version 1.2 — 2026-06-06 — Sprint 05: Extended to ROLES 14–35; added Section 11 Gold Page Check Chain reference*  
 *Document version 1.1 — 2026-06-06 — Sprint 05: Added ROLES 14–30 Gold Page Specialist Squad*  
 *Document version 1.0 — 2026-06-05 — CryptoBonusWorld Sprint 04*  

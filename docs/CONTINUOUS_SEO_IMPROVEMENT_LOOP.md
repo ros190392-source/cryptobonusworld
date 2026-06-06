@@ -34,9 +34,17 @@ Every Monday, scan all active signals. Record findings in `reports/weekly-seo-in
 
 **Additional input (Sprint 05+):** The **Gold Page Specialist Squad Weekly Update**
 (`reports/weekly-specialist-update-{YYYY-MM-DD}.md`) feeds into this loop every Tuesday.
-Specialist notes from ROLES 14–30 are reviewed by the Chief Project Owner and Chief SEO
+Specialist notes from ROLES 14–36 are reviewed by the Chief Project Owner and Chief SEO
 Architect, then converted into concrete sprint tasks. See
 `docs/GOLD_PAGE_WAR_ROOM_AND_WEEKLY_TRAINING.md` for the full specialist protocol.
+
+**Additional input (Sprint 05+):** The **Exchange Availability Watcher Daily Report**
+(`reports/exchange-availability-watch-{YYYY-MM-DD}.md`) feeds into this loop whenever a
+`review_required` or `change_detected` event is reported. ROLE 36 monitors official exchange
+restricted-country and service availability pages daily and alerts the project owner when
+changes are detected. Detected changes may require content updates on exchange pages, FAQ
+blocks, and future country pages. No page update is applied without ROLE 0 approval.
+See `docs/EXCHANGE_AVAILABILITY_AND_RESTRICTED_COUNTRIES_WATCHER.md` for the full system.
 
 ### Search Engine Signals
 
@@ -792,6 +800,7 @@ git rev-list --count origin/master..HEAD
 
 ---
 
+*Document version 1.2 — 2026-06-06 — Sprint 05: Added Exchange Availability Watcher daily report as input (Section 2); updated ROLES 14–30 reference to 14–36*
 *Document version 1.1 — 2026-06-06 — Sprint 05: Added Gold Page Specialist Squad weekly update as input (Section 2)*  
 *Document version 1.0 — 2026-06-05 — CryptoBonusWorld Sprint 03*
 

@@ -16,7 +16,7 @@
 
 1. [Purpose](#1-purpose)
 2. [Role Hierarchy: Chief Owner → Core Team → Specialist Squad](#2-role-hierarchy)
-3. [Full Role Table — Roles 0–35](#3-full-role-table)
+3. [Full Role Table — Roles 0–36](#3-full-role-table)
 4. [Weekly Training Protocol](#4-weekly-training-protocol)
 5. [Weekly Sources by Role Domain](#5-weekly-sources-by-role-domain)
 6. [Specialist Update Report Template](#6-specialist-update-report-template)
@@ -94,7 +94,8 @@ ROLE 0  ── Chief Project Owner
                 ├── ROLE 27  Content Differentiation Strategist
                 ├── ROLE 28  Methodology / Trust Page Editor
                 ├── ROLE 29  Performance / Core Web Vitals Reviewer
-                └── ROLE 30  Legal / Terms Watcher
+                ├── ROLE 30  Legal / Terms Watcher
+                └── ROLE 36  Exchange Availability / Restricted Countries Watcher
 ```
 
 **Core Production Team (ROLES 2–13)** is active on every page production.  
@@ -104,7 +105,7 @@ and any page that requires screenshot captures, offer validation, or human visua
 
 ---
 
-## 3. Full Role Table — Roles 0–35
+## 3. Full Role Table — Roles 0–36
 
 ---
 
@@ -650,6 +651,21 @@ and final editorial quality that the Core Team alone cannot fully provide.
 
 ---
 
+### ROLE 36 — Exchange Availability / Restricted Countries Watcher
+
+| Field | Value |
+|-------|-------|
+| Mission | Monitor official exchange Terms of Service, Legal pages, and official announcements daily to detect changes in restricted-country lists, service availability, and product restrictions — and alert the project owner before stale claims appear on live pages |
+| Weekly duty | Review last 7 daily availability watcher reports; flag any `review_required` or `source_unavailable` runs not yet actioned by ROLE 0; coordinate with ROLE 30 on legal wording changes; coordinate with ROLE 25 on affected page freshness; maintain source URL registry per exchange |
+| Inputs | Official exchange restricted locations pages (P0); exchange Terms of Use (P0); official exchange support FAQ pages (P0); official regulatory notices (P1); reputable news on enforcement actions (P2); `reports/exchange-availability-watch-{date}.md` |
+| Outputs | Daily availability watch report (`.md` + `.json`); suggested content update task (when change detected); source URL registry; `src/data/exchange-availability/{exchange}.json` (created only after ROLE 0 baseline approval) |
+| Approval power | Cannot update live pages — creates suggested tasks only; escalates `country_added` and `source_unavailable` events to ROLE 0 immediately; `manualReviewRequired: true` flag blocks page rendering of availability data |
+| When active | Daily automated run (Sprint 06+); manual check every Monday; on any exchange legal/regulatory news |
+
+**Governance:** `docs/EXCHANGE_AVAILABILITY_AND_RESTRICTED_COUNTRIES_WATCHER.md`
+
+---
+
 ## 4. Weekly Training Protocol
 
 Every specialist stays current through a structured weekly rhythm. Training is not passive
@@ -669,6 +685,7 @@ updates their task queue, and flags urgent changes.
 | ROLE 16 — Offer Integrity | Tier 1 exchange promo pages, offer amounts, promo codes |
 | ROLE 25 — Freshness Editor | Evidence `lastChecked` dates, stale claim queue |
 | ROLE 30 — Legal Watcher | Exchange terms pages, affiliate program updates |
+| ROLE 36 — Availability Watcher | Last 7 daily availability reports; any `review_required` items; regulatory news |
 | ROLE 2 — SEO Intelligence | GSC, Yandex Webmaster, algorithm announcements |
 | ROLE 12 — Analytics | Metrika, GSC clicks/impressions, affiliate dashboard |
 
@@ -745,6 +762,7 @@ their domain.
 | ROLE 28 — Methodology Editor | `docs/SCREENSHOT_STANDARD.md`; `docs/KYC_ACCESS_CLAIMS_POLICY.md`; methodology page content |
 | ROLE 29 — Performance | `public/screenshots/` file sizes; Core Web Vitals (GSC / lab testing); built HTML image tags |
 | ROLE 30 — Legal Watcher | Official exchange terms of service pages; affiliate program terms; regulatory news |
+| ROLE 36 — Availability Watcher | Official exchange Restricted Locations pages (P0); exchange Terms of Use eligibility sections (P0); official exchange support FAQ on restricted countries (P0); official regulator notices (P1); reputable news on exchange enforcement actions (P2); `reports/exchange-availability-watch-{date}.md` daily run log |
 | ROLE 2 — SEO Intelligence | Google Search Central Blog; Google Search Status Dashboard; GSC (owner-only); Yandex Webmaster; Bing Webmaster; IndexNow log |
 | ROLE 12 — Analytics | Google Search Console; Yandex Metrika (counter 109562447); affiliate dashboard; IndexNow submission log |
 
@@ -1104,9 +1122,11 @@ does not proceed until the check passes.
 | `docs/SCREENSHOT_STANDARD.md` | Screenshot naming, slots, quality rules (Sections 12–13 added Sprint 05) |
 | `docs/BINANCE_GOLD_ARTICLE_PIPELINE.md` | Binance-specific pipeline definition |
 | `docs/SCREENSHOT_COVERAGE_MATRIX.md` | Coverage targets per exchange |
+| `docs/EXCHANGE_AVAILABILITY_AND_RESTRICTED_COUNTRIES_WATCHER.md` | ROLE 36 governance; data model; watcher logic; Binance pilot plan |
 
 ---
 
-*Document version 1.1 — 2026-06-06 — CryptoBonusWorld Sprint 05*  
+*Document version 1.2 — 2026-06-06 — CryptoBonusWorld Sprint 05*  
+*Sprint 05 v1.2: Added ROLE 36 (Exchange Availability / Restricted Countries Watcher); daily availability monitoring inputs added to weekly protocol*  
 *Sprint 05 v1.1: Added optional ROLES 31–35; added Section 11 Chain of Checks (16-step Gold Page gate)*  
 *Owner: Chief Project Owner (ROLE 0)*
