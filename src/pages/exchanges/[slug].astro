@@ -333,7 +333,8 @@ const _SCREENSHOT_LABELS: Record<string, string> = {
   fees:                  'Fees',
   mobile_app:            'Mobile app',
   proof_of_reserves:     'Proof of reserves',
-  bonus_referral_landing:'Bonus landing',
+  bonus_referral_landing:    'Bonus landing',
+  registration_demo_state:   'Registration — CBW referral',
 };
 
 const _screenshotImages = ev?.screenshots
@@ -376,6 +377,8 @@ const _proofOfReservesScreenshot = _contextualSlots.includes('proof_of_reserves'
   ? (_screenshotImages.find(img => img.src.includes('/proof_of_reserves/')) ?? null) : null;
 const _spotScreenshot            = _contextualSlots.includes('spot')
   ? (_screenshotImages.find(img => img.src.includes('/spot/'))             ?? null) : null;
+const _registrationDemoStateScreenshot = _contextualSlots.includes('registration_demo_state')
+  ? (_screenshotImages.find(img => img.src.includes('/registration_demo_state/')) ?? null) : null;
 
 // Pull the official fee source URL from evidence (if available)
 const _feeSourceFact = ev?.facts.find(f => f.field === 'spot_maker_fee');
@@ -733,6 +736,20 @@ const rnrItems = [
               The promo code cannot be applied retroactively after account creation. If you registered without a code, it cannot be added later — you would need to open a new account.
             </p>
           </section>
+        )}
+
+        <!-- Registration demo state screenshot — shows the referral registration flow with CBW bonus attribution -->
+        <!-- Rendered from evidence slot registration_demo_state (status: available, path: /screenshots/) -->
+        <!-- Safety: rejected legacy Binance registration and bonus screenshot slots remain disabled. -->
+        <!-- They are excluded by the _screenshotImages status=available filter and will never render here. -->
+        {_registrationDemoStateScreenshot && (
+          <ContextualEvidenceScreenshot
+            src={_registrationDemoStateScreenshot.src}
+            alt={`${ex.name} registration page with ${ex.bonusAmount?.toLocaleString()} ${ex.bonusCurrency} signup rewards and ${ex.promoCode} referral code attribution`}
+            caption={`${ex.name} registration screen showing the ${ex.bonusAmount?.toLocaleString()} ${ex.bonusCurrency} signup rewards campaign and ${ex.promoCode} attribution.`}
+            device={_registrationDemoStateScreenshot.device === 'none' ? 'desktop' : _registrationDemoStateScreenshot.device}
+            capturedAt={_registrationDemoStateScreenshot.capturedAt}
+          />
         )}
 
         <!-- Key conditions — icon grid -->

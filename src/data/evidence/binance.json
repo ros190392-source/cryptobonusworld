@@ -313,6 +313,18 @@
     }
   ],
   "screenshots": {
+    "registration_demo_state": {
+      "status": "available",
+      "path": "/screenshots/binance/registration_demo_state/global-desktop-2026-06.webp",
+      "capturedAt": "2026-06",
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "ownerApproved": true,
+      "ownerApprovedDate": "2026-06-06",
+      "captureType": "affiliate_public",
+      "claimSupported": "Binance registration/referral flow shows the 19,800 USD signup rewards campaign and CRYPTOBONUSW attribution.",
+      "notes": "Owner-approved raw capture via https://www.binance.com/join?ref=CRYPTOBONUSW. Shows CryptoBonusWorld (Code: CRYPTOBONUSW) attribution and 19,800 USD Sign Up Rewards. Email field empty, form not submitted. No personal data. No browser URL bar (headless capture). Raw candidate used — processed browser-frame version blocked per ROLE 0 instruction."
+    },
     "registration": {
       "status": "outdated",
       "path": "/screenshots/binance/registration/global-desktop-2026-06.webp",
