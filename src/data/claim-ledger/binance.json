@@ -141,9 +141,9 @@
       "claimText": "Binance P2P provides a public peer-to-peer marketplace with a 0% platform fee and an escrow-protected listing interface.",
       "claimType": "p2p",
       "evidenceSources": ["binance_p2p_p0"],
-      "screenshotEvidence": ["binance_p2p_direction_usd_usdt_en_global"],
+      "screenshotEvidence": ["binance_p2p_direction_usd_usdt_en_global_full_interface_2026_06"],
       "confidence": "medium",
-      "lastChecked": "2026-05-25",
+      "lastChecked": "2026-06-08",
       "staleAfterDays": 14,
       "allowedWording": [
         "Binance P2P offers an escrow-protected marketplace with a 0% platform fee",
@@ -156,7 +156,7 @@
       ],
       "manualReviewRequired": false,
       "status": "active_review",
-      "notes": "A USD/USDT public P2P screenshot supports an interface claim only, not universal availability. Screenshot asset pending capture/approval via capture-public-p2p-screenshot.mjs; screenshotEvidence id is a placeholder until the asset is registered."
+      "notes": "A USD/USDT public P2P screenshot supports an interface claim only, not universal availability. Real asset registered 2026-06-08 (binance_p2p_direction_usd_usdt_en_global_full_interface_2026_06, ROLE 0 + ROLE 33); placeholder replaced. Screenshot shows a Promoted Ad row — do not present its rate as typical/best. Payment methods and offers vary by country, seller, and time."
     },
     {
       "claimId": "binance_p2p_availability_geo",

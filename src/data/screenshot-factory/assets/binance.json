@@ -112,6 +112,30 @@
       "lastChecked": "2026-06-08",
       "staleAfterDays": 90,
       "notes": "Active in contextualScreenshotSlots. Interface evidence only. Confirm and backfill ROLE 0 approvedAt."
+    },
+    {
+      "assetId": "binance_p2p_direction_usd_usdt_en_global_full_interface_2026_06",
+      "screenshotId": "binance_p2p_direction_usd_usdt_en_global",
+      "exchange": "binance",
+      "language": "en",
+      "geo": "global",
+      "section": "p2p",
+      "publicPath": "/screenshots/binance/p2p_direction_usd_usdt/binance-p2p-usdt-usd-en-global-full-interface-2026-06.webp",
+      "caption": "Binance P2P public interface showing the Buy flow for USDT with USD selected. Rates and payment methods vary by country, seller, and time.",
+      "alt": "Binance P2P interface with Buy selected, USDT active, USD selected, filters visible, and seller names masked.",
+      "claimSupported": "Binance has a public P2P interface where users can view USDT offers, fiat filters, payment methods, and seller terms before opening an order.",
+      "claimIds": ["binance_p2p_interface"],
+      "approvedBy": "ROLE 0",
+      "approvedAt": "2026-06-08",
+      "lastApproved": "2026-06-08",
+      "ethicsReviewedBy": "ROLE 33",
+      "approvalNotes": "Owner approved the full_interface candidate because it shows the P2P section header, Buy/Sell toggle, USD selector, USDT selection, filters, and offer rows. Promoted Ad row is visible and must not be described as a typical or best rate.",
+      "sourceJobId": "binance_p2p_direction_usd_usdt_en_global",
+      "sourceCandidate": "reports/screenshots/binance/p2p/binance-p2p-usdt-usd-en-global-full_interface-2026-06-08.jpg",
+      "usedOnPages": ["/exchanges/binance/"],
+      "lastChecked": "2026-06-08",
+      "staleAfterDays": 14,
+      "notes": "Promoted (high-markup) Ad row visible at top — never present its rate as typical/best. Merchant names blurred, avatars masked, no CNY, no login, no order opened. Not yet added to contextualScreenshotSlots (requires explicit render-wiring task)."
     }
   ]
 }

@@ -226,20 +226,24 @@
         "maxWidth": 1440
       },
       "approval": {
-        "ownerApprovalRequired": true,
+        "ownerApprovalRequired": false,
         "ethicsReviewRequired": true,
-        "publicPublishAllowed": false,
-        "approvedBy": null,
-        "approvedAt": null
+        "ethicsReviewed": true,
+        "ethicsReviewedBy": "ROLE 33",
+        "publicPublishAllowed": true,
+        "approvedBy": "ROLE 0",
+        "approvedAt": "2026-06-08"
       },
       "freshness": {
-        "lastCaptured": null,
-        "lastApproved": null,
+        "lastCaptured": "2026-06-08",
+        "lastApproved": "2026-06-08",
         "refreshCadence": "weekly",
         "staleAfterDays": 14
       },
-      "status": "planned",
-      "notes": "W2 capture target. Use scripts/capture-public-p2p-screenshot.mjs --exchange binance --fiat USD --crypto USDT --variant lower_rows. Prior CNY capture was rejected (see rejected registry)."
+      "status": "active",
+      "approvedAsset": "binance_p2p_direction_usd_usdt_en_global_full_interface_2026_06",
+      "publicPath": "/screenshots/binance/p2p_direction_usd_usdt/binance-p2p-usdt-usd-en-global-full-interface-2026-06.webp",
+      "notes": "W2 closed at evidence level. Approved full_interface candidate promoted to public/screenshots/binance/p2p_direction_usd_usdt/binance-p2p-usdt-usd-en-global-full-interface-2026-06.webp (ROLE 0 + ROLE 33, 2026-06-08). Promoted Ad row is visible — must NOT be presented as a typical or best rate. Prior CNY capture rejected (see rejected registry). Not yet wired into contextualScreenshotSlots."
     },
     {
       "screenshotId": "binance_p2p_offer_terms_example_en_global",
