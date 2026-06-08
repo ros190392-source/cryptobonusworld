@@ -265,17 +265,24 @@
       "lastChecked": "2026-06-08",
       "staleAfterDays": 30,
       "allowedWording": [
-        "maintains the SAFU emergency insurance-style fund",
-        "2019 breach victims were reimbursed via SAFU (per Binance's official blog)"
+        "Binance's 2019 security incident was followed by a public update stating that the SAFU fund covered the loss (per Binance's official announcement, May 2019).",
+        "SAFU is part of Binance's historical security and user-protection narrative, but it should not be treated as a guarantee against future losses.",
+        "Proof of Reserves and SAFU references can support trust discussion, but they do not remove exchange, custody, or market risk."
       ],
       "blockedWording": [
+        "Binance is fully insured",
         "your funds are fully insured",
+        "Binance is risk-free",
+        "SAFU guarantees all user funds",
         "guaranteed reimbursement for any loss",
-        "completely hack-proof"
+        "users will always be reimbursed",
+        "completely hack-proof",
+        "Binance is safe with no caveats",
+        "Proof of Reserves eliminates all risk"
       ],
-      "manualReviewRequired": true,
-      "status": "active_review",
-      "notes": "Security-incident claim: must be attributed to the Binance official blog source and framed as historical context, not a safety guarantee. Needs ROLE 11 sign-off on wording."
+      "manualReviewRequired": false,
+      "status": "approved",
+      "notes": "APPROVE_WITH_CAUTION (ROLE 11 + ROLE 35, 2026-06-08). Backed by verified P0 official Binance announcement (binance_security_breach_blog_p0, art. 360028031711, 2019-05-07) + P0 PoR. Approval applies ONLY to the cautious, historical, source-attributed allowedWording above. The 2019 reimbursement must be framed as a past event, never as insurance, a guarantee, or risk-free custody. Any deviation from allowedWording returns the claim to active_review. Confidence capped at medium (historical event, single past incident; not a forward-looking safety property)."
     },
     {
       "claimId": "binance_products_ecosystem",
