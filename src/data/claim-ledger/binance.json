@@ -1,0 +1,399 @@
+{
+  "exchange": "binance",
+  "schemaVersion": "1.0",
+  "standard": "docs/CLAIM_EVIDENCE_LEDGER_STANDARD.md",
+  "page": "/exchanges/binance/",
+  "scope": "EN / global Binance Gold Page only (no localized RU/PT-BR/TR claims yet)",
+  "lastUpdated": "2026-06-08",
+  "ownerRole": "ROLE 4 (Evidence Auditor) + ROLE 16 (Offer Integrity Officer)",
+  "noAutopublish": true,
+  "uiConnected": false,
+  "claims": [
+    {
+      "claimId": "binance_bonus_welcome_max",
+      "exchange": "binance",
+      "page": "/exchanges/binance/",
+      "claimText": "New users registering via CryptoBonusWorld can receive a welcome bonus of up to 19,800 USDT (task-based; the full amount requires KYC, a qualifying deposit, and trading-volume milestones).",
+      "claimType": "bonus",
+      "evidenceSources": ["binance_referral_landing_p0", "binance_terms_p1", "binance_screenshot_bonus_referral_landing_p4"],
+      "screenshotEvidence": ["binance_bonus_referral_landing_en_global"],
+      "confidence": "high",
+      "lastChecked": "2026-06-04",
+      "staleAfterDays": 7,
+      "allowedWording": [
+        "up to 19,800 USDT",
+        "welcome bonus of up to 19,800 USDT (task-based; full amount requires milestones)",
+        "new-user sign-up reward of up to 19,800 USDT"
+      ],
+      "blockedWording": [
+        "guaranteed 19,800 USDT",
+        "risk-free 19,800 USDT",
+        "everyone gets 19,800 USDT",
+        "instant profit",
+        "free 19,800 USDT cash",
+        "instant 19,800 USDT"
+      ],
+      "manualReviewRequired": false,
+      "status": "approved",
+      "notes": "Currency label differs across screenshot/offer wording; public copy must use the wording verified in current page/evidence and avoid mixing USD/USDT inside the same caption. Landing shows 'USD' marketing label; reward denomination is USDT per evidence (bonus_amount=19800 USDT, conflictStatus ok). Bonus claims have a 7-day staleness clock — re-verify weekly."
+    },
+    {
+      "claimId": "binance_bonus_promo_code",
+      "exchange": "binance",
+      "page": "/exchanges/binance/",
+      "claimText": "The CryptoBonusWorld referral code for Binance is CRYPTOBONUSW, pre-filled automatically when registering via the CryptoBonusWorld link.",
+      "claimType": "bonus",
+      "evidenceSources": ["binance_referral_landing_p0", "binance_screenshot_registration_demo_state_p4"],
+      "screenshotEvidence": ["binance_registration_demo_state_en_global"],
+      "confidence": "high",
+      "lastChecked": "2026-06-06",
+      "staleAfterDays": 7,
+      "allowedWording": [
+        "referral code CRYPTOBONUSW",
+        "code CRYPTOBONUSW is pre-filled when you register via our link"
+      ],
+      "blockedWording": [
+        "exclusive code unavailable anywhere else",
+        "code guarantees the maximum bonus"
+      ],
+      "manualReviewRequired": false,
+      "status": "approved",
+      "notes": "Affiliate URL is IMMUTABLE (ROLE 0 only). Demo-state screenshot is owner-approved, email empty, form not submitted, no PII."
+    },
+    {
+      "claimId": "binance_bonus_requirements",
+      "exchange": "binance",
+      "page": "/exchanges/binance/",
+      "claimText": "Unlocking the Binance welcome bonus is task-based: complete KYC, make a qualifying deposit, and reach trading-volume milestones within the campaign window. Exact deposit amount, expiry, and tiers vary by eligibility/region.",
+      "claimType": "bonus",
+      "evidenceSources": ["binance_referral_landing_p0", "binance_referral_program_p0"],
+      "screenshotEvidence": [],
+      "confidence": "low",
+      "lastChecked": "2026-05-26",
+      "staleAfterDays": 7,
+      "allowedWording": [
+        "bonus is task-based (KYC + qualifying deposit + trading-volume milestones)",
+        "exact requirements vary by eligibility, region, and campaign — verify on the official offer before registering"
+      ],
+      "blockedWording": [
+        "no deposit required",
+        "guaranteed payout after sign-up",
+        "fixed 30-day expiry",
+        "minimum deposit is exactly 50 USDT"
+      ],
+      "manualReviewRequired": true,
+      "status": "active_review",
+      "notes": "Evidence flags bonus_expiry_days, bonus_requires_deposit, and bonus_min_deposit as conflictStatus=outdated (confidence 0.27). Specific deposit/expiry figures must NOT be published until re-verified. Keep wording generic until ROLE 4 + ROLE 16 re-check."
+    },
+    {
+      "claimId": "binance_fees_spot",
+      "exchange": "binance",
+      "page": "/exchanges/binance/",
+      "claimText": "Binance spot trading fees are 0.1% maker / 0.1% taker (standard), reduced ~25% to 0.075% when paying fees with BNB.",
+      "claimType": "fees",
+      "evidenceSources": ["binance_fees_schedule_p0", "binance_screenshot_fees_p4"],
+      "screenshotEvidence": ["binance_fees_en_global"],
+      "confidence": "high",
+      "lastChecked": "2026-05-25",
+      "staleAfterDays": 30,
+      "allowedWording": [
+        "0.1% maker / 0.1% taker spot fee (standard)",
+        "0.075% effective with the 25% BNB fee discount",
+        "competitive spot fees"
+      ],
+      "blockedWording": [
+        "lowest fees in the industry",
+        "zero spot fees",
+        "cheapest exchange"
+      ],
+      "manualReviewRequired": false,
+      "status": "approved",
+      "notes": "Standard tier only; VIP tiers differ. Avoid superlatives."
+    },
+    {
+      "claimId": "binance_fees_futures",
+      "exchange": "binance",
+      "page": "/exchanges/binance/",
+      "claimText": "Binance USDⓈ-M perpetual futures fees are 0.02% maker / 0.05% taker, with up to 125× leverage on select pairs.",
+      "claimType": "fees",
+      "evidenceSources": ["binance_fees_schedule_p0", "binance_futures_p0"],
+      "screenshotEvidence": [],
+      "confidence": "high",
+      "lastChecked": "2026-05-25",
+      "staleAfterDays": 30,
+      "allowedWording": [
+        "0.02% maker / 0.05% taker futures fee",
+        "up to 125× leverage on select pairs (high liquidation risk)"
+      ],
+      "blockedWording": [
+        "125× leverage on all pairs",
+        "leverage with no liquidation risk",
+        "lowest futures fees anywhere"
+      ],
+      "manualReviewRequired": false,
+      "status": "approved",
+      "notes": "125× is a maximum on specific pairs; most pairs capped lower. High-leverage risk warning required."
+    },
+    {
+      "claimId": "binance_p2p_interface",
+      "exchange": "binance",
+      "page": "/exchanges/binance/",
+      "claimText": "Binance P2P provides a public peer-to-peer marketplace with a 0% platform fee and an escrow-protected listing interface.",
+      "claimType": "p2p",
+      "evidenceSources": ["binance_p2p_p0"],
+      "screenshotEvidence": ["binance_p2p_direction_usd_usdt_en_global"],
+      "confidence": "medium",
+      "lastChecked": "2026-05-25",
+      "staleAfterDays": 14,
+      "allowedWording": [
+        "Binance P2P offers an escrow-protected marketplace with a 0% platform fee",
+        "public P2P listing interface (USD/USDT view shown for illustration)"
+      ],
+      "blockedWording": [
+        "P2P available everywhere",
+        "all payment methods available in every country",
+        "guaranteed best P2P rate"
+      ],
+      "manualReviewRequired": false,
+      "status": "active_review",
+      "notes": "A USD/USDT public P2P screenshot supports an interface claim only, not universal availability. Screenshot asset pending capture/approval via capture-public-p2p-screenshot.mjs; screenshotEvidence id is a placeholder until the asset is registered."
+    },
+    {
+      "claimId": "binance_p2p_availability_geo",
+      "exchange": "binance",
+      "page": "/exchanges/binance/",
+      "claimText": "P2P availability, fiat currencies, and payment methods vary by country.",
+      "claimType": "p2p",
+      "evidenceSources": ["binance_p2p_p0", "binance_restricted_countries_p1"],
+      "screenshotEvidence": [],
+      "confidence": "medium",
+      "lastChecked": "2026-05-25",
+      "staleAfterDays": 14,
+      "allowedWording": [
+        "P2P availability and payment methods vary by country",
+        "available payment methods depend on your region"
+      ],
+      "blockedWording": [
+        "same P2P offers in every country",
+        "all fiat currencies supported everywhere"
+      ],
+      "manualReviewRequired": false,
+      "status": "approved",
+      "notes": "Geo-routed content; supports a varies-by-country statement, not a universal-availability statement."
+    },
+    {
+      "claimId": "binance_kyc_required",
+      "exchange": "binance",
+      "page": "/exchanges/binance/",
+      "claimText": "Binance requires KYC (identity verification) — government-issued ID plus a liveness/selfie check — to unlock full trading, withdrawals, and bonus eligibility.",
+      "claimType": "kyc",
+      "evidenceSources": ["binance_kyc_help_p0", "binance_terms_p1"],
+      "screenshotEvidence": [],
+      "confidence": "high",
+      "lastChecked": "2026-05-25",
+      "staleAfterDays": 60,
+      "allowedWording": [
+        "Binance requires identity verification (KYC)",
+        "KYC: government-issued ID + liveness/selfie check"
+      ],
+      "blockedWording": [
+        "no KYC required",
+        "trade fully without verification",
+        "anonymous trading"
+      ],
+      "manualReviewRequired": false,
+      "status": "approved",
+      "notes": "KYC process existence is well-sourced (P0 + P1)."
+    },
+    {
+      "claimId": "binance_kyc_limits_region",
+      "exchange": "binance",
+      "page": "/exchanges/binance/",
+      "claimText": "KYC status, tiers, and account limits may vary by region and account; authenticated KYC screenshots require cropping/blur and owner approval before any public use.",
+      "claimType": "kyc",
+      "evidenceSources": ["binance_kyc_help_p0"],
+      "screenshotEvidence": [],
+      "confidence": "medium",
+      "lastChecked": "2026-05-25",
+      "staleAfterDays": 60,
+      "allowedWording": [
+        "KYC tiers and limits vary by region and account level",
+        "verification requirements may differ depending on your country"
+      ],
+      "blockedWording": [
+        "identical limits for all users worldwide",
+        "instant approval guaranteed"
+      ],
+      "manualReviewRequired": true,
+      "status": "active_review",
+      "notes": "Authenticated KYC capture is owner_manual: forbidden to show documents/selfies/PII. Crop-over-blur per AUTHENTICATED_SCREENSHOT_CAPTURE_FLOW.md; needs ROLE 33 + ROLE 0 before public."
+    },
+    {
+      "claimId": "binance_proof_of_reserves_published",
+      "exchange": "binance",
+      "page": "/exchanges/binance/",
+      "claimText": "Binance publishes Proof of Reserves on an official page (Merkle-tree based, monthly), letting users verify their balance is included.",
+      "claimType": "security",
+      "evidenceSources": ["binance_proof_of_reserves_p0", "binance_screenshot_proof_of_reserves_p4"],
+      "screenshotEvidence": ["binance_proof_of_reserves_en_global"],
+      "confidence": "high",
+      "lastChecked": "2026-05-25",
+      "staleAfterDays": 30,
+      "allowedWording": [
+        "publishes Proof of Reserves",
+        "Proof of Reserves is visible on the official page",
+        "Merkle-tree Proof of Reserves published monthly"
+      ],
+      "blockedWording": [
+        "guarantees all funds are safe",
+        "100% audited and risk-free",
+        "PoR eliminates all counterparty risk"
+      ],
+      "manualReviewRequired": false,
+      "status": "approved",
+      "notes": "PoR proves reserve inclusion, not solvency. Do not claim it eliminates risk."
+    },
+    {
+      "claimId": "binance_security_safu",
+      "exchange": "binance",
+      "page": "/exchanges/binance/",
+      "claimText": "Binance maintains the SAFU (Secure Asset Fund for Users) emergency fund; in the 2019 breach (7,000 BTC) affected users were reimbursed via SAFU.",
+      "claimType": "security",
+      "evidenceSources": ["binance_proof_of_reserves_p0"],
+      "screenshotEvidence": [],
+      "confidence": "medium",
+      "lastChecked": "2026-05-25",
+      "staleAfterDays": 30,
+      "allowedWording": [
+        "maintains the SAFU emergency insurance-style fund",
+        "2019 breach victims were reimbursed via SAFU (per Binance's official blog)"
+      ],
+      "blockedWording": [
+        "your funds are fully insured",
+        "guaranteed reimbursement for any loss",
+        "completely hack-proof"
+      ],
+      "manualReviewRequired": true,
+      "status": "active_review",
+      "notes": "Security-incident claim: must be attributed to the Binance official blog source and framed as historical context, not a safety guarantee. Needs ROLE 11 sign-off on wording."
+    },
+    {
+      "claimId": "binance_products_ecosystem",
+      "exchange": "binance",
+      "page": "/exchanges/binance/",
+      "claimText": "Binance offers spot, USDⓈ-M futures, Simple Earn/staking, P2P, and iOS/Android apps — product availability depends on region and account.",
+      "claimType": "product",
+      "evidenceSources": ["binance_futures_p0", "binance_p2p_p0", "binance_app_ios_p2", "binance_app_android_p2", "binance_screenshot_spot_p4"],
+      "screenshotEvidence": ["binance_spot_en_global"],
+      "confidence": "medium",
+      "lastChecked": "2026-05-25",
+      "staleAfterDays": 30,
+      "allowedWording": [
+        "spot, futures, Earn, P2P, and mobile apps (availability depends on your region)",
+        "broad product ecosystem; some products are restricted in certain regions"
+      ],
+      "blockedWording": [
+        "all products available everywhere",
+        "every feature available in every country",
+        "copy trading available"
+      ],
+      "manualReviewRequired": false,
+      "status": "approved",
+      "notes": "Evidence marks copyTrading.available=false — do not claim copy trading. App availability is store/region dependent."
+    },
+    {
+      "claimId": "binance_availability_us",
+      "exchange": "binance",
+      "page": "/exchanges/binance/",
+      "claimText": "Binance.com does not accept US residents; US users must use the separate Binance.US entity.",
+      "claimType": "availability",
+      "evidenceSources": ["binance_restricted_countries_p1"],
+      "screenshotEvidence": [],
+      "confidence": "high",
+      "lastChecked": "2026-05-25",
+      "staleAfterDays": 7,
+      "allowedWording": [
+        "Binance.com is not available to US residents",
+        "US users must use Binance.US (a separate regulated entity)"
+      ],
+      "blockedWording": [
+        "Binance.com works in the US",
+        "available worldwide including the US"
+      ],
+      "manualReviewRequired": true,
+      "status": "active_review",
+      "notes": "Country-level restriction claim — re-verify against the official restricted list before publishing."
+    },
+    {
+      "claimId": "binance_availability_uk",
+      "exchange": "binance",
+      "page": "/exchanges/binance/",
+      "claimText": "Binance.com is not available to UK residents following FCA action in 2021.",
+      "claimType": "availability",
+      "evidenceSources": ["binance_restricted_countries_p1"],
+      "screenshotEvidence": [],
+      "confidence": "high",
+      "lastChecked": "2026-05-25",
+      "staleAfterDays": 7,
+      "allowedWording": [
+        "Binance.com is not available to UK residents",
+        "UK access is restricted following FCA action"
+      ],
+      "blockedWording": [
+        "fully available in the UK",
+        "FCA-approved for UK retail"
+      ],
+      "manualReviewRequired": true,
+      "status": "active_review",
+      "notes": "Country-level restriction claim — re-verify against the official restricted list before publishing."
+    },
+    {
+      "claimId": "binance_availability_varies",
+      "exchange": "binance",
+      "page": "/exchanges/binance/",
+      "claimText": "Availability of Binance.com and individual products varies by country and product; some regions are restricted.",
+      "claimType": "availability",
+      "evidenceSources": ["binance_restricted_countries_p1"],
+      "screenshotEvidence": [],
+      "confidence": "medium",
+      "lastChecked": "2026-05-25",
+      "staleAfterDays": 7,
+      "allowedWording": [
+        "availability varies by country and product",
+        "some countries and products are restricted — check the official restricted-countries list"
+      ],
+      "blockedWording": [
+        "available in every country",
+        "no restrictions anywhere"
+      ],
+      "manualReviewRequired": true,
+      "status": "active_review",
+      "notes": "Do not publish any specific banned/restricted-country list without a current official source. manualReviewRequired enforced."
+    },
+    {
+      "claimId": "binance_marketdata_volume_trust",
+      "exchange": "binance",
+      "page": "/exchanges/binance/",
+      "claimText": "Binance is the largest CEX by volume — ~$8.31B 24h spot volume, CoinGecko trust score 10/10 (rank #2), ~1,368 active spot pairs (as of the last data pull).",
+      "claimType": "marketdata",
+      "evidenceSources": ["binance_coingecko_p2", "binance_coinmarketcap_p2"],
+      "screenshotEvidence": [],
+      "confidence": "medium",
+      "lastChecked": "2026-06-08",
+      "staleAfterDays": 7,
+      "allowedWording": [
+        "as of {date}, ~$8.31B 24h spot volume",
+        "CoinGecko trust score 10/10 (rank #2) as of the last data pull",
+        "one of the largest exchanges by trading volume"
+      ],
+      "blockedWording": [
+        "always the #1 exchange",
+        "fixed $8.31B daily volume",
+        "verified real-time volume"
+      ],
+      "manualReviewRequired": false,
+      "status": "approved",
+      "notes": "Point-in-time aggregator data; must carry an 'as of {date}' qualifier and be re-pulled weekly."
+    }
+  ]
+}
