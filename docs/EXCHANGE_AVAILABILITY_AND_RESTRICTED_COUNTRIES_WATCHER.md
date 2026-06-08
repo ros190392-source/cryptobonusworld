@@ -501,6 +501,7 @@ After ≥ 7 days of stable monitoring with no false positives:
 | Role | Responsibility |
 |------|---------------|
 | **ROLE 36** — Exchange Availability / Restricted Countries Watcher | Owns the monitoring system; runs daily checks; creates reports and suggested tasks; does not publish |
+| **ROLE 37** — Exchange Intelligence Owner | **Receives ROLE 36 availability alerts as primary downstream consumer.** When ROLE 36 detects a country addition, removal, or source change, ROLE 37 updates the exchange intelligence profile (`src/data/exchange-intelligence/{exchange}.json`) availability section and flags affected content areas. ROLE 37 does not update public pages — it updates the intelligence profile and creates a proposed task for ROLE 0 review. |
 | **ROLE 30** — Legal / Terms Watcher | Reviews source citations; flags legal wording changes; escalates regulator notices |
 | **ROLE 11** — Compliance / Risk Lead | Assesses risk level of detected changes; approves risk wording on pages |
 | **ROLE 25** — Freshness / Update Editor | Identifies affected pages when availability changes; creates refresh tasks |
@@ -527,9 +528,13 @@ Every Monday domain scan (Section 4 of `GOLD_PAGE_WAR_ROOM_AND_WEEKLY_TRAINING.m
 | `reports/binance-availability-watcher-plan.md` | Binance pilot plan (Sprint 05) |
 | `docs/GOLD_PAGE_WAR_ROOM_AND_WEEKLY_TRAINING.md` | ROLE 36 definition; weekly training integration |
 | `docs/SCREENSHOT_STANDARD.md` | Screenshot rules for any availability evidence captures |
+| `docs/EXCHANGE_INTELLIGENCE_OWNER_ROLE.md` | ROLE 37 definition — receives ROLE 36 alerts; maintains exchange intelligence profile |
+| `docs/EXCHANGE_INTELLIGENCE_PROFILE_STANDARD.md` | Intelligence profile schema — availability section (`profile.availability`) consumes ROLE 36 data |
+| `src/data/exchange-intelligence/binance.json` | Binance intelligence profile — `availability` section references `src/data/exchange-availability/binance.json` |
 
 ---
 
+*Document version 1.1 — 2026-06-08 — Sprint 06: Added ROLE 37 as downstream consumer of availability alerts; intelligence profile relationship clarified*  
 *Document version 1.0 — 2026-06-06 — CryptoBonusWorld Sprint 05*
 *Owner: Chief Project Owner (ROLE 0)*
-*Next review: After Binance pilot Phase 2 (baseline approval)*
+*Next review: After Binance pilot Phase 2 (baseline approval) or Sprint 06 ROLE 37 pilot*

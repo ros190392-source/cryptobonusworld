@@ -95,7 +95,8 @@ ROLE 0  ── Chief Project Owner
                 ├── ROLE 28  Methodology / Trust Page Editor
                 ├── ROLE 29  Performance / Core Web Vitals Reviewer
                 ├── ROLE 30  Legal / Terms Watcher
-                └── ROLE 36  Exchange Availability / Restricted Countries Watcher
+                ├── ROLE 36  Exchange Availability / Restricted Countries Watcher
+                └── ROLE 37  Exchange Intelligence Owner (per-exchange instance)
 ```
 
 **Core Production Team (ROLES 2–13)** is active on every page production.  
@@ -666,6 +667,37 @@ and final editorial quality that the Core Team alone cannot fully provide.
 
 ---
 
+### ROLE 37 — Exchange Intelligence Owner
+
+| Field | Value |
+|-------|-------|
+| Mission | Maintain the complete factual, affiliate, screenshot, risk, source, and content intelligence profile for one specific exchange — the single source of truth that every other role queries before beginning work on that exchange's pages |
+| Instantiation | One instance per exchange: Binance Intelligence Owner, Bybit Intelligence Owner, OKX Intelligence Owner, etc. |
+| Weekly duty | Run update cadence per `docs/EXCHANGE_INTELLIGENCE_OWNER_ROLE.md §5`; flag any stale fields; produce update reports when changes detected; provide exchange profile as first input to any Gold Page War Room session |
+| Inputs | `src/data/exchanges.json`; `src/data/evidence/{exchange}.json`; `src/data/exchange-availability/{exchange}.json`; `src/data/content-overrides.json`; official exchange pages (no web browsing without task authorisation); ROLE 36 availability watcher alerts |
+| Outputs | `src/data/exchange-intelligence/{exchange}.json` (intelligence profile); update reports (`reports/{exchange}-intelligence-update-{date}.md`); screenshot target URL lists; content gap reports; proposed update tasks |
+| Approval power | Flag stale data; block Gold Page if core exchange facts are unverifiable (with ROLE 0 confirmation); propose changes; **never auto-apply to public pages** |
+| When active | Continuously (rolling cadence); fully activated before every Gold Page War Room session for their exchange; re-activated when ROLE 36 fires an availability alert |
+
+**Source-of-truth provider for Gold Page sessions:**
+
+Before any Gold Page production sequence begins for an exchange, ROLE 37 provides:
+
+| Input to | Data provided by ROLE 37 |
+|----------|--------------------------|
+| ROLE 1 (Chief SEO Architect) | Current affiliate URL, bonus amount and terms, known content gaps, official page URLs |
+| ROLE 4 (Evidence Auditor) | All official source URLs with last-checked dates — no URL discovery needed |
+| ROLE 5 (Screenshot Director) | Screenshot target URL map with risk levels, masking requirements, capture types |
+| ROLE 11 (Compliance Lead) | Availability and restriction profile; product-level restrictions; pending manual review flags |
+| ROLE 3 (Editorial Lead) | Full content map: existing pages, content gaps, internal linking opportunities |
+| ROLE 16 (Offer Integrity Officer) | Affiliate URL, bonus amount history, voucher type, realistic earnings note |
+
+**ROLE 37 may not** change affiliate links, auto-update public pages, or publish screenshots without the standard approval flow.
+
+**Governance:** `docs/EXCHANGE_INTELLIGENCE_OWNER_ROLE.md`; `docs/EXCHANGE_INTELLIGENCE_PROFILE_STANDARD.md`
+
+---
+
 ## 4. Weekly Training Protocol
 
 Every specialist stays current through a structured weekly rhythm. Training is not passive
@@ -763,6 +795,7 @@ their domain.
 | ROLE 29 — Performance | `public/screenshots/` file sizes; Core Web Vitals (GSC / lab testing); built HTML image tags |
 | ROLE 30 — Legal Watcher | Official exchange terms of service pages; affiliate program terms; regulatory news |
 | ROLE 36 — Availability Watcher | Official exchange Restricted Locations pages (P0); exchange Terms of Use eligibility sections (P0); official exchange support FAQ on restricted countries (P0); official regulator notices (P1); reputable news on exchange enforcement actions (P2); `reports/exchange-availability-watch-{date}.md` daily run log |
+| ROLE 37 — Exchange Intelligence Owner | `src/data/exchange-intelligence/{exchange}.json` (own profile); `src/data/evidence/{exchange}.json` (facts and confidence scores); `src/data/exchange-availability/{exchange}.json` (availability baseline); `src/data/exchanges.json` (affiliate URL and bonus data); ROLE 36 availability watcher alerts; official exchange pages (when task-authorised for weekly check) |
 | ROLE 2 — SEO Intelligence | Google Search Central Blog; Google Search Status Dashboard; GSC (owner-only); Yandex Webmaster; Bing Webmaster; IndexNow log |
 | ROLE 12 — Analytics | Google Search Console; Yandex Metrika (counter 109562447); affiliate dashboard; IndexNow submission log |
 
@@ -1123,10 +1156,13 @@ does not proceed until the check passes.
 | `docs/BINANCE_GOLD_ARTICLE_PIPELINE.md` | Binance-specific pipeline definition |
 | `docs/SCREENSHOT_COVERAGE_MATRIX.md` | Coverage targets per exchange |
 | `docs/EXCHANGE_AVAILABILITY_AND_RESTRICTED_COUNTRIES_WATCHER.md` | ROLE 36 governance; data model; watcher logic; Binance pilot plan |
+| `docs/EXCHANGE_INTELLIGENCE_OWNER_ROLE.md` | ROLE 37 definition; per-exchange intelligence ownership; responsibilities, cadence, approval powers |
+| `docs/EXCHANGE_INTELLIGENCE_PROFILE_STANDARD.md` | Profile JSON schema; source confidence model; screenshot source map; no-autopublish rule; Binance pilot |
 
 ---
 
-*Document version 1.2 — 2026-06-06 — CryptoBonusWorld Sprint 05*  
+*Document version 1.3 — 2026-06-08 — CryptoBonusWorld Sprint 06*  
+*Sprint 06 v1.3: Added ROLE 37 (Exchange Intelligence Owner); source-of-truth provider model for Gold Page sessions; weekly sources entry; governance references*  
 *Sprint 05 v1.2: Added ROLE 36 (Exchange Availability / Restricted Countries Watcher); daily availability monitoring inputs added to weekly protocol*  
 *Sprint 05 v1.1: Added optional ROLES 31–35; added Section 11 Chain of Checks (16-step Gold Page gate)*  
 *Owner: Chief Project Owner (ROLE 0)*

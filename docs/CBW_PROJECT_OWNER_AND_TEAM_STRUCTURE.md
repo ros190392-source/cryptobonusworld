@@ -872,10 +872,11 @@ are in: **`docs/GOLD_PAGE_WAR_ROOM_AND_WEEKLY_TRAINING.md`**
 | ROLE 34 *(optional)* | Monetization / Affiliate CRO Strategist | Optimise CTA placement and offer explanation without damaging trust |
 | ROLE 35 *(optional)* | Final Executive Editor | Final editorial approval gate before ROLE 0 owner visual review |
 | ROLE 36 | Exchange Availability / Restricted Countries Watcher | Monitor official exchange availability daily; detect restricted-country changes; alert owner; never auto-publishes |
+| ROLE 37 | Exchange Intelligence Owner | Maintain the complete factual, affiliate, screenshot, risk, source, and content intelligence profile for one specific exchange; instantiated per exchange (Binance Intelligence Owner, Bybit Intelligence Owner, etc.); provides source-of-truth exchange profile before every Gold Page session |
 
-**Total roles: 37 (ROLE 0 through ROLE 36)**  
+**Total roles: 38 (ROLE 0 through ROLE 37)**  
 **Core Production Team: ROLES 0–13 (14 roles)**  
-**Gold Page Specialist Squad: ROLES 14–36 (23 roles; ROLES 31–35 are optional)**
+**Gold Page Specialist Squad: ROLES 14–37 (24 roles; ROLES 31–35 are optional)**
 
 ---
 
@@ -899,6 +900,8 @@ are in: **`docs/GOLD_PAGE_WAR_ROOM_AND_WEEKLY_TRAINING.md`**
 | `GOLD_STANDARD_EXCHANGE_TEMPLATE.md` | ROLE 1 + 3 | Reference spec for Gold Standard pages |
 | `BINANCE_GOLD_ARTICLE_PIPELINE.md` | ROLE 0 + 1 | Binance-specific full pipeline definition |
 | `BONUS_LANDING_VERIFICATION_ARCHITECTURE.md` | ROLE 4 + 5 | Bonus landing page verification system |
+| `EXCHANGE_INTELLIGENCE_OWNER_ROLE.md` | ROLE 37 + 0 | ROLE 37 definition; per-exchange intelligence ownership; responsibilities, cadence, approval powers |
+| `EXCHANGE_INTELLIGENCE_PROFILE_STANDARD.md` | ROLE 37 + 0 | Profile JSON schema; source confidence model; screenshot source map; no-autopublish rule; Binance pilot |
 
 ---
 
@@ -919,9 +922,10 @@ are in: **`docs/GOLD_PAGE_WAR_ROOM_AND_WEEKLY_TRAINING.md`**
 
 ---
 
+*Document version 1.4 — 2026-06-08 — Sprint 06: Added ROLE 37 Exchange Intelligence Owner; updated total to 38 roles (ROLE 0–37); added governance references for new role docs*  
 *Document version 1.3 — 2026-06-06 — Sprint 05: Added ROLE 36 Exchange Availability Watcher; updated to ROLES 14–36*
 *Document version 1.2 — 2026-06-06 — Sprint 05: Extended to ROLES 14–35; added Section 11 Gold Page Check Chain reference*  
 *Document version 1.1 — 2026-06-06 — Sprint 05: Added ROLES 14–30 Gold Page Specialist Squad*  
 *Document version 1.0 — 2026-06-05 — CryptoBonusWorld Sprint 04*  
 *Owner: Chief Project Owner (ROLE 0)*
-*Next review: Sprint 05 kickoff or when a new exchange enters Gold Standard pipeline*
+*Next review: Sprint 06 — Binance intelligence pilot profile creation*
