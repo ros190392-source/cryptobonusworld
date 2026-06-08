@@ -146,17 +146,25 @@
       "lastChecked": "2026-06-08",
       "staleAfterDays": 14,
       "allowedWording": [
-        "Binance P2P offers an escrow-protected marketplace with a 0% platform fee",
-        "public P2P listing interface (USD/USDT view shown for illustration)"
+        "Binance has a public P2P interface where users can view USDT offers, fiat filters, payment methods, and seller terms before opening an order.",
+        "Rates, payment methods, limits, and seller availability vary by country, seller, and time.",
+        "The screenshot supports the existence and layout of the public P2P interface, not a guarantee of universal availability."
       ],
       "blockedWording": [
         "P2P available everywhere",
         "all payment methods available in every country",
-        "guaranteed best P2P rate"
+        "guaranteed best P2P rate",
+        "Binance P2P is available to everyone.",
+        "USD P2P works in every country.",
+        "This is the best rate.",
+        "Promoted offers are recommended offers.",
+        "All payment methods are available everywhere.",
+        "P2P is risk-free.",
+        "Every user can trade without KYC."
       ],
       "manualReviewRequired": false,
-      "status": "active_review",
-      "notes": "A USD/USDT public P2P screenshot supports an interface claim only, not universal availability. Real asset registered 2026-06-08 (binance_p2p_direction_usd_usdt_en_global_full_interface_2026_06, ROLE 0 + ROLE 33); placeholder replaced. Screenshot shows a Promoted Ad row — do not present its rate as typical/best. Payment methods and offers vary by country, seller, and time."
+      "status": "approved",
+      "notes": "APPROVE_WITH_CAUTION (ROLE 0 + ROLE 4 + ROLE 11 + ROLE 33, 2026-06-08) after W2 closed and verified live (HTTP 200). Approved only for cautious interface-existence wording. Screenshot does not prove universal availability or typical/best rates. Evidence: P0 official marketplace source binance_p2p_p0 + live full-interface USD/USDT asset binance_p2p_direction_usd_usdt_en_global_full_interface_2026_06 (job active). allowedWording tightened to interface-existence only — the prior '0% platform fee / escrow-protected' phrasing is NOT approved for public copy here unless separately backed by a dedicated P2P fee/escrow source. Promoted Ad row visible — never present its rate as typical/best. Refresh due 2026-06-22 (staleAfterDays 14)."
     },
     {
       "claimId": "binance_p2p_availability_geo",
