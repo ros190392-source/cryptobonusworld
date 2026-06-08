@@ -905,6 +905,10 @@ are in: **`docs/GOLD_PAGE_WAR_ROOM_AND_WEEKLY_TRAINING.md`**
 | `EXCHANGE_INTELLIGENCE_PROFILE_STANDARD.md` | ROLE 37 + 0 | Profile JSON schema; source confidence model; screenshot source map; no-autopublish rule; Binance pilot |
 | `MULTILINGUAL_SCREENSHOT_FACTORY_ROLE.md` | ROLE 38 + 0 | ROLE 38 definition; capture types; language/GEO model; approval lifecycle; update cadence; Gold Page integration |
 | `MULTILINGUAL_SCREENSHOT_FACTORY_STANDARD.md` | ROLE 38 + 0 | Screenshot job/asset/rejected schemas; automation-vs-manual model; multilingual strategy; Binance pilot jobs; no-autopublish rule |
+| `GOLD_PAGE_OPERATING_SYSTEM.md` | ROLE 0 | **Master production system** — 18-stage English-first Gold Page pipeline; localization/GEO expansion; subsystem map; hard gates |
+| `CLAIM_EVIDENCE_LEDGER_STANDARD.md` | ROLE 4 + 16 | Per-claim tracking schema; confidence→wording coupling; lifecycle; examples (Binance/Bybit bonus, P2P, PoR) |
+| `SOURCE_REGISTRY_STANDARD.md` | ROLE 4 + 37 | Source quality tiers (P0–P5); source schema; minimum tier per claim type; language/GEO matching |
+| `AUTHENTICATED_SCREENSHOT_CAPTURE_FLOW.md` | ROLE 5 + 18 + 33 | Safe auth/sensitive capture flow; raw/processed/public folders; crop-over-blur; forbidden elements |
 
 ---
 
@@ -925,6 +929,7 @@ are in: **`docs/GOLD_PAGE_WAR_ROOM_AND_WEEKLY_TRAINING.md`**
 
 ---
 
+*Document version 1.6 — 2026-06-08 — Sprint 07: Added Gold Page Operating System + Claim/Evidence Ledger + Source Registry + Authenticated Screenshot Capture Flow governance references*  
 *Document version 1.5 — 2026-06-08 — Sprint 06: Added ROLE 38 Multilingual Screenshot Factory Lead; updated total to 39 roles (ROLE 0–38); added governance references for screenshot factory docs*  
 *Document version 1.4 — 2026-06-08 — Sprint 06: Added ROLE 37 Exchange Intelligence Owner; updated total to 38 roles (ROLE 0–37); added governance references for new role docs*  
 *Document version 1.3 — 2026-06-06 — Sprint 05: Added ROLE 36 Exchange Availability Watcher; updated to ROLES 14–36*

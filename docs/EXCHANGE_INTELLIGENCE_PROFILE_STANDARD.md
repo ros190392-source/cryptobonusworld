@@ -635,6 +635,14 @@ The exchange intelligence profile sits above the rendering data files. It is a k
 | `reports/` | Deploy reports, verification reports, screenshot review reports | Profile does not feed reports/ and is not fed by reports/. Reports are task-specific; profiles are rolling. |
 | Future country pages (`/countries/{country}/`) | Country-specific exchange rankings | Profile's future page opportunities section identifies which country pages should feature each exchange. |
 | Future comparison pages (`/compare/{pair}/`) | Head-to-head exchange comparisons | Profile's comparisonPagesPublished tracks current pages; contentMap.futurePageOpportunities tracks gaps. |
+| `src/data/claim-ledger/{exchange}.json` | Per-claim evidence ledger (`CLAIM_EVIDENCE_LEDGER_STANDARD.md`) | Profile facts seed claim entries; each claim's `evidenceSources` point to the Source Registry. ROLE 4 + 16 own the ledger. |
+| `src/data/source-registry/{exchange}.json` | Tiered source catalogue (`SOURCE_REGISTRY_STANDARD.md`) | Profile `officialPages` + `screenshotTargets` seed P0/P1 source entries; ROLE 4 tiers and verifies them. |
+
+> **Feeds the Claim/Evidence Ledger and Source Registry.** The intelligence profile is the upstream
+> knowledge layer for two Gold Page Operating System subsystems: its facts seed Claim Ledger entries
+> (`docs/CLAIM_EVIDENCE_LEDGER_STANDARD.md`) and its `officialPages`/`screenshotTargets` seed Source
+> Registry entries (`docs/SOURCE_REGISTRY_STANDARD.md`). The profile supplies knowledge; the ledger
+> and registry turn it into per-claim, per-source accountability. No-autopublish applies throughout.
 
 ### Data flow diagram
 
@@ -693,6 +701,7 @@ The exchange intelligence profile sits above the rendering data files. It is a k
 
 ---
 
+*Document version 1.2 — 2026-06-08 — Sprint 07: Noted that profile facts/pages seed the Claim/Evidence Ledger and Source Registry subsystems of the Gold Page Operating System*  
 *Document version 1.1 — 2026-06-08 — Sprint 06: Noted that `screenshotTargets` feed the ROLE 38 Multilingual Screenshot Factory job matrix*  
 *Document version 1.0 — 2026-06-08 — Sprint 06*  
 *Owner: Chief Project Owner (ROLE 0)*  

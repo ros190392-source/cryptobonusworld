@@ -222,6 +222,12 @@ ensure no rejected path ever appears in built HTML.
 | **Manual** | Owner performs the sensitive step personally | email verification; KYC documents (overview only); payment examples; Revolut/bank transfer/PIX illustration screens |
 | **Forbidden** | Never captured | passwords; verification codes; 2FA secrets; balances; withdrawal/deposit addresses; API keys; personal documents; selfies; chats; real transactions |
 
+> **Authenticated and `owner_manual` captures follow a dedicated safe flow.** The *how* for the
+> Semi-automated and Manual tiers — raw→processed→public folders, crop-over-blur, the forbidden-element
+> list, and the ethics+owner approval gate — is defined in
+> **`docs/AUTHENTICATED_SCREENSHOT_CAPTURE_FLOW.md`**. Raw sensitive captures stay in
+> `reports/screenshots/{exchange}/{section}/raw/` and are never published or committed.
+
 This table maps directly to the `captureType` field in §3 and the capture types in
 `MULTILINGUAL_SCREENSHOT_FACTORY_ROLE.md §5`.
 
@@ -326,8 +332,9 @@ Additional absolutes:
 
 ---
 
+*Document version 1.1 — 2026-06-08 — Sprint 07: Added reference to Authenticated Screenshot Capture Flow for Semi-automated/Manual tiers*
 *Document version 1.0 — 2026-06-08 — Sprint 06*
 *Owner: Chief Project Owner (ROLE 0)*
 *Role: ROLE 38 — Multilingual Screenshot Factory Lead*
 *Companion: `docs/MULTILINGUAL_SCREENSHOT_FACTORY_ROLE.md`*
-*Governance reference: `docs/SCREENSHOT_STANDARD.md`; `docs/EXCHANGE_INTELLIGENCE_PROFILE_STANDARD.md`; `docs/CBW_PROJECT_OWNER_AND_TEAM_STRUCTURE.md`*
+*Governance reference: `docs/SCREENSHOT_STANDARD.md`; `docs/EXCHANGE_INTELLIGENCE_PROFILE_STANDARD.md`; `docs/AUTHENTICATED_SCREENSHOT_CAPTURE_FLOW.md`; `docs/GOLD_PAGE_OPERATING_SYSTEM.md`; `docs/CBW_PROJECT_OWNER_AND_TEAM_STRUCTURE.md`*

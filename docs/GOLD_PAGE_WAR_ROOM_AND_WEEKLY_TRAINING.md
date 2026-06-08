@@ -1186,9 +1186,20 @@ does not proceed until the check passes.
 | `docs/EXCHANGE_INTELLIGENCE_PROFILE_STANDARD.md` | Profile JSON schema; source confidence model; screenshot source map; no-autopublish rule; Binance pilot |
 | `docs/MULTILINGUAL_SCREENSHOT_FACTORY_ROLE.md` | ROLE 38 definition; capture types; language/GEO model; approval lifecycle; update cadence; Gold Page integration |
 | `docs/MULTILINGUAL_SCREENSHOT_FACTORY_STANDARD.md` | Screenshot job/asset/rejected schemas; automation-vs-manual model; multilingual strategy; Binance pilot jobs |
+| `docs/GOLD_PAGE_OPERATING_SYSTEM.md` | **Master production system** — 18-stage English-first Gold Page pipeline; the War Room executes this pipeline; localization/GEO expansion; hard gates |
+| `docs/CLAIM_EVIDENCE_LEDGER_STANDARD.md` | Per-claim tracking schema; confidence→wording coupling (pipeline stages 4/7/9/10) |
+| `docs/SOURCE_REGISTRY_STANDARD.md` | Source quality tiers P0–P5; minimum tier per claim type (pipeline stages 5/9) |
+| `docs/AUTHENTICATED_SCREENSHOT_CAPTURE_FLOW.md` | Safe auth/sensitive capture flow; raw/processed/public folders (pipeline stage 13) |
+
+> **The weekly War Room executes the Gold Page Operating System.** The Monday→Friday cadence below
+> is how the 18-stage GPOS pipeline (`docs/GOLD_PAGE_OPERATING_SYSTEM.md`) is run in practice each
+> week: Monday scanning feeds stages 1–5 (intelligence/brief/ledger/sources), Wed–Thu implementation
+> runs stages 6–13, Friday runs stages 14–17, and freshness monitoring (stage 18) is continuous.
 
 ---
 
+*Document version 1.5 — 2026-06-08 — CryptoBonusWorld Sprint 07*  
+*Sprint 07 v1.5: Linked the weekly cadence to the Gold Page Operating System 18-stage pipeline; added GPOS / Claim Ledger / Source Registry / Authenticated Capture Flow governance references*  
 *Document version 1.4 — 2026-06-08 — CryptoBonusWorld Sprint 06*  
 *Sprint 06 v1.4: Added ROLE 38 (Multilingual Screenshot Factory Lead); role card; weekly sources + Monday scan entries; screenshot factory as Gold Page input; governance references*  
 *Sprint 06 v1.3: Added ROLE 37 (Exchange Intelligence Owner); source-of-truth provider model for Gold Page sessions; weekly sources entry; governance references*  
