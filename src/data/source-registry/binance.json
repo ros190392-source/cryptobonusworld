@@ -258,6 +258,19 @@
       "lastChecked": "2026-06-06",
       "usedForClaims": ["binance_products_ecosystem"],
       "riskNotes": "Public spot UI capture; interface evidence only, not availability-everywhere evidence."
+    },
+    {
+      "sourceId": "binance_p2p_c2c_help_p1",
+      "sourceType": "official_support",
+      "tier": "P1",
+      "url": "https://www.binance.com/en/support/faq/c2c",
+      "title": "Binance — Buy Crypto (Fiat/P2P) Support / C2C Help Hub",
+      "exchange": "binance",
+      "language": "en",
+      "geo": "global",
+      "lastChecked": "2026-06-08",
+      "usedForClaims": ["binance_p2p_zero_platform_fee", "binance_p2p_escrow"],
+      "riskNotes": "Verified LIVE official Binance support hub (C2C / Buy Crypto Fiat-P2P category) on 2026-06-08. HUB-LEVEL ONLY: it does NOT itself display the explicit P2P platform-fee figure or the escrow how-it-works text — the specific deep articles are ID-based and were 404 / JS-gated to automated fetch (binance fee schedule pages are spot-only; p2p.binance.com is JS-gated). Fee terms can change; local availability and payment methods vary by region; escrow reduces but does NOT eliminate counterparty risk; users must follow Binance rules and avoid off-platform payments. Claims using this source are held at active_review pending a human-pinned specific official P2P fee/escrow article (P0 upgrade)."
     }
   ]
 }

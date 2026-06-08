@@ -409,6 +409,58 @@
       "manualReviewRequired": false,
       "status": "approved",
       "notes": "Point-in-time aggregator data; must carry an 'as of {date}' qualifier and be re-pulled weekly."
+    },
+    {
+      "claimId": "binance_p2p_zero_platform_fee",
+      "exchange": "binance",
+      "page": "/exchanges/binance/",
+      "claimText": "Binance P2P lists a 0% platform fee for user-side P2P trades; the effective cost is the seller's spread.",
+      "claimType": "p2p",
+      "evidenceSources": ["binance_p2p_c2c_help_p1"],
+      "screenshotEvidence": [],
+      "confidence": "low",
+      "lastChecked": "2026-06-08",
+      "staleAfterDays": 30,
+      "allowedWording": [
+        "Binance P2P may list zero platform fees for certain user-side P2P trades, but users should verify current fee terms on Binance before trading.",
+        "Any fee claim must be tied to the current Binance P2P fee/support page and should not imply that all costs, spreads, bank charges, or seller pricing differences are zero."
+      ],
+      "blockedWording": [
+        "P2P is completely free in every situation.",
+        "There are no costs at all.",
+        "Every user pays zero fees everywhere.",
+        "Best price guaranteed.",
+        "No spread or seller markup."
+      ],
+      "manualReviewRequired": true,
+      "status": "active_review",
+      "notes": "Created 2026-06-08 (ROLE 4 + ROLE 11 + ROLE 37) to track existing live '0% platform fee' P2P copy. Evidence source binance_p2p_c2c_help_p1 is the verified-LIVE official C2C support hub but does NOT itself display the explicit fee figure (deep article 404 / JS-gated to automated fetch; fee schedule pages are spot-only). HELD at active_review + manualReviewRequired:true until a human pins the specific official Binance P2P fee article (then upgrade source to P0 and promote). NOT approved for public copy on this basis yet. Fee terms can change; spreads, bank charges, and seller markups are NOT covered by a 0% platform fee."
+    },
+    {
+      "claimId": "binance_p2p_escrow",
+      "exchange": "binance",
+      "page": "/exchanges/binance/",
+      "claimText": "Binance P2P uses an escrow-style order flow: the seller's crypto is locked by Binance and released after the seller confirms payment.",
+      "claimType": "p2p",
+      "evidenceSources": ["binance_p2p_c2c_help_p1"],
+      "screenshotEvidence": [],
+      "confidence": "low",
+      "lastChecked": "2026-06-08",
+      "staleAfterDays": 30,
+      "allowedWording": [
+        "Binance P2P uses an escrow-style order flow where crypto is released after the seller confirms payment, but users still need to follow Binance's rules and avoid off-platform payment arrangements.",
+        "Escrow support can reduce certain counterparty risks, but it does not make P2P trading risk-free."
+      ],
+      "blockedWording": [
+        "P2P is risk-free.",
+        "Escrow guarantees you cannot lose money.",
+        "All trades are fully protected.",
+        "You can safely ignore seller/payment rules.",
+        "Off-platform payments are safe."
+      ],
+      "manualReviewRequired": true,
+      "status": "active_review",
+      "notes": "Created 2026-06-08 (ROLE 4 + ROLE 11 + ROLE 37) to track existing live escrow P2P copy. Evidence source binance_p2p_c2c_help_p1 is the verified-LIVE official C2C support hub but does NOT itself display the escrow how-it-works text (deep article 404 / JS-gated). HELD at active_review + manualReviewRequired:true until a human pins the specific official Binance P2P escrow/safety article (then upgrade source to P0 and promote). Escrow reduces but does NOT eliminate counterparty risk — never frame P2P as risk-free or fully protected; users must avoid off-platform payments."
     }
   ]
 }
