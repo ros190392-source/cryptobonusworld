@@ -379,6 +379,11 @@ const _spotScreenshot            = _contextualSlots.includes('spot')
   ? (_screenshotImages.find(img => img.src.includes('/spot/'))             ?? null) : null;
 const _registrationDemoStateScreenshot = _contextualSlots.includes('registration_demo_state')
   ? (_screenshotImages.find(img => img.src.includes('/registration_demo_state/')) ?? null) : null;
+// P2P USD/USDT bridge slot — EXACT directory match so it can never grab the
+// rejected CNY '/p2p/' entry. Renders as a standalone block with a literal,
+// compliant caption (does not reuse the generic shared walkthrough caption).
+const _p2pDirectionScreenshot = _contextualSlots.includes('p2p_direction_usd_usdt')
+  ? (_screenshotImages.find(img => img.src.includes('/p2p_direction_usd_usdt/')) ?? null) : null;
 
 // Pull the official fee source URL from evidence (if available)
 const _feeSourceFact = ev?.facts.find(f => f.field === 'spot_maker_fee');
@@ -921,6 +926,16 @@ const rnrItems = [
             caption={`${ex.name} spot trading interface screenshot used as supporting evidence for the trading section.`}
             device={_spotScreenshot.device === 'none' ? 'desktop' : _spotScreenshot.device}
             capturedAt={_spotScreenshot.capturedAt}
+          />
+        )}
+
+        {_p2pDirectionScreenshot && (
+          <ContextualEvidenceScreenshot
+            src={_p2pDirectionScreenshot.src}
+            alt="Binance P2P interface with Buy selected, USDT active, USD selected, filters visible, and seller names masked."
+            caption="Binance P2P public interface showing the Buy flow for USDT with USD selected. Rates and payment methods vary by country, seller, and time."
+            device={_p2pDirectionScreenshot.device === 'none' ? 'desktop' : _p2pDirectionScreenshot.device}
+            capturedAt={_p2pDirectionScreenshot.capturedAt}
           />
         )}
 

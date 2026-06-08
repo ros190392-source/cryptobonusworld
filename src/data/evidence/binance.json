@@ -326,7 +326,7 @@
       "notes": "Owner-approved raw capture via https://www.binance.com/join?ref=CRYPTOBONUSW. Shows CryptoBonusWorld (Code: CRYPTOBONUSW) attribution and 19,800 USD Sign Up Rewards. Email field empty, form not submitted. No personal data. No browser URL bar (headless capture). Raw candidate used — processed browser-frame version blocked per ROLE 0 instruction."
     },
     "registration": {
-      "status": "outdated",
+      "status": "needs_manual_capture",
       "path": "/screenshots/binance/registration/global-desktop-2026-06.webp",
       "capturedAt": "2026-06",
       "geo": "GLOBAL",
@@ -365,6 +365,21 @@
       "device": "desktop",
       "notes": "Owner visual review 2026-06-06: REJECTED for contextual placement. Screenshot shows CNY market (Chinese locale/currency). Global Binance page targets a USD/USDT or neutral global audience. File retained on disk as raw evidence for reference. Needs USD/USDT or globally neutral P2P view recapture before contextual use. URL bar must be hidden/cropped. Slot removed from contextualScreenshotSlots until recaptured."
     },
+    "p2p_direction_usd_usdt": {
+      "status": "available",
+      "path": "/screenshots/binance/p2p_direction_usd_usdt/binance-p2p-usdt-usd-en-global-full-interface-2026-06.webp",
+      "capturedAt": "2026-06",
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "ownerApproved": true,
+      "ownerApprovedDate": "2026-06-08",
+      "captureType": "public",
+      "source": "screenshot_factory",
+      "factoryAssetId": "binance_p2p_direction_usd_usdt_en_global_full_interface_2026_06",
+      "claimIds": ["binance_p2p_interface"],
+      "claimSupported": "Binance has a public P2P interface where users can view USDT offers, fiat filters, payment methods, and seller terms before opening an order.",
+      "notes": "Approved full-interface USD/USDT P2P screenshot (ROLE 0 + ROLE 33, 2026-06-08). Merchant names masked, avatars masked, no CNY, no login, no order opened. Rates and payment methods vary by country, seller, and time. Promoted Ad row visible — must NOT be described as a typical or best rate. The old screenshots.p2p CNY entry remains rejected and must not be reused or reactivated."
+    },
     "spot": {
       "status": "available",
       "path": "/screenshots/binance/spot/global-desktop-2026-06.webp",
@@ -374,7 +389,7 @@
       "notes": ""
     },
     "bonus": {
-      "status": "outdated",
+      "status": "needs_manual_capture",
       "path": "/screenshots/binance/bonus/global-desktop-2026-06.webp",
       "capturedAt": "2026-06",
       "geo": "GLOBAL",
@@ -382,7 +397,7 @@
       "notes": "NOT PARTNER OFFER. Do not use as CBW partner bonus proof. Generic Binance referral program page — shows generic referral reward tiers (100 USD / 1,000 USD type offers) that do not represent the CBW 19,800 USDT partner offer. Superseded by bonus_referral_landing which shows the confirmed 19,800 USDT new-user offer. Do not publish until recaptured showing 19,800 USDT context."
     },
     "futures": {
-      "status": "outdated",
+      "status": "needs_manual_capture",
       "path": "/screenshots/binance/futures/global-desktop-2026-06.webp",
       "capturedAt": "2026-06",
       "geo": "GLOBAL",
