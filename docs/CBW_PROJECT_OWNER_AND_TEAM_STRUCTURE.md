@@ -873,10 +873,11 @@ are in: **`docs/GOLD_PAGE_WAR_ROOM_AND_WEEKLY_TRAINING.md`**
 | ROLE 35 *(optional)* | Final Executive Editor | Final editorial approval gate before ROLE 0 owner visual review |
 | ROLE 36 | Exchange Availability / Restricted Countries Watcher | Monitor official exchange availability daily; detect restricted-country changes; alert owner; never auto-publishes |
 | ROLE 37 | Exchange Intelligence Owner | Maintain the complete factual, affiliate, screenshot, risk, source, and content intelligence profile for one specific exchange; instantiated per exchange (Binance Intelligence Owner, Bybit Intelligence Owner, etc.); provides source-of-truth exchange profile before every Gold Page session |
+| ROLE 38 | Multilingual Screenshot Factory Lead | Operate the end-to-end screenshot production pipeline across exchanges, languages, GEOs, and product sections; own the job matrix, capture queues, approval lifecycle, asset registry, rejected archive, and refresh schedule; turn ROLE 37 target URLs into approved reusable visual assets; never publishes without ROLE 33 ethics review and ROLE 0 approval |
 
-**Total roles: 38 (ROLE 0 through ROLE 37)**  
+**Total roles: 39 (ROLE 0 through ROLE 38)**  
 **Core Production Team: ROLES 0–13 (14 roles)**  
-**Gold Page Specialist Squad: ROLES 14–37 (24 roles; ROLES 31–35 are optional)**
+**Gold Page Specialist Squad: ROLES 14–38 (25 roles; ROLES 31–35 are optional)**
 
 ---
 
@@ -902,6 +903,8 @@ are in: **`docs/GOLD_PAGE_WAR_ROOM_AND_WEEKLY_TRAINING.md`**
 | `BONUS_LANDING_VERIFICATION_ARCHITECTURE.md` | ROLE 4 + 5 | Bonus landing page verification system |
 | `EXCHANGE_INTELLIGENCE_OWNER_ROLE.md` | ROLE 37 + 0 | ROLE 37 definition; per-exchange intelligence ownership; responsibilities, cadence, approval powers |
 | `EXCHANGE_INTELLIGENCE_PROFILE_STANDARD.md` | ROLE 37 + 0 | Profile JSON schema; source confidence model; screenshot source map; no-autopublish rule; Binance pilot |
+| `MULTILINGUAL_SCREENSHOT_FACTORY_ROLE.md` | ROLE 38 + 0 | ROLE 38 definition; capture types; language/GEO model; approval lifecycle; update cadence; Gold Page integration |
+| `MULTILINGUAL_SCREENSHOT_FACTORY_STANDARD.md` | ROLE 38 + 0 | Screenshot job/asset/rejected schemas; automation-vs-manual model; multilingual strategy; Binance pilot jobs; no-autopublish rule |
 
 ---
 
@@ -922,6 +925,7 @@ are in: **`docs/GOLD_PAGE_WAR_ROOM_AND_WEEKLY_TRAINING.md`**
 
 ---
 
+*Document version 1.5 — 2026-06-08 — Sprint 06: Added ROLE 38 Multilingual Screenshot Factory Lead; updated total to 39 roles (ROLE 0–38); added governance references for screenshot factory docs*  
 *Document version 1.4 — 2026-06-08 — Sprint 06: Added ROLE 37 Exchange Intelligence Owner; updated total to 38 roles (ROLE 0–37); added governance references for new role docs*  
 *Document version 1.3 — 2026-06-06 — Sprint 05: Added ROLE 36 Exchange Availability Watcher; updated to ROLES 14–36*
 *Document version 1.2 — 2026-06-06 — Sprint 05: Extended to ROLES 14–35; added Section 11 Gold Page Check Chain reference*  

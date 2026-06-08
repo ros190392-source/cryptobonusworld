@@ -106,7 +106,7 @@ and any page that requires screenshot captures, offer validation, or human visua
 
 ---
 
-## 3. Full Role Table — Roles 0–36
+## 3. Full Role Table — Roles 0–38
 
 ---
 
@@ -698,6 +698,30 @@ Before any Gold Page production sequence begins for an exchange, ROLE 37 provide
 
 ---
 
+### ROLE 38 — Multilingual Screenshot Factory Lead
+
+| Field | Value |
+|-------|-------|
+| Mission | Operate the end-to-end screenshot production pipeline across exchanges, languages, GEOs, and product sections — turning ROLE 37 target URLs into approved, reusable, correctly classified visual assets, while guaranteeing no screenshot is published without ethics review and owner approval |
+| Instantiation | One factory across all exchanges (not per-exchange); maintains a per-exchange job matrix, asset registry, and rejected archive |
+| Weekly duty | Run the tiered refresh cadence per `docs/MULTILINGUAL_SCREENSHOT_FACTORY_ROLE.md §8`; surface stale assets; manage the public/authenticated/owner_manual capture queues; report each Gold Page's screenshot footprint before its War Room session |
+| Inputs | ROLE 37 `screenshotTargets` (target URLs, risk levels, masking notes); `src/data/screenshot-factory/jobs/{exchange}.json`; candidate captures in `reports/screenshots/`; ROLE 18 post-production output; ROLE 33 ethics decisions |
+| Outputs | `src/data/screenshot-factory/jobs/{exchange}.json` (job matrix); `assets/{exchange}.json` (approved public assets); `rejected/{exchange}.json` (audit archive); capture requests; stale-asset flags; public-asset promotion proposals |
+| Approval power | Create jobs; request captures; reject low-quality/wrong-GEO/wrong-currency captures; require masking/cropping; flag stale assets; propose public asset promotion; **never publishes to `public/` without ROLE 33 + ROLE 0** |
+| When active | Continuously (rolling cadence); fully engaged before every Gold Page War Room session to report the page's screenshot map, approved inventory, rejected inventory, recapture queue, public asset list, and stale watch |
+
+**Producer/consumer with ROLE 37:** ROLE 37 owns the *facts and target URLs*; ROLE 38 owns the
+*screenshot job matrix and approved assets*. ROLE 38 turns each approved target into one or more
+jobs (one per language × GEO × section) and never edits the intelligence profile.
+
+**ROLE 38 may not** publish public assets without ROLE 0 approval, publish any screenshot with
+private/forbidden data, modify affiliate links, modify legal/availability claims, or bypass the
+ROLE 33 Screenshot Ethics review.
+
+**Governance:** `docs/MULTILINGUAL_SCREENSHOT_FACTORY_ROLE.md`; `docs/MULTILINGUAL_SCREENSHOT_FACTORY_STANDARD.md`
+
+---
+
 ## 4. Weekly Training Protocol
 
 Every specialist stays current through a structured weekly rhythm. Training is not passive
@@ -718,6 +742,7 @@ updates their task queue, and flags urgent changes.
 | ROLE 25 — Freshness Editor | Evidence `lastChecked` dates, stale claim queue |
 | ROLE 30 — Legal Watcher | Exchange terms pages, affiliate program updates |
 | ROLE 36 — Availability Watcher | Last 7 daily availability reports; any `review_required` items; regulatory news |
+| ROLE 38 — Screenshot Factory Lead | Stale-asset watch; bonus-screenshot freshness (offer changes); capture queues; rejected-source re-introduction check |
 | ROLE 2 — SEO Intelligence | GSC, Yandex Webmaster, algorithm announcements |
 | ROLE 12 — Analytics | Metrika, GSC clicks/impressions, affiliate dashboard |
 
@@ -796,6 +821,7 @@ their domain.
 | ROLE 30 — Legal Watcher | Official exchange terms of service pages; affiliate program terms; regulatory news |
 | ROLE 36 — Availability Watcher | Official exchange Restricted Locations pages (P0); exchange Terms of Use eligibility sections (P0); official exchange support FAQ on restricted countries (P0); official regulator notices (P1); reputable news on exchange enforcement actions (P2); `reports/exchange-availability-watch-{date}.md` daily run log |
 | ROLE 37 — Exchange Intelligence Owner | `src/data/exchange-intelligence/{exchange}.json` (own profile); `src/data/evidence/{exchange}.json` (facts and confidence scores); `src/data/exchange-availability/{exchange}.json` (availability baseline); `src/data/exchanges.json` (affiliate URL and bonus data); ROLE 36 availability watcher alerts; official exchange pages (when task-authorised for weekly check) |
+| ROLE 38 — Multilingual Screenshot Factory Lead | `src/data/screenshot-factory/jobs/{exchange}.json` (job matrix); `assets/{exchange}.json` and `rejected/{exchange}.json`; ROLE 37 `screenshotTargets`; candidate captures in `reports/screenshots/`; ROLE 18 post-production output; ROLE 33 ethics decisions; offer-amount changes that may stale bonus screenshots |
 | ROLE 2 — SEO Intelligence | Google Search Central Blog; Google Search Status Dashboard; GSC (owner-only); Yandex Webmaster; Bing Webmaster; IndexNow log |
 | ROLE 12 — Analytics | Google Search Console; Yandex Metrika (counter 109562447); affiliate dashboard; IndexNow submission log |
 
@@ -1158,10 +1184,13 @@ does not proceed until the check passes.
 | `docs/EXCHANGE_AVAILABILITY_AND_RESTRICTED_COUNTRIES_WATCHER.md` | ROLE 36 governance; data model; watcher logic; Binance pilot plan |
 | `docs/EXCHANGE_INTELLIGENCE_OWNER_ROLE.md` | ROLE 37 definition; per-exchange intelligence ownership; responsibilities, cadence, approval powers |
 | `docs/EXCHANGE_INTELLIGENCE_PROFILE_STANDARD.md` | Profile JSON schema; source confidence model; screenshot source map; no-autopublish rule; Binance pilot |
+| `docs/MULTILINGUAL_SCREENSHOT_FACTORY_ROLE.md` | ROLE 38 definition; capture types; language/GEO model; approval lifecycle; update cadence; Gold Page integration |
+| `docs/MULTILINGUAL_SCREENSHOT_FACTORY_STANDARD.md` | Screenshot job/asset/rejected schemas; automation-vs-manual model; multilingual strategy; Binance pilot jobs |
 
 ---
 
-*Document version 1.3 — 2026-06-08 — CryptoBonusWorld Sprint 06*  
+*Document version 1.4 — 2026-06-08 — CryptoBonusWorld Sprint 06*  
+*Sprint 06 v1.4: Added ROLE 38 (Multilingual Screenshot Factory Lead); role card; weekly sources + Monday scan entries; screenshot factory as Gold Page input; governance references*  
 *Sprint 06 v1.3: Added ROLE 37 (Exchange Intelligence Owner); source-of-truth provider model for Gold Page sessions; weekly sources entry; governance references*  
 *Sprint 05 v1.2: Added ROLE 36 (Exchange Availability / Restricted Countries Watcher); daily availability monitoring inputs added to weekly protocol*  
 *Sprint 05 v1.1: Added optional ROLES 31–35; added Section 11 Chain of Checks (16-step Gold Page gate)*  

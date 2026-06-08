@@ -223,11 +223,19 @@ When a new cleanup sprint runs:
 | Document | Purpose |
 |----------|---------|
 | `docs/SCREENSHOT_STANDARD.md` | **This file** — naming, slots, policy |
+| `docs/MULTILINGUAL_SCREENSHOT_FACTORY_ROLE.md` | ROLE 38 — screenshot production pipeline; capture types; language/GEO model; approval lifecycle; update cadence |
+| `docs/MULTILINGUAL_SCREENSHOT_FACTORY_STANDARD.md` | ROLE 38 data model — screenshot job/asset/rejected schemas; automation-vs-manual model; multilingual strategy; no-autopublish rule |
 | `docs/SCREENSHOT_COVERAGE_MATRIX.md` | Safety matrix, capture methods, forbidden slots |
 | `docs/screenshot-style-guide.md` | Visual standards, crop guidelines, annotations |
 | `docs/screenshot-checklist.md` | Per-capture QA checklist |
 | `src/data/evidence/{exchange}.json` | Registry source of truth per exchange |
 | `scripts/audit-screenshot-registry.mjs` | CI enforcement script |
+
+> **This file governs file conventions** (path format, slot registry, quality rules). The
+> **Multilingual Screenshot Factory** (`docs/MULTILINGUAL_SCREENSHOT_FACTORY_ROLE.md`) governs the
+> *production lifecycle* on top of these conventions — the job matrix, capture queues, approval
+> lifecycle, asset registry, and refresh schedule. The factory's `expectedOutput` paths follow the
+> Primary Standard in §1 of this file exactly.
 
 ---
 
@@ -316,6 +324,8 @@ The `contextualScreenshotSlots` array in `content-overrides.json` is the **sole*
 | Binance | `registration` | `outdated` | Shows 100 USD generic offer (no CBW referral) | P1 | Must use CBW referral link; demo email only; form NOT submitted |
 
 ---
+
+*Document updated: 2026-06-08 | Sprint 06 | Added reference to Multilingual Screenshot Factory (ROLE 38) — file conventions here; production lifecycle there*
 
 *Document updated: 2026-06-06 | Sprint 05 | Owner visual review findings*
 

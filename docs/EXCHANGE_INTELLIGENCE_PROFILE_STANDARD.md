@@ -512,7 +512,17 @@ These levels align with the Evidence Auditor's confidence model in `src/data/evi
 
 ## 5. Screenshot Source Map
 
-Every exchange intelligence profile must list all potential screenshot capture targets with their source URLs. The minimum set of URLs to track for each exchange:
+Every exchange intelligence profile must list all potential screenshot capture targets with their source URLs.
+
+> **Feeds the Multilingual Screenshot Factory (ROLE 38).** The `screenshotTargets` array is the
+> upstream seed for the screenshot factory job matrix (`src/data/screenshot-factory/jobs/{exchange}.json`).
+> ROLE 38 reads each target and turns it into one or more screenshot jobs — one per
+> (language × GEO × section) combination CBW needs. ROLE 37 owns the target URLs, risk levels, and
+> masking notes; ROLE 38 owns the resulting jobs, captures, and approved assets. ROLE 37 never edits
+> the factory matrix; ROLE 38 never edits this profile. See
+> `docs/MULTILINGUAL_SCREENSHOT_FACTORY_ROLE.md` and `docs/MULTILINGUAL_SCREENSHOT_FACTORY_STANDARD.md`.
+
+The minimum set of URLs to track for each exchange:
 
 | Section | Recommended URL pattern | Notes |
 |---------|------------------------|-------|
@@ -683,7 +693,8 @@ The exchange intelligence profile sits above the rendering data files. It is a k
 
 ---
 
+*Document version 1.1 — 2026-06-08 — Sprint 06: Noted that `screenshotTargets` feed the ROLE 38 Multilingual Screenshot Factory job matrix*  
 *Document version 1.0 — 2026-06-08 — Sprint 06*  
 *Owner: Chief Project Owner (ROLE 0)*  
 *Role: ROLE 37 — Exchange Intelligence Owner*  
-*Governance reference: `docs/EXCHANGE_INTELLIGENCE_OWNER_ROLE.md`; `docs/CBW_PROJECT_OWNER_AND_TEAM_STRUCTURE.md`*
+*Governance reference: `docs/EXCHANGE_INTELLIGENCE_OWNER_ROLE.md`; `docs/CBW_PROJECT_OWNER_AND_TEAM_STRUCTURE.md`; `docs/MULTILINGUAL_SCREENSHOT_FACTORY_ROLE.md`*
