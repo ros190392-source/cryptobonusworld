@@ -1,0 +1,326 @@
+{
+  "exchange": "htx",
+  "schemaVersion": "2.0",
+  "lastUpdated": "2026-06-08",
+  "dataSourcesUsed": [
+    "coingecko_api_2026-06-08",
+    "coinmarketcap_exchange_2026-06-08",
+    "project_evidence_files",
+    "official_exchange_sites"
+  ],
+  "ownerRole": "HTX Intelligence Owner (ROLE 37)",
+  "identity": {
+    "name": "HTX",
+    "legalName": "Huobi Technology Holdings Limited",
+    "type": "centralized",
+    "foundedYear": 2013,
+    "ceoFounder": "Founded by Leon Li; major investor: Justin Sun (since 2022)",
+    "headquarters": "Seychelles",
+    "registeredIn": "Seychelles",
+    "website": "https://www.htx.com",
+    "nasdaqListed": false,
+    "nasdaqTicker": null,
+    "nativeToken": "HT",
+    "nativeTokenUse": "Fee discount, Huobi Prime (IEO), staking, burn mechanism",
+    "stablecoin": null,
+    "recentBrandChange": "Rebranded from Huobi to HTX in September 2023",
+    "description": "One of the oldest major exchanges, founded 2013 as Huobi. Rebranded to HTX in September 2023. Backed by Tron founder Justin Sun (major investor since 2022). 8M+ users. Strong in Asian markets. Offers spot, futures, copy trading, earn, OTC.",
+    "descriptionShort": "Pioneer CEX (est. 2013), rebranded HTX 2023. Justin Sun-linked. 8M+ users, 2,000 USDT welcome bonus.",
+    "notableEvents": [],
+    "partnershipNote": null
+  },
+  "affiliate": {
+    "primaryUrl": "https://www.htx.com.ph/invite/ru-ru/1h?invite_code=cryptobonusw",
+    "promoCode": "cryptobonusw",
+    "bonusAmount": 2000,
+    "bonusCurrency": "USDT",
+    "bonusType": "task-based rewards (KYC + deposit + volume milestones)",
+    "bonusVoucherNote": "Vouchers are trading fee credits, not withdrawable cash — only profits from trading with them can be withdrawn",
+    "ownerApprovalRequiredForChanges": true,
+    "immutableNote": "Affiliate URL is IMMUTABLE — changes require ROLE 0 explicit approval",
+    "lastVerified": "2026-06-01"
+  },
+  "marketIntelligence": {
+    "geckoId": "huobi",
+    "cmcSlug": "htx",
+    "geckoTrustScore": 7,
+    "geckoTrustScoreRank": 60,
+    "geckoTrustScoreNote": "CoinGecko trust score (1-10) assesses exchange API accuracy, volume legitimacy, and cybersecurity posture",
+    "volume24hBtc": 19802.22,
+    "volume24hUsd": 1246000000,
+    "spotPairsActive": 626,
+    "coinsListed": 605,
+    "registeredUsers": "8M+",
+    "countriesServed": "160+",
+    "reservesUsd": null,
+    "reserveRatio": null,
+    "dataFetchedAt": "2026-06-08",
+    "dataRefreshScript": "node scripts/generate-exchange-intelligence.mjs --refresh"
+  },
+  "socialChannels": {
+    "twitter": "@HuobiGlobal",
+    "telegram": "https://t.me/HTX_Chineseofficial"
+  },
+  "officialPages": {
+    "fees": {
+      "url": "https://www.htx.com/en-us/about/fee/",
+      "label": "HTX — Trading Fee Schedule",
+      "lastAccessed": "2026-05-25"
+    },
+    "kyc": {
+      "url": "https://www.htx.com/en-us/support/article/360000110131",
+      "label": "HTX — KYC Verification Guide",
+      "lastAccessed": "2026-05-25"
+    },
+    "bonus": {
+      "url": "https://www.htx.com/en-us/activity/",
+      "label": "HTX — New User Activity & Promotions",
+      "lastAccessed": "2026-05-20"
+    },
+    "restricted_countries": {
+      "url": "https://www.htx.com/en-us/support/article/htx-restricted-regions",
+      "label": "HTX — Restricted Regions",
+      "lastAccessed": "2026-05-25"
+    },
+    "terms": {
+      "url": "https://www.htx.com/en-us/about/legal/",
+      "label": "HTX — Terms of Service",
+      "lastAccessed": "2026-05-25"
+    },
+    "p2p": {
+      "url": "https://www.htx.com/en-us/fiat/",
+      "label": "HTX — Fiat/P2P Trading",
+      "lastAccessed": "2026-05-25"
+    },
+    "app_ios": {
+      "url": "https://apps.apple.com/app/htx-buy-bitcoin-crypto/id378544918",
+      "label": "HTX iOS App — App Store",
+      "lastAccessed": "2026-05-25"
+    },
+    "app_android": {
+      "url": "https://play.google.com/store/apps/details?id=com.huobi.usversion",
+      "label": "HTX Android App — Google Play",
+      "lastAccessed": "2026-05-25"
+    },
+    "futures": {
+      "url": "https://www.htx.com/en-us/futures/linear_swap/exchange/",
+      "label": "HTX — Futures Trading",
+      "lastAccessed": "2026-05-25"
+    },
+    "affiliate": {
+      "url": "https://www.htx.com/en-us/referral/",
+      "label": "HTX — Referral Program",
+      "lastAccessed": "2026-05-20"
+    }
+  },
+  "fees": {
+    "spotMaker": 0.2,
+    "spotTaker": 0.2,
+    "spotUnit": "%",
+    "spotNote": "Standard tier fee; reductions available with VIP status or native token",
+    "futuresMaker": 0.02,
+    "futuresTaker": 0.05,
+    "futuresUnit": "%",
+    "maxLeverage": 100,
+    "p2pPlatformFee": "0% platform fee (spread set by counterparty)",
+    "withdrawalFeeStructure": "network-dependent — varies by asset and blockchain",
+    "depositFee": "free for crypto; varies for fiat (country/method dependent)",
+    "feeSourceUrl": "https://www.htx.com/en-us/about/fee/",
+    "lastChecked": "2026-05-25"
+  },
+  "products": {
+    "spot": {
+      "available": true,
+      "pairsCount": 626,
+      "coinsCount": 605
+    },
+    "futures": {
+      "available": true,
+      "type": "USDT-margined perpetual",
+      "maxLeverage": 100,
+      "riskNote": "High leverage carries substantial liquidation risk — not for beginners"
+    },
+    "p2p": {
+      "available": true,
+      "platformFee": "0%",
+      "note": "Available at https://www.htx.com/c2c or /p2p. Escrow-protected. Available payment methods vary by region."
+    },
+    "copyTrading": {
+      "available": false,
+      "note": null
+    },
+    "earn": {
+      "available": false,
+      "products": []
+    },
+    "mobileApp": {
+      "ios": true,
+      "android": true,
+      "downloadUrl": "https://www.htx.com/download"
+    }
+  },
+  "kyc": {
+    "required": true,
+    "tiers": [
+      "Basic (email/phone)",
+      "Intermediate (ID + liveness — required for full withdrawal access and bonuses)",
+      "Advanced (address proof — for highest limits)"
+    ],
+    "typicalTime": "2–30 minutes automated; up to 24h manual review",
+    "documentsRequired": [
+      "Government-issued ID (passport, national ID, or driver's licence)",
+      "Liveness check / selfie"
+    ],
+    "sourceUrl": "https://www.htx.com/en-us/support/article/360000110131"
+  },
+  "availability": {
+    "restrictedUS": true,
+    "restrictedUK": null,
+    "restrictedCountriesNote": "Restricted regions vary. Verify on official website before registering.",
+    "officialRestrictedListUrl": "https://www.htx.com/en-us/support/article/htx-restricted-regions",
+    "manualReviewRequired": true
+  },
+  "trust": {
+    "geckoTrustScore": 7,
+    "proofOfReserves": false,
+    "porUrl": null,
+    "porFrequency": "Periodically — check official website",
+    "safuOrEquivalent": null,
+    "licences": null,
+    "securityIncidents": []
+  },
+  "knowledgeBase": {
+    "quickFacts": {
+      "founded": 2013,
+      "headquarters": "Seychelles",
+      "users": "8M+",
+      "tradingPairs": 626,
+      "coinsListed": 605,
+      "volume24h": "$1.25B",
+      "geckoTrustScore": 7,
+      "geckoTrustRank": "#60",
+      "welcomeBonus": "2000 USDT",
+      "promoCode": "cryptobonusw",
+      "nativeToken": "HT",
+      "nasdaqListed": false
+    },
+    "commonQuestions": [
+      {
+        "question": "What is HTX?",
+        "answer": "One of the oldest major exchanges, founded 2013 as Huobi. Rebranded to HTX in September 2023. Backed by Tron founder Justin Sun (major investor since 2022). 8M+ users. Strong in Asian markets. Offers spot, futures, copy trading, earn, OTC.",
+        "category": "general"
+      },
+      {
+        "question": "Is HTX safe?",
+        "answer": "HTX is a established centralized exchange. CoinGecko trust score: 7/10 (rank #60).  Like all CEXs, funds are custodied by the exchange — use hardware wallets for long-term storage. Enable 2FA, use a strong unique password, and whitelist withdrawal addresses where available. Never share API keys.",
+        "category": "safety"
+      },
+      {
+        "question": "What is the HTX promo/referral code?",
+        "answer": "The CryptoBonusWorld referral code for HTX is cryptobonusw. It is pre-filled automatically when you register via our link. Using it activates the welcome bonus of up to 2000 USDT.",
+        "category": "affiliate"
+      },
+      {
+        "question": "How much is the HTX welcome bonus?",
+        "answer": "Via CryptoBonusWorld, the current HTX welcome bonus is up to 2000 USDT. This is a task-based reward: completing KYC, making a qualifying deposit, and reaching trading volume milestones unlocks different reward tiers. The full amount requires all milestones — most users completing a standard deposit earn a meaningful first-week reward. Bonus amounts are typically trading fee vouchers, not withdrawable cash.",
+        "category": "affiliate"
+      },
+      {
+        "question": "How do I claim the HTX bonus?",
+        "answer": "Step 1: Click the registration link on the CryptoBonusWorld HTX page — the referral code/link is pre-filled. Step 2: Complete email/phone verification. Step 3: Complete KYC identity verification (required for bonuses). Step 4: Make a qualifying deposit (crypto transfer or card). Step 5: Check your Rewards Center / Bonus Hub for active tasks and complete trading volume milestones within the campaign window (usually 30 days). Vouchers are credited to your account as you complete each task tier.",
+        "category": "affiliate"
+      },
+      {
+        "question": "What are HTX spot trading fees?",
+        "answer": "HTX spot trading fees: 0.2% maker / 0.2% taker (standard). ",
+        "category": "fees"
+      },
+      {
+        "question": "What are HTX futures trading fees?",
+        "answer": "HTX USDT-margined perpetual futures: 0.02% maker / 0.05% taker. Maximum leverage: 100×. Futures trading carries substantial risk of capital loss from liquidation. Up to 100× leverage available.",
+        "category": "fees"
+      },
+      {
+        "question": "Does HTX have P2P trading?",
+        "answer": "HTX offers OTC/P2P with multiple fiat options primarily targeting Asian markets.",
+        "category": "products"
+      },
+      {
+        "question": "Does HTX have copy trading?",
+        "answer": "HTX does not currently offer copy trading.",
+        "category": "products"
+      },
+      {
+        "question": "Is HTX available in the United States?",
+        "answer": "No. HTX restricts US residents from registering. US users should use Coinbase or Kraken as regulated alternatives.",
+        "category": "availability"
+      },
+      {
+        "question": "Is HTX available in the United Kingdom?",
+        "answer": "UK availability for HTX should be verified on the official website, as FCA compliance and local regulatory status may affect service availability.",
+        "category": "availability"
+      },
+      {
+        "question": "What cryptocurrencies does HTX support?",
+        "answer": "HTX lists 605 cryptocurrencies across 626 trading pairs. HTX regularly lists emerging altcoins alongside major assets.",
+        "category": "products"
+      },
+      {
+        "question": "Does HTX have a mobile app?",
+        "answer": "Yes. HTX has official iOS (App Store) and Android (Google Play) apps. Download from the official HTX website (https://www.htx.com/app or equivalent) or directly from the official app store listing to avoid counterfeit apps. ",
+        "category": "products"
+      },
+      {
+        "question": "Does HTX require KYC?",
+        "answer": "Yes. HTX requires KYC (identity verification) to unlock full trading, withdrawals, and welcome bonus eligibility. Process: government-issued ID + selfie/liveness check. Typically completes in 2–30 minutes for automated approval; up to 24 hours for manual review.",
+        "category": "compliance"
+      },
+      {
+        "question": "Does HTX have Proof of Reserves?",
+        "answer": "HTX does not currently publish Proof of Reserves. Use caution with large balances on any exchange without PoR.",
+        "category": "trust"
+      },
+      {
+        "question": "What leverage does HTX offer?",
+        "answer": "HTX offers up to 100× leverage on futures. Standard: 10–20× for most trading pairs. High leverage available — suitable only for experienced traders with strict risk management. Leverage availability varies by asset and KYC level.",
+        "category": "products"
+      },
+      {
+        "question": "When was HTX founded and who founded it?",
+        "answer": "HTX was founded in 2013. Founded by Leon Li; major investor: Justin Sun (since 2022).",
+        "category": "general"
+      },
+      {
+        "question": "How many users does HTX have?",
+        "answer": "HTX serves 8M+ registered users across 160+ countries as of 2026.",
+        "category": "general"
+      },
+      {
+        "question": "What is HTX's 24-hour trading volume?",
+        "answer": "HTX's 24-hour spot trading volume is approximately $1.25B (19 802,22 BTC) as of the last data pull (2026-06-08). This places HTX at CoinGecko rank #60 by trust-adjusted volume.",
+        "category": "marketdata"
+      },
+      {
+        "question": "Does HTX have a native token?",
+        "answer": "Yes. HTX's native token is HT. Use: Fee discount, Huobi Prime (IEO), staking, burn mechanism.",
+        "category": "products"
+      },
+      {
+        "question": "What is HTX's CoinGecko trust score?",
+        "answer": "HTX has a CoinGecko trust score of 7/10, placing it at rank #60 globally. CoinGecko's trust score assesses exchange API accuracy, trading volume legitimacy, and cybersecurity posture.",
+        "category": "trust"
+      }
+    ]
+  },
+  "contentMap": {
+    "mainReviewPage": "/exchanges/htx/",
+    "bonusPage": "/bonuses/htx-bonus/",
+    "bonusCodePage": "/bonus-codes/htx/"
+  },
+  "freshness": {
+    "marketDataFetchedAt": "2026-06-08",
+    "evidenceLastUpdated": "2026-06-01",
+    "nextMarketRefresh": "2026-07-08",
+    "refreshScript": "node scripts/generate-exchange-intelligence.mjs --refresh"
+  }
+}

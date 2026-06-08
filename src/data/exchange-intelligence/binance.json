@@ -1,0 +1,349 @@
+{
+  "exchange": "binance",
+  "schemaVersion": "2.0",
+  "lastUpdated": "2026-06-08",
+  "dataSourcesUsed": [
+    "coingecko_api_2026-06-08",
+    "coinmarketcap_exchange_2026-06-08",
+    "project_evidence_files",
+    "official_exchange_sites"
+  ],
+  "ownerRole": "Binance Intelligence Owner (ROLE 37)",
+  "identity": {
+    "name": "Binance",
+    "legalName": "Binance Holdings Limited",
+    "type": "centralized",
+    "foundedYear": 2017,
+    "ceoFounder": "Founded by Changpeng Zhao (CZ, 2017–2023); current CEO Richard Teng (2023–present)",
+    "headquarters": "Cayman Islands",
+    "registeredIn": "Cayman Islands",
+    "website": "https://www.binance.com",
+    "nasdaqListed": false,
+    "nasdaqTicker": null,
+    "nativeToken": "BNB",
+    "nativeTokenUse": "Trading fee discount (25% off), Launchpad allocation, Earn products, Gas on BNB Chain",
+    "stablecoin": null,
+    "recentBrandChange": null,
+    "description": "The world's largest cryptocurrency exchange by trading volume, founded in 2017 by Changpeng Zhao (CZ), now led by CEO Richard Teng. Serving 280M+ users in 180+ countries with spot, futures, P2P, earn, copy trading, and Web3 products.",
+    "descriptionShort": "World's largest CEX by volume. 280M+ users, 1,400+ spot pairs, deep P2P, 19,800 USDT welcome bonus.",
+    "notableEvents": [],
+    "partnershipNote": null
+  },
+  "affiliate": {
+    "primaryUrl": "https://www.binance.com/join?ref=CRYPTOBONUSW",
+    "promoCode": "CRYPTOBONUSW",
+    "bonusAmount": 19800,
+    "bonusCurrency": "USDT",
+    "bonusType": "task-based rewards (KYC + deposit + volume milestones)",
+    "bonusVoucherNote": "Vouchers are trading fee credits, not withdrawable cash — only profits from trading with them can be withdrawn",
+    "ownerApprovalRequiredForChanges": true,
+    "immutableNote": "Affiliate URL is IMMUTABLE — changes require ROLE 0 explicit approval",
+    "lastVerified": "2026-06-04"
+  },
+  "marketIntelligence": {
+    "geckoId": "binance",
+    "cmcSlug": "binance",
+    "geckoTrustScore": 10,
+    "geckoTrustScoreRank": 2,
+    "geckoTrustScoreNote": "CoinGecko trust score (1-10) assesses exchange API accuracy, volume legitimacy, and cybersecurity posture",
+    "volume24hBtc": 131448.76,
+    "volume24hUsd": 8309263738,
+    "spotPairsActive": 1368,
+    "coinsListed": 430,
+    "registeredUsers": "280M+",
+    "countriesServed": "180+",
+    "reservesUsd": 139286469181,
+    "reserveRatio": null,
+    "dataFetchedAt": "2026-06-08",
+    "dataRefreshScript": "node scripts/generate-exchange-intelligence.mjs --refresh"
+  },
+  "socialChannels": {
+    "twitter": "@binance",
+    "telegram": "https://t.me/binanceexchange",
+    "facebook": "https://www.facebook.com/binanceexchange",
+    "reddit": "https://www.reddit.com/r/binance/",
+    "medium": "https://medium.com/binanceexchange"
+  },
+  "officialPages": {
+    "fees": {
+      "url": "https://www.binance.com/en/fee/schedule",
+      "label": "Binance — Trading Fee Schedule",
+      "lastAccessed": "2026-05-25"
+    },
+    "kyc": {
+      "url": "https://www.binance.com/en/support/faq/how-to-complete-identity-verification-360027287111",
+      "label": "Binance — Identity Verification Guide",
+      "lastAccessed": "2026-05-25"
+    },
+    "bonus": {
+      "url": "https://www.binance.com/en/activity/referral",
+      "label": "Binance — Referral Bonus Program",
+      "lastAccessed": "2026-05-26"
+    },
+    "restricted_countries": {
+      "url": "https://www.binance.com/en/support/faq/list-of-countries-region-restricted-from-binance-products-services-b03a8e27f4ba49609cbadf66bc30db67",
+      "label": "Binance — Restricted Countries & Regions",
+      "lastAccessed": "2026-05-25"
+    },
+    "terms": {
+      "url": "https://www.binance.com/en/terms",
+      "label": "Binance — Terms of Use",
+      "lastAccessed": "2026-05-25"
+    },
+    "proof_of_reserves": {
+      "url": "https://www.binance.com/en/proof-of-reserves",
+      "label": "Binance — Proof of Reserves",
+      "lastAccessed": "2026-05-25"
+    },
+    "p2p": {
+      "url": "https://p2p.binance.com/",
+      "label": "Binance — P2P Trading",
+      "lastAccessed": "2026-05-25"
+    },
+    "app_ios": {
+      "url": "https://apps.apple.com/app/binance-buy-bitcoin-crypto/id1436799971",
+      "label": "Binance iOS App — App Store",
+      "lastAccessed": "2026-05-25"
+    },
+    "app_android": {
+      "url": "https://play.google.com/store/apps/details?id=com.binance.dev",
+      "label": "Binance Android App — Google Play",
+      "lastAccessed": "2026-05-25"
+    },
+    "futures": {
+      "url": "https://www.binance.com/en/futures/BTCUSDT",
+      "label": "Binance — USDⓈ-M Futures",
+      "lastAccessed": "2026-05-25"
+    },
+    "affiliate": {
+      "url": "https://www.binance.com/en/activity/referral",
+      "label": "Binance — Referral Program",
+      "lastAccessed": "2026-05-26"
+    }
+  },
+  "fees": {
+    "spotMaker": 0.1,
+    "spotTaker": 0.1,
+    "spotUnit": "%",
+    "spotNote": "25% discount with BNB fee payment enabled (0.075% effective)",
+    "futuresMaker": 0.02,
+    "futuresTaker": 0.05,
+    "futuresUnit": "%",
+    "maxLeverage": 125,
+    "p2pPlatformFee": "0% platform fee (spread set by counterparty)",
+    "withdrawalFeeStructure": "network-dependent — varies by asset and blockchain",
+    "depositFee": "free for crypto; varies for fiat (country/method dependent)",
+    "feeSourceUrl": "https://www.binance.com/en/fee/schedule",
+    "lastChecked": "2026-05-25"
+  },
+  "products": {
+    "spot": {
+      "available": true,
+      "pairsCount": 1368,
+      "coinsCount": 430
+    },
+    "futures": {
+      "available": true,
+      "type": "USDT-margined perpetual",
+      "maxLeverage": 125,
+      "riskNote": "High leverage carries substantial liquidation risk — not for beginners"
+    },
+    "p2p": {
+      "available": true,
+      "platformFee": "0%",
+      "note": "Available at https://www.binance.com/c2c or /p2p. Escrow-protected. Available payment methods vary by region."
+    },
+    "copyTrading": {
+      "available": false,
+      "note": "Copy trading for qualified lead traders; spot and futures"
+    },
+    "earn": {
+      "available": true,
+      "products": [
+        "Simple Earn (flexible/locked)",
+        "Launchpool",
+        "On-chain staking",
+        "Dual Investment",
+        "Liquid Swap (AMM)"
+      ]
+    },
+    "mobileApp": {
+      "ios": true,
+      "android": true,
+      "downloadUrl": "https://www.binance.com/download"
+    }
+  },
+  "kyc": {
+    "required": true,
+    "tiers": [
+      "Basic (email/phone)",
+      "Intermediate (ID + liveness — required for full withdrawal access and bonuses)",
+      "Advanced (address proof — for highest limits)"
+    ],
+    "typicalTime": "2–30 minutes automated; up to 24h manual review",
+    "documentsRequired": [
+      "Government-issued ID (passport, national ID, or driver's licence)",
+      "Liveness check / selfie"
+    ],
+    "sourceUrl": "https://www.binance.com/en/support/faq/how-to-complete-identity-verification-360027287111"
+  },
+  "availability": {
+    "restrictedUS": true,
+    "restrictedUK": true,
+    "restrictedCountriesNote": "US (Binance.US is separate), UK (FCA action), China (exited). Canada has product-level restrictions.",
+    "officialRestrictedListUrl": "https://www.binance.com/en/support/faq/list-of-countries-region-restricted-from-binance-products-services-b03a8e27f4ba49609cbadf66bc30db67",
+    "manualReviewRequired": true
+  },
+  "trust": {
+    "geckoTrustScore": 10,
+    "proofOfReserves": true,
+    "porUrl": "https://www.binance.com/en/proof-of-reserves",
+    "porFrequency": "Monthly",
+    "safuOrEquivalent": "SAFU — Secure Asset Fund for Users (10% of trading fees since 2018). Used in 2019 hack — all users reimbursed.",
+    "licences": [
+      "Multiple regional licences"
+    ],
+    "securityIncidents": [
+      {
+        "summary": "2019 hack — 7,000 BTC stolen, all users reimbursed via SAFU fund",
+        "sourceUrl": "https://www.binance.com/en/blog/all/binance-security-breach-update-421477interpersonal806887-306950730073165824",
+        "sourceLabel": "Binance Official Blog — Security Breach Update (May 2019)",
+        "confidence": "official_blog"
+      }
+    ]
+  },
+  "knowledgeBase": {
+    "quickFacts": {
+      "founded": 2017,
+      "headquarters": "Cayman Islands",
+      "users": "280M+",
+      "tradingPairs": 1368,
+      "coinsListed": 430,
+      "volume24h": "$8.31B",
+      "geckoTrustScore": 10,
+      "geckoTrustRank": "#2",
+      "welcomeBonus": "19800 USDT",
+      "promoCode": "CRYPTOBONUSW",
+      "nativeToken": "BNB",
+      "nasdaqListed": false
+    },
+    "commonQuestions": [
+      {
+        "question": "What is Binance?",
+        "answer": "The world's largest cryptocurrency exchange by trading volume, founded in 2017 by Changpeng Zhao (CZ), now led by CEO Richard Teng. Serving 280M+ users in 180+ countries with spot, futures, P2P, earn, copy trading, and Web3 products.",
+        "category": "general"
+      },
+      {
+        "question": "Is Binance safe?",
+        "answer": "Binance is a top-tier centralized exchange. CoinGecko trust score: 10/10 (rank #2). Security context: 2019 hack — 7,000 BTC stolen, all users reimbursed via SAFU fund Like all CEXs, funds are custodied by the exchange — use hardware wallets for long-term storage. Enable 2FA, use a strong unique password, and whitelist withdrawal addresses where available. Never share API keys.",
+        "category": "safety"
+      },
+      {
+        "question": "What is the Binance promo/referral code?",
+        "answer": "The CryptoBonusWorld referral code for Binance is CRYPTOBONUSW. It is pre-filled automatically when you register via our link. Using it activates the welcome bonus of up to 19800 USDT.",
+        "category": "affiliate"
+      },
+      {
+        "question": "How much is the Binance welcome bonus?",
+        "answer": "Via CryptoBonusWorld, the current Binance welcome bonus is up to 19800 USDT. This is a task-based reward: completing KYC, making a qualifying deposit, and reaching trading volume milestones unlocks different reward tiers. The full amount requires all milestones — most users completing a standard deposit earn a meaningful first-week reward. Bonus amounts are typically trading fee vouchers, not withdrawable cash.",
+        "category": "affiliate"
+      },
+      {
+        "question": "How do I claim the Binance bonus?",
+        "answer": "Step 1: Click the registration link on the CryptoBonusWorld Binance page — the referral code/link is pre-filled. Step 2: Complete email/phone verification. Step 3: Complete KYC identity verification (required for bonuses). Step 4: Make a qualifying deposit (crypto transfer or card). Step 5: Check your Rewards Center / Bonus Hub for active tasks and complete trading volume milestones within the campaign window (usually 30 days). Vouchers are credited to your account as you complete each task tier.",
+        "category": "affiliate"
+      },
+      {
+        "question": "What are Binance spot trading fees?",
+        "answer": "Binance spot trading fees: 0.1% maker / 0.1% taker (standard). Using BNB for fee payment gives a 25% discount — reducing standard fees to 0.075% maker/taker.",
+        "category": "fees"
+      },
+      {
+        "question": "What are Binance futures trading fees?",
+        "answer": "Binance USDT-margined perpetual futures: 0.02% maker / 0.05% taker. Maximum leverage: 125×. Futures trading carries substantial risk of capital loss from liquidation. Up to 125× leverage available.",
+        "category": "fees"
+      },
+      {
+        "question": "Does Binance have P2P trading?",
+        "answer": "Binance P2P offers 0% platform fee with 100+ fiat currencies and 700+ payment methods. Binance escrow holds seller crypto before buyer sends fiat. Available at p2p.binance.com.",
+        "category": "products"
+      },
+      {
+        "question": "Does Binance have copy trading?",
+        "answer": "Binance does not currently offer copy trading.",
+        "category": "products"
+      },
+      {
+        "question": "Is Binance available in the United States?",
+        "answer": "No. Binance.com does not accept US residents. US users must use Binance.US (a separate regulated entity) — which has significantly fewer features and trading pairs than Binance.com.",
+        "category": "availability"
+      },
+      {
+        "question": "Is Binance available in the United Kingdom?",
+        "answer": "No. Binance.com is not available to UK residents following FCA action in 2021.",
+        "category": "availability"
+      },
+      {
+        "question": "What cryptocurrencies does Binance support?",
+        "answer": "Binance lists 430 cryptocurrencies across 1368 trading pairs. Binance regularly lists emerging altcoins alongside major assets.",
+        "category": "products"
+      },
+      {
+        "question": "Does Binance have a mobile app?",
+        "answer": "Yes. Binance has official iOS (App Store) and Android (Google Play) apps. Download from the official Binance website (https://www.binance.com/app or equivalent) or directly from the official app store listing to avoid counterfeit apps. Note: the app may not be available in US/UK app stores.",
+        "category": "products"
+      },
+      {
+        "question": "Does Binance require KYC?",
+        "answer": "Yes. Binance requires KYC (identity verification) to unlock full trading, withdrawals, and welcome bonus eligibility. Process: government-issued ID + selfie/liveness check. Typically completes in 2–30 minutes for automated approval; up to 24 hours for manual review.",
+        "category": "compliance"
+      },
+      {
+        "question": "Does Binance have Proof of Reserves?",
+        "answer": "Yes. Binance publishes monthly Proof of Reserves via Merkle tree verification. Users can verify their specific balance is included. Historically audited by Mazars.",
+        "category": "trust"
+      },
+      {
+        "question": "What leverage does Binance offer?",
+        "answer": "Binance offers up to 125× leverage on futures. Standard: 10–20× for most trading pairs. High leverage available — suitable only for experienced traders with strict risk management. Leverage availability varies by asset and KYC level.",
+        "category": "products"
+      },
+      {
+        "question": "When was Binance founded and who founded it?",
+        "answer": "Binance was founded in 2017. Founded by Changpeng Zhao (CZ, 2017–2023); current CEO Richard Teng (2023–present). Security history: 2019 hack — 7,000 BTC stolen, all users reimbursed via SAFU fund",
+        "category": "general"
+      },
+      {
+        "question": "How many users does Binance have?",
+        "answer": "Binance serves 280M+ registered users across 180+ countries as of 2026.",
+        "category": "general"
+      },
+      {
+        "question": "What is Binance's 24-hour trading volume?",
+        "answer": "Binance's 24-hour spot trading volume is approximately $8.31B (131 448,76 BTC) as of the last data pull (2026-06-08). This places Binance at CoinGecko rank #2 by trust-adjusted volume.",
+        "category": "marketdata"
+      },
+      {
+        "question": "Does Binance have a native token?",
+        "answer": "Yes. Binance's native token is BNB. Use: Trading fee discount (25% off), Launchpad allocation, Earn products, Gas on BNB Chain.",
+        "category": "products"
+      },
+      {
+        "question": "What is Binance's CoinGecko trust score?",
+        "answer": "Binance has a CoinGecko trust score of 10/10, placing it at rank #2 globally. CoinGecko's trust score assesses exchange API accuracy, trading volume legitimacy, and cybersecurity posture.",
+        "category": "trust"
+      }
+    ]
+  },
+  "contentMap": {
+    "mainReviewPage": "/exchanges/binance/",
+    "bonusPage": "/bonuses/binance-bonus/",
+    "bonusCodePage": "/bonus-codes/binance/"
+  },
+  "freshness": {
+    "marketDataFetchedAt": "2026-06-08",
+    "evidenceLastUpdated": "2026-06-04",
+    "nextMarketRefresh": "2026-07-08",
+    "refreshScript": "node scripts/generate-exchange-intelligence.mjs --refresh"
+  }
+}

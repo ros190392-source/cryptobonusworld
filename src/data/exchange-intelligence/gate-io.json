@@ -1,0 +1,336 @@
+{
+  "exchange": "gate-io",
+  "schemaVersion": "2.0",
+  "lastUpdated": "2026-06-08",
+  "dataSourcesUsed": [
+    "coingecko_api_2026-06-08",
+    "coinmarketcap_exchange_2026-06-08",
+    "project_evidence_files",
+    "official_exchange_sites"
+  ],
+  "ownerRole": "Gate.io Intelligence Owner (ROLE 37)",
+  "identity": {
+    "name": "Gate.io",
+    "legalName": "Gate Technology Inc. (rebranding to Gate.com)",
+    "type": "centralized",
+    "foundedYear": 2013,
+    "ceoFounder": "Founder: Dr. Han (PhD Optoelectronics)",
+    "headquarters": "Panama",
+    "registeredIn": "Cayman Islands",
+    "website": "https://www.gate.io",
+    "nasdaqListed": false,
+    "nasdaqTicker": null,
+    "nativeToken": "GT",
+    "nativeTokenUse": "Fee discount, staking, Startup (IEO), governance",
+    "stablecoin": null,
+    "recentBrandChange": "Rebranding to Gate.com in 2025",
+    "description": "One of the oldest active exchanges, founded 2013 (originally Bter). Rebranded to Gate.io in 2017, now moving to Gate.com (2025). 52M+ users. Widest altcoin selection of any exchange (4,600+ cryptos). 125% reserve ratio. Multiple regulatory licences (Malta, Italy, Gibraltar, Bahamas, Hong Kong, Dubai VARA).",
+    "descriptionShort": "Oldest top exchange (est. 2013). 4,600+ altcoins, 52M users, 3,000 USDT welcome bonus.",
+    "notableEvents": [],
+    "partnershipNote": null
+  },
+  "affiliate": {
+    "primaryUrl": "https://www.gate.com/share/BONUSCBW",
+    "promoCode": "BONUSCBW",
+    "bonusAmount": 3000,
+    "bonusCurrency": "USDT",
+    "bonusType": "task-based rewards (KYC + deposit + volume milestones)",
+    "bonusVoucherNote": "Vouchers are trading fee credits, not withdrawable cash — only profits from trading with them can be withdrawn",
+    "ownerApprovalRequiredForChanges": true,
+    "immutableNote": "Affiliate URL is IMMUTABLE — changes require ROLE 0 explicit approval",
+    "lastVerified": "2026-06-01"
+  },
+  "marketIntelligence": {
+    "geckoId": "gate",
+    "cmcSlug": "gate-io",
+    "geckoTrustScore": 9,
+    "geckoTrustScoreRank": 6,
+    "geckoTrustScoreNote": "CoinGecko trust score (1-10) assesses exchange API accuracy, volume legitimacy, and cybersecurity posture",
+    "volume24hBtc": 39901.99,
+    "volume24hUsd": 2452784592,
+    "spotPairsActive": 2214,
+    "coinsListed": 1688,
+    "registeredUsers": "52M+",
+    "countriesServed": "130+",
+    "reservesUsd": null,
+    "reserveRatio": "125%",
+    "dataFetchedAt": "2026-06-08",
+    "dataRefreshScript": "node scripts/generate-exchange-intelligence.mjs --refresh"
+  },
+  "socialChannels": {
+    "twitter": "@gate_io",
+    "telegram": "https://t.me/gateio"
+  },
+  "officialPages": {
+    "fees": {
+      "url": "https://www.gate.io/fee",
+      "label": "Gate.io — Fee Schedule",
+      "lastAccessed": "2026-05-25"
+    },
+    "kyc": {
+      "url": "https://www.gate.io/help/guide/guide_kyc",
+      "label": "Gate.io — KYC Verification Guide",
+      "lastAccessed": "2026-05-25"
+    },
+    "bonus": {
+      "url": "https://www.gate.io/en/activity/new-user-bonus",
+      "label": "Gate.io — New User Bonus",
+      "lastAccessed": "2026-05-20"
+    },
+    "restricted_countries": {
+      "url": "https://www.gate.io/help/gate-terms-of-service",
+      "label": "Gate.io — Terms of Service (Restricted Regions)",
+      "lastAccessed": "2026-05-25"
+    },
+    "terms": {
+      "url": "https://www.gate.io/help/gate-terms-of-service",
+      "label": "Gate.io — Terms of Service",
+      "lastAccessed": "2026-05-25"
+    },
+    "proof_of_reserves": {
+      "url": "https://www.gate.io/proof_of_reserve",
+      "label": "Gate.io — Proof of Reserves",
+      "lastAccessed": "2026-05-25"
+    },
+    "p2p": {
+      "url": "https://www.gate.io/c2c/",
+      "label": "Gate.io — C2C/P2P Trading",
+      "lastAccessed": "2026-05-25"
+    },
+    "app_ios": {
+      "url": "https://apps.apple.com/app/gate-io-bitcoin-crypto-trade/id1294998195",
+      "label": "Gate.io iOS App — App Store",
+      "lastAccessed": "2026-05-25"
+    },
+    "app_android": {
+      "url": "https://play.google.com/store/apps/details?id=com.gateio.gateio",
+      "label": "Gate.io Android App — Google Play",
+      "lastAccessed": "2026-05-25"
+    },
+    "futures": {
+      "url": "https://www.gate.io/futures_trade/USDT/BTC_USDT",
+      "label": "Gate.io — USDT Perpetual Futures",
+      "lastAccessed": "2026-05-25"
+    },
+    "affiliate": {
+      "url": "https://www.gate.io/referral",
+      "label": "Gate.io — Referral Program",
+      "lastAccessed": "2026-05-20"
+    }
+  },
+  "fees": {
+    "spotMaker": 0.2,
+    "spotTaker": 0.2,
+    "spotUnit": "%",
+    "spotNote": "Standard tier; reductions available with GT token or VIP status",
+    "futuresMaker": 0.015,
+    "futuresTaker": 0.05,
+    "futuresUnit": "%",
+    "maxLeverage": 100,
+    "p2pPlatformFee": "0% platform fee (spread set by counterparty)",
+    "withdrawalFeeStructure": "network-dependent — varies by asset and blockchain",
+    "depositFee": "free for crypto; varies for fiat (country/method dependent)",
+    "feeSourceUrl": "https://www.gate.io/fee",
+    "lastChecked": "2026-05-25"
+  },
+  "products": {
+    "spot": {
+      "available": true,
+      "pairsCount": 2214,
+      "coinsCount": 1688
+    },
+    "futures": {
+      "available": true,
+      "type": "USDT-margined perpetual",
+      "maxLeverage": 100,
+      "riskNote": "High leverage carries substantial liquidation risk — not for beginners"
+    },
+    "p2p": {
+      "available": true,
+      "platformFee": "0%",
+      "note": null
+    },
+    "copyTrading": {
+      "available": false,
+      "note": null
+    },
+    "earn": {
+      "available": true,
+      "products": [
+        "Earn (flexible/locked)",
+        "Staking",
+        "Startup (IEO)",
+        "Structured Finance"
+      ]
+    },
+    "mobileApp": {
+      "ios": true,
+      "android": true,
+      "downloadUrl": "https://www.gate.io/download"
+    }
+  },
+  "kyc": {
+    "required": true,
+    "tiers": [
+      "Basic (email/phone)",
+      "Intermediate (ID + liveness — required for full withdrawal access and bonuses)",
+      "Advanced (address proof — for highest limits)"
+    ],
+    "typicalTime": "2–30 minutes automated; up to 24h manual review",
+    "documentsRequired": [
+      "Government-issued ID (passport, national ID, or driver's licence)",
+      "Liveness check / selfie"
+    ],
+    "sourceUrl": "https://www.gate.io/help/guide/guide_kyc"
+  },
+  "availability": {
+    "restrictedUS": true,
+    "restrictedUK": null,
+    "restrictedCountriesNote": "Restricted regions vary. Verify on official website before registering.",
+    "officialRestrictedListUrl": "https://www.gate.io/help/gate-terms-of-service",
+    "manualReviewRequired": true
+  },
+  "trust": {
+    "geckoTrustScore": 9,
+    "proofOfReserves": true,
+    "porUrl": "https://www.gate.io/proof_of_reserve",
+    "porFrequency": "Regular (reserve ratio maintained at 125%)",
+    "safuOrEquivalent": null,
+    "licences": null,
+    "securityIncidents": []
+  },
+  "knowledgeBase": {
+    "quickFacts": {
+      "founded": 2013,
+      "headquarters": "Panama",
+      "users": "52M+",
+      "tradingPairs": 2214,
+      "coinsListed": 1688,
+      "volume24h": "$2.45B",
+      "geckoTrustScore": 9,
+      "geckoTrustRank": "#6",
+      "welcomeBonus": "3000 USDT",
+      "promoCode": "BONUSCBW",
+      "nativeToken": "GT",
+      "nasdaqListed": false
+    },
+    "commonQuestions": [
+      {
+        "question": "What is Gate.io?",
+        "answer": "One of the oldest active exchanges, founded 2013 (originally Bter). Rebranded to Gate.io in 2017, now moving to Gate.com (2025). 52M+ users. Widest altcoin selection of any exchange (4,600+ cryptos). 125% reserve ratio. Multiple regulatory licences (Malta, Italy, Gibraltar, Bahamas, Hong Kong, Dubai VARA).",
+        "category": "general"
+      },
+      {
+        "question": "Is Gate.io safe?",
+        "answer": "Gate.io is a top-tier centralized exchange. CoinGecko trust score: 9/10 (rank #6).  Like all CEXs, funds are custodied by the exchange — use hardware wallets for long-term storage. Enable 2FA, use a strong unique password, and whitelist withdrawal addresses where available. Never share API keys.",
+        "category": "safety"
+      },
+      {
+        "question": "What is the Gate.io promo/referral code?",
+        "answer": "The CryptoBonusWorld referral code for Gate.io is BONUSCBW. It is pre-filled automatically when you register via our link. Using it activates the welcome bonus of up to 3000 USDT.",
+        "category": "affiliate"
+      },
+      {
+        "question": "How much is the Gate.io welcome bonus?",
+        "answer": "Via CryptoBonusWorld, the current Gate.io welcome bonus is up to 3000 USDT. This is a task-based reward: completing KYC, making a qualifying deposit, and reaching trading volume milestones unlocks different reward tiers. The full amount requires all milestones — most users completing a standard deposit earn a meaningful first-week reward. Bonus amounts are typically trading fee vouchers, not withdrawable cash.",
+        "category": "affiliate"
+      },
+      {
+        "question": "How do I claim the Gate.io bonus?",
+        "answer": "Step 1: Click the registration link on the CryptoBonusWorld Gate.io page — the referral code/link is pre-filled. Step 2: Complete email/phone verification. Step 3: Complete KYC identity verification (required for bonuses). Step 4: Make a qualifying deposit (crypto transfer or card). Step 5: Check your Rewards Center / Bonus Hub for active tasks and complete trading volume milestones within the campaign window (usually 30 days). Vouchers are credited to your account as you complete each task tier.",
+        "category": "affiliate"
+      },
+      {
+        "question": "What are Gate.io spot trading fees?",
+        "answer": "Gate.io spot trading fees: 0.2% maker / 0.2% taker (standard). ",
+        "category": "fees"
+      },
+      {
+        "question": "What are Gate.io futures trading fees?",
+        "answer": "Gate.io USDT-margined perpetual futures: 0.015% maker / 0.05% taker. Maximum leverage: 100×. Futures trading carries substantial risk of capital loss from liquidation. Up to 100× leverage available.",
+        "category": "fees"
+      },
+      {
+        "question": "Does Gate.io have P2P trading?",
+        "answer": "Yes, Gate.io offers P2P trading with escrow protection. Fee: 0% platform side. Check the exchange app for available fiat currencies and payment methods in your region.",
+        "category": "products"
+      },
+      {
+        "question": "Does Gate.io have copy trading?",
+        "answer": "Gate.io does not currently offer copy trading.",
+        "category": "products"
+      },
+      {
+        "question": "Is Gate.io available in the United States?",
+        "answer": "No. Gate.io restricts US residents from registering. US users should use Coinbase or Kraken as regulated alternatives.",
+        "category": "availability"
+      },
+      {
+        "question": "Is Gate.io available in the United Kingdom?",
+        "answer": "UK availability for Gate.io should be verified on the official website, as FCA compliance and local regulatory status may affect service availability.",
+        "category": "availability"
+      },
+      {
+        "question": "What cryptocurrencies does Gate.io support?",
+        "answer": "Gate.io lists 1688 cryptocurrencies across 2214 trading pairs. Gate.io lists 4,600+ cryptocurrencies — the highest count of any major exchange.",
+        "category": "products"
+      },
+      {
+        "question": "Does Gate.io have a mobile app?",
+        "answer": "Yes. Gate.io has official iOS (App Store) and Android (Google Play) apps. Download from the official Gate.io website (https://www.gate.io/app or equivalent) or directly from the official app store listing to avoid counterfeit apps. ",
+        "category": "products"
+      },
+      {
+        "question": "Does Gate.io require KYC?",
+        "answer": "Yes. Gate.io requires KYC (identity verification) to unlock full trading, withdrawals, and welcome bonus eligibility. Process: government-issued ID + selfie/liveness check. Typically completes in 2–30 minutes for automated approval; up to 24 hours for manual review.",
+        "category": "compliance"
+      },
+      {
+        "question": "Does Gate.io have Proof of Reserves?",
+        "answer": "Yes. Gate.io publishes Proof of Reserves with a 125% reserve ratio (as of June 2026).",
+        "category": "trust"
+      },
+      {
+        "question": "What leverage does Gate.io offer?",
+        "answer": "Gate.io offers up to 100× leverage on futures. Standard: 10–20× for most trading pairs. High leverage available — suitable only for experienced traders with strict risk management. Leverage availability varies by asset and KYC level.",
+        "category": "products"
+      },
+      {
+        "question": "When was Gate.io founded and who founded it?",
+        "answer": "Gate.io was founded in 2013. Founder: Dr. Han (PhD Optoelectronics).",
+        "category": "general"
+      },
+      {
+        "question": "How many users does Gate.io have?",
+        "answer": "Gate.io serves 52M+ registered users across 130+ countries as of 2026.",
+        "category": "general"
+      },
+      {
+        "question": "What is Gate.io's 24-hour trading volume?",
+        "answer": "Gate.io's 24-hour spot trading volume is approximately $2.45B (39 901,99 BTC) as of the last data pull (2026-06-08). This places Gate.io at CoinGecko rank #6 by trust-adjusted volume.",
+        "category": "marketdata"
+      },
+      {
+        "question": "Does Gate.io have a native token?",
+        "answer": "Yes. Gate.io's native token is GT. Use: Fee discount, staking, Startup (IEO), governance.",
+        "category": "products"
+      },
+      {
+        "question": "What is Gate.io's CoinGecko trust score?",
+        "answer": "Gate.io has a CoinGecko trust score of 9/10, placing it at rank #6 globally. CoinGecko's trust score assesses exchange API accuracy, trading volume legitimacy, and cybersecurity posture.",
+        "category": "trust"
+      }
+    ]
+  },
+  "contentMap": {
+    "mainReviewPage": "/exchanges/gate-io/",
+    "bonusPage": "/bonuses/gate-io-bonus/",
+    "bonusCodePage": "/bonus-codes/gate-io/"
+  },
+  "freshness": {
+    "marketDataFetchedAt": "2026-06-08",
+    "evidenceLastUpdated": "2026-06-01",
+    "nextMarketRefresh": "2026-07-08",
+    "refreshScript": "node scripts/generate-exchange-intelligence.mjs --refresh"
+  }
+}

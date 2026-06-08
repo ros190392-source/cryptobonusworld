@@ -1,0 +1,337 @@
+{
+  "exchange": "kucoin",
+  "schemaVersion": "2.0",
+  "lastUpdated": "2026-06-08",
+  "dataSourcesUsed": [
+    "coingecko_api_2026-06-08",
+    "coinmarketcap_exchange_2026-06-08",
+    "project_evidence_files",
+    "official_exchange_sites"
+  ],
+  "ownerRole": "KuCoin Intelligence Owner (ROLE 37)",
+  "identity": {
+    "name": "KuCoin",
+    "legalName": "Mek Global Limited",
+    "type": "centralized",
+    "foundedYear": 2017,
+    "ceoFounder": "Co-founders: Michael Gan, Eric Don, Top Lan, Kent Li, Jack Zhu, Linda Lin, Johnny Lyu (CEO)",
+    "headquarters": "Seychelles",
+    "registeredIn": "Seychelles",
+    "website": "https://www.kucoin.com",
+    "nasdaqListed": false,
+    "nasdaqTicker": null,
+    "nativeToken": "KCS",
+    "nativeTokenUse": "20% trading fee rebate, KuCoin Spotlight (IEO), lending",
+    "stablecoin": null,
+    "recentBrandChange": null,
+    "description": "\"The People's Exchange.\" Founded 2017. 41M+ users across 200+ countries. Known for listing emerging altcoins early. KCS (KuCoin Token) gives 20% fee rebate. Features: spot, margin, futures, P2P, copy trading, lending, earn. SOC 2 Type II and ISO 27001:2022 certified.",
+    "descriptionShort": "\"The People's Exchange.\" 41M+ users, 900+ altcoins, 11,000 USDT welcome bonus.",
+    "notableEvents": [],
+    "partnershipNote": null
+  },
+  "affiliate": {
+    "primaryUrl": "https://www.kucoin.com/?rcode=CRYPTOBONW&utm_medium=U17591",
+    "promoCode": "CRYPTOBONW",
+    "bonusAmount": 11000,
+    "bonusCurrency": "USDT",
+    "bonusType": "task-based rewards (KYC + deposit + volume milestones)",
+    "bonusVoucherNote": "Vouchers are trading fee credits, not withdrawable cash — only profits from trading with them can be withdrawn",
+    "ownerApprovalRequiredForChanges": true,
+    "immutableNote": "Affiliate URL is IMMUTABLE — changes require ROLE 0 explicit approval",
+    "lastVerified": "2026-06-01"
+  },
+  "marketIntelligence": {
+    "geckoId": "kucoin",
+    "cmcSlug": "kucoin",
+    "geckoTrustScore": 9,
+    "geckoTrustScoreRank": 12,
+    "geckoTrustScoreNote": "CoinGecko trust score (1-10) assesses exchange API accuracy, volume legitimacy, and cybersecurity posture",
+    "volume24hBtc": 17987.26,
+    "volume24hUsd": 1132000000,
+    "spotPairsActive": 1084,
+    "coinsListed": 896,
+    "registeredUsers": "41M+",
+    "countriesServed": "200+",
+    "reservesUsd": null,
+    "reserveRatio": null,
+    "dataFetchedAt": "2026-06-08",
+    "dataRefreshScript": "node scripts/generate-exchange-intelligence.mjs --refresh"
+  },
+  "socialChannels": {
+    "twitter": "@kucoincom",
+    "telegram": "https://t.me/Kucoin_Exchange",
+    "facebook": "https://www.facebook.com/kucoinexchangepage"
+  },
+  "officialPages": {
+    "fees": {
+      "url": "https://www.kucoin.com/vip/privilege",
+      "label": "KuCoin — Trading Fee Schedule",
+      "lastAccessed": "2026-05-27"
+    },
+    "kyc": {
+      "url": "https://www.kucoin.com/support/categories/360002023553",
+      "label": "KuCoin — KYC Verification",
+      "lastAccessed": "2026-05-27"
+    },
+    "bonus": {
+      "url": "https://www.kucoin.com/activity/new-user-rewards",
+      "label": "KuCoin — New User Rewards",
+      "lastAccessed": "2026-05-27"
+    },
+    "restricted_countries": {
+      "url": "https://www.kucoin.com/support/articles/360015552591",
+      "label": "KuCoin — Restricted Regions",
+      "lastAccessed": "2026-05-27"
+    },
+    "terms": {
+      "url": "https://www.kucoin.com/legal/terms-of-use",
+      "label": "KuCoin — Terms of Use",
+      "lastAccessed": "2026-05-27"
+    },
+    "proof_of_reserves": {
+      "url": "https://www.kucoin.com/proof-of-reserves",
+      "label": "KuCoin — Proof of Reserves",
+      "lastAccessed": "2026-05-27"
+    },
+    "p2p": {
+      "url": "https://www.kucoin.com/otc/",
+      "label": "KuCoin — P2P/OTC Trading",
+      "lastAccessed": "2026-05-27"
+    },
+    "app_ios": {
+      "url": "https://apps.apple.com/app/kucoin-buy-bitcoin-crypto/id1378956601",
+      "label": "KuCoin iOS App — App Store",
+      "lastAccessed": "2026-05-27"
+    },
+    "app_android": {
+      "url": "https://play.google.com/store/apps/details?id=com.kubi.kucoin",
+      "label": "KuCoin Android App — Google Play",
+      "lastAccessed": "2026-05-27"
+    },
+    "futures": {
+      "url": "https://www.kucoin.com/futures/XBTUSDTM",
+      "label": "KuCoin — Futures Trading",
+      "lastAccessed": "2026-05-27"
+    },
+    "affiliate": {
+      "url": "https://www.kucoin.com/referral",
+      "label": "KuCoin — Referral Program",
+      "lastAccessed": "2026-05-27"
+    }
+  },
+  "fees": {
+    "spotMaker": 0.1,
+    "spotTaker": 0.1,
+    "spotUnit": "%",
+    "spotNote": "20% rebate with KCS token holdings",
+    "futuresMaker": 0.02,
+    "futuresTaker": 0.06,
+    "futuresUnit": "%",
+    "maxLeverage": 100,
+    "p2pPlatformFee": "0% platform fee (spread set by counterparty)",
+    "withdrawalFeeStructure": "network-dependent — varies by asset and blockchain",
+    "depositFee": "free for crypto; varies for fiat (country/method dependent)",
+    "feeSourceUrl": "https://www.kucoin.com/vip/privilege",
+    "lastChecked": "2026-05-27"
+  },
+  "products": {
+    "spot": {
+      "available": true,
+      "pairsCount": 1084,
+      "coinsCount": 896
+    },
+    "futures": {
+      "available": true,
+      "type": "USDT-margined perpetual",
+      "maxLeverage": 100,
+      "riskNote": "High leverage carries substantial liquidation risk — not for beginners"
+    },
+    "p2p": {
+      "available": true,
+      "platformFee": "0%",
+      "note": "Available at https://www.kucoin.com/c2c or /p2p. Escrow-protected. Available payment methods vary by region."
+    },
+    "copyTrading": {
+      "available": false,
+      "note": null
+    },
+    "earn": {
+      "available": true,
+      "products": [
+        "Earn (fixed/flexible)",
+        "Staking",
+        "Lending",
+        "KuCoin Spotlight (IEO)"
+      ]
+    },
+    "mobileApp": {
+      "ios": true,
+      "android": true,
+      "downloadUrl": "https://www.kucoin.com/download"
+    }
+  },
+  "kyc": {
+    "required": false,
+    "tiers": [
+      "Basic (email/phone)",
+      "Intermediate (ID + liveness — required for full withdrawal access and bonuses)",
+      "Advanced (address proof — for highest limits)"
+    ],
+    "typicalTime": "2–30 minutes automated; up to 24h manual review",
+    "documentsRequired": [
+      "Government-issued ID (passport, national ID, or driver's licence)",
+      "Liveness check / selfie"
+    ],
+    "sourceUrl": "https://www.kucoin.com/support/categories/360002023553"
+  },
+  "availability": {
+    "restrictedUS": true,
+    "restrictedUK": null,
+    "restrictedCountriesNote": "Restricted regions vary. Verify on official website before registering.",
+    "officialRestrictedListUrl": "https://www.kucoin.com/support/articles/360015552591",
+    "manualReviewRequired": true
+  },
+  "trust": {
+    "geckoTrustScore": 9,
+    "proofOfReserves": true,
+    "porUrl": "https://www.kucoin.com/proof-of-reserves",
+    "porFrequency": "Periodically — check official website",
+    "safuOrEquivalent": null,
+    "licences": null,
+    "securityIncidents": []
+  },
+  "knowledgeBase": {
+    "quickFacts": {
+      "founded": 2017,
+      "headquarters": "Seychelles",
+      "users": "41M+",
+      "tradingPairs": 1084,
+      "coinsListed": 896,
+      "volume24h": "$1.13B",
+      "geckoTrustScore": 9,
+      "geckoTrustRank": "#12",
+      "welcomeBonus": "11000 USDT",
+      "promoCode": "CRYPTOBONW",
+      "nativeToken": "KCS",
+      "nasdaqListed": false
+    },
+    "commonQuestions": [
+      {
+        "question": "What is KuCoin?",
+        "answer": "\"The People's Exchange.\" Founded 2017. 41M+ users across 200+ countries. Known for listing emerging altcoins early. KCS (KuCoin Token) gives 20% fee rebate. Features: spot, margin, futures, P2P, copy trading, lending, earn. SOC 2 Type II and ISO 27001:2022 certified.",
+        "category": "general"
+      },
+      {
+        "question": "Is KuCoin safe?",
+        "answer": "KuCoin is a top-tier centralized exchange. CoinGecko trust score: 9/10 (rank #12).  Like all CEXs, funds are custodied by the exchange — use hardware wallets for long-term storage. Enable 2FA, use a strong unique password, and whitelist withdrawal addresses where available. Never share API keys.",
+        "category": "safety"
+      },
+      {
+        "question": "What is the KuCoin promo/referral code?",
+        "answer": "The CryptoBonusWorld referral code for KuCoin is CRYPTOBONW. It is pre-filled automatically when you register via our link. Using it activates the welcome bonus of up to 11000 USDT.",
+        "category": "affiliate"
+      },
+      {
+        "question": "How much is the KuCoin welcome bonus?",
+        "answer": "Via CryptoBonusWorld, the current KuCoin welcome bonus is up to 11000 USDT. This is a task-based reward: completing KYC, making a qualifying deposit, and reaching trading volume milestones unlocks different reward tiers. The full amount requires all milestones — most users completing a standard deposit earn a meaningful first-week reward. Bonus amounts are typically trading fee vouchers, not withdrawable cash.",
+        "category": "affiliate"
+      },
+      {
+        "question": "How do I claim the KuCoin bonus?",
+        "answer": "Step 1: Click the registration link on the CryptoBonusWorld KuCoin page — the referral code/link is pre-filled. Step 2: Complete email/phone verification. Step 3: Complete KYC identity verification (required for bonuses). Step 4: Make a qualifying deposit (crypto transfer or card). Step 5: Check your Rewards Center / Bonus Hub for active tasks and complete trading volume milestones within the campaign window (usually 30 days). Vouchers are credited to your account as you complete each task tier.",
+        "category": "affiliate"
+      },
+      {
+        "question": "What are KuCoin spot trading fees?",
+        "answer": "KuCoin spot trading fees: 0.1% maker / 0.1% taker (standard). Holding KCS (KuCoin token) gives 20% trading fee rebate.",
+        "category": "fees"
+      },
+      {
+        "question": "What are KuCoin futures trading fees?",
+        "answer": "KuCoin USDT-margined perpetual futures: 0.02% maker / 0.06% taker. Maximum leverage: 100×. Futures trading carries substantial risk of capital loss from liquidation. Up to 100× leverage available.",
+        "category": "fees"
+      },
+      {
+        "question": "Does KuCoin have P2P trading?",
+        "answer": "KuCoin P2P supports local fiat currencies with escrow protection.",
+        "category": "products"
+      },
+      {
+        "question": "Does KuCoin have copy trading?",
+        "answer": "KuCoin does not currently offer copy trading.",
+        "category": "products"
+      },
+      {
+        "question": "Is KuCoin available in the United States?",
+        "answer": "No. KuCoin restricts US residents from registering. US users should use Coinbase or Kraken as regulated alternatives.",
+        "category": "availability"
+      },
+      {
+        "question": "Is KuCoin available in the United Kingdom?",
+        "answer": "UK availability for KuCoin should be verified on the official website, as FCA compliance and local regulatory status may affect service availability.",
+        "category": "availability"
+      },
+      {
+        "question": "What cryptocurrencies does KuCoin support?",
+        "answer": "KuCoin lists 896 cryptocurrencies across 1084 trading pairs. KuCoin regularly lists emerging altcoins alongside major assets.",
+        "category": "products"
+      },
+      {
+        "question": "Does KuCoin have a mobile app?",
+        "answer": "Yes. KuCoin has official iOS (App Store) and Android (Google Play) apps. Download from the official KuCoin website (https://www.kucoin.com/app or equivalent) or directly from the official app store listing to avoid counterfeit apps. ",
+        "category": "products"
+      },
+      {
+        "question": "Does KuCoin require KYC?",
+        "answer": "KuCoin allows basic trading without KYC. However, higher withdrawal limits and bonus claims typically require identity verification.",
+        "category": "compliance"
+      },
+      {
+        "question": "Does KuCoin have Proof of Reserves?",
+        "answer": "Yes. KuCoin publishes Proof of Reserves, allowing users to independently verify that exchange-held assets cover all user balances.",
+        "category": "trust"
+      },
+      {
+        "question": "What leverage does KuCoin offer?",
+        "answer": "KuCoin offers up to 100× leverage on futures. Standard: 10–20× for most trading pairs. High leverage available — suitable only for experienced traders with strict risk management. Leverage availability varies by asset and KYC level.",
+        "category": "products"
+      },
+      {
+        "question": "When was KuCoin founded and who founded it?",
+        "answer": "KuCoin was founded in 2017. Co-founders: Michael Gan, Eric Don, Top Lan, Kent Li, Jack Zhu, Linda Lin, Johnny Lyu (CEO).",
+        "category": "general"
+      },
+      {
+        "question": "How many users does KuCoin have?",
+        "answer": "KuCoin serves 41M+ registered users across 200+ countries as of 2026.",
+        "category": "general"
+      },
+      {
+        "question": "What is KuCoin's 24-hour trading volume?",
+        "answer": "KuCoin's 24-hour spot trading volume is approximately $1.13B (17 987,26 BTC) as of the last data pull (2026-06-08). This places KuCoin at CoinGecko rank #12 by trust-adjusted volume.",
+        "category": "marketdata"
+      },
+      {
+        "question": "Does KuCoin have a native token?",
+        "answer": "Yes. KuCoin's native token is KCS. Use: 20% trading fee rebate, KuCoin Spotlight (IEO), lending.",
+        "category": "products"
+      },
+      {
+        "question": "What is KuCoin's CoinGecko trust score?",
+        "answer": "KuCoin has a CoinGecko trust score of 9/10, placing it at rank #12 globally. CoinGecko's trust score assesses exchange API accuracy, trading volume legitimacy, and cybersecurity posture.",
+        "category": "trust"
+      }
+    ]
+  },
+  "contentMap": {
+    "mainReviewPage": "/exchanges/kucoin/",
+    "bonusPage": "/bonuses/kucoin-bonus/",
+    "bonusCodePage": "/bonus-codes/kucoin/"
+  },
+  "freshness": {
+    "marketDataFetchedAt": "2026-06-08",
+    "evidenceLastUpdated": "2026-06-01",
+    "nextMarketRefresh": "2026-07-08",
+    "refreshScript": "node scripts/generate-exchange-intelligence.mjs --refresh"
+  }
+}

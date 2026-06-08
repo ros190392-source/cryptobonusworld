@@ -1,0 +1,321 @@
+{
+  "exchange": "coinex",
+  "schemaVersion": "2.0",
+  "lastUpdated": "2026-06-08",
+  "dataSourcesUsed": [
+    "coingecko_api_2026-06-08",
+    "coinmarketcap_exchange_2026-06-08",
+    "project_evidence_files",
+    "official_exchange_sites"
+  ],
+  "ownerRole": "CoinEx Intelligence Owner (ROLE 37)",
+  "identity": {
+    "name": "CoinEx",
+    "legalName": "CoinEx Technology Limited",
+    "type": "centralized",
+    "foundedYear": 2017,
+    "ceoFounder": "Founder & CEO: Haipo Yang (also founded ViaBTC mining pool)",
+    "headquarters": "Hong Kong",
+    "registeredIn": "Hong Kong",
+    "website": "https://www.coinex.com",
+    "nasdaqListed": false,
+    "nasdaqTicker": null,
+    "nativeToken": "CET",
+    "nativeTokenUse": "Fee discount, staking, Mining allocation, CoinEx Smart Chain gas",
+    "stablecoin": null,
+    "recentBrandChange": null,
+    "description": "Founded December 2017 by Haipo Yang (ViaBTC founder). Part of the ViaBTC Group ecosystem. Known as the first exchange to list BCH (Bitcoin Cash). Serves 10M+ users in 200+ countries. Focuses on transparency: one of earliest PoR publishers. Native token CET. Has own AMM and CoinEx Smart Chain.",
+    "descriptionShort": "ViaBTC ecosystem exchange. First to list BCH. 10M+ users, 1,300+ coins, 500 USDT welcome bonus.",
+    "notableEvents": [],
+    "partnershipNote": null
+  },
+  "affiliate": {
+    "primaryUrl": "https://www.coinex.com/register?rc=2my4f&channel=Referral",
+    "promoCode": "2my4f",
+    "bonusAmount": 500,
+    "bonusCurrency": "USDT",
+    "bonusType": "task-based rewards (KYC + deposit + volume milestones)",
+    "bonusVoucherNote": "Vouchers are trading fee credits, not withdrawable cash — only profits from trading with them can be withdrawn",
+    "ownerApprovalRequiredForChanges": true,
+    "immutableNote": "Affiliate URL is IMMUTABLE — changes require ROLE 0 explicit approval",
+    "lastVerified": "2026-06-01"
+  },
+  "marketIntelligence": {
+    "geckoId": "coinex",
+    "cmcSlug": "coinex",
+    "geckoTrustScore": null,
+    "geckoTrustScoreRank": null,
+    "geckoTrustScoreNote": "CoinGecko trust score (1-10) assesses exchange API accuracy, volume legitimacy, and cybersecurity posture",
+    "volume24hBtc": 1657,
+    "volume24hUsd": 104486975,
+    "spotPairsActive": 1900,
+    "coinsListed": 1300,
+    "registeredUsers": "10M+",
+    "countriesServed": "200+",
+    "reservesUsd": null,
+    "reserveRatio": null,
+    "dataFetchedAt": "2026-06-08",
+    "dataRefreshScript": "node scripts/generate-exchange-intelligence.mjs --refresh"
+  },
+  "socialChannels": {
+    "twitter": "@coinexcom",
+    "telegram": "https://t.me/CoinExOfficialEN"
+  },
+  "officialPages": {
+    "fees": {
+      "url": "https://www.coinex.com/fees",
+      "label": "CoinEx — Fee Schedule",
+      "lastAccessed": "2026-05-25"
+    },
+    "kyc": {
+      "url": "https://www.coinex.com/support/articles/900005733866",
+      "label": "CoinEx — KYC Verification Guide",
+      "lastAccessed": "2026-05-25"
+    },
+    "bonus": {
+      "url": "https://www.coinex.com/activity",
+      "label": "CoinEx — Promotions & Activities",
+      "lastAccessed": "2026-05-20"
+    },
+    "restricted_countries": {
+      "url": "https://www.coinex.com/about/user-agreement",
+      "label": "CoinEx — User Agreement (Restricted Regions)",
+      "lastAccessed": "2026-05-25"
+    },
+    "terms": {
+      "url": "https://www.coinex.com/about/user-agreement",
+      "label": "CoinEx — User Agreement",
+      "lastAccessed": "2026-05-25"
+    },
+    "app_ios": {
+      "url": "https://apps.apple.com/app/coinex-crypto-bitcoin-exchange/id1626135024",
+      "label": "CoinEx iOS App — App Store",
+      "lastAccessed": "2026-05-25"
+    },
+    "app_android": {
+      "url": "https://play.google.com/store/apps/details?id=com.coinex.trade.play",
+      "label": "CoinEx Android App — Google Play",
+      "lastAccessed": "2026-05-25"
+    },
+    "futures": {
+      "url": "https://www.coinex.com/futures/BTCUSDT",
+      "label": "CoinEx — Futures Trading",
+      "lastAccessed": "2026-05-25"
+    },
+    "affiliate": {
+      "url": "https://www.coinex.com/invite",
+      "label": "CoinEx — Referral Program",
+      "lastAccessed": "2026-05-20"
+    }
+  },
+  "fees": {
+    "spotMaker": 0,
+    "spotTaker": 0.1,
+    "spotUnit": "%",
+    "spotNote": "0% maker fee",
+    "futuresMaker": 0.03,
+    "futuresTaker": 0.05,
+    "futuresUnit": "%",
+    "maxLeverage": 100,
+    "p2pPlatformFee": null,
+    "withdrawalFeeStructure": "network-dependent — varies by asset and blockchain",
+    "depositFee": "free for crypto; varies for fiat (country/method dependent)",
+    "feeSourceUrl": "https://www.coinex.com/fees",
+    "lastChecked": "2026-05-25"
+  },
+  "products": {
+    "spot": {
+      "available": true,
+      "pairsCount": 1900,
+      "coinsCount": 1300
+    },
+    "futures": {
+      "available": true,
+      "type": "USDT-margined perpetual",
+      "maxLeverage": 100,
+      "riskNote": "High leverage carries substantial liquidation risk — not for beginners"
+    },
+    "p2p": {
+      "available": false,
+      "platformFee": "0%",
+      "note": null
+    },
+    "copyTrading": {
+      "available": false,
+      "note": null
+    },
+    "earn": {
+      "available": false,
+      "products": []
+    },
+    "mobileApp": {
+      "ios": true,
+      "android": true,
+      "downloadUrl": "https://www.coinex.com/download"
+    }
+  },
+  "kyc": {
+    "required": false,
+    "tiers": [
+      "Basic (email/phone)",
+      "Intermediate (ID + liveness — required for full withdrawal access and bonuses)",
+      "Advanced (address proof — for highest limits)"
+    ],
+    "typicalTime": "2–30 minutes automated; up to 24h manual review",
+    "documentsRequired": [
+      "Government-issued ID (passport, national ID, or driver's licence)",
+      "Liveness check / selfie"
+    ],
+    "sourceUrl": "https://www.coinex.com/support/articles/900005733866"
+  },
+  "availability": {
+    "restrictedUS": true,
+    "restrictedUK": null,
+    "restrictedCountriesNote": "Restricted regions vary. Verify on official website before registering.",
+    "officialRestrictedListUrl": "https://www.coinex.com/about/user-agreement",
+    "manualReviewRequired": true
+  },
+  "trust": {
+    "geckoTrustScore": null,
+    "proofOfReserves": false,
+    "porUrl": null,
+    "porFrequency": "Regular (one of first exchanges to publish PoR)",
+    "safuOrEquivalent": null,
+    "licences": null,
+    "securityIncidents": []
+  },
+  "knowledgeBase": {
+    "quickFacts": {
+      "founded": 2017,
+      "headquarters": "Hong Kong",
+      "users": "10M+",
+      "tradingPairs": 1900,
+      "coinsListed": 1300,
+      "volume24h": "$0.10B",
+      "geckoTrustScore": null,
+      "geckoTrustRank": "#null",
+      "welcomeBonus": "500 USDT",
+      "promoCode": "2my4f",
+      "nativeToken": "CET",
+      "nasdaqListed": false
+    },
+    "commonQuestions": [
+      {
+        "question": "What is CoinEx?",
+        "answer": "Founded December 2017 by Haipo Yang (ViaBTC founder). Part of the ViaBTC Group ecosystem. Known as the first exchange to list BCH (Bitcoin Cash). Serves 10M+ users in 200+ countries. Focuses on transparency: one of earliest PoR publishers. Native token CET. Has own AMM and CoinEx Smart Chain.",
+        "category": "general"
+      },
+      {
+        "question": "Is CoinEx safe?",
+        "answer": "CoinEx is a mid-tier centralized exchange.   Like all CEXs, funds are custodied by the exchange — use hardware wallets for long-term storage. Enable 2FA, use a strong unique password, and whitelist withdrawal addresses where available. Never share API keys.",
+        "category": "safety"
+      },
+      {
+        "question": "What is the CoinEx promo/referral code?",
+        "answer": "The CryptoBonusWorld referral code for CoinEx is 2my4f. It is pre-filled automatically when you register via our link. Using it activates the welcome bonus of up to 500 USDT.",
+        "category": "affiliate"
+      },
+      {
+        "question": "How much is the CoinEx welcome bonus?",
+        "answer": "Via CryptoBonusWorld, the current CoinEx welcome bonus is up to 500 USDT. This is a task-based reward: completing KYC, making a qualifying deposit, and reaching trading volume milestones unlocks different reward tiers. The full amount requires all milestones — most users completing a standard deposit earn a meaningful first-week reward. Bonus amounts are typically trading fee vouchers, not withdrawable cash.",
+        "category": "affiliate"
+      },
+      {
+        "question": "How do I claim the CoinEx bonus?",
+        "answer": "Step 1: Click the registration link on the CryptoBonusWorld CoinEx page — the referral code/link is pre-filled. Step 2: Complete email/phone verification. Step 3: Complete KYC identity verification (required for bonuses). Step 4: Make a qualifying deposit (crypto transfer or card). Step 5: Check your Rewards Center / Bonus Hub for active tasks and complete trading volume milestones within the campaign window (usually 30 days). Vouchers are credited to your account as you complete each task tier.",
+        "category": "affiliate"
+      },
+      {
+        "question": "What are CoinEx spot trading fees?",
+        "answer": "CoinEx spot trading fees: 0% maker / 0.1% taker (standard). ",
+        "category": "fees"
+      },
+      {
+        "question": "What are CoinEx futures trading fees?",
+        "answer": "CoinEx USDT-margined perpetual futures: 0.03% maker / 0.05% taker. Maximum leverage: 100×. Futures trading carries substantial risk of capital loss from liquidation. Up to 100× leverage available.",
+        "category": "fees"
+      },
+      {
+        "question": "Does CoinEx have P2P trading?",
+        "answer": "CoinEx does not currently offer P2P trading.",
+        "category": "products"
+      },
+      {
+        "question": "Does CoinEx have copy trading?",
+        "answer": "CoinEx does not currently offer copy trading.",
+        "category": "products"
+      },
+      {
+        "question": "Is CoinEx available in the United States?",
+        "answer": "No. CoinEx restricts US residents from registering. US users should use Coinbase or Kraken as regulated alternatives.",
+        "category": "availability"
+      },
+      {
+        "question": "Is CoinEx available in the United Kingdom?",
+        "answer": "UK availability for CoinEx should be verified on the official website, as FCA compliance and local regulatory status may affect service availability.",
+        "category": "availability"
+      },
+      {
+        "question": "What cryptocurrencies does CoinEx support?",
+        "answer": "CoinEx lists 1300 cryptocurrencies across 1900 trading pairs. CoinEx regularly lists emerging altcoins alongside major assets.",
+        "category": "products"
+      },
+      {
+        "question": "Does CoinEx have a mobile app?",
+        "answer": "Yes. CoinEx has official iOS (App Store) and Android (Google Play) apps. Download from the official CoinEx website (https://www.coinex.com/app or equivalent) or directly from the official app store listing to avoid counterfeit apps. ",
+        "category": "products"
+      },
+      {
+        "question": "Does CoinEx require KYC?",
+        "answer": "CoinEx allows basic trading without KYC. However, higher withdrawal limits and bonus claims typically require identity verification.",
+        "category": "compliance"
+      },
+      {
+        "question": "Does CoinEx have Proof of Reserves?",
+        "answer": "CoinEx does not currently publish Proof of Reserves. Use caution with large balances on any exchange without PoR.",
+        "category": "trust"
+      },
+      {
+        "question": "What leverage does CoinEx offer?",
+        "answer": "CoinEx offers up to 100× leverage on futures. Standard: 10–20× for most trading pairs. High leverage available — suitable only for experienced traders with strict risk management. Leverage availability varies by asset and KYC level.",
+        "category": "products"
+      },
+      {
+        "question": "When was CoinEx founded and who founded it?",
+        "answer": "CoinEx was founded in 2017. Founder & CEO: Haipo Yang (also founded ViaBTC mining pool).",
+        "category": "general"
+      },
+      {
+        "question": "How many users does CoinEx have?",
+        "answer": "CoinEx serves 10M+ registered users across 200+ countries as of 2026.",
+        "category": "general"
+      },
+      {
+        "question": "What is CoinEx's 24-hour trading volume?",
+        "answer": "CoinEx's 24-hour spot trading volume is approximately $0.10B (1657 BTC) as of the last data pull (2026-06-08). This places CoinEx at CoinGecko rank #N/A by trust-adjusted volume.",
+        "category": "marketdata"
+      },
+      {
+        "question": "Does CoinEx have a native token?",
+        "answer": "Yes. CoinEx's native token is CET. Use: Fee discount, staking, Mining allocation, CoinEx Smart Chain gas.",
+        "category": "products"
+      },
+      {
+        "question": "What is CoinEx's CoinGecko trust score?",
+        "answer": "CoinEx is not listed on CoinGecko (or trust score data was unavailable at last data pull).",
+        "category": "trust"
+      }
+    ]
+  },
+  "contentMap": {
+    "mainReviewPage": "/exchanges/coinex/",
+    "bonusPage": "/bonuses/coinex-bonus/",
+    "bonusCodePage": "/bonus-codes/coinex/"
+  },
+  "freshness": {
+    "marketDataFetchedAt": "2026-06-08",
+    "evidenceLastUpdated": "2026-06-01",
+    "nextMarketRefresh": "2026-07-08",
+    "refreshScript": "node scripts/generate-exchange-intelligence.mjs --refresh"
+  }
+}

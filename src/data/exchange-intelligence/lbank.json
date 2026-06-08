@@ -1,0 +1,326 @@
+{
+  "exchange": "lbank",
+  "schemaVersion": "2.0",
+  "lastUpdated": "2026-06-08",
+  "dataSourcesUsed": [
+    "coingecko_api_2026-06-08",
+    "coinmarketcap_exchange_2026-06-08",
+    "project_evidence_files",
+    "official_exchange_sites"
+  ],
+  "ownerRole": "LBank Intelligence Owner (ROLE 37)",
+  "identity": {
+    "name": "LBank",
+    "legalName": "LBank",
+    "type": "centralized",
+    "foundedYear": 2015,
+    "ceoFounder": "Not publicly prominent",
+    "headquarters": "British Virgin Islands",
+    "registeredIn": "British Virgin Islands",
+    "website": "https://www.lbank.com",
+    "nasdaqListed": false,
+    "nasdaqTicker": null,
+    "nativeToken": null,
+    "nativeTokenUse": null,
+    "stablecoin": null,
+    "recentBrandChange": null,
+    "description": "Founded 2015, one of the older mid-tier exchanges. Serves 12M+ users across 210+ countries. Offices in Lithuania, Canada, Singapore. 113+ fiat currencies, 55+ payment methods. Regulated: NFA (US), Italy, Canadian MSB. Offers spot, margin, futures, ETF, grid bots, leveraged ETF (3×).",
+    "descriptionShort": "Established 2015. 12M+ users, 800+ cryptos, NFA-regulated, 500 USDT welcome bonus.",
+    "notableEvents": [],
+    "partnershipNote": null
+  },
+  "affiliate": {
+    "primaryUrl": "https://www.lbank.com/",
+    "promoCode": null,
+    "bonusAmount": 500,
+    "bonusCurrency": "USDT",
+    "bonusType": "task-based rewards (KYC + deposit + volume milestones)",
+    "bonusVoucherNote": "Vouchers are trading fee credits, not withdrawable cash — only profits from trading with them can be withdrawn",
+    "ownerApprovalRequiredForChanges": true,
+    "immutableNote": "Affiliate URL is IMMUTABLE — changes require ROLE 0 explicit approval",
+    "lastVerified": "2026-06-01"
+  },
+  "marketIntelligence": {
+    "geckoId": "lbank",
+    "cmcSlug": "lbank",
+    "geckoTrustScore": 8,
+    "geckoTrustScoreRank": 17,
+    "geckoTrustScoreNote": "CoinGecko trust score (1-10) assesses exchange API accuracy, volume legitimacy, and cybersecurity posture",
+    "volume24hBtc": 27246.94,
+    "volume24hUsd": 1697102732,
+    "spotPairsActive": 975,
+    "coinsListed": 836,
+    "registeredUsers": "12M+",
+    "countriesServed": "210+",
+    "reservesUsd": null,
+    "reserveRatio": null,
+    "dataFetchedAt": "2026-06-08",
+    "dataRefreshScript": "node scripts/generate-exchange-intelligence.mjs --refresh"
+  },
+  "socialChannels": {
+    "twitter": "@LBank_Exchange",
+    "telegram": "https://t.me/LBank_en"
+  },
+  "officialPages": {
+    "fees": {
+      "url": "https://www.lbank.com/en-US/docs/fees.html",
+      "label": "LBank — Fee Schedule",
+      "lastAccessed": "2026-05-25"
+    },
+    "kyc": {
+      "url": "https://www.lbank.com/en-US/help/detail/1003",
+      "label": "LBank — KYC Verification Guide",
+      "lastAccessed": "2026-05-25"
+    },
+    "bonus": {
+      "url": "https://www.lbank.com/activity/",
+      "label": "LBank — Promotions & Activities",
+      "lastAccessed": "2026-05-25"
+    },
+    "restricted_countries": {
+      "url": "https://www.lbank.com/en-US/privacy-terms/",
+      "label": "LBank — Terms of Service (Restricted Regions)",
+      "lastAccessed": "2026-05-25"
+    },
+    "terms": {
+      "url": "https://www.lbank.com/en-US/privacy-terms/",
+      "label": "LBank — Terms of Service",
+      "lastAccessed": "2026-05-25"
+    },
+    "p2p": {
+      "url": "https://www.lbank.com/en-US/otc/",
+      "label": "LBank — OTC/P2P Trading",
+      "lastAccessed": "2026-05-25"
+    },
+    "app_ios": {
+      "url": "https://apps.apple.com/app/lbank-buy-sell-bitcoin/id1546396892",
+      "label": "LBank iOS App — App Store",
+      "lastAccessed": "2026-05-25"
+    },
+    "app_android": {
+      "url": "https://play.google.com/store/apps/details?id=io.lbank.view",
+      "label": "LBank Android App — Google Play",
+      "lastAccessed": "2026-05-25"
+    },
+    "futures": {
+      "url": "https://www.lbank.com/en-US/futures/",
+      "label": "LBank — Futures Trading",
+      "lastAccessed": "2026-05-25"
+    },
+    "affiliate": {
+      "url": "https://www.lbank.com/en-US/promotions/",
+      "label": "LBank — Referral Program",
+      "lastAccessed": "2026-05-25"
+    }
+  },
+  "fees": {
+    "spotMaker": 0.1,
+    "spotTaker": 0.1,
+    "spotUnit": "%",
+    "spotNote": "Standard tier fee; reductions available with VIP status or native token",
+    "futuresMaker": 0.02,
+    "futuresTaker": 0.05,
+    "futuresUnit": "%",
+    "maxLeverage": 100,
+    "p2pPlatformFee": "0% platform fee (spread set by counterparty)",
+    "withdrawalFeeStructure": "network-dependent — varies by asset and blockchain",
+    "depositFee": "free for crypto; varies for fiat (country/method dependent)",
+    "feeSourceUrl": "https://www.lbank.com/en-US/docs/fees.html",
+    "lastChecked": "2026-05-25"
+  },
+  "products": {
+    "spot": {
+      "available": true,
+      "pairsCount": 975,
+      "coinsCount": 836
+    },
+    "futures": {
+      "available": true,
+      "type": "USDT-margined perpetual",
+      "maxLeverage": 100,
+      "riskNote": "High leverage carries substantial liquidation risk — not for beginners"
+    },
+    "p2p": {
+      "available": true,
+      "platformFee": "0%",
+      "note": null
+    },
+    "copyTrading": {
+      "available": false,
+      "note": null
+    },
+    "earn": {
+      "available": false,
+      "products": []
+    },
+    "mobileApp": {
+      "ios": true,
+      "android": true,
+      "downloadUrl": "https://www.lbank.com/download"
+    }
+  },
+  "kyc": {
+    "required": true,
+    "tiers": [
+      "Basic (email/phone)",
+      "Intermediate (ID + liveness — required for full withdrawal access and bonuses)",
+      "Advanced (address proof — for highest limits)"
+    ],
+    "typicalTime": "2–30 minutes automated; up to 24h manual review",
+    "documentsRequired": [
+      "Government-issued ID (passport, national ID, or driver's licence)",
+      "Liveness check / selfie"
+    ],
+    "sourceUrl": "https://www.lbank.com/en-US/help/detail/1003"
+  },
+  "availability": {
+    "restrictedUS": true,
+    "restrictedUK": null,
+    "restrictedCountriesNote": "Restricted regions vary. Verify on official website before registering.",
+    "officialRestrictedListUrl": "https://www.lbank.com/en-US/privacy-terms/",
+    "manualReviewRequired": true
+  },
+  "trust": {
+    "geckoTrustScore": 8,
+    "proofOfReserves": false,
+    "porUrl": null,
+    "porFrequency": "Periodically — check official website",
+    "safuOrEquivalent": null,
+    "licences": null,
+    "securityIncidents": []
+  },
+  "knowledgeBase": {
+    "quickFacts": {
+      "founded": 2015,
+      "headquarters": "British Virgin Islands",
+      "users": "12M+",
+      "tradingPairs": 975,
+      "coinsListed": 836,
+      "volume24h": "$1.70B",
+      "geckoTrustScore": 8,
+      "geckoTrustRank": "#17",
+      "welcomeBonus": "500 USDT",
+      "promoCode": "none",
+      "nativeToken": "none",
+      "nasdaqListed": false
+    },
+    "commonQuestions": [
+      {
+        "question": "What is LBank?",
+        "answer": "Founded 2015, one of the older mid-tier exchanges. Serves 12M+ users across 210+ countries. Offices in Lithuania, Canada, Singapore. 113+ fiat currencies, 55+ payment methods. Regulated: NFA (US), Italy, Canadian MSB. Offers spot, margin, futures, ETF, grid bots, leveraged ETF (3×).",
+        "category": "general"
+      },
+      {
+        "question": "Is LBank safe?",
+        "answer": "LBank is a established centralized exchange. CoinGecko trust score: 8/10 (rank #17).  Like all CEXs, funds are custodied by the exchange — use hardware wallets for long-term storage. Enable 2FA, use a strong unique password, and whitelist withdrawal addresses where available. Never share API keys.",
+        "category": "safety"
+      },
+      {
+        "question": "What is the LBank promo/referral code?",
+        "answer": "LBank currently uses a direct referral link via CryptoBonusWorld rather than a text code. Click the registration button on our LBank page to ensure the bonus is attributed correctly.",
+        "category": "affiliate"
+      },
+      {
+        "question": "How much is the LBank welcome bonus?",
+        "answer": "Via CryptoBonusWorld, the current LBank welcome bonus is up to 500 USDT. This is a task-based reward: completing KYC, making a qualifying deposit, and reaching trading volume milestones unlocks different reward tiers. The full amount requires all milestones — most users completing a standard deposit earn a meaningful first-week reward. Bonus amounts are typically trading fee vouchers, not withdrawable cash.",
+        "category": "affiliate"
+      },
+      {
+        "question": "How do I claim the LBank bonus?",
+        "answer": "Step 1: Click the registration link on the CryptoBonusWorld LBank page — the referral code/link is pre-filled. Step 2: Complete email/phone verification. Step 3: Complete KYC identity verification (required for bonuses). Step 4: Make a qualifying deposit (crypto transfer or card). Step 5: Check your Rewards Center / Bonus Hub for active tasks and complete trading volume milestones within the campaign window (usually 30 days). Vouchers are credited to your account as you complete each task tier.",
+        "category": "affiliate"
+      },
+      {
+        "question": "What are LBank spot trading fees?",
+        "answer": "LBank spot trading fees: 0.1% maker / 0.1% taker (standard). ",
+        "category": "fees"
+      },
+      {
+        "question": "What are LBank futures trading fees?",
+        "answer": "LBank USDT-margined perpetual futures: 0.02% maker / 0.05% taker. Maximum leverage: 100×. Futures trading carries substantial risk of capital loss from liquidation. Up to 100× leverage available.",
+        "category": "fees"
+      },
+      {
+        "question": "Does LBank have P2P trading?",
+        "answer": "Yes, LBank offers P2P trading with escrow protection. Fee: 0% platform side. Check the exchange app for available fiat currencies and payment methods in your region.",
+        "category": "products"
+      },
+      {
+        "question": "Does LBank have copy trading?",
+        "answer": "LBank does not currently offer copy trading.",
+        "category": "products"
+      },
+      {
+        "question": "Is LBank available in the United States?",
+        "answer": "No. LBank restricts US residents from registering. US users should use Coinbase or Kraken as regulated alternatives.",
+        "category": "availability"
+      },
+      {
+        "question": "Is LBank available in the United Kingdom?",
+        "answer": "UK availability for LBank should be verified on the official website, as FCA compliance and local regulatory status may affect service availability.",
+        "category": "availability"
+      },
+      {
+        "question": "What cryptocurrencies does LBank support?",
+        "answer": "LBank lists 836 cryptocurrencies across 975 trading pairs. LBank regularly lists emerging altcoins alongside major assets.",
+        "category": "products"
+      },
+      {
+        "question": "Does LBank have a mobile app?",
+        "answer": "Yes. LBank has official iOS (App Store) and Android (Google Play) apps. Download from the official LBank website (https://www.lbank.com/app or equivalent) or directly from the official app store listing to avoid counterfeit apps. ",
+        "category": "products"
+      },
+      {
+        "question": "Does LBank require KYC?",
+        "answer": "Yes. LBank requires KYC (identity verification) to unlock full trading, withdrawals, and welcome bonus eligibility. Process: government-issued ID + selfie/liveness check. Typically completes in 2–30 minutes for automated approval; up to 24 hours for manual review.",
+        "category": "compliance"
+      },
+      {
+        "question": "Does LBank have Proof of Reserves?",
+        "answer": "LBank does not currently publish Proof of Reserves. Use caution with large balances on any exchange without PoR.",
+        "category": "trust"
+      },
+      {
+        "question": "What leverage does LBank offer?",
+        "answer": "LBank offers up to 100× leverage on futures. Standard: 10–20× for most trading pairs. High leverage available — suitable only for experienced traders with strict risk management. Leverage availability varies by asset and KYC level.",
+        "category": "products"
+      },
+      {
+        "question": "When was LBank founded and who founded it?",
+        "answer": "LBank was founded in 2015. Not publicly prominent.",
+        "category": "general"
+      },
+      {
+        "question": "How many users does LBank have?",
+        "answer": "LBank serves 12M+ registered users across 210+ countries as of 2026.",
+        "category": "general"
+      },
+      {
+        "question": "What is LBank's 24-hour trading volume?",
+        "answer": "LBank's 24-hour spot trading volume is approximately $1.70B (27 246,94 BTC) as of the last data pull (2026-06-08). This places LBank at CoinGecko rank #17 by trust-adjusted volume.",
+        "category": "marketdata"
+      },
+      {
+        "question": "Does LBank have a native token?",
+        "answer": "LBank does not have its own native exchange token.",
+        "category": "products"
+      },
+      {
+        "question": "What is LBank's CoinGecko trust score?",
+        "answer": "LBank has a CoinGecko trust score of 8/10, placing it at rank #17 globally. CoinGecko's trust score assesses exchange API accuracy, trading volume legitimacy, and cybersecurity posture.",
+        "category": "trust"
+      }
+    ]
+  },
+  "contentMap": {
+    "mainReviewPage": "/exchanges/lbank/",
+    "bonusPage": "/bonuses/lbank-bonus/",
+    "bonusCodePage": "/bonus-codes/lbank/"
+  },
+  "freshness": {
+    "marketDataFetchedAt": "2026-06-08",
+    "evidenceLastUpdated": "2026-06-01",
+    "nextMarketRefresh": "2026-07-08",
+    "refreshScript": "node scripts/generate-exchange-intelligence.mjs --refresh"
+  }
+}

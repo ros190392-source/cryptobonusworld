@@ -1,0 +1,321 @@
+{
+  "exchange": "phemex",
+  "schemaVersion": "2.0",
+  "lastUpdated": "2026-06-08",
+  "dataSourcesUsed": [
+    "coingecko_api_2026-06-08",
+    "coinmarketcap_exchange_2026-06-08",
+    "project_evidence_files",
+    "official_exchange_sites"
+  ],
+  "ownerRole": "Phemex Intelligence Owner (ROLE 37)",
+  "identity": {
+    "name": "Phemex",
+    "legalName": "Phemex Ltd",
+    "type": "centralized",
+    "foundedYear": 2019,
+    "ceoFounder": "CEO: Jack Tao (former Morgan Stanley VP); co-founded by 8 ex-Morgan Stanley executives",
+    "headquarters": "British Virgin Islands",
+    "registeredIn": "British Virgin Islands",
+    "website": "https://phemex.com",
+    "nasdaqListed": false,
+    "nasdaqTicker": null,
+    "nativeToken": "PT",
+    "nativeTokenUse": "Premium membership (zero spot fees), staking rewards",
+    "stablecoin": null,
+    "recentBrandChange": null,
+    "description": "Founded November 2019 by 8 former Morgan Stanley executives. 10M+ users in 150+ countries. Ultra-low latency (5–10ms execution). 99.999% uptime claimed. Strong in derivatives with 100× leverage, copy trading (17,000+ traders), and grid/Martingale bots. 100% Proof-of-Reserves. 8,800 USDT welcome bonus.",
+    "descriptionShort": "Ex-Morgan Stanley team (2019). 10M+ users, ultra-low latency, 100× leverage, 8,800 USDT welcome bonus.",
+    "notableEvents": [],
+    "partnershipNote": null
+  },
+  "affiliate": {
+    "primaryUrl": "https://phemex.com/ru/account/referral/invite-friends-entry?referralCode=GJFJA5",
+    "promoCode": "GJFJA5",
+    "bonusAmount": 8800,
+    "bonusCurrency": "USDT",
+    "bonusType": "task-based rewards (KYC + deposit + volume milestones)",
+    "bonusVoucherNote": "Vouchers are trading fee credits, not withdrawable cash — only profits from trading with them can be withdrawn",
+    "ownerApprovalRequiredForChanges": true,
+    "immutableNote": "Affiliate URL is IMMUTABLE — changes require ROLE 0 explicit approval",
+    "lastVerified": "2026-06-01"
+  },
+  "marketIntelligence": {
+    "geckoId": "phemex",
+    "cmcSlug": "phemex",
+    "geckoTrustScore": 7,
+    "geckoTrustScoreRank": 59,
+    "geckoTrustScoreNote": "CoinGecko trust score (1-10) assesses exchange API accuracy, volume legitimacy, and cybersecurity posture",
+    "volume24hBtc": 11474.87,
+    "volume24hUsd": 732317992,
+    "spotPairsActive": 600,
+    "coinsListed": 567,
+    "registeredUsers": "10M+",
+    "countriesServed": "150+",
+    "reservesUsd": null,
+    "reserveRatio": null,
+    "dataFetchedAt": "2026-06-08",
+    "dataRefreshScript": "node scripts/generate-exchange-intelligence.mjs --refresh"
+  },
+  "socialChannels": {
+    "twitter": "@Phemex_official",
+    "telegram": "https://t.me/Phemex_EN"
+  },
+  "officialPages": {
+    "fees": {
+      "url": "https://phemex.com/fees-conditions",
+      "label": "Phemex — Fee Structure",
+      "lastAccessed": "2026-05-25"
+    },
+    "kyc": {
+      "url": "https://phemex.com/user-guides/phemex-kyc",
+      "label": "Phemex — KYC Verification Guide",
+      "lastAccessed": "2026-05-25"
+    },
+    "bonus": {
+      "url": "https://phemex.com/welcome-bonus",
+      "label": "Phemex — Welcome Bonus",
+      "lastAccessed": "2026-05-20"
+    },
+    "restricted_countries": {
+      "url": "https://phemex.com/terms-conditions",
+      "label": "Phemex — Terms & Conditions (Restricted Regions)",
+      "lastAccessed": "2026-05-25"
+    },
+    "terms": {
+      "url": "https://phemex.com/terms-conditions",
+      "label": "Phemex — Terms & Conditions",
+      "lastAccessed": "2026-05-25"
+    },
+    "app_ios": {
+      "url": "https://apps.apple.com/app/phemex-crypto-trade-platform/id1456296940",
+      "label": "Phemex iOS App — App Store",
+      "lastAccessed": "2026-05-25"
+    },
+    "app_android": {
+      "url": "https://play.google.com/store/apps/details?id=com.phemex.app",
+      "label": "Phemex Android App — Google Play",
+      "lastAccessed": "2026-05-25"
+    },
+    "futures": {
+      "url": "https://phemex.com/trade/BTCUSDT",
+      "label": "Phemex — Perpetual Contracts",
+      "lastAccessed": "2026-05-25"
+    },
+    "affiliate": {
+      "url": "https://phemex.com/referral",
+      "label": "Phemex — Referral Program",
+      "lastAccessed": "2026-05-20"
+    }
+  },
+  "fees": {
+    "spotMaker": 0.1,
+    "spotTaker": 0.1,
+    "spotUnit": "%",
+    "spotNote": "Zero spot fees with Premium membership (PT staking)",
+    "futuresMaker": 0.01,
+    "futuresTaker": 0.06,
+    "futuresUnit": "%",
+    "maxLeverage": 100,
+    "p2pPlatformFee": null,
+    "withdrawalFeeStructure": "network-dependent — varies by asset and blockchain",
+    "depositFee": "free for crypto; varies for fiat (country/method dependent)",
+    "feeSourceUrl": "https://phemex.com/fees-conditions",
+    "lastChecked": "2026-05-25"
+  },
+  "products": {
+    "spot": {
+      "available": true,
+      "pairsCount": 600,
+      "coinsCount": 567
+    },
+    "futures": {
+      "available": true,
+      "type": "USDT-margined perpetual",
+      "maxLeverage": 100,
+      "riskNote": "High leverage carries substantial liquidation risk — not for beginners"
+    },
+    "p2p": {
+      "available": false,
+      "platformFee": "0%",
+      "note": null
+    },
+    "copyTrading": {
+      "available": false,
+      "note": "17,000+ registered lead traders; copy with allocation limits"
+    },
+    "earn": {
+      "available": false,
+      "products": []
+    },
+    "mobileApp": {
+      "ios": true,
+      "android": true,
+      "downloadUrl": "https://phemex.com/download"
+    }
+  },
+  "kyc": {
+    "required": false,
+    "tiers": [
+      "Basic (email/phone)",
+      "Intermediate (ID + liveness — required for full withdrawal access and bonuses)",
+      "Advanced (address proof — for highest limits)"
+    ],
+    "typicalTime": "2–30 minutes automated; up to 24h manual review",
+    "documentsRequired": [
+      "Government-issued ID (passport, national ID, or driver's licence)",
+      "Liveness check / selfie"
+    ],
+    "sourceUrl": "https://phemex.com/user-guides/phemex-kyc"
+  },
+  "availability": {
+    "restrictedUS": true,
+    "restrictedUK": null,
+    "restrictedCountriesNote": "Restricted regions vary. Verify on official website before registering.",
+    "officialRestrictedListUrl": "https://phemex.com/terms-conditions",
+    "manualReviewRequired": true
+  },
+  "trust": {
+    "geckoTrustScore": 7,
+    "proofOfReserves": false,
+    "porUrl": null,
+    "porFrequency": "Continuous (100% PoR claimed)",
+    "safuOrEquivalent": "Proof-of-Reserves backed insurance.",
+    "licences": null,
+    "securityIncidents": []
+  },
+  "knowledgeBase": {
+    "quickFacts": {
+      "founded": 2019,
+      "headquarters": "British Virgin Islands",
+      "users": "10M+",
+      "tradingPairs": 600,
+      "coinsListed": 567,
+      "volume24h": "$0.73B",
+      "geckoTrustScore": 7,
+      "geckoTrustRank": "#59",
+      "welcomeBonus": "8800 USDT",
+      "promoCode": "GJFJA5",
+      "nativeToken": "PT",
+      "nasdaqListed": false
+    },
+    "commonQuestions": [
+      {
+        "question": "What is Phemex?",
+        "answer": "Founded November 2019 by 8 former Morgan Stanley executives. 10M+ users in 150+ countries. Ultra-low latency (5–10ms execution). 99.999% uptime claimed. Strong in derivatives with 100× leverage, copy trading (17,000+ traders), and grid/Martingale bots. 100% Proof-of-Reserves. 8,800 USDT welcome bonus.",
+        "category": "general"
+      },
+      {
+        "question": "Is Phemex safe?",
+        "answer": "Phemex is a established centralized exchange. CoinGecko trust score: 7/10 (rank #59).  Like all CEXs, funds are custodied by the exchange — use hardware wallets for long-term storage. Enable 2FA, use a strong unique password, and whitelist withdrawal addresses where available. Never share API keys.",
+        "category": "safety"
+      },
+      {
+        "question": "What is the Phemex promo/referral code?",
+        "answer": "The CryptoBonusWorld referral code for Phemex is GJFJA5. It is pre-filled automatically when you register via our link. Using it activates the welcome bonus of up to 8800 USDT.",
+        "category": "affiliate"
+      },
+      {
+        "question": "How much is the Phemex welcome bonus?",
+        "answer": "Via CryptoBonusWorld, the current Phemex welcome bonus is up to 8800 USDT. This is a task-based reward: completing KYC, making a qualifying deposit, and reaching trading volume milestones unlocks different reward tiers. The full amount requires all milestones — most users completing a standard deposit earn a meaningful first-week reward. Bonus amounts are typically trading fee vouchers, not withdrawable cash.",
+        "category": "affiliate"
+      },
+      {
+        "question": "How do I claim the Phemex bonus?",
+        "answer": "Step 1: Click the registration link on the CryptoBonusWorld Phemex page — the referral code/link is pre-filled. Step 2: Complete email/phone verification. Step 3: Complete KYC identity verification (required for bonuses). Step 4: Make a qualifying deposit (crypto transfer or card). Step 5: Check your Rewards Center / Bonus Hub for active tasks and complete trading volume milestones within the campaign window (usually 30 days). Vouchers are credited to your account as you complete each task tier.",
+        "category": "affiliate"
+      },
+      {
+        "question": "What are Phemex spot trading fees?",
+        "answer": "Phemex spot trading fees: 0.1% maker / 0.1% taker (standard). Phemex Premium membership (PT token staking) unlocks zero spot fees.",
+        "category": "fees"
+      },
+      {
+        "question": "What are Phemex futures trading fees?",
+        "answer": "Phemex USDT-margined perpetual futures: 0.01% maker / 0.06% taker. Maximum leverage: 100×. Futures trading carries substantial risk of capital loss from liquidation. Up to 100× leverage available.",
+        "category": "fees"
+      },
+      {
+        "question": "Does Phemex have P2P trading?",
+        "answer": "Phemex does not currently offer P2P trading.",
+        "category": "products"
+      },
+      {
+        "question": "Does Phemex have copy trading?",
+        "answer": "Phemex does not currently offer copy trading.",
+        "category": "products"
+      },
+      {
+        "question": "Is Phemex available in the United States?",
+        "answer": "No. Phemex restricts US residents from registering. US users should use Coinbase or Kraken as regulated alternatives.",
+        "category": "availability"
+      },
+      {
+        "question": "Is Phemex available in the United Kingdom?",
+        "answer": "UK availability for Phemex should be verified on the official website, as FCA compliance and local regulatory status may affect service availability.",
+        "category": "availability"
+      },
+      {
+        "question": "What cryptocurrencies does Phemex support?",
+        "answer": "Phemex lists 567 cryptocurrencies across 600 trading pairs. Phemex regularly lists emerging altcoins alongside major assets.",
+        "category": "products"
+      },
+      {
+        "question": "Does Phemex have a mobile app?",
+        "answer": "Yes. Phemex has official iOS (App Store) and Android (Google Play) apps. Download from the official Phemex website (https://phemex.com/app or equivalent) or directly from the official app store listing to avoid counterfeit apps. ",
+        "category": "products"
+      },
+      {
+        "question": "Does Phemex require KYC?",
+        "answer": "Phemex allows basic trading without KYC. However, higher withdrawal limits and bonus claims typically require identity verification.",
+        "category": "compliance"
+      },
+      {
+        "question": "Does Phemex have Proof of Reserves?",
+        "answer": "Phemex does not currently publish Proof of Reserves. Use caution with large balances on any exchange without PoR.",
+        "category": "trust"
+      },
+      {
+        "question": "What leverage does Phemex offer?",
+        "answer": "Phemex offers up to 100× leverage on futures. Standard: 10–20× for most trading pairs. High leverage available — suitable only for experienced traders with strict risk management. Leverage availability varies by asset and KYC level.",
+        "category": "products"
+      },
+      {
+        "question": "When was Phemex founded and who founded it?",
+        "answer": "Phemex was founded in 2019. CEO: Jack Tao (former Morgan Stanley VP); co-founded by 8 ex-Morgan Stanley executives.",
+        "category": "general"
+      },
+      {
+        "question": "How many users does Phemex have?",
+        "answer": "Phemex serves 10M+ registered users across 150+ countries as of 2026.",
+        "category": "general"
+      },
+      {
+        "question": "What is Phemex's 24-hour trading volume?",
+        "answer": "Phemex's 24-hour spot trading volume is approximately $0.73B (11 474,87 BTC) as of the last data pull (2026-06-08). This places Phemex at CoinGecko rank #59 by trust-adjusted volume.",
+        "category": "marketdata"
+      },
+      {
+        "question": "Does Phemex have a native token?",
+        "answer": "Yes. Phemex's native token is PT. Use: Premium membership (zero spot fees), staking rewards.",
+        "category": "products"
+      },
+      {
+        "question": "What is Phemex's CoinGecko trust score?",
+        "answer": "Phemex has a CoinGecko trust score of 7/10, placing it at rank #59 globally. CoinGecko's trust score assesses exchange API accuracy, trading volume legitimacy, and cybersecurity posture.",
+        "category": "trust"
+      }
+    ]
+  },
+  "contentMap": {
+    "mainReviewPage": "/exchanges/phemex/",
+    "bonusPage": "/bonuses/phemex-bonus/",
+    "bonusCodePage": "/bonus-codes/phemex/"
+  },
+  "freshness": {
+    "marketDataFetchedAt": "2026-06-08",
+    "evidenceLastUpdated": "2026-06-01",
+    "nextMarketRefresh": "2026-07-08",
+    "refreshScript": "node scripts/generate-exchange-intelligence.mjs --refresh"
+  }
+}

@@ -1,0 +1,334 @@
+{
+  "exchange": "bitget",
+  "schemaVersion": "2.0",
+  "lastUpdated": "2026-06-08",
+  "dataSourcesUsed": [
+    "coingecko_api_2026-06-08",
+    "coinmarketcap_exchange_2026-06-08",
+    "project_evidence_files",
+    "official_exchange_sites"
+  ],
+  "ownerRole": "Bitget Intelligence Owner (ROLE 37)",
+  "identity": {
+    "name": "Bitget",
+    "legalName": "Bitget Limited",
+    "type": "centralized",
+    "foundedYear": 2018,
+    "ceoFounder": "CEO: Gracy Chen",
+    "headquarters": "Seychelles",
+    "registeredIn": "Seychelles",
+    "website": "https://www.bitget.com",
+    "nasdaqListed": false,
+    "nasdaqTicker": null,
+    "nativeToken": "BGB",
+    "nativeTokenUse": "Fee discounts, VIP tier benefits, governance",
+    "stablecoin": null,
+    "recentBrandChange": null,
+    "description": "Founded in 2018. Known as a leader in copy trading (100,000+ signal traders). Serves 100M+ users in 150+ countries. Spot and perpetual futures. Holds Litecoin-like native token BGB. Strong compliance footprint with multiple licences.",
+    "descriptionShort": "Copy trading leader. 100M+ users, 800+ pairs, 6,200 USDT welcome bonus.",
+    "notableEvents": [],
+    "partnershipNote": null
+  },
+  "affiliate": {
+    "primaryUrl": "https://partner.bitget.com/bg/CryptoBonW",
+    "promoCode": "CryptoBonW",
+    "bonusAmount": 6200,
+    "bonusCurrency": "USDT",
+    "bonusType": "task-based rewards (KYC + deposit + volume milestones)",
+    "bonusVoucherNote": "Vouchers are trading fee credits, not withdrawable cash — only profits from trading with them can be withdrawn",
+    "ownerApprovalRequiredForChanges": true,
+    "immutableNote": "Affiliate URL is IMMUTABLE — changes require ROLE 0 explicit approval",
+    "lastVerified": "2026-06-04"
+  },
+  "marketIntelligence": {
+    "geckoId": "bitget",
+    "cmcSlug": "bitget",
+    "geckoTrustScore": 10,
+    "geckoTrustScoreRank": 5,
+    "geckoTrustScoreNote": "CoinGecko trust score (1-10) assesses exchange API accuracy, volume legitimacy, and cybersecurity posture",
+    "volume24hBtc": 18912.58,
+    "volume24hUsd": 1190000000,
+    "spotPairsActive": 851,
+    "coinsListed": 567,
+    "registeredUsers": "100M+",
+    "countriesServed": "150+",
+    "reservesUsd": null,
+    "reserveRatio": null,
+    "dataFetchedAt": "2026-06-08",
+    "dataRefreshScript": "node scripts/generate-exchange-intelligence.mjs --refresh"
+  },
+  "socialChannels": {
+    "twitter": "@bitget",
+    "telegram": "https://t.me/bitgetEN",
+    "facebook": "https://www.facebook.com/BitgetGlobal/"
+  },
+  "officialPages": {
+    "fees": {
+      "url": "https://www.bitget.com/fee",
+      "label": "Bitget — Fee Schedule",
+      "lastAccessed": "2026-05-25"
+    },
+    "kyc": {
+      "url": "https://www.bitget.com/support/articles/12560603760669",
+      "label": "Bitget — KYC Verification Guide",
+      "lastAccessed": "2026-05-25"
+    },
+    "bonus": {
+      "url": "https://www.bitget.com/en/activity/newcomer-rewards",
+      "label": "Bitget — Newcomer Rewards",
+      "lastAccessed": "2026-05-20"
+    },
+    "restricted_countries": {
+      "url": "https://www.bitget.com/support/articles/12560603760669",
+      "label": "Bitget — Restricted Regions",
+      "lastAccessed": "2026-05-25"
+    },
+    "terms": {
+      "url": "https://www.bitget.com/en/about/privacy-and-terms",
+      "label": "Bitget — Terms of Service",
+      "lastAccessed": "2026-05-25"
+    },
+    "proof_of_reserves": {
+      "url": "https://www.bitget.com/proof-of-reserves",
+      "label": "Bitget — Proof of Reserves",
+      "lastAccessed": "2026-05-25"
+    },
+    "app_ios": {
+      "url": "https://apps.apple.com/app/bitget-buy-bitcoin-crypto/id1395301115",
+      "label": "Bitget iOS App — App Store",
+      "lastAccessed": "2026-05-25"
+    },
+    "app_android": {
+      "url": "https://play.google.com/store/apps/details?id=com.bitget.exchange",
+      "label": "Bitget Android App — Google Play",
+      "lastAccessed": "2026-05-25"
+    },
+    "futures": {
+      "url": "https://www.bitget.com/en/mix/usdt/BTCUSDT_UMCBL",
+      "label": "Bitget — USDT Perpetual Futures",
+      "lastAccessed": "2026-05-25"
+    },
+    "affiliate": {
+      "url": "https://www.bitget.com/referral",
+      "label": "Bitget — Referral Program",
+      "lastAccessed": "2026-05-20"
+    },
+    "copy_trading": {
+      "url": "https://www.bitget.com/en/copy-trading",
+      "label": "Bitget — Copy Trading",
+      "lastAccessed": "2026-05-25"
+    }
+  },
+  "fees": {
+    "spotMaker": 0.1,
+    "spotTaker": 0.1,
+    "spotUnit": "%",
+    "spotNote": "Standard tier fee; reductions available with VIP status or native token",
+    "futuresMaker": 0.02,
+    "futuresTaker": 0.06,
+    "futuresUnit": "%",
+    "maxLeverage": 125,
+    "p2pPlatformFee": null,
+    "withdrawalFeeStructure": "network-dependent — varies by asset and blockchain",
+    "depositFee": "free for crypto; varies for fiat (country/method dependent)",
+    "feeSourceUrl": "https://www.bitget.com/fee",
+    "lastChecked": "2026-05-25"
+  },
+  "products": {
+    "spot": {
+      "available": true,
+      "pairsCount": 851,
+      "coinsCount": 567
+    },
+    "futures": {
+      "available": true,
+      "type": "USDT-margined perpetual",
+      "maxLeverage": 125,
+      "riskNote": "High leverage carries substantial liquidation risk — not for beginners"
+    },
+    "p2p": {
+      "available": false,
+      "platformFee": "0%",
+      "note": null
+    },
+    "copyTrading": {
+      "available": true,
+      "note": "100,000+ signal traders; industry-leading copy trading platform"
+    },
+    "earn": {
+      "available": false,
+      "products": []
+    },
+    "mobileApp": {
+      "ios": true,
+      "android": true,
+      "downloadUrl": "https://www.bitget.com/download"
+    }
+  },
+  "kyc": {
+    "required": true,
+    "tiers": [
+      "Basic (email/phone)",
+      "Intermediate (ID + liveness — required for full withdrawal access and bonuses)",
+      "Advanced (address proof — for highest limits)"
+    ],
+    "typicalTime": "2–30 minutes automated; up to 24h manual review",
+    "documentsRequired": [
+      "Government-issued ID (passport, national ID, or driver's licence)",
+      "Liveness check / selfie"
+    ],
+    "sourceUrl": "https://www.bitget.com/support/articles/12560603760669"
+  },
+  "availability": {
+    "restrictedUS": true,
+    "restrictedUK": null,
+    "restrictedCountriesNote": "Restricted regions vary. Verify on official website before registering.",
+    "officialRestrictedListUrl": "https://www.bitget.com/support/articles/12560603760669",
+    "manualReviewRequired": true
+  },
+  "trust": {
+    "geckoTrustScore": 10,
+    "proofOfReserves": true,
+    "porUrl": "https://www.bitget.com/proof-of-reserves",
+    "porFrequency": "Periodically — check official website",
+    "safuOrEquivalent": null,
+    "licences": [
+      "ASIC Australia"
+    ],
+    "securityIncidents": []
+  },
+  "knowledgeBase": {
+    "quickFacts": {
+      "founded": 2018,
+      "headquarters": "Seychelles",
+      "users": "100M+",
+      "tradingPairs": 851,
+      "coinsListed": 567,
+      "volume24h": "$1.19B",
+      "geckoTrustScore": 10,
+      "geckoTrustRank": "#5",
+      "welcomeBonus": "6200 USDT",
+      "promoCode": "CryptoBonW",
+      "nativeToken": "BGB",
+      "nasdaqListed": false
+    },
+    "commonQuestions": [
+      {
+        "question": "What is Bitget?",
+        "answer": "Founded in 2018. Known as a leader in copy trading (100,000+ signal traders). Serves 100M+ users in 150+ countries. Spot and perpetual futures. Holds Litecoin-like native token BGB. Strong compliance footprint with multiple licences.",
+        "category": "general"
+      },
+      {
+        "question": "Is Bitget safe?",
+        "answer": "Bitget is a top-tier centralized exchange. CoinGecko trust score: 10/10 (rank #5).  Like all CEXs, funds are custodied by the exchange — use hardware wallets for long-term storage. Enable 2FA, use a strong unique password, and whitelist withdrawal addresses where available. Never share API keys.",
+        "category": "safety"
+      },
+      {
+        "question": "What is the Bitget promo/referral code?",
+        "answer": "The CryptoBonusWorld referral code for Bitget is CryptoBonW. It is pre-filled automatically when you register via our link. Using it activates the welcome bonus of up to 6200 USDT.",
+        "category": "affiliate"
+      },
+      {
+        "question": "How much is the Bitget welcome bonus?",
+        "answer": "Via CryptoBonusWorld, the current Bitget welcome bonus is up to 6200 USDT. This is a task-based reward: completing KYC, making a qualifying deposit, and reaching trading volume milestones unlocks different reward tiers. The full amount requires all milestones — most users completing a standard deposit earn a meaningful first-week reward. Bonus amounts are typically trading fee vouchers, not withdrawable cash.",
+        "category": "affiliate"
+      },
+      {
+        "question": "How do I claim the Bitget bonus?",
+        "answer": "Step 1: Click the registration link on the CryptoBonusWorld Bitget page — the referral code/link is pre-filled. Step 2: Complete email/phone verification. Step 3: Complete KYC identity verification (required for bonuses). Step 4: Make a qualifying deposit (crypto transfer or card). Step 5: Check your Rewards Center / Bonus Hub for active tasks and complete trading volume milestones within the campaign window (usually 30 days). Vouchers are credited to your account as you complete each task tier.",
+        "category": "affiliate"
+      },
+      {
+        "question": "What are Bitget spot trading fees?",
+        "answer": "Bitget spot trading fees: 0.1% maker / 0.1% taker (standard). ",
+        "category": "fees"
+      },
+      {
+        "question": "What are Bitget futures trading fees?",
+        "answer": "Bitget USDT-margined perpetual futures: 0.02% maker / 0.06% taker. Maximum leverage: 125×. Futures trading carries substantial risk of capital loss from liquidation. Up to 125× leverage available.",
+        "category": "fees"
+      },
+      {
+        "question": "Does Bitget have P2P trading?",
+        "answer": "Bitget does not currently offer P2P trading.",
+        "category": "products"
+      },
+      {
+        "question": "Does Bitget have copy trading?",
+        "answer": "Bitget is the industry leader in copy trading, with 100,000+ signal traders. Users can allocate funds and mirror top traders automatically.",
+        "category": "products"
+      },
+      {
+        "question": "Is Bitget available in the United States?",
+        "answer": "No. Bitget restricts US residents from registering. US users should use Coinbase or Kraken as regulated alternatives.",
+        "category": "availability"
+      },
+      {
+        "question": "Is Bitget available in the United Kingdom?",
+        "answer": "UK availability for Bitget should be verified on the official website, as FCA compliance and local regulatory status may affect service availability.",
+        "category": "availability"
+      },
+      {
+        "question": "What cryptocurrencies does Bitget support?",
+        "answer": "Bitget lists 567 cryptocurrencies across 851 trading pairs. Bitget regularly lists emerging altcoins alongside major assets.",
+        "category": "products"
+      },
+      {
+        "question": "Does Bitget have a mobile app?",
+        "answer": "Yes. Bitget has official iOS (App Store) and Android (Google Play) apps. Download from the official Bitget website (https://www.bitget.com/app or equivalent) or directly from the official app store listing to avoid counterfeit apps. ",
+        "category": "products"
+      },
+      {
+        "question": "Does Bitget require KYC?",
+        "answer": "Yes. Bitget requires KYC (identity verification) to unlock full trading, withdrawals, and welcome bonus eligibility. Process: government-issued ID + selfie/liveness check. Typically completes in 2–30 minutes for automated approval; up to 24 hours for manual review.",
+        "category": "compliance"
+      },
+      {
+        "question": "Does Bitget have Proof of Reserves?",
+        "answer": "Yes. Bitget publishes Proof of Reserves, allowing users to independently verify that exchange-held assets cover all user balances.",
+        "category": "trust"
+      },
+      {
+        "question": "What leverage does Bitget offer?",
+        "answer": "Bitget offers up to 125× leverage on futures. Standard: 10–20× for most trading pairs. High leverage available — suitable only for experienced traders with strict risk management. Leverage availability varies by asset and KYC level.",
+        "category": "products"
+      },
+      {
+        "question": "When was Bitget founded and who founded it?",
+        "answer": "Bitget was founded in 2018. CEO: Gracy Chen.",
+        "category": "general"
+      },
+      {
+        "question": "How many users does Bitget have?",
+        "answer": "Bitget serves 100M+ registered users across 150+ countries as of 2026.",
+        "category": "general"
+      },
+      {
+        "question": "What is Bitget's 24-hour trading volume?",
+        "answer": "Bitget's 24-hour spot trading volume is approximately $1.19B (18 912,58 BTC) as of the last data pull (2026-06-08). This places Bitget at CoinGecko rank #5 by trust-adjusted volume.",
+        "category": "marketdata"
+      },
+      {
+        "question": "Does Bitget have a native token?",
+        "answer": "Yes. Bitget's native token is BGB. Use: Fee discounts, VIP tier benefits, governance.",
+        "category": "products"
+      },
+      {
+        "question": "What is Bitget's CoinGecko trust score?",
+        "answer": "Bitget has a CoinGecko trust score of 10/10, placing it at rank #5 globally. CoinGecko's trust score assesses exchange API accuracy, trading volume legitimacy, and cybersecurity posture.",
+        "category": "trust"
+      }
+    ]
+  },
+  "contentMap": {
+    "mainReviewPage": "/exchanges/bitget/",
+    "bonusPage": "/bonuses/bitget-bonus/",
+    "bonusCodePage": "/bonus-codes/bitget/"
+  },
+  "freshness": {
+    "marketDataFetchedAt": "2026-06-08",
+    "evidenceLastUpdated": "2026-06-04",
+    "nextMarketRefresh": "2026-07-08",
+    "refreshScript": "node scripts/generate-exchange-intelligence.mjs --refresh"
+  }
+}

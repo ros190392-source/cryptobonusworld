@@ -1,0 +1,333 @@
+{
+  "exchange": "mexc",
+  "schemaVersion": "2.0",
+  "lastUpdated": "2026-06-08",
+  "dataSourcesUsed": [
+    "coingecko_api_2026-06-08",
+    "coinmarketcap_exchange_2026-06-08",
+    "project_evidence_files",
+    "official_exchange_sites"
+  ],
+  "ownerRole": "MEXC Intelligence Owner (ROLE 37)",
+  "identity": {
+    "name": "MEXC",
+    "legalName": "MEXC Global",
+    "type": "centralized",
+    "foundedYear": 2018,
+    "ceoFounder": "Founded by team of blockchain/financial professionals",
+    "headquarters": "Seychelles",
+    "registeredIn": "Seychelles",
+    "website": "https://www.mexc.com",
+    "nasdaqListed": false,
+    "nasdaqTicker": null,
+    "nativeToken": "MX",
+    "nativeTokenUse": "Fee discount, staking, launchpad allocation",
+    "stablecoin": null,
+    "recentBrandChange": null,
+    "description": "Founded April 2018. Known for listing the most new and early-stage altcoins of any major exchange (1,900+ coins). Spot maker fee 0% (industry-leading). Futures maker fee 0%. Serves 10M+ users. Strong in Southeast Asia and emerging markets.",
+    "descriptionShort": "Most altcoins of any major CEX (1,900+). 0% maker fees. 10,000 USDT welcome bonus.",
+    "notableEvents": [],
+    "partnershipNote": null
+  },
+  "affiliate": {
+    "primaryUrl": "https://www.mexc.com/acquisition/custom-sign-up?shareCode=mexc-CryptoBonus",
+    "promoCode": "mexc-CryptoBonus",
+    "bonusAmount": 10000,
+    "bonusCurrency": "USDT",
+    "bonusType": "task-based rewards (KYC + deposit + volume milestones)",
+    "bonusVoucherNote": "Vouchers are trading fee credits, not withdrawable cash — only profits from trading with them can be withdrawn",
+    "ownerApprovalRequiredForChanges": true,
+    "immutableNote": "Affiliate URL is IMMUTABLE — changes require ROLE 0 explicit approval",
+    "lastVerified": "2026-06-04"
+  },
+  "marketIntelligence": {
+    "geckoId": "mxc",
+    "cmcSlug": "mexc",
+    "geckoTrustScore": 9,
+    "geckoTrustScoreRank": 9,
+    "geckoTrustScoreNote": "CoinGecko trust score (1-10) assesses exchange API accuracy, volume legitimacy, and cybersecurity posture",
+    "volume24hBtc": 26360.51,
+    "volume24hUsd": 1659000000,
+    "spotPairsActive": 2455,
+    "coinsListed": 1926,
+    "registeredUsers": "10M+",
+    "countriesServed": "200+",
+    "reservesUsd": null,
+    "reserveRatio": null,
+    "dataFetchedAt": "2026-06-08",
+    "dataRefreshScript": "node scripts/generate-exchange-intelligence.mjs --refresh"
+  },
+  "socialChannels": {
+    "twitter": "@MEXC_Official",
+    "telegram": "https://t.me/MEXCEnglish",
+    "facebook": "https://www.facebook.com/mexcofficial",
+    "reddit": "https://www.reddit.com/r/MEXC_official/",
+    "discord": "https://discord.com/invite/Hs2e93Xav5"
+  },
+  "officialPages": {
+    "fees": {
+      "url": "https://www.mexc.com/fee",
+      "label": "MEXC — Trading Fee Schedule",
+      "lastAccessed": "2026-05-27"
+    },
+    "kyc": {
+      "url": "https://www.mexc.com/support/articles/17285765816855",
+      "label": "MEXC — KYC Verification Guide",
+      "lastAccessed": "2026-05-27"
+    },
+    "bonus": {
+      "url": "https://www.mexc.com/acquisition/custom-sign-up?shareCode=mexc-CryptoBonus",
+      "label": "MEXC — New User Bonus",
+      "lastAccessed": "2026-06-03"
+    },
+    "restricted_countries": {
+      "url": "https://www.mexc.com/support/articles/360012110852",
+      "label": "MEXC — Restricted Regions",
+      "lastAccessed": "2026-05-27"
+    },
+    "terms": {
+      "url": "https://www.mexc.com/support/articles/360012110852",
+      "label": "MEXC — Terms of Service",
+      "lastAccessed": "2026-05-27"
+    },
+    "p2p": {
+      "url": "https://www.mexc.com/otc/",
+      "label": "MEXC — OTC/P2P Trading",
+      "lastAccessed": "2026-05-27"
+    },
+    "app_ios": {
+      "url": "https://apps.apple.com/app/mexc-buy-bitcoin-btc-crypto/id1536185475",
+      "label": "MEXC iOS App — App Store",
+      "lastAccessed": "2026-05-27"
+    },
+    "app_android": {
+      "url": "https://play.google.com/store/apps/details?id=com.mexc.exchange",
+      "label": "MEXC Android App — Google Play",
+      "lastAccessed": "2026-05-27"
+    },
+    "futures": {
+      "url": "https://futures.mexc.com/",
+      "label": "MEXC — Futures Trading",
+      "lastAccessed": "2026-05-27"
+    },
+    "affiliate": {
+      "url": "https://www.mexc.com/referral",
+      "label": "MEXC — Referral Program",
+      "lastAccessed": "2026-05-27"
+    }
+  },
+  "fees": {
+    "spotMaker": 0,
+    "spotTaker": 0.2,
+    "spotUnit": "%",
+    "spotNote": "0% maker — industry-lowest spot maker fee",
+    "futuresMaker": 0,
+    "futuresTaker": 0.01,
+    "futuresUnit": "%",
+    "maxLeverage": 200,
+    "p2pPlatformFee": "0% platform fee (spread set by counterparty)",
+    "withdrawalFeeStructure": "network-dependent — varies by asset and blockchain",
+    "depositFee": "free for crypto; varies for fiat (country/method dependent)",
+    "feeSourceUrl": "https://www.mexc.com/fee",
+    "lastChecked": "2026-05-27"
+  },
+  "products": {
+    "spot": {
+      "available": true,
+      "pairsCount": 2455,
+      "coinsCount": 1926
+    },
+    "futures": {
+      "available": true,
+      "type": "USDT-margined perpetual",
+      "maxLeverage": 200,
+      "riskNote": "High leverage carries substantial liquidation risk — not for beginners"
+    },
+    "p2p": {
+      "available": true,
+      "platformFee": "0%",
+      "note": "Available at https://www.mexc.com/c2c or /p2p. Escrow-protected. Available payment methods vary by region."
+    },
+    "copyTrading": {
+      "available": false,
+      "note": null
+    },
+    "earn": {
+      "available": true,
+      "products": [
+        "Savings (flexible/locked)",
+        "Launchpad",
+        "Staking"
+      ]
+    },
+    "mobileApp": {
+      "ios": true,
+      "android": true,
+      "downloadUrl": "https://www.mexc.com/download"
+    }
+  },
+  "kyc": {
+    "required": false,
+    "tiers": [
+      "Basic (email/phone)",
+      "Intermediate (ID + liveness — required for full withdrawal access and bonuses)",
+      "Advanced (address proof — for highest limits)"
+    ],
+    "typicalTime": "2–30 minutes automated; up to 24h manual review",
+    "documentsRequired": [
+      "Government-issued ID (passport, national ID, or driver's licence)",
+      "Liveness check / selfie"
+    ],
+    "sourceUrl": "https://www.mexc.com/support/articles/17285765816855"
+  },
+  "availability": {
+    "restrictedUS": true,
+    "restrictedUK": null,
+    "restrictedCountriesNote": "Restricted: US, Ontario (Canada). Verify current list on official site.",
+    "officialRestrictedListUrl": "https://www.mexc.com/support/articles/360012110852",
+    "manualReviewRequired": true
+  },
+  "trust": {
+    "geckoTrustScore": 9,
+    "proofOfReserves": false,
+    "porUrl": null,
+    "porFrequency": "Periodically — check official website",
+    "safuOrEquivalent": null,
+    "licences": null,
+    "securityIncidents": []
+  },
+  "knowledgeBase": {
+    "quickFacts": {
+      "founded": 2018,
+      "headquarters": "Seychelles",
+      "users": "10M+",
+      "tradingPairs": 2455,
+      "coinsListed": 1926,
+      "volume24h": "$1.66B",
+      "geckoTrustScore": 9,
+      "geckoTrustRank": "#9",
+      "welcomeBonus": "10000 USDT",
+      "promoCode": "mexc-CryptoBonus",
+      "nativeToken": "MX",
+      "nasdaqListed": false
+    },
+    "commonQuestions": [
+      {
+        "question": "What is MEXC?",
+        "answer": "Founded April 2018. Known for listing the most new and early-stage altcoins of any major exchange (1,900+ coins). Spot maker fee 0% (industry-leading). Futures maker fee 0%. Serves 10M+ users. Strong in Southeast Asia and emerging markets.",
+        "category": "general"
+      },
+      {
+        "question": "Is MEXC safe?",
+        "answer": "MEXC is a top-tier centralized exchange. CoinGecko trust score: 9/10 (rank #9).  Like all CEXs, funds are custodied by the exchange — use hardware wallets for long-term storage. Enable 2FA, use a strong unique password, and whitelist withdrawal addresses where available. Never share API keys.",
+        "category": "safety"
+      },
+      {
+        "question": "What is the MEXC promo/referral code?",
+        "answer": "The CryptoBonusWorld referral code for MEXC is mexc-CryptoBonus. It is pre-filled automatically when you register via our link. Using it activates the welcome bonus of up to 10000 USDT.",
+        "category": "affiliate"
+      },
+      {
+        "question": "How much is the MEXC welcome bonus?",
+        "answer": "Via CryptoBonusWorld, the current MEXC welcome bonus is up to 10000 USDT. This is a task-based reward: completing KYC, making a qualifying deposit, and reaching trading volume milestones unlocks different reward tiers. The full amount requires all milestones — most users completing a standard deposit earn a meaningful first-week reward. Bonus amounts are typically trading fee vouchers, not withdrawable cash.",
+        "category": "affiliate"
+      },
+      {
+        "question": "How do I claim the MEXC bonus?",
+        "answer": "Step 1: Click the registration link on the CryptoBonusWorld MEXC page — the referral code/link is pre-filled. Step 2: Complete email/phone verification. Step 3: Complete KYC identity verification (required for bonuses). Step 4: Make a qualifying deposit (crypto transfer or card). Step 5: Check your Rewards Center / Bonus Hub for active tasks and complete trading volume milestones within the campaign window (usually 30 days). Vouchers are credited to your account as you complete each task tier.",
+        "category": "affiliate"
+      },
+      {
+        "question": "What are MEXC spot trading fees?",
+        "answer": "MEXC spot trading fees: 0% maker / 0.2% taker (standard). MEXC charges 0% maker fee — among the lowest in the industry. Taker fee is 0.05%–0.2% depending on trading volume.",
+        "category": "fees"
+      },
+      {
+        "question": "What are MEXC futures trading fees?",
+        "answer": "MEXC USDT-margined perpetual futures: 0% maker / 0.01% taker. Maximum leverage: 200×. Futures trading carries substantial risk of capital loss from liquidation. Up to 200× leverage available.",
+        "category": "fees"
+      },
+      {
+        "question": "Does MEXC have P2P trading?",
+        "answer": "MEXC offers P2P trading with 0% fee and support for local fiat currencies.",
+        "category": "products"
+      },
+      {
+        "question": "Does MEXC have copy trading?",
+        "answer": "MEXC does not currently offer copy trading.",
+        "category": "products"
+      },
+      {
+        "question": "Is MEXC available in the United States?",
+        "answer": "No. MEXC restricts US residents from registering. US users should use Coinbase or Kraken as regulated alternatives.",
+        "category": "availability"
+      },
+      {
+        "question": "Is MEXC available in the United Kingdom?",
+        "answer": "UK availability for MEXC should be verified on the official website, as FCA compliance and local regulatory status may affect service availability.",
+        "category": "availability"
+      },
+      {
+        "question": "What cryptocurrencies does MEXC support?",
+        "answer": "MEXC lists 1926 cryptocurrencies across 2455 trading pairs. MEXC has the most altcoins of any major exchange, frequently listing projects in early/presale stages.",
+        "category": "products"
+      },
+      {
+        "question": "Does MEXC have a mobile app?",
+        "answer": "Yes. MEXC has official iOS (App Store) and Android (Google Play) apps. Download from the official MEXC website (https://www.mexc.com/app or equivalent) or directly from the official app store listing to avoid counterfeit apps. ",
+        "category": "products"
+      },
+      {
+        "question": "Does MEXC require KYC?",
+        "answer": "MEXC allows limited trading without KYC (email registration only), but full withdrawal access and bonus eligibility require identity verification (government ID + selfie).",
+        "category": "compliance"
+      },
+      {
+        "question": "Does MEXC have Proof of Reserves?",
+        "answer": "MEXC does not currently publish Proof of Reserves. Use caution with large balances on any exchange without PoR.",
+        "category": "trust"
+      },
+      {
+        "question": "What leverage does MEXC offer?",
+        "answer": "MEXC offers up to 200× leverage on futures. Standard: 10–20× for most trading pairs. Extremely high leverage — significant liquidation risk even on small price moves. Leverage availability varies by asset and KYC level.",
+        "category": "products"
+      },
+      {
+        "question": "When was MEXC founded and who founded it?",
+        "answer": "MEXC was founded in 2018. Founded by team of blockchain/financial professionals.",
+        "category": "general"
+      },
+      {
+        "question": "How many users does MEXC have?",
+        "answer": "MEXC serves 10M+ registered users across 200+ countries as of 2026.",
+        "category": "general"
+      },
+      {
+        "question": "What is MEXC's 24-hour trading volume?",
+        "answer": "MEXC's 24-hour spot trading volume is approximately $1.66B (26 360,51 BTC) as of the last data pull (2026-06-08). This places MEXC at CoinGecko rank #9 by trust-adjusted volume.",
+        "category": "marketdata"
+      },
+      {
+        "question": "Does MEXC have a native token?",
+        "answer": "Yes. MEXC's native token is MX. Use: Fee discount, staking, launchpad allocation.",
+        "category": "products"
+      },
+      {
+        "question": "What is MEXC's CoinGecko trust score?",
+        "answer": "MEXC has a CoinGecko trust score of 9/10, placing it at rank #9 globally. CoinGecko's trust score assesses exchange API accuracy, trading volume legitimacy, and cybersecurity posture.",
+        "category": "trust"
+      }
+    ]
+  },
+  "contentMap": {
+    "mainReviewPage": "/exchanges/mexc/",
+    "bonusPage": "/bonuses/mexc-bonus/",
+    "bonusCodePage": "/bonus-codes/mexc/"
+  },
+  "freshness": {
+    "marketDataFetchedAt": "2026-06-08",
+    "evidenceLastUpdated": "2026-06-04",
+    "nextMarketRefresh": "2026-07-08",
+    "refreshScript": "node scripts/generate-exchange-intelligence.mjs --refresh"
+  }
+}

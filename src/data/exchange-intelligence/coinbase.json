@@ -1,0 +1,332 @@
+{
+  "exchange": "coinbase",
+  "schemaVersion": "2.0",
+  "lastUpdated": "2026-06-08",
+  "dataSourcesUsed": [
+    "coingecko_api_2026-06-08",
+    "coinmarketcap_exchange_2026-06-08",
+    "project_evidence_files",
+    "official_exchange_sites"
+  ],
+  "ownerRole": "Coinbase Intelligence Owner (ROLE 37)",
+  "identity": {
+    "name": "Coinbase",
+    "legalName": "Coinbase Global, Inc.",
+    "type": "centralized",
+    "foundedYear": 2012,
+    "ceoFounder": "CEO: Brian Armstrong (co-founder); co-founder Fred Ehrsam (left 2017)",
+    "headquarters": "San Francisco, USA",
+    "registeredIn": "Delaware, USA",
+    "website": "https://www.coinbase.com",
+    "nasdaqListed": true,
+    "nasdaqTicker": "COIN",
+    "nativeToken": null,
+    "nativeTokenUse": null,
+    "stablecoin": "USDC (via Circle)",
+    "recentBrandChange": null,
+    "description": "Founded June 2012. NASDAQ-listed (COIN) since April 2021. US's largest and most-regulated crypto exchange. 100M+ users. Beginner-friendly UI. Compliant with US SEC, CFTC, FinCEN. Offers Coinbase One subscription (zero fees). Strong institutional arm (Coinbase Prime). Own stablecoin USDC (via Circle partnership). No leverage for retail (margin trading discontinued 2020). Advanced Trade for pro users.",
+    "descriptionShort": "NASDAQ-listed (COIN). Most-regulated US exchange. 100M+ users, beginner-friendly, $10 USD signup bonus.",
+    "notableEvents": [],
+    "partnershipNote": null
+  },
+  "affiliate": {
+    "primaryUrl": "https://www.coinbase.com/",
+    "promoCode": null,
+    "bonusAmount": 10,
+    "bonusCurrency": "USD",
+    "bonusType": "task-based rewards (KYC + deposit + volume milestones)",
+    "bonusVoucherNote": "Vouchers are trading fee credits, not withdrawable cash — only profits from trading with them can be withdrawn",
+    "ownerApprovalRequiredForChanges": true,
+    "immutableNote": "Affiliate URL is IMMUTABLE — changes require ROLE 0 explicit approval",
+    "lastVerified": "2026-06-01"
+  },
+  "marketIntelligence": {
+    "geckoId": "gdax",
+    "cmcSlug": "coinbase-exchange",
+    "geckoTrustScore": 10,
+    "geckoTrustScoreRank": 1,
+    "geckoTrustScoreNote": "CoinGecko trust score (1-10) assesses exchange API accuracy, volume legitimacy, and cybersecurity posture",
+    "volume24hBtc": 29038,
+    "volume24hUsd": 1824205105,
+    "spotPairsActive": 300,
+    "coinsListed": 150,
+    "registeredUsers": "100M+",
+    "countriesServed": "100+",
+    "reservesUsd": null,
+    "reserveRatio": null,
+    "dataFetchedAt": "2026-06-08",
+    "dataRefreshScript": "node scripts/generate-exchange-intelligence.mjs --refresh"
+  },
+  "socialChannels": {
+    "twitter": "@coinbase",
+    "telegram": null,
+    "facebook": null,
+    "reddit": "https://www.reddit.com/r/coinbase/"
+  },
+  "officialPages": {
+    "fees": {
+      "url": "https://www.coinbase.com/legal/fees",
+      "label": "Coinbase — Fee Disclosure",
+      "lastAccessed": "2026-05-25"
+    },
+    "kyc": {
+      "url": "https://help.coinbase.com/en/coinbase/privacy-and-security/privacy/verify-my-identity",
+      "label": "Coinbase — Identity Verification Guide",
+      "lastAccessed": "2026-05-25"
+    },
+    "bonus": {
+      "url": "https://www.coinbase.com/invite",
+      "label": "Coinbase — Referral Bonus",
+      "lastAccessed": "2026-05-24"
+    },
+    "restricted_countries": {
+      "url": "https://help.coinbase.com/en/coinbase/getting-started/getting-started-with-coinbase/countries-regions-where-coinbase-operates",
+      "label": "Coinbase — Supported Countries",
+      "lastAccessed": "2026-05-25"
+    },
+    "terms": {
+      "url": "https://www.coinbase.com/legal/user_agreement",
+      "label": "Coinbase — User Agreement",
+      "lastAccessed": "2026-05-25"
+    },
+    "proof_of_reserves": {
+      "url": "https://www.coinbase.com/proof-of-reserves",
+      "label": "Coinbase — Proof of Reserves",
+      "lastAccessed": "2026-05-25"
+    },
+    "app_ios": {
+      "url": "https://apps.apple.com/app/coinbase-buy-bitcoin-ether/id886427730",
+      "label": "Coinbase iOS App — App Store",
+      "lastAccessed": "2026-05-25"
+    },
+    "app_android": {
+      "url": "https://play.google.com/store/apps/details?id=com.coinbase.android",
+      "label": "Coinbase Android App — Google Play",
+      "lastAccessed": "2026-05-25"
+    },
+    "futures": {
+      "url": "https://www.coinbase.com/advanced-trade/futures",
+      "label": "Coinbase Advanced — Futures",
+      "lastAccessed": "2026-05-25"
+    },
+    "affiliate": {
+      "url": "https://www.coinbase.com/affiliate",
+      "label": "Coinbase — Affiliate/Referral Program",
+      "lastAccessed": "2026-05-24"
+    }
+  },
+  "fees": {
+    "spotMaker": 0.4,
+    "spotTaker": 0.6,
+    "spotUnit": "%",
+    "spotNote": "Tiered: high for small accounts, lower for >$100K/month volume",
+    "futuresMaker": 0,
+    "futuresTaker": 0.03,
+    "futuresUnit": "%",
+    "maxLeverage": 20,
+    "p2pPlatformFee": null,
+    "withdrawalFeeStructure": "network-dependent — varies by asset and blockchain",
+    "depositFee": "free for crypto; varies for fiat (country/method dependent)",
+    "feeSourceUrl": "https://www.coinbase.com/legal/fees",
+    "lastChecked": "2026-05-25"
+  },
+  "products": {
+    "spot": {
+      "available": true,
+      "pairsCount": 300,
+      "coinsCount": 150
+    },
+    "futures": {
+      "available": true,
+      "type": "USDT-margined perpetual",
+      "maxLeverage": 20,
+      "riskNote": "High leverage carries substantial liquidation risk — not for beginners"
+    },
+    "p2p": {
+      "available": false,
+      "platformFee": "0%",
+      "note": null
+    },
+    "copyTrading": {
+      "available": false,
+      "note": null
+    },
+    "earn": {
+      "available": false,
+      "products": []
+    },
+    "mobileApp": {
+      "ios": true,
+      "android": true,
+      "downloadUrl": "https://www.coinbase.com/download"
+    }
+  },
+  "kyc": {
+    "required": true,
+    "tiers": [
+      "Basic (email + ID — full access for most users)",
+      "Enhanced due diligence for larger accounts"
+    ],
+    "typicalTime": "2–30 minutes automated; up to 24h manual review",
+    "documentsRequired": [
+      "Government-issued ID (passport, national ID, or driver's licence)",
+      "Liveness check / selfie"
+    ],
+    "sourceUrl": "https://help.coinbase.com/en/coinbase/privacy-and-security/privacy/verify-my-identity"
+  },
+  "availability": {
+    "restrictedUS": false,
+    "restrictedUK": null,
+    "restrictedCountriesNote": "Available in US, UK, EU, and most Western markets. Some features vary by country.",
+    "officialRestrictedListUrl": "https://help.coinbase.com/en/coinbase/getting-started/getting-started-with-coinbase/countries-regions-where-coinbase-operates",
+    "manualReviewRequired": true
+  },
+  "trust": {
+    "geckoTrustScore": 10,
+    "proofOfReserves": true,
+    "porUrl": "https://www.coinbase.com/proof-of-reserves",
+    "porFrequency": "Periodically — check official website",
+    "safuOrEquivalent": null,
+    "licences": [
+      "SEC",
+      "FinCEN",
+      "FCA",
+      "MiCA"
+    ],
+    "securityIncidents": []
+  },
+  "knowledgeBase": {
+    "quickFacts": {
+      "founded": 2012,
+      "headquarters": "San Francisco, USA",
+      "users": "100M+",
+      "tradingPairs": 300,
+      "coinsListed": 150,
+      "volume24h": "$1.82B",
+      "geckoTrustScore": 10,
+      "geckoTrustRank": "#1",
+      "welcomeBonus": "10 USD",
+      "promoCode": "none",
+      "nativeToken": "none",
+      "nasdaqListed": true
+    },
+    "commonQuestions": [
+      {
+        "question": "What is Coinbase?",
+        "answer": "Founded June 2012. NASDAQ-listed (COIN) since April 2021. US's largest and most-regulated crypto exchange. 100M+ users. Beginner-friendly UI. Compliant with US SEC, CFTC, FinCEN. Offers Coinbase One subscription (zero fees). Strong institutional arm (Coinbase Prime). Own stablecoin USDC (via Circle partnership). No leverage for retail (margin trading discontinued 2020). Advanced Trade for pro users.",
+        "category": "general"
+      },
+      {
+        "question": "Is Coinbase safe?",
+        "answer": "Coinbase is a top-tier centralized exchange. CoinGecko trust score: 10/10 (rank #1).  Like all CEXs, funds are custodied by the exchange — use hardware wallets for long-term storage. Enable 2FA, use a strong unique password, and whitelist withdrawal addresses where available. Never share API keys.",
+        "category": "safety"
+      },
+      {
+        "question": "What is the Coinbase promo/referral code?",
+        "answer": "Coinbase currently uses a direct referral link via CryptoBonusWorld rather than a text code. Click the registration button on our Coinbase page to ensure the bonus is attributed correctly.",
+        "category": "affiliate"
+      },
+      {
+        "question": "How much is the Coinbase welcome bonus?",
+        "answer": "Via CryptoBonusWorld, the current Coinbase welcome bonus is up to 10 USD. This is a task-based reward: completing KYC, making a qualifying deposit, and reaching trading volume milestones unlocks different reward tiers. The full amount requires all milestones — most users completing a standard deposit earn a meaningful first-week reward. Bonus amounts are typically trading fee vouchers, not withdrawable cash.",
+        "category": "affiliate"
+      },
+      {
+        "question": "How do I claim the Coinbase bonus?",
+        "answer": "Step 1: Click the registration link on the CryptoBonusWorld Coinbase page — the referral code/link is pre-filled. Step 2: Complete email/phone verification. Step 3: Complete KYC identity verification (required for bonuses). Step 4: Make a qualifying deposit (crypto transfer or card). Step 5: Check your Rewards Center / Bonus Hub for active tasks and complete trading volume milestones within the campaign window (usually 30 days). Vouchers are credited to your account as you complete each task tier.",
+        "category": "affiliate"
+      },
+      {
+        "question": "What are Coinbase spot trading fees?",
+        "answer": "Coinbase spot trading fees: 0.4% maker / 0.6% taker (standard). Coinbase Advanced Trade uses a tiered model: up to 0.40% maker / 0.60% taker for low-volume accounts. Zero-fee stablecoin trading available.",
+        "category": "fees"
+      },
+      {
+        "question": "What are Coinbase futures trading fees?",
+        "answer": "Coinbase USDT-margined perpetual futures: 0% maker / 0.03% taker. Maximum leverage: 20×. Futures trading carries substantial risk of capital loss from liquidation. Up to 20× leverage available.",
+        "category": "fees"
+      },
+      {
+        "question": "Does Coinbase have P2P trading?",
+        "answer": "Coinbase does not currently offer P2P trading.",
+        "category": "products"
+      },
+      {
+        "question": "Does Coinbase have copy trading?",
+        "answer": "Coinbase does not currently offer copy trading.",
+        "category": "products"
+      },
+      {
+        "question": "Is Coinbase available in the United States?",
+        "answer": "Yes. Coinbase is a US-regulated exchange (SEC/FinCEN/CFTC registered) and is fully available in all 50 US states. It is the most widely used exchange for US residents.",
+        "category": "availability"
+      },
+      {
+        "question": "Is Coinbase available in the United Kingdom?",
+        "answer": "Yes. Coinbase is fully available in the UK with FCA compliance.",
+        "category": "availability"
+      },
+      {
+        "question": "What cryptocurrencies does Coinbase support?",
+        "answer": "Coinbase lists 150 cryptocurrencies across 300 trading pairs. Coinbase prioritises regulatory-compliant assets and lists fewer, higher-quality projects than competitors.",
+        "category": "products"
+      },
+      {
+        "question": "Does Coinbase have a mobile app?",
+        "answer": "Yes. Coinbase has official iOS (App Store) and Android (Google Play) apps. Download from the official Coinbase website (https://www.coinbase.com/app or equivalent) or directly from the official app store listing to avoid counterfeit apps. ",
+        "category": "products"
+      },
+      {
+        "question": "Does Coinbase require KYC?",
+        "answer": "Yes. Coinbase requires KYC (identity verification) to unlock full trading, withdrawals, and welcome bonus eligibility. Process: government-issued ID + selfie/liveness check. Typically completes in 2–30 minutes for automated approval; up to 24 hours for manual review.",
+        "category": "compliance"
+      },
+      {
+        "question": "Does Coinbase have Proof of Reserves?",
+        "answer": "Coinbase is NASDAQ-listed and subject to SEC financial reporting requirements. Does not publish a traditional PoR but files regular audited financial statements.",
+        "category": "trust"
+      },
+      {
+        "question": "What leverage does Coinbase offer?",
+        "answer": "Coinbase offers up to 20× leverage on futures. Standard: 10–20× for most trading pairs. Moderate leverage offering. Leverage availability varies by asset and KYC level.",
+        "category": "products"
+      },
+      {
+        "question": "When was Coinbase founded and who founded it?",
+        "answer": "Coinbase was founded in 2012. CEO: Brian Armstrong (co-founder); co-founder Fred Ehrsam (left 2017).",
+        "category": "general"
+      },
+      {
+        "question": "How many users does Coinbase have?",
+        "answer": "Coinbase serves 100M+ registered users across 100+ countries as of 2026.",
+        "category": "general"
+      },
+      {
+        "question": "What is Coinbase's 24-hour trading volume?",
+        "answer": "Coinbase's 24-hour spot trading volume is approximately $1.82B (29 038 BTC) as of the last data pull (2026-06-08). This places Coinbase at CoinGecko rank #1 by trust-adjusted volume.",
+        "category": "marketdata"
+      },
+      {
+        "question": "Does Coinbase have a native token?",
+        "answer": "Coinbase does not have its own native exchange token.",
+        "category": "products"
+      },
+      {
+        "question": "What is Coinbase's CoinGecko trust score?",
+        "answer": "Coinbase has a CoinGecko trust score of 10/10, placing it at rank #1 globally. CoinGecko's trust score assesses exchange API accuracy, trading volume legitimacy, and cybersecurity posture.",
+        "category": "trust"
+      }
+    ]
+  },
+  "contentMap": {
+    "mainReviewPage": "/exchanges/coinbase/",
+    "bonusPage": "/bonuses/coinbase-bonus/",
+    "bonusCodePage": "/bonus-codes/coinbase/"
+  },
+  "freshness": {
+    "marketDataFetchedAt": "2026-06-08",
+    "evidenceLastUpdated": "2026-06-01",
+    "nextMarketRefresh": "2026-07-08",
+    "refreshScript": "node scripts/generate-exchange-intelligence.mjs --refresh"
+  }
+}
