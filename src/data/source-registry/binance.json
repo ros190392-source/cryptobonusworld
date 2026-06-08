@@ -177,6 +177,19 @@
       "riskNotes": "App availability is store/region dependent."
     },
     {
+      "sourceId": "binance_security_breach_blog_p0",
+      "sourceType": "official_security_announcement",
+      "tier": "P0",
+      "url": "https://www.binance.com/en/support/announcement/binance-security-breach-update-360028031711",
+      "title": "Binance — Security Breach Update (official announcement, May 7 2019)",
+      "exchange": "binance",
+      "language": "en",
+      "geo": "global",
+      "lastChecked": "2026-06-08",
+      "usedForClaims": ["binance_security_safu"],
+      "riskNotes": "Supports historical 2019 incident / SAFU handling. Must not be used to imply Binance is risk-free or that future reimbursements are guaranteed. Canonical official Binance support announcement (article 360028031711, published 2019-05-07 by CZ; 7,000 BTC hot-wallet breach covered in full by the SAFU fund); verified 2026-06-08. Replaces a prior corrupted blog URL that contained an anomalous 'interpersonal' token."
+    },
+    {
       "sourceId": "binance_screenshot_bonus_referral_landing_p4",
       "sourceType": "manual_tester_screenshot",
       "tier": "P4",

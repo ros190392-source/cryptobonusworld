@@ -259,10 +259,10 @@
       "page": "/exchanges/binance/",
       "claimText": "Binance maintains the SAFU (Secure Asset Fund for Users) emergency fund; in the 2019 breach (7,000 BTC) affected users were reimbursed via SAFU.",
       "claimType": "security",
-      "evidenceSources": ["binance_proof_of_reserves_p0"],
+      "evidenceSources": ["binance_security_breach_blog_p0", "binance_proof_of_reserves_p0"],
       "screenshotEvidence": [],
       "confidence": "medium",
-      "lastChecked": "2026-05-25",
+      "lastChecked": "2026-06-08",
       "staleAfterDays": 30,
       "allowedWording": [
         "maintains the SAFU emergency insurance-style fund",
