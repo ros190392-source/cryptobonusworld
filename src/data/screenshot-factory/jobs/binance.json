@@ -735,6 +735,29 @@
       "freshness": { "lastCaptured": null, "lastApproved": null, "refreshCadence": "manual", "staleAfterDays": 0 },
       "status": "forbidden",
       "notes": "FORBIDDEN — never captured. email_verification_empty_or_masked must show empty/masked field only."
+    },
+    {
+      "screenshotId": "binance_futures_fees_en_global",
+      "exchange": "binance", "language": "en", "geo": "global", "section": "futures",
+      "targetUrl": "https://www.binance.com/en/fee/futureFee", "sourceFromExchangeProfile": true,
+      "captureType": "public", "priority": "P1",
+      "claimSupported": "Binance publishes a public USDⓈ-M futures fee schedule (VIP maker/taker tiers).",
+      "claimIds": ["binance_fees_futures"],
+      "requiredVisibleElements": ["futures fee table", "USDT maker / taker", "VIP tier rows"],
+      "forbiddenVisibleElements": ["account VIP tier of a real user", "balance", "logged-in account header"],
+      "maskingRequired": [],
+      "cropPolicy": "Keep Regular User + VIP tier fee rows; crop any logged-in account header. Caption must note rates change and futures carry capital-loss risk.",
+      "browserChromePolicy": "hidden",
+      "expectedOutput": {
+        "candidatePath": "reports/screenshots/binance/batch-1-public/binance-futures-fees-en-global-2026-06-08.jpg",
+        "publicPath": "public/screenshots/binance/futures_fees/",
+        "format": "webp",
+        "maxWidth": 1440
+      },
+      "approval": { "ownerApprovalRequired": true, "ethicsReviewRequired": true, "publicPublishAllowed": false, "approvedBy": null, "approvedAt": null },
+      "freshness": { "lastCaptured": "2026-06-08", "lastApproved": null, "refreshCadence": "monthly", "staleAfterDays": 30 },
+      "status": "captured_candidate",
+      "notes": "Public USDⓈ-M futures fee table candidate captured in reports (batch-1, owner-approved in SPRINT-07-BINANCE-BATCH-1-OWNER-REVIEW-01). Job created via SPRINT-07-BINANCE-FUTURES-FEES-JOB-SYNC-01. publicPublishAllowed stays false until owner approval + register step. Futures carry capital-loss risk — caption must note; VIP/promo rates change."
     }
   ]
 }
