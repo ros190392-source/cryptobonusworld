@@ -589,14 +589,12 @@ export function buildProductSchema(ex: SeoExchange, pageUrl?: string, evidenceOp
     ...(editorNote.length > 30 ? {
       review: {
         '@type': 'Review',
-        // GSC fix: itemReviewed is required on every Review object.
-        // Without it Google's Review validator reports "missing itemReviewed" critical error.
-        // Points back to the Product this review describes.
-        itemReviewed: {
-          '@type': 'Product',
-          name: `${ex.name} Welcome Bonus`,
-          url: canonicalUrl,
-        },
+        // GSC note: do NOT add itemReviewed here.
+        // This Review is nested inside Product.review — the parent Product is already
+        // the reviewed item. Google explicitly warns: "Nested object cannot contain
+        // itemReviewed. Remove itemReviewed." Adding it also causes the itemReviewed
+        // stub to be extracted as a standalone incomplete Product entity, which
+        // triggers a separate Product Description critical error.
         author: {
           '@type': 'Organization',
           name: SITE_NAME,
