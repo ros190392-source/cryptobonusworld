@@ -548,6 +548,9 @@ export function buildProductSchema(ex: SeoExchange, pageUrl?: string, evidenceOp
     name: `${ex.name} Welcome Bonus`,
     description: ex.shortDescription,
     url: canonicalUrl,
+    // GSC fix: image is required for Product rich result and Merchant product data.
+    // Uses the exchange OG card — all 14 slugs have /og/exchange-{slug}.png in public/og/.
+    image: `${SITE_URL}/og/exchange-${ex.slug}.png`,
     ...(lastVerified ? { dateModified: lastVerified } : {}),
     brand: {
       // GSC fix: Brand requires @type "Brand", not "Organization"
@@ -660,7 +663,11 @@ export function buildReviewPageSchema(
     author: authorEntity,
     reviewedBy: authorEntity,
     mainEntity: {
-      '@type': 'FinancialProduct',
+      // GSC fix: FinancialProduct inherits from Product — Google counts it as a Product
+      // entity and then flags it as incomplete (no image, brand, offers, aggregateRating).
+      // FinancialService inherits from Service (not Product), so Google does NOT count it
+      // in Product descriptions. A crypto exchange is semantically a financial service.
+      '@type': 'FinancialService',
       name: `${ex.name} Cryptocurrency Exchange`,
       description: ex.shortDescription,
       url: `${SITE_URL}/exchanges/${ex.slug}/`,
