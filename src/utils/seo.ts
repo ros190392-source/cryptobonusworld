@@ -586,6 +586,14 @@ export function buildProductSchema(ex: SeoExchange, pageUrl?: string, evidenceOp
     ...(editorNote.length > 30 ? {
       review: {
         '@type': 'Review',
+        // GSC fix: itemReviewed is required on every Review object.
+        // Without it Google's Review validator reports "missing itemReviewed" critical error.
+        // Points back to the Product this review describes.
+        itemReviewed: {
+          '@type': 'Product',
+          name: `${ex.name} Welcome Bonus`,
+          url: canonicalUrl,
+        },
         author: {
           '@type': 'Organization',
           name: SITE_NAME,
