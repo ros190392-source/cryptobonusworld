@@ -471,7 +471,7 @@ const analyticsContext: PageContext = { pageType: 'category' };
     .networks-head, .networks-row { grid-template-columns: 1fr; gap: 0.1rem; }
     .networks-head span:last-child, .networks-row span:last-child { color: var(--color-text-muted); font-size: 0.8rem; }
     .top-pick-inner { flex-direction: column; align-items: flex-start; }
-    .coin-hub-links__grid { grid-template-columns: 1fr; }
+    .coin-hub-links__grid { grid-template-columns: minmax(0, 1fr); }
   }
 
   /* ── Hub cross-links ── */
@@ -484,7 +484,7 @@ const analyticsContext: PageContext = { pageType: 'category' };
   }
   .coin-hub-links__grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.875rem;
   }
   .coin-hub-links__card {

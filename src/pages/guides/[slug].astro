@@ -847,7 +847,11 @@ const categoryColors: Record<string, string> = {
   /* Mobile */
   @media (max-width: 960px) {
     .guide-layout {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .guide-main {
+      min-width: 0;
+      overflow-x: clip;
     }
     .guide-sidebar {
       position: static;
@@ -858,7 +862,7 @@ const categoryColors: Record<string, string> = {
 
   @media (max-width: 640px) {
     :global(.guide-table) { font-size: 0.75rem; display: block; overflow-x: auto; }
-    .guide-related-grid { grid-template-columns: 1fr; }
+    .guide-related-grid { grid-template-columns: minmax(0, 1fr); }
   }
 
   /* ── Use-case cross-links ── */

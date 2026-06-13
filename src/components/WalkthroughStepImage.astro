@@ -242,6 +242,8 @@ const suppressScreenshot = omitScreenshot || (!screenshotStatus && !src);
     line-height: 1.4;
     color: var(--color-text-primary);
     padding-top: 0.2rem;
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 
   .wsi-desc {
@@ -249,6 +251,7 @@ const suppressScreenshot = omitScreenshot || (!screenshotStatus && !src);
     font-size: var(--text-sm, 0.9rem);
     color: var(--color-text-secondary);
     line-height: 1.65;
+    overflow-wrap: anywhere;
   }
 
   .wsi-img-wrap {

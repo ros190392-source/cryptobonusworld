@@ -434,28 +434,28 @@ const IS_DEV = import.meta.env.DEV;
 
   .grid-2 {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1.25rem;
   }
 
   .grid-3 {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 1.25rem;
   }
 
   .grid-4 {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 1rem;
   }
 
   @media (max-width: 1024px) {
-    .grid-4 { grid-template-columns: repeat(2, 1fr); }
+    .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
 
   @media (max-width: 768px) {
-    .grid-3 { grid-template-columns: repeat(2, 1fr); }
+    .grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     :root { --container-pad: 1rem; }
     .page-header { padding: 1.5rem 0 1rem; }
     .page-header h1 { font-size: clamp(1.4rem, 5.5vw, 2rem); }
@@ -464,7 +464,7 @@ const IS_DEV = import.meta.env.DEV;
   @media (max-width: 520px) {
     .grid-2,
     .grid-3,
-    .grid-4 { grid-template-columns: 1fr; }
+    .grid-4 { grid-template-columns: minmax(0, 1fr); }
   }
 
   @media (max-width: 375px) {

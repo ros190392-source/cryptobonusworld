@@ -130,6 +130,8 @@ addPick('Top Rated',         `${topRated.rating}/10 editorial score`,           
     display: flex;
     flex-direction: column;
     gap: 0.05rem;
+    min-width: 0;
+    overflow: hidden;
   }
 
   .qp-item-label {
@@ -137,12 +139,16 @@ addPick('Top Rated',         `${topRated.rating}/10 editorial score`,           
     font-weight: 700;
     color: var(--color-text-primary);
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .qp-item-name {
     font-size: 0.62rem;
     color: var(--color-text-muted);
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .qp-item-hint {

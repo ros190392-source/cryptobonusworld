@@ -1827,7 +1827,7 @@ const rnrItems = [
     line-height: 1.45;
   }
   @media (max-width: 720px) {
-    .flagship-html :global(.fh-tour-grid) { grid-template-columns: 1fr; }
+    .flagship-html :global(.fh-tour-grid) { grid-template-columns: minmax(0, 1fr); }
   }
 
   /* Side-by-side proof pair inside flagship html (e.g. withdrawal both-ends) */
@@ -1860,7 +1860,7 @@ const rnrItems = [
     line-height: 1.45;
   }
   @media (max-width: 720px) {
-    .flagship-html :global(.fh-pair) { grid-template-columns: 1fr; }
+    .flagship-html :global(.fh-pair) { grid-template-columns: minmax(0, 1fr); }
   }
   /* Any flagship figure wired to the lightbox is visibly clickable */
   .flagship-html :global(figure[data-lightbox-group]) { cursor: zoom-in; }
@@ -1925,7 +1925,7 @@ const rnrItems = [
     object-position: top center;
   }
   @media (max-width: 860px) {
-    .shots-pair { grid-template-columns: 1fr; }
+    .shots-pair { grid-template-columns: minmax(0, 1fr); }
   }
 
   .ex-compare-mini thead th {
@@ -2395,7 +2395,12 @@ const rnrItems = [
   /* Mobile: stack layout, pad bottom for sticky CTA */
   @media (max-width: 960px) {
     .ex-layout {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .ex-main {
+      min-width: 0;
+      overflow-x: clip;
     }
 
     .ex-sidebar {
@@ -2414,8 +2419,8 @@ const rnrItems = [
   }
 
   @media (max-width: 640px) {
-    .bonus-tiers { grid-template-columns: 1fr; }
-    .conditions-grid { grid-template-columns: 1fr 1fr; }
+    .bonus-tiers { grid-template-columns: minmax(0, 1fr); }
+    .conditions-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   }
 
   @media (max-width: 400px) {
