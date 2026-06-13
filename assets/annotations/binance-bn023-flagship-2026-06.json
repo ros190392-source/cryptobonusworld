@@ -1,0 +1,32 @@
+{
+  "version": "1.0",
+  "exchange": "binance",
+  "category": "registration",
+  "date": "2026-06",
+  "screenshotWidth": 1440,
+  "screenshotHeight": 713,
+  "notes": "BN-023 flagship: 2FA",
+  "annotations": [
+    {
+      "type": "focus",
+      "rect": [
+        558,
+        374,
+        325,
+        44
+      ],
+      "radius": 6,
+      "intensity": "normal"
+    },
+    {
+      "type": "callout",
+      "text": "Enable 2FA before your first deposit",
+      "anchor": [
+        720,
+        442
+      ],
+      "side": "below",
+      "style": "glass"
+    }
+  ]
+}

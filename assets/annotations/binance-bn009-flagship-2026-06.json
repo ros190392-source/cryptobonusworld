@@ -1,0 +1,32 @@
+{
+  "version": "1.0",
+  "exchange": "binance",
+  "category": "registration",
+  "date": "2026-06",
+  "screenshotWidth": 1440,
+  "screenshotHeight": 711,
+  "notes": "BN-009 flagship: referral confirmation",
+  "annotations": [
+    {
+      "type": "focus",
+      "rect": [
+        580,
+        282,
+        282,
+        50
+      ],
+      "radius": 6,
+      "intensity": "normal"
+    },
+    {
+      "type": "callout",
+      "text": "Referral ID linked automatically",
+      "anchor": [
+        718,
+        400
+      ],
+      "side": "below",
+      "style": "glass"
+    }
+  ]
+}

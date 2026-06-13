@@ -1,0 +1,32 @@
+{
+  "version": "1.0",
+  "exchange": "binance",
+  "category": "bonus",
+  "date": "2026-06",
+  "screenshotWidth": 1440,
+  "screenshotHeight": 712,
+  "notes": "Owner rewards hub pre-KYC: Stage 1 tasks live proof",
+  "annotations": [
+    {
+      "type": "focus",
+      "rect": [
+        363,
+        400,
+        716,
+        190
+      ],
+      "radius": 10,
+      "intensity": "normal"
+    },
+    {
+      "type": "callout",
+      "text": "Live Stage 1 tasks on our own account — June 2026",
+      "anchor": [
+        718,
+        612
+      ],
+      "side": "below",
+      "style": "glass"
+    }
+  ]
+}

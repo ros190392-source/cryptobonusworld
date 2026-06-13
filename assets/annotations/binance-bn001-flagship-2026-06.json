@@ -1,0 +1,32 @@
+{
+  "version": "1.0",
+  "exchange": "binance",
+  "category": "registration",
+  "date": "2026-06",
+  "screenshotWidth": 1440,
+  "screenshotHeight": 710,
+  "notes": "BN-001 flagship: 19,800 offer on form",
+  "annotations": [
+    {
+      "type": "focus",
+      "rect": [
+        368,
+        105,
+        292,
+        95
+      ],
+      "radius": 8,
+      "intensity": "normal"
+    },
+    {
+      "type": "callout",
+      "text": "The 19,800 USDT offer shows with our code attached",
+      "anchor": [
+        513,
+        250
+      ],
+      "side": "below",
+      "style": "glass"
+    }
+  ]
+}

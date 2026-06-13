@@ -1,0 +1,32 @@
+{
+  "version": "1.0",
+  "exchange": "binance",
+  "category": "kyc",
+  "date": "2026-06",
+  "screenshotWidth": 1440,
+  "screenshotHeight": 711,
+  "notes": "BN-014 flagship: doc upload",
+  "annotations": [
+    {
+      "type": "focus",
+      "rect": [
+        598,
+        178,
+        247,
+        156
+      ],
+      "radius": 8,
+      "intensity": "normal"
+    },
+    {
+      "type": "callout",
+      "text": "Upload the photo page — all corners visible, no glare",
+      "anchor": [
+        855,
+        252
+      ],
+      "side": "right",
+      "style": "glass"
+    }
+  ]
+}

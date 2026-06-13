@@ -1,0 +1,32 @@
+{
+  "version": "1.0",
+  "exchange": "binance",
+  "category": "kyc",
+  "date": "2026-06",
+  "screenshotWidth": 1440,
+  "screenshotHeight": 708,
+  "notes": "BN-013 flagship: doc select",
+  "annotations": [
+    {
+      "type": "focus",
+      "rect": [
+        536,
+        330,
+        368,
+        74
+      ],
+      "radius": 8,
+      "intensity": "normal"
+    },
+    {
+      "type": "callout",
+      "text": "Recommended option — fastest approval",
+      "anchor": [
+        912,
+        367
+      ],
+      "side": "right",
+      "style": "glass"
+    }
+  ]
+}

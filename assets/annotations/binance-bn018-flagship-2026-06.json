@@ -1,0 +1,32 @@
+{
+  "version": "1.0",
+  "exchange": "binance",
+  "category": "kyc",
+  "date": "2026-06",
+  "screenshotWidth": 1440,
+  "screenshotHeight": 709,
+  "notes": "BN-018 flagship: KYC voucher CTA",
+  "annotations": [
+    {
+      "type": "focus",
+      "rect": [
+        262,
+        440,
+        122,
+        50
+      ],
+      "radius": 6,
+      "intensity": "normal"
+    },
+    {
+      "type": "callout",
+      "text": "Complete verification to claim the 20 USD voucher",
+      "anchor": [
+        515,
+        462
+      ],
+      "side": "right",
+      "style": "glass"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "version": "1.0",
+  "exchange": "binance",
+  "category": "p2p",
+  "date": "2026-06",
+  "screenshotWidth": 1440,
+  "screenshotHeight": 709,
+  "notes": "BN-032 flagship: P2P express",
+  "annotations": [
+    {
+      "type": "focus",
+      "rect": [
+        825,
+        506,
+        327,
+        50
+      ],
+      "radius": 8,
+      "intensity": "normal"
+    },
+    {
+      "type": "callout",
+      "text": "Escrow-protected — pay with local methods",
+      "anchor": [
+        988,
+        582
+      ],
+      "side": "below",
+      "style": "glass"
+    }
+  ]
+}

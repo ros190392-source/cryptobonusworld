@@ -1,0 +1,32 @@
+{
+  "version": "1.0",
+  "exchange": "binance",
+  "category": "bonus",
+  "date": "2026-06",
+  "screenshotWidth": 1440,
+  "screenshotHeight": 710,
+  "notes": "Owner dashboard get started, PII masked, zero balance",
+  "annotations": [
+    {
+      "type": "focus",
+      "rect": [
+        352,
+        400,
+        180,
+        80
+      ],
+      "radius": 8,
+      "intensity": "normal"
+    },
+    {
+      "type": "callout",
+      "text": "Fresh account, zero balance — every claim tested for real",
+      "anchor": [
+        560,
+        445
+      ],
+      "side": "right",
+      "style": "glass"
+    }
+  ]
+}
