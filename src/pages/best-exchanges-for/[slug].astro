@@ -57,7 +57,9 @@ const ranked = rankExchangesForUseCase(exchanges as any, useCase.scoring);
 const topPick = ranked[0];
 
 // Build alternative SEO title targeting the "best...for" query pattern
-const pageTitle = `Best Crypto Exchange for ${useCase.label} ${YEAR} — Top ${ranked.length} Picks`;
+const _baseTitle = `Best Crypto Exchange for ${useCase.label} ${YEAR}`;
+const _titleSuffix = ` — Top ${ranked.length} Picks`;
+const pageTitle = (_baseTitle + _titleSuffix).length <= 60 ? _baseTitle + _titleSuffix : _baseTitle;
 const pageDesc = `Find the best crypto exchange for ${useCase.label.toLowerCase()} in ${YEAR}. ${useCase.metaDesc}`;
 
 // Schema — same data as use-case page

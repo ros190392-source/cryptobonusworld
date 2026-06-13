@@ -17,11 +17,11 @@
       "notes": "KYC required for fiat deposits and withdrawals. Basic ID verification required."
     },
     "bonus": {
-      "url": "https://bingx.com/en-us/activity/new-user-reward/",
-      "label": "BingX — New User Rewards",
+      "url": "https://bingx.com/en/rewards",
+      "label": "BingX — Rewards Hub",
       "type": "official-promo",
-      "lastAccessed": "2026-05-20",
-      "notes": "Up to 5,000 USDT in new user bonus tasks. Deposit and trading tasks required."
+      "lastAccessed": "2026-06-11",
+      "notes": "Referral landing states 11,000+ USDT total (6,800+ regular welcome gift + 4,200+ referee-exclusive perks). Rewards Hub breakdown of the regular part: sign-up 5–30 USDT, 2-day futures challenge up to 700 USDT in position vouchers, cumulative futures volume tasks up to 5,300+ USDT in token vouchers. Tasks vary by region; mostly vouchers, not withdrawable cash. Screenshots: reports/screenshots/bingx/manual-library/ (landing top + rewards hub, 2026-06-11)"
     },
     "restricted_countries": {
       "url": "https://bingx.com/en-us/support/articles/360014625792",
@@ -71,16 +71,16 @@
   "facts": [
     {
       "field": "bonus_amount",
-      "currentValue": 5000,
+      "currentValue": 11000,
       "unit": "USDT",
       "officialSourceKey": "bonus",
-      "officialSourceUrl": "https://bingx.com/en-us/activity/new-user-reward/",
-      "lastChecked": "2026-05-20",
-      "checkedBy": "human",
-      "confidenceScore": 0.27,
-      "conflictStatus": "outdated",
-      "manualReviewRequired": true,
-      "notes": "Up to 5,000 USDT new user rewards. Needs daily re-check."
+      "officialSourceUrl": "https://bingxdao.com/partner/CRYPTOBONUSWORLD/",
+      "lastChecked": "2026-06-11",
+      "checkedBy": "agent",
+      "confidenceScore": 0.9,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false,
+      "notes": "Own referral landing captured live 2026-06-11 (headless, screenshots archived): '11,000+ USDT Welcome Gift — Enjoy a regular welcome gift of 6,800+ USDT, and unlock 4,200+ USDT exclusive perks. 6,800+ regular signed-up users / 11,000+ exclusive for referees'. Rewards Hub (bingx.com/en/rewards) confirms the 6,800+ regular component. Redirect bingxdao.com → bingx.com/en/partner/CRYPTOBONUSWORLD; code survived in path."
     },
     {
       "field": "bonus_currency",
@@ -292,6 +292,14 @@
     }
   ],
   "screenshots": {
+    "bonus_referral_landing": {
+      "status": "available",
+      "path": "/screenshots/bingx/bonus_referral_landing/global-desktop-2026-06-v2.webp",
+      "capturedAt": "2026-06-11",
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": "BingX × CryptoBonusWorld referral landing with code CRYPTOBONUSWORLD pre-filled in the sign-up form. The live page shows a 6,800+ USDT regular welcome gift for all new users plus an 11,000+ USDT Exclusive offer for referral sign-ups (4,200+ USDT extra perks). Rewards are task-based and mostly trading vouchers; most users earn 50–250 USDT. Verified live on June 11, 2026."
+    },
     "registration": {
       "status": "needs_manual_capture",
       "path": null,

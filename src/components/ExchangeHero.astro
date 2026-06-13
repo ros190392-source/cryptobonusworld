@@ -7,6 +7,7 @@ import TrustVerificationBlock from './TrustVerificationBlock.astro';
 
 import { getCtaLabel, getBonusExpiryNote } from '../utils/affiliateUtils';
 import { type PartnerStatus, isLimited } from '../utils/partnerStatus';
+import { BONUS_TYPE_DEFS } from '../utils/contentEngine';
 
 interface Props {
   name: string;
@@ -40,6 +41,10 @@ interface Props {
   bonusDisplayMode?: 'up-to' | 'range' | 'fixed' | 'regional' | 'campaign';
   // Partner relationship tier
   partnerStatus?: PartnerStatus;
+  // Hero left-column "how the bonus unlocks" block (structured tiers only)
+  bonusTiers?: { type: string; title: string; amount: number; currency: string; condition: string }[];
+  bonusRange?: { typicalMin?: number; typicalMax?: number; currency?: string; typicalNote?: string } | null;
+  proofShot?: { src: string; capturedAt?: string } | null;
 }
 
 const props = Astro.props;
@@ -82,6 +87,22 @@ if (props.founded) {
 
 import { getBrandColor } from '../utils/logoConfig';
 const brand = getBrandColor(props.slug);
+
+// ── "How the bonus unlocks" left-column block ─────────────────────────────
+// Fills the desktop void below the trust chips. Data comes verbatim from
+// fact-checked exchanges.json fields — no synthetic claims here.
+const unlockSteps = !limited && props.bonusTiers?.length ? props.bonusTiers.slice(0, 3) : [];
+const campaignMode = props.bonusDisplayMode === 'campaign';
+const fmtUnlockAmount = (a: number) =>
+  a >= 1000 ? `${(a / 1000).toFixed(1).replace(/\.0$/, '')}K` : String(a);
+const typicalLine =
+  props.bonusRange?.typicalNote ??
+  (props.bonusRange?.typicalMin && props.bonusRange?.typicalMax
+    ? `Most users earn ${props.bonusRange.typicalMin}–${props.bonusRange.typicalMax} ${props.bonusRange.currency ?? props.bonusCurrency}`
+    : null);
+const proofDate = props.proofShot?.capturedAt
+  ? new Date(props.proofShot.capturedAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+  : null;
 
 const ratingFull = Math.floor(props.rating / 2);
 const ratingHalf = (props.rating / 2) % 1 >= 0.5;
@@ -152,6 +173,47 @@ const quickFacts = [
             </span>
           ))}
         </div>
+
+        {unlockSteps.length > 0 && (
+          <div class="exhero-unlock">
+            <div class="exhero-unlock-eyebrow">How the bonus unlocks</div>
+            <ol class="exhero-unlock-steps" aria-label="Bonus unlock steps">
+              {unlockSteps.map(step => (
+                <li class="exhero-unlock-step">
+                  <span class="exhero-unlock-icon" aria-hidden="true">{BONUS_TYPE_DEFS[step.type]?.icon ?? '🎁'}</span>
+                  <span class="exhero-unlock-body">
+                    <span class="exhero-unlock-head">
+                      <span class="exhero-unlock-title">{step.title}</span>
+                      {!campaignMode && step.amount > 0 && (
+                        <span class="exhero-unlock-amount">{fmtUnlockAmount(step.amount)} {step.currency}</span>
+                      )}
+                    </span>
+                    <span class="exhero-unlock-cond">{step.condition}</span>
+                  </span>
+                </li>
+              ))}
+            </ol>
+            {campaignMode ? (
+              <p class="exhero-unlock-typical">Verify current campaign terms on the official site</p>
+            ) : typicalLine && (
+              <p class="exhero-unlock-typical">{typicalLine} · <a href="#bonus-breakdown">full breakdown ↓</a></p>
+            )}
+            {props.proofShot && (
+              <a href="#bonus-proof" class="exhero-unlock-proof">
+                <img
+                  src={props.proofShot.src}
+                  width="88" height="50"
+                  loading="lazy" decoding="async"
+                  alt={`${props.name} sign-up page showing the live new-user offer${proofDate ? ` — captured ${proofDate}` : ''}`}
+                />
+                <span class="exhero-unlock-proof-text">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                  Offer verified on live {props.name} sign-up page{proofDate && ` · ${proofDate}`}
+                </span>
+              </a>
+            )}
+          </div>
+        )}
       </div>
 
       <!-- Right: bonus display + CTA -->
@@ -267,13 +329,14 @@ const quickFacts = [
 
 <!-- Mobile sticky CTA bar — hidden by default, shown via IntersectionObserver -->
 <div class="exhero-sticky" id="exhero-sticky" aria-hidden="true">
+  <ExchangeLogo slug={props.slug} name={props.name} size={36} variant="square" class="exhero-sticky-logo" />
   <div class="exhero-sticky-info">
     <span class="exhero-sticky-name">{props.name}</span>
     <span class="exhero-sticky-bonus">Up to {props.bonusAmount.toLocaleString('en-US')} {props.bonusCurrency}</span>
   </div>
   <CTAButton
     href={props.affiliateUrl}
-    label={ctaLabel}
+    label="Claim Bonus"
     exchange={props.name}
     size="md"
     trackPlacement="sticky"
@@ -454,6 +517,138 @@ const quickFacts = [
     border: 1px solid rgba(74, 222, 128, 0.18);
     padding: 0.2rem 0.5rem;
     border-radius: 4px;
+  }
+
+  /* "How the bonus unlocks" — desktop-only filler for the left-column void */
+  .exhero-unlock {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+  }
+
+  .exhero-unlock-eyebrow {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-text-muted);
+  }
+
+  .exhero-unlock-steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+  }
+
+  .exhero-unlock-step {
+    display: flex;
+    gap: 0.625rem;
+    align-items: flex-start;
+    min-width: 0;
+  }
+
+  .exhero-unlock-icon {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--brand) 10%, var(--color-bg-tertiary));
+    border: 1px solid color-mix(in srgb, var(--brand) 25%, var(--color-border));
+  }
+
+  .exhero-unlock-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .exhero-unlock-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+
+  .exhero-unlock-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .exhero-unlock-amount {
+    margin-left: auto;
+    flex-shrink: 0;
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: var(--color-accent);
+  }
+
+  .exhero-unlock-cond {
+    font-size: 0.72rem;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .exhero-unlock-typical {
+    margin: 0;
+    font-size: 0.72rem;
+    font-style: italic;
+    color: var(--color-text-muted);
+  }
+  .exhero-unlock-typical a {
+    color: var(--color-text-muted);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    transition: color 0.15s;
+  }
+  .exhero-unlock-typical a:hover { color: var(--color-accent); }
+
+  .exhero-unlock-proof {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    text-decoration: none;
+    min-width: 0;
+  }
+
+  .exhero-unlock-proof img {
+    width: 88px;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    object-position: top center;
+    border-radius: 6px;
+    border: 1px solid var(--color-border);
+    flex-shrink: 0;
+  }
+
+  .exhero-unlock-proof-text {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #4ade80;
+    line-height: 1.35;
+  }
+  .exhero-unlock-proof-text svg { flex-shrink: 0; }
+  .exhero-unlock-proof:hover .exhero-unlock-proof-text {
+    text-decoration: underline;
+    text-underline-offset: 2px;
   }
 
   /* Right */
@@ -677,6 +872,10 @@ const quickFacts = [
     gap: 1rem;
   }
 
+  :global(.exhero-sticky-logo) {
+    flex-shrink: 0;
+  }
+
   .exhero-sticky-info {
     display: flex;
     flex-direction: column;
@@ -698,6 +897,16 @@ const quickFacts = [
     font-size: 0.72rem;
     color: var(--color-accent);
     font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Compact CTA inside the sticky bar — bar must stay a single 60px row */
+  .exhero-sticky :global(.cta-btn--md) {
+    padding: 0.5rem 1rem;
+    font-size: 0.8125rem;
+    flex-shrink: 0;
   }
 
   @media (max-width: 860px) {
@@ -705,6 +914,9 @@ const quickFacts = [
       grid-template-columns: 1fr;
       gap: 1.5rem;
     }
+    /* Single column: the void doesn't exist and the block would push the CTA
+       ~250px below the fold; the same content lives in the body breakdown. */
+    .exhero-unlock { display: none; }
     .exhero-page-title { font-size: 1.15rem; }
     .exhero-bonus-amount { font-size: 1.875rem; }
   }

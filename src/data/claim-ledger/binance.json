@@ -41,7 +41,7 @@
       "claimId": "binance_bonus_promo_code",
       "exchange": "binance",
       "page": "/exchanges/binance/",
-      "claimText": "The CryptoBonusWorld referral code for Binance is CRYPTOBONUSW, pre-filled automatically when registering via the CryptoBonusWorld link.",
+      "claimText": "The CryptoBonusWorld referral code for Binance is CRYPTOBONW, pre-filled automatically when registering via the CryptoBonusWorld link.",
       "claimType": "bonus",
       "evidenceSources": ["binance_referral_landing_p0", "binance_screenshot_registration_demo_state_p4"],
       "screenshotEvidence": ["binance_registration_demo_state_en_global"],
@@ -49,8 +49,8 @@
       "lastChecked": "2026-06-06",
       "staleAfterDays": 7,
       "allowedWording": [
-        "referral code CRYPTOBONUSW",
-        "code CRYPTOBONUSW is pre-filled when you register via our link"
+        "referral code CRYPTOBONW",
+        "code CRYPTOBONW is pre-filled when you register via our link"
       ],
       "blockedWording": [
         "exclusive code unavailable anywhere else",

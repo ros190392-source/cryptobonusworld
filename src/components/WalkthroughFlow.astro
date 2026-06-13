@@ -36,6 +36,9 @@ interface SchemaStep {
 interface Props {
   title: string;
   description?: string;
+  /** Optional intro block rendered between header and steps — e.g. a
+      before/after proof pair (figures may carry data-lightbox-* attrs) */
+  introHtml?: string;
   stepCount?: number;
   lastVerified?: string;     // "YYYY-MM"
   exchangeName?: string;
@@ -55,6 +58,7 @@ interface Props {
 const {
   title,
   description,
+  introHtml,
   stepCount,
   lastVerified,
   exchangeName,
@@ -118,6 +122,8 @@ const verifiedLabel = lastVerified ? fmtMonth(lastVerified) : null;
       )}
     </div>
   </div>
+
+  {introHtml && <div class="wf-intro" set:html={introHtml} />}
 
   <!-- Screenshot disclaimer -->
   <p class="wf-disclaimer">
@@ -286,10 +292,44 @@ const verifiedLabel = lastVerified ? fmtMonth(lastVerified) : null;
   }
   .wf-cta-link:hover { opacity: 1; }
 
+  /* Intro proof block (introHtml) — e.g. before/after pairs */
+  .wf-intro { margin: 1rem 0 0.25rem; }
+  .wf-intro :global(.wf-intro-pair) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    align-items: start;
+  }
+  .wf-intro :global(figure) {
+    margin: 0;
+    border: 1px solid var(--color-border, rgba(255,255,255,0.08));
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--color-surface, #13131f);
+    cursor: zoom-in;
+  }
+  .wf-intro :global(figure img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-width: 320px;
+    margin: 0 auto;
+  }
+  .wf-intro :global(figcaption) {
+    padding: 0.5rem 0.875rem 0.625rem;
+    font-size: 0.8rem;
+    color: var(--color-text-muted, #888);
+    line-height: 1.45;
+    font-style: italic;
+  }
+
   @media (max-width: 600px) {
     .wf-header { flex-direction: column; gap: 0.75rem; }
     .wf-header-meta { flex-direction: row; align-items: center; }
     .wf-cta-block { flex-direction: column; align-items: stretch; }
     .wf-cta-btn { justify-content: center; }
+  }
+  @media (max-width: 860px) {
+    .wf-intro :global(.wf-intro-pair) { grid-template-columns: 1fr; }
   }
 </style>

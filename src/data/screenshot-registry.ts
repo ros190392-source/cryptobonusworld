@@ -316,7 +316,7 @@ export const REGISTRY_CAPTURE_URLS: Record<string, Partial<Record<RegistryCatego
     mobile_app:            'https://apps.apple.com/us/app/binance-buy-bitcoin-crypto/id1436799971',
     kyc:                   null,
     deposit:               'https://www.binance.com/en/my/wallet/account/main/deposit/crypto/BTC',
-    bonus_referral_landing:'https://www.binance.com/join?ref=CRYPTOBONUSW',
+    bonus_referral_landing:'https://www.binance.com/join?ref=CRYPTOBONW',
     registration_mobile:   'https://accounts.binance.com/en/register',
     kyc_status_safe:       'https://www.binance.com/en/my/settings/profile',
     kyc_info:              'https://www.binance.com/en/support/faq/how-to-complete-identity-verification-360027287111',

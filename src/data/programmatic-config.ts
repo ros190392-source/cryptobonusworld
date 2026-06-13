@@ -219,7 +219,7 @@ export const BONUS_CODE_PAGES = [
   {
     slug: 'binance-bonus-code',
     exchange: 'binance',
-    codes: ['CRYPTOBONUSW'],
+    codes: ['CRYPTOBONW'],
     seoTitle: 'Binance Bonus Code 2026: Up to 100 USDT',
     metaDesc: 'Use our Binance referral code to claim up to 100 USDT in new user rewards. Verified working codes.',
     priority: 'very-high',

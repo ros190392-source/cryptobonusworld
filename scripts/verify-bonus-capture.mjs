@@ -251,8 +251,29 @@ async function verifyExchangeLive(browser, exchange, affiliate, region = null) {
       pageText = await page.evaluate(() => document.body.innerText ?? '');
     } catch { pageText = ''; }
 
-    detectedAmounts = extractBonusAmounts(pageText);
-    detectedPromo   = detectPromoCode(pageText, affiliate.promoCode);
+    // Bot-protection / block-page detection — a blocked page must never
+    // count as a successful capture (the promo code appears in the error
+    // text via the URL, producing false "promo visible" positives).
+    const BLOCK_MARKERS = [
+      'Access Denied',
+      "You don't have permission to access",
+      'errors.edgesuite.net',      // Akamai
+      'Attention Required! | Cloudflare',
+      'Verify you are human',
+      'Just a moment...',          // Cloudflare challenge
+      'Request unsuccessful. Incapsula',
+    ];
+    const blockedBy = BLOCK_MARKERS.find(m => pageText.includes(m));
+    if (blockedBy) {
+      captureError    = `Blocked by bot protection (marker: "${blockedBy}")`;
+      paramSurvived   = false;
+      detectedAmounts = [];
+      detectedPromo   = null;
+      warn(`  ⛔ ${exchange}: landing returned a block page — capture invalid (${blockedBy})`);
+    } else {
+      detectedAmounts = extractBonusAmounts(pageText);
+      detectedPromo   = detectPromoCode(pageText, affiliate.promoCode);
+    }
 
     dbg(`  Final URL:       ${finalUrl}`);
     dbg(`  Param survived:  ${paramSurvived}`);

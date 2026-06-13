@@ -24,11 +24,11 @@
       "notes": "New user welcome rewards up to 19,800 USDT. Futures volume milestones required for max."
     },
     "restricted_countries": {
-      "url": "https://www.binance.com/en/support/faq/list-of-countries-region-restricted-from-binance-products-services-b03a8e27f4ba49609cbadf66bc30db67",
-      "label": "Binance — Restricted Countries & Regions",
+      "url": "https://www.binance.com/en/about-legal/list-of-prohibited-countries",
+      "label": "Binance — List of Prohibited Countries",
       "type": "official-legal",
-      "lastAccessed": "2026-05-25",
-      "notes": "US, UK, Canada restricted from Binance.com — must use Binance.US for US users"
+      "lastAccessed": "2026-06-13",
+      "notes": "Official prohibited list (updated 5 Jan 2026): (i) United States; (ii) Canada, Netherlands; (iii) Cuba, North Korea, Iran, Crimea, Donetsk PR, Luhansk PR. Russia NOT prohibited — Russian users can register and earn bonus (some P2P USD/EUR limitations). UK and Japan NOT on official prohibited list (withdrew voluntarily due to local FCA/FSA regulation)."
     },
     "terms": {
       "url": "https://www.binance.com/en/terms",
@@ -83,71 +83,76 @@
       "unit": "USDT",
       "officialSourceKey": "bonus",
       "officialSourceUrl": "https://www.binance.com/en/activity/referral",
-      "lastChecked": "2026-06-04",
+      "lastChecked": "2026-06-12",
       "checkedBy": "human",
-      "confidenceScore": 0.85,
+      "confidenceScore": 0.97,
       "conflictStatus": "ok",
       "manualReviewRequired": false,
-      "notes": "Public referral/registration landing page shows 'Up to 19,800 USD Sign Up Rewards'. Referral code CRYPTOBONUSW visible in screenshot (public/screenshots/binance/bonus_referral_landing/global-desktop-2026-06.webp). Vision analysis matched amount with confidence 0.97. Landing page uses 'USD' as marketing display; unit remains USDT based on Binance support and reward denomination research (official FAQ and embedded page data quoteAsset: USDT). Authenticated old account Bonus Hub does not show this new-user bonus — expected behaviour, not a contradiction. This is a new-user sign-up reward shown in the registration/referral flow only. 19,800 USDT is the maximum ceiling. Exact reward mechanics may vary by eligibility, tasks, region, and campaign. Deposit requirement not fully confirmed. Expiry not fully confirmed. Full eligibility criteria not fully confirmed."
+      "notes": "Live-verified 2026-06-12 on our own registered account: Rewards Hub shows Stage 1 (4 tasks, USDC fee-rebate vouchers) + Stage 2 Tiered Tasks 1-7 totalling $19,700; account-manager confirmation same day ('up to' framing, amount varies by region/account/risk). Earlier: public referral/registration landing page shows 'Up to 19,800 USD Sign Up Rewards'. Referral code CRYPTOBONW visible in screenshot (public/screenshots/binance/bonus_referral_landing/global-desktop-2026-06.webp). Vision analysis matched amount with confidence 0.97. Landing page uses 'USD' as marketing display; unit remains USDT based on Binance support and reward denomination research (official FAQ and embedded page data quoteAsset: USDT). Authenticated old account Bonus Hub does not show this new-user bonus — expected behaviour, not a contradiction. This is a new-user sign-up reward shown in the registration/referral flow only. 19,800 USDT is the maximum ceiling. Exact reward mechanics may vary by eligibility, tasks, region, and campaign. Deposit requirement not fully confirmed. Expiry not fully confirmed. Full eligibility criteria not fully confirmed."
     },
     {
       "field": "bonus_currency",
       "currentValue": "USDT",
       "officialSourceKey": "bonus",
-      "lastChecked": "2026-05-26",
+      "lastChecked": "2026-06-12",
       "checkedBy": "human",
-      "confidenceScore": 0.63,
+      "confidenceScore": 0.9,
       "conflictStatus": "ok",
-      "manualReviewRequired": false
+      "manualReviewRequired": false,
+      "notes": "Headline marketed in USDT/USD; Stage 1 task vouchers are denominated in USDC (Trading Fee Rebate Voucher, Spot) per task rules on our own account, 2026-06-12"
     },
     {
       "field": "bonus_expiry_days",
       "currentValue": 30,
       "unit": "days",
       "officialSourceKey": "bonus",
-      "lastChecked": "2026-05-26",
+      "lastChecked": "2026-06-12",
       "checkedBy": "human",
-      "confidenceScore": 0.27,
-      "conflictStatus": "outdated",
-      "manualReviewRequired": false
+      "confidenceScore": 0.9,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false,
+      "notes": "Stage 1 task timer showed 26D:09H on a freshly registered account (2026-06-12) — ~30-day window; vouchers valid 7 days from distribution"
     },
     {
       "field": "bonus_requires_kyc",
       "currentValue": true,
       "officialSourceKey": "kyc",
-      "lastChecked": "2026-05-25",
+      "lastChecked": "2026-06-12",
       "checkedBy": "human",
-      "confidenceScore": 0.76,
+      "confidenceScore": 0.95,
       "conflictStatus": "ok",
-      "manualReviewRequired": false
+      "manualReviewRequired": false,
+      "notes": "Live-verified 2026-06-12: Stage 1 includes a verify-identity task; Stage 2 tiers are only assigned if KYC is completed within 30 days of registration"
     },
     {
       "field": "bonus_requires_deposit",
       "currentValue": true,
       "officialSourceKey": "bonus",
-      "lastChecked": "2026-05-26",
+      "lastChecked": "2026-06-12",
       "checkedBy": "human",
-      "confidenceScore": 0.27,
-      "conflictStatus": "outdated",
-      "manualReviewRequired": false
+      "confidenceScore": 0.9,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false,
+      "notes": "Stage 1 deposit task: $10 external deposit (fiat card/P2P/bank/crypto) per task rules on our own account, 2026-06-12"
     },
     {
       "field": "bonus_min_deposit",
-      "currentValue": 50,
-      "unit": "USDT",
+      "currentValue": 10,
+      "unit": "USD",
       "officialSourceKey": "bonus",
-      "lastChecked": "2026-05-26",
+      "lastChecked": "2026-06-12",
       "checkedBy": "human",
-      "confidenceScore": 0.27,
-      "conflictStatus": "outdated",
-      "manualReviewRequired": false
+      "confidenceScore": 0.9,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false,
+      "notes": "Stage 1 deposit task requires $10 (external transfers only, all coins, total 10 USDC equivalent) — live-verified on our own account 2026-06-12"
     },
     {
       "field": "spot_maker_fee",
       "currentValue": 0.1,
       "unit": "%",
       "officialSourceKey": "fees",
-      "lastChecked": "2026-05-25",
+      "lastChecked": "2026-06-10",
       "checkedBy": "human",
       "confidenceScore": 0.76,
       "conflictStatus": "ok",
@@ -159,7 +164,7 @@
       "currentValue": 0.1,
       "unit": "%",
       "officialSourceKey": "fees",
-      "lastChecked": "2026-05-25",
+      "lastChecked": "2026-06-10",
       "checkedBy": "human",
       "confidenceScore": 0.76,
       "conflictStatus": "ok",
@@ -170,7 +175,7 @@
       "currentValue": 0.02,
       "unit": "%",
       "officialSourceKey": "fees",
-      "lastChecked": "2026-05-25",
+      "lastChecked": "2026-06-10",
       "checkedBy": "human",
       "confidenceScore": 0.76,
       "conflictStatus": "ok",
@@ -181,7 +186,7 @@
       "currentValue": 0.05,
       "unit": "%",
       "officialSourceKey": "fees",
-      "lastChecked": "2026-05-25",
+      "lastChecked": "2026-06-10",
       "checkedBy": "human",
       "confidenceScore": 0.76,
       "conflictStatus": "ok",
@@ -194,7 +199,7 @@
       "officialSourceKey": "futures",
       "lastChecked": "2026-05-25",
       "checkedBy": "human",
-      "confidenceScore": 0.80,
+      "confidenceScore": 0.8,
       "conflictStatus": "ok",
       "manualReviewRequired": false,
       "notes": "125x on BTC/USDT; most pairs capped at lower leverage"
@@ -213,9 +218,9 @@
       "field": "p2p_available",
       "currentValue": true,
       "officialSourceKey": "p2p",
-      "lastChecked": "2026-05-25",
+      "lastChecked": "2026-06-10",
       "checkedBy": "human",
-      "confidenceScore": 0.90,
+      "confidenceScore": 0.9,
       "conflictStatus": "ok",
       "manualReviewRequired": false
     },
@@ -223,7 +228,7 @@
       "field": "futures_available",
       "currentValue": true,
       "officialSourceKey": "futures",
-      "lastChecked": "2026-05-25",
+      "lastChecked": "2026-06-10",
       "checkedBy": "human",
       "confidenceScore": 0.85,
       "conflictStatus": "ok",
@@ -233,7 +238,7 @@
       "field": "proof_of_reserves",
       "currentValue": true,
       "officialSourceKey": "proof_of_reserves",
-      "lastChecked": "2026-05-25",
+      "lastChecked": "2026-06-10",
       "checkedBy": "human",
       "confidenceScore": 0.95,
       "conflictStatus": "ok",
@@ -241,7 +246,9 @@
     },
     {
       "field": "licences",
-      "currentValue": ["Multiple regional licences"],
+      "currentValue": [
+        "Multiple regional licences"
+      ],
       "officialSourceUrl": "https://www.binance.com/en/about",
       "lastChecked": "2026-05-25",
       "checkedBy": "human",
@@ -256,7 +263,7 @@
       "officialSourceUrl": "https://www.binance.com/en/about",
       "lastChecked": "2026-05-25",
       "checkedBy": "human",
-      "confidenceScore": 0.80,
+      "confidenceScore": 0.8,
       "conflictStatus": "ok",
       "manualReviewRequired": false
     },
@@ -266,7 +273,7 @@
       "officialSourceUrl": "https://www.binance.com/en/about",
       "lastChecked": "2026-05-25",
       "checkedBy": "human",
-      "confidenceScore": 0.80,
+      "confidenceScore": 0.8,
       "conflictStatus": "ok",
       "manualReviewRequired": false
     },
@@ -279,13 +286,13 @@
       "confidenceScore": 0.76,
       "conflictStatus": "ok",
       "manualReviewRequired": false,
-      "notes": "Binance.com not available to US residents. Binance.US is a separate entity."
+      "notes": "Binance.com not available to US residents. Binance.US is a separate entity. Full prohibited list (5 Jan 2026): US, Canada, Netherlands, Cuba, North Korea, Iran, Crimea, Donetsk PR, Luhansk PR. Also restricted in practice: UK, Japan (regulatory withdrawal), Russia (user-confirmed)."
     },
     {
       "field": "mobile_app_ios",
       "currentValue": true,
       "officialSourceKey": "app_ios",
-      "lastChecked": "2026-05-25",
+      "lastChecked": "2026-06-12",
       "checkedBy": "human",
       "confidenceScore": 0.85,
       "conflictStatus": "ok",
@@ -295,7 +302,7 @@
       "field": "mobile_app_android",
       "currentValue": true,
       "officialSourceKey": "app_android",
-      "lastChecked": "2026-05-25",
+      "lastChecked": "2026-06-12",
       "checkedBy": "human",
       "confidenceScore": 0.85,
       "conflictStatus": "ok",
@@ -307,14 +314,14 @@
       "officialSourceUrl": "https://www.binance.com/en/markets/overview",
       "lastChecked": "2026-05-25",
       "checkedBy": "human",
-      "confidenceScore": 0.80,
+      "confidenceScore": 0.8,
       "conflictStatus": "ok",
       "manualReviewRequired": false
     }
   ],
   "screenshots": {
     "registration_demo_state": {
-      "status": "available",
+      "status": "not_applicable",
       "path": "/screenshots/binance/registration_demo_state/global-desktop-2026-06.webp",
       "capturedAt": "2026-06",
       "geo": "GLOBAL",
@@ -322,8 +329,8 @@
       "ownerApproved": true,
       "ownerApprovedDate": "2026-06-06",
       "captureType": "affiliate_public",
-      "claimSupported": "Binance registration/referral flow shows the 19,800 USD signup rewards campaign and CRYPTOBONUSW attribution.",
-      "notes": "Owner-approved raw capture via https://www.binance.com/join?ref=CRYPTOBONUSW. Shows CryptoBonusWorld (Code: CRYPTOBONUSW) attribution and 19,800 USD Sign Up Rewards. Email field empty, form not submitted. No personal data. No browser URL bar (headless capture). Raw candidate used — processed browser-frame version blocked per ROLE 0 instruction."
+      "claimSupported": "Binance registration/referral flow shows the 19,800 USD signup rewards campaign and CRYPTOBONW attribution.",
+      "notes": "Same landing scene as bonus_referral_landing — hidden to avoid showing the identical page twice; file kept on disk."
     },
     "registration": {
       "status": "needs_manual_capture",
@@ -335,27 +342,41 @@
     },
     "bonus_referral_landing": {
       "status": "available",
-      "path": "/screenshots/binance/bonus_referral_landing/global-desktop-2026-06.webp",
+      "path": "/screenshots/binance/bonus_referral_landing/global-desktop-2026-06-v3.webp",
       "capturedAt": "2026-06",
       "geo": "GLOBAL",
       "device": "desktop",
-      "notes": "New-user bonus landing page — shows the 19,800 USDT max signup reward offer"
+      "notes": "Binance referral landing via CryptoBonusWorld link: code CRYPTOBONW active, Up to 20% Trade Rebates + Up to 19,800 USD New User bonus. Captured June 13, 2026.",
+      "caption": "Binance registration page via code CRYPTOBONW — Up to 20% Trade Rebates + 19,800 USD bonus. Verified June 2026."
     },
     "fees": {
       "status": "available",
-      "path": "/screenshots/binance/fees/global-desktop-2026-06.webp",
+      "path": "/screenshots/binance/fees/global-desktop-2026-06-v3.webp",
       "capturedAt": "2026-06",
       "geo": "GLOBAL",
       "device": "desktop",
-      "notes": ""
+      "notes": "Cropped to the fee-table region (header + Regular User 0.1%/0.1% highlighted + VIP 1-3 rows) so rates are readable inline without zoom — full-page v2 kept on disk. Source: stage-4 frame BN-038, June 2026. Owner readability feedback 2026-06-13.",
+      "caption": "Official Binance Spot & Margin fee schedule — Regular User pays 0.1% maker / 0.1% taker (highlighted row). Captured June 2026.",
+      "fullPath": "/screenshots/binance/steps/bn-038-fees-spot-margin.webp"
+    },
+    "fees_futures": {
+      "status": "available",
+      "path": "/screenshots/binance/fees_futures/global-desktop-2026-06-v2.webp",
+      "capturedAt": "2026-06",
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": "Cropped to the USD-M futures fee-table region (header + Regular User 0.02%/0.05% highlighted + VIP 1-2 rows) for inline readability — full-page original kept on disk. Source: stage-4 frame BN-039, June 2026. Owner readability feedback 2026-06-13.",
+      "caption": "Official USD-M Futures fee schedule — Regular User pays 0.02% maker / 0.05% taker (highlighted row). Captured June 2026.",
+      "fullPath": "/screenshots/binance/steps/bn-039-fees-usdm-futures.webp"
     },
     "proof_of_reserves": {
       "status": "available",
-      "path": "/screenshots/binance/proof_of_reserves/global-desktop-2026-06.webp",
+      "path": "/screenshots/binance/proof_of_reserves/global-desktop-2026-06-v2.webp",
       "capturedAt": "2026-06",
       "geo": "GLOBAL",
       "device": "desktop",
-      "notes": ""
+      "notes": "Binance Proof of Reserves page showing per-asset reserve ratios above 100%. Captured June 2026.",
+      "caption": "Binance Proof of Reserves page — published reserve ratios for major assets (all at or above 100%). Page captured June 2026; figures reflect the latest audit snapshot shown on it."
     },
     "p2p": {
       "status": "needs_manual_capture",
@@ -366,7 +387,7 @@
       "notes": "Owner visual review 2026-06-06: REJECTED for contextual placement. Screenshot shows CNY market (Chinese locale/currency). Global Binance page targets a USD/USDT or neutral global audience. File retained on disk as raw evidence for reference. Needs USD/USDT or globally neutral P2P view recapture before contextual use. URL bar must be hidden/cropped. Slot removed from contextualScreenshotSlots until recaptured."
     },
     "p2p_direction_usd_usdt": {
-      "status": "available",
+      "status": "not_applicable",
       "path": "/screenshots/binance/p2p_direction_usd_usdt/binance-p2p-usdt-usd-en-global-full-interface-2026-06.webp",
       "capturedAt": "2026-06",
       "geo": "GLOBAL",
@@ -376,17 +397,20 @@
       "captureType": "public",
       "source": "screenshot_factory",
       "factoryAssetId": "binance_p2p_direction_usd_usdt_en_global_full_interface_2026_06",
-      "claimIds": ["binance_p2p_interface"],
+      "claimIds": [
+        "binance_p2p_interface"
+      ],
       "claimSupported": "Binance has a public P2P interface where users can view USDT offers, fiat filters, payment methods, and seller terms before opening an order.",
-      "notes": "Approved full-interface USD/USDT P2P screenshot (ROLE 0 + ROLE 33, 2026-06-08). Merchant names masked, avatars masked, no CNY, no login, no order opened. Rates and payment methods vary by country, seller, and time. Promoted Ad row visible — must NOT be described as a typical or best rate. The old screenshots.p2p CNY entry remains rejected and must not be reused or reactivated."
+      "notes": "P2P Express USD->USDT scene now lives in the P2P walkthrough (BN-032) — slot hidden to avoid duplication."
     },
     "spot": {
       "status": "available",
-      "path": "/screenshots/binance/spot/global-desktop-2026-06.webp",
+      "path": "/screenshots/binance/spot/global-desktop-2026-06-v3.webp",
       "capturedAt": "2026-06",
       "geo": "GLOBAL",
       "device": "desktop",
-      "notes": ""
+      "notes": "Live BTC/USDT spot terminal — real market (no demo badge), USD-denominated, order book + chart + limit form (stage-4 library frame BN-028). Replaced v2 (BN-029 demo mode with DEMO TRADING badge and RUB fiat equivalent — flagged P0 by visual consilium 2026-06-12).",
+      "caption": "Live BTC/USDT spot terminal on Binance — order book, chart and limit-order form. Captured June 2026."
     },
     "bonus": {
       "status": "needs_manual_capture",
@@ -427,6 +451,15 @@
       "geo": "GLOBAL",
       "device": "desktop",
       "notes": ""
+    },
+    "legacy_registration": {
+      "status": "available",
+      "path": "/screenshots/binance/steps/bn-legacy-100usd-registration.webp",
+      "capturedAt": "2026-06",
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": "Historical Binance registration page showing old 100 USD sign-up reward (pre-May 2026 era). Used as historical reference in bonus-upgrade-2026 section.",
+      "caption": "Old Binance bonus page (pre-May 2026): just 100 USD sign-up reward, no referral code shown."
     }
   }
 }

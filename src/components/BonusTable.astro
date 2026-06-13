@@ -88,6 +88,7 @@ const schema = {
   "@context": "https://schema.org",
   "@type": "ItemList",
   "name": "Crypto Exchange Bonuses",
+  "numberOfItems": filtered.length,
   "itemListElement": filtered.map((ex, i) => ({
     "@type": "ListItem",
     "position": i + 1,
@@ -221,7 +222,7 @@ const schema = {
             <td class="td-cta">
               <CTAButton
                 href={ex.affiliateUrl}
-                label={featured ? getCtaLabelShort(ex as any) : (!ex.kycRequired ? 'No KYC →' : 'View →')}
+                label={featured ? getCtaLabelShort(ex as any) : (!ex.kycRequired ? 'No KYC' : 'View')}
                 exchange={ex.name}
                 size={featured ? 'md' : 'sm'}
                 variant={featured ? 'primary' : 'outline'}
@@ -287,10 +288,10 @@ const schema = {
           </div>
 
           <div class="mc-footer">
-            <a href={`/exchanges/${ex.slug}/`} class="mc-details">Full details →</a>
+            <a href={`/exchanges/${ex.slug}/`} class="mc-details">Full details</a>
             <CTAButton
               href={ex.affiliateUrl}
-              label={!ex.kycRequired ? 'No KYC →' : 'View →'}
+              label={!ex.kycRequired ? 'No KYC' : 'View'}
               exchange={ex.name}
               size="sm"
               trackPlacement={featured ? 'mobile-card-featured' : 'mobile-card'}
@@ -655,11 +656,13 @@ const schema = {
     gap: 0.875rem;
     text-decoration: none;
     min-height: 68px;
+    min-width: 0; /* let the name column shrink instead of pushing the bonus block out */
   }
   .mc-meta {
     display: flex;
     flex-direction: column;
     gap: 0.2rem;
+    min-width: 0;
   }
   .mc-name {
     font-size: 0.9375rem;

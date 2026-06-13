@@ -30,8 +30,8 @@
     "partnershipNote": null
   },
   "affiliate": {
-    "primaryUrl": "https://www.binance.com/join?ref=CRYPTOBONUSW",
-    "promoCode": "CRYPTOBONUSW",
+    "primaryUrl": "https://www.binance.com/join?ref=CRYPTOBONW",
+    "promoCode": "CRYPTOBONW",
     "bonusAmount": 19800,
     "bonusCurrency": "USDT",
     "bonusType": "task-based rewards (KYC + deposit + volume milestones)",
@@ -154,7 +154,7 @@
       "note": "Available at https://www.binance.com/c2c or /p2p. Escrow-protected. Available payment methods vary by region."
     },
     "copyTrading": {
-      "available": false,
+      "available": true,
       "note": "Copy trading for qualified lead traders; spot and futures"
     },
     "earn": {
@@ -223,7 +223,7 @@
       "geckoTrustScore": 10,
       "geckoTrustRank": "#2",
       "welcomeBonus": "19800 USDT",
-      "promoCode": "CRYPTOBONUSW",
+      "promoCode": "CRYPTOBONW",
       "nativeToken": "BNB",
       "nasdaqListed": false
     },
@@ -240,7 +240,7 @@
       },
       {
         "question": "What is the Binance promo/referral code?",
-        "answer": "The CryptoBonusWorld referral code for Binance is CRYPTOBONUSW. It is pre-filled automatically when you register via our link. Using it activates the welcome bonus of up to 19800 USDT.",
+        "answer": "The CryptoBonusWorld referral code for Binance is CRYPTOBONW. It is pre-filled automatically when you register via our link. Using it activates the welcome bonus of up to 19800 USDT.",
         "category": "affiliate"
       },
       {
@@ -270,7 +270,7 @@
       },
       {
         "question": "Does Binance have copy trading?",
-        "answer": "Binance does not currently offer copy trading.",
+        "answer": "Yes — Binance offers copy trading for spot and futures: users can follow qualified lead traders and automatically replicate their positions.",
         "category": "products"
       },
       {

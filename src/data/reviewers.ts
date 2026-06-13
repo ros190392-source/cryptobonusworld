@@ -37,8 +37,11 @@ export interface ReviewerProfile {
   links?: {
     twitter?: string;
     linkedin?: string;
+    facebook?: string;
     website?: string;
   };
+  /** Short visible credentials line for bylines (YMYL trust signal) */
+  credentials?: string;
   /** When this reviewer joined the team */
   joinedAt: string;
   /** ISO date of most recent review activity */
@@ -78,11 +81,13 @@ export const EDITORIAL_TEAM: ReviewerProfile[] = [
     ],
     reviewedExchanges: [
       'bybit', 'mexc', 'okx', 'binance', 'bitget', 'bingx',
-      'kucoin', 'gate-io', 'htx', 'coinex', 'phemex', 'bitunix', 'lbank',
-    ],
-    links: {},
+      'kucoin', 'gate-io', 'htx', 'coinex', 'phemex', 'bitunix', ],
+    links: {
+      facebook: 'https://www.facebook.com/profile.php?id=100000380197124',
+    },
+    credentials: '15+ years in affiliate & crypto · 13 exchanges personally reviewed · every offer tested on a real account',
     joinedAt: '2024-01-01',
-    lastActiveAt: '2026-05-26',
+    lastActiveAt: '2026-06-12',
     reviewCount: 13,
     articleCount: 32,
     credibilityScore: 95,
@@ -111,8 +116,7 @@ export const EDITORIAL_TEAM: ReviewerProfile[] = [
     ],
     reviewedExchanges: [
       'bybit', 'mexc', 'okx', 'binance', 'bitget', 'bingx',
-      'kucoin', 'gate-io', 'htx', 'coinex', 'phemex', 'bitunix', 'lbank',
-    ],
+      'kucoin', 'gate-io', 'htx', 'coinex', 'phemex', 'bitunix', ],
     links: {},
     joinedAt: '2024-01-01',
     lastActiveAt: '2026-05-25',
@@ -176,7 +180,7 @@ export const EDITORIAL_TEAM: ReviewerProfile[] = [
       'Exchange security review',
       'Stablecoin deposit and withdrawal flows',
     ],
-    reviewedExchanges: ['mexc', 'kucoin', 'coinex', 'bitunix', 'lbank', 'bingx'],
+    reviewedExchanges: ['mexc', 'kucoin', 'coinex', 'bitunix', 'bingx'],
     links: {},
     joinedAt: '2024-06-01',
     lastActiveAt: '2026-05-18',

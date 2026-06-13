@@ -3,6 +3,7 @@ import Layout from '../../layouts/Layout.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import CTAButton from '../../components/CTAButton.astro';
 import guides from '../../data/guides.json';
+import { dataUpdatedLabel, EXCHANGE_COUNT } from '../../utils/seo';
 
 const categoryColors: Record<string, string> = {
   'Basics':          '#f5c542',
@@ -51,7 +52,7 @@ const schema = {
       <h1 class="guides-title">Crypto Exchange Guides</h1>
       <p class="guides-subtitle">
         In-depth resources for navigating crypto exchanges, bonuses, and passive income strategies.
-        Updated May 2026 by the CryptoBonusWorld editorial team.
+        Updated {dataUpdatedLabel()} by the CryptoBonusWorld editorial team.
       </p>
       <div class="guides-meta">
         <span class="guides-count">{guides.length} guides</span>
@@ -94,7 +95,7 @@ const schema = {
     <section class="guides-cta-strip">
       <div class="guides-cta-text">
         <h2>Ready to claim a bonus?</h2>
-        <p>Compare all 14 exchange bonuses and find the best offer for your country and trading goals.</p>
+        <p>Compare all {EXCHANGE_COUNT} exchange bonuses and find the best offer for your country and trading goals.</p>
       </div>
       <CTAButton href="/bonuses/" label="Compare All Bonuses →" size="lg" />
     </section>

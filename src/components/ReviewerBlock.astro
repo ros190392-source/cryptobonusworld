@@ -29,6 +29,9 @@ interface Reviewer {
   avatarSrc?: string;
   /** Areas of expertise — emitted as schema.org knowsAbout */
   expertise?: string[];
+  /** Short visible credentials line shown at the byline — YMYL trust signal
+      (e.g. "15+ years in the industry · 13 exchanges personally reviewed") */
+  credentials?: string;
 }
 
 interface Props {
@@ -56,6 +59,7 @@ const defaultReviewer: Reviewer = {
   initials: 'AS',
   avatarSrc: '/avatars/alexandr-shadurskyi.webp',
   profileUrl: '/reviewers/alexandr-shadurskyi/',
+  credentials: '15+ years in affiliate & crypto · 13 exchanges personally reviewed · every offer tested on a real account',
   expertise: [
     'Crypto exchange bonus structure analysis',
     'KYC and registration flow testing',
@@ -139,6 +143,7 @@ const personSchema: Record<string, unknown> = {
           </span>
         </div>
         <time class="rb-date" datetime={r.reviewedAt} itemprop="datePublished">{dateLabel}</time>
+        {r.credentials && <p class="rb-creds">{r.credentials}</p>}
         {!compact && <p class="rb-bio">{r.bio}</p>}
       </div>
     </div>
@@ -263,5 +268,13 @@ const personSchema: Record<string, unknown> = {
     color: var(--color-text-muted);
     line-height: 1.6;
     margin: 0.25rem 0 0;
+  }
+
+  .rb-creds {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--color-accent, #f5c542);
+    line-height: 1.5;
+    margin: 0.3rem 0 0;
   }
 </style>

@@ -215,7 +215,9 @@ if (errorCount === 0 && warningCount === 0) {
   process.exit(0);
 } else if (errorCount === 0) {
   console.log(`\n${YELLOW}${BOLD}  ⚠  Warnings present — review before deploying to production.${RESET}\n`);
-  process.exit(1);
+  // Warnings must not break the validate:all && chain — only errors are fatal.
+  // (Before this fix, 10 warnings here silently prevented evidence + affiliate checks from running.)
+  process.exit(0);
 } else {
   console.log(`\n${RED}${BOLD}  ✖  Errors found — fix before deploying.${RESET}\n`);
   process.exit(2);

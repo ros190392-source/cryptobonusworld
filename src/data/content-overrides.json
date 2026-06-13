@@ -14,6 +14,9 @@
   },
   "exchanges": {
     "bybit": {
+      "contextualScreenshotSlots": [
+        "bonus_referral_landing"
+      ],
       "verdict": {
         "quickVerdict": "The strongest all-round choice for derivatives traders outside the US, UK and Canada — deep liquidity, 0.01% futures fees, and the most comprehensive copy trading and P2P ecosystem at scale.",
         "bestFor": [
@@ -48,7 +51,7 @@
         },
         {
           "question": "What is the Bybit referral code for 2026?",
-          "answer": "The current Bybit referral code for 2026 is CRYPTOBONUSW. Entering this code during registration — or signing up via a referral link where it is pre-filled — unlocks the full welcome bonus of up to 30,000 USDT. The code is case-sensitive and must be present before you click the registration button. It cannot be applied retroactively after account creation."
+          "answer": "The current Bybit referral code for 2026 is CRYPTOBONW. Entering this code during registration — or signing up via a referral link where it is pre-filled — unlocks the full welcome bonus of up to 30,000 USDT. The code is case-sensitive and must be present before you click the registration button. It cannot be applied retroactively after account creation."
         },
         {
           "question": "How long does Bybit KYC verification take?",
@@ -76,7 +79,7 @@
         },
         {
           "question": "How do I claim the Bybit welcome bonus?",
-          "answer": "To claim the Bybit welcome bonus: (1) Register via a referral link with promo code CRYPTOBONUSW pre-filled. (2) Complete identity verification (KYC Level 1). (3) Make a qualifying deposit of at least 100 USDT. (4) Complete futures trading volume milestones. The bonus is distributed in tiers — the 20 USDT registration reward is credited as a trading voucher after KYC, and larger deposit rewards scale with your first deposit amount. All tasks must be completed within 30 days of registration. Bonus vouchers cannot be withdrawn directly — only profits generated from trading with them are withdrawable."
+          "answer": "To claim the Bybit welcome bonus: (1) Register via a referral link with promo code CRYPTOBONW pre-filled. (2) Complete identity verification (KYC Level 1). (3) Make a qualifying deposit of at least 100 USDT. (4) Complete futures trading volume milestones. The bonus is distributed in tiers — the 20 USDT registration reward is credited as a trading voucher after KYC, and larger deposit rewards scale with your first deposit amount. All tasks must be completed within 30 days of registration. Bonus vouchers cannot be withdrawn directly — only profits generated from trading with them are withdrawable."
         },
         {
           "question": "What are Bybit's withdrawal limits?",
@@ -115,13 +118,133 @@
           "rating": "Good",
           "note": "24/7 live chat; typical first response under 3 min, complex issues may take 24–48 h"
         }
-      }
+      },
+      "screenshotGalleryDisabled": true
     },
     "binance": {
+      "metaDescription": "Binance bonus June 2026: up to 19,800 USDT + 20% fee rebate with code CRYPTOBONW. Real screenshots, verified terms. Most users earn 50–200 USDT — here’s how to qualify.",
+      "contextualScreenshotSlots": [
+        "bonus_referral_landing",
+        "fees",
+        "fees_futures",
+        "proof_of_reserves"
+      ],
+      "tierTable": {
+        "heading": "Binance Bonus 2026: 19,800 USDT Rewards + 20% Fee Rebate",
+        "intro": "The headline figure is the sum of two stages: Stage 1 — four new-user tasks worth up to 100 USDC (≈$100 — Binance markets this stage as \"100 USD welcome rewards\"; the vouchers themselves are denominated in USDC), assigned immediately after registration — and Stage 2 — seven deposit-and-volume tiers worth up to $19,700, unlocked only after KYC. Here is the full breakdown, captured from our own verified account in June 2026. In addition to the task rewards, all accounts registered via code <strong>CRYPTOBONW</strong> receive a <strong>20% trading fee rebate</strong> on every spot and futures trade — permanently.",
+        "stage1": {
+          "title": "Stage 1 — New User Tasks (assigned upon registration)",
+          "rows": [
+            {
+              "task": "Verify your account (KYC)",
+              "reward": "20 USDC fee rebate voucher"
+            },
+            {
+              "task": "Deposit $10",
+              "reward": "30 USDC fee rebate voucher"
+            },
+            {
+              "task": "Trade $10 (spot)",
+              "reward": "20 USDC fee rebate voucher"
+            },
+            {
+              "task": "Trade $2,000 (spot)",
+              "reward": "30 USDC fee rebate voucher"
+            }
+          ],
+          "note": "Task timer on our fresh account showed ~30 days. Tasks and rewards may vary by region.",
+          "image": {
+            "src": "/screenshots/binance/steps/bn-owner-rewardshub-4tasks-2026-06-v2.webp",
+            "alt": "Binance Rewards Hub on our own account showing all four Stage 1 tasks including the often-missed Trade $2,000 task (June 2026)",
+            "caption": "All four Stage 1 tasks on our own account, 4 days into the ~30-day task window (timer reads 26D) — most guides only mention three tasks. Captured live, June 2026."
+          }
+        },
+        "stage2": {
+          "title": "Stage 2 — Tiered Tasks (unlocked after KYC)",
+          "image": {
+            "src": "/screenshots/binance/steps/bn-owner-task-reward-overview-2026-06-v5.webp",
+            "alt": "Official Binance Task & Reward Overview page showing the full Stage 1 and Stage 2 tier breakdown (June 2026)",
+            "caption": "The official Task & Reward Overview from our verified account: Stage 2 tiers 1–7 sum to $19,700. Captured live, June 2026."
+          },
+          "columns": [
+            "Tier",
+            "Net deposit",
+            "Trade volume",
+            "Task period",
+            "Reward"
+          ],
+          "rows": [
+            [
+              "1",
+              "≥ $100",
+              "Spot ≥ $3,000",
+              "7 days",
+              "up to $100"
+            ],
+            [
+              "2",
+              "≥ $200",
+              "Spot ≥ $10,000",
+              "7 days",
+              "up to $200"
+            ],
+            [
+              "3",
+              "≥ $500",
+              "Spot ≥ $30,000",
+              "7 days",
+              "up to $400"
+            ],
+            [
+              "4",
+              "≥ $2,000",
+              "Spot/Futures ≥ $500,000",
+              "14 days",
+              "up to $1,000"
+            ],
+            [
+              "5",
+              "≥ $5,000",
+              "Spot/Futures ≥ $5,000,000",
+              "14 days",
+              "up to $3,000"
+            ],
+            [
+              "6",
+              "≥ $10,000",
+              "Spot/Futures ≥ $20,000,000",
+              "30 days",
+              "up to $5,000"
+            ],
+            [
+              "7",
+              "≥ $20,000",
+              "Spot/Futures ≥ $50,000,000",
+              "30 days",
+              "up to $10,000"
+            ]
+          ]
+        },
+        "footnotes": [
+          "Rewards are paid as trading-fee rebate vouchers, not withdrawable USDT.",
+          "If KYC is not completed within 30 days after registration, Stage 2 tasks and rewards are not assigned at all.",
+          "Stage 2 rewards are capped per tier; reaching the full $19,700 requires completing every tier including a $20,000 net deposit and $50M trade volume."
+        ]
+      },
+      "answerCapsule": {
+        "html": "As of <strong>June 2026</strong>, Binance offers new users two benefits via referral code <strong>CRYPTOBONW</strong>: up to <strong>19,800 USDT</strong> in task-based welcome rewards, and a <strong>20% trading fee rebate</strong> on all spot and futures trades. The bonus runs in two stages — Stage 1: four tasks worth up to <strong>100 USDC</strong> assigned at registration; Stage 2: seven deposit-and-volume tiers worth up to <strong>19,700 USDT</strong>, unlocked after KYC. Most users completing KYC and a standard deposit earn <strong>50–200 USDT</strong> in fee vouchers; the maximum requires very high trading volume. The 20% fee rebate is permanent and applies to every trade.",
+        "lastVerified": "June 13, 2026",
+        "method": "verified on our own registered account — Rewards Hub and Task & Reward Overview screenshots below"
+      },
+      "compareMiniSlugs": [
+        "bybit",
+        "mexc"
+      ],
       "verdict": {
-        "quickVerdict": "The world's largest exchange by volume — optimal for high-volume traders outside the US/UK who hold BNB for the 25% spot fee discount, or who need the deepest P2P liquidity in 100+ fiat currencies.",
+        "quickVerdict": "The world’s largest exchange by volume — optimal for high-volume traders outside the US who want the deepest liquidity, 1,400+ trading pairs, and a stacked fee structure: <strong>20% fee rebate</strong> via referral code plus an additional <strong>25% discount</strong> when paying fees in BNB.",
         "bestFor": [
-          "High-volume spot and futures traders (BNB gives 25% fee discount)",
+          "20% trading fee rebate on all spot and futures trades via referral code CRYPTOBONW",
+          "High-volume spot and futures traders (additional 25% fee discount when paying with BNB)",
           "Widest altcoin selection — 1,400+ trading pairs",
           "P2P trading across 100+ fiat currencies and hundreds of payment methods",
           "BNB/Binance Smart Chain (BSC) ecosystem participants"
@@ -131,7 +254,7 @@
           "UK residents — regulatory restrictions apply",
           "Users who need FDIC-insured USD balances — use Coinbase instead"
         ],
-        "keyLimitation": "Not available in the US or UK. BNB fee discount (25%) requires holding BNB in your spot wallet — without it, spot fees are the same 0.1% as Bybit and OKX."
+        "keyLimitation": "Not available in the US (use Binance.US instead), Canada, Netherlands, Iran, Cuba, or Crimea/Donetsk/Luhansk regions. The 20% fee rebate applies to trades on Binance.com only. The additional 25% BNB fee discount requires holding BNB in your spot wallet — without it, standard spot fees are 0.1%."
       },
       "faqOverrides": [],
       "faqAppend": [
@@ -145,31 +268,19 @@
         },
         {
           "question": "What is the Binance referral code for 2026?",
-          "answer": "The Binance referral code for 2026 is <strong>CRYPTOBONUSW</strong>. Enter this code in the referral or invitation code field on the Binance registration page to activate the current new user offer — up to 19,800 USDT in task-based rewards. When you register via the button on this page, the code is pre-filled automatically so you do not need to type it manually. A referral code and promo code serve the same function on Binance — both unlock the new-user bonus campaign. The code must be applied before you complete registration; it cannot be added retroactively to an existing account. The total reward you receive depends on Binance's current campaign terms, your region, completing KYC verification, making a qualifying deposit, and completing any required trading milestones within the campaign window. Most users who complete an initial deposit and basic tasks realistically earn 50–200 USDT in trading fee vouchers."
+          "answer": "The Binance referral code for 2026 is <strong>CRYPTOBONW</strong>. Enter this code in the referral or invitation code field on the Binance registration page to activate the current new user offer — up to 19,800 USDT in task-based rewards. When you register via the button on this page, the code is pre-filled automatically so you do not need to type it manually. A referral code and promo code serve the same function on Binance — both unlock the new-user bonus campaign. The code must be applied before you complete registration; it cannot be added retroactively to an existing account. The total reward you receive depends on Binance's current campaign terms, your region, completing KYC verification, making a qualifying deposit, and completing any required trading milestones within the campaign window. Most users who complete an initial deposit and basic tasks realistically earn 50–200 USDT in trading fee vouchers."
         },
         {
           "question": "How much are Binance trading fees?",
-          "answer": "Binance charges 0.1% for both maker and taker spot trading orders for standard users. Futures perpetual contract fees are 0.02% maker and 0.05% taker. These fees reduce significantly for higher VIP tiers based on 30-day trading volume. Holding BNB (Binance Coin) in your spot wallet and enabling 'BNB fee deduction' provides a 25% fee discount, reducing standard spot fees to 0.075%. This makes Binance one of the more affordable exchanges for high-volume spot traders. Crypto withdrawals carry a fixed network fee per coin — USDT on TRC-20 is typically around 1 USDT."
+          "answer": "Binance charges <strong>0.1%</strong> for both maker and taker spot trading orders for standard users. Futures perpetual contract fees are 0.02% maker and 0.05% taker. Registering via referral code <strong>CRYPTOBONW</strong> gives you a <strong>20% trading fee rebate</strong> on all spot and futures trades — this is returned to your account as a fee discount, reducing your effective spot rate to <strong>0.08%</strong>. You can reduce fees further by an additional <strong>25%</strong> if you hold BNB in your spot wallet and enable the BNB fee payment option, bringing your effective rate down to <strong>0.06%</strong>. Fee tiers reduce further at higher VIP levels based on trading volume."
         },
         {
           "question": "Does Binance require KYC verification?",
           "answer": "Yes, Binance requires identity verification (KYC) for full account access. Without verification, accounts have very limited withdrawal capabilities and cannot access fiat deposit/withdrawal services. Basic verification (name, date of birth, country) takes under a minute and raises limits slightly. Intermediate verification (government ID + selfie) takes 2–15 minutes and unlocks full withdrawal limits, P2P trading, and fiat services. Advanced verification adds address proof and is required for the highest transaction limits. KYC is enforced globally following regulatory changes introduced in 2021."
         },
         {
-          "question": "What is Binance's withdrawal limit?",
-          "answer": "Binance withdrawal limits vary by verification level. Without KYC, the daily withdrawal limit is 0.06 BTC equivalent. After Basic Plus verification, this increases to 100 BTC equivalent per day — sufficient for most individual traders. There is no per-transaction cap, only the 24-hour rolling limit. Cryptocurrency withdrawal fees are fixed per coin and network: USDT TRC-20 costs approximately 1 USDT; BTC on the Bitcoin network costs around 0.0005 BTC. Always confirm network fee amounts on the withdrawal screen before confirming."
-        },
-        {
-          "question": "What is BNB and how does it reduce Binance fees?",
-          "answer": "BNB (Binance Coin) is the native utility token of the Binance ecosystem. Holding BNB in your Binance spot wallet and enabling 'Use BNB for fees' in account settings reduces your spot trading fees by 25% — from the standard 0.1% to 0.075%. BNB is also used for Binance Smart Chain (BSC) gas fees, Launchpad participation, and various other platform features. The BNB burn mechanism periodically reduces the total supply, which has historically supported the token's value. BNB is freely tradeable on Binance and most other major exchanges."
-        },
-        {
           "question": "Does Binance offer futures and leverage trading?",
           "answer": "Yes. Binance Futures is one of the largest derivatives platforms in the world by open interest. It offers USDT-margined perpetual contracts, coin-margined futures, and quarterly delivery futures. Leverage is available up to 125× on BTC/USDT perpetuals. Binance also offers Binance Options. Futures fees are 0.02% maker and 0.05% taker. Futures trading requires a separate account setup within the platform and carries substantial risk — Binance shows a mandatory risk warning and requires users to acknowledge understanding of leveraged trading before activating the futures account. To compare futures fees, leverage limits, and liquidity across exchanges, see our <a href=\"/best-exchanges-for/futures/\">best exchanges for futures trading</a> guide."
-        },
-        {
-          "question": "Does Binance have proof of reserves?",
-          "answer": "Yes. Binance introduced proof-of-reserves (PoR) reports in November 2022 following the FTX collapse. Users can verify that Binance holds at least 100% reserves for all major assets using a Merkle tree verification method on the Binance website. Reports cover Bitcoin, Ethereum, BNB, USDT, BUSD, and other major assets. Binance also works with external auditors for additional assurance. The PoR data is updated monthly and is accessible to all users without requiring an account login."
         },
         {
           "question": "What P2P payment methods does Binance support?",
@@ -177,7 +288,7 @@
         },
         {
           "question": "How does the Binance welcome bonus work?",
-          "answer": "To claim the Binance new user bonus using referral code CRYPTOBONUSW: (1) Open the registration page via the button on this page — the code CRYPTOBONUSW is pre-filled automatically. (2) Confirm that the bonus offer (up to 19,800 USDT) appears on the sign-up page — this is only shown when you arrive via a valid referral link. (3) Enter your email address and complete registration. If Binance shows a referral or invitation code field, enter CRYPTOBONUSW manually. (4) Complete KYC identity verification using a government-issued ID and selfie — most accounts are approved within 2–15 minutes. (5) Follow the task list in your Binance Rewards Centre — tasks typically include a qualifying deposit and trading volume milestones, all within the campaign window. Note: bonus vouchers are trading fee credits and cannot be withdrawn directly — only profits generated by trading with them are withdrawable. The 19,800 USDT maximum requires completing all volume milestones; most users completing a standard deposit earn 50–200 USDT."
+          "answer": "To claim the Binance new user bonus using referral code CRYPTOBONW: (1) Open the registration page via the button on this page — the code CRYPTOBONW is pre-filled automatically. (2) Confirm that the bonus offer (up to 19,800 USDT) appears on the sign-up page — this is only shown when you arrive via a valid referral link. (3) Enter your email address and complete registration. If Binance shows a referral or invitation code field, enter CRYPTOBONW manually. (4) Complete KYC identity verification using a government-issued ID and selfie — most accounts are approved within 2–15 minutes. (5) Follow the task list in your Binance Rewards Centre — tasks typically include a qualifying deposit and trading volume milestones, all within the campaign window. Note: bonus vouchers are trading fee credits and cannot be withdrawn directly — only profits generated by trading with them are withdrawable. The 19,800 USDT maximum requires completing all volume milestones; most users completing a standard deposit earn 50–200 USDT."
         },
         {
           "question": "What are the differences between Binance and Binance.US?",
@@ -193,7 +304,7 @@
         },
         {
           "question": "What products does Binance offer beyond spot trading?",
-          "answer": "Binance offers one of the broadest product suites in the industry. Beyond spot trading (1,400+ pairs, 0.1% standard fee), the platform includes:\n\n<strong>Futures and derivatives:</strong> USDT-margined perpetual contracts and quarterly delivery futures with up to 125× leverage on BTC/USDT. Fees: 0.02% maker / 0.05% taker. Futures are high-risk — leveraged positions can be liquidated if the market moves against you. Not suitable for beginners.\n\n<strong>Copy Trading:</strong> Automatically mirror the trades of experienced lead traders. You set your allocation; your account copies their positions in proportion. Past performance of lead traders does not guarantee future results.\n\n<strong>Earn:</strong> Yield products including Simple Earn (flexible and locked savings), Launchpool (stake BNB or other tokens to farm new project token launches), and on-chain staking. APY varies by product and market conditions.\n\n<strong>Trading Bots:</strong> Grid bots, DCA bots, and TWAP bots for automated rule-based trading strategies. Designed for users comfortable with algorithmic approaches.\n\n<strong>Options:</strong> European-style options contracts on Bitcoin. A specialist product for derivatives traders.\n\n<strong>Mobile App:</strong> Full-featured iOS and Android apps covering all products, P2P trading, KYC, and account management.\n\nFor new users, the recommended path is: register with CRYPTOBONUSW → complete KYC → make a first deposit → start with spot trading or P2P. Futures, options, and bots carry additional risks and are best explored only after understanding base platform mechanics and risk management."
+          "answer": "Binance offers one of the broadest product suites in the industry. Beyond spot trading (1,400+ pairs, 0.1% standard fee), the platform includes:\n\n<strong>Futures and derivatives:</strong> USDT-margined perpetual contracts and quarterly delivery futures with up to 125× leverage on BTC/USDT. Fees: 0.02% maker / 0.05% taker. Futures are high-risk — leveraged positions can be liquidated if the market moves against you. Not suitable for beginners.\n\n<strong>Copy Trading:</strong> Automatically mirror the trades of experienced lead traders. You set your allocation; your account copies their positions in proportion. Past performance of lead traders does not guarantee future results.\n\n<strong>Earn:</strong> Yield products including Simple Earn (flexible and locked savings), Launchpool (stake BNB or other tokens to farm new project token launches), and on-chain staking. APY varies by product and market conditions.\n\n<strong>Trading Bots:</strong> Grid bots, DCA bots, and TWAP bots for automated rule-based trading strategies. Designed for users comfortable with algorithmic approaches.\n\n<strong>Options:</strong> European-style options contracts on Bitcoin. A specialist product for derivatives traders.\n\n<strong>Mobile App:</strong> Full-featured iOS and Android apps covering all products, P2P trading, KYC, and account management.\n\nFor new users, the recommended path is: register with CRYPTOBONW → complete KYC → make a first deposit → start with spot trading or P2P. Futures, options, and bots carry additional risks and are best explored only after understanding base platform mechanics and risk management."
         },
         {
           "question": "How long does Binance KYC verification take?",
@@ -201,24 +312,55 @@
         },
         {
           "question": "What is the minimum deposit on Binance to claim the bonus?",
-          "answer": "Binance does not publish a single fixed minimum deposit for the welcome bonus — the qualifying amount depends on Binance's current campaign terms, which can change. Based on the current campaign structure visible at the referral registration page, rewards are structured in tiers where different deposit amounts unlock different reward levels.\n\nAs a general guide from the active campaign: a qualifying deposit (often starting from around 50 USDT equivalent) unlocks entry-level tasks, while larger deposits qualify for higher reward tiers. The full 19,800 USDT maximum requires completing all trading volume milestones — not just a deposit. Most users completing a standard deposit earn 50–200 USDT in trading fee vouchers during the first week.\n\nFor the most accurate minimum, check the task list in your Binance Rewards Center immediately after registering and completing KYC. The exact conditions are displayed there based on your account's active campaign. Always verify current terms on the official Binance promotion page before making a deposit decision.\n\nThe recommended first deposit method for lowest fees is USDT on the TRC-20 (Tron) network — approximately 1 USDT flat network fee from most exchanges."
-        },
-        {
-          "question": "Does Binance have a mobile app?",
-          "answer": "Yes. Binance has official mobile apps for iOS (App Store) and Android (Google Play). Both are free to download and consistently receive high ratings.\n\nThe Binance app covers the full platform: spot trading, P2P trading, Futures, Earn products, copy trading, trading bots, the Web3/DeFi portal, and account management. KYC identity verification can be completed directly in the app — the document scan and liveness check are designed for mobile camera use.\n\nThe app is available in most countries where Binance.com operates. In jurisdictions where Binance.com is restricted (United States, United Kingdom, Canada), the standard Binance app may not be available through the local App Store.\n\nTo download: search \"Binance\" on the App Store or Google Play, or go to binance.com/en/download. Always download from the official store listing — do not install APK files from unofficial third-party sources."
-        },
-        {
-          "question": "What is SAFU on Binance?",
-          "answer": "SAFU stands for Secure Asset Fund for Users. It is an emergency insurance fund maintained by Binance to protect user assets in extreme circumstances — such as exchange security incidents — that could result in user losses.\n\nBinance established SAFU in 2018 by allocating 10% of all trading fees to the fund. When Binance suffered a hot wallet security breach in May 2019 — in which approximately 7,000 BTC were stolen by hackers — the SAFU fund was used to fully reimburse all affected users. No user lost funds as a result of that incident.\n\nThe SAFU fund has grown substantially since its establishment and is held in a dedicated blockchain wallet whose address Binance publicly discloses. Binance periodically adjusts the fund's composition to maintain its value as market conditions change.\n\nSAFU is not a government deposit insurance scheme and does not cover losses from trading decisions, leveraged liquidations, or user errors. It is an exchange-operated self-insurance mechanism specifically for platform-level security incidents."
+          "answer": "Based on the task rules we verified on our own account (June 12, 2026), the Stage 1 deposit task requires just $10 — an external deposit via card, P2P, bank transfer or crypto — and pays a 30 USDC fee-rebate voucher. Stage 2 reward tiers then scale with deposit size, from $100 (Tier 1) up to $20,000 (Tier 7).\n\nIn short: $10 unlocks the entry-level deposit reward, while larger deposits combined with trading volume qualify for higher reward tiers. The full 19,800 USDT maximum requires completing all trading volume milestones — not just a deposit. Most users completing a standard deposit earn 50–200 USDT in trading fee vouchers during the first week.\n\nFor the most accurate minimum, check the task list in your Binance Rewards Center immediately after registering and completing KYC. The exact conditions are displayed there based on your account's active campaign. Always verify current terms on the official Binance promotion page before making a deposit decision.\n\nThe recommended first deposit method for lowest fees is USDT on the TRC-20 (Tron) network — approximately 1 USDT flat network fee from most exchanges."
         },
         {
           "question": "Is Binance P2P safe?",
           "answer": "Binance P2P uses platform order controls and release rules (an escrow-style flow) rather than acting as a direct counterparty. The key mechanism: when you place a buy order, the seller's cryptocurrency is locked by Binance before you send any fiat, and the seller cannot receive your fiat without the crypto being released — if they fail to release after confirmed payment, Binance's dispute team mediates. These controls can reduce certain counterparty risks, but they do not remove all risk, so follow the safety practices below.\n\nKey safety practices: (1) Only trade with sellers who have high completion rates (95%+) and substantial trade history. (2) Never send fiat payment until the order is active and the seller's crypto is confirmed as locked in escrow. (3) Confirm your payment in your own bank app or mobile wallet — do not rely on screenshots provided by the counterparty. (4) Conduct all communication within the official Binance interface — never move conversations to WhatsApp, Telegram, or email. (5) Never mark an order as paid unless you have actually sent the fiat. (6) If a seller pressures you to release crypto before your payment clears, cancel and report the trade.\n\nAs with all P2P cryptocurrency transactions, fiat transfers sent via bank transfer or mobile wallet are generally not reversible via bank chargeback in the same way as card payments. P2P trading requires completing Intermediate KYC verification before it is accessible."
+        },
+        {
+          "question": "Is the Binance 19,800 USDT bonus real, and how is it structured?",
+          "answer": "Yes — the package has been live since May 7, 2026, when Binance upgraded its new-user program from the previous $600 cap. It is split into two stages: Stage 1 — four tasks worth up to 100 USDC assigned at registration (verify, deposit $10, trade $10, trade $2,000), and Stage 2 — seven deposit-and-volume tiers worth up to $19,700, unlocked after KYC. We verified the full structure on our own registered account in June 2026 — see the tier table and screenshots above. Rewards are paid as trading-fee rebate vouchers; most users realistically earn 50–200 USDT."
+        },
+        {
+          "question": "Can I add a referral code after registering on Binance?",
+          "answer": "No. The referral code can only be applied during registration — Binance does not attach bonus structures retroactively, and support cannot add a code to an existing account. After you confirm your email, the welcome screen explicitly states your account is linked to the Referral ID; if that confirmation is missing, the code was not applied."
+        },
+        {
+          "question": "How long are Binance bonus vouchers valid?",
+          "answer": "Per the task rules on our own account (June 2026): Stage 1 trading-fee rebate vouchers are valid for 7 days from the day of distribution, and the new-user tasks themselves run on a roughly 30-day timer. Redeem a voucher only when you are ready to trade, and always confirm the exact deadlines in your Rewards Hub."
+        },
+        {
+          "question": "Why didn't I receive my Binance welcome bonus?",
+          "answer": "The most common reasons: (1) you registered without the referral code — it cannot be added afterwards; (2) your region is excluded from the program or from specific tasks; (3) you did not complete KYC within 30 days of registration, in which case Stage 2 tiers are never assigned; (4) the task window expired; or (5) a voucher was redeemed but not used within its 7-day validity. Check the Rewards Hub — every assigned task and its timer is listed there."
+        },
+        {
+          "question": "Who gets the full 19,800 USDT — what are the tiered tasks?",
+          "answer": "Only very high-volume traders. The top Stage 2 tier requires a net deposit of at least $20,000 and $50,000,000 in spot or futures trade volume within 30 days, and the seven tiers together sum to $19,700 (plus up to 100 USDC from Stage 1). For a typical new user completing KYC, a small deposit and the basic trade tasks, the realistic outcome is 50–200 USDT in fee rebate vouchers."
+        },
+        {
+          "question": "What's the difference between Binance Referral Lite and Referral Pro?",
+          "answer": "Referral Lite and Referral Pro are modes of the program for the person sharing a code — they differ in how the fee-kickback commission is split between the referrer and the invitee. For you as a new user claiming the welcome bonus, nothing changes: the sign-up rewards structure is the same regardless of which mode your referrer uses."
+        },
+        {
+          "replaces": "How much are Binance trading fees?",
+          "question": "Can I use multiple Binance referral codes?",
+          "answer": "No. Binance accepts exactly one referral or promo code per account, entered during web registration or on the Welcome aboard! screen in the app — it cannot be changed, combined or stacked later. If you register with CRYPTOBONW, all welcome rewards attach to that single code. Creating multiple accounts to use several codes violates Binance's terms and typically leads to reward forfeiture, so pick one code before you sign up."
+        },
+        {
+          "replaces": "Does Binance require identity verification?",
+          "question": "Is there a separate Binance Futures referral code?",
+          "answer": "You do not need a separate code for futures: the standard referral code CRYPTOBONW applies account-wide, and the Stage 2 tiered rewards count your trading volume across both spot and futures markets. Binance has historically run futures-specific referral promotions, but the current welcome program is unified — one code at registration covers it. If a futures promotion asks for a code inside the app, the same code is the one to enter."
+        },
+        {
+          "replaces": "Is Binance available in my country?",
+          "question": "Does the Binance referral code CRYPTOBONW give a 20% fee discount?",
+          "answer": "Yes — registering via our link with code <strong>CRYPTOBONW</strong> activates a <strong>20% trading fee rebate</strong> on all spot and futures trades. This rebate is credited back to your account and reduces your effective spot trading fee from the standard 0.1% to <strong>0.08%</strong>. You can stack this with the BNB fee payment option (additional 25% off) for an effective rate of <strong>0.06%</strong> — one of the lowest available on Binance for non-VIP users. The rebate is permanent for your account and applies to every trade you make."
         }
       ],
       "callouts": [],
-      "editorNote": "Best for: users outside the US/UK seeking the largest referral bonus (up to 19,800 USDT via CRYPTOBONUSW), deepest P2P fiat liquidity, or widest altcoin selection (1,400+ pairs). BNB fee discount brings spot fees to 0.075% — best value for high-volume traders. Futures: 0.02%/0.05% maker/taker. US and UK residents cannot use Binance.com — Coinbase or Kraken are the recommended alternatives.",
-      "longDescription": "Binance is the world's largest cryptocurrency exchange by trading volume, processing over $100 billion in daily trades across spot, futures, and P2P markets. Founded in 2017 by Changpeng Zhao (CZ) and now led by CEO Richard Teng, Binance serves over 200 million registered users in 180+ countries. It holds regulatory licences and registrations across the EU (France, Italy, Spain, Poland, Lithuania) and is actively pursuing MiCA compliance. Binance introduced mandatory Proof of Reserves in November 2022 — users can independently verify via Merkle tree that their balances are fully backed. A 2019 hot wallet security incident was fully reimbursed via the SAFU (Secure Asset Fund for Users) — no users lost funds.\n\nNew users registering via a CryptoBonusWorld referral link receive access to the current welcome bonus of up to 19,800 USDT in task-based rewards. The referral code is CRYPTOBONUSW — it is pre-filled automatically when you sign up via the button on this page. Bonus rewards are distributed in tiers: KYC completion, a qualifying deposit, and trading volume milestones — all typically within a 30-day campaign window. Bonus amounts are trading fee vouchers, not withdrawable cash; only profits generated by trading with them can be withdrawn. CryptoBonusWorld verified the active campaign via direct screenshot evidence captured in June 2026. Most users completing a standard deposit realistically earn 50–200 USDT in the first week.\n\nBinance P2P enables buying and selling crypto with local fiat currencies across 100+ fiat currencies and hundreds of payment methods; check current Binance P2P fee terms before trading, as the effective cost is typically the seller's spread plus any bank/payment-method costs. The mechanics: choose your direction (e.g. USD → USDT), browse seller listings comparing rate, limits, and payment methods, then place an order — Binance's escrow system immediately locks the seller's crypto. Transfer fiat to the seller via your chosen payment method outside the Binance platform (bank transfer, mobile wallet, or local app), mark the order as paid, and the seller releases the escrowed crypto once payment is confirmed. If the seller does not release, Binance's dispute team mediates using payment proof. Available sellers and payment methods vary significantly by country — Binance P2P does not operate identically everywhere.\n\nBeyond spot and P2P, Binance offers USDT-margined Futures (up to 125× leverage, 0.02%/0.05% fees), copy trading, Earn (staking, savings, Launchpad), Grid and TWAP trading bots, and Options contracts. These products are designed for experienced users — futures and options carry substantial risk of capital loss and are not a recommended starting point for new users focused on claiming the welcome bonus. Standard spot fees are 0.1% maker/taker, reducing to 0.075% with BNB fee payment enabled. With 1,400+ trading pairs, Binance has the broadest token selection of any major exchange.\n\nBinance is not available to residents of the United States (who must use the separate Binance.US platform), the United Kingdom, or Canada. Availability may also vary by product — card purchases, fiat services, and certain Earn features may not be accessible in all supported countries. Always verify your country's access status on binance.com before registering. CryptoBonusWorld audits offer claims, referral codes, and screenshots against live evidence before publication — screenshots are never published if they show loading errors, wrong locale, private data, or outdated offer amounts.",
+      "editorNote": "Best for: users outside the US/UK seeking the largest referral bonus (up to 19,800 USDT via CRYPTOBONW), deepest P2P fiat liquidity, or widest altcoin selection (1,400+ pairs). BNB fee discount brings spot fees to 0.075% — best value for high-volume traders. Futures: 0.02%/0.05% maker/taker. US and UK residents cannot use Binance.com — Coinbase or Kraken are the recommended alternatives.",
+      "longDescription": "Binance is the world's largest cryptocurrency exchange by trading volume, processing over $100 billion in daily trades across spot, futures, and P2P markets. Founded in 2017 by Changpeng Zhao (CZ) and now led by CEO Richard Teng, Binance serves over 320 million registered users in 180+ countries (320,868,780 shown on its own registration page, captured June 2026). It holds regulatory licences and registrations across the EU (France, Italy, Spain, Poland, Lithuania) and is actively pursuing MiCA compliance. Binance introduced mandatory Proof of Reserves in November 2022 — users can independently verify via Merkle tree that their balances are fully backed. A 2019 hot wallet security incident was fully reimbursed via the SAFU (Secure Asset Fund for Users) — no users lost funds.\n\nNew users registering via a CryptoBonusWorld referral link receive access to the current welcome bonus of up to 19,800 USDT in task-based rewards. The referral code is CRYPTOBONW — it is pre-filled automatically when you sign up via the button on this page. Bonus rewards are distributed in tiers: KYC completion, a qualifying deposit, and trading volume milestones — all typically within a 30-day campaign window. Bonus amounts are trading fee vouchers, not withdrawable cash; only profits generated by trading with them can be withdrawn. CryptoBonusWorld verified the active campaign via direct screenshot evidence captured in June 2026. Most users completing a standard deposit realistically earn 50–200 USDT in the first week.\n\nBinance P2P enables buying and selling crypto with local fiat currencies across 100+ fiat currencies and hundreds of payment methods; check current Binance P2P fee terms before trading, as the effective cost is typically the seller's spread plus any bank/payment-method costs. The mechanics: choose your direction (e.g. USD → USDT), browse seller listings comparing rate, limits, and payment methods, then place an order — Binance's escrow system immediately locks the seller's crypto. Transfer fiat to the seller via your chosen payment method outside the Binance platform (bank transfer, mobile wallet, or local app), mark the order as paid, and the seller releases the escrowed crypto once payment is confirmed. If the seller does not release, Binance's dispute team mediates using payment proof. Available sellers and payment methods vary significantly by country — Binance P2P does not operate identically everywhere.\n\nBeyond spot and P2P, Binance offers USDT-margined Futures (up to 125× leverage, 0.02%/0.05% fees), copy trading, Earn (staking, savings, Launchpad), Grid and TWAP trading bots, and Options contracts. These products are designed for experienced users — futures and options carry substantial risk of capital loss and are not a recommended starting point for new users focused on claiming the welcome bonus. Standard spot fees are 0.1% maker/taker, reducing to 0.075% with BNB fee payment enabled. With 1,400+ trading pairs, Binance has the broadest token selection of any major exchange.\n\nBinance is not available to residents of the United States (who must use the separate Binance.US platform), the United Kingdom, or Canada. Availability may also vary by product — card purchases, fiat services, and certain Earn features may not be accessible in all supported countries. Always verify your country's access status on binance.com before registering. CryptoBonusWorld audits offer claims, referral codes, and screenshots against live evidence before publication — screenshots are never published if they show loading errors, wrong locale, private data, or outdated offer amounts.",
       "experience": {
         "onboarding": {
           "rating": "Medium",
@@ -246,14 +388,55 @@
         }
       },
       "screenshotGalleryDisabled": true,
-      "contextualScreenshotSlots": [
-        "bonus_referral_landing",
-        "registration_demo_state",
-        "fees",
-        "proof_of_reserves",
-        "spot",
-        "p2p_direction_usd_usdt"
-      ]
+      "flagshipSections": [
+        {
+          "id": "bonus-upgrade-2026",
+          "position": "after-tier-table",
+          "heading": "$600 → 19,800 USDT: What Changed in May 2026",
+          "html": "\n<p>On <strong>May 7, 2026</strong>, Binance upgraded its new-user reward program from the long-standing $600 cap to the current two-stage structure shown above. Most guides you'll find in search still cite the old $100 or $600 figures: those numbers reflect the pre-May 2026 program, not the current one.</p>\n<div class=\"fh-pair\">\n<figure class=\"ce-shot\" data-lightbox-group=\"ce-flagship\" data-lightbox-src=\"/screenshots/binance/steps/bn-legacy-600usd-landing.webp\" data-lightbox-alt=\"Binance registration page under the old program — maximum $600 Sign Up Rewards (before May 2026)\">\n<img src=\"/screenshots/binance/steps/bn-legacy-600usd-landing-arrow.webp\" alt=\"Binance registration page under the old $600 welcome program (before May 7, 2026)\" width=\"1214\" height=\"635\" loading=\"lazy\" decoding=\"async\">\n<figcaption>Before (pre-May 2026): the same page showed a $600 maximum — single task set, no fee rebate. Tap to enlarge.</figcaption>\n</figure>\n<figure class=\"ce-shot\" data-lightbox-group=\"ce-flagship\" data-lightbox-src=\"/screenshots/binance/steps/bn-01c-landing-19800-empty.webp\" data-lightbox-alt=\"Binance registration page — current 19,800 USDT program (June 2026)\">\n<img src=\"/screenshots/binance/steps/bn-01c-landing-19800-arrow.webp\" alt=\"Binance registration page showing the current 19,800 USDT welcome package (June 2026)\" width=\"1214\" height=\"635\" loading=\"lazy\" decoding=\"async\">\n<figcaption>After (since May 7, 2026): the same page now shows 19,800 USDT — two-stage structure + 20% fee rebate via code CRYPTOBONW. Captured June 2026. Tap to enlarge.</figcaption>\n</figure>\n</div>\n<table>\n<thead><tr><th></th><th>Before May 7, 2026</th><th>Since May 7, 2026</th></tr></thead>\n<tbody>\n<tr><th>Maximum package</th><td>$600</td><td><strong>19,800 USDT</strong></td></tr>\n<tr><th>Structure</th><td>single task set</td><td>Stage 1 (≤100 USDC) + Stage 2 (Tiers 1–7, ≤$19,700)</td></tr>\n<tr><th>Payout type</th><td>vouchers</td><td>vouchers (unchanged)</td></tr>\n<tr><th>Fee rebate</th><td>none via referral</td><td><strong>20% trading fee rebate</strong> (permanent, all trades)</td></tr>\n</tbody>\n</table>\n<p>What did <em>not</em> change: KYC is still mandatory, rewards are still paid as trading-fee rebate vouchers rather than withdrawable cash, and the realistic outcome for a typical new user is still <strong>50–200 USDT</strong>. We last verified the current structure on our own account on June 12, 2026.</p>"
+        },
+        {
+          "id": "vouchers-vs-cash",
+          "position": "after-tier-table",
+          "heading": "Vouchers vs Cash: What You Actually Get",
+          "html": "\n<p><strong>No — the Binance welcome bonus is not withdrawable cash.</strong> It is paid in trading-fee rebate vouchers: each voucher offsets the trading fees you would otherwise pay, so the value is real, but only if you actually trade.</p>\n<table>\n<thead><tr><th>Voucher type</th><th>What it offsets</th><th>Validity</th><th>Withdrawable?</th></tr></thead>\n<tbody>\n<tr><th>Trading fee rebate (Stage 1)</th><td>Spot trading fees</td><td>7 days from distribution</td><td>No — but the fees you save are yours</td></tr>\n<tr><th>Stage 2 tier rewards</th><td>Trading fees / token vouchers</td><td>varies per tier — check Rewards Hub</td><td>No</td></tr>\n</tbody>\n</table>\n<p>Per our Binance account manager (June 2026), the rewards are specifically <strong>trading-fee discounts and trial funds for Binance Earn</strong> — not token vouchers and not withdrawable cash.</p>\n<p>The honest math: to extract meaningful value from the upper tiers you need sustained trading volume — for most users the realistic outcome is <strong>50–200 USDT in fee savings</strong>. Compared with deposit-match bonuses elsewhere, Binance vouchers have no wagering trap: you are not required to risk bonus funds, you simply pay lower fees while trading what you intended to trade anyway. Redeem each voucher only when you are ready to trade — the 7-day clock starts at distribution.</p>"
+        },
+        {
+          "id": "platform-tour",
+          "position": "after-walkthroughs",
+          "heading": "Beyond the Bonus: What the Platform Actually Offers",
+          "html": "\n<p>The welcome rewards get you in the door — up to <strong>19,800 USDT</strong> in task-based bonuses plus a <strong>20% fee rebate</strong> on every trade (via referral code CRYPTOBONW). But the reason Binance tops our rating is product depth. Every screenshot below is from our own account on the live platform (June 2026):</p>\n<div class=\"fh-tour-grid\">\n<figure data-lightbox-group=\"ce-flagship\" data-lightbox-src=\"/screenshots/binance/steps/bn-030-futures-demo-mode.webp\" data-lightbox-alt=\"Binance Futures demo trading mode (June 2026)\"><img src=\"/screenshots/binance/steps/bn-030-futures-demo-mode.webp\" alt=\"Binance Futures demo trading mode (June 2026)\" width=\"1440\" height=\"709\" loading=\"lazy\" decoding=\"async\"><figcaption>Futures with a demo mode — practice perpetuals before risking funds (also how you approach the Stage 2 volume tiers sensibly).</figcaption></figure>\n<figure data-lightbox-group=\"ce-flagship\" data-lightbox-src=\"/screenshots/binance/steps/bn-043-copytrading-selection.webp\" data-lightbox-alt=\"Binance Copy Trading trader selection screen (June 2026)\"><img src=\"/screenshots/binance/steps/bn-043-copytrading-selection.webp\" alt=\"Binance Copy Trading trader selection screen (June 2026)\" width=\"1440\" height=\"710\" loading=\"lazy\" decoding=\"async\"><figcaption>Copy Trading — follow qualified lead traders on spot and futures.</figcaption></figure>\n<figure data-lightbox-group=\"ce-flagship\" data-lightbox-src=\"/screenshots/binance/steps/bn-042-trading-bots-active.webp\" data-lightbox-alt=\"Binance trading bots terminal (June 2026)\"><img src=\"/screenshots/binance/steps/bn-042-trading-bots-active.webp\" alt=\"Binance trading bots terminal (June 2026)\" width=\"1440\" height=\"706\" loading=\"lazy\" decoding=\"async\"><figcaption>Trading bots terminal — grid and DCA automation built in.</figcaption></figure>\n<figure data-lightbox-group=\"ce-flagship\" data-lightbox-src=\"/screenshots/binance/steps/bn-041-options-contracts.webp\" data-lightbox-alt=\"Binance options contracts interface (June 2026)\"><img src=\"/screenshots/binance/steps/bn-041-options-contracts.webp\" alt=\"Binance options contracts interface (June 2026)\" width=\"1440\" height=\"706\" loading=\"lazy\" decoding=\"async\"><figcaption>Options contracts — one of the few CEXs with a real options desk.</figcaption></figure>\n</div>\n<figure class=\"fh-wide-shot\" data-lightbox-group=\"ce-flagship\" data-lightbox-src=\"/screenshots/binance/spot/global-desktop-2026-06-v3.webp\" data-lightbox-alt=\"Binance live BTC/USDT spot terminal — order book, chart and order form (June 2026)\"><img src=\"/screenshots/binance/spot/global-desktop-2026-06-v3.webp\" alt=\"Binance live BTC/USDT spot terminal — order book, chart and order form (June 2026)\" loading=\"lazy\" decoding=\"async\" width=\"1440\" height=\"710\" /><figcaption>The core of it all — the live BTC/USDT spot terminal: order book, chart and order form. Captured June 2026.</figcaption></figure>"
+        },
+        {
+          "id": "binance-app-signup",
+          "position": "after-walkthroughs",
+          "heading": "Sign Up via the Binance App (iOS & Android)",
+          "html": "\n<p>The bonus structure is identical on mobile, but the attribution mechanics differ — and we confirmed them directly with our Binance account manager (June 2026): <strong>no link can carry a referral code into the mobile app's registration — code auto-fill works on web only. In the app, the code must be entered manually.</strong></p>\n<p>So the mobile path is simple:</p>\n<p>1. Install the app any way you like — via the official <a href=\"https://www.binance.com/download?ref=CRYPTOBONW\" rel=\"sponsored noopener\" target=\"_blank\">binance.com/download page</a> (covers iOS, Android, Windows, macOS) or directly from <a href=\"https://play.google.com/store/apps/details?id=com.binance.dev\" rel=\"nofollow noopener\" target=\"_blank\">Google Play</a> / your regional App Store.<br>\n2. Right after your in-app account is created, the <strong>&ldquo;Welcome aboard!&rdquo;</strong> screen asks <strong>&ldquo;Do you have an inviter? (Optional)&rdquo;</strong> — tap <strong>Yes</strong> and type promo code <strong>CRYPTOBONW</strong> (see the exact screen below). Per Binance's affiliate team: after registering with the code, the bonus tasks and fee-rebate rewards appear in your account exactly as on web.</p>\n<figure class=\"fh-mobile-shot\" data-lightbox-group=\"ce-flagship\" data-lightbox-src=\"/screenshots/binance/steps/bn-owner-app-inviter-code-2026-06.webp\" data-lightbox-alt=\"Binance app registration screen with the inviter question answered Yes and referral code CRYPTOBONW entered (June 2026)\"><img src=\"/screenshots/binance/steps/bn-owner-app-inviter-code-2026-06.webp\" alt=\"Binance app registration screen with the inviter question answered Yes and referral code CRYPTOBONW entered (June 2026)\" width=\"591\" height=\"1280\" loading=\"lazy\" decoding=\"async\"><figcaption>The exact in-app screen where the code goes: answer “Yes” to “Do you have an inviter?” and type <strong>CRYPTOBONW</strong>. Captured during our own registration, June 2026.</figcaption></figure>\n<p><strong>⚠️ The Welcome aboard! screen is your last chance to attach the code</strong> — it appears once, right after account creation; if you skip it, the code cannot be added later and the bonus structure is lost. Prefer zero typing? Register in your phone's browser through our referral link instead — the code attaches automatically — and install the app afterwards.</p>\n<figure class=\"fh-mobile-shot\" data-lightbox-group=\"ce-app-signup\" data-lightbox-src=\"/screenshots/binance/steps/mob-002f-welcome-aboard-referral.webp\" data-lightbox-alt=\"Binance app Welcome aboard screen confirming the account is linked to Referral ID CRYPTOBONW\" data-lightbox-caption=\"The app confirms it: account created and linked to Referral ID CRYPTOBONW.\"><img src=\"/screenshots/binance/steps/mob-002f-welcome-aboard-referral.webp\" alt=\"Binance app Welcome aboard screen confirming the account is linked to Referral ID CRYPTOBONW (June 2026)\" loading=\"lazy\" decoding=\"async\" width=\"576\" height=\"1280\" /><figcaption>And the app confirms it: account created and linked to Referral ID CRYPTOBONW. Tap to enlarge. Captured June 2026.</figcaption></figure>"
+        },
+        {
+          "id": "binance-vs-binance-us",
+          "position": "after-walkthroughs",
+          "heading": "Binance vs Binance.US: Different Platforms, Different Bonuses",
+          "html": "\n<p><strong>Binance.com and Binance.US are separate platforms with separate reward programs.</strong> The 19,800 USDT welcome package described on this page applies to Binance.com only — referral code CRYPTOBONW does not work on Binance.US, and US residents are excluded from the global offer entirely.</p>\n<p>Binance.US runs its own, historically much smaller referral program (typically in the tens of dollars — verify current terms on Binance.US directly, as we do not track it). If you are in the United States, compare <a href=\"/exchanges/coinbase/\">Coinbase</a> instead — it is the US-licensed option we list.</p>"
+        },
+        {
+          "id": "how-we-verified",
+          "position": "after-faq",
+          "heading": "How We Verified This Offer",
+          "html": "\n<p>We registered a live Binance account through our own referral link, confirmed the Referral ID linkage, completed identity verification, and captured every screenshot on this page ourselves. Bonus terms are re-checked against the Rewards Hub on a fixed schedule by our daily monitoring.</p>\n<table>\n<thead><tr><th>Date</th><th>What we checked</th><th>Result</th></tr></thead>\n<tbody>\n<tr><th>2026-06-04</th><td>Bonus amount vs referral landing</td><td>Advertised amount confirmed (vision match 0.97)</td></tr>\n<tr><th>2026-06-09</th><td>Screenshot library review</td><td>26 frames approved for publication</td></tr>\n<tr><th>2026-06-11</th><td>Live registration via referral link</td><td>Code CRYPTOBONW linked automatically; welcome screen captured</td></tr>\n<tr><th>2026-06-12</th><td>KYC completed; Rewards Hub + Task &amp; Reward Overview captured</td><td>All four Stage 1 tasks and Stage 2 Tiers 1–7 ($19,700) confirmed on our account</td></tr>\n<tr><th>2026-06-12</th><td>Direct confirmation from our Binance account manager</td><td>Max is \"up to 19,800\" (varies by region/account/risk system); rewards are fee discounts + Binance Earn trial funds; in-app registration accepts the code entered manually</td></tr>\n<tr><th>2026-06-10</th><td>Live withdrawal test (21.3 USDT, TRC-20)</td><td>Completed on Binance; the +20 USDT deposit was credited on the receiving exchange minutes later — both ends captured</td></tr>\n<tr><th>2026-06-13</th><td>Tier table cross-checked against Binance’s own Affiliate-Boosted Welcome Bonus popup</td><td>All seven invitee tiers match — rewards sum to $19,700 exactly</td></tr>\n</tbody>\n</table>\n<h3>We also withdrew real money</h3>\n<p>Talk is cheap — withdrawal proof is not. We sent 21.3 USDT from this Binance account to another exchange (TRC-20) and captured both ends of the transfer: the completed withdrawal on Binance and the deposit arriving on the other side minutes later.</p>\n<div class=\"fh-pair\"><figure data-lightbox-group=\"ce-withdrawal-proof\" data-lightbox-src=\"/screenshots/binance/steps/mob-031c-withdrawal-details-completed.webp\" data-lightbox-alt=\"Binance withdrawal details screen with status Completed\" data-lightbox-caption=\"Binance side: withdrawal Completed, TXID partially shown.\"><img src=\"/screenshots/binance/steps/mob-031c-withdrawal-details-completed.webp\" alt=\"Binance withdrawal details screen showing status Completed for a USDT TRC-20 withdrawal (June 2026)\" loading=\"lazy\" decoding=\"async\" width=\"591\" height=\"1280\" /><figcaption>Binance side: withdrawal status Completed. Tap to enlarge.</figcaption></figure><figure data-lightbox-group=\"ce-withdrawal-proof\" data-lightbox-src=\"/screenshots/binance/steps/mob-032-bybit-deposit-arrived-toast.webp\" data-lightbox-alt=\"Receiving exchange showing the +20 USDT deposit arrived notification\" data-lightbox-caption=\"Receiving side minutes later: the +20 USDT deposit notification (confirmation in progress at capture; credited shortly after).\"><img src=\"/screenshots/binance/steps/mob-032-bybit-deposit-arrived-toast.webp\" alt=\"Receiving exchange app showing the +20 USDT deposit notification, confirmation in progress (June 2026)\" loading=\"lazy\" decoding=\"async\" width=\"591\" height=\"1280\" /><figcaption>Receiving side, minutes later: the +20 USDT deposit notification (confirmation in progress at capture; credited shortly after). Tap to enlarge.</figcaption></figure></div>\n<figure class=\"fh-wide-shot\" data-lightbox-group=\"ce-how-verified\" data-lightbox-src=\"/screenshots/binance/steps/bn-owner-rewardshub-4tasks-2026-06-v2.webp\" data-lightbox-alt=\"Binance Rewards Hub showing all four Stage 1 bonus tasks on our account 4 days after registration (June 2026)\"><img src=\"/screenshots/binance/steps/bn-owner-rewardshub-4tasks-2026-06-v2.webp\" alt=\"Binance Rewards Hub showing four Stage 1 tasks — Verify, Deposit $10, Trade $10, Trade $2,000 — with 26 days remaining on our account (June 2026)\" loading=\"lazy\" decoding=\"async\" width=\"1440\" height=\"712\"><figcaption>Our Rewards Hub 4 days after registration: all four Stage 1 tasks assigned and visible, 26 days remaining on the task timer. Tap to enlarge. Captured June 2026.</figcaption></figure>\n<figure class=\"fh-wide-shot\" data-lightbox-group=\"ce-how-verified\" data-lightbox-src=\"/screenshots/binance/steps/bn-owner-task-reward-overview-2026-06-v5.webp\" data-lightbox-alt=\"Official Binance Task and Reward Overview showing Stage 1 tasks and Stage 2 Tiers 1–7 on our verified account (June 2026)\"><img src=\"/screenshots/binance/steps/bn-owner-task-reward-overview-2026-06-v5.webp\" alt=\"Official Binance Task and Reward Overview page showing all Stage 1 tasks and Stage 2 Tiers 1–7 summing to $19,700, confirmed on our verified account (June 2026)\" loading=\"lazy\" decoding=\"async\" width=\"1314\" height=\"880\"><figcaption>The official Task &amp; Reward Overview from our verified account: all Stage 1 tasks and Stage 2 Tiers 1–7 summing to $19,700 — confirmed live, not from press releases. Tap to enlarge. Captured June 2026.</figcaption></figure>"
+        }
+      ],
+      "suppressLandingProofFigure": true,
+      "howToClaimImage": {
+        "src": "/screenshots/binance/steps/bn-018-dashboard-kyc-cta.webp",
+        "alt": "Binance dashboard right after registration: Verify Your Account and Get 20 USD in Vouchers prompt with zero balance (June 2026)",
+        "caption": "What the claim step actually looks like: our dashboard right after registration — Binance prompts identity verification and shows the first voucher reward. Captured live, June 2026."
+      },
+      "referralCodeImage": {
+        "src": "/screenshots/binance/steps/web-009-welcome-bonus-tasks-breakdown.webp",
+        "alt": "Binance Affiliate-Boosted Welcome Bonus popup showing the invitee task tiers unlocked by referral code CRYPTOBONW (June 2026)",
+        "caption": "Straight from the Binance signup flow with our code active: the Affiliate-Boosted Welcome Bonus popup lists the invitee task tiers 1-7. Captured June 2026."
+      }
     },
     "okx": {
       "verdict": {
@@ -283,7 +466,7 @@
         },
         {
           "question": "What is the OKX referral code for 2026?",
-          "answer": "The current OKX referral code for 2026 is CRYPTOBONUSW. Enter this code on the OKX registration page in the 'Referral Code' field to activate the mystery box welcome bonus. The code must be entered before completing registration — it cannot be applied to an existing account. Once you register and complete the required tasks, your mystery box will appear in the Rewards Center in your account dashboard."
+          "answer": "The current OKX referral code for 2026 is CRYPTOBONW. Enter this code on the OKX registration page in the 'Referral Code' field to activate the mystery box welcome bonus. The code must be entered before completing registration — it cannot be applied to an existing account. Once you register and complete the required tasks, your mystery box will appear in the Rewards Center in your account dashboard."
         },
         {
           "question": "Does OKX require KYC verification?",
@@ -320,7 +503,7 @@
       ],
       "callouts": [],
       "editorNote": "Strong second choice behind Bybit for derivatives traders. The mystery box bonus is genuine — small average payout but transparent odds. Best-in-class Web3 wallet and DeFi integration. Not available in the US or India.",
-      "longDescription": "OKX is a major global cryptocurrency exchange and Web3 platform founded in 2017, operating out of Seychelles with licensed entities in Dubai (VARA) and the Bahamas (SCB). Rebranded from OKCoin to OKX in 2022, the platform serves over 50 million users across 180+ countries and consistently ranks among the top five exchanges by derivatives open interest.\n\nOKX offers one of the broadest product ranges in the industry: spot trading (300+ pairs), USDT and COIN-margined perpetual futures (up to 125× leverage), options, copy trading, P2P trading, an integrated Web3 wallet supporting 100+ blockchains, a built-in DEX aggregator, NFT marketplace, and Earn products. The OKX Web3 Wallet is widely considered the best integrated non-custodial wallet in the exchange space — it allows seamless movement between centralised exchange funds and DeFi protocols without switching apps. Spot fees start at 0.08% maker / 0.10% taker, slightly undercutting Binance and Bybit on maker rates.\n\nOKX's welcome bonus uses a mystery box mechanic — new users who register with referral code CRYPTOBONUSW and complete qualifying tasks (KYC + minimum $50 deposit) receive a mystery box containing a random reward. OKX publishes the full probability table before opening: the majority of boxes contain $5–$50 in trading vouchers, with low-probability tiers reaching up to $10,000. This is a transparent, auditable bonus structure — considerably more honest than headline 'up to X' claims from competitors. Proof of reserves is published monthly using Merkle tree verification.\n\nOKX is not available to US residents and has restricted access in India. KYC is tiered: Level 1 (basic ID data) unlocks standard withdrawals up to 10 BTC/day; Level 2 (government ID photo + facial recognition) raises this to 200 BTC/day and enables full fiat services. The OKB utility token provides trading fee discounts and access to new token launches via OKX Jumpstart.",
+      "longDescription": "OKX is a major global cryptocurrency exchange and Web3 platform founded in 2017, operating out of Seychelles with licensed entities in Dubai (VARA) and the Bahamas (SCB). Rebranded from OKCoin to OKX in 2022, the platform serves over 50 million users across 180+ countries and consistently ranks among the top five exchanges by derivatives open interest.\n\nOKX offers one of the broadest product ranges in the industry: spot trading (300+ pairs), USDT and COIN-margined perpetual futures (up to 125× leverage), options, copy trading, P2P trading, an integrated Web3 wallet supporting 100+ blockchains, a built-in DEX aggregator, NFT marketplace, and Earn products. The OKX Web3 Wallet is widely considered the best integrated non-custodial wallet in the exchange space — it allows seamless movement between centralised exchange funds and DeFi protocols without switching apps. Spot fees start at 0.08% maker / 0.10% taker, slightly undercutting Binance and Bybit on maker rates.\n\nOKX's welcome bonus uses a mystery box mechanic — new users who register with referral code CRYPTOBONW and complete qualifying tasks (KYC + minimum $50 deposit) receive a mystery box containing a random reward. OKX publishes the full probability table before opening: the majority of boxes contain $5–$50 in trading vouchers, with low-probability tiers reaching up to $10,000. This is a transparent, auditable bonus structure — considerably more honest than headline 'up to X' claims from competitors. Proof of reserves is published monthly using Merkle tree verification.\n\nOKX is not available to US residents and has restricted access in India. KYC is tiered: Level 1 (basic ID data) unlocks standard withdrawals up to 10 BTC/day; Level 2 (government ID photo + facial recognition) raises this to 200 BTC/day and enables full fiat services. The OKB utility token provides trading fee discounts and access to new token launches via OKX Jumpstart.",
       "experience": {
         "onboarding": {
           "rating": "Medium",
@@ -346,7 +529,8 @@
           "rating": "Good",
           "note": "Live chat responsive; knowledge base is thorough; community channels active on Telegram"
         }
-      }
+      },
+      "screenshotGalleryDisabled": true
     },
     "mexc": {
       "verdict": {
@@ -435,7 +619,8 @@
           "rating": "Fair",
           "note": "Live chat available but response times are inconsistent; complex cases can take 24–72 h"
         }
-      }
+      },
+      "screenshotGalleryDisabled": true
     },
     "coinbase": {
       "verdict": {
@@ -528,9 +713,13 @@
           "rating": "Good",
           "note": "Phone and chat support available; identity-related issues resolved faster than most peers"
         }
-      }
+      },
+      "screenshotGalleryDisabled": true
     },
     "bitget": {
+      "contextualScreenshotSlots": [
+        "bonus_referral_landing"
+      ],
       "verdict": {
         "quickVerdict": "The copy trading specialist — 90,000+ verified signal traders with a profit-share model that aligns lead trader incentives with followers, making it the top choice for passive trade mirroring.",
         "bestFor": [
@@ -609,7 +798,8 @@
           "rating": "Good",
           "note": "24/7 live chat with reasonable wait times; proactive outreach during major market events"
         }
-      }
+      },
+      "screenshotGalleryDisabled": true
     },
     "kucoin": {
       "verdict": {
@@ -663,12 +853,12 @@
         },
         {
           "question": "How does the KuCoin welcome bonus work?",
-          "answer": "KuCoin's welcome bonus reaches up to 11,000 USDT in rewards for new users. The bonus is structured as tiered tasks in the KuCoin Rewards Hub: registration reward, first deposit bonus (scaled by deposit amount), and trading volume milestones. Note that KuCoin requires a deposit to activate the full bonus, even though KYC is not required for basic withdrawal access. Standard users completing a moderate deposit and initial trades typically earn 50–500 USDT in reward vouchers. All bonus vouchers have validity periods and cannot be withdrawn directly."
+          "answer": "KuCoin's welcome bonus reaches up to 500 USDT in rewards for new users. The bonus is structured as tiered tasks in the KuCoin Rewards Hub: registration reward, first deposit bonus (scaled by deposit amount), and trading volume milestones. Note that KuCoin requires a deposit to activate the full bonus, even though KYC is not required for basic withdrawal access. Standard users completing a moderate deposit and initial trades typically earn 50–500 USDT in reward vouchers. All bonus vouchers have validity periods and cannot be withdrawn directly."
         }
       ],
       "callouts": [],
-      "editorNote": "40M+ users with no KYC for basic access — a strong combination. The 11,000 USDT welcome rewards package is competitive and the platform depth is excellent. Important: KuCoin's 2023 DOJ settlement is a trust consideration for new users. Best for privacy-focused traders outside the US.",
-      "longDescription": "KuCoin is a global cryptocurrency exchange founded in 2017 and often called 'The People's Exchange' for its accessible, low-barrier approach to crypto trading. It serves over 40 million registered users across 200+ countries and is known for its no-KYC policy for basic withdrawal access and its depth of altcoin listings.\n\nKuCoin offers a comprehensive product range: spot trading (700+ pairs), USDT-margined and coin-margined perpetual futures (up to 100× leverage), copy trading, staking, P2P trading, a lending marketplace, and a Launchpad for new token sales (KuCoin Spotlight). The KCS utility token is a standout feature — holders receive daily passive income from 50% of KuCoin's trading fee revenue, distributed proportionally. KCS also provides trading fee discounts and Launchpad allocation priority.\n\nAn important context for evaluating KuCoin: in 2023, KuCoin and two of its founders were charged by the US DOJ and CFTC for operating without proper AML controls in the United States. KuCoin agreed to pay over $297 million in penalties and exited the US market. This settlement has strengthened KuCoin's global compliance programs, and the exchange continues to operate for non-US users. User funds were maintained throughout this period. This regulatory history differentiates KuCoin from VARA-licensed Bybit, ASIC-registered Bitget, or NASDAQ-listed Coinbase.\n\nKuCoin allows withdrawal of up to 1 BTC per day without any identity verification. Basic KYC (no photo required) raises this to 10 BTC/day — a more stringent threshold than MEXC's no-KYC 10,000 USDT but still substantially permissive. Full advanced KYC unlocks fiat services and higher withdrawal limits. The welcome bonus of up to 11,000 USDT is one of the higher headline figures on this list and requires a deposit to activate.",
+      "editorNote": "40M+ users with no KYC for basic access — a strong combination. The 500 USDT welcome rewards package is competitive and the platform depth is excellent. Important: KuCoin's 2023 DOJ settlement is a trust consideration for new users. Best for privacy-focused traders outside the US.",
+      "longDescription": "KuCoin is a global cryptocurrency exchange founded in 2017 and often called 'The People's Exchange' for its accessible, low-barrier approach to crypto trading. It serves over 40 million registered users across 200+ countries and is known for its no-KYC policy for basic withdrawal access and its depth of altcoin listings.\n\nKuCoin offers a comprehensive product range: spot trading (700+ pairs), USDT-margined and coin-margined perpetual futures (up to 100× leverage), copy trading, staking, P2P trading, a lending marketplace, and a Launchpad for new token sales (KuCoin Spotlight). The KCS utility token is a standout feature — holders receive daily passive income from 50% of KuCoin's trading fee revenue, distributed proportionally. KCS also provides trading fee discounts and Launchpad allocation priority.\n\nAn important context for evaluating KuCoin: in 2023, KuCoin and two of its founders were charged by the US DOJ and CFTC for operating without proper AML controls in the United States. KuCoin agreed to pay over $297 million in penalties and exited the US market. This settlement has strengthened KuCoin's global compliance programs, and the exchange continues to operate for non-US users. User funds were maintained throughout this period. This regulatory history differentiates KuCoin from VARA-licensed Bybit, ASIC-registered Bitget, or NASDAQ-listed Coinbase.\n\nKuCoin allows withdrawal of up to 1 BTC per day without any identity verification. Basic KYC (no photo required) raises this to 10 BTC/day — a more stringent threshold than MEXC's no-KYC 10,000 USDT but still substantially permissive. Full advanced KYC unlocks fiat services and higher withdrawal limits. The welcome bonus of up to 500 USDT is one of the higher headline figures on this list and requires a deposit to activate.",
       "experience": {
         "onboarding": {
           "rating": "Easy",
@@ -694,9 +884,16 @@
           "rating": "Fair",
           "note": "Ticket system is the main channel; live chat queue can be long; complex issues take days"
         }
-      }
+      },
+      "screenshotGalleryDisabled": true,
+      "contextualScreenshotSlots": [
+        "bonus_referral_landing"
+      ]
     },
     "bingx": {
+      "contextualScreenshotSlots": [
+        "bonus_referral_landing"
+      ],
       "verdict": {
         "quickVerdict": "The most beginner-friendly copy trading platform — simplified social trading tools and an accessible P2P marketplace make it ideal for new traders who want to mirror experienced investors without navigating a complex interface.",
         "bestFor": [
@@ -744,12 +941,12 @@
         },
         {
           "question": "How does the BingX welcome bonus work?",
-          "answer": "The BingX welcome bonus of up to 5,000 USDT is distributed across task-based rewards. After registering with a referral code, tasks typically include: identity verification, a first deposit, and reaching a futures trading volume milestone. The bonus is credited as USDT vouchers to your account. Most users completing a moderate deposit and initial trading activity earn 100–400 USDT in vouchers. All vouchers have a validity period (typically 7–30 days from issuance) and must be used for trading — they cannot be withdrawn directly."
+          "answer": "The BingX welcome package of up to 11,000 USDT combines a regular welcome gift (6,800+ USDT, available to everyone) with 4,200+ USDT in perks exclusive to referral sign-ups. The regular part is distributed across Rewards Hub tasks: account creation (5–30 USDT), a two-day futures challenge (up to 700 USDT in position vouchers), and cumulative futures volume milestones (up to 5,300+ USDT in token vouchers). The bonus is credited as USDT vouchers to your account. Most users completing a moderate deposit and initial trading activity earn 100–400 USDT in vouchers. All vouchers have a validity period (typically 7–30 days from issuance) and must be used for trading — they cannot be withdrawn directly."
         }
       ],
       "callouts": [],
       "editorNote": "Easiest onboarding for complete beginners. Social trading features and strong P2P support lower the entry barrier significantly. Bonus conditions are fair. Not the highest ceiling but the most accessible all-around.",
-      "longDescription": "BingX is a cryptocurrency exchange founded in 2018 and headquartered in Singapore, with a primary focus on social trading and copy trading for retail users. It serves over 10 million registered users globally and has built a reputation as the most beginner-friendly copy trading platform in the market.\n\nBingX's standout products are its copy trading system and grid trading automation. Copy trading allows users to automatically replicate the positions of experienced signal traders with a simplified interface — the setup process is notably easier than Bitget's more feature-rich but complex system. Grid trading bots automate buy-low/sell-high strategies within user-defined price ranges, with pre-configured templates for new users. BingX also offers standard spot trading (300+ pairs), USDT-margined perpetual futures (up to 100× leverage), P2P trading with local fiat currency support, and an Earn product for passive yield.\n\nThe BingX P2P marketplace supports a wide range of local fiat currencies and payment methods across Asia, Africa, and Latin America — particularly useful in markets where direct exchange fiat deposits face banking restrictions. Futures fees are 0.02% maker and 0.05% taker, competitive with Bybit. Standard spot fees are 0.1% maker/taker.\n\nThe welcome bonus of up to 5,000 USDT is structured as task-based rewards: first deposit bonus plus futures trading volume milestones. Standard users completing a moderate deposit typically earn 100–400 USDT in vouchers. KYC verification is required for full access — BingX does not offer a meaningful no-KYC tier. The exchange holds MSB registration with Canada's FINTRAC and several other regional registrations, though it does not hold major FCA, SEC, or MiCA licences. BingX is not available to US residents.",
+      "longDescription": "BingX is a cryptocurrency exchange founded in 2018 and headquartered in Singapore, with a primary focus on social trading and copy trading for retail users. It serves over 10 million registered users globally and has built a reputation as the most beginner-friendly copy trading platform in the market.\n\nBingX's standout products are its copy trading system and grid trading automation. Copy trading allows users to automatically replicate the positions of experienced signal traders with a simplified interface — the setup process is notably easier than Bitget's more feature-rich but complex system. Grid trading bots automate buy-low/sell-high strategies within user-defined price ranges, with pre-configured templates for new users. BingX also offers standard spot trading (300+ pairs), USDT-margined perpetual futures (up to 100× leverage), P2P trading with local fiat currency support, and an Earn product for passive yield.\n\nThe BingX P2P marketplace supports a wide range of local fiat currencies and payment methods across Asia, Africa, and Latin America — particularly useful in markets where direct exchange fiat deposits face banking restrictions. Futures fees are 0.02% maker and 0.05% taker, competitive with Bybit. Standard spot fees are 0.1% maker/taker.\n\nThe welcome package of up to 11,000 USDT (6,800+ USDT regular gift plus 4,200+ USDT referral-exclusive perks) is structured as Rewards Hub tasks: a small sign-up reward plus futures challenge and trading volume milestones. Standard users completing a moderate deposit typically earn 100–400 USDT in vouchers. KYC verification is required for full access — BingX does not offer a meaningful no-KYC tier. The exchange holds MSB registration with Canada's FINTRAC and several other regional registrations, though it does not hold major FCA, SEC, or MiCA licences. BingX is not available to US residents.",
       "experience": {
         "onboarding": {
           "rating": "Easy",
@@ -775,7 +972,8 @@
           "rating": "Fair",
           "note": "Live chat available; response quality is acceptable but not industry-leading"
         }
-      }
+      },
+      "screenshotGalleryDisabled": true
     },
     "gate-io": {
       "verdict": {
@@ -825,12 +1023,12 @@
         },
         {
           "question": "What is the Gate.io welcome bonus?",
-          "answer": "Gate.io offers a welcome bonus of up to 3,000 USDT for new users. The bonus is distributed across task-based rewards: KYC completion, first deposit milestone, and trading volume rewards. Most users completing a standard first deposit earn 50–300 USDT in trading vouchers. All vouchers have a validity period and cannot be directly withdrawn — only trading profits generated using them are withdrawable. The bonus ceiling requires a substantial first deposit and significant trading activity to reach the maximum."
+          "answer": "Gate.io offers welcome rewards of up to 10,000 USDT for new users (the referral landing advertises '10,000+ USDT'). The rewards are distributed across task-based milestones: a sign-up task worth 50 USDT (the full beginner package is worth about 135 USDT), a net deposit milestone, and spot or futures trading volume rewards. Most users completing a standard first deposit earn 50–300 USDT in trading vouchers. All vouchers have a validity period and cannot be directly withdrawn — only trading profits generated using them are withdrawable. The bonus ceiling requires a substantial deposit and significant trading activity to reach."
         }
       ],
       "callouts": [],
-      "editorNote": "Founded 2013 — the most experienced exchange on this list. 1,700+ token pairs is an unmatched altcoin selection among regulated-tier exchanges. Bonus is moderate but the real value is platform depth and longevity. Best for experienced altcoin hunters.",
-      "longDescription": "Gate.io is one of the oldest active cryptocurrency exchanges, founded in 2013 and continuously operational for over a decade. Originally known as Bter, the exchange rebranded to Gate.io and has built a reputation as a specialist platform for altcoin trading and early-stage token listings. It serves millions of users globally and offers one of the most comprehensive product suites of any exchange on this list.\n\nGate.io's primary differentiator is its altcoin depth: 1,700+ trading pairs covering a wide range of market caps, from major assets to emerging projects. It is consistently among the first major platforms to list new tokens, making it the go-to destination for traders who want early exposure to new projects before they reach Binance or Coinbase. Beyond spot trading, Gate.io offers USDT-margined and coin-margined perpetual futures, options contracts (a relatively rare feature among the exchanges in this comparison), a lending marketplace for yield generation, margin trading, staking, and a Startup launchpad for IEOs.\n\nSpot trading fees start at 0.2% maker and 0.2% taker for standard users — higher than most competitors — but reduce substantially for VIP tiers and with GT token holdings. Futures fees are 0.015% maker and 0.05% taker, competitive with the leading platforms. Gate.io publishes proof-of-reserves reports and has maintained user funds throughout its 12+ year operating history.\n\nGate.io does not hold publicly named licences from the FCA, SEC, or VARA. It operates under an offshore model and has regulatory registrations in select jurisdictions. Its primary trust signal is its decade-long operational track record without a major insolvency event. The platform's interface is comprehensive but complex — Gate.io is best suited for experienced traders rather than beginners. US residents cannot access Gate.io. The welcome bonus reaches up to 3,000 USDT across task-based milestones.",
+      "editorNote": "Founded 2013 — the most experienced exchange on this list. 1,700+ token pairs is an unmatched altcoin selection among regulated-tier exchanges. The 10,000 USDT headline is task-gated, but the real value is platform depth and longevity. Best for experienced altcoin hunters.",
+      "longDescription": "Gate.io is one of the oldest active cryptocurrency exchanges, founded in 2013 and continuously operational for over a decade. Originally known as Bter, the exchange rebranded to Gate.io and has built a reputation as a specialist platform for altcoin trading and early-stage token listings. It serves millions of users globally and offers one of the most comprehensive product suites of any exchange on this list.\n\nGate.io's primary differentiator is its altcoin depth: 1,700+ trading pairs covering a wide range of market caps, from major assets to emerging projects. It is consistently among the first major platforms to list new tokens, making it the go-to destination for traders who want early exposure to new projects before they reach Binance or Coinbase. Beyond spot trading, Gate.io offers USDT-margined and coin-margined perpetual futures, options contracts (a relatively rare feature among the exchanges in this comparison), a lending marketplace for yield generation, margin trading, staking, and a Startup launchpad for IEOs.\n\nSpot trading fees start at 0.2% maker and 0.2% taker for standard users — higher than most competitors — but reduce substantially for VIP tiers and with GT token holdings. Futures fees are 0.015% maker and 0.05% taker, competitive with the leading platforms. Gate.io publishes proof-of-reserves reports and has maintained user funds throughout its 12+ year operating history.\n\nGate.io does not hold publicly named licences from the FCA, SEC, or VARA. It operates under an offshore model and has regulatory registrations in select jurisdictions. Its primary trust signal is its decade-long operational track record without a major insolvency event. The platform's interface is comprehensive but complex — Gate.io is best suited for experienced traders rather than beginners. US residents cannot access Gate.io. The welcome rewards reach up to 10,000 USDT across task-based milestones.",
       "experience": {
         "onboarding": {
           "rating": "Involved",
@@ -856,7 +1054,11 @@
           "rating": "Fair",
           "note": "Support covers many languages; response times variable; known issues with complex account disputes"
         }
-      }
+      },
+      "contextualScreenshotSlots": [
+        "bonus_referral_landing"
+      ],
+      "screenshotGalleryDisabled": true
     },
     "htx": {
       "verdict": {
@@ -932,7 +1134,8 @@
           "rating": "Fair",
           "note": "Support available but quality reviews are mixed; better in Asian time zones"
         }
-      }
+      },
+      "screenshotGalleryDisabled": true
     },
     "coinex": {
       "verdict": {
@@ -1013,7 +1216,8 @@
           "rating": "Limited",
           "note": "Email and ticket-based; no 24/7 live chat; response times can reach 48+ hours"
         }
-      }
+      },
+      "screenshotGalleryDisabled": true
     },
     "phemex": {
       "verdict": {
@@ -1094,7 +1298,8 @@
           "rating": "Fair",
           "note": "Live chat and ticket support; response quality is acceptable; complex issues take time to resolve"
         }
-      }
+      },
+      "screenshotGalleryDisabled": true
     },
     "bitunix": {
       "verdict": {
@@ -1135,7 +1340,7 @@
         },
         {
           "question": "How does the Bitunix welcome bonus work?",
-          "answer": "Bitunix's welcome bonus of up to 1,000 USDT is structured as task-based rewards. Tasks typically include a qualifying deposit and a futures trading volume milestone. Most users completing a moderate deposit and initial trades earn 50–200 USDT in bonus vouchers. All vouchers have validity periods and cannot be withdrawn directly — only profits generated through trading with them are withdrawable. The 1,000 USDT maximum requires a larger deposit and sustained trading volume."
+          "answer": "Bitunix's welcome bonus of up to 10,000 USDT is structured as task-based rewards. Tasks typically include a qualifying deposit and a futures trading volume milestone. Most users completing a moderate deposit and initial trades earn 50–200 USDT in bonus vouchers. All vouchers have validity periods and cannot be withdrawn directly — only profits generated through trading with them are withdrawable. The 10,000 USDT maximum requires a larger deposit and sustained trading volume."
         },
         {
           "question": "How does Bitunix compare to established exchanges?",
@@ -1144,7 +1349,7 @@
       ],
       "callouts": [],
       "editorNote": "Newest exchange here (est. 2022). Streamlined account setup and competitive futures fees. Bonus is real but counterparty risk is higher than established platforms. Recommended for experienced users only — not for beginners.",
-      "longDescription": "Bitunix is a cryptocurrency futures exchange founded in 2022, making it the newest platform on this list. It focuses primarily on derivatives trading with a streamlined account setup process and competitive fee structure.\n\nBitunix's primary offering is USDT-margined perpetual futures with leverage up to 125× on major pairs. Futures fees are 0.02% maker and 0.06% taker — competitive with Bybit and among the lowest in the market. The platform also offers spot trading (limited pairs). Account and withdrawal limits should be confirmed on the official help center before registering.\n\nAs a newer exchange, Bitunix has a significantly shorter track record than established platforms like Bybit (2018), Binance (2017), or Gate.io (2013). It does not hold prominent regulatory licences and operates under an offshore structure. Daily trading volume is materially lower than the top five exchanges, which means less liquidity depth and wider spreads on most pairs beyond BTC and ETH.\n\nBitunix's welcome bonus reaches up to 1,000 USDT across task-based milestones (first deposit + trading volume). It is best positioned as a secondary account for experienced traders seeking accessible futures trading, or as an alternative for users who have encountered restrictions on larger platforms. For primary accounts, exchanges with established track records, named regulatory licences, and deeper liquidity — such as Bybit, OKX, or MEXC — provide meaningfully better risk profiles.",
+      "longDescription": "Bitunix is a cryptocurrency futures exchange founded in 2022, making it the newest platform on this list. It focuses primarily on derivatives trading with a streamlined account setup process and competitive fee structure.\n\nBitunix's primary offering is USDT-margined perpetual futures with leverage up to 125× on major pairs. Futures fees are 0.02% maker and 0.06% taker — competitive with Bybit and among the lowest in the market. The platform also offers spot trading (limited pairs). Account and withdrawal limits should be confirmed on the official help center before registering.\n\nAs a newer exchange, Bitunix has a significantly shorter track record than established platforms like Bybit (2018), Binance (2017), or Gate.io (2013). It does not hold prominent regulatory licences and operates under an offshore structure. Daily trading volume is materially lower than the top five exchanges, which means less liquidity depth and wider spreads on most pairs beyond BTC and ETH.\n\nBitunix's welcome bonus reaches up to 10,000 USDT across task-based milestones (first deposit + trading volume). It is best positioned as a secondary account for experienced traders seeking accessible futures trading, or as an alternative for users who have encountered restrictions on larger platforms. For primary accounts, exchanges with established track records, named regulatory licences, and deeper liquidity — such as Bybit, OKX, or MEXC — provide meaningfully better risk profiles.",
       "experience": {
         "onboarding": {
           "rating": "Easy",
@@ -1170,7 +1375,8 @@
           "rating": "Limited",
           "note": "Basic support channels; response times and quality lag behind established exchanges"
         }
-      }
+      },
+      "screenshotGalleryDisabled": true
     },
     "lbank": {
       "verdict": {
@@ -1250,7 +1456,8 @@
           "rating": "Limited",
           "note": "Support coverage is inconsistent; best experience is in regions where LBank is most active"
         }
-      }
+      },
+      "screenshotGalleryDisabled": true
     }
   },
   "countries": {

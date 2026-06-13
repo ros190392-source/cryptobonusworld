@@ -241,7 +241,7 @@ export const AFFILIATE_LINK_REGISTRY: AffiliateLinkRecord[] = [
   {
     exchangeSlug: 'binance',
     exchangeName: 'Binance',
-    affiliateUrl: 'https://accounts.binance.com/register?ref=CRYPTOBONUSW',
+    affiliateUrl: 'https://accounts.binance.com/register?ref=CRYPTOBONW',
     lastCheckedAt: '2026-05-24',
     isLive: true,
     domainVerified: true,
@@ -259,7 +259,7 @@ export const AFFILIATE_LINK_REGISTRY: AffiliateLinkRecord[] = [
   {
     exchangeSlug: 'kucoin',
     exchangeName: 'KuCoin',
-    affiliateUrl: 'https://www.kucoin.com/?&rcode=CRYPTOBONW&utm_medium=U17591',
+    affiliateUrl: 'https://www.kucoin.com/r/af/CRYPTOBONW',
     lastCheckedAt: '2026-05-27',
     isLive: true,
     domainVerified: true,

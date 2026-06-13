@@ -289,7 +289,10 @@ const schemaData = emitSchema && src ? {
   }
   .sc-frame--natural .sc-img {
     height: auto;           /* natural height — never cropped */
-    object-fit: unset;      /* no fit enforcement */
+    /* contain (not unset): when the inline CLS aspect-ratio hint differs from
+       the image's true ratio, the mismatch becomes dark letterbox bars instead
+       of a stretched/distorted image. With a matching ratio it has no effect. */
+    object-fit: contain;
     display: block;
     width: 100%;
     /* aspect-ratio set inline on <img> for CLS prevention when width/height absent */

@@ -408,7 +408,7 @@ const analyticsContext: PageContext = {
       name="Oleksandr Shadurskyi"
       title="Crypto Exchange Analyst & Editor-in-Chief"
       initials="AS"
-      photo="/avatars/avatar2.png"
+      photo="/avatars/alexandr-shadurskyi.webp"
       reviewedAt={new Date().toISOString().slice(0, 10)}
       profileUrl="/reviewers/alexandr-shadurskyi/"
     />
@@ -447,8 +447,18 @@ const analyticsContext: PageContext = {
           <thead>
             <tr>
               <th class="ct-category">Category</th>
-              <th class={`ct-val ${overallWinner === 'a' ? 'ct-winner-col' : ''}`}>{exA.name}</th>
-              <th class={`ct-val ${overallWinner === 'b' ? 'ct-winner-col' : ''}`}>{exB.name}</th>
+              <th class={`ct-val ${overallWinner === 'a' ? 'ct-winner-col' : ''}`}>
+                <span class="th-ex">
+                  <ExchangeLogo slug={exA.slug} name={exA.name} size={22} variant="square" />
+                  {exA.name}
+                </span>
+              </th>
+              <th class={`ct-val ${overallWinner === 'b' ? 'ct-winner-col' : ''}`}>
+                <span class="th-ex">
+                  <ExchangeLogo slug={exB.slug} name={exB.name} size={22} variant="square" />
+                  {exB.name}
+                </span>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -662,8 +672,18 @@ const analyticsContext: PageContext = {
           <thead>
             <tr>
               <th>Feature</th>
-              <th class={overallWinner === 'a' ? 'fw-col' : ''}>{exA.name}</th>
-              <th class={overallWinner === 'b' ? 'fw-col' : ''}>{exB.name}</th>
+              <th class={overallWinner === 'a' ? 'fw-col' : ''}>
+                <span class="th-ex">
+                  <ExchangeLogo slug={exA.slug} name={exA.name} size={22} variant="square" />
+                  {exA.name}
+                </span>
+              </th>
+              <th class={overallWinner === 'b' ? 'fw-col' : ''}>
+                <span class="th-ex">
+                  <ExchangeLogo slug={exB.slug} name={exB.name} size={22} variant="square" />
+                  {exB.name}
+                </span>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -1096,6 +1116,13 @@ const analyticsContext: PageContext = {
   }
   .compare-table th.ct-winner-col {
     color: var(--color-accent);
+  }
+  /* Exchange name + mini logo in table headers (both compare tables) */
+  .th-ex {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
   }
   .compare-table tbody tr {
     border-bottom: 1px solid var(--color-border-subtle);

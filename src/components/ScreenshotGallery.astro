@@ -26,6 +26,8 @@ interface Props {
   galleryId?: string;
   heading?: string;
   lightbox?: boolean;
+  /** Image fit mode forwarded to every card. 'natural' = full image, no cropping. */
+  fit?: 'cover' | 'contain' | 'natural';
 }
 
 const {
@@ -34,6 +36,7 @@ const {
   galleryId = `gallery-${Math.random().toString(36).slice(2, 7)}`,
   heading,
   lightbox = true,
+  fit = 'cover',
 } = Astro.props;
 
 const realImages = images.filter(img => img.src);
@@ -55,6 +58,7 @@ const realImages = images.filter(img => img.src);
         width={img.width}
         height={img.height}
         lightboxGroup={lightbox && img.src ? galleryId : undefined}
+        fit={fit}
         class="sg-card"
       />
     ))}

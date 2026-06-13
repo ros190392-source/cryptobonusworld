@@ -1,7 +1,7 @@
 {
   "exchange": "bitunix",
   "schemaVersion": "2.0",
-  "lastUpdated": "2026-06-08",
+  "lastUpdated": "2026-06-12",
   "dataSourcesUsed": [
     "coingecko_api_2026-06-08",
     "coinmarketcap_exchange_2026-06-08",
@@ -25,20 +25,20 @@
     "stablecoin": null,
     "recentBrandChange": null,
     "description": "Newer derivatives-focused exchange, globally launched October 2022. 4M+ users in 150+ countries. Known for industry-first \"loss-based positioning\" and up to 200× leverage. TradingView integration. Proof-of-Reserves. Spot, perpetuals, chart trading.",
-    "descriptionShort": "Derivatives-first exchange (2022). 200× leverage, 4M+ users, 1,000 USDT welcome bonus.",
+    "descriptionShort": "Derivatives-first exchange (2022). 200× leverage, 4M+ users, up to 10,000 USDT welcome bonus.",
     "notableEvents": [],
     "partnershipNote": null
   },
   "affiliate": {
     "primaryUrl": "https://www.bitunix.com/register?inviteCode=phpZuw",
     "promoCode": "phpZuw",
-    "bonusAmount": 1000,
+    "bonusAmount": 10000,
     "bonusCurrency": "USDT",
     "bonusType": "task-based rewards (KYC + deposit + volume milestones)",
     "bonusVoucherNote": "Vouchers are trading fee credits, not withdrawable cash — only profits from trading with them can be withdrawn",
     "ownerApprovalRequiredForChanges": true,
     "immutableNote": "Affiliate URL is IMMUTABLE — changes require ROLE 0 explicit approval",
-    "lastVerified": "2026-06-01"
+    "lastVerified": "2026-06-12"
   },
   "marketIntelligence": {
     "geckoId": null,
@@ -194,7 +194,7 @@
       "volume24h": "$0.41B",
       "geckoTrustScore": null,
       "geckoTrustRank": "#null",
-      "welcomeBonus": "1000 USDT",
+      "welcomeBonus": "10000 USDT",
       "promoCode": "phpZuw",
       "nativeToken": "none",
       "nasdaqListed": false
@@ -212,12 +212,12 @@
       },
       {
         "question": "What is the Bitunix promo/referral code?",
-        "answer": "The CryptoBonusWorld referral code for Bitunix is phpZuw. It is pre-filled automatically when you register via our link. Using it activates the welcome bonus of up to 1000 USDT.",
+        "answer": "The CryptoBonusWorld referral code for Bitunix is phpZuw. It is pre-filled automatically when you register via our link. Using it activates the welcome bonus of up to 10000 USDT.",
         "category": "affiliate"
       },
       {
         "question": "How much is the Bitunix welcome bonus?",
-        "answer": "Via CryptoBonusWorld, the current Bitunix welcome bonus is up to 1000 USDT. This is a task-based reward: completing KYC, making a qualifying deposit, and reaching trading volume milestones unlocks different reward tiers. The full amount requires all milestones — most users completing a standard deposit earn a meaningful first-week reward. Bonus amounts are typically trading fee vouchers, not withdrawable cash.",
+        "answer": "Via CryptoBonusWorld, the current Bitunix welcome bonus is up to 10000 USDT. This is a task-based reward: completing KYC, making a qualifying deposit, and reaching trading volume milestones unlocks different reward tiers. The full amount requires all milestones — most users completing a standard deposit earn a meaningful first-week reward. Bonus amounts are typically trading fee vouchers, not withdrawable cash.",
         "category": "affiliate"
       },
       {

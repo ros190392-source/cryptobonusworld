@@ -321,11 +321,11 @@ const exchangesJson = JSON.stringify(
           // Only update if it's a "short" placement (table/card rows, not hero)
           var placement = ctaEl.getAttribute('data-placement') || '';
           if (placement.indexOf('table') !== -1 || placement.indexOf('card') !== -1) {
-            var arrowEl = ctaEl.querySelector('.cta-arrow');
-            var hasArrow = !!arrowEl;
-            // Rebuild label preserving the arrow span
-            var textNode = Array.from(ctaEl.childNodes).find(function(n){ return n.nodeType === 3; });
-            if (textNode) textNode.textContent = ctaShort.replace(/→$/, '').trim() + ' ';
+            // Write into the label span — never raw text nodes (those are
+            // whitespace between spans; writing there duplicated the label).
+            // The .cta-arrow span already renders the arrow, so strip ours.
+            var labelEl = ctaEl.querySelector('.cta-label');
+            if (labelEl) labelEl.textContent = ctaShort.replace(/→$/, '').trim();
           }
         }
       });

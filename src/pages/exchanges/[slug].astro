@@ -23,6 +23,9 @@ import FactCheckPanel from '../../components/FactCheckPanel.astro';
 import ExchangeExperienceGrid from '../../components/ExchangeExperienceGrid.astro';
 import type { ExperienceData } from '../../components/ExchangeExperienceGrid.astro';
 
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 import exchanges from '../../data/exchanges.json';
 import categories from '../../data/categories.json';
 import countries from '../../data/countries.json';
@@ -95,11 +98,26 @@ const pageReviewer = _primaryReviewer ? {
   initials:   _primaryReviewer.initials,
   avatarSrc:  _primaryReviewer.photo ?? undefined,
   expertise:  _primaryReviewer.expertise,
+  credentials: (_primaryReviewer as any).credentials,
 } : undefined; // undefined → ReviewerBlock uses its built-in named default
 
 // SEO: dynamic title, meta description, cross-link data
+// Per-exchange editorial overrides (content-overrides.json) — flagship pages
+// can override the templated meta description and add an AI-extractable
+// answer capsule + comparison mini-table.
+const _pageOverride = (contentOverrides.exchanges as Record<string, any>)[ex.slug];
 const seoTitle = exchangePageTitle(ex as any);
-const seoDesc = exchangeMetaDesc(ex as any);
+const seoDesc = _pageOverride?.metaDescription ?? exchangeMetaDesc(ex as any);
+// Flagship HTML sections (ТЗ §4.4/4.5/4.14/4.14b) — editorial HTML from overrides,
+// anchored at named positions. Content is hand-written per exchange; html is
+// trusted editorial input (same trust level as longDescription overrides).
+const _flagshipSections: any[] = _pageOverride?.flagshipSections ?? [];
+const _sectionsAt = (pos: string) => _flagshipSections.filter(s => s.position === pos);
+
+// Comparison mini-table competitors (flagship pages name slugs in overrides)
+const _compareMini: any[] = ((_pageOverride?.compareMiniSlugs as string[] | undefined) ?? [])
+  .map(s => (exchanges as any[]).find(e => e.slug === s))
+  .filter(Boolean);
 const relatedCats = getRelatedCategories(ex.bonusTypes, ex.kycRequired, ex.depositRequired, categories as any);
 const countryCrossLinks = getCountryCrossLinks(ex.countries, countries as any);
 
@@ -293,6 +311,21 @@ const hasBonusCode = BONUS_CODES.some(b => b.exchangeSlug === ex.slug);
 // ── Walkthrough HowTo schema helpers ──────────────────────────────────────────
 const SITE_URL = 'https://cryptobonusworld.com';
 
+// One consolidated ImageGallery JSON-LD for all walkthrough screenshots —
+// per-step ImageObject blocks are intentionally NOT emitted (50 separate
+// blocks on screenshot-heavy pages triggered duplicate-type schema warnings)
+const walkthroughGallerySchema = walkthroughFlows.length > 0 ? JSON.stringify({
+  '@context': 'https://schema.org',
+  '@type': 'ImageGallery',
+  'name': `${ex.name} step-by-step walkthrough screenshots`,
+  'image': walkthroughFlows.flatMap(f => f.steps.filter(s => !!s.src).map(s => ({
+    '@type': 'ImageObject',
+    'contentUrl': `${SITE_URL}${s.src}`,
+    'name': s.alt ?? s.title,
+    ...(s.capturedAt ?? f.lastVerified ? { 'datePublished': (s.capturedAt ?? f.lastVerified) + '-01' } : {}),
+  }))),
+}) : null;
+
 const FLOW_TIMES: Record<string, string> = {
   'bybit-account-creation': 'PT5M',
   'bybit-kyc':              'PT10M',
@@ -300,6 +333,9 @@ const FLOW_TIMES: Record<string, string> = {
   'bybit-first-deposit':    'PT10M',
   'bybit-spot-trading':     'PT10M',
   'bybit-futures-setup':    'PT20M',
+  'binance-account-creation': 'PT5M',
+  'binance-kyc':              'PT10M',
+  'binance-p2p':              'PT15M',
 };
 
 function stripHtml(html: string): string {
@@ -337,6 +373,23 @@ const _SCREENSHOT_LABELS: Record<string, string> = {
   registration_demo_state:   'Registration — CBW referral',
 };
 
+/** Build-time WebP dimension probe — reserves layout space on evidence
+ *  figures (CLS fix). Returns {} for non-webp or unreadable files. */
+function _imgDims(src?: string): { width?: number; height?: number } {
+  if (!src?.startsWith('/screenshots/')) return {};
+  try {
+    const b = readFileSync(join(process.cwd(), 'public', src));
+    const fourcc = b.toString('ascii', 12, 16);
+    if (fourcc === 'VP8X') return { width: 1 + b.readUIntLE(24, 3), height: 1 + b.readUIntLE(27, 3) };
+    if (fourcc === 'VP8 ') return { width: b.readUInt16LE(26) & 0x3fff, height: b.readUInt16LE(28) & 0x3fff };
+    if (fourcc === 'VP8L') {
+      const bits = b.readUInt32LE(21);
+      return { width: (bits & 0x3fff) + 1, height: ((bits >> 14) & 0x3fff) + 1 };
+    }
+  } catch { /* missing file — render without intrinsic dims */ }
+  return {};
+}
+
 const _screenshotImages = ev?.screenshots
   ? Object.entries(ev.screenshots)
       .filter(([, entry]) =>
@@ -346,12 +399,19 @@ const _screenshotImages = ev?.screenshots
         (entry.path as string).startsWith('/screenshots/')
       )
       .map(([slot, entry]) => ({
+        slot,
         src:        entry!.path as string,
         alt:        `${ex.name} — ${_SCREENSHOT_LABELS[slot] ?? slot} screenshot`,
-        caption:    (entry!.notes && entry!.notes.length > 5) ? entry!.notes : undefined,
+        // Public figcaption: explicit editorial `caption` first; `notes` is the
+        // internal evidence log and may contain workflow language — only fall
+        // back to it when no caption exists (legacy entries).
+        caption:    (entry as any)!.caption
+                      ?? ((entry!.notes && entry!.notes.length > 5) ? entry!.notes : undefined),
         capturedAt: entry!.capturedAt ?? undefined,
         label:      _SCREENSHOT_LABELS[slot] ?? slot,
         device:     (entry!.device ?? 'desktop') as 'desktop' | 'mobile' | 'none',
+        // Full-size frame for the lightbox when the inline path is a crop
+        fullSrc:    (entry as any)!.fullPath as string | undefined,
       }))
   : [];
 
@@ -371,6 +431,8 @@ const _mobileScreenshot          = _contextualSlots.includes('mobile_app')
   ? (_screenshotImages.find(img => img.src.includes('/mobile_app/'))       ?? null) : null;
 const _feesScreenshot            = _contextualSlots.includes('fees')
   ? (_screenshotImages.find(img => img.src.includes('/fees/'))             ?? null) : null;
+const _feesFuturesScreenshot     = _contextualSlots.includes('fees_futures')
+  ? (_screenshotImages.find(img => img.src.includes('/fees_futures/'))     ?? null) : null;
 const _p2pScreenshot             = _contextualSlots.includes('p2p')
   ? (_screenshotImages.find(img => img.src.includes('/p2p/'))              ?? null) : null;
 const _proofOfReservesScreenshot = _contextualSlots.includes('proof_of_reserves')
@@ -384,6 +446,11 @@ const _registrationDemoStateScreenshot = _contextualSlots.includes('registration
 // compliant caption (does not reuse the generic shared walkthrough caption).
 const _p2pDirectionScreenshot = _contextualSlots.includes('p2p_direction_usd_usdt')
   ? (_screenshotImages.find(img => img.src.includes('/p2p_direction_usd_usdt/')) ?? null) : null;
+
+// Gallery shows only slots that are NOT already rendered as contextual blocks
+// elsewhere on the page — prevents the same screenshot appearing twice
+// (e.g. bonus_referral_landing lives in the hero proof-strip + bonus section).
+const _galleryImages = _screenshotImages.filter(img => !_contextualSlots.includes(img.slot));
 
 // Pull the official fee source URL from evidence (if available)
 const _feeSourceFact = ev?.facts.find(f => f.field === 'spot_maker_fee');
@@ -499,7 +566,24 @@ const rnrItems = [
       excludedCountries={(ex as any).excludedCountries ?? null}
       bonusDisplayMode={(ex as any).bonusDisplayMode ?? 'up-to'}
       partnerStatus={(ex as any).partner_status ?? 'full'}
+      bonusTiers={hasBonusTierData ? activeBonusTiers : []}
+      bonusRange={(ex as any).bonusRange ?? null}
+      proofShot={_bonusProofScreenshot ? { src: _bonusProofScreenshot.src, capturedAt: _bonusProofScreenshot.capturedAt } : null}
     />
+
+    <!-- AI-extractable answer capsule: datestamped quick answer in the first
+         100 words of body content. Rendered only when the editorial override
+         provides one (flagship pages). All facts come from verified data. -->
+    {_pageOverride?.answerCapsule && (
+      <section class="answer-capsule" id="quick-answer">
+        <p class="answer-capsule-text" set:html={_pageOverride.answerCapsule.html} />
+        <p class="answer-capsule-meta">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+          Last verified: {_pageOverride.answerCapsule.lastVerified}
+          {_pageOverride.answerCapsule.method && <> · {_pageOverride.answerCapsule.method}</>}
+        </p>
+      </section>
+    )}
 
     <!-- Editorial summary: verdict, best-for, feature badges (EEAT anchor) -->
     <EditorSummary
@@ -604,17 +688,18 @@ const rnrItems = [
         <!-- Platform screenshots — public evidence captures from the live exchange -->
         <!-- Disabled per-exchange via content-overrides screenshotGalleryDisabled flag when -->
         <!-- screenshots are contextual-only or gallery would show misleading bonus amounts. -->
-        {_screenshotImages.length > 0 && !(_faqOverride as any)?.screenshotGalleryDisabled && (
+        {_galleryImages.length > 0 && !(_faqOverride as any)?.screenshotGalleryDisabled && (
           <section class="ex-section" id="platform-screenshots">
             <h2 class="ex-section-title">Platform Screenshots</h2>
             <p class="ex-prose" style="margin-bottom: 1rem; font-size: 0.875rem; color: var(--color-text-muted)">
               Public screenshots captured on the live {ex.name} platform for editorial verification. Click any image to expand.
             </p>
             <ScreenshotGallery
-              images={_screenshotImages}
+              images={_galleryImages}
               layout="grid"
               galleryId={`screenshots-${ex.slug}`}
               lightbox={true}
+              fit="natural"
             />
           </section>
         )}
@@ -645,6 +730,7 @@ const rnrItems = [
             caption={`${ex.name} mobile app page screenshot showing the public app download and mobile access experience.`}
             device={_mobileScreenshot.device === 'none' ? 'desktop' : _mobileScreenshot.device}
             capturedAt={_mobileScreenshot.capturedAt}
+            {..._imgDims(_mobileScreenshot.src)}
           />
         )}
 
@@ -665,8 +751,8 @@ const rnrItems = [
 
         <!-- Bonus tiers breakdown -->
         {activeBonusTiers.length > 0 && (
-          <section class="ex-section">
-            <h2 class="ex-section-title">What's Included in This Bonus</h2>
+          <section class="ex-section" id="bonus-breakdown">
+            <h2 class="ex-section-title">What's Included in the {ex.name} Welcome Bonus</h2>
             <div class="bonus-tiers">
               {hasBonusTierData
                 ? activeBonusTiers.map((tier: any) => (
@@ -706,18 +792,103 @@ const rnrItems = [
           </section>
         )}
 
+        {/* Stage 1 + Stage 2 tier table — flagship section (ТЗ §4.3), data-driven
+            from content-overrides.tierTable. Every number is live-verified on our
+            own registered account; both proof screenshots are our own captures. */}
+        {_pageOverride?.tierTable && (
+          <section class="ex-section" id="tier-table">
+            <h2 class="ex-section-title">{_pageOverride.tierTable.heading}</h2>
+            <p class="ex-prose">{_pageOverride.tierTable.intro}</p>
+
+            <h3 class="tier-stage-title">{_pageOverride.tierTable.stage1.title}</h3>
+            <div class="ex-fact-box">
+              <table class="ex-fact-table">
+                <tbody>
+                  {_pageOverride.tierTable.stage1.rows.map((r: any) => (
+                    <tr><th scope="row">{r.task}</th><td>{r.reward}</td></tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p class="tier-note">{_pageOverride.tierTable.stage1.note}</p>
+
+            <h3 class="tier-stage-title">{_pageOverride.tierTable.stage2.title}</h3>
+            <div class="ex-fact-box">
+              <table class="ex-fact-table ex-tier-table">
+                <thead>
+                  <tr>{_pageOverride.tierTable.stage2.columns.map((c: string) => <th scope="col">{c}</th>)}</tr>
+                </thead>
+                <tbody>
+                  {_pageOverride.tierTable.stage2.rows.map((row: string[]) => (
+                    <tr>{row.map((cell, i) => i === 0
+                      ? <th scope="row">{cell}</th>
+                      : <td class={i === row.length - 1 ? 'tier-reward' : undefined}>{cell}</td>)}</tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <ul class="tier-footnotes">
+              {_pageOverride.tierTable.footnotes.map((f: string) => <li>{f}</li>)}
+            </ul>
+
+            {/* Proof pair below both tables — tables carry the data, screenshots
+                carry the evidence; inline-after-each-table read as duplicate
+                tables (owner feedback 2026-06-12) */}
+            {(_pageOverride.tierTable.stage1.image || _pageOverride.tierTable.stage2.image) && (
+              <>
+                {/* When live tier proofs exist they own the #bonus-proof anchor —
+                    the hero proof strip should land on real-account evidence,
+                    not the referral landing shot (owner, 2026-06-12) */}
+                <h3 class="tier-stage-title" id="bonus-proof">What this looks like on our live account</h3>
+                <div class="shots-pair">
+                  {_pageOverride.tierTable.stage1.image && (
+                    <ContextualEvidenceScreenshot
+                      src={_pageOverride.tierTable.stage1.image.src}
+                      lightboxGroup="bonus-proof"
+                      alt={_pageOverride.tierTable.stage1.image.alt}
+                      caption={_pageOverride.tierTable.stage1.image.caption}
+                      device="desktop"
+                      {..._imgDims(_pageOverride.tierTable.stage1.image.src)}
+                    />
+                  )}
+                  {_pageOverride.tierTable.stage2.image && (
+                    <ContextualEvidenceScreenshot
+                      src={_pageOverride.tierTable.stage2.image.src}
+                      lightboxGroup="bonus-proof"
+                      alt={_pageOverride.tierTable.stage2.image.alt}
+                      caption={_pageOverride.tierTable.stage2.image.caption}
+                      device="desktop"
+                      {..._imgDims(_pageOverride.tierTable.stage2.image.src)}
+                    />
+                  )}
+                </div>
+              </>
+            )}
+          </section>
+        )}
+
+        {_sectionsAt('after-tier-table').map((s: any) => (
+          <section class="ex-section" id={s.id}>
+            <h2 class="ex-section-title">{s.heading}</h2>
+            <div class="flagship-html" set:html={s.html} />
+          </section>
+        ))}
+
         <!-- Contextual bonus proof screenshot — rendered from evidence slot bonus_referral_landing -->
         <!-- Data-driven: any exchange with this slot at status: available gets the screenshot. -->
         <!-- Safety: sourced from _screenshotImages (status=available, /screenshots/ prefix).  -->
         <!-- Outdated/rejected slots are excluded at the _screenshotImages filter stage.        -->
-        {_bonusProofScreenshot && (
-          <ContextualEvidenceScreenshot
-            src={_bonusProofScreenshot.src}
-            alt={`${ex.name} sign-up page via CryptoBonusWorld — ${ex.bonusAmount?.toLocaleString()} ${ex.bonusCurrency} sign-up rewards offer`}
-            caption={`${ex.name} referral landing page showing the ${ex.bonusAmount?.toLocaleString()} ${ex.bonusCurrency} sign-up rewards offer${ex.promoCode ? ` with CryptoBonusWorld promo code ${ex.promoCode}` : ''}.`}
-            device={_bonusProofScreenshot.device === 'none' ? 'desktop' : _bonusProofScreenshot.device}
-            capturedAt={_bonusProofScreenshot.capturedAt}
-          />
+        {_bonusProofScreenshot && !(_pageOverride as any)?.suppressLandingProofFigure && (
+          <div id={(_pageOverride?.tierTable?.stage1?.image || _pageOverride?.tierTable?.stage2?.image) ? 'landing-proof' : 'bonus-proof'}>
+            <ContextualEvidenceScreenshot
+              src={_bonusProofScreenshot.src}
+              alt={`${ex.name} sign-up page via CryptoBonusWorld showing the sign-up rewards offer${ex.promoCode ? ` with promo code ${ex.promoCode}` : ''}`}
+              caption={_bonusProofScreenshot.caption ?? `${ex.name} referral landing page showing the ${ex.bonusAmount?.toLocaleString()} ${ex.bonusCurrency} sign-up rewards offer${ex.promoCode ? ` with CryptoBonusWorld promo code ${ex.promoCode}` : ''}.`}
+              device={_bonusProofScreenshot.device === 'none' ? 'desktop' : _bonusProofScreenshot.device}
+              capturedAt={_bonusProofScreenshot.capturedAt}
+              {..._imgDims(_bonusProofScreenshot.src)}
+            />
+          </div>
         )}
 
         <!-- Geo-aware payment method block (exchange-specific, driven by geo-overrides) -->
@@ -737,6 +908,27 @@ const rnrItems = [
               you do not need to type it manually unless registering directly on the {ex.name} website.
             </p>
             <PromoCodeBox code={ex.promoCode} exchange={ex.name} slug={ex.slug} />
+            {(_pageOverride as any)?.referralCodeImage && (
+              <ContextualEvidenceScreenshot
+                src={(_pageOverride as any).referralCodeImage.src}
+                fullSrc={(_pageOverride as any).referralCodeImage.fullSrc}
+                lightboxGroup="referral-code"
+                alt={(_pageOverride as any).referralCodeImage.alt}
+                caption={(_pageOverride as any).referralCodeImage.caption}
+                device="desktop"
+                {..._imgDims((_pageOverride as any).referralCodeImage.src)}
+              />
+            )}
+            {(_pageOverride as any)?.referralCodeImage2 && (
+              <ContextualEvidenceScreenshot
+                src={(_pageOverride as any).referralCodeImage2.src}
+                lightboxGroup="referral-code"
+                alt={(_pageOverride as any).referralCodeImage2.alt}
+                caption={(_pageOverride as any).referralCodeImage2.caption}
+                device="desktop"
+                {..._imgDims((_pageOverride as any).referralCodeImage2.src)}
+              />
+            )}
             <p class="ex-prose" style="margin-top: 0.5rem; font-size: 0.85rem">
               The promo code cannot be applied retroactively after account creation. If you registered without a code, it cannot be added later — you would need to open a new account.
             </p>
@@ -754,6 +946,7 @@ const rnrItems = [
             caption={`${ex.name} registration screen showing the 19,800 USD sign-up rewards campaign and ${ex.promoCode} attribution.`}
             device={_registrationDemoStateScreenshot.device === 'none' ? 'desktop' : _registrationDemoStateScreenshot.device}
             capturedAt={_registrationDemoStateScreenshot.capturedAt}
+            {..._imgDims(_registrationDemoStateScreenshot.src)}
           />
         )}
 
@@ -795,13 +988,46 @@ const rnrItems = [
           />
         )}
 
-        {_feesScreenshot && (
+        {/* Fee-schedule captures are dense tables — side by side + click-to-zoom
+            instead of two unreadable full-width frames stacked (owner, 2026-06-12) */}
+        {(_feesScreenshot || _feesFuturesScreenshot) && (
+          <div class={_feesScreenshot && _feesFuturesScreenshot ? 'shots-pair' : undefined}>
+            {_feesScreenshot && (
+              <ContextualEvidenceScreenshot
+                src={_feesScreenshot.src}
+                fullSrc={(_feesScreenshot as any).fullSrc}
+                lightboxGroup="fees"
+                alt={`${ex.name} spot trading fee schedule screenshot`}
+                caption={_feesScreenshot.caption ?? `${ex.name} fee page screenshot used as supporting evidence for the fees section.`}
+                device={_feesScreenshot.device === 'none' ? 'desktop' : _feesScreenshot.device}
+                capturedAt={_feesScreenshot.capturedAt}
+                {..._imgDims(_feesScreenshot.src)}
+              />
+            )}
+            {_feesFuturesScreenshot && (
+              <ContextualEvidenceScreenshot
+                src={_feesFuturesScreenshot.src}
+                fullSrc={(_feesFuturesScreenshot as any).fullSrc}
+                lightboxGroup="fees"
+                alt={`${ex.name} futures fee schedule screenshot`}
+                caption={_feesFuturesScreenshot.caption ?? `${ex.name} futures fee schedule screenshot used as supporting evidence for the fees section.`}
+                device={_feesFuturesScreenshot.device === 'none' ? 'desktop' : _feesFuturesScreenshot.device}
+                capturedAt={_feesFuturesScreenshot.capturedAt}
+                {..._imgDims(_feesFuturesScreenshot.src)}
+              />
+            )}
+          </div>
+        )}
+
+        {_spotScreenshot && (
           <ContextualEvidenceScreenshot
-            src={_feesScreenshot.src}
-            alt={`${ex.name} fee schedule page screenshot`}
-            caption={`${ex.name} fee page screenshot used as supporting evidence for the fees section.`}
-            device={_feesScreenshot.device === 'none' ? 'desktop' : _feesScreenshot.device}
-            capturedAt={_feesScreenshot.capturedAt}
+            src={_spotScreenshot.src}
+            lightboxGroup="platform"
+            alt={`${ex.name} live spot trading terminal — order book, chart and order form`}
+            caption={_spotScreenshot.caption ?? `Live BTC/USDT spot terminal on ${ex.name} — the order book, chart and limit-order form where the fee rates above apply.`}
+            device={_spotScreenshot.device === 'none' ? 'desktop' : _spotScreenshot.device}
+            capturedAt={_spotScreenshot.capturedAt}
+            {..._imgDims(_spotScreenshot.src)}
           />
         )}
 
@@ -818,9 +1044,24 @@ const rnrItems = [
           bonusCurrency={ex.bonusCurrency}
         />
 
+        {/* Editorial claim-proof image for the How to Claim block (content-overrides.howToClaimImage) */}
+        {(_pageOverride as any)?.howToClaimImage && (
+          <ContextualEvidenceScreenshot
+            src={(_pageOverride as any).howToClaimImage.src}
+            lightboxGroup="claim"
+            alt={(_pageOverride as any).howToClaimImage.alt}
+            caption={(_pageOverride as any).howToClaimImage.caption}
+            device="desktop"
+            {..._imgDims((_pageOverride as any).howToClaimImage.src)}
+          />
+        )}
+
         <!-- Visual walkthroughs — only rendered for exchanges with walkthrough data -->
         {walkthroughFlows.length > 0 && (
           <section class="ex-section" id="walkthroughs">
+            {walkthroughGallerySchema && (
+              <script type="application/ld+json" set:html={walkthroughGallerySchema} />
+            )}
             <h2 class="ex-section-title">Step-by-Step Walkthroughs</h2>
             <p class="ex-prose" style="margin-bottom: 1rem">
               Every walkthrough below was completed on the live {ex.name} platform using a real account. Each screenshot was captured manually — no stock images or placeholder UI. The flows cover the complete path from account creation through KYC, depositing funds, buying via P2P, and placing a leveraged futures trade.
@@ -835,7 +1076,7 @@ const rnrItems = [
               ))}
             </nav>
 
-            {walkthroughFlows.map((flow) => (
+            {walkthroughFlows.map((flow, flowIndex) => (
               <Fragment>
                 {flow.id.includes('kyc') && _kycScreenshot && (
                   <ContextualEvidenceScreenshot
@@ -844,6 +1085,7 @@ const rnrItems = [
                     caption={`${ex.name} Verification Center screenshot showing the account verification area. Owner-approved authenticated capture, with private data excluded.`}
                     device={_kycScreenshot.device === 'none' ? 'desktop' : _kycScreenshot.device}
                     capturedAt={_kycScreenshot.capturedAt}
+                    {..._imgDims(_kycScreenshot.src)}
                   />
                 )}
                 {flow.id.includes('p2p') && _p2pScreenshot && (
@@ -853,12 +1095,14 @@ const rnrItems = [
                     caption={`${ex.name} P2P page screenshot used as supporting evidence for the P2P section.`}
                     device={_p2pScreenshot.device === 'none' ? 'desktop' : _p2pScreenshot.device}
                     capturedAt={_p2pScreenshot.capturedAt}
+                    {..._imgDims(_p2pScreenshot.src)}
                   />
                 )}
               <WalkthroughFlow
                 id={flow.id}
                 title={flow.title}
                 description={flow.description}
+                introHtml={(flow as any).introHtml}
                 stepCount={flow.stepCount}
                 lastVerified={flow.lastVerified}
                 exchangeName={ex.name}
@@ -868,12 +1112,12 @@ const rnrItems = [
                 ctaBody={flow.cta?.body}
                 showCTA={true}
                 totalTime={FLOW_TIMES[flow.id]}
-                schemaSteps={flow.steps.filter(s => !!s.src).map((s, i) => ({
+                schemaSteps={flowIndex === 0 ? flow.steps.map((s, i) => ({
                   position: i + 1,
                   name: s.title,
                   text: stripHtml(s.description ?? s.title).slice(0, 300),
                   image: s.src ? `${SITE_URL}${s.src}` : undefined,
-                }))}
+                })) : undefined}
               >
                 {flow.steps.map((step, i) => (
                   <Fragment>
@@ -919,15 +1163,12 @@ const rnrItems = [
           </section>
         )}
 
-        {_spotScreenshot && (
-          <ContextualEvidenceScreenshot
-            src={_spotScreenshot.src}
-            alt={`${ex.name} spot trading interface screenshot`}
-            caption={`${ex.name} spot trading interface screenshot used as supporting evidence for the trading section.`}
-            device={_spotScreenshot.device === 'none' ? 'desktop' : _spotScreenshot.device}
-            capturedAt={_spotScreenshot.capturedAt}
-          />
-        )}
+        {_sectionsAt('after-walkthroughs').map((s: any) => (
+          <section class="ex-section" id={s.id}>
+            <h2 class="ex-section-title">{s.heading}</h2>
+            <div class="flagship-html" set:html={s.html} />
+          </section>
+        ))}
 
         {_p2pDirectionScreenshot && (
           <ContextualEvidenceScreenshot
@@ -936,6 +1177,7 @@ const rnrItems = [
             caption="Binance P2P public interface showing the Buy flow for USDT with USD selected. Rates and payment methods vary by country, seller, and time."
             device={_p2pDirectionScreenshot.device === 'none' ? 'desktop' : _p2pDirectionScreenshot.device}
             capturedAt={_p2pDirectionScreenshot.capturedAt}
+            {..._imgDims(_p2pDirectionScreenshot.src)}
           />
         )}
 
@@ -961,6 +1203,18 @@ const rnrItems = [
                 ? ` ${ex.name} is not available to residents of the United States.`
                 : ''}
             </p>
+          )}
+
+          {_proofOfReservesScreenshot && (
+            <ContextualEvidenceScreenshot
+              src={_proofOfReservesScreenshot.src}
+              alt={`${ex.name} proof-of-reserves page showing assets backed at or above 100%`}
+              caption={_proofOfReservesScreenshot.caption ?? `${ex.name} Proof of Reserves page — published reserve ratios for major assets. Page captured June 2026; figures reflect the latest audit snapshot shown on it.`}
+              device={_proofOfReservesScreenshot.device === 'none' ? 'desktop' : _proofOfReservesScreenshot.device}
+              capturedAt={_proofOfReservesScreenshot.capturedAt}
+              {..._imgDims(_proofOfReservesScreenshot.src)}
+              zoomable
+            />
           )}
 
           {/* Exchange quick-facts table — snippet extraction + AI Overview clarity */}
@@ -1018,15 +1272,46 @@ const rnrItems = [
             </div>
           )}
 
-          {_proofOfReservesScreenshot && (
-            <ContextualEvidenceScreenshot
-              src={_proofOfReservesScreenshot.src}
-              alt={`${ex.name} proof-of-reserves page screenshot`}
-              caption={`${ex.name} proof-of-reserves screenshot used as supporting evidence for the trust and reserves section.`}
-              device={_proofOfReservesScreenshot.device === 'none' ? 'desktop' : _proofOfReservesScreenshot.device}
-              capturedAt={_proofOfReservesScreenshot.capturedAt}
-            />
+          {/* Comparison mini-table — comparative-intent capture (featured snippet
+              + AI extraction). Rendered only when the editorial override names
+              competitor slugs; all numbers come from exchanges.json. */}
+          {_compareMini.length > 0 && (
+            <div class="ex-fact-box" aria-label={`${ex.name} vs alternatives comparison`}>
+              <h3 class="ex-fact-box-title" style="margin:0">{ex.name} vs {_compareMini.map(c => c.name).join(' vs ')} — Bonus Comparison</h3>
+              <table class="ex-fact-table ex-compare-mini">
+                <thead>
+                  <tr>
+                    <th scope="col"></th>
+                    <th scope="col">{ex.name}</th>
+                    {_compareMini.map(c => <th scope="col"><a href={`/exchanges/${c.slug}/`}>{c.name}</a></th>)}
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th scope="row">Max bonus</th>
+                    <td><strong>{ex.bonusAmount.toLocaleString()} {ex.bonusCurrency}</strong></td>
+                    {_compareMini.map(c => <td>{c.bonusAmount.toLocaleString()} {c.bonusCurrency}</td>)}
+                  </tr>
+                  <tr>
+                    <th scope="row">KYC required</th>
+                    <td>{ex.kycRequired ? 'Yes' : 'No'}</td>
+                    {_compareMini.map(c => <td>{c.kycRequired ? 'Yes' : 'No'}</td>)}
+                  </tr>
+                  <tr>
+                    <th scope="row">Min deposit</th>
+                    <td>{(ex as any).minDeposit?.amount ? `${(ex as any).minDeposit.amount} ${(ex as any).minDeposit.currency}` : 'None'}</td>
+                    {_compareMini.map(c => <td>{c.minDeposit?.amount ? `${c.minDeposit.amount} ${c.minDeposit.currency}` : 'None'}</td>)}
+                  </tr>
+                  <tr>
+                    <th scope="row">Typical real earnings</th>
+                    <td>{(ex as any).bonusRange?.typicalMin ? `${(ex as any).bonusRange.typicalMin}–${(ex as any).bonusRange.typicalMax} ${(ex as any).bonusRange.currency}` : '—'}</td>
+                    {_compareMini.map(c => <td>{c.bonusRange?.typicalMin ? `${c.bonusRange.typicalMin}–${c.bonusRange.typicalMax} ${c.bonusRange.currency}` : '—'}</td>)}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           )}
+
 
           <p class="ex-prose">{(_faqOverride?.longDescription?.length > 20 ? _faqOverride.longDescription : null) ?? ex.longDescription}</p>
           {((ex as any).editorNote?.length > 30 || (_faqOverride?.editorNote?.length > 30)) && (
@@ -1154,6 +1439,13 @@ const rnrItems = [
 
         <!-- FAQ -->
         <FAQBlock items={faqItems} title={`${ex.name} Bonus — FAQ`} exchangeSlug={ex.slug} suppressSchema={!!faqSchema} />
+
+        {_sectionsAt('after-faq').map((s: any) => (
+          <section class="ex-section" id={s.id}>
+            <h2 class="ex-section-title">{s.heading}</h2>
+            <div class="flagship-html" set:html={s.html} />
+          </section>
+        ))}
 
       </div>
 
@@ -1420,6 +1712,239 @@ const rnrItems = [
     background: rgba(245,197,66,0.05);
     border-bottom: 1px solid var(--color-border);
   }
+  /* Answer capsule — AI-extractable datestamped quick answer below hero */
+  .answer-capsule {
+    margin: 0 0 1.5rem;
+    padding: 1rem 1.25rem;
+    background: color-mix(in srgb, var(--color-accent) 4%, var(--color-bg-secondary));
+    border: 1px solid color-mix(in srgb, var(--color-accent) 22%, var(--color-border));
+    border-radius: 12px;
+  }
+  .answer-capsule-text {
+    margin: 0 0 0.5rem;
+    font-size: 0.9375rem;
+    line-height: 1.65;
+    color: var(--color-text-primary);
+  }
+  .answer-capsule-text :global(strong) { color: var(--color-accent); }
+  .answer-capsule-meta {
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #4ade80;
+  }
+
+  /* Flagship HTML sections — content injected via set:html lacks Astro scope
+     attributes, so style descendants through :global() */
+  .flagship-html :global(p) {
+    font-size: 0.9375rem;
+    line-height: 1.7;
+    color: var(--color-text-secondary);
+    margin: 0 0 1rem;
+  }
+  .flagship-html :global(strong) { color: var(--color-text-primary); }
+  .flagship-html :global(a) {
+    color: var(--color-accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .flagship-html :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 0 1rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .flagship-html :global(th),
+  .flagship-html :global(td) {
+    padding: 0.55rem 0.75rem;
+    font-size: 0.82rem;
+    text-align: left;
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-text-secondary);
+  }
+  .flagship-html :global(thead th) {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+  }
+  .flagship-html :global(tbody th) {
+    color: var(--color-text-primary);
+    font-weight: 600;
+  }
+  .flagship-html :global(tr:last-child th),
+  .flagship-html :global(tr:last-child td) { border-bottom: none; }
+  .flagship-html :global(figure.fh-mobile-shot) {
+    margin: 1.25rem auto;
+    max-width: 320px;
+  }
+  .flagship-html :global(figure.fh-mobile-shot img) {
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+    border: 1px solid var(--color-border);
+    display: block;
+  }
+  .flagship-html :global(figure.fh-mobile-shot figcaption) {
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    font-style: italic;
+    text-align: center;
+    line-height: 1.5;
+  }
+  .flagship-html :global(.fh-tour-grid) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 1.25rem 0;
+  }
+  .flagship-html :global(.fh-tour-grid figure),
+  .flagship-html :global(figure.fh-wide-shot) {
+    margin: 0;
+  }
+  .flagship-html :global(figure.fh-wide-shot) { margin-top: 1.25rem; }
+  .flagship-html :global(.fh-tour-grid img),
+  .flagship-html :global(figure.fh-wide-shot img) {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+    display: block;
+  }
+  .flagship-html :global(.fh-tour-grid figcaption),
+  .flagship-html :global(figure.fh-wide-shot figcaption) {
+    margin-top: 0.4rem;
+    font-size: 0.72rem;
+    color: var(--color-text-muted);
+    font-style: italic;
+    line-height: 1.45;
+  }
+  @media (max-width: 720px) {
+    .flagship-html :global(.fh-tour-grid) { grid-template-columns: 1fr; }
+  }
+
+  /* Side-by-side proof pair inside flagship html (e.g. withdrawal both-ends) */
+  .flagship-html :global(.fh-pair) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    align-items: start;
+    margin-top: 1.25rem;
+  }
+  .flagship-html :global(.fh-pair figure) {
+    margin: 0;
+    border: 1px solid var(--color-border, rgba(255,255,255,0.08));
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--color-surface, #13131f);
+  }
+  .flagship-html :global(.fh-pair figure img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-width: 320px;
+    margin: 0 auto;
+  }
+  .flagship-html :global(.fh-pair figcaption) {
+    padding: 0.5rem 0.875rem 0.625rem;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    font-style: italic;
+    line-height: 1.45;
+  }
+  @media (max-width: 720px) {
+    .flagship-html :global(.fh-pair) { grid-template-columns: 1fr; }
+  }
+  /* Any flagship figure wired to the lightbox is visibly clickable */
+  .flagship-html :global(figure[data-lightbox-group]) { cursor: zoom-in; }
+
+  /* Tier table section (flagship §4.3) */
+  .tier-stage-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin: 1.5rem 0 0.75rem;
+  }
+  .tier-note {
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    font-style: italic;
+    margin: 0.5rem 0 0;
+  }
+  .ex-tier-table thead th {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .ex-tier-table td.tier-reward {
+    color: var(--color-accent);
+    font-weight: 700;
+  }
+  /* Tier numbers are single digits — don't inherit the wide label-column
+     width from the key-facts table (it left a large empty gap).
+     table.-prefixed selector outranks the later .ex-fact-table base rule. */
+  table.ex-tier-table th[scope="row"],
+  table.ex-tier-table thead th:first-child {
+    width: 3.5rem;
+    white-space: nowrap;
+    text-align: center;
+  }
+  .tier-footnotes {
+    margin: 1rem 0 0;
+    padding-left: 1.25rem;
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+  }
+  .tier-footnotes li { margin-bottom: 0.35rem; }
+
+  /* Paired evidence shots (fee schedules, tier proofs) — two columns on
+     desktop so dense captures don't stack as unreadable full-width walls */
+  .shots-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    align-items: start;
+    margin-top: 1rem;
+  }
+  .shots-pair :global(.ce-shot) { margin: 0; }
+  .shots-pair :global(.ce-shot__img) {
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    object-position: top center;
+  }
+  @media (max-width: 860px) {
+    .shots-pair { grid-template-columns: 1fr; }
+  }
+
+  .ex-compare-mini thead th {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .ex-compare-mini thead th a {
+    color: var(--color-text-secondary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .ex-compare-mini thead th a:hover { color: var(--color-accent); }
+  .ex-compare-mini td strong { color: var(--color-accent); }
+
   .ex-fact-table {
     width: 100%;
     border-collapse: collapse;

@@ -718,12 +718,12 @@ const guides: Record<string, GuideContent> = {
   </thead>
   <tbody>
     <tr><td><strong>Bybit</strong></td><td>30,000 USDT</td><td>Yes</td><td>$100</td><td>High-volume traders</td></tr>
-    <tr><td><strong>OKX</strong></td><td>10,000 USDT</td><td>Yes</td><td>$50</td><td>Spot + futures traders</td></tr>
+    <tr><td><strong>Binance</strong></td><td>19,800 USDT</td><td>Yes</td><td>$50</td><td>High-volume traders</td></tr>
+    <tr><td><strong>BingX</strong></td><td>11,000 USDT</td><td>Yes</td><td>$100</td><td>Grid trading</td></tr>
+    <tr><td><strong>MEXC</strong></td><td>10,000 USDT</td><td>Optional</td><td>No deposit needed</td><td>No-KYC traders</td></tr>
     <tr><td><strong>Bitget</strong></td><td>6,200 USDT</td><td>Yes</td><td>$100</td><td>Copy traders</td></tr>
-    <tr><td><strong>BingX</strong></td><td>5,000 USDT</td><td>Yes</td><td>$100</td><td>Grid trading</td></tr>
-    <tr><td><strong>MEXC</strong></td><td>8,000 USDT</td><td>Optional</td><td>No deposit needed</td><td>No-KYC traders</td></tr>
-    <tr><td><strong>KuCoin</strong></td><td>700 USDT</td><td>Optional</td><td>$0</td><td>Altcoin traders</td></tr>
-    <tr><td><strong>Binance</strong></td><td>100 USDT</td><td>Yes</td><td>$50</td><td>Beginners</td></tr>
+    <tr><td><strong>OKX</strong></td><td>5,000 USDT</td><td>Yes</td><td>$50</td><td>Spot + futures traders</td></tr>
+    <tr><td><strong>KuCoin</strong></td><td>500 USDT</td><td>Optional</td><td>$0</td><td>Altcoin traders</td></tr>
   </tbody>
 </table>`,
       },

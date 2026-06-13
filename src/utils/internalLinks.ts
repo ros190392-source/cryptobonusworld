@@ -72,9 +72,7 @@ const EXCHANGE_ANCHOR_VARIANTS: Record<string, string[]> = {
   htx:      ['HTX', 'HTX bonus', 'HTX P2P trading', 'HTX review'],
   coinex:   ['CoinEx', 'CoinEx bonus', 'CoinEx no-KYC exchange', 'CoinEx review'],
   phemex:   ['Phemex', 'Phemex bonus', 'Phemex futures offer', 'Phemex review'],
-  bitunix:  ['Bitunix', 'Bitunix bonus', 'Bitunix no-KYC offer', 'Bitunix review'],
-  lbank:    ['LBank', 'LBank bonus', 'LBank review'],
-};
+  bitunix:  ['Bitunix', 'Bitunix bonus', 'Bitunix no-KYC offer', 'Bitunix review'],};
 
 /**
  * Get a diverse set of anchor text variants for an exchange.

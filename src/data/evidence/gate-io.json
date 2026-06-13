@@ -21,7 +21,7 @@
       "label": "Gate.io — New User Bonus",
       "type": "official-promo",
       "lastAccessed": "2026-05-20",
-      "notes": "Up to 3,000 USDT new user rewards. Deposit and trading tasks required."
+      "notes": "Referral landing advertises 10,000+ USDT: Sign Up 50 USDT (beginner tasks worth 135 USDT) + deposit and trading tasks; tier chart up to 15,000 USDT at VIP volumes. Verified 2026-06-11 via owner capture of /share/BONUSCBW landing."
     },
     "restricted_countries": {
       "url": "https://www.gate.io/help/gate-terms-of-service",
@@ -78,16 +78,16 @@
   "facts": [
     {
       "field": "bonus_amount",
-      "currentValue": 3000,
+      "currentValue": 10000,
       "unit": "USDT",
       "officialSourceKey": "bonus",
       "officialSourceUrl": "https://www.gate.io/en/activity/new-user-bonus",
-      "lastChecked": "2026-05-20",
+      "lastChecked": "2026-06-11",
       "checkedBy": "human",
-      "confidenceScore": 0.27,
-      "conflictStatus": "outdated",
-      "manualReviewRequired": true,
-      "notes": "Up to 3,000 USDT new user rewards. Needs daily re-check."
+      "confidenceScore": 0.85,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false,
+      "notes": "Landing via /share/BONUSCBW advertises 10,000+ USDT (Sign Up 50, beginner package 135, trading tiers to 15,000 at VIP). Owner screenshot evidence 2026-06-11. Akamai blocks automated capture — re-check manually or via Chrome."
     },
     {
       "field": "bonus_currency",
@@ -289,6 +289,14 @@
     }
   ],
   "screenshots": {
+    "bonus_referral_landing": {
+      "status": "available",
+      "path": "/screenshots/gate-io/bonus_referral_landing/global-desktop-2026-06.webp",
+      "capturedAt": "2026-06-11",
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": "Gate × CRYPTOBONUS referral landing — 'Join me at Gate to receive 10,000+ USDT': Sign Up task 50 USDT (beginner tasks worth 135 USDT) plus deposit and trading tasks; the tier chart goes up to 15,000 USDT for VIP volumes. Exact rewards unlock per task after registration."
+    },
     "registration": {
       "status": "needs_manual_capture",
       "path": null,

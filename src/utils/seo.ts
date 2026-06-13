@@ -13,9 +13,29 @@
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
+import exchangesData from '../data/exchanges.json';
+
 export const SITE_URL = 'https://cryptobonusworld.com';
 export const SITE_NAME = 'CryptoBonusWorld';
 export const YEAR = new Date().getFullYear();
+
+/** Live exchange count — single source of truth for "N Exchanges" UI copy. */
+export const EXCHANGE_COUNT = (exchangesData as Array<unknown>).length;
+
+/**
+ * Honest freshness label, e.g. "June 2026" — derived from the most recent
+ * lastVerified/updatedAt across exchanges.json. Updates automatically when
+ * data is re-verified; never hardcode "Updated May 2026" in UI copy.
+ */
+export function dataUpdatedLabel(): string {
+  const dates = (exchangesData as Array<{ lastVerified?: string; updatedAt?: string }>)
+    .map(e => e.lastVerified ?? e.updatedAt)
+    .filter((d): d is string => !!d)
+    .sort();
+  const latest = dates[dates.length - 1];
+  const d = latest ? new Date(latest) : new Date();
+  return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+}
 
 // Bonus-type slug → category slug mapping
 export const BONUS_TYPE_TO_CATEGORY: Record<string, string> = {
@@ -112,6 +132,12 @@ function fmt(n: number): string {
  * Targets 50–62 chars for strong SERP display.
  */
 export function exchangePageTitle(ex: SeoExchange, opts?: { kycClaimSafe?: boolean }): string {
+  // Per-exchange override escapes the section-wide template footprint
+  // (May 2026 core update hit templated affiliate titles hardest) —
+  // flagship pages set seoTitleOverride in exchanges.json.
+  const override: string | undefined = (ex as any).seoTitleOverride;
+  if (override) return override;
+
   // kycClaimSafe defaults to true (current behaviour for callers that don't pass it).
   // Pass kycClaimSafe:false when evidence for kycRequired=false is unverified —
   // prevents "No KYC Required" from appearing in <title>/og:title/twitter:title.
@@ -193,7 +219,7 @@ export function categoryPageTitle(seoTitle: string, count: number): string {
 export function countryPageTitle(seoTitle: string, count: number): string {
   const suffix = ` — ${count} Exchange${count !== 1 ? 's' : ''}`;
   const full = seoTitle + suffix;
-  return full.length <= 65 ? full : seoTitle;
+  return full.length <= 60 ? full : seoTitle;
 }
 
 /**
@@ -207,7 +233,7 @@ export function injectNoKycTitle(baseTitle: string, noKycCount: number): string 
     return baseTitle;
   }
   const suffix = ' — No KYC Options';
-  if (baseTitle.length + suffix.length <= 65) {
+  if (baseTitle.length + suffix.length <= 60) {
     return baseTitle + suffix;
   }
   return baseTitle;
@@ -388,22 +414,6 @@ export function getCountryCategoryLinks(
 // ── Schema.org builders ──────────────────────────────────────────────────────
 
 /**
- * Derive a believable ratingCount from exchange user base.
- * Editorial review counts scale with exchange size — a smaller exchange
- * has fewer assessments in our database than a global top-5 exchange.
- * Range: 85–680 (realistic for an editorial comparison platform).
- */
-function deriveRatingCount(ex: SeoExchange): number {
-  const users = parseUserCount((ex as any).users);
-  if (users >= 20_000_000) return 624;
-  if (users >= 10_000_000) return 487;
-  if (users >= 5_000_000)  return 318;
-  if (users >= 1_000_000)  return 196;
-  if (users >= 500_000)    return 143;
-  return 92;
-}
-
-/**
  * Map crypto-specific currency codes to valid ISO 4217 codes for schema.org.
  *
  * Google's structured data validator rejects non-ISO-4217 values in
@@ -578,14 +588,10 @@ export function buildProductSchema(ex: SeoExchange, pageUrl?: string, evidenceOp
         seller: { '@type': 'Organization', name: ex.name },
       },
     } : {}),
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: ex.rating,
-      bestRating: 10,
-      worstRating: 1,
-      ratingCount: deriveRatingCount(ex),
-      reviewCount: deriveRatingCount(ex),
-    },
+    // aggregateRating intentionally omitted: we have no user-submitted reviews,
+    // and a fabricated ratingCount risks a "spammy structured markup" manual
+    // action that would strip ALL rich results. The editorial Review below
+    // (single author = Organization) is the honest, valid representation.
     ...(editorNote.length > 30 ? {
       review: {
         '@type': 'Review',
@@ -720,13 +726,12 @@ export function buildOrganizationSchema(): Record<string, unknown> {
       width: 240,
       height: 40,
     },
-    description: 'CryptoBonusWorld is an independent editorial platform that compares crypto exchange bonuses worldwide — signup rewards, deposit bonuses, and futures promotions from 14+ top exchanges. We review, verify, and rank offers so traders find the best deal.',
+    description: `CryptoBonusWorld is an independent editorial platform that compares crypto exchange bonuses worldwide — signup rewards, deposit bonuses, and futures promotions from ${EXCHANGE_COUNT} top exchanges. We review, verify, and rank offers so traders find the best deal.`,
     foundingDate: '2024',
     inLanguage: 'en',
+    // Only properties we actually own and operate — never aspirational handles.
     sameAs: [
-      'https://x.com/cryptobonusworld',
-      'https://t.me/cryptobonusworld',
-      'https://reddit.com/r/cryptobonusworld',
+      'https://t.me/CryptoBonusWorldcom',
     ],
     knowsAbout: [
       'Cryptocurrency exchanges',
@@ -776,6 +781,17 @@ export function normalizePaymentMethod(method: string): string {
  *
  * Returns only exchanges available in the country.
  */
+// Country page slugs vs the short codes used in exchanges.json excludedCountries.
+// Without this mapping, 'united-states' never matches 'us' and restricted
+// exchanges leak into the country ranking — a compliance bug, not just cosmetics.
+const COUNTRY_EXCLUSION_CODES: Record<string, string[]> = {
+  'united-states':  ['us', 'usa', 'united-states'],
+  'united-kingdom': ['uk', 'gb', 'united-kingdom'],
+  'canada':         ['canada', 'ca'],
+  'japan':          ['japan', 'jp'],
+  'netherlands':    ['netherlands', 'nl'],
+};
+
 export function rankExchangesForCountry(
   countrySlug: string,
   topExchangeSlug: string | undefined,
@@ -783,9 +799,12 @@ export function rankExchangesForCountry(
   countryPaymentMethods: string[],
   allExchanges: SeoExchange[]
 ): SeoExchange[] {
+  // Same alias list works both ways: exchanges mark availability AND exclusion
+  // with short codes ('us', 'uk') while country pages use long slugs.
+  const countryCodes = COUNTRY_EXCLUSION_CODES[countrySlug] ?? [countrySlug];
   const available = allExchanges.filter(ex =>
-    (ex.countries.includes(countrySlug) || ex.countries.includes('global')) &&
-    !(ex.excludedCountries ?? []).includes(countrySlug)
+    (ex.countries.some(c => countryCodes.includes(c)) || ex.countries.includes('global')) &&
+    !(ex.excludedCountries ?? []).some(c => countryCodes.includes(c))
   );
 
   const countryPayNorm = countryPaymentMethods.map(normalizePaymentMethod);
@@ -797,8 +816,16 @@ export function rankExchangesForCountry(
       // Editorial top pick boost
       if (topExchangeSlug && ex.slug === topExchangeSlug) score += 2.5;
 
-      // No-KYC boost in evolving regulatory environments
-      if (!ex.kycRequired && regulatoryStatus && regulatoryStatus !== 'active') score += 1.5;
+      // No-KYC boost in evolving regulatory environments — small nudge only:
+      // editorial rating stays the dominant factor so top-rated majors
+      // (Binance/Bybit/OKX) are not displaced by the boost alone.
+      if (!ex.kycRequired && regulatoryStatus && regulatoryStatus !== 'active') score += 0.25;
+
+      // Scale factor: a large verified user base means deeper local liquidity
+      // and more payment counterparties — a real advantage for country users.
+      const _users = parseUserCount((ex as any).users);
+      if (_users >= 100_000_000) score += 0.4;
+      else if (_users >= 30_000_000) score += 0.2;
 
       // Payment method overlap — each shared method adds a small boost
       const exPayNorm = (ex.paymentMethods ?? []).map(normalizePaymentMethod);
@@ -858,7 +885,7 @@ export function comparePageTitle(exA: SeoExchange, exB: SeoExchange): string {
     const ratio = Math.max(aBonus, bBonus) / Math.min(aBonus, bBonus);
     if (ratio >= 5) {
       const higher = aBonus > bBonus ? exA.name : exB.name;
-      return `${exA.name} vs ${exB.name} ${YEAR}: Is ${higher}'s Larger Bonus Worth It?`;
+      return `${exA.name} vs ${exB.name} ${YEAR}: Is the Bigger Bonus Worth It?`;
     }
   }
 
@@ -957,7 +984,7 @@ export function buildWebSiteSchema(): Record<string, unknown> {
     name: SITE_NAME,
     alternateName: 'Crypto Bonus World',
     url: SITE_URL,
-    description: 'Independent editorial platform comparing crypto exchange bonuses worldwide — signup rewards, deposit bonuses, and futures promotions from 14+ top exchanges.',
+    description: `Independent editorial platform comparing crypto exchange bonuses worldwide — signup rewards, deposit bonuses, and futures promotions from ${EXCHANGE_COUNT} top exchanges.`,
     inLanguage: 'en',
     publisher: {
       '@type': 'Organization',

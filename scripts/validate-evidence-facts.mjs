@@ -569,7 +569,9 @@ function run() {
     exitCode = FAIL_ON_ERR ? 2 : 1;
   } else if (totalWarnings > 0) {
     verdict  = `${YELLOW}${BOLD}PASS WITH WARNINGS${RESET} — ${totalWarnings} warning(s) across ${filesWithWarn} file(s)`;
-    exitCode = 1;
+    // PASS WITH WARNINGS is a pass: exit 0 so the validate:all && chain reaches
+    // the affiliate integrity check. Only fatal errors are non-zero.
+    exitCode = 0;
   } else {
     verdict  = `${GREEN}${BOLD}PASS${RESET} — all checks clean`;
     exitCode = 0;

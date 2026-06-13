@@ -21,7 +21,7 @@
       "label": "KuCoin — New User Rewards",
       "type": "official-promo",
       "lastAccessed": "2026-05-27",
-      "notes": "Up to 11,000 USDT in new user bonus tasks. Deposit required for most tasks."
+      "notes": "Up to 500 USDT in new user bonus tasks. Deposit required for most tasks."
     },
     "restricted_countries": {
       "url": "https://www.kucoin.com/support/articles/360015552591",
@@ -78,7 +78,7 @@
   "facts": [
     {
       "field": "bonus_amount",
-      "currentValue": 11000,
+      "currentValue": 500,
       "unit": "USDT",
       "officialSourceKey": "bonus",
       "officialSourceUrl": "https://www.kucoin.com/activity/new-user-rewards",
@@ -87,7 +87,7 @@
       "confidenceScore": 0.27,
       "conflictStatus": "outdated",
       "manualReviewRequired": true,
-      "notes": "Up to 11,000 USDT in new user rewards. Needs daily re-check."
+      "notes": "Up to 500 USDT in new user rewards. Needs daily re-check."
     },
     {
       "field": "bonus_currency",
@@ -300,6 +300,14 @@
     }
   ],
   "screenshots": {
+    "bonus_referral_landing": {
+      "status": "available",
+      "path": "/screenshots/kucoin/bonus_referral_landing/global-desktop-2026-06.webp",
+      "capturedAt": "2026-06-11",
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": "KuCoin × CryptoBonusWorld referral landing with code CRYPTOBONW pre-filled. The page shows a 'Create Account & Claim Rewards' button instead of a fixed bonus amount — your exact rewards are revealed in the Rewards Hub after registration."
+    },
     "registration": {
       "status": "needs_manual_capture",
       "path": null,

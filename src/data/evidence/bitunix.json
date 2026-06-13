@@ -1,6 +1,6 @@
 {
   "exchange": "bitunix",
-  "updatedAt": "2026-06-01",
+  "updatedAt": "2026-06-12",
   "sources": {
     "fees": {
       "url": "https://www.bitunix.com/fee",
@@ -20,8 +20,8 @@
       "url": "https://www.bitunix.com/activity",
       "label": "Bitunix — New User Activity",
       "type": "official-promo",
-      "lastAccessed": "2026-05-20",
-      "notes": "Up to 1,000 USDT in new user bonuses. Deposit required."
+      "lastAccessed": "2026-06-12",
+      "notes": "Up to 10,000 USDT in new user bonuses. Deposit required. Landing shows 'Perks for new users 10,000 USDT' / 'claim 10,000 USDT for new users only' (verified 2026-06-12, ref inviteCode=phpZuw survived)."
     },
     "restricted_countries": {
       "url": "https://www.bitunix.com/terms",
@@ -65,16 +65,16 @@
   "facts": [
     {
       "field": "bonus_amount",
-      "currentValue": 1000,
+      "currentValue": 10000,
       "unit": "USDT",
       "officialSourceKey": "bonus",
       "officialSourceUrl": "https://www.bitunix.com/activity",
-      "lastChecked": "2026-05-20",
-      "checkedBy": "human",
-      "confidenceScore": 0.27,
-      "conflictStatus": "outdated",
-      "manualReviewRequired": true,
-      "notes": "Up to 1,000 USDT new user bonus. Newer exchange — verify current offer. Needs daily re-check."
+      "lastChecked": "2026-06-12",
+      "checkedBy": "agent",
+      "confidenceScore": 0.85,
+      "conflictStatus": "ok",
+      "manualReviewRequired": false,
+      "notes": "Up to 10,000 USDT new user bonus. Confirmed twice via live affiliate landing (headless) on 2026-06-12: 'Perks for new users 10,000 USDT' / 'claim 10,000 USDT for new users only', ref inviteCode=phpZuw survived. Previously 1,000 USDT (2026-05-20)."
     },
     {
       "field": "bonus_currency",

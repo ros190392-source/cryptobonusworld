@@ -36,10 +36,18 @@ const filtered = exchanges.filter(ex => {
   if (cat.bonusType === 'no-kyc') return !ex.kycRequired;
   if (cat.bonusType === 'no-deposit') return !ex.depositRequired;
   if (cat.bonusType === 'welcome') return ex.bonusTypes.includes('signup');
+  // Referral bonuses are claimed by registering through a referral link —
+  // same offers as signup; no exchange carries a literal 'referral' type,
+  // so without this mapping the category page rendered completely empty.
+  if (cat.bonusType === 'referral') return ex.bonusTypes.includes('signup');
   return ex.bonusTypes.includes(cat.bonusType);
 });
 
-const top3 = [...filtered].sort((a, b) => b.rating - a.rating).slice(0, 3);
+// Editorial ranking: rating first, bonus size as tiebreak — keeps the table
+// order consistent with the rest of the site (data-file order is arbitrary).
+filtered.sort((a, b) => (b.rating - a.rating) || (b.bonusAmount - a.bonusAmount));
+
+const top3 = filtered.slice(0, 3);
 
 // SEO: dynamic title + description with live count + best offer
 const pageTitle = categoryPageTitle(cat.seoTitle, filtered.length);

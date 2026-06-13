@@ -315,11 +315,17 @@ const exchangesJson = JSON.stringify(
         '<span class="ctx-featured__bonus-label">max bonus</span>';
     }
 
-    // Update ExchangeLogo DOM — mirrors LOGO_CONTAINER_BG from ExchangeLogo.astro
+    // Update ExchangeLogo DOM — mirrors LOGO_CONTAINER_BG / LOGO_PADDING
+    // from ExchangeLogo.astro (keep in sync when either map changes)
     var LOGO_CONTAINER_BG = {
-      htx: '#FFFFFF', coinex: '#FFFFFF', lbank: '#F5C100',
-      phemex: '#0C0C0C', bitunix: '#0C0C0C', kucoin: '#FFFFFF',
+      htx: '#FFFFFF', coinex: '#FFFFFF',
+      phemex: '#0C0C0C', bitunix: '#121212', kucoin: '#FFFFFF',
+      bybit: '#232635', binance: '#060606',
+      bingx: '#2A54FF', mexc: '#F3F4F8', okx: '#FFFFFF',
+      'gate-io': '#FFFFFF', bitget: '#69E6F8',
     };
+    // % padding per side; opaque edge-to-edge logos must stay 0
+    var LOGO_PADDING = { coinbase: 2 };
     var logoWrap = document.getElementById('ctx-featured-logo');
     if (logoWrap) {
       var exlogoDiv = logoWrap.querySelector('.exlogo');
@@ -331,6 +337,8 @@ const exchangesJson = JSON.stringify(
         var fbEl  = exlogoDiv.querySelector('.exlogo-fallback');
         if (imgEl) {
           imgEl.style.display = '';
+          var padPx = Math.round(72 * (LOGO_PADDING[best.slug] || 0) / 100);
+          imgEl.style.padding = padPx + 'px';
           imgEl.src = '/logos/' + best.slug + '.png';
           imgEl.alt = best.name;
           imgEl.setAttribute('data-slug', best.slug);

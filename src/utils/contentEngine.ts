@@ -555,7 +555,11 @@ export interface ContentOverride {
   /** Fully replace a FAQ item. Takes priority over generated content. */
   faqOverrides?: FAQOverride[];
   /** Append extra FAQ items after the generated ones. */
-  faqAppend?: FAQItem[];
+  faqAppend?: (FAQItem & {
+    /** Question text of a generated FAQ this item should replace (case/whitespace-insensitive).
+        Lets editorial swap a duplicate/weak generated question for a new one without growing the set. */
+    replaces?: string;
+  })[];
   /** Editorial callout blocks to display on the page. */
   callouts?: ContentCalloutData[];
   /** Override editorNote directly (shown in EditorSummary). */
@@ -586,9 +590,20 @@ export function applyFAQOverrides(
     }
   }
 
-  // Append extra items
+  // Append extra items. If an appended question matches a generated one
+  // (case/whitespace-insensitive), it REPLACES it instead of appending —
+  // otherwise the same question renders twice on the page and in FAQPage
+  // schema (seen live on /exchanges/binance/ with the safety question).
   if (override.faqAppend?.length) {
-    result = [...result, ...override.faqAppend];
+    const norm = (q: string) => q.toLowerCase().replace(/\s+/g, ' ').trim();
+    for (const item of override.faqAppend) {
+      const { replaces, ...faq } = item;
+      const idx = replaces
+        ? result.findIndex(f => norm(f.question) === norm(replaces))
+        : result.findIndex(f => norm(f.question) === norm(faq.question));
+      if (idx >= 0) result[idx] = faq;
+      else result.push(faq);
+    }
   }
 
   return result;

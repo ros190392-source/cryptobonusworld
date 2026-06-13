@@ -337,13 +337,21 @@
     }
   ],
   "screenshots": {
+    "bonus_referral_landing": {
+      "status": "available",
+      "path": "/screenshots/bybit/bonus_referral_landing/global-desktop-2026-06.webp",
+      "capturedAt": "2026-06-11",
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": "Bybit × CryptoBonusWorld referral landing with code CRYPTOBONUSW pre-filled and validated. The live page states 'Unlock up to $30,020 in exclusive rewards' with a $100 sign-up bonus and deposit-tier rewards from $50 (deposit $500 & trade $100k) up to $30,000 (deposit $250K & trade $150M); top tiers require VIP-level volume. Verified live on June 11, 2026."
+    },
     "registration": {
       "status": "available",
       "path": "/screenshots/bybit/registration/global-desktop-2026-06.webp",
       "capturedAt": "2026-06",
       "geo": "GLOBAL",
       "device": "desktop",
-      "notes": "Registration form — step 1. Source: media/walkthroughs/bybit/bybit-step-01.webp"
+      "notes": "Bybit registration form — the first step of account creation on the live platform."
     },
     "kyc": {
       "status": "available",
@@ -351,7 +359,7 @@
       "capturedAt": "2026-06",
       "geo": "GLOBAL",
       "device": "desktop",
-      "notes": "KYC entry screen — step 1. Source: media/walkthroughs/bybit/bybit-kyc-01-ec66df38.webp"
+      "notes": "Bybit identity verification (KYC) entry screen — where new users start the verification process."
     },
     "bonus": {
       "status": "available",
@@ -359,7 +367,7 @@
       "capturedAt": "2026-06",
       "geo": "GLOBAL",
       "device": "desktop",
-      "notes": "Bonus chart overview. Converted from bybit-bonus-chart.jpg to webp (quality 85) via sharp 0.33.5. Original .jpg retained on disk. Sprint 03: T02-BYBIT-BONUS-WEBP resolved."
+      "notes": "Bybit welcome rewards chart showing the deposit-tier bonus structure for new users."
     },
     "deposit": {
       "status": "available",
@@ -367,7 +375,7 @@
       "capturedAt": "2026-06",
       "geo": "GLOBAL",
       "device": "desktop",
-      "notes": "Assets / deposit screen. Source: media/walkthroughs/bybit/bybit-dep-01-aad722a3.webp"
+      "notes": "Bybit assets and deposit screen — funding options for a new account."
     },
     "p2p": {
       "status": "available",
@@ -375,7 +383,7 @@
       "capturedAt": "2026-06",
       "geo": "GLOBAL",
       "device": "desktop",
-      "notes": "P2P marketplace overview — step 1. Source: media/walkthroughs/bybit/bybit-p2p-01.webp"
+      "notes": "Bybit P2P marketplace overview — buying crypto with local payment methods."
     },
     "spot": {
       "status": "available",
@@ -383,7 +391,7 @@
       "capturedAt": "2026-06",
       "geo": "GLOBAL",
       "device": "desktop",
-      "notes": "Spot trading overview — step 1. Source: media/walkthroughs/bybit/bybit-spot-01-20abb8ba.webp"
+      "notes": "Bybit spot trading interface — order book and chart view on the live platform."
     },
     "futures": {
       "status": "available",
@@ -391,7 +399,7 @@
       "capturedAt": "2026-06",
       "geo": "GLOBAL",
       "device": "desktop",
-      "notes": "Futures trading overview — step 1. Source: media/walkthroughs/bybit/bybit-fut-01-400c4d95.webp"
+      "notes": "Bybit futures trading interface — USDT perpetual contracts view on the live platform."
     },
     "fees": {
       "status": "needs_manual_capture",

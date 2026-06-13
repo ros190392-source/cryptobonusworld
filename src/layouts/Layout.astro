@@ -237,6 +237,12 @@ const IS_DEV = import.meta.env.DEV;
 
 <style is:global>
   :root {
+    /* Declare the page as natively dark. Together with the color-scheme meta
+       this stops mobile browsers' "auto dark mode" (Chrome Android, Samsung
+       Internet, Opera) from applying an extra darkening filter on top of our
+       already-dark design — which dims images and mutes the gold accents. */
+    color-scheme: dark;
+
     /* ── Core palette ── */
     --color-bg:           #0a0a0a;
     --color-bg-secondary: #111111;
@@ -262,7 +268,7 @@ const IS_DEV = import.meta.env.DEV;
     /* ── Text ── */
     --color-text-primary:   #f0f0f0;
     --color-text-secondary: #aaaaaa;
-    --color-text-muted:     #606060;
+    --color-text-muted:     #8a8a8a; /* was #606060 — failed WCAG (3.1:1 on bg, ~2:1 on cards); readable but still clearly muted */
 
     /* ── Typography scale ── */
     --text-xs:   0.75rem;    /* 12px */
@@ -329,6 +335,9 @@ const IS_DEV = import.meta.env.DEV;
     font-size: 16px;
     scroll-behavior: smooth;
     scroll-padding-top: 97px; /* header 64px + trust strip ~33px */
+    /* body-only overflow-x is ignored by mobile Safari/Chrome in some
+       cases — clip on html is what actually stops sideways panning */
+    overflow-x: clip;
   }
 
   body {

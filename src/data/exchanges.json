@@ -137,8 +137,8 @@
     ],
     "longDescription": "Bybit is a major global crypto exchange known for derivatives, spot trading, copy trading and aggressive promotional campaigns. Founded in 2018 and headquartered in Dubai, Bybit serves over 30 million users worldwide with a wide range of trading products including futures, options, and a growing spot market. Their welcome bonus for new users is among the highest in the industry, distributed across tiered tasks that reward registration, first deposit, and trading volume milestones. Bybit holds a Virtual Asset license from Dubai VARA and has expanded significantly into Web3 wallet and DeFi products.",
     "editorNote": "Top pick for serious traders. The 30K USDT ceiling is industry-leading but requires meaningful trading volume to unlock all tiers. Copy trading and Web3 wallet integration are genuinely best-in-class. Not for no-KYC users.",
-    "lastVerified": "2026-05-20",
-    "updatedAt": "2026-05-20",
+    "lastVerified": "2026-06-11",
+    "updatedAt": "2026-06-11",
     "status": "active",
     "sources": [
       {
@@ -146,6 +146,12 @@
         "type": "official-promo",
         "fetchedAt": "2026-05-20T00:00:00.000Z",
         "notes": "Manual verification  -  bonus tiers, expiry window, KYC requirement confirmed"
+      },
+      {
+        "url": "https://partner.bybit.com/b/CRYPTOBONUSW",
+        "type": "referral-landing",
+        "fetchedAt": "2026-06-11T00:00:00.000Z",
+        "notes": "Owner opened the referral landing manually (automation blocked by bot protection): code CRYPTOBONUSW pre-filled and validated, page states up to $30,020 in rewards, deposit tiers $50–$30,000. Screenshot saved to bonus_referral_landing evidence slot."
       }
     ],
     "changeLog": [],
@@ -161,8 +167,8 @@
       "currency": "USDT",
       "typicalNote": "Most users earn 200–600 USDT"
     },
-    "offerLastChecked": "2026-05-20",
-    "offerConfidenceScore": 72,
+    "offerLastChecked": "2026-06-11",
+    "offerConfidenceScore": 88,
     "realisticUserExpectation": "Most users earn 200–600 USDT completing deposit + trading tasks; 30,000 USDT max requires very high trading volume over 30 days",
     "verificationLastChecked": "2026-05-25",
     "bonusConditionSummary": "Complete KYC + deposit + trading volume tasks within 30 days",
@@ -639,8 +645,8 @@
     ],
     "longDescription": "Bitget is a globally recognized crypto exchange specializing in derivatives and copy trading. Founded in 2018 and headquartered in Singapore, Bitget has grown to serve over 20 million users worldwide. Their copy trading feature  -  which lets users automatically replicate professional traders' positions  -  is one of the most developed in the industry. The welcome package rewards new users through tiered deposit and futures trading milestones, making it especially attractive for traders who intend to use the derivatives platform.",
     "editorNote": "The copy trading leader with ASIC regulation and a polished UX. 6,200 USDT package is solid and bonus conditions are clearer than most. Best for intermediate traders who want to follow professional strategies hands-free.",
-    "lastVerified": "2026-05-20",
-    "updatedAt": "2026-05-20",
+    "lastVerified": "2026-06-11",
+    "updatedAt": "2026-06-11",
     "status": "active",
     "verificationStatus": "verified",
     "bonusNote": "Up to 6,200 USDT across all bonus tasks — typical first-month reward is 100–400 USDT",
@@ -654,10 +660,10 @@
       "currency": "USDT",
       "typicalNote": "Most users earn 100–400 USDT"
     },
-    "offerLastChecked": "2026-05-20",
-    "offerConfidenceScore": 74,
+    "offerLastChecked": "2026-06-11",
+    "offerConfidenceScore": 90,
     "realisticUserExpectation": "Typical new user earns 100–400 USDT completing KYC, deposit and futures trial tasks",
-    "verificationLastChecked": "2026-05-25",
+    "verificationLastChecked": "2026-06-11",
     "bonusConditionSummary": "Complete KYC + deposit + futures trading task within 30 days",
     "spotMakerFee": 0.1,
     "spotTakerFee": 0.1,
@@ -674,8 +680,8 @@
     "logo": "/logos/bingx.png",
     "rating": 9,
     "topChoice": false,
-    "bonusTitle": "Up to 5,000 USDT Welcome Bonus",
-    "bonusAmount": 5000,
+    "bonusTitle": "Up to 11,000 USDT Welcome Package",
+    "bonusAmount": 11000,
     "bonusCurrency": "USDT",
     "bonusTypes": [
       "signup",
@@ -685,27 +691,19 @@
     "bonusTiers": [
       {
         "type": "signup",
-        "title": "Registration Bonus",
-        "amount": 20,
+        "title": "Regular Welcome Gift",
+        "amount": 6800,
         "currency": "USDT",
-        "condition": "Complete registration and verify account",
-        "note": "Credited as trading voucher"
+        "condition": "Complete Rewards Hub tasks: sign-up, futures challenge, volume milestones",
+        "note": "Available to all new users; mostly trading vouchers"
       },
       {
-        "type": "deposit",
-        "title": "First Deposit Reward",
-        "amount": 100,
+        "type": "referral",
+        "title": "Referral-Exclusive Perks",
+        "amount": 4200,
         "currency": "USDT",
-        "condition": "Make a qualifying first deposit",
-        "note": "Scales with deposit amount"
-      },
-      {
-        "type": "futures",
-        "title": "Futures Trading Vouchers",
-        "amount": 4880,
-        "currency": "USDT",
-        "condition": "Complete futures trading volume milestones",
-        "note": "Vouchers distributed across multiple levels"
+        "condition": "Sign up via the CryptoBonusWorld referral link",
+        "note": "Exclusive for referees — lifts the advertised total to 11,000+ USDT"
       }
     ],
     "bonusExpiry": {
@@ -790,7 +788,7 @@
     ],
     "requirements": "Register, complete KYC verification and make a qualifying deposit to unlock welcome bonus tiers. Futures trading activity unlocks additional reward levels. Tasks must be completed within 30 days.",
     "riskNotes": "Bonus conditions and amounts may vary by region. Trading involves significant risk. Read official promotion terms before claiming. Copy trading does not guarantee profitability.",
-    "shortDescription": "BingX provides a beginner-friendly welcome bonus of up to 5,000 USDT with social and copy trading features ideal for new crypto users.",
+    "shortDescription": "BingX provides a beginner-friendly welcome package of up to 11,000 USDT for referral sign-ups, with social and copy trading features ideal for new crypto users.",
     "bestFor": [
       "Beginner traders",
       "Social & copy trading",
@@ -798,23 +796,23 @@
     ],
     "longDescription": "BingX is a crypto exchange with a strong focus on social and copy trading, making it popular with beginners and intermediate traders. Founded in 2018 and headquartered in Singapore, BingX has grown to serve over 10 million users globally. Their social trading infrastructure lets users follow and automatically copy experienced traders, reducing the learning curve for new market participants. Their welcome promotion rewards new users with deposit-based bonus tiers and futures trading vouchers.",
     "editorNote": "Easiest onboarding for complete beginners. Social trading features and strong P2P support lower the entry barrier significantly. Bonus conditions are fair. Not the highest ceiling but the most accessible all-around.",
-    "lastVerified": "2026-05-20",
-    "updatedAt": "2026-05-20",
+    "lastVerified": "2026-06-11",
+    "updatedAt": "2026-06-11",
     "status": "active",
     "verificationStatus": "verified",
-    "bonusNote": "Up to 5,125 USDT in combined bonuses — typical reward for standard deposit is 50–250 USDT",
-    "bonusSourceUrl": "https://bingx.com/en-us/activity/new-user-reward/",
+    "bonusNote": "Referral landing advertises 11,000+ USDT total: 6,800+ regular welcome gift + 4,200+ referee-exclusive perks (mostly vouchers) — typical reward for standard activity is 50–250 USDT; tasks vary by region",
+    "bonusSourceUrl": "https://bingxdao.com/partner/CRYPTOBONUSWORLD/",
     "bonusDisplayMode": "up-to",
     "bonusRange": {
       "min": 0,
-      "max": 5000,
+      "max": 11000,
       "typicalMin": 50,
       "typicalMax": 250,
       "currency": "USDT",
       "typicalNote": "Most users earn 50–250 USDT"
     },
-    "offerLastChecked": "2026-05-20",
-    "offerConfidenceScore": 74,
+    "offerLastChecked": "2026-06-11",
+    "offerConfidenceScore": 90,
     "realisticUserExpectation": "Most users earn 50–250 USDT through deposit bonuses and copy-trading trial rewards",
     "verificationLastChecked": "2026-05-25",
     "bonusConditionSummary": "Deposit + enable copy-trading or complete trading volume tasks",
@@ -833,8 +831,8 @@
     "logo": "/logos/gate-io.png",
     "rating": 9.1,
     "topChoice": false,
-    "bonusTitle": "Up to 3,000 USDT Signup Bonus",
-    "bonusAmount": 3000,
+    "bonusTitle": "Up to 10,000 USDT Welcome Rewards",
+    "bonusAmount": 10000,
     "bonusCurrency": "USDT",
     "bonusTypes": [
       "signup",
@@ -844,27 +842,27 @@
     "bonusTiers": [
       {
         "type": "signup",
-        "title": "New User Welcome Reward",
-        "amount": 30,
+        "title": "Sign-Up Reward",
+        "amount": 50,
         "currency": "USDT",
-        "condition": "Register and complete account verification",
-        "note": "Credited as spot trading voucher"
+        "condition": "Register via referral link and complete beginner tasks",
+        "note": "Full beginner task package is worth 135 USDT"
       },
       {
         "type": "deposit",
         "title": "Deposit Bonus",
         "amount": 200,
         "currency": "USDT",
-        "condition": "Complete qualifying first deposit",
+        "condition": "Complete qualifying net deposit",
         "note": "Amount scales with deposit tier"
       },
       {
         "type": "trading-rewards",
-        "title": "Trading Rewards",
-        "amount": 2770,
+        "title": "Trading Task Rewards",
+        "amount": 9750,
         "currency": "USDT",
-        "condition": "Reach cumulative spot and futures trading volume milestones",
-        "note": "Distributed as fee rebate vouchers"
+        "condition": "Complete net deposit plus spot or futures trading tasks",
+        "note": "Tier chart on the landing reaches 15,000 USDT at VIP volumes; advertised cap is 10,000 USDT"
       }
     ],
     "bonusExpiry": {
@@ -949,9 +947,9 @@
       "KYC verification required to access full bonus",
       "Not available for US residents"
     ],
-    "requirements": "Register and complete KYC verification. Make a qualifying deposit and complete trading tasks to earn signup bonus rewards up to 3,000 USDT. Tasks must be completed within the 30-day new user window.",
+    "requirements": "Register and complete KYC verification. Make a qualifying deposit and complete trading tasks to earn welcome rewards up to 10,000 USDT. Tasks must be completed within the 30-day new user window.",
     "riskNotes": "Gate.io lists many altcoins with high volatility risk. Bonus conditions may change without notice. Always verify current promotion terms on the official Gate.io website.",
-    "shortDescription": "Gate.io offers new users up to 3,000 USDT in welcome rewards on one of the largest and most established crypto exchanges by altcoin selection.",
+    "shortDescription": "Gate.io offers new users up to 10,000 USDT in welcome rewards on one of the largest and most established crypto exchanges by altcoin selection.",
     "bestFor": [
       "Altcoin traders",
       "Experienced traders",
@@ -959,9 +957,9 @@
       "Long-term investors"
     ],
     "longDescription": "Gate.io is one of the oldest active crypto exchanges, founded in 2013. Known for its enormous selection of thousands of trading pairs and altcoin listings, Gate.io appeals to experienced traders looking for diverse market exposure. The exchange has maintained a strong reputation for over a decade and offers a comprehensive suite of trading products beyond spot and futures, including options, lending and an active NFT marketplace.",
-    "editorNote": "Founded 2013 — the most experienced exchange on this list. 1,700+ token pairs is an unmatched altcoin selection. Bonus is moderate but the real value is platform depth and longevity. Best for experienced altcoin hunters.",
-    "lastVerified": "2026-05-20",
-    "updatedAt": "2026-05-20",
+    "editorNote": "Founded 2013 — the most experienced exchange on this list. 1,700+ token pairs is an unmatched altcoin selection. The 10,000 USDT headline is task-gated, but the real value is platform depth and longevity. Best for experienced altcoin hunters.",
+    "lastVerified": "2026-06-11",
+    "updatedAt": "2026-06-11",
     "status": "active",
     "verificationStatus": "verified",
     "bonusNote": "Up to 10,000 USDT in task rewards — typical accessible reward is 50–200 USDT for standard activity",
@@ -969,14 +967,14 @@
     "bonusDisplayMode": "up-to",
     "bonusRange": {
       "min": 0,
-      "max": 3000,
+      "max": 10000,
       "typicalMin": 50,
       "typicalMax": 200,
       "currency": "USDT",
       "typicalNote": "Most users earn 50–200 USDT"
     },
-    "offerLastChecked": "2026-05-20",
-    "offerConfidenceScore": 75,
+    "offerLastChecked": "2026-06-11",
+    "offerConfidenceScore": 85,
     "realisticUserExpectation": "Typical welcome reward is 50–200 USDT; accessible through standard deposit and spot trading",
     "verificationLastChecked": "2026-05-25",
     "bonusConditionSummary": "Complete KYC + deposit + spot or futures trading task",
@@ -995,8 +993,8 @@
     "logo": "/logos/kucoin.png",
     "rating": 9.2,
     "topChoice": false,
-    "bonusTitle": "Up to 11,000 USDT Welcome Rewards",
-    "bonusAmount": 11000,
+    "bonusTitle": "Up to 500 USDT Welcome Bonus",
+    "bonusAmount": 500,
     "bonusCurrency": "USDT",
     "bonusTypes": [
       "signup",
@@ -1045,9 +1043,9 @@
       "currency": "USDT",
       "note": "For upper bonus tiers"
     },
-    "affiliateUrl": "https://www.kucoin.com/?rcode=CRYPTOBONW&utm_medium=U17591",
+    "affiliateUrl": "https://www.kucoin.com/r/af/CRYPTOBONW",
     "affiliateLinks": {
-      "default": "https://www.kucoin.com/?rcode=CRYPTOBONW&utm_medium=U17591",
+      "default": "https://www.kucoin.com/r/af/CRYPTOBONW",
       "geo": {
         "tr": "#",
         "in": "#",
@@ -1113,32 +1111,32 @@
     ],
     "requirements": "Register to access initial bonus. KYC not required for basic trading access. Deposit qualifying amount and complete trading volume milestones to unlock bonus tiers. KYC may be required for withdrawal above certain limits.",
     "riskNotes": "Bonus amounts and conditions are subject to change. KuCoin is not licensed in all jurisdictions. Non-KYC accounts have withdrawal limits. Check availability and limits in your region before registering.",
-    "shortDescription": "KuCoin offers a no-KYC welcome bonus of up to 11,000 USDT, making it popular with traders who prefer accessing crypto markets without full identity verification.",
+    "shortDescription": "KuCoin offers a no-KYC welcome bonus of up to 500 USDT, making it popular with traders who prefer accessing crypto markets without full identity verification.",
     "bestFor": [
       "No-KYC preferred",
       "Altcoin hunters",
       "Privacy-focused traders"
     ],
-    "longDescription": "KuCoin is a major global crypto exchange founded in 2017 and often called 'The People's Exchange' for its accessible, low-barrier approach. With over 40 million registered users, KuCoin's optional KYC policy is a significant differentiator in markets where users prefer privacy or face barriers to identity verification. The exchange supports spot, futures, copy trading, staking and a lending marketplace. Their 11,000 USDT welcome bonus is accessible without identity verification, though higher withdrawal limits and full feature access require KYC completion.",
-    "editorNote": "40M+ users with no KYC for basic access - a strong combination. The 11,000 USDT welcome rewards package is competitive and the platform depth is excellent. A deposit is required to activate the full bonus. Great choice for privacy-focused traders.",
+    "longDescription": "KuCoin is a major global crypto exchange founded in 2017 and often called 'The People's Exchange' for its accessible, low-barrier approach. With over 40 million registered users, KuCoin's optional KYC policy is a significant differentiator in markets where users prefer privacy or face barriers to identity verification. The exchange supports spot, futures, copy trading, staking and a lending marketplace. Their 500 USDT welcome bonus is accessible without identity verification, though higher withdrawal limits and full feature access require KYC completion.",
+    "editorNote": "40M+ users with no KYC for basic access - a strong combination. The 500 USDT welcome rewards package is competitive and the platform depth is excellent. A deposit is required to activate the full bonus. Great choice for privacy-focused traders.",
     "lastVerified": "2026-05-27",
     "updatedAt": "2026-05-27",
     "status": "active",
     "verificationStatus": "verified",
-    "bonusNote": "Up to 11,000 USDT welcome rewards — typical reward 20–100 USDT; no-KYC tiers are genuinely accessible",
-    "bonusSourceUrl": "https://www.kucoin.com/?rcode=CRYPTOBONW&utm_medium=U17591",
+    "bonusNote": "Up to 500 USDT welcome rewards — KuCoin reveals your exact reward in the Rewards Hub after registration (the referral landing shows a 'Claim Rewards' box, not a fixed amount); typical reward 20–100 USDT; no-KYC tiers are genuinely accessible",
+    "bonusSourceUrl": "https://www.kucoin.com/r/af/CRYPTOBONW",
     "bonusDisplayMode": "up-to",
     "bonusRange": {
       "min": 0,
-      "max": 11000,
+      "max": 500,
       "typicalMin": 20,
       "typicalMax": 100,
       "currency": "USDT",
       "typicalNote": "Most users earn 20–100 USDT"
     },
-    "offerLastChecked": "2026-05-27",
+    "offerLastChecked": "2026-06-11",
     "offerConfidenceScore": 88,
-    "realisticUserExpectation": "Typical no-KYC users earn 20–100 USDT; max 11,000 USDT requires significant trading volume; straightforward deposit tasks",
+    "realisticUserExpectation": "Typical no-KYC users earn 20–100 USDT; max 500 USDT requires significant trading volume; straightforward deposit tasks",
     "verificationLastChecked": "2026-05-25",
     "bonusConditionSummary": "Deposit + trade; no KYC required for lower tiers; higher tiers require identity verification",
     "spotMakerFee": 0.1,
@@ -1148,7 +1146,8 @@
     "p2pAvailable": true,
     "maxFuturesLeverage": 100,
     "proofOfReserves": true,
-    "tradingPairsCount": 700
+    "tradingPairsCount": 700,
+    "bonusLastChecked": "2026-06-11"
   },
   {
     "name": "HTX",
@@ -1156,8 +1155,8 @@
     "logo": "/logos/htx.png",
     "rating": 8.9,
     "topChoice": false,
-    "bonusTitle": "Up to 2,000 USDT New User Rewards",
-    "bonusAmount": 2000,
+    "bonusTitle": "Up to 1,500 USDT Welcome Bonus",
+    "bonusAmount": 1500,
     "bonusCurrency": "USDT",
     "bonusTypes": [
       "signup",
@@ -1286,18 +1285,18 @@
     "updatedAt": "2026-05-20",
     "status": "active",
     "verificationStatus": "verified",
-    "bonusNote": "Up to 6,800 USDT across tasks — typical first-month reward is 50–200 USDT",
+    "bonusNote": "Up to 1,500 USDT across tasks — typical first-month reward is 50–200 USDT",
     "bonusSourceUrl": "https://www.htx.com/en-us/activity/",
     "bonusDisplayMode": "up-to",
     "bonusRange": {
       "min": 0,
-      "max": 2000,
+      "max": 1500,
       "typicalMin": 50,
       "typicalMax": 200,
       "currency": "USDT",
       "typicalNote": "Voucher-based; most earn 50–200 USDT"
     },
-    "offerLastChecked": "2026-05-20",
+    "offerLastChecked": "2026-06-11",
     "offerConfidenceScore": 74,
     "realisticUserExpectation": "Most users earn 50–200 USDT through deposit and spot trading tasks; campaign availability varies by region",
     "verificationLastChecked": "2026-05-25",
@@ -1309,7 +1308,8 @@
     "p2pAvailable": true,
     "maxFuturesLeverage": 100,
     "proofOfReserves": false,
-    "tradingPairsCount": 600
+    "tradingPairsCount": 600,
+    "bonusLastChecked": "2026-06-11"
   },
   {
     "name": "CoinEx",
@@ -1625,8 +1625,8 @@
     "logo": "/logos/bitunix.png",
     "rating": 8.5,
     "topChoice": false,
-    "bonusTitle": "Up to 1,000 USDT Welcome Bonus",
-    "bonusAmount": 1000,
+    "bonusTitle": "Up to 10,000 USDT Welcome Bonus",
+    "bonusAmount": 10000,
     "bonusCurrency": "USDT",
     "bonusTypes": [
       "signup",
@@ -1653,10 +1653,10 @@
       {
         "type": "futures",
         "title": "Futures Vouchers",
-        "amount": 900,
+        "amount": 9900,
         "currency": "USDT",
         "condition": "Complete futures trading milestones",
-        "note": "Trading vouchers distributed per milestone"
+        "note": "New-user trading rewards pool — vouchers distributed per milestone, up to the 10,000 USDT headline"
       }
     ],
     "bonusExpiry": {
@@ -1737,7 +1737,7 @@
     ],
     "requirements": "Register via referral link. Deposit a qualifying amount to unlock the main welcome bonus tiers. Additional futures trading rewards unlock through volume milestones.",
     "riskNotes": "Bitunix is a relatively new exchange. Exercise additional due diligence before depositing significant funds. Bonus conditions and terms are subject to change. Lower liquidity may affect execution quality on larger orders.",
-    "shortDescription": "Bitunix offers a welcome bonus of up to 1,000 USDT with competitive futures trading fees and streamlined account setup for users seeking accessible derivatives trading.",
+    "shortDescription": "Bitunix offers a welcome bonus of up to 10,000 USDT with competitive futures trading fees and streamlined account setup for users seeking accessible derivatives trading.",
     "bestFor": [
       "Futures traders seeking accessible derivatives trading",
       "Futures newcomers",
@@ -1745,22 +1745,22 @@
     ],
     "longDescription": "Bitunix is an emerging crypto futures exchange offering competitive trading fees and streamlined account access for new users. While newer to the market compared to established competitors, Bitunix has attracted traders looking for accessible derivatives trading. Their simple interface and fast onboarding make it appealing for users who want to start trading quickly. Verification requirements and withdrawal limits should be confirmed on the official site before registering. Welcome bonuses reward new users through deposit milestones and futures trading activity.",
     "editorNote": "Newest exchange here (2022). Streamlined account setup and competitive futures fees. Bonus is real but counterparty risk is higher than established platforms. Recommended for experienced users only — not for beginners. Verify current account and withdrawal requirements before registering.",
-    "lastVerified": "2026-05-20",
-    "updatedAt": "2026-05-20",
+    "lastVerified": "2026-06-12",
+    "updatedAt": "2026-06-12",
     "status": "active",
     "verificationStatus": "verified",
-    "bonusNote": "Up to 8,000 USDT — typical accessible reward for new users is 30–120 USDT",
+    "bonusNote": "Up to 10,000 USDT — typical accessible reward for new users is 30–120 USDT",
     "bonusSourceUrl": "https://www.bitunix.com/activity",
     "bonusDisplayMode": "up-to",
     "bonusRange": {
       "min": 0,
-      "max": 1000,
+      "max": 10000,
       "typicalMin": 30,
       "typicalMax": 120,
       "currency": "USDT",
       "typicalNote": "Most users earn 30–120 USDT"
     },
-    "offerLastChecked": "2026-05-20",
+    "offerLastChecked": "2026-06-12",
     "offerConfidenceScore": 78,
     "realisticUserExpectation": "Newer exchange; typical users earn 30–120 USDT through deposit and futures trading tasks; high-tier bonuses require significant volume",
     "verificationLastChecked": "2026-05-25",
@@ -1773,166 +1773,6 @@
     "maxFuturesLeverage": 100,
     "proofOfReserves": false,
     "tradingPairsCount": 200
-  },
-  {
-    "name": "LBank",
-    "slug": "lbank",
-    "logo": "/logos/lbank.png",
-    "rating": 8.4,
-    "topChoice": false,
-    "partner_status": "pending",
-    "bonusTitle": "Up to 500 USDT New User Bonus",
-    "bonusAmount": 500,
-    "bonusCurrency": "USDT",
-    "bonusTypes": [
-      "signup",
-      "deposit",
-      "trading-rewards"
-    ],
-    "bonusTiers": [
-      {
-        "type": "signup",
-        "title": "Registration Reward",
-        "amount": 5,
-        "currency": "USDT",
-        "condition": "Register and complete KYC verification",
-        "note": "Credited upon successful KYC"
-      },
-      {
-        "type": "deposit",
-        "title": "First Deposit Bonus",
-        "amount": 45,
-        "currency": "USDT",
-        "condition": "Make a qualifying first deposit",
-        "note": "Scales with deposit amount"
-      },
-      {
-        "type": "trading-rewards",
-        "title": "Trading Volume Rewards",
-        "amount": 450,
-        "currency": "USDT",
-        "condition": "Reach trading volume milestones within 30 days",
-        "note": "Fee rebate vouchers distributed per milestone"
-      }
-    ],
-    "bonusExpiry": {
-      "days": 30,
-      "note": "New user promotion tasks must be completed within 30 days of registration"
-    },
-    "kycRequired": true,
-    "depositRequired": true,
-    "futuresRequired": false,
-    "minDeposit": {
-      "amount": 50,
-      "currency": "USDT"
-    },
-    "tradingVolumeRequired": {
-      "amount": 1000,
-      "currency": "USDT",
-      "note": "For upper trading reward tiers"
-    },
-    "affiliateUrl": "https://www.lbank.com/",
-    "affiliateLinks": {
-      "default": "https://www.lbank.com/",
-      "geo": {
-        "tr": "#",
-        "in": "#",
-        "id": "#",
-        "ng": "#",
-        "br": "#",
-        "vn": "#",
-        "ph": "#"
-      }
-    },
-    "commissionType": "cpa",
-    "promoCode": "",
-    "promoCodes": [
-      {
-        "code": "",
-        "region": "global",
-        "description": "General referral registration bonus"
-      }
-    ],
-    "termsUrl": "https://www.lbank.com/activity/",
-    "countries": [
-      "global",
-      "turkey",
-      "india",
-      "indonesia",
-      "nigeria",
-      "brazil",
-      "vietnam",
-      "philippines"
-    ],
-    "excludedCountries": [
-      "us",
-      "uk"
-    ],
-    "paymentMethods": [
-      "crypto",
-      "card",
-      "p2p"
-    ],
-    "founded": 2015,
-    "users": "7M+",
-    "headquarters": "British Virgin Islands",
-    "licences": [],
-    "featureBadges": [
-      "spot",
-      "futures",
-      "earn",
-      "p2p",
-      "early-listings"
-    ],
-    "pros": [
-      "Wide selection of altcoins with frequent new token listings",
-      "Available across most countries in Asia, Africa and Latin America",
-      "P2P trading supporting multiple local fiat currencies",
-      "Long operating history since 2015"
-    ],
-    "cons": [
-      "KYC required before accessing bonus rewards",
-      "Smaller overall bonus ceiling",
-      "Lower liquidity on some trading pairs"
-    ],
-    "requirements": "Register and complete KYC identity verification. Make a qualifying deposit and complete trading tasks to earn welcome bonus rewards up to 500 USDT. Tasks must be completed within the 30-day new user window.",
-    "riskNotes": "LBank lists many low-cap and early-stage tokens with high volatility risk. Bonus conditions and availability are subject to change. Always verify current promotion terms on the official LBank website.",
-    "shortDescription": "LBank offers new users a welcome bonus of up to 500 USDT with access to a wide range of altcoins and a focus on early token listings across emerging markets.",
-    "bestFor": [
-      "Emerging market users",
-      "Early token hunters",
-      "P2P fiat traders"
-    ],
-    "longDescription": "LBank is a global crypto exchange founded in 2015 with a focus on listing emerging altcoins and providing P2P trading services across emerging markets. Operating in over 100 countries, LBank has built a significant user base in Asia, Africa and Latin America by providing early access to new token projects. Their P2P marketplace supports a wide range of local currencies, making it accessible in markets with limited fiat on-ramp options.",
-    "editorNote": "Veteran exchange (est. 2015) focused on emerging markets and early-stage token listings. P2P support for local currencies is a strength. Better suited for speculative early-token plays than mainstream spot or futures trading.",
-    "lastVerified": "2026-05-20",
-    "updatedAt": "2026-05-20",
-    "status": "active",
-    "verificationStatus": "verified",
-    "bonusNote": "Campaign-based welcome bonus — check current offer on LBank official website",
-    "bonusSourceUrl": "https://www.lbank.com/activity/",
-    "bonusDisplayMode": "campaign",
-    "bonusRange": {
-      "min": 0,
-      "max": 500,
-      "typicalMin": 10,
-      "typicalMax": 50,
-      "currency": "USDT",
-      "typicalNote": "Most users earn 10–50 USDT"
-    },
-    "offerLastChecked": "2026-05-25",
-    "offerConfidenceScore": 68,
-    "realisticUserExpectation": "Smaller exchange with campaign-based offers; typical current promotions offer 20–100 USDT; verify on official site",
-    "verificationLastChecked": "2026-05-25",
-    "bonusConditionSummary": "Campaign-based; deposit + trading task; terms vary by active promotion",
-    "spotMakerFee": 0.1,
-    "spotTakerFee": 0.1,
-    "futuresMakerFee": 0.02,
-    "futuresTakerFee": 0.05,
-    "p2pAvailable": true,
-    "maxFuturesLeverage": 100,
-    "proofOfReserves": false,
-    "tradingPairsCount": 600
   },
   {
     "name": "Binance",
@@ -1951,48 +1791,40 @@
     "bonusTiers": [
       {
         "type": "signup",
-        "title": "Registration Reward",
-        "amount": 20,
-        "currency": "USDT",
-        "condition": "Register via referral link and verify email",
-        "note": "Trading fee voucher, credited immediately"
+        "title": "Stage 1: New User Tasks",
+        "amount": 100,
+        "currency": "USDC",
+        "condition": "Four tasks: verify account, deposit $10, trade $10, trade $2,000",
+        "note": "Fee rebate vouchers; assigned immediately after registration — live-verified on our own account, June 2026"
       },
       {
-        "type": "deposit",
-        "title": "Deposit Bonus",
-        "amount": 180,
-        "currency": "USDT",
-        "condition": "Make a qualifying first deposit",
-        "note": "Scales with deposit size"
-      },
-      {
-        "type": "futures",
-        "title": "Futures Trading Rewards",
-        "amount": 19600,
-        "currency": "USDT",
-        "condition": "Complete futures trading volume milestones",
-        "note": "Distributed across multiple tiers; high-volume required for maximum"
+        "type": "trading-rewards",
+        "title": "Stage 2: Tiered Tasks (1–7)",
+        "amount": 19700,
+        "currency": "USD",
+        "condition": "Deposit and volume tiers from $100/$3K up to $20K/$50M",
+        "note": "Unlocked only after KYC; if KYC is not completed within 30 days, Stage 2 is not assigned"
       }
     ],
     "bonusExpiry": {
       "days": 30,
-      "note": "Complete tasks within 30 days of registration"
+      "note": "Stage 1 task timer showed ~30 days on our live account; Stage 2 is not assigned at all if KYC is not completed within 30 days of registration"
     },
     "kycRequired": true,
     "depositRequired": true,
     "futuresRequired": false,
     "minDeposit": {
-      "amount": 50,
-      "currency": "USDT"
+      "amount": 10,
+      "currency": "USD"
     },
     "tradingVolumeRequired": {
       "amount": 0,
       "currency": "USDT",
       "note": "No volume requirement for initial reward"
     },
-    "affiliateUrl": "https://www.binance.com/join?ref=CRYPTOBONUSW",
+    "affiliateUrl": "https://www.binance.com/join?ref=CRYPTOBONW",
     "affiliateLinks": {
-      "default": "https://www.binance.com/join?ref=CRYPTOBONUSW",
+      "default": "https://www.binance.com/join?ref=CRYPTOBONW",
       "geo": {
         "tr": "#",
         "in": "#",
@@ -2004,10 +1836,10 @@
       }
     },
     "commissionType": "hybrid",
-    "promoCode": "CRYPTOBONUSW",
+    "promoCode": "CRYPTOBONW",
     "promoCodes": [
       {
-        "code": "CRYPTOBONUSW",
+        "code": "CRYPTOBONW",
         "region": "global",
         "description": "General referral bonus"
       }
@@ -2025,8 +1857,14 @@
     ],
     "excludedCountries": [
       "us",
-      "uk",
-      "canada"
+      "canada",
+      "netherlands",
+      "iran",
+      "north-korea",
+      "cuba",
+      "crimea",
+      "donetsk",
+      "luhansk"
     ],
     "paymentMethods": [
       "crypto",
@@ -2035,7 +1873,7 @@
       "bank transfer"
     ],
     "founded": 2017,
-    "users": "185M+",
+    "users": "320M+",
     "headquarters": "Cayman Islands",
     "licences": [
       "Multiple regional licences"
@@ -2070,14 +1908,15 @@
       "Altcoin traders",
       "P2P fiat users"
     ],
-    "longDescription": "Binance is the world's largest cryptocurrency exchange by trading volume and user count. Founded in 2017 by Changpeng Zhao, it has grown to serve over 185 million registered users across more than 100 countries. Binance offers an expansive product suite including spot trading, futures, options, P2P marketplace, Launchpad, DeFi integrations, NFTs and its own blockchain (BNB Chain). Despite regulatory challenges in multiple jurisdictions including the U.S. and UK, Binance remains the dominant global crypto trading venue by volume.",
-    "editorNote": "#1 by trading volume and user count with 185M+ users. The 19,800 USDT bonus package is one of the largest available and the ecosystem is unmatched in depth. KYC is required and U.S./UK users cannot access Binance.com - for everyone else, this is the benchmark.",
-    "lastVerified": "2026-05-23",
-    "updatedAt": "2026-05-23",
+    "longDescription": "Binance is the world's largest cryptocurrency exchange by trading volume and user count. Founded in 2017 by Changpeng Zhao, it has grown to serve over 320 million registered users across more than 100 countries. Binance offers an expansive product suite including spot trading, futures, options, P2P marketplace, Launchpad, DeFi integrations, NFTs and its own blockchain (BNB Chain). Despite regulatory challenges in multiple jurisdictions including the U.S. and UK, Binance remains the dominant global crypto trading venue by volume.",
+    "editorNote": "#1 by trading volume and user count with 320M+ users (320,868,780 shown on the registration page we captured in June 2026). The 19,800 USDT bonus package is one of the largest available and the ecosystem is unmatched in depth. KYC is required and U.S./UK users cannot access Binance.com - for everyone else, this is the benchmark.",
+    "lastVerified": "2026-06-13",
+    "updatedAt": "2026-06-13",
     "status": "active",
     "verificationStatus": "verified",
-    "bonusNote": "Up to 19,800 USDT across all reward tasks — typical first-week reward is 100–200 USDT for standard deposits; maximum requires significant futures trading volume",
+    "bonusNote": "Up to 19,800 USDT across all reward tasks — typical reward is 50–200 USDT for standard deposits; the maximum requires very high trading volume (spot or futures) across all seven tiers",
     "bonusSourceUrl": "https://www.binance.com/en/activity/referral",
+    "seoTitleOverride": "Binance Bonus 2026: Up to 19,800 USDT + 20% Fee Rebate (Code CRYPTOBONW)",
     "bonusDisplayMode": "up-to",
     "bonusRange": {
       "min": 20,
@@ -2085,12 +1924,12 @@
       "typicalMin": 50,
       "typicalMax": 200,
       "currency": "USDT",
-      "typicalNote": "Most users earn 50–200 USDT; 19,800 USDT max requires high futures volume"
+      "typicalNote": "Most users earn 50–200 USDT; the 19,800 USDT max requires very high trading volume (spot or futures)"
     },
-    "offerLastChecked": "2026-05-26",
+    "offerLastChecked": "2026-06-12",
     "offerConfidenceScore": 90,
-    "realisticUserExpectation": "50–200 USDT realistic for standard users; full 19,800 USDT requires active futures trading across multiple volume milestones",
-    "verificationLastChecked": "2026-05-25",
+    "realisticUserExpectation": "50–200 USDT realistic for standard users; the full 19,800 USDT requires very high trading volume (spot or futures) across all seven Stage 2 tiers",
+    "verificationLastChecked": "2026-06-12",
     "bonusConditionSummary": "Complete KYC + make first deposit; standard trading activity required",
     "spotMakerFee": 0.1,
     "spotTakerFee": 0.1,

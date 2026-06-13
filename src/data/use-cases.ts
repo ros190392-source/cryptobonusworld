@@ -622,7 +622,7 @@ export const USE_CASES: UseCaseData[] = [
   {
     slug: 'canada',
     label: 'Canada',
-    seoTitle: 'Best Crypto Exchanges in Canada 2026 | Top Picks for Canadians',
+    seoTitle: 'Best Crypto Exchanges in Canada 2026 — Top Picks',
     metaDesc: 'Compare the best crypto exchanges for Canadian users in 2026. FINTRAC-registered platforms, CAD support, and welcome bonuses for Canadian traders.',
     heading: 'Best Crypto Exchanges for Canadian Users (2026)',
     intro: 'Canadian crypto traders operate under a FINTRAC (Financial Transactions and Reports Analysis Centre of Canada) registration framework. Exchanges serving Canadian users must be registered as Money Services Businesses (MSBs). Following OSC enforcement actions in 2023, several major exchanges restricted Canadian access — but Bybit, MEXC, KuCoin, and Coinbase actively serve Canadian residents.',
@@ -808,7 +808,7 @@ export const USE_CASES: UseCaseData[] = [
   {
     slug: 'stablecoin-yield',
     label: 'Stablecoin Yield',
-    seoTitle: 'Best Crypto Exchanges for Stablecoin Yield 2026 | USDT Savings',
+    seoTitle: 'Best Crypto Exchanges for Stablecoin Yield 2026 | USDT',
     metaDesc: 'Compare the best exchanges for stablecoin yield — earn 3–12% APY on USDT, USDC, and BUSD. Best flexible and fixed-term stablecoin savings in 2026.',
     heading: 'Best Crypto Exchanges for Stablecoin Yield (2026)',
     intro: 'Stablecoin yield products allow you to earn passive income on USDT, USDC, BUSD, and other dollar-pegged assets without exposure to crypto price volatility. Exchange savings accounts typically offer 3–12% APY on USDT — significantly higher than traditional bank savings rates. Products range from flexible (withdraw anytime) to fixed-term (locked for 7–90 days at higher rates).',

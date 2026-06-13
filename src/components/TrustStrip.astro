@@ -7,7 +7,10 @@
  * Mobile: horizontal scroll chips (no overflow clipping the layout).
  *
  * All claims are factual. No fake urgency, no invented numbers.
+ * Date + count are derived from exchanges.json — never hardcode them here.
  */
+import { EXCHANGE_COUNT, dataUpdatedLabel } from '../utils/seo';
+const updatedLabel = `Updated ${dataUpdatedLabel()}`;
 ---
 
 <!--
@@ -26,19 +29,19 @@
       <span
         class="ts-label"
         data-exp-text="trust-strip-v1:social-first:150M+ traders globally"
-      >Updated May 2026</span>
+      >{updatedLabel}</span>
     </span>
     <span class="ts-sep" aria-hidden="true"></span>
     <span class="ts-pill">
       <svg class="ts-icon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-      <span class="ts-label">14 Exchanges Reviewed</span>
+      <span class="ts-label">{EXCHANGE_COUNT} Exchanges Reviewed</span>
     </span>
     <span class="ts-sep" aria-hidden="true"></span>
     <span class="ts-pill">
       <svg class="ts-icon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
       <span
         class="ts-label"
-        data-exp-text="trust-strip-v1:social-first:Updated May 2026"
+        data-exp-text={`trust-strip-v1:social-first:${updatedLabel}`}
       >Manual Editorial Review</span>
     </span>
     <span class="ts-sep" aria-hidden="true"></span>

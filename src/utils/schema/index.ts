@@ -61,6 +61,7 @@ export interface PersonSchemaInput {
   links?: {
     twitter?: string;
     linkedin?: string;
+    facebook?: string;
     website?: string;
   };
   joinedAt?: string;
@@ -80,6 +81,7 @@ export function buildPersonSchema(reviewer: PersonSchemaInput): Record<string, u
   const sameAs: string[] = [];
   if (reviewer.links?.twitter)  sameAs.push(reviewer.links.twitter);
   if (reviewer.links?.linkedin) sameAs.push(reviewer.links.linkedin);
+  if (reviewer.links?.facebook) sameAs.push(reviewer.links.facebook);
   if (reviewer.links?.website)  sameAs.push(reviewer.links.website);
 
   return {
@@ -186,13 +188,8 @@ export function buildFinancialServiceSchema(
       ? { location: { '@type': 'Place', name: ex.headquarters } }
       : {}),
     ...(lastVerified ? { dateModified: lastVerified } : {}),
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: ex.rating,
-      bestRating: 10,
-      worstRating: 1,
-      ratingCount: 92,
-    },
+    // aggregateRating omitted — no user-submitted reviews exist; a fabricated
+    // ratingCount risks a structured-data manual action (see utils/seo.ts).
     provider: {
       '@type': 'Organization',
       name: ex.name,

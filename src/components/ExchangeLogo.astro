@@ -49,26 +49,29 @@ const fontSize  = Math.round(size * 0.44);
 
 /**
  * Safe-area padding system — minimal breathing room only.
- * Target fill: ~90-94% of container (premium app-icon feel).
  * Values are % of container used as inner padding PER SIDE.
- *   3% → 94% fill   4% → 92% fill   5% → 90% fill
- * Keep values low — object-fit:contain + natural logo whitespace
- * already prevents hard-edge clipping.
+ *
+ * MUST be 0 for any logo whose PNG has an opaque background baked in
+ * edge-to-edge (sharp square corners). Padding insets that square away
+ * from the rounded container edge, leaving visible gaps/sharp corners
+ * in every corner. With 0 padding the square fills the container and
+ * the container's border-radius + overflow:hidden clips it cleanly.
+ * Only logos with fully transparent surroundings may use padding.
  */
 const LOGO_PADDING: Record<string, number> = {
-  bybit:    3,
-  binance:  2,
-  okx:      3,
-  mexc:     2,
-  bitget:   2,
-  bingx:    3,
+  bybit:    0,   // opaque navy square fills PNG edge-to-edge
+  binance:  0,   // opaque near-black square fills PNG edge-to-edge
+  okx:      0,   // opaque white square fills PNG edge-to-edge
+  mexc:     0,   // opaque light-grey square fills PNG edge-to-edge
+  bitget:   0,   // opaque cyan square fills PNG edge-to-edge
+  bingx:    0,   // opaque blue square fills PNG edge-to-edge
   kucoin:   0,   // white bg matched in container — no gap to hide
   htx:      0,   // white bg matched in container — no gap to hide
   coinex:   0,   // white bg matched in container — no gap to hide
   phemex:   0,   // dark bg matched in container — no gap to hide
   bitunix:  0,   // dark bg matched in container — no gap to hide
-  'gate-io':2,
-  coinbase: 2,
+  'gate-io':0,   // opaque white square fills PNG edge-to-edge
+  coinbase: 2,   // transparent surroundings — padding is safe
   lbank:    0,   // yellow bg matched in container — no gap to hide
 };
 const padPct = LOGO_PADDING[slug] ?? 2;
@@ -87,12 +90,18 @@ const padPx = Math.round(size * padPct / 100);
  * logos that already fill edge-to-edge or sit on a transparent field).
  */
 const LOGO_CONTAINER_BG: Record<string, string> = {
-  htx:     '#FFFFFF',   // white circle
+  htx:     '#1a1a1a',   // dark bg — transparent PNG corners fill dark; white circle is the brand
   coinex:  '#FFFFFF',   // white/light rounded square
-  lbank:   '#F5C100',   // yellow rounded square
   phemex:  '#0C0C0C',   // near-black rounded square
-  bitunix: '#0C0C0C',   // dark bg with green leaf mark
+  bitunix: '#121212',   // dark bg with green leaf mark
   kucoin:  '#FFFFFF',   // white rounded square
+  bybit:   '#232635',   // navy square baked into PNG — match to hide seam
+  binance: '#060606',   // near-black square baked into PNG — match to hide seam
+  bingx:   '#2A54FF',   // blue square baked into PNG — match to hide seam
+  mexc:    '#F3F4F8',   // light-grey square baked into PNG — match to hide seam
+  okx:     '#FFFFFF',   // white square baked into PNG — match to hide seam
+  'gate-io': '#FFFFFF', // white square baked into PNG — match to hide seam
+  bitget:  '#69E6F8',   // cyan square baked into PNG — match to hide seam
 };
 const containerBg = variant !== 'raw'
   ? (LOGO_CONTAINER_BG[slug] ?? 'var(--surface-overlay, #1a1a1a)')
@@ -133,6 +142,9 @@ const containerBg = variant !== 'raw'
     flex-shrink: 0;
     background: var(--surface-overlay, #1a1a1a);
     position: relative;
+    /* Frame ring — separates dark logo tiles (Bybit, Binance, Phemex,
+       Bitunix) from the dark page surface and evens out white tiles */
+    border: 1px solid rgba(255, 255, 255, 0.10);
   }
   .exlogo--raw {
     background: transparent;

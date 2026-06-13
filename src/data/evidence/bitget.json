@@ -82,12 +82,12 @@
       "unit": "USDT",
       "officialSourceKey": "bonus",
       "officialSourceUrl": "https://www.bitget.com/en/activity/newcomer-rewards",
-      "lastChecked": "2026-06-04",
-      "checkedBy": "human",
-      "confidenceScore": 0.85,
+      "lastChecked": "2026-06-11",
+      "checkedBy": "agent",
+      "confidenceScore": 0.9,
       "conflictStatus": "ok",
       "manualReviewRequired": false,
-      "notes": "Public screenshot confirmed Claim Your Welcome Bonus of 6,200 USDT with referral code CryptoBonW visible. Vision analysis matched with confidenceScore 0.97. Live text verifier returned not_detected because Bitget redirects to a JS-rendered /expressly SPA page (HTTP 200) where bonus text is not accessible via DOM text at domcontentloaded. Deposit requirement is NOT confirmed by screenshot. Expiry is NOT confirmed. Eligibility and region may vary. 6,200 USDT is the displayed maximum welcome bonus ceiling. LaLiga campaign branding present — may be time-limited; re-verify when campaign ends. Only bonus_amount updated; bonus_requires_deposit and bonus_expiry_days unchanged."
+      "notes": "Re-verified live 2026-06-11 via headed browser (Cloudflare auto-passed, no challenge interaction): partner.bitget.com/bg/CryptoBonW → bitget.com/expressly?channelCode=9tsr&vipCode=CryptoBonW. Landing shows 'Claim Your Welcome Bonus of 6,200 USDT' with code CryptoBonW pre-filled — matches site claim exactly. Screenshot: reports/screenshots/bitget/manual-library/bitget-landing-live-6200-2026-06-11.png. LaLiga campaign branding still present — may be time-limited; re-verify when campaign ends. Deposit requirement and expiry NOT confirmed by landing; eligibility/region may vary."
     },
     {
       "field": "bonus_currency",
@@ -312,13 +312,21 @@
     }
   ],
   "screenshots": {
-    "registration": {
+    "bonus_referral_landing": {
       "status": "available",
+      "path": "/screenshots/bitget/bonus_referral_landing/global-desktop-2026-06.webp",
+      "capturedAt": "2026-06-11",
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "notes": "Bitget × CryptoBonusWorld referral sign-up page from the LALIGA partnership campaign, showing the 'Claim Your Welcome Bonus of 6,200 USDT' offer with referral code CryptoBonW pre-filled in the registration form. Verified live on June 11, 2026."
+    },
+    "registration": {
+      "status": "not_applicable",
       "path": "/screenshots/bitget/registration/global-desktop-2026-06.webp",
       "capturedAt": "2026-06",
       "geo": "GLOBAL",
       "device": "desktop",
-      "notes": "Bitget referral landing page. Visible claim: Claim Your Welcome Bonus of 6,200 USDT. Referral code visible: CryptoBonW. Does not update bonus_amount evidence fact — supports future T09C verification only. Captured 2026-06-04."
+      "notes": "Same referral landing as bonus_referral_landing (older capture, 2026-06-04). Hidden from the gallery to avoid showing the identical page twice; file kept on disk."
     },
     "kyc": {
       "status": "needs_manual_capture",

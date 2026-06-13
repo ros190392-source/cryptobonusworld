@@ -20,7 +20,7 @@ import countries from '../data/countries.json';
 import comparePairs from '../data/compare-pairs.json';
 import type { RecommendableExchange } from '../utils/recommendationEngine';
 
-import { buildWebSiteSchema, buildOrganizationSchema, buildFAQSchema } from '../utils/seo';
+import { buildWebSiteSchema, buildOrganizationSchema, buildFAQSchema, EXCHANGE_COUNT, dataUpdatedLabel } from '../utils/seo';
 import type { PageContext } from '../utils/analytics';
 import guides from '../data/guides.json';
 
@@ -32,7 +32,7 @@ const topExchanges = [...exchanges].sort((a, b) => b.rating - a.rating).slice(0,
 const homepagePriority = [
   'bybit', 'binance', 'okx', 'mexc', 'bitget',
   'bingx', 'gate-io', 'kucoin', 'htx', 'coinex',
-  'phemex', 'bitunix', 'lbank', 'coinbase',
+  'phemex', 'bitunix', 'coinbase',
 ];
 const homepageExchanges = [...exchanges].sort((a, b) => {
   const ai = homepagePriority.indexOf(a.slug);
@@ -75,7 +75,7 @@ const faqItems = [
   },
   {
     question: "Can I get a crypto bonus without KYC?",
-    answer: "Yes. MEXC, KuCoin, CoinEx and Bitunix offer bonuses without requiring full identity verification. However, non-KYC accounts often have withdrawal limits and restricted features.",
+    answer: "Yes. MEXC, KuCoin, CoinEx, Phemex and Bitunix offer bonuses without requiring full identity verification. However, non-KYC accounts often have withdrawal limits and restricted features.",
   },
   {
     question: "How do I claim a crypto bonus?",
@@ -95,7 +95,7 @@ const analyticsContext: PageContext = { pageType: 'homepage' };
 
 <Layout
   title="Best Crypto Exchange Bonuses 2026 — Compare & Claim"
-  description="Compare signup rewards, deposit bonuses and futures promotions from 14 top crypto exchanges. Find the best crypto bonus for your country and trading goals."
+  description={`Compare signup rewards, deposit bonuses and futures promotions from ${EXCHANGE_COUNT} top crypto exchanges. Find the best crypto bonus for your country and trading goals.`}
   canonical="/"
   schema={siteSchema}
   analyticsContext={analyticsContext}
@@ -114,7 +114,7 @@ const analyticsContext: PageContext = { pageType: 'homepage' };
       <div class="hero-text">
         <div class="hero-badge">
           <span class="hero-badge-dot"></span>
-          Live Data &middot; 14 Exchanges &middot; Updated May 2026
+          Live Data &middot; {EXCHANGE_COUNT} Exchanges &middot; Updated {dataUpdatedLabel()}
         </div>
 
         <h1 class="hero-h1">
@@ -123,7 +123,7 @@ const analyticsContext: PageContext = { pageType: 'homepage' };
         </h1>
 
         <p class="hero-sub">
-          Compare signup rewards, deposit bonuses and futures promotions across 14 exchanges. Country-tailored. Updated monthly.
+          Compare signup rewards, deposit bonuses and futures promotions across {EXCHANGE_COUNT} exchanges. Country-tailored. Updated monthly.
         </p>
 
         <div class="hero-actions">
@@ -138,7 +138,7 @@ const analyticsContext: PageContext = { pageType: 'homepage' };
           </div>
           <div class="hero-kpi-sep"></div>
           <div class="hero-kpi">
-            <span class="hero-kpi-num">14</span>
+            <span class="hero-kpi-num">{EXCHANGE_COUNT}</span>
             <span class="hero-kpi-lbl">Exchanges</span>
           </div>
           <div class="hero-kpi-sep"></div>
@@ -215,22 +215,10 @@ const analyticsContext: PageContext = { pageType: 'homepage' };
             </a>
           ))}
         </div>
-        <a href="/exchanges/" class="exc-strip-all">All 14 →</a>
+        <a href="/exchanges/" class="exc-strip-all">All {EXCHANGE_COUNT} →</a>
       </div>
     </div>
 
-    <!-- Ticker -->
-    <div class="hero-ticker" aria-hidden="true">
-      <div class="hero-ticker-inner">
-        {[...exchanges, ...exchanges].map(ex => (
-          <span class="ticker-item">
-            <span class="ticker-name">{ex.name}</span>
-            <span class="ticker-sep">·</span>
-            <span class="ticker-amount">{ex.bonusAmount.toLocaleString()} {ex.bonusCurrency}</span>
-          </span>
-        ))}
-      </div>
-    </div>
   </section>
 
   <!-- Affiliate Disclosure -->
@@ -270,7 +258,7 @@ const analyticsContext: PageContext = { pageType: 'homepage' };
       ))}
     </div>
     <div class="view-all-wrap">
-      <CTAButton href="/bonuses/" label="View All 14 Exchanges" variant="outline" size="md" />
+      <CTAButton href="/bonuses/" label={`View All ${EXCHANGE_COUNT} Exchanges`} variant="outline" size="md" />
     </div>
   </section>
 
@@ -594,7 +582,7 @@ const analyticsContext: PageContext = { pageType: 'homepage' };
 <div class="hp-sticky" id="hp-sticky" aria-hidden="true">
   <div class="hp-sticky-left">
     <span class="hp-sticky-headline">Up to 30,000 USDT</span>
-    <span class="hp-sticky-sub">Compare 14 exchange bonuses</span>
+    <span class="hp-sticky-sub">Compare {EXCHANGE_COUNT} exchange bonuses</span>
   </div>
   <a href="/bonuses/" class="hp-sticky-btn">Compare Now →</a>
 </div>
@@ -1038,37 +1026,6 @@ const analyticsContext: PageContext = { pageType: 'homepage' };
     transition: opacity 0.12s;
   }
   .exc-strip-all:hover { opacity: 1; }
-
-  /* ── Ticker ── */
-  .hero-ticker {
-    position: relative;
-    z-index: 1;
-    border-top: 1px solid var(--color-border);
-    background: rgba(255,255,255,0.008);
-    overflow: hidden;
-    padding: 0.55rem 0;
-  }
-  .hero-ticker-inner {
-    display: flex;
-    width: max-content;
-    animation: ticker-scroll 40s linear infinite;
-  }
-  .hero-ticker:hover .hero-ticker-inner { animation-play-state: paused; }
-  @keyframes ticker-scroll {
-    from { transform: translateX(0); }
-    to   { transform: translateX(-50%); }
-  }
-  .ticker-item {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0 2rem;
-    font-size: 0.75rem;
-    white-space: nowrap;
-  }
-  .ticker-name  { font-weight: 700; color: var(--color-text-secondary); }
-  .ticker-sep   { color: var(--color-border); }
-  .ticker-amount { font-weight: 700; color: var(--color-accent); }
 
   /* ── Shared below-hero ── */
   .section { padding: 2.75rem 0 1.5rem; }

@@ -21,8 +21,9 @@ const reviewedExchangeData = exchanges.filter(e =>
 );
 
 // Drop | SITE_NAME suffix — reviewer.title already contains full role description;
-// "Name — Role" stays within 60 chars for most reviewer profiles.
-const pageTitle = `${reviewer.name} — ${reviewer.title}`;
+// when "Name — Title" exceeds 60 chars, fall back to the shorter roleTag.
+const _fullTitle = `${reviewer.name} — ${reviewer.title}`;
+const pageTitle = _fullTitle.length <= 60 ? _fullTitle : `${reviewer.name} — ${reviewer.roleTag}`;
 const pageDesc  = reviewer.bio.slice(0, 155);
 
 function fmtDate(iso: string): string {

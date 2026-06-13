@@ -110,13 +110,13 @@ export const routes: RouteMap = {
 
   bonus_referral_landing: {
     // URL sourced from AFFILIATE_SNAPSHOT.binance.affiliateUrl at runtime
-    url: 'https://www.binance.com/join?ref=CRYPTOBONUSW',
+    url: 'https://www.binance.com/join?ref=CRYPTOBONW',
     safety: 'AFFILIATE_PUBLIC',
     fullPage: false,
     waitForSelector: 'h1, [class*="referral"], [class*="bonus"], [class*="register"], input[type="email"]',
     waitForTimeout: 3500,
     priority: 1,
-    notes: 'Affiliate referral landing — tracks ref=CRYPTOBONUSW survival and bonus amount visibility (up to 19,800 USDT)',
+    notes: 'Affiliate referral landing — tracks ref=CRYPTOBONW survival and bonus amount visibility (up to 19,800 USDT)',
   },
 
   kyc_info: {
