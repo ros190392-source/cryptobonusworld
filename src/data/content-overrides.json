@@ -254,7 +254,7 @@
           "UK residents — regulatory restrictions apply",
           "Users who need FDIC-insured USD balances — use Coinbase instead"
         ],
-        "keyLimitation": "Not available in the US (use Binance.US instead), Canada, Netherlands, Iran, Cuba, or Crimea/Donetsk/Luhansk regions. The 20% fee rebate applies to trades on Binance.com only. The additional 25% BNB fee discount requires holding BNB in your spot wallet — without it, standard spot fees are 0.1%."
+        "keyLimitation": "Not available in the US (use Binance.US instead), United Kingdom, Canada, Netherlands, Iran, Cuba, or Crimea/Donetsk/Luhansk regions. The 20% fee rebate applies to trades on Binance.com only. The additional 25% BNB fee discount requires holding BNB in your spot wallet — without it, standard spot fees are 0.1%."
       },
       "faqOverrides": [],
       "faqAppend": [
@@ -418,6 +418,12 @@
           "position": "after-walkthroughs",
           "heading": "Binance vs Binance.US: Different Platforms, Different Bonuses",
           "html": "\n<p><strong>Binance.com and Binance.US are separate platforms with separate reward programs.</strong> The 19,800 USDT welcome package described on this page applies to Binance.com only — referral code CRYPTOBONW does not work on Binance.US, and US residents are excluded from the global offer entirely.</p>\n<p>Binance.US runs its own, historically much smaller referral program (typically in the tens of dollars — verify current terms on Binance.US directly, as we do not track it). If you are in the United States, compare <a href=\"/exchanges/coinbase/\">Coinbase</a> instead — it is the US-licensed option we list.</p>"
+        },
+        {
+          "id": "restricted-regions",
+          "position": "after-faq",
+          "heading": "Where Is Binance Available? Restricted Regions",
+          "html": "\n<p>Binance is available in <strong>180+ countries</strong> globally. However, access is blocked or significantly limited in certain jurisdictions. The regions below reflect our review of Binance's public terms and official App supported-regions list. <strong>This is not a complete legal list</strong> — Binance may restrict service in additional countries or for specific products, and restrictions can change.</p>\n<table>\n<thead><tr><th>Region</th><th>Access status</th><th>Notes</th></tr></thead>\n<tbody>\n<tr><td><strong>United States</strong></td><td>Not available on Binance.com</td><td>US residents must use the separate <strong>Binance.US</strong> platform — different bonus structure, not tracked on this page.</td></tr>\n<tr><td><strong>United Kingdom</strong></td><td>Not available</td><td>Regulatory restrictions prevent Binance.com from operating for UK residents.</td></tr>\n<tr><td><strong>Canada</strong></td><td>Not available</td><td>Binance withdrew from the Canadian market following new regulatory requirements.</td></tr>\n<tr><td><strong>Netherlands</strong></td><td>Not available</td><td>Regulatory restrictions apply.</td></tr>\n<tr><td><strong>Iran, Cuba</strong></td><td>Not available</td><td>Subject to OFAC sanctions referenced in Binance Terms of Use.</td></tr>\n<tr><td><strong>Crimea, Donetsk, Luhansk</strong></td><td>Not available</td><td>Specific territorial restrictions apply.</td></tr>\n</tbody>\n</table>\n<p><em>Note: some products (P2P trading, card purchases, fiat services, Earn) may be restricted in countries where the main trading platform is accessible. Always verify your country's eligibility and the availability of specific features on <a href=\"https://www.binance.com\" rel=\"nofollow noopener\" target=\"_blank\">binance.com</a> before registering. Nothing on this page is legal advice regarding your jurisdiction.</em></p>"
         },
         {
           "id": "how-we-verified",
