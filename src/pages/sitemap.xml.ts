@@ -235,7 +235,23 @@ export const GET: APIRoute = () => {
   }> = {
     // Add entries here as screenshots are captured, e.g.:
     // bybit: { ui: '2026-05', bonus: '2026-05', p2p: '2026-05', futures: '2026-05' },
-    // binance: { ui: '2026-05', bonus: '2026-05', p2p: '2026-05' },
+  };
+
+  // Walkthrough screenshots — actual captured files at /screenshots/{slug}/steps/
+  // Each entry: { loc, title, caption }
+  const walkthroughImages: Record<string, Array<{ loc: string; title: string; caption: string }>> = {
+    binance: [
+      { loc: `${site}/screenshots/binance/steps/bn-01c-landing-19800-arrow.webp`, title: 'Binance registration page — 19,800 USDT + 20% fee rebate with code CRYPTOBONW', caption: 'Binance sign-up page confirming 19,800 USDT welcome bonus and 20% trading fee rebate via referral code CRYPTOBONW (June 2026)' },
+      { loc: `${site}/screenshots/binance/steps/bn-07-welcome-desktop.webp`, title: 'Binance welcome screen — account linked to referral code CRYPTOBONW', caption: 'Binance welcome screen confirming account creation and referral code attachment (June 2026)' },
+      { loc: `${site}/screenshots/binance/steps/bn-11-rewards-tasks.webp`, title: 'Binance Rewards Hub — Stage 1 bonus tasks (June 2026)', caption: 'Binance Rewards Hub showing four Stage 1 tasks: KYC, deposit $10, trade $10, trade $2,000 (June 2026)' },
+      { loc: `${site}/screenshots/binance/steps/bn-owner-task-reward-overview-2026-06-v5.webp`, title: 'Binance Task & Reward Overview — seven Stage 2 tiers up to 19,800 USDT', caption: 'Binance Task and Reward Overview showing complete bonus structure including Stage 2 tiers (June 2026)' },
+      { loc: `${site}/screenshots/binance/steps/bn-038-fees-spot-margin.webp`, title: 'Binance spot and margin trading fees — VIP 0 rate 0.1%', caption: 'Binance fee schedule for spot and margin trading, VIP 0 level (June 2026)' },
+      { loc: `${site}/screenshots/binance/steps/bn-039-fees-usdm-futures.webp`, title: 'Binance USDT-M futures trading fees — 0.02% maker, 0.05% taker', caption: 'Binance USDT-M perpetual futures fee schedule showing maker and taker rates (June 2026)' },
+      { loc: `${site}/screenshots/binance/steps/bn-035-p2p-marketplace-listings.webp`, title: 'Binance P2P marketplace — USDT buy listings', caption: 'Binance P2P marketplace showing available USDT purchase listings with seller ratings (June 2026)' },
+      { loc: `${site}/screenshots/binance/steps/bn-030-futures-demo-mode.webp`, title: 'Binance futures trading interface — demo mode', caption: 'Binance perpetual futures trading interface in demo mode showing order entry and position management (June 2026)' },
+      { loc: `${site}/screenshots/binance/steps/bn-08-kyc-country-select.webp`, title: 'Binance KYC verification — country selection step', caption: 'Binance identity verification process showing country selection screen (June 2026)' },
+      { loc: `${site}/screenshots/binance/steps/mob-061-rewards-hub-voucher-10usdt.webp`, title: 'Binance mobile app — Rewards Hub voucher 10 USDT', caption: 'Binance mobile app showing 10 USDT voucher awarded in Rewards Hub after completing Stage 1 task (June 2026)' },
+    ],
   };
 
   function buildImageTags(pageUrl: string): string {
@@ -290,6 +306,17 @@ export const GET: APIRoute = () => {
       <image:title>${exName} futures trading interface — ${reg.futures}</image:title>
       <image:caption>${exName} perpetual futures interface screenshot, captured ${reg.futures}</image:caption>
     </image:image>`);
+
+    // Walkthrough screenshots for this exchange
+    const walkthroughs = walkthroughImages[slug] ?? [];
+    for (const img of walkthroughs) {
+      tags.push(`
+    <image:image>
+      <image:loc>${img.loc}</image:loc>
+      <image:title>${img.title}</image:title>
+      <image:caption>${img.caption}</image:caption>
+    </image:image>`);
+    }
 
     return tags.join('');
   }

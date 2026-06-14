@@ -80,6 +80,9 @@ const breadcrumbSchema = buildBreadcrumbSchema([
 ]);
 
 const analyticsContext: PageContext = { pageType: 'exchange', exchangeSlug: entry.exchangeSlug };
+
+// OG image: reuse exchange card if it exists, otherwise fall back to site default
+const ogImage = `${SITE_URL}/og/exchange-${entry.exchangeSlug}.png`;
 ---
 
 <Layout
@@ -88,6 +91,8 @@ const analyticsContext: PageContext = { pageType: 'exchange', exchangeSlug: entr
   canonical={`/bonus-codes/${entry.exchangeSlug}/`}
   schema={[productSchema, faqSchema, breadcrumbSchema]}
   analyticsContext={analyticsContext}
+  ogImage={ogImage}
+  ogType="article"
 >
   <div class="container">
     <Breadcrumbs crumbs={[
