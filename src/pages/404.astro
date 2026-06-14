@@ -1,0 +1,148 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout
+  title="Page Not Found — CryptoBonusWorld"
+  description="The page you were looking for doesn't exist. Find the best crypto exchange bonuses on CryptoBonusWorld."
+  canonical="/404/"
+  robots="noindex, follow"
+>
+  <div class="container">
+    <div class="not-found">
+      <div class="not-found-code">404</div>
+      <h1 class="not-found-title">Page Not Found</h1>
+      <p class="not-found-desc">
+        The page you were looking for doesn't exist or may have been moved.
+      </p>
+      <div class="not-found-links">
+        <a href="/" class="btn-primary">← Back to Home</a>
+        <a href="/exchanges/" class="btn-secondary">Browse All Exchanges</a>
+      </div>
+      <div class="not-found-popular">
+        <p class="popular-label">Popular pages:</p>
+        <ul class="popular-list">
+          <li><a href="/exchanges/binance/">Binance Bonus 2026</a></li>
+          <li><a href="/exchanges/bybit/">Bybit Bonus 2026</a></li>
+          <li><a href="/exchanges/mexc/">MEXC Bonus 2026</a></li>
+          <li><a href="/exchanges/okx/">OKX Bonus 2026</a></li>
+          <li><a href="/guides/">All Guides</a></li>
+          <li><a href="/compare/">Exchange Comparisons</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .not-found {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 4rem 1rem;
+    min-height: 60vh;
+    justify-content: center;
+  }
+
+  .not-found-code {
+    font-size: 6rem;
+    font-weight: 900;
+    color: var(--color-accent);
+    line-height: 1;
+    margin-bottom: 1rem;
+    opacity: 0.8;
+  }
+
+  .not-found-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin: 0 0 1rem;
+  }
+
+  .not-found-desc {
+    font-size: 1rem;
+    color: var(--color-text-secondary);
+    margin-bottom: 2rem;
+    max-width: 400px;
+  }
+
+  .not-found-links {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 3rem;
+  }
+
+  .btn-primary {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    background: var(--color-accent);
+    color: #000;
+    font-weight: 700;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: opacity 0.2s;
+  }
+  .btn-primary:hover { opacity: 0.85; }
+
+  .btn-secondary {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    background: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+    font-weight: 600;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    text-decoration: none;
+    border: 1px solid var(--color-border);
+    transition: border-color 0.2s;
+  }
+  .btn-secondary:hover { border-color: var(--color-accent-dim); }
+
+  .not-found-popular { text-align: center; }
+
+  .popular-label {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+  }
+
+  .popular-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+  }
+
+  .popular-list a {
+    display: inline-block;
+    padding: 0.3rem 0.75rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 20px;
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .popular-list a:hover {
+    border-color: var(--color-accent-dim);
+    color: var(--color-accent);
+  }
+
+  @media (max-width: 480px) {
+    .not-found-code { font-size: 4rem; }
+    .not-found-title { font-size: 1.5rem; }
+    .not-found-links { flex-direction: column; align-items: center; }
+  }
+</style>

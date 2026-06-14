@@ -73,6 +73,7 @@ export const GET: APIRoute = () => {
     { url: '/affiliate-disclosure/', priority: '0.3', changefreq: 'monthly', lastmod: today, type: 'static' as const },
     { url: '/disclaimer/', priority: '0.3', changefreq: 'monthly', lastmod: today, type: 'static' as const },
     { url: '/privacy-policy/', priority: '0.3', changefreq: 'monthly', lastmod: today, type: 'static' as const },
+    { url: '/terms/', priority: '0.3', changefreq: 'monthly', lastmod: today, type: 'static' as const },
   ];
 
   // Top-tier money pages get boosted priority for crawl budget signalling

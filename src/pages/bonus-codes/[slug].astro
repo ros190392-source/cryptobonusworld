@@ -27,7 +27,7 @@ import PromoCodeBox from '../../components/PromoCodeBox.astro';
 
 import { BONUS_CODES, getBonusCodeByExchangeSlug } from '../../data/bonus-codes';
 import exchanges from '../../data/exchanges.json';
-import { YEAR, SITE_URL, toIsoCurrency } from '../../utils/seo';
+import { YEAR, SITE_URL, toIsoCurrency, buildBreadcrumbSchema } from '../../utils/seo';
 import type { PageContext } from '../../utils/analytics';
 
 export async function getStaticPaths() {
@@ -73,6 +73,12 @@ const faqSchema = {
   })),
 };
 
+const breadcrumbSchema = buildBreadcrumbSchema([
+  { name: 'Home', url: `${SITE_URL}/` },
+  { name: 'Bonus Codes', url: `${SITE_URL}/bonus-codes/` },
+  { name: `${ex?.name ?? entry.exchangeSlug} Bonus Code`, url: `${SITE_URL}/bonus-codes/${entry.exchangeSlug}/` },
+]);
+
 const analyticsContext: PageContext = { pageType: 'exchange', exchangeSlug: entry.exchangeSlug };
 ---
 
@@ -80,7 +86,7 @@ const analyticsContext: PageContext = { pageType: 'exchange', exchangeSlug: entr
   title={entry.seoTitle}
   description={entry.metaDesc}
   canonical={`/bonus-codes/${entry.exchangeSlug}/`}
-  schema={[productSchema, faqSchema]}
+  schema={[productSchema, faqSchema, breadcrumbSchema]}
   analyticsContext={analyticsContext}
 >
   <div class="container">
