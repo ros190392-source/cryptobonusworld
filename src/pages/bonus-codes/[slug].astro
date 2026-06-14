@@ -53,6 +53,7 @@ const productSchema = {
     brand: { '@type': 'Brand', name: ex.name },
     offers: {
       '@type': 'Offer',
+      price: '0',
       description: `Up to ${entry.bonusAmount.toLocaleString('en-US')} ${entry.bonusCurrency}`,
       // GSC fix: priceCurrency must be ISO 4217 — map USDT/BTC/etc. → USD
       priceCurrency: toIsoCurrency(entry.bonusCurrency),
