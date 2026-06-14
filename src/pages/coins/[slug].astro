@@ -89,6 +89,7 @@ const faqSchema = {
 };
 
 const analyticsContext: PageContext = { pageType: 'category' };
+const ogImage = `${SITE_URL}/og/coin-${coin.slug}.png`;
 ---
 
 <Layout
@@ -97,6 +98,8 @@ const analyticsContext: PageContext = { pageType: 'category' };
   canonical={`/coins/${coin.slug}/`}
   schema={[itemListSchema, faqSchema]}
   analyticsContext={analyticsContext}
+  ogImage={ogImage}
+  ogType="article"
 >
   <div class="container">
     <Breadcrumbs crumbs={[

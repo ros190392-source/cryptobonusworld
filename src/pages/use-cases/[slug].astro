@@ -36,6 +36,7 @@ import {
   rankExchangesForUseCase,
   buildItemListSchema,
   YEAR,
+  SITE_URL,
 } from '../../utils/seo';
 import type { PageContext } from '../../utils/analytics';
 
@@ -108,6 +109,8 @@ const analyticsContext: PageContext = { pageType: 'category' };
 // use-case with an unsatisfied requireFeatureBadge filter), block indexation.
 // Normal use-cases should always rank ≥3 exchanges.
 const ucRobotsDirective = ranked.length === 0 ? 'noindex, nofollow' : undefined;
+
+const ogImage = `${SITE_URL}/og/use-case-${useCase.slug}.png`;
 ---
 
 <Layout
@@ -117,6 +120,8 @@ const ucRobotsDirective = ranked.length === 0 ? 'noindex, nofollow' : undefined;
   schema={[itemListSchema, faqSchema]}
   analyticsContext={analyticsContext}
   robots={ucRobotsDirective}
+  ogImage={ogImage}
+  ogType="article"
 >
   <div class="container">
     <Breadcrumbs crumbs={[
