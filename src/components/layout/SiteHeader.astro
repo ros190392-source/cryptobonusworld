@@ -1,0 +1,180 @@
+---
+// Approved frozen header — do not redesign without owner approval
+// Source: Reference/CBW_APPROVED_FOUNDATION_CHECKPOINT.md
+const currentPath = Astro.url.pathname;
+---
+
+<header class="ph">
+  <div class="ph-inner">
+
+    <a href="/" class="ph-logo" aria-label="CryptoBonusWorld home">
+      <div class="ph-mark-wrap">
+        <img src="/brand/cbw-header-mark-final.png"
+             srcset="/brand/cbw-header-mark-final@1x.png 1x, /brand/cbw-header-mark-final@2x.png 2x"
+             alt="" aria-hidden="true" fetchpriority="high"
+             width="54" height="54" />
+        <span class="ph-star ph-star-a" aria-hidden="true">✦</span>
+        <span class="ph-star ph-star-b" aria-hidden="true">✦</span>
+        <span class="ph-star ph-star-c" aria-hidden="true">✦</span>
+        <span class="ph-star ph-star-d" aria-hidden="true">✦</span>
+      </div>
+      <span class="ph-wm" aria-label="CryptoBonusWorld">
+        <span class="ph-wm-c">Crypto</span><span class="ph-wm-b"><span class="ph-wm-btc">₿</span>onus</span><span class="ph-wm-w">World</span>
+      </span>
+    </a>
+
+    <nav class="ph-nav" aria-label="Main navigation">
+      <a href="/exchanges/" class={`ph-nav-item${currentPath.startsWith('/exchanges') ? ' is-active' : ''}`}>Exchanges</a>
+      <a href="/promo-codes/" class={`ph-nav-item${currentPath.startsWith('/promo-codes') ? ' is-active' : ''}`}>Promo Codes</a>
+      <a href="/countries/" class={`ph-nav-item${currentPath.startsWith('/countries') ? ' is-active' : ''}`}>Countries</a>
+    </nav>
+
+    <div class="ph-right">
+      <a href="/exchanges/bybit/" class="ph-cta">Get Bonus</a>
+      <button class="ph-burger" aria-label="Open menu" aria-expanded="false" id="ph-burger-btn">
+        <span class="ph-burger-bar"></span>
+        <span class="ph-burger-bar"></span>
+        <span class="ph-burger-bar"></span>
+      </button>
+    </div>
+  </div>
+
+  <div class="ph-mobile-menu" id="ph-mobile-menu" aria-hidden="true">
+    <a href="/exchanges/" class="ph-mobile-item">Exchanges <span class="ph-mobile-chevron">›</span></a>
+    <a href="/promo-codes/" class="ph-mobile-item">Promo Codes <span class="ph-mobile-chevron">›</span></a>
+    <a href="/countries/" class="ph-mobile-item">Countries <span class="ph-mobile-chevron">›</span></a>
+    <a href="/exchanges/bybit/" class="ph-mobile-item ph-mobile-cta">Get Bybit Bonus →</a>
+  </div>
+</header>
+
+<script>
+  const btn = document.getElementById('ph-burger-btn');
+  const menu = document.getElementById('ph-mobile-menu');
+  if (btn && menu) {
+    btn.addEventListener('click', () => {
+      const open = btn.classList.toggle('is-open');
+      menu.classList.toggle('is-open', open);
+      btn.setAttribute('aria-expanded', String(open));
+      menu.setAttribute('aria-hidden', String(!open));
+    });
+  }
+</script>
+
+<style>
+  .ph {
+    background: #13233E;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    position: sticky; top: 0; z-index: 200;
+  }
+  .ph-inner {
+    max-width: 1180px; margin: 0 auto;
+    padding: 0 20px; height: 56px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  @media (min-width: 820px) { .ph-inner { height: 64px; padding: 0 32px; } }
+
+  .ph-mark-wrap {
+    position: relative; display: inline-flex;
+    align-items: center; justify-content: center;
+    flex-shrink: 0; overflow: visible;
+    width: 46px; height: 46px;
+  }
+  @media (min-width: 820px) { .ph-mark-wrap { width: 54px; height: 54px; } }
+  .ph-mark-wrap img { display: block; width: 100%; height: 100%; object-fit: contain; }
+
+  .ph-star { position: absolute; pointer-events: none; user-select: none; line-height: 1; }
+  .ph-star-a { font-size: 8px; top: 3px; left: 10px; color: rgba(255,232,88,.88); filter: drop-shadow(0 0 3px rgba(255,210,45,.55)); }
+  @media (min-width: 820px) { .ph-star-a { font-size: 9px; top: 4px; left: 12px; } }
+  .ph-star-b { font-size: 3px; top: 50%; left: -7px; color: rgba(255,216,72,.48); transform: translateY(-50%); }
+  @media (max-width: 359px) { .ph-star-b { display: none; } }
+  @media (min-width: 820px) { .ph-star-b { font-size: 4px; left: -8px; } }
+  .ph-star-c { font-size: 4px; top: 3px; right: -8px; color: rgba(255,220,74,.56); }
+  @media (min-width: 820px) { .ph-star-c { font-size: 5px; top: 4px; right: -9px; } }
+  .ph-star-d { font-size: 3px; bottom: 4px; right: -7px; color: rgba(255,212,65,.43); }
+  @media (min-width: 820px) { .ph-star-d { font-size: 4px; bottom: 5px; right: -8px; } }
+
+  .ph-logo { display: flex; align-items: center; gap: 11px; flex-shrink: 0; text-decoration: none; }
+  @media (min-width: 820px) { .ph-logo { gap: 15px; } }
+
+  .ph-wm {
+    display: inline-flex; align-items: baseline; line-height: 1;
+    white-space: nowrap; font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 800; letter-spacing: -.028em; font-size: 18px;
+  }
+  @media (min-width: 820px) { .ph-wm { font-size: 22px; } }
+  .ph-wm-c { color: rgba(255,255,255,.80); font-weight: 700; }
+  .ph-wm-b {
+    background: linear-gradient(135deg,#F7931A 0%,#F9B841 55%,#F7931A 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; font-weight: 900;
+  }
+  .ph-wm-btc {
+    font-size: 1.1em; display: inline-block;
+    background: linear-gradient(150deg,#FFB733 0%,#F7931A 55%,#E07B00 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 5px rgba(247,147,26,.5));
+    font-weight: 900; letter-spacing: -.04em;
+  }
+  .ph-wm-w { color: #fff; font-weight: 700; }
+
+  .ph-nav { display: none; align-items: center; gap: 4px; }
+  @media (min-width: 820px) { .ph-nav { display: flex; } }
+  .ph-nav-item {
+    padding: 0 12px; height: 64px;
+    display: flex; align-items: center;
+    font-size: 13.5px; font-weight: 500;
+    color: rgba(255,255,255,0.70);
+    letter-spacing: 0.01em; white-space: nowrap;
+    transition: color .15s;
+    text-decoration: none;
+  }
+  .ph-nav-item:hover, .ph-nav-item.is-active { color: #fff; }
+
+  .ph-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .ph-cta {
+    display: none;
+    padding: 8px 16px; border-radius: 8px;
+    background: #F7931A; color: #fff;
+    font-size: 13px; font-weight: 700;
+    text-decoration: none; white-space: nowrap;
+    transition: background .15s;
+  }
+  .ph-cta:hover { background: #e07b00; }
+  @media (min-width: 820px) { .ph-cta { display: inline-block; } }
+
+  .ph-burger {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 4.5px; width: 36px; height: 36px; border-radius: 8px;
+    color: rgba(255,255,255,0.65);
+    transition: background .15s; border: none; background: none; cursor: pointer;
+  }
+  .ph-burger:hover { background: rgba(255,255,255,0.07); }
+  .ph-burger-bar {
+    display: block; width: 18px; height: 1.5px;
+    background: currentColor; border-radius: 2px;
+    transition: transform .2s, opacity .2s;
+  }
+  .ph-burger.is-open .ph-burger-bar:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+  .ph-burger.is-open .ph-burger-bar:nth-child(2) { opacity: 0; }
+  .ph-burger.is-open .ph-burger-bar:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+  @media (min-width: 820px) { .ph-burger { display: none; } }
+
+  .ph-mobile-menu {
+    display: none; background: #111827;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    padding: 8px 0 12px;
+  }
+  .ph-mobile-menu.is-open { display: block; }
+  .ph-mobile-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 11px 20px; font-size: 14px; font-weight: 500;
+    color: rgba(255,255,255,0.75); text-decoration: none;
+    transition: color .15s, background .15s;
+  }
+  .ph-mobile-item:hover { color: #fff; background: rgba(255,255,255,0.04); }
+  .ph-mobile-chevron { opacity: 0.35; }
+  .ph-mobile-cta { color: #F7931A; font-weight: 700; }
+  .ph-mobile-cta:hover { color: #F9B841; }
+</style>

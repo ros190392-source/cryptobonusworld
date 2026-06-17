@@ -1,0 +1,151 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="CryptoBonusWorld">
+  <defs>
+    <!-- Globe: strong 3D radial gradient, bright upper-left light source -->
+    <radialGradient id="g-globe" cx="28%" cy="24%" r="72%" fx="22%" fy="18%">
+      <stop offset="0%"   stop-color="#4a7edc"/>
+      <stop offset="20%"  stop-color="#2a54a6"/>
+      <stop offset="55%"  stop-color="#0d2252"/>
+      <stop offset="100%" stop-color="#040c1c"/>
+    </radialGradient>
+    <!-- Land masses: warm amber, lit from same upper-left source -->
+    <radialGradient id="g-land" cx="28%" cy="24%" r="72%" fx="22%" fy="18%">
+      <stop offset="0%"   stop-color="#e8b455"/>
+      <stop offset="55%"  stop-color="#9a6218"/>
+      <stop offset="100%" stop-color="#5a3408"/>
+    </radialGradient>
+    <!-- Bitcoin coin: gold-orange gradient -->
+    <radialGradient id="g-coin" cx="32%" cy="28%" r="68%">
+      <stop offset="0%"   stop-color="#ffd060"/>
+      <stop offset="45%"  stop-color="#f7a020"/>
+      <stop offset="100%" stop-color="#c86000"/>
+    </radialGradient>
+    <!-- Clip to globe sphere -->
+    <clipPath id="globe-clip">
+      <circle cx="256" cy="256" r="174"/>
+    </clipPath>
+  </defs>
+
+  <!-- ═══════════════════════════════════════════
+       ORBIT RING — BACK (full ring, behind globe)
+  ═══════════════════════════════════════════ -->
+  <g transform="rotate(-28 256 256)">
+    <ellipse cx="256" cy="256" rx="218" ry="54"
+      stroke="#8a5000" stroke-width="30" fill="none" opacity="0.45"/>
+    <ellipse cx="256" cy="256" rx="218" ry="54"
+      stroke="#F4B73B" stroke-width="22" fill="none" opacity="0.75"/>
+    <ellipse cx="256" cy="256" rx="218" ry="54"
+      stroke="rgba(255,235,150,0.50)" stroke-width="7" fill="none" opacity="0.6"/>
+  </g>
+
+  <!-- ═══════════════════════════════════════════
+       GLOBE — base sphere + contents (clipped)
+  ═══════════════════════════════════════════ -->
+  <g clip-path="url(#globe-clip)">
+    <!-- Ocean base -->
+    <circle cx="256" cy="256" r="174" fill="url(#g-globe)"/>
+
+    <!-- Continent land masses — stylized orthographic, Atlantic-facing view
+         Flat semi-transparent amber so the navy ocean shows through, keeping 3D feel -->
+
+    <!-- Greenland (upper-left) -->
+    <path d="M185 118 C197 108 215 108 224 118 C231 126 228 140 215 145
+             C202 150 187 143 182 132 C178 122 180 124 185 118 Z"
+      fill="rgba(195,130,40,0.58)"/>
+
+    <!-- North America (left side) -->
+    <path d="M120 172 C138 157 164 154 182 164 C200 174 209 196 208 220
+             C208 244 197 263 180 270 C162 278 144 272 130 257
+             C114 241 106 218 108 198 C108 182 110 180 120 172 Z"
+      fill="rgba(195,130,40,0.60)"/>
+
+    <!-- South America (lower-left) -->
+    <path d="M152 296 C168 284 188 285 198 300 C208 316 207 342 198 364
+             C188 386 172 395 157 390 C140 384 128 365 124 342
+             C120 318 126 300 138 292 Z"
+      fill="rgba(195,130,40,0.58)"/>
+
+    <!-- Europe (upper center, small) -->
+    <path d="M248 153 C262 144 280 145 290 156 C299 166 298 180 286 187
+             C273 195 254 193 245 182 C237 172 237 160 248 153 Z"
+      fill="rgba(195,130,40,0.60)"/>
+
+    <!-- Africa (center) -->
+    <path d="M258 214 C278 204 305 208 320 228 C335 248 336 278 330 306
+             C323 334 311 352 295 362 C278 372 259 371 244 361
+             C228 350 220 327 220 300 C219 270 228 246 241 232
+             C247 222 258 218 258 214 Z"
+      fill="rgba(195,130,40,0.62)"/>
+
+    <!-- Arabia / Middle East (smaller) -->
+    <path d="M330 222 C345 214 364 217 374 232 C383 246 381 264 370 272
+             C358 282 339 278 330 262 C320 246 320 230 330 222 Z"
+      fill="rgba(195,130,40,0.52)"/>
+
+    <!-- Eastern Asia (far right, partially clipped) -->
+    <path d="M368 150 C392 140 422 145 436 164 C448 180 445 204 428 215
+             C408 227 382 222 366 204 C350 187 348 162 368 150 Z"
+      fill="rgba(195,130,40,0.48)"/>
+
+    <!-- Subtle ocean grid lines (longitude/latitude) -->
+    <ellipse cx="256" cy="256" rx="80"  ry="174" stroke="rgba(160,210,255,0.10)" stroke-width="1.2" fill="none"/>
+    <ellipse cx="256" cy="256" rx="150" ry="174" stroke="rgba(160,210,255,0.07)" stroke-width="1.0" fill="none"/>
+    <ellipse cx="256" cy="256" rx="174" ry="64"  stroke="rgba(160,210,255,0.10)" stroke-width="1.2" fill="none"/>
+    <ellipse cx="256" cy="256" rx="174" ry="118" stroke="rgba(160,210,255,0.07)" stroke-width="1.0" fill="none"/>
+  </g>
+
+  <!-- Globe edge: atmospheric glow rings -->
+  <circle cx="256" cy="256" r="174" stroke="rgba(90,160,255,0.32)" stroke-width="4"  fill="none"/>
+  <circle cx="256" cy="256" r="178" stroke="rgba(70,130,255,0.10)" stroke-width="7"  fill="none"/>
+
+  <!-- Upper-left specular highlight arc (3D light source feel) -->
+  <path d="M148 148 A 148 148 0 0 1 285 106"
+    stroke="rgba(220,240,255,0.26)" stroke-width="11" fill="none" stroke-linecap="round"/>
+
+  <!-- ═══════════════════════════════════════════
+       ORBIT RING — FRONT ARC (upper half on top of globe)
+       stroke-dasharray=half,half; offset=-half to skip lower half
+       Circumference ≈ 934px → half ≈ 467
+  ═══════════════════════════════════════════ -->
+  <g transform="rotate(-28 256 256)">
+    <ellipse cx="256" cy="256" rx="218" ry="54"
+      stroke="#8a5000" stroke-width="30" fill="none" opacity="0.38"
+      stroke-dasharray="467 467" stroke-dashoffset="-467"/>
+    <ellipse cx="256" cy="256" rx="218" ry="54"
+      stroke="#F4B73B" stroke-width="22" fill="none"
+      stroke-dasharray="467 467" stroke-dashoffset="-467"/>
+    <ellipse cx="256" cy="256" rx="218" ry="54"
+      stroke="rgba(255,235,150,0.55)" stroke-width="7" fill="none"
+      stroke-dasharray="467 467" stroke-dashoffset="-467"/>
+  </g>
+
+  <!-- ═══════════════════════════════════════════
+       BITCOIN COIN — upper-right orbit endpoint
+       Center (408, 112), r=64
+  ═══════════════════════════════════════════ -->
+  <!-- Drop shadow -->
+  <circle cx="414" cy="120" r="66" fill="rgba(0,0,0,0.28)"/>
+  <!-- Coin body -->
+  <circle cx="408" cy="112" r="64" fill="url(#g-coin)"/>
+  <!-- Inner rim highlight -->
+  <circle cx="408" cy="112" r="59" stroke="rgba(255,255,255,0.18)" stroke-width="1.5" fill="none"/>
+
+  <!-- ₿ symbol — stroke-based, centered at (408, 112)
+       Symbol spans y=72–152 (height 80, center 112 ✓)
+       Stem at x=398; bumps extend to x≈432-435
+       Cross-bars tilt ~8° (standard Bitcoin logo proportions) -->
+  <!-- Vertical stem -->
+  <line x1="398" y1="72" x2="398" y2="152"
+    stroke="white" stroke-width="11" stroke-linecap="round"/>
+  <!-- Top bump (slightly smaller D-curve) -->
+  <path d="M398 78 C432 78 432 114 398 114"
+    fill="none" stroke="white" stroke-width="11" stroke-linecap="round"/>
+  <!-- Bottom bump (slightly wider D-curve) -->
+  <path d="M398 114 C435 114 435 150 398 150"
+    fill="none" stroke="white" stroke-width="11" stroke-linecap="round"/>
+  <!-- Top crossbar (tilted ~8°: 4px rise over 28px run) -->
+  <line x1="385" y1="77" x2="413" y2="73"
+    stroke="white" stroke-width="9" stroke-linecap="round"/>
+  <!-- Bottom crossbar (tilted ~8°) -->
+  <line x1="385" y1="153" x2="413" y2="149"
+    stroke="white" stroke-width="9" stroke-linecap="round"/>
+</svg>

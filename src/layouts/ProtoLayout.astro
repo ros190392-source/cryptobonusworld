@@ -1,0 +1,386 @@
+﻿---
+export interface Props {
+  title: string;
+  description?: string;
+  noindex?: boolean;
+  ogImage?: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  ogUrl?: string;
+}
+
+const { title, description = '', noindex = true, ogImage, ogTitle, ogDescription, ogUrl } = Astro.props;
+const siteBase = 'https://cryptobonusworld.com';
+const resolvedOgTitle = ogTitle ?? title;
+const resolvedOgDesc  = ogDescription ?? description;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light" />
+  <title>{title}</title>
+  {description && <meta name="description" content={description} />}
+  {noindex && <meta name="robots" content="noindex, nofollow" />}
+  {ogImage && <>
+    <meta property="og:title" content={resolvedOgTitle} />
+    {resolvedOgDesc && <meta property="og:description" content={resolvedOgDesc} />}
+    <meta property="og:image" content={`${siteBase}${ogImage}`} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:type" content="website" />
+    {ogUrl && <meta property="og:url" content={ogUrl} />}
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={resolvedOgTitle} />
+    {resolvedOgDesc && <meta name="twitter:description" content={resolvedOgDesc} />}
+    <meta name="twitter:image" content={`${siteBase}${ogImage}`} />
+  </>}
+  <!-- Favicon: approved owner source — cbw-favicon-final-source-512.png -->
+  <link rel="icon" type="image/png" sizes="48x48" href="/favicons/favicon-48x48.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicons/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png" />
+  <link rel="shortcut icon" href="/favicons/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png" />
+  <link rel="manifest" href="/favicons/site.webmanifest" />
+  <meta name="theme-color" content="#13233E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      color-scheme: light;
+      --proto-bg: #F7F8F4;
+      --proto-surface: #ffffff;
+      --proto-surface-2: #F3F4F6;
+      --proto-border: #E5E7EB;
+      --proto-border-strong: #D1D5DB;
+      --proto-text: #111827;
+      --proto-text-2: #4B5563;
+      --proto-text-3: #9CA3AF;
+      --proto-accent: #f7a600;
+      --proto-accent-light: #fff8e6;
+      --proto-accent-dark: #c47f00;
+      --proto-cta: #16A34A;
+      --proto-cta-hover: #15803D;
+      --proto-verified: #16A34A;
+      --proto-verified-light: #f0fdf4;
+      --proto-warning: #b45309;
+      --proto-warning-light: #fffbeb;
+      --proto-danger: #dc2626;
+      --proto-radius: 10px;
+      --proto-radius-lg: 16px;
+      --proto-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      --proto-shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-family: 'Inter', system-ui, sans-serif; background: var(--proto-bg); color: var(--proto-text); font-size: 16px; line-height: 1.6; color-scheme: light; }
+    body { min-height: 100vh; background: var(--proto-bg); color: #111827; }
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; height: auto; display: block; }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; }
+
+    /* ── Proto Banner ───────────────────────────────────── */
+    .proto-banner {
+      background: #fffbeb; border-bottom: 1px solid #fde68a;
+      color: #92400e; text-align: center;
+      padding: 6px 16px; font-size: 11px; font-weight: 500;
+      letter-spacing: 0.03em;
+    }
+
+    /* ── Proto Header ───────────────────────────────────── */
+    .ph {
+      background: #13233E;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      position: relative; z-index: 100;
+      color-scheme: dark;
+      overflow: visible;
+    }
+    .ph-inner {
+      max-width: 1180px; margin: 0 auto;
+      padding: 0 20px;
+      height: 56px;
+      display: flex; align-items: center;
+      justify-content: space-between;
+    }
+    @media (min-width: 820px) { .ph-inner { height: 64px; padding: 0 32px; } }
+
+    /* ── Mark wrapper — stars can overflow header visually ── */
+    .ph-mark-wrap {
+      position: relative; display: inline-flex;
+      align-items: center; justify-content: center;
+      flex-shrink: 0; overflow: visible;
+      width: 46px; height: 46px;
+    }
+    @media (min-width: 820px) { .ph-mark-wrap { width: 54px; height: 54px; } }
+    .ph-mark-wrap img { display: block; width: 100%; height: 100%; object-fit: contain; }
+
+    /* Star cluster — Variant B refined */
+    .ph-star { position: absolute; pointer-events: none; user-select: none; line-height: 1; }
+    /* A: bright, upper-left inside mark */
+    .ph-star-a {
+      font-size: 8px; top: 3px; left: 10px;
+      color: rgba(255,232,88,.88);
+      filter: drop-shadow(0 0 3px rgba(255,210,45,.55));
+    }
+    @media (min-width: 820px) { .ph-star-a { font-size: 9px; top: 4px; left: 12px; } }
+    /* B: tiny mid-left dot, hidden on narrow mobile */
+    .ph-star-b {
+      font-size: 3px; top: 50%; left: -7px;
+      color: rgba(255,216,72,.48);
+      transform: translateY(-50%);
+    }
+    @media (max-width: 359px) { .ph-star-b { display: none; } }
+    @media (min-width: 820px) { .ph-star-b { font-size: 4px; left: -8px; } }
+    /* C: small upper-right outside mark */
+    .ph-star-c {
+      font-size: 4px; top: 3px; right: -8px;
+      color: rgba(255,220,74,.56);
+    }
+    @media (min-width: 820px) { .ph-star-c { font-size: 5px; top: 4px; right: -9px; } }
+    /* D: tiny lower-right outside mark */
+    .ph-star-d {
+      font-size: 3px; bottom: 4px; right: -7px;
+      color: rgba(255,212,65,.43);
+    }
+    @media (min-width: 820px) { .ph-star-d { font-size: 4px; bottom: 5px; right: -8px; } }
+
+    /* Logo */
+    .ph-logo {
+      display: flex; align-items: center; gap: 11px;
+      flex-shrink: 0; text-decoration: none;
+    }
+    @media (min-width: 820px) { .ph-logo { gap: 15px; } }
+
+    /* Gradient wordmark */
+    .ph-wm {
+      display: inline-flex; align-items: baseline; line-height: 1;
+      white-space: nowrap; font-family: 'Inter', system-ui, sans-serif;
+      font-weight: 800; letter-spacing: -.028em;
+      font-size: 18px;
+    }
+    @media (min-width: 820px) { .ph-wm { font-size: 22px; } }
+    .ph-wm-c { color: rgba(255,255,255,.80); font-weight: 700; }
+    .ph-wm-b {
+      background: linear-gradient(135deg,#F7931A 0%,#F9B841 55%,#F7931A 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; font-weight: 900;
+    }
+    .ph-wm-btc {
+      font-size: 1.1em; display: inline-block;
+      background: linear-gradient(150deg,#FFB733 0%,#F7931A 55%,#E07B00 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 5px rgba(247,147,26,.5));
+      font-weight: 900; letter-spacing: -.04em;
+    }
+    .ph-wm-w { color: #fff; font-weight: 700; }
+
+    /* Desktop nav */
+    .ph-nav {
+      display: none;
+      align-items: center;
+      gap: 2px;
+    }
+    @media (min-width: 820px) { .ph-nav { display: flex; } }
+
+    .ph-nav-item {
+      display: flex; align-items: center; gap: 4px;
+      padding: 0 11px; height: 64px;
+      font-size: 13.5px; font-weight: 500;
+      color: rgba(255,255,255,0.70);
+      letter-spacing: 0.01em;
+      transition: color .15s;
+      white-space: nowrap;
+      position: relative;
+    }
+    .ph-nav-item:hover { color: #ffffff; }
+    .ph-nav-item:hover .ph-chevron { opacity: 0.9; }
+    .ph-chevron {
+      opacity: 0.45;
+      transition: opacity .15s;
+      flex-shrink: 0;
+    }
+
+    /* Right: search + burger — margin-left:auto not needed (space-between on parent) */
+    .ph-right {
+      display: flex; align-items: center; gap: 4px;
+      flex-shrink: 0;
+    }
+    .ph-search-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 36px; height: 36px; border-radius: 8px;
+      color: rgba(255,255,255,0.55);
+      transition: background .15s, color .15s;
+    }
+    .ph-search-btn:hover { background: rgba(255,255,255,0.07); color: #fff; }
+
+    .ph-burger {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 4.5px;
+      width: 36px; height: 36px; border-radius: 8px;
+      color: rgba(255,255,255,0.65);
+      transition: background .15s;
+    }
+    .ph-burger:hover { background: rgba(255,255,255,0.07); }
+    .ph-burger-bar {
+      display: block; width: 18px; height: 1.5px;
+      background: currentColor; border-radius: 2px;
+      transition: transform .2s, opacity .2s;
+    }
+    @media (min-width: 820px) { .ph-burger { display: none; } }
+
+    /* Burger open state */
+    .ph-burger.is-open .ph-burger-bar:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+    .ph-burger.is-open .ph-burger-bar:nth-child(2) { opacity: 0; }
+    .ph-burger.is-open .ph-burger-bar:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+    /* Mobile menu */
+    .ph-mobile-menu {
+      display: none;
+      background: #111827;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      padding: 8px 0 12px;
+    }
+    .ph-mobile-menu.is-open { display: block; }
+    .ph-mobile-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 11px 20px;
+      font-size: 14px; font-weight: 500;
+      color: rgba(255,255,255,0.75);
+      transition: color .15s, background .15s;
+    }
+    .ph-mobile-item:hover { color: #fff; background: rgba(255,255,255,0.04); }
+    .ph-mobile-chevron { opacity: 0.35; }
+  </style>
+</head>
+<body>
+  <!-- Prototype banner -->
+  <div class="proto-banner">
+    Prototype preview — design review only — not indexed, not in sitemap
+  </div>
+
+  <!-- Site header -->
+  <header class="ph">
+    <div class="ph-inner">
+
+      <!-- Logo — Variant B final: approved mark + gradient wordmark + star cluster -->
+      <a href="/" class="ph-logo" aria-label="CryptoBonusWorld home">
+        <div class="ph-mark-wrap">
+          <img src="/brand/cbw-header-mark-final.png"
+               srcset="/brand/cbw-header-mark-final@1x.png 1x, /brand/cbw-header-mark-final@2x.png 2x"
+               alt="" aria-hidden="true" fetchpriority="high" />
+          <span class="ph-star ph-star-a" aria-hidden="true">✦</span>
+          <span class="ph-star ph-star-b" aria-hidden="true">✦</span>
+          <span class="ph-star ph-star-c" aria-hidden="true">✦</span>
+          <span class="ph-star ph-star-d" aria-hidden="true">✦</span>
+        </div>
+        <span class="ph-wm" aria-label="CryptoBonusWorld">
+          <span class="ph-wm-c">Crypto</span><span class="ph-wm-b"><span class="ph-wm-btc">₿</span>onus</span><span class="ph-wm-w">World</span>
+        </span>
+      </a>
+
+      <!-- Desktop navigation -->
+      <nav class="ph-nav" aria-label="Main navigation">
+        <a href="/exchanges/" class="ph-nav-item">
+          Exchanges
+          <svg class="ph-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+            <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+        <a href="/bonus-codes/" class="ph-nav-item">
+          Promo Codes
+          <svg class="ph-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+            <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+        <a href="/compare/" class="ph-nav-item">
+          Compare
+          <svg class="ph-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+            <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+        <a href="/countries/" class="ph-nav-item">
+          Countries
+          <svg class="ph-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+            <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+        <a href="/guides/" class="ph-nav-item">
+          Guides
+        </a>
+      </nav>
+
+      <!-- Right side controls -->
+      <div class="ph-right">
+        <!-- Search icon -->
+        <button class="ph-search-btn" aria-label="Search">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M11 11L14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <!-- Mobile burger -->
+        <button class="ph-burger" id="ph-burger" aria-label="Open menu" aria-expanded="false" aria-controls="ph-mobile-menu">
+          <span class="ph-burger-bar"></span>
+          <span class="ph-burger-bar"></span>
+          <span class="ph-burger-bar"></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile dropdown menu -->
+    <div class="ph-mobile-menu" id="ph-mobile-menu" aria-hidden="true">
+      <a href="/exchanges/" class="ph-mobile-item">
+        Exchanges
+        <svg class="ph-mobile-chevron" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <path d="M5 4L8 7L5 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+      <a href="/bonus-codes/" class="ph-mobile-item">
+        Promo Codes
+        <svg class="ph-mobile-chevron" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <path d="M5 4L8 7L5 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+      <a href="/compare/" class="ph-mobile-item">
+        Compare
+        <svg class="ph-mobile-chevron" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <path d="M5 4L8 7L5 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+      <a href="/countries/" class="ph-mobile-item">
+        Countries
+        <svg class="ph-mobile-chevron" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <path d="M5 4L8 7L5 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+      <a href="/guides/" class="ph-mobile-item">
+        Guides
+      </a>
+    </div>
+  </header>
+
+  <slot />
+
+  <footer style="background:var(--proto-surface);border-top:1px solid var(--proto-border);padding:32px 20px;text-align:center;color:var(--proto-text-3);font-size:13px;margin-top:80px;">
+    <p>CryptoBonusWorld.com — Prototype Preview</p>
+    <p style="margin-top:6px;">Affiliate disclosure: We earn a commission when you register via our referral links at no extra cost to you.</p>
+  </footer>
+
+  <script>
+    const burger  = document.getElementById('ph-burger');
+    const mobileMenu = document.getElementById('ph-mobile-menu');
+    if (burger && mobileMenu) {
+      burger.addEventListener('click', () => {
+        const open = mobileMenu.classList.toggle('is-open');
+        burger.classList.toggle('is-open', open);
+        burger.setAttribute('aria-expanded', String(open));
+        mobileMenu.setAttribute('aria-hidden', String(!open));
+      });
+    }
+  </script>
+</body>
+</html>

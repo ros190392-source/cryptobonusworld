@@ -1,0 +1,82 @@
+---
+import type { Exchange } from '../../data/exchanges';
+import type { Offer } from '../../data/offers';
+
+export interface Props {
+  exchange: Exchange;
+  offer?: Offer;
+}
+
+const { exchange: ex, offer } = Astro.props;
+---
+
+<a href={`/exchanges/${ex.slug}/`} class="ec">
+  <div class="ec-img-wrap">
+    <img
+      src={ex.cardImage}
+      alt={`${ex.name} referral code — claim bonus`}
+      class="ec-img"
+      width="1200" height="800"
+      loading="lazy"
+    />
+  </div>
+  <div class="ec-body">
+    <div class="ec-name">{ex.name}</div>
+    {offer && (
+      <div class="ec-bonus">{offer.bonusHeadline}</div>
+    )}
+    {offer && (
+      <div class="ec-code-row">
+        <span class="ec-code-label">Code</span>
+        <span class="ec-code">{offer.promoCode}</span>
+        {offer.status === 'verified' && <span class="ec-verified">✓ verified</span>}
+      </div>
+    )}
+    <div class="ec-cta">Get Bonus →</div>
+  </div>
+</a>
+
+<style>
+  .ec {
+    display: flex; flex-direction: column;
+    background: #fff;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    transition: box-shadow .2s, transform .15s, border-color .2s;
+  }
+  .ec:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+    transform: translateY(-2px);
+    border-color: #D1D5DB;
+  }
+
+  /* Image: width 100%, height auto, never cropped */
+  .ec-img-wrap { overflow: hidden; border-bottom: 1px solid #F3F4F6; }
+  .ec-img { width: 100%; height: auto; display: block; transition: transform .3s; }
+  .ec:hover .ec-img { transform: scale(1.02); }
+
+  .ec-body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
+
+  .ec-name { font-size: 16px; font-weight: 700; color: #111827; }
+  .ec-bonus { font-size: 13px; color: #4B5563; line-height: 1.4; }
+
+  .ec-code-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .ec-code-label { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: #9CA3AF; }
+  .ec-code {
+    font-size: 12px; font-weight: 700; font-family: monospace;
+    background: #FFF7ED; border: 1px solid #FED7AA;
+    color: #C2410C; padding: 2px 8px; border-radius: 4px;
+    letter-spacing: .04em;
+  }
+  .ec-verified { font-size: 10px; color: #16A34A; font-weight: 600; }
+
+  .ec-cta {
+    margin-top: 4px; font-size: 13px; font-weight: 700;
+    color: #16A34A;
+  }
+  .ec:hover .ec-cta { text-decoration: underline; }
+</style>
