@@ -9,6 +9,7 @@ const exchangesWithOffers = exchanges.map(ex => ({
   exchange: ex,
   offer: getOffer(ex.slug),
 }));
+const bybitCode = getOffer('bybit')?.promoCode ?? 'CRYPTOBONUSW';
 
 const faqs = [
   {
@@ -32,7 +33,7 @@ const faqs = [
 
 <CleanLayout
   title="Crypto Promo Codes & Referral Bonuses 2026 — Verified | CryptoBonusWorld"
-  description="Verified crypto referral codes and promo bonuses for top exchanges. Use BYBONUS on Bybit for up to 30,000 USDT. Codes checked June 2026."
+  description={`Verified crypto referral codes and promo bonuses for top exchanges. Use ${bybitCode} on Bybit for up to 30,000 USDT. Codes checked June 2026.`}
   ogImage="/media/exchanges/bybit/share/bybit-og-1200x630.png"
 >
 
@@ -51,7 +52,7 @@ const faqs = [
         </p>
         <div class="hero-actions">
           <a href="#exchanges" class="btn-primary hero-cta">Browse Exchanges</a>
-          <a href="/exchanges/bybit/" class="btn-secondary">Bybit BYBONUS →</a>
+          <a href="/exchanges/bybit/" class="btn-secondary">Bybit {bybitCode} →</a>
         </div>
         <div class="hero-trust">
           <span class="trust-pill">✓ No casino style</span>
@@ -163,7 +164,7 @@ const faqs = [
     <div class="container">
       <h2 class="bottom-cta-title">Ready to claim your bonus?</h2>
       <p class="bottom-cta-sub">Start with Bybit — one of the world's largest exchanges, currently offering up to 30,000 USDT for new users.</p>
-      <a href="/exchanges/bybit/" class="btn-primary">Get Bybit Bonus with BYBONUS →</a>
+      <a href="/exchanges/bybit/" class="btn-primary">Get Bybit Bonus with {bybitCode} →</a>
     </div>
   </section>
 
