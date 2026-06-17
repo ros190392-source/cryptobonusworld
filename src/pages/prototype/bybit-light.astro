@@ -1,0 +1,988 @@
+---
+import ProtoLayout from '../../layouts/ProtoLayout.astro';
+
+const exchange = {
+  name: 'Bybit',
+  slug: 'bybit',
+  logo: '/logos/bybit.png',
+  promoCode: 'CRYPTOBONUSW',
+  affiliateUrl: 'https://partner.bybit.com/b/CRYPTOBONUSW',
+  bonusMax: 30000,
+  bonusTypicalMin: 200,
+  bonusTypicalMax: 600,
+  currency: 'USDT',
+  minDeposit: 100,
+  founded: 2018,
+  users: '30M+',
+  headquarters: 'Dubai, UAE',
+  licence: 'Dubai VARA',
+  kycRequired: true,
+  depositRequired: true,
+  spotFee: 0.1,
+  futuresMakerFee: 0.01,
+  futuresTakerFee: 0.06,
+  lastVerified: '2026-06-11',
+  excludedCountries: ['US', 'UK', 'Canada'],
+};
+
+const alternatives = [
+  { name: 'MEXC', slug: 'mexc', logo: '/logos/mexc.png', bonus: '8,000 USDT', code: 'mexc-CryptoBonus', url: 'https://www.mexc.com/acquisition/custom-sign-up?shareCode=mexc-CryptoBonus', tag: 'No KYC option' },
+  { name: 'Bitget', slug: 'bitget', logo: '/logos/bitget.png', bonus: '6,200 USDT', code: 'CryptoBonW', url: 'https://partner.bitget.com/bg/CryptoBonW', tag: 'Copy trading' },
+  { name: 'BingX', slug: 'bingx', logo: '/logos/bingx.png', bonus: '5,125 USDT', code: 'CRYPTOBONUSWORLD', url: 'https://bingxdao.com/partner/CRYPTOBONUSWORLD/', tag: 'Social trading' },
+];
+
+// Ordered proof flow: referral → registration → bonus → KYC → deposit
+const proofScreenshots = [
+  {
+    slot: 'bonus_referral_landing',
+    title: 'Referral Landing Page',
+    path: '/screenshots/bybit/bonus_referral_landing/global-desktop-2026-06.webp',
+    status: 'available',
+    caption: 'Confirms code CRYPTOBONUSW is accepted. Page states "Unlock up to $30,020 in exclusive rewards."',
+    verified: '2026-06-11',
+  },
+  {
+    slot: 'registration',
+    title: 'Sign-Up Form — Code Accepted',
+    path: '/screenshots/bybit/registration/global-desktop-2026-06.webp',
+    status: 'available',
+    caption: 'Registration panel showing CRYPTOBONUSW pre-filled and confirmed (✓) in the Referral Code field.',
+    verified: '2026-06-11',
+  },
+  {
+    slot: 'bonus',
+    title: 'Reward Tiers Chart',
+    path: '/screenshots/bybit/bonus/global-desktop-2026-06.webp',
+    status: 'available',
+    caption: 'Full deposit-tier bonus chart: $50 → $100 → $800 → $8,800 → $30,000 tiers based on deposit + trading volume.',
+    verified: '2026-06',
+  },
+  {
+    slot: 'kyc',
+    title: 'KYC Verification',
+    path: '/screenshots/bybit/kyc/global-desktop-2026-06.webp',
+    status: 'available',
+    caption: 'KYC identity verification screen — required before any bonus can be claimed.',
+    verified: '2026-06',
+  },
+  {
+    slot: 'deposit',
+    title: 'Deposit / Funding',
+    path: '/screenshots/bybit/deposit/global-desktop-2026-06.webp',
+    status: 'available',
+    caption: 'Assets and deposit screen — funding the account to unlock deposit-tier rewards.',
+    verified: '2026-06',
+  },
+  {
+    slot: 'fees',
+    title: 'Fee Schedule',
+    path: null,
+    status: 'needs_manual_capture',
+    caption: 'Fee schedule page — pending manual screenshot capture.',
+    verified: null,
+  },
+];
+
+const pendingProof = proofScreenshots.filter(s => s.status === 'needs_manual_capture');
+
+// ─── Brand Hero Token Object ─────────────────────────────────────
+// Swap these values per exchange to retheme the hero section.
+// bgFrom / bgTo  → gradient (dark on dark works best)
+// accent         → exchange brand highlight (Bybit = yellow #f7a600)
+// codeBg/Border  → code field treatment
+// Future:  Binance accent=#F0B90B  |  MEXC accent=#20B26C bg=#1A2332
+//          Phemex accent=#00B4A0   |  OKX accent=#0A74F5 bg=#0A0C12
+const brandHeroTokens = {
+  'bh-bgFrom':     '#0d1117',
+  'bh-bgTo':       '#1a1f2e',
+  'bh-text':       '#ffffff',
+  'bh-text2':      'rgba(255,255,255,0.65)',
+  'bh-accent':     '#f7a600',
+  'bh-codeBg':     'rgba(247,166,0,0.10)',
+  'bh-codeBorder': 'rgba(247,166,0,0.40)',
+  'bh-note':       'rgba(255,255,255,0.38)',
+};
+const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).join(';');
+---
+
+<ProtoLayout
+  title="Bybit Referral Code 2026: CRYPTOBONUSW — Up to 30,000 USDT"
+  description="Bybit referral code CRYPTOBONUSW — up to 30,000 USDT welcome bonus. Verified June 2026."
+  noindex={true}
+  ogImage="/media/exchanges/bybit/share/bybit-og-1200x630.png"
+  ogTitle="Bybit Referral Code 2026: CRYPTOBONUSW"
+  ogDescription="Use CRYPTOBONUSW to claim Bybit new user rewards. Source checked June 2026."
+  ogUrl="https://cryptobonusworld.com/prototype/bybit-light/"
+>
+
+<style>
+  /* ─── Reset + base ─────────────────────────────────────────── */
+  html, body { background: #F7F8F4 !important; color: #111827 !important; color-scheme: light !important; }
+
+  /* ─── Layout ───────────────────────────────────────────────── */
+  .container { max-width: 760px; margin: 0 auto; padding: 0 20px; }
+  .section { padding: 40px 0; background: var(--proto-bg); }
+  .section + .section { border-top: 1px solid var(--proto-border); }
+
+  /* ─── Title bar (light, centered, above dark hero) ───────── */
+  /* padding arithmetic: 13+h1(25)+13+border(1) = 52px desktop; 14+h1(22)+14+1 = 51px mobile */
+  .title-bar {
+    background: #ffffff;
+    background-image: linear-gradient(#ffffff 0 0);
+    border-bottom: 1px solid var(--proto-border);
+    text-align: center; padding: 13px 20px;
+    color-scheme: light; forced-color-adjust: none;
+  }
+  .title-bar h1 {
+    font-size: 20px; font-weight: 700; color: var(--proto-text);
+    margin: 0; line-height: 1.25;
+  }
+  @media (max-width: 479px) {
+    .title-bar { padding: 14px 20px; }
+    .title-bar h1 { font-size: 18px; }
+  }
+
+  /* ─── Brand Hero ─────────────────────────────────────────────
+     Tokens: --bh-bgFrom  --bh-bgTo  --bh-text  --bh-text2
+             --bh-accent  --bh-codeBg  --bh-codeBorder  --bh-note
+     Swap tokens per exchange to retheme.
+  ──────────────────────────────────────────────────────────── */
+  .brand-hero {
+    background: linear-gradient(160deg, var(--bh-bgFrom) 0%, var(--bh-bgTo) 100%);
+    padding: 26px 0 11px;
+    color: var(--bh-text);
+  }
+  @media (min-width: 640px) { .brand-hero { padding: 31px 0 8px; } }
+  /* ─── Unified top column — 540px shared across hero / table / cta ── */
+  .bh-inner { max-width: 540px; margin: 0 auto; padding: 0 20px; text-align: center; }
+
+  /* Wordmark — competitor-matched proportions */
+  .bh-wordmark { display: block; width: 165px; height: auto; margin: 0 auto 10px; filter: none; opacity: 1; }
+  @media (min-width: 640px) { .bh-wordmark { width: 210px; } }
+  @media (max-width: 359px) { .bh-wordmark { width: 140px; } }
+
+  /* Promo-code label */
+  .bh-promo-label {
+    display: block;
+    font-family: "Arial Narrow", "Roboto Condensed", "Inter Tight", Inter, system-ui, sans-serif;
+    font-size: 16px; font-weight: 700; text-transform: uppercase;
+    font-stretch: condensed;
+    letter-spacing: 0.09em; color: var(--bh-text);
+    line-height: 1.1;
+    margin-top: 16px; margin-bottom: 24px;
+  }
+  @media (min-width: 640px) { .bh-promo-label { font-size: 18px; letter-spacing: 0.10em; margin-top: 18px; margin-bottom: 26px; } }
+
+  /* ── Promo module: code field 272px, CTA 312px ── */
+  .bh-promo-row {
+    width: 100%;
+    max-width: 272px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .bh-cta-btn {
+    width: 100%;
+    max-width: 312px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* Promo code field — white default, green only on copy success */
+  .bh-promo-row {
+    display: flex; align-items: stretch;
+    background: #ffffff;
+    background-image: linear-gradient(#ffffff 0 0);
+    border: 1px solid #D1D5DB;
+    border-radius: 8px; overflow: hidden;
+    height: 56px; margin-bottom: 14px;
+    transition: border-color .18s, background .18s;
+    color-scheme: light; forced-color-adjust: none;
+  }
+  .bh-promo-row.copy-success {
+    border-color: #22c55e !important;
+    background: #dcfce7 !important;
+  }
+  .bh-promo-code {
+    flex: 1; display: flex; align-items: center; padding: 0 14px;
+    font-family: "Arial Narrow", "Roboto Condensed", "Inter Tight", Inter, system-ui, sans-serif;
+    font-size: 20px; font-weight: 800; letter-spacing: 0.01em;
+    font-stretch: condensed;
+    text-transform: uppercase;
+    color: #111827; -webkit-text-fill-color: #111827;
+    min-width: 0; overflow: hidden;
+    white-space: nowrap; text-overflow: ellipsis;
+    transition: color .18s;
+    background: #ffffff;
+    background-image: linear-gradient(#ffffff 0 0);
+    color-scheme: light; forced-color-adjust: none;
+  }
+  @media (min-width: 640px) { .bh-promo-code { font-size: 22px; letter-spacing: 0.015em; } }
+  .bh-promo-code.copy-success { color: #166534 !important; -webkit-text-fill-color: #166534 !important; }
+  /* Fixed width prevents layout jump between "Copy" and "Copied ✓" */
+  .bh-copy-btn {
+    flex-shrink: 0; width: 68px;
+    display: flex; align-items: center; justify-content: center;
+    border: none; border-left: 1px solid #e5e7eb;
+    font-size: 12px; font-weight: 700; color: #16a34a; -webkit-text-fill-color: #16a34a;
+    background: #ffffff;
+    background-image: linear-gradient(#ffffff 0 0);
+    cursor: pointer;
+    transition: background .15s, color .15s, border-color .15s;
+    white-space: nowrap; letter-spacing: .03em;
+    color-scheme: light; forced-color-adjust: none;
+  }
+  .bh-copy-btn:hover { background: #f0fdf4; }
+  .bh-copy-btn.copy-success {
+    background: #dcfce7 !important;
+    border-color: #22c55e !important;
+    color: #166534 !important;
+  }
+
+  /* CTA — competitor-scale: large text, slightly wider than code field */
+  .bh-cta-btn {
+    display: flex; align-items: center; justify-content: center;
+    background: #16a34a; color: #fff;
+    font-size: 24px; font-weight: 700; border-radius: 6px;
+    height: 62px; margin-bottom: 12px;
+    transition: background .15s, transform .1s; letter-spacing: 0;
+  }
+  @media (min-width: 640px) { .bh-cta-btn { font-size: 28px; } }
+  .bh-cta-btn:hover { background: #15803d; transform: translateY(-1px); }
+
+  /* Under-CTA 2-line info block */
+  .bh-source {
+    font-size: 14px; color: var(--bh-note); line-height: 1.65;
+    margin: 8px 0 0; text-align: center;
+  }
+  @media (min-width: 640px) { .bh-source { font-size: 15px; } }
+  .bh-source a {
+    color: var(--bh-note); text-decoration: underline;
+    text-underline-offset: 2px; text-decoration-color: rgba(255,255,255,0.35);
+  }
+  .bh-source a:hover { text-decoration-color: var(--bh-note); }
+
+  /* ─── Compact facts table (light, right below hero) ─────── */
+  .compact-facts {
+    background: #ffffff !important; border-bottom: 1px solid #E5E7EB;
+    padding: 20px 16px; color-scheme: light; forced-color-adjust: none;
+  }
+  .cf-inner {
+    max-width: 100%;
+    margin: 0 auto; padding: 0;
+    background: #ffffff;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  @media (min-width: 720px) { .cf-inner { max-width: 720px; } }
+  /* table-layout:fixed + word-wrap = clean 2-col on all screens, no overflow */
+  .cf-table { width: 100%; border-collapse: collapse; font-size: 14px; background: #ffffff; table-layout: fixed; }
+  .cf-table tr { border-bottom: 1px solid #E5E7EB; background: #ffffff !important; }
+  .cf-table tr:last-child { border-bottom: none; }
+  .cf-table td { padding: 11px 16px; vertical-align: middle; background: #ffffff; color: #111827; word-wrap: break-word; overflow-wrap: break-word; }
+  /* mobile: 43% label / 57% value — labels stay readable, long values wrap */
+  .cf-table td:first-child { color: #9CA3AF !important; font-size: 13px; width: 43%; }
+  .cf-table td:last-child { font-weight: 600; color: #111827 !important; }
+  @media (max-width: 479px) {
+    .cf-table td { padding: 10px 12px; font-size: 13px; }
+    .cf-table td:first-child { font-size: 12px; }
+  }
+  .cf-code { font-family: 'Courier New', monospace; letter-spacing: .04em; color: #c47f00 !important; -webkit-text-fill-color: #c47f00 !important; }
+  .cf-good { color: #16a34a !important; -webkit-text-fill-color: #16a34a !important; }
+  .cf-warn { color: #b45309 !important; -webkit-text-fill-color: #b45309 !important; font-weight: 500 !important; }
+
+  /* ─── Post-table CTA block ───────────────────────────────── */
+  /* Desktop: large top pad forces button below the fold (one-CTA rule) */
+  .post-table-cta {
+    background: var(--proto-surface-2); border-bottom: 1px solid var(--proto-border);
+    padding: 24px 0;
+  }
+  @media (min-width: 640px) { .post-table-cta { padding-top: 180px; } }
+  .ptc-inner { max-width: 540px; margin: 0 auto; padding: 0 20px; text-align: center; }
+  .ptc-intro { font-size: 13.5px; color: var(--proto-text-2); line-height: 1.6; margin-bottom: 14px; }
+  .ptc-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    background: #16a34a; color: #fff;
+    font-size: 15px; font-weight: 700; border-radius: 10px;
+    padding: 0 28px; height: 48px;
+    width: 100%; max-width: 310px;
+    transition: background .15s, transform .1s; letter-spacing: .01em;
+  }
+  .ptc-btn:hover { background: #15803d; transform: translateY(-1px); }
+
+  /* ─── Shared buttons (final-cta and any light-section use) ── */
+  .btn-primary {
+    display: flex; align-items: center; justify-content: center;
+    background: var(--proto-cta); color: #fff;
+    font-size: 16px; font-weight: 700; border-radius: 12px;
+    padding: 0 24px; height: 46px; width: 100%;
+    transition: background .15s, transform .1s; letter-spacing: .01em; text-align: center;
+  }
+  .btn-primary:hover { background: var(--proto-cta-hover); transform: translateY(-1px); }
+  @media (max-width: 479px) { .btn-primary { height: 48px; } }
+  @media (min-width: 960px) { .btn-primary { width: auto; min-width: 200px; max-width: 260px; } }
+
+  /* ─── Section headings ─────────────────────────────────────── */
+  h2.section-title { font-size: 20px; font-weight: 700; color: var(--proto-text); margin-bottom: 16px; line-height: 1.3; }
+
+  /* ─── Card ─────────────────────────────────────────────────── */
+  .card { background: var(--proto-surface); border: 1px solid var(--proto-border); border-radius: var(--proto-radius); padding: 20px; box-shadow: var(--proto-shadow); }
+
+  /* .fact-yes / .fact-warn used in lower sections */
+  .fact-yes { color: var(--proto-verified); }
+  .fact-warn { color: var(--proto-warning); }
+
+  /* ─── Steps ─────────────────────────────────────────────────── */
+  .steps { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  .step { display: flex; gap: 14px; align-items: flex-start; }
+  .step-num { flex-shrink: 0; width: 28px; height: 28px; background: var(--proto-accent); color: #1a1a18; font-size: 13px; font-weight: 700; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+  .step-text { font-size: 14px; line-height: 1.55; color: var(--proto-text); }
+  .step-text strong { font-weight: 600; }
+
+  /* ─── Conditions table ────────────────────────────────────── */
+  .conditions-wrap { overflow-x: auto; }
+  .conditions-table { width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 440px; }
+  .conditions-table thead { background: var(--proto-surface-2); }
+  .conditions-table th { padding: 9px 12px; text-align: left; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--proto-text-3); border-bottom: 1px solid var(--proto-border); }
+  .conditions-table td { padding: 10px 12px; border-bottom: 1px solid var(--proto-border); color: var(--proto-text); line-height: 1.4; background: var(--proto-surface); }
+  .conditions-table tr:last-child td { border-bottom: none; }
+  .cond-required { color: var(--proto-warning); font-weight: 500; }
+  .cond-ok { color: var(--proto-verified); font-weight: 500; }
+  .cond-note { font-size: 12px; color: var(--proto-text-3); margin-top: 3px; }
+
+  /* ─── Realistic value ────────────────────────────────────── */
+  .value-grid { display: grid; gap: 12px; }
+  @media (min-width: 480px) { .value-grid { grid-template-columns: 1fr 1fr; } }
+  .value-card { border: 1px solid var(--proto-border); border-radius: var(--proto-radius); padding: 16px; background: var(--proto-surface); }
+  .value-card.highlight { border-color: var(--proto-verified); background: var(--proto-verified-light); }
+  .value-card-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--proto-text-3); margin-bottom: 6px; }
+  .value-card-amount { font-size: 22px; font-weight: 700; color: var(--proto-text); margin-bottom: 4px; }
+  .value-card-amount.green { color: var(--proto-verified); }
+  .value-card-desc { font-size: 13px; color: var(--proto-text-2); line-height: 1.45; }
+
+  /* ─── Availability ───────────────────────────────────────── */
+  .availability-box { background: var(--proto-warning-light); border: 1px solid #fcd34d; border-radius: var(--proto-radius); padding: 16px 20px; font-size: 14px; color: var(--proto-text); line-height: 1.55; }
+  .availability-box strong { display: block; margin-bottom: 6px; color: var(--proto-warning); font-size: 13px; text-transform: uppercase; letter-spacing: .04em; }
+  .excluded-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .excluded-chip { background: #fff; border: 1px solid #fcd34d; border-radius: 6px; padding: 3px 10px; font-size: 12px; font-weight: 500; color: var(--proto-warning); }
+
+  /* ─── Verdict ────────────────────────────────────────────── */
+  .verdict-grid { display: grid; gap: 12px; }
+  @media (min-width: 500px) { .verdict-grid { grid-template-columns: 1fr 1fr; } }
+  .verdict-card { border-radius: var(--proto-radius); padding: 16px 18px; font-size: 14px; line-height: 1.55; }
+  .verdict-card.worth-it { background: var(--proto-verified-light); border: 1px solid #86efac; }
+  .verdict-card.not-ideal { background: #fff7f7; border: 1px solid #fca5a5; }
+  .verdict-card-head { font-weight: 600; font-size: 13px; margin-bottom: 8px; }
+  .verdict-card.worth-it .verdict-card-head { color: var(--proto-verified); }
+  .verdict-card.not-ideal .verdict-card-head { color: var(--proto-danger); }
+  .verdict-card ul { padding-left: 16px; }
+  .verdict-card li { margin-bottom: 5px; }
+
+  /* ─── Mini review ────────────────────────────────────────── */
+  .mini-review { font-size: 14px; line-height: 1.7; color: var(--proto-text); }
+  .mini-review p { margin-bottom: 12px; }
+  .mini-review p:last-child { margin-bottom: 0; }
+
+  /* ─── Alternatives ───────────────────────────────────────── */
+  .alt-grid { display: flex; flex-direction: column; gap: 10px; }
+  .alt-card { display: flex; align-items: center; gap: 14px; background: var(--proto-surface); border: 1px solid var(--proto-border); border-radius: var(--proto-radius); padding: 14px 16px; transition: border-color .15s; }
+  .alt-card:hover { border-color: var(--proto-border-strong); }
+  .alt-logo { width: 36px; height: 36px; border-radius: 8px; object-fit: contain; border: 1px solid var(--proto-border); padding: 4px; flex-shrink: 0; background: #fff; }
+  .alt-info { flex: 1; min-width: 0; }
+  .alt-name { font-weight: 600; font-size: 14px; color: var(--proto-text); }
+  .alt-bonus { font-size: 13px; color: var(--proto-text-2); }
+  .alt-tag { font-size: 11px; color: var(--proto-text-3); margin-top: 2px; }
+  .alt-btn { flex-shrink: 0; background: var(--proto-surface-2); border: 1px solid var(--proto-border); border-radius: 8px; padding: 7px 14px; font-size: 13px; font-weight: 500; color: var(--proto-text); transition: background .15s; }
+  .alt-btn:hover { background: var(--proto-border); }
+
+  /* ─── FAQ ────────────────────────────────────────────────── */
+  details.faq-item { border: 1px solid var(--proto-border); border-radius: var(--proto-radius); margin-bottom: 8px; background: var(--proto-surface); overflow: hidden; }
+  details.faq-item[open] { border-color: var(--proto-border-strong); }
+  summary.faq-q { padding: 14px 16px; font-size: 14px; font-weight: 500; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; color: var(--proto-text); user-select: none; }
+  summary.faq-q::-webkit-details-marker { display: none; }
+  summary.faq-q::after { content: '+'; font-size: 18px; font-weight: 400; color: var(--proto-text-3); flex-shrink: 0; margin-left: 12px; }
+  details[open] summary.faq-q::after { content: '−'; }
+  .faq-a { padding: 12px 16px 14px; font-size: 13.5px; color: var(--proto-text-2); line-height: 1.6; border-top: 1px solid var(--proto-border); }
+
+  /* ─── Final CTA ──────────────────────────────────────────── */
+  .final-cta { background: var(--proto-surface); border: 1px solid var(--proto-border); border-radius: var(--proto-radius-lg); padding: 28px 24px; text-align: center; box-shadow: var(--proto-shadow-md); }
+  .final-cta-logo { width: 44px; height: 44px; border-radius: 10px; border: 1px solid var(--proto-border); padding: 5px; margin: 0 auto 12px; object-fit: contain; background: #fff; }
+  .final-cta-amount { font-size: 28px; font-weight: 700; color: var(--proto-text); margin-bottom: 4px; }
+  .final-cta-typical { font-size: 13px; color: var(--proto-text-3); margin-bottom: 20px; }
+  .final-cta-disclaimer { font-size: 12px; color: var(--proto-text-3); margin-top: 14px; line-height: 1.5; }
+
+  /* ─── In-article banner CTA ─────────────────────────────── */
+  .article-banner {
+    display: block; border-radius: var(--proto-radius); overflow: hidden;
+    margin: 28px 0 0;
+    box-shadow: var(--proto-shadow-md);
+    transition: transform .15s, box-shadow .15s;
+  }
+  .article-banner:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+  .article-banner-img { width: 100%; height: auto; display: block; }
+  .article-banner-cap {
+    font-size: 12px; color: var(--proto-text-3); text-align: center;
+    margin: 8px 0 28px; line-height: 1.4;
+  }
+  .article-banner-cap strong { color: var(--proto-text-2); }
+
+  /* ─── Disclosure ─────────────────────────────────────────── */
+  .disclosure { font-size: 12px; color: var(--proto-text-3); background: var(--proto-surface-2); border-radius: var(--proto-radius); padding: 12px 14px; line-height: 1.55; margin-top: 20px; }
+
+  /* ─── Aggressive Samsung / forced-dark override ──────────────
+     Samsung One UI dark mode and similar browsers can override
+     color-scheme:light declarations. This block re-asserts our
+     explicit colors for every element that must stay light.
+     .brand-hero and .ph (header) are intentionally dark — NOT here.
+  ──────────────────────────────────────────────────────────── */
+  @media (prefers-color-scheme: dark) {
+    html, body {
+      background: #F7F8F4 !important; color: #111827 !important;
+      color-scheme: light !important; forced-color-adjust: none;
+    }
+    /* Title bar */
+    .title-bar {
+      background: #ffffff !important; border-bottom-color: #E5E7EB !important;
+      color-scheme: light !important; forced-color-adjust: none;
+    }
+    .title-bar h1 {
+      color: #111827 !important; -webkit-text-fill-color: #111827 !important;
+    }
+    /* Promo field — white inside the dark hero */
+    .bh-promo-row {
+      background: #ffffff !important; border-color: #D1D5DB !important;
+      color-scheme: light !important; forced-color-adjust: none;
+    }
+    .bh-promo-code {
+      background: #ffffff !important;
+      color: #111827 !important; -webkit-text-fill-color: #111827 !important;
+      forced-color-adjust: none;
+    }
+    .bh-copy-btn {
+      background: #ffffff !important;
+      color: #16a34a !important; -webkit-text-fill-color: #16a34a !important;
+      border-left-color: #E5E7EB !important; forced-color-adjust: none;
+    }
+    .bh-copy-btn:hover { background: #f0fdf4 !important; }
+    /* Copy-success: green flash, then JS returns to white */
+    .bh-promo-row.copy-success {
+      background: #dcfce7 !important; border-color: #22c55e !important;
+    }
+    .bh-promo-row.copy-success .bh-promo-code {
+      background: #dcfce7 !important;
+      color: #166534 !important; -webkit-text-fill-color: #166534 !important;
+    }
+    .bh-promo-row.copy-success .bh-copy-btn {
+      background: #dcfce7 !important;
+      color: #166534 !important; -webkit-text-fill-color: #166534 !important;
+    }
+    /* Facts table — every selector explicit, no inherited dark */
+    .compact-facts {
+      background: #ffffff !important;
+      color-scheme: light !important; forced-color-adjust: none;
+    }
+    .cf-inner { background: #ffffff !important; border-color: #E5E7EB !important; }
+    .cf-table, .cf-table tr, .cf-table td {
+      background: #ffffff !important;
+      color-scheme: light !important; forced-color-adjust: none;
+    }
+    .cf-table tr { border-bottom-color: #E5E7EB !important; }
+    .cf-table td:first-child {
+      color: #9CA3AF !important; -webkit-text-fill-color: #9CA3AF !important;
+    }
+    .cf-table td:last-child {
+      color: #111827 !important; -webkit-text-fill-color: #111827 !important;
+    }
+    /* Coloured values keep explicit colours */
+    .cf-code { color: #c47f00 !important; -webkit-text-fill-color: #c47f00 !important; }
+    .cf-good { color: #16a34a !important; -webkit-text-fill-color: #16a34a !important; }
+    .cf-warn { color: #b45309 !important; -webkit-text-fill-color: #b45309 !important; }
+    /* Body sections below hero */
+    .post-table-cta { background: #F3F4F6 !important; forced-color-adjust: none; }
+    .section { background: #F7F8F4 !important; }
+    .card { background: #ffffff !important; color: #111827 !important; }
+    .reg-proof { background: #F3F4F6 !important; }
+    /* Wordmark — no filter applied by browser */
+    .bh-wordmark { filter: none !important; opacity: 1 !important; }
+  }
+
+  /* ─── Bybit brand proof badge ──────────────────────────────── */
+  .bybit-proof-badge {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: #111827; border: 1px solid #2d3748;
+    border-radius: 8px; padding: 9px 16px; margin-bottom: 16px;
+  }
+  .badge-brand {
+    font-size: 13px; font-weight: 900; letter-spacing: .05em;
+    color: #fff; font-family: 'Arial Black', Arial, sans-serif;
+  }
+  .badge-brand-i { color: #f7a600; }
+  .badge-pipe { color: #374151; font-size: 15px; font-weight: 300; }
+  .badge-label {
+    font-size: 11px; font-weight: 700; letter-spacing: .09em;
+    text-transform: uppercase; color: #d1d5db;
+  }
+  .badge-dot { width: 6px; height: 6px; background: #22c55e; border-radius: 50%; flex-shrink: 0; }
+  .badge-meta { font-size: 11px; color: #6b7280; }
+
+  /* ─── Registration proof block ─────────────────────────── */
+  .reg-proof { background: var(--proto-surface-2); border-bottom: 1px solid var(--proto-border); padding: 28px 0; }
+  .reg-proof-inner { max-width: 760px; margin: 0 auto; padding: 0 20px; }
+  .reg-proof-label { font-size: 11px; font-weight: 700; color: var(--proto-verified); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 14px; display: flex; align-items: center; gap: 5px; }
+  .reg-proof-grid { display: flex; flex-direction: column; gap: 14px; }
+  @media (min-width: 640px) {
+    .reg-proof-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .reg-proof-main { grid-column: 1 / -1; }
+    .reg-proof-sub .reg-proof-img { height: 180px; object-fit: cover; object-position: center top; }
+  }
+  .reg-proof-item { background: var(--proto-surface); border: 1px solid var(--proto-border); border-radius: var(--proto-radius); overflow: hidden; }
+  .reg-proof-img { width: 100%; display: block; }
+  .reg-proof-body { padding: 10px 12px; }
+  .reg-proof-item-title { font-size: 12px; font-weight: 600; color: var(--proto-text); margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+  .reg-proof-num { font-size: 11px; font-weight: 700; color: var(--proto-text-3); background: var(--proto-surface-2); border: 1px solid var(--proto-border); border-radius: 4px; padding: 1px 5px; flex-shrink: 0; }
+  .reg-proof-cap { font-size: 12px; color: var(--proto-text-3); line-height: 1.4; }
+
+</style>
+
+<!-- ════════════════════════════════════════════════════════════
+     TITLE BAR — light strip above the dark hero
+════════════════════════════════════════════════════════════ -->
+<div class="title-bar" data-proto-version="mobile-light-hardening-v2">
+  <h1>Bybit Referral Code</h1>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     BRAND HERO — compact dark promo header
+     Tokens injected via bhStyle (inline CSS vars)
+════════════════════════════════════════════════════════════ -->
+<section class="brand-hero" style={bhStyle}>
+  <div class="bh-inner">
+
+    <a href={exchange.affiliateUrl} target="_blank" rel="nofollow sponsored noopener" style="display:block;line-height:0;">
+      <img
+        src="/logos/bybit-wordmark-official.png"
+        alt="Bybit"
+        class="bh-wordmark"
+        width="210" height="78"
+      />
+    </a>
+
+    <p class="bh-promo-label">PROMO CODE</p>
+    <div class="bh-promo-row">
+      <span class="bh-promo-code">{exchange.promoCode}</span>
+      <button class="bh-copy-btn" id="copy-btn-hero" type="button">Copy</button>
+    </div>
+
+    <a href={exchange.affiliateUrl} class="bh-cta-btn" target="_blank" rel="nofollow sponsored noopener">
+      Get Bonus
+    </a>
+
+    <p class="bh-source">
+      Source checked {exchange.lastVerified} · Official promo page<br/>
+      Updated on <a href={exchange.affiliateUrl} target="_blank" rel="nofollow sponsored noopener">Bybit.com</a>
+    </p>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════
+     COMPACT FACTS TABLE — right below dark hero
+════════════════════════════════════════════════════════════ -->
+<div class="compact-facts">
+  <div class="cf-inner">
+    <table class="cf-table">
+      <tbody>
+        <tr><td>Exchange</td><td>Bybit</td></tr>
+        <tr><td>Referral code</td><td class="cf-code">CRYPTOBONUSW</td></tr>
+        <tr><td>Bonus</td><td>Up to 30,000 USDT</td></tr>
+        <tr><td>Realistic value</td><td class="cf-good">200–600 USDT for most users</td></tr>
+        <tr><td>KYC</td><td class="cf-warn">Required</td></tr>
+        <tr><td>Availability</td><td class="cf-warn">Not US, UK, Canada</td></tr>
+        <tr><td>Source checked</td><td>{exchange.lastVerified}</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     POST-TABLE CTA — claim prompt below facts
+════════════════════════════════════════════════════════════ -->
+<div class="post-table-cta">
+  <div class="ptc-inner">
+    <p class="ptc-intro">
+      Use our Bybit referral link to activate your welcome bonus. If Bybit asks for a referral code, promo code, or invite code at sign-up, enter <strong>CRYPTOBONUSW</strong> manually — this ensures your Bybit sign-up bonus is fully applied.
+    </p>
+    <a href={exchange.affiliateUrl} class="ptc-btn" target="_blank" rel="nofollow sponsored noopener">
+      Claim Bonus on Bybit
+    </a>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     REGISTRATION PROOF — 3 screenshots: referral landing,
+     registration form, rewards/bonus page
+════════════════════════════════════════════════════════════ -->
+<div class="reg-proof">
+  <div class="reg-proof-inner">
+    <div class="bybit-proof-badge">
+      <span class="badge-brand">BYB<span class="badge-brand-i">I</span>T</span>
+      <span class="badge-pipe">|</span>
+      <span class="badge-label">BONUS PROOF</span>
+      <span class="badge-dot"></span>
+      <span class="badge-meta">Verified {exchange.lastVerified}</span>
+    </div>
+    <div class="reg-proof-grid">
+
+      <div class="reg-proof-item reg-proof-main">
+        <img
+          src="/screenshots/bybit/bonus_referral_landing/global-desktop-2026-06.webp"
+          alt="Bybit referral landing page — code CRYPTOBONUSW active"
+          class="reg-proof-img"
+          loading="eager"
+        />
+        <div class="reg-proof-body">
+          <div class="reg-proof-item-title">
+            <span class="reg-proof-num">1</span>
+            Referral landing page
+          </div>
+          <p class="reg-proof-cap">This shows the Bybit page opened through our referral link.</p>
+        </div>
+      </div>
+
+      <div class="reg-proof-item reg-proof-sub">
+        <img
+          src="/screenshots/bybit/registration/global-desktop-2026-06.webp"
+          alt="Bybit registration form"
+          class="reg-proof-img"
+          loading="lazy"
+        />
+        <div class="reg-proof-body">
+          <div class="reg-proof-item-title">
+            <span class="reg-proof-num">2</span>
+            Sign-up form — code accepted
+          </div>
+          <p class="reg-proof-cap">Shows CRYPTOBONUSW pre-filled and confirmed (✓) in the referral code field at sign-up.</p>
+        </div>
+      </div>
+
+      <div class="reg-proof-item reg-proof-sub">
+        <img
+          src="/screenshots/bybit/bonus/global-desktop-2026-06.webp"
+          alt="Bybit rewards and bonus center"
+          class="reg-proof-img"
+          loading="lazy"
+        />
+        <div class="reg-proof-body">
+          <div class="reg-proof-item-title">
+            <span class="reg-proof-num">3</span>
+            Reward tiers chart
+          </div>
+          <p class="reg-proof-cap">This shows where bonus tasks and reward conditions are displayed after registration.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<main>
+<!-- ════════════════════════════════════════════════════════════
+     HOW TO CLAIM — 4 steps
+════════════════════════════════════════════════════════════ -->
+<div class="container section" id="how-to-claim">
+  <h2 class="section-title">How to Claim the Bybit Sign-Up Bonus</h2>
+  <ol class="steps">
+    <li class="step">
+      <div class="step-num">1</div>
+      <div class="step-text"><strong>Click the referral link.</strong> Use the Claim Bonus button on this page — it takes you directly to Bybit's registration page with the offer pre-loaded.</div>
+    </li>
+    <li class="step">
+      <div class="step-num">2</div>
+      <div class="step-text"><strong>Register a new account.</strong> Create your account. If Bybit asks for a referral or promo code during sign-up, enter <strong>CRYPTOBONUSW</strong> manually.</div>
+    </li>
+    <li class="step">
+      <div class="step-num">3</div>
+      <div class="step-text"><strong>Complete KYC.</strong> Submit identity verification — required before any bonus can be claimed or funds withdrawn. No-KYC path does not exist on Bybit.</div>
+    </li>
+    <li class="step">
+      <div class="step-num">4</div>
+      <div class="step-text"><strong>Deposit and complete trading tasks.</strong> Make a qualifying deposit (min. 100 USDT) and finish the bonus milestones in your Rewards Hub within 30 days of registration.</div>
+    </li>
+  </ol>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     IN-ARTICLE BANNER CTA — same image as og:image, clickable
+     Placed between "How to Claim" and "Bonus Conditions"
+     Strategy: same asset works as OG preview + in-article CTA
+════════════════════════════════════════════════════════════ -->
+<div class="container" style="padding-top:0;padding-bottom:0;">
+  <a href={exchange.affiliateUrl} class="article-banner" target="_blank" rel="nofollow sponsored noopener">
+    <img
+      src="/og/bybit-referral-code-v2.png"
+      alt="Bybit Referral Code CRYPTOBONUSW — Click to Claim"
+      class="article-banner-img"
+      width="1200" height="630"
+      loading="lazy"
+    />
+  </a>
+  <p class="article-banner-cap">
+    Bybit Referral Code: <strong>CRYPTOBONUSW</strong> — Up to $30,000 USDT bonus
+  </p>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SECTION 4 — BONUS CONDITIONS
+════════════════════════════════════════════════════════════ -->
+<div class="container section" id="bonus-conditions">
+  <h2 class="section-title">Bonus Conditions</h2>
+  <div class="card" style="padding:0;overflow:hidden;">
+    <div class="conditions-wrap">
+      <table class="conditions-table">
+        <thead>
+          <tr><th>Condition</th><th>Requirement</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>New user</td>
+            <td><span class="cond-required">Required</span></td>
+            <td><div class="cond-note">Existing accounts not eligible</div></td>
+          </tr>
+          <tr>
+            <td>KYC Lv.1</td>
+            <td><span class="cond-required">Required</span></td>
+            <td><div class="cond-note">Zero withdrawal limit without KYC</div></td>
+          </tr>
+          <tr>
+            <td>First deposit</td>
+            <td>Min. 100 USDT</td>
+            <td><div class="cond-note">Larger deposits unlock higher reward tiers</div></td>
+          </tr>
+          <tr>
+            <td>Futures trading volume</td>
+            <td>Tiered milestones</td>
+            <td><div class="cond-note">Upper tiers (above ~600 USDT) require substantial futures volume</div></td>
+          </tr>
+          <tr>
+            <td>Task window</td>
+            <td>30 days</td>
+            <td><div class="cond-note">All tasks must complete within 30 days of registration</div></td>
+          </tr>
+          <tr>
+            <td>Bonus form</td>
+            <td>Trading vouchers</td>
+            <td><div class="cond-note">Cannot be withdrawn directly</div></td>
+          </tr>
+          <tr>
+            <td>Campaign change risk</td>
+            <td><span class="fact-warn">High</span></td>
+            <td><div class="cond-note">Bybit updates promo terms frequently. Always check official terms first.</div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SECTION 5 — REALISTIC BONUS VALUE
+════════════════════════════════════════════════════════════ -->
+<div class="container section" id="realistic-value">
+  <h2 class="section-title">Realistic Bonus Value</h2>
+  <p style="font-size:14px;color:var(--proto-text-2);margin-bottom:14px;line-height:1.5;">
+    The 30,000 USDT headline requires VIP-level volume. Here's what different users actually earn:
+  </p>
+  <div class="value-grid">
+    <div class="value-card">
+      <div class="value-card-label">Headline max</div>
+      <div class="value-card-amount">30,000 USDT</div>
+      <div class="value-card-desc">Large deposit + sustained high-volume futures trading over 30 days.</div>
+    </div>
+    <div class="value-card highlight">
+      <div class="value-card-label">Most users earn</div>
+      <div class="value-card-amount green">200–600 USDT</div>
+      <div class="value-card-desc">KYC + deposit ~$500–$2,000 + moderate futures tasks in first week.</div>
+    </div>
+    <div class="value-card">
+      <div class="value-card-label">Minimal effort</div>
+      <div class="value-card-amount">20–50 USDT</div>
+      <div class="value-card-desc">Registration + small deposit only. No trading volume tasks completed.</div>
+    </div>
+    <div class="value-card">
+      <div class="value-card-label">Active trader</div>
+      <div class="value-card-amount">600–3,000 USDT</div>
+      <div class="value-card-desc">$5,000+ deposit + active futures across multiple milestone tiers.</div>
+    </div>
+  </div>
+  <p style="font-size:12px;color:var(--proto-text-3);margin-top:12px;line-height:1.5;">
+    Bonus vouchers are not withdrawable. Only trading profits may be eligible for withdrawal. Estimates based on structure verified {exchange.lastVerified}.
+  </p>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════
+     SECTION 7 — COUNTRY AVAILABILITY
+════════════════════════════════════════════════════════════ -->
+<div class="container section" id="country-availability">
+  <h2 class="section-title">Country Availability</h2>
+  <div class="availability-box">
+    <strong>Restricted regions</strong>
+    Bybit does not accept users from the following countries. Registering via VPN or false location violates Bybit's Terms of Service and may result in account suspension or frozen funds.
+    <div class="excluded-chips">
+      {exchange.excludedCountries.map((c) => <span class="excluded-chip">{c}</span>)}
+    </div>
+  </div>
+  <div class="card" style="margin-top:12px;font-size:14px;color:var(--proto-text-2);line-height:1.6;">
+    Bybit is available in most countries globally. Availability depends on local regulation, KYC requirements, and the products you wish to access. Some features may not be available in certain jurisdictions even where registration is permitted.
+    Check <a href="https://www.bybit.com/en/help-center/article/Restricted-countries" target="_blank" rel="nofollow noopener" style="color:var(--proto-text);text-decoration:underline;">Bybit's official restricted countries list</a> before registering.
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SECTION 8 — IS IT WORTH IT?
+════════════════════════════════════════════════════════════ -->
+<div class="container section" id="verdict">
+  <h2 class="section-title">Is This Bonus Worth It?</h2>
+  <div class="verdict-grid">
+    <div class="verdict-card worth-it">
+      <div class="verdict-card-head">Worth it if…</div>
+      <ul>
+        <li>You were already planning to use Bybit</li>
+        <li>You can deposit $500+ and complete KYC</li>
+        <li>You trade futures or want copy trading</li>
+        <li>You're not in the US, UK, or Canada</li>
+        <li>You can act within 30 days of registering</li>
+      </ul>
+    </div>
+    <div class="verdict-card not-ideal">
+      <div class="verdict-card-head">Not ideal if…</div>
+      <ul>
+        <li>You want to avoid KYC</li>
+        <li>You want to withdraw the bonus as cash</li>
+        <li>You're in the US, UK, or Canada</li>
+        <li>You only want a simple spot exchange</li>
+        <li>You don't plan to trade futures</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SECTION 9 — MINI REVIEW (~120 words)
+════════════════════════════════════════════════════════════ -->
+<div class="container section" id="mini-review">
+  <h2 class="section-title">About Bybit</h2>
+  <a href={exchange.affiliateUrl} target="_blank" rel="noopener sponsored" class="article-banner">
+    <img
+      src="/media/exchanges/bybit/article/bybit-article-1200x675.png"
+      alt="Bybit referral code visual"
+      class="article-banner-img"
+      width="1200" height="675"
+      loading="lazy"
+    />
+  </a>
+  <p class="article-banner-cap">Bybit welcome bonus — use code <strong>CRYPTOBONUSW</strong> at sign-up</p>
+  <div class="mini-review card">
+    <p>
+      Bybit is one of the world's largest crypto derivatives exchanges, founded in 2018 in Dubai. It serves 30+ million users globally, holds a Dubai VARA licence, and is known for futures, copy trading, and a Web3 wallet. The welcome package is among the highest headline values in the industry.
+    </p>
+    <p>
+      The 30,000 USDT maximum is real but requires high-volume futures trading over 30 days. For a standard new user making a moderate deposit, 200–600 USDT in trading vouchers is the realistic outcome. Vouchers are not withdrawable directly — only trading profits qualify.
+    </p>
+    <p style="margin-top:12px;">
+      <a href="/exchanges/bybit/" style="font-size:13px;color:var(--proto-text-2);text-decoration:underline;">→ Full Bybit exchange review</a>
+    </p>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SECTION 10 — ALTERNATIVES (3 cards)
+════════════════════════════════════════════════════════════ -->
+<div class="container section" id="alternatives">
+  <h2 class="section-title">Alternative Bonuses</h2>
+  <p style="font-size:14px;color:var(--proto-text-2);margin-bottom:14px;">Not a match for Bybit? These exchanges offer comparable welcome bonuses.</p>
+  <div class="alt-grid">
+    {alternatives.map((alt) => (
+      <a href={alt.url} class="alt-card" target="_blank" rel="nofollow sponsored noopener">
+        <img src={alt.logo} alt={`${alt.name} logo`} class="alt-logo" width="36" height="36" />
+        <div class="alt-info">
+          <div class="alt-name">{alt.name}</div>
+          <div class="alt-bonus">Up to {alt.bonus} — code: {alt.code}</div>
+          <div class="alt-tag">{alt.tag}</div>
+        </div>
+        <span class="alt-btn">View offer</span>
+      </a>
+    ))}
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SECTION 11 — FAQ (5 questions)
+════════════════════════════════════════════════════════════ -->
+<div class="container section" id="faq">
+  <h2 class="section-title">FAQ</h2>
+  <details class="faq-item">
+    <summary class="faq-q">Does the Bybit promo code CRYPTOBONUSW still work in 2026?</summary>
+    <div class="faq-a">Yes — verified active on {exchange.lastVerified} via the official Bybit referral landing page. CRYPTOBONUSW works as a referral code, promo code, and bonus code during registration. The code pre-fills automatically via our link. Bybit updates promotions periodically; always confirm on the official promo page before registering.</div>
+  </details>
+  <details class="faq-item">
+    <summary class="faq-q">Can I get the bonus without KYC?</summary>
+    <div class="faq-a">No. Bybit requires KYC Lv.1 to claim any bonus and to withdraw funds. The no-KYC withdrawal limit is 0 USDT/day. There is no no-KYC bonus path on Bybit.</div>
+  </details>
+  <details class="faq-item">
+    <summary class="faq-q">Can I withdraw the bonus amount directly?</summary>
+    <div class="faq-a">No. Bybit welcome bonuses are trading vouchers, not withdrawable cash. Only profits generated by trading with the vouchers may be eligible for withdrawal.</div>
+  </details>
+  <details class="faq-item">
+    <summary class="faq-q">Is Bybit available in my country?</summary>
+    <div class="faq-a">Bybit is not available in the United States, United Kingdom, or Canada. For all other countries, availability depends on local regulation and the products you want to access. Check Bybit's official restricted countries list before registering.</div>
+  </details>
+  <details class="faq-item">
+    <summary class="faq-q">What Bybit welcome bonus can I realistically expect?</summary>
+    <div class="faq-a">Most users completing a moderate deposit ($500–$2,000) and standard trading tasks earn approximately 200–600 USDT in vouchers. The 30,000 USDT headline on the Bybit registration bonus requires a very large deposit and sustained high-volume futures trading over 30 days.</div>
+  </details>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SECTION 12 — FINAL CTA
+════════════════════════════════════════════════════════════ -->
+<div class="container section" id="final-cta">
+  <div class="final-cta">
+    <img src={exchange.logo} alt="Bybit" class="final-cta-logo" width="44" height="44" />
+    <div class="final-cta-amount">Up to 30,000 USDT</div>
+    <div class="final-cta-typical">Most users earn 200–600 USDT · Code: CRYPTOBONUSW · Checked {exchange.lastVerified}</div>
+    <a href={exchange.affiliateUrl} class="btn-primary" target="_blank" rel="nofollow sponsored noopener" style="max-width:260px;margin:0 auto;">
+      Claim Bonus
+    </a>
+    <div class="final-cta-disclaimer">
+      Affiliate link — we may earn a commission at no extra cost to you.<br />
+      KYC required. Not available in US, UK, Canada. Bonus terms subject to change.
+    </div>
+  </div>
+</div>
+</main>
+
+<script>
+  function setupCopyBtn(id: string) {
+    const btn = document.getElementById(id) as HTMLButtonElement | null;
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+      navigator.clipboard.writeText('CRYPTOBONUSW').then(() => {
+        const row = btn.closest('.bh-promo-row') as HTMLElement | null;
+        const codeSpan = row?.querySelector('.bh-promo-code') as HTMLElement | null;
+        btn.textContent = 'Copied ✓';
+        btn.classList.add('copy-success');
+        row?.classList.add('copy-success');
+        codeSpan?.classList.add('copy-success');
+        setTimeout(() => {
+          btn.textContent = 'Copy';
+          btn.classList.remove('copy-success');
+          row?.classList.remove('copy-success');
+          codeSpan?.classList.remove('copy-success');
+        }, 1800);
+      });
+    });
+  }
+  setupCopyBtn('copy-btn-hero');
+</script>
+
+</ProtoLayout>
