@@ -3,16 +3,22 @@
  * PromoCodeBox — standard promo code display used on all exchange pages.
  * Shows label + large code badge + copy button.
  * Copy JS is self-contained and works with multiple instances on one page.
+ *
+ * Props:
+ *   code  — the promo code string (required, never hardcode on page)
+ *   label — overrides the default label text
+ *   dark  — true = dark background variant (white badge on dark block)
  */
 export interface Props {
   code: string;
   label?: string;
+  dark?: boolean;
 }
 
-const { code, label = 'Referral / Promo Code' } = Astro.props;
+const { code, label = 'Referral / Promo Code', dark = false } = Astro.props;
 ---
 
-<div class="pcb" data-promo-box>
+<div class="pcb" data-promo-box data-dark={dark || undefined}>
   <div class="pcb-label">{label}</div>
   <div class="pcb-row">
     <span class="pcb-code" data-promo-code>{code}</span>
@@ -94,4 +100,21 @@ const { code, label = 'Referral / Promo Code' } = Astro.props;
   .pcb-btn:hover  { background: #374151; }
   .pcb-btn:active { transform: scale(.97); }
   .pcb-btn.pcb-copied { background: #16A34A; }
+
+  /* ── Dark variant — used on dark promo blocks ── */
+  .pcb[data-dark] .pcb-label { color: rgba(255,255,255,.45); }
+
+  .pcb[data-dark] .pcb-code {
+    background: rgba(255,255,255,.92);
+    border-color: rgba(247,147,26,.6);
+    color: #C2410C;
+  }
+
+  .pcb[data-dark] .pcb-btn {
+    background: rgba(255,255,255,.12);
+    color: #fff;
+    border: 1.5px solid rgba(255,255,255,.25);
+  }
+  .pcb[data-dark] .pcb-btn:hover  { background: rgba(255,255,255,.2); }
+  .pcb[data-dark] .pcb-btn.pcb-copied { background: #16A34A; border-color: #16A34A; }
 </style>
