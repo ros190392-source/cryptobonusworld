@@ -21,7 +21,7 @@ export interface Offer {
 export const offers: Offer[] = [
   {
     exchangeSlug:        'bybit',
-    promoCode:           'BYBONUS',
+    promoCode:           'CRYPTOBONUSW',
     bonusHeadline:       'Up to 30,000 USDT Welcome Package',
     realisticValue:      'New users typically earn $30–$200 depending on deposit size and trading activity',
     feeDiscount:         'Up to 50% fee discount on select trading pairs',

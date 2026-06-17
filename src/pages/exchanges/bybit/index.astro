@@ -1,5 +1,6 @@
 ---
 import CleanLayout from '../../../layouts/CleanLayout.astro';
+import PromoCodeBox from '../../../components/promo/PromoCodeBox.astro';
 import { getExchange } from '../../../data/exchanges';
 import { getOffer } from '../../../data/offers';
 
@@ -9,7 +10,7 @@ const offer = getOffer('bybit')!;
 const faqs = [
   {
     q: `What is the Bybit referral code for 2026?`,
-    a: `The current Bybit referral code is BYBONUS. Enter it during registration to unlock the welcome bonus package of up to 30,000 USDT. The code must be applied before your first deposit.`,
+    a: `The current Bybit referral code is ${offer.promoCode}. Enter it during registration to unlock the welcome bonus package of up to 30,000 USDT. The code must be applied before your first deposit.`,
   },
   {
     q: 'How much can I realistically earn from the Bybit welcome bonus?',
@@ -30,7 +31,7 @@ const faqs = [
 ];
 
 const steps = [
-  { n: 1, title: 'Register with the code', body: `Go to Bybit via our referral link. On the registration page, enter the promo code BYBONUS in the referral field. Complete email verification.` },
+  { n: 1, title: 'Register with the code', body: `Go to Bybit via our referral link. On the registration page, enter the promo code ${offer.promoCode} in the referral field. Complete email verification.` },
   { n: 2, title: 'Complete KYC',           body: 'Verify your identity (Level 1 takes 5–10 minutes). KYC is required before you can withdraw or access full account features.' },
   { n: 3, title: 'Make your first deposit', body: 'Deposit any supported asset. A larger deposit unlocks higher bonus tiers. USDT and BTC are the most common deposit assets.' },
   { n: 4, title: 'Complete reward tasks',   body: 'Open the Bybit Rewards Hub after logging in. Complete the listed tasks (trades, deposits) to claim each bonus tier.' },
@@ -38,12 +39,12 @@ const steps = [
 ---
 
 <CleanLayout
-  title="Bybit Referral Code 2026: BYBONUS — Up to 30,000 USDT Bonus"
-  description="Bybit promo code BYBONUS — up to 30,000 USDT welcome package + fee discount. Verified June 2026. Enter code at registration before your first deposit."
+  title={`Bybit Referral Code 2026: ${offer.promoCode} — Up to 30,000 USDT Bonus`}
+  description={`Bybit promo code ${offer.promoCode} — up to 30,000 USDT welcome package + fee discount. Verified June 2026. Enter code at registration before your first deposit.`}
   canonical="https://cryptobonusworld.com/exchanges/bybit/"
   ogImage={ex.ogImage}
-  ogTitle="Bybit Referral Code 2026: BYBONUS — Up to 30,000 USDT"
-  ogDescription="Use Bybit promo code BYBONUS for up to 30,000 USDT welcome bonus + fee discount. Verified June 2026 by CryptoBonusWorld."
+  ogTitle={`Bybit Referral Code 2026: ${offer.promoCode} — Up to 30,000 USDT`}
+  ogDescription={`Use Bybit promo code ${offer.promoCode} for up to 30,000 USDT welcome bonus + fee discount. Verified June 2026 by CryptoBonusWorld.`}
 >
 
   <!-- Breadcrumb -->
@@ -82,20 +83,8 @@ const steps = [
 
         <div class="promo-exchange-name">{ex.name}</div>
 
-        <!-- Code box -->
-        <div class="promo-code-wrap">
-          <div class="promo-code-label">Referral / Promo Code</div>
-          <div class="promo-code-row">
-            <span class="promo-code" id="bybit-code">{offer.promoCode}</span>
-            <button class="promo-copy-btn" id="copy-btn" aria-label="Copy code">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                <rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
-                <path d="M3 11H2.5A1.5 1.5 0 0 1 1 9.5V2.5A1.5 1.5 0 0 1 2.5 1h7A1.5 1.5 0 0 1 11 2.5V3" stroke="currentColor" stroke-width="1.5"/>
-              </svg>
-              <span class="copy-label">Copy</span>
-            </button>
-          </div>
-        </div>
+        <!-- Code box — PromoCodeBox standard component -->
+        <div class="pcb-spacer"><PromoCodeBox code={offer.promoCode} /></div>
 
         <!-- Bonus info -->
         <div class="promo-benefits">
@@ -294,24 +283,6 @@ const steps = [
 
 </CleanLayout>
 
-<script>
-  const btn = document.getElementById('copy-btn');
-  const code = document.getElementById('bybit-code');
-  if (btn && code) {
-    btn.addEventListener('click', async () => {
-      try {
-        await navigator.clipboard.writeText(code.textContent?.trim() ?? '');
-        const label = btn.querySelector('.copy-label');
-        if (label) {
-          label.textContent = 'Copied!';
-          setTimeout(() => { label.textContent = 'Copy'; }, 2000);
-        }
-        btn.classList.add('copied');
-        setTimeout(() => btn.classList.remove('copied'), 2000);
-      } catch { /* clipboard not available */ }
-    });
-  }
-</script>
 
 <style>
   /* Breadcrumb */
@@ -348,26 +319,8 @@ const steps = [
   @media (min-width: 640px) { .promo-card { padding: 36px 32px; } }
   .promo-exchange-name { font-size: 22px; font-weight: 900; color: #111827; margin-bottom: 20px; }
 
-  .promo-code-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #9CA3AF; margin-bottom: 8px; }
-  .promo-code-row { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
-  .promo-code {
-    font-size: 28px; font-weight: 900; font-family: 'SFMono-Regular', Consolas, monospace;
-    color: #C2410C; background: #FFF7ED; border: 2px solid #FED7AA;
-    padding: 8px 20px; border-radius: 10px; letter-spacing: .06em;
-    user-select: all;
-  }
-  @media (min-width: 640px) { .promo-code { font-size: 34px; } }
-
-  .promo-copy-btn {
-    display: flex; align-items: center; gap: 6px;
-    padding: 10px 16px; border-radius: 8px;
-    background: #111827; color: #fff;
-    font-size: 13px; font-weight: 700;
-    border: none; cursor: pointer;
-    transition: background .15s;
-  }
-  .promo-copy-btn:hover { background: #374151; }
-  .promo-copy-btn.copied { background: #16A34A; }
+  /* promo code box styles live in PromoCodeBox.astro */
+  .pcb-spacer { margin-bottom: 24px; }
 
   .promo-benefits { display: flex; flex-direction: column; gap: 14px; margin-bottom: 24px; }
   .promo-benefit { display: flex; align-items: flex-start; gap: 12px; }
