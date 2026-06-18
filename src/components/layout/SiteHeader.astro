@@ -26,11 +26,10 @@ const currentPath = Astro.url.pathname;
     <nav class="ph-nav" aria-label="Main navigation">
       <a href="/exchanges/" class={`ph-nav-item${currentPath.startsWith('/exchanges') ? ' is-active' : ''}`}>Exchanges</a>
       <a href="/promo-codes/" class={`ph-nav-item${currentPath.startsWith('/promo-codes') ? ' is-active' : ''}`}>Promo Codes</a>
-      <a href="/countries/" class={`ph-nav-item${currentPath.startsWith('/countries') ? ' is-active' : ''}`}>Countries</a>
     </nav>
 
     <div class="ph-right">
-      <a href="/exchanges/bybit/" class="ph-cta">Get Bonus</a>
+      <a href="/bybit/" class="ph-cta">Get Bonus</a>
       <button class="ph-burger" aria-label="Open menu" aria-expanded="false" id="ph-burger-btn">
         <span class="ph-burger-bar"></span>
         <span class="ph-burger-bar"></span>
@@ -42,8 +41,7 @@ const currentPath = Astro.url.pathname;
   <div class="ph-mobile-menu" id="ph-mobile-menu" aria-hidden="true">
     <a href="/exchanges/" class="ph-mobile-item">Exchanges <span class="ph-mobile-chevron">›</span></a>
     <a href="/promo-codes/" class="ph-mobile-item">Promo Codes <span class="ph-mobile-chevron">›</span></a>
-    <a href="/countries/" class="ph-mobile-item">Countries <span class="ph-mobile-chevron">›</span></a>
-    <a href="/exchanges/bybit/" class="ph-mobile-item ph-mobile-cta">Get Bybit Bonus →</a>
+    <a href="/bybit/" class="ph-mobile-item ph-mobile-cta">Get Bybit Bonus →</a>
   </div>
 </header>
 

@@ -52,7 +52,7 @@ const faqs = [
         </p>
         <div class="hero-actions">
           <a href="#exchanges" class="btn-primary hero-cta">Browse Exchanges</a>
-          <a href="/exchanges/bybit/" class="btn-secondary">Bybit {bybitCode} →</a>
+          <a href="/bybit/" class="btn-secondary">Bybit {bybitCode} →</a>
         </div>
         <div class="hero-trust">
           <span class="trust-pill">✓ No casino style</span>
@@ -76,19 +76,8 @@ const faqs = [
         {exchangesWithOffers.map(({ exchange, offer }) => (
           <ExchangeCard exchange={exchange} offer={offer} />
         ))}
-        <div class="ec-placeholder">
-          <div class="ec-ph-inner">
-            <div class="ec-ph-name">Binance</div>
-            <div class="ec-ph-note">Referral code page coming soon</div>
-          </div>
-        </div>
-        <div class="ec-placeholder">
-          <div class="ec-ph-inner">
-            <div class="ec-ph-name">MEXC</div>
-            <div class="ec-ph-note">Referral code page coming soon</div>
-          </div>
-        </div>
       </div>
+      <p class="grid-coming-soon">More verified exchange codes are being checked.</p>
       <div class="grid-footer">
         <a href="/exchanges/" class="btn-secondary">View All Exchanges →</a>
       </div>
@@ -164,7 +153,7 @@ const faqs = [
     <div class="container">
       <h2 class="bottom-cta-title">Ready to claim your bonus?</h2>
       <p class="bottom-cta-sub">Start with Bybit — one of the world's largest exchanges, currently offering up to 30,000 USDT for new users.</p>
-      <a href="/exchanges/bybit/" class="btn-primary">Get Bybit Bonus with {bybitCode} →</a>
+      <a href="/bybit/" class="btn-primary">Get Bybit Bonus with {bybitCode} →</a>
     </div>
   </section>
 
@@ -208,14 +197,7 @@ const faqs = [
   @media (min-width: 560px) { .exchange-grid { grid-template-columns: repeat(2, 1fr); } }
   @media (min-width: 900px) { .exchange-grid { grid-template-columns: repeat(3, 1fr); } }
 
-  .ec-placeholder {
-    border: 2px dashed #E5E7EB; border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    min-height: 200px; background: #FAFAFA;
-  }
-  .ec-ph-inner { text-align: center; }
-  .ec-ph-name { font-size: 16px; font-weight: 700; color: #9CA3AF; margin-bottom: 6px; }
-  .ec-ph-note { font-size: 12px; color: #D1D5DB; }
+  .grid-coming-soon { text-align: center; font-size: 13px; color: #9CA3AF; margin: 8px 0 20px; }
   .grid-footer { text-align: center; }
 
   .steps-grid { display: grid; gap: 24px; grid-template-columns: 1fr; }

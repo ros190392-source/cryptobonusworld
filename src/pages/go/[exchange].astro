@@ -39,7 +39,8 @@ const { exchange: ex } = Astro.props;
 //  - JS is disabled
 //  - All affiliate URLs are placeholders
 //  - 0-second redirect before JS fires
-const fallbackUrl = `/exchanges/${ex.slug}/`;
+// bybit has a dedicated /bybit/ route; all others fall back to /exchanges/[slug]/
+const fallbackUrl = ex.slug === 'bybit' ? '/bybit/' : `/exchanges/${ex.slug}/`;
 
 // Serialise affiliate link data for client-side resolution
 const linkData = {
@@ -57,9 +58,9 @@ const linkData = {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Redirecting to {ex.name}…</title>
 
-  <!-- SEO: noindex this redirect page; canonical → exchange detail page -->
+  <!-- SEO: noindex this redirect page; canonical → content page -->
   <meta name="robots" content="noindex, nofollow" />
-  <link rel="canonical" href={`https://cryptobonusworld.com/exchanges/${ex.slug}/`} />
+  <link rel="canonical" href={ex.slug === 'bybit' ? 'https://cryptobonusworld.com/bybit/' : `https://cryptobonusworld.com/exchanges/${ex.slug}/`} />
 
   <!--
     Fallback meta-refresh: redirects to exchange detail page if JS fails.

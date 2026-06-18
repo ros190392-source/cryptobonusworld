@@ -13,6 +13,7 @@ export interface Exchange {
   officialUrl: string;      // for fact table display (no tracking)
   shortDescription: string; // one line for cards
   featured: boolean;
+  pageUrl?: string;         // override content page URL (e.g. /bybit/ instead of /exchanges/bybit/)
 }
 
 export const exchanges: Exchange[] = [
@@ -28,6 +29,7 @@ export const exchanges: Exchange[] = [
     officialUrl:      'https://www.bybit.com',
     shortDescription: 'Leading derivatives & spot exchange with up to 30,000 USDT welcome rewards',
     featured:         true,
+    pageUrl:          '/bybit/',
   },
 ];
 

@@ -81,6 +81,14 @@ const breadcrumbSchema = buildBreadcrumbSchema([
 
 const analyticsContext: PageContext = { pageType: 'exchange', exchangeSlug: entry.exchangeSlug };
 
+// SEO safety: all /bonus-codes/[slug] pages are old portal-era — de-index them.
+// /bonus-codes/bybit/ specifically conflicts with new canonical /bybit/ — point canonical there.
+const isBybit = entry.exchangeSlug === 'bybit';
+// SeoHead prepends siteUrl — pass path only, not full URL
+const pageCanonical = isBybit
+  ? '/bybit/'
+  : `/bonus-codes/${entry.exchangeSlug}/`;
+
 // OG image: reuse exchange card if it exists, otherwise fall back to site default
 const ogImage = `${SITE_URL}/og/exchange-${entry.exchangeSlug}.png`;
 ---
@@ -88,12 +96,18 @@ const ogImage = `${SITE_URL}/og/exchange-${entry.exchangeSlug}.png`;
 <Layout
   title={entry.seoTitle}
   description={entry.metaDesc}
-  canonical={`/bonus-codes/${entry.exchangeSlug}/`}
+  canonical={pageCanonical}
   schema={[productSchema, faqSchema, breadcrumbSchema]}
   analyticsContext={analyticsContext}
   ogImage={ogImage}
   ogType="article"
+  noindex={true}
 >
+  {isBybit && (
+    <div style="max-width:760px;margin:24px auto;padding:16px 20px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;font-family:system-ui,sans-serif;font-size:14px;color:#166534;">
+      This page has moved. <a href="/bybit/" style="color:#15803d;font-weight:700;">View the current Bybit referral code page →</a>
+    </div>
+  )}
   <div class="container">
     <Breadcrumbs crumbs={[
       { label: 'Home', href: '/' },

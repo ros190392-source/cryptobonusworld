@@ -10,7 +10,7 @@ export interface Props {
 const { exchange: ex, offer } = Astro.props;
 ---
 
-<a href={`/exchanges/${ex.slug}/`} class="ec">
+<a href={ex.pageUrl ?? `/exchanges/${ex.slug}/`} class="ec">
   <div class="ec-img-wrap">
     <img
       src={ex.cardImage}
