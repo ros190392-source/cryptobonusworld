@@ -86,7 +86,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
     background: #ffffff;
     background-image: linear-gradient(#ffffff 0 0);
     border-bottom: 1px solid var(--proto-border);
-    text-align: center; padding: 13px 20px;
+    text-align: center; padding: 9px 20px;
     color-scheme: light; forced-color-adjust: none;
   }
   .title-bar h1 {
@@ -94,20 +94,20 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
     margin: 0; line-height: 1.25;
   }
   @media (max-width: 479px) {
-    .title-bar { padding: 14px 20px; }
+    .title-bar { padding: 9px 20px; }
     .title-bar h1 { font-size: 18px; }
   }
 
   /* ── Brand Hero ───────────────────────────────────────────── */
   .brand-hero {
     background: linear-gradient(160deg, var(--bh-bgFrom) 0%, var(--bh-bgTo) 100%);
-    padding: 30px 0 34px;
+    padding: 35px 0 54px;
     color: var(--bh-text);
   }
   @media (min-width: 640px) {
-    .brand-hero { padding: 32px 0 36px; display: flex; flex-direction: column; justify-content: center; }
+    .brand-hero { padding: 42px 0 46px; display: flex; flex-direction: column; justify-content: center; }
   }
-  .bh-inner { max-width: 540px; margin: 0 auto; padding: 0 20px; text-align: center; }
+  .bh-inner { width: 100%; max-width: 540px; margin: 0 auto; padding: 0 20px; text-align: center; box-sizing: border-box; }
 
   .bh-wordmark { display: block; width: 165px; height: auto; margin: 0 auto 10px; filter: none; opacity: 1; }
   @media (min-width: 640px) { .bh-wordmark { width: 210px; } }
@@ -116,14 +116,14 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
   .bh-promo-label {
     display: block;
     font-family: "Arial Narrow", "Roboto Condensed", "Inter Tight", Inter, system-ui, sans-serif;
-    font-size: 16px; font-weight: 700; text-transform: uppercase;
+    font-size: 22px; font-weight: 700; text-transform: uppercase;
     font-stretch: condensed; letter-spacing: 0.09em; color: var(--bh-text);
     line-height: 1.1; margin-top: 16px; margin-bottom: 24px;
   }
   @media (min-width: 640px) { .bh-promo-label { font-size: 18px; letter-spacing: 0.10em; margin-top: 18px; margin-bottom: 26px; } }
 
   .bh-promo-row {
-    width: 100%; max-width: 244px;
+    width: 100%; max-width: 298px;
     margin-left: auto; margin-right: auto;
     display: flex; align-items: stretch;
     background: #ffffff; background-image: linear-gradient(#ffffff 0 0);
@@ -162,7 +162,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
 
   .bh-cta-btn {
     display: flex; align-items: center; justify-content: center;
-    width: 100%; max-width: 312px; margin-left: auto; margin-right: auto;
+    width: 100%; max-width: 320px; margin-left: auto; margin-right: auto;
     background: #55C72F; color: #fff;
     font-size: 24px; font-weight: 700; border-radius: 6px;
     height: 68px; margin-bottom: 12px;
@@ -182,8 +182,8 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
 
   /* ── Compact facts table ──────────────────────────────────── */
   .compact-facts {
-    background: #ffffff !important; border-bottom: 1px solid #E5E7EB;
-    padding: 20px 16px; color-scheme: light; forced-color-adjust: none;
+    background: #ffffff !important;
+    padding: 20px 16px 6px; color-scheme: light; forced-color-adjust: none;
   }
   .cf-inner {
     max-width: 720px; margin: 0 auto; padding: 0;
@@ -207,16 +207,17 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
   /* ── SEO intro block ─────────────────────────────────────── */
   .seo-intro-block {
     background: #ffffff; border-bottom: 1px solid #E5E7EB;
-    padding: 16px 20px 20px;
+    padding: 8px 20px 20px;
   }
   .seo-intro-inner { max-width: 720px; margin: 0 auto; }
   .seo-phrase {
     font-size: 14px; font-weight: 400; color: #9CA3AF;
-    margin: 0 0 12px; font-style: italic;
+    margin: 0; padding-bottom: 10px; font-style: italic;
+    border-bottom: 1px solid #E5E7EB;
   }
   .seo-intro-text {
     font-size: 15px; color: #4B5563; line-height: 1.65;
-    margin: 0;
+    margin: 12px 0 0;
   }
   @media (max-width: 479px) {
     .seo-phrase { font-size: 13px; }
@@ -488,356 +489,6 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════
-     BLOCK 4 — POST-TABLE CTA
-═══════════════════════════════════════════════════════════ -->
-<div class="post-table-cta">
-  <div class="ptc-inner">
-    <p class="ptc-intro">
-      Use our Bybit referral link to activate your welcome bonus. If Bybit asks for a referral code,
-      promo code, or invite code at sign-up, enter <strong>{offer.promoCode}</strong> manually —
-      this ensures your Bybit sign-up bonus is fully applied.
-    </p>
-    <a href={exchange.affiliateUrl} class="ptc-btn" rel="noopener sponsored">
-      Claim Bonus on Bybit
-    </a>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════════════════════
-     BLOCK 5 — REGISTRATION PROOF (3 screenshots)
-═══════════════════════════════════════════════════════════ -->
-<div class="reg-proof">
-  <div class="reg-proof-inner">
-    <div class="bybit-proof-badge">
-      <span class="badge-brand">BYB<span class="badge-brand-i">I</span>T</span>
-      <span class="badge-pipe">|</span>
-      <span class="badge-label">BONUS PROOF</span>
-      <span class="badge-dot"></span>
-      <span class="badge-meta">Verified {offer.lastChecked}</span>
-    </div>
-    <div class="reg-proof-grid">
-
-      <div class="reg-proof-item reg-proof-main">
-        <img
-          src="/screenshots/bybit/bonus_referral_landing/global-desktop-2026-06.webp"
-          alt={`Bybit referral landing page — code ${offer.promoCode} active`}
-          class="reg-proof-img"
-          loading="eager"
-        />
-        <div class="reg-proof-body">
-          <div class="reg-proof-item-title">
-            <span class="reg-proof-num">1</span>
-            Referral landing page
-          </div>
-          <p class="reg-proof-cap">This shows the Bybit page opened through our referral link.</p>
-        </div>
-      </div>
-
-      <div class="reg-proof-item reg-proof-sub">
-        <img
-          src="/screenshots/bybit/registration/global-desktop-2026-06.webp"
-          alt="Bybit registration form"
-          class="reg-proof-img"
-          loading="lazy"
-        />
-        <div class="reg-proof-body">
-          <div class="reg-proof-item-title">
-            <span class="reg-proof-num">2</span>
-            Sign-up form — code accepted
-          </div>
-          <p class="reg-proof-cap">Shows {offer.promoCode} pre-filled and confirmed (✓) in the referral code field at sign-up.</p>
-        </div>
-      </div>
-
-      <div class="reg-proof-item reg-proof-sub">
-        <img
-          src="/screenshots/bybit/bonus/global-desktop-2026-06.webp"
-          alt="Bybit rewards and bonus center"
-          class="reg-proof-img"
-          loading="lazy"
-        />
-        <div class="reg-proof-body">
-          <div class="reg-proof-item-title">
-            <span class="reg-proof-num">3</span>
-            Reward tiers chart
-          </div>
-          <p class="reg-proof-cap">This shows where bonus tasks and reward conditions are displayed after registration.</p>
-        </div>
-      </div>
-
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════════════════════
-     BLOCK 6 — HOW TO CLAIM (4 steps)
-═══════════════════════════════════════════════════════════ -->
-<div class="bw-wrap bybit-section" id="how-to-claim">
-  <h2 class="section-title">How to Claim the Bybit Sign-Up Bonus</h2>
-  <ol class="steps">
-    <li class="step">
-      <div class="step-num">1</div>
-      <div class="step-text"><strong>Click the referral link.</strong> Use the Claim Bonus button on this page — it takes you directly to Bybit's registration page with the offer pre-loaded.</div>
-    </li>
-    <li class="step">
-      <div class="step-num">2</div>
-      <div class="step-text"><strong>Register a new account.</strong> Create your account. If Bybit asks for a referral or promo code during sign-up, enter <strong>{offer.promoCode}</strong> manually.</div>
-    </li>
-    <li class="step">
-      <div class="step-num">3</div>
-      <div class="step-text"><strong>Complete KYC.</strong> Submit identity verification — required before any bonus can be claimed or funds withdrawn. No-KYC path does not exist on Bybit.</div>
-    </li>
-    <li class="step">
-      <div class="step-num">4</div>
-      <div class="step-text"><strong>Deposit and complete trading tasks.</strong> Make a qualifying deposit (min. 100 USDT) and finish the bonus milestones in your Rewards Hub within 30 days of registration.</div>
-    </li>
-  </ol>
-</div>
-
-<!-- ═══════════════════════════════════════════════════════════
-     BLOCK 7 — ARTICLE BANNER CTA (clickable image)
-═══════════════════════════════════════════════════════════ -->
-<div class="bw-wrap" style="padding-top:0;padding-bottom:0;">
-  <a href={exchange.affiliateUrl} class="article-banner" rel="noopener sponsored">
-    <img
-      src={exchange.articleImg}
-      alt={`Bybit Referral Code ${offer.promoCode} — Click to Claim`}
-      class="article-banner-img"
-      width="1200" height="675"
-      loading="lazy"
-    />
-  </a>
-  <p class="article-banner-cap">
-    Bybit Referral Code: <strong>{offer.promoCode}</strong> — Up to 30,000 USDT bonus
-  </p>
-</div>
-
-<!-- ═══════════════════════════════════════════════════════════
-     BLOCK 8 — BONUS CONDITIONS
-═══════════════════════════════════════════════════════════ -->
-<div class="bw-wrap bybit-section" id="bonus-conditions">
-  <h2 class="section-title">Bonus Conditions</h2>
-  <div class="card" style="padding:0;overflow:hidden;">
-    <div class="conditions-wrap">
-      <table class="conditions-table">
-        <thead>
-          <tr><th>Condition</th><th>Requirement</th><th>Notes</th></tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>New user</td>
-            <td><span class="cond-required">Required</span></td>
-            <td><div class="cond-note">Existing accounts not eligible</div></td>
-          </tr>
-          <tr>
-            <td>KYC Lv.1</td>
-            <td><span class="cond-required">Required</span></td>
-            <td><div class="cond-note">Zero withdrawal limit without KYC</div></td>
-          </tr>
-          <tr>
-            <td>First deposit</td>
-            <td>Min. 100 USDT</td>
-            <td><div class="cond-note">Larger deposits unlock higher reward tiers</div></td>
-          </tr>
-          <tr>
-            <td>Futures trading volume</td>
-            <td>Tiered milestones</td>
-            <td><div class="cond-note">Upper tiers (above ~600 USDT) require substantial futures volume</div></td>
-          </tr>
-          <tr>
-            <td>Task window</td>
-            <td>30 days</td>
-            <td><div class="cond-note">All tasks must complete within 30 days of registration</div></td>
-          </tr>
-          <tr>
-            <td>Bonus form</td>
-            <td>Trading vouchers</td>
-            <td><div class="cond-note">Cannot be withdrawn directly</div></td>
-          </tr>
-          <tr>
-            <td>Campaign change risk</td>
-            <td><span class="fact-warn">High</span></td>
-            <td><div class="cond-note">Bybit updates promo terms frequently. Always check official terms first.</div></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════════════════════
-     BLOCK 9 — REALISTIC BONUS VALUE (4 cards)
-═══════════════════════════════════════════════════════════ -->
-<div class="bw-wrap bybit-section" id="realistic-value">
-  <h2 class="section-title">Realistic Bonus Value</h2>
-  <p style="font-size:14px;color:var(--proto-text-2);margin-bottom:14px;line-height:1.5;">
-    The 30,000 USDT headline requires VIP-level volume. Here's what different users actually earn:
-  </p>
-  <div class="value-grid">
-    <div class="value-card">
-      <div class="value-card-label">Headline max</div>
-      <div class="value-card-amount">30,000 USDT</div>
-      <div class="value-card-desc">Large deposit + sustained high-volume futures trading over 30 days.</div>
-    </div>
-    <div class="value-card highlight">
-      <div class="value-card-label">Most users earn</div>
-      <div class="value-card-amount green">200–600 USDT</div>
-      <div class="value-card-desc">KYC + deposit ~$500–$2,000 + moderate futures tasks in first week.</div>
-    </div>
-    <div class="value-card">
-      <div class="value-card-label">Minimal effort</div>
-      <div class="value-card-amount">20–50 USDT</div>
-      <div class="value-card-desc">Registration + small deposit only. No trading volume tasks completed.</div>
-    </div>
-    <div class="value-card">
-      <div class="value-card-label">Active trader</div>
-      <div class="value-card-amount">600–3,000 USDT</div>
-      <div class="value-card-desc">$5,000+ deposit + active futures across multiple milestone tiers.</div>
-    </div>
-  </div>
-  <p style="font-size:12px;color:var(--proto-text-3);margin-top:12px;line-height:1.5;">
-    Bonus vouchers are not withdrawable. Only trading profits may be eligible for withdrawal. Estimates based on structure verified {offer.lastChecked}.
-  </p>
-</div>
-
-<!-- ═══════════════════════════════════════════════════════════
-     BLOCK 10 — COUNTRY AVAILABILITY
-═══════════════════════════════════════════════════════════ -->
-<div class="bw-wrap bybit-section" id="country-availability">
-  <h2 class="section-title">Country Availability</h2>
-  <div class="availability-box">
-    <strong>Restricted regions</strong>
-    Bybit does not accept users from the following countries. Registering via VPN or false location violates Bybit's Terms of Service and may result in account suspension or frozen funds.
-    <div class="excluded-chips">
-      {offer.restrictedCountries?.map(c => <span class="excluded-chip">{c}</span>)}
-    </div>
-  </div>
-  <div class="card" style="margin-top:12px;font-size:14px;color:var(--proto-text-2);line-height:1.6;">
-    Bybit is available in most countries globally. Availability depends on local regulation, KYC requirements, and the products you wish to access.
-    Check <a href="https://www.bybit.com/en/help-center/article/Restricted-countries" target="_blank" rel="noopener noreferrer nofollow" style="color:var(--proto-text);text-decoration:underline;">Bybit's official restricted countries list</a> before registering.
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════════════════════
-     BLOCK 11 — IS IT WORTH IT? (verdict grid)
-═══════════════════════════════════════════════════════════ -->
-<div class="bw-wrap bybit-section" id="verdict">
-  <h2 class="section-title">Is This Bonus Worth It?</h2>
-  <div class="verdict-grid">
-    <div class="verdict-card worth-it">
-      <div class="verdict-card-head">Worth it if…</div>
-      <ul>
-        <li>You were already planning to use Bybit</li>
-        <li>You can deposit $500+ and complete KYC</li>
-        <li>You trade futures or want copy trading</li>
-        <li>You're not in the US, UK, or Canada</li>
-        <li>You can act within 30 days of registering</li>
-      </ul>
-    </div>
-    <div class="verdict-card not-ideal">
-      <div class="verdict-card-head">Not ideal if…</div>
-      <ul>
-        <li>You want to avoid KYC</li>
-        <li>You want to withdraw the bonus as cash</li>
-        <li>You're in the US, UK, or Canada</li>
-        <li>You only want a simple spot exchange</li>
-        <li>You don't plan to trade futures</li>
-      </ul>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════════════════════
-     BLOCK 12 — ABOUT BYBIT (mini review + article image)
-═══════════════════════════════════════════════════════════ -->
-<div class="bw-wrap bybit-section" id="about-bybit">
-  <h2 class="section-title">About Bybit</h2>
-  <a href={exchange.affiliateUrl} rel="noopener sponsored" class="article-banner">
-    <img
-      src={exchange.articleImg}
-      alt="Bybit referral code visual"
-      class="article-banner-img"
-      width="1200" height="675"
-      loading="lazy"
-    />
-  </a>
-  <p class="article-banner-cap">Bybit welcome bonus — use code <strong>{offer.promoCode}</strong> at sign-up</p>
-  <div class="mini-review card">
-    <p>
-      Bybit is one of the world's largest crypto derivatives exchanges, founded in 2018 in Dubai. It serves 30+ million users globally, holds a Dubai VARA licence, and is known for futures, copy trading, and a Web3 wallet. The welcome package is among the highest headline values in the industry.
-    </p>
-    <p>
-      The 30,000 USDT maximum is real but requires high-volume futures trading over 30 days. For a standard new user making a moderate deposit, 200–600 USDT in trading vouchers is the realistic outcome. Vouchers are not withdrawable directly — only trading profits qualify.
-    </p>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════════════════════
-     BLOCK 13 — ALTERNATIVES (3 cards)
-═══════════════════════════════════════════════════════════ -->
-<div class="bw-wrap bybit-section" id="alternatives">
-  <h2 class="section-title">Alternative Bonuses</h2>
-  <p style="font-size:14px;color:var(--proto-text-2);margin-bottom:14px;">Not a match for Bybit? These exchanges offer comparable welcome bonuses.</p>
-  <div class="alt-grid">
-    {alternatives.map(alt => (
-      <a href={alt.url} class="alt-card" target="_blank" rel="nofollow sponsored noopener">
-        <img src={alt.logo} alt={`${alt.name} logo`} class="alt-logo" width="36" height="36" />
-        <div class="alt-info">
-          <div class="alt-name">{alt.name}</div>
-          <div class="alt-bonus">Up to {alt.bonus} — code: {alt.code}</div>
-          <div class="alt-tag">{alt.tag}</div>
-        </div>
-        <span class="alt-btn">View offer</span>
-      </a>
-    ))}
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════════════════════
-     BLOCK 14 — FAQ (5 questions)
-═══════════════════════════════════════════════════════════ -->
-<div class="bw-wrap bybit-section" id="faq">
-  <h2 class="section-title">FAQ</h2>
-  <details class="faq-item">
-    <summary class="faq-q">Does the Bybit promo code {offer.promoCode} still work in 2026?</summary>
-    <div class="faq-a">Yes — verified active {offer.lastChecked} via the official Bybit referral landing page. {offer.promoCode} works as a referral code, promo code, and bonus code during registration. The code pre-fills automatically via our link. Bybit updates promotions periodically; always confirm on the official promo page before registering.</div>
-  </details>
-  <details class="faq-item">
-    <summary class="faq-q">Can I get the bonus without KYC?</summary>
-    <div class="faq-a">No. Bybit requires KYC Lv.1 to claim any bonus and to withdraw funds. The no-KYC withdrawal limit is 0 USDT/day. There is no no-KYC bonus path on Bybit.</div>
-  </details>
-  <details class="faq-item">
-    <summary class="faq-q">Can I withdraw the bonus amount directly?</summary>
-    <div class="faq-a">No. Bybit welcome bonuses are trading vouchers, not withdrawable cash. Only profits generated by trading with the vouchers may be eligible for withdrawal.</div>
-  </details>
-  <details class="faq-item">
-    <summary class="faq-q">Is Bybit available in my country?</summary>
-    <div class="faq-a">Bybit is not available in the United States, United Kingdom, or Canada. For all other countries, availability depends on local regulation and the products you want to access. Check Bybit's official restricted countries list before registering.</div>
-  </details>
-  <details class="faq-item">
-    <summary class="faq-q">What Bybit welcome bonus can I realistically expect?</summary>
-    <div class="faq-a">Most users completing a moderate deposit ($500–$2,000) and standard trading tasks earn approximately 200–600 USDT in vouchers. The 30,000 USDT headline requires a very large deposit and sustained high-volume futures trading over 30 days.</div>
-  </details>
-</div>
-
-<!-- ═══════════════════════════════════════════════════════════
-     BLOCK 15 — FINAL CTA
-═══════════════════════════════════════════════════════════ -->
-<div class="bw-wrap bybit-section" id="final-cta" style="padding-bottom:60px;">
-  <div class="final-cta">
-    <img src={exchange.logoImg} alt="Bybit" class="final-cta-logo" width="44" height="44" />
-    <div class="final-cta-amount">Up to 30,000 USDT</div>
-    <div class="final-cta-typical">Most users earn 200–600 USDT · Code: {offer.promoCode} · Checked {offer.lastChecked}</div>
-    <a href={exchange.affiliateUrl} class="final-cta-btn" rel="noopener sponsored">
-      Claim Bonus
-    </a>
-    <div class="final-cta-disclaimer">
-      Affiliate link — we may earn a commission at no extra cost to you.<br />
-      KYC required. Not available in US, UK, Canada. Bonus terms subject to change.
-    </div>
-  </div>
-</div>
 
 <script define:vars={{ promoCode: offer.promoCode }}>
   (function () {
