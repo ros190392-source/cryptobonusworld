@@ -101,10 +101,12 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
   /* ── Brand Hero ───────────────────────────────────────────── */
   .brand-hero {
     background: linear-gradient(160deg, var(--bh-bgFrom) 0%, var(--bh-bgTo) 100%);
-    padding: 26px 0 11px;
+    padding: 32px 0 40px;
     color: var(--bh-text);
   }
-  @media (min-width: 640px) { .brand-hero { padding: 31px 0 8px; } }
+  @media (min-width: 640px) {
+    .brand-hero { padding: 56px 0 68px; min-height: 420px; display: flex; flex-direction: column; justify-content: center; }
+  }
   .bh-inner { max-width: 540px; margin: 0 auto; padding: 0 20px; text-align: center; }
 
   .bh-wordmark { display: block; width: 165px; height: auto; margin: 0 auto 10px; filter: none; opacity: 1; }
