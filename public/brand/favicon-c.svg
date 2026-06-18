@@ -1,0 +1,66 @@
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="coinC" cx="38%" cy="32%" r="62%">
+      <stop offset="0%" stop-color="#FFE880"/>
+      <stop offset="22%" stop-color="#F9B840"/>
+      <stop offset="56%" stop-color="#F7931A"/>
+      <stop offset="100%" stop-color="#A85600"/>
+    </radialGradient>
+    <radialGradient id="glowC" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#F7931A" stop-opacity="0.30"/>
+      <stop offset="100%" stop-color="#F7931A" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="shadowC">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- Background: flat premium navy -->
+  <rect width="512" height="512" rx="96" fill="#0C1820"/>
+
+  <!-- Glow -->
+  <circle cx="256" cy="256" r="212" fill="url(#glowC)"/>
+
+  <!-- Orbit: back arc (thin, minimal) -->
+  <g transform="translate(256,256) rotate(-20)">
+    <path d="M 196,0 A 196,66 0 0,1 -196,0"
+          fill="none" stroke="#C08A08" stroke-width="3" stroke-linecap="round"
+          opacity="0.26"/>
+  </g>
+
+  <!-- Coin (clean, maximum size, centered) -->
+  <circle cx="256" cy="256" r="152" fill="url(#coinC)"/>
+  <circle cx="256" cy="256" r="152" fill="none" stroke="#7A3C00" stroke-width="4" opacity="0.36"/>
+  <!-- Specular highlight -->
+  <ellipse cx="211" cy="200" rx="50" ry="31" fill="white" opacity="0.17"
+           transform="rotate(-38,211,200)"/>
+
+  <!-- Bitcoin ₿ symbol -->
+  <text x="256" y="344"
+        font-family="'Arial Black','Impact','Arial','Helvetica Neue',sans-serif"
+        font-weight="900" font-size="244" text-anchor="middle"
+        fill="white" opacity="0.95" filter="url(#shadowC)">&#x20BF;</text>
+
+  <!-- Orbit: front arc (thin, clean) -->
+  <g transform="translate(256,256) rotate(-20)">
+    <path d="M -196,0 A 196,66 0 0,1 196,0"
+          fill="none" stroke="#F0C030" stroke-width="3.5" stroke-linecap="round"
+          opacity="0.86"/>
+    <circle cx="-196" cy="0" r="5.5" fill="#FFD050" opacity="0.90"/>
+    <circle cx="196" cy="0" r="5.5" fill="#FFD050" opacity="0.90"/>
+  </g>
+
+  <!-- Stars (minimal: 3 only) -->
+  <g transform="translate(70,130)" opacity="0.92">
+    <ellipse ry="10" rx="2" fill="#FFE858"/>
+    <ellipse ry="2" rx="10" fill="#FFE858"/>
+  </g>
+  <g transform="translate(424,96)" opacity="0.66">
+    <ellipse ry="5.5" rx="1.5" fill="#FFD840"/>
+    <ellipse ry="1.5" rx="5.5" fill="#FFD840"/>
+  </g>
+  <g transform="translate(446,392)" opacity="0.74">
+    <ellipse ry="7" rx="1.8" fill="#FFE050"/>
+    <ellipse ry="1.8" rx="7" fill="#FFE050"/>
+  </g>
+</svg>

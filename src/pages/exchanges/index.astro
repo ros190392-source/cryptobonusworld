@@ -1,192 +1,63 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import ExchangeCard from '../../components/ExchangeCard.astro';
-import Breadcrumbs from '../../components/Breadcrumbs.astro';
-import AffiliateDisclosure from '../../components/AffiliateDisclosure.astro';
-import RiskDisclaimer from '../../components/RiskDisclaimer.astro';
+import CleanLayout from '../../layouts/CleanLayout.astro';
+import ExchangeCard from '../../components/home/ExchangeCard.astro';
+import { getFeaturedExchanges } from '../../data/exchanges';
+import { getOffer } from '../../data/offers';
 
-import exchanges from '../../data/exchanges.json';
-
-import { buildItemListSchema, YEAR } from '../../utils/seo';
-
-const sorted = [...exchanges].sort((a, b) => b.rating - a.rating);
-
-const itemListSchema = buildItemListSchema(
-  sorted.map(ex => ({
-    name: `${ex.name} Welcome Bonus`,
-    url: `/exchanges/${ex.slug}/`,
-    description: ex.shortDescription,
-  })),
-  `Top Crypto Exchange Bonuses ${YEAR}`
-);
-
-const maxBonus = Math.max(...sorted.map(e => e.bonusAmount));
-const maxBonusFmt = maxBonus.toLocaleString('en-US');
-const noKycCount = sorted.filter(e => !e.kycRequired).length;
+const exchanges = getFeaturedExchanges();
+const exchangesWithOffers = exchanges.map(ex => ({
+  exchange: ex,
+  offer: getOffer(ex.slug),
+}));
 ---
 
-<Layout
-  title={`Crypto Exchange Bonus Reviews ${YEAR} — ${sorted.length} Exchanges Compared`}
-  description={`Compare welcome bonuses from ${sorted.length} top crypto exchanges. Best offer: up to ${maxBonusFmt} USDT. ${noKycCount} exchanges available without KYC. Full conditions and claim guides.`}
-  canonical="/exchanges/"
-  schema={itemListSchema}
+<CleanLayout
+  title="Crypto Exchanges — Referral Codes & Promo Bonuses | CryptoBonusWorld"
+  description="Verified referral codes and welcome bonuses for top crypto exchanges. Bybit, Binance, MEXC and more. Updated June 2026."
 >
-  <div class="container">
-    <Breadcrumbs crumbs={[
-      { label: 'Home', href: '/' },
-      { label: 'Exchanges' },
-    ]} />
 
-    <div class="page-header">
-      <h1>Crypto Exchange Bonuses — All {sorted.length} Exchanges</h1>
-      <p class="lead">
-        Compare welcome bonuses, conditions and requirements from {sorted.length} top crypto exchanges.
-        Best offer up to {maxBonusFmt} USDT. {noKycCount} available without KYC.
+  <section class="page-header">
+    <div class="container">
+      <div class="section-label">Exchange Directory</div>
+      <h1 class="section-title" style="max-width:560px">Crypto Exchange Promo Codes</h1>
+      <p class="section-sub">
+        Verified referral codes and welcome bonuses for the world's top crypto exchanges.
+        Every code is checked against the official exchange promotions page.
       </p>
     </div>
+  </section>
 
-    <AffiliateDisclosure compact />
-
-    <div class="grid-3" style="margin-top: 1.5rem">
-      {sorted.map(ex => <ExchangeCard {...ex} />)}
-    </div>
-
-    <section class="ex-index-info">
-      <h2>How We Compare Crypto Exchange Bonuses</h2>
-      <p>
-        Every exchange listed on CryptoBonusWorld is evaluated on bonus amount, condition clarity,
-        KYC requirements, country availability, platform security reputation and how easily the
-        bonus can actually be claimed. Our editorial rating (out of 10) reflects this holistic
-        assessment — not just the headline bonus number.
-      </p>
-      <p>
-        Bonus terms change frequently. We verify each exchange's active promotion against official
-        terms pages. The <strong>last verified</strong> date shown on each exchange page tells you
-        when we last checked. Always confirm conditions on the official exchange website before signing up.
-      </p>
-    </section>
-
-    <section class="hub-crosslinks" aria-label="Explore more on CryptoBonusWorld">
-      <h2 class="hub-crosslinks__title">More Ways to Find the Right Exchange</h2>
-      <div class="hub-crosslinks__grid">
-        <a href="/bonuses/" class="hub-crosslinks__card">
-          <span class="hub-crosslinks__icon">🎁</span>
-          <div>
-            <strong>Compare All Bonus Offers</strong>
-            <p>Filter {sorted.length} bonuses by type, KYC status and country. Find the best no-deposit, signup and futures bonuses.</p>
+  <section class="section bg-white">
+    <div class="container">
+      <div class="exchange-grid">
+        {exchangesWithOffers.map(({ exchange, offer }) => (
+          <ExchangeCard exchange={exchange} offer={offer} />
+        ))}
+        {(['Binance', 'MEXC', 'Bitget', 'OKX', 'BingX']).map(name => (
+          <div class="ec-placeholder">
+            <div class="ec-ph-inner">
+              <div class="ec-ph-name">{name}</div>
+              <div class="ec-ph-note">Coming soon</div>
+            </div>
           </div>
-          <span class="hub-crosslinks__arrow">→</span>
-        </a>
-        <a href="/compare/" class="hub-crosslinks__card">
-          <span class="hub-crosslinks__icon">⚖️</span>
-          <div>
-            <strong>Side-by-Side Exchange Comparisons</strong>
-            <p>Compare Bybit vs Binance, OKX vs MEXC, and more. See bonuses, KYC, fees and features in a single table.</p>
-          </div>
-          <span class="hub-crosslinks__arrow">→</span>
-        </a>
-        <a href="/use-cases/" class="hub-crosslinks__card">
-          <span class="hub-crosslinks__icon">🎯</span>
-          <div>
-            <strong>Find an Exchange by Trading Goal</strong>
-            <p>Best exchanges for beginners, futures trading, no-KYC, copy trading, low fees, P2P and more.</p>
-          </div>
-          <span class="hub-crosslinks__arrow">→</span>
-        </a>
-        <a href="/guides/" class="hub-crosslinks__card">
-          <span class="hub-crosslinks__icon">📖</span>
-          <div>
-            <strong>How-To Guides &amp; Bonus Walkthroughs</strong>
-            <p>Step-by-step guides on how to claim bonuses, pass KYC, deposit USDT and start trading.</p>
-          </div>
-          <span class="hub-crosslinks__arrow">→</span>
-        </a>
+        ))}
       </div>
-    </section>
+    </div>
+  </section>
 
-    <RiskDisclaimer />
-  </div>
-</Layout>
+</CleanLayout>
 
 <style>
-  .ex-index-info {
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg, 14px);
-    padding: 1.75rem;
-    margin: 2rem 0;
+  .page-header { padding: 48px 0 0; background: #F7F8F4; }
+  .bg-white { background: #fff; }
+  .exchange-grid { display: grid; gap: 20px; grid-template-columns: 1fr; }
+  @media (min-width: 560px) { .exchange-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 900px) { .exchange-grid { grid-template-columns: repeat(3, 1fr); } }
+  .ec-placeholder {
+    border: 2px dashed #E5E7EB; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center; min-height: 180px; background: #FAFAFA;
   }
-  .ex-index-info h2 {
-    font-size: 1.1rem;
-    font-weight: 700;
-    margin: 0 0 0.875rem;
-    color: var(--color-text-primary);
-  }
-  .ex-index-info p {
-    font-size: 0.875rem;
-    color: var(--color-text-secondary);
-    line-height: 1.75;
-    margin: 0 0 0.75rem;
-  }
-  .ex-index-info p:last-child { margin-bottom: 0; }
-
-  /* ── Hub cross-links ── */
-  .hub-crosslinks {
-    margin: 2.5rem 0;
-  }
-  .hub-crosslinks__title {
-    font-size: 1.1rem;
-    font-weight: 700;
-    margin: 0 0 1.25rem;
-    color: var(--color-text-primary);
-  }
-  .hub-crosslinks__grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.875rem;
-  }
-  .hub-crosslinks__card {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.875rem;
-    padding: 1.125rem 1.25rem;
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg, 14px);
-    text-decoration: none;
-    color: var(--color-text-primary);
-    transition: border-color 0.15s, box-shadow 0.15s;
-  }
-  .hub-crosslinks__card:hover {
-    border-color: var(--color-accent);
-    box-shadow: 0 0 0 1px var(--color-accent, #f5c542) inset;
-  }
-  .hub-crosslinks__icon {
-    font-size: 1.25rem;
-    flex-shrink: 0;
-    margin-top: 0.1rem;
-  }
-  .hub-crosslinks__card div { flex: 1; min-width: 0; }
-  .hub-crosslinks__card strong {
-    display: block;
-    font-size: 0.9rem;
-    font-weight: 700;
-    margin-bottom: 0.2rem;
-    color: var(--color-text-primary);
-  }
-  .hub-crosslinks__card p {
-    margin: 0;
-    font-size: 0.8rem;
-    color: var(--color-text-secondary);
-    line-height: 1.5;
-  }
-  .hub-crosslinks__arrow {
-    font-size: 0.9rem;
-    color: var(--color-accent);
-    flex-shrink: 0;
-    margin-top: 0.1rem;
-  }
-  @media (max-width: 640px) {
-    .hub-crosslinks__grid { grid-template-columns: 1fr; }
-  }
+  .ec-ph-inner { text-align: center; }
+  .ec-ph-name { font-size: 16px; font-weight: 700; color: #9CA3AF; margin-bottom: 6px; }
+  .ec-ph-note { font-size: 12px; color: #D1D5DB; }
 </style>

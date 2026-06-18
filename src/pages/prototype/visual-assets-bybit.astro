@@ -1,0 +1,393 @@
+---
+// /prototype/visual-assets-bybit/ — Visual asset QA for Bybit. DO NOT INDEX.
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <title>Visual Assets QA — Bybit · CBW</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicons/favicon-32x32.png"/>
+  <link rel="shortcut icon" href="/favicons/favicon.ico"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #080F18; color: #cce0f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.5; }
+
+    /* ── Header ── */
+    .page-hd { background: #13233E; border-bottom: 1px solid rgba(255,255,255,.08); padding: 16px 28px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .page-hd h1 { font-size: 16px; font-weight: 700; color: #fff; margin-right: 4px; }
+    .badge { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; padding: 3px 8px; border-radius: 4px; white-space: nowrap; }
+    .b-orange { background: rgba(247,147,26,.15); border: 1px solid rgba(247,147,26,.3); color: #F7931A; }
+    .b-green  { background: rgba(74,197,122,.12); border: 1px solid rgba(74,197,122,.3); color: #4ac57a; }
+    .b-blue   { background: rgba(96,165,250,.12); border: 1px solid rgba(96,165,250,.3); color: #60a5fa; }
+    .b-purple { background: rgba(167,139,250,.12); border: 1px solid rgba(167,139,250,.3); color: #a78bfa; }
+
+    /* ── Layout ── */
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 36px 24px 60px; }
+    .sec { margin-bottom: 52px; }
+    .sec-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #3a5870; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,.04); display: flex; align-items: center; gap: 10px; }
+    .sec-label span { font-size: 11px; font-weight: 400; color: #2a3a48; letter-spacing: 0; text-transform: none; }
+
+    /* ── Source info bar ── */
+    .source-bar { background: rgba(247,147,26,.06); border: 1px solid rgba(247,147,26,.15); border-radius: 8px; padding: 12px 16px; margin-bottom: 22px; font-size: 12px; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+    .source-bar strong { color: #F7931A; }
+    .source-bar code { font-family: 'SFMono-Regular', Consolas, monospace; font-size: 11px; background: rgba(0,0,0,.3); padding: 2px 5px; border-radius: 3px; color: #b0c8e0; }
+
+    /* ── Image card ── */
+    .img-card { background: #0d1a26; border: 1px solid rgba(255,255,255,.06); border-radius: 10px; overflow: hidden; margin-bottom: 20px; }
+    .img-card-head { background: #0a1620; border-bottom: 1px solid rgba(255,255,255,.04); padding: 12px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .img-name { font-family: 'SFMono-Regular', Consolas, monospace; font-size: 12px; font-weight: 700; color: #90b8d0; }
+    .img-dim  { font-size: 11px; color: #3a5870; }
+    .img-use  { font-size: 11px; color: #2a4050; margin-left: auto; }
+    .img-body { padding: 16px; }
+    .img-preview { border-radius: 6px; overflow: hidden; border: 1px solid rgba(255,255,255,.06); }
+    .img-preview img { display: block; width: 100%; height: auto; }
+
+    /* ── Mocks row ── */
+    .mocks-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+    @media (max-width: 680px) { .mocks-row { grid-template-columns: 1fr; } }
+    .mock-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #2a3a48; margin-bottom: 8px; }
+
+    /* ── OG social preview mock ── */
+    .og-mock { border-radius: 8px; overflow: hidden; border: 1px solid rgba(255,255,255,.09); background: #111e2c; }
+    .og-img img { width: 100%; height: auto; display: block; }
+    .og-body { padding: 10px 13px; }
+    .og-domain { font-size: 10px; color: #4a6070; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 2px; }
+    .og-title  { font-size: 13px; font-weight: 700; color: #c0d8e8; margin-bottom: 2px; line-height: 1.3; }
+    .og-desc   { font-size: 11px; color: #3a5060; line-height: 1.45; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+
+    /* ── Article placement mock ── */
+    .article-mock { background: #f7f8f4; border-radius: 8px; overflow: hidden; border: 1px solid rgba(0,0,0,.08); padding: 16px; }
+    .article-mock-h2 { font-size: 15px; font-weight: 700; color: #111827; margin-bottom: 12px; }
+    .article-mock-img { border-radius: 6px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,.12); margin-bottom: 8px; }
+    .article-mock-img img { width: 100%; height: auto; display: block; }
+    .article-mock-cap { font-size: 11px; color: #6b7280; text-align: center; margin-bottom: 12px; }
+    .article-mock-text { font-size: 12px; color: #4b5563; line-height: 1.6; }
+
+    /* ── Homepage grid mock ── */
+    .grid-mock-wrap { background: #f7f8f4; border-radius: 10px; padding: 20px; border: 1px solid rgba(0,0,0,.08); }
+    .grid-mock-label { font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+    .grid-mock-label .vp-tag { font-size: 10px; background: #e5e7eb; color: #6b7280; border-radius: 4px; padding: 2px 6px; letter-spacing: 0; text-transform: none; font-weight: 600; }
+
+    /* THE real responsive grid — matches competitor layout */
+    .hg-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    @media (max-width: 900px) { .hg-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 560px) { .hg-grid { grid-template-columns: 1fr; } }
+
+    /* Card: img tag, no cropping, fully visible */
+    .hg-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+    .hg-card-img { display: block; width: 100%; height: auto; }   /* ← THE rule: no crop, no cover */
+    .hg-card-body { padding: 12px 14px; }
+    .hg-card-exch { font-size: 13px; font-weight: 700; color: #111827; margin-bottom: 2px; }
+    .hg-card-bonus { font-size: 12px; color: #6b7280; margin-bottom: 6px; }
+    .hg-card-code { display: inline-block; font-size: 11px; font-weight: 700; background: #fff7ed; border: 1px solid #fed7aa; color: #c2410c; padding: 2px 8px; border-radius: 4px; letter-spacing: .03em; }
+
+    /* Placeholder card (exchanges without approved image yet) */
+    .hg-card-placeholder { background: #e5e7eb; aspect-ratio: 3/2; display: flex; align-items: center; justify-content: center; }
+    .hg-card-placeholder span { font-size: 12px; color: #9ca3af; }
+
+    /* Grid viewport controls */
+    .vp-controls { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+    .vp-btn { font-size: 11px; font-weight: 600; padding: 5px 10px; border-radius: 6px; cursor: pointer; border: 1px solid #d1d5db; background: #fff; color: #374151; transition: background .15s; }
+    .vp-btn:hover, .vp-btn.active { background: #13233E; color: #fff; border-color: #13233E; }
+
+    /* Viewport-limited frame */
+    .vp-frame { overflow: hidden; border-radius: 8px; border: 1px solid #d1d5db; background: #f7f8f4; }
+
+    /* ── OG wiring status ── */
+    .wire-box { background: rgba(96,165,250,.05); border: 1px solid rgba(96,165,250,.14); border-radius: 8px; padding: 14px 18px; margin-bottom: 36px; }
+    .wire-box h3 { font-size: 12px; font-weight: 700; color: #60a5fa; margin-bottom: 8px; text-transform: uppercase; letter-spacing: .06em; }
+    .wire-box code { font-family: 'SFMono-Regular', Consolas, monospace; font-size: 11px; background: rgba(0,0,0,.3); padding: 2px 5px; border-radius: 3px; color: #93c5fd; }
+    .wire-box p { font-size: 12px; color: #3a5870; line-height: 1.7; }
+
+    /* ── Standard box ── */
+    .std-box { background: rgba(167,139,250,.05); border: 1px solid rgba(167,139,250,.15); border-radius: 8px; padding: 14px 18px; margin-bottom: 36px; }
+    .std-box h3 { font-size: 12px; font-weight: 700; color: #a78bfa; margin-bottom: 10px; text-transform: uppercase; letter-spacing: .06em; }
+    .std-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .std-table th { text-align: left; color: #3a5070; font-weight: 600; padding: 4px 8px; border-bottom: 1px solid rgba(255,255,255,.05); }
+    .std-table td { padding: 5px 8px; color: #6a8a9a; border-bottom: 1px solid rgba(255,255,255,.03); }
+    .std-table td:first-child { color: #90b8d0; font-weight: 600; }
+
+    /* ── QA checklist ── */
+    .qa-box { background: #0a1620; border: 1px solid rgba(74,197,122,.14); border-radius: 10px; padding: 18px 22px; }
+    .qa-box h3 { font-size: 12px; font-weight: 700; color: #4ac57a; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 14px; }
+    .qa-list { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+    .qa-list li { font-size: 12px; color: #5a7890; display: flex; align-items: baseline; gap: 8px; line-height: 1.5; }
+    .qa-list li::before { content: "✓"; color: #4ac57a; font-weight: 700; flex-shrink: 0; }
+    .qa-list strong { color: #8ab8d0; }
+  </style>
+</head>
+<body>
+
+<div class="page-hd">
+  <h1>Visual Assets QA — Bybit</h1>
+  <span class="badge b-orange">CBW-BYBIT-VISUAL-PACK-001</span>
+  <span class="badge b-purple">Card standard: 1200×800</span>
+  <span class="badge b-blue">3 approved files</span>
+  <span class="badge b-green">No Deploy</span>
+</div>
+
+<div class="wrap">
+
+  <!-- OG wiring status -->
+  <div class="wire-box">
+    <h3>OG Wiring — /prototype/bybit-light/</h3>
+    <p>
+      <code>og:image</code> → <code>/media/exchanges/bybit/share/bybit-og-1200x630.png</code><br/>
+      <code>og:image:width</code> → <code>1200</code> &nbsp; <code>og:image:height</code> → <code>630</code><br/>
+      <code>twitter:card</code> → <code>summary_large_image</code><br/>
+      <code>robots</code> → <code>noindex, nofollow</code>
+    </p>
+  </div>
+
+  <!-- Visual pack standard summary -->
+  <div class="std-box">
+    <h3>Visual Pack Standard v1 — Image sizes</h3>
+    <table class="std-table">
+      <tr><th>Image</th><th>Size</th><th>Aspect</th><th>File pattern</th></tr>
+      <tr><td>OG / social link preview</td><td>1200×630</td><td>16:10</td><td>&#123;exchange&#125;-og-1200x630-approved.png</td></tr>
+      <tr><td>Article / inline</td><td>1200×675</td><td>16:9</td><td>&#123;exchange&#125;-article-1200x675-approved.png</td></tr>
+      <tr><td>Homepage card</td><td>1200×800</td><td>3:2</td><td>&#123;exchange&#125;-card-1200x800-approved.png</td></tr>
+    </table>
+  </div>
+
+  <!-- ── 1. OG image ─────────────────────────────────────────── -->
+  <div class="sec" id="og">
+    <div class="sec-label">01 — OG image 1200×630 <span>og:image · social link preview · Viber · Telegram · Facebook</span></div>
+    <div class="source-bar">
+      <strong>Source:</strong>
+      <code>Reference/bybit-visual-pack-v1/bybit-og-1200x630-approved.png</code>
+      <span style="color:#4a6070">→</span>
+      <code>public/media/exchanges/bybit/share/bybit-og-1200x630.png</code>
+    </div>
+    <div class="img-card">
+      <div class="img-card-head">
+        <span class="img-name">bybit-og-1200x630.png</span>
+        <span class="img-dim">1200 × 630</span>
+        <span class="img-use">Primary OG — Facebook, LinkedIn, Telegram, Viber</span>
+      </div>
+      <div class="img-body">
+        <div class="img-preview">
+          <img src="/media/exchanges/bybit/share/bybit-og-1200x630.png"
+               alt="Bybit OG image" width="1200" height="630" loading="eager"/>
+        </div>
+        <div class="mocks-row">
+          <div>
+            <div class="mock-label">Telegram / Viber link preview mock</div>
+            <div class="og-mock">
+              <div class="og-img">
+                <img src="/media/exchanges/bybit/share/bybit-og-1200x630.png"
+                     alt="" width="1200" height="630" loading="lazy"/>
+              </div>
+              <div class="og-body">
+                <div class="og-domain">cryptobonusworld.com</div>
+                <div class="og-title">Bybit Referral Code 2026: CRYPTOBONUSW — Up to $30,000 Bonus</div>
+                <div class="og-desc">Use Bybit promo code CRYPTOBONUSW to claim your welcome bonus. Verified June 2026 by CryptoBonusWorld.</div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="mock-label">Twitter / X card mock</div>
+            <div class="og-mock">
+              <div class="og-img">
+                <img src="/media/exchanges/bybit/share/bybit-og-1200x630.png"
+                     alt="" width="1200" height="630" loading="lazy"/>
+              </div>
+              <div class="og-body">
+                <div class="og-domain">cryptobonusworld.com</div>
+                <div class="og-title">Bybit Referral Code 2026: CRYPTOBONUSW</div>
+                <div class="og-desc">Use CRYPTOBONUSW to claim Bybit new user rewards. Source checked June 2026.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 2. Article image ────────────────────────────────────── -->
+  <div class="sec" id="article">
+    <div class="sec-label">02 — Article image 1200×675 <span>in-page banner · placed in #mini-review · below conversion block</span></div>
+    <div class="source-bar">
+      <strong>Source:</strong>
+      <code>Reference/bybit-visual-pack-v1/bybit-article-1200x675-approved.png</code>
+      <span style="color:#4a6070">→</span>
+      <code>public/media/exchanges/bybit/article/bybit-article-1200x675.png</code>
+    </div>
+    <div class="img-card">
+      <div class="img-card-head">
+        <span class="img-name">bybit-article-1200x675.png</span>
+        <span class="img-dim">1200 × 675</span>
+        <span class="img-use">Article / page inline banner · .article-banner class</span>
+      </div>
+      <div class="img-body">
+        <div class="img-preview">
+          <img src="/media/exchanges/bybit/article/bybit-article-1200x675.png"
+               alt="Bybit article image" width="1200" height="675" loading="lazy"/>
+        </div>
+        <div class="mocks-row" style="margin-top:16px">
+          <div>
+            <div class="mock-label">Article placement mock — "About Bybit" section</div>
+            <div class="article-mock">
+              <div class="article-mock-h2">About Bybit</div>
+              <div class="article-mock-img">
+                <img src="/media/exchanges/bybit/article/bybit-article-1200x675.png"
+                     alt="Bybit referral code visual"
+                     width="1200" height="675" loading="lazy"/>
+              </div>
+              <div class="article-mock-cap">Bybit welcome bonus — use code <strong>CRYPTOBONUSW</strong> at sign-up</div>
+              <div class="article-mock-text">Bybit is one of the world's largest crypto derivatives exchanges…</div>
+            </div>
+          </div>
+          <div>
+            <div class="mock-label">Placement details</div>
+            <div style="background:#0a1620;border:1px solid rgba(255,255,255,.05);border-radius:8px;padding:14px 16px;font-size:12px;color:#4a6070;line-height:1.9;">
+              <div>Alt: <span style="color:#90b8d0">Bybit referral code visual</span></div>
+              <div>Section: <span style="color:#90b8d0">#mini-review</span></div>
+              <div>Position: <span style="color:#90b8d0">after &lt;h2&gt;, before review text</span></div>
+              <div>Class: <span style="color:#90b8d0">.article-banner</span></div>
+              <div>Link: <span style="color:#90b8d0">affiliate URL, rel="noopener sponsored"</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 3. Homepage card 1200×800 ──────────────────────────── -->
+  <div class="sec" id="card">
+    <div class="sec-label">03 — Homepage card 1200×800 <span>3:2 · responsive grid · no crop · img tag</span></div>
+    <div class="source-bar">
+      <strong>Source:</strong>
+      <code>Reference/bybit-visual-pack-v1/bybit-card-1200x800-approved.png</code>
+      <span style="color:#4a6070">→</span>
+      <code>public/media/exchanges/bybit/cards/bybit-card-1200x800.png</code>
+    </div>
+    <div class="img-card">
+      <div class="img-card-head">
+        <span class="img-name">bybit-card-1200x800.png</span>
+        <span class="img-dim">1200 × 800</span>
+        <span class="img-use">Homepage card · exchange grid · 3-col desktop / 2-col tablet / 1-col mobile</span>
+      </div>
+      <div class="img-body">
+
+        <!-- Full image preview -->
+        <div class="img-preview" style="margin-bottom:20px">
+          <img src="/media/exchanges/bybit/cards/bybit-card-1200x800.png"
+               alt="Bybit homepage card" width="1200" height="800" loading="lazy"/>
+        </div>
+
+        <!-- Responsive grid mock -->
+        <div class="grid-mock-wrap" id="grid-mock">
+          <div class="grid-mock-label">
+            Homepage grid mock
+            <span class="vp-tag">resize your window to test breakpoints</span>
+          </div>
+
+          <!-- Viewport controls -->
+          <div class="vp-controls">
+            <button class="vp-btn active" onclick="setVP(this,'100%')">Full width</button>
+            <button class="vp-btn" onclick="setVP(this,'960px')">Desktop 960px</button>
+            <button class="vp-btn" onclick="setVP(this,'768px')">Tablet 768px</button>
+            <button class="vp-btn" onclick="setVP(this,'375px')">Mobile 375px</button>
+          </div>
+
+          <div class="vp-frame" id="vp-frame">
+            <div style="padding:16px">
+              <div class="hg-grid" id="hg-grid">
+
+                <!-- Card 1: Bybit — approved image -->
+                <div class="hg-card">
+                  <img
+                    src="/media/exchanges/bybit/cards/bybit-card-1200x800.png"
+                    alt="Bybit referral code — claim bonus"
+                    class="hg-card-img"
+                    width="1200" height="800"
+                    loading="lazy"
+                  />
+                  <div class="hg-card-body">
+                    <div class="hg-card-exch">Bybit</div>
+                    <div class="hg-card-bonus">Up to 30,000 USDT</div>
+                    <div class="hg-card-code">CRYPTOBONUSW</div>
+                  </div>
+                </div>
+
+                <!-- Card 2: Binance — placeholder (no approved image yet) -->
+                <div class="hg-card">
+                  <div class="hg-card-placeholder">
+                    <span>Binance — card pending</span>
+                  </div>
+                  <div class="hg-card-body">
+                    <div class="hg-card-exch">Binance</div>
+                    <div class="hg-card-bonus">Up to 600 USDT</div>
+                    <div class="hg-card-code">CRYPTOBONUSW</div>
+                  </div>
+                </div>
+
+                <!-- Card 3: MEXC — placeholder -->
+                <div class="hg-card">
+                  <div class="hg-card-placeholder">
+                    <span>MEXC — card pending</span>
+                  </div>
+                  <div class="hg-card-body">
+                    <div class="hg-card-exch">MEXC</div>
+                    <div class="hg-card-bonus">Up to 8,000 USDT</div>
+                    <div class="hg-card-code">mexc-CryptoBonus</div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div><!-- /vp-frame -->
+
+          <!-- Grid rule callout -->
+          <div style="margin-top:12px;font-size:11px;color:#4a6070;line-height:1.9;padding:10px 12px;background:#0a1620;border-radius:6px;border:1px solid rgba(255,255,255,.04)">
+            <strong style="color:#90b8d0">Grid CSS:</strong>
+            <code style="font-family:monospace;font-size:10px;color:#a78bfa">
+              grid-template-columns: repeat(3,1fr) → repeat(2,1fr) at ≤900px → 1fr at ≤560px
+            </code><br/>
+            <strong style="color:#90b8d0">Image rule:</strong>
+            <code style="font-family:monospace;font-size:10px;color:#a78bfa">
+              &lt;img width="100%" height="auto" display="block"&gt; — no object-fit, no crop
+            </code>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── QA checklist ─────────────────────────────────────────── -->
+  <div class="qa-box">
+    <h3>QA Checklist</h3>
+    <ul class="qa-list">
+      <li><strong>OG 1200×630</strong> — approved source copied, 200 OK, wired to og:image + twitter:image</li>
+      <li><strong>Article 1200×675</strong> — approved source copied, 200 OK, placed in #mini-review (.article-banner)</li>
+      <li><strong>Card 1200×800</strong> — approved source copied, 200 OK, rendered in responsive grid</li>
+      <li><strong>Grid: 3 cols desktop / 2 cols tablet / 1 col mobile</strong> — CSS grid breakpoints at 900px and 560px</li>
+      <li><strong>No crop, no cover</strong> — img tag, width:100%, height:auto, display:block</li>
+      <li><strong>Standard updated</strong> — VISUAL_PACK_STANDARD_v1.md: card = 1200×800 (3:2)</li>
+      <li><strong>Prompts updated</strong> — VISUAL_IMAGE_PROMPTS_v1.md: Prompt 3 updated to 1200×800</li>
+      <li><strong>noindex/nofollow</strong> — prototype pages remain protected</li>
+      <li><strong>Header frozen, favicon frozen</strong> — no changes</li>
+    </ul>
+  </div>
+
+</div>
+
+<script>
+  function setVP(btn, width) {
+    document.getElementById('vp-frame').style.width = width;
+    document.getElementById('vp-frame').style.maxWidth = '100%';
+    document.querySelectorAll('.vp-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+</script>
+
+</body>
+</html>

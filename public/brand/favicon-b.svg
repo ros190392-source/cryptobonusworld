@@ -1,0 +1,100 @@
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bgB" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#14253C"/>
+      <stop offset="100%" stop-color="#09141F"/>
+    </radialGradient>
+    <radialGradient id="globeB" cx="40%" cy="36%" r="62%">
+      <stop offset="0%" stop-color="#1C3C64"/>
+      <stop offset="58%" stop-color="#0C2040"/>
+      <stop offset="100%" stop-color="#060E1E"/>
+    </radialGradient>
+    <radialGradient id="coinB" cx="38%" cy="32%" r="62%">
+      <stop offset="0%" stop-color="#FFE880"/>
+      <stop offset="22%" stop-color="#F9B840"/>
+      <stop offset="56%" stop-color="#F7931A"/>
+      <stop offset="100%" stop-color="#A85600"/>
+    </radialGradient>
+    <radialGradient id="glowB" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#F7931A" stop-opacity="0.26"/>
+      <stop offset="100%" stop-color="#F7931A" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="gcB">
+      <circle cx="256" cy="270" r="150"/>
+    </clipPath>
+    <filter id="shadowB">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity="0.28"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="96" fill="url(#bgB)"/>
+
+  <!-- Globe sphere -->
+  <circle cx="256" cy="270" r="150" fill="url(#globeB)" opacity="0.82"/>
+
+  <!-- Globe latitude lines -->
+  <g clip-path="url(#gcB)" opacity="0.20">
+    <ellipse cx="256" cy="218" rx="150" ry="23" fill="none" stroke="#C8A020" stroke-width="1.5"/>
+    <ellipse cx="256" cy="270" rx="150" ry="40" fill="none" stroke="#C8A020" stroke-width="1.5"/>
+    <ellipse cx="256" cy="322" rx="150" ry="23" fill="none" stroke="#C8A020" stroke-width="1.5"/>
+  </g>
+  <!-- Globe longitude lines -->
+  <g clip-path="url(#gcB)" opacity="0.16">
+    <ellipse cx="256" cy="270" rx="30" ry="150" fill="none" stroke="#C8A020" stroke-width="1.5"/>
+    <ellipse cx="256" cy="270" rx="80" ry="150" fill="none" stroke="#C8A020" stroke-width="1.5"/>
+    <ellipse cx="256" cy="270" rx="122" ry="150" fill="none" stroke="#C8A020" stroke-width="1.5"
+             transform="rotate(28,256,270)"/>
+  </g>
+  <!-- Globe rim -->
+  <circle cx="256" cy="270" r="150" fill="none" stroke="#224870" stroke-width="2" opacity="0.45"/>
+
+  <!-- Glow around coin area -->
+  <circle cx="256" cy="248" r="185" fill="url(#glowB)"/>
+
+  <!-- Orbit: back arc -->
+  <g transform="translate(256,254) rotate(-20)">
+    <path d="M 187,0 A 187,63 0 0,1 -187,0"
+          fill="none" stroke="#C08A08" stroke-width="4" stroke-linecap="round"
+          opacity="0.32"/>
+  </g>
+
+  <!-- Coin (in front of globe) -->
+  <circle cx="256" cy="244" r="130" fill="url(#coinB)"/>
+  <circle cx="256" cy="244" r="130" fill="none" stroke="#7A3C00" stroke-width="4.5" opacity="0.40"/>
+  <ellipse cx="218" cy="196" rx="44" ry="28" fill="white" opacity="0.16"
+           transform="rotate(-38,218,196)"/>
+
+  <!-- Bitcoin ₿ symbol -->
+  <text x="256" y="320"
+        font-family="'Arial Black','Impact','Arial','Helvetica Neue',sans-serif"
+        font-weight="900" font-size="210" text-anchor="middle"
+        fill="white" opacity="0.93" filter="url(#shadowB)">&#x20BF;</text>
+
+  <!-- Orbit: front arc -->
+  <g transform="translate(256,254) rotate(-20)">
+    <path d="M -187,0 A 187,63 0 0,1 187,0"
+          fill="none" stroke="#F0C030" stroke-width="5" stroke-linecap="round"
+          opacity="0.90"/>
+    <circle cx="-187" cy="0" r="6" fill="#FFD050"/>
+    <circle cx="187" cy="0" r="6" fill="#FFD050"/>
+  </g>
+
+  <!-- Stars -->
+  <g transform="translate(72,128)" opacity="0.86">
+    <ellipse ry="9" rx="2" fill="#FFE858"/>
+    <ellipse ry="2" rx="9" fill="#FFE858"/>
+  </g>
+  <g transform="translate(424,100)" opacity="0.66">
+    <ellipse ry="6" rx="1.5" fill="#FFD840"/>
+    <ellipse ry="1.5" rx="6" fill="#FFD840"/>
+  </g>
+  <g transform="translate(443,394)" opacity="0.73">
+    <ellipse ry="7.5" rx="2" fill="#FFE050"/>
+    <ellipse ry="2" rx="7.5" fill="#FFE050"/>
+  </g>
+  <g transform="translate(90,410)" opacity="0.56">
+    <ellipse ry="5" rx="1.5" fill="#FFD840"/>
+    <ellipse ry="1.5" rx="5" fill="#FFD840"/>
+  </g>
+</svg>

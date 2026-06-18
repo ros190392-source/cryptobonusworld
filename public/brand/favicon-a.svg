@@ -1,0 +1,78 @@
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bgA" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#162A40"/>
+      <stop offset="100%" stop-color="#09141F"/>
+    </radialGradient>
+    <radialGradient id="coinA" cx="38%" cy="32%" r="62%">
+      <stop offset="0%" stop-color="#FFE880"/>
+      <stop offset="22%" stop-color="#F9B840"/>
+      <stop offset="56%" stop-color="#F7931A"/>
+      <stop offset="100%" stop-color="#A85600"/>
+    </radialGradient>
+    <radialGradient id="glowA" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#F7931A" stop-opacity="0.34"/>
+      <stop offset="100%" stop-color="#F7931A" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="shadowA">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity="0.28"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="96" fill="url(#bgA)"/>
+
+  <!-- Warm glow behind coin -->
+  <circle cx="256" cy="256" r="218" fill="url(#glowA)"/>
+
+  <!-- Orbit: back arc (behind coin) -->
+  <g transform="translate(256,256) rotate(-22)">
+    <path d="M 200,0 A 200,68 0 0,1 -200,0"
+          fill="none" stroke="#C08A08" stroke-width="4.5" stroke-linecap="round"
+          opacity="0.38"/>
+  </g>
+
+  <!-- Coin -->
+  <circle cx="256" cy="256" r="155" fill="url(#coinA)"/>
+  <circle cx="256" cy="256" r="155" fill="none" stroke="#7A3C00" stroke-width="5" opacity="0.42"/>
+  <!-- Specular shine -->
+  <ellipse cx="212" cy="200" rx="52" ry="32" fill="white" opacity="0.17"
+           transform="rotate(-38,212,200)"/>
+
+  <!-- Bitcoin ₿ symbol -->
+  <text x="256" y="348"
+        font-family="'Arial Black','Impact','Arial','Helvetica Neue',sans-serif"
+        font-weight="900" font-size="248" text-anchor="middle"
+        fill="white" opacity="0.93" filter="url(#shadowA)">&#x20BF;</text>
+
+  <!-- Orbit: front arc (in front of coin) -->
+  <g transform="translate(256,256) rotate(-22)">
+    <path d="M -200,0 A 200,68 0 0,1 200,0"
+          fill="none" stroke="#F0C030" stroke-width="5.5" stroke-linecap="round"
+          opacity="0.92"/>
+    <circle cx="-200" cy="0" r="6.5" fill="#FFD050"/>
+    <circle cx="200" cy="0" r="6.5" fill="#FFD050"/>
+  </g>
+
+  <!-- Stars (4-pointed, crossed ellipses) -->
+  <g transform="translate(68,130)" opacity="0.90">
+    <ellipse ry="10" rx="2" fill="#FFE858"/>
+    <ellipse ry="2" rx="10" fill="#FFE858"/>
+  </g>
+  <g transform="translate(426,94)" opacity="0.70">
+    <ellipse ry="6.5" rx="1.5" fill="#FFD840"/>
+    <ellipse ry="1.5" rx="6.5" fill="#FFD840"/>
+  </g>
+  <g transform="translate(448,390)" opacity="0.76">
+    <ellipse ry="8.5" rx="2" fill="#FFE050"/>
+    <ellipse ry="2" rx="8.5" fill="#FFE050"/>
+  </g>
+  <g transform="translate(88,416)" opacity="0.60">
+    <ellipse ry="5.5" rx="1.5" fill="#FFD840"/>
+    <ellipse ry="1.5" rx="5.5" fill="#FFD840"/>
+  </g>
+  <g transform="translate(400,248)" opacity="0.64">
+    <ellipse ry="5" rx="1.5" fill="#FFE858"/>
+    <ellipse ry="1.5" rx="5" fill="#FFE858"/>
+  </g>
+</svg>

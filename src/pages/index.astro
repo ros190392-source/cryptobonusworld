@@ -1,1513 +1,236 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import BonusTable from '../components/BonusTable.astro';
-import ExchangeCard from '../components/ExchangeCard.astro';
-import ExchangeLogo from '../components/ExchangeLogo.astro';
-import QuickPicks from '../components/QuickPicks.astro';
-import FilterPanel from '../components/FilterPanel.astro';
-import CategoryCard from '../components/CategoryCard.astro';
-import CountryCard from '../components/CountryCard.astro';
-import FAQBlock from '../components/FAQBlock.astro';
-import RiskDisclaimer from '../components/RiskDisclaimer.astro';
-import AffiliateDisclosure from '../components/AffiliateDisclosure.astro';
-import CTAButton from '../components/CTAButton.astro';
-import MethodologyBlock from '../components/MethodologyBlock.astro';
-import AdaptiveRecommendation from '../components/AdaptiveRecommendation.astro';
+import CleanLayout from '../layouts/CleanLayout.astro';
+import ExchangeCard from '../components/home/ExchangeCard.astro';
+import { getFeaturedExchanges } from '../data/exchanges';
+import { getOffer } from '../data/offers';
 
-import exchanges from '../data/exchanges.json';
-import categories from '../data/categories.json';
-import countries from '../data/countries.json';
-import comparePairs from '../data/compare-pairs.json';
-import type { RecommendableExchange } from '../utils/recommendationEngine';
+const exchanges = getFeaturedExchanges();
+const exchangesWithOffers = exchanges.map(ex => ({
+  exchange: ex,
+  offer: getOffer(ex.slug),
+}));
+const bybitCode = getOffer('bybit')?.promoCode ?? 'CRYPTOBONUSW';
 
-import { buildWebSiteSchema, buildOrganizationSchema, buildFAQSchema, EXCHANGE_COUNT, dataUpdatedLabel } from '../utils/seo';
-import type { PageContext } from '../utils/analytics';
-import guides from '../data/guides.json';
-
-const topExchanges = [...exchanges].sort((a, b) => b.rating - a.rating).slice(0, 5);
-
-// Homepage priority order — owner-defined display sequence for BonusTable and Bonus Claim Guides.
-// Binance is position 13 in exchanges.json (added late) so raw order buries it.
-// This sort does not affect exchanges.json data, affiliate links, or evidence.
-const homepagePriority = [
-  'bybit', 'binance', 'okx', 'mexc', 'bitget',
-  'bingx', 'gate-io', 'kucoin', 'htx', 'coinex',
-  'phemex', 'bitunix', 'coinbase',
-];
-const homepageExchanges = [...exchanges].sort((a, b) => {
-  const ai = homepagePriority.indexOf(a.slug);
-  const bi = homepagePriority.indexOf(b.slug);
-  return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
-});
-
-// Top comparison pairs — curated by search demand (most-searched head terms first)
-const TOP_COMPARE_SLUGS = [
-  'binance-vs-bybit',
-  'bybit-vs-mexc',
-  'coinbase-vs-binance',
-  'binance-vs-okx',
-  'coinbase-vs-bybit',
-  'okx-vs-binance',
-];
-const exMap = Object.fromEntries(exchanges.map(e => [e.slug, e]));
-const topComparePairs = TOP_COMPARE_SLUGS
-  .map(slug => comparePairs.find(p => p.pair === slug))
-  .filter(Boolean)
-  .map(p => {
-    const ea = exMap[p!.a] as any;
-    const eb = exMap[p!.b] as any;
-    return ea && eb ? { pair: p!.pair, nameA: ea.name, nameB: eb.name, slugA: ea.slug, slugB: eb.slug } : null;
-  })
-  .filter(Boolean) as Array<{ pair: string; nameA: string; nameB: string; slugA: string; slugB: string }>;
-
-const faqItems = [
+const faqs = [
   {
-    question: "What is a crypto exchange bonus?",
-    answer: "A crypto exchange bonus is a promotional reward offered by a crypto exchange when you register, deposit or start trading — often through an affiliate or referral link. Bonuses may include cash rewards, trading fee vouchers or deposit match promotions.",
+    q: 'Are these promo codes verified?',
+    a: 'Yes. Every code on CryptoBonusWorld is checked against the official exchange website before publishing. We show the last-checked date on each exchange page.',
   },
   {
-    question: "Are crypto bonuses free money?",
-    answer: "No. Crypto bonuses are promotional rewards that come with conditions. Most require KYC verification, a minimum deposit, and a minimum trading volume before you can access or withdraw the bonus. Always read the official terms before claiming.",
+    q: 'Do these codes cost anything to use?',
+    a: 'No. Referral and promo codes are free to use. We earn a commission from the exchange when you sign up — you pay nothing extra, and the bonus is added on top.',
   },
   {
-    question: "Which crypto exchange has the best bonus?",
-    answer: "Based on our comparison, Bybit offers up to 30,000 USDT for new users, one of the highest headline bonus amounts. However, the best bonus depends on your country, whether you can meet KYC requirements, and your planned trading volume.",
+    q: 'Why should I use a referral code instead of signing up directly?',
+    a: 'A referral code unlocks new-user bonuses that are not available to accounts created without one. Always register with a code before you make any deposit.',
   },
   {
-    question: "Can I get a crypto bonus without KYC?",
-    answer: "Yes. MEXC, KuCoin, CoinEx, Phemex and Bitunix offer bonuses without requiring full identity verification. However, non-KYC accounts often have withdrawal limits and restricted features.",
-  },
-  {
-    question: "How do I claim a crypto bonus?",
-    answer: "Register on the exchange through a referral or affiliate link, complete any required KYC, make a qualifying deposit, and complete the required trading volume. Bonus amounts usually unlock progressively as you complete each milestone.",
-  },
-  {
-    question: "Do crypto bonuses expire?",
-    answer: "Yes. Most bonuses have expiration dates ranging from 7 to 30 days. Unused bonuses or unmet conditions may result in forfeiture of the reward. Always check the expiration window in the official promotion terms.",
+    q: 'What happens if the code does not work?',
+    a: 'Codes can expire or change. If a code is not accepted, check the exchange page on this site — we update codes regularly and note the date of last verification.',
   },
 ];
-
-// SEO: WebSite + Organization + FAQPage (homepage FAQ section has 6 items)
-const siteSchema = [buildWebSiteSchema(), buildOrganizationSchema(), buildFAQSchema(faqItems)];
-
-const analyticsContext: PageContext = { pageType: 'homepage' };
 ---
 
-<Layout
-  title="Best Crypto Exchange Bonuses 2026 — Compare & Claim"
-  description={`Compare signup rewards, deposit bonuses and futures promotions from ${EXCHANGE_COUNT} top crypto exchanges. Find the best crypto bonus for your country and trading goals.`}
-  canonical="/"
-  schema={siteSchema}
-  analyticsContext={analyticsContext}
-  ogImage="https://cryptobonusworld.com/og-default.png"
+<CleanLayout
+  title="Crypto Promo Codes & Referral Bonuses 2026 — Verified | CryptoBonusWorld"
+  description={`Verified crypto referral codes and promo bonuses for top exchanges. Use ${bybitCode} on Bybit for up to 30,000 USDT. Codes checked June 2026.`}
+  ogImage="/media/exchanges/bybit/share/bybit-og-1200x630.png"
 >
+
   <!-- Hero -->
   <section class="hero">
-    <div class="hero-bg" aria-hidden="true">
-      <div class="hero-glow"></div>
-      <div class="hero-grid"></div>
-    </div>
-
-    <div class="container hero-layout">
-
-      <!-- LEFT: Editorial text column -->
-      <div class="hero-text">
-        <div class="hero-badge">
-          <span class="hero-badge-dot"></span>
-          Live Data &middot; {EXCHANGE_COUNT} Exchanges &middot; Updated {dataUpdatedLabel()}
-        </div>
-
+    <div class="container">
+      <div class="hero-inner">
+        <div class="hero-label">Verified · Updated June 2026</div>
         <h1 class="hero-h1">
-          Best Crypto Exchange<br>
-          <span class="hero-h1-accent">Bonuses</span> in 2026
+          Crypto Promo Codes<br/>
+          <span class="hero-accent">That Actually Work</span>
         </h1>
-
         <p class="hero-sub">
-          Compare signup rewards, deposit bonuses and futures promotions across {EXCHANGE_COUNT} exchanges. Country-tailored. Updated monthly.
+          Referral codes and welcome bonuses for the world's top crypto exchanges —
+          checked against official sources, not copy-pasted from random lists.
         </p>
-
         <div class="hero-actions">
-          <CTAButton href="/bonuses/" label="Compare All Bonuses" size="lg" />
-          <CTAButton href="/exchanges/bybit/" label="Top Pick: Bybit →" variant="outline" size="lg" />
+          <a href="#exchanges" class="btn-primary hero-cta">Browse Exchanges</a>
+          <a href="/bybit/" class="btn-secondary">Bybit {bybitCode} →</a>
         </div>
-
-        <div class="hero-kpis">
-          <div class="hero-kpi">
-            <span class="hero-kpi-num">$30K</span>
-            <span class="hero-kpi-lbl">Max Bonus</span>
-          </div>
-          <div class="hero-kpi-sep"></div>
-          <div class="hero-kpi">
-            <span class="hero-kpi-num">{EXCHANGE_COUNT}</span>
-            <span class="hero-kpi-lbl">Exchanges</span>
-          </div>
-          <div class="hero-kpi-sep"></div>
-          <div class="hero-kpi">
-            <span class="hero-kpi-num">Zero</span>
-            <span class="hero-kpi-lbl">Paid Rankings</span>
-          </div>
+        <div class="hero-trust">
+          <span class="trust-pill">✓ No casino style</span>
+          <span class="trust-pill">✓ No fake bonuses</span>
+          <span class="trust-pill">✓ Source-verified codes</span>
         </div>
       </div>
+    </div>
+  </section>
 
-      <!-- RIGHT: Premium exchange showcase -->
-      <div class="hero-cards" aria-label="Top bonus offers">
-
-        <!-- Featured card: #1 exchange -->
-        {topExchanges[0] && (
-          <a href={`/exchanges/${topExchanges[0].slug}/`} class="exc-feat">
-            <div class="exc-feat-header">
-              <span class="exc-feat-pick">★ Editor's Top Pick</span>
-              <span class="exc-feat-score">{topExchanges[0].rating}/10</span>
-            </div>
-            <div class="exc-feat-body">
-              <ExchangeLogo slug={topExchanges[0].slug} name={topExchanges[0].name} size={54} variant="square" lazy={false} />
-              <div class="exc-feat-meta">
-                <span class="exc-feat-name">{topExchanges[0].name}</span>
-                <span class="exc-feat-amount">Up to {topExchanges[0].bonusAmount.toLocaleString()} {topExchanges[0].bonusCurrency}</span>
-                {(topExchanges[0] as any).bonusRange?.typicalNote && (
-                  <span class="exc-feat-realistic">{(topExchanges[0] as any).bonusRange.typicalNote}</span>
-                )}
-              </div>
-            </div>
-            <div class="exc-feat-cta">
-              View Offer
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
-            </div>
-          </a>
-        )}
-
-        <!-- 2-column row: next 2 exchanges -->
-        <div class="exc-row">
-          {topExchanges.slice(1, 3).map(ex => (
-            <a href={`/exchanges/${ex.slug}/`} class="exc-sm">
-              <ExchangeLogo slug={ex.slug} name={ex.name} size={38} variant="square" lazy={false} />
-              <div class="exc-sm-info">
-                <span class="exc-sm-name">{ex.name}</span>
-                <span class="exc-sm-amount">{(ex as any).bonusDisplayMode === 'fixed' ? '' : 'Up to '}{ex.bonusAmount.toLocaleString()} {ex.bonusCurrency}</span>
-                {(ex as any).bestFor?.[0] && (
-                  <span class="exc-sm-bestfor">{(ex as any).bestFor[0]}</span>
-                )}
-              </div>
-              <span class="exc-sm-arrow">→</span>
-            </a>
-          ))}
-        </div>
-
-        <p class="hero-cards-note">Conditions apply. Always verify official terms.</p>
+  <!-- Featured Exchange Grid -->
+  <section class="section bg-white" id="exchanges">
+    <div class="container">
+      <div class="section-label">Featured Exchanges</div>
+      <h2 class="section-title">Top Crypto Referral Codes</h2>
+      <p class="section-sub">
+        Each listing includes the verified promo code, realistic bonus estimate,
+        and a direct link to the official offer page.
+      </p>
+      <div class="exchange-grid">
+        {exchangesWithOffers.map(({ exchange, offer }) => (
+          <ExchangeCard exchange={exchange} offer={offer} />
+        ))}
       </div>
-
-    </div>
-
-    <!-- Exchange strip: all exchanges at a glance -->
-    <div class="exc-strip-wrap">
-      <div class="container exc-strip-inner">
-        <span class="exc-strip-label">All exchanges</span>
-        <div class="exc-strip-scroll">
-          {exchanges.map(ex => (
-            <a href={`/exchanges/${ex.slug}/`} class="exc-strip-item">
-              <ExchangeLogo slug={ex.slug} name={ex.name} size={18} variant="square" lazy={false} />
-              <span class="exc-strip-name">{ex.name}</span>
-              <span class="exc-strip-bonus">
-                {ex.bonusAmount >= 1000
-                  ? (ex.bonusAmount / 1000).toFixed(ex.bonusAmount % 1000 === 0 ? 0 : 1) + 'K'
-                  : ex.bonusAmount} {ex.bonusCurrency}
-              </span>
-            </a>
-          ))}
-        </div>
-        <a href="/exchanges/" class="exc-strip-all">All {EXCHANGE_COUNT} →</a>
+      <p class="grid-coming-soon">More verified exchange codes are being checked.</p>
+      <div class="grid-footer">
+        <a href="/exchanges/" class="btn-secondary">View All Exchanges →</a>
       </div>
-    </div>
-
-  </section>
-
-  <!-- Affiliate Disclosure -->
-  <div class="container">
-    <AffiliateDisclosure compact />
-  </div>
-
-  <!-- Filters -->
-  <div class="container">
-    <FilterPanel />
-  </div>
-
-  <!-- Bonus Table -->
-  <section class="container section">
-    <h2 class="section-title">Top Crypto Exchange Bonuses</h2>
-    <QuickPicks exchanges={homepageExchanges} />
-    <BonusTable exchanges={homepageExchanges} />
-    <AdaptiveRecommendation
-      exchanges={exchanges as unknown as RecommendableExchange[]}
-      pageType="homepage"
-      showHint={true}
-    />
-    <MethodologyBlock compact />
-  </section>
-
-  <!-- Top Exchange Cards -->
-  <section class="container section">
-    <h2 class="section-title">Editor's Top Picks</h2>
-    <div class="grid-3">
-      {topExchanges.slice(0, 3).map(ex => (
-        <ExchangeCard {...ex} />
-      ))}
-    </div>
-    <div class="grid-2" style="margin-top: 1.25rem">
-      {topExchanges.slice(3, 5).map(ex => (
-        <ExchangeCard {...ex} />
-      ))}
-    </div>
-    <div class="view-all-wrap">
-      <CTAButton href="/bonuses/" label={`View All ${EXCHANGE_COUNT} Exchanges`} variant="outline" size="md" />
-    </div>
-  </section>
-
-  <!-- Quick Find — visual category grid -->
-  <section class="container section">
-    <h2 class="section-title">Find the Right Bonus</h2>
-    <p class="section-subtitle">Browse by bonus type, exchange or country — find the offer that fits your needs.</p>
-    <div class="qf-grid">
-      <a href="/bonuses/" class="qf-card qf-card--featured">
-        <span class="qf-icon">🏆</span>
-        <div class="qf-info">
-          <span class="qf-label">Top Bonus Exchanges</span>
-          <span class="qf-meta">Up to 30,000 USDT available</span>
-        </div>
-        <span class="qf-arrow">→</span>
-      </a>
-      <a href="/categories/no-kyc-bonuses/" class="qf-card">
-        <span class="qf-icon">🔓</span>
-        <div class="qf-info">
-          <span class="qf-label">No-KYC Bonuses</span>
-          <span class="qf-meta">Trade without ID verification</span>
-        </div>
-        <span class="qf-arrow">→</span>
-      </a>
-      <a href="/categories/signup-bonuses/" class="qf-card">
-        <span class="qf-icon">🚀</span>
-        <div class="qf-info">
-          <span class="qf-label">Signup Bonuses</span>
-          <span class="qf-meta">Free rewards for new users</span>
-        </div>
-        <span class="qf-arrow">→</span>
-      </a>
-      <a href="/categories/futures-bonuses/" class="qf-card">
-        <span class="qf-icon">📈</span>
-        <div class="qf-info">
-          <span class="qf-label">Futures Bonuses</span>
-          <span class="qf-meta">For derivatives & perpetuals</span>
-        </div>
-        <span class="qf-arrow">→</span>
-      </a>
-      <a href="/compare/" class="qf-card">
-        <span class="qf-icon">⚖️</span>
-        <div class="qf-info">
-          <span class="qf-label">Compare Exchanges</span>
-          <span class="qf-meta">Side-by-side bonus analysis</span>
-        </div>
-        <span class="qf-arrow">→</span>
-      </a>
-      <a href="/countries/" class="qf-card">
-        <span class="qf-icon">🌍</span>
-        <div class="qf-info">
-          <span class="qf-label">Bonuses by Country</span>
-          <span class="qf-meta">Check availability in your region</span>
-        </div>
-        <span class="qf-arrow">→</span>
-      </a>
-    </div>
-  </section>
-
-  <!-- Bonus Landing Page Links -->
-  <section class="container section">
-    <h2 class="section-title">Bonus Claim Guides</h2>
-    <p class="section-subtitle">How to register with a referral code and unlock each exchange's welcome offer — step by step.</p>
-    <div class="bonus-links-grid">
-      {homepageExchanges.slice(0, 6).map(ex => (
-        <a href={`/bonuses/${ex.slug}-bonus/`} class="bonus-link-card">
-          <ExchangeLogo slug={ex.slug} name={ex.name} size={44} variant="square" />
-          <div class="bonus-link-info">
-            <span class="bonus-link-name">{ex.name}</span>
-            <span class="bonus-link-amount">{(ex as any).bonusDisplayMode === 'fixed' ? '' : 'Up to '}{ex.bonusAmount.toLocaleString()} {ex.bonusCurrency}</span>
-            <span class="bonus-link-cta">How to claim →</span>
-          </div>
-        </a>
-      ))}
-    </div>
-    <div class="view-all-wrap">
-      <a href="/bonuses/" class="text-link">View all bonus claim guides →</a>
-    </div>
-  </section>
-
-  <!-- Top Comparisons — money page priority boost -->
-  <section class="container section">
-    <h2 class="section-title">Compare Exchanges Side by Side</h2>
-    <p class="section-subtitle">Fees, bonuses, KYC requirements and features — compared in one place.</p>
-    <div class="compare-grid">
-      {topComparePairs.map(p => (
-        <a href={`/compare/${p.pair}/`} class="compare-hp-card">
-          <div class="compare-hp-logos">
-            <ExchangeLogo slug={p.slugA} name={p.nameA} size={32} variant="square" />
-            <span class="compare-hp-vs">vs</span>
-            <ExchangeLogo slug={p.slugB} name={p.nameB} size={32} variant="square" />
-          </div>
-          <span class="compare-hp-label">{p.nameA} vs {p.nameB}</span>
-          <span class="compare-hp-arrow">→</span>
-        </a>
-      ))}
-    </div>
-    <div class="view-all-wrap">
-      <a href="/compare/" class="text-link">View all exchange comparisons →</a>
-    </div>
-  </section>
-
-  <!-- Categories -->
-  <section class="container section">
-    <h2 class="section-title">Bonuses by Category</h2>
-    <div class="grid-2">
-      {categories.slice(0, 6).map(cat => (
-        <CategoryCard
-          name={cat.name}
-          slug={cat.slug}
-          description={cat.description}
-          bonusType={cat.bonusType}
-          exchangeCount={exchanges.filter(e => e.bonusTypes.includes(cat.bonusType) || (cat.bonusType === 'no-kyc' && !e.kycRequired) || (cat.bonusType === 'welcome' && e.bonusTypes.includes('signup'))).length}
-        />
-      ))}
-    </div>
-  </section>
-
-  <!-- Countries -->
-  <section class="container section">
-    <h2 class="section-title">Bonuses by Country</h2>
-    <div class="grid-4">
-      {countries.slice(0, 8).map(c => (
-        <CountryCard
-          name={c.name}
-          slug={c.slug}
-          flag={c.flag}
-          description={c.description}
-          exchangeCount={exchanges.filter(e => e.countries.includes(c.slug)).length}
-        />
-      ))}
     </div>
   </section>
 
   <!-- How it works -->
-  <section class="container section">
-    <h2 class="section-title">How Crypto Bonuses Work</h2>
-    <div class="how-it-works">
-      <div class="how-step">
-        <div class="how-step-num">1</div>
-        <h3>Compare Offers</h3>
-        <p>Use our table to filter by country, KYC requirement and bonus type. Honest expectations shown for each.</p>
+  <section class="section bg-gray">
+    <div class="container">
+      <div class="section-label">How it works</div>
+      <h2 class="section-title">Get Your Bonus in 3 Steps</h2>
+      <div class="steps-grid">
+        <div class="step">
+          <div class="step-num">1</div>
+          <h3 class="step-title">Copy the code</h3>
+          <p class="step-desc">Find the exchange you want. Copy the verified promo or referral code from this page.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <h3 class="step-title">Register with the code</h3>
+          <p class="step-desc">Click our referral link and paste the code during registration. Do this before you deposit.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <h3 class="step-title">Complete the tasks</h3>
+          <p class="step-desc">Most bonuses require KYC verification and a first deposit. Check the terms on the exchange page.</p>
+        </div>
       </div>
-      <div class="how-step">
-        <div class="how-step-num">2</div>
-        <h3>Check the Conditions</h3>
-        <p>Every bonus has terms — deposit minimums, trading volume thresholds and expiry windows. Read them first.</p>
-      </div>
-      <div class="how-step">
-        <div class="how-step-num">3</div>
-        <h3>Register via Referral Link</h3>
-        <p>Click through our link to ensure the promo code is pre-applied. It cannot be added retroactively.</p>
-      </div>
-      <div class="how-step">
-        <div class="how-step-num">4</div>
-        <h3>Complete the Milestones</h3>
-        <p>Verify identity if required, deposit and reach the trading volume thresholds to unlock each bonus tier.</p>
-      </div>
-    </div>
-    <div style="margin-top: 1.25rem">
-      <a href="/methodology/" class="text-link">Learn more: How we review crypto bonuses →</a>
     </div>
   </section>
 
-  <!-- Guides -->
-  <section class="container section">
-    <h2 class="section-title">In-Depth Guides</h2>
-    <p class="section-subtitle">Learn how crypto bonuses, exchanges and passive income strategies really work.</p>
-    <div class="guides-strip">
-      {guides.slice(0, 6).map(g => (
-        <a href={`/guides/${g.slug}/`} class="guide-strip-card">
-          <span class="guide-strip-cat">{g.category}</span>
-          <span class="guide-strip-title">{g.title}</span>
-          <span class="guide-strip-meta">{g.readTime} read →</span>
-        </a>
-      ))}
-    </div>
-    <div class="view-all-wrap">
-      <a href="/guides/" class="text-link">View all {guides.length} guides →</a>
-    </div>
-  </section>
-
-  <!-- By Trading Goal — use-case hub links -->
-  <section class="container section">
-    <h2 class="section-title">Find the Best Exchange for Your Goal</h2>
-    <p class="section-subtitle">Not all exchanges are equal. We rank the top picks for every trading style and need.</p>
-    <div class="goal-grid">
-      <a href="/use-cases/beginners/" class="goal-card">
-        <span class="goal-icon">🎓</span>
-        <div class="goal-info">
-          <span class="goal-label">Best for Beginners</span>
-          <span class="goal-meta">Easy onboarding, low minimums</span>
+  <!-- Trust block -->
+  <section class="section bg-white">
+    <div class="container">
+      <div class="trust-grid">
+        <div class="trust-card">
+          <div class="trust-icon">✓</div>
+          <h3 class="trust-title">Source-verified</h3>
+          <p class="trust-desc">Every code is cross-checked against the official exchange promotions page, not scraped from forums.</p>
         </div>
-        <span class="goal-arrow">→</span>
-      </a>
-      <a href="/use-cases/futures/" class="goal-card">
-        <span class="goal-icon">📈</span>
-        <div class="goal-info">
-          <span class="goal-label">Futures Trading</span>
-          <span class="goal-meta">Best bonuses for derivatives</span>
+        <div class="trust-card">
+          <div class="trust-icon">📅</div>
+          <h3 class="trust-title">Last-checked dates</h3>
+          <p class="trust-desc">We show when each code was last verified so you know how fresh the information is.</p>
         </div>
-        <span class="goal-arrow">→</span>
-      </a>
-      <a href="/use-cases/no-kyc/" class="goal-card">
-        <span class="goal-icon">🔓</span>
-        <div class="goal-info">
-          <span class="goal-label">No KYC Required</span>
-          <span class="goal-meta">Trade without ID verification</span>
+        <div class="trust-card">
+          <div class="trust-icon">💬</div>
+          <h3 class="trust-title">Transparent affiliate</h3>
+          <p class="trust-desc">We earn a referral commission when you sign up. You pay the same fees either way — the bonus is free.</p>
         </div>
-        <span class="goal-arrow">→</span>
-      </a>
-      <a href="/use-cases/copy-trading/" class="goal-card">
-        <span class="goal-icon">🔁</span>
-        <div class="goal-info">
-          <span class="goal-label">Copy Trading</span>
-          <span class="goal-meta">Follow top traders automatically</span>
-        </div>
-        <span class="goal-arrow">→</span>
-      </a>
-      <a href="/use-cases/low-fees/" class="goal-card">
-        <span class="goal-icon">💸</span>
-        <div class="goal-info">
-          <span class="goal-label">Lowest Fees</span>
-          <span class="goal-meta">Minimize trading costs</span>
-        </div>
-        <span class="goal-arrow">→</span>
-      </a>
-      <a href="/use-cases/p2p/" class="goal-card">
-        <span class="goal-icon">🤝</span>
-        <div class="goal-info">
-          <span class="goal-label">P2P Trading</span>
-          <span class="goal-meta">Buy crypto with local payment</span>
-        </div>
-        <span class="goal-arrow">→</span>
-      </a>
-      <a href="/use-cases/altcoins/" class="goal-card">
-        <span class="goal-icon">🪙</span>
-        <div class="goal-info">
-          <span class="goal-label">Altcoin Trading</span>
-          <span class="goal-meta">Access to 1,000+ tokens</span>
-        </div>
-        <span class="goal-arrow">→</span>
-      </a>
-      <a href="/use-cases/high-leverage/" class="goal-card">
-        <span class="goal-icon">⚡</span>
-        <div class="goal-info">
-          <span class="goal-label">High Leverage</span>
-          <span class="goal-meta">Up to 125× perpetuals</span>
-        </div>
-        <span class="goal-arrow">→</span>
-      </a>
-    </div>
-    <div class="view-all-wrap">
-      <a href="/use-cases/" class="text-link">View all trading goals →</a>
-    </div>
-  </section>
-
-  <!-- Popular Coins — links to /coins/ pages -->
-  <section class="container section">
-    <h2 class="section-title">Buy Crypto With a Bonus</h2>
-    <p class="section-subtitle">Find the best exchange to buy each major coin — with the highest new-user bonus available.</p>
-    <div class="coins-strip">
-      <a href="/coins/bitcoin/" class="coin-strip-card">
-        <span class="coin-strip-sym">BTC</span>
-        <span class="coin-strip-name">Bitcoin</span>
-        <span class="coin-strip-arrow">→</span>
-      </a>
-      <a href="/coins/ethereum/" class="coin-strip-card">
-        <span class="coin-strip-sym">ETH</span>
-        <span class="coin-strip-name">Ethereum</span>
-        <span class="coin-strip-arrow">→</span>
-      </a>
-      <a href="/coins/usdt/" class="coin-strip-card">
-        <span class="coin-strip-sym">USDT</span>
-        <span class="coin-strip-name">Tether</span>
-        <span class="coin-strip-arrow">→</span>
-      </a>
-      <a href="/coins/solana/" class="coin-strip-card">
-        <span class="coin-strip-sym">SOL</span>
-        <span class="coin-strip-name">Solana</span>
-        <span class="coin-strip-arrow">→</span>
-      </a>
-      <a href="/coins/bnb/" class="coin-strip-card">
-        <span class="coin-strip-sym">BNB</span>
-        <span class="coin-strip-name">BNB</span>
-        <span class="coin-strip-arrow">→</span>
-      </a>
-      <a href="/coins/xrp/" class="coin-strip-card">
-        <span class="coin-strip-sym">XRP</span>
-        <span class="coin-strip-name">XRP</span>
-        <span class="coin-strip-arrow">→</span>
-      </a>
-      <a href="/coins/doge/" class="coin-strip-card">
-        <span class="coin-strip-sym">DOGE</span>
-        <span class="coin-strip-name">Dogecoin</span>
-        <span class="coin-strip-arrow">→</span>
-      </a>
-      <a href="/coins/ada/" class="coin-strip-card">
-        <span class="coin-strip-sym">ADA</span>
-        <span class="coin-strip-name">Cardano</span>
-        <span class="coin-strip-arrow">→</span>
-      </a>
-    </div>
-    <div class="view-all-wrap">
-      <a href="/coins/" class="text-link">View all coins →</a>
+      </div>
     </div>
   </section>
 
   <!-- FAQ -->
-  <section class="container section">
-    <FAQBlock items={faqItems} suppressSchema={true} />
+  <section class="section bg-gray" id="faq">
+    <div class="container faq-wrap">
+      <div class="section-label">Common Questions</div>
+      <h2 class="section-title">FAQ</h2>
+      <div class="faq-list">
+        {faqs.map(item => (
+          <details class="faq-item">
+            <summary class="faq-q">{item.q}</summary>
+            <p class="faq-a">{item.a}</p>
+          </details>
+        ))}
+      </div>
+    </div>
   </section>
 
-  <!-- Risk Disclaimer -->
-  <div class="container">
-    <RiskDisclaimer />
-  </div>
-</Layout>
+  <!-- Bottom CTA -->
+  <section class="section bg-navy bottom-cta-section">
+    <div class="container">
+      <h2 class="bottom-cta-title">Ready to claim your bonus?</h2>
+      <p class="bottom-cta-sub">Start with Bybit — one of the world's largest exchanges, currently offering up to 30,000 USDT for new users.</p>
+      <a href="/bybit/" class="btn-primary">Get Bybit Bonus with {bybitCode} →</a>
+    </div>
+  </section>
 
-<!-- Mobile sticky CTA (scroll-triggered, hidden on desktop) -->
-<div class="hp-sticky" id="hp-sticky" aria-hidden="true">
-  <div class="hp-sticky-left">
-    <span class="hp-sticky-headline">Up to 30,000 USDT</span>
-    <span class="hp-sticky-sub">Compare {EXCHANGE_COUNT} exchange bonuses</span>
-  </div>
-  <a href="/bonuses/" class="hp-sticky-btn">Compare Now →</a>
-</div>
-
-<script>
-  const hpSticky = document.getElementById('hp-sticky');
-  if (hpSticky) {
-    let ticking = false;
-    window.addEventListener('scroll', () => {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          const show = window.scrollY > 480;
-          hpSticky.classList.toggle('hp-sticky--visible', show);
-          hpSticky.setAttribute('aria-hidden', String(!show));
-          ticking = false;
-        });
-        ticking = true;
-      }
-    }, { passive: true });
-  }
-</script>
+</CleanLayout>
 
 <style>
-  /* ── HERO ─────────────────────────────────────── */
   .hero {
-    position: relative;
-    overflow: hidden;
-    border-bottom: 1px solid var(--color-border);
-    padding: 4.5rem 0 0;
+    background: linear-gradient(160deg, #080F18 0%, #0e1f36 60%, #13233E 100%);
+    color: #fff; padding: 64px 0 72px;
   }
-
-  /* Background layers */
-  .hero-bg {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    z-index: 0;
+  @media (min-width: 820px) { .hero { padding: 88px 0 96px; } }
+  .hero-inner { max-width: 680px; }
+  .hero-label {
+    display: inline-block; font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .1em; color: #F7931A;
+    background: rgba(247,147,26,.1); border: 1px solid rgba(247,147,26,.25);
+    padding: 4px 12px; border-radius: 20px; margin-bottom: 20px;
   }
-  .hero-glow {
-    position: absolute;
-    top: -100px;
-    left: -60px;
-    width: 640px;
-    height: 560px;
-    background: radial-gradient(ellipse at center,
-      rgba(245,197,66,0.09) 0%,
-      rgba(245,197,66,0.025) 45%,
-      transparent 70%);
-    border-radius: 50%;
-  }
-  .hero-grid {
-    position: absolute;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
-    background-size: 52px 52px;
-    mask-image: radial-gradient(ellipse 70% 70% at 25% 35%, black 10%, transparent 75%);
-  }
-
-  /* ── Two-column hero layout ── */
-  .hero-layout {
-    position: relative;
-    z-index: 1;
-    display: grid;
-    grid-template-columns: 1fr 460px;
-    gap: 4rem;
-    align-items: center;
-    padding-bottom: 3.5rem;
-  }
-
-  /* ── Left: text column ── */
-  .hero-text {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0;
-  }
-
-  /* Badge */
-  .hero-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.72rem;
-    font-weight: 600;
-    color: var(--color-accent);
-    background: rgba(245,197,66,0.07);
-    padding: 0.3rem 0.875rem;
-    border-radius: 100px;
-    margin-bottom: 1.75rem;
-    border: 1px solid rgba(245,197,66,0.2);
-    letter-spacing: 0.02em;
-  }
-  .hero-badge-dot {
-    width: 6px;
-    height: 6px;
-    background: #ef4444;
-    border-radius: 50%;
-    flex-shrink: 0;
-    box-shadow: 0 0 6px rgba(239,68,68,0.8);
-    animation: pulse-dot 2s ease-in-out infinite;
-  }
-  @keyframes pulse-dot {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50%       { opacity: 0.55; transform: scale(0.8); }
-  }
-
-  /* Headline */
   .hero-h1 {
-    font-size: clamp(2.25rem, 4vw, 3.25rem);
-    font-weight: 900;
-    letter-spacing: -0.035em;
-    line-height: 1.07;
-    margin: 0 0 1.25rem;
-    color: var(--color-text-primary);
+    font-size: clamp(32px, 6vw, 56px); font-weight: 900; line-height: 1.08;
+    letter-spacing: -.03em; margin-bottom: 20px; color: #fff;
   }
-  .hero-h1-accent {
-    background: linear-gradient(135deg, #fcd34d 0%, #f5c542 45%, #d97706 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+  .hero-accent {
+    background: linear-gradient(135deg, #F7931A 0%, #F9C84A 60%, #F7931A 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
   }
+  .hero-sub { font-size: 17px; line-height: 1.7; color: rgba(255,255,255,.70); margin-bottom: 32px; max-width: 540px; }
+  .hero-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 28px; }
+  .hero-trust { display: flex; gap: 12px; flex-wrap: wrap; }
+  .trust-pill { font-size: 12px; color: rgba(255,255,255,.45); font-weight: 500; white-space: nowrap; }
 
-  /* Subtitle */
-  .hero-sub {
-    font-size: 1.0625rem;
-    color: var(--color-text-secondary);
-    line-height: 1.7;
-    margin: 0 0 2.25rem;
-    max-width: 480px;
-  }
+  .bg-white { background: #fff; }
+  .bg-gray  { background: #F7F8F4; }
+  .bg-navy  { background: #080F18; }
 
-  /* CTA buttons */
-  .hero-actions {
-    display: flex;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-    margin-bottom: 2.75rem;
+  .exchange-grid {
+    display: grid; gap: 20px;
+    grid-template-columns: 1fr;
+    margin-bottom: 32px;
   }
+  @media (min-width: 560px) { .exchange-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 900px) { .exchange-grid { grid-template-columns: repeat(3, 1fr); } }
 
-  /* KPIs / stats row */
-  .hero-kpis {
-    display: flex;
-    align-items: center;
-    gap: 0;
-  }
-  .hero-kpi {
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-    padding: 0 1.5rem;
-  }
-  .hero-kpi:first-child { padding-left: 0; }
-  .hero-kpi-num {
-    font-size: 1.5rem;
-    font-weight: 900;
-    color: var(--color-text-primary);
-    letter-spacing: -0.03em;
-    line-height: 1;
-  }
-  .hero-kpi-lbl {
-    font-size: 0.68rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--color-text-muted);
-  }
-  .hero-kpi-sep {
-    width: 1px;
-    height: 36px;
-    background: var(--color-border);
-    flex-shrink: 0;
-  }
+  .grid-coming-soon { text-align: center; font-size: 13px; color: #9CA3AF; margin: 8px 0 20px; }
+  .grid-footer { text-align: center; }
 
-  /* ── Right: exchange cards ── */
-  .hero-cards {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
+  .steps-grid { display: grid; gap: 24px; grid-template-columns: 1fr; }
+  @media (min-width: 640px) { .steps-grid { grid-template-columns: repeat(3, 1fr); } }
+  .step { background: #fff; border: 1px solid #E5E7EB; border-radius: 12px; padding: 24px; }
+  .step-num {
+    width: 36px; height: 36px; border-radius: 50%; background: #F7931A; color: #fff;
+    font-size: 16px; font-weight: 900; display: flex; align-items: center; justify-content: center; margin-bottom: 14px;
   }
+  .step-title { font-size: 16px; font-weight: 700; color: #111827; margin-bottom: 8px; }
+  .step-desc { font-size: 14px; color: #4B5563; line-height: 1.6; }
 
-  /* Featured card */
-  .exc-feat {
-    display: block;
-    padding: 1.5rem 1.625rem;
-    background: linear-gradient(145deg, #141200 0%, #0f0e00 40%, #0c0c0c 100%);
-    border: 1px solid rgba(245,197,66,0.35);
-    border-radius: 16px;
-    text-decoration: none;
-    position: relative;
-    overflow: hidden;
-    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s;
-    box-shadow: 0 0 0 1px rgba(245,197,66,0.08),
-                0 8px 40px rgba(0,0,0,0.45),
-                inset 0 1px 0 rgba(245,197,66,0.1);
-  }
-  /* Top shimmer line */
-  .exc-feat::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 1px;
-    background: linear-gradient(90deg,
-      transparent 0%,
-      rgba(245,197,66,0.6) 30%,
-      rgba(245,197,66,0.8) 50%,
-      rgba(245,197,66,0.6) 70%,
-      transparent 100%);
-  }
-  .exc-feat:hover {
-    transform: translateY(-3px);
-    border-color: rgba(245,197,66,0.55);
-    box-shadow: 0 0 0 1px rgba(245,197,66,0.15),
-                0 16px 56px rgba(0,0,0,0.55),
-                0 0 32px rgba(245,197,66,0.06);
-  }
+  .trust-grid { display: grid; gap: 24px; grid-template-columns: 1fr; }
+  @media (min-width: 640px) { .trust-grid { grid-template-columns: repeat(3, 1fr); } }
+  .trust-card { text-align: center; padding: 28px 20px; }
+  .trust-icon { font-size: 28px; margin-bottom: 12px; display: block; }
+  .trust-title { font-size: 15px; font-weight: 700; color: #111827; margin-bottom: 8px; }
+  .trust-desc { font-size: 14px; color: #4B5563; line-height: 1.6; }
 
-  .exc-feat-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1.25rem;
+  .faq-wrap { max-width: 720px; }
+  .faq-list { display: flex; flex-direction: column; gap: 8px; }
+  .faq-item { background: #fff; border: 1px solid #E5E7EB; border-radius: 10px; overflow: hidden; }
+  .faq-q {
+    padding: 16px 20px; font-size: 15px; font-weight: 600; color: #111827;
+    cursor: pointer; list-style: none;
+    display: flex; align-items: center; justify-content: space-between; user-select: none;
   }
-  .exc-feat-pick {
-    font-size: 0.65rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--color-accent);
-    background: rgba(245,197,66,0.1);
-    border: 1px solid rgba(245,197,66,0.25);
-    padding: 0.2rem 0.65rem;
-    border-radius: 100px;
-  }
-  .exc-feat-score {
-    font-size: 0.78rem;
-    font-weight: 700;
-    color: var(--color-text-muted);
-  }
+  .faq-q::-webkit-details-marker { display: none; }
+  .faq-q::after { content: '+'; font-size: 18px; color: #9CA3AF; }
+  details[open] .faq-q::after { content: '−'; }
+  .faq-a { padding: 0 20px 16px; font-size: 14px; color: #4B5563; line-height: 1.7; }
 
-  .exc-feat-body {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 1.375rem;
-  }
-  .exc-feat-meta {
-    display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
-    min-width: 0;
-  }
-  .exc-feat-name {
-    font-size: 1.125rem;
-    font-weight: 800;
-    color: var(--color-text-primary);
-    letter-spacing: -0.02em;
-    line-height: 1;
-  }
-  .exc-feat-amount {
-    font-size: 1.35rem;
-    font-weight: 900;
-    background: linear-gradient(135deg, #fcd34d 0%, #f5c542 50%, #d97706 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    letter-spacing: -0.025em;
-    line-height: 1;
-  }
-
-  .exc-feat-realistic {
-    font-size: 0.65rem;
-    font-weight: 500;
-    color: rgba(245,197,66,0.55);
-    font-style: italic;
-    line-height: 1.3;
-    margin-top: 0.15rem;
-  }
-  .exc-feat-cta {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    padding: 0.75rem 1.25rem;
-    background: var(--color-accent);
-    color: #000;
-    font-size: 0.875rem;
-    font-weight: 800;
-    border-radius: 10px;
-    width: 100%;
-    justify-content: center;
-    transition: opacity 0.15s, transform 0.15s;
-    letter-spacing: -0.01em;
-  }
-  .exc-feat:hover .exc-feat-cta {
-    opacity: 0.92;
-    transform: none;
-  }
-
-  /* 2-column row of smaller cards */
-  .exc-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.625rem;
-  }
-
-  .exc-sm {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 1rem 1.125rem;
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
-    border-radius: 12px;
-    text-decoration: none;
-    transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
-  }
-  .exc-sm:hover {
-    border-color: rgba(245,197,66,0.35);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-  }
-  .exc-sm-info {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-    min-width: 0;
-  }
-  .exc-sm-name {
-    font-size: 0.82rem;
-    font-weight: 700;
-    color: var(--color-text-primary);
-    line-height: 1;
-  }
-  .exc-sm-amount {
-    font-size: 0.72rem;
-    font-weight: 600;
-    color: var(--color-accent);
-    line-height: 1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .exc-sm-bestfor {
-    font-size: 0.65rem;
-    font-weight: 500;
-    color: var(--color-text-muted);
-    line-height: 1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .exc-sm-arrow {
-    font-size: 0.82rem;
-    color: var(--color-accent);
-    font-weight: 700;
-    flex-shrink: 0;
-    opacity: 0.5;
-    transition: opacity 0.15s, transform 0.15s;
-  }
-  .exc-sm:hover .exc-sm-arrow { opacity: 1; transform: translateX(2px); }
-
-  .hero-cards-note {
-    font-size: 0.65rem;
-    color: var(--color-text-muted);
-    text-align: center;
-    margin: 0;
-    line-height: 1.4;
-    opacity: 0.7;
-  }
-
-  /* ── Exchange strip ── */
-  .exc-strip-wrap {
-    position: relative;
-    z-index: 1;
-    border-top: 1px solid var(--color-border);
-    background: rgba(255,255,255,0.012);
-    padding: 0.75rem 0;
-  }
-  .exc-strip-inner {
-    display: flex;
-    align-items: center;
-    gap: 1.25rem;
-  }
-  .exc-strip-label {
-    font-size: 0.65rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--color-text-muted);
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-  .exc-strip-scroll {
-    display: flex;
-    gap: 0.375rem;
-    overflow-x: auto;
-    flex: 1;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    mask-image: linear-gradient(90deg, transparent 0%, black 3%, black 97%, transparent 100%);
-  }
-  .exc-strip-scroll::-webkit-scrollbar { display: none; }
-  .exc-strip-item {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.375rem;
-    padding: 0.3rem 0.7rem;
-    background: var(--color-bg-tertiary);
-    border: 1px solid var(--color-border);
-    border-radius: 100px;
-    text-decoration: none;
-    white-space: nowrap;
-    flex-shrink: 0;
-    transition: border-color 0.12s, background 0.12s;
-  }
-  .exc-strip-item:hover {
-    border-color: rgba(245,197,66,0.35);
-    background: rgba(245,197,66,0.05);
-  }
-  .exc-strip-name {
-    font-size: 0.72rem;
-    font-weight: 600;
-    color: var(--color-text-secondary);
-  }
-  .exc-strip-bonus {
-    font-size: 0.68rem;
-    font-weight: 700;
-    color: var(--color-accent);
-  }
-  .exc-strip-all {
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: var(--color-accent);
-    text-decoration: none;
-    white-space: nowrap;
-    flex-shrink: 0;
-    padding: 0.3rem 0.5rem;
-    opacity: 0.8;
-    transition: opacity 0.12s;
-  }
-  .exc-strip-all:hover { opacity: 1; }
-
-  /* ── Shared below-hero ── */
-  .section { padding: 2.75rem 0 1.5rem; }
-  .view-all-wrap {
-    display: flex;
-    justify-content: center;
-    margin-top: 1.5rem;
-  }
-
-  .how-it-works {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
-  }
-  .how-step {
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
-    border-radius: 12px;
-    padding: 1.375rem;
-    transition: border-color 0.2s, transform 0.2s;
-  }
-  .how-step:hover {
-    border-color: rgba(245,197,66,0.2);
-    transform: translateY(-1px);
-  }
-  .how-step-num {
-    width: 34px;
-    height: 34px;
-    background: var(--gradient-gold, var(--color-accent));
-    color: #000;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.9rem;
-    font-weight: 800;
-    margin-bottom: 0.875rem;
-    box-shadow: 0 2px 8px rgba(245,197,66,0.25);
-  }
-  .how-step h3 { font-size: 0.975rem; font-weight: 700; margin: 0 0 0.5rem; letter-spacing: -0.01em; }
-  .how-step p  { font-size: 0.8125rem; color: var(--color-text-secondary); line-height: 1.6; margin: 0; }
-
-  .text-link {
-    font-size: 0.875rem;
-    color: var(--color-accent);
-    text-decoration: none;
-    font-weight: 600;
-    transition: opacity 0.15s;
-  }
-  .text-link:hover { opacity: 0.8; }
-
-  /* ── Responsive ── */
-  @media (max-width: 1100px) {
-    .hero-layout { grid-template-columns: 1fr 420px; gap: 2.75rem; }
-  }
-
-  @media (max-width: 1024px) {
-    .hero-layout {
-      grid-template-columns: 1fr;
-      gap: 2.5rem;
-      padding-bottom: 2.5rem;
-    }
-    .hero-cards {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.75rem;
-    }
-    .exc-feat { grid-column: 1 / -1; }
-    .exc-row  { display: contents; }
-    .hero-cards-note { grid-column: 1 / -1; }
-    .how-it-works { grid-template-columns: repeat(2, 1fr); }
-  }
-
-  @media (max-width: 768px) {
-    :global(body) { padding-bottom: 76px; }
-    .exc-strip-label { display: none; }
-  }
-
-  @media (max-width: 640px) {
-    .hero { padding: 2.25rem 0 0; }
-    .hero-h1 { font-size: clamp(1.85rem, 7.5vw, 2.5rem); }
-    .hero-sub { font-size: 0.9375rem; margin-bottom: 1.75rem; }
-    .hero-badge { font-size: 0.68rem; margin-bottom: 1.25rem; }
-    .hero-actions { flex-direction: column; margin-bottom: 2rem; }
-    .hero-actions :global(.cta-btn) { width: 100%; justify-content: center; }
-    .hero-kpis { gap: 0; }
-    .hero-kpi { padding: 0 1rem; }
-    .hero-kpi:first-child { padding-left: 0; }
-    .hero-cards { grid-template-columns: 1fr; }
-    .exc-feat { grid-column: auto; }
-    .hero-cards-note { grid-column: auto; }
-    .how-it-works { grid-template-columns: 1fr; }
-    .exc-strip-inner { gap: 0.75rem; }
-  }
-
-  @media (max-width: 400px) {
-    .hero-kpis { overflow-x: auto; scrollbar-width: none; }
-    .hero-kpi  { flex-shrink: 0; padding: 0 0.875rem; }
-    .hero-kpi-sep { flex-shrink: 0; }
-  }
-
-  /* ── Mobile sticky CTA ── */
-  .hp-sticky {
-    display: none;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 150;
-    background: rgba(10, 10, 10, 0.97);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-top: 1px solid var(--color-border);
-    padding: 0.75rem 1rem;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    transform: translateY(100%);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  .hp-sticky--visible {
-    transform: translateY(0);
-  }
-  .hp-sticky-left {
-    display: flex;
-    flex-direction: column;
-    gap: 0.1rem;
-    min-width: 0;
-  }
-  .hp-sticky-headline {
-    font-size: 0.875rem;
-    font-weight: 800;
-    color: var(--color-accent);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .hp-sticky-sub {
-    font-size: 0.7rem;
-    color: var(--color-text-muted);
-    font-weight: 500;
-  }
-  .hp-sticky-btn {
-    flex-shrink: 0;
-    display: inline-flex;
-    align-items: center;
-    min-height: 44px;
-    padding: 0.625rem 1.25rem;
-    background: var(--color-accent);
-    color: #000;
-    font-weight: 700;
-    font-size: 0.875rem;
-    border-radius: 10px;
-    text-decoration: none;
-    white-space: nowrap;
-    transition: opacity 0.15s;
-  }
-  .hp-sticky-btn:hover { opacity: 0.88; }
-
-  @media (max-width: 768px) {
-    .hp-sticky { display: flex; }
-  }
-
-  /* ── Guides strip ── */
-  .guides-strip {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.75rem;
-    margin-bottom: 1rem;
-  }
-  .guide-strip-card {
-    display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
-    padding: 1rem 1.125rem;
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
-    border-radius: 12px;
-    text-decoration: none;
-    transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
-  }
-  .guide-strip-card:hover {
-    border-color: rgba(245,197,66,0.3);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-  }
-  .guide-strip-cat {
-    font-size: 0.62rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-    color: var(--color-accent);
-    opacity: 0.85;
-  }
-  .guide-strip-title {
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: var(--color-text-primary);
-    line-height: 1.45;
-    letter-spacing: -0.01em;
-  }
-  .guide-strip-meta {
-    font-size: 0.7rem;
-    color: var(--color-text-muted);
-    font-weight: 500;
-    margin-top: 0.15rem;
-    transition: color 0.15s;
-  }
-  .guide-strip-card:hover .guide-strip-meta { color: var(--color-accent); }
-
-  @media (max-width: 768px) { .guides-strip { grid-template-columns: repeat(2, 1fr); } }
-  @media (max-width: 480px) { .guides-strip { grid-template-columns: 1fr; } }
-
-  /* ── Section subtitle ── */
-  .section-subtitle {
-    font-size: 0.9375rem;
-    color: var(--color-text-secondary);
-    margin: -0.375rem 0 1.5rem;
-    line-height: 1.65;
-    max-width: 580px;
-  }
-
-  /* ── Quick Find grid ── */
-  .qf-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.75rem;
-  }
-  .qf-card {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.875rem 1rem;
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
-    border-radius: 12px;
-    text-decoration: none;
-    transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
-  }
-  .qf-card:hover {
-    border-color: rgba(245,197,66,0.35);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.25);
-  }
-  .qf-card--featured {
-    border-color: rgba(245,197,66,0.3);
-    background: linear-gradient(135deg, rgba(245,197,66,0.06) 0%, var(--color-bg-secondary) 100%);
-  }
-  .qf-icon {
-    font-size: 1.375rem;
-    flex-shrink: 0;
-    line-height: 1;
-  }
-  .qf-info {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 0.15rem;
-    min-width: 0;
-  }
-  .qf-label {
-    font-size: 0.875rem;
-    font-weight: 700;
-    color: var(--color-text-primary);
-  }
-  .qf-meta {
-    font-size: 0.72rem;
-    color: var(--color-text-muted);
-    font-weight: 500;
-  }
-  .qf-arrow {
-    font-size: 0.875rem;
-    color: var(--color-accent);
-    font-weight: 700;
-    flex-shrink: 0;
-    opacity: 0.6;
-    transition: opacity 0.15s, transform 0.15s;
-  }
-  .qf-card:hover .qf-arrow { opacity: 1; transform: translateX(3px); }
-
-  @media (max-width: 768px) {
-    .qf-grid { grid-template-columns: repeat(2, 1fr); }
-  }
-  @media (max-width: 480px) {
-    .qf-grid { grid-template-columns: 1fr; }
-  }
-
-  /* ── Bonus Landing Links grid ── */
-  .bonus-links-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.75rem;
-  }
-  .bonus-link-card {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 0.875rem;
-    padding: 0.875rem 1rem;
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
-    border-radius: 12px;
-    text-decoration: none;
-    transition: border-color 0.15s, transform 0.15s;
-  }
-  .bonus-link-card:hover {
-    border-color: rgba(245,197,66,0.3);
-    transform: translateY(-2px);
-  }
-  .bonus-link-info {
-    display: flex;
-    flex-direction: column;
-    gap: 0.15rem;
-    min-width: 0;
-    flex: 1;
-  }
-  .bonus-link-name {
-    font-size: 0.875rem;
-    font-weight: 700;
-    color: var(--color-text-primary);
-  }
-  .bonus-link-amount {
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: var(--color-accent);
-  }
-  .bonus-link-cta {
-    font-size: 0.72rem;
-    color: var(--color-text-muted);
-    font-weight: 500;
-    transition: color 0.15s;
-  }
-  .bonus-link-card:hover .bonus-link-cta { color: var(--color-accent); }
-
-  @media (max-width: 768px) {
-    .bonus-links-grid { grid-template-columns: repeat(2, 1fr); }
-  }
-  @media (max-width: 480px) {
-    .bonus-links-grid { grid-template-columns: 1fr; }
-  }
-
-  /* ── Top Comparisons grid ── */
-  .compare-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.75rem;
-    margin-bottom: 1rem;
-  }
-  .compare-hp-card {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
-    border-radius: 10px;
-    text-decoration: none;
-    transition: border-color 0.15s, transform 0.15s;
-  }
-  .compare-hp-card:hover {
-    border-color: var(--color-accent-dim, rgba(245,197,66,0.3));
-    transform: translateY(-1px);
-  }
-  .compare-hp-logos {
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-    flex-shrink: 0;
-  }
-  .compare-hp-vs {
-    font-size: 0.62rem;
-    color: var(--color-text-muted);
-    font-weight: 500;
-  }
-  .compare-hp-label {
-    flex: 1;
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: var(--color-text-primary);
-    line-height: 1.3;
-  }
-  .compare-hp-arrow {
-    color: var(--color-accent);
-    font-weight: 700;
-    flex-shrink: 0;
-    font-size: 0.85rem;
-  }
-  @media (max-width: 768px) {
-    .compare-grid { grid-template-columns: repeat(2, 1fr); }
-  }
-  @media (max-width: 480px) {
-    .compare-grid { grid-template-columns: 1fr; }
-  }
-
-  /* ── By Goal grid ── */
-  .goal-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0.75rem;
-    margin-bottom: 1rem;
-  }
-  .goal-card {
-    display: flex;
-    align-items: center;
-    gap: 0.65rem;
-    padding: 0.875rem 1rem;
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
-    border-radius: 12px;
-    text-decoration: none;
-    transition: border-color 0.18s, background 0.18s, transform 0.15s;
-  }
-  .goal-card:hover {
-    border-color: rgba(245,197,66,0.35);
-    background: rgba(245,197,66,0.03);
-    transform: translateY(-1px);
-  }
-  .goal-icon { font-size: 1.2rem; flex-shrink: 0; }
-  .goal-info { flex: 1; min-width: 0; }
-  .goal-label {
-    display: block;
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: var(--color-text-primary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .goal-meta {
-    display: block;
-    font-size: 0.7rem;
-    color: var(--color-text-muted);
-    margin-top: 0.1rem;
-  }
-  .goal-arrow {
-    font-size: 0.8rem;
-    color: var(--color-text-muted);
-    flex-shrink: 0;
-    transition: color 0.15s;
-  }
-  .goal-card:hover .goal-arrow { color: var(--color-accent); }
-  @media (max-width: 900px)  { .goal-grid { grid-template-columns: repeat(2, 1fr); } }
-  @media (max-width: 480px)  { .goal-grid { grid-template-columns: 1fr; } }
-
-  /* ── Coins strip ── */
-  .coins-strip {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0.6rem;
-    margin-bottom: 1rem;
-  }
-  .coin-strip-card {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.7rem 0.9rem;
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
-    border-radius: 10px;
-    text-decoration: none;
-    transition: border-color 0.15s, transform 0.12s;
-  }
-  .coin-strip-card:hover {
-    border-color: rgba(245,197,66,0.3);
-    transform: translateY(-1px);
-  }
-  .coin-strip-sym {
-    font-size: 0.8rem;
-    font-weight: 800;
-    color: var(--color-accent);
-    min-width: 36px;
-  }
-  .coin-strip-name {
-    flex: 1;
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: var(--color-text-secondary);
-  }
-  .coin-strip-arrow {
-    font-size: 0.75rem;
-    color: var(--color-text-muted);
-  }
-  @media (max-width: 900px)  { .coins-strip { grid-template-columns: repeat(2, 1fr); } }
-  @media (max-width: 480px)  { .coins-strip { grid-template-columns: repeat(2, 1fr); } }
+  .bottom-cta-section { text-align: center; }
+  .bottom-cta-title { font-size: clamp(22px, 3.5vw, 32px); font-weight: 800; color: #fff; margin-bottom: 12px; }
+  .bottom-cta-sub { font-size: 15px; color: rgba(255,255,255,.6); margin-bottom: 28px; max-width: 480px; margin-left: auto; margin-right: auto; }
 </style>

@@ -1,0 +1,76 @@
+---
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="sf-inner">
+    <div class="sf-brand">
+      <a href="/" class="sf-logo" aria-label="CryptoBonusWorld">
+        <span class="sf-logo-text"><span class="sf-ct">Crypto</span><span class="sf-bn">Bonus</span><span class="sf-wd">World</span></span>
+      </a>
+      <p class="sf-tagline">Verified crypto promo codes &amp; referral bonuses</p>
+    </div>
+
+    <div class="sf-links">
+      <div class="sf-col">
+        <div class="sf-col-title">Exchanges</div>
+        <a href="/bybit/" class="sf-link">Bybit</a>
+        <a href="/exchanges/" class="sf-link">All Exchanges</a>
+      </div>
+      <div class="sf-col">
+        <div class="sf-col-title">Info</div>
+        <a href="/affiliate-disclosure" class="sf-link">Affiliate Disclosure</a>
+        <a href="/privacy-policy" class="sf-link">Privacy Policy</a>
+        <a href="/terms" class="sf-link">Terms</a>
+        <a href="/contact" class="sf-link">Contact</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="sf-bottom">
+    <p class="sf-legal">
+      © {year} CryptoBonusWorld. We earn commissions when you use our referral links — at no extra cost to you.
+      Crypto trading involves significant risk. Always verify bonus terms on the official exchange website.
+      This site does not provide financial advice.
+    </p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    background: #080F18;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.55);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 14px;
+    margin-top: auto;
+  }
+  .sf-inner {
+    max-width: 1180px; margin: 0 auto;
+    padding: 40px 24px 32px;
+    display: flex; flex-direction: column; gap: 32px;
+  }
+  @media (min-width: 640px) { .sf-inner { flex-direction: row; justify-content: space-between; align-items: flex-start; } }
+  @media (min-width: 820px) { .sf-inner { padding: 48px 32px 40px; } }
+
+  .sf-logo { text-decoration: none; display: inline-block; margin-bottom: 10px; }
+  .sf-logo-text { font-size: 18px; font-weight: 800; letter-spacing: -.02em; }
+  .sf-ct { color: rgba(255,255,255,.75); }
+  .sf-bn { color: #F7931A; }
+  .sf-wd { color: rgba(255,255,255,.75); }
+  .sf-tagline { font-size: 13px; color: rgba(255,255,255,0.35); line-height: 1.5; max-width: 240px; }
+
+  .sf-links { display: flex; gap: 40px; flex-wrap: wrap; }
+  .sf-col { display: flex; flex-direction: column; gap: 8px; }
+  .sf-col-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: rgba(255,255,255,0.35); margin-bottom: 4px; }
+  .sf-link { font-size: 13px; color: rgba(255,255,255,0.55); text-decoration: none; transition: color .15s; }
+  .sf-link:hover { color: rgba(255,255,255,0.85); }
+
+  .sf-bottom {
+    max-width: 1180px; margin: 0 auto;
+    padding: 16px 24px 24px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+  }
+  @media (min-width: 820px) { .sf-bottom { padding: 16px 32px 24px; } }
+  .sf-legal { font-size: 12px; color: rgba(255,255,255,0.28); line-height: 1.7; }
+</style>
