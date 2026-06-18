@@ -24,7 +24,13 @@ const currentPath = Astro.url.pathname;
     </a>
 
     <nav class="ph-nav" aria-label="Main navigation">
-      <a href="/exchanges/" class={`ph-nav-item${currentPath.startsWith('/exchanges') ? ' is-active' : ''}`}>Exchanges</a>
+      <div class={`ph-nav-item ph-dropdown${currentPath.startsWith('/exchanges') || currentPath.startsWith('/bybit') ? ' is-active' : ''}`}>
+        <a href="/exchanges/" class="ph-dropdown-label">Exchanges <span class="ph-dropdown-arrow">▾</span></a>
+        <div class="ph-dropdown-menu">
+          <a href="/exchanges/" class="ph-dropdown-link">All Exchanges</a>
+          <a href="/bybit/" class="ph-dropdown-link ph-dropdown-featured">Bybit</a>
+        </div>
+      </div>
       <a href="/promo-codes/" class={`ph-nav-item${currentPath.startsWith('/promo-codes') ? ' is-active' : ''}`}>Promo Codes</a>
     </nav>
 
@@ -40,6 +46,7 @@ const currentPath = Astro.url.pathname;
 
   <div class="ph-mobile-menu" id="ph-mobile-menu" aria-hidden="true">
     <a href="/exchanges/" class="ph-mobile-item">Exchanges <span class="ph-mobile-chevron">›</span></a>
+    <a href="/bybit/" class="ph-mobile-item ph-mobile-sub">↳ Bybit</a>
     <a href="/promo-codes/" class="ph-mobile-item">Promo Codes <span class="ph-mobile-chevron">›</span></a>
     <a href="/bybit/" class="ph-mobile-item ph-mobile-cta">Get Bybit Bonus →</a>
   </div>
@@ -129,6 +136,41 @@ const currentPath = Astro.url.pathname;
   }
   .ph-nav-item:hover, .ph-nav-item.is-active { color: #fff; }
 
+  /* Dropdown */
+  .ph-dropdown {
+    position: relative; display: flex; align-items: center;
+    color: rgba(255,255,255,0.70);
+  }
+  .ph-dropdown:hover { color: #fff; }
+  .ph-dropdown-label {
+    display: flex; align-items: center; gap: 4px;
+    height: 64px; padding: 0 12px;
+    font-size: 13.5px; font-weight: 500;
+    color: inherit; text-decoration: none; white-space: nowrap;
+    letter-spacing: 0.01em; cursor: pointer;
+  }
+  .ph-dropdown-arrow { font-size: 9px; opacity: 0.6; transition: transform .15s; }
+  .ph-dropdown:hover .ph-dropdown-arrow { transform: rotate(180deg); }
+  .ph-dropdown-menu {
+    display: none; position: absolute; top: 100%; left: 0;
+    min-width: 210px;
+    background: #1a2e4a; border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 10px; padding: 6px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+    z-index: 300;
+  }
+  .ph-dropdown:hover .ph-dropdown-menu { display: block; }
+  .ph-dropdown-link {
+    display: flex; align-items: center; gap: 8px;
+    padding: 9px 12px; border-radius: 7px;
+    font-size: 13px; font-weight: 500;
+    color: rgba(255,255,255,0.75); text-decoration: none;
+    transition: background .12s, color .12s;
+  }
+  .ph-dropdown-link:hover { background: rgba(255,255,255,0.07); color: #fff; }
+  .ph-dropdown-featured { color: #F7931A; font-weight: 600; }
+  .ph-dropdown-featured:hover { color: #F9B841; }
+
   .ph-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
   .ph-cta {
     display: none;
@@ -173,6 +215,11 @@ const currentPath = Astro.url.pathname;
   }
   .ph-mobile-item:hover { color: #fff; background: rgba(255,255,255,0.04); }
   .ph-mobile-chevron { opacity: 0.35; }
+  .ph-mobile-sub {
+    padding-left: 36px; font-size: 13px;
+    color: #F7931A; font-weight: 600;
+  }
+  .ph-mobile-sub:hover { color: #F9B841; }
   .ph-mobile-cta { color: #F7931A; font-weight: 700; }
   .ph-mobile-cta:hover { color: #F9B841; }
 </style>
