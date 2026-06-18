@@ -187,29 +187,48 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
   }
   .cf-inner {
     max-width: 720px; margin: 0 auto; padding: 0;
-    background: #ffffff; border: 1px solid #E5E7EB;
+    background: #F3F4F6; border: 1px solid #D1D5DB;
     border-radius: 8px; overflow: hidden;
   }
-  .cf-table { width: 100%; border-collapse: collapse; font-size: 14px; background: #ffffff; table-layout: fixed; }
-  .cf-table tr { border-bottom: 1px solid #E5E7EB; background: #ffffff !important; }
+  .cf-table { width: 100%; border-collapse: collapse; font-size: 14px; background: #F3F4F6; table-layout: fixed; }
+  .cf-table tr { border-bottom: 1px solid #E5E7EB; }
   .cf-table tr:last-child { border-bottom: none; }
-  .cf-table td { padding: 11px 16px; vertical-align: middle; background: #ffffff; color: #111827; word-wrap: break-word; overflow-wrap: break-word; }
-  .cf-table td:first-child { color: #9CA3AF !important; font-size: 13px; width: 43%; }
+  .cf-table td { padding: 11px 16px; vertical-align: middle; background: #F3F4F6; color: #111827; word-wrap: break-word; overflow-wrap: break-word; }
+  .cf-table td:first-child { color: #374151 !important; font-size: 14px; font-weight: 500; width: 50%; }
   .cf-table td:last-child { font-weight: 600; color: #111827 !important; }
   @media (max-width: 479px) {
     .cf-table td { padding: 10px 12px; font-size: 13px; }
-    .cf-table td:first-child { font-size: 12px; }
+    .cf-table td:first-child { font-size: 13px; }
   }
   .cf-code { font-family: 'Courier New', monospace; letter-spacing: .04em; color: #c47f00 !important; -webkit-text-fill-color: #c47f00 !important; }
   .cf-good { color: #16a34a !important; -webkit-text-fill-color: #16a34a !important; }
   .cf-warn { color: #b45309 !important; -webkit-text-fill-color: #b45309 !important; font-weight: 500 !important; }
+
+  /* ── SEO intro block ─────────────────────────────────────── */
+  .seo-intro-block {
+    background: #ffffff; border-bottom: 1px solid #E5E7EB;
+    padding: 16px 20px 20px;
+  }
+  .seo-intro-inner { max-width: 720px; margin: 0 auto; }
+  .seo-phrase {
+    font-size: 17px; font-weight: 700; color: #111827;
+    margin: 0 0 8px;
+  }
+  .seo-intro-text {
+    font-size: 15px; color: #4B5563; line-height: 1.65;
+    margin: 0;
+  }
+  @media (max-width: 479px) {
+    .seo-phrase { font-size: 16px; }
+    .seo-intro-text { font-size: 14px; }
+  }
 
   /* ── Post-table CTA ───────────────────────────────────────── */
   .post-table-cta {
     background: var(--proto-surface-2); border-bottom: 1px solid var(--proto-border);
     padding: 24px 0;
   }
-  @media (min-width: 640px) { .post-table-cta { padding-top: 180px; } }
+  @media (min-width: 640px) { .post-table-cta { padding-top: 32px; } }
   .ptc-inner { max-width: 540px; margin: 0 auto; padding: 0 20px; text-align: center; }
   .ptc-intro { font-size: 13.5px; color: var(--proto-text-2); line-height: 1.6; margin-bottom: 14px; }
   .ptc-btn {
@@ -392,9 +411,9 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
     .bh-promo-row.copy-success .bh-copy-btn { background: #dcfce7 !important; color: #166534 !important; -webkit-text-fill-color: #166534 !important; }
     .compact-facts { background: #ffffff !important; color-scheme: light !important; forced-color-adjust: none; }
     .cf-inner { background: #ffffff !important; border-color: #E5E7EB !important; }
-    .cf-table, .cf-table tr, .cf-table td { background: #ffffff !important; color-scheme: light !important; forced-color-adjust: none; }
+    .cf-table, .cf-table tr, .cf-table td { background: #F3F4F6 !important; color-scheme: light !important; forced-color-adjust: none; }
     .cf-table tr { border-bottom-color: #E5E7EB !important; }
-    .cf-table td:first-child { color: #9CA3AF !important; -webkit-text-fill-color: #9CA3AF !important; }
+    .cf-table td:first-child { color: #374151 !important; -webkit-text-fill-color: #374151 !important; }
     .cf-table td:last-child { color: #111827 !important; -webkit-text-fill-color: #111827 !important; }
     .cf-code { color: #c47f00 !important; -webkit-text-fill-color: #c47f00 !important; }
     .cf-good { color: #16a34a !important; -webkit-text-fill-color: #16a34a !important; }
@@ -439,10 +458,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
       Get Bonus
     </a>
 
-    <p class="bh-source">
-      Source checked {offer.lastChecked} · Official promo page<br/>
-      Updated on <a href="https://www.bybit.com/en/promo/new-user/" target="_blank" rel="noopener noreferrer nofollow">Bybit.com</a>
-    </p>
+    <p class="bh-source">Valid June 2026 on the official Bybit bonus page</p>
   </div>
 </section>
 
@@ -453,15 +469,22 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
   <div class="cf-inner">
     <table class="cf-table">
       <tbody>
-        <tr><td>Exchange</td><td>Bybit</td></tr>
-        <tr><td>Referral code</td><td class="cf-code">{offer.promoCode}</td></tr>
-        <tr><td>Bonus</td><td>Up to 30,000 USDT</td></tr>
-        <tr><td>Realistic value</td><td class="cf-good">200–600 USDT for most users</td></tr>
-        <tr><td>KYC</td><td class="cf-warn">Required</td></tr>
-        <tr><td>Availability</td><td class="cf-warn">Not US, UK, Canada</td></tr>
-        <tr><td>Source checked</td><td>{offer.lastChecked}</td></tr>
+        <tr><td>👉 Bybit</td><td>bybit.com</td></tr>
+        <tr><td>➡️ Referral Code</td><td class="cf-code">{offer.promoCode}</td></tr>
+        <tr><td>💰 Bonus</td><td>Up to 30,000 USDT</td></tr>
+        <tr><td>✅ Valid</td><td>June 2026</td></tr>
       </tbody>
     </table>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     BLOCK 3b — SEO PHRASE + INTRO SENTENCE
+═══════════════════════════════════════════════════════════ -->
+<div class="seo-intro-block">
+  <div class="seo-intro-inner">
+    <p class="seo-phrase">Bybit Promo Code Bonus</p>
+    <p class="seo-intro-text">Looking for a Bybit referral code? Use <strong>CRYPTOBONUSW</strong> to open the official Bybit bonus page and check the latest sign-up rewards for new users.</p>
   </div>
 </div>
 
