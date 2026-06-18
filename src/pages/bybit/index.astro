@@ -105,7 +105,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
     color: var(--bh-text);
   }
   @media (min-width: 640px) {
-    .brand-hero { padding: 32px 0 36px; }
+    .brand-hero { padding: 44px 0 52px; min-height: 420px; display: flex; flex-direction: column; justify-content: center; }
   }
   .bh-inner { max-width: 540px; margin: 0 auto; padding: 0 20px; text-align: center; }
 
@@ -163,14 +163,14 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
   .bh-cta-btn {
     display: flex; align-items: center; justify-content: center;
     width: 100%; max-width: 312px; margin-left: auto; margin-right: auto;
-    background: #16a34a; color: #fff;
+    background: #55C72F; color: #fff;
     font-size: 24px; font-weight: 700; border-radius: 6px;
-    height: 62px; margin-bottom: 12px;
+    height: 68px; margin-bottom: 12px;
     transition: background .15s, transform .1s; letter-spacing: 0;
     text-decoration: none;
   }
   @media (min-width: 640px) { .bh-cta-btn { font-size: 28px; } }
-  .bh-cta-btn:hover { background: #15803d; transform: translateY(-1px); }
+  .bh-cta-btn:hover { background: #46b024; transform: translateY(-1px); }
 
   .bh-source {
     font-size: 14px; color: var(--bh-note); line-height: 1.65;
@@ -211,15 +211,15 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
   }
   .seo-intro-inner { max-width: 720px; margin: 0 auto; }
   .seo-phrase {
-    font-size: 17px; font-weight: 700; color: #111827;
-    margin: 0 0 8px;
+    font-size: 14px; font-weight: 400; color: #9CA3AF;
+    margin: 0 0 12px; font-style: italic;
   }
   .seo-intro-text {
     font-size: 15px; color: #4B5563; line-height: 1.65;
     margin: 0;
   }
   @media (max-width: 479px) {
-    .seo-phrase { font-size: 16px; }
+    .seo-phrase { font-size: 13px; }
     .seo-intro-text { font-size: 14px; }
   }
 
@@ -458,7 +458,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
       Get Bonus
     </a>
 
-    <p class="bh-source">Valid June 2026 on the official Bybit bonus page</p>
+    <p class="bh-source">Verified June 2026 on <a href="https://www.bybit.com/en/promo/new-user/" target="_blank" rel="noopener noreferrer nofollow">Bybit.com</a></p>
   </div>
 </section>
 
