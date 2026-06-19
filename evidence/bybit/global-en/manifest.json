@@ -47,6 +47,28 @@
       "site": null,
       "status": "pending",
       "capture_note": "Optional. Captures bonus tasks/conditions screen."
+    },
+    "public_welcome_rewards": {
+      "raw": "evidence/bybit/global-en/raw/desktop-1440/03-public-welcome-rewards-page.png",
+      "site": "public/media/exchanges/bybit/evidence/global-en/bybit-public-welcome-rewards.png",
+      "source": "Bybit public welcome rewards modal (partner.bybit.com/b/CRYPTOBONUSW flow)",
+      "referral_code": "CRYPTOBONUSW",
+      "evidence_type": "public_welcome_rewards",
+      "status": "verified_public_page",
+      "dimensions": "848x664",
+      "file_size_kb": 78,
+      "captured_at": "2026-06-19",
+      "personal_data": false,
+      "limitations": "Public marketing page only — not account-level Rewards Hub verification. Exact deposit/trading task amounts and claim deadlines require Rewards Hub confirmation after registration.",
+      "approved_for_site": true,
+      "content_confirmed": [
+        "$100 sign-up bonus message",
+        "$30K+ headline",
+        "Reward tier chart: $50 / $100 / $350 / $800 / $5,000 / $8,800 / $15,000 / $30,000",
+        "Deposit + trading volume requirements per tier",
+        "Over 80% of users win $100 or more label",
+        "Sign Up Now CTA"
+      ]
     }
   },
   "match": {
