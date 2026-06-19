@@ -30,7 +30,7 @@ const relatedExchanges = [
   { slug: 'mexc',   name: 'MEXC',   logo: '/logos/mexc.png',   bonus: 'Up to 8,000 USDT',  tag: 'No KYC option',  tileBg: '#F5F3FF' },
   { slug: 'bitget', name: 'Bitget', logo: '/logos/bitget.png', bonus: 'Up to 6,200 USDT',  tag: 'Copy trading',   tileBg: '#ECFDF5' },
   { slug: 'bingx',  name: 'BingX',  logo: '/logos/bingx.png',  bonus: 'Up to 5,125 USDT',  tag: 'Social trading', tileBg: '#EFF6FF' },
-  { slug: 'okx',    name: 'OKX',    logo: '/logos/okx.png',    bonus: 'Up to 10,000 USDT', tag: 'Leading DEX',    tileBg: '#F3F4F6' },
+  { slug: 'okx',    name: 'OKX',    logo: '/logos/okx.png',    bonus: 'Up to 10,000 USDT', tag: 'CEX + Web3',     tileBg: '#F3F4F6' },
 ];
 
 const brandHeroTokens = {
@@ -371,7 +371,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
   .p2-faq-q::after { content: '+'; flex-shrink: 0; font-size: 18px; font-weight: 400; color: #9CA3AF; }
   .p2-faq-item[open] .p2-faq-q::after { content: '−'; }
   .p2-faq-q:hover { background: #F9FAFB; }
-  .p2-faq-a { padding: 0 16px 14px; font-size: 13px; color: #9CA3AF; font-style: italic; line-height: 1.5; }
+  .p2-faq-a { padding: 0 16px 14px; font-size: 13px; color: #4B5563; font-style: normal; line-height: 1.5; }
 
   /* Related exchange bonuses — horizontal cards */
   .p2-related-intro { font-size: 14px; color: #6B7280; line-height: 1.6; margin: 0 0 14px; }
@@ -452,6 +452,17 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
   .p2-closing-wrap { max-width: 720px; margin: 0 auto; padding: 16px 16px 0; }
   .p2-closing-sentence { font-size: 13px; color: #6B7280; line-height: 1.65; margin: 0; text-align: center; }
 
+  /* Verification status badges */
+  .status-badge {
+    display: inline-flex; align-items: center;
+    font-size: 11px; font-weight: 700; letter-spacing: .03em;
+    padding: 3px 10px; border-radius: 20px; white-space: nowrap; line-height: 1.4;
+  }
+  .status-verified      { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+  .status-public-preview{ background: #fefce8; color: #854d0e; border: 1px solid #fef08a; }
+  .status-check-hub     { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+  .status-note { font-size: 11px; color: #6B7280; line-height: 1.45; margin-top: 4px; }
+
   /* ── Samsung / forced-dark mode override ─────────────────────
      Samsung One UI dark mode can override color-scheme:light.
      Re-assert explicit colours for elements that must stay light.
@@ -502,6 +513,11 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
     .p2-table td { color: #374151 !important; -webkit-text-fill-color: #374151 !important; }
     .p2-faq-item { background: #fff !important; border-color: #E5E7EB !important; }
     .p2-faq-q { color: #111827 !important; -webkit-text-fill-color: #111827 !important; }
+    .p2-faq-a { color: #4B5563 !important; -webkit-text-fill-color: #4B5563 !important; font-style: normal !important; }
+    .status-verified       { background: #f0fdf4 !important; color: #15803d !important; border-color: #bbf7d0 !important; }
+    .status-public-preview { background: #fefce8 !important; color: #854d0e !important; border-color: #fef08a !important; }
+    .status-check-hub      { background: #eff6ff !important; color: #1d4ed8 !important; border-color: #bfdbfe !important; }
+    .status-note { color: #6B7280 !important; -webkit-text-fill-color: #6B7280 !important; }
     .p2-rel-card { background: #fff !important; border-color: #E5E7EB !important; }
     .p2-rel-name { color: #111827 !important; -webkit-text-fill-color: #111827 !important; }
     .p2-rel-bonus { color: #374151 !important; -webkit-text-fill-color: #374151 !important; }
@@ -610,7 +626,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
       <li class="p2-step">Create a new Bybit account</li>
       <li class="p2-step">Confirm the referral code <strong>CRYPTOBONUSW</strong></li>
       <li class="p2-step">Complete verification if required</li>
-      <li class="p2-step">Check the rewards or bonus area for available tasks</li>
+      <li class="p2-step">Check the Bybit Rewards Hub inside your account for available tasks, deadlines and claim rules.</li>
     </ol>
   </div>
 </div>
@@ -636,7 +652,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
 <!-- 04b. Full-width CTA immediately after screenshot 1 -->
 <div class="p2-section p2-cta-block">
   <div class="p2-inner">
-    <a href="/go/bybit" class="p2-cta-bar" rel="noopener sponsored">Get FREE Crypto On Bybit</a>
+    <a href="/go/bybit" class="p2-cta-bar" rel="noopener sponsored">Get Bybit Bonus Now</a>
   </div>
 </div>
 
@@ -665,7 +681,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
           </tr>
           <tr>
             <td>First deposit</td>
-            <td>Deposit $100 or more</td>
+            <td>Deposit amount varies by tier</td>
             <td>Deposit bonus</td>
             <td>Amount scales with deposit size</td>
           </tr>
@@ -770,7 +786,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
 <div class="p2-section p2-section-alt">
   <div class="p2-inner">
     <h2 class="p2-h2">Bybit Bonus Offer — What We Have Verified</h2>
-    <p class="p2-text">The table below shows what CryptoBonusWorld has been able to independently verify about the Bybit bonus offer linked to the code CRYPTOBONUSW. Areas marked "Needs Rewards Hub confirmation" depend on individual account status and are not directly verifiable from public pages without an active Bybit account.</p>
+    <p class="p2-text">The table below shows what CryptoBonusWorld has been able to independently verify about the Bybit bonus offer linked to the code CRYPTOBONUSW. Rows marked "Check in Rewards Hub" depend on individual account status and require verification inside your Bybit account after registration.</p>
     <figure class="p2-evidence-figure" style="margin:20px 0;">
       <img
         src="/media/exchanges/bybit/evidence/global-en/bybit-public-welcome-rewards.png"
@@ -790,7 +806,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
             <th>Reward area</th>
             <th>What may be required</th>
             <th>Reward type</th>
-            <th>Verification status</th>
+            <th>Status</th>
           </tr>
         </thead>
         <tbody>
@@ -798,48 +814,48 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
             <td>Sign-up with CRYPTOBONUSW</td>
             <td>Referral code applied at registration</td>
             <td>Welcome eligibility</td>
-            <td style="color:#16A34A;font-weight:600;">✅ Verified — mobile screenshot (June 2026)</td>
+            <td><span class="status-badge status-verified">Verified</span><div class="status-note">Mobile screenshot · June 2026</div></td>
           </tr>
           <tr>
             <td>Welcome rewards</td>
             <td>Open official Bybit bonus page via partner link</td>
             <td>Welcome gifts (up to $30,000)</td>
-            <td style="color:#16A34A;font-weight:600;">✅ Verified — public welcome page (June 2026)</td>
+            <td><span class="status-badge status-verified">Verified</span><div class="status-note">Public welcome page · June 2026</div></td>
           </tr>
           <tr>
             <td>Reward tiers preview ($50–$30,000)</td>
             <td>Deposit + trading volume requirements per tier</td>
             <td>Tiered deposit bonus</td>
-            <td style="color:#b45309;font-weight:500;">⚠️ Partially verified — public page shows tiers; exact eligibility confirmed inside Rewards Hub</td>
+            <td><span class="status-badge status-public-preview">Public preview</span><div class="status-note">Public page shows reward tiers; exact eligibility is checked inside Rewards Hub.</div></td>
           </tr>
           <tr>
             <td>Identity verification</td>
             <td>KYC may be required to unlock most rewards</td>
             <td>Reward access</td>
-            <td style="color:#16A34A;font-weight:600;">✅ Verified — official Bybit FAQ</td>
+            <td><span class="status-badge status-verified">Verified</span><div class="status-note">Official Bybit FAQ · June 2026</div></td>
           </tr>
           <tr>
             <td>Deposit tasks</td>
-            <td>Deposit may be required (amount varies by tier)</td>
+            <td>Deposit may be required; amount varies by tier</td>
             <td>Deposit bonus or coupon</td>
-            <td style="color:#b45309;font-weight:500;">ℹ️ Needs Rewards Hub confirmation</td>
+            <td><span class="status-badge status-check-hub">Check in Rewards Hub</span><div class="status-note">Check exact tasks after sign-up.</div></td>
           </tr>
           <tr>
             <td>Trading tasks</td>
             <td>Trading volume may be required</td>
             <td>Bonus, fee saver or fee discount</td>
-            <td style="color:#b45309;font-weight:500;">ℹ️ Needs Rewards Hub confirmation</td>
+            <td><span class="status-badge status-check-hub">Check in Rewards Hub</span><div class="status-note">Check exact tasks after sign-up.</div></td>
           </tr>
           <tr>
             <td>Claim period</td>
             <td>Rewards may expire after a set period</td>
             <td>Manual claim required</td>
-            <td style="color:#b45309;font-weight:500;">ℹ️ Official FAQ / terms review</td>
+            <td><span class="status-badge status-check-hub">Check in Rewards Hub</span><div class="status-note">Check exact tasks after sign-up.</div></td>
           </tr>
         </tbody>
       </table>
     </div>
-    <p class="p2-text" style="margin-top:12px;">The Rewards Hub inside your Bybit account is the authoritative source for which tasks are active and how much each is worth for your specific account and region. Task amounts can differ by country, KYC tier, and current promotion period.</p>
+    <p class="p2-text" style="margin-top:12px;">The Rewards Hub inside your Bybit account shows the exact tasks, deadlines and claim rules available to your account. Public Bybit pages confirm the CRYPTOBONUSW referral flow and reward tiers, but task amounts can vary by country, KYC level, deposit amount, trading activity and promotion period.</p>
   </div>
 </div>
 
@@ -1064,6 +1080,56 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
       });
     }
   })();
+</script>
+
+<script is:inline type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home",                  "item": "https://cryptobonusworld.com/" },
+        { "@type": "ListItem", "position": 2, "name": "Bybit Referral Code",   "item": "https://cryptobonusworld.com/bybit/" }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Do I have to make a cryptocurrency deposit?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Not for every task. KYC verification alone may unlock a small reward in the welcome package. However, the larger deposit bonus and most milestone rewards do require you to fund your account. The exact deposit threshold for each tier is shown on the official Bybit bonus page after you register." }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I get more than one Bybit bonus?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Within the welcome package, yes — each completed task unlocks its own reward. You can earn multiple rewards by completing KYC, making a first deposit, placing a futures trade, and meeting volume milestones. The welcome package itself is a one-time offer for new accounts and cannot be repeated on the same account." }
+        },
+        {
+          "@type": "Question",
+          "name": "What are the Bybit fees?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Bybit's standard spot trading fee is 0.1% for both makers and takers. Perpetual futures fees are 0.02% for makers and 0.055% for takers. Options are 0.02% maker and 0.03% taker. Some welcome package rewards include a fee discount voucher — check the Rewards Hub after registering to see whether one is available for your account." }
+        },
+        {
+          "@type": "Question",
+          "name": "Which currency are rewards paid in?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Most Bybit welcome bonus rewards are denominated in USDT or issued as USDT-equivalent trading vouchers. Some rewards come as experience points (EXP) that convert to USDT after you meet a trading volume requirement. Specific reward currencies are shown for each task inside the Bybit welcome offer page." }
+        },
+        {
+          "@type": "Question",
+          "name": "Can existing users use the referral code?",
+          "acceptedAnswer": { "@type": "Answer", "text": "No. The Bybit referral code CRYPTOBONUSW is for new users only and must be entered during account creation. It cannot be added to an existing Bybit account after registration. If you already have a Bybit account, you can access the ongoing Rewards Hub inside your account instead." }
+        },
+        {
+          "@type": "Question",
+          "name": "Is the Bybit bonus available in every country?",
+          "acceptedAnswer": { "@type": "Answer", "text": "No. Bybit restricts access in a number of jurisdictions, including the United States and Canada. Even in countries where Bybit is available, specific bonus tasks or reward amounts may differ by region. After registering, the official Bybit bonus page will show which welcome tasks are active for your account and location." }
+        }
+      ]
+    }
+  ]
+}
 </script>
 
 </CleanLayout>
