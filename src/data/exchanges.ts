@@ -23,7 +23,7 @@ export const exchanges: Exchange[] = [
     logoText:         'BYBIT',
     status:           'active',
     cardImage:        '/media/exchanges/bybit/cards/bybit-card-1200x800.png',
-    ogImage:          '/media/exchanges/bybit/share/bybit-og-1200x630.png',
+    ogImage:          '/media/exchanges/bybit/share/bybit-og-1200x630.jpg',
     articleImage:     '/media/exchanges/bybit/article/bybit-article-1200x675.png',
     affiliateUrl:     '/go/bybit',
     officialUrl:      'https://www.bybit.com',
