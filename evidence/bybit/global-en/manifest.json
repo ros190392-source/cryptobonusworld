@@ -1,0 +1,132 @@
+{
+  "exchange": "bybit",
+  "locale": "global-en",
+  "language_expected": "English",
+  "code_expected": "CRYPTOBONUSW",
+  "partnerUrl": "https://partner.bybit.com/b/CRYPTOBONUSW",
+  "observedFinalUrl": "https://www.bybit.com/en/sign-up?affiliate_id=75062&group_id=1892311&group_type=1&ref_code=CRYPTOBONUSW",
+  "captured_at": "2026-06-19T14:05:03.947Z",
+  "site_claim": {
+    "code": "CRYPTOBONUSW",
+    "bonus_text": "Up to 30,000 USDT",
+    "bonus_max_amount": 30000,
+    "bonus_currency": "USDT",
+    "valid_month": "June 2026",
+    "affiliate_url": "https://partner.bybit.com/b/CRYPTOBONUSW",
+    "local_redirect": "/go/bybit"
+  },
+  "evidence": {
+    "code": {
+      "raw": "evidence/bybit/global-en/raw/mobile-390/01-signup-page.png",
+      "processed": "evidence/bybit/global-en/processed/mobile-390/01-signup-page-annotated.png",
+      "site": "public/media/exchanges/bybit/evidence/global-en/bybit-signup-code-applied-mobile.png",
+      "status": "match",
+      "detected_code": "CRYPTOBONUSW",
+      "language": "English",
+      "browser_used": "Samsung Internet",
+      "device": "Samsung Galaxy S21+",
+      "capture_note": "English UI confirmed. CRYPTOBONUSW pre-filled in Referral Code field with green checkmark. Captured via ADB + manual Power+VolDown screenshot.",
+      "annotation_style": "C",
+      "annotation_color": "#f7a600",
+      "approved_for_site": false
+    },
+    "bonus": {
+      "raw": "evidence/bybit/global-en/raw/mobile-390/02-bonus-offer-page.png",
+      "processed": "evidence/bybit/global-en/processed/mobile-390/02-bonus-offer-page-annotated.png",
+      "site": "public/media/exchanges/bybit/evidence/global-en/bybit-bonus-offer-mobile.png",
+      "status": "pending",
+      "detected_bonus_text": null,
+      "detected_bonus_amount": null,
+      "detected_bonus_currency": null,
+      "capture_note": null,
+      "approved_for_site": false
+    },
+    "terms": {
+      "raw": null,
+      "processed": null,
+      "site": null,
+      "status": "pending",
+      "capture_note": "Optional. Captures bonus tasks/conditions screen."
+    }
+  },
+  "match": {
+    "code_match_status": "match",
+    "bonus_match_status": "match",
+    "overall_offer_status": "verified",
+    "last_checked": "2026-06-19T14:15:00.000Z",
+    "notes": "Desktop page text contains 'earn up to $30,000 in deposit bonuses' and '$30,000' in reward tier chart. Bybit uses $ notation (not 'USDT' string) on the web UI — 1:1 peg. Site claim 'Up to 30,000 USDT' is supported. CRYPTOBONUSW visible in Referral Code field on desktop (input value, not extracted by innerText). $30,020 shown in invite banner = cumulative total ($100 sign-up + $30,000 deposit + misc), not a mismatch with $30,000 max claim.",
+    "approved_for_site": true,
+    "approved_by": "user",
+    "approval_date": "2026-06-19"
+  },
+  "mobile": {
+    "raw": "evidence\\bybit\\global-en\\raw\\mobile-390\\01-signup-page.png",
+    "processed": "evidence\\bybit\\global-en\\processed\\mobile-390\\01-signup-page.png",
+    "annotated": "evidence\\bybit\\global-en\\processed\\mobile-390\\01-signup-page-annotated.png",
+    "site": "public/media/exchanges/bybit/evidence/global-en/bybit-signup-code-applied-mobile.png",
+    "status": "match",
+    "language": "English",
+    "recommendation": "safe_to_use_as_evidence",
+    "viewport": "mobile-390",
+    "note": "English page confirmed: Welcome to Bybit, Referral Code field, CRYPTOBONUSW pre-filled with green checkmark. Approved 2026-06-19.",
+    "browser_used": "Samsung Internet",
+    "actual_device_resolution": {
+      "width": 1080,
+      "height": 2400
+    },
+    "url_used": "https://www.bybit.com/en/sign-up?affiliate_id=75062&group_id=1892311&group_type=1&ref_code=CRYPTOBONUSW",
+    "used_en_url": true,
+    "capture_note": "lang-pre-switch.png from run 2026-06-19T12:13 — observedFinalUrl loaded English correctly before globe tap",
+    "annotation": {
+      "type": "arrow",
+      "style": "C",
+      "target": "referral_code",
+      "color": "#f7a600",
+      "label": "Referral code auto-filled",
+      "generated_from": "evidence\\bybit\\global-en\\raw\\mobile-390\\01-signup-page.png",
+      "generated_at": "2026-06-19T13:52:46.971Z",
+      "viewport": "mobile-390",
+      "crop_top_px": 201,
+      "crop_bottom_px": 252,
+      "output_dimensions": "1080×1947"
+    }
+  },
+  "desktop": {
+    "raw": "evidence/bybit/global-en/raw/desktop-1440/01-signup-page.png",
+    "html": "evidence/bybit/global-en/raw/desktop-1440/01-signup-page.html",
+    "text": "evidence/bybit/global-en/raw/desktop-1440/text.txt",
+    "processed": null,
+    "site": null,
+    "status": "manual_review",
+    "viewport": "desktop-1440",
+    "language": "English",
+    "browser_used": "real-chrome-cdp",
+    "final_url": "https://www.bybit.com/en/sign-up?affiliate_id=75062&group_id=1892311&group_type=1&ref_code=CRYPTOBONUSW",
+    "dimensions": "1440×900",
+    "file_size_kb": 124,
+    "recommendation": "evidence_only",
+    "note": "Evidence-only — not used in article. Confirms $30,000 reward tier and CRYPTOBONUSW code on desktop.",
+    "bonus_evidence": {
+      "desktop_raw": "evidence/bybit/global-en/raw/desktop-1440/01-signup-page.png",
+      "bonus_text_visible": true,
+      "detected_bonus_text": "earn up to $30,000 in deposit bonuses, VIP status upgrades and more",
+      "detected_bonus_headline": "Unlock $30K+ in welcome rewards",
+      "detected_bonus_amount": 30000,
+      "detected_bonus_currency": "USD ($)",
+      "detected_invite_total": 30020,
+      "detected_invite_text": "Unlock up to $30,020 in exclusive rewards and be invited to exclusive events",
+      "code_visible_in_field": true,
+      "code_in_extracted_text": false,
+      "code_note": "CRYPTOBONUSW visible in Referral Code input field on screenshot; not extracted by innerText (input value attribute)",
+      "bonus_match_status": "match",
+      "match_reasoning": "$30,000 explicitly present in page text and reward chart. Site claim 'Up to 30,000 USDT' = $30,000 deposit bonus tier. Bybit UI uses $ not USDT string. 1:1 peg, claim is accurate."
+    }
+  },
+  "article_usage": {
+    "primary_image": "mobile",
+    "desktop_image": "evidence_only",
+    "note": "Site is mobile-first. Mobile screenshot goes into article. Desktop is verification only."
+  },
+  "recommendation": "approved",
+  "approved_for_site": true
+}

@@ -26,6 +26,13 @@ const alternatives = [
   { name: 'BingX',  logo: '/logos/bingx.png',   bonus: '5,125 USDT',  code: 'CRYPTOBONUSWORLD',    url: 'https://bingxdao.com/partner/CRYPTOBONUSWORLD/',                             tag: 'Social trading' },
 ];
 
+const relatedExchanges = [
+  { slug: 'mexc',   name: 'MEXC',   logo: '/logos/mexc.png',   bonus: 'Up to 8,000 USDT',  tag: 'No KYC option'  },
+  { slug: 'bitget', name: 'Bitget', logo: '/logos/bitget.png', bonus: 'Up to 6,200 USDT',  tag: 'Copy trading'   },
+  { slug: 'bingx',  name: 'BingX',  logo: '/logos/bingx.png',  bonus: 'Up to 5,125 USDT',  tag: 'Social trading' },
+  { slug: 'okx',    name: 'OKX',    logo: '/logos/okx.png',    bonus: 'Up to 10,000 USDT', tag: 'Leading DEX'    },
+];
+
 const brandHeroTokens = {
   'bh-bgFrom':     '#0d1117',
   'bh-bgTo':       '#1a1f2e',
@@ -224,162 +231,205 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
     .seo-intro-text { font-size: 14px; }
   }
 
-  /* ── Post-table CTA ───────────────────────────────────────── */
-  .post-table-cta {
-    background: var(--proto-surface-2); border-bottom: 1px solid var(--proto-border);
-    padding: 24px 0;
+  /* ═══════════════════════════════════════════════════════════
+     PART 2 — SEO SKELETON
+  ═══════════════════════════════════════════════════════════ */
+
+  .p2-section {
+    background: #ffffff; border-bottom: 1px solid #E5E7EB;
+    padding: 28px 0;
+    color-scheme: light; forced-color-adjust: none;
   }
-  @media (min-width: 640px) { .post-table-cta { padding-top: 32px; } }
-  .ptc-inner { max-width: 540px; margin: 0 auto; padding: 0 20px; text-align: center; }
-  .ptc-intro { font-size: 13.5px; color: var(--proto-text-2); line-height: 1.6; margin-bottom: 14px; }
-  .ptc-btn {
+  .p2-section-alt { background: #F9FAFB; }
+  .p2-inner { max-width: 720px; margin: 0 auto; padding: 0 20px; }
+
+  .p2-h2 { font-size: 20px; font-weight: 700; color: #111827; margin: 0 0 14px; line-height: 1.3; }
+  @media (min-width: 640px) { .p2-h2 { font-size: 22px; } }
+  .p2-h3 { font-size: 16px; font-weight: 700; color: #111827; margin: 20px 0 10px; line-height: 1.35; }
+  @media (min-width: 640px) { .p2-h3 { font-size: 17px; } }
+
+  .p2-placeholder {
+    background: #F3F4F6; border: 1px dashed #D1D5DB; border-radius: 6px;
+    padding: 12px 16px; font-size: 12px; color: #9CA3AF;
+    font-family: 'Courier New', monospace; line-height: 1.5;
+    color-scheme: light; forced-color-adjust: none;
+  }
+
+  .p2-cta-block { text-align: center; }
+  .p2-cta-btn {
     display: inline-flex; align-items: center; justify-content: center;
-    background: #16a34a; color: #fff;
-    font-size: 15px; font-weight: 700; border-radius: 10px;
-    padding: 0 28px; height: 48px; width: 100%; max-width: 310px;
-    transition: background .15s, transform .1s; letter-spacing: .01em;
-    text-decoration: none;
+    background: #55C72F; color: #fff;
+    font-size: 16px; font-weight: 700; border-radius: 8px;
+    padding: 0 28px; height: 52px;
+    width: 100%; max-width: 340px;
+    text-decoration: none; letter-spacing: .01em;
+    transition: background .15s, transform .1s;
   }
-  .ptc-btn:hover { background: #15803d; transform: translateY(-1px); }
+  .p2-cta-btn:hover { background: #46b024; transform: translateY(-1px); }
 
-  /* ── Registration proof ───────────────────────────────────── */
-  .reg-proof { background: var(--proto-surface-2); border-bottom: 1px solid var(--proto-border); padding: 28px 0; }
-  .reg-proof-inner { max-width: 760px; margin: 0 auto; padding: 0 20px; }
-  .reg-proof-label { font-size: 11px; font-weight: 700; color: var(--proto-verified); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 14px; display: flex; align-items: center; gap: 5px; }
-  .reg-proof-grid { display: flex; flex-direction: column; gap: 14px; }
-  @media (min-width: 640px) {
-    .reg-proof-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .reg-proof-main { grid-column: 1 / -1; }
-    .reg-proof-sub .reg-proof-img { height: 180px; object-fit: cover; object-position: center top; }
+  .p2-text {
+    font-size: 14px; color: #374151; line-height: 1.7; margin: 0 0 12px;
   }
-  .reg-proof-item { background: var(--proto-surface); border: 1px solid var(--proto-border); border-radius: var(--proto-radius); overflow: hidden; }
-  .reg-proof-img { width: 100%; display: block; }
-  .reg-proof-body { padding: 10px 12px; }
-  .reg-proof-item-title { font-size: 12px; font-weight: 600; color: var(--proto-text); margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
-  .reg-proof-num { font-size: 11px; font-weight: 700; color: var(--proto-text-3); background: var(--proto-surface-2); border: 1px solid var(--proto-border); border-radius: 4px; padding: 1px 5px; flex-shrink: 0; }
-  .reg-proof-cap { font-size: 12px; color: var(--proto-text-3); line-height: 1.4; }
+  .p2-text:last-child { margin-bottom: 0; }
+  @media (min-width: 640px) { .p2-text { font-size: 15px; } }
 
-  /* ── Bybit proof badge ────────────────────────────────────── */
-  .bybit-proof-badge {
-    display: inline-flex; align-items: center; gap: 10px;
-    background: #111827; border: 1px solid #2d3748;
-    border-radius: 8px; padding: 9px 16px; margin-bottom: 16px;
+  /* Full-width article CTA bar — used for mid-article conversion points */
+  .p2-cta-bar {
+    display: flex; align-items: center; justify-content: center;
+    background: #55C72F; color: #fff;
+    font-size: 17px; font-weight: 700; border-radius: 8px;
+    padding: 0 24px; height: 56px; width: 100%; box-sizing: border-box;
+    text-decoration: none; letter-spacing: .01em;
+    transition: background .18s ease, transform .15s ease, box-shadow .18s ease;
+    color-scheme: light; forced-color-adjust: none;
   }
-  .badge-brand { font-size: 13px; font-weight: 900; letter-spacing: .05em; color: #fff; font-family: 'Arial Black', Arial, sans-serif; }
-  .badge-brand-i { color: #f7a600; }
-  .badge-pipe { color: #374151; font-size: 15px; font-weight: 300; }
-  .badge-label { font-size: 11px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: #d1d5db; }
-  .badge-dot { width: 6px; height: 6px; background: #22c55e; border-radius: 50%; flex-shrink: 0; }
-  .badge-meta { font-size: 11px; color: #6b7280; }
-
-  /* ── Shared section heading ───────────────────────────────── */
-  h2.section-title { font-size: 20px; font-weight: 700; color: var(--proto-text); margin-bottom: 16px; line-height: 1.3; }
-
-  /* ── Card ─────────────────────────────────────────────────── */
-  .card { background: var(--proto-surface); border: 1px solid var(--proto-border); border-radius: var(--proto-radius); padding: 20px; box-shadow: var(--proto-shadow); }
-
-  /* ── Steps ────────────────────────────────────────────────── */
-  .steps { list-style: none; display: flex; flex-direction: column; gap: 12px; }
-  .step { display: flex; gap: 14px; align-items: flex-start; }
-  .step-num { flex-shrink: 0; width: 28px; height: 28px; background: var(--proto-accent); color: #1a1a18; font-size: 13px; font-weight: 700; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
-  .step-text { font-size: 14px; line-height: 1.55; color: var(--proto-text); }
-  .step-text strong { font-weight: 600; }
-
-  /* ── Article banner ───────────────────────────────────────── */
-  .article-banner {
-    display: block; border-radius: var(--proto-radius); overflow: hidden;
-    margin: 28px 0 0; box-shadow: var(--proto-shadow-md);
-    transition: transform .15s, box-shadow .15s;
+  .p2-cta-bar:hover {
+    background: #46b024;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(70,176,36,0.35);
   }
-  .article-banner:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
-  .article-banner-img { width: 100%; height: auto; display: block; }
-  .article-banner-cap { font-size: 12px; color: var(--proto-text-3); text-align: center; margin: 8px 0 28px; line-height: 1.4; }
-  .article-banner-cap strong { color: var(--proto-text-2); }
 
-  /* ── Conditions table ─────────────────────────────────────── */
-  .conditions-wrap { overflow-x: auto; }
-  .conditions-table { width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 440px; }
-  .conditions-table thead { background: var(--proto-surface-2); }
-  .conditions-table th { padding: 9px 12px; text-align: left; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--proto-text-3); border-bottom: 1px solid var(--proto-border); }
-  .conditions-table td { padding: 10px 12px; border-bottom: 1px solid var(--proto-border); color: var(--proto-text); line-height: 1.4; background: var(--proto-surface); }
-  .conditions-table tr:last-child td { border-bottom: none; }
-  .cond-required { color: var(--proto-warning); font-weight: 500; }
-  .cond-ok { color: var(--proto-verified); font-weight: 500; }
-  .cond-note { font-size: 12px; color: var(--proto-text-3); margin-top: 3px; }
-  .fact-warn { color: var(--proto-warning); }
-
-  /* ── Realistic value ──────────────────────────────────────── */
-  .value-grid { display: grid; gap: 12px; }
-  @media (min-width: 480px) { .value-grid { grid-template-columns: 1fr 1fr; } }
-  .value-card { border: 1px solid var(--proto-border); border-radius: var(--proto-radius); padding: 16px; background: var(--proto-surface); }
-  .value-card.highlight { border-color: var(--proto-verified); background: var(--proto-verified-light); }
-  .value-card-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--proto-text-3); margin-bottom: 6px; }
-  .value-card-amount { font-size: 22px; font-weight: 700; color: var(--proto-text); margin-bottom: 4px; }
-  .value-card-amount.green { color: var(--proto-verified); }
-  .value-card-desc { font-size: 13px; color: var(--proto-text-2); line-height: 1.45; }
-
-  /* ── Availability ─────────────────────────────────────────── */
-  .availability-box { background: var(--proto-warning-light); border: 1px solid #fcd34d; border-radius: var(--proto-radius); padding: 16px 20px; font-size: 14px; color: var(--proto-text); line-height: 1.55; }
-  .availability-box strong { display: block; margin-bottom: 6px; color: var(--proto-warning); font-size: 13px; text-transform: uppercase; letter-spacing: .04em; }
-  .excluded-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
-  .excluded-chip { background: #fff; border: 1px solid #fcd34d; border-radius: 6px; padding: 3px 10px; font-size: 12px; font-weight: 500; color: var(--proto-warning); }
-
-  /* ── Verdict ──────────────────────────────────────────────── */
-  .verdict-grid { display: grid; gap: 12px; }
-  @media (min-width: 500px) { .verdict-grid { grid-template-columns: 1fr 1fr; } }
-  .verdict-card { border-radius: var(--proto-radius); padding: 16px 18px; font-size: 14px; line-height: 1.55; }
-  .verdict-card.worth-it { background: var(--proto-verified-light); border: 1px solid #86efac; }
-  .verdict-card.not-ideal { background: #fff7f7; border: 1px solid #fca5a5; }
-  .verdict-card-head { font-weight: 600; font-size: 13px; margin-bottom: 8px; }
-  .verdict-card.worth-it .verdict-card-head { color: var(--proto-verified); }
-  .verdict-card.not-ideal .verdict-card-head { color: var(--proto-danger); }
-  .verdict-card ul { padding-left: 16px; }
-  .verdict-card li { margin-bottom: 5px; }
-
-  /* ── Mini review ──────────────────────────────────────────── */
-  .mini-review { font-size: 14px; line-height: 1.7; color: var(--proto-text); }
-  .mini-review p { margin-bottom: 12px; }
-  .mini-review p:last-child { margin-bottom: 0; }
-
-  /* ── Alternatives ─────────────────────────────────────────── */
-  .alt-grid { display: flex; flex-direction: column; gap: 10px; }
-  .alt-card { display: flex; align-items: center; gap: 14px; background: var(--proto-surface); border: 1px solid var(--proto-border); border-radius: var(--proto-radius); padding: 14px 16px; transition: border-color .15s; }
-  .alt-card:hover { border-color: var(--proto-border-strong); }
-  .alt-logo { width: 36px; height: 36px; border-radius: 8px; object-fit: contain; border: 1px solid var(--proto-border); padding: 4px; flex-shrink: 0; background: #fff; }
-  .alt-info { flex: 1; min-width: 0; }
-  .alt-name { font-weight: 600; font-size: 14px; color: var(--proto-text); }
-  .alt-bonus { font-size: 13px; color: var(--proto-text-2); }
-  .alt-tag { font-size: 11px; color: var(--proto-text-3); margin-top: 2px; }
-  .alt-btn { flex-shrink: 0; background: var(--proto-surface-2); border: 1px solid var(--proto-border); border-radius: 8px; padding: 7px 14px; font-size: 13px; font-weight: 500; color: var(--proto-text); transition: background .15s; }
-  .alt-btn:hover { background: var(--proto-border); }
-
-  /* ── FAQ ──────────────────────────────────────────────────── */
-  details.faq-item { border: 1px solid var(--proto-border); border-radius: var(--proto-radius); margin-bottom: 8px; background: var(--proto-surface); overflow: hidden; }
-  details.faq-item[open] { border-color: var(--proto-border-strong); }
-  summary.faq-q { padding: 14px 16px; font-size: 14px; font-weight: 500; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; color: var(--proto-text); user-select: none; }
-  summary.faq-q::-webkit-details-marker { display: none; }
-  summary.faq-q::after { content: '+'; font-size: 18px; font-weight: 400; color: var(--proto-text-3); flex-shrink: 0; margin-left: 12px; }
-  details[open] summary.faq-q::after { content: '−'; }
-  .faq-a { padding: 12px 16px 14px; font-size: 13.5px; color: var(--proto-text-2); line-height: 1.6; border-top: 1px solid var(--proto-border); }
-
-  /* ── Final CTA ────────────────────────────────────────────── */
-  .final-cta { background: var(--proto-surface); border: 1px solid var(--proto-border); border-radius: var(--proto-radius-lg); padding: 28px 24px; text-align: center; box-shadow: var(--proto-shadow-md); }
-  .final-cta-logo { width: 44px; height: 44px; border-radius: 10px; border: 1px solid var(--proto-border); padding: 5px; margin: 0 auto 12px; object-fit: contain; background: #fff; }
-  .final-cta-amount { font-size: 28px; font-weight: 700; color: var(--proto-text); margin-bottom: 4px; }
-  .final-cta-typical { font-size: 13px; color: var(--proto-text-3); margin-bottom: 20px; }
-  .final-cta-btn {
-    display: inline-flex; align-items: center; justify-content: center;
-    background: var(--proto-cta); color: #fff;
-    font-size: 16px; font-weight: 700; border-radius: 12px;
-    padding: 0 24px; height: 46px; width: 100%; max-width: 260px; margin: 0 auto;
-    transition: background .15s, transform .1s; letter-spacing: .01em; text-align: center;
-    text-decoration: none;
+  .p2-steps {
+    margin: 0 0 20px; padding: 0; list-style: none;
+    counter-reset: p2-step-counter;
+    display: flex; flex-direction: column; gap: 10px;
   }
-  .final-cta-btn:hover { background: var(--proto-cta-hover); transform: translateY(-1px); }
-  .final-cta-disclaimer { font-size: 12px; color: var(--proto-text-3); margin-top: 14px; line-height: 1.5; }
+  .p2-step {
+    display: flex; align-items: flex-start; gap: 12px;
+    counter-increment: p2-step-counter;
+    font-size: 14px; color: #374151; line-height: 1.55;
+  }
+  .p2-step::before {
+    content: counter(p2-step-counter);
+    flex-shrink: 0; width: 26px; height: 26px;
+    background: #111827; color: #fff; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; margin-top: 1px;
+  }
+  @media (min-width: 640px) { .p2-step { font-size: 15px; } }
 
-  /* ── Disclosure ───────────────────────────────────────────── */
-  .disclosure { font-size: 12px; color: var(--proto-text-3); background: var(--proto-surface-2); border-radius: var(--proto-radius); padding: 12px 14px; line-height: 1.55; margin-top: 20px; }
+  .p2-screenshot-placeholder {
+    background: #F3F4F6; border: 1px solid #E5E7EB; border-radius: 8px;
+    min-height: 160px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 8px; padding: 24px 20px; text-align: center;
+    color-scheme: light; forced-color-adjust: none;
+  }
+  @media (min-width: 640px) { .p2-screenshot-placeholder { min-height: 200px; } }
+  .p2-screenshot-label {
+    font-family: 'Courier New', monospace; font-size: 11px; color: #9CA3AF;
+    letter-spacing: .04em; text-transform: uppercase; line-height: 1.5;
+  }
+  .p2-screenshot-desc { font-size: 12px; color: #D1D5DB; line-height: 1.4; margin-top: 4px; }
+
+  .p2-evidence-figure { margin: 0; text-align: center; }
+  .p2-evidence-img {
+    max-width: 360px; width: 100%; height: auto;
+    display: block; margin: 0 auto;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+  }
+  .p2-evidence-caption {
+    font-size: 12px; color: #6B7280; line-height: 1.5;
+    margin-top: 8px; text-align: center;
+  }
+
+  .p2-table-wrap {
+    overflow-x: auto; border-radius: 8px; border: 1px solid #D1D5DB;
+    margin-top: 10px; color-scheme: light; forced-color-adjust: none;
+  }
+  .p2-table {
+    width: 100%; border-collapse: collapse; font-size: 13px;
+    background: #F9FAFB; min-width: 320px;
+  }
+  .p2-table th {
+    background: #F3F4F6; padding: 10px 14px; text-align: left;
+    font-size: 12px; font-weight: 600; color: #6B7280;
+    border-bottom: 1px solid #E5E7EB; white-space: nowrap;
+  }
+  .p2-table td { padding: 10px 14px; color: #374151; border-bottom: 1px solid #F3F4F6; }
+  .p2-table tr:last-child td { border-bottom: none; }
+  .p2-table-placeholder-row td {
+    text-align: center; color: #9CA3AF;
+    font-size: 12px; font-style: italic; padding: 18px 14px;
+  }
+
+  .p2-faq { display: flex; flex-direction: column; gap: 4px; }
+  .p2-faq-item {
+    border: 1px solid #E5E7EB; border-radius: 8px;
+    overflow: hidden; background: #fff;
+    color-scheme: light; forced-color-adjust: none;
+  }
+  .p2-faq-q {
+    padding: 13px 16px; font-size: 14px; font-weight: 600;
+    color: #111827; cursor: pointer; list-style: none;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 8px; transition: background .12s;
+  }
+  .p2-faq-q::-webkit-details-marker { display: none; }
+  .p2-faq-q::after { content: '+'; flex-shrink: 0; font-size: 18px; font-weight: 400; color: #9CA3AF; }
+  .p2-faq-item[open] .p2-faq-q::after { content: '−'; }
+  .p2-faq-q:hover { background: #F9FAFB; }
+  .p2-faq-a { padding: 0 16px 14px; font-size: 13px; color: #9CA3AF; font-style: italic; line-height: 1.5; }
+
+  /* Related exchange bonuses — horizontal cards */
+  .p2-related-intro { font-size: 14px; color: #6B7280; line-height: 1.6; margin: 0 0 14px; }
+  .p2-related-grid { display: flex; flex-direction: column; gap: 8px; }
+  .p2-rel-card {
+    border: 1px solid #E5E7EB; border-radius: 10px; padding: 12px 14px;
+    background: #fff; display: flex; align-items: center; gap: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    color-scheme: light; forced-color-adjust: none;
+  }
+  .p2-rel-logo-wrap { flex-shrink: 0; width: 60px; display: flex; align-items: center; }
+  @media (min-width: 640px) { .p2-rel-logo-wrap { width: 76px; } }
+  .p2-rel-logo { height: 24px; width: auto; object-fit: contain; max-width: 60px; display: block; }
+  @media (min-width: 640px) { .p2-rel-logo { height: 28px; max-width: 76px; } }
+  .p2-rel-info { flex: 1; min-width: 0; }
+  .p2-rel-name { font-size: 13px; font-weight: 700; color: #111827; line-height: 1.2; }
+  .p2-rel-bonus { font-size: 12px; font-weight: 600; color: #374151; line-height: 1.3; }
+  .p2-rel-tag { font-size: 11px; color: #9CA3AF; margin-top: 1px; }
+  .p2-rel-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+  .p2-rel-btn {
+    display: flex; align-items: center; justify-content: center;
+    background: #55C72F; color: #fff;
+    font-size: 12px; font-weight: 700; border-radius: 6px;
+    height: 34px; padding: 0 14px; text-decoration: none; white-space: nowrap;
+    transition: background .15s, color .15s;
+  }
+  .p2-rel-btn:hover { background: #46b024; }
+  .p2-rel-btn.is-activated { background: #0d9488; pointer-events: none; cursor: default; }
+  .p2-rel-link { font-size: 11px; color: #9CA3AF; text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }
+  .p2-rel-link:hover { color: #6B7280; }
+
+  /* Rating block */
+  .p2-rating-block { text-align: center; }
+  .p2-rating-title { font-size: 16px; font-weight: 700; color: #111827; margin: 0 0 10px; }
+  .p2-stars { font-size: 28px; color: #D1D5DB; letter-spacing: 2px; margin: 0 0 8px; line-height: 1; }
+  .p2-rating-empty { font-size: 13px; color: #9CA3AF; margin: 0; line-height: 1.5; }
+
+  /* Voting block */
+  .p2-vote-block { text-align: center; }
+  .p2-vote-title { font-size: 16px; font-weight: 700; color: #111827; margin: 0 0 14px; }
+  .p2-vote-buttons { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+  .p2-vote-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 0 18px; height: 42px; border-radius: 8px;
+    font-size: 14px; font-weight: 600; border: 1.5px solid #E5E7EB;
+    background: #fff; color: #374151; cursor: pointer;
+    transition: border-color .15s, background .15s, color .15s;
+    color-scheme: light; forced-color-adjust: none;
+  }
+  .p2-vote-btn:hover { border-color: #D1D5DB; background: #F9FAFB; }
+  .p2-vote-btn.is-selected-up   { border-color: #16a34a; background: #f0fdf4; color: #15803d; }
+  .p2-vote-btn.is-selected-down { border-color: #dc2626; background: #fef2f2; color: #b91c1c; }
+  .p2-vote-btn:disabled { cursor: default; }
+  .p2-vote-status { font-size: 12px; color: #9CA3AF; margin: 0; line-height: 1.6; }
+
+  /* Closing conversion block — dark hero reuses .brand-hero + .bh-* classes exactly */
+  .p2-bottom-facts { padding-bottom: 24px; }
+  .p2-closing-wrap { max-width: 720px; margin: 0 auto; padding: 16px 16px 0; }
+  .p2-closing-sentence { font-size: 13px; color: #6B7280; line-height: 1.65; margin: 0; text-align: center; }
 
   /* ── Samsung / forced-dark mode override ─────────────────────
      Samsung One UI dark mode can override color-scheme:light.
@@ -419,11 +469,29 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
     .cf-code { color: #c47f00 !important; -webkit-text-fill-color: #c47f00 !important; }
     .cf-good { color: #16a34a !important; -webkit-text-fill-color: #16a34a !important; }
     .cf-warn { color: #b45309 !important; -webkit-text-fill-color: #b45309 !important; }
-    .post-table-cta { background: #F3F4F6 !important; forced-color-adjust: none; }
-    .bybit-section { background: #F7F8F4 !important; }
-    .card { background: #ffffff !important; color: #111827 !important; }
-    .reg-proof { background: #F3F4F6 !important; }
     .bh-wordmark { filter: none !important; opacity: 1 !important; }
+    /* Part 2 overrides */
+    .p2-section { background: #fff !important; color-scheme: light !important; forced-color-adjust: none; }
+    .p2-section-alt { background: #F9FAFB !important; }
+    .p2-placeholder { background: #F3F4F6 !important; border-color: #D1D5DB !important; color: #9CA3AF !important; }
+    .p2-h2, .p2-h3 { color: #111827 !important; -webkit-text-fill-color: #111827 !important; }
+    .p2-step { color: #374151 !important; -webkit-text-fill-color: #374151 !important; }
+    .p2-table { background: #F9FAFB !important; }
+    .p2-table th { background: #F3F4F6 !important; color: #6B7280 !important; -webkit-text-fill-color: #6B7280 !important; }
+    .p2-table td { color: #374151 !important; -webkit-text-fill-color: #374151 !important; }
+    .p2-faq-item { background: #fff !important; border-color: #E5E7EB !important; }
+    .p2-faq-q { color: #111827 !important; -webkit-text-fill-color: #111827 !important; }
+    .p2-rel-card { background: #fff !important; border-color: #E5E7EB !important; }
+    .p2-rel-name { color: #111827 !important; -webkit-text-fill-color: #111827 !important; }
+    .p2-rel-bonus { color: #374151 !important; -webkit-text-fill-color: #374151 !important; }
+    .p2-rating-title { color: #111827 !important; -webkit-text-fill-color: #111827 !important; }
+    .p2-text { color: #374151 !important; -webkit-text-fill-color: #374151 !important; }
+    .p2-cta-bar { background: #55C72F !important; color: #fff !important; -webkit-text-fill-color: #fff !important; }
+    .p2-vote-title { color: #111827 !important; -webkit-text-fill-color: #111827 !important; }
+    .p2-vote-btn { background: #fff !important; color: #374151 !important; -webkit-text-fill-color: #374151 !important; border-color: #E5E7EB !important; color-scheme: light !important; }
+    .p2-vote-btn.is-selected-up   { background: #f0fdf4 !important; color: #15803d !important; -webkit-text-fill-color: #15803d !important; border-color: #16a34a !important; }
+    .p2-vote-btn.is-selected-down { background: #fef2f2 !important; color: #b91c1c !important; -webkit-text-fill-color: #b91c1c !important; border-color: #dc2626 !important; }
+    .p2-closing-sentence { color: #6B7280 !important; -webkit-text-fill-color: #6B7280 !important; }
   }
 </style>
 
@@ -486,30 +554,392 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
   <div class="seo-intro-inner">
     <p class="seo-phrase">Bybit Promo Code Bonus</p>
     <p class="seo-intro-text">Looking for a Bybit referral code? Use <strong>CRYPTOBONUSW</strong> to open the official Bybit bonus page and check the latest sign-up rewards for new users.</p>
+    <p class="seo-intro-text">The Bybit promo code CRYPTOBONUSW gives new accounts access to a welcome package that can include deposit bonuses, trading vouchers, and fee discounts. The rewards you receive depend on which tasks you complete after registration — Bybit structures its new user bonus as a series of milestones rather than a single fixed payout.</p>
+    <p class="seo-intro-text">This page covers what the Bybit bonus code does, how to apply it at sign-up, and what to expect from the Bybit sign-up bonus program. All information is based on publicly available details from the official Bybit bonus page.</p>
   </div>
 </div>
 
 
+<!-- ═══════════════════════════════════════════════════════════
+     PART 2 — SEO SKELETON
+═══════════════════════════════════════════════════════════ -->
+
+<!-- 01. Full-width CTA after intro text -->
+<div class="p2-section p2-cta-block">
+  <div class="p2-inner">
+    <a href="/go/bybit" class="p2-cta-bar" rel="noopener sponsored">Get Bybit Bonus Now</a>
+  </div>
+</div>
+
+<!-- 02. What Is the Bybit Referral Code? -->
+<div class="p2-section">
+  <div class="p2-inner">
+    <h2 class="p2-h2">What Is the Bybit Referral Code?</h2>
+    <p class="p2-text">A Bybit referral code is an alphanumeric string entered during account registration that links your new account to a partner bonus program. Using the code <strong>CRYPTOBONUSW</strong> connects your account to the official Bybit bonus page, which unlocks the new user reward pool.</p>
+    <p class="p2-text">Referral codes are intended for new users only — people creating a Bybit account for the first time. Existing Bybit users cannot apply a referral code to an account that is already registered. The code must be entered at the point of sign-up, before completing registration.</p>
+  </div>
+</div>
+
+<!-- 03. How to Claim the Bybit Bonus Code -->
+<div class="p2-section p2-section-alt">
+  <div class="p2-inner">
+    <h2 class="p2-h2">How to Claim the Bybit Bonus Code</h2>
+    <ol class="p2-steps">
+      <li class="p2-step">Open the official Bybit bonus link</li>
+      <li class="p2-step">Create a new Bybit account</li>
+      <li class="p2-step">Confirm the referral code <strong>CRYPTOBONUSW</strong></li>
+      <li class="p2-step">Complete verification if required</li>
+      <li class="p2-step">Check the rewards or bonus area for available tasks</li>
+    </ol>
+  </div>
+</div>
+
+<!-- 04. Evidence screenshot 1 — signup page with CRYPTOBONUSW pre-filled -->
+<div class="p2-section">
+  <div class="p2-inner">
+    <figure class="p2-evidence-figure">
+      <img
+        src="/media/exchanges/bybit/evidence/global-en/bybit-signup-code-applied-mobile.png"
+        alt="Bybit referral code CRYPTOBONUSW auto-filled on the sign-up page"
+        width="540"
+        height="974"
+        loading="lazy"
+        decoding="async"
+        class="p2-evidence-img"
+      />
+      <figcaption class="p2-evidence-caption">Bybit sign-up page with CRYPTOBONUSW pre-filled in the referral code field.</figcaption>
+    </figure>
+  </div>
+</div>
+
+<!-- 04b. Full-width CTA immediately after screenshot 1 -->
+<div class="p2-section p2-cta-block">
+  <div class="p2-inner">
+    <a href="/go/bybit" class="p2-cta-bar" rel="noopener sponsored">Get FREE Crypto On Bybit</a>
+  </div>
+</div>
+
+<!-- 05. Bonus Levels on Bybit -->
+<div class="p2-section p2-section-alt">
+  <div class="p2-inner">
+    <h2 class="p2-h2">Bonus Levels on Bybit</h2>
+    <p class="p2-text">The Bybit new user bonus is not a single fixed payout. It is structured as a series of tasks, each with its own reward. The total potential value shown on the official Bybit bonus page is up to 30,000 USDT, but that figure represents the combined maximum across all tasks — not a guaranteed amount for every user.</p>
+    <p class="p2-text">Most new users who complete standard verification and a first deposit will unlock a portion of the total package. The exact rewards and task requirements can vary by region and may change between promotion periods. Always check the current terms on the official Bybit bonus page after registering.</p>
+    <div class="p2-table-wrap">
+      <table class="p2-table">
+        <thead>
+          <tr>
+            <th>Task</th>
+            <th>Requirement</th>
+            <th>Reward type</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>KYC verification</td>
+            <td>Complete identity check</td>
+            <td>Bonus voucher</td>
+            <td>Required to unlock most rewards</td>
+          </tr>
+          <tr>
+            <td>First deposit</td>
+            <td>Deposit $100 or more</td>
+            <td>Deposit bonus</td>
+            <td>Amount scales with deposit size</td>
+          </tr>
+          <tr>
+            <td>First futures trade</td>
+            <td>Place any derivatives trade</td>
+            <td>Trading bonus</td>
+            <td>Min trade value may apply</td>
+          </tr>
+          <tr>
+            <td>Volume milestones</td>
+            <td>Meet higher deposit / trading thresholds</td>
+            <td>Tiered bonus</td>
+            <td>Up to 30,000 USDT across all tasks</td>
+          </tr>
+          <tr>
+            <td>Rewards Hub tasks</td>
+            <td>Complete daily / weekly missions</td>
+            <td>Extra vouchers</td>
+            <td>Tasks refresh periodically</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <h3 class="p2-h3">Getting the Most from Your New User Rewards</h3>
+    <p class="p2-text">Complete KYC and your first deposit early — these two steps unlock the largest share of the new user package. After that, check the Rewards Hub inside your Bybit account for any active tasks that apply to your account type and region. Not all tasks will be available in every country.</p>
+  </div>
+</div>
+
+<!-- 07. Other Bybit Codes People Search For -->
+<div class="p2-section">
+  <div class="p2-inner">
+    <h2 class="p2-h2">Other Bybit Codes People Search For</h2>
+    <p class="p2-text">Many users search for a Bybit referral code on Reddit, in forum threads, or on social channels. Some of those codes may be expired, region-restricted, or tied to individual affiliate accounts with no active bonus offer behind them.</p>
+    <p class="p2-text">The Bybit promo code <strong>CRYPTOBONUSW</strong> is the code verified on this page. It links to the official Bybit bonus page where new users can see the current welcome package. If you find another code elsewhere, check whether it routes to an active Bybit bonus offer before registering — the referral code must be entered at sign-up and cannot be changed after registration is complete.</p>
+  </div>
+</div>
+
+<!-- 08–10. About Bybit + Support + Platform and Team Notes -->
+<div class="p2-section p2-section-alt">
+  <div class="p2-inner">
+    <h2 class="p2-h2">About Bybit</h2>
+    <p class="p2-text">Bybit was founded in 2018 and is headquartered in Dubai, UAE, where it operates under a Virtual Asset Service Provider (VASP) licence issued by the Dubai Virtual Assets Regulatory Authority (VARA). The exchange serves more than 30 million registered users across over 160 countries and territories.</p>
+    <p class="p2-text">Bybit offers spot trading, perpetual and quarterly futures contracts, options, and a copy trading marketplace. The platform is available via web browser and through official iOS and Android apps. Bybit does not currently accept users from the United States, Canada, or several other restricted jurisdictions.</p>
+    <h3 class="p2-h3">Support</h3>
+    <p class="p2-text">Bybit provides 24/7 customer support through live chat on the platform and a dedicated Help Center at help.bybit.com. Support is available in English and several other languages. For account-related issues — including bonus queries — the live chat route is typically the fastest way to reach a response.</p>
+    <h3 class="p2-h3">Platform and Team Notes</h3>
+    <p class="p2-text">The Bybit platform covers derivatives-first trading with deep liquidity on its perpetual contracts, alongside a spot market and earn products such as flexible savings and staking. The exchange runs a Launchpad for new token listings and a Bybit Card for spending crypto. Bybit's mobile apps are consistently rated among the higher-reviewed exchange apps on both the App Store and Google Play.</p>
+  </div>
+</div>
+
+<!-- 11. Bybit Rewards Program -->
+<div class="p2-section">
+  <div class="p2-inner">
+    <h2 class="p2-h2">Bybit Rewards Program</h2>
+    <p class="p2-text">Beyond the new user welcome package, Bybit operates an ongoing Rewards Hub inside each registered account. The hub offers daily and weekly missions — such as completing a trade, making a deposit above a certain amount, or trying a specific product — each tied to a USDT voucher or experience points (EXP).</p>
+    <p class="p2-text">EXP accumulated through the Rewards Hub can be converted into USDT after meeting trading volume requirements. The specific tasks available in the hub depend on your account region, your KYC status, and the current promotion calendar. Tasks rotate periodically, so rewards that are available one month may not appear the next.</p>
+    <p class="p2-text">The Bybit welcome bonus unlocked through the referral code <strong>CRYPTOBONUSW</strong> is a separate programme from the ongoing Rewards Hub. New users typically see both available after completing registration and identity verification.</p>
+  </div>
+</div>
+
+<!-- 12. Other Bybit Promotions -->
+<div class="p2-section p2-section-alt">
+  <div class="p2-inner">
+    <h2 class="p2-h2">Other Bybit Promotions</h2>
+    <p class="p2-text">Bybit runs promotions beyond the new user sign-up bonus. These include periodic trading competitions with USDT prize pools, Launchpad participation windows for users who hold BIT or meet trading volume thresholds, and seasonal deposit campaigns around major market events.</p>
+    <p class="p2-text">Existing users can also access the Bybit Affiliate and Referral programmes, which offer fee rebates and commission-sharing for bringing new users to the platform. These are separate from the Bybit sign-up bonus and operate under different terms.</p>
+    <p class="p2-text">Promotion availability and terms change regularly. The official Bybit promotions page is the authoritative source for current offers — check it after creating your account to see which campaigns are active for your region and account type.</p>
+  </div>
+</div>
+
+<!-- 13. The Bybit Referral Program -->
+<div class="p2-section">
+  <div class="p2-inner">
+    <h2 class="p2-h2">The Bybit Referral Program</h2>
+    <p class="p2-text">Bybit operates a referral programme for existing account holders. Registered users can generate a personal referral link from inside their Bybit account and share it with others. When a new user signs up through that link, the referrer receives a percentage of the new user's trading fees as a commission — the exact rate depends on account tier and trading volume.</p>
+    <p class="p2-text">This is distinct from the Bybit bonus code <strong>CRYPTOBONUSW</strong> on this page. The referral code is entered by the new user at sign-up to unlock the welcome bonus. The referral programme commission is earned by the existing user whose link was shared. A new user can benefit from both: the welcome bonus through the code, and contributing to a referrer's commission through the link.</p>
+    <p class="p2-text">If you are an existing Bybit user looking to share a referral link with friends, log in to your Bybit account and navigate to the Referral section in your account dashboard to generate your personal link.</p>
+  </div>
+</div>
+
+<!-- 14. Screenshot placeholder 2 -->
+<div class="p2-section p2-section-alt">
+  <div class="p2-inner">
+    <div class="p2-screenshot-placeholder">
+      <div class="p2-screenshot-label">[SCREENSHOT_PLACEHOLDER_02_BYBIT_REWARDS_OR_REFERRAL_AREA]</div>
+      <div class="p2-screenshot-desc">Rewards Hub · referral area · account bonus tasks</div>
+    </div>
+  </div>
+</div>
+
+<!-- 15. Bybit FAQ -->
+<div class="p2-section">
+  <div class="p2-inner">
+    <h2 class="p2-h2">Bybit FAQ</h2>
+    <div class="p2-faq">
+      <details class="p2-faq-item">
+        <summary class="p2-faq-q">Do I have to make a cryptocurrency deposit?</summary>
+        <div class="p2-faq-a">Not for every task. KYC verification alone may unlock a small reward in the welcome package. However, the larger deposit bonus and most milestone rewards do require you to fund your account. The exact deposit threshold for each tier is shown on the official Bybit bonus page after you register.</div>
+      </details>
+      <details class="p2-faq-item">
+        <summary class="p2-faq-q">Can I get more than one Bybit bonus?</summary>
+        <div class="p2-faq-a">Within the welcome package, yes — each completed task unlocks its own reward. You can earn multiple rewards by completing KYC, making a first deposit, placing a futures trade, and meeting volume milestones. The welcome package itself is a one-time offer for new accounts and cannot be repeated on the same account.</div>
+      </details>
+      <details class="p2-faq-item">
+        <summary class="p2-faq-q">What are the Bybit fees?</summary>
+        <div class="p2-faq-a">Bybit's standard spot trading fee is 0.1% per trade. Perpetual futures fees are 0.01% for makers and 0.06% for takers. Some welcome package rewards include a fee discount voucher — check the Rewards Hub after registering to see whether one is available for your account.</div>
+      </details>
+      <details class="p2-faq-item">
+        <summary class="p2-faq-q">Which currency are rewards paid in?</summary>
+        <div class="p2-faq-a">Most Bybit welcome bonus rewards are denominated in USDT or issued as USDT-equivalent trading vouchers. Some rewards come as experience points (EXP) that convert to USDT after you meet a trading volume requirement. Specific reward currencies are shown for each task inside the Bybit welcome offer page.</div>
+      </details>
+      <details class="p2-faq-item">
+        <summary class="p2-faq-q">Can existing users use the referral code?</summary>
+        <div class="p2-faq-a">No. The Bybit referral code CRYPTOBONUSW is for new users only and must be entered during account creation. It cannot be added to an existing Bybit account after registration. If you already have a Bybit account, you can access the ongoing Rewards Hub inside your account instead.</div>
+      </details>
+      <details class="p2-faq-item">
+        <summary class="p2-faq-q">Is the Bybit bonus available in every country?</summary>
+        <div class="p2-faq-a">No. Bybit restricts access in a number of jurisdictions, including the United States and Canada. Even in countries where Bybit is available, specific bonus tasks or reward amounts may differ by region. After registering, the official Bybit bonus page will show which welcome tasks are active for your account and location.</div>
+      </details>
+    </div>
+  </div>
+</div>
+
+<!-- 16. Screenshot placeholder 3 -->
+<div class="p2-section p2-section-alt">
+  <div class="p2-inner">
+    <div class="p2-screenshot-placeholder">
+      <div class="p2-screenshot-label">[SCREENSHOT_PLACEHOLDER_03_BYBIT_FEES_OR_BONUS_TERMS]</div>
+      <div class="p2-screenshot-desc">Fees · bonus terms · reward conditions proof area</div>
+    </div>
+  </div>
+</div>
+
+<!-- 17a. More Verified Crypto Exchange Bonuses -->
+<div class="p2-section p2-section-alt">
+  <div class="p2-inner">
+    <h2 class="p2-h2">More Verified Crypto Exchange Bonuses</h2>
+    <p class="p2-related-intro">Compare other exchange bonus pages if you want to check alternatives before using the Bybit referral code.</p>
+    <div class="p2-related-grid">
+      {relatedExchanges.map(ex => (
+        <div class="p2-rel-card">
+          <div class="p2-rel-logo-wrap">
+            <img src={ex.logo} alt={ex.name} class="p2-rel-logo" loading="lazy" width="76" height="28" />
+          </div>
+          <div class="p2-rel-info">
+            <div class="p2-rel-name">{ex.name}</div>
+            <div class="p2-rel-bonus">{ex.bonus}</div>
+            <div class="p2-rel-tag">{ex.tag}</div>
+          </div>
+          <div class="p2-rel-actions">
+            <a href={`/go/${ex.slug}/`} class="p2-rel-btn" data-exchange={ex.slug} rel="noopener sponsored">Get Bonus</a>
+            <a href={`/exchanges/${ex.slug}/`} class="p2-rel-link">View details →</a>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</div>
+
+<!-- 17b. Closing conversion block — exact repeat of top dark hero + compact table standard -->
+<section class="brand-hero" style={bhStyle}>
+  <div class="bh-inner">
+    <a href="/go/bybit" rel="noopener sponsored" style="display:block;line-height:0;">
+      <img src="/logos/bybit-wordmark-official.png" alt="Bybit" class="bh-wordmark" width="210" height="78" />
+    </a>
+    <p class="bh-promo-label">PROMO CODE</p>
+    <div class="bh-promo-row">
+      <span class="bh-promo-code">{offer.promoCode}</span>
+      <button class="bh-copy-btn" id="copy-btn-coupon" type="button">Copy</button>
+    </div>
+    <a href="/go/bybit" class="bh-cta-btn" rel="noopener sponsored">Get Bonus</a>
+    <p class="bh-source">Verified June 2026 on <a href="https://www.bybit.com/en/promo/new-user/" target="_blank" rel="noopener noreferrer nofollow">Bybit.com</a></p>
+  </div>
+</section>
+<div class="compact-facts p2-bottom-facts">
+  <div class="cf-inner">
+    <table class="cf-table">
+      <tbody>
+        <tr><td>👉 Bybit</td><td>bybit.com</td></tr>
+        <tr><td>➡️ Referral Code</td><td class="cf-code">{offer.promoCode}</td></tr>
+        <tr><td>💰 Bonus</td><td>Up to 30,000 USDT</td></tr>
+        <tr><td>✅ Valid</td><td>June 2026</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="p2-closing-wrap">
+    <p class="p2-closing-sentence">Use the Bybit referral code CRYPTOBONUSW to open the official bonus page and check the latest rewards before creating your account.</p>
+  </div>
+</div>
+
+<!-- Rating block — honest, no fake data -->
+<div class="p2-section p2-section-alt">
+  <div class="p2-inner p2-rating-block">
+    <h3 class="p2-rating-title">Rate this Bybit referral code</h3>
+    <div class="p2-stars" aria-label="No ratings yet" aria-hidden="true">★★★★★</div>
+    <p class="p2-rating-empty">No ratings yet — be the first to rate this code.</p>
+  </div>
+</div>
+
+<!-- Voting block — localStorage only, honest, no fake global counts -->
+<div class="p2-section">
+  <div class="p2-inner p2-vote-block"
+       data-vote-widget="code-helpfulness"
+       data-exchange="bybit"
+       data-code="CRYPTOBONUSW">
+    <h3 class="p2-vote-title">Was this Bybit referral code helpful?</h3>
+    <div class="p2-vote-buttons">
+      <button class="p2-vote-btn" id="vote-up"   type="button" data-vote="up">👍 Works for me</button>
+      <button class="p2-vote-btn" id="vote-down" type="button" data-vote="down">👎 Didn't work</button>
+    </div>
+    <p class="p2-vote-status" id="vote-status">No votes yet — be the first to rate this code.</p>
+  </div>
+</div>
+
 <script define:vars={{ promoCode: offer.promoCode }}>
   (function () {
     var btn = document.getElementById('copy-btn-hero');
-    if (!btn) return;
-    btn.addEventListener('click', function () {
-      navigator.clipboard.writeText(promoCode).then(function () {
-        var row = btn.closest('.bh-promo-row');
-        var codeSpan = row ? row.querySelector('.bh-promo-code') : null;
-        btn.textContent = 'Copied ✓';
-        btn.classList.add('copy-success');
-        if (row) row.classList.add('copy-success');
-        if (codeSpan) codeSpan.classList.add('copy-success');
-        setTimeout(function () {
-          btn.textContent = 'Copy';
-          btn.classList.remove('copy-success');
-          if (row) row.classList.remove('copy-success');
-          if (codeSpan) codeSpan.classList.remove('copy-success');
-        }, 1800);
+    if (btn) {
+      btn.addEventListener('click', function () {
+        navigator.clipboard.writeText(promoCode).then(function () {
+          var row = btn.closest('.bh-promo-row');
+          var codeSpan = row ? row.querySelector('.bh-promo-code') : null;
+          btn.textContent = 'Copied ✓';
+          btn.classList.add('copy-success');
+          if (row) row.classList.add('copy-success');
+          if (codeSpan) codeSpan.classList.add('copy-success');
+          setTimeout(function () {
+            btn.textContent = 'Copy';
+            btn.classList.remove('copy-success');
+            if (row) row.classList.remove('copy-success');
+            if (codeSpan) codeSpan.classList.remove('copy-success');
+          }, 1800);
+        });
+      });
+    }
+    // Deal Activated state for related exchange cards
+    var DEAL_PREFIX = 'cbw_deal_activated_';
+    document.querySelectorAll('.p2-rel-btn').forEach(function(relBtn) {
+      var slug = relBtn.getAttribute('data-exchange');
+      if (!slug) return;
+      try {
+        if (localStorage.getItem(DEAL_PREFIX + slug)) {
+          relBtn.textContent = 'Deal Activated';
+          relBtn.classList.add('is-activated');
+        }
+      } catch(e) {}
+      relBtn.addEventListener('click', function() {
+        try { localStorage.setItem(DEAL_PREFIX + slug, '1'); } catch(e) {}
+        relBtn.textContent = 'Deal Activated';
+        relBtn.classList.add('is-activated');
       });
     });
+
+    // Voting block — localStorage only, no fake global counts
+    var VOTE_KEY = 'cbw_vote_bybit_code';
+    var voteUpBtn   = document.getElementById('vote-up');
+    var voteDownBtn = document.getElementById('vote-down');
+    var voteStatus  = document.getElementById('vote-status');
+    function applyVoteState(vote) {
+      if (!voteUpBtn || !voteDownBtn || !voteStatus) return;
+      if (vote === 'up') {
+        voteUpBtn.classList.add('is-selected-up');
+        voteDownBtn.classList.remove('is-selected-down');
+      } else if (vote === 'down') {
+        voteDownBtn.classList.add('is-selected-down');
+        voteUpBtn.classList.remove('is-selected-up');
+      }
+      voteUpBtn.disabled   = true;
+      voteDownBtn.disabled = true;
+      voteStatus.textContent = 'Thanks — your vote was recorded. Your vote is saved on this device.';
+    }
+    try { var savedVote = localStorage.getItem(VOTE_KEY); if (savedVote) applyVoteState(savedVote); } catch(e) {}
+    if (voteUpBtn)   { voteUpBtn.addEventListener('click',   function() { try { localStorage.setItem(VOTE_KEY, 'up');   } catch(e) {} applyVoteState('up');   }); }
+    if (voteDownBtn) { voteDownBtn.addEventListener('click', function() { try { localStorage.setItem(VOTE_KEY, 'down'); } catch(e) {} applyVoteState('down'); }); }
+
+    var couponBtn = document.getElementById('copy-btn-coupon');
+    if (couponBtn) {
+      couponBtn.addEventListener('click', function () {
+        navigator.clipboard.writeText(promoCode).then(function () {
+          var row = couponBtn.closest('.bh-promo-row');
+          var codeSpan = row ? row.querySelector('.bh-promo-code') : null;
+          couponBtn.textContent = 'Copied ✓';
+          couponBtn.classList.add('copy-success');
+          if (row) row.classList.add('copy-success');
+          if (codeSpan) codeSpan.classList.add('copy-success');
+          setTimeout(function () {
+            couponBtn.textContent = 'Copy';
+            couponBtn.classList.remove('copy-success');
+            if (row) row.classList.remove('copy-success');
+            if (codeSpan) codeSpan.classList.remove('copy-success');
+          }, 1800);
+        });
+      });
+    }
   })();
 </script>
 
