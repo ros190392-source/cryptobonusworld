@@ -1,0 +1,72 @@
+{
+  "source_url": "https://www.bybit.com/en/announcement-info/fee-rate",
+  "method": "multi_method_investigation",
+  "status": "static_not_extractable_cdp_confirmed",
+  "captured_at": "2026-06-19T00:00:00Z",
+  "investigation_summary": "Fee values are NOT present in static HTML or any public API. The official fee page is a Next.js SPA. Fee data flows from Akamai-protected internal endpoint /x-api/s1/loyalty-program/get-vip-detail → React component (chunk 3175) → DOM cells. CDP DOM extraction (previous session) is the only reliable non-auth method and DID confirm all values.",
+
+  "methods_tried": {
+    "direct_html_fetch": {
+      "status": "no_fee_data",
+      "note": "Page returns 37KB HTML. React fee table skeleton only — no fee values in server-rendered markup."
+    },
+    "next_data_json": {
+      "status": "no_fee_data",
+      "note": "__NEXT_DATA__ present (6324 chars). Contains UI label keys only (makerFee, takerFee as i18n keys). No rate values."
+    },
+    "js_chunk_search": {
+      "status": "api_endpoint_found_but_blocked",
+      "chunks_checked": ["fee-rate-3119043c266e7f4f (648B, entry only)", "3175-7f5960f25b48e2a8 (42KB, component logic)"],
+      "finding": "Component in chunk 3175 reads e.maker_base_fee_rate and e.taker_base_fee_rate. Formats with 4 decimals + space: '0.1000 %'. Data source: /x-api/s1/loyalty-program/get-vip-detail"
+    },
+    "public_api_probe": {
+      "endpoints_tested": 10,
+      "results": {
+        "api.bybit.com/v5/market/fee-rate": "404 — requires authentication",
+        "api.bybit.com/v5/market/instruments-info": "200 — lot sizes only, no maker/taker fee rates (false positive on '0.1' in precision values)",
+        "api.bybit.com/v5/account/fee-rate": "200 — retCode 10001: apiKey missing",
+        "x-api/s1/loyalty-program/get-vip-detail": "Akamai 403 Access Denied",
+        "x-api/s1/loyalty-program/query-symbol-group-details": "Akamai 403 Access Denied",
+        "x-api/s1/loyalty-program/get-mnt-discount-config": "Akamai 403 Access Denied"
+      }
+    },
+    "cdp_dom_cells": {
+      "status": "confirmed",
+      "note": "Previous CDP session (2026-06-19). Playwright waitForFunction waited for JS hydration. All 3 tabs clicked. Raw cell values extracted directly from DOM.",
+      "cell_values": {
+        "spot_non_vip": "0.1000 %/0.1000 %",
+        "futures_non_vip": "0.0200 %/0.0550 %",
+        "options_non_vip": "0.0200 %/0.0300 %"
+      }
+    }
+  },
+
+  "markets": {
+    "spot": {
+      "maker": "0.1%",
+      "taker": "0.1%",
+      "match_status": "confirmed_via_cdp",
+      "raw_cell_value": "0.1000 %/0.1000 %",
+      "confirmed_source": "cdp_dom_cells"
+    },
+    "perpetual_futures": {
+      "maker": "0.02%",
+      "taker": "0.055%",
+      "match_status": "confirmed_via_cdp",
+      "raw_cell_value": "0.0200 %/0.0550 %",
+      "confirmed_source": "cdp_dom_cells"
+    },
+    "options": {
+      "maker": "0.02%",
+      "taker": "0.03%",
+      "match_status": "confirmed_via_cdp",
+      "raw_cell_value": "0.0200 %/0.0300 %",
+      "confirmed_source": "cdp_dom_cells"
+    }
+  },
+
+  "why_cdp_is_canonical": "Bybit fee page uses Next.js SSR with Akamai WAF protecting all /x-api/ endpoints. The React component (chunk 3175) fetches fee data via /x-api/s1/loyalty-program/get-vip-detail using browser session cookies that Akamai validates. No static HTTP fetch can replicate this. CDP (Playwright connected to real Chrome) executes the full browser stack, triggering the authenticated API call and rendering the table cells. DOM cell text is the ground truth — it is exactly what a user sees.",
+
+  "fees_json_status": "verified_official_fee_page",
+  "fees_json_unchanged": true
+}

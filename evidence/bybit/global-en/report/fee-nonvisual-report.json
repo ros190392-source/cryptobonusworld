@@ -1,0 +1,116 @@
+{
+  "generated_at": "2026-06-19T15:54:51.351Z",
+  "source_url": "https://www.bybit.com/en/announcement-info/fee-rate",
+  "methods_tried": [
+    "direct_html_fetch",
+    "next_data_extraction",
+    "js_chunk_discovery",
+    "api_probe"
+  ],
+  "direct_html": {
+    "status": 200,
+    "length": 9817,
+    "fee_keywords_found": [],
+    "fee_pct_found": [],
+    "fee_spaced_found": [],
+    "all_fees_match": false,
+    "geo_blocked": false
+  },
+  "next_data": {
+    "found": false
+  },
+  "js_discovery": {
+    "total_js_files": 0,
+    "files_checked": 0,
+    "api_paths_found": [],
+    "results": []
+  },
+  "api_probe": {
+    "endpoints_tested": 10,
+    "fee_found": true,
+    "results": [
+      {
+        "url": "https://api.bybit.com/v5/market/fee-rate?symbol=BTCUSDT&category=spot",
+        "status": 404,
+        "is_json": true,
+        "body_length": 0,
+        "fee_found": false,
+        "preview": ""
+      },
+      {
+        "url": "https://api.bybit.com/v5/market/fee-rate?category=spot",
+        "status": 404,
+        "is_json": true,
+        "body_length": 0,
+        "fee_found": false,
+        "preview": ""
+      },
+      {
+        "url": "https://api.bybit.com/v5/market/instruments-info?category=spot&symbol=BTCUSDT",
+        "status": 200,
+        "is_json": true,
+        "body_length": 637,
+        "fee_found": true,
+        "preview": "{\"retCode\":0,\"retMsg\":\"OK\",\"result\":{\"category\":\"spot\",\"list\":[{\"symbolId\":9,\"symbol\":\"BTCUSDT\",\"baseCoin\":\"BTC\",\"quoteCoin\":\"USDT\",\"innovation\":\"0\",\"status\":\"Trading\",\"marginTrading\":\"utaOnly\",\"stTag\":\"0\",\"lotSizeFilter\":{\"basePrecision\":\"0.000001\",\"quotePrecision\":\"0.0000001\",\"minOrderQty\":\"0.0000"
+      },
+      {
+        "url": "https://api2.bybit.com/v3/public/fee-rate",
+        "status": 404,
+        "is_json": false,
+        "body_length": 9,
+        "fee_found": false,
+        "preview": "Not Found"
+      },
+      {
+        "url": "https://api.bybit.com/v3/public/fee-rate",
+        "status": 404,
+        "is_json": false,
+        "body_length": 9,
+        "fee_found": false,
+        "preview": "Not Found"
+      },
+      {
+        "url": "https://www.bybit.com/x-api/s1/announcement/api/fee-rate",
+        "status": 404,
+        "is_json": false,
+        "body_length": 2549,
+        "fee_found": false,
+        "preview": "<!doctype html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <link rel=\"icon\" type=\"image/x-icon\" href=\"/common-static/frontend-web/final-page/assets/favicon-BExuPU2V.ico\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>Buy &amp; Sell Bitcoin,"
+      },
+      {
+        "url": "https://www.bybit.com/x-api/s1/loyalty-program/get-vip-fee-config",
+        "status": 404,
+        "is_json": false,
+        "body_length": 2549,
+        "fee_found": false,
+        "preview": "<!doctype html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <link rel=\"icon\" type=\"image/x-icon\" href=\"/common-static/frontend-web/final-page/assets/favicon-BExuPU2V.ico\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>Buy &amp; Sell Bitcoin,"
+      },
+      {
+        "url": "https://www.bybit.com/x-api/s1/loyalty-program/get-fee-config",
+        "status": 404,
+        "is_json": false,
+        "body_length": 2549,
+        "fee_found": false,
+        "preview": "<!doctype html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <link rel=\"icon\" type=\"image/x-icon\" href=\"/common-static/frontend-web/final-page/assets/favicon-BExuPU2V.ico\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>Buy &amp; Sell Bitcoin,"
+      },
+      {
+        "url": "https://www.bybit.com/x-api/s1/announcement/fee-rate",
+        "status": 404,
+        "is_json": false,
+        "body_length": 2549,
+        "fee_found": false,
+        "preview": "<!doctype html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <link rel=\"icon\" type=\"image/x-icon\" href=\"/common-static/frontend-web/final-page/assets/favicon-BExuPU2V.ico\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>Buy &amp; Sell Bitcoin,"
+      },
+      {
+        "url": "https://api.bybit.com/v5/account/fee-rate?symbol=BTCUSDT&category=spot&baseCoin=",
+        "status": 200,
+        "is_json": true,
+        "body_length": 120,
+        "fee_found": false,
+        "preview": "{\"retCode\":10001,\"retMsg\":\"Request parameter error: apiKey is missing\",\"result\":{},\"retExtInfo\":{},\"time\":1781884496301}"
+      }
+    ]
+  },
+  "cdp_network": null,
+  "extraction": null
+}

@@ -374,17 +374,22 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
 
   /* Related exchange bonuses — horizontal cards */
   .p2-related-intro { font-size: 14px; color: #6B7280; line-height: 1.6; margin: 0 0 14px; }
-  .p2-related-grid { display: flex; flex-direction: column; gap: 8px; }
+  .p2-related-grid { display: flex; flex-direction: column; gap: 10px; }
   .p2-rel-card {
     border: 1px solid #E5E7EB; border-radius: 10px; padding: 12px 14px;
-    background: #fff; display: flex; align-items: center; gap: 12px;
+    background: #fff; display: flex; align-items: center; gap: 14px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.04);
     color-scheme: light; forced-color-adjust: none;
   }
-  .p2-rel-logo-wrap { flex-shrink: 0; width: 60px; display: flex; align-items: center; }
-  @media (min-width: 640px) { .p2-rel-logo-wrap { width: 76px; } }
-  .p2-rel-logo { height: 24px; width: auto; object-fit: contain; max-width: 60px; display: block; }
-  @media (min-width: 640px) { .p2-rel-logo { height: 28px; max-width: 76px; } }
+  .p2-rel-logo-wrap {
+    flex-shrink: 0; width: 80px; height: 52px;
+    display: flex; align-items: center; justify-content: center;
+    background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 8px;
+    padding: 8px; box-sizing: border-box;
+  }
+  @media (min-width: 640px) { .p2-rel-logo-wrap { width: 100px; height: 62px; } }
+  .p2-rel-logo { max-height: 32px; max-width: 64px; width: auto; height: auto; object-fit: contain; display: block; }
+  @media (min-width: 640px) { .p2-rel-logo { max-height: 38px; max-width: 84px; } }
   .p2-rel-info { flex: 1; min-width: 0; }
   .p2-rel-name { font-size: 13px; font-weight: 700; color: #111827; line-height: 1.2; }
   .p2-rel-bonus { font-size: 12px; font-weight: 600; color: #374151; line-height: 1.3; }
@@ -425,6 +430,21 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
   .p2-vote-btn.is-selected-down { border-color: #dc2626; background: #fef2f2; color: #b91c1c; }
   .p2-vote-btn:disabled { cursor: default; }
   .p2-vote-status { font-size: 12px; color: #9CA3AF; margin: 0; line-height: 1.6; }
+
+  /* Article banner — illustration CTA inside section */
+  .p2-article-banner-figure { margin: 20px 0 0; }
+  .p2-article-banner-img {
+    width: 100%; height: auto; display: block;
+    border-radius: 10px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+  }
+  .p2-article-banner-caption {
+    font-size: 12px; color: #9CA3AF; line-height: 1.5;
+    margin-top: 8px; text-align: center; font-style: italic;
+  }
+  @media (prefers-color-scheme: dark) {
+    .p2-article-banner-caption { color: #9CA3AF !important; -webkit-text-fill-color: #9CA3AF !important; }
+  }
 
   /* Closing conversion block — dark hero reuses .brand-hero + .bh-* classes exactly */
   .p2-bottom-facts { padding-bottom: 24px; }
@@ -491,7 +511,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
     .p2-vote-btn { background: #fff !important; color: #374151 !important; -webkit-text-fill-color: #374151 !important; border-color: #E5E7EB !important; color-scheme: light !important; }
     .p2-vote-btn.is-selected-up   { background: #f0fdf4 !important; color: #15803d !important; -webkit-text-fill-color: #15803d !important; border-color: #16a34a !important; }
     .p2-vote-btn.is-selected-down { background: #fef2f2 !important; color: #b91c1c !important; -webkit-text-fill-color: #b91c1c !important; border-color: #dc2626 !important; }
-    .p2-closing-sentence { color: #6B7280 !important; -webkit-text-fill-color: #6B7280 !important; }
+    .p2-rel-logo-wrap { background: #F3F4F6 !important; border-color: #E5E7EB !important; }
   }
 </style>
 
@@ -720,19 +740,87 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
 <div class="p2-section">
   <div class="p2-inner">
     <h2 class="p2-h2">The Bybit Referral Program</h2>
-    <p class="p2-text">Bybit operates a referral programme for existing account holders. Registered users can generate a personal referral link from inside their Bybit account and share it with others. When a new user signs up through that link, the referrer receives a percentage of the new user's trading fees as a commission — the exact rate depends on account tier and trading volume.</p>
-    <p class="p2-text">This is distinct from the Bybit bonus code <strong>CRYPTOBONUSW</strong> on this page. The referral code is entered by the new user at sign-up to unlock the welcome bonus. The referral programme commission is earned by the existing user whose link was shared. A new user can benefit from both: the welcome bonus through the code, and contributing to a referrer's commission through the link.</p>
-    <p class="p2-text">If you are an existing Bybit user looking to share a referral link with friends, log in to your Bybit account and navigate to the Referral section in your account dashboard to generate your personal link.</p>
+    <p class="p2-text">The Bybit referral program covers two related but distinct things. For new users, it means entering a Bybit referral code at sign-up — connecting a new account to a welcome offer. For existing users, Bybit may provide a personal referral link or affiliate referral code they can share to invite others, subject to Bybit's current rules and eligibility conditions.</p>
+    <p class="p2-text">This page focuses on the new-user side: the Bybit referral code <strong>CRYPTOBONUSW</strong>. Entering this code at registration connects a new Bybit account to the partner welcome rewards flow. The verified screenshot above shows CRYPTOBONUSW pre-filled in the referral code field on the sign-up page. The public Bybit partner page shows welcome rewards up to 30,000 USDT for new accounts.</p>
+    <p class="p2-text">Exact rewards — including any crypto coupons, fee benefits, trading bonuses, and Rewards Hub tasks — depend on Bybit's current terms, your region, KYC status, deposit amounts, and trading activity. Always check the current offer on the official Bybit bonus page after creating your new account.</p>
+
+    <figure class="p2-article-banner-figure">
+      <a href="/go/bybit" rel="noopener sponsored">
+        <img
+          src="/media/exchanges/bybit/article/bybit-article-1200x675.png"
+          alt="Bybit referral code bonus illustration for CryptoBonusWorld"
+          width="1200"
+          height="675"
+          loading="lazy"
+          decoding="async"
+          class="p2-article-banner-img"
+        />
+      </a>
+      <figcaption class="p2-article-banner-caption">Illustration: Bybit referral code bonus page on CryptoBonusWorld. Actual rewards depend on Bybit's current terms and eligibility rules.</figcaption>
+    </figure>
+
+    <div class="p2-cta-block" style="margin-top:16px;">
+      <a href="/go/bybit" class="p2-cta-bar" rel="noopener sponsored">Use CRYPTOBONUSW on Bybit</a>
+    </div>
   </div>
 </div>
 
-<!-- 14. Screenshot placeholder 2 -->
+<!-- 14. Bonus verification status table (replaces PLACEHOLDER_02) -->
 <div class="p2-section p2-section-alt">
   <div class="p2-inner">
-    <div class="p2-screenshot-placeholder">
-      <div class="p2-screenshot-label">[SCREENSHOT_PLACEHOLDER_02_BYBIT_REWARDS_OR_REFERRAL_AREA]</div>
-      <div class="p2-screenshot-desc">Rewards Hub · referral area · account bonus tasks</div>
+    <h2 class="p2-h2">Bybit Bonus Offer — What We Have Verified</h2>
+    <p class="p2-text">The table below shows what CryptoBonusWorld has been able to independently verify about the Bybit bonus offer linked to the code CRYPTOBONUSW. Areas marked "Needs Rewards Hub confirmation" depend on individual account status and are not directly verifiable from public pages without an active Bybit account.</p>
+    <div class="p2-table-wrap">
+      <table class="p2-table">
+        <thead>
+          <tr>
+            <th>Reward area</th>
+            <th>What may be required</th>
+            <th>Reward type</th>
+            <th>Verification status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Sign-up with CRYPTOBONUSW</td>
+            <td>Referral code applied at registration</td>
+            <td>Welcome eligibility</td>
+            <td style="color:#16A34A;font-weight:600;">✅ Verified — mobile screenshot (June 2026)</td>
+          </tr>
+          <tr>
+            <td>Welcome rewards</td>
+            <td>Open official Bybit bonus page via partner link</td>
+            <td>Welcome gifts (up to $30,000)</td>
+            <td style="color:#16A34A;font-weight:600;">✅ Verified — desktop evidence (June 2026)</td>
+          </tr>
+          <tr>
+            <td>Identity verification</td>
+            <td>KYC may be required to unlock most rewards</td>
+            <td>Reward access</td>
+            <td style="color:#16A34A;font-weight:600;">✅ Verified — official Bybit FAQ</td>
+          </tr>
+          <tr>
+            <td>Deposit tasks</td>
+            <td>Deposit may be required (amount varies by tier)</td>
+            <td>Deposit bonus or coupon</td>
+            <td style="color:#b45309;font-weight:500;">ℹ️ Needs Rewards Hub confirmation</td>
+          </tr>
+          <tr>
+            <td>Trading tasks</td>
+            <td>Trading volume may be required</td>
+            <td>Bonus, fee saver or fee discount</td>
+            <td style="color:#b45309;font-weight:500;">ℹ️ Needs Rewards Hub confirmation</td>
+          </tr>
+          <tr>
+            <td>Claim period</td>
+            <td>Rewards may expire after a set period</td>
+            <td>Manual claim required</td>
+            <td style="color:#b45309;font-weight:500;">ℹ️ Official FAQ / terms review</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
+    <p class="p2-text" style="margin-top:12px;">The Rewards Hub inside your Bybit account is the authoritative source for which tasks are active and how much each is worth for your specific account and region. Task amounts can differ by country, KYC tier, and current promotion period.</p>
   </div>
 </div>
 
@@ -751,7 +839,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
       </details>
       <details class="p2-faq-item">
         <summary class="p2-faq-q">What are the Bybit fees?</summary>
-        <div class="p2-faq-a">Bybit's standard spot trading fee is 0.1% per trade. Perpetual futures fees are 0.01% for makers and 0.06% for takers. Some welcome package rewards include a fee discount voucher — check the Rewards Hub after registering to see whether one is available for your account.</div>
+        <div class="p2-faq-a">Bybit's standard spot trading fee is 0.1% for both makers and takers. Perpetual futures fees are 0.02% for makers and 0.055% for takers. Options are 0.02% maker and 0.03% taker. Some welcome package rewards include a fee discount voucher — check the Rewards Hub after registering to see whether one is available for your account.</div>
       </details>
       <details class="p2-faq-item">
         <summary class="p2-faq-q">Which currency are rewards paid in?</summary>
@@ -769,13 +857,45 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
   </div>
 </div>
 
-<!-- 16. Screenshot placeholder 3 -->
+<!-- 16. Bybit Fees (replaces PLACEHOLDER_03) -->
 <div class="p2-section p2-section-alt">
   <div class="p2-inner">
-    <div class="p2-screenshot-placeholder">
-      <div class="p2-screenshot-label">[SCREENSHOT_PLACEHOLDER_03_BYBIT_FEES_OR_BONUS_TERMS]</div>
-      <div class="p2-screenshot-desc">Fees · bonus terms · reward conditions proof area</div>
+    <h2 class="p2-h2">Bybit Trading Fees</h2>
+    <p class="p2-text">Bybit fees vary by product, VIP level, account type, and current fee schedule. The figures below are based on Bybit's published standard non-VIP rates, verified directly from the official Bybit fee page. Always check the <a href="https://www.bybit.com/en/announcement-info/fee-rate" target="_blank" rel="noopener noreferrer nofollow">official Bybit fee page</a> before trading — rates are subject to change.</p>
+    <div class="p2-table-wrap">
+      <table class="p2-table">
+        <thead>
+          <tr>
+            <th>Market</th>
+            <th>Maker fee</th>
+            <th>Taker fee</th>
+            <th>Source · Last checked</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Spot</td>
+            <td>0.1%</td>
+            <td>0.1%</td>
+            <td style="color:#16A34A;font-size:12px;">✅ Official Bybit fee page · June 2026</td>
+          </tr>
+          <tr>
+            <td>Perpetual &amp; Futures</td>
+            <td>0.02%</td>
+            <td>0.055%</td>
+            <td style="color:#16A34A;font-size:12px;">✅ Official Bybit fee page · June 2026</td>
+          </tr>
+          <tr>
+            <td>Options</td>
+            <td>0.02%</td>
+            <td>0.03%</td>
+            <td style="color:#16A34A;font-size:12px;">✅ Official Bybit fee page · June 2026</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
+    <p class="p2-text" style="margin-top:10px;font-size:12px;color:#6B7280;">Last checked: June 2026 from the <a href="https://www.bybit.com/en/announcement-info/fee-rate" target="_blank" rel="noopener noreferrer nofollow" style="color:#6B7280;">official Bybit fee page</a>.</p>
+    <p class="p2-text" style="margin-top:6px;font-size:12px;color:#9CA3AF;">Fees may vary by product, VIP level, region, account status and the current fee schedule. Always check the <a href="https://www.bybit.com/en/announcement-info/fee-rate" target="_blank" rel="noopener noreferrer nofollow" style="color:#9CA3AF;">official Bybit fee page</a> before trading.</p>
   </div>
 </div>
 
@@ -820,22 +940,6 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
     <p class="bh-source">Verified June 2026 on <a href="https://www.bybit.com/en/promo/new-user/" target="_blank" rel="noopener noreferrer nofollow">Bybit.com</a></p>
   </div>
 </section>
-<div class="compact-facts p2-bottom-facts">
-  <div class="cf-inner">
-    <table class="cf-table">
-      <tbody>
-        <tr><td>👉 Bybit</td><td>bybit.com</td></tr>
-        <tr><td>➡️ Referral Code</td><td class="cf-code">{offer.promoCode}</td></tr>
-        <tr><td>💰 Bonus</td><td>Up to 30,000 USDT</td></tr>
-        <tr><td>✅ Valid</td><td>June 2026</td></tr>
-      </tbody>
-    </table>
-  </div>
-  <div class="p2-closing-wrap">
-    <p class="p2-closing-sentence">Use the Bybit referral code CRYPTOBONUSW to open the official bonus page and check the latest rewards before creating your account.</p>
-  </div>
-</div>
-
 <!-- Rating block — honest, no fake data -->
 <div class="p2-section p2-section-alt">
   <div class="p2-inner p2-rating-block">

@@ -1,0 +1,422 @@
+{
+  "captured_at": "2026-06-19T15:44:15.621Z",
+  "runner": "local-chrome-cdp",
+  "source_url": "https://www.bybit.com/en/announcement-info/fee-rate",
+  "total_bybit_responses": 59,
+  "fee_api_responses": 31,
+  "responses": [
+    {
+      "url": "https://www.bybit.com/en/announcement-info/fee-rate",
+      "status": 200,
+      "bodyLength": 37292,
+      "hasFeeNumbers": true,
+      "bodyPreview": "<!DOCTYPE html><html lang=\"en\" dir=\"ltr\" class=\"\" data-web-build-id=\"9d6db0d8b09f\"><head><meta charSet=\"utf-8\"/><link rel=\"preload\" href=\"/common-static/fhs/fonts/Inter-latin-e2cd30fdbc318a1d7777d73399f88ba1.woff2\" as=\"font\" type=\"font/woff2\" crossorigin=\"anonymous\"/><link rel=\"preconnect\" href=\"https://www.bybit.com/x-api\" crossorigin=\"\"/><link rel=\"dns-prefetch\" href=\"https://www.bybit.com/x-api\"/><link rel=\"preload\" href=\"/static/by-globals/by-globals.latest.js\" as=\"script\"/><link rel=\"preload\" href=\"/common-static/infra-static/hecate/hecate.min.js\" as=\"script\"/><meta name=\"viewport\" conten"
+    },
+    {
+      "url": "https://www.bybit.com/static/announcement-info/_next/static/css/3d6d57d829d4c233.css",
+      "status": 200,
+      "bodyLength": 81355,
+      "hasFeeNumbers": false,
+      "bodyPreview": "@font-face{font-family:Inter;src:url(/common-static/fhs/fonts/Inter-latin-e2cd30fdbc318a1d7777d73399f88ba1.woff2) format(\"woff2\");font-weight:400 600;font-style:normal;font-display:swap;unicode-range:U+0020-007e,U+00a0-00ff,U+00ad,U+2013-2015,U+2018-201d,U+2026,U+20ac,U+20bd,U+20b4,U+20b8,U+20ab,U+20bf}@font-face{font-family:Inter;src:url(/common-static/fhs/fonts/Inter-latin-ext-61da13ef62015848bfece1cb6be70abf.woff2) format(\"woff2\");font-weight:400 600;font-style:normal;font-display:swap;unicode-range:U+0100-024f,U+1e??,U+2c60-2c7f}@font-face{font-family:Inter;src:url(/common-static/fhs/fonts"
+    },
+    {
+      "url": "https://www.bybit.com/static/announcement-info/_next/static/css/0194f0f0f98d296f.css",
+      "status": 200,
+      "bodyLength": 27272,
+      "hasFeeNumbers": false,
+      "bodyPreview": ".index_loadingContainer__h9LyK{display:flex;justify-content:center;align-items:center;height:100vh;width:100%}.index_errorBoundaryBlock__OJzIk{width:100%;height:100%;display:flex;justify-content:start;align-items:center;flex-direction:column}.index_errorBoundaryBlock__OJzIk .index_errorBoundaryBlock__img__pEynj{margin-bottom:16px}.index_errorBoundaryBlock__OJzIk .index_errorBoundaryBlock__title__QgtXd{font-weight:600;margin-bottom:16px}.index_errorBoundaryDefault__L2dDR{display:flex;align-items:center;justify-content:center;padding:16px}.index_error-light__AJmZp{--tw-text-opacity:1;color:rgba("
+    },
+    {
+      "url": "https://www.bybit.com/common-static/fhs/react.18.2.0.min-860f1d37ec17b010c94069b99a49ae7b.js",
+      "status": 200,
+      "bodyLength": 142619,
+      "hasFeeNumbers": false,
+      "bodyPreview": "/**\n * @license React\n * react.production.min.js\n *\n * Copyright (c) Facebook, Inc. and its affiliates.\n *\n * This source code is licensed under the MIT license found in the\n * LICENSE file in the root directory of this source tree.\n */\n(function(){'use strict';(function(c,x){\"object\"===typeof exports&&\"undefined\"!==typeof module?x(exports):\"function\"===typeof define&&define.amd?define([\"exports\"],x):(c=c||self,x(c.React={}))})(this,function(c){function x(a){if(null===a||\"object\"!==typeof a)return null;a=V&&a[V]||a[\"@@iterator\"];return\"function\"===typeof a?a:null}function w(a,b,e){this.props=a"
+    },
+    {
+      "url": "https://www.bybit.com/static/by-globals/by-globals.latest.js",
+      "status": 200,
+      "bodyLength": 128646,
+      "hasFeeNumbers": true,
+      "bodyPreview": "/*!\n * name: @fe/by-globals\n * v: 0.1.1_9f8989439836\n * build: 2026-06-08T07:19:57.094Z\n */\n!function(M,e){\"object\"===typeof exports&&\"object\"===typeof module?module.exports=e(require(\"ByVendors\")):\"function\"===typeof define&&define.amd?define([\"ByVendors\"],e):\"object\"===typeof exports?exports.ByGlobals=e(require(\"ByVendors\")):M.ByGlobals=e(M.ByVendors)}(this,M=>(()=>{var e={1975(M){function e(M,e,i,t){Object.defineProperty(M,e,{get:i,set:t,enumerable:!0,configurable:!0})}function i(M){return M&&M.__esModule?M.default:M}e(M.exports,\"renderHeader\",function(){return j}),e(M.exports,\"getServerHtm"
+    },
+    {
+      "url": "https://www.bybit.com/static/monitor/monitor.latest.js",
+      "status": 200,
+      "bodyLength": 83795,
+      "hasFeeNumbers": false,
+      "bodyPreview": "/**\n * @license\n * @fe/monitor-v1.1.6-cbabb43dfaa4\n * Released under the MIT license.\n*/\n!function(e,t){\"object\"==typeof exports&&\"undefined\"!=typeof module?module.exports=t():\"function\"==typeof define&&define.amd?define(t):(e=\"undefined\"!=typeof globalThis?globalThis:e||self).Monitor=t()}(this,function(){\"use strict\";Array.prototype.at||(Array.prototype.at=function(e){var t=this.length,n=Math.trunc(e)||0,r=n>=0?n:t+n;return r<0||r>=t?void 0:this[r]});var e=function(){},t=function(e,t,n){return function(){var r=e.apply(void 0,arguments),o=n._activePlugin;o&&(o.has(t)||o.set(t,new Set),o.get(t)"
+    },
+    {
+      "url": "https://www.bybit.com/common-static/infra-static/fe-lib-meta/global-common.css",
+      "status": 200,
+      "bodyLength": 14700,
+      "hasFeeNumbers": true,
+      "bodyPreview": "/**\n   * @name: @fe/meta\n   * @version: 0.0.3\n   * @datetime: 2026-06-09T07:51:35.583Z\n   */\n*,:before,:after{border-width:0}:before,:after{--tw-content: \"\"}*{box-sizing:border-box}html{text-size-adjust:100%;font-feature-settings:normal;font-variation-settings:normal}body{margin:0}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}b,strong{font-weight:bolder}code,kbd,samp,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace;font-size:1em}sm"
+    },
+    {
+      "url": "https://www.bybit.com/static/by-vendors/by-vendors.latest.js",
+      "status": 200,
+      "bodyLength": 186654,
+      "hasFeeNumbers": true,
+      "bodyPreview": "/*!\n * name: @fe/by-vendors\n * v: 1.1.0_9bf7420a6bbc\n * build: 2026-06-10T02:42:37.802Z\n */\n!function(e,t){\"object\"===typeof exports&&\"object\"===typeof module?module.exports=t():\"function\"===typeof define&&define.amd?define([],t):\"object\"===typeof exports?exports.ByVendors=t():e.ByVendors=t()}(\"undefined\"!==typeof self?self:\"undefined\"!==typeof window?window:\"undefined\"!==typeof global?global:this,(()=>(()=>{var e={752:e=>{function t(e){e=e||{},this.ms=e.min||100,this.max=e.max||1e4,this.factor=e.factor||2,this.jitter=e.jitter>0&&e.jitter<=1?e.jitter:0,this.attempts=0}e.exports=t,t.prototype.d"
+    },
+    {
+      "url": "https://www.bybit.com/static/data-core/data-core.latest.min.js",
+      "status": 200,
+      "bodyLength": 212473,
+      "hasFeeNumbers": true,
+      "bodyPreview": "/*! data-core - SDK: SENSORS | Build: 823fb2b61e1b | Site: DEFAULT */\n!function(e,t){\"object\"==typeof exports&&\"object\"==typeof module?module.exports=t():\"function\"==typeof define&&define.amd?define([],t):\"object\"==typeof exports?exports.dataCore=t():e.dataCore=t()}(self,(function(){return function(){var e={287:function(e){var t,n,r=e.exports={};function i(){throw new Error(\"setTimeout has not been defined\")}function a(){throw new Error(\"clearTimeout has not been defined\")}function o(e){if(t===setTimeout)return setTimeout(e,0);if((t===i||!t)&&setTimeout)return t=setTimeout,setTimeout(e,0);try{"
+    },
+    {
+      "url": "https://www.bybit.com/static/announcement-info/_next/static/chunks/main-020e7b6b35a1c43b.js",
+      "status": 200,
+      "bodyLength": 113012,
+      "hasFeeNumbers": false,
+      "bodyPreview": "(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[179],{68845:function(e,t){\"use strict\";function r(e,t,r,n,a,o,i){try{var u=e[o](i),c=u.value}catch(e){r(e);return}u.done?t(c):Promise.resolve(c).then(n,a)}function n(e){return function(){var t=this,n=arguments;return new Promise(function(a,o){var i=e.apply(t,n);function u(e){r(i,a,o,u,c,\"next\",e)}function c(e){r(i,a,o,u,c,\"throw\",e)}u(void 0)})}}Object.defineProperty(t,\"Z\",{enumerable:!0,get:function(){return n}})},60834:function(e,t){\"use strict\";function r(){return(r=Object.assign||function(e){for(var t=1;t<arguments.length;t++){var r="
+    },
+    {
+      "url": "https://www.bybit.com/common-static/fhs/compliance-upload/low-cache/compliance-sdk/announcement-info.js?v=1",
+      "status": 200,
+      "bodyLength": 13880,
+      "hasFeeNumbers": false,
+      "bodyPreview": "!function(t){\"function\"==typeof define&&define.amd?define(t):t()}(function(){\"use strict\";function t(t,n,e,r,i,o,u){try{var a=t[o](u),c=a.value}catch(t){return void e(t)}a.done?n(c):Promise.resolve(c).then(r,i)}function n(n){return function(){var e=this,r=arguments;return new Promise(function(i,o){var u=n.apply(e,r);function a(n){t(u,i,o,a,c,\"next\",n)}function c(n){t(u,i,o,a,c,\"throw\",n)}a(void 0)})}}function e(){return e=Object.assign?Object.assign.bind():function(t){for(var n=1;n<arguments.length;n++){var e=arguments[n];for(var r in e)({}).hasOwnProperty.call(e,r)&&(t[r]=e[r])}return t},e.ap"
+    },
+    {
+      "url": "https://www.bybit.com/static/announcement-info/_next/static/chunks/7702-95607cefcd374cda.js",
+      "status": 200,
+      "bodyLength": 326882,
+      "hasFeeNumbers": true,
+      "bodyPreview": "(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[7702],{6350:function(e,t,r){\"use strict\";var n=r(78687),i=r(41270);t.Z=n.z,(0,i.bh)(\"Button\")},93780:function(e,t,r){\"use strict\";r.d(t,{Z:function(){return D}});var n,i,o,a=r(55106),s=r(41270);r(37667);var u=r(62457);function l(e,t){return t||(t=e.slice(0)),Object.freeze(Object.defineProperties(e,{raw:{value:Object.freeze(t)}}))}var c=function(e,t,r,n){return\"@keyframes \".concat(e,\" {\\n      0%,\\n      100% {\\n        transform: translate(\").concat(t,\", \").concat(r,\");\\n      }\\n\\n      50% {\\n        transform: translate(\").concat(t,\","
+    },
+    {
+      "url": "https://www.bybit.com/static/announcement-info/_next/static/3YHPtDdymqxxZtJVpvf3O/_ssgManifest.js",
+      "status": 200,
+      "bodyLength": 618,
+      "hasFeeNumbers": false,
+      "bodyPreview": "self.__SSG_MANIFEST=new Set([\"\\u002F\",\"\\u002Fbasis-rate\",\"\\u002Fbin-builder\",\"\\u002Fcontract-detail\",\"\\u002Fcontract-summarize\",\"\\u002Fcopy-trade\",\"\\u002Fdelivery-history\",\"\\u002Fdeposit-withdraw\",\"\\u002Ffee-rate\",\"\\u002Ffixed-loan\",\"\\u002Ffullstock-leverage-uta\",\"\\u002Ffund-rate\",\"\\u002Findex-price\",\"\\u002Fins-loan\",\"\\u002Finsurance-fund\",\"\\u002Fleveraged-token\",\"\\u002Fliquidation-summarize\",\"\\u002Fmargin-parameters\",\"\\u002Fmargin-summarize\",\"\\u002Fopen-interest\",\"\\u002Forder-summarize\",\"\\u002Fspot-trading-rules\",\"\\u002Ftrading-bot\",\"\\u002Ftransact-parameters\"]);self.__SSG_MANIFEST_CB&&self._"
+    },
+    {
+      "url": "https://www.bybit.com/static/announcement-info/_next/static/chunks/pages/fee-rate-3119043c266e7f4f.js",
+      "status": 200,
+      "bodyLength": 648,
+      "hasFeeNumbers": false,
+      "bodyPreview": "(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[6365],{91682:function(n,e,t){\"use strict\";t.r(e),t.d(e,{__N_SSG:function(){return c}});var u=t(27917),o=t(60152),i=t(26498),r=t(91028),_=t(97458),c=!0;e.default=(0,u.withLayout)(function(){return(0,_.jsx)(o.Z,{menuId:i.oV.FeeRate,children:(0,_.jsx)(r.Z,{})})},{hasRenderFooter:!1,i18nProjectName:[\"announcement-info-fee\",\"announcement-info\"],titleI18nKey:\"title\"})},70563:function(n,e,t){(window.__NEXT_P=window.__NEXT_P||[]).push([\"/fee-rate\",function(){return t(91682)}])}},function(n){n.O(0,[7702,7195,397,2901,4923,434,3175,9774,2888,179],"
+    },
+    {
+      "url": "https://www.bybit.com/static/announcement-info/_next/static/3YHPtDdymqxxZtJVpvf3O/_buildManifest.js",
+      "status": 200,
+      "bodyLength": 3955,
+      "hasFeeNumbers": false,
+      "bodyPreview": "self.__BUILD_MANIFEST=function(s,a,e,c,t,i,r,n,d,u,b,f,k,h,o,p,g,j,l){return{__rewrites:{beforeFiles:[],afterFiles:[],fallback:[]},\"/\":[s,c,p,o,g,a,j,l,\"static/chunks/pages/index-3b4fd5825cfc88ca.js\"],\"/_error\":[\"static/chunks/pages/_error-661498fcebac8441.js\"],\"/basis-rate\":[t,r,s,e,c,i,n,a,d,u,\"static/chunks/pages/basis-rate-74a45750a24a7bc3.js\"],\"/bin-builder\":[t,r,s,e,c,i,n,a,d,u,\"static/chunks/pages/bin-builder-c3033dc296d4df27.js\"],\"/contract-detail\":[t,r,s,e,c,i,n,a,d,u,\"static/chunks/pages/contract-detail-9003e20629da9d27.js\"],\"/contract-summarize\":[t,r,s,e,c,i,n,a,d,u,\"static/chunks/p"
+    },
+    {
+      "url": "https://www.bybit.com/static/announcement-info/_next/static/chunks/3175-7f5960f25b48e2a8.js",
+      "status": 200,
+      "bodyLength": 42081,
+      "hasFeeNumbers": true,
+      "bodyPreview": "(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[3175],{91028:function(e,n,t){\"use strict\";t.d(n,{Z:function(){return nu}});var _,i,l,a,r,o,T,s,d,c,u,E,A,I,S,P,v,p,N,R,L,f,O,m,U,b,C,x,D,y,g,h,Y,V,M,B,k,F,j,G,w,Z,K,W,H,z,J,X,q,Q,$,ee,en,et,e_,ei,el,ea,er,eo,eT,es,ed,ec,eu,eE,eA,eI,eS,eP=t(37667),ev=t(58806),ep=t(87608),eN=t.n(ep),eR=t(61281),eL=t.n(eR),ef=t(35482),eO=t(13114),em=t(36567),eU=t(44918),eb=t.n(eU),eC=t(91607),ex=t(32188),eD=t(92901),ey=t(9332),eg=t(68974),eh=t.n(eg);(_=M||(M={})).BIZ_TYPE_UNKNOWN=\"BIZ_TYPE_UNKNOWN\",_.BIZ_TYPE_SPOT=\"BIZ_TYPE_SPOT\",_.BIZ_TYPE_FUTURES=\"BIZ_TYP"
+    },
+    {
+      "url": "https://www.bybit.com/static/announcement-info/_next/static/chunks/434-5fc819e8f70a5efe.js",
+      "status": 200,
+      "bodyLength": 66332,
+      "hasFeeNumbers": true,
+      "bodyPreview": "(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[434],{44001:function(e,n,t){\"use strict\";t.d(n,{X:function(){return r},y:function(){return o}});var r=function(e){var n,t=e.children,r=e.config,o=e.locale,i=r||{},a=i.action,l=i.ext;return\"hide\"===a?null:(\"redirect\"===a&&window.open(null==l?void 0:l.url,(null==l?void 0:l.target)||\"_blank\"),null==l||null===(n=l.url)||void 0===n||n.replace(\"{locale}\",o),t)},o=function(e){return(null==e?void 0:e.action)!==\"hide\"}},26498:function(e,n,t){\"use strict\";t.d(n,{YG:function(){return f},oV:function(){return i},r7:function(){return p},yd:function(){"
+    },
+    {
+      "url": "https://www.bybit.com/static/announcement-info/_next/static/chunks/397-a3fa6b8169e6eecd.js",
+      "status": 200,
+      "bodyLength": 128648,
+      "hasFeeNumbers": true,
+      "bodyPreview": "(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[397],{87115:function(e,t,r){\"use strict\";r.d(t,{rb:function(){return A},IX:function(){return C}});var n=r(29608),o=r(32906),i=r(1206),a=r(94433),l=r(37667),s=r.n(l),c=r(93682),u=r(17989),f=r(71235),d=r(31722),p=r(28944),g=r(47201),m=(0,f.Z)(function e(){(0,u.Z)(this,e)}),h=\"CALC_UNIT\",v=RegExp(h,\"g\");function y(e){return\"number\"==typeof e?\"\".concat(e).concat(h):e}var b=function(e){(0,p.Z)(r,e);var t=(0,g.Z)(r);function r(e,o){(0,u.Z)(this,r),a=t.call(this),(0,i.Z)((0,d.Z)(a),\"result\",\"\"),(0,i.Z)((0,d.Z)(a),\"unitlessCssVar\",void 0),(0,i.Z"
+    },
+    {
+      "url": "https://www.bybit.com/static/by-globals/globals.complianceWall.374adb43.js",
+      "status": 200,
+      "bodyLength": 3657,
+      "hasFeeNumbers": true,
+      "bodyPreview": "/*!\n * name: @fe/by-globals\n * v: 0.1.1_9f8989439836\n * build: 2026-06-08T07:19:57.094Z\n */\n\"use strict\";(this.webpackChunkByGlobals=this.webpackChunkByGlobals||[]).push([[9318],{8675(t,e,n){n.d(e,{$:()=>i});var s=n(1989),o=n(7804);class i{constructor(t){this.mounted=!1,this.name=t,this.toInjectProps={supportedOnEvents:this.getSupportedOnEvents(),supportedEmitEvents:this.getSupportedEmitEvents(),eventBus:this.getEventBus()},this.componentProps={...this.toInjectProps},this.componentsLoader=s.e.getInstance(),this.eventBus=new o.l}async init(t,e={}){try{if(this.containerId=t||this.componentsLoade"
+    },
+    {
+      "url": "https://www.bybit.com/static/by-globals/globals.webPush.41342b9e.js",
+      "status": 200,
+      "bodyLength": 6187,
+      "hasFeeNumbers": true,
+      "bodyPreview": "/*!\n * name: @fe/by-globals\n * v: 0.1.1_9f8989439836\n * build: 2026-06-08T07:19:57.094Z\n */\n\"use strict\";(this.webpackChunkByGlobals=this.webpackChunkByGlobals||[]).push([[8323],{8739(e,s,i){i.d(s,{webPush:()=>w});var t=i(2336),r=i(6616),o=i(1999),n=i(9615);const{firebaseConfig:a,vapidKey:c}=(()=>{const e='{\"firebaseConfig\":{\"apiKey\":\"AIzaSyC7KOt0BptiKIswIcvaqHaoVVOGed_BwiY\",\"authDomain\":\"bybit-web-push.firebaseapp.com\",\"projectId\":\"bybit-web-push\",\"storageBucket\":\"bybit-web-push.appspot.com\",\"messagingSenderId\":\"344617950877\",\"appId\":\"1:344617950877:web:5097aad89202926d747e74\"},\"vapidKey\":\"BJ"
+    },
+    {
+      "url": "https://www.bybit.com/static/by-globals/globals.antiPhishingCode.228e14b9.js",
+      "status": 200,
+      "bodyLength": 3639,
+      "hasFeeNumbers": true,
+      "bodyPreview": "/*!\n * name: @fe/by-globals\n * v: 0.1.1_9f8989439836\n * build: 2026-06-08T07:19:57.094Z\n */\n\"use strict\";(this.webpackChunkByGlobals=this.webpackChunkByGlobals||[]).push([[6096],{1573(t,e,n){n.d(e,{AntiPhishingCode:()=>o});var s=n(8675);class o extends s.${constructor(){super(\"antiPhishingCode\")}getSupportedProps(){return{type:\"string\",isAutoPopup:\"boolean\",homepagePopupData:\"homepagePopupData\",onSuccess:\"onSuccess\",onCancel:\"onCancel\"}}getSupportedOnEvents(){return{}}getSupportedEmitEvents(){return{}}getConfig(){return{name:\"antiPhishingCode\",type:\"react\",windowKey:\"ByUser_antiPhishingCode\",c"
+    },
+    {
+      "url": "https://www.bybit.com/static/by-globals/globals.campaign.a32544dc.js",
+      "status": 200,
+      "bodyLength": 3459,
+      "hasFeeNumbers": true,
+      "bodyPreview": "/*!\n * name: @fe/by-globals\n * v: 0.1.1_9f8989439836\n * build: 2026-06-08T07:19:57.094Z\n */\n\"use strict\";(this.webpackChunkByGlobals=this.webpackChunkByGlobals||[]).push([[5305],{8675(t,e,n){n.d(e,{$:()=>i});var s=n(1989),o=n(7804);class i{constructor(t){this.mounted=!1,this.name=t,this.toInjectProps={supportedOnEvents:this.getSupportedOnEvents(),supportedEmitEvents:this.getSupportedEmitEvents(),eventBus:this.getEventBus()},this.componentProps={...this.toInjectProps},this.componentsLoader=s.e.getInstance(),this.eventBus=new o.l}async init(t,e={}){try{if(this.containerId=t||this.componentsLoade"
+    },
+    {
+      "url": "https://www.bybit.com/common-static/cht-static/security-svc/js/finger_device.js",
+      "status": 200,
+      "bodyLength": 346354,
+      "hasFeeNumbers": true,
+      "bodyPreview": "function a0_0x21de(_0x4c5262,_0x56104f){var _0x3f9e0b=a0_0x3f9e();return a0_0x21de=function(_0x21decb,_0x28ed35){_0x21decb=_0x21decb-0x70;var _0x4711fa=_0x3f9e0b[_0x21decb];return _0x4711fa;},a0_0x21de(_0x4c5262,_0x56104f);}function a0_0x3f9e(){var _0x177c1c=['YVt0aXRsZT0iN25hZ2EgcG9rZXIiIGld','Marlett','label','allSettled','Voice','webgl','CTR','72px','indexOf','URL','getContext','msFullscreenElement','undefined','TDID_KEY','_keyPriorReset','Opera\\x20Coast','return\\x20this','SHA1','loaded','Netscape','TABLE[width=\\x22140px\\x22]','kind','canPlayType','fontFamily','MediaSource','EXT_texture_com"
+    },
+    {
+      "url": "https://www.bybit.com/static/by-globals/globals.1871.81cd0c05.js",
+      "status": 200,
+      "bodyLength": 83840,
+      "hasFeeNumbers": true,
+      "bodyPreview": "/*!\n * name: @fe/by-globals\n * v: 0.1.1_9f8989439836\n * build: 2026-06-08T07:19:57.094Z\n */\n\"use strict\";(this.webpackChunkByGlobals=this.webpackChunkByGlobals||[]).push([[1871],{1266(e,t,n){n.d(t,{FA:()=>m,Ku:()=>v,T9:()=>d,Uj:()=>o,bD:()=>w,cY:()=>l,dM:()=>h,eX:()=>f,g:()=>g,zW:()=>p});\n/**\n * @license\n * Copyright 2017 Google LLC\n *\n * Licensed under the Apache License, Version 2.0 (the \"License\");\n * you may not use this file except in compliance with the License.\n * You may obtain a copy of the License at\n *\n *   http://www.apache.org/licenses/LICENSE-2.0\n *\n * Unless required by applicab"
+    },
+    {
+      "url": "https://www.bybit.com/static/announcement-info/_next/static/chunks/4923-66228b1206a6a1be.js",
+      "status": 200,
+      "bodyLength": 443461,
+      "hasFeeNumbers": true,
+      "bodyPreview": "\"use strict\";(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[4923],{28964:function(e,t,n){n.d(t,{HJ:function(){return c}});var o,r=[\"id-ID\",\"nl-NL\",\"nl-EU\",\"pt-PT\",\"pt-EU\",\"pt-BR\",\"es-ES\",\"es-EU\",\"es-MX\",\"es-AR\",\"vi-VN\",\"ro-RO\",\"ro-EU\",\"de-DE\",\"de\",\"de-EU\",\"it-IT\",\"it-EU\",\"it\",\"tr-TR\",\"tr-TUR\",\"id-IDN\"],i=[\"ru-RU\",\"uk-UA\",\"pl-PL\",\"pl-EU\",\"fr-FR\",\"fr\",\"fr-EU\",\"kk-KZ\",\"kk-KAZ\",\"ka-GEO\",\"ru-GEO\"],l=function(e,t){var n=\"en\";[\"TYPE1\"].includes(t)?n=\"id-ID\":[\"TYPE2\"].includes(t)&&(n=\"ru-RU\");try{o=new Intl.NumberFormat(n,{minimumFractionDigits:0,maximumFractionDigits:0})}catch(e){console.wa"
+    },
+    {
+      "url": "https://www.bybit.com/static/fe-lib-assets/complianceWall.latest.js?t=29698063",
+      "status": 200,
+      "bodyLength": 165527,
+      "hasFeeNumbers": false,
+      "bodyPreview": "!function(e,n){\"object\"==typeof exports&&\"object\"==typeof module?module.exports=n(require(\"ByVendors\"),require(\"React\"),require(\"ReactDOM\")):\"function\"==typeof define&&define.amd?define([\"ByVendors\",\"React\",\"ReactDOM\"],n):\"object\"==typeof exports?exports.ByAssets=n(require(\"ByVendors\"),require(\"React\"),require(\"ReactDOM\")):(e.ByAssets=e.ByAssets||{},e.ByAssets.complianceWall=n(e.ByVendors,e.React,e.ReactDOM))}(this,(e,n,t)=>(()=>{var a,A,o,i,r={4883:e=>{\"use strict\";e.exports=n},4960:e=>{\"use strict\";var n=[];function t(e){for(var t=-1,a=0;a<n.length;a++)if(n[a].identifier===e){t=a;break}retur"
+    },
+    {
+      "url": "https://www.bybit.com/static/fe-lib-user-security/campaign.latest.js?t=29698063",
+      "status": 200,
+      "bodyLength": 47136,
+      "hasFeeNumbers": false,
+      "bodyPreview": "!function(e,t){\"object\"==typeof exports&&\"object\"==typeof module?module.exports=t(require(\"ByVendors\"),require(\"React\")):\"function\"==typeof define&&define.amd?define([\"ByVendors\",\"React\"],t):\"object\"==typeof exports?exports.ByUser_campaign=t(require(\"ByVendors\"),require(\"React\")):e.ByUser_campaign=t(e.ByVendors,e.React)}(this,((e,t)=>(()=>{var n={32485:(e,t)=>{var n;!function(){\"use strict\";var a={}.hasOwnProperty;function r(){for(var e=[],t=0;t<arguments.length;t++){var n=arguments[t];if(n){var o=typeof n;if(\"string\"===o||\"number\"===o)e.push(n);else if(Array.isArray(n)){if(n.length){var i=r.a"
+    },
+    {
+      "url": "https://www.bybit.com/static/fe-lib-user-security/antiPhishingCode.latest.js?t=29698063",
+      "status": 200,
+      "bodyLength": 335855,
+      "hasFeeNumbers": true,
+      "bodyPreview": "!function(e,n){\"object\"==typeof exports&&\"object\"==typeof module?module.exports=n(require(\"ByVendors\"),require(\"React\"),require(\"ReactDOM\")):\"function\"==typeof define&&define.amd?define([\"ByVendors\",\"React\",\"ReactDOM\"],n):\"object\"==typeof exports?exports.ByUser_antiPhishingCode=n(require(\"ByVendors\"),require(\"React\"),require(\"ReactDOM\")):e.ByUser_antiPhishingCode=n(e.ByVendors,e.React,e.ReactDOM)}(this,((e,n,t)=>(()=>{var r,o,a,i,s={54764:(e,n,t)=>{\"use strict\";t.d(n,{cn:()=>Y,wJ:()=>V,BI:()=>H,DD:()=>U});var r=t(20053);t(74353);function o(e){var n=function(e){var n=e.theme,t=e.prefix,r={nextP"
+    },
+    {
+      "url": "https://www.bybit.com/common-static/fhs/i18n-upload/low-cache/project/release/common/en.json?v=1",
+      "status": 200,
+      "bodyLength": 219144,
+      "hasFeeNumbers": false,
+      "bodyPreview": "{\"30135\":\"The leverage you selected for USDT Perpetuals trading exceeds the maximum allowed.\",\"30136\":\"The leverage you selected for USDC Perpetuals or Futures trading exceeds the maximum allowed.\",\"30192\":\"IsolatedNotSupportCombinationOrder\",\"30194\":\"CopyTradeNotSupportCombinationOrder\",\"30196\":\"EUSiteNotSupportCombinationOrder\",\"30197\":\"OrderStatusIsPendingCannotOperateCombinationOrder\",\"37011\":\"The TP/SL order limit has been reached. Please cancel any other TP/SL orders before proceeding.\",\"61001\":\"信号名称字符数量需要在1-30之间\",\"61002\":\"超出杠杆上限\",\"61003\":\"入场订单数量不满足条件\",\"61004\":\"止盈价格应优于所有订单价格\",\"61005\":\"止损"
+    },
+    {
+      "url": "https://www.bybit.com/common-static/fhs/i18n-upload/low-cache/project/release/global/en.json?v=1",
+      "status": 200,
+      "bodyLength": 209783,
+      "hasFeeNumbers": false,
+      "bodyPreview": "{\"20017\":\"This offering is currently closed to new indications of interest.\",\"40069\":\"Third-party login failed. Please try again later or use an alternative login method.\",\"90306\":\"Unable to verify passkey. Try again or use a different passkey.\",\"100160\":\"Login/signup is unavailable due to a server error. Please try again later.\",\"100161\":\"QR code is currently unavailable. Please try again later or use an alternative login method.\",\"182113\":\"Unable to toggle collateral settings while upgrading to Unified Trading Account.\",\"182114\":\"Unable to change the collateral asset due to open positions or"
+    },
+    {
+      "url": "https://www.bybit.com/common-static/fhs/compliance-upload/low-cache/static/compliance-wall-page.json",
+      "status": 200,
+      "bodyLength": 5547,
+      "hasFeeNumbers": false,
+      "bodyPreview": "{\"MAIN_AI_HUB\":[\"/^\\\\/([a-z]{2,3}-([a-z]{2,3}|[A-Z]{2,3}|[0-9]{3})|[a-z]{2,3})\\\\/ai/\",\"/^\\\\/ai/\"],\"MAIN_BOT_TRADFI_CREATE\":[\"/^\\\\/([a-z]{2,3}-([a-z]{2,3}|[A-Z]{2,3}|[0-9]{3})|[a-z]{2,3})\\\\/tradingbot\\\\/tradfi-create/\"],\"MAIN_DAILY_TREASURE_HUNT\":[\"/^\\\\/([a-z]{2,3}-([a-z]{2,3}|[A-Z]{2,3}|[0-9]{3})|[a-z]{2,3})\\\\/daily-treasure-hunt/\"],\"MAIN_ACTIVITY_COLLECTION\":[\"/^\\\\/([a-z]{2,3}-([a-z]{2,3}|[A-Z]{2,3}|[0-9]{3})|[a-z]{2,3})\\\\/wsot2025/\",\"/^\\\\/([a-z]{2,3}-([a-z]{2,3}|[A-Z]{2,3}|[0-9]{3})|[a-z]{2,3})\\\\/7UpBybit/\",\"/^\\\\/([a-z]{2,3}-([a-z]{2,3}|[A-Z]{2,3}|[0-9]{3})|[a-z]{2,3})\\\\/Wednesday-Airdrop/\","
+    },
+    {
+      "url": "https://www.bybit.com/static/by-globals/globals.googleOneTap.5667f4cf.js",
+      "status": 200,
+      "bodyLength": 5156,
+      "hasFeeNumbers": true,
+      "bodyPreview": "/*!\n * name: @fe/by-globals\n * v: 0.1.1_9f8989439836\n * build: 2026-06-08T07:19:57.094Z\n */\n\"use strict\";(this.webpackChunkByGlobals=this.webpackChunkByGlobals||[]).push([[4645],{8675(e,t,n){n.d(t,{$:()=>i});var s=n(1989),o=n(7804);class i{constructor(e){this.mounted=!1,this.name=e,this.toInjectProps={supportedOnEvents:this.getSupportedOnEvents(),supportedEmitEvents:this.getSupportedEmitEvents(),eventBus:this.getEventBus()},this.componentProps={...this.toInjectProps},this.componentsLoader=s.e.getInstance(),this.eventBus=new o.l}async init(e,t={}){try{if(this.containerId=e||this.componentsLoade"
+    },
+    {
+      "url": "https://www.bybit.com/static/announcement-info/_next/static/chunks/1442.7a059ecb154175aa.js",
+      "status": 200,
+      "bodyLength": 34390,
+      "hasFeeNumbers": true,
+      "bodyPreview": "\"use strict\";(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[1442],{24280:function(e,t,r){function n(e){return(n=\"function\"==typeof Symbol&&\"symbol\"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&\"function\"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?\"symbol\":typeof e})(e)}Object.defineProperty(t,\"__esModule\",{value:!0}),t.default=void 0;var o=function(e,t){if(!t&&e&&e.__esModule)return e;if(null===e||\"object\"!==n(e)&&\"function\"!=typeof e)return{default:e};var r=d(t);if(r&&r.has(e))return r.get(e);var o={},a=Object.defineProperty&&Object.ge"
+    },
+    {
+      "url": "https://www.bybit.com/static/announcement-info/_next/static/chunks/7132.2d73735aea606e10.js",
+      "status": 200,
+      "bodyLength": 141355,
+      "hasFeeNumbers": true,
+      "bodyPreview": "(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[7132],{2110:function(e,t){\"use strict\";Object.defineProperty(t,\"__esModule\",{value:!0}),t.default={icon:{tag:\"svg\",attrs:{\"fill-rule\":\"evenodd\",viewBox:\"64 64 896 896\",focusable:\"false\"},children:[{tag:\"path\",attrs:{d:\"M799.86 166.31c.02 0 .04.02.08.06l57.69 57.7c.04.03.05.05.06.08a.12.12 0 010 .06c0 .03-.02.05-.06.09L569.93 512l287.7 287.7c.04.04.05.06.06.09a.12.12 0 010 .07c0 .02-.02.04-.06.08l-57.7 57.69c-.03.04-.05.05-.07.06a.12.12 0 01-.07 0c-.03 0-.05-.02-.09-.06L512 569.93l-287.7 287.7c-.04.04-.06.05-.09.06a.12.12 0 01-.07 0c-.02 "
+    },
+    {
+      "url": "https://www.bybit.com/static/by-globals/globals.navHeader.aeffba16.js",
+      "status": 200,
+      "bodyLength": 6336,
+      "hasFeeNumbers": true,
+      "bodyPreview": "/*!\n * name: @fe/by-globals\n * v: 0.1.1_9f8989439836\n * build: 2026-06-08T07:19:57.094Z\n */\n\"use strict\";(this.webpackChunkByGlobals=this.webpackChunkByGlobals||[]).push([[7121],{8675(e,t,n){n.d(t,{$:()=>i});var o=n(1989),s=n(7804);class i{constructor(e){this.mounted=!1,this.name=e,this.toInjectProps={supportedOnEvents:this.getSupportedOnEvents(),supportedEmitEvents:this.getSupportedEmitEvents(),eventBus:this.getEventBus()},this.componentProps={...this.toInjectProps},this.componentsLoader=o.e.getInstance(),this.eventBus=new s.l}async init(e,t={}){try{if(this.containerId=e||this.componentsLoade"
+    },
+    {
+      "url": "https://www.bybit.com/static/by-globals/globals.thirdPartyLogin.bab81ef7.js",
+      "status": 200,
+      "bodyLength": 6123,
+      "hasFeeNumbers": true,
+      "bodyPreview": "/*!\n * name: @fe/by-globals\n * v: 0.1.1_9f8989439836\n * build: 2026-06-08T07:19:57.094Z\n */\n\"use strict\";(this.webpackChunkByGlobals=this.webpackChunkByGlobals||[]).push([[4093],{8675(e,t,n){n.d(t,{$:()=>o});var s=n(1989),i=n(7804);class o{constructor(e){this.mounted=!1,this.name=e,this.toInjectProps={supportedOnEvents:this.getSupportedOnEvents(),supportedEmitEvents:this.getSupportedEmitEvents(),eventBus:this.getEventBus()},this.componentProps={...this.toInjectProps},this.componentsLoader=s.e.getInstance(),this.eventBus=new i.l}async init(e,t={}){try{if(this.containerId=e||this.componentsLoade"
+    },
+    {
+      "url": "https://www.bybit.com/common-static/fhs/i18n-upload/low-cache/project/release/common/en.json?v=1",
+      "status": 200,
+      "bodyLength": 219144,
+      "hasFeeNumbers": false,
+      "bodyPreview": "{\"30135\":\"The leverage you selected for USDT Perpetuals trading exceeds the maximum allowed.\",\"30136\":\"The leverage you selected for USDC Perpetuals or Futures trading exceeds the maximum allowed.\",\"30192\":\"IsolatedNotSupportCombinationOrder\",\"30194\":\"CopyTradeNotSupportCombinationOrder\",\"30196\":\"EUSiteNotSupportCombinationOrder\",\"30197\":\"OrderStatusIsPendingCannotOperateCombinationOrder\",\"37011\":\"The TP/SL order limit has been reached. Please cancel any other TP/SL orders before proceeding.\",\"61001\":\"信号名称字符数量需要在1-30之间\",\"61002\":\"超出杠杆上限\",\"61003\":\"入场订单数量不满足条件\",\"61004\":\"止盈价格应优于所有订单价格\",\"61005\":\"止损"
+    },
+    {
+      "url": "https://www.bybit.com/common-static/fhs/i18n-upload/low-cache/project/release/global/en.json?v=1",
+      "status": 200,
+      "bodyLength": 209783,
+      "hasFeeNumbers": false,
+      "bodyPreview": "{\"20017\":\"This offering is currently closed to new indications of interest.\",\"40069\":\"Third-party login failed. Please try again later or use an alternative login method.\",\"90306\":\"Unable to verify passkey. Try again or use a different passkey.\",\"100160\":\"Login/signup is unavailable due to a server error. Please try again later.\",\"100161\":\"QR code is currently unavailable. Please try again later or use an alternative login method.\",\"182113\":\"Unable to toggle collateral settings while upgrading to Unified Trading Account.\",\"182114\":\"Unable to change the collateral asset due to open positions or"
+    },
+    {
+      "url": "https://www.bybit.com/common-static/fhs/i18n-upload/low-cache/project/release/inverse-error-code/en.json?v=1",
+      "status": 200,
+      "bodyLength": 26795,
+      "hasFeeNumbers": false,
+      "bodyPreview": "{\"506\":\"Error in Audit ID or Merkle Hash\",\"10001\":\"Invalid Parameter\",\"10006\":\"Too many requests. Please try again 1 min later.\",\"10007\":\"Please log in first.\",\"10008\":\"Your account has been banned. Trading activity revoked.\",\"10009\":\"Service Restricted: Access is currently unavailable for your region.  Please contact our support team for further assistance.\",\"10016\":\"Service Error\",\"12097\":\"Sorry, since this account still in the term of Bootcamp, please try again after the Bootcamp ends.\",\"20001\":\"Order does not exist\",\"20002\":\"Order does not exist\",\"20009\":\"Order quantity cannot be empty.\",\""
+    },
+    {
+      "url": "https://www.bybit.com/x-api/s1/loyalty-program/get-vip-detail",
+      "status": 200,
+      "bodyLength": 83245,
+      "hasFeeNumbers": false,
+      "bodyPreview": "{\"ret_code\":0,\"ret_msg\":\"OK\",\"result\":{\"error_code\":\"loyalty00000\",\"error_message\":\"\",\"vip_info\":null,\"current_fees\":[],\"fee_configs\":[{\"label_type\":\"LABEL_TYPE_NO_VIP\",\"label_level\":0,\"biz_rates\":[{\"biz_type\":\"BIZ_TYPE_SPOT\",\"taker_base_fee_rate\":\"0.00100000000000000000\",\"maker_base_fee_rate\":\"0.00100000000000000000\",\"base_fee_type\":0,\"withdraw_daily_limit\":\"1000000\",\"withdraw_monthly_limit\":\"-1\",\"withdraw_limit_unit\":\"USDT\",\"sub_level\":1,\"sub_level_vol_start\":\"0\",\"sub_level_vol_end\":\"0\",\"coin\":\"\",\"top_symbol_taker_fee\":\"\",\"top_symbol_maker_fee\":\"\",\"symbol_group\":\"\",\"symbol_group_name\":\"\"},{\""
+    },
+    {
+      "url": "https://www.bybit.com/static/fe-lib-login/googleOneTap.latest.js?t=29698063",
+      "status": 200,
+      "bodyLength": 100908,
+      "hasFeeNumbers": false,
+      "bodyPreview": "!function(e,t){\"object\"===typeof exports&&\"object\"===typeof module?module.exports=t(require(\"ByGlobals\"),require(\"ByVendors\"),require(\"React\"),require(\"ReactDOM\")):\"function\"===typeof define&&define.amd?define([\"ByGlobals\",\"ByVendors\",\"React\",\"ReactDOM\"],t):\"object\"===typeof exports?exports.ByLogin_googleOneTap=t(require(\"ByGlobals\"),require(\"ByVendors\"),require(\"React\"),require(\"ReactDOM\")):e.ByLogin_googleOneTap=t(e.ByGlobals,e.ByVendors,e.React,e.ReactDOM)}(this,(e,t,n,o)=>(()=>{var r={466(e,t,n){\"use strict\";n.d(t,{o:()=>a,q:()=>i});var o=n(5388),r=n(4840);const i=e=>{!o.TT&&!o.No&&r.l.loc"
+    },
+    {
+      "url": "https://www.bybit.com/static/fe-lib-header/header.latest.js?t=29698063",
+      "status": 200,
+      "bodyLength": 529209,
+      "hasFeeNumbers": true,
+      "bodyPreview": "!function(e,n){\"object\"===typeof exports&&\"object\"===typeof module?module.exports=n(require(\"ByGlobals\"),require(\"React\"),require(\"ByVendors\"),require(\"ReactDOM\")):\"function\"===typeof define&&define.amd?define([\"ByGlobals\",\"React\",\"ByVendors\",\"ReactDOM\"],n):\"object\"===typeof exports?exports.ByHeaders=n(require(\"ByGlobals\"),require(\"React\"),require(\"ByVendors\"),require(\"ReactDOM\")):(e.ByHeaders=e.ByHeaders||{},e.ByHeaders.header=n(e.ByGlobals,e.React,e.ByVendors,e.ReactDOM))}(this,((e,n,r,t)=>(()=>{var o={64230:(e,n,r)=>{\"use strict\";function t(e,n){(null==n||n>e.length)&&(n=e.length);for(var r"
+    },
+    {
+      "url": "https://www.bybit.com/common-static/fhs/i18n-upload/low-cache/project/release/user-service-nextjs/en.json?v=1",
+      "status": 200,
+      "bodyLength": 165416,
+      "hasFeeNumbers": false,
+      "bodyPreview": "{\"\":\"\",\"2FA Authentication Failed Text\":\"2FA Authentication Failed\",\"about-bybit\":\"About Bybit\",\"Account & Security\":\"Account & Security\",\"Account Activities\":\"Account Activities\",\"account frozen for 2 days\":\"Kindly be advised that the process of verifying a change in your email address may require some time. After your identity has been verified by our customer service team, your account will remain suspended for 2 days.\",\"accountAbnormal\":\"Account abnormal?\",\"AccountAccessAndManagement\":\"Account access and management\",\"accountActivity\":\"Account Activity\",\"accountAndBanAccountDifferentTip\":\"Y"
+    },
+    {
+      "url": "https://www.bybit.com/x-api/s1/loyalty-program/interest-rate-list",
+      "status": 200,
+      "bodyLength": 977924,
+      "hasFeeNumbers": true,
+      "bodyPreview": "{\"ret_code\":0,\"ret_msg\":\"OK\",\"result\":{\"error_code\":\"loyalty00000\",\"error_message\":\"\",\"vip_interest_list\":[{\"biz_type\":\"INTEREST_BIZ_TYPE_OMP\",\"coin_list\":[{\"coin_name\":\"USDT\",\"vip_level_list\":[{\"label_type\":\"LABEL_TYPE_NO_VIP\",\"label_level\":\"0\",\"label_name\":\"VIP0\",\"hour_interest_rate\":\"0.000003694858\",\"day_interest_rate\":\"0.000088676592\",\"year_interest_rate\":\"0.032366956080\",\"loan_limit\":\"8000000\",\"free_interest_quota\":\"30000\",\"min_loan_limit\":\"\"},{\"label_type\":\"LABEL_TYPE_VIP\",\"label_level\":\"1\",\"label_name\":\"VIP1\",\"hour_interest_rate\":\"0.0000036161575246\",\"day_interest_rate\":\"0.0000867877805"
+    },
+    {
+      "url": "https://www.bybit.com/x-api/s1/loyalty-program/get-mnt-discount-config",
+      "status": 200,
+      "bodyLength": 25683,
+      "hasFeeNumbers": false,
+      "bodyPreview": "{\"ret_code\":0,\"ret_msg\":\"OK\",\"result\":{\"error_code\":\"loyalty00000\",\"error_message\":\"\",\"mnt_discount_config\":{\"switch\":1,\"level_discount\":[{\"label_type\":3,\"label_level\":1,\"fee_discount_info\":[{\"biz_type\":\"BIZ_TYPE_SPOT_FIAT\",\"taker_base_fee_rate\":\"0.00060000000000000000\",\"maker_base_fee_rate\":\"0.00050000000000000000\",\"sub_level\":1,\"sub_level_vol_start\":\"0\",\"sub_level_vol_end\":\"0\",\"coin\":\"\",\"symbol_group\":\"\",\"symbol_group_name\":\"\",\"mnt_discount\":\"75\"},{\"biz_type\":\"BIZ_TYPE_SPOT\",\"taker_base_fee_rate\":\"0.00060000000000000000\",\"maker_base_fee_rate\":\"0.00040000000000000000\",\"sub_level\":1,\"sub_level"
+    },
+    {
+      "url": "https://www.bybit.com/static/announcement-info/_next/static/chunks/5338.b213844c7c8d8b29.js",
+      "status": 200,
+      "bodyLength": 10467,
+      "hasFeeNumbers": false,
+      "bodyPreview": "\"use strict\";(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[5338],{45338:function(e,t,r){r.r(t),r.d(t,{Sensors:function(){return x},sensors:function(){return I}});var n,i,o,a=r(36567),s=r(6520),c=r(32481),u=r(35482),l=r(44918),f=r.n(l),p=console&&console.log||function(){},d=\"data-sensors-exposure-event-name\",g={},v=[],h={area_rate:0,stay_duration:0,repeated:!0};function m(e){var t={};return i.each(e,function(r,n){switch(n){case\"area_rate\":!isNaN(r=Number(r))&&r>=0&&r<=1?t.area_rate=r:p(\"parameter config.area_rate error. config:\",e);break;case\"stay_duration\":!isNaN(r=Number(r))&&r>=0?"
+    },
+    {
+      "url": "https://www.bybit.com/static/fe-lib-header/AlgoliaSearchBar.ee9de17435d5.js",
+      "status": 200,
+      "bodyLength": 37511,
+      "hasFeeNumbers": false,
+      "bodyPreview": "\"use strict\";(this.webpackChunkByHeaders=this.webpackChunkByHeaders||[]).push([[9214],{64123:(e,a,t)=>{t.d(a,{D:()=>i});var n=t(51893),r=t(36924);const o=`${(0,n.$b)()}/fapi/copymt5/tickers`,i=e=>{if(0===e.length)return Promise.resolve({data:[]});const a=encodeURIComponent(e.join(\",\"));return r.Z.get(o,{params:{symbols:a}}).then((e=>(0,r.a)(e)))}},93680:(e,a,t)=>{t.d(a,{ZP:()=>l,yj:()=>o});var n=t(21900);const{default:r,FETCH_SYMBOL_OPTION_ACTION:o,FETCH_SYMBOL_OPTION_FILTER:i}=n.byDynamicSymbol,l=r},49237:(e,a,t)=>{t.d(a,{VQ:()=>l,Y2:()=>c});var n=t(51893),r=t(36924);const o=`${(0,n.$b)()}/fa"
+    },
+    {
+      "url": "https://www.bybit.com/static/fe-lib-header/AnnouncementV2.7c9675c47522.js",
+      "status": 200,
+      "bodyLength": 24022,
+      "hasFeeNumbers": true,
+      "bodyPreview": "(this.webpackChunkByHeaders=this.webpackChunkByHeaders||[]).push([[4310],{14368:(n,e,t)=>{\"use strict\";t.r(e),t.d(e,{default:()=>nn});var i=t(1024),r=t.n(i),a=t(27484),s=t.n(a),o=t(46059),u=t(96282),l=t(28474),A=t(20012),c=t(45881);const d=\"YELLOW_BANNERS_CACHE_KEY\",f=\"NAV_PRODUCT_BANNER_CLOSED_CACHE\",B=s()(),h=()=>A.Jg?.5:A.BB?7:.02,v=()=>A.Jg?\"hour\":A.BB?\"day\":\"hour\",_={derivativesTools:[/^\\/derivatives\\/([a-z]{2,3}-([a-z]{2}|[A-Z]{2,3}|[0-9]{3})|[a-z]{2,3})\\/(derivatives-home|pre-market-perpetuals)/],futures:[/^\\/trade\\/usdt\\/([A-Z|0-9]+)/,/^\\/trade\\/futures\\/usdc\\/([A-Z|0-9]+)/,/^\\/trade\\/"
+    },
+    {
+      "url": "https://www.bybit.com/static/fe-lib-header/DownloadGuideIndex.6222681337bd.js",
+      "status": 200,
+      "bodyLength": 7178,
+      "hasFeeNumbers": false,
+      "bodyPreview": "\"use strict\";(this.webpackChunkByHeaders=this.webpackChunkByHeaders||[]).push([[2023],{95651:(e,o,a)=>{a.r(o),a.d(o,{default:()=>P});var t=a(1024),n=a.n(t),l=a(20012),i=a(62294),d=a(46062),s=a.n(d),r=a(44036),u=a.n(r),c=a(96793),p=a.n(c),m=a(17892),v=a.n(m),f=a(11173),h=a.n(f),g=a(42464),w=a.n(g),A=a(24744),_={};_.styleTagTransform=w(),_.setAttributes=v(),_.insert=p().bind(null,\"head\"),_.domAPI=u(),_.insertStyleElement=h();s()(A.Z,_);const z=A.Z&&A.Z.locals?A.Z.locals:void 0;var b=a(13731),y=a(38453),k=a(45881);const Z={trade:[/^\\/copyTrade/,/^\\/([a-z]{2,3}-([a-z]{2}|[A-Z]{2,3}|[0-9]{3})|[a-z]"
+    },
+    {
+      "url": "https://www.bybit.com/static/fe-lib-login/googleOneTap.41a9d789.js",
+      "status": 200,
+      "bodyLength": 39214,
+      "hasFeeNumbers": false,
+      "bodyPreview": "(this.webpackChunkByLogin_googleOneTap=this.webpackChunkByLogin_googleOneTap||[]).push([[6],{459(e,t,r){\"use strict\";r.d(t,{Tn:()=>n});var n=function(e){return\"function\"===typeof e}},1049(e){\"use strict\";e.exports=function(e,t){return t||(t={}),e?(e=String(e.__esModule?e.default:e),/^['\"].*['\"]$/.test(e)&&(e=e.slice(1,-1)),t.hash&&(e+=t.hash),/[\"'() \\t\\n]|(%20)/.test(e)||t.needQuotes?'\"'.concat(e.replace(/\"/g,'\\\\\"').replace(/\\n/g,\"\\\\n\"),'\"'):e):e}},2168(e,t,r){\"use strict\";function n(e){this.message=e}r.d(t,{A:()=>c}),n.prototype=new Error,n.prototype.name=\"InvalidCharacterError\";var o=\"undefi"
+    },
+    {
+      "url": "https://www.bybit.com/static/fe-lib-login/googleOneTap.fbb5124c.js",
+      "status": 200,
+      "bodyLength": 143801,
+      "hasFeeNumbers": true,
+      "bodyPreview": "(this.webpackChunkByLogin_googleOneTap=this.webpackChunkByLogin_googleOneTap||[]).push([[536],{98(e,t,n){\"use strict\";n.d(t,{VM:()=>d});var i=n(5508),o=n(4840),a=n(2126),r=n(2942),l=n(6121),s=n(9897);n(8014);const c=`${l.Qc}/v2/private/user/profile`;function d(e=!1){return o.l.isQuickLogin?Promise.reject({}):i.Ay.get(c,{useCache:e,ttl:1e4}).then(e=>{var t,n,i,o;if(null!==e&&void 0!==e&&null!==(t=e.result)&&void 0!==t&&t.id){var l,c;const t=null===e||void 0===e||null===(l=e.result)||void 0===l||null===(c=l.id)||void 0===c?void 0:c.toString();window.GA_UID=t||0,localStorage.setItem(\"GA_UID_KEY\","
+    },
+    {
+      "url": "https://www.bybit.com/static/fe-lib-header/6234.9689dcd04123.js",
+      "status": 200,
+      "bodyLength": 24899,
+      "hasFeeNumbers": true,
+      "bodyPreview": "\"use strict\";(this.webpackChunkByHeaders=this.webpackChunkByHeaders||[]).push([[6234,2627],{32627:(e,n,r)=>{r.r(n),r.d(n,{default:()=>o});var t=r(1024),a=r.n(t);function l(){return l=Object.assign?Object.assign.bind():function(e){for(var n=1;n<arguments.length;n++){var r=arguments[n];for(var t in r)({}).hasOwnProperty.call(r,t)&&(e[t]=r[t])}return e},l.apply(null,arguments)}const o=({width:e=\"16\",height:n=\"16\",fill:r=\"#666666\",...t})=>a().createElement(\"svg\",l({t:\"1641795071554\",className:\"icon\",viewBox:\"0 0 1024 1024\",version:\"1.1\",xmlns:\"http://www.w3.org/2000/svg\",\"p-id\":\"1578\",width:e,heig"
+    },
+    {
+      "url": "https://www.bybit.com/common-static/cht-static/security-svc/js/t1.js",
+      "status": 200,
+      "bodyLength": 617168,
+      "hasFeeNumbers": true,
+      "bodyPreview": "var TURING=function(){var A=[];var B;function g(A,B,g){var C=[],E=0;while(E++<B){C.push(A+=g)}return C}var C=g(0,43,0).concat([62,0,62,0,63]).concat(g(51,10,1)).concat(g(0,8,0)).concat(g(0,25,1)).concat([0,0,0,0,63,0]).concat(g(25,26,1));function E(A){var B=\"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=\".split(\"\");var g=String(A).replace(/[=]+$/,\"\"),E=g.length,I,Q,Y=0,o=0,i=[];for(;o<E;o++){Q=C[g.charCodeAt(o)];~Q&&(I=Y%4?64*I+Q:Q,Y++%4)?i.push(255&I>>(-2*Y&6)):0}return i}function I(A){return A>>1^-(1&A)}function Q(A){var B=[];var g=\"undefined\"!=typeof Int8Array?new Int8Arr"
+    },
+    {
+      "url": "https://www.bybit.com/x-api/v3/config/web",
+      "status": 200,
+      "bodyLength": 395,
+      "hasFeeNumbers": false,
+      "bodyPreview": "{\"ret_code\":0,\"ret_msg\":\"\",\"result\":{\"version\":\"20231027085116\",\"data\":[{\"name\":\"tradfiLandingGray\",\"dataType\":3,\"value\":\"{\\n    \\\"isGray\\\": true\\n}\",\"activatedAt\":null,\"expiredAt\":null},{\"name\":\"usdcFeeOffGray\",\"dataType\":3,\"value\":\"{\\n    \\\"spotGray\\\": 1,\\n    \\\"futureGray\\\": 1\\n}\",\"activatedAt\":null,\"expiredAt\":null}],\"total\":2},\"ext_code\":\"\",\"ext_info\":null,\"time_now\":\"1781883821.613130\"}"
+    },
+    {
+      "url": "https://www.bybit.com/x-api/de/cht/api/searchSymbolRecommend/list",
+      "status": 200,
+      "bodyLength": 2172,
+      "hasFeeNumbers": false,
+      "bodyPreview": "{\"retCode\":0,\"retMsg\":\"\",\"result\":{\"code\":\"0\",\"message\":\"success\",\"data\":[{\"buType\":\"SPOT\",\"symbolId\":\"MNTUSDT\",\"baseCoin\":\"MNT\",\"quoteCoin\":\"USDT\",\"algoType\":\"manually_set\"},{\"buType\":\"SPOT\",\"symbolId\":\"BTCUSDT\",\"baseCoin\":\"BTC\",\"quoteCoin\":\"USDT\",\"algoType\":\"hot_24h\"},{\"buType\":\"SPOT\",\"symbolId\":\"USDTPLN\",\"baseCoin\":\"USDT\",\"quoteCoin\":\"PLN\",\"algoType\":\"hot_24h\"},{\"buType\":\"USDT_PERPETUAL\",\"symbolId\":\"HYPEUSDT\",\"baseCoin\":\"HYPE\",\"quoteCoin\":\"USDT\",\"algoType\":\"hot_1h\"},{\"buType\":\"SPOT\",\"symbolId\":\"ETHUSDT\",\"baseCoin\":\"ETH\",\"quoteCoin\":\"USDT\",\"algoType\":\"hot_24h\"},{\"buType\":\"USDT_PERPETUAL\",\"sy"
+    },
+    {
+      "url": "https://www.bybit.com/static/by-globals/globals.ada.bc20c906.js",
+      "status": 200,
+      "bodyLength": 3388,
+      "hasFeeNumbers": true,
+      "bodyPreview": "/*!\n * name: @fe/by-globals\n * v: 0.1.1_9f8989439836\n * build: 2026-06-08T07:19:57.094Z\n */\n\"use strict\";(this.webpackChunkByGlobals=this.webpackChunkByGlobals||[]).push([[9025],{7668(t,e,n){n.d(e,{Ada:()=>o});var s=n(8675);class o extends s.${constructor(){super(\"ada\")}getSupportedProps(){return{}}getSupportedOnEvents(){return{}}getSupportedEmitEvents(){return{}}getConfig(){return{name:\"ada\",type:\"global\",windowKey:\"ByUser_ada\",urls:{prod:\"/fe-lib-user-security/ada.js\",testnet:\"/fe-lib-user-security/ada.js\",test:\"/fe-lib-user-security/ada.js\",local:\"/fe-lib-user-security/ada.js\"}}}async init("
+    },
+    {
+      "url": "https://www.bybit.com/static/fe-lib-user-security/ada.latest.js?t=29698063",
+      "status": 200,
+      "bodyLength": 63861,
+      "hasFeeNumbers": true,
+      "bodyPreview": "!function(t,e){\"object\"==typeof exports&&\"object\"==typeof module?module.exports=e(require(\"ByVendors\"),require(\"React\"),require(\"ReactDOM\")):\"function\"==typeof define&&define.amd?define([\"ByVendors\",\"React\",\"ReactDOM\"],e):\"object\"==typeof exports?exports.ByUser_ada=e(require(\"ByVendors\"),require(\"React\"),require(\"ReactDOM\")):t.ByUser_ada=e(t.ByVendors,t.React,t.ReactDOM)}(this,((t,e,n)=>(()=>{var o,r,i,a,s={20053:(t,e,n)=>{\"use strict\";function o(t){var e,n,r=\"\";if(\"string\"==typeof t||\"number\"==typeof t)r+=t;else if(\"object\"==typeof t)if(Array.isArray(t))for(e=0;e<t.length;e++)t[e]&&(n=o(t[e])"
+    },
+    {
+      "url": "https://connect.facebook.net/signals/config/454752076119925?v=2.9.338&r=stable&domain=www.bybit.com&hme=ed806287581422089c496fd485507306546b2937977788da80b80247d3e2e94b&ex_m=105%2C208%2C156%2C22%2C73%2C74%2C147%2C69%2C68%2C11%2C165%2C91%2C16%2C139%2C128%2C39%2C76%2C79%2C135%2C161%2C167%2C8%2C4%2C5%2C7%2C6%2C3%2C92%2C102%2C168%2C173%2C222%2C30%2C75%2C234%2C233%2C232%2C23%2C33%2C55%2C104%2C61%2C10%2C64%2C98%2C99%2C100%2C106%2C131%2C31%2C29%2C133%2C134%2C130%2C129%2C157%2C77%2C160%2C158%2C159%2C50%2C60%2C124%2C15%2C164%2C45%2C267%2C268%2C266%2C26%2C27%2C28%2C48%2C148%2C78%2C113%2C18%2C20%2C44%2C40%2C42%2C41%2C84%2C93%2C97%2C111%2C146%2C149%2C46%2C112%2C24%2C21%2C120%2C70%2C36%2C151%2C150%2C152%2C143%2C141%2C25%2C35%2C59%2C110%2C163%2C71%2C17%2C154%2C115%2C82%2C67%2C19%2C86%2C87%2C117%2C85%2C137%2C136%2C140%2C162%2C34%2C281%2C297%2C215%2C204%2C62%2C205%2C203%2C300%2C291%2C52%2C216%2C108%2C132%2C81%2C122%2C54%2C47%2C49%2C114%2C121%2C127%2C126%2C58%2C65%2C63%2C153%2C116%2C37%2C32%2C53%2C56%2C101%2C166%2C1%2C125%2C14%2C123%2C12%2C2%2C57%2C94%2C66%2C119%2C90%2C89%2C169%2C170%2C95%2C96%2C9%2C103%2C51%2C144%2C88%2C80%2C72%2C118%2C107%2C43%2C145%2C0%2C83%2C138%2C142%2C155%2C38%2C109%2C13%2C171",
+      "status": 200,
+      "bodyLength": 447059,
+      "hasFeeNumbers": true,
+      "bodyPreview": "/**\n* Copyright (c) 2017-present, Facebook, Inc. All rights reserved.\n*\n* You are hereby granted a non-exclusive, worldwide, royalty-free license to use,\n* copy, modify, and distribute this software in source code or binary form for use\n* in connection with the web services and APIs provided by Facebook.\n*\n* As with any software that integrates with the Facebook platform, your use of\n* this software is subject to the Facebook Platform Policy\n* [http://developers.facebook.com/policy/]. This copyright notice shall be\n* included in all copies or substantial portions of the software.\n*\n* THE SOFTW"
+    },
+    {
+      "url": "https://www.bybit.com/x-api/v3/config/web",
+      "status": 200,
+      "bodyLength": 1827,
+      "hasFeeNumbers": false,
+      "bodyPreview": "{\"ret_code\":0,\"ret_msg\":\"\",\"result\":{\"version\":\"20230717091706\",\"data\":[{\"name\":\"cht.captcha.config\",\"dataType\":3,\"value\":\"{\\n  \\\"default\\\": {\\n    \\\"completelyUseMagpieCatcha\\\": true,\\n    \\\"useDowngrade\\\": true,\\n    \\\"guidTailList\\\": [\\\"0\\\",\\\"1\\\",\\\"2\\\",\\\"3\\\",\\\"4\\\",\\\"5\\\",\\\"6\\\",\\\"7\\\",\\\"8\\\",\\\"9\\\",\\\"a\\\",\\\"b\\\"],\\n    \\\"oldCapchaList\\\": [\\n      \\\"geecaptcha\\\",\\n      \\\"recaptcha\\\",\\n      \\\"qqcatpcha\\\"\\n    ]\\n  },\\n  \\\"31000\\\": {\\n    \\\"completelyUseMagpieCatcha\\\": true,\\n    \\\"useDowngrade\\\": true\\n  },\\n  \\\"31001\\\": {\\n    \\\"completelyUseMagpieCatcha\\\": true,\\n    \\\"useDowngrade\\\": true\\n  },"
+    }
+  ]
+}
