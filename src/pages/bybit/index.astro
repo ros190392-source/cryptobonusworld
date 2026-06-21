@@ -7,7 +7,11 @@ const offer = getOffer('bybit')!;
 // Static exchange data — volatile fields come from offer
 const exchange = {
   name:             'Bybit',
-  affiliateUrl:     '/go/bybit',
+  slug:             'bybit',
+  affiliateUrl:     '/go/bybit/',
+  officialDomain:   'bybit.com',
+  supportUrl:       'https://help.bybit.com',
+  feeUrl:           'https://www.bybit.com/en/announcement-info/fee-rate',
   bonusMax:         30000,
   currency:         'USDT',
   minDeposit:       100,
@@ -18,13 +22,12 @@ const exchange = {
   wordmarkImg:      '/logos/bybit-wordmark-official.png',
   articleImg:       '/media/exchanges/bybit/article/bybit-article-1200x675.jpg',
   logoImg:          '/logos/bybit.png',
+  fees: {
+    spot:    { maker: '0.1%',   taker: '0.1%'   },
+    futures: { maker: '0.02%',  taker: '0.055%' },
+    options: { maker: '0.02%',  taker: '0.03%'  },
+  },
 };
-
-const alternatives = [
-  { name: 'MEXC',   logo: '/logos/mexc.png',   bonus: '8,000 USDT',  code: 'mexc-CryptoBonus',   url: 'https://www.mexc.com/acquisition/custom-sign-up?shareCode=mexc-CryptoBonus',  tag: 'No KYC option'  },
-  { name: 'Bitget', logo: '/logos/bitget.png',  bonus: '6,200 USDT',  code: 'CryptoBonW',          url: 'https://partner.bitget.com/bg/CryptoBonW',                                  tag: 'Copy trading'   },
-  { name: 'BingX',  logo: '/logos/bingx.png',   bonus: '5,125 USDT',  code: 'CRYPTOBONUSWORLD',    url: 'https://bingxdao.com/partner/CRYPTOBONUSWORLD/',                             tag: 'Social trading' },
-];
 
 const relatedExchanges = [
   { slug: 'mexc',   name: 'MEXC',   logo: '/logos/mexc.png',   bonus: 'Up to 8,000 USDT',  tag: 'No KYC option',  tileBg: '#F5F3FF' },
@@ -47,12 +50,12 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
 ---
 
 <CleanLayout
-  title={`Bybit Referral Code 2026: ${offer.promoCode} — Up to 30,000 USDT Bonus`}
-  description={`Bybit promo code ${offer.promoCode} — up to 30,000 USDT welcome package + fee discount. Verified ${offer.lastChecked}. Enter code at registration before your first deposit.`}
+  title={`${exchange.name} Referral Code 2026: ${offer.promoCode} — Up to ${exchange.bonusMax.toLocaleString('en-US')} ${exchange.currency} Bonus`}
+  description={`${exchange.name} promo code ${offer.promoCode} — up to ${exchange.bonusMax.toLocaleString('en-US')} ${exchange.currency} welcome package + fee discount. Verified ${offer.lastChecked}. Enter code at registration before your first deposit.`}
   canonical="https://cryptobonusworld.com/bybit/"
   ogImage="/media/exchanges/bybit/share/bybit-og-1200x630.jpg"
-  ogTitle={`Bybit Referral Code: ${offer.promoCode} — Claim Bonus`}
-  ogDescription={`Use Bybit referral code ${offer.promoCode} to claim welcome rewards up to 30,000 USDT. Verified June 2026 by CryptoBonusWorld.`}
+  ogTitle={`${exchange.name} Referral Code: ${offer.promoCode} — Claim Bonus`}
+  ogDescription={`Use ${exchange.name} referral code ${offer.promoCode} to claim welcome rewards up to ${exchange.bonusMax.toLocaleString('en-US')} ${exchange.currency}. Verified ${offer.lastChecked} by CryptoBonusWorld.`}
 >
 
 <style>
@@ -536,7 +539,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
      BLOCK 1 — TITLE BAR (white strip above dark hero)
 ═══════════════════════════════════════════════════════════ -->
 <div class="title-bar">
-  <h1>Bybit Referral Code</h1>
+  <h1>{exchange.name} Referral Code: {offer.promoCode}</h1>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════
@@ -545,12 +548,13 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
 <section class="brand-hero" style={bhStyle}>
   <div class="bh-inner">
 
-    <a href={exchange.affiliateUrl} rel="noopener sponsored" style="display:block;line-height:0;">
+    <a href={exchange.affiliateUrl} rel="noopener sponsored" aria-label={`Get ${exchange.name} bonus`} style="display:block;line-height:0;">
       <img
         src={exchange.wordmarkImg}
-        alt="Bybit"
+        alt={exchange.name}
         class="bh-wordmark"
         width="210" height="78"
+        fetchpriority="high"
       />
     </a>
 
@@ -564,7 +568,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
       Get Bonus
     </a>
 
-    <p class="bh-source">Verified June 2026 on <a href="https://www.bybit.com/en/promo/new-user/" target="_blank" rel="noopener noreferrer nofollow">Bybit.com</a></p>
+    <p class="bh-source">Verified {offer.lastChecked} on <a href={offer.sourceUrl} target="_blank" rel="noopener noreferrer nofollow">{exchange.officialDomain}</a></p>
   </div>
 </section>
 
@@ -575,10 +579,10 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
   <div class="cf-inner">
     <table class="cf-table">
       <tbody>
-        <tr><td>👉 Bybit</td><td>bybit.com</td></tr>
+        <tr><td>👉 {exchange.name}</td><td>{exchange.officialDomain}</td></tr>
         <tr><td>➡️ Referral Code</td><td class="cf-code">{offer.promoCode}</td></tr>
-        <tr><td>💰 Bonus</td><td>Up to 30,000 USDT</td></tr>
-        <tr><td>✅ Valid</td><td>June 2026</td></tr>
+        <tr><td>💰 Bonus</td><td>Up to {exchange.bonusMax.toLocaleString('en-US')} {exchange.currency}</td></tr>
+        <tr><td>✅ Valid</td><td>{offer.lastChecked}</td></tr>
       </tbody>
     </table>
   </div>
@@ -589,10 +593,10 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
 ═══════════════════════════════════════════════════════════ -->
 <div class="seo-intro-block">
   <div class="seo-intro-inner">
-    <p class="seo-phrase">Bybit Promo Code Bonus</p>
-    <p class="seo-intro-text">Looking for a Bybit referral code? Use <strong>CRYPTOBONUSW</strong> to open the official Bybit bonus page and check the latest sign-up rewards for new users.</p>
-    <p class="seo-intro-text">The Bybit promo code CRYPTOBONUSW gives new accounts access to a welcome package that can include deposit bonuses, trading vouchers, and fee discounts. The rewards you receive depend on which tasks you complete after registration — Bybit structures its new user bonus as a series of milestones rather than a single fixed payout.</p>
-    <p class="seo-intro-text">This page covers what the Bybit bonus code does, how to apply it at sign-up, and what to expect from the Bybit sign-up bonus program. All information is based on publicly available details from the official Bybit bonus page.</p>
+    <p class="seo-phrase">{exchange.name} Promo Code Bonus</p>
+    <p class="seo-intro-text">Looking for a {exchange.name} referral code? Use <strong>{offer.promoCode}</strong> to open the official {exchange.name} bonus page and check the latest sign-up rewards for new users.</p>
+    <p class="seo-intro-text">The {exchange.name} promo code {offer.promoCode} gives new accounts access to a welcome package that can include deposit bonuses, trading vouchers, and fee discounts. The rewards you receive depend on which tasks you complete after registration — {exchange.name} structures its new user bonus as a series of milestones rather than a single fixed payout.</p>
+    <p class="seo-intro-text">This page covers what the {exchange.name} bonus code does, how to apply it at sign-up, and what to expect from the {exchange.name} sign-up bonus program. All information is based on publicly available details from the official {exchange.name} bonus page.</p>
   </div>
 </div>
 
@@ -604,29 +608,29 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
 <!-- 01. Full-width CTA after intro text -->
 <div class="p2-section p2-cta-block">
   <div class="p2-inner">
-    <a href="/go/bybit" class="p2-cta-bar" rel="noopener sponsored">Get Bybit Bonus Now</a>
+    <a href={exchange.affiliateUrl} class="p2-cta-bar" rel="noopener sponsored">Get {exchange.name} Bonus Now</a>
   </div>
 </div>
 
 <!-- 02. What Is the Bybit Referral Code? -->
 <div class="p2-section">
   <div class="p2-inner">
-    <h2 class="p2-h2">What Is the Bybit Referral Code?</h2>
-    <p class="p2-text">A Bybit referral code is an alphanumeric string entered during account registration that links your new account to a partner bonus program. Using the code <strong>CRYPTOBONUSW</strong> connects your account to the official Bybit bonus page, which unlocks the new user reward pool.</p>
-    <p class="p2-text">Referral codes are intended for new users only — people creating a Bybit account for the first time. Existing Bybit users cannot apply a referral code to an account that is already registered. The code must be entered at the point of sign-up, before completing registration.</p>
+    <h2 class="p2-h2">What Is the {exchange.name} Referral Code?</h2>
+    <p class="p2-text">A {exchange.name} referral code is an alphanumeric string entered during account registration that links your new account to a partner bonus program. Using the code <strong>{offer.promoCode}</strong> connects your account to the official {exchange.name} bonus page, which unlocks the new user reward pool.</p>
+    <p class="p2-text">Referral codes are intended for new users only — people creating a {exchange.name} account for the first time. Existing {exchange.name} users cannot apply a referral code to an account that is already registered. The code must be entered at the point of sign-up, before completing registration.</p>
   </div>
 </div>
 
 <!-- 03. How to Claim the Bybit Bonus Code -->
 <div class="p2-section p2-section-alt">
   <div class="p2-inner">
-    <h2 class="p2-h2">How to Claim the Bybit Bonus Code</h2>
+    <h2 class="p2-h2">How to Claim the {exchange.name} Bonus Code</h2>
     <ol class="p2-steps">
-      <li class="p2-step">Open the official Bybit bonus link</li>
-      <li class="p2-step">Create a new Bybit account</li>
-      <li class="p2-step">Confirm the referral code <strong>CRYPTOBONUSW</strong></li>
+      <li class="p2-step">Open the official {exchange.name} bonus link</li>
+      <li class="p2-step">Create a new {exchange.name} account</li>
+      <li class="p2-step">Confirm the referral code <strong>{offer.promoCode}</strong></li>
       <li class="p2-step">Complete verification if required</li>
-      <li class="p2-step">Check the Bybit Rewards Hub inside your account for available tasks, deadlines and claim rules.</li>
+      <li class="p2-step">Check the {exchange.name} Rewards Hub inside your account for available tasks, deadlines and claim rules.</li>
     </ol>
   </div>
 </div>
@@ -637,14 +641,14 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
     <figure class="p2-evidence-figure">
       <img
         src="/media/exchanges/bybit/evidence/global-en/bybit-signup-code-applied-mobile.png"
-        alt="Bybit referral code CRYPTOBONUSW auto-filled on the sign-up page"
-        width="540"
-        height="974"
+        alt={`${exchange.name} referral code ${offer.promoCode} auto-filled on the sign-up page`}
+        width="1080"
+        height="1947"
         loading="lazy"
         decoding="async"
         class="p2-evidence-img"
       />
-      <figcaption class="p2-evidence-caption">Bybit sign-up page with CRYPTOBONUSW pre-filled in the referral code field.</figcaption>
+      <figcaption class="p2-evidence-caption">{exchange.name} sign-up page with {offer.promoCode} pre-filled in the referral code field.</figcaption>
     </figure>
   </div>
 </div>
@@ -652,16 +656,16 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
 <!-- 04b. Full-width CTA immediately after screenshot 1 -->
 <div class="p2-section p2-cta-block">
   <div class="p2-inner">
-    <a href="/go/bybit" class="p2-cta-bar" rel="noopener sponsored">Get Bybit Bonus Now</a>
+    <a href={exchange.affiliateUrl} class="p2-cta-bar" rel="noopener sponsored">Get {exchange.name} Bonus Now</a>
   </div>
 </div>
 
 <!-- 05. Bonus Levels on Bybit -->
 <div class="p2-section p2-section-alt">
   <div class="p2-inner">
-    <h2 class="p2-h2">Bonus Levels on Bybit</h2>
-    <p class="p2-text">The Bybit new user bonus is not a single fixed payout. It is structured as a series of tasks, each with its own reward. The total potential value shown on the official Bybit bonus page is up to 30,000 USDT, but that figure represents the combined maximum across all tasks — not a guaranteed amount for every user.</p>
-    <p class="p2-text">Most new users who complete standard verification and a first deposit will unlock a portion of the total package. The exact rewards and task requirements can vary by region and may change between promotion periods. Always check the current terms on the official Bybit bonus page after registering.</p>
+    <h2 class="p2-h2">Bonus Levels on {exchange.name}</h2>
+    <p class="p2-text">The {exchange.name} new user bonus is not a single fixed payout. It is structured as a series of tasks, each with its own reward. The total potential value shown on the official {exchange.name} bonus page is up to {exchange.bonusMax.toLocaleString('en-US')} {exchange.currency}, but that figure represents the combined maximum across all tasks — not a guaranteed amount for every user.</p>
+    <p class="p2-text">Most new users who complete standard verification and a first deposit will unlock a portion of the total package. The exact rewards and task requirements can vary by region and may change between promotion periods. Always check the current terms on the official {exchange.name} bonus page after registering.</p>
     <div class="p2-table-wrap">
       <table class="p2-table">
         <thead>
@@ -707,65 +711,65 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
       </table>
     </div>
     <h3 class="p2-h3">Getting the Most from Your New User Rewards</h3>
-    <p class="p2-text">Complete KYC and your first deposit early — these two steps unlock the largest share of the new user package. After that, check the Rewards Hub inside your Bybit account for any active tasks that apply to your account type and region. Not all tasks will be available in every country.</p>
+    <p class="p2-text">Complete KYC and your first deposit early — these two steps unlock the largest share of the new user package. After that, check the Rewards Hub inside your {exchange.name} account for any active tasks that apply to your account type and region. Not all tasks will be available in every country.</p>
   </div>
 </div>
 
 <!-- 07. Other Bybit Codes People Search For -->
 <div class="p2-section">
   <div class="p2-inner">
-    <h2 class="p2-h2">Other Bybit Codes People Search For</h2>
-    <p class="p2-text">Many users search for a Bybit referral code on Reddit, in forum threads, or on social channels. Some of those codes may be expired, region-restricted, or tied to individual affiliate accounts with no active bonus offer behind them.</p>
-    <p class="p2-text">The Bybit promo code <strong>CRYPTOBONUSW</strong> is the code verified on this page. It links to the official Bybit bonus page where new users can see the current welcome package. If you find another code elsewhere, check whether it routes to an active Bybit bonus offer before registering — the referral code must be entered at sign-up and cannot be changed after registration is complete.</p>
+    <h2 class="p2-h2">Other {exchange.name} Codes People Search For</h2>
+    <p class="p2-text">Many users search for a {exchange.name} referral code on Reddit, in forum threads, or on social channels. Some of those codes may be expired, region-restricted, or tied to individual affiliate accounts with no active bonus offer behind them.</p>
+    <p class="p2-text">The {exchange.name} promo code <strong>{offer.promoCode}</strong> is the code verified on this page. It links to the official {exchange.name} bonus page where new users can see the current welcome package. If you find another code elsewhere, check whether it routes to an active {exchange.name} bonus offer before registering — the referral code must be entered at sign-up and cannot be changed after registration is complete.</p>
   </div>
 </div>
 
 <!-- 08–10. About Bybit + Support + Platform and Team Notes -->
 <div class="p2-section p2-section-alt">
   <div class="p2-inner">
-    <h2 class="p2-h2">About Bybit</h2>
-    <p class="p2-text">Bybit was founded in 2018 and is headquartered in Dubai, UAE, where it operates under a Virtual Asset Service Provider (VASP) licence issued by the Dubai Virtual Assets Regulatory Authority (VARA). The exchange serves more than 30 million registered users across over 160 countries and territories.</p>
-    <p class="p2-text">Bybit offers spot trading, perpetual and quarterly futures contracts, options, and a copy trading marketplace. The platform is available via web browser and through official iOS and Android apps. Bybit does not currently accept users from the United States, Canada, or several other restricted jurisdictions.</p>
+    <h2 class="p2-h2">About {exchange.name}</h2>
+    <p class="p2-text">{exchange.name} was founded in {exchange.founded} and is headquartered in {exchange.headquarters}, where it operates under a Virtual Asset Service Provider (VASP) licence issued by the Dubai Virtual Assets Regulatory Authority (VARA). The exchange serves more than {exchange.users} registered users across over 160 countries and territories.</p>
+    <p class="p2-text">{exchange.name} offers spot trading, perpetual and quarterly futures contracts, options, and a copy trading marketplace. The platform is available via web browser and through official iOS and Android apps. {exchange.name} does not currently accept users from the United States, Canada, or several other restricted jurisdictions.</p>
     <h3 class="p2-h3">Support</h3>
-    <p class="p2-text">Bybit provides 24/7 customer support through live chat on the platform and a dedicated Help Center at help.bybit.com. Support is available in English and several other languages. For account-related issues — including bonus queries — the live chat route is typically the fastest way to reach a response.</p>
+    <p class="p2-text">{exchange.name} provides 24/7 customer support through live chat on the platform and a dedicated <a href={exchange.supportUrl} target="_blank" rel="noopener noreferrer nofollow">{exchange.name} Help Center</a>. Support is available in English and several other languages. For account-related issues — including bonus queries — the live chat route is typically the fastest way to reach a response.</p>
     <h3 class="p2-h3">Platform and Team Notes</h3>
-    <p class="p2-text">The Bybit platform covers derivatives-first trading with deep liquidity on its perpetual contracts, alongside a spot market and earn products such as flexible savings and staking. The exchange runs a Launchpad for new token listings and a Bybit Card for spending crypto. Bybit's mobile apps are consistently rated among the higher-reviewed exchange apps on both the App Store and Google Play.</p>
+    <p class="p2-text">The {exchange.name} platform covers derivatives-first trading with deep liquidity on its perpetual contracts, alongside a spot market and earn products such as flexible savings and staking. The exchange runs a Launchpad for new token listings and a {exchange.name} Card for spending crypto. {exchange.name}'s mobile apps are consistently rated among the higher-reviewed exchange apps on both the App Store and Google Play.</p>
   </div>
 </div>
 
 <!-- 11. Bybit Rewards Program -->
 <div class="p2-section">
   <div class="p2-inner">
-    <h2 class="p2-h2">Bybit Rewards Program</h2>
-    <p class="p2-text">Beyond the new user welcome package, Bybit operates an ongoing Rewards Hub inside each registered account. The hub offers daily and weekly missions — such as completing a trade, making a deposit above a certain amount, or trying a specific product — each tied to a USDT voucher or experience points (EXP).</p>
+    <h2 class="p2-h2">{exchange.name} Rewards Program</h2>
+    <p class="p2-text">Beyond the new user welcome package, {exchange.name} operates an ongoing Rewards Hub inside each registered account. The hub offers daily and weekly missions — such as completing a trade, making a deposit above a certain amount, or trying a specific product — each tied to a USDT voucher or experience points (EXP).</p>
     <p class="p2-text">EXP accumulated through the Rewards Hub can be converted into USDT after meeting trading volume requirements. The specific tasks available in the hub depend on your account region, your KYC status, and the current promotion calendar. Tasks rotate periodically, so rewards that are available one month may not appear the next.</p>
-    <p class="p2-text">The Bybit welcome bonus unlocked through the referral code <strong>CRYPTOBONUSW</strong> is a separate programme from the ongoing Rewards Hub. New users typically see both available after completing registration and identity verification.</p>
+    <p class="p2-text">The {exchange.name} welcome bonus unlocked through the referral code <strong>{offer.promoCode}</strong> is a separate programme from the ongoing Rewards Hub. New users typically see both available after completing registration and identity verification.</p>
   </div>
 </div>
 
 <!-- 12. Other Bybit Promotions -->
 <div class="p2-section p2-section-alt">
   <div class="p2-inner">
-    <h2 class="p2-h2">Other Bybit Promotions</h2>
-    <p class="p2-text">Bybit runs promotions beyond the new user sign-up bonus. These include periodic trading competitions with USDT prize pools, Launchpad participation windows for users who hold BIT or meet trading volume thresholds, and seasonal deposit campaigns around major market events.</p>
-    <p class="p2-text">Existing users can also access the Bybit Affiliate and Referral programmes, which offer fee rebates and commission-sharing for bringing new users to the platform. These are separate from the Bybit sign-up bonus and operate under different terms.</p>
-    <p class="p2-text">Promotion availability and terms change regularly. The official Bybit promotions page is the authoritative source for current offers — check it after creating your account to see which campaigns are active for your region and account type.</p>
+    <h2 class="p2-h2">Other {exchange.name} Promotions</h2>
+    <p class="p2-text">{exchange.name} runs promotions beyond the new user sign-up bonus. These include periodic trading competitions with USDT prize pools, Launchpad participation windows for users who hold BIT or meet trading volume thresholds, and seasonal deposit campaigns around major market events.</p>
+    <p class="p2-text">Existing users can also access the {exchange.name} Affiliate and Referral programmes, which offer fee rebates and commission-sharing for bringing new users to the platform. These are separate from the {exchange.name} sign-up bonus and operate under different terms.</p>
+    <p class="p2-text">Promotion availability and terms change regularly. The official {exchange.name} promotions page is the authoritative source for current offers — check it after creating your account to see which campaigns are active for your region and account type.</p>
   </div>
 </div>
 
 <!-- 13. The Bybit Referral Program -->
 <div class="p2-section">
   <div class="p2-inner">
-    <h2 class="p2-h2">The Bybit Referral Program</h2>
-    <p class="p2-text">The Bybit referral program covers two related but distinct things. For new users, it means entering a Bybit referral code at sign-up — connecting a new account to a welcome offer. For existing users, Bybit may provide a personal referral link or affiliate referral code they can share to invite others, subject to Bybit's current rules and eligibility conditions.</p>
-    <p class="p2-text">This page focuses on the new-user side: the Bybit referral code <strong>CRYPTOBONUSW</strong>. Entering this code at registration connects a new Bybit account to the partner welcome rewards flow. The verified screenshot above shows CRYPTOBONUSW pre-filled in the referral code field on the sign-up page. The public Bybit partner page shows welcome rewards up to 30,000 USDT for new accounts.</p>
-    <p class="p2-text">Exact rewards — including any crypto coupons, fee benefits, trading bonuses, and Rewards Hub tasks — depend on Bybit's current terms, your region, KYC status, deposit amounts, and trading activity. Always check the current offer on the official Bybit bonus page after creating your new account.</p>
+    <h2 class="p2-h2">The {exchange.name} Referral Program</h2>
+    <p class="p2-text">The {exchange.name} referral program covers two related but distinct things. For new users, it means entering a {exchange.name} referral code at sign-up — connecting a new account to a welcome offer. For existing users, {exchange.name} may provide a personal referral link or affiliate referral code they can share to invite others, subject to {exchange.name}'s current rules and eligibility conditions.</p>
+    <p class="p2-text">This page focuses on the new-user side: the {exchange.name} referral code <strong>{offer.promoCode}</strong>. Entering this code at registration connects a new {exchange.name} account to the partner welcome rewards flow. The verified screenshot above shows {offer.promoCode} pre-filled in the referral code field on the sign-up page. The public {exchange.name} partner page shows welcome rewards up to {exchange.bonusMax.toLocaleString('en-US')} {exchange.currency} for new accounts.</p>
+    <p class="p2-text">Exact rewards — including any crypto coupons, fee benefits, trading bonuses, and Rewards Hub tasks — depend on {exchange.name}'s current terms, your region, KYC status, deposit amounts, and trading activity. Always check the current offer on the official {exchange.name} bonus page after creating your new account.</p>
 
     <figure class="p2-article-banner-figure">
-      <a href="/go/bybit" rel="noopener sponsored">
+      <a href={exchange.affiliateUrl} rel="noopener sponsored">
         <img
-          src="/media/exchanges/bybit/article/bybit-article-1200x675.jpg"
-          alt="Bybit referral code bonus illustration for CryptoBonusWorld"
+          src={exchange.articleImg}
+          alt={`${exchange.name} referral code bonus illustration for CryptoBonusWorld`}
           width="1200"
           height="675"
           loading="lazy"
@@ -773,11 +777,11 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
           class="p2-article-banner-img"
         />
       </a>
-      <figcaption class="p2-article-banner-caption">Illustration: Bybit referral code bonus page on CryptoBonusWorld. Actual rewards depend on Bybit's current terms and eligibility rules.</figcaption>
+      <figcaption class="p2-article-banner-caption">Illustration: {exchange.name} referral code bonus page on CryptoBonusWorld. Actual rewards depend on {exchange.name}'s current terms and eligibility rules.</figcaption>
     </figure>
 
     <div class="p2-cta-block" style="margin-top:16px;">
-      <a href="/go/bybit" class="p2-cta-bar" rel="noopener sponsored">Use CRYPTOBONUSW on Bybit</a>
+      <a href={exchange.affiliateUrl} class="p2-cta-bar" rel="noopener sponsored">Use {offer.promoCode} on {exchange.name}</a>
     </div>
   </div>
 </div>
@@ -785,8 +789,8 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
 <!-- 14. Bonus verification status table (replaces PLACEHOLDER_02) -->
 <div class="p2-section p2-section-alt">
   <div class="p2-inner">
-    <h2 class="p2-h2">Bybit Bonus Offer — What We Have Verified</h2>
-    <p class="p2-text">The table below shows what CryptoBonusWorld has been able to independently verify about the Bybit bonus offer linked to the code CRYPTOBONUSW. Rows marked "Check in Rewards Hub" depend on individual account status and require verification inside your Bybit account after registration.</p>
+    <h2 class="p2-h2">{exchange.name} Bonus Offer — What We Have Verified</h2>
+    <p class="p2-text">The table below shows what CryptoBonusWorld has been able to independently verify about the {exchange.name} bonus offer linked to the code {offer.promoCode}. Rows marked "Check in Rewards Hub" depend on individual account status and require verification inside your {exchange.name} account after registration.</p>
     <figure class="p2-evidence-figure" style="margin:20px 0;">
       <img
         src="/media/exchanges/bybit/evidence/global-en/bybit-public-welcome-rewards.png"
@@ -811,16 +815,16 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
         </thead>
         <tbody>
           <tr>
-            <td>Sign-up with CRYPTOBONUSW</td>
+            <td>Sign-up with {offer.promoCode}</td>
             <td>Referral code applied at registration</td>
             <td>Welcome eligibility</td>
-            <td><span class="status-badge status-verified">Verified</span><div class="status-note">Mobile screenshot · June 2026</div></td>
+            <td><span class="status-badge status-verified">Verified</span><div class="status-note">Mobile screenshot · {offer.lastChecked}</div></td>
           </tr>
           <tr>
             <td>Welcome rewards</td>
-            <td>Open official Bybit bonus page via partner link</td>
-            <td>Welcome gifts (up to $30,000)</td>
-            <td><span class="status-badge status-verified">Verified</span><div class="status-note">Public welcome page · June 2026</div></td>
+            <td>Open official {exchange.name} bonus page via partner link</td>
+            <td>Welcome gifts (up to ${exchange.bonusMax.toLocaleString('en-US')})</td>
+            <td><span class="status-badge status-verified">Verified</span><div class="status-note">Public welcome page · {offer.lastChecked}</div></td>
           </tr>
           <tr>
             <td>Reward tiers preview ($50–$30,000)</td>
@@ -832,7 +836,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
             <td>Identity verification</td>
             <td>KYC may be required to unlock most rewards</td>
             <td>Reward access</td>
-            <td><span class="status-badge status-verified">Verified</span><div class="status-note">Official Bybit FAQ · June 2026</div></td>
+            <td><span class="status-badge status-verified">Verified</span><div class="status-note">Official {exchange.name} FAQ · {offer.lastChecked}</div></td>
           </tr>
           <tr>
             <td>Deposit tasks</td>
@@ -855,38 +859,38 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
         </tbody>
       </table>
     </div>
-    <p class="p2-text" style="margin-top:12px;">The Rewards Hub inside your Bybit account shows the exact tasks, deadlines and claim rules available to your account. Public Bybit pages confirm the CRYPTOBONUSW referral flow and reward tiers, but task amounts can vary by country, KYC level, deposit amount, trading activity and promotion period.</p>
+    <p class="p2-text" style="margin-top:12px;">The Rewards Hub inside your {exchange.name} account shows the exact tasks, deadlines and claim rules available to your account. Official {exchange.name} pages confirm the {offer.promoCode} referral flow and reward tiers, but task amounts can vary by country, KYC level, deposit amount, trading activity and promotion period.</p>
   </div>
 </div>
 
 <!-- 15. Bybit FAQ -->
 <div class="p2-section">
   <div class="p2-inner">
-    <h2 class="p2-h2">Bybit FAQ</h2>
+    <h2 class="p2-h2">{exchange.name} Referral Code — FAQ</h2>
     <div class="p2-faq">
       <details class="p2-faq-item">
         <summary class="p2-faq-q">Do I have to make a cryptocurrency deposit?</summary>
-        <div class="p2-faq-a">Not for every task. KYC verification alone may unlock a small reward in the welcome package. However, the larger deposit bonus and most milestone rewards do require you to fund your account. The exact deposit threshold for each tier is shown on the official Bybit bonus page after you register.</div>
+        <div class="p2-faq-a">Not for every task. KYC verification alone may unlock a small reward in the welcome package. However, the larger deposit bonus and most milestone rewards do require you to fund your account. The exact deposit threshold for each tier is shown on the official {exchange.name} bonus page after you register.</div>
       </details>
       <details class="p2-faq-item">
-        <summary class="p2-faq-q">Can I get more than one Bybit bonus?</summary>
+        <summary class="p2-faq-q">Can I get more than one {exchange.name} bonus?</summary>
         <div class="p2-faq-a">Within the welcome package, yes — each completed task unlocks its own reward. You can earn multiple rewards by completing KYC, making a first deposit, placing a futures trade, and meeting volume milestones. The welcome package itself is a one-time offer for new accounts and cannot be repeated on the same account.</div>
       </details>
       <details class="p2-faq-item">
-        <summary class="p2-faq-q">What are the Bybit fees?</summary>
-        <div class="p2-faq-a">Bybit's standard spot trading fee is 0.1% for both makers and takers. Perpetual futures fees are 0.02% for makers and 0.055% for takers. Options are 0.02% maker and 0.03% taker. Some welcome package rewards include a fee discount voucher — check the Rewards Hub after registering to see whether one is available for your account.</div>
+        <summary class="p2-faq-q">What are the {exchange.name} fees?</summary>
+        <div class="p2-faq-a">{exchange.name}'s standard spot trading fee is {exchange.fees.spot.maker} for both makers and takers. Perpetual futures fees are {exchange.fees.futures.maker} for makers and {exchange.fees.futures.taker} for takers. Options are {exchange.fees.options.maker} maker and {exchange.fees.options.taker} taker. Some welcome package rewards include a fee discount voucher — check the Rewards Hub after registering to see whether one is available for your account.</div>
       </details>
       <details class="p2-faq-item">
         <summary class="p2-faq-q">Which currency are rewards paid in?</summary>
-        <div class="p2-faq-a">Most Bybit welcome bonus rewards are denominated in USDT or issued as USDT-equivalent trading vouchers. Some rewards come as experience points (EXP) that convert to USDT after you meet a trading volume requirement. Specific reward currencies are shown for each task inside the Bybit welcome offer page.</div>
+        <div class="p2-faq-a">Most {exchange.name} welcome bonus rewards are denominated in USDT or issued as USDT-equivalent trading vouchers. Some rewards come as experience points (EXP) that convert to USDT after you meet a trading volume requirement. Specific reward currencies are shown for each task inside the {exchange.name} welcome offer page.</div>
       </details>
       <details class="p2-faq-item">
         <summary class="p2-faq-q">Can existing users use the referral code?</summary>
-        <div class="p2-faq-a">No. The Bybit referral code CRYPTOBONUSW is for new users only and must be entered during account creation. It cannot be added to an existing Bybit account after registration. If you already have a Bybit account, you can access the ongoing Rewards Hub inside your account instead.</div>
+        <div class="p2-faq-a">No. The {exchange.name} referral code {offer.promoCode} is for new users only and must be entered during account creation. It cannot be added to an existing {exchange.name} account after registration. If you already have a {exchange.name} account, you can access the ongoing Rewards Hub inside your account instead.</div>
       </details>
       <details class="p2-faq-item">
-        <summary class="p2-faq-q">Is the Bybit bonus available in every country?</summary>
-        <div class="p2-faq-a">No. Bybit restricts access in a number of jurisdictions, including the United States and Canada. Even in countries where Bybit is available, specific bonus tasks or reward amounts may differ by region. After registering, the official Bybit bonus page will show which welcome tasks are active for your account and location.</div>
+        <summary class="p2-faq-q">Is the {exchange.name} bonus available in every country?</summary>
+        <div class="p2-faq-a">No. {exchange.name} restricts access in a number of jurisdictions, including the United States and Canada. Even in countries where {exchange.name} is available, specific bonus tasks or reward amounts may differ by region. After registering, the official {exchange.name} bonus page will show which welcome tasks are active for your account and location.</div>
       </details>
     </div>
   </div>
@@ -895,8 +899,8 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
 <!-- 16. Bybit Fees (replaces PLACEHOLDER_03) -->
 <div class="p2-section p2-section-alt">
   <div class="p2-inner">
-    <h2 class="p2-h2">Bybit Trading Fees</h2>
-    <p class="p2-text">Bybit fees vary by product, VIP level, account type, and current fee schedule. The figures below are based on Bybit's published standard non-VIP rates, verified directly from the official Bybit fee page. Always check the <a href="https://www.bybit.com/en/announcement-info/fee-rate" target="_blank" rel="noopener noreferrer nofollow">official Bybit fee page</a> before trading — rates are subject to change.</p>
+    <h2 class="p2-h2">{exchange.name} Trading Fees</h2>
+    <p class="p2-text">{exchange.name} fees vary by product, VIP level, account type, and current fee schedule. The figures below are based on {exchange.name}'s published standard non-VIP rates, verified directly from the official {exchange.name} fee page. Always check the <a href={exchange.feeUrl} target="_blank" rel="noopener noreferrer nofollow">official {exchange.name} fee page</a> before trading — rates are subject to change.</p>
     <div class="p2-table-wrap">
       <table class="p2-table">
         <thead>
@@ -910,27 +914,27 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
         <tbody>
           <tr>
             <td>Spot</td>
-            <td>0.1%</td>
-            <td>0.1%</td>
-            <td style="color:#16A34A;font-size:12px;">✅ Official Bybit fee page · June 2026</td>
+            <td>{exchange.fees.spot.maker}</td>
+            <td>{exchange.fees.spot.taker}</td>
+            <td style="color:#16A34A;font-size:12px;">✅ Official {exchange.name} fee page · {offer.lastChecked}</td>
           </tr>
           <tr>
             <td>Perpetual &amp; Futures</td>
-            <td>0.02%</td>
-            <td>0.055%</td>
-            <td style="color:#16A34A;font-size:12px;">✅ Official Bybit fee page · June 2026</td>
+            <td>{exchange.fees.futures.maker}</td>
+            <td>{exchange.fees.futures.taker}</td>
+            <td style="color:#16A34A;font-size:12px;">✅ Official {exchange.name} fee page · {offer.lastChecked}</td>
           </tr>
           <tr>
             <td>Options</td>
-            <td>0.02%</td>
-            <td>0.03%</td>
-            <td style="color:#16A34A;font-size:12px;">✅ Official Bybit fee page · June 2026</td>
+            <td>{exchange.fees.options.maker}</td>
+            <td>{exchange.fees.options.taker}</td>
+            <td style="color:#16A34A;font-size:12px;">✅ Official {exchange.name} fee page · {offer.lastChecked}</td>
           </tr>
         </tbody>
       </table>
     </div>
-    <p class="p2-text" style="margin-top:10px;font-size:12px;color:#6B7280;">Last checked: June 2026 from the <a href="https://www.bybit.com/en/announcement-info/fee-rate" target="_blank" rel="noopener noreferrer nofollow" style="color:#6B7280;">official Bybit fee page</a>.</p>
-    <p class="p2-text" style="margin-top:6px;font-size:12px;color:#9CA3AF;">Fees may vary by product, VIP level, region, account status and the current fee schedule. Always check the <a href="https://www.bybit.com/en/announcement-info/fee-rate" target="_blank" rel="noopener noreferrer nofollow" style="color:#9CA3AF;">official Bybit fee page</a> before trading.</p>
+    <p class="p2-text" style="margin-top:10px;font-size:12px;color:#6B7280;">Last checked: {offer.lastChecked} from the <a href={exchange.feeUrl} target="_blank" rel="noopener noreferrer nofollow" style="color:#6B7280;">official {exchange.name} fee page</a>.</p>
+    <p class="p2-text" style="margin-top:6px;font-size:12px;color:#9CA3AF;">Fees may vary by product, VIP level, region, account status and the current fee schedule. Always check the <a href={exchange.feeUrl} target="_blank" rel="noopener noreferrer nofollow" style="color:#9CA3AF;">official {exchange.name} fee page</a> before trading.</p>
   </div>
 </div>
 
@@ -938,7 +942,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
 <div class="p2-section p2-section-alt">
   <div class="p2-inner">
     <h2 class="p2-h2">More Verified Crypto Exchange Bonuses</h2>
-    <p class="p2-related-intro">Compare other exchange bonus pages if you want to check alternatives before using the Bybit referral code.</p>
+    <p class="p2-related-intro">Compare other exchange bonus pages if you want to check alternatives before using the {exchange.name} referral code.</p>
     <div class="p2-related-grid">
       {relatedExchanges.map(ex => (
         <div class="p2-rel-card">
@@ -963,22 +967,22 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
 <!-- 17b. Closing conversion block — exact repeat of top dark hero + compact table standard -->
 <section class="brand-hero" style={bhStyle}>
   <div class="bh-inner">
-    <a href="/go/bybit" rel="noopener sponsored" style="display:block;line-height:0;">
-      <img src="/logos/bybit-wordmark-official.png" alt="Bybit" class="bh-wordmark" width="210" height="78" />
+    <a href={exchange.affiliateUrl} rel="noopener sponsored" aria-label={`Get ${exchange.name} bonus`} style="display:block;line-height:0;">
+      <img src={exchange.wordmarkImg} alt={exchange.name} class="bh-wordmark" width="210" height="78" />
     </a>
     <p class="bh-promo-label">PROMO CODE</p>
     <div class="bh-promo-row">
       <span class="bh-promo-code">{offer.promoCode}</span>
       <button class="bh-copy-btn" id="copy-btn-coupon" type="button">Copy</button>
     </div>
-    <a href="/go/bybit" class="bh-cta-btn" rel="noopener sponsored">Get Bonus</a>
-    <p class="bh-source">Verified June 2026 on <a href="https://www.bybit.com/en/promo/new-user/" target="_blank" rel="noopener noreferrer nofollow">Bybit.com</a></p>
+    <a href={exchange.affiliateUrl} class="bh-cta-btn" rel="noopener sponsored">Get Bonus</a>
+    <p class="bh-source">Verified {offer.lastChecked} on <a href={offer.sourceUrl} target="_blank" rel="noopener noreferrer nofollow">{exchange.officialDomain}</a></p>
   </div>
 </section>
 <!-- Rating block — honest, no fake data -->
 <div class="p2-section p2-section-alt">
   <div class="p2-inner p2-rating-block">
-    <h3 class="p2-rating-title">Rate this Bybit referral code</h3>
+    <h3 class="p2-rating-title">Rate this {exchange.name} referral code</h3>
     <div class="p2-stars" aria-label="No ratings yet" aria-hidden="true">★★★★★</div>
     <p class="p2-rating-empty">No ratings yet — be the first to rate this code.</p>
   </div>
@@ -988,9 +992,9 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
 <div class="p2-section">
   <div class="p2-inner p2-vote-block"
        data-vote-widget="code-helpfulness"
-       data-exchange="bybit"
-       data-code="CRYPTOBONUSW">
-    <h3 class="p2-vote-title">Was this Bybit referral code helpful?</h3>
+       data-exchange={exchange.slug}
+       data-code={offer.promoCode}>
+    <h3 class="p2-vote-title">Was this {exchange.name} referral code helpful?</h3>
     <div class="p2-vote-buttons">
       <button class="p2-vote-btn" id="vote-up"   type="button" data-vote="up">👍 Works for me</button>
       <button class="p2-vote-btn" id="vote-down" type="button" data-vote="down">👎 Didn't work</button>
@@ -999,7 +1003,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
   </div>
 </div>
 
-<script define:vars={{ promoCode: offer.promoCode }}>
+<script define:vars={{ promoCode: offer.promoCode, exchangeSlug: exchange.slug }}>
   (function () {
     var btn = document.getElementById('copy-btn-hero');
     if (btn) {
@@ -1039,7 +1043,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
     });
 
     // Voting block — localStorage only, no fake global counts
-    var VOTE_KEY = 'cbw_vote_bybit_code';
+    var VOTE_KEY = 'cbw_vote_' + exchangeSlug + '_code';
     var voteUpBtn   = document.getElementById('vote-up');
     var voteDownBtn = document.getElementById('vote-down');
     var voteStatus  = document.getElementById('vote-status');
