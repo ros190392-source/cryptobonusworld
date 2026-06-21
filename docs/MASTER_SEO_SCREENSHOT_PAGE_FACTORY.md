@@ -28,9 +28,10 @@ Every important page produced on this site must pass through this factory.
 7. [Schema Rules](#7-schema-rules)
 8. [Internal Linking Standards](#8-internal-linking-standards)
 9. [QA Checklist](#9-qa-checklist)
-10. [Deploy + Live Verification](#10-deploy--live-verification)
-11. [Binance Pilot Plan](#11-binance-pilot-plan)
-12. [Governance Reference](#12-governance-reference)
+10. [SEO Architect Content Gate](#10-seo-architect-content-gate)
+11. [Deploy + Live Verification](#11-deploy--live-verification)
+12. [Binance Pilot Plan](#12-binance-pilot-plan)
+13. [Governance Reference](#13-governance-reference)
 
 ---
 
@@ -829,7 +830,94 @@ grep "favicon.ico" dist/index.html
 
 ---
 
-## 10. Deploy + Live Verification
+## 10. SEO Architect Content Gate
+
+**Status:** MANDATORY — every new or edited page/article block must pass this gate before deploy.
+
+**Added:** 2026-06-21 | Bybit v1.3.1 pilot
+
+---
+
+### Gate Purpose
+
+Prevents publishing content that: (a) keyword-stuffs, (b) claims unverified codes are active, (c) uses guaranteed bonus language, (d) fails template variable discipline, or (e) breaks schema integrity.
+
+---
+
+### Required Checks
+
+| # | Check | Pass Condition |
+|---|-------|---------------|
+| 1 | **Build / static QA** | `npm run build` clean; 0 errors; correct page count |
+| 2 | **Keyword stuffing risk** | No single term unnaturally dominates visible prose; entity density acceptable for page type |
+| 3 | **Search intent coverage** | Primary + secondary keyword cluster covered in headings and prose |
+| 4 | **Competitor-code safety** | BYBONUS = 0; FREEBONUS = 0; no third-party code presented as active |
+| 5 | **Trust / fake-claims check** | No "working codes" claim; no `guaranteed $X` wording; no fake verification labels |
+| 6 | **Template safety** | Reusable prose uses `exchange.name` + `offer.promoCode`; no hardcoded exchange names in clone-intended sections |
+| 7 | **UX / readability** | New blocks do not interrupt conversion flow; table is scannable; no wall-of-text |
+| 8 | **Schema risk** | FAQPage still matches visible FAQ; BreadcrumbList present; no new schema errors introduced |
+| 9 | **AI Search / GEO readiness** | Structured tables, clear entity signals, FAQ coverage; page answers the query directly |
+| 10 | **Final deploy gate** | All score thresholds met (see below) |
+
+---
+
+### Deploy Gate — Required Thresholds
+
+| Metric | Minimum |
+|--------|---------|
+| SEO Architect Score | ≥ 85 / 100 |
+| AI Search Readiness Score | ≥ 85 / 100 |
+| Template Safety Score | ≥ 90 / 100 |
+| Build clean | Required |
+| BYBONUS / competitor codes | 0 |
+| Fake "working codes" claim | 0 |
+| Guaranteed bonus wording | 0 |
+| Account-level task marked Verified without evidence | 0 |
+
+---
+
+### Hard Rules
+
+- **P0 issues = 0** before any deploy
+- **SEO score below 85** → do not deploy; run anti-spam copy polish; rerun audit
+- **Template variables** — all exchange-specific strings must use `exchange.name` and `offer.promoCode` in clone-intended sections
+- **Search variant tables** — listing search phrases (promo code, invite code, etc.) is allowed; claiming they are separate active codes is not
+- **No deploy without audit sign-off** — even for small copy additions
+
+---
+
+### Scoring Reference
+
+**SEO Architect Score /100**
+
+| Area | Max | Notes |
+|------|-----|-------|
+| Search intent coverage | 20 | All primary + secondary variants covered |
+| Content quality | 20 | Non-spammy, readable, factual |
+| Keyword discipline | 20 | No stuffing; entity density appropriate |
+| Trust & safety language | 20 | No working-codes claim, no guaranteed amounts |
+| CTA / conversion flow | 20 | New blocks don't break conversion sequence |
+
+**AI Search Readiness /100**
+Structured tables, explicit query-to-answer mapping, FAQ schema, clear entity signals.
+
+**Template Safety /100**
+All clone-intended sections use `{exchange.name}` and `{offer.promoCode}`; 3-point deduction per hardcoded exchange name in a reusable section; JSON-LD hardcoding is expected/exempt.
+
+---
+
+### If Gate Fails
+
+1. Do NOT deploy
+2. Identify which check(s) failed
+3. Run anti-spam copy polish (reduce stuffed terms, replace redundant Bybit mentions with pronouns or "the exchange")
+4. Rebuild: `npm run build`
+5. Rerun all gate checks
+6. Deploy only after gate passes at ≥ 85 / ≥ 85 / ≥ 90
+
+---
+
+## 11. Deploy + Live Verification
 
 ### Deploy Command
 
@@ -884,7 +972,7 @@ After every deploy, manually verify (or via curl + grep):
 
 ---
 
-## 11. Binance Pilot Plan
+## 12. Binance Pilot Plan
 
 Binance is the first exchange to reach gold-standard. It is at homepage position #2 and has the highest-confidence bonus evidence on the site.
 
@@ -950,7 +1038,7 @@ Binance is the first exchange to reach gold-standard. It is at homepage position
 
 ---
 
-## 12. Governance Reference
+## 13. Governance Reference
 
 | Document | Purpose |
 |----------|---------|
