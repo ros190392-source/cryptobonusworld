@@ -134,7 +134,7 @@ Any code that belongs to a competitor's affiliate account must never appear on C
 Competitor pages sometimes show a code that differs from the code embedded in the affiliate link. CBW requires the displayed `offer.promoCode` and the code in the `/go/{slug}/` redirect URL to match exactly. Mismatches fail the affiliate compliance audit.
 
 **Tiny logos inside awkward empty boxes**
-Competitor logo tiles often show logos at 30–40% of their container's usable area, creating an "icon in a large grey void" effect. CBW requires logos to fill ≥ 75% of the tile's usable area using `width: 100%; height: 100%; object-fit: contain` with minimal padding (≤ 6px).
+Competitor logo tiles often show logos at 30–40% of their container's usable area, creating an "icon in a large grey void" effect. CBW requires logos to fill ≥ 88% of the tile using `width: 100%; height: 100%; object-fit: contain` with no padding (padding creates inner-frame artifacts on solid-background logos); `overflow: hidden` clips to the rounded tile edge.
 
 ---
 
@@ -195,7 +195,8 @@ Cards in section 17a ("More Verified Crypto Exchange Bonuses") follow these spec
 | Desktop size | 96 × 96px |
 | Mobile size | 86 × 86px |
 | Logo CSS | `width: 100%; height: 100%; object-fit: contain` |
-| Padding | 6px (ensures minimal breathing room without creating void) |
+| Padding | 0 — logos clip cleanly to tile edge; padding was creating inner-frame artifacts on solid-bg logos |
+| Overflow | `hidden` — clips logo to rounded tile corners |
 | Border-radius | 12px |
 | Background | Brand-tinted color from `ex.tileBg` (no grey fallback that conflicts with logo) |
 | Border | None |

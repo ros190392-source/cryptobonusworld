@@ -385,14 +385,16 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
     box-shadow: 0 1px 3px rgba(0,0,0,0.04);
     color-scheme: light; forced-color-adjust: none;
   }
-  /* Logo tile: 86px mobile / 96px desktop. Padding 6px keeps breathing room
-     without creating the "tiny logo floating in a void" effect. Logo uses
-     width/height 100% so it fills the available area at its natural aspect ratio. */
+  /* Logo tile: 86px mobile / 96px desktop. overflow:hidden + border-radius 12px
+     clips the logo to clean rounded corners. No padding — solid-background logos
+     (Bitget, BingX) fill edge-to-edge with no visible inner frame. Logos with
+     internal PNG whitespace (OKX) are an asset-level issue; CSS cannot fix them
+     without cropping. object-fit: contain prevents stretching. */
   .p2-rel-logo-wrap {
     flex-shrink: 0; width: 86px; height: 86px;
     display: flex; align-items: center; justify-content: center;
-    border-radius: 12px;
-    padding: 6px; box-sizing: border-box; color-scheme: light;
+    border-radius: 12px; overflow: hidden;
+    box-sizing: border-box; color-scheme: light;
   }
   @media (min-width: 640px) { .p2-rel-logo-wrap { width: 96px; height: 96px; } }
   .p2-rel-logo { width: 100%; height: 100%; object-fit: contain; display: block; }
