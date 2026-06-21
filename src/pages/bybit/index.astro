@@ -766,7 +766,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
     <p class="p2-text">Exact rewards — including any crypto coupons, fee benefits, trading bonuses, and Rewards Hub tasks — depend on {exchange.name}'s current terms, your region, KYC status, deposit amounts, and trading activity. Always check the current offer on the official {exchange.name} bonus page after creating your new account.</p>
 
     <figure class="p2-article-banner-figure">
-      <a href={exchange.affiliateUrl} rel="noopener sponsored">
+      <a href={exchange.affiliateUrl} rel="noopener sponsored" aria-label={`Get ${exchange.name} bonus`}>
         <img
           src={exchange.articleImg}
           alt={`${exchange.name} referral code bonus illustration for CryptoBonusWorld`}
@@ -777,12 +777,8 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
           class="p2-article-banner-img"
         />
       </a>
-      <figcaption class="p2-article-banner-caption">Illustration: {exchange.name} referral code bonus page on CryptoBonusWorld. Actual rewards depend on {exchange.name}'s current terms and eligibility rules.</figcaption>
+      <figcaption class="p2-article-banner-caption">{exchange.name} Referral Code: {offer.promoCode}</figcaption>
     </figure>
-
-    <div class="p2-cta-block" style="margin-top:16px;">
-      <a href={exchange.affiliateUrl} class="p2-cta-bar" rel="noopener sponsored">Use {offer.promoCode} on {exchange.name}</a>
-    </div>
   </div>
 </div>
 
