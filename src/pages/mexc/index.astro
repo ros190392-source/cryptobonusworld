@@ -117,7 +117,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
   }
   .bh-inner { width: 100%; max-width: 540px; margin: 0 auto; padding: 0 20px; text-align: center; box-sizing: border-box; }
 
-  .bh-wordmark { display: block; width: 165px; height: auto; margin: 0 auto 10px; filter: none; opacity: 1; }
+  .bh-wordmark { display: block; width: 165px; height: auto; margin: 0 auto 10px; filter: brightness(0) invert(1); opacity: 1; }
   @media (min-width: 640px) { .bh-wordmark { width: 210px; } }
   @media (max-width: 359px) { .bh-wordmark { width: 140px; } }
 
@@ -506,7 +506,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
     .cf-code { color: #0099cc !important; -webkit-text-fill-color: #0099cc !important; }
     .cf-good { color: #16a34a !important; -webkit-text-fill-color: #16a34a !important; }
     .cf-warn { color: #b45309 !important; -webkit-text-fill-color: #b45309 !important; }
-    .bh-wordmark { filter: none !important; opacity: 1 !important; }
+    .bh-wordmark { filter: brightness(0) invert(1) !important; opacity: 1 !important; }
     .p2-section { background: #fff !important; color-scheme: light !important; forced-color-adjust: none; }
     .p2-section-alt { background: #F9FAFB !important; }
     .p2-placeholder { background: #F3F4F6 !important; border-color: #D1D5DB !important; color: #9CA3AF !important; }
@@ -649,7 +649,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
         decoding="async"
         class="p2-evidence-img p2-evidence-img--wide"
       />
-      <figcaption class="p2-evidence-caption">Official MEXC custom sign-up page — referral code <strong>mexc-CryptoBonus</strong> pre-filled, right panel confirms "Sign Up to Claim 10,000 USDT". Captured June 2026.</figcaption>
+      <figcaption class="p2-evidence-caption">Official MEXC custom sign-up page — referral code <strong>mexc-CryptoBonus</strong> pre-filled, right panel confirms "Sign Up to Claim 10,000 USDT". Captured {offer.lastChecked}.</figcaption>
     </figure>
   </div>
 </div>
@@ -820,7 +820,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
         decoding="async"
         class="p2-evidence-img p2-evidence-img--wide"
       />
-      <figcaption class="p2-evidence-caption">Official MEXC sign-up page via the partner custom URL. Left panel: referral code <strong>mexc-CryptoBonus</strong> pre-filled. Right panel: "Sign Up to Claim 10,000 USDT". Captured June 2026.</figcaption>
+      <figcaption class="p2-evidence-caption">Official MEXC sign-up page via the partner custom URL. Left panel: referral code <strong>mexc-CryptoBonus</strong> pre-filled. Right panel: "Sign Up to Claim 10,000 USDT". Captured {offer.lastChecked}.</figcaption>
     </figure>
     <div class="p2-table-wrap">
       <table class="p2-table">
@@ -956,7 +956,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
         decoding="async"
         class="p2-evidence-img p2-evidence-img--wide"
       />
-      <figcaption class="p2-evidence-caption">{exchange.name} fee schedule — spot tab. Standard non-VIP rates: 0% maker / 0%–0.05% taker (most pairs 0.05%; 0.04% with MX discount). Captured June 2026 from <a href={exchange.feeUrl} target="_blank" rel="noopener noreferrer nofollow">mexc.com/fee</a>.</figcaption>
+      <figcaption class="p2-evidence-caption">{exchange.name} fee schedule — spot tab. Standard non-VIP rates: 0% maker / 0%–0.05% taker (most pairs 0.05%; 0.04% with MX discount). Captured {offer.lastChecked} from <a href={exchange.feeUrl} target="_blank" rel="noopener noreferrer nofollow">mexc.com/fee</a>.</figcaption>
     </figure>
     <figure class="p2-evidence-figure" style="margin:12px 0 16px;">
       <img
@@ -968,7 +968,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
         decoding="async"
         class="p2-evidence-img p2-evidence-img--wide"
       />
-      <figcaption class="p2-evidence-caption">{exchange.name} fee schedule — futures tab. BTCUSDT Perpetual: 0% maker / 0.01% taker. Captured June 2026.</figcaption>
+      <figcaption class="p2-evidence-caption">{exchange.name} fee schedule — futures tab. BTCUSDT Perpetual: 0% maker / 0.01% taker. Captured {offer.lastChecked}.</figcaption>
     </figure>
     <p class="p2-text" style="margin-top:10px;font-size:12px;color:#6B7280;">Last checked: {offer.lastChecked} from the <a href={exchange.feeUrl} target="_blank" rel="noopener noreferrer nofollow" style="color:#6B7280;">official {exchange.name} fee page</a>.</p>
     <p class="p2-text" style="margin-top:6px;font-size:12px;color:#9CA3AF;">Fees may vary by product, VIP level, region, account status and the current fee schedule. Always check the <a href={exchange.feeUrl} target="_blank" rel="noopener noreferrer nofollow" style="color:#9CA3AF;">official {exchange.name} fee page</a> before trading.</p>
@@ -1030,7 +1030,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
 <div class="p2-section p2-section-alt">
   <div class="p2-inner p2-rating-block">
     <h3 class="p2-rating-title">Rate this {exchange.name} referral code</h3>
-    <div class="p2-stars" aria-label="No ratings yet" aria-hidden="true">★★★★★</div>
+    <div class="p2-stars" aria-label="No ratings yet" aria-hidden="true" style="color:#D1D5DB;">☆☆☆☆☆</div>
     <p class="p2-rating-empty">No ratings yet — be the first to rate this code.</p>
   </div>
 </div>

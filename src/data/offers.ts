@@ -14,7 +14,7 @@ export interface Offer {
   minDeposit?: string;
   availability: string;     // "Global" or comma-separated regions
   restrictedCountries?: string[];
-  status: 'verified' | 'unverified' | 'expired';
+  status: 'verified' | 'public-preview' | 'unverified' | 'expired';
   termsSummary: string;
 }
 
@@ -47,7 +47,7 @@ export const offers: Offer[] = [
     minDeposit:          'No deposit required for base signup tier',
     availability:        'Global (excluding restricted regions)',
     restrictedCountries: ['US', 'UK', 'CA', 'SG', 'HK', 'CN', 'KP', 'CU', 'SD', 'IR'],
-    status:              'unverified',
+    status:              'public-preview',
     termsSummary:        'New accounts only. No KYC required for base tier. Higher tiers require trading volume. Bonus tasks expire within 30 days. Rewards depend on region, eligibility, deposit and trading activity. Full terms on MEXC official website.',
   },
 ];
