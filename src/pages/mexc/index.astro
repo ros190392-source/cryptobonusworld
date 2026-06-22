@@ -32,7 +32,7 @@ const exchange = {
   founded:        2018,
   users:          '10M+',
   headquarters:   'Seychelles',
-  wordmarkImg:    '/logos/mexc-wordmark-dark.png',
+  wordmarkImg:    '/logos/mexc-wordmark-light.svg',
   articleImg:     '/media/exchanges/mexc/final/mexc-article-final-v1-1200x675.jpg',
   logoImg:        '/logos/mexc.png',
   ogImage:        '/media/exchanges/mexc/final/mexc-og-final-v1-1200x630.jpg',
@@ -202,7 +202,7 @@ const pageSchema = {
   }
   .bh-inner { width: 100%; max-width: 540px; margin: 0 auto; padding: 0 20px; text-align: center; box-sizing: border-box; }
 
-  .bh-wordmark { display: block; width: 165px; height: auto; margin: 0 auto 10px; filter: brightness(0) invert(1); opacity: 1; }
+  .bh-wordmark { display: block; width: 165px; height: auto; margin: 0 auto 10px; filter: none; opacity: 1; }
   @media (min-width: 640px) { .bh-wordmark { width: 210px; } }
   @media (max-width: 359px) { .bh-wordmark { width: 140px; } }
 
@@ -591,7 +591,7 @@ const pageSchema = {
     .cf-code { color: #0099cc !important; -webkit-text-fill-color: #0099cc !important; }
     .cf-good { color: #16a34a !important; -webkit-text-fill-color: #16a34a !important; }
     .cf-warn { color: #b45309 !important; -webkit-text-fill-color: #b45309 !important; }
-    .bh-wordmark { filter: brightness(0) invert(1) !important; opacity: 1 !important; }
+    .bh-wordmark { filter: none !important; opacity: 1 !important; }
     .p2-section { background: #fff !important; color-scheme: light !important; forced-color-adjust: none; }
     .p2-section-alt { background: #F9FAFB !important; }
     .p2-placeholder { background: #F3F4F6 !important; border-color: #D1D5DB !important; color: #9CA3AF !important; }
@@ -636,7 +636,7 @@ const pageSchema = {
      BLOCK 1 — TITLE BAR (white strip above dark hero)
 ═══════════════════════════════════════════════════════════ -->
 <div class="title-bar">
-  <h1>{exchange.name} Referral Code: {offer.promoCode}</h1>
+  <h1>{exchange.name} Referral Code</h1>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════
