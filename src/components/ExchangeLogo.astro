@@ -78,6 +78,17 @@ const padPct = LOGO_PADDING[slug] ?? 2;
 const padPx = Math.round(size * padPct / 100);
 
 /**
+ * Border override for white-background logo tiles.
+ * The default CSS border (rgba(255,255,255,0.10)) is invisible on light page
+ * backgrounds. These exchanges have white/near-white baked-in backgrounds, so
+ * they need a subtle dark outline to prevent merging with white surfaces.
+ */
+const WHITE_BG_BORDER_SLUGS = new Set(['okx', 'gate-io', 'kucoin', 'coinex']);
+const customBorder = (variant !== 'raw' && WHITE_BG_BORDER_SLUGS.has(slug))
+  ? 'border:1px solid rgba(0,0,0,0.10);'
+  : '';
+
+/**
  * Container background matching — eliminates dark gap artefacts.
  *
  * Some PNG logos have a baked-in background shape (white circle for HTX,
@@ -110,7 +121,7 @@ const containerBg = variant !== 'raw'
 
 <div
   class:list={['exlogo', `exlogo--${variant}`, extraClass]}
-  style={`width:${size}px;height:${size}px;border-radius:${radiusPx}px;background:${containerBg};`}
+  style={`width:${size}px;height:${size}px;border-radius:${radiusPx}px;background:${containerBg};${customBorder}`}
   aria-label={name}
   role="img"
 >
