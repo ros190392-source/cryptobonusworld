@@ -1,4 +1,18 @@
 ---
+/*
+ * EXCHANGE PAGE TEMPLATE — CLONE CHECKLIST
+ * To clone for a new exchange, update the exchange object fields:
+ *   name, slug, affiliateUrl, officialDomain, supportUrl, feeUrl,
+ *   bonusMax, currency, founded, users, headquarters,
+ *   wordmarkImg, articleImg, logoImg, ogImage,
+ *   fees.spot / fees.futures,
+ *   rewardsAreaName ('Rewards Hub' for Bybit, 'Reward Center' for OKX)
+ * Update brandHeroTokens for exchange brand colors.
+ * Update relatedExchanges (exclude self).
+ * canonical + ogImage in CleanLayout auto-derive from exchange object.
+ * Manual per-clone: restrictedCountries prose, evidence image paths,
+ *   fee table status notes, verification table date notes.
+ */
 import CleanLayout from '../../layouts/CleanLayout.astro';
 import { getOffer } from '../../data/offers';
 
@@ -21,6 +35,8 @@ const exchange = {
   wordmarkImg:    '/logos/mexc-wordmark-dark.png',
   articleImg:     '/media/exchanges/mexc/final/mexc-article-final-v1-1200x675.jpg',
   logoImg:        '/logos/mexc.png',
+  ogImage:        '/media/exchanges/mexc/final/mexc-og-final-v1-1200x630.jpg',
+  rewardsAreaName:'Activity Center',
   fees: {
     spot:    { maker: '0%',    taker: '0.05%' },
     futures: { maker: '0%',    taker: '0.01%' },
@@ -45,18 +61,87 @@ const brandHeroTokens = {
   'bh-note':       'rgba(255,255,255,0.38)',
 };
 const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).join(';');
+
+const pageCanonical = `https://cryptobonusworld.com/${exchange.slug}/`;
+
+const pageSchema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home",                           "item": "https://cryptobonusworld.com/" },
+        { "@type": "ListItem", "position": 2, "name": `${exchange.name} Referral Code`, "item": pageCanonical }
+      ]
+    },
+    {
+      "@type": "WebPage",
+      "@id": pageCanonical,
+      "url": pageCanonical,
+      "name": `${exchange.name} Referral Code 2026: ${offer.promoCode} — Up to ${exchange.bonusMax.toLocaleString('en-US')} ${exchange.currency} Bonus`,
+      "description": `${exchange.name} referral code ${offer.promoCode} — up to ${exchange.bonusMax.toLocaleString('en-US')} ${exchange.currency} in new user rewards. No KYC required for base tiers. Verified ${offer.lastChecked}.`,
+      "publisher": { "@type": "Organization", "name": "CryptoBonusWorld", "url": "https://cryptobonusworld.com/" },
+      "inLanguage": "en"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Do I have to make a cryptocurrency deposit?",
+          "acceptedAnswer": { "@type": "Answer", "text": `No deposit is required for the base signup reward. The initial ${exchange.name} welcome bonus can be claimed through email or phone registration alone — no identity verification or deposit is needed for the first reward tier. Larger deposit and trading bonuses do require you to fund your account, with rewards scaling by deposit and volume. Check the ${exchange.name} ${exchange.rewardsAreaName} after registering to see which tasks are active for your account and region.` }
+        },
+        {
+          "@type": "Question",
+          "name": `Can I get more than one ${exchange.name} bonus?`,
+          "acceptedAnswer": { "@type": "Answer", "text": `Yes — the ${exchange.name} new user bonus is structured as a series of separate tasks, each with its own reward. You can earn multiple rewards by registering, completing a first deposit, placing futures trades, and reaching volume milestones. The welcome package itself is a one-time offer for new accounts and cannot be repeated on the same account.` }
+        },
+        {
+          "@type": "Question",
+          "name": `What are the ${exchange.name} fees?`,
+          "acceptedAnswer": { "@type": "Answer", "text": `${exchange.name}'s standard spot trading fee is ${exchange.fees.spot.maker} for makers and ${exchange.fees.spot.taker} for takers. Perpetual futures fees are ${exchange.fees.futures.maker} for makers and ${exchange.fees.futures.taker} for takers. These rates were verified on the official ${exchange.name} fee page in ${offer.lastChecked}. Rates may vary by VIP level, trading pair, and current fee schedule — always check ${exchange.officialDomain}/fee before trading.` }
+        },
+        {
+          "@type": "Question",
+          "name": "Which currency are rewards paid in?",
+          "acceptedAnswer": { "@type": "Answer", "text": `${exchange.name} new user rewards are typically issued as USDT vouchers or trading coupons. Specific reward formats, including any voucher conditions or volume requirements for conversion, are shown inside the ${exchange.name} ${exchange.rewardsAreaName} for each task after registration.` }
+        },
+        {
+          "@type": "Question",
+          "name": "Can existing users use the referral code?",
+          "acceptedAnswer": { "@type": "Answer", "text": `No. The ${exchange.name} referral code ${offer.promoCode} is for new users only and must be entered during account creation. It cannot be added to an existing ${exchange.name} account after registration is complete. If you already have a ${exchange.name} account, check the ${exchange.rewardsAreaName} inside your account for any available ongoing promotions.` }
+        },
+        {
+          "@type": "Question",
+          "name": `Is the ${exchange.name} bonus available in every country?`,
+          "acceptedAnswer": { "@type": "Answer", "text": `No. ${exchange.name} restricts service in a number of jurisdictions. Residents of North Korea, Cuba, Sudan, Iran, Mainland China, Singapore, the United States, the United Kingdom, Hong Kong, Russian-controlled regions of Ukraine, and Canada are not eligible. This list may change. Even in supported countries, specific bonus tasks or amounts may differ by region and current promotion terms.` }
+        }
+      ]
+    }
+  ]
+};
 ---
 
 <CleanLayout
-  title={`${exchange.name} Referral Code 2026: ${offer.promoCode} — Up to ${exchange.bonusMax.toLocaleString('en-US')} ${exchange.currency} Bonus`}
+  title={`${exchange.name} Referral Code 2026: ${offer.promoCode} — Up to ${exchange.bonusMax.toLocaleString('en-US')} ${exchange.currency}`}
   description={`${exchange.name} referral code ${offer.promoCode} — up to ${exchange.bonusMax.toLocaleString('en-US')} ${exchange.currency} in new user rewards. No KYC required for base tiers. Verified ${offer.lastChecked}. Enter code at registration.`}
-  canonical="https://cryptobonusworld.com/mexc/"
-  ogImage="/media/exchanges/mexc/final/mexc-og-final-v1-1200x630.jpg"
+  canonical={pageCanonical}
+  ogImage={exchange.ogImage}
   ogTitle={`${exchange.name} Referral Code: ${offer.promoCode} — Claim Bonus`}
   ogDescription={`Use ${exchange.name} referral code ${offer.promoCode} to claim up to ${exchange.bonusMax.toLocaleString('en-US')} ${exchange.currency} in new user rewards. No KYC required for base tier. Verified ${offer.lastChecked} by CryptoBonusWorld.`}
 >
 
 <style>
+  /* ── Breadcrumb ──────────────────────────────────────────── */
+  .breadcrumb-nav { background: #F3F4F6; border-bottom: 1px solid #E5E7EB; padding: 0; }
+  .breadcrumb-inner { max-width: 760px; margin: 0 auto; padding: 6px 20px; }
+  .breadcrumb-list { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; list-style: none; margin: 0; padding: 0; }
+  .breadcrumb-item { font-size: 13px; color: #6B7280; line-height: 1.4; }
+  .breadcrumb-link { color: #6B7280; text-decoration: none; }
+  .breadcrumb-link:hover { color: #374151; text-decoration: underline; }
+  .breadcrumb-sep { font-size: 13px; color: #9CA3AF; }
+  .breadcrumb-current { color: #374151; font-weight: 500; }
+
   /* ── Proto design tokens (replaces ProtoLayout :root vars) ─ */
   :root {
     --proto-bg:             #F7F8F4;
@@ -536,6 +621,17 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
   }
 </style>
 
+<!-- Breadcrumb nav -->
+<nav class="breadcrumb-nav" aria-label="Breadcrumb">
+  <div class="breadcrumb-inner">
+    <ol class="breadcrumb-list">
+      <li class="breadcrumb-item"><a href="/" class="breadcrumb-link">Home</a></li>
+      <li class="breadcrumb-sep" aria-hidden="true">›</li>
+      <li class="breadcrumb-item breadcrumb-current" aria-current="page">{exchange.name} Referral Code</li>
+    </ol>
+  </div>
+</nav>
+
 <!-- ═══════════════════════════════════════════════════════════
      BLOCK 1 — TITLE BAR (white strip above dark hero)
 ═══════════════════════════════════════════════════════════ -->
@@ -631,7 +727,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
       <li class="p2-step">Create a new {exchange.name} account with your email or phone number</li>
       <li class="p2-step">Confirm the referral code <strong>{offer.promoCode}</strong> is pre-filled — enter it manually if it is not shown</li>
       <li class="p2-step">Complete registration — KYC is not required for the base reward tier; complete identity verification if you want to unlock higher bonus tiers</li>
-      <li class="p2-step">Check your {exchange.name} Activity Center inside the account for available bonus tasks, deadlines and claim rules</li>
+      <li class="p2-step">Check your {exchange.name} {exchange.rewardsAreaName} inside the account for available bonus tasks, deadlines and claim rules</li>
     </ol>
   </div>
 </div>
@@ -697,8 +793,8 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
             <td>Significant volume required for upper tiers</td>
           </tr>
           <tr>
-            <td>Activity Center tasks</td>
-            <td>Complete bonus missions in Activity Center</td>
+            <td>{exchange.rewardsAreaName} tasks</td>
+            <td>Complete bonus missions in {exchange.rewardsAreaName}</td>
             <td>Extra vouchers</td>
             <td>Tasks rotate periodically</td>
           </tr>
@@ -712,7 +808,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
       </table>
     </div>
     <h3 class="p2-h3">Getting the Most from Your New User Rewards</h3>
-    <p class="p2-text">For users who want to start quickly, the base signup reward is accessible with just an email or phone registration — no identity verification or deposit needed. For higher tiers, complete a first deposit and begin trading to unlock additional vouchers. After registering, check the {exchange.name} Activity Center for any active tasks that apply to your account and region. Not all tasks will be available in every country.</p>
+    <p class="p2-text">For users who want to start quickly, the base signup reward is accessible with just an email or phone registration — no identity verification or deposit needed. For higher tiers, complete a first deposit and begin trading to unlock additional vouchers. After registering, check the {exchange.name} {exchange.rewardsAreaName} for any active tasks that apply to your account and region. Not all tasks will be available in every country.</p>
   </div>
 </div>
 
@@ -742,9 +838,9 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
 <div class="p2-section">
   <div class="p2-inner">
     <h2 class="p2-h2">{exchange.name} New User Rewards</h2>
-    <p class="p2-text">Beyond the welcome package activated by the referral code, {exchange.name} offers an Activity Center inside each registered account where users can access ongoing bonus tasks to earn additional rewards. These tasks change periodically and may include trading milestones, deposit events, futures trading targets, or promotional campaigns. Rewards are typically issued as USDT vouchers or trading coupons.</p>
-    <p class="p2-text">The Activity Center tasks available to your account depend on your region, current promotion calendar, and account status. Some tasks require a deposit or trading activity; others may be available simply through continued platform use. The task list inside the Activity Center shows current requirements and expiry dates.</p>
-    <p class="p2-text">The {exchange.name} welcome bonus unlocked through the referral code <strong>{offer.promoCode}</strong> is a separate one-time programme from the ongoing Activity Center. New users typically see both the welcome rewards and regular Activity Center tasks available after completing registration.</p>
+    <p class="p2-text">Beyond the welcome package activated by the referral code, {exchange.name} offers an {exchange.rewardsAreaName} inside each registered account where users can access ongoing bonus tasks to earn additional rewards. These tasks change periodically and may include trading milestones, deposit events, futures trading targets, or promotional campaigns. Rewards are typically issued as USDT vouchers or trading coupons.</p>
+    <p class="p2-text">The {exchange.rewardsAreaName} tasks available to your account depend on your region, current promotion calendar, and account status. Some tasks require a deposit or trading activity; others may be available simply through continued platform use. The task list inside the {exchange.rewardsAreaName} shows current requirements and expiry dates.</p>
+    <p class="p2-text">The {exchange.name} welcome bonus unlocked through the referral code <strong>{offer.promoCode}</strong> is a separate one-time programme from the ongoing {exchange.rewardsAreaName}. New users typically see both the welcome rewards and regular {exchange.rewardsAreaName} tasks available after completing registration.</p>
   </div>
 </div>
 
@@ -801,7 +897,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
         </tbody>
       </table>
     </div>
-    <p class="p2-text">Copy <strong>{offer.promoCode}</strong> before creating a new account, then check the available bonus tasks inside the {exchange.name} Activity Center after registration.</p>
+    <p class="p2-text">Copy <strong>{offer.promoCode}</strong> before creating a new account, then check the available bonus tasks inside the {exchange.name} {exchange.rewardsAreaName} after registration.</p>
   </div>
 </div>
 
@@ -809,7 +905,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
 <div class="p2-section p2-section-alt">
   <div class="p2-inner">
     <h2 class="p2-h2">{exchange.name} Bonus Offer — What We Have Verified</h2>
-    <p class="p2-text">The table below shows what CryptoBonusWorld has independently verified about the {exchange.name} bonus offer linked to the code {offer.promoCode}. Rows marked "Check in Activity Center" depend on individual account status and can only be confirmed after registration. The registration screenshot below was captured June 2026 via the official MEXC custom sign-up URL.</p>
+    <p class="p2-text">The table below shows what CryptoBonusWorld has independently verified about the {exchange.name} bonus offer linked to the code {offer.promoCode}. Rows marked "Check in {exchange.rewardsAreaName}" depend on individual account status and can only be confirmed after registration. The registration screenshot below was captured June 2026 via the official MEXC custom sign-up URL.</p>
     <figure class="p2-evidence-figure" style="margin:20px 0 16px;">
       <img
         src="/media/exchanges/mexc/evidence/global-en/mexc-registration-code-applied.png"
@@ -861,24 +957,24 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
             <td>Deposit tasks (higher tiers)</td>
             <td>Deposit required; amount varies by tier</td>
             <td>Deposit bonus or coupon</td>
-            <td><span class="status-badge status-check-hub">Check in Activity Center</span><div class="status-note">Check exact tasks and amounts after sign-up.</div></td>
+            <td><span class="status-badge status-check-hub">Check in {exchange.rewardsAreaName}</span><div class="status-note">Check exact tasks and amounts after sign-up.</div></td>
           </tr>
           <tr>
             <td>Trading tasks</td>
             <td>Futures or spot trading volume may be required</td>
             <td>Trading voucher or bonus</td>
-            <td><span class="status-badge status-check-hub">Check in Activity Center</span><div class="status-note">Check exact tasks after sign-up.</div></td>
+            <td><span class="status-badge status-check-hub">Check in {exchange.rewardsAreaName}</span><div class="status-note">Check exact tasks after sign-up.</div></td>
           </tr>
           <tr>
             <td>Claim period</td>
             <td>Rewards expire after a set period (typically 30 days)</td>
             <td>Manual claim required</td>
-            <td><span class="status-badge status-check-hub">Check in Activity Center</span><div class="status-note">Check deadlines and claim rules after sign-up.</div></td>
+            <td><span class="status-badge status-check-hub">Check in {exchange.rewardsAreaName}</span><div class="status-note">Check deadlines and claim rules after sign-up.</div></td>
           </tr>
         </tbody>
       </table>
     </div>
-    <p class="p2-text" style="margin-top:12px;">The Activity Center inside your {exchange.name} account shows the exact tasks, deadlines and claim rules available to your account. Rewards depend on {exchange.name}'s current terms, your region, KYC status, deposit amount, trading activity and promotion period.</p>
+    <p class="p2-text" style="margin-top:12px;">The {exchange.rewardsAreaName} inside your {exchange.name} account shows the exact tasks, deadlines and claim rules available to your account. Rewards depend on {exchange.name}'s current terms, your region, KYC status, deposit amount, trading activity and promotion period.</p>
   </div>
 </div>
 
@@ -889,7 +985,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
     <div class="p2-faq">
       <details class="p2-faq-item">
         <summary class="p2-faq-q">Do I have to make a cryptocurrency deposit?</summary>
-        <div class="p2-faq-a">No deposit is required for the base signup reward. The initial {exchange.name} welcome bonus can be claimed through email or phone registration alone — no identity verification or deposit is needed for the first reward tier. Larger deposit and trading bonuses do require you to fund your account. Check the {exchange.name} Activity Center after registering to see which tasks and deposit tiers are active for your account and region.</div>
+        <div class="p2-faq-a">No deposit is required for the base signup reward. The initial {exchange.name} welcome bonus can be claimed through email or phone registration alone — no identity verification or deposit is needed for the first reward tier. Larger deposit and trading bonuses do require you to fund your account. Check the {exchange.name} {exchange.rewardsAreaName} after registering to see which tasks and deposit tiers are active for your account and region.</div>
       </details>
       <details class="p2-faq-item">
         <summary class="p2-faq-q">Can I get more than one {exchange.name} bonus?</summary>
@@ -901,11 +997,11 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
       </details>
       <details class="p2-faq-item">
         <summary class="p2-faq-q">Which currency are rewards paid in?</summary>
-        <div class="p2-faq-a">{exchange.name} new user rewards are typically issued as USDT vouchers or trading coupons denominated in USDT. Specific reward formats — including any voucher conditions or conversion requirements — are shown inside the {exchange.name} Activity Center for each task after registration.</div>
+        <div class="p2-faq-a">{exchange.name} new user rewards are typically issued as USDT vouchers or trading coupons denominated in USDT. Specific reward formats — including any voucher conditions or conversion requirements — are shown inside the {exchange.name} {exchange.rewardsAreaName} for each task after registration.</div>
       </details>
       <details class="p2-faq-item">
         <summary class="p2-faq-q">Can existing users use the referral code?</summary>
-        <div class="p2-faq-a">No. The {exchange.name} referral code {offer.promoCode} is for new users only and must be entered during account creation. It cannot be added to an existing {exchange.name} account after registration is complete. If you already have an {exchange.name} account, check the Activity Center inside your account for any ongoing promotions available to existing users.</div>
+        <div class="p2-faq-a">No. The {exchange.name} referral code {offer.promoCode} is for new users only and must be entered during account creation. It cannot be added to an existing {exchange.name} account after registration is complete. If you already have an {exchange.name} account, check the {exchange.rewardsAreaName} inside your account for any ongoing promotions available to existing users.</div>
       </details>
       <details class="p2-faq-item">
         <summary class="p2-faq-q">Is the {exchange.name} bonus available in every country?</summary>
@@ -1134,54 +1230,6 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
   })();
 </script>
 
-<script is:inline type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "BreadcrumbList",
-      "itemListElement": [
-        { "@type": "ListItem", "position": 1, "name": "Home",                 "item": "https://cryptobonusworld.com/" },
-        { "@type": "ListItem", "position": 2, "name": "MEXC Referral Code",   "item": "https://cryptobonusworld.com/mexc/" }
-      ]
-    },
-    {
-      "@type": "FAQPage",
-      "mainEntity": [
-        {
-          "@type": "Question",
-          "name": "Do I have to make a cryptocurrency deposit?",
-          "acceptedAnswer": { "@type": "Answer", "text": "No deposit is required for the base signup reward. The initial MEXC welcome bonus can be claimed through email or phone registration alone — no identity verification or deposit is needed for the first reward tier. Larger deposit and trading bonuses do require you to fund your account, with rewards scaling by deposit and volume. Check the MEXC Activity Center after registering to see which tasks are active for your account and region." }
-        },
-        {
-          "@type": "Question",
-          "name": "Can I get more than one MEXC bonus?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Yes — the MEXC new user bonus is structured as a series of separate tasks, each with its own reward. You can earn multiple rewards by registering, completing a first deposit, placing futures trades, and reaching volume milestones. The welcome package itself is a one-time offer for new accounts and cannot be repeated on the same account." }
-        },
-        {
-          "@type": "Question",
-          "name": "What are the MEXC fees?",
-          "acceptedAnswer": { "@type": "Answer", "text": "MEXC's standard spot trading fee is 0% for makers and 0.05% for takers (range 0%–0.05% across pairs; most standard pairs at 0.05% base rate, 0.04% with 20% MX token discount). Perpetual futures fees are 0% for makers and 0.01% for takers. These rates were verified on the official MEXC fee page in June 2026. Rates may vary by VIP level, trading pair, and current fee schedule — always check mexc.com/fee before trading." }
-        },
-        {
-          "@type": "Question",
-          "name": "Which currency are rewards paid in?",
-          "acceptedAnswer": { "@type": "Answer", "text": "MEXC new user rewards are typically issued as USDT vouchers or trading coupons. Specific reward formats, including any voucher conditions or volume requirements for conversion, are shown inside the MEXC Activity Center for each task after registration." }
-        },
-        {
-          "@type": "Question",
-          "name": "Can existing users use the referral code?",
-          "acceptedAnswer": { "@type": "Answer", "text": "No. The MEXC referral code mexc-CryptoBonus is for new users only and must be entered during account creation. It cannot be added to an existing MEXC account after registration is complete. If you already have a MEXC account, check the Activity Center inside your account for any available ongoing promotions." }
-        },
-        {
-          "@type": "Question",
-          "name": "Is the MEXC bonus available in every country?",
-          "acceptedAnswer": { "@type": "Answer", "text": "No. MEXC restricts service in a number of jurisdictions. Residents of North Korea, Cuba, Sudan, Iran, Mainland China, Singapore, the United States, the United Kingdom, Hong Kong, Russian-controlled regions of Ukraine, and Canada are not eligible. This list may change. Even in supported countries, specific bonus tasks or amounts may differ by region and current promotion terms." }
-        }
-      ]
-    }
-  ]
-}
-</script>
+<Fragment set:html={`<script type="application/ld+json">${JSON.stringify(pageSchema)}</script>`} />
 
 </CleanLayout>
