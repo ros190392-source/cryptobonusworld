@@ -433,6 +433,67 @@ Any script that generates exchange images must not accept `promoCode`, `bonusAmo
 
 ---
 
+## Logo System
+
+### A) CBW Site Brand Logo
+
+The CryptoBonusWorld logo is the site's own brand asset — separate from all exchange assets.
+
+| Context | Asset | Rule |
+|---------|-------|------|
+| Header | `public/brand/cbw-header-logo-on-navy.png` | Use site-brand size token (`--logo-h`) |
+| Footer | Same horizontal logo or mark | Use site-brand size token |
+| Favicon | `public/brand/logo-mark.svg` → favicon.ico | 32×32 / 16×16 |
+| Image overlay | `public/brand/cbw-header-mark-transparent.png` | 512×512, alpha — resize in script |
+
+**The CBW logo must never be drawn by AI generators.** It is always applied in post-processing from the canonical source file.
+
+---
+
+### B) Exchange Logo System
+
+Each exchange must have **one canonical official logo** used as source-of-truth across the entire site. Two variants are required:
+
+| Variant | Description | Use |
+|---------|-------------|-----|
+| **Wordmark** | Horizontal logo with exchange name text | Hero blocks, article headers, standalone brand display |
+| **Square / Tile mark** | Compact square or circle logo | Cards, comparison tables, related blocks |
+
+**Source of truth location:** `public/brand/exchanges/{slug}/`
+
+Example for Bybit:
+```
+public/brand/exchanges/bybit/bybit-wordmark.svg
+public/brand/exchanges/bybit/bybit-mark.svg
+public/brand/exchanges/bybit/bybit-mark-dark.svg   (optional dark variant)
+public/brand/exchanges/bybit/bybit-mark-light.svg  (optional light variant)
+```
+
+#### Logo Size Policy
+
+One source asset — multiple contextual sizes. **Do not enforce one identical pixel size everywhere.**
+
+| Context | Asset type | Size rule |
+|---------|-----------|-----------|
+| Exchange hero (top) | Wordmark | `--exchange-logo-hero-h` token (e.g. 48–64px height) |
+| Bottom CTA hero | Wordmark | Same visual family as top hero (match weight / color) |
+| Homepage exchange card | Square mark | `--exchange-logo-card-h` token (e.g. 40–48px) |
+| Related exchange cards | Square mark | `--exchange-logo-card-sm-h` token (e.g. 28–36px) |
+| Comparison table | Square mark | `--exchange-logo-table-h` token (e.g. 24–28px) |
+| Marketing images (OG/Article/Card) | Wordmark baked into image | Part of the visual composition — not a UI asset; no size token applies |
+
+#### Reuse rule
+
+The **same source SVG/PNG** must be used in all UI contexts listed above. Do not create separate brand-specific files per context. Apply size via CSS `height` + `width: auto` so the exchange logo scales correctly without distortion.
+
+#### Color variants
+
+If an exchange provides separate logo files for dark/light backgrounds, maintain both variants:
+- Use the dark-background variant on dark cards, dark hero sections, dark CTA blocks
+- Use the light-background variant on white/gray cards or comparison tables
+
+---
+
 ## Related Documents
 
 - `docs/SCREENSHOT_STANDARD.md` — evidence screenshot capture and annotation rules
