@@ -1,0 +1,1187 @@
+---
+import CleanLayout from '../../layouts/CleanLayout.astro';
+import { getOffer } from '../../data/offers';
+
+const offer = getOffer('mexc')!;
+
+// Static exchange data — volatile fields come from offer
+const exchange = {
+  name:           'MEXC',
+  slug:           'mexc',
+  affiliateUrl:   '/go/mexc/',
+  officialDomain: 'mexc.com',
+  supportUrl:     'https://www.mexc.com/support',
+  feeUrl:         'https://www.mexc.com/fee',
+  bonusMax:       10000,
+  currency:       'USDT',
+  minDeposit:     0,
+  founded:        2018,
+  users:          '10M+',
+  headquarters:   'Seychelles',
+  wordmarkImg:    '/logos/mexc-wordmark-dark.png',
+  articleImg:     '/media/exchanges/mexc/final/mexc-article-final-v1-1200x675.jpg',
+  logoImg:        '/logos/mexc.png',
+  fees: {
+    spot:    { maker: '0%',    taker: '0.05%' },
+    futures: { maker: '0%',    taker: '0.01%' },
+  },
+};
+
+const relatedExchanges = [
+  { slug: 'bybit',  name: 'Bybit',  logo: '/logos/bybit.png',  bonus: 'Up to 30,000 USDT', tag: 'Derivatives leader', tileBg: '#F7F8FA' },
+  { slug: 'bitget', name: 'Bitget', logo: '/logos/bitget.png', bonus: 'Up to 6,200 USDT',  tag: 'Copy trading',     tileBg: '#ECFDF5' },
+  { slug: 'bingx',  name: 'BingX',  logo: '/logos/bingx.png',  bonus: 'Up to 5,125 USDT',  tag: 'Social trading',   tileBg: '#EFF6FF' },
+  { slug: 'okx',    name: 'OKX',    logo: '/logos/okx.png',    bonus: 'Up to 10,000 USDT', tag: 'CEX + Web3',       tileBg: '#F3F4F6' },
+];
+
+const brandHeroTokens = {
+  'bh-bgFrom':     '#060E1A',
+  'bh-bgTo':       '#0A2038',
+  'bh-text':       '#ffffff',
+  'bh-text2':      'rgba(255,255,255,0.65)',
+  'bh-accent':     '#0BCDFF',
+  'bh-codeBg':     'rgba(11,205,255,0.10)',
+  'bh-codeBorder': 'rgba(11,205,255,0.40)',
+  'bh-note':       'rgba(255,255,255,0.38)',
+};
+const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).join(';');
+---
+
+<CleanLayout
+  title={`${exchange.name} Referral Code 2026: ${offer.promoCode} — Up to ${exchange.bonusMax.toLocaleString('en-US')} ${exchange.currency} Bonus`}
+  description={`${exchange.name} referral code ${offer.promoCode} — up to ${exchange.bonusMax.toLocaleString('en-US')} ${exchange.currency} in new user rewards. No KYC required for base tiers. Verified ${offer.lastChecked}. Enter code at registration.`}
+  canonical="https://cryptobonusworld.com/mexc/"
+  ogImage="/media/exchanges/mexc/final/mexc-og-final-v1-1200x630.jpg"
+  ogTitle={`${exchange.name} Referral Code: ${offer.promoCode} — Claim Bonus`}
+  ogDescription={`Use ${exchange.name} referral code ${offer.promoCode} to claim up to ${exchange.bonusMax.toLocaleString('en-US')} ${exchange.currency} in new user rewards. No KYC required for base tier. Verified ${offer.lastChecked} by CryptoBonusWorld.`}
+>
+
+<style>
+  /* ── Proto design tokens (replaces ProtoLayout :root vars) ─ */
+  :root {
+    --proto-bg:             #F7F8F4;
+    --proto-surface:        #ffffff;
+    --proto-surface-2:      #F3F4F6;
+    --proto-border:         #E5E7EB;
+    --proto-border-strong:  #D1D5DB;
+    --proto-text:           #111827;
+    --proto-text-2:         #4B5563;
+    --proto-text-3:         #9CA3AF;
+    --proto-accent:         #0BCDFF;
+    --proto-accent-dark:    #0099cc;
+    --proto-cta:            #16A34A;
+    --proto-cta-hover:      #15803D;
+    --proto-verified:       #16A34A;
+    --proto-verified-light: #f0fdf4;
+    --proto-warning:        #b45309;
+    --proto-warning-light:  #fffbeb;
+    --proto-danger:         #dc2626;
+    --proto-radius:         10px;
+    --proto-radius-lg:      16px;
+    --proto-shadow:         0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --proto-shadow-md:      0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+  }
+
+  /* ── Narrow content wrapper (760px) ── */
+  .bw-wrap { max-width: 760px; margin: 0 auto; padding: 0 20px; }
+
+  /* ── Section base ─────────────────────────────────────────── */
+  .mexc-section { padding: 40px 0; background: var(--proto-bg); }
+  .mexc-section + .mexc-section { border-top: 1px solid var(--proto-border); }
+
+  /* ── Title bar ────────────────────────────────────────────── */
+  .title-bar {
+    background: #ffffff;
+    background-image: linear-gradient(#ffffff 0 0);
+    border-bottom: 1px solid var(--proto-border);
+    text-align: center; padding: 9px 20px;
+    color-scheme: light; forced-color-adjust: none;
+  }
+  .title-bar h1 {
+    font-size: 20px; font-weight: 700; color: var(--proto-text);
+    margin: 0; line-height: 1.25;
+  }
+  @media (max-width: 479px) {
+    .title-bar { padding: 9px 20px; }
+    .title-bar h1 { font-size: 18px; }
+  }
+
+  /* ── Brand Hero ───────────────────────────────────────────── */
+  .brand-hero {
+    background: linear-gradient(160deg, var(--bh-bgFrom) 0%, var(--bh-bgTo) 100%);
+    padding: 35px 0 54px;
+    color: var(--bh-text);
+  }
+  @media (min-width: 640px) {
+    .brand-hero { padding: 42px 0 46px; display: flex; flex-direction: column; justify-content: center; }
+  }
+  .bh-inner { width: 100%; max-width: 540px; margin: 0 auto; padding: 0 20px; text-align: center; box-sizing: border-box; }
+
+  .bh-wordmark { display: block; width: 165px; height: auto; margin: 0 auto 10px; filter: none; opacity: 1; }
+  @media (min-width: 640px) { .bh-wordmark { width: 210px; } }
+  @media (max-width: 359px) { .bh-wordmark { width: 140px; } }
+
+  .bh-promo-label {
+    display: block;
+    font-family: "Arial Narrow", "Roboto Condensed", "Inter Tight", Inter, system-ui, sans-serif;
+    font-size: 22px; font-weight: 700; text-transform: uppercase;
+    font-stretch: condensed; letter-spacing: 0.09em; color: var(--bh-text);
+    line-height: 1.1; margin-top: 16px; margin-bottom: 24px;
+  }
+  @media (min-width: 640px) { .bh-promo-label { font-size: 18px; letter-spacing: 0.10em; margin-top: 18px; margin-bottom: 26px; } }
+
+  .bh-promo-row {
+    width: 100%; max-width: 298px;
+    margin-left: auto; margin-right: auto;
+    display: flex; align-items: stretch;
+    background: #ffffff; background-image: linear-gradient(#ffffff 0 0);
+    border: 1px solid #D1D5DB; border-radius: 8px; overflow: hidden;
+    height: 56px; margin-bottom: 14px;
+    transition: border-color .18s, background .18s;
+    color-scheme: light; forced-color-adjust: none;
+  }
+  .bh-promo-row.copy-success { border-color: #22c55e !important; background: #dcfce7 !important; }
+
+  .bh-promo-code {
+    flex: 1; display: flex; align-items: center; padding: 0 14px;
+    font-family: "Arial Narrow", "Roboto Condensed", "Inter Tight", Inter, system-ui, sans-serif;
+    font-size: 20px; font-weight: 800; letter-spacing: 0.01em; font-stretch: condensed;
+    text-transform: uppercase; color: #111827; -webkit-text-fill-color: #111827;
+    min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+    transition: color .18s;
+    background: #ffffff; background-image: linear-gradient(#ffffff 0 0);
+    color-scheme: light; forced-color-adjust: none;
+  }
+  @media (min-width: 640px) { .bh-promo-code { font-size: 22px; letter-spacing: 0.015em; } }
+  .bh-promo-code.copy-success { color: #166534 !important; -webkit-text-fill-color: #166534 !important; }
+
+  .bh-copy-btn {
+    flex-shrink: 0; width: 68px;
+    display: flex; align-items: center; justify-content: center;
+    border: none; border-left: 1px solid #e5e7eb;
+    font-size: 12px; font-weight: 700; color: #16a34a; -webkit-text-fill-color: #16a34a;
+    background: #ffffff; background-image: linear-gradient(#ffffff 0 0);
+    cursor: pointer; transition: background .15s, color .15s, border-color .15s;
+    white-space: nowrap; letter-spacing: .03em;
+    color-scheme: light; forced-color-adjust: none;
+  }
+  .bh-copy-btn:hover { background: #f0fdf4; }
+  .bh-copy-btn.copy-success { background: #dcfce7 !important; border-color: #22c55e !important; color: #166534 !important; }
+
+  .bh-cta-btn {
+    display: flex; align-items: center; justify-content: center;
+    width: 100%; max-width: 320px; margin-left: auto; margin-right: auto;
+    background: #55C72F; color: #fff;
+    font-size: 24px; font-weight: 700; border-radius: 6px;
+    height: 68px; margin-bottom: 12px;
+    transition: background .15s, transform .1s; letter-spacing: 0;
+    text-decoration: none;
+  }
+  @media (min-width: 640px) { .bh-cta-btn { font-size: 28px; } }
+  .bh-cta-btn:hover { background: #46b024; transform: translateY(-1px); }
+
+  .bh-source {
+    font-size: 14px; color: var(--bh-note); line-height: 1.65;
+    margin: 8px 0 0; text-align: center;
+  }
+  @media (min-width: 640px) { .bh-source { font-size: 15px; } }
+  .bh-source a { color: var(--bh-note); text-decoration: underline; text-underline-offset: 2px; text-decoration-color: rgba(255,255,255,0.35); }
+  .bh-source a:hover { text-decoration-color: var(--bh-note); }
+
+  /* ── Compact facts table ──────────────────────────────────── */
+  .compact-facts {
+    background: #ffffff !important;
+    padding: 20px 16px 6px; color-scheme: light; forced-color-adjust: none;
+  }
+  .cf-inner {
+    max-width: 720px; margin: 0 auto; padding: 0;
+    background: #F3F4F6; border: 1px solid #D1D5DB;
+    border-radius: 8px; overflow: hidden;
+  }
+  .cf-table { width: 100%; border-collapse: collapse; font-size: 14px; background: #F3F4F6; table-layout: fixed; }
+  .cf-table tr { border-bottom: 1px solid #E5E7EB; }
+  .cf-table tr:last-child { border-bottom: none; }
+  .cf-table td { padding: 11px 16px; vertical-align: middle; background: #F3F4F6; color: #111827; word-wrap: break-word; overflow-wrap: break-word; }
+  .cf-table td:first-child { color: #374151 !important; font-size: 14px; font-weight: 500; width: 50%; }
+  .cf-table td:last-child { font-weight: 600; color: #111827 !important; }
+  @media (max-width: 479px) {
+    .cf-table td { padding: 10px 12px; font-size: 13px; }
+    .cf-table td:first-child { font-size: 13px; }
+  }
+  .cf-code { font-family: 'Courier New', monospace; letter-spacing: .04em; color: #0099cc !important; -webkit-text-fill-color: #0099cc !important; }
+  .cf-good { color: #16a34a !important; -webkit-text-fill-color: #16a34a !important; }
+  .cf-warn { color: #b45309 !important; -webkit-text-fill-color: #b45309 !important; font-weight: 500 !important; }
+
+  /* ── SEO intro block ─────────────────────────────────────── */
+  .seo-intro-block {
+    background: #ffffff; border-bottom: 1px solid #E5E7EB;
+    padding: 8px 20px 20px;
+  }
+  .seo-intro-inner { max-width: 720px; margin: 0 auto; }
+  .seo-phrase {
+    font-size: 14px; font-weight: 400; color: #9CA3AF;
+    margin: 0; padding-bottom: 10px; font-style: italic;
+    border-bottom: 1px solid #E5E7EB;
+  }
+  .seo-intro-text {
+    font-size: 15px; color: #4B5563; line-height: 1.65;
+    margin: 12px 0 0;
+  }
+  @media (max-width: 479px) {
+    .seo-phrase { font-size: 13px; }
+    .seo-intro-text { font-size: 14px; }
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     PART 2 — SEO SKELETON
+  ═══════════════════════════════════════════════════════════ */
+
+  .p2-section {
+    background: #ffffff; border-bottom: 1px solid #E5E7EB;
+    padding: 28px 0;
+    color-scheme: light; forced-color-adjust: none;
+  }
+  .p2-section-alt { background: #F9FAFB; }
+  .p2-inner { max-width: 720px; margin: 0 auto; padding: 0 20px; }
+
+  .p2-h2 { font-size: 20px; font-weight: 700; color: #111827; margin: 0 0 14px; line-height: 1.3; }
+  @media (min-width: 640px) { .p2-h2 { font-size: 22px; } }
+  .p2-h3 { font-size: 16px; font-weight: 700; color: #111827; margin: 20px 0 10px; line-height: 1.35; }
+  @media (min-width: 640px) { .p2-h3 { font-size: 17px; } }
+
+  .p2-placeholder {
+    background: #F3F4F6; border: 1px dashed #D1D5DB; border-radius: 6px;
+    padding: 12px 16px; font-size: 12px; color: #9CA3AF;
+    font-family: 'Courier New', monospace; line-height: 1.5;
+    color-scheme: light; forced-color-adjust: none;
+  }
+
+  .p2-cta-block { text-align: center; }
+  .p2-cta-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    background: #55C72F; color: #fff;
+    font-size: 16px; font-weight: 700; border-radius: 8px;
+    padding: 0 28px; height: 52px;
+    width: 100%; max-width: 340px;
+    text-decoration: none; letter-spacing: .01em;
+    transition: background .15s, transform .1s;
+  }
+  .p2-cta-btn:hover { background: #46b024; transform: translateY(-1px); }
+
+  .p2-text {
+    font-size: 14px; color: #374151; line-height: 1.7; margin: 0 0 12px;
+  }
+  .p2-text:last-child { margin-bottom: 0; }
+  @media (min-width: 640px) { .p2-text { font-size: 15px; } }
+
+  /* Full-width article CTA bar */
+  .p2-cta-bar {
+    display: flex; align-items: center; justify-content: center;
+    background: #55C72F; color: #fff;
+    font-size: 17px; font-weight: 700; border-radius: 8px;
+    padding: 0 24px; height: 56px; width: 100%; box-sizing: border-box;
+    text-decoration: none; letter-spacing: .01em;
+    transition: background .18s ease, transform .15s ease, box-shadow .18s ease;
+    color-scheme: light; forced-color-adjust: none;
+  }
+  .p2-cta-bar:hover {
+    background: #46b024;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(70,176,36,0.35);
+  }
+
+  .p2-steps {
+    margin: 0 0 20px; padding: 0; list-style: none;
+    counter-reset: p2-step-counter;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .p2-step {
+    display: flex; align-items: flex-start; gap: 12px;
+    counter-increment: p2-step-counter;
+    font-size: 14px; color: #374151; line-height: 1.55;
+  }
+  .p2-step::before {
+    content: counter(p2-step-counter);
+    flex-shrink: 0; width: 26px; height: 26px;
+    background: #111827; color: #fff; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; margin-top: 1px;
+  }
+  @media (min-width: 640px) { .p2-step { font-size: 15px; } }
+
+  .p2-screenshot-placeholder {
+    background: #F3F4F6; border: 1px solid #E5E7EB; border-radius: 8px;
+    min-height: 160px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 8px; padding: 24px 20px; text-align: center;
+    color-scheme: light; forced-color-adjust: none;
+  }
+  @media (min-width: 640px) { .p2-screenshot-placeholder { min-height: 200px; } }
+  .p2-screenshot-label {
+    font-family: 'Courier New', monospace; font-size: 11px; color: #9CA3AF;
+    letter-spacing: .04em; text-transform: uppercase; line-height: 1.5;
+  }
+  .p2-screenshot-desc { font-size: 12px; color: #D1D5DB; line-height: 1.4; margin-top: 4px; }
+
+  .p2-evidence-figure { margin: 0; text-align: center; }
+  .p2-evidence-img {
+    max-width: 360px; width: 100%; height: auto;
+    display: block; margin: 0 auto;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+  }
+  .p2-evidence-caption {
+    font-size: 12px; color: #6B7280; line-height: 1.5;
+    margin-top: 8px; text-align: center;
+  }
+  .p2-evidence-img--wide { max-width: 740px; }
+
+  .p2-table-wrap {
+    overflow-x: auto; border-radius: 8px; border: 1px solid #D1D5DB;
+    margin-top: 10px; color-scheme: light; forced-color-adjust: none;
+  }
+  .p2-table {
+    width: 100%; border-collapse: collapse; font-size: 13px;
+    background: #F9FAFB; min-width: 320px;
+  }
+  .p2-table th {
+    background: #F3F4F6; padding: 10px 14px; text-align: left;
+    font-size: 12px; font-weight: 600; color: #6B7280;
+    border-bottom: 1px solid #E5E7EB; white-space: nowrap;
+  }
+  .p2-table td { padding: 10px 14px; color: #374151; border-bottom: 1px solid #F3F4F6; }
+  .p2-table tr:last-child td { border-bottom: none; }
+  .p2-table-placeholder-row td {
+    text-align: center; color: #9CA3AF;
+    font-size: 12px; font-style: italic; padding: 18px 14px;
+  }
+
+  .p2-faq { display: flex; flex-direction: column; gap: 4px; }
+  .p2-faq-item {
+    border: 1px solid #E5E7EB; border-radius: 8px;
+    overflow: hidden; background: #fff;
+    color-scheme: light; forced-color-adjust: none;
+  }
+  .p2-faq-q {
+    padding: 13px 16px; font-size: 14px; font-weight: 600;
+    color: #111827; cursor: pointer; list-style: none;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 8px; transition: background .12s;
+  }
+  .p2-faq-q::-webkit-details-marker { display: none; }
+  .p2-faq-q::after { content: '+'; flex-shrink: 0; font-size: 18px; font-weight: 400; color: #9CA3AF; }
+  .p2-faq-item[open] .p2-faq-q::after { content: '−'; }
+  .p2-faq-q:hover { background: #F9FAFB; }
+  .p2-faq-a { padding: 0 16px 14px; font-size: 13px; color: #4B5563; font-style: normal; line-height: 1.5; }
+
+  /* Related exchange bonuses — horizontal cards */
+  .p2-related-intro { font-size: 14px; color: #6B7280; line-height: 1.6; margin: 0 0 14px; }
+  .p2-related-grid { display: flex; flex-direction: column; gap: 10px; }
+  .p2-rel-card {
+    border: 1px solid #E5E7EB; border-radius: 10px; padding: 12px 14px;
+    background: #fff; display: flex; align-items: center; gap: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    color-scheme: light; forced-color-adjust: none;
+  }
+  /* Logo tile: 86px mobile / 96px desktop. overflow:hidden + border-radius 12px
+     clips the logo to clean rounded corners. No padding — solid-background logos
+     fill edge-to-edge with no visible inner frame. object-fit: contain prevents stretching. */
+  .p2-rel-logo-wrap {
+    flex-shrink: 0; width: 86px; height: 86px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 12px; overflow: hidden;
+    box-sizing: border-box; color-scheme: light;
+  }
+  @media (min-width: 640px) { .p2-rel-logo-wrap { width: 96px; height: 96px; } }
+  .p2-rel-logo { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .p2-rel-info { flex: 1; min-width: 0; }
+  .p2-rel-name { font-size: 13px; font-weight: 700; color: #111827; line-height: 1.2; }
+  .p2-rel-bonus { font-size: 12px; font-weight: 600; color: #374151; line-height: 1.3; }
+  .p2-rel-tag { font-size: 11px; color: #9CA3AF; margin-top: 1px; }
+  .p2-rel-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
+  /* CTA button: 54px height / 170px min-width / 800 weight for strong visual presence */
+  .p2-rel-btn {
+    display: flex; align-items: center; justify-content: center;
+    background: #55C72F; color: #fff;
+    font-size: 15px; font-weight: 800; border-radius: 10px;
+    height: 54px; min-width: 170px; padding: 0 24px; text-decoration: none; white-space: nowrap;
+    transition: background .15s, color .15s;
+  }
+  .p2-rel-btn:hover { background: #46b024; }
+  .p2-rel-btn.is-activated { background: #0d9488; pointer-events: none; cursor: default; }
+  .p2-rel-link { font-size: 11px; color: #9CA3AF; text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }
+  .p2-rel-link:hover { color: #6B7280; }
+  @media (max-width: 639px) {
+    .p2-rel-card { flex-wrap: wrap; }
+    .p2-rel-actions { width: 100%; flex-direction: row; align-items: center; gap: 10px; }
+    .p2-rel-btn { flex: 1; min-width: 0; height: 48px; }
+  }
+
+  /* Rating block */
+  .p2-rating-block { text-align: center; }
+  .p2-rating-title { font-size: 16px; font-weight: 700; color: #111827; margin: 0 0 10px; }
+  .p2-stars { font-size: 28px; color: #D1D5DB; letter-spacing: 2px; margin: 0 0 8px; line-height: 1; }
+  .p2-rating-empty { font-size: 13px; color: #9CA3AF; margin: 0; line-height: 1.5; }
+
+  /* Voting block */
+  .p2-vote-block { text-align: center; }
+  .p2-vote-title { font-size: 16px; font-weight: 700; color: #111827; margin: 0 0 14px; }
+  .p2-vote-buttons { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+  .p2-vote-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 0 18px; height: 42px; border-radius: 8px;
+    font-size: 14px; font-weight: 600; border: 1.5px solid #E5E7EB;
+    background: #fff; color: #374151; cursor: pointer;
+    transition: border-color .15s, background .15s, color .15s;
+    color-scheme: light; forced-color-adjust: none;
+  }
+  .p2-vote-btn:hover { border-color: #D1D5DB; background: #F9FAFB; }
+  .p2-vote-btn.is-selected-up   { border-color: #16a34a; background: #f0fdf4; color: #15803d; }
+  .p2-vote-btn.is-selected-down { border-color: #dc2626; background: #fef2f2; color: #b91c1c; }
+  .p2-vote-btn:disabled { cursor: default; }
+  .p2-vote-status { font-size: 12px; color: #9CA3AF; margin: 0; line-height: 1.6; }
+
+  /* Article banner */
+  .p2-article-banner-figure { margin: 20px 0 0; }
+  .p2-article-banner-img {
+    width: 100%; height: auto; display: block;
+    border-radius: 10px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+  }
+  .p2-article-banner-caption {
+    font-size: 12px; color: #9CA3AF; line-height: 1.5;
+    margin-top: 8px; text-align: center; font-style: italic;
+  }
+  @media (prefers-color-scheme: dark) {
+    .p2-article-banner-caption { color: #9CA3AF !important; -webkit-text-fill-color: #9CA3AF !important; }
+  }
+
+  /* Closing conversion block */
+  .p2-bottom-facts { padding-bottom: 24px; }
+  .p2-closing-wrap { max-width: 720px; margin: 0 auto; padding: 16px 16px 0; }
+  .p2-closing-sentence { font-size: 13px; color: #6B7280; line-height: 1.65; margin: 0; text-align: center; }
+
+  /* Verification status badges */
+  .status-badge {
+    display: inline-flex; align-items: center;
+    font-size: 11px; font-weight: 700; letter-spacing: .03em;
+    padding: 3px 10px; border-radius: 20px; white-space: nowrap; line-height: 1.4;
+  }
+  .status-verified      { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+  .status-public-preview{ background: #fefce8; color: #854d0e; border: 1px solid #fef08a; }
+  .status-check-hub     { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+  .status-note { font-size: 11px; color: #6B7280; line-height: 1.45; margin-top: 4px; }
+
+  /* ── Samsung / forced-dark mode override ────────────────────── */
+  @media (prefers-color-scheme: dark) {
+    .title-bar {
+      background: #ffffff !important; border-bottom-color: #E5E7EB !important;
+      color-scheme: light !important; forced-color-adjust: none;
+    }
+    .title-bar h1 { color: #111827 !important; -webkit-text-fill-color: #111827 !important; }
+    .bh-promo-row {
+      background: #ffffff !important; border-color: #D1D5DB !important;
+      color-scheme: light !important; forced-color-adjust: none;
+    }
+    .bh-promo-code {
+      background: #ffffff !important;
+      color: #111827 !important; -webkit-text-fill-color: #111827 !important;
+      forced-color-adjust: none;
+    }
+    .bh-copy-btn {
+      background: #ffffff !important;
+      color: #16a34a !important; -webkit-text-fill-color: #16a34a !important;
+      border-left-color: #E5E7EB !important; forced-color-adjust: none;
+    }
+    .bh-copy-btn:hover { background: #f0fdf4 !important; }
+    .bh-promo-row.copy-success { background: #dcfce7 !important; border-color: #22c55e !important; }
+    .bh-promo-row.copy-success .bh-promo-code { background: #dcfce7 !important; color: #166534 !important; -webkit-text-fill-color: #166534 !important; }
+    .bh-promo-row.copy-success .bh-copy-btn { background: #dcfce7 !important; color: #166534 !important; -webkit-text-fill-color: #166534 !important; }
+    .compact-facts { background: #ffffff !important; color-scheme: light !important; forced-color-adjust: none; }
+    .cf-inner { background: #ffffff !important; border-color: #E5E7EB !important; }
+    .cf-table, .cf-table tr, .cf-table td { background: #F3F4F6 !important; color-scheme: light !important; forced-color-adjust: none; }
+    .cf-table tr { border-bottom-color: #E5E7EB !important; }
+    .cf-table td:first-child { color: #374151 !important; -webkit-text-fill-color: #374151 !important; }
+    .cf-table td:last-child { color: #111827 !important; -webkit-text-fill-color: #111827 !important; }
+    .cf-code { color: #0099cc !important; -webkit-text-fill-color: #0099cc !important; }
+    .cf-good { color: #16a34a !important; -webkit-text-fill-color: #16a34a !important; }
+    .cf-warn { color: #b45309 !important; -webkit-text-fill-color: #b45309 !important; }
+    .bh-wordmark { filter: none !important; opacity: 1 !important; }
+    .p2-section { background: #fff !important; color-scheme: light !important; forced-color-adjust: none; }
+    .p2-section-alt { background: #F9FAFB !important; }
+    .p2-placeholder { background: #F3F4F6 !important; border-color: #D1D5DB !important; color: #9CA3AF !important; }
+    .p2-h2, .p2-h3 { color: #111827 !important; -webkit-text-fill-color: #111827 !important; }
+    .p2-step { color: #374151 !important; -webkit-text-fill-color: #374151 !important; }
+    .p2-table { background: #F9FAFB !important; }
+    .p2-table th { background: #F3F4F6 !important; color: #6B7280 !important; -webkit-text-fill-color: #6B7280 !important; }
+    .p2-table td { color: #374151 !important; -webkit-text-fill-color: #374151 !important; }
+    .p2-faq-item { background: #fff !important; border-color: #E5E7EB !important; }
+    .p2-faq-q { color: #111827 !important; -webkit-text-fill-color: #111827 !important; }
+    .p2-faq-a { color: #4B5563 !important; -webkit-text-fill-color: #4B5563 !important; font-style: normal !important; }
+    .status-verified       { background: #f0fdf4 !important; color: #15803d !important; border-color: #bbf7d0 !important; }
+    .status-public-preview { background: #fefce8 !important; color: #854d0e !important; border-color: #fef08a !important; }
+    .status-check-hub      { background: #eff6ff !important; color: #1d4ed8 !important; border-color: #bfdbfe !important; }
+    .status-note { color: #6B7280 !important; -webkit-text-fill-color: #6B7280 !important; }
+    .p2-rel-card { background: #fff !important; border-color: #E5E7EB !important; }
+    .p2-rel-name { color: #111827 !important; -webkit-text-fill-color: #111827 !important; }
+    .p2-rel-bonus { color: #374151 !important; -webkit-text-fill-color: #374151 !important; }
+    .p2-rating-title { color: #111827 !important; -webkit-text-fill-color: #111827 !important; }
+    .p2-text { color: #374151 !important; -webkit-text-fill-color: #374151 !important; }
+    .p2-cta-bar { background: #55C72F !important; color: #fff !important; -webkit-text-fill-color: #fff !important; }
+    .p2-vote-title { color: #111827 !important; -webkit-text-fill-color: #111827 !important; }
+    .p2-vote-btn { background: #fff !important; color: #374151 !important; -webkit-text-fill-color: #374151 !important; border-color: #E5E7EB !important; color-scheme: light !important; }
+    .p2-vote-btn.is-selected-up   { background: #f0fdf4 !important; color: #15803d !important; -webkit-text-fill-color: #15803d !important; border-color: #16a34a !important; }
+    .p2-vote-btn.is-selected-down { background: #fef2f2 !important; color: #b91c1c !important; -webkit-text-fill-color: #b91c1c !important; border-color: #dc2626 !important; }
+    .p2-rel-logo-wrap { background-clip: padding-box !important; }
+  }
+</style>
+
+<!-- ═══════════════════════════════════════════════════════════
+     BLOCK 1 — TITLE BAR (white strip above dark hero)
+═══════════════════════════════════════════════════════════ -->
+<div class="title-bar">
+  <h1>{exchange.name} Referral Code: {offer.promoCode}</h1>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     BLOCK 2 — BRAND HERO (dark, compact conversion header)
+═══════════════════════════════════════════════════════════ -->
+<section class="brand-hero" style={bhStyle}>
+  <div class="bh-inner">
+
+    <a href={exchange.affiliateUrl} rel="noopener sponsored" aria-label={`Get ${exchange.name} bonus`} style="display:block;line-height:0;">
+      <img
+        src={exchange.wordmarkImg}
+        alt={exchange.name}
+        class="bh-wordmark"
+        width="210" height="56"
+        fetchpriority="high"
+      />
+    </a>
+
+    <p class="bh-promo-label">REFERRAL CODE</p>
+    <div class="bh-promo-row">
+      <span class="bh-promo-code">{offer.promoCode}</span>
+      <button class="bh-copy-btn" id="copy-btn-hero" type="button">Copy</button>
+    </div>
+
+    <a href={exchange.affiliateUrl} class="bh-cta-btn" rel="noopener sponsored">
+      Get Bonus
+    </a>
+
+    <p class="bh-source">Verified {offer.lastChecked} on <a href={offer.sourceUrl} target="_blank" rel="noopener noreferrer nofollow">{exchange.officialDomain}</a></p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     BLOCK 3 — COMPACT FACTS TABLE (directly under hero)
+═══════════════════════════════════════════════════════════ -->
+<div class="compact-facts">
+  <div class="cf-inner">
+    <table class="cf-table">
+      <tbody>
+        <tr><td>👉 {exchange.name}</td><td>{exchange.officialDomain}</td></tr>
+        <tr><td>➡️ Referral Code</td><td class="cf-code">{offer.promoCode}</td></tr>
+        <tr><td>💰 Bonus</td><td>Up to {exchange.bonusMax.toLocaleString('en-US')} {exchange.currency}</td></tr>
+        <tr><td>✅ Valid</td><td>{offer.lastChecked}</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     BLOCK 3b — SEO PHRASE + INTRO SENTENCE
+═══════════════════════════════════════════════════════════ -->
+<div class="seo-intro-block">
+  <div class="seo-intro-inner">
+    <p class="seo-phrase">{exchange.name} Referral Code — No KYC Required</p>
+    <p class="seo-intro-text">Looking for an {exchange.name} referral code? Use <strong>{offer.promoCode}</strong> to open the official {exchange.name} bonus page and check the latest new user rewards. No KYC or minimum deposit is required for the base signup tier.</p>
+    <p class="seo-intro-text">The {exchange.name} referral code {offer.promoCode} gives new accounts access to a welcome rewards package that can include trading vouchers, deposit bonuses, and futures trading rewards. The total value shown on the official {exchange.name} bonus page is up to {exchange.bonusMax.toLocaleString('en-US')} {exchange.currency}. The actual amount you receive depends on which tasks you complete — {exchange.name} structures new user rewards as a series of individual milestones, each with its own requirement and payout.</p>
+    <p class="seo-intro-text">This page covers what the {exchange.name} referral code does, how to apply it at registration, and what to expect from the {exchange.name} new user rewards program. All information is based on publicly available details from official {exchange.name} pages and the confirmed affiliate partner link.</p>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     PART 2 — SEO SKELETON
+═══════════════════════════════════════════════════════════ -->
+
+<!-- 01. Full-width CTA after intro text -->
+<div class="p2-section p2-cta-block">
+  <div class="p2-inner">
+    <a href={exchange.affiliateUrl} class="p2-cta-bar" rel="noopener sponsored">Get {exchange.name} Bonus Now</a>
+  </div>
+</div>
+
+<!-- 02. What Is the MEXC Referral Code? -->
+<div class="p2-section">
+  <div class="p2-inner">
+    <h2 class="p2-h2">What Is the {exchange.name} Referral Code?</h2>
+    <p class="p2-text">An {exchange.name} referral code is a string entered during account registration that links a new account to a partner bonus program. Using the code <strong>{offer.promoCode}</strong> connects your account to the official {exchange.name} new user rewards flow, which unlocks the welcome package for eligible new registrations.</p>
+    <p class="p2-text">Referral codes are intended for new users only — people creating an {exchange.name} account for the first time. Existing {exchange.name} users cannot apply a referral code to an account that is already registered. The code must be entered at the point of sign-up, before completing registration. When you use the partner link on this page, the code is typically pre-filled in the registration form.</p>
+  </div>
+</div>
+
+<!-- 03. How to Claim the MEXC Bonus Code -->
+<div class="p2-section p2-section-alt">
+  <div class="p2-inner">
+    <h2 class="p2-h2">How to Claim the {exchange.name} Bonus Code</h2>
+    <ol class="p2-steps">
+      <li class="p2-step">Click the partner link on this page to open the official {exchange.name} registration form</li>
+      <li class="p2-step">Create a new {exchange.name} account with your email or phone number</li>
+      <li class="p2-step">Confirm the referral code <strong>{offer.promoCode}</strong> is pre-filled — enter it manually if it is not shown</li>
+      <li class="p2-step">Complete registration — KYC is not required for the base reward tier; complete identity verification if you want to unlock higher bonus tiers</li>
+      <li class="p2-step">Check your {exchange.name} Activity Center inside the account for available bonus tasks, deadlines and claim rules</li>
+    </ol>
+  </div>
+</div>
+
+<!-- 04. Evidence screenshot — registration page -->
+<div class="p2-section">
+  <div class="p2-inner">
+    <figure class="p2-evidence-figure">
+      <img
+        src="/media/exchanges/mexc/evidence/global-en/mexc-registration-code-applied.png"
+        alt="MEXC sign-up page with referral code mexc-CryptoBonus pre-filled and 10,000 USDT new user offer shown"
+        width="1440"
+        height="900"
+        loading="lazy"
+        decoding="async"
+        class="p2-evidence-img p2-evidence-img--wide"
+      />
+      <figcaption class="p2-evidence-caption">Official MEXC custom sign-up page — referral code <strong>mexc-CryptoBonus</strong> pre-filled, right panel confirms "Sign Up to Claim 10,000 USDT". Captured June 2026.</figcaption>
+    </figure>
+  </div>
+</div>
+
+<!-- 04b. Full-width CTA after screenshot slot -->
+<div class="p2-section p2-cta-block">
+  <div class="p2-inner">
+    <a href={exchange.affiliateUrl} class="p2-cta-bar" rel="noopener sponsored">Get {exchange.name} Bonus Now</a>
+  </div>
+</div>
+
+<!-- 05. Bonus Levels on MEXC -->
+<div class="p2-section p2-section-alt">
+  <div class="p2-inner">
+    <h2 class="p2-h2">Bonus Levels on {exchange.name}</h2>
+    <p class="p2-text">The {exchange.name} new user bonus is structured as a series of separate tasks, each with its own reward. The combined maximum across all tasks is up to {exchange.bonusMax.toLocaleString('en-US')} {exchange.currency}, but that figure represents the total potential — not a guaranteed amount for every user. Most users who complete standard registration and a first deposit will unlock a portion of the welcome package.</p>
+    <p class="p2-text">Unlike many exchanges, {exchange.name} does not require KYC or an initial deposit to receive the base signup reward. Higher tiers require trading volume and, depending on the current event rules, may require a deposit. Exact tasks and amounts can vary by region and promotion period.</p>
+    <div class="p2-table-wrap">
+      <table class="p2-table">
+        <thead>
+          <tr>
+            <th>Task</th>
+            <th>Requirement</th>
+            <th>Reward type</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Account registration</td>
+            <td>Create account with {offer.promoCode}</td>
+            <td>Welcome bonus</td>
+            <td>No KYC or deposit required for base tier</td>
+          </tr>
+          <tr>
+            <td>First deposit</td>
+            <td>Make a qualifying deposit</td>
+            <td>Deposit bonus</td>
+            <td>Scales with deposit amount</td>
+          </tr>
+          <tr>
+            <td>Futures trading</td>
+            <td>Complete futures volume milestones</td>
+            <td>Trading vouchers</td>
+            <td>Significant volume required for upper tiers</td>
+          </tr>
+          <tr>
+            <td>Activity Center tasks</td>
+            <td>Complete bonus missions in Activity Center</td>
+            <td>Extra vouchers</td>
+            <td>Tasks rotate periodically</td>
+          </tr>
+          <tr>
+            <td>Volume milestones</td>
+            <td>Meet cumulative deposit / trading thresholds</td>
+            <td>Tiered bonus</td>
+            <td>Up to {exchange.bonusMax.toLocaleString('en-US')} {exchange.currency} across all tasks</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <h3 class="p2-h3">Getting the Most from Your New User Rewards</h3>
+    <p class="p2-text">For users who want to start quickly, the base signup reward is accessible with just an email or phone registration — no identity verification or deposit needed. For higher tiers, complete a first deposit and begin trading to unlock additional vouchers. After registering, check the {exchange.name} Activity Center for any active tasks that apply to your account and region. Not all tasks will be available in every country.</p>
+  </div>
+</div>
+
+<!-- 07. Other MEXC Codes People Search For -->
+<div class="p2-section">
+  <div class="p2-inner">
+    <h2 class="p2-h2">Other {exchange.name} Codes People Search For</h2>
+    <p class="p2-text">Many users search for an {exchange.name} referral code on Reddit, in forum threads, or on social channels. Some of those codes may be expired, region-restricted, or tied to individual affiliate accounts with no active bonus offer behind them.</p>
+    <p class="p2-text">The {exchange.name} code <strong>{offer.promoCode}</strong> is the code verified on this page. It links to the official {exchange.name} new user rewards flow where new accounts can see the current welcome package. If you find another code elsewhere, check whether it routes to an active {exchange.name} bonus offer before registering — the referral code must be entered at sign-up and cannot be changed after registration is complete.</p>
+  </div>
+</div>
+
+<!-- 08–10. About MEXC + Support + Platform Notes -->
+<div class="p2-section p2-section-alt">
+  <div class="p2-inner">
+    <h2 class="p2-h2">About {exchange.name}</h2>
+    <p class="p2-text">{exchange.name} was founded in {exchange.founded} and is incorporated in {exchange.headquarters}. The exchange serves more than {exchange.users} registered users across a wide range of countries. {exchange.name} is known for its extensive altcoin selection and its accessible onboarding — standard spot trading does not require identity verification, making it one of the few major exchanges with a genuine no-KYC option.</p>
+    <p class="p2-text">{exchange.name} does not hold a primary exchange licence in major regulatory jurisdictions. Users should review their local regulations before registering. {exchange.name} does not currently provide service to residents of North Korea, Cuba, Sudan, Iran, Mainland China, Singapore, the United States, the United Kingdom, Hong Kong, Russian-controlled regions of Ukraine, or Canada. This list of restricted regions may change — check the official {exchange.name} Terms of Service for the current version.</p>
+    <h3 class="p2-h3">Support</h3>
+    <p class="p2-text">{exchange.name} provides customer support through live chat and a <a href={exchange.supportUrl} target="_blank" rel="noopener noreferrer nofollow">{exchange.name} Support Centre</a>. For account-related queries, including bonus activation and withdrawal issues, live chat inside the platform is typically the fastest route to a response.</p>
+    <h3 class="p2-h3">Platform Notes</h3>
+    <p class="p2-text">The {exchange.name} platform offers spot trading, perpetual futures, copy trading, P2P trading, staking, earn products, and a launchpad for early-stage token projects. {exchange.name} lists one of the largest selections of altcoins in the industry, including many tokens shortly after their initial listing. The exchange runs iOS and Android apps for mobile trading. KYC is not required for standard spot trading access — users can register with just an email or phone number and begin trading without full identity verification, though withdrawal limits may apply to unverified accounts.</p>
+  </div>
+</div>
+
+<!-- 11. MEXC New User Rewards Program -->
+<div class="p2-section">
+  <div class="p2-inner">
+    <h2 class="p2-h2">{exchange.name} New User Rewards</h2>
+    <p class="p2-text">Beyond the welcome package activated by the referral code, {exchange.name} offers an Activity Center inside each registered account where users can access ongoing bonus tasks to earn additional rewards. These tasks change periodically and may include trading milestones, deposit events, futures trading targets, or promotional campaigns. Rewards are typically issued as USDT vouchers or trading coupons.</p>
+    <p class="p2-text">The Activity Center tasks available to your account depend on your region, current promotion calendar, and account status. Some tasks require a deposit or trading activity; others may be available simply through continued platform use. The task list inside the Activity Center shows current requirements and expiry dates.</p>
+    <p class="p2-text">The {exchange.name} welcome bonus unlocked through the referral code <strong>{offer.promoCode}</strong> is a separate one-time programme from the ongoing Activity Center. New users typically see both the welcome rewards and regular Activity Center tasks available after completing registration.</p>
+  </div>
+</div>
+
+<!-- 12. Other MEXC Promotions -->
+<div class="p2-section p2-section-alt">
+  <div class="p2-inner">
+    <h2 class="p2-h2">Other {exchange.name} Promotions</h2>
+    <p class="p2-text">{exchange.name} runs a range of promotions beyond the new user signup bonus. These include periodic trading competitions with USDT prize pools, Launchpad participation windows for new token projects, deposit-based reward campaigns, and copy trading events for users who follow top-ranked strategies.</p>
+    <p class="p2-text">Existing users can also access the {exchange.name} referral system, which allows registered users to share their own referral link and earn commission from the trading activity of invited users. These ongoing programmes operate under different terms from the new user sign-up bonus.</p>
+    <p class="p2-text">Promotion availability and terms change regularly. The official {exchange.name} Activity and Promotions pages are the authoritative source for current offers — check them after creating your account to see which campaigns are active for your region and account type.</p>
+  </div>
+</div>
+
+<!-- 13. The MEXC Referral Program -->
+<div class="p2-section">
+  <div class="p2-inner">
+    <h2 class="p2-h2">The {exchange.name} Referral Program</h2>
+    <p class="p2-text">The {exchange.name} referral program covers two distinct things. For new users, it means entering a referral code at sign-up — connecting a new account to the welcome rewards flow. For existing users, {exchange.name} may provide a personal referral link or code they can share to invite others, subject to {exchange.name}'s current affiliate rules and eligibility conditions.</p>
+    <p class="p2-text">This page focuses on the new-user side: the {exchange.name} referral code <strong>{offer.promoCode}</strong>. Entering this code at registration connects a new account to the partner welcome rewards flow via the official {exchange.name} custom sign-up portal. The partner bonus page shows welcome rewards up to {exchange.bonusMax.toLocaleString('en-US')} {exchange.currency} for new accounts. Exact rewards depend on {exchange.name}'s current terms, your region, trading activity and promotion period. Always check the current offer on the official {exchange.name} bonus page after creating your new account.</p>
+
+    <figure class="p2-article-banner-figure">
+      <a href={exchange.affiliateUrl} rel="noopener sponsored" aria-label={`Get ${exchange.name} bonus`}>
+        <img
+          src={exchange.articleImg}
+          alt={`${exchange.name} referral code bonus illustration`}
+          width="1200"
+          height="675"
+          loading="lazy"
+          decoding="async"
+          class="p2-article-banner-img"
+        />
+      </a>
+      <figcaption class="p2-article-banner-caption">{exchange.name} Referral Code: {offer.promoCode}</figcaption>
+    </figure>
+  </div>
+</div>
+
+<!-- 13b. Code Search Variations -->
+<div class="p2-section">
+  <div class="p2-inner">
+    <h2 class="p2-h2">Code Search Variations</h2>
+    <p class="p2-text">Users often describe the same {exchange.name} offer in different ways — welcome code, promo code, bonus code, invite code, or share code. On this CryptoBonusWorld page, the referral code shown for the offer is <strong>{offer.promoCode}</strong>.</p>
+    <div class="p2-table-wrap">
+      <table class="p2-table">
+        <thead>
+          <tr><th>Search phrase</th><th>Code shown here</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Welcome code</td><td class="cf-code">{offer.promoCode}</td></tr>
+          <tr><td>Promo code</td><td class="cf-code">{offer.promoCode}</td></tr>
+          <tr><td>Bonus code</td><td class="cf-code">{offer.promoCode}</td></tr>
+          <tr><td>Invite code</td><td class="cf-code">{offer.promoCode}</td></tr>
+          <tr><td>Share code</td><td class="cf-code">{offer.promoCode}</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="p2-text">Copy <strong>{offer.promoCode}</strong> before creating a new account, then check the available bonus tasks inside the {exchange.name} Activity Center after registration.</p>
+  </div>
+</div>
+
+<!-- 14. Bonus verification status table -->
+<div class="p2-section p2-section-alt">
+  <div class="p2-inner">
+    <h2 class="p2-h2">{exchange.name} Bonus Offer — What We Have Verified</h2>
+    <p class="p2-text">The table below shows what CryptoBonusWorld has independently verified about the {exchange.name} bonus offer linked to the code {offer.promoCode}. Rows marked "Check in Activity Center" depend on individual account status and can only be confirmed after registration. The registration screenshot below was captured June 2026 via the official MEXC custom sign-up URL.</p>
+    <figure class="p2-evidence-figure" style="margin:20px 0 16px;">
+      <img
+        src="/media/exchanges/mexc/evidence/global-en/mexc-registration-code-applied.png"
+        alt="MEXC custom sign-up page showing referral code mexc-CryptoBonus pre-filled and 10,000 USDT new user offer on the right panel"
+        width="1440"
+        height="900"
+        loading="lazy"
+        decoding="async"
+        class="p2-evidence-img p2-evidence-img--wide"
+      />
+      <figcaption class="p2-evidence-caption">Official MEXC sign-up page via the partner custom URL. Left panel: referral code <strong>mexc-CryptoBonus</strong> pre-filled. Right panel: "Sign Up to Claim 10,000 USDT". Captured June 2026.</figcaption>
+    </figure>
+    <div class="p2-table-wrap">
+      <table class="p2-table">
+        <thead>
+          <tr>
+            <th>Reward area</th>
+            <th>What may be required</th>
+            <th>Reward type</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Sign-up with {offer.promoCode}</td>
+            <td>Referral code applied at registration via partner link</td>
+            <td>Welcome eligibility</td>
+            <td><span class="status-badge status-verified">Verified</span><div class="status-note">Registration screenshot shows {offer.promoCode} pre-filled in referral code field · June 2026</div></td>
+          </tr>
+          <tr>
+            <td>Welcome rewards (up to {exchange.bonusMax.toLocaleString('en-US')} {exchange.currency})</td>
+            <td>Open official {exchange.name} bonus page via partner link</td>
+            <td>New user rewards</td>
+            <td><span class="status-badge status-verified">Verified</span><div class="status-note">Registration right panel shows "Sign Up to Claim 10,000 USDT" · June 2026</div></td>
+          </tr>
+          <tr>
+            <td>No KYC for base tier</td>
+            <td>Email or phone registration only</td>
+            <td>Base welcome reward</td>
+            <td><span class="status-badge status-public-preview">Public Preview</span><div class="status-note">Official {exchange.name} terms · {offer.lastChecked} · account-level confirmation required</div></td>
+          </tr>
+          <tr>
+            <td>No deposit required (base tier)</td>
+            <td>Registration only — no deposit needed for initial reward</td>
+            <td>Signup reward</td>
+            <td><span class="status-badge status-public-preview">Public Preview</span><div class="status-note">Official {exchange.name} terms · {offer.lastChecked} · account-level confirmation required</div></td>
+          </tr>
+          <tr>
+            <td>Deposit tasks (higher tiers)</td>
+            <td>Deposit required; amount varies by tier</td>
+            <td>Deposit bonus or coupon</td>
+            <td><span class="status-badge status-check-hub">Check in Activity Center</span><div class="status-note">Check exact tasks and amounts after sign-up.</div></td>
+          </tr>
+          <tr>
+            <td>Trading tasks</td>
+            <td>Futures or spot trading volume may be required</td>
+            <td>Trading voucher or bonus</td>
+            <td><span class="status-badge status-check-hub">Check in Activity Center</span><div class="status-note">Check exact tasks after sign-up.</div></td>
+          </tr>
+          <tr>
+            <td>Claim period</td>
+            <td>Rewards expire after a set period (typically 30 days)</td>
+            <td>Manual claim required</td>
+            <td><span class="status-badge status-check-hub">Check in Activity Center</span><div class="status-note">Check deadlines and claim rules after sign-up.</div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="p2-text" style="margin-top:12px;">The Activity Center inside your {exchange.name} account shows the exact tasks, deadlines and claim rules available to your account. Rewards depend on {exchange.name}'s current terms, your region, KYC status, deposit amount, trading activity and promotion period.</p>
+  </div>
+</div>
+
+<!-- 15. MEXC FAQ -->
+<div class="p2-section">
+  <div class="p2-inner">
+    <h2 class="p2-h2">{exchange.name} Referral Code — FAQ</h2>
+    <div class="p2-faq">
+      <details class="p2-faq-item">
+        <summary class="p2-faq-q">Do I have to make a cryptocurrency deposit?</summary>
+        <div class="p2-faq-a">No deposit is required for the base signup reward. The initial {exchange.name} welcome bonus can be claimed through email or phone registration alone — no identity verification or deposit is needed for the first reward tier. Larger deposit and trading bonuses do require you to fund your account. Check the {exchange.name} Activity Center after registering to see which tasks and deposit tiers are active for your account and region.</div>
+      </details>
+      <details class="p2-faq-item">
+        <summary class="p2-faq-q">Can I get more than one {exchange.name} bonus?</summary>
+        <div class="p2-faq-a">Yes — the {exchange.name} new user bonus is structured as a series of separate tasks, each with its own reward. You can earn multiple rewards by registering, completing a first deposit, placing futures trades, and reaching volume milestones. The welcome package itself is a one-time offer for new accounts and cannot be repeated on the same account.</div>
+      </details>
+      <details class="p2-faq-item">
+        <summary class="p2-faq-q">What are the {exchange.name} fees?</summary>
+        <div class="p2-faq-a">{exchange.name}'s standard spot trading fee is {exchange.fees.spot.maker} for makers and {exchange.fees.spot.taker} for takers. Perpetual futures fees are {exchange.fees.futures.maker} for makers and {exchange.fees.futures.taker} for takers. These are standard non-VIP rates. Always check the <a href={exchange.feeUrl} target="_blank" rel="noopener noreferrer nofollow">official {exchange.name} fee page</a> before trading as rates may change and vary by VIP level.</div>
+      </details>
+      <details class="p2-faq-item">
+        <summary class="p2-faq-q">Which currency are rewards paid in?</summary>
+        <div class="p2-faq-a">{exchange.name} new user rewards are typically issued as USDT vouchers or trading coupons denominated in USDT. Specific reward formats — including any voucher conditions or conversion requirements — are shown inside the {exchange.name} Activity Center for each task after registration.</div>
+      </details>
+      <details class="p2-faq-item">
+        <summary class="p2-faq-q">Can existing users use the referral code?</summary>
+        <div class="p2-faq-a">No. The {exchange.name} referral code {offer.promoCode} is for new users only and must be entered during account creation. It cannot be added to an existing {exchange.name} account after registration is complete. If you already have an {exchange.name} account, check the Activity Center inside your account for any ongoing promotions available to existing users.</div>
+      </details>
+      <details class="p2-faq-item">
+        <summary class="p2-faq-q">Is the {exchange.name} bonus available in every country?</summary>
+        <div class="p2-faq-a">No. {exchange.name} restricts service in a number of jurisdictions. Residents of North Korea, Cuba, Sudan, Iran, Mainland China, Singapore, the United States, the United Kingdom, Hong Kong, Russian-controlled regions of Ukraine, and Canada are not eligible. This list may change — always check the official {exchange.name} Terms of Service for the current version. Even in supported countries, specific bonus tasks or amounts may differ by region and current promotion terms.</div>
+      </details>
+    </div>
+  </div>
+</div>
+
+<!-- 16. MEXC Trading Fees -->
+<div class="p2-section p2-section-alt">
+  <div class="p2-inner">
+    <h2 class="p2-h2">{exchange.name} Trading Fees</h2>
+    <p class="p2-text">{exchange.name} fees vary by product, VIP level, account type, and current fee schedule. The figures below are based on {exchange.name}'s published standard non-VIP rates from the official {exchange.name} fee page. Always check the <a href={exchange.feeUrl} target="_blank" rel="noopener noreferrer nofollow">official {exchange.name} fee page</a> before trading — rates are subject to change.</p>
+    <div class="p2-table-wrap">
+      <table class="p2-table">
+        <thead>
+          <tr>
+            <th>Market</th>
+            <th>Maker fee</th>
+            <th>Taker fee</th>
+            <th>Source · Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Spot</td>
+            <td>{exchange.fees.spot.maker}</td>
+            <td>{exchange.fees.spot.taker}</td>
+            <td style="font-size:12px;"><span class="status-badge status-verified" style="font-size:10px;">Verified</span><div class="status-note">Confirmed on official fee page · June 2026 · range 0%–0.05%</div></td>
+          </tr>
+          <tr>
+            <td>Perpetual &amp; Futures</td>
+            <td>{exchange.fees.futures.maker}</td>
+            <td>{exchange.fees.futures.taker}</td>
+            <td style="font-size:12px;"><span class="status-badge status-verified" style="font-size:10px;">Verified</span><div class="status-note">BTC/USDT perpetual row confirms 0% / 0.01% · June 2026</div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <figure class="p2-evidence-figure" style="margin:16px 0;">
+      <img
+        src="/media/exchanges/mexc/evidence/global-en/mexc-fee-page.png"
+        alt="MEXC Fee Overview page showing Spot Trading Fee 0% maker and 0%–0.05% taker, Futures Trading Fee 0% maker"
+        width="1440"
+        height="900"
+        loading="lazy"
+        decoding="async"
+        class="p2-evidence-img p2-evidence-img--wide"
+      />
+      <figcaption class="p2-evidence-caption">{exchange.name} fee schedule — spot tab. Standard non-VIP rates: 0% maker / 0%–0.05% taker (most pairs 0.05%; 0.04% with MX discount). Captured June 2026 from <a href={exchange.feeUrl} target="_blank" rel="noopener noreferrer nofollow">mexc.com/fee</a>.</figcaption>
+    </figure>
+    <figure class="p2-evidence-figure" style="margin:12px 0 16px;">
+      <img
+        src="/media/exchanges/mexc/evidence/global-en/mexc-fee-futures-tab.png"
+        alt="MEXC fee page futures tab showing BTC/USDT perpetual at 0% maker and 0.01% taker"
+        width="1440"
+        height="900"
+        loading="lazy"
+        decoding="async"
+        class="p2-evidence-img p2-evidence-img--wide"
+      />
+      <figcaption class="p2-evidence-caption">{exchange.name} fee schedule — futures tab. BTCUSDT Perpetual: 0% maker / 0.01% taker. Captured June 2026.</figcaption>
+    </figure>
+    <p class="p2-text" style="margin-top:10px;font-size:12px;color:#6B7280;">Last checked: {offer.lastChecked} from the <a href={exchange.feeUrl} target="_blank" rel="noopener noreferrer nofollow" style="color:#6B7280;">official {exchange.name} fee page</a>.</p>
+    <p class="p2-text" style="margin-top:6px;font-size:12px;color:#9CA3AF;">Fees may vary by product, VIP level, region, account status and the current fee schedule. Always check the <a href={exchange.feeUrl} target="_blank" rel="noopener noreferrer nofollow" style="color:#9CA3AF;">official {exchange.name} fee page</a> before trading.</p>
+  </div>
+</div>
+
+<!-- 17a. More Verified Crypto Exchange Bonuses -->
+<div class="p2-section p2-section-alt">
+  <div class="p2-inner">
+    <h2 class="p2-h2">More Verified Crypto Exchange Bonuses</h2>
+    <p class="p2-related-intro">Compare other exchange bonus pages if you want to check alternatives before using the {exchange.name} referral code.</p>
+    <div class="p2-related-grid">
+      {relatedExchanges.map(ex => (
+        <div class="p2-rel-card">
+          <div class="p2-rel-logo-wrap" style={`background:${ex.tileBg};`}>
+            <img src={ex.logo} alt={ex.name} class="p2-rel-logo" loading="lazy" width="60" height="54" />
+          </div>
+          <div class="p2-rel-info">
+            <div class="p2-rel-name">{ex.name}</div>
+            <div class="p2-rel-bonus">{ex.bonus}</div>
+            <div class="p2-rel-tag">{ex.tag}</div>
+          </div>
+          <div class="p2-rel-actions">
+            <a href={`/go/${ex.slug}/`} class="p2-rel-btn" data-exchange={ex.slug} rel="noopener sponsored">Get Bonus</a>
+            <a href={`/exchanges/${ex.slug}/`} class="p2-rel-link">View details →</a>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</div>
+
+<!-- 17b-pre. Looking for a Bonus Code? -->
+<div class="p2-section">
+  <div class="p2-inner">
+    <h2 class="p2-h2">Looking for a Bonus Code?</h2>
+    <p class="p2-text">Some users search for welcome, promo, invite or share code wording. The code used on this page is <strong>{offer.promoCode}</strong>.</p>
+    <p class="p2-text">Click the bonus button below to open the registration page with the referral code applied.</p>
+  </div>
+</div>
+
+<!-- 17b. Closing conversion block — exact repeat of top dark hero -->
+<section class="brand-hero" style={bhStyle}>
+  <div class="bh-inner">
+    <a href={exchange.affiliateUrl} rel="noopener sponsored" aria-label={`Get ${exchange.name} bonus`} style="display:block;line-height:0;">
+      <img src={exchange.wordmarkImg} alt={exchange.name} class="bh-wordmark" width="210" height="56" loading="lazy" />
+    </a>
+    <p class="bh-promo-label">REFERRAL CODE</p>
+    <div class="bh-promo-row">
+      <span class="bh-promo-code">{offer.promoCode}</span>
+      <button class="bh-copy-btn" id="copy-btn-coupon" type="button">Copy</button>
+    </div>
+    <a href={exchange.affiliateUrl} class="bh-cta-btn" rel="noopener sponsored">Get Bonus</a>
+    <p class="bh-source">Verified {offer.lastChecked} on <a href={offer.sourceUrl} target="_blank" rel="noopener noreferrer nofollow">{exchange.officialDomain}</a></p>
+  </div>
+</section>
+
+<!-- Rating block — honest, no fake data -->
+<div class="p2-section p2-section-alt">
+  <div class="p2-inner p2-rating-block">
+    <h3 class="p2-rating-title">Rate this {exchange.name} referral code</h3>
+    <div class="p2-stars" aria-label="No ratings yet" aria-hidden="true">★★★★★</div>
+    <p class="p2-rating-empty">No ratings yet — be the first to rate this code.</p>
+  </div>
+</div>
+
+<!-- Voting block — localStorage only, no fake global counts -->
+<div class="p2-section">
+  <div class="p2-inner p2-vote-block"
+       data-vote-widget="code-helpfulness"
+       data-exchange={exchange.slug}
+       data-code={offer.promoCode}>
+    <h3 class="p2-vote-title">Was this {exchange.name} referral code helpful?</h3>
+    <div class="p2-vote-buttons">
+      <button class="p2-vote-btn" id="vote-up"   type="button" data-vote="up">👍 Works for me</button>
+      <button class="p2-vote-btn" id="vote-down" type="button" data-vote="down">👎 Didn't work</button>
+    </div>
+    <p class="p2-vote-status" id="vote-status">No votes yet — be the first to rate this code.</p>
+  </div>
+</div>
+
+<script define:vars={{ promoCode: offer.promoCode, exchangeSlug: exchange.slug }}>
+  (function () {
+    var btn = document.getElementById('copy-btn-hero');
+    if (btn) {
+      btn.addEventListener('click', function () {
+        navigator.clipboard.writeText(promoCode).then(function () {
+          var row = btn.closest('.bh-promo-row');
+          var codeSpan = row ? row.querySelector('.bh-promo-code') : null;
+          btn.textContent = 'Copied ✓';
+          btn.classList.add('copy-success');
+          if (row) row.classList.add('copy-success');
+          if (codeSpan) codeSpan.classList.add('copy-success');
+          setTimeout(function () {
+            btn.textContent = 'Copy';
+            btn.classList.remove('copy-success');
+            if (row) row.classList.remove('copy-success');
+            if (codeSpan) codeSpan.classList.remove('copy-success');
+          }, 1800);
+        });
+      });
+    }
+
+    // Deal Activated state for related exchange cards
+    var DEAL_PREFIX = 'cbw_deal_activated_';
+    document.querySelectorAll('.p2-rel-btn').forEach(function(relBtn) {
+      var slug = relBtn.getAttribute('data-exchange');
+      if (!slug) return;
+      try {
+        if (localStorage.getItem(DEAL_PREFIX + slug)) {
+          relBtn.textContent = 'Deal Activated';
+          relBtn.classList.add('is-activated');
+        }
+      } catch(e) {}
+      relBtn.addEventListener('click', function() {
+        try { localStorage.setItem(DEAL_PREFIX + slug, '1'); } catch(e) {}
+        relBtn.textContent = 'Deal Activated';
+        relBtn.classList.add('is-activated');
+      });
+    });
+
+    // Voting block — localStorage only, no fake global counts
+    var VOTE_KEY = 'cbw_vote_' + exchangeSlug + '_code';
+    var voteUpBtn   = document.getElementById('vote-up');
+    var voteDownBtn = document.getElementById('vote-down');
+    var voteStatus  = document.getElementById('vote-status');
+    function applyVoteState(vote) {
+      if (!voteUpBtn || !voteDownBtn || !voteStatus) return;
+      if (vote === 'up') {
+        voteUpBtn.classList.add('is-selected-up');
+        voteDownBtn.classList.remove('is-selected-down');
+      } else if (vote === 'down') {
+        voteDownBtn.classList.add('is-selected-down');
+        voteUpBtn.classList.remove('is-selected-up');
+      }
+      voteUpBtn.disabled   = true;
+      voteDownBtn.disabled = true;
+      voteStatus.textContent = 'Thanks — your vote was recorded. Your vote is saved on this device.';
+    }
+    try { var savedVote = localStorage.getItem(VOTE_KEY); if (savedVote) applyVoteState(savedVote); } catch(e) {}
+    if (voteUpBtn)   { voteUpBtn.addEventListener('click',   function() { try { localStorage.setItem(VOTE_KEY, 'up');   } catch(e) {} applyVoteState('up');   }); }
+    if (voteDownBtn) { voteDownBtn.addEventListener('click', function() { try { localStorage.setItem(VOTE_KEY, 'down'); } catch(e) {} applyVoteState('down'); }); }
+
+    var couponBtn = document.getElementById('copy-btn-coupon');
+    if (couponBtn) {
+      couponBtn.addEventListener('click', function () {
+        navigator.clipboard.writeText(promoCode).then(function () {
+          var row = couponBtn.closest('.bh-promo-row');
+          var codeSpan = row ? row.querySelector('.bh-promo-code') : null;
+          couponBtn.textContent = 'Copied ✓';
+          couponBtn.classList.add('copy-success');
+          if (row) row.classList.add('copy-success');
+          if (codeSpan) codeSpan.classList.add('copy-success');
+          setTimeout(function () {
+            couponBtn.textContent = 'Copy';
+            couponBtn.classList.remove('copy-success');
+            if (row) row.classList.remove('copy-success');
+            if (codeSpan) codeSpan.classList.remove('copy-success');
+          }, 1800);
+        });
+      });
+    }
+  })();
+</script>
+
+<script is:inline type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home",                 "item": "https://cryptobonusworld.com/" },
+        { "@type": "ListItem", "position": 2, "name": "MEXC Referral Code",   "item": "https://cryptobonusworld.com/mexc/" }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Do I have to make a cryptocurrency deposit?",
+          "acceptedAnswer": { "@type": "Answer", "text": "No deposit is required for the base signup reward. The initial MEXC welcome bonus can be claimed through email or phone registration alone — no identity verification or deposit is needed for the first reward tier. Larger deposit and trading bonuses do require you to fund your account, with rewards scaling by deposit and volume. Check the MEXC Activity Center after registering to see which tasks are active for your account and region." }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I get more than one MEXC bonus?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes — the MEXC new user bonus is structured as a series of separate tasks, each with its own reward. You can earn multiple rewards by registering, completing a first deposit, placing futures trades, and reaching volume milestones. The welcome package itself is a one-time offer for new accounts and cannot be repeated on the same account." }
+        },
+        {
+          "@type": "Question",
+          "name": "What are the MEXC fees?",
+          "acceptedAnswer": { "@type": "Answer", "text": "MEXC's standard spot trading fee is 0% for makers and 0.05% for takers (range 0%–0.05% across pairs; most standard pairs at 0.05% base rate, 0.04% with 20% MX token discount). Perpetual futures fees are 0% for makers and 0.01% for takers. These rates were verified on the official MEXC fee page in June 2026. Rates may vary by VIP level, trading pair, and current fee schedule — always check mexc.com/fee before trading." }
+        },
+        {
+          "@type": "Question",
+          "name": "Which currency are rewards paid in?",
+          "acceptedAnswer": { "@type": "Answer", "text": "MEXC new user rewards are typically issued as USDT vouchers or trading coupons. Specific reward formats, including any voucher conditions or volume requirements for conversion, are shown inside the MEXC Activity Center for each task after registration." }
+        },
+        {
+          "@type": "Question",
+          "name": "Can existing users use the referral code?",
+          "acceptedAnswer": { "@type": "Answer", "text": "No. The MEXC referral code mexc-CryptoBonus is for new users only and must be entered during account creation. It cannot be added to an existing MEXC account after registration is complete. If you already have a MEXC account, check the Activity Center inside your account for any available ongoing promotions." }
+        },
+        {
+          "@type": "Question",
+          "name": "Is the MEXC bonus available in every country?",
+          "acceptedAnswer": { "@type": "Answer", "text": "No. MEXC restricts service in a number of jurisdictions. Residents of North Korea, Cuba, Sudan, Iran, Mainland China, Singapore, the United States, the United Kingdom, Hong Kong, Russian-controlled regions of Ukraine, and Canada are not eligible. This list may change. Even in supported countries, specific bonus tasks or amounts may differ by region and current promotion terms." }
+        }
+      ]
+    }
+  ]
+}
+</script>
+
+</CleanLayout>

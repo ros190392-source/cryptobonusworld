@@ -7,7 +7,7 @@
       "label": "MEXC — Trading Fee Schedule",
       "type": "official-fees",
       "lastAccessed": "2026-05-27",
-      "notes": "Spot maker 0%, taker 0.20% standard. Futures maker 0%, taker 0.01%."
+      "notes": "Spot maker 0%, taker 0.05% standard (range 0.0000%–0.0500% shown on fee page; most pairs 0.05% base, 0.04% with MX discount). Futures maker 0%, taker 0.01%. Verified live June 2026 via Playwright screenshot capture."
     },
     "kyc": {
       "url": "https://www.mexc.com/support/articles/17285765816855",
@@ -139,14 +139,20 @@
     },
     {
       "field": "spot_taker_fee",
-      "currentValue": 0.2,
+      "currentValue": 0.05,
       "unit": "%",
       "officialSourceKey": "fees",
-      "lastChecked": "2026-05-27",
-      "checkedBy": "human",
-      "confidenceScore": 0.8,
-      "conflictStatus": "ok",
-      "manualReviewRequired": false
+      "lastChecked": "2026-06-22",
+      "checkedBy": "playwright-automation",
+      "confidenceScore": 0.95,
+      "conflictStatus": "corrected",
+      "manualReviewRequired": false,
+      "previousValue": 0.2,
+      "correctedAt": "2026-06-22",
+      "feeVerificationStatus": "verified",
+      "feeEvidencePath": "/media/exchanges/mexc/evidence/global-en/mexc-fee-page.png",
+      "feeEvidencePathFutures": "/media/exchanges/mexc/evidence/global-en/mexc-fee-futures-tab.png",
+      "notes": "Corrected 2026-06-22: live fee page shows 0.0000%–0.0500% range for spot taker; standard rate is 0.05% (0.04% with 20% MX token discount). Previous value 0.2% was stale data from an older fee schedule."
     },
     {
       "field": "futures_maker_fee",
@@ -360,6 +366,31 @@
       "geo": "GLOBAL",
       "device": "desktop",
       "notes": "MEXC Fee Overview public page showing 0% spot maker fee and 0–0.05% taker fee. Captured on the live platform, June 2026."
+    },
+    "fees_spot_tab": {
+      "status": "available",
+      "path": "/media/exchanges/mexc/evidence/global-en/mexc-fee-page.png",
+      "capturedAt": "2026-06-22",
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "verifiedValues": {
+        "spotMakerFee": 0,
+        "spotTakerFee": 0.05,
+        "spotTakerRange": "0.0000%–0.0500%"
+      },
+      "notes": "Playwright-captured spot fee tab on mexc.com/fee. Shows Spot Trading Fee: 0.0000% Maker / 0.0000%~0.0500% Taker. Pair table: most pairs at 0.0000% maker / 0.0400%–0.0500% taker. BTC/USDT Special Rate shows 0.0000%/0.0240% (base 0.0300% before 20% MX discount)."
+    },
+    "fees_futures_tab": {
+      "status": "available",
+      "path": "/media/exchanges/mexc/evidence/global-en/mexc-fee-futures-tab.png",
+      "capturedAt": "2026-06-22",
+      "geo": "GLOBAL",
+      "device": "desktop",
+      "verifiedValues": {
+        "futuresMakerFee": 0,
+        "futuresTakerFee": 0.01
+      },
+      "notes": "Playwright-captured futures tab on mexc.com/fee. Shows Futures Trading Fee: 0.000% Maker. BTCUSDT Perpetual (Special Rate) row confirms Taker 0.010%. Standard non-VIP USDT-M futures taker confirmed at 0.01%."
     },
     "mobile_app": {
       "status": "needs_manual_capture",

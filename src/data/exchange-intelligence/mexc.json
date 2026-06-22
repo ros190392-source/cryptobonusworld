@@ -118,9 +118,10 @@
   },
   "fees": {
     "spotMaker": 0,
-    "spotTaker": 0.2,
+    "spotTaker": 0.05,
+    "spotTakerRange": "0.0000%–0.0500%",
     "spotUnit": "%",
-    "spotNote": "0% maker — industry-lowest spot maker fee",
+    "spotNote": "0% maker / 0.05% standard taker (range 0%–0.05%; 0.04% with 20% MX token discount). Corrected 2026-06-22 from stale 0.2% value.",
     "futuresMaker": 0,
     "futuresTaker": 0.01,
     "futuresUnit": "%",
@@ -129,7 +130,11 @@
     "withdrawalFeeStructure": "network-dependent — varies by asset and blockchain",
     "depositFee": "free for crypto; varies for fiat (country/method dependent)",
     "feeSourceUrl": "https://www.mexc.com/fee",
-    "lastChecked": "2026-05-27"
+    "feeLastChecked": "2026-06-22",
+    "feeVerificationStatus": "verified",
+    "feeEvidencePath": "/media/exchanges/mexc/evidence/global-en/mexc-fee-page.png",
+    "feeEvidencePathFutures": "/media/exchanges/mexc/evidence/global-en/mexc-fee-futures-tab.png",
+    "lastChecked": "2026-06-22"
   },
   "products": {
     "spot": {
@@ -239,7 +244,7 @@
       },
       {
         "question": "What are MEXC spot trading fees?",
-        "answer": "MEXC spot trading fees: 0% maker / 0.2% taker (standard). MEXC charges 0% maker fee — among the lowest in the industry. Taker fee is 0.05%–0.2% depending on trading volume.",
+        "answer": "MEXC spot trading fees: 0% maker / 0.05% taker (standard). MEXC charges 0% maker fee — among the lowest in the industry. The standard spot taker fee is 0.05% for most pairs (0.04% with the 20% MX token discount). The fee page shows a range of 0.0000%–0.0500% across all pairs. Verified June 2026 from the official MEXC fee page.",
         "category": "fees"
       },
       {

@@ -35,6 +35,21 @@ export const offers: Offer[] = [
     status:              'verified',
     termsSummary:        'New accounts only. KYC required to withdraw. Trading volume conditions apply to higher tiers. Vouchers expire 7–30 days after issuance. Full terms on Bybit official website.',
   },
+  {
+    exchangeSlug:        'mexc',
+    promoCode:           'mexc-CryptoBonus',
+    bonusHeadline:       'Up to 10,000 USDT in new user rewards',
+    realisticValue:      'Most new users earn 30–150 USDT; base signup reward requires no KYC or deposit; higher tiers require trading volume',
+    lastChecked:         'June 2026',
+    sourceUrl:           'https://www.mexc.com/activity/new-user',
+    kycRequired:         false,
+    depositRequired:     false,
+    minDeposit:          'No deposit required for base signup tier',
+    availability:        'Global (excluding restricted regions)',
+    restrictedCountries: ['US', 'UK', 'CA', 'SG', 'HK', 'CN', 'KP', 'CU', 'SD', 'IR'],
+    status:              'unverified',
+    termsSummary:        'New accounts only. No KYC required for base tier. Higher tiers require trading volume. Bonus tasks expire within 30 days. Rewards depend on region, eligibility, deposit and trading activity. Full terms on MEXC official website.',
+  },
 ];
 
 export function getOffer(exchangeSlug: string): Offer | undefined {
