@@ -40,10 +40,10 @@ const {
   lazy = true,
 } = Astro.props;
 
-import { getBrandColor } from '../utils/logoConfig';
+import { getBrandColor, getLogoPath } from '../utils/logoConfig';
 const bgColor = getBrandColor(slug);
 const initial   = name.charAt(0).toUpperCase();
-const logoPath  = `/logos/${slug}.png`;
+const logoPath  = getLogoPath(slug, 'png');
 const radiusPx  = variant === 'pill' ? size / 2 : variant === 'square' ? Math.round(size * 0.22) : 0;
 const fontSize  = Math.round(size * 0.44);
 
