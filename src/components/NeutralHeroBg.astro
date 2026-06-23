@@ -1,0 +1,75 @@
+---
+/**
+ * NeutralHeroBg — Exchange Promo Hero sitewide background overlay (Option 2).
+ * Neutral Graphite + Logo Glow system. No exchange-specific colors.
+ * Usage: first child of .brand-hero; parent needs position:relative + overflow:hidden;
+ *        .bh-inner needs position:relative + z-index:1.
+ */
+---
+<div class="bh-bg-overlay" aria-hidden="true">
+  <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"
+       viewBox="0 0 1440 400" preserveAspectRatio="xMinYMin slice">
+    <defs>
+      <!-- Graphite planet gradient -->
+      <radialGradient id="cbw-planet-g" cx="38%" cy="32%" r="55%" gradientUnits="objectBoundingBox">
+        <stop offset="0%"   stop-color="rgba(88,98,108,0.60)"/>
+        <stop offset="52%"  stop-color="rgba(50,58,66,0.22)"/>
+        <stop offset="100%" stop-color="rgba(0,0,0,0)"/>
+      </radialGradient>
+      <!-- Logo-slot glow: helps dark wordmarks (MEXC) and adds presence to light wordmarks (Bybit) -->
+      <radialGradient id="cbw-logo-g" cx="50%" cy="50%" r="50%" gradientUnits="objectBoundingBox">
+        <stop offset="0%"   stop-color="rgba(255,255,255,0.72)"/>
+        <stop offset="32%"  stop-color="rgba(255,255,255,0.44)"/>
+        <stop offset="65%"  stop-color="rgba(255,255,255,0.10)"/>
+        <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+      </radialGradient>
+    </defs>
+
+    <!-- Planet: graphite, lower-left, cx=158 cy=258 r=46 -->
+    <circle cx="158" cy="258" r="46" fill="url(#cbw-planet-g)" opacity="0.80"/>
+    <!-- Orbit ring 1 -->
+    <ellipse cx="158" cy="258" rx="113" ry="29" fill="none"
+      stroke="rgba(168,180,192,0.13)" stroke-width="0.9"
+      transform="rotate(-20,158,258)"/>
+    <!-- Orbit ring 2 (dashed) -->
+    <ellipse cx="158" cy="258" rx="173" ry="44" fill="none"
+      stroke="rgba(168,180,192,0.07)" stroke-width="0.6" stroke-dasharray="12 24"
+      transform="rotate(-20,158,258)"/>
+
+    <!-- Logo glow: centered at logo slot (top hero) -->
+    <ellipse cx="720" cy="115" rx="268" ry="100" fill="url(#cbw-logo-g)"/>
+
+    <!-- Stars — white, scattered, subtle -->
+    <circle cx="80"   cy="45"  r="1.1" fill="rgba(255,255,255,0.60)"/>
+    <circle cx="200"  cy="30"  r="1.4" fill="rgba(255,255,255,0.70)"/>
+    <circle cx="340"  cy="55"  r="1.0" fill="rgba(255,255,255,0.55)"/>
+    <circle cx="490"  cy="35"  r="1.3" fill="rgba(255,255,255,0.65)"/>
+    <circle cx="670"  cy="50"  r="1.1" fill="rgba(255,255,255,0.60)"/>
+    <circle cx="850"  cy="28"  r="1.5" fill="rgba(255,255,255,0.72)"/>
+    <circle cx="1020" cy="52"  r="1.0" fill="rgba(255,255,255,0.58)"/>
+    <circle cx="1180" cy="38"  r="1.3" fill="rgba(255,255,255,0.65)"/>
+    <circle cx="1360" cy="48"  r="1.1" fill="rgba(255,255,255,0.60)"/>
+    <circle cx="1430" cy="30"  r="1.0" fill="rgba(255,255,255,0.55)"/>
+    <circle cx="130"  cy="172" r="1.0" fill="rgba(255,255,255,0.50)"/>
+    <circle cx="310"  cy="195" r="1.4" fill="rgba(255,255,255,0.62)"/>
+    <circle cx="530"  cy="160" r="1.1" fill="rgba(255,255,255,0.55)"/>
+    <circle cx="760"  cy="185" r="1.0" fill="rgba(255,255,255,0.52)"/>
+    <circle cx="980"  cy="172" r="1.3" fill="rgba(255,255,255,0.62)"/>
+    <circle cx="1220" cy="188" r="1.0" fill="rgba(255,255,255,0.52)"/>
+    <circle cx="1400" cy="165" r="1.1" fill="rgba(255,255,255,0.58)"/>
+    <circle cx="580"  cy="322" r="1.0" fill="rgba(255,255,255,0.50)"/>
+    <circle cx="800"  cy="308" r="1.3" fill="rgba(255,255,255,0.60)"/>
+    <circle cx="1020" cy="332" r="1.0" fill="rgba(255,255,255,0.52)"/>
+    <circle cx="1260" cy="316" r="1.1" fill="rgba(255,255,255,0.58)"/>
+  </svg>
+</div>
+
+<style>
+  .bh-bg-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+</style>

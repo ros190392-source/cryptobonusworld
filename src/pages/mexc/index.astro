@@ -32,7 +32,7 @@ const exchange = {
   founded:        2018,
   users:          '10M+',
   headquarters:   'Seychelles',
-  wordmarkImg:    '/media/exchanges/mexc/logo/mexc-logo-on-light-plaque.png',
+  wordmarkImg:    '/media/exchanges/mexc/logo/mexc-logo-transparent-2517-trimmed.png',
   articleImg:     '/media/exchanges/mexc/final/mexc-article-final-v3-1200x675.jpg',
   logoImg:        '/logos/mexc.png',
   ogImage:        '/media/exchanges/mexc/final/mexc-og-final-v3-1200x630.jpg',
@@ -51,8 +51,8 @@ const relatedExchanges = [
 ];
 
 const brandHeroTokens = {
-  'bh-bgFrom':     '#060E1A',
-  'bh-bgTo':       '#0A2038',
+  'bh-bgFrom':     '#0C1118',
+  'bh-bgTo':       '#141B25',
   'bh-text':       '#ffffff',
   'bh-text2':      'rgba(255,255,255,0.65)',
   'bh-accent':     '#0BCDFF',
@@ -183,29 +183,31 @@ const pageSchema = {
 
   /* ── Brand Hero ───────────────────────────────────────────── */
   .brand-hero {
-    background: linear-gradient(160deg, var(--bh-bgFrom) 0%, var(--bh-bgTo) 100%);
+    background:
+      url('/media/hero-backgrounds/cbw-hero-neutral-mexc-logo-glow-v1.webp') center center / cover no-repeat,
+      linear-gradient(160deg, var(--bh-bgFrom) 0%, var(--bh-bgTo) 100%);
     padding: 35px 0 54px;
     color: var(--bh-text);
+    position: relative;
+    overflow: hidden;
   }
   @media (min-width: 640px) {
     .brand-hero { padding: 42px 0 46px; display: flex; flex-direction: column; justify-content: center; }
   }
-  .bh-inner { width: 100%; max-width: 540px; margin: 0 auto; padding: 0 20px; text-align: center; box-sizing: border-box; }
+  .bh-inner { width: 100%; max-width: 540px; margin: 0 auto; padding: 0 20px; text-align: center; box-sizing: border-box; position: relative; z-index: 1; }
 
-  /* Official MEXC logo on white plaque (322×91, AR 3.538) — fixed slot standard v1 */
-  /* Mobile: 240px → ~68px h | Desktop: 300px → ~85px h — NO border-radius (plaque has baked-in rx) */
   .bh-wordmark { display: block; width: 240px; height: auto; margin: 0 auto 10px; filter: none; opacity: 1; }
   @media (min-width: 640px) { .bh-wordmark { width: 300px; } }
   @media (max-width: 359px) { .bh-wordmark { width: 200px; } }
 
   .bh-promo-label {
     display: block;
-    font-family: "Arial Narrow", "Roboto Condensed", "Inter Tight", Inter, system-ui, sans-serif;
-    font-size: 22px; font-weight: 700; text-transform: uppercase;
-    font-stretch: condensed; letter-spacing: 0.09em; color: var(--bh-text);
-    line-height: 1.1; margin-top: 16px; margin-bottom: 24px;
+    font-family: "Barlow Condensed", "Oswald", "Arial Narrow", sans-serif;
+    font-size: 24px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 0.05em; color: white;
+    line-height: 1; margin-top: 2px; margin-bottom: 22px;
   }
-  @media (min-width: 640px) { .bh-promo-label { font-size: 18px; letter-spacing: 0.10em; margin-top: 18px; margin-bottom: 26px; } }
+  @media (min-width: 640px) { .bh-promo-label { font-size: 34px; } }
 
   .bh-promo-row {
     width: 100%; max-width: 298px;
@@ -213,7 +215,7 @@ const pageSchema = {
     display: flex; align-items: stretch;
     background: #ffffff; background-image: linear-gradient(#ffffff 0 0);
     border: 1px solid #D1D5DB; border-radius: 8px; overflow: hidden;
-    height: 56px; margin-bottom: 14px;
+    height: 56px; margin-bottom: 18px;
     transition: border-color .18s, background .18s;
     color-scheme: light; forced-color-adjust: none;
   }
@@ -250,7 +252,7 @@ const pageSchema = {
     width: 100%; max-width: 320px; margin-left: auto; margin-right: auto;
     background: #55C72F; color: #fff;
     font-size: 24px; font-weight: 700; border-radius: 6px;
-    height: 68px; margin-bottom: 12px;
+    height: 68px; margin-bottom: 16px;
     transition: background .15s, transform .1s; letter-spacing: 0;
     text-decoration: none;
   }
@@ -632,7 +634,7 @@ const pageSchema = {
         src={exchange.wordmarkImg}
         alt={exchange.name}
         class="bh-wordmark"
-        width="322" height="91"
+        width="250" height="60"
         fetchpriority="high"
       />
     </a>
@@ -1092,7 +1094,7 @@ const pageSchema = {
 <section class="brand-hero" style={bhStyle}>
   <div class="bh-inner">
     <a href={exchange.affiliateUrl} rel="noopener sponsored" aria-label={`Get ${exchange.name} bonus`} style="display:block;line-height:0;">
-      <img src={exchange.wordmarkImg} alt={exchange.name} class="bh-wordmark" width="322" height="91" loading="lazy" />
+      <img src={exchange.wordmarkImg} alt={exchange.name} class="bh-wordmark" width="250" height="60" loading="lazy" />
     </a>
     <p class="bh-promo-label">REFERRAL CODE</p>
     <div class="bh-promo-row">

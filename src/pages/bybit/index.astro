@@ -37,8 +37,8 @@ const relatedExchanges = [
 ];
 
 const brandHeroTokens = {
-  'bh-bgFrom':     '#0d1117',
-  'bh-bgTo':       '#1a1f2e',
+  'bh-bgFrom':     '#0C1118',
+  'bh-bgTo':       '#141B25',
   'bh-text':       '#ffffff',
   'bh-text2':      'rgba(255,255,255,0.65)',
   'bh-accent':     '#f7a600',
@@ -110,14 +110,18 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
 
   /* ── Brand Hero ───────────────────────────────────────────── */
   .brand-hero {
-    background: linear-gradient(160deg, var(--bh-bgFrom) 0%, var(--bh-bgTo) 100%);
+    background:
+      url('/media/hero-backgrounds/cbw-hero-neutral-bybit-no-glow-v1.webp') left center / cover no-repeat,
+      linear-gradient(160deg, var(--bh-bgFrom) 0%, var(--bh-bgTo) 100%);
     padding: 35px 0 54px;
     color: var(--bh-text);
+    position: relative;
+    overflow: hidden;
   }
   @media (min-width: 640px) {
     .brand-hero { padding: 42px 0 46px; display: flex; flex-direction: column; justify-content: center; }
   }
-  .bh-inner { width: 100%; max-width: 540px; margin: 0 auto; padding: 0 20px; text-align: center; box-sizing: border-box; }
+  .bh-inner { width: 100%; max-width: 540px; margin: 0 auto; padding: 0 20px; text-align: center; box-sizing: border-box; position: relative; z-index: 1; }
 
   .bh-wordmark { display: block; width: 165px; height: auto; margin: 0 auto 10px; filter: none; opacity: 1; }
   @media (min-width: 640px) { .bh-wordmark { width: 210px; } }
@@ -125,12 +129,12 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
 
   .bh-promo-label {
     display: block;
-    font-family: "Arial Narrow", "Roboto Condensed", "Inter Tight", Inter, system-ui, sans-serif;
-    font-size: 22px; font-weight: 700; text-transform: uppercase;
-    font-stretch: condensed; letter-spacing: 0.09em; color: var(--bh-text);
-    line-height: 1.1; margin-top: 16px; margin-bottom: 24px;
+    font-family: "Barlow Condensed", "Oswald", "Arial Narrow", sans-serif;
+    font-size: 24px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 0.05em; color: white;
+    line-height: 1; margin-top: 2px; margin-bottom: 22px;
   }
-  @media (min-width: 640px) { .bh-promo-label { font-size: 18px; letter-spacing: 0.10em; margin-top: 18px; margin-bottom: 26px; } }
+  @media (min-width: 640px) { .bh-promo-label { font-size: 34px; } }
 
   .bh-promo-row {
     width: 100%; max-width: 298px;
@@ -138,7 +142,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
     display: flex; align-items: stretch;
     background: #ffffff; background-image: linear-gradient(#ffffff 0 0);
     border: 1px solid #D1D5DB; border-radius: 8px; overflow: hidden;
-    height: 56px; margin-bottom: 14px;
+    height: 56px; margin-bottom: 18px;
     transition: border-color .18s, background .18s;
     color-scheme: light; forced-color-adjust: none;
   }
@@ -175,7 +179,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
     width: 100%; max-width: 320px; margin-left: auto; margin-right: auto;
     background: #55C72F; color: #fff;
     font-size: 24px; font-weight: 700; border-radius: 6px;
-    height: 68px; margin-bottom: 12px;
+    height: 68px; margin-bottom: 16px;
     transition: background .15s, transform .1s; letter-spacing: 0;
     text-decoration: none;
   }
