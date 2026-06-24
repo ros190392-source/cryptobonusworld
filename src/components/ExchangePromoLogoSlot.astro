@@ -1,0 +1,161 @@
+---
+/**
+ * ExchangePromoLogoSlot — standardized logo slot for exchange promo blocks.
+ *
+ * Renders the exchange logo inside a fixed-dimension container so every
+ * exchange page uses identical slot geometry. Only visualScale changes the
+ * effective logo size within the frozen slot.
+ *
+ * Desktop slot: 320 × 96 px | Mobile slot: 250 × 76 px
+ * Logo max (desktop): 300 × 86 px | Logo max (mobile): 235 × 68 px
+ *
+ * Glow families (see CBW_EXCHANGE_VISUAL_PACK_FACTORY_STANDARD_v1.md §3):
+ *   mode='clean'        → no_glow    — white/light logos, no support needed
+ *   mode='soft-glow'    → soft_glow  — dark wordmark, moderate support (0.65 opacity)
+ *   mode='strong-glow'  → strong_glow — dark wordmark, strong support (0.82 opacity)
+ *   mode='glow'         → alias for 'soft-glow' (backward compatibility)
+ *
+ * On page promo blocks where the hero PNG already contains a baked glow,
+ * use mode='clean' — the background provides the glow, no CSS layer needed.
+ * Glow modes are primarily intended for Node-based visual pack generators
+ * (OG, article, card) where no background image is present.
+ */
+
+export interface Props {
+  src: string;
+  alt: string;
+  /**
+   * Glow family:
+   * - 'clean'       → no_glow (default)
+   * - 'soft-glow'   → soft_glow (0.65 center, 145%×125% slot)
+   * - 'strong-glow' → strong_glow (0.82 center, 165%×145% slot)
+   * - 'glow'        → alias for 'soft-glow'
+   */
+  mode?: 'clean' | 'soft-glow' | 'strong-glow' | 'glow';
+  /**
+   * Optical scale factor 0.2–1.0.
+   * Scales the logo's max-width / max-height within the fixed slot.
+   * Default 1.0 = uses full slot budget (300×86 desktop, 235×68 mobile).
+   * Use e.g. 0.70 for logos that look better slightly smaller (Bybit = 0.70).
+   */
+  visualScale?: number;
+  fetchpriority?: 'high' | 'low' | 'auto';
+  loading?: 'eager' | 'lazy';
+}
+
+const {
+  src,
+  alt,
+  mode = 'clean',
+  visualScale = 1,
+  fetchpriority,
+  loading,
+} = Astro.props;
+
+const resolvedMode = mode === 'glow' ? 'soft-glow' : mode;
+const hasGlow = resolvedMode === 'soft-glow' || resolvedMode === 'strong-glow';
+
+const vs = Math.min(1, Math.max(0.2, visualScale));
+const mobileMaxW = Math.round(235 * vs);
+const mobileMaxH = Math.round(68  * vs);
+const desktopMaxW = Math.round(300 * vs);
+const desktopMaxH = Math.round(86  * vs);
+
+const slotStyle = `--ls-mw:${mobileMaxW}px;--ls-mh:${mobileMaxH}px;--ls-dw:${desktopMaxW}px;--ls-dh:${desktopMaxH}px;`;
+---
+
+<div
+  class:list={[
+    'cbw-logo-slot',
+    resolvedMode === 'soft-glow'   && 'cbw-logo-slot--soft-glow',
+    resolvedMode === 'strong-glow' && 'cbw-logo-slot--strong-glow',
+  ]}
+  style={slotStyle}
+>
+  {hasGlow && <span class="cbw-logo-slot__glow" aria-hidden="true"></span>}
+  <img
+    src={src}
+    alt={alt}
+    class="cbw-logo-slot__img"
+    width={desktopMaxW}
+    height={desktopMaxH}
+    fetchpriority={fetchpriority}
+    loading={loading}
+  />
+</div>
+
+<style>
+  .cbw-logo-slot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    width: 250px;
+    height: 76px;
+    margin: 0 auto 10px;
+  }
+
+  @media (min-width: 640px) {
+    .cbw-logo-slot { width: 320px; height: 96px; }
+  }
+
+  .cbw-logo-slot__img {
+    display: block;
+    max-width: var(--ls-mw, 235px);
+    max-height: var(--ls-mh, 68px);
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    object-position: center center;
+    filter: none;
+    opacity: 1;
+    position: relative;
+    z-index: 1;
+  }
+
+  @media (min-width: 640px) {
+    .cbw-logo-slot__img {
+      max-width: var(--ls-dw, 300px);
+      max-height: var(--ls-dh, 86px);
+    }
+  }
+
+  /* soft_glow: 0.65 center opacity, 145% × 125% slot */
+  .cbw-logo-slot--soft-glow .cbw-logo-slot__glow {
+    position: absolute;
+    width: 145%;
+    height: 125%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -53%);
+    background: radial-gradient(
+      ellipse at center,
+      rgba(235, 245, 255, 0.65) 0%,
+      rgba(235, 245, 255, 0.0) 70%
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* strong_glow: 0.82 center opacity, 165% × 145% slot */
+  .cbw-logo-slot--strong-glow .cbw-logo-slot__glow {
+    position: absolute;
+    width: 165%;
+    height: 145%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -54%);
+    background: radial-gradient(
+      ellipse at center,
+      rgba(235, 245, 255, 0.82) 0%,
+      rgba(235, 245, 255, 0.0) 70%
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Prevent dark-mode from inverting or dimming the logo */
+  @media (prefers-color-scheme: dark) {
+    .cbw-logo-slot__img { filter: none !important; opacity: 1 !important; }
+  }
+</style>

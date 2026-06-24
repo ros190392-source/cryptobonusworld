@@ -17,7 +17,7 @@ const { exchange: ex, offer } = Astro.props;
       alt={`${ex.name} referral code — claim bonus`}
       class="ec-img"
       width="1200" height="800"
-      loading="lazy"
+      loading="eager"
     />
   </div>
   <div class="ec-body">
@@ -77,8 +77,12 @@ const { exchange: ex, offer } = Astro.props;
   .ec-verified { font-size: 10px; color: #16A34A; font-weight: 600; }
 
   .ec-cta {
-    margin-top: 4px; font-size: 13px; font-weight: 700;
-    color: #16A34A;
+    margin-top: 8px;
+    display: block; text-align: center;
+    background: #16A34A; color: #fff;
+    font-size: 13px; font-weight: 700;
+    padding: 9px 16px; border-radius: 8px;
+    transition: background .15s;
   }
-  .ec:hover .ec-cta { text-decoration: underline; }
+  .ec:hover .ec-cta { background: #15803D; text-decoration: none; }
 </style>

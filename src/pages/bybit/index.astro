@@ -1,6 +1,7 @@
 ---
 import CleanLayout from '../../layouts/CleanLayout.astro';
 import { getOffer } from '../../data/offers';
+import ExchangePromoLogoSlot from '../../components/ExchangePromoLogoSlot.astro';
 
 const offer = getOffer('bybit')!;
 
@@ -20,7 +21,7 @@ const exchange = {
   headquarters:     'Dubai, UAE',
   licence:          'Dubai VARA',
   wordmarkImg:      '/logos/bybit-wordmark-official.png',
-  articleImg:       '/media/exchanges/bybit/final/bybit-article-final-v1-1200x675.jpg',
+  articleImg:       '/media/exchanges/bybit/final/bybit-article-final-v3-1200x675.jpg',
   logoImg:          '/logos/bybit.png',
   fees: {
     spot:    { maker: '0.1%',   taker: '0.1%'   },
@@ -53,7 +54,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
   title={`${exchange.name} Referral Code 2026: ${offer.promoCode} — Up to ${exchange.bonusMax.toLocaleString('en-US')} ${exchange.currency} Bonus`}
   description={`${exchange.name} promo code ${offer.promoCode} — up to ${exchange.bonusMax.toLocaleString('en-US')} ${exchange.currency} welcome package + fee discount. Verified ${offer.lastChecked}. Enter code at registration before your first deposit.`}
   canonical="https://cryptobonusworld.com/bybit/"
-  ogImage="/media/exchanges/bybit/final/bybit-og-final-v1-1200x630.jpg"
+  ogImage="/media/exchanges/bybit/final/bybit-og-final-v3-1200x630.jpg"
   ogTitle={`${exchange.name} Referral Code: ${offer.promoCode} — Claim Bonus`}
   ogDescription={`Use ${exchange.name} referral code ${offer.promoCode} to claim welcome rewards up to ${exchange.bonusMax.toLocaleString('en-US')} ${exchange.currency}. Verified ${offer.lastChecked} by CryptoBonusWorld.`}
 >
@@ -111,7 +112,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
   /* ── Brand Hero ───────────────────────────────────────────── */
   .brand-hero {
     background:
-      url('/media/hero-backgrounds/cbw-hero-neutral-bybit-no-glow-v1.webp') left center / cover no-repeat,
+      url('/media/hero-backgrounds/bybit-hero-custom-v1.png') left center / cover no-repeat,
       linear-gradient(160deg, var(--bh-bgFrom) 0%, var(--bh-bgTo) 100%);
     padding: 35px 0 54px;
     color: var(--bh-text);
@@ -122,10 +123,6 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
     .brand-hero { padding: 42px 0 46px; display: flex; flex-direction: column; justify-content: center; }
   }
   .bh-inner { width: 100%; max-width: 540px; margin: 0 auto; padding: 0 20px; text-align: center; box-sizing: border-box; position: relative; z-index: 1; }
-
-  .bh-wordmark { display: block; width: 165px; height: auto; margin: 0 auto 10px; filter: none; opacity: 1; }
-  @media (min-width: 640px) { .bh-wordmark { width: 210px; } }
-  @media (max-width: 359px) { .bh-wordmark { width: 140px; } }
 
   .bh-promo-label {
     display: block;
@@ -518,7 +515,6 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
     .cf-code { color: #c47f00 !important; -webkit-text-fill-color: #c47f00 !important; }
     .cf-good { color: #16a34a !important; -webkit-text-fill-color: #16a34a !important; }
     .cf-warn { color: #b45309 !important; -webkit-text-fill-color: #b45309 !important; }
-    .bh-wordmark { filter: none !important; opacity: 1 !important; }
     /* Part 2 overrides */
     .p2-section { background: #fff !important; color-scheme: light !important; forced-color-adjust: none; }
     .p2-section-alt { background: #F9FAFB !important; }
@@ -563,11 +559,11 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
   <div class="bh-inner">
 
     <a href={exchange.affiliateUrl} rel="noopener sponsored" aria-label={`Get ${exchange.name} bonus`} style="display:block;line-height:0;">
-      <img
+      <ExchangePromoLogoSlot
         src={exchange.wordmarkImg}
         alt={exchange.name}
-        class="bh-wordmark"
-        width="210" height="78"
+        mode="clean"
+        visualScale={0.70}
         fetchpriority="high"
       />
     </a>
@@ -1010,7 +1006,13 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
 <section class="brand-hero" style={bhStyle}>
   <div class="bh-inner">
     <a href={exchange.affiliateUrl} rel="noopener sponsored" aria-label={`Get ${exchange.name} bonus`} style="display:block;line-height:0;">
-      <img src={exchange.wordmarkImg} alt={exchange.name} class="bh-wordmark" width="210" height="78" />
+      <ExchangePromoLogoSlot
+        src={exchange.wordmarkImg}
+        alt={exchange.name}
+        mode="clean"
+        visualScale={0.70}
+        loading="lazy"
+      />
     </a>
     <p class="bh-promo-label">PROMO CODE</p>
     <div class="bh-promo-row">

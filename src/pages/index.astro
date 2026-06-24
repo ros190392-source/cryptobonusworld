@@ -34,7 +34,7 @@ const faqs = [
 <CleanLayout
   title="Crypto Promo Codes & Referral Bonuses 2026 — Verified | CryptoBonusWorld"
   description={`Verified crypto referral codes and promo bonuses for top exchanges. Use ${bybitCode} on Bybit for up to 30,000 USDT. Codes checked June 2026.`}
-  ogImage="/media/exchanges/bybit/final/bybit-og-final-v1-1200x630.jpg"
+  ogImage="/media/exchanges/bybit/final/bybit-og-final-v3-1200x630.jpg"
 >
 
   <!-- Hero -->
@@ -54,17 +54,12 @@ const faqs = [
           <a href="#exchanges" class="btn-primary hero-cta">Browse Exchanges</a>
           <a href="/bybit/" class="btn-secondary">Bybit {bybitCode} →</a>
         </div>
-        <div class="hero-trust">
-          <span class="trust-pill">✓ No casino style</span>
-          <span class="trust-pill">✓ No fake bonuses</span>
-          <span class="trust-pill">✓ Source-verified codes</span>
-        </div>
       </div>
     </div>
   </section>
 
   <!-- Featured Exchange Grid -->
-  <section class="section bg-white" id="exchanges">
+  <section class="section bg-white section-exchange" id="exchanges">
     <div class="container">
       <div class="section-label">Featured Exchanges</div>
       <h2 class="section-title">Top Crypto Referral Codes</h2>
@@ -72,6 +67,11 @@ const faqs = [
         Each listing includes the verified promo code, realistic bonus estimate,
         and a direct link to the official offer page.
       </p>
+      <div class="exchange-trust">
+        <span class="exchange-trust-pill">✓ No casino style</span>
+        <span class="exchange-trust-pill">✓ No fake bonuses</span>
+        <span class="exchange-trust-pill">✓ Source-verified codes</span>
+      </div>
       <div class="exchange-grid">
         {exchangesWithOffers.map(({ exchange, offer }) => (
           <ExchangeCard exchange={exchange} offer={offer} />
@@ -162,9 +162,9 @@ const faqs = [
 <style>
   .hero {
     background: linear-gradient(160deg, #080F18 0%, #0e1f36 60%, #13233E 100%);
-    color: #fff; padding: 64px 0 72px;
+    color: #fff; padding: 36px 0 40px;
   }
-  @media (min-width: 820px) { .hero { padding: 88px 0 96px; } }
+  @media (min-width: 820px) { .hero { padding: 48px 0 52px; } }
   .hero-inner { max-width: 680px; }
   .hero-label {
     display: inline-block; font-size: 11px; font-weight: 700;
@@ -181,9 +181,17 @@ const faqs = [
     -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
   }
   .hero-sub { font-size: 17px; line-height: 1.7; color: rgba(255,255,255,.70); margin-bottom: 32px; max-width: 540px; }
-  .hero-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 28px; }
-  .hero-trust { display: flex; gap: 12px; flex-wrap: wrap; }
-  .trust-pill { font-size: 12px; color: rgba(255,255,255,.45); font-weight: 500; white-space: nowrap; }
+  .hero-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 0; }
+
+  /* Exchange section: tighter padding than global .section */
+  .section-exchange { padding: 28px 0 52px; }
+
+  /* Tighten the intro text gap before the grid */
+  .section-exchange .section-sub { margin-bottom: 14px; }
+
+  /* Trust pills relocated from hero into section header */
+  .exchange-trust { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
+  .exchange-trust-pill { font-size: 12px; color: #6B7280; font-weight: 500; white-space: nowrap; }
 
   .bg-white { background: #fff; }
   .bg-gray  { background: #F7F8F4; }
