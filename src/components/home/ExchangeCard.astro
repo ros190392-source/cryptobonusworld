@@ -10,31 +10,33 @@ export interface Props {
 const { exchange: ex, offer } = Astro.props;
 ---
 
-<a href={ex.pageUrl ?? `/exchanges/${ex.slug}/`} class="ec">
-  <div class="ec-img-wrap">
-    <img
-      src={ex.cardImage}
-      alt={`${ex.name} referral code — claim bonus`}
-      class="ec-img"
-      width="1200" height="800"
-      loading="eager"
-    />
-  </div>
+<div class="ec">
+  <a href={ex.pageUrl ?? `/exchanges/${ex.slug}/`} class="ec-img-link" tabindex="-1" aria-label={`${ex.name} exchange page`}>
+    <div class="ec-img-wrap">
+      <img
+        src={ex.cardImage}
+        alt={`${ex.name} referral code — claim bonus`}
+        class="ec-img"
+        width="1200" height="800"
+        loading="eager"
+      />
+    </div>
+  </a>
   <div class="ec-body">
-    <div class="ec-name">{ex.name}</div>
+    <a href={ex.pageUrl ?? `/exchanges/${ex.slug}/`} class="ec-name">{ex.name}</a>
     {offer && (
       <div class="ec-bonus">{offer.bonusHeadline}</div>
     )}
     {offer && (
-      <div class="ec-code-row">
-        <span class="ec-code-label">Code</span>
+      <div class="ec-code-band">
+        <span class="ec-code-label">Promo code</span>
         <span class="ec-code">{offer.promoCode}</span>
         {offer.status === 'verified' && <span class="ec-verified">✓ verified</span>}
       </div>
     )}
-    <div class="ec-cta">Get Bonus →</div>
+    <a href={ex.affiliateUrl} class="ec-cta">Claim Bonus →</a>
   </div>
-</a>
+</div>
 
 <style>
   .ec {
@@ -43,46 +45,59 @@ const { exchange: ex, offer } = Astro.props;
     border: 1px solid #E5E7EB;
     border-radius: 12px;
     overflow: hidden;
-    text-decoration: none;
-    color: inherit;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
     transition: box-shadow .2s, transform .15s, border-color .2s;
   }
   .ec:hover {
-    box-shadow: 0 4px 16px rgba(0,0,0,0.10);
-    transform: translateY(-2px);
-    border-color: #D1D5DB;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.11);
+    transform: translateY(-3px);
+    border-color: #C7D2FE;
   }
 
-  /* Image: width 100%, height auto, never cropped */
+  /* Image link fills full width, no underline */
+  .ec-img-link { display: block; text-decoration: none; }
   .ec-img-wrap { overflow: hidden; border-bottom: 1px solid #F3F4F6; }
-  .ec-img { width: 100%; height: auto; display: block; transition: transform .3s; }
-  .ec:hover .ec-img { transform: scale(1.02); }
+  .ec-img { width: 100%; height: auto; display: block; transition: transform .35s; }
+  .ec:hover .ec-img { transform: scale(1.025); }
 
-  .ec-body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
+  .ec-body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 7px; }
 
-  .ec-name { font-size: 16px; font-weight: 700; color: #111827; }
-  .ec-bonus { font-size: 13px; color: #4B5563; line-height: 1.4; }
+  /* Name as link — styled like plain text */
+  .ec-name {
+    font-size: 16px; font-weight: 800; color: #111827; letter-spacing: -.01em;
+    text-decoration: none; display: block;
+  }
+  .ec-name:hover { color: #1D4ED8; text-decoration: underline; }
 
-  .ec-code-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-  .ec-code-label { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: #9CA3AF; }
-  /* compact badge — same tokens as PromoCodeBox, smaller size */
+  .ec-bonus { font-size: 13px; color: #374151; line-height: 1.45; }
+
+  /* Promo code band — clippable coupon strip */
+  .ec-code-band {
+    display: flex; align-items: center; gap: 7px; flex-wrap: wrap;
+    background: #FFFBF5; border: 1px dashed #FCD34D;
+    border-radius: 7px; padding: 7px 10px;
+  }
+  .ec-code-label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: .07em;
+    color: #92400E; font-weight: 600; white-space: nowrap;
+  }
   .ec-code {
-    font-size: 12px; font-weight: 900;
+    font-size: 13px; font-weight: 900;
     font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
     background: #FFF7ED; border: 1.5px solid #FED7AA;
-    color: #C2410C; padding: 3px 9px; border-radius: 6px;
-    letter-spacing: .06em; user-select: all;
+    color: #C2410C; padding: 3px 10px; border-radius: 5px;
+    letter-spacing: .07em; user-select: all;
   }
-  .ec-verified { font-size: 10px; color: #16A34A; font-weight: 600; }
+  .ec-verified { font-size: 10px; color: #16A34A; font-weight: 700; white-space: nowrap; }
 
+  /* CTA as proper link */
   .ec-cta {
-    margin-top: 8px;
-    display: block; text-align: center;
+    margin-top: 4px;
+    display: block; text-align: center; text-decoration: none;
     background: #16A34A; color: #fff;
     font-size: 13px; font-weight: 700;
     padding: 9px 16px; border-radius: 8px;
     transition: background .15s;
   }
-  .ec:hover .ec-cta { background: #15803D; text-decoration: none; }
+  .ec-cta:hover { background: #15803D; }
 </style>

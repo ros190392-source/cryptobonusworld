@@ -16,7 +16,7 @@ mkdirSync(OUT, { recursive: true });
 
 const { default: sharp } = await import('sharp');
 const browser = await chromium.launch();
-const BASE = 'http://localhost:4322';
+const BASE = 'http://127.0.0.1:4322';
 
 async function page(vp, url) {
   const p = await browser.newPage({ viewport: vp });
@@ -110,7 +110,7 @@ console.log('── 07 Card → Bybit page flow ──');
   await bybitHero.close();
 
   const r1 = await labelled(homeBuf, 'homepage — bybit card', '#94a3b8', FW, R1);
-  const r2 = await labelled(heroBuf, 'bybit exchange page — no_glow hero', '#60a5fa', FW, R2);
+  const r2 = await labelled(heroBuf, 'bybit exchange page — custom hero v3', '#F7931A', FW, R2);
   await sharp({ create: { width: FW, height: R1 + 3 + R2, channels: 3, background: { r: 11, g: 13, b: 20 } } })
     .composite([
       { input: r1, left: 0, top: 0 },
@@ -135,7 +135,7 @@ console.log('── 08 Card → MEXC page flow ──');
   await mexcHero.close();
 
   const r1 = await labelled(homeBuf, 'homepage — mexc card', '#94a3b8', FW, R1);
-  const r2 = await labelled(heroBuf, 'mexc exchange page — soft_glow hero', '#34d399', FW, R2);
+  const r2 = await labelled(heroBuf, 'mexc exchange page — custom hero v3', '#22d3ee', FW, R2);
   await sharp({ create: { width: FW, height: R1 + 3 + R2, channels: 3, background: { r: 11, g: 13, b: 20 } } })
     .composite([
       { input: r1, left: 0, top: 0 },
