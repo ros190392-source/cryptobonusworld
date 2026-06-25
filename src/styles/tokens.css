@@ -1,0 +1,84 @@
+/*
+ * CBW Design System — Token Sheet v1
+ * Light fintech chrome theme
+ * Used by: CleanLayout.astro (homepage, exchange pages)
+ */
+
+:root {
+  /* ── Brand palette ── */
+  --cbw-navy:         #080F18;   /* deep page bg, footer */
+  --cbw-navy-header:  #13233E;   /* sticky header */
+  --cbw-navy-drop:    #1a2e4a;   /* dropdown bg */
+  --cbw-amber:        #F7931A;   /* brand accent — logo, labels, decorative */
+  --cbw-amber-lt:     #F9B841;   /* amber hover */
+  --cbw-amber-dim:    rgba(247,147,26,.12);
+  --cbw-amber-border: rgba(247,147,26,.28);
+  --cbw-green:        #16A34A;   /* CTA buttons */
+  --cbw-green-hover:  #15803D;   /* CTA hover */
+  --cbw-green-dim:    rgba(22,163,74,.08);
+
+  /* ── Light page chrome ── */
+  --cbw-bg:           #F7F8F4;   /* page background */
+  --cbw-white:        #ffffff;
+  --cbw-gray-50:      #F9FAFB;
+  --cbw-gray-100:     #F3F4F6;
+  --cbw-gray-200:     #E5E7EB;
+  --cbw-gray-300:     #D1D5DB;
+  --cbw-gray-400:     #9CA3AF;
+  --cbw-gray-500:     #6B7280;
+  --cbw-gray-600:     #4B5563;
+  --cbw-gray-700:     #374151;
+  --cbw-gray-900:     #111827;
+
+  /* ── Typography ── */
+  --cbw-font:         'Inter', system-ui, -apple-system, sans-serif;
+  --cbw-font-mono:    'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+
+  /* ── Border radius ── */
+  --cbw-r-sm:   6px;
+  --cbw-r-md:   10px;
+  --cbw-r-lg:   12px;
+  --cbw-r-xl:   16px;
+  --cbw-r-pill: 100px;
+
+  /* ── Card tokens ── */
+  --cbw-card-bg:          var(--cbw-white);
+  --cbw-card-border:      var(--cbw-gray-200);
+  --cbw-card-radius:      var(--cbw-r-lg);
+  --cbw-card-shadow:      0 2px 6px rgba(0,0,0,.06);
+  --cbw-card-shadow-h:    0 6px 20px rgba(0,0,0,.11);
+  --cbw-card-border-h:    #C7D2FE;
+
+  /* ── Coupon chip tokens ── */
+  --cbw-coupon-bg:        #FFFBF5;
+  --cbw-coupon-border:    #FCD34D;
+  --cbw-coupon-code-bg:   #FFF7ED;
+  --cbw-coupon-code-bd:   #FED7AA;
+  --cbw-coupon-code-tx:   #C2410C;
+  --cbw-coupon-label:     #92400E;
+  --cbw-coupon-verified:  var(--cbw-green);
+
+  /* ── Button: primary (green CTA) ── */
+  --cbw-btn-primary-bg:   var(--cbw-green);
+  --cbw-btn-primary-tx:   #ffffff;
+  --cbw-btn-primary-h:    var(--cbw-green-hover);
+
+  /* ── Button: secondary (outline) ── */
+  --cbw-btn-sec-bg:       var(--cbw-white);
+  --cbw-btn-sec-tx:       var(--cbw-gray-700);
+  --cbw-btn-sec-bd:       var(--cbw-gray-300);
+  --cbw-btn-sec-h-bg:     var(--cbw-gray-50);
+  --cbw-btn-sec-h-bd:     var(--cbw-gray-400);
+
+  /* ── Shadows ── */
+  --cbw-shadow-sm:  0 1px 4px rgba(0,0,0,.08);
+  --cbw-shadow-md:  0 4px 12px rgba(0,0,0,.10);
+  --cbw-shadow-lg:  0 8px 24px rgba(0,0,0,.14);
+
+  /* ── Layout ── */
+  --cbw-container:  1180px;
+
+  /* ── Transitions ── */
+  --cbw-ease:       150ms ease;
+  --cbw-ease-up:    200ms ease;
+}

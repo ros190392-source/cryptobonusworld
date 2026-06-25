@@ -1,0 +1,58 @@
+{
+  "_comment": "Maps design mockup component names to actual Astro component files",
+  "components": {
+    "ExchangeCard": {
+      "mockup": "Exchange Card.dc.html / Exchange Card Standard.dc.html",
+      "astro": "src/components/home/ExchangeCard.astro",
+      "status": "v1-live",
+      "features": ["click-to-copy", "image-to-page-link", "name-to-page-link", "cta-to-affiliate", "no-nested-links"]
+    },
+    "HomepageGrid": {
+      "mockup": "Homepage.dc.html",
+      "astro": "src/pages/index.astro (exchange-grid section)",
+      "status": "v1-live",
+      "features": ["3col-desktop", "2col-tablet", "1col-mobile", "compact-hero"]
+    },
+    "SiteHeader": {
+      "mockup": "CBW Components Gallery.dc.html (header section)",
+      "astro": "src/components/layout/SiteHeader.astro",
+      "status": "frozen",
+      "note": "Do not redesign without owner approval"
+    },
+    "SiteFooter": {
+      "mockup": "CBW Components Gallery.dc.html (footer section)",
+      "astro": "src/components/layout/SiteFooter.astro",
+      "status": "v1-live"
+    },
+    "CleanLayout": {
+      "mockup": "Design System Spec.dc.html",
+      "astro": "src/layouts/CleanLayout.astro",
+      "status": "v1-live",
+      "features": ["light-theme", "tokens-imported", "green-btns", "inter-font"]
+    },
+    "ExchangeHero": {
+      "mockup": "Exchange Page.dc.html",
+      "astro": "src/components/ExchangeHero.astro",
+      "status": "phase-2"
+    }
+  },
+  "tokens": {
+    "file": "src/styles/tokens.css",
+    "prefix": "--cbw-",
+    "status": "v1-live"
+  },
+  "live_values": {
+    "bybit": {
+      "promoCode": "CRYPTOBONUSW",
+      "cta": "/go/bybit",
+      "page": "/bybit/",
+      "cardImage": "/media/exchanges/bybit/final/bybit-card-final-v3-1200x800.jpg"
+    },
+    "mexc": {
+      "promoCode": "mexc-CryptoBonus",
+      "cta": "/go/mexc",
+      "page": "/mexc/",
+      "cardImage": "/media/exchanges/mexc/final/mexc-card-final-v3-1200x800.jpg"
+    }
+  }
+}

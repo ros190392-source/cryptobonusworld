@@ -30,7 +30,21 @@ const { exchange: ex, offer } = Astro.props;
     {offer && (
       <div class="ec-code-band">
         <span class="ec-code-label">Promo code</span>
-        <span class="ec-code">{offer.promoCode}</span>
+        <button
+          class="ec-code-btn"
+          data-code={offer.promoCode}
+          aria-label={`Copy promo code ${offer.promoCode}`}
+          type="button"
+        >
+          <span class="ec-code-text">{offer.promoCode}</span>
+          <span class="ec-copy-icon" aria-hidden="true">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="5.5" y="1.5" width="9" height="11" rx="1.5" stroke="currentColor" stroke-width="1.4"/>
+              <path d="M10.5 1.5V1A1.5 1.5 0 0 0 9 -0.5H2A1.5 1.5 0 0 0 .5 1v9A1.5 1.5 0 0 0 2 11.5h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <span class="ec-copy-check" aria-hidden="true">✓</span>
+        </button>
         {offer.status === 'verified' && <span class="ec-verified">✓ verified</span>}
       </div>
     )}
@@ -38,66 +52,103 @@ const { exchange: ex, offer } = Astro.props;
   </div>
 </div>
 
+<script>
+  document.querySelectorAll<HTMLButtonElement>('.ec-code-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const code = btn.dataset.code ?? '';
+      try {
+        await navigator.clipboard.writeText(code);
+      } catch {
+        const ta = document.createElement('textarea');
+        ta.value = code;
+        ta.style.cssText = 'position:fixed;opacity:0;pointer-events:none';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+      btn.classList.add('copied');
+      setTimeout(() => btn.classList.remove('copied'), 1800);
+    });
+  });
+</script>
+
 <style>
   .ec {
     display: flex; flex-direction: column;
-    background: #fff;
-    border: 1px solid #E5E7EB;
-    border-radius: 12px;
+    background: var(--cbw-card-bg, #fff);
+    border: 1px solid var(--cbw-card-border, #E5E7EB);
+    border-radius: var(--cbw-card-radius, 12px);
     overflow: hidden;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    box-shadow: var(--cbw-card-shadow, 0 2px 6px rgba(0,0,0,0.06));
     transition: box-shadow .2s, transform .15s, border-color .2s;
   }
   .ec:hover {
-    box-shadow: 0 6px 20px rgba(0,0,0,0.11);
+    box-shadow: var(--cbw-card-shadow-h, 0 6px 20px rgba(0,0,0,0.11));
     transform: translateY(-3px);
-    border-color: #C7D2FE;
+    border-color: var(--cbw-card-border-h, #C7D2FE);
   }
 
-  /* Image link fills full width, no underline */
   .ec-img-link { display: block; text-decoration: none; }
-  .ec-img-wrap { overflow: hidden; border-bottom: 1px solid #F3F4F6; }
+  .ec-img-wrap { overflow: hidden; border-bottom: 1px solid var(--cbw-gray-100, #F3F4F6); }
   .ec-img { width: 100%; height: auto; display: block; transition: transform .35s; }
   .ec:hover .ec-img { transform: scale(1.025); }
 
   .ec-body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 7px; }
 
-  /* Name as link — styled like plain text */
   .ec-name {
-    font-size: 16px; font-weight: 800; color: #111827; letter-spacing: -.01em;
-    text-decoration: none; display: block;
+    font-size: 16px; font-weight: 800; color: var(--cbw-gray-900, #111827);
+    letter-spacing: -.01em; text-decoration: none; display: block;
   }
   .ec-name:hover { color: #1D4ED8; text-decoration: underline; }
 
-  .ec-bonus { font-size: 13px; color: #374151; line-height: 1.45; }
+  .ec-bonus { font-size: 13px; color: var(--cbw-gray-700, #374151); line-height: 1.45; }
 
-  /* Promo code band — clippable coupon strip */
+  /* Promo code band */
   .ec-code-band {
     display: flex; align-items: center; gap: 7px; flex-wrap: wrap;
-    background: #FFFBF5; border: 1px dashed #FCD34D;
+    background: var(--cbw-coupon-bg, #FFFBF5);
+    border: 1px dashed var(--cbw-coupon-border, #FCD34D);
     border-radius: 7px; padding: 7px 10px;
   }
   .ec-code-label {
     font-size: 10px; text-transform: uppercase; letter-spacing: .07em;
-    color: #92400E; font-weight: 600; white-space: nowrap;
+    color: var(--cbw-coupon-label, #92400E); font-weight: 600; white-space: nowrap;
   }
-  .ec-code {
-    font-size: 13px; font-weight: 900;
-    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
-    background: #FFF7ED; border: 1.5px solid #FED7AA;
-    color: #C2410C; padding: 3px 10px; border-radius: 5px;
-    letter-spacing: .07em; user-select: all;
-  }
-  .ec-verified { font-size: 10px; color: #16A34A; font-weight: 700; white-space: nowrap; }
 
-  /* CTA as proper link */
+  /* Click-to-copy button */
+  .ec-code-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 13px; font-weight: 900;
+    font-family: var(--cbw-font-mono, 'SFMono-Regular', Consolas, monospace);
+    background: var(--cbw-coupon-code-bg, #FFF7ED);
+    border: 1.5px solid var(--cbw-coupon-code-bd, #FED7AA);
+    color: var(--cbw-coupon-code-tx, #C2410C);
+    padding: 3px 8px 3px 10px; border-radius: 5px;
+    letter-spacing: .07em; cursor: pointer;
+    transition: background .12s, border-color .12s, transform .1s;
+    user-select: all;
+  }
+  .ec-code-btn:hover {
+    background: #FEF3C7; border-color: #F59E0B;
+    transform: scale(1.02);
+  }
+  .ec-copy-icon { color: var(--cbw-coupon-code-tx, #C2410C); opacity: .55; flex-shrink: 0; display: flex; }
+  .ec-copy-check { display: none; font-size: 12px; color: var(--cbw-green, #16A34A); font-weight: 900; }
+
+  .ec-code-btn.copied { background: #F0FDF4; border-color: #86EFAC; color: #15803D; }
+  .ec-code-btn.copied .ec-copy-icon { display: none; }
+  .ec-code-btn.copied .ec-copy-check { display: inline; }
+
+  .ec-verified { font-size: 10px; color: var(--cbw-green, #16A34A); font-weight: 700; white-space: nowrap; }
+
   .ec-cta {
     margin-top: 4px;
     display: block; text-align: center; text-decoration: none;
-    background: #16A34A; color: #fff;
+    background: var(--cbw-green, #16A34A); color: #fff;
     font-size: 13px; font-weight: 700;
     padding: 9px 16px; border-radius: 8px;
     transition: background .15s;
   }
-  .ec-cta:hover { background: #15803D; }
+  .ec-cta:hover { background: var(--cbw-green-hover, #15803D); }
 </style>
