@@ -15,6 +15,7 @@
  */
 import CleanLayout from '../../layouts/CleanLayout.astro';
 import { getOffer } from '../../data/offers';
+import ExchangePromoLogoSlot from '../../components/ExchangePromoLogoSlot.astro';
 
 const offer = getOffer('mexc')!;
 
@@ -184,7 +185,7 @@ const pageSchema = {
   /* ── Brand Hero ───────────────────────────────────────────── */
   .brand-hero {
     background:
-      url('/media/hero-backgrounds/cbw-hero-neutral-mexc-logo-glow-v1.webp') center center / cover no-repeat,
+      url('/media/hero-backgrounds/mexc-hero-custom-v1.png') center center / cover no-repeat,
       linear-gradient(160deg, var(--bh-bgFrom) 0%, var(--bh-bgTo) 100%);
     padding: 35px 0 54px;
     color: var(--bh-text);
@@ -195,10 +196,6 @@ const pageSchema = {
     .brand-hero { padding: 42px 0 46px; display: flex; flex-direction: column; justify-content: center; }
   }
   .bh-inner { width: 100%; max-width: 540px; margin: 0 auto; padding: 0 20px; text-align: center; box-sizing: border-box; position: relative; z-index: 1; }
-
-  .bh-wordmark { display: block; width: 240px; height: auto; margin: 0 auto 10px; filter: none; opacity: 1; }
-  @media (min-width: 640px) { .bh-wordmark { width: 300px; } }
-  @media (max-width: 359px) { .bh-wordmark { width: 200px; } }
 
   .bh-promo-label {
     display: block;
@@ -586,7 +583,6 @@ const pageSchema = {
     .cf-code { color: #0099cc !important; -webkit-text-fill-color: #0099cc !important; }
     .cf-good { color: #16a34a !important; -webkit-text-fill-color: #16a34a !important; }
     .cf-warn { color: #b45309 !important; -webkit-text-fill-color: #b45309 !important; }
-    .bh-wordmark { filter: none !important; opacity: 1 !important; }
     .p2-section { background: #fff !important; color-scheme: light !important; forced-color-adjust: none; }
     .p2-section-alt { background: #F9FAFB !important; }
     .p2-placeholder { background: #F3F4F6 !important; border-color: #D1D5DB !important; color: #9CA3AF !important; }
@@ -630,11 +626,10 @@ const pageSchema = {
   <div class="bh-inner">
 
     <a href={exchange.affiliateUrl} rel="noopener sponsored" aria-label={`Get ${exchange.name} bonus`} style="display:block;line-height:0;">
-      <img
+      <ExchangePromoLogoSlot
         src={exchange.wordmarkImg}
         alt={exchange.name}
-        class="bh-wordmark"
-        width="250" height="60"
+        mode="clean"
         fetchpriority="high"
       />
     </a>
@@ -1094,7 +1089,12 @@ const pageSchema = {
 <section class="brand-hero" style={bhStyle}>
   <div class="bh-inner">
     <a href={exchange.affiliateUrl} rel="noopener sponsored" aria-label={`Get ${exchange.name} bonus`} style="display:block;line-height:0;">
-      <img src={exchange.wordmarkImg} alt={exchange.name} class="bh-wordmark" width="250" height="60" loading="lazy" />
+      <ExchangePromoLogoSlot
+        src={exchange.wordmarkImg}
+        alt={exchange.name}
+        mode="clean"
+        loading="lazy"
+      />
     </a>
     <p class="bh-promo-label">REFERRAL CODE</p>
     <div class="bh-promo-row">
