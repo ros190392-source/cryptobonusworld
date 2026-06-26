@@ -5,6 +5,7 @@ export interface RelatedExchange {
   bonus: string;
   tag: string;
   tileBg: string;
+  pageUrl?: string;  // override /exchanges/[slug]/ with dedicated page URL
 }
 
 export interface FaqItem {

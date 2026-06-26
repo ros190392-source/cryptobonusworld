@@ -224,9 +224,9 @@ export const mexcConfig: ExchangePromoPageConfig = {
 
   // ─── Related exchanges ────────────────────────────────────────
   relatedExchanges: [
-    { slug: 'bybit',  name: 'Bybit',  logo: '/logos/bybit.png',  bonus: 'Up to 30,000 USDT', tag: 'Derivatives leader', tileBg: '#F7F8FA' },
+    { slug: 'bybit',  name: 'Bybit',  logo: '/logos/bybit.png',  bonus: 'Up to 30,000 USDT', tag: 'Derivatives leader', tileBg: '#F7F8FA', pageUrl: '/bybit/' },
     { slug: 'bitget', name: 'Bitget', logo: '/logos/bitget.png', bonus: 'Up to 6,200 USDT',  tag: 'Copy trading',      tileBg: '#ECFDF5' },
     { slug: 'bingx',  name: 'BingX',  logo: '/logos/bingx.png',  bonus: 'Up to 5,125 USDT',  tag: 'Social trading',    tileBg: '#EFF6FF' },
-    { slug: 'okx',    name: 'OKX',    logo: '/logos/okx.png',    bonus: 'Up to 10,000 USDT', tag: 'CEX + Web3',        tileBg: '#F3F4F6' },
+    { slug: 'okx',    name: 'OKX',    logo: '/logos/okx.png',    bonus: 'Up to 5,000 USDT',  tag: 'CEX + Web3',        tileBg: '#F3F4F6', pageUrl: '/okx/' },
   ],
 };

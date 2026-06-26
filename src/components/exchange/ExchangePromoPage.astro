@@ -858,7 +858,7 @@ const bonusMaxFmt = c.bonusMax.toLocaleString('en-US');
           </div>
           <div class="p2-rel-actions">
             <a href={`/go/${ex.slug}/`} class="p2-rel-btn" data-exchange={ex.slug} rel="noopener sponsored">Get Bonus</a>
-            <a href={`/exchanges/${ex.slug}/`} class="p2-rel-link">View details →</a>
+            <a href={ex.pageUrl ?? `/exchanges/${ex.slug}/`} class="p2-rel-link">View details →</a>
           </div>
         </div>
       ))}

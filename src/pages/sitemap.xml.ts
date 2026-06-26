@@ -76,6 +76,14 @@ export const GET: APIRoute = () => {
     { url: '/terms/', priority: '0.3', changefreq: 'monthly', lastmod: today, type: 'static' as const },
   ];
 
+  // Rich exchange pages — dedicated /slug/ routes (ExchangePromoPage template)
+  // Highest priority: canonical money pages; outranks generic /exchanges/slug/ entries.
+  const richExchangePages = [
+    { url: '/bybit/', priority: '0.97', changefreq: 'weekly', lastmod: today, type: 'static' as const },
+    { url: '/mexc/',  priority: '0.97', changefreq: 'weekly', lastmod: today, type: 'static' as const },
+    { url: '/okx/',   priority: '0.97', changefreq: 'weekly', lastmod: today, type: 'static' as const },
+  ];
+
   // Top-tier money pages get boosted priority for crawl budget signalling
   const TOP_EXCHANGE_SLUGS = new Set(['bybit', 'okx', 'mexc', 'phemex', 'kucoin', 'binance', 'bitget']);
   const TOP_COMPARE_SLUGS = new Set(['bybit', 'okx', 'mexc', 'phemex', 'kucoin', 'binance', 'bitget']);
@@ -190,6 +198,7 @@ export const GET: APIRoute = () => {
 
   const allPages: PageEntry[] = [
     ...staticPages,
+    ...richExchangePages,
     ...exchangePages,
     ...bonusPages,
     ...categoryPages,
