@@ -7,11 +7,17 @@
  *   src/data/evidence/okx.json        — evidence screenshot paths, fact confidence
  *   src/data/affiliate-links.ts       — affiliate link structure
  *
- * Visual pack v1 (2026-06-26):
+ * Visual pack v2 (2026-06-26, owner-approved ChatGPT images):
+ *   - heroBackgroundImg: okx-hero-custom-v2.png (2172×724)
+ *   - articleImg:        okx-article-final-v2-1200x675.jpg
+ *   - ogImage:           okx-og-final-v2-1200x630.jpg
+ *   - card image:        okx-card-final-v2-1200x800.jpg
+ *
+ * Visual pack v1 rollback (2026-06-26):
  *   - heroBackgroundImg: okx-hero-custom-v1.png (2172×724)
  *   - articleImg:        okx-article-final-v1-1200x675.jpg
  *   - ogImage:           okx-og-final-v1-1200x630.jpg
- *   - card image:        okx-card-final-v1-1200x800.jpg (for homepage/offers when added)
+ *   - card image:        okx-card-final-v1-1200x800.jpg
  *
  * Still needed before live route:
  *   - Offer entry in src/data/offers.ts (hardcoded values for now)
@@ -36,9 +42,9 @@ export const okxConfig: ExchangePromoPageConfig = {
 
   // ── Media ──────────────────────────────────────────────────────────────────
   wordmarkImg:           '/logos/okx-wordmark.png',
-  articleImg:            '/media/exchanges/okx/final/okx-article-final-v1-1200x675.jpg',
-  ogImage:               '/media/exchanges/okx/final/okx-og-final-v1-1200x630.jpg',
-  heroBackgroundImg:     '/media/hero-backgrounds/okx-hero-custom-v1.png',
+  articleImg:            '/media/exchanges/okx/final/okx-article-final-v2-1200x675.jpg',
+  ogImage:               '/media/exchanges/okx/final/okx-og-final-v2-1200x630.jpg',
+  heroBackgroundImg:     '/media/hero-backgrounds/okx-hero-custom-v2.png',
   heroBackgroundPosition:'center center',
   logoImg:               '/logos/okx.png',
 
