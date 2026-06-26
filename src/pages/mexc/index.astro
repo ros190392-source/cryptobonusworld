@@ -116,6 +116,11 @@ const pageSchema = {
           "@type": "Question",
           "name": `Is the ${exchange.name} bonus available in every country?`,
           "acceptedAnswer": { "@type": "Answer", "text": `No. ${exchange.name} restricts service in a number of jurisdictions. Residents of North Korea, Cuba, Sudan, Iran, Mainland China, Singapore, the United States, the United Kingdom, Hong Kong, Russian-controlled regions of Ukraine, and Canada are not eligible. This list may change. Even in supported countries, specific bonus tasks or amounts may differ by region and current promotion terms.` }
+        },
+        {
+          "@type": "Question",
+          "name": `Why isn't the ${exchange.name} referral code working?`,
+          "acceptedAnswer": { "@type": "Answer", "text": `Referral codes must be entered during account creation — they cannot be applied to an existing account. If you are registering for the first time and the code ${offer.promoCode} is not accepted, check that you are using the official ${exchange.name} sign-up link (which pre-fills the code automatically). If entering the code manually, type it exactly as shown: ${offer.promoCode}. Also confirm that your country is not in the restricted list (US, UK, CA, SG, HK, CN and others). If the problem persists, contact ${exchange.name} support via live chat on the official site.` }
         }
       ]
     }
@@ -636,6 +641,9 @@ const pageSchema = {
         <tr><td>➡️ Referral Code</td><td class="cf-code">{offer.promoCode}</td></tr>
         <tr><td>💰 Bonus</td><td>Up to {exchange.bonusMax.toLocaleString('en-US')} {exchange.currency}</td></tr>
         <tr><td>✅ Valid</td><td>{offer.lastChecked}</td></tr>
+        <tr><td>🔐 KYC required</td><td class="cf-good">No — base tier requires no identity verification</td></tr>
+        <tr><td>📊 Spot fee</td><td>{exchange.fees.spot.maker} maker / {exchange.fees.spot.taker} taker</td></tr>
+        <tr><td>🌍 Availability</td><td>Global (restricted regions apply)</td></tr>
       </tbody>
     </table>
   </div>
@@ -650,6 +658,7 @@ const pageSchema = {
     <p class="seo-intro-text">Looking for an {exchange.name} referral code? Use <strong>{offer.promoCode}</strong> to open the official {exchange.name} bonus page and check the latest new user rewards. No KYC or minimum deposit is required for the base signup tier.</p>
     <p class="seo-intro-text">The {exchange.name} referral code {offer.promoCode} gives new accounts access to a welcome rewards package that can include trading vouchers, deposit bonuses, and futures trading rewards. The total value shown on the official {exchange.name} bonus page is up to {exchange.bonusMax.toLocaleString('en-US')} {exchange.currency}. The actual amount you receive depends on which tasks you complete — {exchange.name} structures new user rewards as a series of individual milestones, each with its own requirement and payout.</p>
     <p class="seo-intro-text">This page covers what the {exchange.name} referral code does, how to apply it at registration, and what to expect from the {exchange.name} new user rewards program. All information is based on publicly available details from official {exchange.name} pages and the confirmed affiliate partner link.</p>
+    <p class="seo-intro-text" style="font-size:13px;color:#9CA3AF;">We use affiliate links and may earn a commission when you register through links on this page. This does not affect what we publish or how we assess offers.</p>
   </div>
 </div>
 
@@ -765,6 +774,26 @@ const pageSchema = {
     </div>
     <h3 class="p2-h3">Getting the Most from Your New User Rewards</h3>
     <p class="p2-text">For users who want to start quickly, the base signup reward is accessible with just an email or phone registration — no identity verification or deposit needed. For higher tiers, complete a first deposit and begin trading to unlock additional vouchers. After registering, check the {exchange.name} {exchange.rewardsAreaName} for any active tasks that apply to your account and region. Not all tasks will be available in every country.</p>
+    <h3 class="p2-h3">Realistic Value for Most New Users</h3>
+    <p class="p2-text">{offer.realisticValue}. The full advertised maximum is not a guaranteed amount for every user. Complete your first task as soon as you register to lock in your base reward.</p>
+  </div>
+</div>
+
+<!-- 10b. Desktop evidence: MEXC new user rewards page -->
+<div class="p2-section">
+  <div class="p2-inner">
+    <figure class="p2-evidence-figure">
+      <img
+        src="/media/exchanges/mexc/evidence/global-en/mexc-public-new-user-rewards.png"
+        alt="MEXC new user rewards page showing the welcome bonus structure available to new accounts"
+        width="1440"
+        height="900"
+        loading="lazy"
+        decoding="async"
+        class="p2-evidence-img p2-evidence-img--wide"
+      />
+      <figcaption class="p2-evidence-caption">Official {exchange.name} new user rewards page — showing the welcome bonus structure available through the partner referral link. Captured {offer.lastChecked}.</figcaption>
+    </figure>
   </div>
 </div>
 
@@ -785,37 +814,14 @@ const pageSchema = {
     <p class="p2-text">{exchange.name} does not hold a primary exchange licence in major regulatory jurisdictions. Users should review their local regulations before registering. {exchange.name} does not currently provide service to residents of North Korea, Cuba, Sudan, Iran, Mainland China, Singapore, the United States, the United Kingdom, Hong Kong, Russian-controlled regions of Ukraine, or Canada. This list of restricted regions may change — check the official {exchange.name} Terms of Service for the current version.</p>
     <h3 class="p2-h3">Support</h3>
     <p class="p2-text">{exchange.name} provides customer support through live chat and a <a href={exchange.supportUrl} target="_blank" rel="noopener noreferrer nofollow">{exchange.name} Support Centre</a>. For account-related queries, including bonus activation and withdrawal issues, live chat inside the platform is typically the fastest route to a response.</p>
-    <h3 class="p2-h3">Platform Notes</h3>
-    <p class="p2-text">The {exchange.name} platform offers spot trading, perpetual futures, copy trading, P2P trading, staking, earn products, and a launchpad for early-stage token projects. {exchange.name} lists one of the largest selections of altcoins in the industry, including many tokens shortly after their initial listing. The exchange runs iOS and Android apps for mobile trading. KYC is not required for standard spot trading access — users can register with just an email or phone number and begin trading without full identity verification, though withdrawal limits may apply to unverified accounts.</p>
   </div>
 </div>
 
-<!-- 11. MEXC New User Rewards Program -->
+<!-- 13. The MEXC Partner Offer Details -->
 <div class="p2-section">
   <div class="p2-inner">
-    <h2 class="p2-h2">{exchange.name} New User Rewards</h2>
-    <p class="p2-text">Beyond the welcome package activated by the referral code, {exchange.name} offers an {exchange.rewardsAreaName} inside each registered account where users can access ongoing bonus tasks to earn additional rewards. These tasks change periodically and may include trading milestones, deposit events, futures trading targets, or promotional campaigns. Rewards are typically issued as USDT vouchers or trading coupons.</p>
-    <p class="p2-text">The {exchange.rewardsAreaName} tasks available to your account depend on your region, current promotion calendar, and account status. Some tasks require a deposit or trading activity; others may be available simply through continued platform use. The task list inside the {exchange.rewardsAreaName} shows current requirements and expiry dates.</p>
-    <p class="p2-text">The {exchange.name} welcome bonus unlocked through the referral code <strong>{offer.promoCode}</strong> is a separate one-time programme from the ongoing {exchange.rewardsAreaName}. New users typically see both the welcome rewards and regular {exchange.rewardsAreaName} tasks available after completing registration.</p>
-  </div>
-</div>
-
-<!-- 12. Other MEXC Promotions -->
-<div class="p2-section p2-section-alt">
-  <div class="p2-inner">
-    <h2 class="p2-h2">Other {exchange.name} Promotions</h2>
-    <p class="p2-text">{exchange.name} runs a range of promotions beyond the new user signup bonus. These include periodic trading competitions with USDT prize pools, Launchpad participation windows for new token projects, deposit-based reward campaigns, and copy trading events for users who follow top-ranked strategies.</p>
-    <p class="p2-text">Existing users can also access the {exchange.name} referral system, which allows registered users to share their own referral link and earn commission from the trading activity of invited users. These ongoing programmes operate under different terms from the new user sign-up bonus.</p>
-    <p class="p2-text">Promotion availability and terms change regularly. The official {exchange.name} Activity and Promotions pages are the authoritative source for current offers — check them after creating your account to see which campaigns are active for your region and account type.</p>
-  </div>
-</div>
-
-<!-- 13. The MEXC Referral Program -->
-<div class="p2-section">
-  <div class="p2-inner">
-    <h2 class="p2-h2">The {exchange.name} Referral Program</h2>
-    <p class="p2-text">The {exchange.name} referral program covers two distinct things. For new users, it means entering a referral code at sign-up — connecting a new account to the welcome rewards flow. For existing users, {exchange.name} may provide a personal referral link or code they can share to invite others, subject to {exchange.name}'s current affiliate rules and eligibility conditions.</p>
-    <p class="p2-text">This page focuses on the new-user side: the {exchange.name} referral code <strong>{offer.promoCode}</strong>. Entering this code at registration connects a new account to the partner welcome rewards flow via the official {exchange.name} custom sign-up portal. The partner bonus page shows welcome rewards up to {exchange.bonusMax.toLocaleString('en-US')} {exchange.currency} for new accounts. Exact rewards depend on {exchange.name}'s current terms, your region, trading activity and promotion period. Always check the current offer on the official {exchange.name} bonus page after creating your new account.</p>
+    <h2 class="p2-h2">{exchange.name} Partner Offer</h2>
+    <p class="p2-text">Exact rewards — including welcome vouchers, deposit bonuses, and trading volume rewards — depend on {exchange.name}'s current terms, your region, deposit amounts, and trading activity. Always check the current offer on the official {exchange.name} bonus page after creating your new account.</p>
 
     <figure class="p2-article-banner-figure">
       <a href={exchange.affiliateUrl} rel="noopener sponsored" aria-label={`Get ${exchange.name} bonus`}>
@@ -857,7 +863,77 @@ const pageSchema = {
   </div>
 </div>
 
-<!-- 14. Bonus verification status table -->
+<!-- 13. MEXC Trading Fees -->
+<div class="p2-section p2-section-alt">
+  <div class="p2-inner">
+    <h2 class="p2-h2">{exchange.name} Trading Fees</h2>
+    <p class="p2-text">{exchange.name} fees vary by product, VIP level, account type, and current fee schedule. The figures below are based on {exchange.name}'s published standard non-VIP rates from the official {exchange.name} fee page. Always check the <a href={exchange.feeUrl} target="_blank" rel="noopener noreferrer nofollow">official {exchange.name} fee page</a> before trading — rates are subject to change.</p>
+    <div class="p2-table-wrap">
+      <table class="p2-table">
+        <thead>
+          <tr>
+            <th>Market</th>
+            <th>Maker fee</th>
+            <th>Taker fee</th>
+            <th>Source · Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Spot</td>
+            <td>{exchange.fees.spot.maker}</td>
+            <td>{exchange.fees.spot.taker}</td>
+            <td style="font-size:12px;"><span class="status-badge status-verified" style="font-size:10px;">Verified</span><div class="status-note">Confirmed on official fee page · June 2026 · range 0%–0.05%</div></td>
+          </tr>
+          <tr>
+            <td>Perpetual &amp; Futures</td>
+            <td>{exchange.fees.futures.maker}</td>
+            <td>{exchange.fees.futures.taker}</td>
+            <td style="font-size:12px;"><span class="status-badge status-verified" style="font-size:10px;">Verified</span><div class="status-note">BTC/USDT perpetual row confirms 0% / 0.01% · June 2026</div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <figure class="p2-evidence-figure" style="margin:16px 0;">
+      <img
+        src="/media/exchanges/mexc/evidence/global-en/mexc-fee-page.png"
+        alt="MEXC Fee Overview page showing Spot Trading Fee 0% maker and 0%–0.05% taker, Futures Trading Fee 0% maker"
+        width="1440"
+        height="900"
+        loading="lazy"
+        decoding="async"
+        class="p2-evidence-img p2-evidence-img--wide"
+      />
+      <figcaption class="p2-evidence-caption">{exchange.name} fee schedule — spot tab. Standard non-VIP rates: 0% maker / 0%–0.05% taker (most pairs 0.05%; 0.04% with MX discount). Captured {offer.lastChecked} from <a href={exchange.feeUrl} target="_blank" rel="noopener noreferrer nofollow">mexc.com/fee</a>.</figcaption>
+    </figure>
+    <figure class="p2-evidence-figure" style="margin:12px 0 16px;">
+      <img
+        src="/media/exchanges/mexc/evidence/global-en/mexc-fee-futures-tab.png"
+        alt="MEXC fee page futures tab showing BTC/USDT perpetual at 0% maker and 0.01% taker"
+        width="1440"
+        height="900"
+        loading="lazy"
+        decoding="async"
+        class="p2-evidence-img p2-evidence-img--wide"
+      />
+      <figcaption class="p2-evidence-caption">{exchange.name} fee schedule — futures tab. BTCUSDT Perpetual: 0% maker / 0.01% taker. Captured {offer.lastChecked}.</figcaption>
+    </figure>
+    <p class="p2-text" style="margin-top:10px;font-size:12px;color:#6B7280;">Last checked: {offer.lastChecked} from the <a href={exchange.feeUrl} target="_blank" rel="noopener noreferrer nofollow" style="color:#6B7280;">official {exchange.name} fee page</a>.</p>
+    <p class="p2-text" style="margin-top:6px;font-size:12px;color:#9CA3AF;">Fees may vary by product, VIP level, region, account status and the current fee schedule. Always check the <a href={exchange.feeUrl} target="_blank" rel="noopener noreferrer nofollow" style="color:#9CA3AF;">official {exchange.name} fee page</a> before trading.</p>
+  </div>
+</div>
+
+<!-- 14. KYC Requirements & Regional Availability -->
+<div class="p2-section">
+  <div class="p2-inner">
+    <h2 class="p2-h2">KYC Requirements &amp; Regional Availability</h2>
+    <p class="p2-text">{exchange.name} does not require identity verification (KYC) to create an account, start trading, or access the base welcome bonus tier. Standard spot trading is available without submitting identification documents. No-KYC accounts can withdraw up to 10 BTC per day; completing KYC unlocks higher withdrawal limits and may be required for some deposit or bonus tasks.</p>
+    <p class="p2-text">The referral code <strong>{offer.promoCode}</strong> is available globally, but {exchange.name} restricts access in a number of jurisdictions. {exchange.name} does not currently provide service to residents of the United States (US), the United Kingdom (UK), Canada (CA), Singapore (SG), Hong Kong (HK), Mainland China (CN), North Korea (KP), Cuba (CU), Sudan (SD), or Iran (IR). This list may change — always check the official <a href="https://www.mexc.com/support/articles/360012110852" target="_blank" rel="noopener noreferrer nofollow">{exchange.name} restricted regions page</a> before registering.</p>
+    <p class="p2-text">{exchange.name} is incorporated in the Seychelles and does not hold a primary exchange licence in major regulatory jurisdictions such as the EU, UK, or US. Users in supported countries should review their local regulations before registering. Even in countries where {exchange.name} is available, specific bonus tasks or reward tiers may be region-specific — the {exchange.name} {exchange.rewardsAreaName} shows which tasks are active after registration.</p>
+  </div>
+</div>
+
+<!-- 15. Bonus verification status table -->
 <div class="p2-section p2-section-alt">
   <div class="p2-inner">
     <h2 class="p2-h2">{exchange.name} Bonus Offer — What We Have Verified</h2>
@@ -923,7 +999,7 @@ const pageSchema = {
           </tr>
           <tr>
             <td>Claim period</td>
-            <td>Rewards expire after a set period (typically 30 days)</td>
+            <td>Rewards expire after a set period</td>
             <td>Manual claim required</td>
             <td><span class="status-badge status-check-hub">Check in {exchange.rewardsAreaName}</span><div class="status-note">Check deadlines and claim rules after sign-up.</div></td>
           </tr>
@@ -934,7 +1010,7 @@ const pageSchema = {
   </div>
 </div>
 
-<!-- 15. MEXC FAQ -->
+<!-- 16. MEXC FAQ -->
 <div class="p2-section">
   <div class="p2-inner">
     <h2 class="p2-h2">{exchange.name} Referral Code — FAQ</h2>
@@ -963,67 +1039,11 @@ const pageSchema = {
         <summary class="p2-faq-q">Is the {exchange.name} bonus available in every country?</summary>
         <div class="p2-faq-a">No. {exchange.name} restricts service in a number of jurisdictions. Residents of North Korea, Cuba, Sudan, Iran, Mainland China, Singapore, the United States, the United Kingdom, Hong Kong, Russian-controlled regions of Ukraine, and Canada are not eligible. This list may change — always check the official {exchange.name} Terms of Service for the current version. Even in supported countries, specific bonus tasks or amounts may differ by region and current promotion terms.</div>
       </details>
+      <details class="p2-faq-item">
+        <summary class="p2-faq-q">Why isn't the {exchange.name} referral code working?</summary>
+        <div class="p2-faq-a">Referral codes must be entered during account creation — they cannot be applied to an existing account. If you are registering for the first time and the code <strong>{offer.promoCode}</strong> is not accepted, check that you are using the official {exchange.name} sign-up link (which pre-fills the code automatically). If entering the code manually, type it exactly as shown: <strong>{offer.promoCode}</strong>. Check that your country is not in the restricted list (US, UK, CA, SG, HK, CN and others). If the problem persists, contact {exchange.name} support through live chat at <a href={exchange.supportUrl} target="_blank" rel="noopener noreferrer nofollow">{exchange.officialDomain}/support</a>.</div>
+      </details>
     </div>
-  </div>
-</div>
-
-<!-- 16. MEXC Trading Fees -->
-<div class="p2-section p2-section-alt">
-  <div class="p2-inner">
-    <h2 class="p2-h2">{exchange.name} Trading Fees</h2>
-    <p class="p2-text">{exchange.name} fees vary by product, VIP level, account type, and current fee schedule. The figures below are based on {exchange.name}'s published standard non-VIP rates from the official {exchange.name} fee page. Always check the <a href={exchange.feeUrl} target="_blank" rel="noopener noreferrer nofollow">official {exchange.name} fee page</a> before trading — rates are subject to change.</p>
-    <div class="p2-table-wrap">
-      <table class="p2-table">
-        <thead>
-          <tr>
-            <th>Market</th>
-            <th>Maker fee</th>
-            <th>Taker fee</th>
-            <th>Source · Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Spot</td>
-            <td>{exchange.fees.spot.maker}</td>
-            <td>{exchange.fees.spot.taker}</td>
-            <td style="font-size:12px;"><span class="status-badge status-verified" style="font-size:10px;">Verified</span><div class="status-note">Confirmed on official fee page · June 2026 · range 0%–0.05%</div></td>
-          </tr>
-          <tr>
-            <td>Perpetual &amp; Futures</td>
-            <td>{exchange.fees.futures.maker}</td>
-            <td>{exchange.fees.futures.taker}</td>
-            <td style="font-size:12px;"><span class="status-badge status-verified" style="font-size:10px;">Verified</span><div class="status-note">BTC/USDT perpetual row confirms 0% / 0.01% · June 2026</div></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <figure class="p2-evidence-figure" style="margin:16px 0;">
-      <img
-        src="/media/exchanges/mexc/evidence/global-en/mexc-fee-page.png"
-        alt="MEXC Fee Overview page showing Spot Trading Fee 0% maker and 0%–0.05% taker, Futures Trading Fee 0% maker"
-        width="1440"
-        height="900"
-        loading="lazy"
-        decoding="async"
-        class="p2-evidence-img p2-evidence-img--wide"
-      />
-      <figcaption class="p2-evidence-caption">{exchange.name} fee schedule — spot tab. Standard non-VIP rates: 0% maker / 0%–0.05% taker (most pairs 0.05%; 0.04% with MX discount). Captured {offer.lastChecked} from <a href={exchange.feeUrl} target="_blank" rel="noopener noreferrer nofollow">mexc.com/fee</a>.</figcaption>
-    </figure>
-    <figure class="p2-evidence-figure" style="margin:12px 0 16px;">
-      <img
-        src="/media/exchanges/mexc/evidence/global-en/mexc-fee-futures-tab.png"
-        alt="MEXC fee page futures tab showing BTC/USDT perpetual at 0% maker and 0.01% taker"
-        width="1440"
-        height="900"
-        loading="lazy"
-        decoding="async"
-        class="p2-evidence-img p2-evidence-img--wide"
-      />
-      <figcaption class="p2-evidence-caption">{exchange.name} fee schedule — futures tab. BTCUSDT Perpetual: 0% maker / 0.01% taker. Captured {offer.lastChecked}.</figcaption>
-    </figure>
-    <p class="p2-text" style="margin-top:10px;font-size:12px;color:#6B7280;">Last checked: {offer.lastChecked} from the <a href={exchange.feeUrl} target="_blank" rel="noopener noreferrer nofollow" style="color:#6B7280;">official {exchange.name} fee page</a>.</p>
-    <p class="p2-text" style="margin-top:6px;font-size:12px;color:#9CA3AF;">Fees may vary by product, VIP level, region, account status and the current fee schedule. Always check the <a href={exchange.feeUrl} target="_blank" rel="noopener noreferrer nofollow" style="color:#9CA3AF;">official {exchange.name} fee page</a> before trading.</p>
   </div>
 </div>
 
@@ -1050,15 +1070,6 @@ const pageSchema = {
         </div>
       ))}
     </div>
-  </div>
-</div>
-
-<!-- 17b-pre. Looking for a Bonus Code? -->
-<div class="p2-section">
-  <div class="p2-inner">
-    <h2 class="p2-h2">Looking for a Bonus Code?</h2>
-    <p class="p2-text">Some users search for welcome, promo, invite or share code wording. The code used on this page is <strong>{offer.promoCode}</strong>.</p>
-    <p class="p2-text">Click the bonus button below to open the registration page with the referral code applied.</p>
   </div>
 </div>
 
