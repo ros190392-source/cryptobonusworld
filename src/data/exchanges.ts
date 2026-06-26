@@ -45,6 +45,20 @@ export const exchanges: Exchange[] = [
     featured:         true,
     pageUrl:          '/mexc/',
   },
+  {
+    slug:             'okx',
+    name:             'OKX',
+    logoText:         'OKX',
+    status:           'active',
+    cardImage:        '/media/exchanges/okx/final/okx-card-final-v1-1200x800.jpg',
+    ogImage:          '/media/exchanges/okx/final/okx-og-final-v1-1200x630.jpg',
+    articleImage:     '/media/exchanges/okx/final/okx-article-final-v1-1200x675.jpg',
+    affiliateUrl:     '/go/okx',
+    officialUrl:      'https://www.okx.com',
+    shortDescription: 'Global tier-1 exchange with spot, futures, and Web3 — up to 5,000 USDT new user rewards',
+    featured:         true,
+    pageUrl:          '/okx/',
+  },
 ];
 
 export function getExchange(slug: string): Exchange | undefined {

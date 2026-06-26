@@ -50,6 +50,21 @@ export const offers: Offer[] = [
     status:              'public-preview',
     termsSummary:        'New accounts only. No KYC required for base tier. Higher tiers require trading volume. Bonus tasks expire within 30 days. Rewards depend on region, eligibility, deposit and trading activity. Full terms on MEXC official website.',
   },
+  {
+    exchangeSlug:        'okx',
+    promoCode:           'CRYPTOBONUSW',
+    bonusHeadline:       'Up to 5,000 USDT in welcome rewards',
+    realisticValue:      'Rewards depend on deposit size and trading tasks; vouchers reduce trading fees but cannot be withdrawn directly as cash',
+    lastChecked:         'June 2026',
+    sourceUrl:           'https://www.okx.com/learn/okx-new-user-rewards',
+    kycRequired:         true,
+    depositRequired:     true,
+    minDeposit:          'Minimum deposit required to unlock bonus tiers',
+    availability:        'Global (excluding restricted regions)',
+    restrictedCountries: ['US', 'HK', 'SG', 'MY', 'CA', 'GB'],
+    status:              'verified',
+    termsSummary:        'New accounts only. KYC required for higher tiers and withdrawals. Rewards are fee vouchers offsetting trading costs, not withdrawable cash. Tasks expire 30 days after account creation. Full terms on OKX official website.',
+  },
 ];
 
 export function getOffer(exchangeSlug: string): Offer | undefined {
