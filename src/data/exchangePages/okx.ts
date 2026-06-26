@@ -83,8 +83,8 @@ export const okxConfig: ExchangePromoPageConfig = {
     codeColor: '#4b5563',
   },
   heroPromoLabel: 'REFERRAL CODE',
-  // OKX logo is square 250×250 — scale 0.75 to prevent overflow in hero
-  logoVisualScale: 0.75,
+  // OKX wordmark 320×96 (icon + text) — scale 1.0 fills 300×86 slot cleanly
+  logoVisualScale: 1.0,
 
   // ── SEO meta ──────────────────────────────────────────────────────────────
   canonicalUrl:    'https://cryptobonusworld.com/okx/',
