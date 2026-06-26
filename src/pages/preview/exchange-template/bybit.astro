@@ -1,0 +1,25 @@
+---
+/*
+ * PREVIEW ONLY — noindex, not linked from anywhere.
+ * Renders Bybit exchange page via the reusable ExchangePromoPage template.
+ * Compare to live page at /bybit/ to validate visual equivalence.
+ *
+ * Live page:    /bybit/          (src/pages/bybit/index.astro) — DO NOT TOUCH
+ * Preview page: /preview/exchange-template/bybit/  ← you are here
+ */
+import CleanLayout from '../../../layouts/CleanLayout.astro';
+import ExchangePromoPage from '../../../components/exchange/ExchangePromoPage.astro';
+import { bybitConfig } from '../../../data/exchangePages/bybit';
+---
+
+<CleanLayout
+  title={bybitConfig.pageTitle}
+  description={bybitConfig.pageDescription}
+  canonical={bybitConfig.canonicalUrl}
+  ogImage={bybitConfig.ogImage}
+  ogTitle={bybitConfig.ogTitle}
+  ogDescription={bybitConfig.ogDescription}
+  noindex={true}
+>
+  <ExchangePromoPage config={bybitConfig} />
+</CleanLayout>

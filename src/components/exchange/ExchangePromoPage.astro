@@ -1,0 +1,997 @@
+---
+/*
+ * ExchangePromoPage — reusable exchange promo page template.
+ *
+ * Accepts a fully-assembled ExchangePromoPageConfig and renders the
+ * complete 17-block exchange page layout. All exchange-specific data,
+ * content, and brand tokens come from the config object.
+ *
+ * Usage (in a preview or future exchange page):
+ *   import ExchangePromoPage from '../../components/exchange/ExchangePromoPage.astro';
+ *   import { bybitConfig } from '../../data/exchangePages/bybit';
+ *   <ExchangePromoPage config={bybitConfig} />
+ *
+ * Constraints:
+ *   - Do NOT import or render this in src/pages/bybit/ or src/pages/mexc/ —
+ *     those live pages are frozen and self-contained.
+ *   - The CSS uses define:vars for heroBackgroundImg, heroBackgroundPosition,
+ *     and codeColor. All other styles are shared and identical to the live pages.
+ */
+
+import type { ExchangePromoPageConfig } from '../../data/exchangePages/types';
+import ExchangePromoLogoSlot from '../ExchangePromoLogoSlot.astro';
+
+export interface Props {
+  config: ExchangePromoPageConfig;
+}
+
+const { config: c } = Astro.props;
+
+const bhStyle = [
+  `--bh-bgFrom:${c.heroTokens.bgFrom}`,
+  `--bh-bgTo:${c.heroTokens.bgTo}`,
+  `--bh-text:#ffffff`,
+  `--bh-text2:rgba(255,255,255,0.65)`,
+  `--bh-accent:${c.heroTokens.accent}`,
+  `--bh-codeBg:rgba(11,205,255,0.10)`,
+  `--bh-codeBorder:rgba(11,205,255,0.40)`,
+  `--bh-note:rgba(255,255,255,0.38)`,
+].join(';');
+
+const heroBgPos = c.heroBackgroundPosition ?? 'left center';
+
+// Build FAQ schema
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home",                                 "item": "https://cryptobonusworld.com/" },
+        { "@type": "ListItem", "position": 2, "name": `${c.name} Referral Code`,              "item": c.canonicalUrl }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": c.faqItems.map(item => ({
+        "@type": "Question",
+        "name": item.question,
+        "acceptedAnswer": { "@type": "Answer", "text": item.answer.replace(/<[^>]+>/g, '') }
+      }))
+    }
+  ]
+};
+
+const bonusMaxFmt = c.bonusMax.toLocaleString('en-US');
+---
+
+<style define:vars={{
+  heroBgImg: `url('${c.heroBackgroundImg}')`,
+  heroBgPos,
+  codeColor: c.heroTokens.codeColor,
+}}>
+  /* Design tokens via CleanLayout → src/styles/tokens.css (--cbw-*) */
+
+  /* ── Narrow content wrapper (760px) ── */
+  .bw-wrap { max-width: 760px; margin: 0 auto; padding: 0 20px; }
+
+  /* ── Section base ─────────────────────────────────────────── */
+  .ep-section { padding: 40px 0; background: var(--cbw-bg); }
+  .ep-section + .ep-section { border-top: 1px solid var(--cbw-gray-200); }
+
+  /* ── Title bar ────────────────────────────────────────────── */
+  .title-bar {
+    background: #ffffff;
+    background-image: linear-gradient(#ffffff 0 0);
+    border-bottom: 1px solid var(--cbw-gray-200);
+    text-align: center; padding: 9px 20px;
+    color-scheme: light; forced-color-adjust: none;
+  }
+  .title-bar h1 {
+    font-size: 20px; font-weight: 700; color: var(--cbw-gray-900);
+    margin: 0; line-height: 1.25;
+  }
+  @media (max-width: 479px) {
+    .title-bar { padding: 9px 20px; }
+    .title-bar h1 { font-size: 18px; }
+  }
+
+  /* ── Brand Hero ───────────────────────────────────────────── */
+  .brand-hero {
+    background:
+      var(--heroBgImg) var(--heroBgPos) / cover no-repeat,
+      linear-gradient(160deg, var(--bh-bgFrom) 0%, var(--bh-bgTo) 100%);
+    padding: 35px 0 54px;
+    color: var(--bh-text);
+    position: relative;
+    overflow: hidden;
+  }
+  @media (min-width: 640px) {
+    .brand-hero { padding: 42px 0 46px; display: flex; flex-direction: column; justify-content: center; }
+  }
+  .bh-inner { width: 100%; max-width: 540px; margin: 0 auto; padding: 0 20px; text-align: center; box-sizing: border-box; position: relative; z-index: 1; }
+
+  .bh-promo-label {
+    display: block;
+    font-family: "Barlow Condensed", "Oswald", "Arial Narrow", sans-serif;
+    font-size: 24px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 0.05em; color: white;
+    line-height: 1; margin-top: 2px; margin-bottom: 22px;
+  }
+  @media (min-width: 640px) { .bh-promo-label { font-size: 34px; } }
+
+  .bh-promo-row {
+    width: 100%; max-width: 298px;
+    margin-left: auto; margin-right: auto;
+    display: flex; align-items: stretch;
+    background: #ffffff; background-image: linear-gradient(#ffffff 0 0);
+    border: 1px solid #D1D5DB; border-radius: 8px; overflow: hidden;
+    height: 56px; margin-bottom: 18px;
+    transition: border-color .18s, background .18s;
+    color-scheme: light; forced-color-adjust: none;
+  }
+  .bh-promo-row.copy-success { border-color: #22c55e !important; background: #dcfce7 !important; }
+
+  .bh-promo-code {
+    flex: 1; display: flex; align-items: center; padding: 0 14px;
+    font-family: "Arial Narrow", "Roboto Condensed", "Inter Tight", Inter, system-ui, sans-serif;
+    font-size: 20px; font-weight: 800; letter-spacing: 0.01em; font-stretch: condensed;
+    text-transform: uppercase; color: #111827; -webkit-text-fill-color: #111827;
+    min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+    transition: color .18s;
+    background: #ffffff; background-image: linear-gradient(#ffffff 0 0);
+    color-scheme: light; forced-color-adjust: none;
+  }
+  @media (min-width: 640px) { .bh-promo-code { font-size: 22px; letter-spacing: 0.015em; } }
+  .bh-promo-code.copy-success { color: #166534 !important; -webkit-text-fill-color: #166534 !important; }
+
+  .bh-copy-btn {
+    flex-shrink: 0; width: 68px;
+    display: flex; align-items: center; justify-content: center;
+    border: none; border-left: 1px solid #e5e7eb;
+    font-size: 12px; font-weight: 700; color: #16a34a; -webkit-text-fill-color: #16a34a;
+    background: #ffffff; background-image: linear-gradient(#ffffff 0 0);
+    cursor: pointer; transition: background .15s, color .15s, border-color .15s;
+    white-space: nowrap; letter-spacing: .03em;
+    color-scheme: light; forced-color-adjust: none;
+  }
+  .bh-copy-btn:hover { background: #f0fdf4; }
+  .bh-copy-btn.copy-success { background: #dcfce7 !important; border-color: #22c55e !important; color: #166534 !important; }
+
+  .bh-cta-btn {
+    display: flex; align-items: center; justify-content: center;
+    width: 100%; max-width: 320px; margin-left: auto; margin-right: auto;
+    background: var(--cbw-green); color: #fff;
+    font-size: 24px; font-weight: 700; border-radius: 6px;
+    height: 68px; margin-bottom: 16px;
+    transition: background .15s, transform .1s; letter-spacing: 0;
+    text-decoration: none;
+  }
+  @media (min-width: 640px) { .bh-cta-btn { font-size: 28px; } }
+  .bh-cta-btn:hover { background: var(--cbw-green-hover); transform: translateY(-1px); }
+
+  .bh-source {
+    font-size: 14px; color: var(--bh-note); line-height: 1.65;
+    margin: 8px 0 0; text-align: center;
+  }
+  @media (min-width: 640px) { .bh-source { font-size: 15px; } }
+  .bh-source a { color: var(--bh-note); text-decoration: underline; text-underline-offset: 2px; text-decoration-color: rgba(255,255,255,0.35); }
+  .bh-source a:hover { text-decoration-color: var(--bh-note); }
+
+  /* ── Compact facts table ──────────────────────────────────── */
+  .compact-facts {
+    background: var(--cbw-white) !important;
+    padding: 20px 16px 6px; color-scheme: light; forced-color-adjust: none;
+  }
+  .cf-inner {
+    max-width: 720px; margin: 0 auto; padding: 0;
+    background: var(--cbw-gray-100); border: 1px solid var(--cbw-gray-300);
+    border-radius: var(--cbw-r-md); overflow: hidden;
+  }
+  .cf-table { width: 100%; border-collapse: collapse; font-size: 14px; background: var(--cbw-gray-100); table-layout: fixed; }
+  .cf-table tr { border-bottom: 1px solid var(--cbw-gray-200); }
+  .cf-table tr:last-child { border-bottom: none; }
+  .cf-table td { padding: 11px 16px; vertical-align: middle; background: var(--cbw-gray-100); color: var(--cbw-gray-900); word-wrap: break-word; overflow-wrap: break-word; }
+  .cf-table td:first-child { color: var(--cbw-gray-700) !important; font-size: 14px; font-weight: 500; width: 50%; }
+  .cf-table td:last-child { font-weight: 600; color: var(--cbw-gray-900) !important; }
+  @media (max-width: 479px) {
+    .cf-table td { padding: 10px 12px; font-size: 13px; }
+    .cf-table td:first-child { font-size: 13px; }
+  }
+  .cf-code { font-family: 'Courier New', monospace; letter-spacing: .04em; color: var(--codeColor) !important; -webkit-text-fill-color: var(--codeColor) !important; }
+  .cf-good { color: #16a34a !important; -webkit-text-fill-color: #16a34a !important; }
+  .cf-warn { color: #b45309 !important; -webkit-text-fill-color: #b45309 !important; font-weight: 500 !important; }
+
+  /* ── SEO intro block ─────────────────────────────────────── */
+  .seo-intro-block {
+    background: #ffffff; border-bottom: 1px solid #E5E7EB;
+    padding: 8px 20px 20px;
+  }
+  .seo-intro-inner { max-width: 720px; margin: 0 auto; }
+  .seo-phrase {
+    font-size: 14px; font-weight: 400; color: #9CA3AF;
+    margin: 0; padding-bottom: 10px; font-style: italic;
+    border-bottom: 1px solid #E5E7EB;
+  }
+  .seo-intro-text {
+    font-size: 15px; color: #4B5563; line-height: 1.65;
+    margin: 12px 0 0;
+  }
+  @media (max-width: 479px) {
+    .seo-phrase { font-size: 13px; }
+    .seo-intro-text { font-size: 14px; }
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     PART 2 — SEO SKELETON
+  ═══════════════════════════════════════════════════════════ */
+
+  .p2-section {
+    background: var(--cbw-white); border-bottom: 1px solid var(--cbw-gray-200);
+    padding: 28px 0;
+    color-scheme: light; forced-color-adjust: none;
+  }
+  .p2-section-alt { background: var(--cbw-gray-50); }
+  .p2-inner { max-width: 720px; margin: 0 auto; padding: 0 20px; }
+
+  .p2-h2 { font-size: 20px; font-weight: 700; color: #111827; margin: 0 0 14px; line-height: 1.3; }
+  @media (min-width: 640px) { .p2-h2 { font-size: 22px; } }
+  .p2-h3 { font-size: 16px; font-weight: 700; color: #111827; margin: 20px 0 10px; line-height: 1.35; }
+  @media (min-width: 640px) { .p2-h3 { font-size: 17px; } }
+
+  .p2-placeholder {
+    background: #F3F4F6; border: 1px dashed #D1D5DB; border-radius: 6px;
+    padding: 12px 16px; font-size: 12px; color: #9CA3AF;
+    font-family: 'Courier New', monospace; line-height: 1.5;
+    color-scheme: light; forced-color-adjust: none;
+  }
+
+  .p2-cta-block { text-align: center; }
+  .p2-cta-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--cbw-green); color: #fff;
+    font-size: 16px; font-weight: 700; border-radius: 8px;
+    padding: 0 28px; height: 52px;
+    width: 100%; max-width: 340px;
+    text-decoration: none; letter-spacing: .01em;
+    transition: background .15s, transform .1s;
+  }
+  .p2-cta-btn:hover { background: var(--cbw-green-hover); transform: translateY(-1px); }
+
+  .p2-text {
+    font-size: 14px; color: #374151; line-height: 1.7; margin: 0 0 12px;
+  }
+  .p2-text:last-child { margin-bottom: 0; }
+  @media (min-width: 640px) { .p2-text { font-size: 15px; } }
+
+  .p2-cta-bar {
+    display: flex; align-items: center; justify-content: center;
+    background: var(--cbw-green); color: #fff;
+    font-size: 17px; font-weight: 700; border-radius: 8px;
+    padding: 0 24px; height: 56px; width: 100%; box-sizing: border-box;
+    text-decoration: none; letter-spacing: .01em;
+    transition: background .18s ease, transform .15s ease, box-shadow .18s ease;
+    color-scheme: light; forced-color-adjust: none;
+  }
+  .p2-cta-bar:hover {
+    background: var(--cbw-green-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(22,163,74,0.30);
+  }
+
+  .p2-steps {
+    margin: 0 0 20px; padding: 0; list-style: none;
+    counter-reset: p2-step-counter;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .p2-step {
+    display: flex; align-items: flex-start; gap: 12px;
+    counter-increment: p2-step-counter;
+    font-size: 14px; color: #374151; line-height: 1.55;
+  }
+  .p2-step::before {
+    content: counter(p2-step-counter);
+    flex-shrink: 0; width: 26px; height: 26px;
+    background: #111827; color: #fff; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; margin-top: 1px;
+  }
+  @media (min-width: 640px) { .p2-step { font-size: 15px; } }
+
+  .p2-evidence-figure { margin: 0; text-align: center; }
+  .p2-evidence-img {
+    max-width: 360px; width: 100%; height: auto;
+    display: block; margin: 0 auto;
+    border-radius: var(--cbw-card-radius);
+    box-shadow: var(--cbw-shadow-md);
+  }
+  .p2-evidence-caption {
+    font-size: 12px; color: var(--cbw-gray-500); line-height: 1.5;
+    margin-top: 8px; text-align: center;
+  }
+  .p2-evidence-img--wide { max-width: 740px; }
+
+  .p2-table-wrap {
+    overflow-x: auto; border-radius: var(--cbw-r-md); border: 1px solid var(--cbw-gray-300);
+    margin-top: 10px; color-scheme: light; forced-color-adjust: none;
+  }
+  .p2-table {
+    width: 100%; border-collapse: collapse; font-size: 13px;
+    background: var(--cbw-gray-50); min-width: 320px;
+  }
+  .p2-table th {
+    background: var(--cbw-gray-100); padding: 10px 14px; text-align: left;
+    font-size: 12px; font-weight: 600; color: var(--cbw-gray-500);
+    border-bottom: 1px solid var(--cbw-gray-200); white-space: nowrap;
+  }
+  .p2-table td { padding: 10px 14px; color: var(--cbw-gray-700); border-bottom: 1px solid var(--cbw-gray-100); }
+  .p2-table tr:last-child td { border-bottom: none; }
+
+  .p2-faq { display: flex; flex-direction: column; gap: 4px; }
+  .p2-faq-item {
+    border: 1px solid var(--cbw-gray-200); border-radius: var(--cbw-r-md);
+    overflow: hidden; background: var(--cbw-white);
+    color-scheme: light; forced-color-adjust: none;
+  }
+  .p2-faq-q {
+    padding: 13px 16px; font-size: 14px; font-weight: 600;
+    color: var(--cbw-gray-900); cursor: pointer; list-style: none;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 8px; transition: background .12s;
+  }
+  .p2-faq-q::-webkit-details-marker { display: none; }
+  .p2-faq-q::after { content: '+'; flex-shrink: 0; font-size: 18px; font-weight: 400; color: #9CA3AF; }
+  .p2-faq-item[open] .p2-faq-q::after { content: '−'; }
+  .p2-faq-q:hover { background: #F9FAFB; }
+  .p2-faq-a { padding: 0 16px 14px; font-size: 13px; color: #4B5563; font-style: normal; line-height: 1.5; }
+
+  /* Related exchange bonuses */
+  .p2-related-intro { font-size: 14px; color: #6B7280; line-height: 1.6; margin: 0 0 14px; }
+  .p2-related-grid { display: flex; flex-direction: column; gap: 10px; }
+  .p2-rel-card {
+    border: 1px solid var(--cbw-card-border); border-radius: var(--cbw-r-md); padding: 12px 14px;
+    background: var(--cbw-card-bg); display: flex; align-items: center; gap: 14px;
+    box-shadow: var(--cbw-card-shadow);
+    color-scheme: light; forced-color-adjust: none;
+  }
+  .p2-rel-logo-wrap {
+    flex-shrink: 0; width: 86px; height: 86px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 12px; overflow: hidden;
+    box-sizing: border-box; color-scheme: light;
+    border: 1px solid rgba(0,0,0,0.08);
+  }
+  @media (min-width: 640px) { .p2-rel-logo-wrap { width: 96px; height: 96px; } }
+  .p2-rel-logo { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .p2-rel-info { flex: 1; min-width: 0; }
+  .p2-rel-name { font-size: 13px; font-weight: 700; color: #111827; line-height: 1.2; }
+  .p2-rel-bonus { font-size: 12px; font-weight: 600; color: #374151; line-height: 1.3; }
+  .p2-rel-tag { font-size: 11px; color: #9CA3AF; margin-top: 1px; }
+  .p2-rel-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
+  .p2-rel-btn {
+    display: flex; align-items: center; justify-content: center;
+    background: var(--cbw-green); color: #fff;
+    font-size: 15px; font-weight: 800; border-radius: 10px;
+    height: 54px; min-width: 170px; padding: 0 24px; text-decoration: none; white-space: nowrap;
+    transition: background .15s, color .15s;
+  }
+  .p2-rel-btn:hover { background: var(--cbw-green-hover); }
+  .p2-rel-btn.is-activated { background: #0d9488; pointer-events: none; cursor: default; }
+  .p2-rel-link { font-size: 11px; color: #9CA3AF; text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }
+  .p2-rel-link:hover { color: #6B7280; }
+  @media (max-width: 639px) {
+    .p2-rel-card { flex-wrap: wrap; }
+    .p2-rel-actions { width: 100%; flex-direction: row; align-items: center; gap: 10px; }
+    .p2-rel-btn { flex: 1; min-width: 0; height: 48px; }
+  }
+
+  /* Rating block */
+  .p2-rating-block { text-align: center; }
+  .p2-rating-title { font-size: 16px; font-weight: 700; color: #111827; margin: 0 0 10px; }
+  .p2-stars { font-size: 28px; color: #D1D5DB; letter-spacing: 2px; margin: 0 0 8px; line-height: 1; }
+  .p2-rating-empty { font-size: 13px; color: #9CA3AF; margin: 0; line-height: 1.5; }
+
+  /* Voting block */
+  .p2-vote-block { text-align: center; }
+  .p2-vote-title { font-size: 16px; font-weight: 700; color: #111827; margin: 0 0 14px; }
+  .p2-vote-buttons { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+  .p2-vote-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 0 18px; height: 42px; border-radius: 8px;
+    font-size: 14px; font-weight: 600; border: 1.5px solid #E5E7EB;
+    background: #fff; color: #374151; cursor: pointer;
+    transition: border-color .15s, background .15s, color .15s;
+    color-scheme: light; forced-color-adjust: none;
+  }
+  .p2-vote-btn:hover { border-color: #D1D5DB; background: #F9FAFB; }
+  .p2-vote-btn.is-selected-up   { border-color: #16a34a; background: #f0fdf4; color: #15803d; }
+  .p2-vote-btn.is-selected-down { border-color: #dc2626; background: #fef2f2; color: #b91c1c; }
+  .p2-vote-btn:disabled { cursor: default; }
+  .p2-vote-status { font-size: 12px; color: #9CA3AF; margin: 0; line-height: 1.6; }
+
+  /* Article banner */
+  .p2-article-banner-figure { margin: 20px 0 0; }
+  .p2-article-banner-img {
+    width: 100%; height: auto; display: block;
+    border-radius: var(--cbw-r-md);
+    box-shadow: var(--cbw-shadow-md);
+  }
+  .p2-article-banner-caption {
+    font-size: 12px; color: var(--cbw-gray-400); line-height: 1.5;
+    margin-top: 8px; text-align: center; font-style: italic;
+  }
+  @media (prefers-color-scheme: dark) {
+    .p2-article-banner-caption { color: #9CA3AF !important; -webkit-text-fill-color: #9CA3AF !important; }
+  }
+
+  /* Verification status badges */
+  .status-badge {
+    display: inline-flex; align-items: center;
+    font-size: 11px; font-weight: 700; letter-spacing: .03em;
+    padding: 3px 10px; border-radius: 20px; white-space: nowrap; line-height: 1.4;
+  }
+  .status-verified      { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+  .status-public-preview{ background: #fefce8; color: #854d0e; border: 1px solid #fef08a; }
+  .status-check-hub     { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+  .status-note { font-size: 11px; color: #6B7280; line-height: 1.45; margin-top: 4px; }
+
+  /* ── Samsung / forced-dark mode override ──────────────────── */
+  @media (prefers-color-scheme: dark) {
+    .title-bar {
+      background: #ffffff !important; border-bottom-color: #E5E7EB !important;
+      color-scheme: light !important; forced-color-adjust: none;
+    }
+    .title-bar h1 { color: #111827 !important; -webkit-text-fill-color: #111827 !important; }
+    .bh-promo-row {
+      background: #ffffff !important; border-color: #D1D5DB !important;
+      color-scheme: light !important; forced-color-adjust: none;
+    }
+    .bh-promo-code {
+      background: #ffffff !important;
+      color: #111827 !important; -webkit-text-fill-color: #111827 !important;
+      forced-color-adjust: none;
+    }
+    .bh-copy-btn {
+      background: #ffffff !important;
+      color: #16a34a !important; -webkit-text-fill-color: #16a34a !important;
+      border-left-color: #E5E7EB !important; forced-color-adjust: none;
+    }
+    .bh-copy-btn:hover { background: #f0fdf4 !important; }
+    .bh-promo-row.copy-success { background: #dcfce7 !important; border-color: #22c55e !important; }
+    .bh-promo-row.copy-success .bh-promo-code { background: #dcfce7 !important; color: #166534 !important; -webkit-text-fill-color: #166534 !important; }
+    .bh-promo-row.copy-success .bh-copy-btn { background: #dcfce7 !important; color: #166534 !important; -webkit-text-fill-color: #166534 !important; }
+    .compact-facts { background: var(--cbw-white) !important; color-scheme: light !important; forced-color-adjust: none; }
+    .cf-inner { background: var(--cbw-white) !important; border-color: var(--cbw-gray-200) !important; }
+    .cf-table, .cf-table tr, .cf-table td { background: var(--cbw-gray-100) !important; color-scheme: light !important; forced-color-adjust: none; }
+    .cf-table tr { border-bottom-color: var(--cbw-gray-200) !important; }
+    .cf-table td:first-child { color: var(--cbw-gray-700) !important; -webkit-text-fill-color: #374151 !important; }
+    .cf-table td:last-child { color: var(--cbw-gray-900) !important; -webkit-text-fill-color: #111827 !important; }
+    .cf-code { color: var(--codeColor) !important; -webkit-text-fill-color: var(--codeColor) !important; }
+    .cf-good { color: #16a34a !important; -webkit-text-fill-color: #16a34a !important; }
+    .cf-warn { color: #b45309 !important; -webkit-text-fill-color: #b45309 !important; }
+    .p2-section { background: #fff !important; color-scheme: light !important; forced-color-adjust: none; }
+    .p2-section-alt { background: #F9FAFB !important; }
+    .p2-placeholder { background: #F3F4F6 !important; border-color: #D1D5DB !important; color: #9CA3AF !important; }
+    .p2-h2, .p2-h3 { color: #111827 !important; -webkit-text-fill-color: #111827 !important; }
+    .p2-step { color: #374151 !important; -webkit-text-fill-color: #374151 !important; }
+    .p2-table { background: #F9FAFB !important; }
+    .p2-table th { background: #F3F4F6 !important; color: #6B7280 !important; -webkit-text-fill-color: #6B7280 !important; }
+    .p2-table td { color: #374151 !important; -webkit-text-fill-color: #374151 !important; }
+    .p2-faq-item { background: #fff !important; border-color: #E5E7EB !important; }
+    .p2-faq-q { color: #111827 !important; -webkit-text-fill-color: #111827 !important; }
+    .p2-faq-a { color: #4B5563 !important; -webkit-text-fill-color: #4B5563 !important; font-style: normal !important; }
+    .status-verified       { background: #f0fdf4 !important; color: #15803d !important; border-color: #bbf7d0 !important; }
+    .status-public-preview { background: #fefce8 !important; color: #854d0e !important; border-color: #fef08a !important; }
+    .status-check-hub      { background: #eff6ff !important; color: #1d4ed8 !important; border-color: #bfdbfe !important; }
+    .status-note { color: #6B7280 !important; -webkit-text-fill-color: #6B7280 !important; }
+    .p2-rel-card { background: #fff !important; border-color: #E5E7EB !important; }
+    .p2-rel-name { color: #111827 !important; -webkit-text-fill-color: #111827 !important; }
+    .p2-rel-bonus { color: #374151 !important; -webkit-text-fill-color: #374151 !important; }
+    .p2-rating-title { color: #111827 !important; -webkit-text-fill-color: #111827 !important; }
+    .p2-text { color: #374151 !important; -webkit-text-fill-color: #374151 !important; }
+    .p2-cta-bar { background: var(--cbw-green) !important; color: #fff !important; -webkit-text-fill-color: #fff !important; }
+    .p2-vote-title { color: #111827 !important; -webkit-text-fill-color: #111827 !important; }
+    .p2-vote-btn { background: #fff !important; color: #374151 !important; -webkit-text-fill-color: #374151 !important; border-color: #E5E7EB !important; color-scheme: light !important; }
+    .p2-vote-btn.is-selected-up   { background: #f0fdf4 !important; color: #15803d !important; -webkit-text-fill-color: #15803d !important; border-color: #16a34a !important; }
+    .p2-vote-btn.is-selected-down { background: #fef2f2 !important; color: #b91c1c !important; -webkit-text-fill-color: #b91c1c !important; border-color: #dc2626 !important; }
+    .p2-rel-logo-wrap { background-clip: padding-box !important; }
+  }
+</style>
+
+<!-- BLOCK 1 — TITLE BAR -->
+<div class="title-bar">
+  <h1>{c.name} Referral Code</h1>
+</div>
+
+<!-- BLOCK 2 — BRAND HERO (top) -->
+<section class="brand-hero" style={bhStyle}>
+  <div class="bh-inner">
+    <a href={c.affiliateUrl} rel="noopener sponsored" aria-label={`Get ${c.name} bonus`} style="display:block;line-height:0;">
+      <ExchangePromoLogoSlot
+        src={c.wordmarkImg}
+        alt={c.name}
+        mode="clean"
+        visualScale={c.logoVisualScale ?? 1}
+        fetchpriority="high"
+      />
+    </a>
+    <p class="bh-promo-label">{c.heroPromoLabel}</p>
+    <div class="bh-promo-row">
+      <span class="bh-promo-code">{c.promoCode}</span>
+      <button class="bh-copy-btn" id="copy-btn-hero" type="button">Copy</button>
+    </div>
+    <a href={c.affiliateUrl} class="bh-cta-btn" rel="noopener sponsored">Get Bonus</a>
+    <p class="bh-source">Verified {c.lastChecked} on <a href={c.sourceUrl} target="_blank" rel="noopener noreferrer nofollow">{c.officialDomain}</a></p>
+  </div>
+</section>
+
+<!-- BLOCK 3 — COMPACT FACTS TABLE -->
+<div class="compact-facts">
+  <div class="cf-inner">
+    <table class="cf-table">
+      <tbody>
+        <tr><td>👉 {c.name}</td><td>{c.officialDomain}</td></tr>
+        <tr><td>➡️ Referral Code</td><td class="cf-code">{c.promoCode}</td></tr>
+        <tr><td>💰 Bonus</td><td>Up to {bonusMaxFmt} {c.currency}</td></tr>
+        <tr><td>✅ Valid</td><td>{c.lastChecked}</td></tr>
+        <tr>
+          <td>🔐 KYC required</td>
+          <td class:list={[c.kycRequired ? 'cf-warn' : 'cf-good']}>{c.kycNote}</td>
+        </tr>
+        <tr><td>📊 Spot fee</td><td>{c.fees.spot.maker} maker / {c.fees.spot.taker} taker</td></tr>
+        <tr><td>🌍 Availability</td><td>Global (restricted regions apply)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- BLOCK 3b — SEO PHRASE + INTRO -->
+<div class="seo-intro-block">
+  <div class="seo-intro-inner">
+    <p class="seo-phrase">{c.seoPhraseLabel}</p>
+    {c.introParagraphs.map(p => <p class="seo-intro-text" set:html={p} />)}
+    <p class="seo-intro-text" style="font-size:13px;color:#9CA3AF;">We use affiliate links and may earn a commission when you register through links on this page. This does not affect what we publish or how we assess offers.</p>
+  </div>
+</div>
+
+<!-- 01. CTA bar after intro -->
+<div class="p2-section p2-cta-block">
+  <div class="p2-inner">
+    <a href={c.affiliateUrl} class="p2-cta-bar" rel="noopener sponsored">Get {c.name} Bonus Now</a>
+  </div>
+</div>
+
+<!-- 02. What Is the Referral Code? -->
+<div class="p2-section">
+  <div class="p2-inner">
+    <h2 class="p2-h2">What Is the {c.name} Referral Code?</h2>
+    <p class="p2-text">A {c.name} referral code is an alphanumeric string entered during account registration that links your new account to a partner bonus program. Using the code <strong>{c.promoCode}</strong> connects your account to the official {c.name} bonus page, which unlocks the new user reward pool.</p>
+    <p class="p2-text">Referral codes are intended for new users only — people creating a {c.name} account for the first time. Existing {c.name} users cannot apply a referral code to an account that is already registered. The code must be entered at the point of sign-up, before completing registration. When you use the partner link on this page, the code is typically pre-filled in the registration form.</p>
+  </div>
+</div>
+
+<!-- 03. How to Claim -->
+<div class="p2-section p2-section-alt">
+  <div class="p2-inner">
+    <h2 class="p2-h2">How to Claim the {c.name} Bonus Code</h2>
+    <ol class="p2-steps">
+      {c.howToClaimSteps.map(step => <li class="p2-step" set:html={step} />)}
+    </ol>
+  </div>
+</div>
+
+<!-- 04. Evidence screenshot — registration -->
+<div class="p2-section">
+  <div class="p2-inner">
+    <figure class="p2-evidence-figure">
+      <img
+        src={c.evidenceRegistration.src}
+        alt={c.evidenceRegistration.alt}
+        width={c.evidenceRegistration.width}
+        height={c.evidenceRegistration.height}
+        loading="lazy"
+        decoding="async"
+        class:list={['p2-evidence-img', c.evidenceRegistration.wide && 'p2-evidence-img--wide']}
+      />
+      <figcaption class="p2-evidence-caption" set:html={c.evidenceRegistration.caption} />
+    </figure>
+  </div>
+</div>
+
+<!-- 04b. CTA after screenshot -->
+<div class="p2-section p2-cta-block">
+  <div class="p2-inner">
+    <a href={c.affiliateUrl} class="p2-cta-bar" rel="noopener sponsored">Get {c.name} Bonus Now</a>
+  </div>
+</div>
+
+<!-- 05. Bonus Levels -->
+<div class="p2-section p2-section-alt">
+  <div class="p2-inner">
+    <h2 class="p2-h2">Bonus Levels on {c.name}</h2>
+    <p class="p2-text">The {c.name} new user bonus is not a single fixed payout. It is structured as a series of tasks, each with its own reward. The total potential value shown on the official {c.name} bonus page is up to {bonusMaxFmt} {c.currency}, but that figure represents the combined maximum across all tasks — not a guaranteed amount for every user.</p>
+    <p class="p2-text">Most new users who complete standard registration and a first deposit will unlock a portion of the total package. The exact rewards and task requirements can vary by region and may change between promotion periods. Always check the current terms on the official {c.name} bonus page after registering.</p>
+    <div class="p2-table-wrap">
+      <table class="p2-table">
+        <thead>
+          <tr>
+            <th>Task</th>
+            <th>Requirement</th>
+            <th>Reward type</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {c.bonusLevelRows.map(row => (
+            <tr>
+              <td>{row.task}</td>
+              <td>{row.requirement}</td>
+              <td>{row.rewardType}</td>
+              <td>{row.notes}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    {(c.bonusExtraSections ?? []).map(sec => (
+      <>
+        <h3 class="p2-h3">{sec.h3}</h3>
+        <p class="p2-text" set:html={sec.text} />
+      </>
+    ))}
+  </div>
+</div>
+
+<!-- 10b. Optional extra evidence (e.g. MEXC new user rewards page) -->
+{c.evidenceBonusPage && (
+  <div class="p2-section">
+    <div class="p2-inner">
+      <figure class="p2-evidence-figure">
+        <img
+          src={c.evidenceBonusPage.src}
+          alt={c.evidenceBonusPage.alt}
+          width={c.evidenceBonusPage.width}
+          height={c.evidenceBonusPage.height}
+          loading="lazy"
+          decoding="async"
+          class:list={['p2-evidence-img', c.evidenceBonusPage.wide && 'p2-evidence-img--wide']}
+        />
+        <figcaption class="p2-evidence-caption" set:html={c.evidenceBonusPage.caption} />
+      </figure>
+    </div>
+  </div>
+)}
+
+<!-- 07. Other Codes People Search For -->
+<div class="p2-section">
+  <div class="p2-inner">
+    <h2 class="p2-h2">Other {c.name} Codes People Search For</h2>
+    <p class="p2-text">Many users search for a {c.name} referral code on Reddit, in forum threads, or on social channels. Some of those codes may be expired, region-restricted, or tied to individual affiliate accounts with no active bonus offer behind them.</p>
+    <p class="p2-text">The {c.name} code <strong>{c.promoCode}</strong> is the code verified on this page. It links to the official {c.name} new user rewards flow where new accounts can see the current welcome package. If you find another code elsewhere, check whether it routes to an active {c.name} bonus offer before registering — the referral code must be entered at sign-up and cannot be changed after registration is complete.</p>
+  </div>
+</div>
+
+<!-- 08–10. About + Support -->
+<div class="p2-section p2-section-alt">
+  <div class="p2-inner">
+    <h2 class="p2-h2">About {c.name}</h2>
+    {c.aboutParagraphs.map(p => <p class="p2-text" set:html={p} />)}
+    <h3 class="p2-h3">Support</h3>
+    <p class="p2-text" set:html={c.supportText} />
+  </div>
+</div>
+
+<!-- 13. Partner Offer -->
+<div class="p2-section">
+  <div class="p2-inner">
+    <h2 class="p2-h2">{c.name} Partner Offer</h2>
+    <p class="p2-text" set:html={c.partnerOfferText} />
+    <figure class="p2-article-banner-figure">
+      <a href={c.affiliateUrl} rel="noopener sponsored" aria-label={`Get ${c.name} bonus`}>
+        <img
+          src={c.articleImg}
+          alt={`${c.name} referral code bonus illustration`}
+          width="1200"
+          height="675"
+          loading="lazy"
+          decoding="async"
+          class="p2-article-banner-img"
+        />
+      </a>
+      <figcaption class="p2-article-banner-caption">{c.name} Referral Code: {c.promoCode}</figcaption>
+    </figure>
+  </div>
+</div>
+
+<!-- 13b. Code Search Variations -->
+<div class="p2-section">
+  <div class="p2-inner">
+    <h2 class="p2-h2">Code Search Variations</h2>
+    <p class="p2-text">Users often describe the same {c.name} offer in different ways — welcome code, promo code, bonus code, invite code, or share code. On this CryptoBonusWorld page, the referral code shown for the offer is <strong>{c.promoCode}</strong>.</p>
+    <div class="p2-table-wrap">
+      <table class="p2-table">
+        <thead>
+          <tr><th>Search phrase</th><th>Code shown here</th></tr>
+        </thead>
+        <tbody>
+          {c.searchVariations.map(label => (
+            <tr><td>{label}</td><td class="cf-code">{c.promoCode}</td></tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p class="p2-text">Copy <strong>{c.promoCode}</strong> before creating a new account, then check the available bonus tasks inside the {c.name} {c.rewardsAreaName} after registration.</p>
+  </div>
+</div>
+
+<!-- BLOCK 13. Trading Fees -->
+<div class="p2-section p2-section-alt">
+  <div class="p2-inner">
+    <h2 class="p2-h2">{c.name} Trading Fees</h2>
+    <p class="p2-text">{c.name} fees vary by product, VIP level, account type, and current fee schedule. The figures below are based on {c.name}'s published standard non-VIP rates from the official {c.name} fee page. Always check the <a href={c.feeUrl} target="_blank" rel="noopener noreferrer nofollow">official {c.name} fee page</a> before trading — rates are subject to change.</p>
+    <div class="p2-table-wrap">
+      <table class="p2-table">
+        <thead>
+          <tr>
+            <th>Market</th>
+            <th>Maker fee</th>
+            <th>Taker fee</th>
+            <th>Source · Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {c.feeTableRows.map(row => (
+            <tr>
+              <td set:html={row.market} />
+              <td>{row.maker}</td>
+              <td>{row.taker}</td>
+              <Fragment set:html={row.statusCellHtml} />
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    {(c.evidenceFeeScreenshots ?? []).map(ev => (
+      <figure class="p2-evidence-figure" style="margin:16px 0;">
+        <img
+          src={ev.src}
+          alt={ev.alt}
+          width={ev.width}
+          height={ev.height}
+          loading="lazy"
+          decoding="async"
+          class:list={['p2-evidence-img', ev.wide && 'p2-evidence-img--wide']}
+        />
+        <figcaption class="p2-evidence-caption" set:html={ev.caption} />
+      </figure>
+    ))}
+    {c.feeAfterNoteHtml && <Fragment set:html={c.feeAfterNoteHtml} />}
+  </div>
+</div>
+
+<!-- BLOCK 14. KYC Requirements & Regional Availability -->
+<div class="p2-section">
+  <div class="p2-inner">
+    <h2 class="p2-h2">KYC Requirements &amp; Regional Availability</h2>
+    {c.kycAvailabilityParagraphs.map(p => <p class="p2-text" set:html={p} />)}
+  </div>
+</div>
+
+<!-- BLOCK 15. Verification table -->
+<div class="p2-section p2-section-alt">
+  <div class="p2-inner">
+    <h2 class="p2-h2">{c.name} Bonus Offer — What We Have Verified</h2>
+    <p class="p2-text" set:html={c.verificationIntroText} />
+    <figure class="p2-evidence-figure" style="margin:20px 0 16px;">
+      <img
+        src={c.verificationEvidence.src}
+        alt={c.verificationEvidence.alt}
+        width={c.verificationEvidence.width}
+        height={c.verificationEvidence.height}
+        loading="lazy"
+        decoding="async"
+        class:list={['p2-evidence-img', c.verificationEvidence.wide && 'p2-evidence-img--wide']}
+      />
+      <figcaption class="p2-evidence-caption" set:html={c.verificationEvidence.caption} />
+    </figure>
+    <div class="p2-table-wrap">
+      <table class="p2-table">
+        <thead>
+          <tr>
+            <th>Reward area</th>
+            <th>What may be required</th>
+            <th>Reward type</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {c.verificationRows.map(row => (
+            <tr>
+              <td>{row.area}</td>
+              <td>{row.requirement}</td>
+              <td>{row.rewardType}</td>
+              <td>
+                <span class:list={['status-badge', `status-${row.status}`]}>
+                  {row.status === 'verified' ? 'Verified' : row.status === 'public-preview' ? 'Public Preview' : `Check in ${c.rewardsAreaName}`}
+                </span>
+                <div class="status-note">{row.statusNote}</div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p class="p2-text" style="margin-top:12px;" set:html={c.verificationAfterNote} />
+  </div>
+</div>
+
+<!-- BLOCK 16. FAQ -->
+<div class="p2-section">
+  <div class="p2-inner">
+    <h2 class="p2-h2">{c.name} Referral Code — FAQ</h2>
+    <div class="p2-faq">
+      {c.faqItems.map(item => (
+        <details class="p2-faq-item">
+          <summary class="p2-faq-q">{item.question}</summary>
+          <div class="p2-faq-a" set:html={item.answer} />
+        </details>
+      ))}
+    </div>
+  </div>
+</div>
+
+<!-- 17a. Related Exchanges -->
+<div class="p2-section p2-section-alt">
+  <div class="p2-inner">
+    <h2 class="p2-h2">More Verified Crypto Exchange Bonuses</h2>
+    <p class="p2-related-intro">Compare other exchange bonus pages if you want to check alternatives before using the {c.name} referral code.</p>
+    <div class="p2-related-grid">
+      {c.relatedExchanges.map(ex => (
+        <div class="p2-rel-card">
+          <div class="p2-rel-logo-wrap" style={`background:${ex.tileBg};`}>
+            <img src={ex.logo} alt={ex.name} class="p2-rel-logo" loading="lazy" width="60" height="54" />
+          </div>
+          <div class="p2-rel-info">
+            <div class="p2-rel-name">{ex.name}</div>
+            <div class="p2-rel-bonus">{ex.bonus}</div>
+            <div class="p2-rel-tag">{ex.tag}</div>
+          </div>
+          <div class="p2-rel-actions">
+            <a href={`/go/${ex.slug}/`} class="p2-rel-btn" data-exchange={ex.slug} rel="noopener sponsored">Get Bonus</a>
+            <a href={`/exchanges/${ex.slug}/`} class="p2-rel-link">View details →</a>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</div>
+
+<!-- 17b. Closing hero — exact repeat of top hero -->
+<section class="brand-hero" style={bhStyle}>
+  <div class="bh-inner">
+    <a href={c.affiliateUrl} rel="noopener sponsored" aria-label={`Get ${c.name} bonus`} style="display:block;line-height:0;">
+      <ExchangePromoLogoSlot
+        src={c.wordmarkImg}
+        alt={c.name}
+        mode="clean"
+        visualScale={c.logoVisualScale ?? 1}
+        loading="lazy"
+      />
+    </a>
+    <p class="bh-promo-label">{c.heroPromoLabel}</p>
+    <div class="bh-promo-row">
+      <span class="bh-promo-code">{c.promoCode}</span>
+      <button class="bh-copy-btn" id="copy-btn-coupon" type="button">Copy</button>
+    </div>
+    <a href={c.affiliateUrl} class="bh-cta-btn" rel="noopener sponsored">Get Bonus</a>
+    <p class="bh-source">Verified {c.lastChecked} on <a href={c.sourceUrl} target="_blank" rel="noopener noreferrer nofollow">{c.officialDomain}</a></p>
+  </div>
+</section>
+
+<!-- Rating block — honest, no fake data -->
+<div class="p2-section p2-section-alt">
+  <div class="p2-inner p2-rating-block">
+    <h3 class="p2-rating-title">Rate this {c.name} referral code</h3>
+    <div class="p2-stars" aria-label="No ratings yet" aria-hidden="true" style="color:#D1D5DB;">☆☆☆☆☆</div>
+    <p class="p2-rating-empty">No ratings yet — be the first to rate this code.</p>
+  </div>
+</div>
+
+<!-- Voting block — localStorage only, no fake global counts -->
+<div class="p2-section">
+  <div class="p2-inner p2-vote-block"
+       data-vote-widget="code-helpfulness"
+       data-exchange={c.slug}
+       data-code={c.promoCode}>
+    <h3 class="p2-vote-title">Was this {c.name} referral code helpful?</h3>
+    <div class="p2-vote-buttons">
+      <button class="p2-vote-btn" id="vote-up"   type="button" data-vote="up">👍 Works for me</button>
+      <button class="p2-vote-btn" id="vote-down" type="button" data-vote="down">👎 Didn't work</button>
+    </div>
+    <p class="p2-vote-status" id="vote-status">No votes yet — be the first to rate this code.</p>
+  </div>
+</div>
+
+<script define:vars={{ promoCode: c.promoCode, exchangeSlug: c.slug }}>
+  (function () {
+    var btn = document.getElementById('copy-btn-hero');
+    if (btn) {
+      btn.addEventListener('click', function () {
+        navigator.clipboard.writeText(promoCode).then(function () {
+          var row = btn.closest('.bh-promo-row');
+          var codeSpan = row ? row.querySelector('.bh-promo-code') : null;
+          btn.textContent = 'Copied ✓';
+          btn.classList.add('copy-success');
+          if (row) row.classList.add('copy-success');
+          if (codeSpan) codeSpan.classList.add('copy-success');
+          setTimeout(function () {
+            btn.textContent = 'Copy';
+            btn.classList.remove('copy-success');
+            if (row) row.classList.remove('copy-success');
+            if (codeSpan) codeSpan.classList.remove('copy-success');
+          }, 1800);
+        });
+      });
+    }
+
+    var DEAL_PREFIX = 'cbw_deal_activated_';
+    document.querySelectorAll('.p2-rel-btn').forEach(function(relBtn) {
+      var slug = relBtn.getAttribute('data-exchange');
+      if (!slug) return;
+      try {
+        if (localStorage.getItem(DEAL_PREFIX + slug)) {
+          relBtn.textContent = 'Deal Activated';
+          relBtn.classList.add('is-activated');
+        }
+      } catch(e) {}
+      relBtn.addEventListener('click', function() {
+        try { localStorage.setItem(DEAL_PREFIX + slug, '1'); } catch(e) {}
+        relBtn.textContent = 'Deal Activated';
+        relBtn.classList.add('is-activated');
+      });
+    });
+
+    var VOTE_KEY = 'cbw_vote_' + exchangeSlug + '_code';
+    var voteUpBtn   = document.getElementById('vote-up');
+    var voteDownBtn = document.getElementById('vote-down');
+    var voteStatus  = document.getElementById('vote-status');
+    function applyVoteState(vote) {
+      if (!voteUpBtn || !voteDownBtn || !voteStatus) return;
+      if (vote === 'up') {
+        voteUpBtn.classList.add('is-selected-up');
+        voteDownBtn.classList.remove('is-selected-down');
+      } else if (vote === 'down') {
+        voteDownBtn.classList.add('is-selected-down');
+        voteUpBtn.classList.remove('is-selected-up');
+      }
+      voteUpBtn.disabled   = true;
+      voteDownBtn.disabled = true;
+      voteStatus.textContent = 'Thanks — your vote was recorded. Your vote is saved on this device.';
+    }
+    try { var savedVote = localStorage.getItem(VOTE_KEY); if (savedVote) applyVoteState(savedVote); } catch(e) {}
+    if (voteUpBtn)   { voteUpBtn.addEventListener('click',   function() { try { localStorage.setItem(VOTE_KEY, 'up');   } catch(e) {} applyVoteState('up');   }); }
+    if (voteDownBtn) { voteDownBtn.addEventListener('click', function() { try { localStorage.setItem(VOTE_KEY, 'down'); } catch(e) {} applyVoteState('down'); }); }
+
+    var couponBtn = document.getElementById('copy-btn-coupon');
+    if (couponBtn) {
+      couponBtn.addEventListener('click', function () {
+        navigator.clipboard.writeText(promoCode).then(function () {
+          var row = couponBtn.closest('.bh-promo-row');
+          var codeSpan = row ? row.querySelector('.bh-promo-code') : null;
+          couponBtn.textContent = 'Copied ✓';
+          couponBtn.classList.add('copy-success');
+          if (row) row.classList.add('copy-success');
+          if (codeSpan) codeSpan.classList.add('copy-success');
+          setTimeout(function () {
+            couponBtn.textContent = 'Copy';
+            couponBtn.classList.remove('copy-success');
+            if (row) row.classList.remove('copy-success');
+            if (codeSpan) codeSpan.classList.remove('copy-success');
+          }, 1800);
+        });
+      });
+    }
+  })();
+</script>
+
+<Fragment set:html={`<script type="application/ld+json">${JSON.stringify(faqSchema)}</script>`} />
