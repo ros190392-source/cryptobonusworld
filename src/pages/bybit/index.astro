@@ -570,6 +570,9 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
         <tr><td>➡️ Referral Code</td><td class="cf-code">{offer.promoCode}</td></tr>
         <tr><td>💰 Bonus</td><td>Up to {exchange.bonusMax.toLocaleString('en-US')} {exchange.currency}</td></tr>
         <tr><td>✅ Valid</td><td>{offer.lastChecked}</td></tr>
+        <tr><td>🔐 KYC required</td><td class="cf-warn">Yes — identity verification required</td></tr>
+        <tr><td>📊 Spot fee</td><td>{exchange.fees.spot.maker} maker / {exchange.fees.spot.taker} taker</td></tr>
+        <tr><td>🌍 Availability</td><td>Global (restricted regions apply)</td></tr>
       </tbody>
     </table>
   </div>
@@ -584,6 +587,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
     <p class="seo-intro-text">Looking for a {exchange.name} referral code? Use <strong>{offer.promoCode}</strong> to open the official {exchange.name} bonus page and check the latest sign-up rewards for new users.</p>
     <p class="seo-intro-text">The {exchange.name} promo code {offer.promoCode} gives new accounts access to a welcome package that can include deposit bonuses, trading vouchers, and fee discounts. The rewards you receive depend on which tasks you complete after registration — {exchange.name} structures its new user bonus as a series of milestones rather than a single fixed payout.</p>
     <p class="seo-intro-text">This page covers what the {exchange.name} bonus code does, how to apply it at sign-up, and what to expect from the {exchange.name} sign-up bonus program. All information is based on publicly available details from the official {exchange.name} bonus page.</p>
+    <p class="seo-intro-text" style="font-size:13px;color:#9CA3AF;">We use affiliate links and may earn a commission when you register through links on this page. This does not affect what we publish or how we assess offers.</p>
   </div>
 </div>
 
@@ -697,8 +701,8 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
         </tbody>
       </table>
     </div>
-    <h3 class="p2-h3">Getting the Most from Your New User Rewards</h3>
-    <p class="p2-text">Complete KYC and your first deposit early — these two steps unlock the largest share of the new user package. After that, check the Rewards Hub inside your {exchange.name} account for any active tasks that apply to your account type and region. Not all tasks will be available in every country.</p>
+    <h3 class="p2-h3">Realistic Value for Most New Users</h3>
+    <p class="p2-text">{offer.realisticValue}. The full advertised maximum is not a guaranteed amount for every user. Complete KYC and your first deposit early — these two steps unlock the largest share of the new user package. After that, check the Rewards Hub inside your {exchange.name} account for any active tasks that apply to your account type and region. Not all tasks will be available in every country.</p>
   </div>
 </div>
 
@@ -719,37 +723,13 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
     <p class="p2-text">{exchange.name} offers spot trading, perpetual and quarterly futures contracts, options, and a copy trading marketplace. The platform is available via web browser and through official iOS and Android apps. {exchange.name} does not currently accept users from the United States, Canada, or several other restricted jurisdictions.</p>
     <h3 class="p2-h3">Support</h3>
     <p class="p2-text">{exchange.name} provides 24/7 customer support through live chat on the platform and a dedicated <a href={exchange.supportUrl} target="_blank" rel="noopener noreferrer nofollow">{exchange.name} Help Center</a>. Support is available in English and several other languages. For account-related issues — including bonus queries — the live chat route is typically the fastest way to reach a response.</p>
-    <h3 class="p2-h3">Platform and Team Notes</h3>
-    <p class="p2-text">The {exchange.name} platform covers derivatives-first trading with deep liquidity on its perpetual contracts, alongside a spot market and earn products such as flexible savings and staking. The exchange runs a Launchpad for new token listings and a {exchange.name} Card for spending crypto. {exchange.name}'s mobile apps are consistently rated among the higher-reviewed exchange apps on both the App Store and Google Play.</p>
   </div>
 </div>
 
-<!-- 11. Bybit Rewards Program -->
+<!-- 13. Bybit Partner Offer Details -->
 <div class="p2-section">
   <div class="p2-inner">
-    <h2 class="p2-h2">{exchange.name} Rewards Program</h2>
-    <p class="p2-text">Beyond the new user welcome package, {exchange.name} operates an ongoing Rewards Hub inside each registered account. The hub offers daily and weekly missions — such as completing a trade, making a deposit above a certain amount, or trying a specific product — each tied to a USDT voucher or experience points (EXP).</p>
-    <p class="p2-text">EXP accumulated through the Rewards Hub can be converted into USDT after meeting trading volume requirements. The specific tasks available in the hub depend on your account region, your KYC status, and the current promotion calendar. Tasks rotate periodically, so rewards that are available one month may not appear the next.</p>
-    <p class="p2-text">The {exchange.name} welcome bonus unlocked through the referral code <strong>{offer.promoCode}</strong> is a separate programme from the ongoing Rewards Hub. New users typically see both available after completing registration and identity verification.</p>
-  </div>
-</div>
-
-<!-- 12. Other Bybit Promotions -->
-<div class="p2-section p2-section-alt">
-  <div class="p2-inner">
-    <h2 class="p2-h2">Other {exchange.name} Promotions</h2>
-    <p class="p2-text">{exchange.name} runs promotions beyond the new user sign-up bonus. These include periodic trading competitions with USDT prize pools, Launchpad participation windows for users who hold BIT or meet trading volume thresholds, and seasonal deposit campaigns around major market events.</p>
-    <p class="p2-text">Existing users can also access the {exchange.name} Affiliate and Referral programmes, which offer fee rebates and commission-sharing for bringing new users to the platform. These are separate from the {exchange.name} sign-up bonus and operate under different terms.</p>
-    <p class="p2-text">Promotion availability and terms change regularly. The official {exchange.name} promotions page is the authoritative source for current offers — check it after creating your account to see which campaigns are active for your region and account type.</p>
-  </div>
-</div>
-
-<!-- 13. The Bybit Referral Program -->
-<div class="p2-section">
-  <div class="p2-inner">
-    <h2 class="p2-h2">The {exchange.name} Referral Program</h2>
-    <p class="p2-text">The {exchange.name} referral program covers two related but distinct things. For new users, it means entering a {exchange.name} referral code at sign-up — connecting a new account to a welcome offer. For existing users, {exchange.name} may provide a personal referral link or affiliate referral code they can share to invite others, subject to {exchange.name}'s current rules and eligibility conditions.</p>
-    <p class="p2-text">This page focuses on the new-user side: the {exchange.name} referral code <strong>{offer.promoCode}</strong>. Entering this code at registration connects a new {exchange.name} account to the partner welcome rewards flow. The verified screenshot above shows {offer.promoCode} pre-filled in the referral code field on the sign-up page. The public {exchange.name} partner page shows welcome rewards up to {exchange.bonusMax.toLocaleString('en-US')} {exchange.currency} for new accounts.</p>
+    <h2 class="p2-h2">{exchange.name} Partner Offer</h2>
     <p class="p2-text">Exact rewards — including any crypto coupons, fee benefits, trading bonuses, and Rewards Hub tasks — depend on {exchange.name}'s current terms, your region, KYC status, deposit amounts, and trading activity. Always check the current offer on the official {exchange.name} bonus page after creating your new account.</p>
 
     <figure class="p2-article-banner-figure">
@@ -792,121 +772,11 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
   </div>
 </div>
 
-<!-- 14. Bonus verification status table (replaces PLACEHOLDER_02) -->
-<div class="p2-section p2-section-alt">
-  <div class="p2-inner">
-    <h2 class="p2-h2">{exchange.name} Bonus Offer — What We Have Verified</h2>
-    <p class="p2-text">The table below shows what CryptoBonusWorld has been able to independently verify about the {exchange.name} bonus offer linked to the code {offer.promoCode}. Rows marked "Check in Rewards Hub" depend on individual account status and require verification inside your {exchange.name} account after registration.</p>
-    <figure class="p2-evidence-figure" style="margin:20px 0;">
-      <img
-        src="/media/exchanges/bybit/evidence/global-en/bybit-public-welcome-rewards.png"
-        alt="Bybit public welcome rewards page showing reward tiers up to $30,000"
-        width="848"
-        height="664"
-        loading="lazy"
-        decoding="async"
-        class="p2-evidence-img p2-evidence-img--wide"
-      />
-      <figcaption class="p2-evidence-caption">Bybit's public welcome page shows a $100 sign-up bonus message and reward tiers up to $30,000. Higher rewards depend on deposit, trading volume, VIP level and eligibility rules shown in Rewards Hub.</figcaption>
-    </figure>
-    <div class="p2-table-wrap">
-      <table class="p2-table">
-        <thead>
-          <tr>
-            <th>Reward area</th>
-            <th>What may be required</th>
-            <th>Reward type</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Sign-up with {offer.promoCode}</td>
-            <td>Referral code applied at registration</td>
-            <td>Welcome eligibility</td>
-            <td><span class="status-badge status-verified">Verified</span><div class="status-note">Mobile screenshot · {offer.lastChecked}</div></td>
-          </tr>
-          <tr>
-            <td>Welcome rewards</td>
-            <td>Open official {exchange.name} bonus page via partner link</td>
-            <td>Welcome gifts (up to ${exchange.bonusMax.toLocaleString('en-US')})</td>
-            <td><span class="status-badge status-verified">Verified</span><div class="status-note">Public welcome page · {offer.lastChecked}</div></td>
-          </tr>
-          <tr>
-            <td>Reward tiers preview ($50–$30,000)</td>
-            <td>Deposit + trading volume requirements per tier</td>
-            <td>Tiered deposit bonus</td>
-            <td><span class="status-badge status-public-preview">Public preview</span><div class="status-note">Public page shows reward tiers; exact eligibility is checked inside Rewards Hub.</div></td>
-          </tr>
-          <tr>
-            <td>Identity verification</td>
-            <td>KYC may be required to unlock most rewards</td>
-            <td>Reward access</td>
-            <td><span class="status-badge status-verified">Verified</span><div class="status-note">Official {exchange.name} FAQ · {offer.lastChecked}</div></td>
-          </tr>
-          <tr>
-            <td>Deposit tasks</td>
-            <td>Deposit may be required; amount varies by tier</td>
-            <td>Deposit bonus or coupon</td>
-            <td><span class="status-badge status-check-hub">Check in Rewards Hub</span><div class="status-note">Check exact tasks after sign-up.</div></td>
-          </tr>
-          <tr>
-            <td>Trading tasks</td>
-            <td>Trading volume may be required</td>
-            <td>Bonus, fee saver or fee discount</td>
-            <td><span class="status-badge status-check-hub">Check in Rewards Hub</span><div class="status-note">Check exact tasks after sign-up.</div></td>
-          </tr>
-          <tr>
-            <td>Claim period</td>
-            <td>Rewards may expire after a set period</td>
-            <td>Manual claim required</td>
-            <td><span class="status-badge status-check-hub">Check in Rewards Hub</span><div class="status-note">Check exact tasks after sign-up.</div></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="p2-text" style="margin-top:12px;">The Rewards Hub inside your {exchange.name} account shows the exact tasks, deadlines and claim rules available to your account. Official {exchange.name} pages confirm the {offer.promoCode} referral flow and reward tiers, but task amounts can vary by country, KYC level, deposit amount, trading activity and promotion period.</p>
-  </div>
-</div>
-
-<!-- 15. Bybit FAQ -->
-<div class="p2-section">
-  <div class="p2-inner">
-    <h2 class="p2-h2">{exchange.name} Referral Code — FAQ</h2>
-    <div class="p2-faq">
-      <details class="p2-faq-item">
-        <summary class="p2-faq-q">Do I have to make a cryptocurrency deposit?</summary>
-        <div class="p2-faq-a">Not for every task. KYC verification alone may unlock a small reward in the welcome package. However, the larger deposit bonus and most milestone rewards do require you to fund your account. The exact deposit threshold for each tier is shown on the official {exchange.name} bonus page after you register.</div>
-      </details>
-      <details class="p2-faq-item">
-        <summary class="p2-faq-q">Can I get more than one {exchange.name} bonus?</summary>
-        <div class="p2-faq-a">Within the welcome package, yes — each completed task unlocks its own reward. You can earn multiple rewards by completing KYC, making a first deposit, placing a futures trade, and meeting volume milestones. The welcome package itself is a one-time offer for new accounts and cannot be repeated on the same account.</div>
-      </details>
-      <details class="p2-faq-item">
-        <summary class="p2-faq-q">What are the {exchange.name} fees?</summary>
-        <div class="p2-faq-a">{exchange.name}'s standard spot trading fee is {exchange.fees.spot.maker} for both makers and takers. Perpetual futures fees are {exchange.fees.futures.maker} for makers and {exchange.fees.futures.taker} for takers. Options are {exchange.fees.options.maker} maker and {exchange.fees.options.taker} taker. Some welcome package rewards include a fee discount voucher — check the Rewards Hub after registering to see whether one is available for your account.</div>
-      </details>
-      <details class="p2-faq-item">
-        <summary class="p2-faq-q">Which currency are rewards paid in?</summary>
-        <div class="p2-faq-a">Most {exchange.name} welcome bonus rewards are denominated in USDT or issued as USDT-equivalent trading vouchers. Some rewards come as experience points (EXP) that convert to USDT after you meet a trading volume requirement. Specific reward currencies are shown for each task inside the {exchange.name} welcome offer page.</div>
-      </details>
-      <details class="p2-faq-item">
-        <summary class="p2-faq-q">Can existing users use the referral code?</summary>
-        <div class="p2-faq-a">No. The {exchange.name} referral code {offer.promoCode} is for new users only and must be entered during account creation. It cannot be added to an existing {exchange.name} account after registration. If you already have a {exchange.name} account, you can access the ongoing Rewards Hub inside your account instead.</div>
-      </details>
-      <details class="p2-faq-item">
-        <summary class="p2-faq-q">Is the {exchange.name} bonus available in every country?</summary>
-        <div class="p2-faq-a">No. {exchange.name} restricts access in a number of jurisdictions, including the United States and Canada. Even in countries where {exchange.name} is available, specific bonus tasks or reward amounts may differ by region. After registering, the official {exchange.name} bonus page will show which welcome tasks are active for your account and location.</div>
-      </details>
-    </div>
-  </div>
-</div>
-
-<!-- 16. Bybit Fees (replaces PLACEHOLDER_03) -->
+<!-- BLOCK 13. Bybit Trading Fees -->
 <div class="p2-section p2-section-alt">
   <div class="p2-inner">
     <h2 class="p2-h2">{exchange.name} Trading Fees</h2>
-    <p class="p2-text">{exchange.name} fees vary by product, VIP level, account type, and current fee schedule. The figures below are based on {exchange.name}'s published standard non-VIP rates, verified directly from the official {exchange.name} fee page. Always check the <a href={exchange.feeUrl} target="_blank" rel="noopener noreferrer nofollow">official {exchange.name} fee page</a> before trading — rates are subject to change.</p>
+    <p class="p2-text">{exchange.name} fees vary by product, VIP level, account type, and current fee schedule. The figures below are based on {exchange.name}'s published standard non-VIP rates, verified from the official {exchange.name} fee page. Always check the <a href={exchange.feeUrl} target="_blank" rel="noopener noreferrer nofollow">official {exchange.name} fee page</a> before trading — rates are subject to change.</p>
     <div class="p2-table-wrap">
       <table class="p2-table">
         <thead>
@@ -939,8 +809,131 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
         </tbody>
       </table>
     </div>
-    <p class="p2-text" style="margin-top:10px;font-size:12px;color:#6B7280;">Last checked: {offer.lastChecked} from the <a href={exchange.feeUrl} target="_blank" rel="noopener noreferrer nofollow" style="color:#6B7280;">official {exchange.name} fee page</a>.</p>
-    <p class="p2-text" style="margin-top:6px;font-size:12px;color:#9CA3AF;">Fees may vary by product, VIP level, region, account status and the current fee schedule. Always check the <a href={exchange.feeUrl} target="_blank" rel="noopener noreferrer nofollow" style="color:#9CA3AF;">official {exchange.name} fee page</a> before trading.</p>
+    <p class="p2-text" style="margin-top:10px;font-size:12px;color:#6B7280;">Last checked: {offer.lastChecked} from the <a href={exchange.feeUrl} target="_blank" rel="noopener noreferrer nofollow" style="color:#6B7280;">official {exchange.name} fee page</a>. Always check the <a href={exchange.feeUrl} target="_blank" rel="noopener noreferrer nofollow" style="color:#6B7280;">official {exchange.name} fee page</a> before trading.</p>
+  </div>
+</div>
+
+<!-- BLOCK 14. KYC Requirements & Regional Availability -->
+<div class="p2-section">
+  <div class="p2-inner">
+    <h2 class="p2-h2">KYC Requirements &amp; Regional Availability</h2>
+    <p class="p2-text">{exchange.name} requires identity verification (KYC) to withdraw funds and to unlock most new user bonus tasks. Basic verification involves submitting a government-issued ID and a facial check. Without KYC, most welcome bonus milestones — including the deposit bonus and trading rewards — remain locked.</p>
+    <p class="p2-text">The offer linked to referral code <strong>{offer.promoCode}</strong> is available globally, but {exchange.name} restricts access in certain jurisdictions. Confirmed restricted regions include: United States (US), United Kingdom (UK), Canada (CA), Singapore (SG), and the Netherlands (NL). This list may be updated — always verify on the official <a href="https://www.bybit.com/en/help-center/article/Restricted-countries" target="_blank" rel="noopener noreferrer nofollow">{exchange.name} restricted countries page</a> before registering.</p>
+    <p class="p2-text">{exchange.name} holds a Virtual Asset Service Provider (VASP) licence issued by the Dubai Virtual Assets Regulatory Authority (VARA). Even in countries where {exchange.name} is available, specific bonus tasks or reward tiers may be region-specific. After registering, the Rewards Hub inside your account shows which tasks are active for your location.</p>
+  </div>
+</div>
+
+<!-- BLOCK 15. Bybit bonus verification status table -->
+<div class="p2-section p2-section-alt">
+  <div class="p2-inner">
+    <h2 class="p2-h2">{exchange.name} Bonus Offer — What We Have Verified</h2>
+    <p class="p2-text">The table below shows what CryptoBonusWorld has independently verified about the {exchange.name} bonus offer linked to the code {offer.promoCode}. Rows marked "Check in Rewards Hub" depend on individual account status and require verification inside your {exchange.name} account after registration.</p>
+    <figure class="p2-evidence-figure" style="margin:20px 0;">
+      <img
+        src="/media/exchanges/bybit/evidence/global-en/bybit-public-welcome-rewards.png"
+        alt="Bybit public welcome rewards page showing reward tiers up to $30,000"
+        width="848"
+        height="664"
+        loading="lazy"
+        decoding="async"
+        class="p2-evidence-img p2-evidence-img--wide"
+      />
+      <figcaption class="p2-evidence-caption">Bybit's public welcome page shows reward tiers up to $30,000. Higher rewards depend on deposit, trading volume, VIP level and eligibility rules shown in Rewards Hub. Captured {offer.lastChecked}.</figcaption>
+    </figure>
+    <div class="p2-table-wrap">
+      <table class="p2-table">
+        <thead>
+          <tr>
+            <th>Reward area</th>
+            <th>What may be required</th>
+            <th>Reward type</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Sign-up with {offer.promoCode}</td>
+            <td>Referral code applied at registration</td>
+            <td>Welcome eligibility</td>
+            <td><span class="status-badge status-verified">Verified</span><div class="status-note">Mobile screenshot · {offer.lastChecked}</div></td>
+          </tr>
+          <tr>
+            <td>Welcome rewards</td>
+            <td>Open official {exchange.name} bonus page via partner link</td>
+            <td>Welcome gifts (up to {exchange.bonusMax.toLocaleString('en-US')} {exchange.currency})</td>
+            <td><span class="status-badge status-verified">Verified</span><div class="status-note">Public welcome page · {offer.lastChecked}</div></td>
+          </tr>
+          <tr>
+            <td>Reward tiers ($50–$30,000)</td>
+            <td>Deposit + trading volume requirements per tier</td>
+            <td>Tiered deposit bonus</td>
+            <td><span class="status-badge status-public-preview">Public preview</span><div class="status-note">Public page shows tiers; exact eligibility checked inside Rewards Hub.</div></td>
+          </tr>
+          <tr>
+            <td>Identity verification</td>
+            <td>KYC required to unlock most rewards</td>
+            <td>Reward access</td>
+            <td><span class="status-badge status-verified">Verified</span><div class="status-note">Official {exchange.name} FAQ · {offer.lastChecked}</div></td>
+          </tr>
+          <tr>
+            <td>Deposit tasks</td>
+            <td>Deposit required; amount varies by tier</td>
+            <td>Deposit bonus or coupon</td>
+            <td><span class="status-badge status-check-hub">Check in Rewards Hub</span><div class="status-note">Check exact tasks after sign-up.</div></td>
+          </tr>
+          <tr>
+            <td>Trading tasks</td>
+            <td>Trading volume may be required</td>
+            <td>Bonus, fee saver or fee discount</td>
+            <td><span class="status-badge status-check-hub">Check in Rewards Hub</span><div class="status-note">Check exact tasks after sign-up.</div></td>
+          </tr>
+          <tr>
+            <td>Claim period</td>
+            <td>Rewards expire after a set period</td>
+            <td>Manual claim required</td>
+            <td><span class="status-badge status-check-hub">Check in Rewards Hub</span><div class="status-note">Check exact tasks after sign-up.</div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="p2-text" style="margin-top:12px;">The Rewards Hub inside your {exchange.name} account shows the exact tasks, deadlines and claim rules. Task amounts can vary by country, KYC level, deposit amount, trading activity and promotion period.</p>
+  </div>
+</div>
+
+<!-- BLOCK 16. Bybit FAQ -->
+<div class="p2-section">
+  <div class="p2-inner">
+    <h2 class="p2-h2">{exchange.name} Referral Code — FAQ</h2>
+    <div class="p2-faq">
+      <details class="p2-faq-item">
+        <summary class="p2-faq-q">Do I have to make a cryptocurrency deposit?</summary>
+        <div class="p2-faq-a">Not for every task. KYC verification alone may unlock a small reward in the welcome package. However, the larger deposit bonus and most milestone rewards do require you to fund your account. The exact deposit threshold for each tier is shown on the official {exchange.name} bonus page after you register.</div>
+      </details>
+      <details class="p2-faq-item">
+        <summary class="p2-faq-q">Can I get more than one {exchange.name} bonus?</summary>
+        <div class="p2-faq-a">Within the welcome package, yes — each completed task unlocks its own reward. You can earn multiple rewards by completing KYC, making a first deposit, placing a futures trade, and meeting volume milestones. The welcome package itself is a one-time offer for new accounts and cannot be repeated on the same account.</div>
+      </details>
+      <details class="p2-faq-item">
+        <summary class="p2-faq-q">What are the {exchange.name} fees?</summary>
+        <div class="p2-faq-a">{exchange.name}'s standard spot trading fee is {exchange.fees.spot.maker} for both makers and takers. Perpetual futures fees are {exchange.fees.futures.maker} for makers and {exchange.fees.futures.taker} for takers. Options are {exchange.fees.options.maker} maker and {exchange.fees.options.taker} taker. Some welcome package rewards include a fee discount voucher — check the Rewards Hub after registering to see whether one is available for your account.</div>
+      </details>
+      <details class="p2-faq-item">
+        <summary class="p2-faq-q">Which currency are rewards paid in?</summary>
+        <div class="p2-faq-a">Most {exchange.name} welcome bonus rewards are denominated in USDT or issued as USDT-equivalent trading vouchers. Some rewards come as experience points (EXP) that convert to USDT after you meet a trading volume requirement. Specific reward currencies are shown for each task inside the {exchange.name} welcome offer page.</div>
+      </details>
+      <details class="p2-faq-item">
+        <summary class="p2-faq-q">Can existing users use the referral code?</summary>
+        <div class="p2-faq-a">No. The {exchange.name} referral code {offer.promoCode} is for new users only and must be entered during account creation. It cannot be added to an existing {exchange.name} account after registration. If you already have a {exchange.name} account, check the ongoing Rewards Hub inside your account instead.</div>
+      </details>
+      <details class="p2-faq-item">
+        <summary class="p2-faq-q">Is the {exchange.name} bonus available in every country?</summary>
+        <div class="p2-faq-a">No. {exchange.name} restricts access in a number of jurisdictions, including the United States, United Kingdom, and Canada. Even in countries where {exchange.name} is available, specific bonus tasks or reward amounts may differ by region. After registering, the official {exchange.name} bonus page will show which welcome tasks are active for your account and location.</div>
+      </details>
+      <details class="p2-faq-item">
+        <summary class="p2-faq-q">Why isn't the referral code working?</summary>
+        <div class="p2-faq-a">Referral codes must be entered during the account creation step — they cannot be applied to an account that already exists. If you are registering for the first time and the code is not accepted, check that you are using the correct code (<strong>{offer.promoCode}</strong>), that you are accessing the sign-up form via the official {exchange.name} link, and that your country is not in the restricted list. If the problem persists, contact {exchange.name} support through live chat.</div>
+      </details>
+    </div>
   </div>
 </div>
 
@@ -967,15 +960,6 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
         </div>
       ))}
     </div>
-  </div>
-</div>
-
-<!-- 17b-pre. Looking for a Bonus Code? — lower reminder before final CTA -->
-<div class="p2-section">
-  <div class="p2-inner">
-    <h2 class="p2-h2">Looking for a Bonus Code?</h2>
-    <p class="p2-text">Some users search for welcome, promo, invite or fee-discount wording. The code used on this page is <strong>{offer.promoCode}</strong>.</p>
-    <p class="p2-text">Click the bonus button below to open the registration page with the referral code applied.</p>
   </div>
 </div>
 
@@ -1149,7 +1133,12 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
         {
           "@type": "Question",
           "name": "Is the Bybit bonus available in every country?",
-          "acceptedAnswer": { "@type": "Answer", "text": "No. Bybit restricts access in a number of jurisdictions, including the United States and Canada. Even in countries where Bybit is available, specific bonus tasks or reward amounts may differ by region. After registering, the official Bybit bonus page will show which welcome tasks are active for your account and location." }
+          "acceptedAnswer": { "@type": "Answer", "text": "No. Bybit restricts access in a number of jurisdictions, including the United States, United Kingdom, and Canada. Even in countries where Bybit is available, specific bonus tasks or reward amounts may differ by region. After registering, the official Bybit bonus page will show which welcome tasks are active for your account and location." }
+        },
+        {
+          "@type": "Question",
+          "name": "Why isn't the Bybit referral code working?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Referral codes must be entered during account creation — they cannot be applied to an existing account. If you are registering for the first time and the code CRYPTOBONUSW is not accepted, check that you are using the correct code, that you are on the official Bybit sign-up page, and that your country is not in the restricted list (US, UK, CA, SG, NL). If the problem persists, contact Bybit support through live chat." }
         }
       ]
     }
