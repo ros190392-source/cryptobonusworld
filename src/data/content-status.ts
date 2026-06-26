@@ -232,7 +232,7 @@ export const AFFILIATE_LINK_REGISTRY: AffiliateLinkRecord[] = [
   {
     exchangeSlug: 'okx',
     exchangeName: 'OKX',
-    affiliateUrl: 'https://www.okx.com/join/cryptobonusworld',
+    affiliateUrl: 'https://okx.com/join/CRYPTOBONUSW',
     lastCheckedAt: '2026-05-24',
     isLive: true,
     domainVerified: true,

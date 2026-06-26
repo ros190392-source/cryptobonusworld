@@ -180,7 +180,7 @@ export const BONUS_CODES: BonusCodeEntry[] = [
       'Complete the new user tasks in the OKX Bonus Center',
     ],
     codes: [],
-    affiliateUrl: 'https://www.okx.com/join/CRYPTOBONUSWORLD',
+    affiliateUrl: 'https://okx.com/join/CRYPTOBONUSW',
     bonusAmount: 5000,
     bonusCurrency: 'USDT',
     bonusNote: 'OKX bonus is primarily link-activated (no code needed — the affiliate link carries the bonus attribution). KYC and minimum $50 deposit required.',
