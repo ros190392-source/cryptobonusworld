@@ -41,7 +41,7 @@ export const okxConfig: ExchangePromoPageConfig = {
   feeUrl:        'https://www.okx.com/fees',
 
   // ── Media ──────────────────────────────────────────────────────────────────
-  wordmarkImg:           '/logos/okx-wordmark.png',
+  wordmarkImg:           '/logos/okx-wordmark-v2.png',
   articleImg:            '/media/exchanges/okx/final/okx-article-final-v2-1200x675.jpg',
   ogImage:               '/media/exchanges/okx/final/okx-og-final-v2-1200x630.jpg',
   heroBackgroundImg:     '/media/hero-backgrounds/okx-hero-custom-v2.png',
