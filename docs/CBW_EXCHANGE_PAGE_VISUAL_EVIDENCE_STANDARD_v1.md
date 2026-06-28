@@ -949,6 +949,122 @@ Assets that still need creation before launch: hero PNG, OG, article, card image
 
 ---
 
+## 20. Homepage/Card Visual CTA Standard
+
+**Added:** 2026-06-28  
+**Status:** Active — required for all future homepage card image generation
+
+### 20.1 Problem Statement
+
+The three live homepage exchange cards (Bybit, MEXC, OKX) each have a different CTA button style baked into the card image. This breaks visual system coherence:
+
+| Exchange | Button color | Button extras | Verdict |
+|---|---|---|---|
+| Bybit | Yellow | Hand pointer icon | FAIL — regenerate |
+| MEXC | Blue | Hand pointer / cursor | FAIL — regenerate |
+| OKX | Dark (cleanest) | Arrow `→` | MINOR FAIL — keep temporarily, fix on next refresh |
+
+### 20.2 Official CTA Button Standard
+
+All homepage/card images (1200×800 JPG) must use exactly this button style:
+
+| Property | Value |
+|---|---|
+| Button text | `CLICK TO CLAIM` (exact, all caps, no punctuation) |
+| Button shape | Pill / rounded rectangle |
+| Button background | Dark or black, semi-transparent |
+| Button text color | White, uppercase |
+| Button position | Centered inside composition |
+| Border | Subtle border or shadow allowed |
+| Size | Proportional for compact grid — readable at 400px wide |
+
+### 20.3 Allowed Elements in Card Images
+
+- Exchange logo / wordmark
+- Exchange name
+- `PROMO CODE` or `REFERRAL CODE` label (text only, no actual code value)
+- Standardized `CLICK TO CLAIM` dark pill button
+- CBW wordmark / small mark only if required by brand guidelines
+
+### 20.4 Forbidden Elements in Card Images
+
+The following are **strictly prohibited** in all homepage/card images:
+
+**Interactive / icon elements:**
+- Hand pointer icon
+- Cursor icon
+- Click animation or spark
+- Fake pressed / clicked state
+- Mouse icon of any type
+
+**Button style violations:**
+- Arrow inside the button (e.g. `→`)
+- Arrow outside the button
+- Yellow button (Bybit legacy)
+- Blue button (MEXC legacy)
+- Green button
+- Any per-exchange button color (button must be the same dark color across all cards)
+- Glitched or distorted button rendering
+- Cartoon UI button
+
+**Data violations (content that becomes stale):**
+- Actual promo code value baked into the image (e.g. "CRYPTOBONUSW" in pixels)
+- Bonus amount (e.g. "30,000 USDT" in pixels)
+- Date (e.g. "2026" in pixels)
+
+> **Rationale:** The visual CTA button inside the card image is **decorative only**. The real clickable CTA is the HTML green `Claim Bonus →` button rendered below the image by the template. Baking interactive icons creates a false affordance. Baking codes/amounts makes the asset stale when offers change.
+
+### 20.5 Visual Family Consistency
+
+Card images (1200×800) must belong to the **same visual family** as the exchange's hero/article/OG pack:
+
+- Same background composition style (e.g. cosmic dark for OKX, gold for Bybit)
+- Same color palette
+- Same typography weight
+- Composition cropped/adapted to 1200×800 ratio (wider and shorter than article 1200×675)
+
+### 20.6 Current Audit Results
+
+| Exchange | Asset | Button text | Button color | Hand pointer | Cursor | Arrow | Stale code/amount | Passes standard | Verdict |
+|---|---|---|---|---|---|---|---|---|---|
+| Bybit | `bybit/final/bybit-card-final-v3-1200x800.jpg` (66,344 bytes, 2026-06-24) | CLICK TO CLAIM | Yellow | ✅ YES — FAIL | No | No | No | **NO** | **REGENERATE LATER** |
+| MEXC | `mexc/final/mexc-card-final-v3-1200x800.jpg` (93,242 bytes, 2026-06-25) | CLICK TO CLAIM | Blue | ✅ YES — FAIL | ✅ YES — FAIL | No | No | **NO** | **REGENERATE LATER** |
+| OKX | `okx/final/okx-card-final-v2-1200x800.jpg` (84,121 bytes, 2026-06-26) | CLICK TO CLAIM → | Dark | No | No | ✅ YES — MINOR FAIL | No | **MINOR FAIL** | **KEEP TEMPORARILY** |
+
+**Regeneration priority:** Bybit and MEXC together in the next visual pack run. OKX on next refresh.
+
+### 20.7 Future Exchange Generation Note (Bitget and beyond)
+
+When generating homepage card images for Bitget and all subsequent exchanges:
+
+1. Use the standard `CLICK TO CLAIM` dark pill button — no exceptions
+2. No hand, cursor, arrow, or interactive decoration
+3. No code value, no bonus amount, no date in the image
+4. Match visual family of the exchange's hero/article/OG pack
+5. Dimensions: **1200×800 JPG**
+6. Test by viewing at 400px wide (compact grid) — button must be legible
+
+See §20.8 for the exact image generation prompt rule.
+
+### 20.8 Image Generation Prompt Rule
+
+Use the following rule verbatim in all visual pack generation prompts:
+
+```
+Homepage/card image (1200×800):
+- Create a 1200×800 premium fintech exchange referral-code card image.
+- Use the same visual family (colors, background style, typography) as the hero/article/OG pack.
+- Include the exchange logo/wordmark.
+- Include the label "PROMO CODE" or "REFERRAL CODE" (text only — do not include the actual code value).
+- Include exactly one decorative CTA pill button with text: CLICK TO CLAIM
+- CTA button: dark/black semi-transparent pill, white uppercase text, centered.
+- Do NOT include: hand pointer, cursor icon, arrow (inside or outside button), clicking animation, glitched button, pressed state.
+- Do NOT include: actual promo code value, bonus amount, dates.
+- Composition must work legibly at 400px display width (compact homepage grid).
+```
+
+---
+
 *Document: `docs/CBW_EXCHANGE_PAGE_VISUAL_EVIDENCE_STANDARD_v1.md`*  
 *Owner: CryptoBonusWorld project*  
 *Next review: when 4th live exchange is launched*
