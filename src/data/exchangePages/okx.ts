@@ -112,24 +112,20 @@ export const okxConfig: ExchangePromoPageConfig = {
   ],
 
   // ── Evidence screenshots ───────────────────────────────────────────────────
-  // Source: public/screenshots/okx/ — captured June 2026 from official OKX website
+  // Slot A — affiliate partner landing page: shows OKX × CRYPTOBONUS co-brand,
+  // registration form, and bonus tier chart (captured via our affiliate link).
+  // NOTE: mobile screenshot with visible code field is pending; this desktop
+  // capture is the current best available evidence for the registration flow.
   evidenceRegistration: {
     src:     '/screenshots/okx/registration/global-desktop-2026-06.webp',
-    alt:     'OKX registration page showing referral code CRYPTOBONUSW pre-filled — desktop screenshot June 2026',
+    alt:     'OKX affiliate partner landing page showing registration form and up to 5,000 USDT bonus reward tiers — desktop screenshot June 2026',
     width:   1440,
     height:  900,
-    caption: 'OKX registration page (desktop) — referral code <strong>CRYPTOBONUSW</strong> visible in the sign-up flow. Screenshot captured June 2026 from the official OKX website.',
+    caption: 'OKX partner landing page (desktop) — captured via our affiliate link, showing the OKX × CryptoBonusWorld co-branded registration entry point and new user bonus tier chart (up to 5,000 USDT). Screenshot captured June 2026 from the official OKX website.',
     wide:    true,
   },
 
-  evidenceBonusPage: {
-    src:     '/screenshots/okx/bonus_referral_landing/global-desktop-2026-06.webp',
-    alt:     'OKX new user welcome bonus landing page showing up to 5,000 USDT welcome package — desktop screenshot June 2026',
-    width:   1440,
-    height:  900,
-    caption: 'OKX welcome bonus landing page (desktop) — official OKX new user rewards page showing up to 5,000 USDT. Screenshot captured June 2026.',
-    wide:    true,
-  },
+  // evidenceBonusPage removed — was byte-identical to evidenceRegistration (duplicate).
 
   evidenceFeeScreenshots: [
     {
@@ -240,12 +236,15 @@ export const okxConfig: ExchangePromoPageConfig = {
   // ── Verification section ───────────────────────────────────────────────────
   verificationIntroText: `The table below reflects what CryptoBonusWorld has verified about the OKX welcome bonus as of the last evidence review (June 2026). Evidence was collected from the official OKX website and official bonus landing page. <em>Verified</em> items are confirmed from OKX's public documentation. <em>Public Preview</em> items are visible to unregistered users but may change. <em>Check in Rewards Center</em> items require an OKX account to confirm and may vary by region.`,
 
+  // Verification evidence uses Proof of Reserves — unique screenshot (different from
+  // registration/fees). Demonstrates OKX's 1:1 reserve transparency claim ($26.26B
+  // primary assets, 43rd report as of June 2026).
   verificationEvidence: {
-    src:     '/screenshots/okx/bonus/global-desktop-2026-06.webp',
-    alt:     'OKX official new user bonus page showing welcome package — desktop screenshot June 2026',
+    src:     '/screenshots/okx/proof_of_reserves/global-desktop-2026-06.webp',
+    alt:     'OKX Proof of Reserves page showing 1:1 reserve policy and $26.26B in primary assets — desktop screenshot June 2026',
     width:   1440,
     height:  900,
-    caption: 'OKX official bonus page (desktop) — showing the new user welcome package. Screenshot captured June 2026.',
+    caption: 'OKX Proof of Reserves page (desktop) — OKX publishes monthly reserve audits confirming 1:1 asset backing. 43rd report shows $26.26B in primary assets. Screenshot captured June 2026 from the official OKX website.',
     wide:    true,
   },
 
