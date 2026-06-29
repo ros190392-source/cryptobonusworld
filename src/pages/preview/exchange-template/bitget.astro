@@ -1,0 +1,26 @@
+---
+/**
+ * /preview/exchange-template/bitget/
+ *
+ * PREVIEW ONLY — noindex. Not linked from any navigation.
+ * Renders the Bitget ExchangePromoPageConfig through the shared template
+ * so layout, slots, and content can be reviewed before live deploy.
+ *
+ * Do NOT create src/pages/bitget/index.astro until:
+ *   1. Visual pack V1 (hero background, OG image, article image, white wordmark) exists
+ *   2. Owner content approval received
+ *   3. Live route approved
+ */
+
+import CleanLayout from '../../../layouts/CleanLayout.astro';
+import ExchangePromoPage from '../../../components/exchange/ExchangePromoPage.astro';
+import { bitgetConfig } from '../../../data/exchangePages/bitget';
+---
+
+<CleanLayout
+  title={bitgetConfig.pageTitle}
+  description={bitgetConfig.pageDescription}
+  noindex={true}
+>
+  <ExchangePromoPage config={bitgetConfig} />
+</CleanLayout>
