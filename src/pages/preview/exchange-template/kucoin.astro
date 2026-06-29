@@ -1,0 +1,32 @@
+---
+/*
+ * PREVIEW ONLY — noindex, not linked from anywhere.
+ * Renders KuCoin exchange page via the reusable ExchangePromoPage template.
+ *
+ * Preview page: /preview/exchange-template/kucoin/  ← you are here
+ * Live page:    /kucoin/  (NOT YET CREATED — pending visual pack + owner approval)
+ *
+ * Blockers before live publish:
+ *  1. kucoin-hero-custom-v1.png  — needs image generation
+ *  2. kucoin-card-final-v1-1200x800.jpg  — needs image generation
+ *  3. kucoin-og-final-v1-1200x630.jpg  — needs image generation
+ *  4. kucoin-article-final-v1-1200x675.jpg  — needs image generation
+ *  5. Bonus amount re-verification (current: public-preview status)
+ *  6. Owner approval to publish
+ */
+import CleanLayout from '../../../layouts/CleanLayout.astro';
+import ExchangePromoPage from '../../../components/exchange/ExchangePromoPage.astro';
+import { kucoinConfig } from '../../../data/exchangePages/kucoin';
+---
+
+<CleanLayout
+  title={kucoinConfig.pageTitle}
+  description={kucoinConfig.pageDescription}
+  canonical={kucoinConfig.canonicalUrl}
+  ogImage={kucoinConfig.ogImage}
+  ogTitle={kucoinConfig.ogTitle}
+  ogDescription={kucoinConfig.ogDescription}
+  noindex={true}
+>
+  <ExchangePromoPage config={kucoinConfig} />
+</CleanLayout>

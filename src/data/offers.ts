@@ -80,6 +80,21 @@ export const offers: Offer[] = [
     status:              'verified',
     termsSummary:        'New accounts only. KYC required for higher tiers and withdrawals. Rewards are fee vouchers offsetting trading costs, not withdrawable cash. Tasks expire 30 days after account creation. Full terms on OKX official website.',
   },
+  {
+    exchangeSlug:        'kucoin',
+    promoCode:           'CRYPTOBONW',
+    bonusHeadline:       'New user welcome rewards — claim via referral code',
+    realisticValue:      'Task-based reward; exact amount depends on deposit size, trading activity, and tasks completed in the KuCoin Bonus Center',
+    lastChecked:         'May 2026',
+    sourceUrl:           'https://www.kucoin.com/activity/new-user-rewards',
+    kycRequired:         false,
+    depositRequired:     true,
+    minDeposit:          'Deposit required for most bonus tiers; base signup tier may have no deposit requirement',
+    availability:        'Global (excluding restricted regions)',
+    restrictedCountries: ['US'],
+    status:              'public-preview',
+    termsSummary:        'New accounts only. KYC optional for base tier (1 BTC/day withdrawal without KYC). Higher bonus tiers require deposit and trading volume. Bonus tasks expire within 30 days. Rewards depend on region, eligibility, and trading activity. Full terms on KuCoin official website.',
+  },
 ];
 
 export function getOffer(exchangeSlug: string): Offer | undefined {
