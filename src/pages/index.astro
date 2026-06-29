@@ -13,22 +13,44 @@ const bybitCode = getOffer('bybit')?.promoCode ?? 'CRYPTOBONUSW';
 
 const faqs = [
   {
+    q: 'What is a crypto referral or promo code?',
+    a: 'A referral code is a unique identifier you enter during signup at a crypto exchange. It links your new account to a partner, which can unlock a welcome bonus or reduced trading fees that would not otherwise be available. Promo codes work similarly — they activate a specific promotional offer for new users.',
+  },
+  {
+    q: 'Are bonuses guaranteed?',
+    a: 'No. Welcome bonuses are not guaranteed for every user. Advertised amounts reflect the maximum possible payout — reaching that figure typically requires completing multiple tasks: depositing above a threshold, trading a minimum volume, and finishing KYC within a set time window. Many users receive a partial bonus. Always read the full terms on the exchange\'s official website before depositing.',
+  },
+  {
     q: 'Are these promo codes verified?',
-    a: 'Yes. Every code on CryptoBonusWorld is checked against the official exchange website before publishing. We show the last-checked date on each exchange page.',
+    a: 'Yes. Every code listed on CryptoBonusWorld is cross-checked against the official exchange promotions page before publishing. We show the date of last verification on each exchange page. Codes can change — if one stops working, check the individual exchange page for the latest version.',
   },
   {
-    q: 'Do these codes cost anything to use?',
-    a: 'No. Referral and promo codes are free to use. We earn a commission from the exchange when you sign up — you pay nothing extra, and the bonus is added on top.',
+    q: 'Why do welcome bonus amounts differ by country?',
+    a: 'Crypto exchange bonus programs are subject to local regulations, exchange licensing, and KYC requirements. An offer available in one country may be restricted or unavailable in another. Residency, nationality, and account verification level can all affect eligibility. Always check the exchange\'s terms for your specific region before signing up.',
   },
   {
-    q: 'Why should I use a referral code instead of signing up directly?',
-    a: 'A referral code unlocks new-user bonuses that are not available to accounts created without one. Always register with a code before you make any deposit.',
+    q: 'Are these affiliate links?',
+    a: 'Yes. Links marked "Claim Bonus" on this site are affiliate referral links. If you register through our link, CryptoBonusWorld may earn a commission from the exchange. This does not cost you anything extra and does not reduce your bonus. Our full affiliate disclosure explains how this works.',
   },
   {
-    q: 'What happens if the code does not work?',
-    a: 'Codes can expire or change. If a code is not accepted, check the exchange page on this site — we update codes regularly and note the date of last verification.',
+    q: 'Do I need to enter the code manually?',
+    a: 'It depends on the exchange. Some exchanges auto-apply the referral code when you click our link — you just need to complete registration. Others require you to paste the code into a field during signup. We recommend copying the code from this page before clicking, just in case the field appears.',
+  },
+  {
+    q: 'How often are codes checked?',
+    a: 'We verify each exchange\'s promo codes regularly, with the date of last check shown on each exchange detail page. Promotions change frequently — if a code appears expired, always check the most recent version shown on the official exchange website before signing up.',
   },
 ];
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map(item => ({
+    '@type': 'Question',
+    name: item.q,
+    acceptedAnswer: { '@type': 'Answer', text: item.a },
+  })),
+};
 ---
 
 <CleanLayout
@@ -48,7 +70,8 @@ const faqs = [
         </h1>
         <p class="hero-sub">
           Referral codes and welcome bonuses for the world's top crypto exchanges —
-          checked against official sources, not copy-pasted from random lists.
+          checked against official exchange pages, not scraped from third-party forums.
+          Bonus terms may vary; not all offers are available in every country.
         </p>
         <div class="hero-actions">
           <a href="#exchanges" class="btn-primary hero-cta">Browse Exchanges</a>
@@ -57,6 +80,19 @@ const faqs = [
       </div>
     </div>
   </section>
+
+  <!-- Trust / Disclosure bar -->
+  <div class="trust-bar">
+    <div class="container">
+      <div class="trust-bar-inner">
+        <span class="tb-item">✓ Codes checked against official exchange pages</span>
+        <span class="tb-sep" aria-hidden="true">·</span>
+        <span class="tb-item">ⓘ Bonus terms may vary by country and account</span>
+        <span class="tb-sep" aria-hidden="true">·</span>
+        <span class="tb-item">Affiliate links — <a href="/affiliate-disclosure/" class="tb-link">we may earn a commission</a></span>
+      </div>
+    </div>
+  </div>
 
   <!-- Featured Exchange Grid -->
   <section class="section bg-white section-exchange" id="exchanges">
@@ -87,30 +123,56 @@ const faqs = [
   <!-- How it works -->
   <section class="section bg-gray">
     <div class="container">
-      <div class="section-label">How it works</div>
-      <h2 class="section-title">Get Your Bonus in 3 Steps</h2>
+      <div class="section-label">How to use</div>
+      <h2 class="section-title">How to Use a Crypto Promo Code</h2>
       <div class="steps-grid">
         <div class="step">
           <div class="step-num">1</div>
-          <h3 class="step-title">Copy the code</h3>
-          <p class="step-desc">Find the exchange you want. Copy the verified promo or referral code from this page.</p>
+          <h3 class="step-title">Choose an exchange</h3>
+          <p class="step-desc">Browse the exchanges below and pick one. Click the card to read the full offer details, requirements, and country restrictions before signing up.</p>
         </div>
         <div class="step">
           <div class="step-num">2</div>
-          <h3 class="step-title">Register with the code</h3>
-          <p class="step-desc">Click our referral link and paste the code during registration. Do this before you deposit.</p>
+          <h3 class="step-title">Copy the code and register</h3>
+          <p class="step-desc">Copy the promo code, then click the "Claim Bonus" link to go to the exchange. Paste the code during registration — always do this before making a deposit.</p>
         </div>
         <div class="step">
           <div class="step-num">3</div>
-          <h3 class="step-title">Complete the tasks</h3>
-          <p class="step-desc">Most bonuses require KYC verification and a first deposit. Check the terms on the exchange page.</p>
+          <h3 class="step-title">Check the requirements</h3>
+          <p class="step-desc">Most bonuses require identity verification (KYC), a qualifying deposit, and sometimes a minimum trading volume. Bonus terms vary by exchange and country — read the conditions on the official site.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- About bonus requirements -->
+  <section class="section bg-white section-bonus-note">
+    <div class="container hp-prose-wrap">
+      <div class="section-label">Transparency</div>
+      <h2 class="section-title">About Welcome Bonus Amounts</h2>
+      <p class="section-sub">Advertised figures are maximums, not typical results. Here is what actually determines the payout.</p>
+      <div class="bonus-note-grid">
+        <div class="bonus-note-card">
+          <div class="bonus-note-icon">📋</div>
+          <h3 class="bonus-note-title">Maximum figures require completing tasks</h3>
+          <p class="bonus-note-desc">Welcome packages show the highest achievable amount. Reaching the maximum typically requires depositing above set thresholds, completing a trading volume milestone, and finishing all tasks within a time window — often 30 days.</p>
+        </div>
+        <div class="bonus-note-card">
+          <div class="bonus-note-icon">🌍</div>
+          <h3 class="bonus-note-title">Availability differs by country</h3>
+          <p class="bonus-note-desc">Bonus programs are subject to local regulations and exchange licensing. Some offers are restricted or unavailable in certain countries. Check the exchange's terms page for your residency before creating an account.</p>
+        </div>
+        <div class="bonus-note-card">
+          <div class="bonus-note-icon">🔖</div>
+          <h3 class="bonus-note-title">Rewards are often trading credits</h3>
+          <p class="bonus-note-desc">Most welcome bonuses are issued as trading fee vouchers or conditional credits — not withdrawable cash. The realised value depends on your actual trading activity after signup and may be significantly less than the headline figure.</p>
         </div>
       </div>
     </div>
   </section>
 
   <!-- Trust block -->
-  <section class="section bg-white">
+  <section class="section bg-gray">
     <div class="container">
       <div class="trust-grid">
         <div class="trust-card">
@@ -133,10 +195,10 @@ const faqs = [
   </section>
 
   <!-- FAQ -->
-  <section class="section bg-gray" id="faq">
+  <section class="section bg-white" id="faq">
     <div class="container faq-wrap">
       <div class="section-label">Common Questions</div>
-      <h2 class="section-title">FAQ</h2>
+      <h2 class="section-title">Frequently Asked Questions</h2>
       <div class="faq-list">
         {faqs.map(item => (
           <details class="faq-item">
@@ -148,6 +210,19 @@ const faqs = [
     </div>
   </section>
 
+  <!-- Disclaimer -->
+  <div class="disclaimer-bar">
+    <div class="container hp-prose-wrap">
+      <p class="disclaimer-text">
+        <strong>Disclosure:</strong> CryptoBonusWorld may earn a commission when you register via links on this site.
+        This does not affect our editorial assessments or the codes we list.
+        Bonus amounts shown are advertised maximums — individual results vary and depend on meeting all exchange requirements.
+        Bonus availability and terms can change at any time; verify current conditions on the official exchange website before registering or depositing.
+        Nothing on this site constitutes financial or investment advice.
+      </p>
+    </div>
+  </div>
+
   <!-- Bottom CTA -->
   <section class="section bg-navy bottom-cta-section">
     <div class="container">
@@ -156,6 +231,8 @@ const faqs = [
       <a href="/bybit/" class="btn-primary">Get Bybit Bonus with {bybitCode} →</a>
     </div>
   </section>
+
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
 
 </CleanLayout>
 
@@ -241,4 +318,40 @@ const faqs = [
   .bottom-cta-section { text-align: center; }
   .bottom-cta-title { font-size: clamp(22px, 3.5vw, 32px); font-weight: 800; color: #fff; margin-bottom: 12px; }
   .bottom-cta-sub { font-size: 15px; color: rgba(255,255,255,.6); margin-bottom: 28px; max-width: 480px; margin-left: auto; margin-right: auto; }
+
+  /* Trust bar */
+  .trust-bar { background: #F0FDF4; border-top: 1px solid #D1FAE5; border-bottom: 1px solid #D1FAE5; padding: 10px 0; }
+  .trust-bar-inner {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    font-size: 12px; color: #374151;
+  }
+  .tb-item { display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+  .tb-sep { color: #9CA3AF; }
+  .tb-link { color: #15803D; font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+  .tb-link:hover { color: #166534; }
+
+  /* Prose / narrow wrapper for info sections */
+  .hp-prose-wrap { max-width: 900px; }
+
+  /* About bonus amounts */
+  .section-bonus-note { border-top: 1px solid #F3F4F6; }
+  .bonus-note-grid { display: grid; gap: 20px; grid-template-columns: 1fr; margin-top: 8px; }
+  @media (min-width: 640px) { .bonus-note-grid { grid-template-columns: repeat(3, 1fr); } }
+  .bonus-note-card {
+    background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 10px;
+    padding: 20px; display: flex; flex-direction: column; gap: 8px;
+  }
+  .bonus-note-icon { font-size: 22px; line-height: 1; }
+  .bonus-note-title { font-size: 14px; font-weight: 700; color: #111827; line-height: 1.3; }
+  .bonus-note-desc { font-size: 13px; color: #4B5563; line-height: 1.65; }
+
+  /* Disclaimer bar */
+  .disclaimer-bar {
+    background: #F9FAFB; border-top: 1px solid #E5E7EB; border-bottom: 1px solid #E5E7EB;
+    padding: 16px 0;
+  }
+  .disclaimer-text {
+    font-size: 12px; color: #6B7280; line-height: 1.7;
+  }
+  .disclaimer-text strong { color: #374151; }
 </style>
