@@ -1,0 +1,16 @@
+---
+import CleanLayout from '../../layouts/CleanLayout.astro';
+import ExchangePromoPage from '../../components/exchange/ExchangePromoPage.astro';
+import { bitgetConfig } from '../../data/exchangePages/bitget';
+---
+
+<CleanLayout
+  title={bitgetConfig.pageTitle}
+  description={bitgetConfig.pageDescription}
+  canonical={bitgetConfig.canonicalUrl}
+  ogImage={bitgetConfig.ogImage}
+  ogTitle={bitgetConfig.ogTitle}
+  ogDescription={bitgetConfig.ogDescription}
+>
+  <ExchangePromoPage config={bitgetConfig} />
+</CleanLayout>

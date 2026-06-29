@@ -32,12 +32,7 @@
  * HQ data conflict: exchange-intelligence says Seychelles, evidence.json says Singapore.
  * Using Seychelles (intelligence file is more authoritative; Bitget Limited is Seychelles-registered).
  *
- * PREVIEW ONLY — do NOT create src/pages/bitget/index.astro until:
- *   1. Visual pack V1 is generated and approved
- *   2. White-on-transparent wordmark is created
- *   3. Hero background image exists
- *   4. OG + article images exist
- *   5. Owner content approval received
+ * LIVE — src/pages/bitget/index.astro published 2026-06-29 (owner-approved).
  */
 
 import type { ExchangePromoPageConfig } from './types';

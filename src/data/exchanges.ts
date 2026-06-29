@@ -59,6 +59,20 @@ export const exchanges: Exchange[] = [
     featured:         true,
     pageUrl:          '/okx/',
   },
+  {
+    slug:             'bitget',
+    name:             'Bitget',
+    logoText:         'BITGET',
+    status:           'active',
+    cardImage:        '/media/exchanges/bitget/final/bitget-card-final-v1-1200x800.jpg',
+    ogImage:          '/media/exchanges/bitget/final/bitget-og-final-v1-1200x630.jpg',
+    articleImage:     '/media/exchanges/bitget/final/bitget-article-final-v1-1200x675.jpg',
+    affiliateUrl:     '/go/bitget',
+    officialUrl:      'https://www.bitget.com',
+    shortDescription: 'Top-5 global exchange with copy trading — up to 6,200 USDT new user welcome package',
+    featured:         true,
+    pageUrl:          '/bitget/',
+  },
 ];
 
 export function getExchange(slug: string): Exchange | undefined {

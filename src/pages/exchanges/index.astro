@@ -33,7 +33,7 @@ const exchangesWithOffers = exchanges.map(ex => ({
         {exchangesWithOffers.map(({ exchange, offer }) => (
           <ExchangeCard exchange={exchange} offer={offer} />
         ))}
-        {(['Binance', 'Bitget', 'BingX']).map(name => (
+        {(['Binance', 'BingX']).map(name => (
           <div class="ec-placeholder">
             <div class="ec-ph-inner">
               <div class="ec-ph-name">{name}</div>

@@ -359,6 +359,15 @@ export const okxConfig: ExchangePromoPageConfig = {
       tileBg:  '#0BCDFF',
       pageUrl: '/mexc/',
     },
+    {
+      slug:    'bitget',
+      name:    'Bitget',
+      logo:    '/logos/bitget.png',
+      bonus:   'Up to 6,200 USDT Welcome Package',
+      tag:     'Copy trading leader',
+      tileBg:  '#ECFDF5',
+      pageUrl: '/bitget/',
+    },
   ],
 
 };
