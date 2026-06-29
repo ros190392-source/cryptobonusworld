@@ -258,7 +258,7 @@ export const BONUS_CODES: BonusCodeEntry[] = [
       'Complete tasks in the Bitget Reward Center',
     ],
     codes: [],
-    affiliateUrl: 'https://partner.bitget.com/bg/cryptobonusworld',
+    affiliateUrl: 'https://partner.bitget.com/bg/CryptoBonW',
     bonusAmount: 6200,
     bonusCurrency: 'USDT',
     bonusNote: 'Maximum bonus requires KYC, a minimum $100 deposit, and trading volume milestones. Copy trading sign-ups receive additional rewards.',

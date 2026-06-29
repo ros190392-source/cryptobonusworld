@@ -250,7 +250,7 @@ export const AFFILIATE_LINK_REGISTRY: AffiliateLinkRecord[] = [
   {
     exchangeSlug: 'bitget',
     exchangeName: 'Bitget',
-    affiliateUrl: 'https://partner.bitget.com/bg/cryptobonusworld',
+    affiliateUrl: 'https://partner.bitget.com/bg/CryptoBonW',
     lastCheckedAt: '2026-05-24',
     isLive: true,
     domainVerified: true,
