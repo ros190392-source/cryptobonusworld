@@ -60,7 +60,7 @@ const faqs = [
 
   <!-- Featured Exchange Grid -->
   <section class="section bg-white section-exchange" id="exchanges">
-    <div class="container">
+    <div class="container" style="max-width:1080px">
       <div class="section-label">Featured Exchanges</div>
       <h2 class="section-title">Top Crypto Referral Codes</h2>
       <p class="section-sub">
@@ -162,9 +162,9 @@ const faqs = [
 <style>
   .hero {
     background: linear-gradient(160deg, #080F18 0%, #0e1f36 60%, #13233E 100%);
-    color: #fff; padding: 24px 0 28px;
+    color: #fff; padding: 20px 0 24px;
   }
-  @media (min-width: 820px) { .hero { padding: 32px 0 36px; } }
+  @media (min-width: 820px) { .hero { padding: 28px 0 32px; } }
   .hero-inner { max-width: 620px; }
   .hero-label {
     display: inline-block; font-size: 11px; font-weight: 700;
@@ -198,12 +198,12 @@ const faqs = [
   .bg-navy  { background: #080F18; }
 
   .exchange-grid {
-    display: grid; gap: 20px;
+    display: grid; gap: 16px;
     grid-template-columns: 1fr;
-    margin-bottom: 32px;
+    margin-bottom: 24px;
   }
   @media (min-width: 560px) { .exchange-grid { grid-template-columns: repeat(2, 1fr); } }
-  @media (min-width: 900px) { .exchange-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (min-width: 860px) { .exchange-grid { grid-template-columns: repeat(3, 1fr); } }
 
   .grid-coming-soon { text-align: center; font-size: 13px; color: #9CA3AF; margin: 8px 0 20px; }
   .grid-footer { text-align: center; }
