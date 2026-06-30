@@ -16,8 +16,7 @@ export const kucoinConfig: ExchangePromoPageConfig = {
   wordmarkImg: '/logos/kucoin-wordmark.png',
   articleImg: '/media/exchanges/kucoin/final/kucoin-article-final-v1-1200x675.jpg',
   ogImage: '/media/exchanges/kucoin/final/kucoin-og-final-v1-1200x630.jpg',
-  // TEMPORARY: using neutral hero until kucoin-hero-custom-v1.png is created
-  heroBackgroundImg: '/media/hero-backgrounds/cbw-hero-neutral-no-glow-v2.png',
+  heroBackgroundImg: '/media/hero-backgrounds/kucoin-hero-custom-v1.png',
   heroBackgroundPosition: 'center center',
   logoImg: '/logos/kucoin.png',
 
