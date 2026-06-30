@@ -73,6 +73,20 @@ export const exchanges: Exchange[] = [
     featured:         true,
     pageUrl:          '/bitget/',
   },
+  {
+    slug:             'kucoin',
+    name:             'KuCoin',
+    logoText:         'KUCOIN',
+    status:           'active',
+    cardImage:        '/media/exchanges/kucoin/final/kucoin-card-final-v1-1200x800.jpg',
+    ogImage:          '/media/exchanges/kucoin/final/kucoin-og-final-v1-1200x630.jpg',
+    articleImage:     '/media/exchanges/kucoin/final/kucoin-article-final-v1-1200x675.jpg',
+    affiliateUrl:     '/go/kucoin',
+    officialUrl:      'https://www.kucoin.com',
+    shortDescription: 'No-KYC exchange with 900+ altcoins and new user welcome rewards — apply code CRYPTOBONW at signup',
+    featured:         true,
+    pageUrl:          '/kucoin/',
+  },
 ];
 
 export function getExchange(slug: string): Exchange | undefined {

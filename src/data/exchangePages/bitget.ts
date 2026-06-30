@@ -392,6 +392,15 @@ export const bitgetConfig: ExchangePromoPageConfig = {
       tileBg:  '#1a1a2e',
       pageUrl: '/okx/',
     },
+    {
+      slug:    'kucoin',
+      name:    'KuCoin',
+      logo:    '/logos/kucoin.png',
+      bonus:   'New User Welcome Rewards',
+      tag:     'No KYC required',
+      tileBg:  '#0A1628',
+      pageUrl: '/kucoin/',
+    },
   ],
 
 };

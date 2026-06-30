@@ -203,7 +203,7 @@ export const bybitConfig: ExchangePromoPageConfig = {
   relatedExchanges: [
     { slug: 'mexc',   name: 'MEXC',   logo: '/logos/mexc.png',   bonus: 'Up to 10,000 USDT', tag: 'No KYC option',  tileBg: '#F5F3FF', pageUrl: '/mexc/' },
     { slug: 'bitget', name: 'Bitget', logo: '/logos/bitget.png', bonus: 'Up to 6,200 USDT',  tag: 'Copy trading',   tileBg: '#ECFDF5', pageUrl: '/bitget/' },
-    { slug: 'bingx',  name: 'BingX',  logo: '/logos/bingx.png',  bonus: 'Up to 5,125 USDT',  tag: 'Social trading', tileBg: '#EFF6FF' },
+    { slug: 'kucoin', name: 'KuCoin', logo: '/logos/kucoin.png', bonus: 'Welcome rewards',    tag: 'No KYC option',  tileBg: '#0A1628', pageUrl: '/kucoin/' },
     { slug: 'okx',    name: 'OKX',    logo: '/logos/okx.png',    bonus: 'Up to 5,000 USDT',  tag: 'CEX + Web3',     tileBg: '#F3F4F6', pageUrl: '/okx/' },
   ],
 };
