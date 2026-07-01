@@ -95,6 +95,24 @@ export const offers: Offer[] = [
     status:              'public-preview',
     termsSummary:        'New accounts only. KYC optional for base tier (1 BTC/day withdrawal without KYC). Higher bonus tiers require deposit and trading volume. Bonus tasks expire within 30 days. Rewards depend on region, eligibility, and trading activity. Full terms on KuCoin official website.',
   },
+  // PREVIEW NOTE: promoCode 'CRYPTOBW' is verified in bonus-codes.ts (2026-05-24) but
+  // exchanges.json has promoCode:"" — discrepancy must be resolved by owner before live publish.
+  // Affiliate URL activates via partner link (CRYPTOBONUSWORLD pre-filled in BingX signup form).
+  {
+    exchangeSlug:        'bingx',
+    promoCode:           'CRYPTOBW',
+    bonusHeadline:       'New user welcome rewards via BingX referral link',
+    realisticValue:      'Most users earn 50–250 USDT through deposit bonuses, copy-trading trial rewards, and Activity Center tasks. Maximum 11,000 USDT requires KYC, qualifying deposit, and all trading volume milestones within 30 days',
+    lastChecked:         'June 2026',
+    sourceUrl:           'https://bingxdao.com/partner/CRYPTOBONUSWORLD/',
+    kycRequired:         true,
+    depositRequired:     true,
+    minDeposit:          'Minimum deposit varies by bonus tier (50 USDT and up)',
+    availability:        'Global (excluding restricted regions)',
+    restrictedCountries: ['US'],
+    status:              'public-preview',
+    termsSummary:        'New accounts only. KYC required to unlock full bonus. Deposit and trading volume required for higher tiers. Bonus tasks expire 30 days after registration. Rewards are mostly trading vouchers — not withdrawable cash. Full terms on BingX official website.',
+  },
 ];
 
 export function getOffer(exchangeSlug: string): Offer | undefined {
