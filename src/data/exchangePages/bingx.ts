@@ -15,7 +15,10 @@ export const bingxConfig: ExchangePromoPageConfig = {
   feeUrl: 'https://bingx.com/en-us/fee/',
 
   // ─── Media ───────────────────────────────────────────────────
-  wordmarkImg: '/logos/bingx-wordmark.png',
+  // wordmarkImg renders on the dark brand-hero background in both the top hero
+  // and the closing hero (ExchangePromoPage.astro "exact repeat of top hero") —
+  // white text + baked glow variant, derived from the official bingx-wordmark.png.
+  wordmarkImg: '/logos/bingx-wordmark-hero-white-v1-ff060a5a.png',
   articleImg: '/media/exchanges/bingx/final/bingx-article-final-v1-1200x675-9b3f94eb.jpg',
   ogImage: '/media/exchanges/bingx/final/bingx-og-final-v1-1200x630-e08ccb64.jpg',
   heroBackgroundImg: '/media/hero-backgrounds/bingx-hero-custom-v1-b012814a.png',
