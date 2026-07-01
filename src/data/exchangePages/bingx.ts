@@ -16,9 +16,9 @@ export const bingxConfig: ExchangePromoPageConfig = {
 
   // ─── Media ───────────────────────────────────────────────────
   wordmarkImg: '/logos/bingx-wordmark.png',
-  articleImg: '/media/exchanges/bingx/final/bingx-article-final-v1-1200x675.jpg',
-  ogImage: '/media/exchanges/bingx/final/bingx-og-final-v1-1200x630.jpg',
-  heroBackgroundImg: '/media/hero-backgrounds/bingx-hero-custom-v1.png',
+  articleImg: '/media/exchanges/bingx/final/bingx-article-final-v1-1200x675-9b3f94eb.jpg',
+  ogImage: '/media/exchanges/bingx/final/bingx-og-final-v1-1200x630-e08ccb64.jpg',
+  heroBackgroundImg: '/media/hero-backgrounds/bingx-hero-custom-v1-b012814a.png',
   heroBackgroundPosition: 'center center',
   logoImg: '/logos/bingx.png',
 
