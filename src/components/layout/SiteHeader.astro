@@ -144,7 +144,7 @@ const currentPath = Astro.url.pathname;
     transition: color .15s;
     text-decoration: none;
   }
-  .ph-nav-item:hover, .ph-nav-item.is-active { color: #fff; }
+  .ph-nav-item:hover, .ph-nav-item:focus-visible, .ph-nav-item.is-active { color: #fff; }
 
   /* Dropdown */
   .ph-dropdown {
@@ -177,9 +177,9 @@ const currentPath = Astro.url.pathname;
     color: rgba(255,255,255,0.75); text-decoration: none;
     transition: background .12s, color .12s;
   }
-  .ph-dropdown-link:hover { background: rgba(255,255,255,0.07); color: #fff; }
-  .ph-dropdown-featured { color: #F7931A; font-weight: 600; }
-  .ph-dropdown-featured:hover { color: #F9B841; }
+  .ph-dropdown-link:hover, .ph-dropdown-link:focus-visible { background: rgba(255,255,255,0.07); color: #fff; }
+  .ph-dropdown-featured { color: rgba(255,255,255,0.82); font-weight: 600; }
+  .ph-dropdown-featured:hover, .ph-dropdown-featured:focus-visible { background: rgba(247,147,26,0.10); color: #F7931A; }
 
   .ph-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
   .ph-cta {
@@ -190,7 +190,7 @@ const currentPath = Astro.url.pathname;
     text-decoration: none; white-space: nowrap;
     transition: background .15s;
   }
-  .ph-cta:hover { background: #e07b00; }
+  .ph-cta:hover, .ph-cta:focus-visible { background: #e07b00; }
   @media (min-width: 820px) { .ph-cta { display: inline-block; } }
 
   .ph-burger {
@@ -227,9 +227,9 @@ const currentPath = Astro.url.pathname;
   .ph-mobile-chevron { opacity: 0.35; }
   .ph-mobile-sub {
     padding-left: 36px; font-size: 13px;
-    color: #F7931A; font-weight: 600;
+    color: rgba(255,255,255,0.78); font-weight: 500;
   }
-  .ph-mobile-sub:hover { color: #F9B841; }
+  .ph-mobile-sub:hover, .ph-mobile-sub:focus-visible { color: #F7931A; background: rgba(247,147,26,0.08); }
   .ph-mobile-cta { color: #F7931A; font-weight: 700; }
-  .ph-mobile-cta:hover { color: #F9B841; }
+  .ph-mobile-cta:hover, .ph-mobile-cta:focus-visible { color: #F9B841; }
 </style>
