@@ -252,17 +252,10 @@ export const bitgetConfig: ExchangePromoPageConfig = {
   // ── Verification section ───────────────────────────────────────────────────
   verificationIntroText: `The table below reflects what CryptoBonusWorld has verified about the Bitget welcome bonus as of the last evidence review (June 2026). Evidence was collected from the official Bitget website and official bonus landing page. <em>Verified</em> items are confirmed from Bitget's public documentation. <em>Public Preview</em> items are visible to unregistered users but may change. <em>Check in Reward Center</em> items require a Bitget account to confirm and may vary by region.`,
 
-  // verificationEvidence uses older registration capture (SHA256 74e4f7ca..., 900px desktop).
-  // Different hash from bonus_referral_landing (cf258981...) — older capture, same page.
-  // Full verification screenshot (Reward Center / task list) is pending.
-  verificationEvidence: {
-    src:     '/screenshots/bitget/registration/global-desktop-2026-06.webp',
-    alt:     'Bitget affiliate registration landing page showing welcome bonus and referral code entry — desktop screenshot June 2026',
-    width:   1440,
-    height:  900,
-    caption: 'Bitget partner registration page (desktop) — shows the Bitget × CryptoBonusWorld referral landing with bonus activation flow. Older capture (June 2026) from the official Bitget partner portal.',
-    wide:    true,
-  },
+  // verificationEvidence removed 2026-07-01: the older registration capture (SHA256
+  // 74e4f7ca...) shows the same page state as evidenceRegistration (cf258981...) —
+  // no meaningfully distinct proof. A genuinely separate Reward Center / task-list
+  // screenshot is needed before this slot is re-added.
 
   verificationRows: [
     {

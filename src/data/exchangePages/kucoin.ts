@@ -85,6 +85,7 @@ export const kucoinConfig: ExchangePromoPageConfig = {
     width: 1440,
     height: 900,
     caption: `KuCoin referral landing via code ${offer.promoCode}. The landing shows a "Create Account &amp; Claim Rewards" button — KuCoin reveals exact bonus tasks inside the Bonus Center after registration. Verified ${offer.lastChecked}.`,
+    wide: true,
   },
 
   // ─── Bonus levels ─────────────────────────────────────────────
@@ -140,15 +141,10 @@ export const kucoinConfig: ExchangePromoPageConfig = {
   ],
 
   // ─── Verification table ───────────────────────────────────────
-  verificationIntroText: `The table below shows what CryptoBonusWorld has verified about the KuCoin bonus offer linked to code ${offer.promoCode}. Rows marked "Check in Bonus Center" depend on individual account status and must be verified inside your KuCoin account after registration.`,
-  verificationEvidence: {
-    src: '/screenshots/kucoin/bonus_referral_landing/global-desktop-2026-06.webp',
-    alt: `KuCoin referral landing page showing new user welcome offer via code ${offer.promoCode}`,
-    width: 1440,
-    height: 900,
-    caption: `KuCoin referral landing via code ${offer.promoCode}. KuCoin does not show a fixed bonus amount on this page — exact tasks and rewards are revealed inside the Bonus Center after registration. Captured ${offer.lastChecked}.`,
-    wide: true,
-  },
+  verificationIntroText: `The table below shows what CryptoBonusWorld has verified about the KuCoin bonus offer linked to code ${offer.promoCode}, based on the referral landing screenshot shown earlier on this page. Rows marked "Check in Bonus Center" depend on individual account status and must be verified inside your KuCoin account after registration.`,
+  // verificationEvidence removed 2026-07-01: only distinct KuCoin capture is the referral
+  // landing screenshot already shown above — recapture a separate Bonus Center screenshot
+  // before re-adding.
   verificationRows: [
     { area: `Sign-up with ${offer.promoCode}`, requirement: 'Referral code applied at registration',        rewardType: 'Welcome eligibility',         status: 'verified',       statusNote: `Referral landing screenshot · ${offer.lastChecked}` },
     { area: 'Welcome rewards exist',           requirement: 'Open KuCoin bonus page via referral link',    rewardType: 'New user bonus tasks',        status: 'public-preview', statusNote: 'Bonus Center shows tasks after registration' },

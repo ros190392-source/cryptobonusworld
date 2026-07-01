@@ -91,6 +91,7 @@ export const bingxConfig: ExchangePromoPageConfig = {
     width: 1440,
     height: 900,
     caption: `BingX referral landing via partner link — shows 6,800+ USDT regular welcome gift plus 4,200+ USDT exclusive for referral sign-ups. Rewards are task-based; most users earn 50–250 USDT. Verified ${offer.lastChecked}.`,
+    wide: true,
   },
 
   // ─── Bonus levels ─────────────────────────────────────────────
@@ -146,15 +147,10 @@ export const bingxConfig: ExchangePromoPageConfig = {
   ],
 
   // ─── Verification table ───────────────────────────────────────
-  verificationIntroText: `The table below shows what CryptoBonusWorld has independently verified about the BingX welcome offer accessible via the partner link. Rows marked "Check in Activity Center" depend on individual account status and require verification inside your BingX account after registration.`,
-  verificationEvidence: {
-    src: '/screenshots/bingx/bonus_referral_landing/global-desktop-2026-06-v2.webp',
-    alt: 'BingX referral landing page showing 6,800+ USDT regular welcome gift and 11,000+ USDT exclusive for referees',
-    width: 1440,
-    height: 900,
-    caption: `BingX referral landing via partner link. Regular welcome gift of 6,800+ USDT available to all eligible new users; 11,000+ USDT offer exclusive for referee sign-ups (4,200+ USDT extra). Rewards are task-based vouchers. Captured ${offer.lastChecked}.`,
-    wide: true,
-  },
+  verificationIntroText: `The table below shows what CryptoBonusWorld has independently verified about the BingX welcome offer, based on the referral landing screenshot shown earlier on this page. Rows marked "Check in Activity Center" depend on individual account status and require verification inside your BingX account after registration.`,
+  // verificationEvidence removed 2026-07-01: only distinct BingX capture is the referral
+  // landing screenshot already shown above — recapture a separate Activity Center
+  // screenshot before re-adding.
   verificationRows: [
     { area: 'Referral landing via partner link', requirement: 'Referral code applied automatically via link',           rewardType: 'Welcome eligibility',              status: 'verified',       statusNote: `Referral landing screenshot · ${offer.lastChecked}` },
     { area: '11,000+ USDT advertised',           requirement: 'Open official BingX partner landing page',              rewardType: '6,800+ regular + 4,200+ referee',  status: 'verified',       statusNote: `Live referral landing captured · ${offer.lastChecked}` },

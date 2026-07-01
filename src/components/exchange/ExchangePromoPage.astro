@@ -782,18 +782,20 @@ const bonusMaxFmt = c.bonusMax.toLocaleString('en-US');
   <div class="p2-inner">
     <h2 class="p2-h2">{c.name} Bonus Offer — What We Have Verified</h2>
     <p class="p2-text" set:html={c.verificationIntroText} />
-    <figure class="p2-evidence-figure" style="margin:20px 0 16px;">
-      <img
-        src={c.verificationEvidence.src}
-        alt={c.verificationEvidence.alt}
-        width={c.verificationEvidence.width}
-        height={c.verificationEvidence.height}
-        loading="lazy"
-        decoding="async"
-        class:list={['p2-evidence-img', c.verificationEvidence.wide && 'p2-evidence-img--wide']}
-      />
-      <figcaption class="p2-evidence-caption" set:html={c.verificationEvidence.caption} />
-    </figure>
+    {c.verificationEvidence && (
+      <figure class="p2-evidence-figure" style="margin:20px 0 16px;">
+        <img
+          src={c.verificationEvidence.src}
+          alt={c.verificationEvidence.alt}
+          width={c.verificationEvidence.width}
+          height={c.verificationEvidence.height}
+          loading="lazy"
+          decoding="async"
+          class:list={['p2-evidence-img', c.verificationEvidence.wide && 'p2-evidence-img--wide']}
+        />
+        <figcaption class="p2-evidence-caption" set:html={c.verificationEvidence.caption} />
+      </figure>
+    )}
     <div class="p2-table-wrap">
       <table class="p2-table">
         <thead>

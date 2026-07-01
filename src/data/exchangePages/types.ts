@@ -145,7 +145,7 @@ export interface ExchangePromoPageConfig {
 
   // ─── Content: verification table ─────────────────────────────
   verificationIntroText: string;
-  verificationEvidence: EvidenceScreenshot;
+  verificationEvidence?: EvidenceScreenshot; // omit when no distinct (non-duplicate) proof screenshot exists
   verificationRows: VerificationRow[];
   verificationAfterNote: string;
 

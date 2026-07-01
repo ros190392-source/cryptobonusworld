@@ -86,14 +86,8 @@ export const mexcConfig: ExchangePromoPageConfig = {
     caption: `Official MEXC custom sign-up page — referral code <strong>${offer.promoCode}</strong> pre-filled, right panel confirms "Sign Up to Claim 10,000 USDT". Captured ${offer.lastChecked}.`,
     wide: true,
   },
-  evidenceBonusPage: {
-    src: '/media/exchanges/mexc/evidence/global-en/mexc-public-new-user-rewards.png',
-    alt: 'MEXC new user rewards page showing the welcome bonus structure available to new accounts',
-    width: 1440,
-    height: 900,
-    caption: `Official MEXC new user rewards page — showing the welcome bonus structure available through the partner referral link. Captured ${offer.lastChecked}.`,
-    wide: true,
-  },
+  // evidenceBonusPage removed 2026-07-01: mexc-public-new-user-rewards.png is a
+  // broken 404 capture, not the actual rewards page — recapture needed before re-adding.
   evidenceFeeScreenshots: [
     {
       src: '/media/exchanges/mexc/evidence/global-en/mexc-fee-page.png',
@@ -170,15 +164,9 @@ export const mexcConfig: ExchangePromoPageConfig = {
   ],
 
   // ─── Verification table ───────────────────────────────────────
-  verificationIntroText: `The table below shows what CryptoBonusWorld has independently verified about the MEXC bonus offer linked to the code ${offer.promoCode}. Rows marked "Check in Activity Center" depend on individual account status and can only be confirmed after registration. The registration screenshot below was captured June 2026 via the official MEXC custom sign-up URL.`,
-  verificationEvidence: {
-    src: '/media/exchanges/mexc/evidence/global-en/mexc-registration-code-applied.png',
-    alt: `MEXC custom sign-up page showing referral code ${offer.promoCode} pre-filled and 10,000 USDT new user offer on the right panel`,
-    width: 1440,
-    height: 900,
-    caption: `Official MEXC sign-up page via the partner custom URL. Left panel: referral code <strong>${offer.promoCode}</strong> pre-filled. Right panel: "Sign Up to Claim 10,000 USDT". Captured ${offer.lastChecked}.`,
-    wide: true,
-  },
+  verificationIntroText: `The table below shows what CryptoBonusWorld has independently verified about the MEXC bonus offer linked to the code ${offer.promoCode}, based on the registration screenshot shown earlier on this page. Rows marked "Check in Activity Center" depend on individual account status and can only be confirmed after registration.`,
+  // verificationEvidence removed 2026-07-01: only distinct MEXC capture is the registration
+  // screenshot already shown above — recapture a separate bonus/rewards screenshot before re-adding.
   verificationRows: [
     { area: `Sign-up with ${offer.promoCode}`,                  requirement: 'Referral code applied at registration via partner link',    rewardType: 'Welcome eligibility',             status: 'verified',       statusNote: `Registration screenshot shows ${offer.promoCode} pre-filled in referral code field · June 2026` },
     { area: 'Welcome rewards (up to 10,000 USDT)',              requirement: 'Open official MEXC bonus page via partner link',            rewardType: 'New user rewards',                status: 'verified',       statusNote: 'Registration right panel shows "Sign Up to Claim 10,000 USDT" · June 2026' },
