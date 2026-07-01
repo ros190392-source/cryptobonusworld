@@ -1,10 +1,8 @@
 import type { ExchangePromoPageConfig } from './types';
 import { getOffer } from '../offers';
 
-// PREVIEW NOTE: promoCode 'CRYPTOBW' verified in bonus-codes.ts (2026-05-24) but
-// exchanges.json has promoCode:"" — owner must confirm which code is canonical before live publish.
-// Affiliate URL: https://bingxdao.com/partner/CRYPTOBONUSWORLD/ (CRYPTOBONUSWORLD pre-filled in signup form).
-// Images: all 4 final images MISSING — owner must generate and install before live publish.
+// Owner-confirmed: displayed promo code is CRYPTOBW, canonical CTA route is /go/bingx/.
+// Partner URL retains CRYPTOBONUSWORLD in its path for tracking — link-first framing throughout.
 const offer = getOffer('bingx')!;
 
 export const bingxConfig: ExchangePromoPageConfig = {
@@ -17,8 +15,6 @@ export const bingxConfig: ExchangePromoPageConfig = {
   feeUrl: 'https://bingx.com/en-us/fee/',
 
   // ─── Media ───────────────────────────────────────────────────
-  // NOTE: bingx-wordmark.png and bingx.png exist. Final images below are PLACEHOLDERS —
-  // owner must generate and install before live publish (see §3 Visual Pack Requirements).
   wordmarkImg: '/logos/bingx-wordmark.png',
   articleImg: '/media/exchanges/bingx/final/bingx-article-final-v1-1200x675.jpg',
   ogImage: '/media/exchanges/bingx/final/bingx-og-final-v1-1200x630.jpg',

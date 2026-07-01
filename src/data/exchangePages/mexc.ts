@@ -228,5 +228,6 @@ export const mexcConfig: ExchangePromoPageConfig = {
     { slug: 'bitget', name: 'Bitget', logo: '/logos/bitget.png', bonus: 'Up to 6,200 USDT',  tag: 'Copy trading',      tileBg: '#ECFDF5', pageUrl: '/bitget/' },
     { slug: 'kucoin', name: 'KuCoin', logo: '/logos/kucoin.png', bonus: 'Welcome rewards',    tag: 'No KYC option',     tileBg: '#0A1628', pageUrl: '/kucoin/' },
     { slug: 'okx',    name: 'OKX',    logo: '/logos/okx.png',    bonus: 'Up to 5,000 USDT',  tag: 'CEX + Web3',        tileBg: '#F3F4F6', pageUrl: '/okx/' },
+    { slug: 'bingx',  name: 'BingX',  logo: '/logos/bingx.png',  bonus: 'Welcome rewards',    tag: 'Copy trading',      tileBg: '#0B1D3A', pageUrl: '/bingx/' },
   ],
 };

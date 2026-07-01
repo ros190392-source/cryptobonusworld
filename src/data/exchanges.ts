@@ -87,6 +87,20 @@ export const exchanges: Exchange[] = [
     featured:         true,
     pageUrl:          '/kucoin/',
   },
+  {
+    slug:             'bingx',
+    name:             'BingX',
+    logoText:         'BINGX',
+    status:           'active',
+    cardImage:        '/media/exchanges/bingx/final/bingx-card-final-v1-1200x800.jpg',
+    ogImage:          '/media/exchanges/bingx/final/bingx-og-final-v1-1200x630.jpg',
+    articleImage:     '/media/exchanges/bingx/final/bingx-article-final-v1-1200x675.jpg',
+    affiliateUrl:     '/go/bingx',
+    officialUrl:      'https://www.bingx.com',
+    shortDescription: 'Social and copy trading platform with new user welcome rewards — apply code CRYPTOBW at signup',
+    featured:         true,
+    pageUrl:          '/bingx/',
+  },
 ];
 
 export function getExchange(slug: string): Exchange | undefined {

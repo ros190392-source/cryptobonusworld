@@ -24,7 +24,7 @@ const currentPath = Astro.url.pathname;
     </a>
 
     <nav class="ph-nav" aria-label="Main navigation">
-      <div class={`ph-nav-item ph-dropdown${currentPath.startsWith('/exchanges') || currentPath.startsWith('/bybit') || currentPath.startsWith('/mexc') || currentPath.startsWith('/okx') || currentPath.startsWith('/bitget') || currentPath.startsWith('/kucoin') ? ' is-active' : ''}`}>
+      <div class={`ph-nav-item ph-dropdown${currentPath.startsWith('/exchanges') || currentPath.startsWith('/bybit') || currentPath.startsWith('/mexc') || currentPath.startsWith('/okx') || currentPath.startsWith('/bitget') || currentPath.startsWith('/kucoin') || currentPath.startsWith('/bingx') ? ' is-active' : ''}`}>
         <a href="/exchanges/" class="ph-dropdown-label">Exchanges <span class="ph-dropdown-arrow">▾</span></a>
         <div class="ph-dropdown-menu">
           <a href="/exchanges/" class="ph-dropdown-link">All Exchanges</a>
@@ -33,6 +33,7 @@ const currentPath = Astro.url.pathname;
           <a href="/okx/" class="ph-dropdown-link ph-dropdown-featured">OKX</a>
           <a href="/bitget/" class="ph-dropdown-link ph-dropdown-featured">Bitget</a>
           <a href="/kucoin/" class="ph-dropdown-link ph-dropdown-featured">KuCoin</a>
+          <a href="/bingx/" class="ph-dropdown-link ph-dropdown-featured">BingX</a>
         </div>
       </div>
       <a href="/promo-codes/" class={`ph-nav-item${currentPath.startsWith('/promo-codes') ? ' is-active' : ''}`}>Promo Codes</a>
@@ -55,6 +56,7 @@ const currentPath = Astro.url.pathname;
     <a href="/okx/" class="ph-mobile-item ph-mobile-sub">↳ OKX</a>
     <a href="/bitget/" class="ph-mobile-item ph-mobile-sub">↳ Bitget</a>
     <a href="/kucoin/" class="ph-mobile-item ph-mobile-sub">↳ KuCoin</a>
+    <a href="/bingx/" class="ph-mobile-item ph-mobile-sub">↳ BingX</a>
     <a href="/promo-codes/" class="ph-mobile-item">Promo Codes <span class="ph-mobile-chevron">›</span></a>
     <a href="/bybit/" class="ph-mobile-item ph-mobile-cta">Get Bybit Bonus →</a>
   </div>

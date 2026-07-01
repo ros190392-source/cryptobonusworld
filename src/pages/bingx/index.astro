@@ -1,0 +1,16 @@
+---
+import CleanLayout from '../../layouts/CleanLayout.astro';
+import ExchangePromoPage from '../../components/exchange/ExchangePromoPage.astro';
+import { bingxConfig } from '../../data/exchangePages/bingx';
+---
+
+<CleanLayout
+  title={bingxConfig.pageTitle}
+  description={bingxConfig.pageDescription}
+  canonical={bingxConfig.canonicalUrl}
+  ogImage={bingxConfig.ogImage}
+  ogTitle={bingxConfig.ogTitle}
+  ogDescription={bingxConfig.ogDescription}
+>
+  <ExchangePromoPage config={bingxConfig} />
+</CleanLayout>

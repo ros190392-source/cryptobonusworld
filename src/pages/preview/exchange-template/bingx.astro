@@ -2,18 +2,7 @@
 /*
  * PREVIEW ONLY — noindex, not linked from anywhere.
  * Renders BingX exchange page via the reusable ExchangePromoPage template.
- *
- * Preview page: /preview/exchange-template/bingx/  ← you are here
- * Live page:    /bingx/  (NOT YET CREATED — pending visual pack + owner approval)
- *
- * Blockers before live publish:
- *  1. bingx-hero-custom-v1.png          — needs image generation (owner action)
- *  2. bingx-card-final-v1-1200x800.jpg  — needs image generation (owner action)
- *  3. bingx-og-final-v1-1200x630.jpg    — needs image generation (owner action)
- *  4. bingx-article-final-v1-1200x675.jpg — needs image generation (owner action)
- *  5. promoCode discrepancy: bonus-codes.ts has CRYPTOBW (verified 2026-05-24)
- *     but exchanges.json has promoCode:"" — owner must confirm canonical code
- *  6. Owner approval to publish
+ * Kept in sync with the live page at /bingx/ for internal QA reference.
  */
 import CleanLayout from '../../../layouts/CleanLayout.astro';
 import ExchangePromoPage from '../../../components/exchange/ExchangePromoPage.astro';

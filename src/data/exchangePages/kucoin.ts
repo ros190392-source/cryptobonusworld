@@ -197,5 +197,6 @@ export const kucoinConfig: ExchangePromoPageConfig = {
     { slug: 'mexc',   name: 'MEXC',   logo: '/logos/mexc.png',   bonus: 'Up to 10,000 USDT', tag: 'No KYC option',  tileBg: '#F5F3FF', pageUrl: '/mexc/'   },
     { slug: 'okx',    name: 'OKX',    logo: '/logos/okx.png',    bonus: 'Up to 5,000 USDT',  tag: 'CEX + Web3',     tileBg: '#F3F4F6', pageUrl: '/okx/'    },
     { slug: 'bitget', name: 'Bitget', logo: '/logos/bitget.png', bonus: 'Up to 6,200 USDT',  tag: 'Copy trading',   tileBg: '#ECFDF5', pageUrl: '/bitget/' },
+    { slug: 'bingx',  name: 'BingX',  logo: '/logos/bingx.png',  bonus: 'Welcome rewards',    tag: 'Copy trading',   tileBg: '#0B1D3A', pageUrl: '/bingx/'  },
   ],
 };

@@ -401,6 +401,15 @@ export const bitgetConfig: ExchangePromoPageConfig = {
       tileBg:  '#0A1628',
       pageUrl: '/kucoin/',
     },
+    {
+      slug:    'bingx',
+      name:    'BingX',
+      logo:    '/logos/bingx.png',
+      bonus:   'Welcome Rewards',
+      tag:     'Copy trading',
+      tileBg:  '#0B1D3A',
+      pageUrl: '/bingx/',
+    },
   ],
 
 };
