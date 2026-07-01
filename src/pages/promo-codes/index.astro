@@ -1,26 +1,432 @@
 ---
-// /promo-codes/ → redirect to /exchanges/
-// /bonus-codes/ is old portal UI — safe target is /exchanges/ (CleanLayout)
+import CleanLayout from '../../layouts/CleanLayout.astro';
+import { getFeaturedExchanges } from '../../data/exchanges';
+import { getOffer } from '../../data/offers';
+
+const exchanges = getFeaturedExchanges();
+
+// Conservative "Best For" tags — derived directly from each exchange's existing
+// shortDescription in exchanges.ts, not invented.
+const BEST_FOR: Record<string, string> = {
+  bybit:  'Derivatives & spot trading',
+  mexc:   'No-KYC altcoin trading',
+  okx:    'Spot, futures & Web3',
+  bitget: 'Copy trading',
+  kucoin: 'No-KYC altcoin access',
+  bingx:  'Copy & social trading',
+};
+
+// Country notes — grounded in each offer's existing kycRequired / restrictedCountries
+// fields, not invented per-country claims.
+const COUNTRY_NOTE: Record<string, string> = {
+  bybit:  'Restricted in several countries (incl. US, UK, CA) — check terms',
+  mexc:   'No KYC for base tier; restricted in several countries',
+  okx:    'Restricted in several countries — check terms',
+  bitget: 'Not available in US, UK, or CA — check terms',
+  kucoin: 'No KYC for base tier; check regional terms',
+  bingx:  'Available in most regions except the US — check terms',
+};
+
+const rows = exchanges
+  .map(ex => ({ exchange: ex, offer: getOffer(ex.slug)! }))
+  .filter(r => r.offer)
+  // Rank: verified status first, then existing catalog order — grounded in the
+  // offer.status field already tracked per exchange, not an invented score.
+  .sort((a, b) => {
+    const rank = (s: string) => (s === 'verified' ? 0 : 1);
+    return rank(a.offer.status) - rank(b.offer.status);
+  })
+  .map((r, i) => ({ ...r, rank: i + 1 }));
+
+const countryOptions = [
+  'Global / All countries',
+  'Poland',
+  'Germany',
+  'Kazakhstan',
+  'Turkey',
+  'United Kingdom',
+  'European Union',
+  'United States',
+];
+
+const faqs = [
+  {
+    q: 'What is a crypto promo code?',
+    a: 'A crypto promo code (also called a referral or bonus code) is entered during sign-up at an exchange to link your new account to a partner offer. Applying it can unlock a welcome bonus, fee discount, or other new-user reward.',
+  },
+  {
+    q: 'Is a crypto exchange bonus guaranteed?',
+    a: 'No. Advertised bonus figures are maximums, not typical results. Reaching them usually requires completing tasks such as KYC, a qualifying deposit, and trading volume milestones within a set window. Many users receive a partial reward.',
+  },
+  {
+    q: 'Do I need to enter the code manually?',
+    a: 'It depends on the exchange. Some referral links prefill the code automatically when you click through — you just complete registration. Others require you to paste the code into a field during sign-up. Copy the code before clicking, just in case.',
+  },
+  {
+    q: 'Why do offers differ by country?',
+    a: 'Bonus programs are subject to local regulations, exchange licensing, and KYC requirements. An offer available in one country may be restricted or unavailable in another — always check the exchange\'s terms for your region.',
+  },
+  {
+    q: 'Which country should I select?',
+    a: 'Select the country you are registering from. For v1, the selector is a guide to what to check, not a source of verified local rankings — country-specific availability is still being checked and should be confirmed against the exchange\'s own terms.',
+  },
+  {
+    q: 'Are these affiliate links?',
+    a: 'Yes. Links marked "Claim" are affiliate referral links. If you register through one, CryptoBonusWorld may earn a commission from the exchange. This does not cost you anything extra and does not change your bonus.',
+  },
+  {
+    q: 'How often are codes checked?',
+    a: 'We check each listed code and offer regularly against the exchange\'s own promotions page. The individual exchange review page for each listing shows the date it was last verified.',
+  },
+  {
+    q: 'Can a promo code expire?',
+    a: 'Yes. Exchanges can change or discontinue a promo code or referral offer at any time, without notice. If a code on this page appears outdated, check the individual exchange page for the latest version.',
+  },
+];
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map(item => ({
+    '@type': 'Question',
+    name: item.q,
+    acceptedAnswer: { '@type': 'Answer', text: item.a },
+  })),
+};
 ---
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Crypto Promo Codes — Redirecting…</title>
-  <meta name="robots" content="noindex, follow" />
-  <link rel="canonical" href="https://cryptobonusworld.com/exchanges/" />
-  <meta http-equiv="refresh" content="0;url=/exchanges/" />
-  <style>
-    body { margin:0; font-family:system-ui,sans-serif; background:#F7F8F4;
-           display:flex; align-items:center; justify-content:center; min-height:100vh; }
-    .msg { text-align:center; color:#6B7280; font-size:14px; }
-    a { color:#16A34A; }
-  </style>
-</head>
-<body>
-  <div class="msg">
-    <p>Redirecting to <a href="/exchanges/">crypto exchanges</a>…</p>
+
+<CleanLayout
+  title="Crypto Promo Codes & Referral Codes by Country | CryptoBonusWorld"
+  description="Compare verified crypto exchange promo codes, referral links, and sign-up bonus offers. Availability and bonus terms may vary by country and account."
+  canonical="https://cryptobonusworld.com/promo-codes/"
+>
+
+  <!-- 1. Compact intro -->
+  <section class="pc-intro">
+    <div class="pc-text-wrap">
+      <div class="pc-label">Verified · Updated July 2026</div>
+      <h1 class="pc-h1">Crypto Promo Codes by Exchange</h1>
+      <p class="pc-sub">
+        CryptoBonusWorld tracks crypto exchange referral codes and sign-up bonus links,
+        checked directly against each exchange's official promotions page.
+      </p>
+      <p class="pc-caveat">
+        Bonus availability, KYC, deposit requirements, trading volume requirements, and
+        regional eligibility may vary by country and account.
+      </p>
+    </div>
+  </section>
+
+  <!-- 2. Country selector -->
+  <section class="pc-country">
+    <div class="pc-text-wrap">
+      <label for="pc-country-select" class="pc-country-label">Viewing offers for</label>
+      <select id="pc-country-select" class="pc-country-select">
+        {countryOptions.map(c => <option value={c}>{c}</option>)}
+      </select>
+      <p class="pc-country-note">
+        Country-specific availability is still being checked. The table below shows
+        globally tracked offers and should be verified against the exchange terms for
+        your location.
+      </p>
+    </div>
+  </section>
+
+  <!-- 3. Ranking table -->
+  <section class="section bg-white pc-table-section" id="ranking">
+    <div class="pc-table-wrap">
+      <div class="section-label">Ranking</div>
+      <h2 class="section-title">Crypto Exchange Promo Code Ranking</h2>
+      <p class="pc-terms-vary">Terms vary by exchange and account — always confirm current conditions on the official exchange page before signing up.</p>
+
+      <div class="pc-table-scroll">
+      <table class="pc-table" data-pc-table>
+        <thead>
+          <tr>
+            <th class="pc-col-rank">Rank</th>
+            <th class="pc-col-exchange">Exchange</th>
+            <th class="pc-col-code">Promo Code</th>
+            <th class="pc-col-bonus">Bonus Snapshot</th>
+            <th class="pc-col-bestfor">Best For</th>
+            <th class="pc-col-note">Country Note</th>
+            <th class="pc-col-review">Review</th>
+            <th class="pc-col-claim">Claim</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map(({ exchange: ex, offer, rank }) => (
+            <tr class="pc-row" data-pc-row>
+              <td class="pc-cell-rank" data-label="Rank">
+                <span class="pc-rank-badge">#{rank}</span>
+              </td>
+              <td class="pc-cell-exchange" data-label="Exchange">
+                <a href={ex.pageUrl ?? `/exchanges/${ex.slug}/`} class="pc-exchange-name">{ex.name}</a>
+                {offer.status === 'verified' && <span class="pc-verified">✓ verified</span>}
+              </td>
+              <td class="pc-cell-code" data-label="Promo Code">
+                <button class="pc-code-chip" data-code={offer.promoCode} aria-label={`Copy promo code ${offer.promoCode}`} type="button">
+                  <span class="pc-code-text">{offer.promoCode}</span>
+                  <span class="pc-copy-icon" aria-hidden="true">⧉</span>
+                  <span class="pc-copy-check" aria-hidden="true">✓</span>
+                </button>
+              </td>
+              <td class="pc-cell-bonus" data-label="Bonus Snapshot">{offer.bonusHeadline}</td>
+              <td class="pc-cell-bestfor" data-label="Best For">{BEST_FOR[ex.slug]}</td>
+              <td class="pc-cell-note" data-label="Country Note">{COUNTRY_NOTE[ex.slug]}</td>
+              <td class="pc-cell-review" data-label="Review">
+                <a href={ex.pageUrl ?? `/exchanges/${ex.slug}/`} class="pc-review-link">Read review →</a>
+              </td>
+              <td class="pc-cell-claim" data-label="Claim">
+                <a href={`/go/${ex.slug}/`} class="pc-claim-btn" rel="noopener sponsored">Claim →</a>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. Ranking explanation -->
+  <section class="section bg-gray">
+    <div class="pc-text-wrap">
+      <div class="section-label">Methodology</div>
+      <h2 class="section-title">How This Promo-Code Ranking Works</h2>
+      <p class="pc-p">
+        CryptoBonusWorld ranks the promo codes above using a combination of signals: whether the
+        code or referral link has been independently verified against the exchange's own
+        promotions page, how clearly the exchange discloses its bonus terms, known country
+        availability signals, the trust and source quality behind each offer, how accessible the
+        exchange is for beginners, and — where known — relevance to specific trading or payment
+        needs. Verified offers are ranked ahead of offers still in public-preview status.
+      </p>
+    </div>
+  </section>
+
+  <!-- 5. Country-specific warning -->
+  <section class="section bg-white">
+    <div class="pc-text-wrap">
+      <div class="section-label">Important</div>
+      <h2 class="section-title">Why Crypto Bonuses Differ by Country</h2>
+      <ul class="pc-list">
+        <li>Exchanges may restrict access for residents of certain countries, independent of any bonus offer.</li>
+        <li>Identity verification (KYC) rules and required documents can differ by region.</li>
+        <li>Bonus campaigns are run by each exchange and may change or end without notice.</li>
+        <li>Deposit minimums and trading-volume requirements for higher bonus tiers may differ by account and region.</li>
+        <li>Some referral links prefill the promo code automatically; others require you to enter it manually during sign-up.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 6. FAQ -->
+  <section class="section bg-gray" id="faq">
+    <div class="pc-text-wrap">
+      <div class="section-label">Common Questions</div>
+      <h2 class="section-title">Frequently Asked Questions</h2>
+      <div class="pc-faq-list">
+        {faqs.map(item => (
+          <details class="pc-faq-item">
+            <summary class="pc-faq-q">{item.q}</summary>
+            <p class="pc-faq-a">{item.a}</p>
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. Disclaimer -->
+  <div class="pc-disclaimer-bar">
+    <div class="pc-text-wrap">
+      <p class="pc-disclaimer-text">
+        <strong>Disclosure:</strong> CryptoBonusWorld may earn a commission when you register via
+        links on this page. This does not affect our editorial assessments or the codes we list.
+        Bonus amounts shown are advertised maximums — individual results vary and depend on
+        meeting all exchange requirements. Bonus availability and terms can change at any time;
+        verify current conditions on the official exchange website before registering or
+        depositing. Cryptocurrency trading carries significant risk. Nothing on this page
+        constitutes financial or investment advice.
+        <a href="/affiliate-disclosure/" class="pc-disclaimer-link">Read our full affiliate disclosure →</a>
+      </p>
+    </div>
   </div>
-</body>
-</html>
+
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+
+</CleanLayout>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('.pc-code-chip').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const code = btn.dataset.code ?? '';
+      try {
+        await navigator.clipboard.writeText(code);
+      } catch {
+        const ta = document.createElement('textarea');
+        ta.value = code;
+        ta.style.cssText = 'position:fixed;opacity:0;pointer-events:none';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+      btn.classList.add('copied');
+      setTimeout(() => btn.classList.remove('copied'), 1800);
+    });
+  });
+
+  // Country selector — v1 static UI only. No country-specific ranking data exists yet,
+  // so switching the selector does not change the table; it only surfaces the note above.
+  const select = document.getElementById('pc-country-select');
+  const note = document.querySelector('.pc-country-note');
+  select?.addEventListener('change', () => {
+    if (note) {
+      note.textContent = `Country-specific availability for ${(select as HTMLSelectElement).value} is still being checked. The table below shows globally tracked offers and should be verified against the exchange terms for your location.`;
+    }
+  });
+</script>
+
+<style>
+  .bg-white { background: #fff; }
+  .bg-gray  { background: #F7F8F4; }
+
+  /* ── Width utilities (matches homepage v2 discipline) ──────────── */
+  .pc-text-wrap  { max-width: 800px;  margin: 0 auto; padding: 0 20px; box-sizing: border-box; }
+  .pc-table-wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; box-sizing: border-box; }
+  @media (min-width: 820px) {
+    .pc-text-wrap, .pc-table-wrap { padding: 0 32px; }
+  }
+
+  /* ── 1. Intro ─────────────────────────────────────────────────── */
+  .pc-intro { background: #fff; padding: 40px 0 24px; text-align: center; }
+  @media (min-width: 820px) { .pc-intro { padding: 56px 0 32px; } }
+  .pc-label {
+    display: inline-block; font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .1em; color: #F7931A;
+    background: rgba(247,147,26,.08); border: 1px solid rgba(247,147,26,.22);
+    padding: 4px 12px; border-radius: 20px; margin-bottom: 14px;
+  }
+  .pc-h1 {
+    font-size: clamp(26px, 4.2vw, 38px); font-weight: 800; line-height: 1.15;
+    letter-spacing: -.02em; color: #111827; margin-bottom: 12px;
+  }
+  .pc-sub { font-size: 15px; line-height: 1.65; color: #4B5563; margin-bottom: 8px; }
+  .pc-caveat { font-size: 13px; line-height: 1.6; color: #9CA3AF; }
+
+  /* ── 2. Country selector ─────────────────────────────────────── */
+  .pc-country { background: #F0FDF4; border-top: 1px solid #D1FAE5; border-bottom: 1px solid #D1FAE5; padding: 18px 0; text-align: center; }
+  .pc-country-label { display: block; font-size: 12px; font-weight: 700; color: #15803D; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; }
+  .pc-country-select {
+    font-size: 14px; font-weight: 600; color: #111827;
+    padding: 8px 14px; border-radius: 8px; border: 1.5px solid #A7F3D0;
+    background: #fff; cursor: pointer; margin-bottom: 10px;
+  }
+  .pc-country-note { font-size: 12px; color: #374151; line-height: 1.6; max-width: 620px; margin: 0 auto; }
+
+  /* ── 3. Ranking table ─────────────────────────────────────────── */
+  .pc-table-section { padding: 32px 0 48px; }
+  .pc-terms-vary { font-size: 13px; color: #9CA3AF; margin-bottom: 20px; }
+
+  /* Scrolls the table sideways within its own box on tablet widths where 8
+     columns don't fit — prevents the whole page from overflowing horizontally.
+     Irrelevant on mobile once the table becomes stacked cards below. */
+  .pc-table-scroll { overflow-x: auto; }
+
+  .pc-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  .pc-table thead th {
+    text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .05em;
+    color: #6B7280; font-weight: 700; padding: 10px 12px; border-bottom: 2px solid #E5E7EB;
+    white-space: nowrap;
+  }
+  .pc-table tbody tr { border-bottom: 1px solid #F3F4F6; }
+  .pc-table tbody tr:hover { background: #FAFAFA; }
+  .pc-table td { padding: 14px 12px; vertical-align: middle; }
+
+  .pc-rank-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 26px; height: 26px; border-radius: 50%;
+    background: #F7931A; color: #fff; font-size: 12px; font-weight: 800;
+  }
+  .pc-exchange-name { font-weight: 800; color: #111827; text-decoration: none; display: block; }
+  .pc-exchange-name:hover { color: #1D4ED8; text-decoration: underline; }
+  .pc-verified { font-size: 10px; color: #16A34A; font-weight: 700; white-space: nowrap; }
+
+  .pc-code-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: var(--cbw-font-mono, 'SFMono-Regular', Consolas, monospace);
+    font-size: 12.5px; font-weight: 900;
+    background: #FFF7ED; border: 1.5px solid #FED7AA; color: #C2410C;
+    padding: 6px 10px; border-radius: 6px; cursor: pointer; white-space: nowrap;
+    transition: background .12s, border-color .12s;
+  }
+  .pc-code-chip:hover { background: #FEF3C7; border-color: #F59E0B; }
+  .pc-code-chip.copied { background: #F0FDF4; border-color: #86EFAC; color: #15803D; }
+  .pc-copy-icon { opacity: .55; }
+  .pc-copy-check { display: none; color: #16A34A; font-weight: 900; }
+  .pc-code-chip.copied .pc-copy-icon { display: none; }
+  .pc-code-chip.copied .pc-copy-check { display: inline; }
+
+  .pc-cell-bonus, .pc-cell-note { color: #4B5563; max-width: 220px; }
+  .pc-cell-bestfor { color: #374151; font-weight: 600; white-space: nowrap; }
+
+  .pc-review-link { font-size: 13px; color: #374151; font-weight: 600; text-decoration: none; white-space: nowrap; }
+  .pc-review-link:hover { color: #111827; text-decoration: underline; }
+
+  .pc-claim-btn {
+    display: inline-block; text-decoration: none; text-align: center;
+    background: #16A34A; color: #fff; font-size: 13px; font-weight: 700;
+    padding: 8px 16px; border-radius: 8px; white-space: nowrap;
+    transition: background .15s;
+  }
+  .pc-claim-btn:hover { background: #15803D; }
+
+  /* Mobile: transform table into stacked cards */
+  @media (max-width: 760px) {
+    .pc-table thead { display: none; }
+    .pc-table, .pc-table tbody, .pc-table tr, .pc-table td { display: block; width: 100%; box-sizing: border-box; }
+    .pc-table tr {
+      border: 1px solid #E5E7EB; border-radius: 12px; margin-bottom: 14px;
+      padding: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .pc-table td {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; padding: 6px 0; border: none;
+    }
+    .pc-table td::before {
+      content: attr(data-label); font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .04em; color: #9CA3AF; flex-shrink: 0;
+    }
+    .pc-cell-exchange { justify-content: flex-start !important; gap: 8px; }
+    .pc-cell-exchange::before { display: none; }
+    .pc-exchange-name { font-size: 16px; }
+    .pc-cell-bonus, .pc-cell-note { text-align: right; max-width: 60%; }
+    .pc-cell-claim { padding-top: 10px !important; }
+    .pc-claim-btn { width: 100%; text-align: center; padding: 10px 16px; }
+  }
+
+  /* ── 4/5. Prose sections ──────────────────────────────────────── */
+  .pc-p { font-size: 14.5px; line-height: 1.75; color: #4B5563; }
+  .pc-list { display: flex; flex-direction: column; gap: 10px; font-size: 14.5px; line-height: 1.65; color: #4B5563; padding-left: 20px; }
+  .pc-list li { padding-left: 4px; }
+
+  /* ── 6. FAQ ───────────────────────────────────────────────────── */
+  .pc-faq-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+  .pc-faq-item { background: #fff; border: 1px solid #E5E7EB; border-radius: 10px; overflow: hidden; }
+  .pc-faq-q {
+    padding: 16px 20px; font-size: 15px; font-weight: 600; color: #111827;
+    cursor: pointer; list-style: none;
+    display: flex; align-items: center; justify-content: space-between; user-select: none;
+  }
+  .pc-faq-q::-webkit-details-marker { display: none; }
+  .pc-faq-q::after { content: '+'; font-size: 18px; color: #9CA3AF; }
+  details[open] .pc-faq-q::after { content: '−'; }
+  .pc-faq-a { padding: 0 20px 16px; font-size: 14px; color: #4B5563; line-height: 1.7; }
+
+  /* ── 7. Disclaimer ────────────────────────────────────────────── */
+  .pc-disclaimer-bar { background: #F9FAFB; border-top: 1px solid #E5E7EB; border-bottom: 1px solid #E5E7EB; padding: 20px 0; }
+  .pc-disclaimer-text { font-size: 12px; color: #6B7280; line-height: 1.7; }
+  .pc-disclaimer-text strong { color: #374151; }
+  .pc-disclaimer-link { color: #15803D; font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+  .pc-disclaimer-link:hover { color: #166534; }
+
+  /* Reuse shared section-label / section-title from CleanLayout globals */
+</style>
