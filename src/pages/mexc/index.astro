@@ -482,6 +482,15 @@ const pageSchema = {
   .p2-rating-block { text-align: center; }
   .p2-rating-title { font-size: 16px; font-weight: 700; color: #111827; margin: 0 0 10px; }
   .p2-stars { font-size: 28px; color: #D1D5DB; letter-spacing: 2px; margin: 0 0 8px; line-height: 1; }
+  .p2-stars-row { display: flex; justify-content: center; gap: 6px; margin: 0 0 8px; }
+  .p2-star-btn {
+    background: none; border: none; padding: 2px; cursor: pointer;
+    font-size: 30px; line-height: 1; color: #D1D5DB;
+    transition: color .15s ease, transform .1s ease;
+  }
+  .p2-star-btn:hover { transform: scale(1.15); }
+  .p2-star-btn.is-filled { color: #F7931A; }
+  .p2-star-btn:focus-visible { outline: 2px solid #F7931A; border-radius: 4px; }
   .p2-rating-empty { font-size: 13px; color: #9CA3AF; margin: 0; line-height: 1.5; }
 
   /* Voting block */
@@ -592,6 +601,8 @@ const pageSchema = {
     .p2-vote-btn { background: #fff !important; color: #374151 !important; -webkit-text-fill-color: #374151 !important; border-color: #E5E7EB !important; color-scheme: light !important; }
     .p2-vote-btn.is-selected-up   { background: #f0fdf4 !important; color: #15803d !important; -webkit-text-fill-color: #15803d !important; border-color: #16a34a !important; }
     .p2-vote-btn.is-selected-down { background: #fef2f2 !important; color: #b91c1c !important; -webkit-text-fill-color: #b91c1c !important; border-color: #dc2626 !important; }
+    .p2-star-btn { background: none !important; color: #D1D5DB !important; -webkit-text-fill-color: #D1D5DB !important; }
+    .p2-star-btn.is-filled { color: #F7931A !important; -webkit-text-fill-color: #F7931A !important; }
     .p2-rel-logo-wrap { background-clip: padding-box !important; }
   }
 </style>
@@ -1073,16 +1084,22 @@ const pageSchema = {
   </div>
 </section>
 
-<!-- Rating block — honest, no fake data -->
+<!-- Rating block — real aggregated votes via /api/exchange-votes -->
 <div class="p2-section p2-section-alt">
   <div class="p2-inner p2-rating-block">
     <h3 class="p2-rating-title">Rate this {exchange.name} referral code</h3>
-    <div class="p2-stars" aria-label="No ratings yet" aria-hidden="true" style="color:#D1D5DB;">☆☆☆☆☆</div>
-    <p class="p2-rating-empty">No ratings yet — be the first to rate this code.</p>
+    <div class="p2-stars-row" id="rating-stars" role="radiogroup" aria-label="Rate this referral code from 1 to 5 stars">
+      <button class="p2-star-btn" type="button" data-star="1" role="radio" aria-checked="false" aria-label="1 star">★</button>
+      <button class="p2-star-btn" type="button" data-star="2" role="radio" aria-checked="false" aria-label="2 stars">★</button>
+      <button class="p2-star-btn" type="button" data-star="3" role="radio" aria-checked="false" aria-label="3 stars">★</button>
+      <button class="p2-star-btn" type="button" data-star="4" role="radio" aria-checked="false" aria-label="4 stars">★</button>
+      <button class="p2-star-btn" type="button" data-star="5" role="radio" aria-checked="false" aria-label="5 stars">★</button>
+    </div>
+    <p class="p2-rating-empty" id="rating-summary">No ratings yet — be the first to rate this code.</p>
   </div>
 </div>
 
-<!-- Voting block — localStorage only, no fake global counts -->
+<!-- Voting block — real aggregated votes via /api/exchange-votes -->
 <div class="p2-section">
   <div class="p2-inner p2-vote-block"
        data-vote-widget="code-helpfulness"
@@ -1137,27 +1154,76 @@ const pageSchema = {
       });
     });
 
-    // Voting block — localStorage only, no fake global counts
-    var VOTE_KEY = 'cbw_vote_' + exchangeSlug + '_code';
+    // ── Real voting — aggregated via /api/exchange-votes ──
+    var VOTES_API = '/api/exchange-votes';
     var voteUpBtn   = document.getElementById('vote-up');
     var voteDownBtn = document.getElementById('vote-down');
     var voteStatus  = document.getElementById('vote-status');
-    function applyVoteState(vote) {
-      if (!voteUpBtn || !voteDownBtn || !voteStatus) return;
-      if (vote === 'up') {
-        voteUpBtn.classList.add('is-selected-up');
-        voteDownBtn.classList.remove('is-selected-down');
-      } else if (vote === 'down') {
-        voteDownBtn.classList.add('is-selected-down');
-        voteUpBtn.classList.remove('is-selected-up');
-      }
-      voteUpBtn.disabled   = true;
-      voteDownBtn.disabled = true;
-      voteStatus.textContent = 'Thanks — your vote was recorded. Your vote is saved on this device.';
+    var starBtns    = [].slice.call(document.querySelectorAll('.p2-star-btn'));
+    var ratingSummary = document.getElementById('rating-summary');
+    var VOTES_UNAVAILABLE = 'Voting is temporarily unavailable. Please try again later.';
+
+    function makeUserKey() {
+      if (self.crypto && crypto.randomUUID) return crypto.randomUUID();
+      var s = ''; while (s.length < 32) s += Math.floor(Math.random() * 16).toString(16);
+      return s;
     }
-    try { var savedVote = localStorage.getItem(VOTE_KEY); if (savedVote) applyVoteState(savedVote); } catch(e) {}
-    if (voteUpBtn)   { voteUpBtn.addEventListener('click',   function() { try { localStorage.setItem(VOTE_KEY, 'up');   } catch(e) {} applyVoteState('up');   }); }
-    if (voteDownBtn) { voteDownBtn.addEventListener('click', function() { try { localStorage.setItem(VOTE_KEY, 'down'); } catch(e) {} applyVoteState('down'); }); }
+    var userKey = null;
+    try {
+      userKey = localStorage.getItem('cbw_user_key');
+      if (!userKey) { userKey = makeUserKey(); localStorage.setItem('cbw_user_key', userKey); }
+    } catch (e) { userKey = makeUserKey(); }
+
+    function votesApi(method, body) {
+      var headers = { 'X-CBW-User': userKey };
+      if (method === 'POST') headers['Content-Type'] = 'application/json';
+      return fetch(VOTES_API + (method === 'GET' ? '?exchange=' + encodeURIComponent(exchangeSlug) : ''), {
+        method: method, headers: headers,
+        body: method === 'POST' ? JSON.stringify(body) : undefined,
+      }).then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); });
+    }
+
+    function renderVotes(agg) {
+      var fill = agg.userRating || Math.round(agg.averageRating || 0);
+      starBtns.forEach(function (b) {
+        var n = +b.getAttribute('data-star');
+        b.classList.toggle('is-filled', n <= fill);
+        b.setAttribute('aria-checked', agg.userRating === n ? 'true' : 'false');
+      });
+      if (ratingSummary) {
+        ratingSummary.textContent = agg.ratingCount > 0
+          ? 'Rated ' + agg.averageRating + '/5 from ' + agg.ratingCount + ' user vote' + (agg.ratingCount === 1 ? '' : 's') + '.'
+          : 'No ratings yet — be the first to rate this code.';
+      }
+      if (voteUpBtn && voteDownBtn) {
+        voteUpBtn.classList.toggle('is-selected-up', agg.userHelpfulVote === 'works');
+        voteDownBtn.classList.toggle('is-selected-down', agg.userHelpfulVote === 'didnt_work');
+      }
+      if (voteStatus) {
+        var total = agg.worksCount + agg.didntWorkCount;
+        voteStatus.textContent = total > 0
+          ? Math.round(agg.worksCount / total * 100) + '% of ' + total + ' voter' + (total === 1 ? '' : 's') + ' said this code worked.'
+          : 'No votes yet — be the first to rate this code.';
+      }
+    }
+
+    votesApi('GET').then(renderVotes).catch(function () { /* keep honest default text */ });
+
+    starBtns.forEach(function (b) {
+      b.addEventListener('click', function () {
+        var n = +b.getAttribute('data-star');
+        votesApi('POST', { exchange: exchangeSlug, type: 'rating', rating: n })
+          .then(function (agg) { renderVotes(agg); if (ratingSummary) ratingSummary.textContent += ' Thanks — your rating was recorded.'; })
+          .catch(function () { if (ratingSummary) ratingSummary.textContent = VOTES_UNAVAILABLE; });
+      });
+    });
+    function sendHelpful(value) {
+      votesApi('POST', { exchange: exchangeSlug, type: 'helpful', helpful: value })
+        .then(function (agg) { renderVotes(agg); if (voteStatus) voteStatus.textContent += ' Thanks — your vote was recorded.'; })
+        .catch(function () { if (voteStatus) voteStatus.textContent = VOTES_UNAVAILABLE; });
+    }
+    if (voteUpBtn)   voteUpBtn.addEventListener('click',   function () { sendHelpful('works'); });
+    if (voteDownBtn) voteDownBtn.addEventListener('click', function () { sendHelpful('didnt_work'); });
 
     var couponBtn = document.getElementById('copy-btn-coupon');
     if (couponBtn) {

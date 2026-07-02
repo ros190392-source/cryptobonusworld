@@ -1,0 +1,25 @@
+[Unit]
+Description=CryptoBonusWorld exchange-code voting API
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+# Node on this host is a snap; use the raw binary inside the snap directly —
+# /snap/bin/node goes through snap-confine, which cannot run under this
+# hardened unit (NoNewPrivileges + www-data without a /home dir).
+ExecStart=/snap/node/current/bin/node /opt/cbw-votes/server.mjs
+Environment=CBW_VOTES_DATA=/var/lib/cbw-votes/votes.json
+Environment=CBW_VOTES_PORT=8787
+Restart=always
+RestartSec=3
+# Hardening — the service only needs to write its own data dir
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/cbw-votes
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
