@@ -131,7 +131,7 @@ function buildNextStep(): NextStep {
     return {
       body: 'Compare all current signup bonuses, deposit matches and futures rewards in one place — filtered by your preferences.',
       cta: 'Compare all bonuses',
-      href: '/bonuses/',
+      href: '/promo-codes/',
       secondaryCta: 'See signup bonuses only',
       secondaryHref: '/categories/signup-bonuses/',
       type: 'guide',
@@ -145,7 +145,7 @@ function buildNextStep(): NextStep {
       cta: 'Compare exchanges',
       href: '/compare/',
       secondaryCta: 'Browse all exchanges',
-      secondaryHref: '/bonuses/',
+      secondaryHref: '/exchanges/',
       type: 'compare',
       internal: true,
     };
@@ -155,9 +155,12 @@ function buildNextStep(): NextStep {
     return {
       body: `${primaryRelatedEx.name} offers some of the best staking and earning options available. Check current rates and welcome bonuses.`,
       cta: `View ${primaryRelatedEx.name} bonuses`,
-      href: `/exchanges/${primaryRelatedEx.slug}/`,
+      // Live promo exchanges get their canonical /{slug}/ page; others keep the legacy page
+      href: ['bybit', 'mexc', 'okx', 'bitget', 'kucoin', 'bingx'].includes(primaryRelatedEx.slug)
+        ? `/${primaryRelatedEx.slug}/`
+        : `/exchanges/${primaryRelatedEx.slug}/`,
       secondaryCta: 'Compare all exchanges',
-      secondaryHref: '/bonuses/',
+      secondaryHref: '/exchanges/',
       type: 'exchange',
       internal: true,
     };
@@ -169,7 +172,7 @@ function buildNextStep(): NextStep {
       cta: 'Compare futures exchanges',
       href: '/categories/futures-bonuses/',
       secondaryCta: 'Browse all bonuses',
-      secondaryHref: '/bonuses/',
+      secondaryHref: '/promo-codes/',
       type: 'compare',
       internal: true,
     };
@@ -179,7 +182,7 @@ function buildNextStep(): NextStep {
   return {
     body: 'Browse all current exchange bonuses — updated weekly with verified conditions and realistic earning expectations.',
     cta: 'Compare exchange bonuses',
-    href: '/bonuses/',
+    href: '/promo-codes/',
     secondaryCta: 'Read more guides',
     secondaryHref: '/guides/',
     type: 'guide',
@@ -412,14 +415,14 @@ const categoryColors: Record<string, string> = {
                 <span class="guide-ex-arrow">→</span>
               </a>
             ))}
-            <CTAButton href="/bonuses/" label="Compare All Bonuses" size="sm" variant="outline" />
+            <CTAButton href="/promo-codes/" label="Compare All Bonuses" size="sm" variant="outline" />
           </div>
         )}
 
         <!-- Quick links -->
         <div class="guide-sidebar-links">
           <div class="guide-sidebar-label">Explore More</div>
-          <a href="/bonuses/" class="guide-sidebar-link">🏆 All Exchange Bonuses</a>
+          <a href="/promo-codes/" class="guide-sidebar-link">🏆 All Exchange Bonuses</a>
           <a href="/categories/no-kyc-bonuses/" class="guide-sidebar-link">🔓 No-KYC Bonuses</a>
           <a href="/categories/signup-bonuses/" class="guide-sidebar-link">🚀 Signup Bonuses</a>
           <a href="/compare/" class="guide-sidebar-link">⚖️ Compare Exchanges</a>
