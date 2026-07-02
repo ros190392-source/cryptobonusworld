@@ -9,55 +9,209 @@ const exchangesWithOffers = exchanges.map(ex => ({
   exchange: ex,
   offer: getOffer(ex.slug),
 }));
+
+const faqs = [
+  {
+    q: 'What is a crypto exchange referral code?',
+    a: 'A referral code links your new exchange account to a partner, which can unlock a welcome bonus, fee discount, or other new-user reward that is not available without the code.',
+  },
+  {
+    q: 'Are exchange bonuses guaranteed?',
+    a: 'No. Advertised bonus figures are maximums, not typical results. Reaching them usually requires completing tasks such as KYC, a qualifying deposit, and trading volume milestones within a set window.',
+  },
+  {
+    q: 'Why do offers differ by country?',
+    a: 'Bonus programs are subject to local regulations, exchange licensing, and KYC requirements. An offer available in one country may be restricted or unavailable in another.',
+  },
+  {
+    q: 'Do I need to enter the code manually?',
+    a: 'It depends on the exchange. Some referral links prefill the code automatically when you click through; others require you to paste it into a field during sign-up.',
+  },
+  {
+    q: 'Are these affiliate links?',
+    a: 'Yes. Links marked "Claim Bonus" are affiliate referral links. If you register through one, CryptoBonusWorld may earn a commission from the exchange, at no extra cost to you.',
+  },
+  {
+    q: 'How are exchanges added to this directory?',
+    a: 'Each exchange listed here has a dedicated review page with its promo code, fees, KYC requirements, and evidence checked directly against the exchange\'s own official pages before publishing.',
+  },
+];
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map(item => ({
+    '@type': 'Question',
+    name: item.q,
+    acceptedAnswer: { '@type': 'Answer', text: item.a },
+  })),
+};
 ---
 
 <CleanLayout
-  title="Crypto Exchanges — Referral Codes & Promo Bonuses | CryptoBonusWorld"
-  description="Verified referral codes and welcome bonuses for top crypto exchanges. Bybit, Binance, MEXC and more. Updated June 2026."
+  title="Crypto Exchange Promo Codes & Referral Links | CryptoBonusWorld"
+  description="Browse verified crypto exchange referral codes, bonus links, and review pages. Bonus availability and terms may vary by country and account."
+  canonical="https://cryptobonusworld.com/exchanges/"
 >
 
-  <section class="page-header">
-    <div class="container">
-      <div class="section-label">Exchange Directory</div>
-      <h1 class="section-title" style="max-width:560px">Crypto Exchange Promo Codes</h1>
-      <p class="section-sub">
-        Verified referral codes and welcome bonuses for the world's top crypto exchanges.
-        Every code is checked against the official exchange promotions page.
+  <!-- 1. Compact intro -->
+  <section class="exd-intro">
+    <div class="exd-text-wrap">
+      <div class="exd-label">Exchange Directory</div>
+      <h1 class="exd-h1">Crypto Exchange Promo Codes</h1>
+      <p class="exd-sub">
+        Browse verified crypto exchange referral codes, bonus links, and exchange review pages.
+        Bonus availability and terms may vary by country and account.
       </p>
     </div>
   </section>
 
-  <section class="section bg-white">
-    <div class="container">
-      <div class="exchange-grid">
+  <!-- 2. Trust strip -->
+  <div class="exd-trust-bar">
+    <div class="exd-text-wrap">
+      <div class="exd-trust-inner">
+        <span class="exd-tb-item">✓ Codes checked against official exchange pages</span>
+        <span class="exd-tb-sep" aria-hidden="true">·</span>
+        <span class="exd-tb-item">ⓘ Bonus terms may vary by country and account</span>
+        <span class="exd-tb-sep" aria-hidden="true">·</span>
+        <span class="exd-tb-item">Affiliate links — <a href="/affiliate-disclosure/" class="exd-tb-link">we may earn a commission</a></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Live exchanges -->
+  <section class="section bg-white exd-grid-section" id="exchanges">
+    <div class="exd-grid-wrap">
+      <div class="section-label">Featured Exchanges</div>
+      <h2 class="section-title">Compare Live Exchange Pages</h2>
+      <p class="exd-grid-sub">Compare current CryptoBonusWorld exchange pages and claim links.</p>
+
+      <div class="exd-grid">
         {exchangesWithOffers.map(({ exchange, offer }) => (
           <ExchangeCard exchange={exchange} offer={offer} />
         ))}
-        {(['Binance']).map(name => (
-          <div class="ec-placeholder">
-            <div class="ec-ph-inner">
-              <div class="ec-ph-name">{name}</div>
-              <div class="ec-ph-note">Coming soon</div>
-            </div>
-          </div>
+      </div>
+
+      <!-- 4. Coming soon -->
+      <div class="exd-coming-soon">
+        <div class="exd-cs-label">More exchanges being checked</div>
+        <div class="exd-cs-list">
+          {(['Binance']).map(name => (
+            <div class="exd-cs-item">{name}</div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. Directory explanation -->
+  <section class="section bg-gray">
+    <div class="exd-text-wrap">
+      <div class="section-label">Methodology</div>
+      <h2 class="section-title">How CryptoBonusWorld Checks Exchanges</h2>
+      <ul class="exd-list">
+        <li>Every referral code or link is checked directly against the exchange's own official promotions page.</li>
+        <li>Bonus terms can change at any time — always confirm current conditions before registering or depositing.</li>
+        <li>Country restrictions may apply; an offer available in one region may not be available in another.</li>
+        <li>KYC, deposit, and trading-volume requirements may apply depending on the exchange and bonus tier.</li>
+        <li>Links marked "Claim Bonus" are affiliate links — CryptoBonusWorld may earn a commission at no extra cost to you.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 6. FAQ -->
+  <section class="section bg-white" id="faq">
+    <div class="exd-text-wrap">
+      <div class="section-label">Common Questions</div>
+      <h2 class="section-title">Frequently Asked Questions</h2>
+      <div class="exd-faq-list">
+        {faqs.map(item => (
+          <details class="exd-faq-item">
+            <summary class="exd-faq-q">{item.q}</summary>
+            <p class="exd-faq-a">{item.a}</p>
+          </details>
         ))}
       </div>
     </div>
   </section>
 
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+
 </CleanLayout>
 
 <style>
-  .page-header { padding: 48px 0 0; background: #F7F8F4; }
   .bg-white { background: #fff; }
-  .exchange-grid { display: grid; gap: 20px; grid-template-columns: 1fr; }
-  @media (min-width: 560px) { .exchange-grid { grid-template-columns: repeat(2, 1fr); } }
-  @media (min-width: 900px) { .exchange-grid { grid-template-columns: repeat(3, 1fr); } }
-  .ec-placeholder {
-    border: 2px dashed #E5E7EB; border-radius: 12px;
-    display: flex; align-items: center; justify-content: center; min-height: 180px; background: #FAFAFA;
+  .bg-gray  { background: #F7F8F4; }
+
+  /* ── Width utilities (matches homepage v2 discipline) ──────────── */
+  .exd-text-wrap  { max-width: 800px; margin: 0 auto; padding: 0 20px; box-sizing: border-box; }
+  .exd-grid-wrap  { max-width: 960px; margin: 0 auto; padding: 0 20px; box-sizing: border-box; }
+  @media (min-width: 820px) {
+    .exd-text-wrap, .exd-grid-wrap { padding: 0 32px; }
   }
-  .ec-ph-inner { text-align: center; }
-  .ec-ph-name { font-size: 16px; font-weight: 700; color: #9CA3AF; margin-bottom: 6px; }
-  .ec-ph-note { font-size: 12px; color: #D1D5DB; }
+
+  /* ── 1. Intro ─────────────────────────────────────────────────── */
+  .exd-intro { background: #fff; padding: 40px 0 24px; text-align: center; }
+  @media (min-width: 820px) { .exd-intro { padding: 56px 0 32px; } }
+  .exd-label {
+    display: inline-block; font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .1em; color: #F7931A;
+    background: rgba(247,147,26,.08); border: 1px solid rgba(247,147,26,.22);
+    padding: 4px 12px; border-radius: 20px; margin-bottom: 14px;
+  }
+  .exd-h1 {
+    font-size: clamp(26px, 4.2vw, 38px); font-weight: 800; line-height: 1.15;
+    letter-spacing: -.02em; color: #111827; margin-bottom: 12px;
+  }
+  .exd-sub { font-size: 15px; line-height: 1.65; color: #4B5563; }
+
+  /* ── 2. Trust strip ──────────────────────────────────────────── */
+  .exd-trust-bar { background: #F0FDF4; border-top: 1px solid #D1FAE5; border-bottom: 1px solid #D1FAE5; padding: 10px 0; }
+  .exd-trust-inner {
+    display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap;
+    font-size: 12px; color: #374151; text-align: center;
+  }
+  .exd-tb-item { display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+  .exd-tb-sep { color: #9CA3AF; }
+  .exd-tb-link { color: #15803D; font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+  .exd-tb-link:hover { color: #166534; }
+
+  /* ── 3. Live exchanges grid ──────────────────────────────────── */
+  .exd-grid-section { padding: 32px 0 48px; }
+  .exd-grid-sub { font-size: 15px; color: #4B5563; line-height: 1.6; margin-bottom: 20px; }
+
+  .exd-grid {
+    display: grid; gap: 16px;
+    grid-template-columns: 1fr;
+    margin-bottom: 28px;
+  }
+  @media (min-width: 640px) { .exd-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 960px) { .exd-grid { grid-template-columns: repeat(3, 1fr); } }
+
+  /* ── 4. Coming soon — small, secondary, not competing with live cards ── */
+  .exd-coming-soon { text-align: center; padding-top: 8px; border-top: 1px solid #F3F4F6; }
+  .exd-cs-label { font-size: 12px; font-weight: 600; color: #9CA3AF; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 10px; }
+  .exd-cs-list { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+  .exd-cs-item {
+    font-size: 13px; color: #9CA3AF; font-weight: 600;
+    border: 1px dashed #E5E7EB; border-radius: 8px; padding: 6px 14px;
+    background: #FAFAFA;
+  }
+
+  /* ── 5. Directory explanation ────────────────────────────────── */
+  .exd-list { display: flex; flex-direction: column; gap: 10px; font-size: 14.5px; line-height: 1.65; color: #4B5563; padding-left: 20px; margin-top: 8px; }
+  .exd-list li { padding-left: 4px; }
+
+  /* ── 6. FAQ ───────────────────────────────────────────────────── */
+  .exd-faq-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+  .exd-faq-item { background: #fff; border: 1px solid #E5E7EB; border-radius: 10px; overflow: hidden; }
+  .exd-faq-q {
+    padding: 16px 20px; font-size: 15px; font-weight: 600; color: #111827;
+    cursor: pointer; list-style: none;
+    display: flex; align-items: center; justify-content: space-between; user-select: none;
+  }
+  .exd-faq-q::-webkit-details-marker { display: none; }
+  .exd-faq-q::after { content: '+'; font-size: 18px; color: #9CA3AF; }
+  details[open] .exd-faq-q::after { content: '−'; }
+  .exd-faq-a { padding: 0 20px 16px; font-size: 14px; color: #4B5563; line-height: 1.7; }
 </style>
