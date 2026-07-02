@@ -79,16 +79,23 @@ export const GET: APIRoute = () => {
   // Rich exchange pages — dedicated /slug/ routes (ExchangePromoPage template)
   // Highest priority: canonical money pages; outranks generic /exchanges/slug/ entries.
   const richExchangePages = [
-    { url: '/bybit/', priority: '0.97', changefreq: 'weekly', lastmod: today, type: 'static' as const },
-    { url: '/mexc/',  priority: '0.97', changefreq: 'weekly', lastmod: today, type: 'static' as const },
-    { url: '/okx/',   priority: '0.97', changefreq: 'weekly', lastmod: today, type: 'static' as const },
+    { url: '/bybit/',  priority: '0.97', changefreq: 'weekly', lastmod: today, type: 'static' as const },
+    { url: '/mexc/',   priority: '0.97', changefreq: 'weekly', lastmod: today, type: 'static' as const },
+    { url: '/okx/',    priority: '0.97', changefreq: 'weekly', lastmod: today, type: 'static' as const },
+    { url: '/bitget/', priority: '0.97', changefreq: 'weekly', lastmod: today, type: 'static' as const },
+    { url: '/kucoin/', priority: '0.97', changefreq: 'weekly', lastmod: today, type: 'static' as const },
+    { url: '/bingx/',  priority: '0.97', changefreq: 'weekly', lastmod: today, type: 'static' as const },
   ];
+
+  // Slugs whose /exchanges/{slug}/ URL is a noindex redirect stub to the rich /slug/ page.
+  // Noindexed pages must not appear in the sitemap (same rule as /contact/ above).
+  const LIVE_PROMO_SLUGS = new Set(['bybit', 'mexc', 'okx', 'bitget', 'kucoin', 'bingx']);
 
   // Top-tier money pages get boosted priority for crawl budget signalling
   const TOP_EXCHANGE_SLUGS = new Set(['bybit', 'okx', 'mexc', 'phemex', 'kucoin', 'binance', 'bitget']);
   const TOP_COMPARE_SLUGS = new Set(['bybit', 'okx', 'mexc', 'phemex', 'kucoin', 'binance', 'bitget']);
 
-  const exchangePages = exchanges.map(ex => ({
+  const exchangePages = exchanges.filter(ex => !LIVE_PROMO_SLUGS.has(ex.slug)).map(ex => ({
     url: `/exchanges/${ex.slug}/`,
     priority: TOP_EXCHANGE_SLUGS.has(ex.slug) ? '0.90' : '0.85',
     changefreq: 'weekly',
