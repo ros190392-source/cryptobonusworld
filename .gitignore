@@ -27,6 +27,16 @@ _manual-screenshots/
 storageState*.json
 cookies*.json
 
+# Working artifacts — session junk, QA output, intake material; never commit
+# (evidence/, incoming/, scripts/_*.mjs intentionally NOT ignored — they contain tracked files)
+_tmp_*
+archive/
+inbox/
+binance-ready/
+qa-screenshots/
+# Internal design-review pages — not for the public site repo
+public/_visual-review/
+
 # Browser "Save as Complete Webpage" bundles — not production content
 # Chrome saves an HTML file + a *_files/ folder with CSS/JS/UI images.
 # These are design reference sessions accidentally placed in walkthroughs/.
