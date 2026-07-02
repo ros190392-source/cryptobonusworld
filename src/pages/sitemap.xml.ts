@@ -45,7 +45,8 @@ export const GET: APIRoute = () => {
 
   const staticPages = [
     { url: '/', priority: '1.0', changefreq: 'daily', lastmod: today, type: 'static' as const },
-    { url: '/bonuses/', priority: '0.9', changefreq: 'daily', lastmod: today, type: 'static' as const },
+    // NOTE: /bonuses/ hub and /bonuses/{slug}-bonus/ pages carry noindex meta —
+    // excluded from the sitemap per the rule above (noindexed pages must NOT appear here).
     { url: '/exchanges/', priority: '0.85', changefreq: 'weekly', lastmod: today, type: 'static' as const },
     { url: '/countries/', priority: '0.75', changefreq: 'monthly', lastmod: today, type: 'static' as const },
     { url: '/compare/', priority: '0.8', changefreq: 'weekly', lastmod: today, type: 'static' as const },
@@ -104,14 +105,8 @@ export const GET: APIRoute = () => {
     slug: ex.slug,
   }));
 
-  // Bonus landing pages — high-intent transactional SEO pages
-  const bonusPages = exchanges.map(ex => ({
-    url: `/bonuses/${ex.slug}-bonus/`,
-    priority: '0.80',
-    changefreq: 'weekly',
-    lastmod: (ex as any).lastVerified ?? ex.updatedAt,
-    type: 'static' as const,
-  }));
+  // Bonus landing pages (/bonuses/{slug}-bonus/) are noindexed — deliberately NOT
+  // generated into the sitemap (noindexed pages must not appear here).
 
   const categoryPages = categories.map(cat => ({
     url: `/categories/${cat.slug}/`,
@@ -207,7 +202,6 @@ export const GET: APIRoute = () => {
     ...staticPages,
     ...richExchangePages,
     ...exchangePages,
-    ...bonusPages,
     ...categoryPages,
     ...countryPages,
     ...comparePages,

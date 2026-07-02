@@ -13,7 +13,8 @@ export const mexcConfig: ExchangePromoPageConfig = {
   feeUrl: 'https://www.mexc.com/fee',
 
   // ─── Media ───────────────────────────────────────────────────
-  wordmarkImg: '/media/exchanges/mexc/logo/mexc-logo-transparent-2517-trimmed.png',
+  // Hero-safe white/glow variant (matches the live bespoke /mexc/ page, 2026-07-02)
+  wordmarkImg: '/logos/mexc-wordmark-hero-white-v1-8fb6d655.png',
   articleImg: '/media/exchanges/mexc/final/mexc-article-final-v3-1200x675.jpg',
   ogImage: '/media/exchanges/mexc/final/mexc-og-final-v3-1200x630.jpg',
   heroBackgroundImg: '/media/hero-backgrounds/mexc-hero-custom-v1.png',
