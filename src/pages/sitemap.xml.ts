@@ -1,12 +1,6 @@
 import type { APIRoute } from 'astro';
 import exchanges from '../data/exchanges.json';
-import categories from '../data/categories.json';
-import countries from '../data/countries.json';
-import comparePairs from '../data/compare-pairs.json';
 import guides from '../data/guides.json';
-import { COINS } from '../data/coins';
-import { USE_CASES } from '../data/use-cases';
-import { BONUS_CODES } from '../data/bonus-codes';
 import {
   getAvailableLocalesForPage,
   buildSitemapAlternates,
@@ -43,26 +37,27 @@ export const GET: APIRoute = () => {
   // When all pages are English-only, this remains false.
   let hasMultipleLocales = false;
 
+  // ── SITEMAP POLICY ─────────────────────────────────────────────────────────
+  // The sitemap must contain ONLY indexable, self-canonical pages.
+  // Pages serving noindex (or noindex,nofollow) must NOT appear here —
+  // conflicting signals confuse crawlers and waste crawl budget.
+  //
+  // Verified against built HTML on 2026-07-02: the following legacy sections
+  // currently serve noindex,nofollow and are therefore EXCLUDED from the sitemap
+  // (hubs and all child pages):
+  //   /bonuses/  /bonus-codes/  /compare/  /coins/  /use-cases/
+  //   /categories/  /countries/  /reviewers/  /contact/
+  // Also excluded by design: /go/ (robots-blocked), /preview/, /prototype/,
+  // legacy /exchanges/{slug}/ redirect stubs for the live promo exchanges.
+  //
+  // A legacy section may be re-added here ONLY when it is deliberately made
+  // indexable (noindex removed) after content/visual approval — flip both
+  // together in one change, never one without the other.
   const staticPages = [
     { url: '/', priority: '1.0', changefreq: 'daily', lastmod: today, type: 'static' as const },
-    // NOTE: /bonuses/ hub and /bonuses/{slug}-bonus/ pages carry noindex meta —
-    // excluded from the sitemap per the rule above (noindexed pages must NOT appear here).
     { url: '/exchanges/', priority: '0.85', changefreq: 'weekly', lastmod: today, type: 'static' as const },
-    { url: '/countries/', priority: '0.75', changefreq: 'monthly', lastmod: today, type: 'static' as const },
-    { url: '/compare/', priority: '0.8', changefreq: 'weekly', lastmod: today, type: 'static' as const },
+    { url: '/promo-codes/', priority: '0.9', changefreq: 'weekly', lastmod: today, type: 'static' as const },
     { url: '/guides/', priority: '0.75', changefreq: 'weekly', lastmod: today, type: 'static' as const },
-    { url: '/categories/', priority: '0.7', changefreq: 'weekly', lastmod: today, type: 'static' as const },
-    // Programmatic SEO hubs
-    { url: '/coins/', priority: '0.85', changefreq: 'weekly', lastmod: today, type: 'static' as const },
-    { url: '/use-cases/', priority: '0.85', changefreq: 'weekly', lastmod: today, type: 'static' as const },
-    { url: '/bonus-codes/', priority: '0.9', changefreq: 'weekly', lastmod: today, type: 'static' as const },
-    // E-E-A-T / trust pages
-    { url: '/reviewers/', priority: '0.55', changefreq: 'monthly', lastmod: today, type: 'static' as const },
-    { url: '/reviewers/alexandr-shadurskyi/', priority: '0.55', changefreq: 'monthly', lastmod: today, type: 'static' as const },
-    { url: '/reviewers/editorial-team/', priority: '0.5', changefreq: 'monthly', lastmod: today, type: 'static' as const },
-    { url: '/reviewers/alex-morgan/', priority: '0.5', changefreq: 'monthly', lastmod: today, type: 'static' as const },
-    { url: '/reviewers/sarah-chen/', priority: '0.5', changefreq: 'monthly', lastmod: today, type: 'static' as const },
-    { url: '/reviewers/james-okonkwo/', priority: '0.5', changefreq: 'monthly', lastmod: today, type: 'static' as const },
     // Site info / methodology — indexed for E-E-A-T signals
     { url: '/methodology/', priority: '0.5', changefreq: 'monthly', lastmod: today, type: 'static' as const },
     { url: '/about/', priority: '0.4', changefreq: 'monthly', lastmod: today, type: 'static' as const },
@@ -94,7 +89,6 @@ export const GET: APIRoute = () => {
 
   // Top-tier money pages get boosted priority for crawl budget signalling
   const TOP_EXCHANGE_SLUGS = new Set(['bybit', 'okx', 'mexc', 'phemex', 'kucoin', 'binance', 'bitget']);
-  const TOP_COMPARE_SLUGS = new Set(['bybit', 'okx', 'mexc', 'phemex', 'kucoin', 'binance', 'bitget']);
 
   const exchangePages = exchanges.filter(ex => !LIVE_PROMO_SLUGS.has(ex.slug)).map(ex => ({
     url: `/exchanges/${ex.slug}/`,
@@ -105,26 +99,9 @@ export const GET: APIRoute = () => {
     slug: ex.slug,
   }));
 
-  // Bonus landing pages (/bonuses/{slug}-bonus/) are noindexed — deliberately NOT
-  // generated into the sitemap (noindexed pages must not appear here).
-
-  const categoryPages = categories.map(cat => ({
-    url: `/categories/${cat.slug}/`,
-    priority: '0.8',
-    changefreq: 'weekly',
-    lastmod: today,
-    type: 'category' as const,
-    slug: cat.slug,
-  }));
-
-  const countryPages = countries.map(c => ({
-    url: `/countries/${c.slug}/`,
-    priority: '0.75',
-    changefreq: 'weekly',
-    lastmod: today,
-    type: 'country' as const,
-    slug: c.slug,
-  }));
+  // Noindexed page groups (bonuses, bonus-codes, categories, countries, compare,
+  // coins, use-cases, reviewers) are deliberately NOT generated into the sitemap —
+  // see SITEMAP POLICY above.
 
   const guidePages = guides.map(g => {
     // How-To Guides and Bonus Guides are highest-intent for SERP
@@ -142,53 +119,6 @@ export const GET: APIRoute = () => {
     };
   });
 
-  const exLastVerifiedMap = Object.fromEntries(
-    exchanges.map(e => [e.slug, (e as any).lastVerified ?? e.updatedAt ?? today])
-  );
-  const comparePages = comparePairs.map(p => {
-    // Top-tier pairs (both exchanges in top set) get priority boost
-    const [slugA, slugB] = (p.pair ?? '').split('-vs-');
-    const isTopPair = TOP_COMPARE_SLUGS.has(slugA) || TOP_COMPARE_SLUGS.has(slugB);
-    const bothTop = TOP_COMPARE_SLUGS.has(slugA) && TOP_COMPARE_SLUGS.has(slugB);
-    // lastmod = most recently verified exchange in the pair
-    const lastmodA = exLastVerifiedMap[slugA] ?? today;
-    const lastmodB = exLastVerifiedMap[slugB] ?? today;
-    const pairLastmod = lastmodA > lastmodB ? lastmodA : lastmodB;
-    return {
-      url: `/compare/${p.pair}/`,
-      priority: bothTop ? '0.85' : isTopPair ? '0.78' : '0.70',
-      changefreq: 'weekly',
-      lastmod: pairLastmod,
-      type: 'compare' as const,
-      slug: p.pair,
-    };
-  });
-
-  // ── New programmatic SEO page types ────────────────────────────────────────
-  const coinPages = COINS.map(c => ({
-    url: `/coins/${c.slug}/`,
-    priority: c.priority === 'very-high' ? '0.85' : '0.8',
-    changefreq: 'weekly',
-    lastmod: today,
-    type: 'static' as const,
-  }));
-
-  const useCasePages = USE_CASES.map(uc => ({
-    url: `/use-cases/${uc.slug}/`,
-    priority: uc.priority === 'very-high' ? '0.85' : '0.8',
-    changefreq: 'weekly',
-    lastmod: today,
-    type: 'static' as const,
-  }));
-
-  const bonusCodePages = BONUS_CODES.map(b => ({
-    url: `/bonus-codes/${b.exchangeSlug}/`,
-    priority: b.priority === 'very-high' ? '0.88' : '0.82',
-    changefreq: 'weekly',
-    lastmod: today,
-    type: 'static' as const,
-  }));
-
   type PageEntry = {
     url: string;
     priority: string;
@@ -202,13 +132,7 @@ export const GET: APIRoute = () => {
     ...staticPages,
     ...richExchangePages,
     ...exchangePages,
-    ...categoryPages,
-    ...countryPages,
-    ...comparePages,
     ...guidePages,
-    ...coinPages,
-    ...useCasePages,
-    ...bonusCodePages,
   ];
 
   // ── Build page entries with locale awareness ──────────────────────────────
