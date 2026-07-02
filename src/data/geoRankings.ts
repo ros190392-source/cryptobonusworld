@@ -101,6 +101,94 @@ const COUNTRY_ISO: Partial<Record<PromoCountrySlug, string[]>> = {
 
 const GENERAL_NOTE = 'Availability and bonus terms vary by country and account.';
 
+// ── Manual, evidence-backed overrides ──────────────────────────────────────
+// Every entry here MUST cite an official source URL + date. Evidence captures
+// live in reports/evidence/geo/{country}/{date}/{exchange}/ (untracked).
+// Sprint 8A (2026-07-02): Poland pack. Regulatory context: the EU MiCA
+// transitional period ended 2026-07-01 — only ESMA-registered CASPs may
+// lawfully serve EU/EEA clients (incl. Poland) from that date.
+const MANUAL_OVERRIDES: Partial<Record<PromoCountrySlug, Partial<Record<LiveExchangeSlug, Partial<GeoRankingRow>>>>> = {
+  poland: {
+    bybit: {
+      availability: 'available',
+      bonusAvailability: 'not_available',
+      restrictionNote:
+        'Served by Bybit EU GmbH (MiCAR license, Austrian FMA, passported incl. Poland). '
+        + 'Global bybit.com services are restricted for EEA residents since the MiCA transition '
+        + 'ended 2026-07-01 — the tracked global welcome package is not claimable from Poland; '
+        + 'Bybit EU bonus terms need separate verification.',
+      kycNote: 'KYC required (per tracked offer terms).',
+      evidenceUrl: 'https://announcements.bybit.com/en/article/important-notice-for-users-in-the-european-economic-area-eea--blt4135ab861456d7bf/',
+      evidenceLabel: 'Official Bybit EEA restriction announcement (capture blocked — see evidence BLOCKER.md)',
+      evidenceDate: '2026-07-02',
+      confidence: 'partial', // official pages identified but automated capture was blocked
+    },
+    mexc: {
+      availability: 'unknown',
+      bonusAvailability: 'unknown',
+      restrictionNote:
+        'Poland is NOT in the official prohibited-jurisdictions list (mexc.com/terms, captured '
+        + '2026-07-02). However, MEXC holds no MiCA CASP authorisation — after 2026-07-01 '
+        + 'unlicensed providers may not lawfully serve EU/EEA clients. Practical status unclear.',
+      evidenceUrl: 'https://www.mexc.com/terms',
+      evidenceLabel: 'MEXC User Agreement — prohibited jurisdictions (dated capture on file)',
+      evidenceDate: '2026-07-02',
+      confidence: 'partial',
+    },
+    okx: {
+      availability: 'available',
+      bonusAvailability: 'unknown',
+      restrictionNote:
+        'OKX Europe Limited holds a MiCA CASP license (Malta MFSA, 2025-01-27), passported '
+        + 'across all 30 EEA states including Poland.',
+      bonusNote: 'Tracked bonus was verified on the global platform; OKX EU bonus terms need separate verification.',
+      kycNote: 'KYC required (per tracked offer terms).',
+      evidenceUrl: 'https://www.okx.com/en-eu/learn/unregulated-crypto-exchanges-mica-july-2026',
+      evidenceLabel: 'OKX Europe official MiCA page (dated capture on file)',
+      evidenceDate: '2026-07-02',
+      confidence: 'verified',
+    },
+    bitget: {
+      availability: 'unknown',
+      bonusAvailability: 'unknown',
+      restrictionNote:
+        'Bitget holds no MiCA CASP authorisation (not in ESMA register as of 2026-07-02); '
+        + 'Bitget EU filed a MiCAR application with the Austrian FMA (announced 2026-06-17). '
+        + 'Bitget\'s own regulatory roadmap page lists no EU license. Post-deadline status unclear.',
+      evidenceUrl: 'https://www.bitget.com/promotion/regulatory-license',
+      evidenceLabel: 'Bitget official regulatory roadmap (dated capture on file)',
+      evidenceDate: '2026-07-02',
+      confidence: 'partial',
+    },
+    kucoin: {
+      availability: 'available',
+      bonusAvailability: 'not_available',
+      restrictionNote:
+        'KuCoin EU Exchange GmbH holds a MiCAR license (Austrian FMA, 2025-11-28), passported '
+        + 'across 29 EEA states incl. Poland (excl. Malta). Official announcement: "EEA users may '
+        + 'no longer register or onboard on KuCoin Global\'s platform" — the tracked global '
+        + 'referral offer is not claimable from Poland; KuCoin EU bonus terms need verification.',
+      kycNote: 'KuCoin EU operates under MiCAR requirements; global no-KYC base tier does not apply.',
+      evidenceUrl: 'https://www.kucoin.com/blog/en-kucoin-secures-landmark-micar-license-expanding-regulated-digital-asset-services-across-europe',
+      evidenceLabel: 'KuCoin official MiCAR license announcement (dated capture on file)',
+      evidenceDate: '2026-07-02',
+      confidence: 'verified',
+    },
+    bingx: {
+      availability: 'unknown',
+      bonusAvailability: 'unknown',
+      restrictionNote:
+        'BingX holds no MiCA CASP authorisation (not in ESMA register as of 2026-07-02; '
+        + 'register-tracker capture on file). After 2026-07-01 unlicensed providers may not '
+        + 'lawfully serve EU/EEA clients. BingX has published no Poland/EU exit or entity plan.',
+      evidenceUrl: 'https://casptracker.eu/exchange/bingx/',
+      evidenceLabel: 'ESMA-register tracker: BingX CASP status (supporting source; dated capture on file)',
+      evidenceDate: '2026-07-02',
+      confidence: 'partial',
+    },
+  },
+};
+
 // ── Global ranking (safe: canonical repo data only) ────────────────────────
 
 function liveExchange(slug: LiveExchangeSlug): Exchange {
@@ -131,7 +219,8 @@ function buildCountryRow(country: PromoCountrySlug, slug: LiveExchangeSlug): Geo
   const offer = getOffer(slug);
   const isoCodes = COUNTRY_ISO[country] ?? [];
   const restrictedHit = !!offer?.restrictedCountries?.some(c => isoCodes.includes(c));
-  return {
+  const override = MANUAL_OVERRIDES[country]?.[slug];
+  const derived: GeoRankingRow = {
     countrySlug: country,
     exchangeSlug: slug,
     // Derived: listed in the offer's restrictedCountries → restricted.
@@ -151,6 +240,8 @@ function buildCountryRow(country: PromoCountrySlug, slug: LiveExchangeSlug): Geo
     rankingScore: null,
     rankingReason: null,
   };
+  // Evidence-backed manual overrides win over derived defaults.
+  return override ? { ...derived, ...override } : derived;
 }
 
 const countryRows: GeoRankingRow[] = SUPPORTED_PROMO_COUNTRIES
@@ -198,8 +289,14 @@ export function isCountryRankingReady(countrySlug: string): boolean {
 //   - the exchange's official restricted-countries / terms page (dated capture)
 //   - whether the tracked bonus is claimable from that country
 //   - KYC and local payment specifics where claimed
-// poland / germany / kazakhstan / turkey: no restriction hits derived — ALL
-//   rows are 'unknown' and need primary-source research.
+// poland: researched 2026-07-02 (Sprint 8A) — see MANUAL_OVERRIDES above and
+//   reports/evidence/geo/poland/2026-07-02/. Still NOT ranking-ready: only 2
+//   of 6 rows are 'verified', bonus terms on the EU entities (Bybit EU,
+//   KuCoin EU, OKX EU) are unverified, and Bybit's official pages blocked
+//   automated capture (manual browser capture needed).
+// germany / kazakhstan / turkey: no restriction hits derived — ALL rows are
+//   'unknown' and need primary-source research (MiCA findings for Poland
+//   largely transfer to Germany/EU but must be re-verified per country).
 // united-kingdom / united-states: derived 'restricted' hits exist (partial
 //   confidence) — upgrade with dated captures of official restriction pages.
 // european-union: unmapped by design; needs per-offer EU policy research.
