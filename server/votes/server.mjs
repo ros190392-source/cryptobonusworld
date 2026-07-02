@@ -23,7 +23,7 @@
  */
 
 import http from 'node:http';
-import { readFileSync, writeFileSync, renameSync, mkdirSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, renameSync, mkdirSync, existsSync, accessSync, constants } from 'node:fs';
 import { dirname } from 'node:path';
 
 const PORT = Number(process.env.CBW_VOTES_PORT || 8787);
@@ -131,6 +131,18 @@ const server = http.createServer((req, res) => {
   if (rateLimited(String(ip))) return json(res, 429, { error: 'rate_limited' });
 
   const url = new URL(req.url, 'http://localhost');
+
+  // Healthcheck — safe response only: no paths, no vote data.
+  if (url.pathname === '/api/exchange-votes-health') {
+    if (req.method !== 'GET') return json(res, 405, { error: 'method_not_allowed' });
+    let storageOk = false;
+    try {
+      accessSync(dirname(DATA_FILE), constants.W_OK);
+      storageOk = data && typeof data.votes === 'object';
+    } catch { storageOk = false; }
+    return json(res, storageOk ? 200 : 503, { ok: storageOk, service: 'cbw-votes', storage: storageOk ? 'ok' : 'error' });
+  }
+
   if (url.pathname !== '/api/exchange-votes') return json(res, 404, { error: 'not_found' });
 
   const headerKey = String(req.headers['x-cbw-user'] || '');

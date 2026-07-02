@@ -1,0 +1,7 @@
+[Unit]
+Description=CryptoBonusWorld voting data backup (oneshot)
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh /opt/cbw-votes/backup.sh
