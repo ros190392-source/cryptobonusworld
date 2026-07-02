@@ -16,6 +16,12 @@ const BEST_FOR: Record<string, string> = {
   bingx:  'Copy & social trading',
 };
 
+// FUTURE (geo ranking engine, per master plan Phase 6): move BEST_FOR / COUNTRY_NOTE /
+// rank into offers.ts or a dedicated src/data/geoRankings.ts with per-country
+// availability tri-states (verified/unavailable/unverified), and generate
+// /promo-codes/{country}/ pages from it. Do NOT render country-specific rankings
+// until that verified data exists — v1 deliberately shows global rows + caveat only.
+
 // Country notes — grounded in each offer's existing kycRequired / restrictedCountries
 // fields, not invented per-country claims.
 const COUNTRY_NOTE: Record<string, string> = {
@@ -107,8 +113,8 @@ const faqSchema = {
       <div class="pc-label">Verified · Updated July 2026</div>
       <h1 class="pc-h1">Crypto Promo Codes by Exchange</h1>
       <p class="pc-sub">
-        CryptoBonusWorld tracks crypto exchange referral codes and sign-up bonus links,
-        checked directly against each exchange's official promotions page.
+        Compare tracked crypto exchange promo codes, referral links, and sign-up bonus
+        pages — checked directly against each exchange's official promotions page.
       </p>
       <p class="pc-caveat">
         Bonus availability, KYC, deposit requirements, trading volume requirements, and
@@ -160,7 +166,7 @@ const faqSchema = {
                 <span class="pc-rank-badge">#{rank}</span>
               </td>
               <td class="pc-cell-exchange" data-label="Exchange">
-                <a href={ex.pageUrl ?? `/exchanges/${ex.slug}/`} class="pc-exchange-name">{ex.name}</a>
+                <a href={ex.pageUrl ?? `/${ex.slug}/`} class="pc-exchange-name">{ex.name}</a>
                 {offer.status === 'verified' && <span class="pc-verified">✓ verified</span>}
               </td>
               <td class="pc-cell-code" data-label="Promo Code">
@@ -174,7 +180,7 @@ const faqSchema = {
               <td class="pc-cell-bestfor" data-label="Best For">{BEST_FOR[ex.slug]}</td>
               <td class="pc-cell-note" data-label="Country Note">{COUNTRY_NOTE[ex.slug]}</td>
               <td class="pc-cell-review" data-label="Review">
-                <a href={ex.pageUrl ?? `/exchanges/${ex.slug}/`} class="pc-review-link">Read review →</a>
+                <a href={ex.pageUrl ?? `/${ex.slug}/`} class="pc-review-link">Read review →</a>
               </td>
               <td class="pc-cell-claim" data-label="Claim">
                 <a href={`/go/${ex.slug}/`} class="pc-claim-btn" rel="noopener sponsored">Claim →</a>
