@@ -118,10 +118,10 @@ export const okxConfig: ExchangePromoPageConfig = {
   // capture is the current best available evidence for the registration flow.
   evidenceRegistration: {
     src:     '/screenshots/okx/registration/global-desktop-2026-06.webp',
-    alt:     'OKX affiliate partner landing page showing registration form and up to 5,000 USDT bonus reward tiers — desktop screenshot June 2026',
+    alt:     'OKX × CryptoBonusWorld co-branded partner landing page showing the location-selection sign-up step and bonus reward tiers up to 5,000 USDT — desktop screenshot June 2026',
     width:   1440,
     height:  900,
-    caption: 'OKX partner landing page (desktop) — captured via our affiliate link, showing the OKX × CryptoBonusWorld co-branded registration entry point and new user bonus tier chart (up to 5,000 USDT). Screenshot captured June 2026 from the official OKX website.',
+    caption: 'OKX partner landing page (desktop) — captured via our affiliate link, showing the OKX × CryptoBonusWorld co-branded registration entry point and new user bonus tier chart (up to 5,000 USDT). The referral is applied automatically through the partner link — no referral-code field appears at this step. Screenshot captured June 2026 from the official OKX website.',
     wide:    true,
   },
 
