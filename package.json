@@ -145,6 +145,8 @@
     "bonus:verify:all": "node scripts/verify-bonus-capture.mjs --all --write",
     "bonus:verify:dry": "node scripts/verify-bonus-capture.mjs --exchange binance --dry-run",
     "bonus:verify:stale": "node scripts/verify-bonus-capture.mjs --stale-only",
+    "verify:geo-bonus": "node scripts/verify-geo-bonus.mjs",
+    "verify:geo-bonus:list": "node scripts/verify-geo-bonus.mjs --list",
     "bonus:proposals": "node scripts/approve-bonus-updates.mjs --list",
     "bonus:approve": "node scripts/approve-bonus-updates.mjs --approve",
     "bonus:approve:all": "node scripts/approve-bonus-updates.mjs --approve-all",
