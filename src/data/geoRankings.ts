@@ -187,6 +187,102 @@ const MANUAL_OVERRIDES: Partial<Record<PromoCountrySlug, Partial<Record<LiveExch
       confidence: 'partial',
     },
   },
+  // Sprint 8B (2026-07-03): Kazakhstan pack. Kazakhstan has no EU-style blanket
+  // licensing mandate — the AFSA/AIFC regime (Astana International Financial Centre)
+  // is a voluntary local-entity license, not a requirement to serve the country.
+  // So absence from an exchange's own prohibited-jurisdictions list is treated as
+  // a partial positive signal here, unlike the Poland/MiCA pack — but it still does
+  // NOT get promoted to 'available' without a dedicated confirmation (do-not-invent
+  // rule 3). Evidence: reports/evidence/geo/kazakhstan/2026-07-03/.
+  kazakhstan: {
+    bybit: {
+      availability: 'available',
+      bonusAvailability: 'unknown',
+      restrictionNote:
+        'Bybit Limited holds an active AFSA (Astana Financial Services Authority) license '
+        + '(AFSA-A-LA-2024-0027, issued 2024-09-25), confirmed directly on the AFSA public '
+        + 'register, covering digital asset trading, custody, and investment dealing/management. '
+        + 'Bybit Kazakhstan launched the country\'s first regulated P2P platform in Nov 2025 '
+        + '(reported KZT limits: 2.5M/transaction, 5M/day). Kazakhstan is not on Bybit\'s global '
+        + '14-jurisdiction exclusion list, so this is not a forced-migration case like Poland/MiCA.',
+      bonusNote:
+        'No evidence found confirming whether the tracked global welcome package (claimed via '
+        + 'global bybit.com through our /go/bybit link) is available to Kazakhstan-registered '
+        + 'users, or whether KZ users are directed to the separately licensed Bybit Kazakhstan '
+        + 'product with different terms. Needs dedicated verification before claiming.',
+      kycNote: 'KYC required (per tracked offer terms); AFSA-regulated entity implies formal KYC for the licensed local product.',
+      evidenceUrl: 'https://publicreg.myafsa.com/licence_details/AFSA-A-LA-2024-0027/',
+      evidenceLabel: 'AFSA (Kazakhstan regulator) public register — Bybit Limited license, Active (dated capture on file)',
+      evidenceDate: '2026-07-03',
+      confidence: 'verified',
+    },
+    mexc: {
+      availability: 'unknown',
+      bonusAvailability: 'unknown',
+      restrictionNote:
+        'Kazakhstan is absent from MEXC\'s official prohibited-jurisdictions list '
+        + '(mexc.com/terms, captured 2026-07-03). No dedicated Kazakhstan support page, KZT '
+        + 'currency page, or AFSA/AIFC license found. Not-prohibited is a partial positive '
+        + 'signal (Kazakhstan has no EU-style blanket licensing mandate) but not a confirmation.',
+      evidenceUrl: 'https://www.mexc.com/terms',
+      evidenceLabel: 'MEXC User Agreement — prohibited jurisdictions (dated capture on file)',
+      evidenceDate: '2026-07-03',
+      confidence: 'partial',
+    },
+    okx: {
+      availability: 'unknown',
+      bonusAvailability: 'unknown',
+      restrictionNote:
+        'Kazakhstan is absent from OKX\'s Risk & Compliance Disclosure restricted-locations '
+        + 'list (Section 3, captured 2026-07-03). No dedicated Kazakhstan support page, KZT '
+        + 'currency page, or AFSA/AIFC license found. Not-restricted is a partial positive '
+        + 'signal but not a confirmation.',
+      evidenceUrl: 'https://www.okx.com/en-us/help/risk-compliance-disclosure',
+      evidenceLabel: 'OKX Risk & Compliance Disclosure, Section 3 (dated capture on file)',
+      evidenceDate: '2026-07-03',
+      confidence: 'partial',
+    },
+    bitget: {
+      availability: 'restricted',
+      bonusAvailability: 'not_available',
+      restrictionNote:
+        'Kazakhstan is explicitly named in Bitget\'s own Terms of Use "Prohibited Countries" '
+        + 'definition (captured 2026-07-03). Third-party P2P trackers show live Bitget P2P KZT '
+        + 'order flow, but that is unverified user-market activity and does not override '
+        + 'Bitget\'s own legal terms.',
+      kycNote: 'Not applicable — service is prohibited per official terms.',
+      evidenceUrl: 'https://www.bitget.com/support/articles/360014944032-terms-of-use',
+      evidenceLabel: 'Bitget Terms of Use — Prohibited Countries (dated capture on file)',
+      evidenceDate: '2026-07-03',
+      confidence: 'verified',
+    },
+    kucoin: {
+      availability: 'unknown',
+      bonusAvailability: 'unknown',
+      restrictionNote:
+        'Kazakhstan is absent from KuCoin\'s Terms of Use Restricted Locations list '
+        + '(Article 17(5), captured 2026-07-03). No dedicated Kazakhstan support page, KZT '
+        + 'currency page, or AFSA/AIFC license found. Not-restricted is a partial positive '
+        + 'signal but not a confirmation.',
+      evidenceUrl: 'https://www.kucoin.com/legal/terms-of-use',
+      evidenceLabel: 'KuCoin Terms of Use, Article 17(5) — Restricted Locations (dated capture on file)',
+      evidenceDate: '2026-07-03',
+      confidence: 'partial',
+    },
+    bingx: {
+      availability: 'unknown',
+      bonusAvailability: 'unknown',
+      restrictionNote:
+        'Kazakhstan is absent from BingX\'s official Disclaimer restricted-jurisdictions list '
+        + '(captured 2026-07-03). No dedicated Kazakhstan support page, KZT currency page, or '
+        + 'AFSA/AIFC license found. Not-restricted is a partial positive signal but not a '
+        + 'confirmation.',
+      evidenceUrl: 'https://bingx.com/en/support/articles/360034028153-Disclaimer',
+      evidenceLabel: 'BingX Disclaimer — restricted jurisdictions (dated capture on file)',
+      evidenceDate: '2026-07-03',
+      confidence: 'partial',
+    },
+  },
 };
 
 // ── Global ranking (safe: canonical repo data only) ────────────────────────
@@ -294,9 +390,15 @@ export function isCountryRankingReady(countrySlug: string): boolean {
 //   of 6 rows are 'verified', bonus terms on the EU entities (Bybit EU,
 //   KuCoin EU, OKX EU) are unverified, and Bybit's official pages blocked
 //   automated capture (manual browser capture needed).
-// germany / kazakhstan / turkey: no restriction hits derived — ALL rows are
-//   'unknown' and need primary-source research (MiCA findings for Poland
-//   largely transfer to Germany/EU but must be re-verified per country).
+// kazakhstan: researched 2026-07-03 (Sprint 8B) — see MANUAL_OVERRIDES above and
+//   reports/evidence/geo/kazakhstan/2026-07-03/. Still NOT ranking-ready: 2 of 6 rows
+//   are 'verified' (bybit available via AFSA license, bitget restricted per own ToS),
+//   4 remain 'unknown' (not-prohibited is only a partial signal, not confirmation).
+//   Bybit's tracked global bonus availability is itself unverified — the AFSA-licensed
+//   local entity may or may not share the global welcome package.
+// germany / turkey: no restriction hits derived — ALL rows are 'unknown' and need
+//   primary-source research (MiCA findings for Poland largely transfer to Germany/EU
+//   but must be re-verified per country).
 // united-kingdom / united-states: derived 'restricted' hits exist (partial
 //   confidence) — upgrade with dated captures of official restriction pages.
 // european-union: unmapped by design; needs per-offer EU policy research.
