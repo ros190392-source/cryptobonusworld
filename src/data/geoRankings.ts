@@ -1,5 +1,6 @@
 /**
  * GEO availability + ranking data model v1 (Sprint 7, 2026-07-02)
+ * + EU regulatory overlay v1 (Sprint 8C, 2026-07-03)
  *
  * Foundation for future /promo-codes/{country}/ rankings. DATA ONLY —
  * nothing here is wired into a visible page yet. The live /promo-codes/
@@ -12,6 +13,17 @@
  *  4. `restricted` must be shown clearly to users, never hidden or softened.
  *  5. Country pages require explicit owner approval before being indexed.
  *  6. Every country ranking requires a source-QA pass before publishing.
+ *
+ * ── COUNTRY VS REGION (binding, Sprint 8C) ─────────────────────────────────
+ *  "European Union" is NOT a user-selectable country — nobody's browser reports
+ *  their country as "European Union". Users are in Poland, Germany, France, etc.
+ *  What those countries CAN share is a regulatory overlay: MiCA/CASP licensing
+ *  status is decided at the EU level and passported across member states, so
+ *  it is modeled once (`EuRegulatoryRow`, per exchange) and attached to any
+ *  EU member country via `isEuCountry()` / `getRegionalOverlaysForCountry()`.
+ *  A region overlay NEVER counts toward `isCountryRankingReady()` by itself —
+ *  licensed/passported does not equal bonus eligibility or local payment
+ *  support, both of which must still be verified per country.
  *
  * v1 data honesty:
  *  - The ONLY country-level signal currently in the repo is
@@ -34,6 +46,11 @@ export type CountryAvailability = 'available' | 'restricted' | 'unknown';
 export type BonusAvailability = 'available' | 'not_available' | 'unknown';
 export type EvidenceConfidence = 'verified' | 'partial' | 'unknown';
 
+/**
+ * A real, user-selectable country. "European Union" is deliberately NOT a
+ * member of this type — see RegionSlug below and the COUNTRY VS REGION note
+ * at the top of this file.
+ */
 export type PromoCountrySlug =
   | 'global'
   | 'poland'
@@ -41,8 +58,14 @@ export type PromoCountrySlug =
   | 'kazakhstan'
   | 'turkey'
   | 'united-kingdom'
-  | 'european-union'
   | 'united-states';
+
+/**
+ * A regulatory/regional overlay — NOT a user country, NOT ranking-selectable.
+ * Attaches shared regulatory notes (e.g. EU/MiCA licensing) to whichever
+ * member countries are supported. See EU_MEMBER_COUNTRIES + isEuCountry().
+ */
+export type RegionSlug = 'european-union';
 
 export type LiveExchangeSlug = 'bybit' | 'mexc' | 'okx' | 'bitget' | 'kucoin' | 'bingx';
 
@@ -61,6 +84,47 @@ export interface GeoRankingRow {
   confidence: EvidenceConfidence;
   rankingScore: number | null;   // null until enough verified data exists
   rankingReason: string | null;
+  /**
+   * Regulatory/regional overlays that apply to this country (e.g. EU/MiCA for
+   * Poland, Germany). Informational only — never affects availability,
+   * bonusAvailability, or ranking readiness by itself. Look up the actual
+   * overlay data via getEuRegulatoryRow(exchangeSlug).
+   */
+  regionalOverlaySlugs: RegionSlug[];
+}
+
+// ── EU regulatory overlay types (Sprint 8C) ─────────────────────────────────
+
+export type RegulatoryOverlayType = 'eu-mica';
+
+export type EuRegulatoryStatus =
+  | 'licensed'                    // holds the relevant regional license
+  | 'passported'                  // licensed entity passported across member states
+  | 'application_pending'         // application filed, NOT licensed yet
+  | 'global_platform_restricted'  // global platform blocks the region regardless of any local entity
+  | 'not_verified'                // no license/restriction confirmed either way
+  | 'unknown';                    // not researched
+
+export interface EuRegulatoryRow {
+  exchangeSlug: LiveExchangeSlug;
+  regionSlug: 'european-union';
+  regulatoryFramework: RegulatoryOverlayType;
+  status: EuRegulatoryStatus;
+  entityName: string | null;
+  regulatorName: string | null;
+  licenseReference: string | null;
+  evidenceUrl: string | null;
+  evidenceLabel: string | null;
+  evidenceDate: string | null;
+  confidence: EvidenceConfidence;
+  /**
+   * Free-text clarification. Use this to hold nuance a single `status` value
+   * can't express — e.g. an exchange can be BOTH 'passported' (its EU entity
+   * is licensed) AND have its global platform restricted for EEA residents at
+   * the same time. `status` should reflect the entity's regulatory standing;
+   * platform-access caveats belong here.
+   */
+  note: string | null;
 }
 
 /** Global ranking entry — mirrors the live /promo-codes/ table, canonical data only. */
@@ -78,18 +142,27 @@ export interface GlobalPromoRankingEntry {
 
 // ── Supported sets ─────────────────────────────────────────────────────────
 
+// Real, user-selectable countries only. "European Union" is intentionally
+// absent — see RegionSlug / SUPPORTED_REGIONS below.
 export const SUPPORTED_PROMO_COUNTRIES: PromoCountrySlug[] = [
   'global', 'poland', 'germany', 'kazakhstan', 'turkey',
-  'united-kingdom', 'european-union', 'united-states',
+  'united-kingdom', 'united-states',
 ];
+
+// Regulatory/regional overlays — not user countries, not ranking-selectable.
+export const SUPPORTED_REGIONS: RegionSlug[] = ['european-union'];
+
+// EU member countries currently supported in this data model. UK is NOT EU
+// (post-Brexit) and must never appear here. Expand as more country packs are
+// researched: france, spain, italy, netherlands, portugal, austria, belgium,
+// ireland, etc. all belong here once added to SUPPORTED_PROMO_COUNTRIES.
+export const EU_MEMBER_COUNTRIES: PromoCountrySlug[] = ['poland', 'germany'];
 
 export const LIVE_EXCHANGE_SLUGS: LiveExchangeSlug[] = [
   'bybit', 'mexc', 'okx', 'bitget', 'kucoin', 'bingx',
 ];
 
 // ISO codes used by offers.ts restrictedCountries, per supported country.
-// 'european-union' is deliberately unmapped: EU-wide status cannot be derived
-// from a member-state code list — it stays 'unknown' until researched per offer.
 const COUNTRY_ISO: Partial<Record<PromoCountrySlug, string[]>> = {
   'poland': ['PL'],
   'germany': ['DE'],
@@ -285,6 +358,117 @@ const MANUAL_OVERRIDES: Partial<Record<PromoCountrySlug, Partial<Record<LiveExch
   },
 };
 
+// ── EU regulatory overlay rows (Sprint 8C, 2026-07-03) ──────────────────────
+// Seeded ONLY from evidence already captured in the Poland pack (Sprint 8A,
+// 2026-07-02) — no new sources browsed for this refactor. See
+// reports/evidence/geo/poland/2026-07-02/{exchange}/ for the underlying
+// captures. This is EU-wide regulatory standing (MiCA/CASP), not a per-country
+// availability claim — attach it to a country via getCountryRegulatoryNotes().
+const EU_REGULATORY_ROWS: EuRegulatoryRow[] = [
+  {
+    exchangeSlug: 'bybit',
+    regionSlug: 'european-union',
+    regulatoryFramework: 'eu-mica',
+    status: 'passported',
+    entityName: 'Bybit EU GmbH',
+    regulatorName: 'Austrian FMA',
+    licenseReference: null,
+    evidenceUrl: 'https://announcements.bybit.com/en/article/important-notice-for-users-in-the-european-economic-area-eea--blt4135ab861456d7bf/',
+    evidenceLabel: 'Official Bybit EEA restriction announcement (capture blocked — see evidence BLOCKER.md)',
+    evidenceDate: '2026-07-02',
+    confidence: 'partial', // official pages identified but automated capture was blocked
+    note:
+      'Bybit EU GmbH holds a MiCAR license from the Austrian FMA, passported across the '
+      + 'EEA. Separately, the GLOBAL bybit.com platform is restricted for EEA residents '
+      + 'since the MiCA transition ended 2026-07-01 — an entity being passported does not '
+      + 'mean our tracked global offer is claimable; Bybit EU\'s own bonus terms are unverified.',
+  },
+  {
+    exchangeSlug: 'mexc',
+    regionSlug: 'european-union',
+    regulatoryFramework: 'eu-mica',
+    status: 'not_verified',
+    entityName: null,
+    regulatorName: null,
+    licenseReference: null,
+    evidenceUrl: 'https://www.mexc.com/terms',
+    evidenceLabel: 'MEXC User Agreement — prohibited jurisdictions (dated capture on file)',
+    evidenceDate: '2026-07-02',
+    confidence: 'partial',
+    note:
+      'No MiCA CASP authorisation found for MEXC. Not on its own prohibited-jurisdictions '
+      + 'list, but that does not establish lawful EU/EEA service post-MiCA-deadline.',
+  },
+  {
+    exchangeSlug: 'okx',
+    regionSlug: 'european-union',
+    regulatoryFramework: 'eu-mica',
+    status: 'passported',
+    entityName: 'OKX Europe Limited',
+    regulatorName: 'Malta MFSA',
+    licenseReference: null,
+    evidenceUrl: 'https://www.okx.com/en-eu/learn/unregulated-crypto-exchanges-mica-july-2026',
+    evidenceLabel: 'OKX Europe official MiCA page (dated capture on file)',
+    evidenceDate: '2026-07-02',
+    confidence: 'verified',
+    note:
+      'OKX Europe Limited holds a MiCA CASP license (Malta MFSA, 2025-01-27), passported '
+      + 'across all 30 EEA states. Bonus was verified on the global platform; OKX EU bonus '
+      + 'terms need separate verification before claiming eligibility.',
+  },
+  {
+    exchangeSlug: 'bitget',
+    regionSlug: 'european-union',
+    regulatoryFramework: 'eu-mica',
+    status: 'application_pending',
+    entityName: null,
+    regulatorName: 'Austrian FMA',
+    licenseReference: null,
+    evidenceUrl: 'https://www.bitget.com/promotion/regulatory-license',
+    evidenceLabel: 'Bitget official regulatory roadmap (dated capture on file)',
+    evidenceDate: '2026-07-02',
+    confidence: 'partial',
+    note:
+      'Bitget EU filed a MiCAR application with the Austrian FMA (announced 2026-06-17). '
+      + 'An application is NOT a license — Bitget holds no MiCA CASP authorisation as of the '
+      + 'capture date.',
+  },
+  {
+    exchangeSlug: 'kucoin',
+    regionSlug: 'european-union',
+    regulatoryFramework: 'eu-mica',
+    status: 'passported',
+    entityName: 'KuCoin EU Exchange GmbH',
+    regulatorName: 'Austrian FMA',
+    licenseReference: null,
+    evidenceUrl: 'https://www.kucoin.com/blog/en-kucoin-secures-landmark-micar-license-expanding-regulated-digital-asset-services-across-europe',
+    evidenceLabel: 'KuCoin official MiCAR license announcement (dated capture on file)',
+    evidenceDate: '2026-07-02',
+    confidence: 'verified',
+    note:
+      'KuCoin EU Exchange GmbH holds a MiCAR license (Austrian FMA, 2025-11-28), passported '
+      + 'across 29 EEA states (excl. Malta). Official announcement: EEA users may no longer '
+      + 'register or onboard on KuCoin Global\'s platform — the tracked global referral offer '
+      + 'is not claimable via that route; KuCoin EU bonus terms need separate verification.',
+  },
+  {
+    exchangeSlug: 'bingx',
+    regionSlug: 'european-union',
+    regulatoryFramework: 'eu-mica',
+    status: 'not_verified',
+    entityName: null,
+    regulatorName: null,
+    licenseReference: null,
+    evidenceUrl: 'https://casptracker.eu/exchange/bingx/',
+    evidenceLabel: 'ESMA-register tracker: BingX CASP status (supporting source; dated capture on file)',
+    evidenceDate: '2026-07-02',
+    confidence: 'partial',
+    note:
+      'No MiCA CASP authorisation found for BingX (not in ESMA register as of 2026-07-02). '
+      + 'No published EU entity or exit plan.',
+  },
+];
+
 // ── Global ranking (safe: canonical repo data only) ────────────────────────
 
 function liveExchange(slug: LiveExchangeSlug): Exchange {
@@ -335,6 +519,8 @@ function buildCountryRow(country: PromoCountrySlug, slug: LiveExchangeSlug): Geo
     confidence: restrictedHit ? 'partial' : 'unknown',
     rankingScore: null,
     rankingReason: null,
+    // Regulatory overlay attachment only — never affects availability/readiness.
+    regionalOverlaySlugs: isEuCountry(country) ? ['european-union'] : [],
   };
   // Evidence-backed manual overrides win over derived defaults.
   return override ? { ...derived, ...override } : derived;
@@ -365,11 +551,49 @@ export function getSupportedPromoCountries(): PromoCountrySlug[] {
   return SUPPORTED_PROMO_COUNTRIES;
 }
 
+/** Regulatory/regional overlays this data model knows about (not user countries). */
+export function getSupportedRegions(): RegionSlug[] {
+  return SUPPORTED_REGIONS;
+}
+
+// ── EU regulatory overlay helpers (Sprint 8C) ───────────────────────────────
+
+/** True only for countries in EU_MEMBER_COUNTRIES. UK is never true here. */
+export function isEuCountry(countrySlug: string): boolean {
+  return EU_MEMBER_COUNTRIES.includes(countrySlug as PromoCountrySlug);
+}
+
+/** Which regional overlays apply to a country. Empty array if none. */
+export function getRegionalOverlaysForCountry(countrySlug: string): RegionSlug[] {
+  return isEuCountry(countrySlug) ? ['european-union'] : [];
+}
+
+/** All seeded EU/MiCA regulatory rows, one per live exchange. */
+export function getEuRegulatoryRows(): EuRegulatoryRow[] {
+  return EU_REGULATORY_ROWS;
+}
+
+/** The EU/MiCA regulatory row for one exchange, if seeded. */
+export function getEuRegulatoryRow(exchangeSlug: LiveExchangeSlug): EuRegulatoryRow | null {
+  return EU_REGULATORY_ROWS.find(r => r.exchangeSlug === exchangeSlug) ?? null;
+}
+
+/**
+ * Regulatory notes applicable to a country, resolved through its regional
+ * overlays. For a non-EU country this returns []. Does NOT replace or modify
+ * per-country availability/bonusAvailability — informational only.
+ */
+export function getCountryRegulatoryNotes(countrySlug: string): EuRegulatoryRow[] {
+  if (!isEuCountry(countrySlug)) return [];
+  return EU_REGULATORY_ROWS;
+}
+
 /**
  * A country ranking is publishable only when EVERY live exchange has a
  * verified availability row (no 'unknown' availability, no 'unknown'
  * confidence) and at least 4 exchanges are actually available there.
- * As of v1 this is false for every country — by design.
+ * As of v1 this is false for every country — by design. Regulatory overlays
+ * (e.g. EU/MiCA) never factor into this on their own.
  */
 export function isCountryRankingReady(countrySlug: string): boolean {
   if (countrySlug === 'global') return true;
@@ -396,10 +620,20 @@ export function isCountryRankingReady(countrySlug: string): boolean {
 //   4 remain 'unknown' (not-prohibited is only a partial signal, not confirmation).
 //   Bybit's tracked global bonus availability is itself unverified — the AFSA-licensed
 //   local entity may or may not share the global welcome package.
-// germany / turkey: no restriction hits derived — ALL rows are 'unknown' and need
-//   primary-source research (MiCA findings for Poland largely transfer to Germany/EU
-//   but must be re-verified per country).
+// germany: EU_MEMBER_COUNTRIES + gets the EU/MiCA overlay via isEuCountry(), but has
+//   no country-specific MANUAL_OVERRIDES yet — all rows still 'unknown' pending its
+//   own Poland-style per-country research pass (the overlay tells you an exchange's
+//   EU-wide license status, not whether Germany-specific availability/bonus works).
+// turkey: no restriction hits derived — ALL rows are 'unknown' and need primary-source
+//   research. NOT an EU country — no MiCA overlay applies.
 // united-kingdom / united-states: derived 'restricted' hits exist (partial
-//   confidence) — upgrade with dated captures of official restriction pages.
-// european-union: unmapped by design; needs per-offer EU policy research.
+//   confidence) — upgrade with dated captures of official restriction pages. UK is
+//   NOT in EU_MEMBER_COUNTRIES (post-Brexit) — no MiCA overlay applies.
+// european-union: modeled as a regulatory overlay (EU_REGULATORY_ROWS), not a
+//   PromoCountrySlug — see the COUNTRY VS REGION note at the top of this file. To add
+//   another EU member country, add it to SUPPORTED_PROMO_COUNTRIES,
+//   EU_MEMBER_COUNTRIES, and COUNTRY_ISO, then research its own availability/bonus
+//   rows the way Poland's were researched — the overlay data (licensing) can be reused
+//   as-is via getCountryRegulatoryNotes(), but availability/bonusAvailability per
+//   exchange must still be verified per country.
 // Publishing flow: data → source QA → owner approval → /promo-codes/{country}/.
