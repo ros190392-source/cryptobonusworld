@@ -97,7 +97,7 @@ export const exchanges: Exchange[] = [
     articleImage:     '/media/exchanges/bingx/final/bingx-article-final-v1-1200x675-9b3f94eb.jpg',
     affiliateUrl:     '/go/bingx',
     officialUrl:      'https://www.bingx.com',
-    shortDescription: 'Social and copy trading platform with new user welcome rewards — apply code CRYPTOBW at signup',
+    shortDescription: 'Social and copy trading platform with new user welcome rewards — apply code CRYPTOBONUSWORLD at signup',
     featured:         true,
     pageUrl:          '/bingx/',
   },

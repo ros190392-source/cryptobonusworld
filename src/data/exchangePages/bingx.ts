@@ -1,8 +1,8 @@
 import type { ExchangePromoPageConfig } from './types';
 import { getOffer } from '../offers';
 
-// Owner-confirmed: displayed promo code is CRYPTOBW, canonical CTA route is /go/bingx/.
-// Partner URL retains CRYPTOBONUSWORLD in its path for tracking — link-first framing throughout.
+// Owner-confirmed 2026-07-03: displayed promo code is CRYPTOBONUSWORLD, matching the
+// partner URL path. Canonical CTA route is /go/bingx/.
 const offer = getOffer('bingx')!;
 
 export const bingxConfig: ExchangePromoPageConfig = {

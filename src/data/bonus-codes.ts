@@ -321,7 +321,7 @@ export const BONUS_CODES: BonusCodeEntry[] = [
     howToUse: [
       'Click the claim link on this page to open BingX registration',
       'Register with your email or phone number',
-      'Enter referral code CRYPTOBW if prompted during registration',
+      'Enter referral code CRYPTOBONUSWORLD if prompted during registration',
       'Complete email or phone verification',
       'Complete KYC identity verification to unlock full bonus',
       'Make a qualifying deposit and start trading',
@@ -329,11 +329,11 @@ export const BONUS_CODES: BonusCodeEntry[] = [
     ],
     codes: [
       {
-        code: 'CRYPTOBW',
+        code: 'CRYPTOBONUSWORLD',
         region: 'global',
         description: 'BingX referral code — activates the new user welcome bonus package',
         verified: true,
-        verifiedAt: '2026-05-24',
+        verifiedAt: '2026-07-03',
         expiresAt: null,
       },
     ],
@@ -348,11 +348,11 @@ export const BONUS_CODES: BonusCodeEntry[] = [
     faq: [
       {
         question: 'What is the BingX referral code for 2026?',
-        answer: 'The working BingX referral code for 2026 is CRYPTOBW. Enter it during registration to activate up to 11,000 USDT in welcome rewards — including 4,200+ USDT in perks exclusive to referral sign-ups.',
+        answer: 'The working BingX referral code for 2026 is CRYPTOBONUSWORLD. Enter it during registration to activate up to 11,000 USDT in welcome rewards — including 4,200+ USDT in perks exclusive to referral sign-ups.',
       },
       {
         question: 'Does BingX require a bonus code or just a referral link?',
-        answer: 'BingX bonus can be activated via either the referral link (recommended — click the claim button on this page) or by entering the code CRYPTOBW manually during registration. The link is the easiest method.',
+        answer: 'BingX bonus can be activated via either the referral link (recommended — click the claim button on this page) or by entering the code CRYPTOBONUSWORLD manually during registration. The link is the easiest method.',
       },
       {
         question: 'Is BingX good for copy trading?',
