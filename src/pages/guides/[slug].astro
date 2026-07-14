@@ -14,7 +14,6 @@ import RelatedNextReads from '../../components/RelatedNextReads.astro';
 import guideMeta from '../../data/guides.json';
 import guideContentMap from '../../data/guide-content';
 import exchanges from '../../data/exchanges.json';
-import { USE_CASES } from '../../data/use-cases';
 import { buildArticleSchema, buildBreadcrumbSchema, SITE_URL } from '../../utils/seo';
 
 export function getStaticPaths() {
@@ -36,16 +35,6 @@ const relatedExchanges = exchanges.filter(ex => meta.relatedExchanges?.includes(
 
 // Related guide data
 const relatedGuides = guideMeta.filter(g => meta.relatedGuides?.includes(g.slug)).slice(0, 3);
-
-// Related use-cases based on guide tags
-const guideTags: string[] = (meta as any).tags ?? [];
-const relatedUseCases = USE_CASES.filter(uc =>
-  guideTags.some(tag =>
-    uc.slug.includes(tag) || tag.includes(uc.slug.split('-')[0])
-  ) || (meta.relatedExchanges ?? []).some(slug =>
-    Array.isArray(uc.exchangePool) ? uc.exchangePool.includes(slug) : true
-  )
-).slice(0, 5);
 
 // FAQ schema
 const faqSchema = {

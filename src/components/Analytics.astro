@@ -13,7 +13,7 @@
  *  5.  A/B variant  (localStorage — consistent across sessions)
  *  6.  GEO href swap (affiliate links, placeholder-filtered)
  *  7.  Page view event  (cbw_page_view)
- *  8.  Page-type specific event  (cbw_exchange_view / cbw_compare_view / …)
+ *  8.  Page-type specific event  (cbw_exchange_view)
  *  9.  Affiliate click tracking  (cbw_affiliate_click)
  *  10. CTA impression tracking   (cbw_cta_impression, IntersectionObserver)
  *  11. Scroll depth tracking     (cbw_scroll_depth, 25/50/75/90%)
@@ -61,24 +61,19 @@ const { context = {} } = Astro.props;
 
   function inferPageType(p) {
     if (p === '/' || p === '') return 'homepage';
-    if (/^\/bonuses/.test(p)) return 'bonuses';
     if (/^\/exchanges\/[^/]+\//.test(p)) return 'exchange';
-    if (p === '/compare/' || p === '/compare') return 'compare-hub';
-    if (/^\/compare\/[^/]+\//.test(p)) return 'compare';
-    if (/^\/categories\/[^/]+\//.test(p)) return 'category';
-    if (/^\/countries\/[^/]+\//.test(p)) return 'country';
+    if (/^\/(bybit|mexc|okx|bitget|kucoin|bingx)\//.test(p)) return 'exchange';
+    if (/^\/promo-codes\//.test(p)) return 'promo-codes';
+    if (/^\/guides\//.test(p)) return 'guide';
     return 'other';
   }
 
   function inferSlugs(p, type) {
     var parts = p.replace(/^\/|\/$/g, '').split('/');
     switch (type) {
-      case 'exchange':    return { exchange_slug:  parts[1] || null };
-      case 'compare':     return { compare_pair:   parts[1] || null };
-      case 'compare-hub': return {};
-      case 'category':    return { category_slug:  parts[1] || null };
-      case 'country':     return { country_slug:   parts[1] || null };
-      default:            return {};
+      case 'exchange': return { exchange_slug: parts[1] || parts[0] || null };
+      case 'guide':    return { guide_slug:    parts[1] || null };
+      default:         return {};
     }
   }
 
@@ -277,26 +272,8 @@ const { context = {} } = Astro.props;
         exchange_deposit: serverCtx.exchangeDeposit !== undefined ? serverCtx.exchangeDeposit : null,
       });
       break;
-    case 'compare':
-      track('cbw_compare_view', {
-        compare_pair:      serverCtx.comparePair    || urlSlugs.compare_pair,
-        compare_exchange_a: serverCtx.compareExchangeA || null,
-        compare_exchange_b: serverCtx.compareExchangeB || null,
-        compare_winner:    serverCtx.compareWinner  || null,
-      });
-      break;
-    case 'category':
-      track('cbw_category_view', {
-        category_slug:  serverCtx.categorySlug  || urlSlugs.category_slug,
-        category_count: serverCtx.categoryCount || null,
-      });
-      break;
-    case 'country':
-      track('cbw_country_view', {
-        country_slug: serverCtx.countrySlug || urlSlugs.country_slug,
-        country_geo:  serverCtx.countryGeo  || geoCode,
-      });
-      break;
+    // compare/category/country view events removed — routes retired
+    // (Legacy Sections Retirement v1, 2026-07-14).
   }
 
   // ── 14. Affiliate click tracking ─────────────────────────────────────────
@@ -312,12 +289,8 @@ const { context = {} } = Astro.props;
     var href  = btn.getAttribute('href') || '';
     var isGoRedirect = href.includes('/go/');
 
-    // Resolve compare pair from path if on a compare page
+    // Compare pages retired (Legacy Retirement v1) — pair context no longer applies.
     var comparePairFromPath = null;
-    if (pageType === 'compare') {
-      var pParts = path.replace(/^\/|\/$/g,'').split('/');
-      if (pParts.length >= 2) comparePairFromPath = pParts[1] || null;
-    }
 
     // Normalized v1 click event — aligned with clickEvents.ts AffiliateClickEvent schema
     var clickEvent = {
@@ -458,7 +431,7 @@ const { context = {} } = Astro.props;
   Analytics bridge — module script (deferred, bundled by Vite).
   Imports analytics.ts and wires it to:
     • cbw:event bus  (affiliate clicks, scroll depth, page-type views)
-    • DOM delegation (compare_click, verdict_interaction, faq_expand, bonus_copy)
+    • DOM delegation (verdict_interaction, faq_expand, bonus_copy)
   Processes already-dispatched events from window.cbw.events (handles race
   between the is:inline script above and this deferred module script).
 -->
@@ -492,24 +465,9 @@ const { context = {} } = Astro.props;
       return;
     }
 
-    // Country page view → country_page_visit
-    if (event === 'cbw_country_view') {
-      analytics.trackCountryPageVisit({
-        slug: String(ev.country_slug ?? ev.country_geo ?? ''),
-      });
-      return;
-    }
-
-    // Compare page view → compare_click (as a page-visit signal)
-    if (event === 'cbw_compare_view') {
-      analytics.trackCompareClick({
-        pair:      String(ev.compare_pair      ?? ''),
-        exchange_a: String(ev.compare_exchange_a ?? ''),
-        exchange_b: String(ev.compare_exchange_b ?? ''),
-        placement: 'page-view',
-      });
-      return;
-    }
+    // NOTE: country_page_visit / compare_click / coin_page_visit bridges were
+    // removed with Legacy Sections Retirement v1 (2026-07-14) — the routes
+    // that emitted those events no longer exist.
   }
 
   // Replay events already dispatched by the is:inline script above
@@ -520,24 +478,6 @@ const { context = {} } = Astro.props;
   // Listen for all future cbw events
   document.addEventListener('cbw:event', (e: Event) => {
     bridgeCbwEvent((e as CustomEvent).detail);
-  });
-
-  // ── Coin page visit — detected from URL (no cbw event exists for /coins/) ─
-  if (/^\/coins\/[^/]+\//.test(location.pathname)) {
-    const slug = location.pathname.replace(/^\/|\/$/g, '').split('/')[1] ?? '';
-    if (slug) analytics.trackCoinPageVisit({ slug });
-  }
-
-  // ── Delegated: compare_click (PeopleAlsoCompare cards + other compare links) ─
-  document.addEventListener('click', (e: MouseEvent) => {
-    const el = (e.target as Element).closest('[data-track="compare_click"]') as HTMLElement | null;
-    if (!el) return;
-    analytics.trackCompareClick({
-      pair:       el.dataset.pair      ?? '',
-      exchange_a: el.dataset.exchangeA ?? '',
-      exchange_b: el.dataset.exchangeB ?? '',
-      placement:  el.dataset.placement ?? 'widget',
-    });
   });
 
   // ── Delegated: verdict_interaction (ExchangeVerdictBlock) ────────────────

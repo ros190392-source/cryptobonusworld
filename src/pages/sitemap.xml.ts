@@ -42,17 +42,17 @@ export const GET: APIRoute = () => {
   // Pages serving noindex (or noindex,nofollow) must NOT appear here —
   // conflicting signals confuse crawlers and waste crawl budget.
   //
-  // Verified against built HTML on 2026-07-02: the following legacy sections
-  // currently serve noindex,nofollow and are therefore EXCLUDED from the sitemap
-  // (hubs and all child pages):
-  //   /bonuses/  /bonus-codes/  /compare/  /coins/  /use-cases/
-  //   /categories/  /countries/  /reviewers/  /contact/
-  // Also excluded by design: /go/ (robots-blocked), /preview/, /prototype/,
-  // legacy /exchanges/{slug}/ redirect stubs for the live promo exchanges.
+  // Legacy sections (/bonuses/, /bonus-codes/, /compare/, /coins/,
+  // /use-cases/, /categories/, /countries/, /reviewers/,
+  // /best-exchanges-for/) were RETIRED on 2026-07-14 (Legacy Sections
+  // Retirement v1): routes deleted, hubs replaced by noindex redirect stubs.
+  // Also excluded by design: /go/ (robots-blocked), /contact/ (noindex),
+  // the hub redirect stubs, and the /exchanges/{slug}/ redirect stubs for
+  // the six live promo exchanges.
   //
-  // A legacy section may be re-added here ONLY when it is deliberately made
-  // indexable (noindex removed) after content/visual approval — flip both
-  // together in one change, never one without the other.
+  // New sections enter this sitemap ONLY as part of the approved
+  // architecture (e.g. future evidence-backed /promo-codes/{country}/ pages
+  // via geoRankings.ts) after owner approval.
   const staticPages = [
     { url: '/', priority: '1.0', changefreq: 'daily', lastmod: today, type: 'static' as const },
     { url: '/exchanges/', priority: '0.85', changefreq: 'weekly', lastmod: today, type: 'static' as const },

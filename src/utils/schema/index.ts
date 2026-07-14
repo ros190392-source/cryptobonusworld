@@ -4,14 +4,12 @@
  * Single import point for all JSON-LD schema builders used across the site.
  *
  * Re-exports every existing builder from src/utils/seo.ts (fully backward-
- * compatible) and adds two new generators:
+ * compatible) and adds:
  *
- *   buildPersonSchema()           — E-E-A-T Person entity for reviewer pages
  *   buildFinancialServiceSchema() — standalone FinancialService for exchange pages
  *
  * Usage:
- *   import { buildPersonSchema, buildProductSchema } from '../../utils/schema';
- *   import { buildFinancialServiceSchema }           from '../../utils/schema';
+ *   import { buildFinancialServiceSchema, buildProductSchema } from '../../utils/schema';
  *
  * Note: BreadcrumbList is already self-emitted by <Breadcrumbs> component.
  * Do NOT pass it in the schema[] array on pages that use that component.
@@ -47,70 +45,6 @@ export {
 } from '../seo';
 
 import { SITE_URL, SITE_NAME, toIsoCurrency } from '../seo';
-
-// ── Person schema ─────────────────────────────────────────────────────────────
-
-/** Input shape for buildPersonSchema — matches ReviewerProfile in reviewers.ts */
-export interface PersonSchemaInput {
-  slug: string;
-  name: string;
-  title: string;
-  bio: string;
-  photo?: string | null;
-  expertise?: string[];
-  links?: {
-    twitter?: string;
-    linkedin?: string;
-    facebook?: string;
-    website?: string;
-  };
-  joinedAt?: string;
-  lastActiveAt?: string;
-}
-
-/**
- * Person schema — E-E-A-T entity for reviewer/author profile pages.
- *
- * Emits: name, jobTitle, description, url, image (when photo set),
- * worksFor (Organization), knowsAbout (expertise array), sameAs (social links).
- *
- * Used by: /reviewers/[slug].astro
- */
-export function buildPersonSchema(reviewer: PersonSchemaInput): Record<string, unknown> {
-  const profileUrl = `${SITE_URL}/reviewers/${reviewer.slug}/`;
-  const sameAs: string[] = [];
-  if (reviewer.links?.twitter)  sameAs.push(reviewer.links.twitter);
-  if (reviewer.links?.linkedin) sameAs.push(reviewer.links.linkedin);
-  if (reviewer.links?.facebook) sameAs.push(reviewer.links.facebook);
-  if (reviewer.links?.website)  sameAs.push(reviewer.links.website);
-
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'Person',
-    name: reviewer.name,
-    jobTitle: reviewer.title,
-    description: reviewer.bio,
-    url: profileUrl,
-    ...(reviewer.photo
-      ? {
-          image: {
-            '@type': 'ImageObject',
-            url: `${SITE_URL}${reviewer.photo.startsWith('/') ? '' : '/'}${reviewer.photo}`,
-          },
-        }
-      : {}),
-    worksFor: {
-      '@type': 'Organization',
-      name: SITE_NAME,
-      url: SITE_URL,
-    },
-    ...(reviewer.expertise && reviewer.expertise.length > 0
-      ? { knowsAbout: reviewer.expertise }
-      : {}),
-    ...(sameAs.length > 0 ? { sameAs } : {}),
-    ...(reviewer.joinedAt ? { startDate: reviewer.joinedAt } : {}),
-  };
-}
 
 // ── FinancialService schema ───────────────────────────────────────────────────
 

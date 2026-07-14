@@ -34,14 +34,6 @@ export interface AffiliateOutboundParams {
   placement: string;
 }
 
-/** Navigate to or interact with a compare page / compare widget */
-export interface CompareClickParams {
-  pair?:       string;   // e.g. "bybit-vs-binance"
-  exchange_a?: string;
-  exchange_b?: string;
-  placement?:  string;   // "widget" | "table" | "nav"
-}
-
 /** User copied a promo/referral code */
 export interface BonusCopyParams {
   exchange: string;   // exchange slug
@@ -63,12 +55,6 @@ export interface VerdictInteractionParams {
 /** Scroll depth milestone */
 export interface ScrollDepthParams {
   depth: 50 | 90;
-}
-
-/** Page-type visit goals */
-export interface PageVisitParams {
-  slug: string;
-  page?: string;
 }
 
 // ── Core dispatch engine ──────────────────────────────────────────────────────
@@ -148,21 +134,6 @@ export const analytics = {
   },
 
   /**
-   * Compare page or compare widget clicked.
-   * Goal: compare_click
-   * Fires on: PeopleAlsoCompare cards, compare nav, compare page CTA.
-   */
-  trackCompareClick(p: CompareClickParams): void {
-    dispatch('compare_click', {
-      pair:       p.pair       ?? '',
-      exchange_a: p.exchange_a ?? '',
-      exchange_b: p.exchange_b ?? '',
-      placement:  p.placement  ?? 'widget',
-      page:       typeof window !== 'undefined' ? window.location.pathname : '',
-    });
-  },
-
-  /**
    * Promo/referral code copied.
    * Goal: bonus_copy
    */
@@ -209,27 +180,9 @@ export const analytics = {
     });
   },
 
-  /**
-   * Country-specific exchange page visited.
-   * Goal: country_page_visit
-   */
-  trackCountryPageVisit(p: PageVisitParams): void {
-    dispatch('country_page_visit', {
-      slug: p.slug,
-      page: p.page ?? (typeof window !== 'undefined' ? window.location.pathname : ''),
-    });
-  },
-
-  /**
-   * Coin-specific exchange page visited.
-   * Goal: coin_page_visit
-   */
-  trackCoinPageVisit(p: PageVisitParams): void {
-    dispatch('coin_page_visit', {
-      slug: p.slug,
-      page: p.page ?? (typeof window !== 'undefined' ? window.location.pathname : ''),
-    });
-  },
+  // NOTE: trackCompareClick / trackCountryPageVisit / trackCoinPageVisit were
+  // removed with Legacy Sections Retirement v1 (2026-07-14) — the /compare/,
+  // /countries/ and /coins/ routes that produced those events no longer exist.
 };
 
 // Attach to window so non-module inline scripts can call it:

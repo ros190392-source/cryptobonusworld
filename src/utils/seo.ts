@@ -352,44 +352,6 @@ export function getRelatedExchanges(
 }
 
 /**
- * Get categories that apply to an exchange based on its bonus types and flags.
- * Used for "This exchange qualifies for these categories" cross-links.
- */
-export function getRelatedCategories(
-  bonusTypes: string[],
-  kycRequired: boolean,
-  depositRequired: boolean,
-  allCategories: SeoCategory[]
-): SeoCategory[] {
-  const slugSet = new Set<string>();
-  // Map each bonus type
-  for (const t of bonusTypes) {
-    const s = BONUS_TYPE_TO_CATEGORY[t];
-    if (s) slugSet.add(s);
-  }
-  // Infer from flags
-  if (!kycRequired) slugSet.add('no-kyc-bonuses');
-  if (!depositRequired) slugSet.add('no-deposit-bonuses');
-  // Welcome is umbrella for signup
-  if (bonusTypes.includes('signup')) slugSet.add('welcome-bonuses');
-  return allCategories.filter(c => slugSet.has(c.slug));
-}
-
-/**
- * Get country objects for countries where this exchange operates.
- * Excludes 'global' (too generic to link to).
- */
-export function getCountryCrossLinks(
-  exchangeCountries: string[],
-  allCountries: SeoCountry[]
-): SeoCountry[] {
-  const isGlobal = exchangeCountries.includes('global');
-  return allCountries.filter(c =>
-    c.slug !== 'global' && (isGlobal || exchangeCountries.includes(c.slug))
-  );
-}
-
-/**
  * Get categories that have exchanges in a given country.
  * Used for "Available bonus types in [Country]" cross-links.
  */
@@ -992,72 +954,6 @@ export function buildWebSiteSchema(): Record<string, unknown> {
       url: SITE_URL,
     },
   };
-}
-
-// ── Use-case ranking ─────────────────────────────────────────────────────────
-
-import type { UseCaseScoring } from '../data/use-cases';
-
-/**
- * Rank exchanges for a specific use-case using the scoring weights defined
- * in that use-case's `scoring` object.
- *
- * If `scoring.requireNoKyc` is true, only no-KYC exchanges are returned.
- * If `scoring.requireFeatureBadge` is set, only exchanges with that badge qualify.
- *
- * Returns exchanges sorted by score descending.
- */
-export function rankExchangesForUseCase(
-  allExchanges: SeoExchange[],
-  scoring: UseCaseScoring
-): SeoExchange[] {
-  // Apply mandatory filters first
-  let pool = [...allExchanges];
-
-  if (scoring.requireNoKyc) {
-    pool = pool.filter(ex => !ex.kycRequired);
-  }
-  if (scoring.requireFeatureBadge) {
-    const badge = scoring.requireFeatureBadge;
-    pool = pool.filter(ex => ((ex as any).featureBadges ?? []).includes(badge));
-  }
-
-  return pool
-    .map(ex => {
-      let score = ex.rating; // base
-
-      // Feature badge boosts
-      if (scoring.featureBadgeBoost) {
-        for (const [badge, boost] of Object.entries(scoring.featureBadgeBoost)) {
-          if (((ex as any).featureBadges ?? []).includes(badge)) {
-            score += boost;
-          }
-        }
-      }
-
-      // Bonus type boosts
-      if (scoring.bonusTypeBoost) {
-        for (const [type, boost] of Object.entries(scoring.bonusTypeBoost)) {
-          if ((ex.bonusTypes ?? []).includes(type)) {
-            score += boost;
-          }
-        }
-      }
-
-      // No-KYC boost
-      if (scoring.noKycBoost && !ex.kycRequired) {
-        score += scoring.noKycBoost;
-      }
-
-      // No-deposit boost
-      if (scoring.noDepositBoost && !ex.depositRequired) {
-        score += scoring.noDepositBoost;
-      }
-
-      return { exchange: ex, score };
-    })
-    .sort((a, b) => b.score - a.score)
-    .map(({ exchange }) => exchange);
 }
 
 // ── FAQ schema builder ───────────────────────────────────────────────────────

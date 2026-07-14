@@ -27,16 +27,9 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import exchanges from '../../data/exchanges.json';
-import categories from '../../data/categories.json';
-import countries from '../../data/countries.json';
-import comparePairs from '../../data/compare-pairs.json';
 import allGuides from '../../data/guides.json';
-import { USE_CASES } from '../../data/use-cases';
-import { COINS } from '../../data/coins';
-import { BONUS_CODES } from '../../data/bonus-codes';
 
 import EditorSummary from '../../components/EditorSummary.astro';
-import GeoContentBlock from '../../components/GeoContentBlock.astro';
 import GeoPaymentBlock from '../../components/GeoPaymentBlock.astro';
 import GeoRegulatoryNote from '../../components/GeoRegulatoryNote.astro';
 import RelatedGuidesBlock from '../../components/RelatedGuidesBlock.astro';
@@ -55,8 +48,6 @@ import {
   buildProductSchema,
   buildReviewPageSchema,
   buildFAQSchema,
-  getRelatedCategories,
-  getCountryCrossLinks,
 } from '../../utils/seo';
 import { buildFinancialServiceSchema } from '../../utils/schema';
 import FreshnessLabel from '../../components/FreshnessLabel.astro';
@@ -115,8 +106,6 @@ const _sectionsAt = (pos: string) => _flagshipSections.filter(s => s.position ==
 const _compareMini: any[] = ((_pageOverride?.compareMiniSlugs as string[] | undefined) ?? [])
   .map(s => (exchanges as any[]).find(e => e.slug === s))
   .filter(Boolean);
-const relatedCats = getRelatedCategories(ex.bonusTypes, ex.kycRequired, ex.depositRequired, categories as any);
-const countryCrossLinks = getCountryCrossLinks(ex.countries, countries as any);
 
 const pageTitle = `${ex.name} Bonus 2026: ${ex.bonusTitle}`;
 
@@ -221,12 +210,6 @@ const analyticsContext: PageContext = {
   exchangeDeposit: ex.depositRequired,
 };
 
-// Compare pairs for this exchange
-const exMap = Object.fromEntries(exchanges.map(e => [e.slug, e]));
-const myComparePairs = comparePairs
-  .filter(p => p.a === ex.slug || p.b === ex.slug)
-  .slice(0, 6);
-
 // Pass primary reviewer as Person entity when available (E-E-A-T signal).
 // Falls back to Organization author when no reviewer is assigned.
 const _reviewerEntity = _primaryReviewer
@@ -282,28 +265,8 @@ const relatedGuides = allGuides
   .filter(g => g.relatedExchanges?.includes(ex.slug))
   .slice(0, 4);
 
-// Related use cases — use cases where this exchange is in the pool
-const relatedUseCases = USE_CASES.filter(uc =>
-  uc.exchangePool === 'all' ||
-  (Array.isArray(uc.exchangePool) && uc.exchangePool.includes(ex.slug))
-).slice(0, 6);
-
 // Visual walkthroughs — only available for select exchanges (bybit, binance, mexc)
 const walkthroughFlows = getFlowsBySlug(ex.slug);
-
-// Top coins traded on this exchange (for cross-linking to /coins/ pages)
-// Priority coins: BTC, ETH, USDT, BNB, SOL, XRP + any exchange-specific spotlight
-const TOP_COINS = ['bitcoin', 'ethereum', 'usdt', 'solana', 'bnb', 'xrp'];
-const relatedCoins = COINS
-  .filter(c =>
-    TOP_COINS.includes(c.slug) ||
-    (Array.isArray(c.supportedBy) && (c.supportedBy as string[]).includes(ex.slug))
-  )
-  .sort((a, b) => TOP_COINS.indexOf(a.slug) - TOP_COINS.indexOf(b.slug))
-  .slice(0, 6);
-
-// Bonus code entry for this exchange (for cross-linking to /bonus-codes/)
-const hasBonusCode = BONUS_CODES.some(b => b.exchangeSlug === ex.slug);
 
 // ── Walkthrough HowTo schema helpers ──────────────────────────────────────────
 const SITE_URL = 'https://cryptobonusworld.com';
