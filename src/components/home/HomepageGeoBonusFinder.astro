@@ -16,6 +16,7 @@
  * EU is never a selectable country (regulatory overlay only).
  */
 import ExchangeLogo from '../ExchangeLogo.astro';
+import PromoCodeCopy from '../promo/PromoCodeCopy.astro';
 import { getExchange } from '../../data/exchanges';
 import { getOffer } from '../../data/offers';
 import exchangesJson from '../../data/exchanges.json';
@@ -203,16 +204,7 @@ const countryMetaJson = JSON.stringify(COUNTRY_META.map(({ slug, label, flag, he
                 )}
                 <div class="gf-row-actions">
                   {row.availability !== 'restricted' && (
-                  <button
-                    class="gf-code-btn"
-                    data-code={row.promoCode}
-                    type="button"
-                    aria-label={`Copy promo code ${row.promoCode} for ${row.name}`}
-                  >
-                    <span class="gf-code-text">{row.promoCode}</span>
-                    <span class="gf-copy-icon" aria-hidden="true">⧉</span>
-                    <span class="gf-copy-check" aria-hidden="true">✓</span>
-                  </button>
+                    <PromoCodeCopy code={row.promoCode} exchange={row.name} />
                   )}
                   <div class="gf-row-btns">
                     <a href={cta.href} class={cta.primary ? 'gf-cta gf-cta-primary' : 'gf-cta gf-cta-secondary'}>
@@ -288,28 +280,7 @@ const countryMetaJson = JSON.stringify(COUNTRY_META.map(({ slug, label, flag, he
     });
   }
 
-  // Copy-to-clipboard for promo code pills (mirrors ExchangeCard.astro pattern).
-  document.querySelectorAll('.gf-code-btn').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      var code = btn.getAttribute('data-code') || '';
-      function fallbackCopy() {
-        var ta = document.createElement('textarea');
-        ta.value = code;
-        ta.style.cssText = 'position:fixed;opacity:0;pointer-events:none';
-        document.body.appendChild(ta);
-        ta.select();
-        try { document.execCommand('copy'); } catch (_) {}
-        document.body.removeChild(ta);
-      }
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(code).catch(fallbackCopy);
-      } else {
-        fallbackCopy();
-      }
-      btn.classList.add('copied');
-      setTimeout(function () { btn.classList.remove('copied'); }, 1800);
-    });
-  });
+  // Copy-to-clipboard is handled by the shared PromoCodeCopy component.
 })();
 </script>
 
@@ -386,23 +357,7 @@ const countryMetaJson = JSON.stringify(COUNTRY_META.map(({ slug, label, flag, he
 
   .gf-row-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
-  .gf-code-btn {
-    display: inline-flex; align-items: center; gap: 5px;
-    font-size: 12.5px; font-weight: 900;
-    font-family: 'SFMono-Regular', Consolas, monospace;
-    background: #FFF7ED; border: 1.5px solid #FED7AA; color: #C2410C;
-    padding: 8px 10px; border-radius: 7px; letter-spacing: .05em; cursor: pointer;
-    transition: background .12s, border-color .12s;
-    max-width: 100%; overflow: hidden;
-  }
-  .gf-code-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .gf-code-btn:hover { background: #FEF3C7; border-color: #F59E0B; }
-  .gf-code-btn:focus-visible { outline: 2px solid #16A34A; outline-offset: 2px; }
-  .gf-copy-icon { opacity: .6; }
-  .gf-copy-check { display: none; color: #16A34A; }
-  .gf-code-btn.copied { background: #F0FDF4; border-color: #86EFAC; color: #15803D; }
-  .gf-code-btn.copied .gf-copy-icon { display: none; }
-  .gf-code-btn.copied .gf-copy-check { display: inline; }
+  /* Promo-code field is the shared canonical PromoCodeCopy component */
 
   .gf-row-btns { display: flex; align-items: center; gap: 8px; margin-left: auto; }
   .gf-cta {
@@ -431,7 +386,6 @@ const countryMetaJson = JSON.stringify(COUNTRY_META.map(({ slug, label, flag, he
     .gf-row-actions { flex-direction: column; align-items: stretch; }
     .gf-row-btns { margin-left: 0; }
     .gf-cta { flex: 1; text-align: center; }
-    .gf-code-btn { justify-content: center; }
     .gf-badge { margin-left: 0; width: fit-content; }
   }
 </style>

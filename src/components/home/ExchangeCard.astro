@@ -1,6 +1,7 @@
 ---
 import type { Exchange } from '../../data/exchanges';
 import type { Offer } from '../../data/offers';
+import PromoCodeCopy from '../promo/PromoCodeCopy.astro';
 
 export interface Props {
   exchange: Exchange;
@@ -29,50 +30,17 @@ const { exchange: ex, offer } = Astro.props;
     )}
     {offer && (
       <div class="ec-code-band">
-        <span class="ec-code-label">Promo code</span>
-        <button
-          class="ec-code-btn"
-          data-code={offer.promoCode}
-          aria-label={`Copy promo code ${offer.promoCode}`}
-          type="button"
-        >
-          <span class="ec-code-text">{offer.promoCode}</span>
-          <span class="ec-copy-icon" aria-hidden="true">
-            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="5.5" y="1.5" width="9" height="11" rx="1.5" stroke="currentColor" stroke-width="1.4"/>
-              <path d="M10.5 1.5V1A1.5 1.5 0 0 0 9 -0.5H2A1.5 1.5 0 0 0 .5 1v9A1.5 1.5 0 0 0 2 11.5h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
-            </svg>
-          </span>
-          <span class="ec-copy-check" aria-hidden="true">✓</span>
-        </button>
-        {offer.status === 'verified' && <span class="ec-verified">✓ verified</span>}
+        <div class="ec-code-meta">
+          <span class="ec-code-label">Promo code</span>
+          {offer.status === 'verified' && <span class="ec-verified">✓ verified</span>}
+        </div>
+        <PromoCodeCopy code={offer.promoCode} exchange={ex.name} />
       </div>
     )}
     <a href={ex.affiliateUrl} class="ec-cta">Claim Bonus →</a>
     <a href={ex.pageUrl ?? `/exchanges/${ex.slug}/`} class="ec-review-link">Read {ex.name} review</a>
   </div>
 </div>
-
-<script>
-  document.querySelectorAll<HTMLButtonElement>('.ec-code-btn').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const code = btn.dataset.code ?? '';
-      try {
-        await navigator.clipboard.writeText(code);
-      } catch {
-        const ta = document.createElement('textarea');
-        ta.value = code;
-        ta.style.cssText = 'position:fixed;opacity:0;pointer-events:none';
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand('copy');
-        document.body.removeChild(ta);
-      }
-      btn.classList.add('copied');
-      setTimeout(() => btn.classList.remove('copied'), 1800);
-    });
-  });
-</script>
 
 <style>
   .ec {
@@ -109,42 +77,13 @@ const { exchange: ex, offer } = Astro.props;
 
   .ec-bonus { font-size: 13px; color: var(--cbw-gray-700, #374151); line-height: 1.45; }
 
-  /* Promo code band */
-  .ec-code-band {
-    display: flex; align-items: center; gap: 7px; flex-wrap: wrap;
-    background: var(--cbw-coupon-bg, #FFFBF5);
-    border: 1px dashed var(--cbw-coupon-border, #FCD34D);
-    border-radius: 7px; padding: 7px 10px;
-  }
+  /* Promo code band — field itself is the shared canonical PromoCodeCopy */
+  .ec-code-band { display: flex; flex-direction: column; gap: 4px; }
+  .ec-code-meta { display: flex; align-items: center; gap: 7px; }
   .ec-code-label {
     font-size: 10px; text-transform: uppercase; letter-spacing: .07em;
     color: var(--cbw-coupon-label, #92400E); font-weight: 600; white-space: nowrap;
   }
-
-  /* Click-to-copy button */
-  .ec-code-btn {
-    display: inline-flex; align-items: center; gap: 5px;
-    font-size: 13px; font-weight: 900;
-    font-family: var(--cbw-font-mono, 'SFMono-Regular', Consolas, monospace);
-    background: var(--cbw-coupon-code-bg, #FFF7ED);
-    border: 1.5px solid var(--cbw-coupon-code-bd, #FED7AA);
-    color: var(--cbw-coupon-code-tx, #C2410C);
-    padding: 3px 8px 3px 10px; border-radius: 5px;
-    letter-spacing: .07em; cursor: pointer;
-    transition: background .12s, border-color .12s, transform .1s;
-    user-select: all;
-  }
-  .ec-code-btn:hover {
-    background: #FEF3C7; border-color: #F59E0B;
-    transform: scale(1.02);
-  }
-  .ec-copy-icon { color: var(--cbw-coupon-code-tx, #C2410C); opacity: .55; flex-shrink: 0; display: flex; }
-  .ec-copy-check { display: none; font-size: 12px; color: var(--cbw-green, #16A34A); font-weight: 900; }
-
-  .ec-code-btn.copied { background: #F0FDF4; border-color: #86EFAC; color: #15803D; }
-  .ec-code-btn.copied .ec-copy-icon { display: none; }
-  .ec-code-btn.copied .ec-copy-check { display: inline; }
-
   .ec-verified { font-size: 10px; color: var(--cbw-green, #16A34A); font-weight: 700; white-space: nowrap; }
 
   .ec-cta {

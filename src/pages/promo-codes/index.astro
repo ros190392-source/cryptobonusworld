@@ -1,5 +1,6 @@
 ---
 import CleanLayout from '../../layouts/CleanLayout.astro';
+import PromoCodeCopy from '../../components/promo/PromoCodeCopy.astro';
 import { getFeaturedExchanges } from '../../data/exchanges';
 import { getOffer } from '../../data/offers';
 
@@ -170,11 +171,7 @@ const faqSchema = {
                 {offer.status === 'verified' && <span class="pc-verified">✓ verified</span>}
               </td>
               <td class="pc-cell-code" data-label="Promo Code">
-                <button class="pc-code-chip" data-code={offer.promoCode} aria-label={`Copy promo code ${offer.promoCode}`} type="button">
-                  <span class="pc-code-text">{offer.promoCode}</span>
-                  <span class="pc-copy-icon" aria-hidden="true">⧉</span>
-                  <span class="pc-copy-check" aria-hidden="true">✓</span>
-                </button>
+                <PromoCodeCopy code={offer.promoCode} exchange={ex.name} />
               </td>
               <td class="pc-cell-bonus" data-label="Bonus Snapshot">{offer.bonusHeadline}</td>
               <td class="pc-cell-bestfor" data-label="Best For">{BEST_FOR[ex.slug]}</td>
@@ -261,25 +258,6 @@ const faqSchema = {
 </CleanLayout>
 
 <script>
-  document.querySelectorAll<HTMLButtonElement>('.pc-code-chip').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const code = btn.dataset.code ?? '';
-      try {
-        await navigator.clipboard.writeText(code);
-      } catch {
-        const ta = document.createElement('textarea');
-        ta.value = code;
-        ta.style.cssText = 'position:fixed;opacity:0;pointer-events:none';
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand('copy');
-        document.body.removeChild(ta);
-      }
-      btn.classList.add('copied');
-      setTimeout(() => btn.classList.remove('copied'), 1800);
-    });
-  });
-
   // Country selector — v1 static UI only. No country-specific ranking data exists yet,
   // so switching the selector does not change the table; it only surfaces the note above.
   const select = document.getElementById('pc-country-select');
@@ -356,20 +334,8 @@ const faqSchema = {
   .pc-exchange-name:hover { color: #1D4ED8; text-decoration: underline; }
   .pc-verified { font-size: 10px; color: #16A34A; font-weight: 700; white-space: nowrap; }
 
-  .pc-code-chip {
-    display: inline-flex; align-items: center; gap: 6px;
-    font-family: var(--cbw-font-mono, 'SFMono-Regular', Consolas, monospace);
-    font-size: 12.5px; font-weight: 900;
-    background: #FFF7ED; border: 1.5px solid #FED7AA; color: #C2410C;
-    padding: 6px 10px; border-radius: 6px; cursor: pointer; white-space: nowrap;
-    transition: background .12s, border-color .12s;
-  }
-  .pc-code-chip:hover { background: #FEF3C7; border-color: #F59E0B; }
-  .pc-code-chip.copied { background: #F0FDF4; border-color: #86EFAC; color: #15803D; }
-  .pc-copy-icon { opacity: .55; }
-  .pc-copy-check { display: none; color: #16A34A; font-weight: 900; }
-  .pc-code-chip.copied .pc-copy-icon { display: none; }
-  .pc-code-chip.copied .pc-copy-check { display: inline; }
+  /* Promo-code field is the shared canonical PromoCodeCopy component */
+  .pc-cell-code { min-width: 220px; }
 
   .pc-cell-bonus, .pc-cell-note { color: #4B5563; max-width: 220px; }
   .pc-cell-bestfor { color: #374151; font-weight: 600; white-space: nowrap; }
@@ -404,6 +370,10 @@ const faqSchema = {
     .pc-cell-exchange { justify-content: flex-start !important; gap: 8px; }
     .pc-cell-exchange::before { display: none; }
     .pc-exchange-name { font-size: 16px; }
+    /* Give the canonical promo-code field its full width on stacked rows —
+       side-by-side with the label it truncates long codes */
+    .pc-cell-code { flex-direction: column; align-items: stretch; gap: 4px; }
+    .pc-cell-code :global(.pcc-row) { max-width: none; }
     .pc-cell-bonus, .pc-cell-note { text-align: right; max-width: 60%; }
     .pc-cell-claim { padding-top: 10px !important; }
     .pc-claim-btn { width: 100%; text-align: center; padding: 10px 16px; }
