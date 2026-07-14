@@ -6,10 +6,11 @@
  * Uses the IndexNow protocol: https://www.indexnow.org/
  *
  * Usage:
- *   node scripts/indexnow.mjs                       # submit all site URLs
- *   node scripts/indexnow.mjs --exchange bybit       # submit one exchange + related
- *   node scripts/indexnow.mjs --mode priority        # top-tier pages only
- *   node scripts/indexnow.mjs --mode evidence        # all exchange/evidence pages
+ *   node scripts/indexnow.mjs                       # submit all current sitemap URLs
+ *   node scripts/indexnow.mjs --exchange bybit       # submit one live exchange page
+ *   node scripts/indexnow.mjs --mode priority        # money pages only (deploy default)
+ *   node scripts/indexnow.mjs --mode evidence        # exchange money pages only
+ *   node scripts/indexnow.mjs --mode legacy          # MANUAL: ping retired 301'd URLs
  *   node scripts/indexnow.mjs --urls /a/ /b/         # submit specific paths
  *   node scripts/indexnow.mjs --dry-run              # preview, no network calls
  *   node scripts/indexnow.mjs --engines bing         # only Bing (skip Yandex)
@@ -110,10 +111,13 @@ function loadJSON(relativePath) {
 const exchanges   = loadJSON('src/data/exchanges.json');
 const guides      = loadJSON('src/data/guides.json');
 
-// Live rich promo pages served at /{slug}/ — all other exchanges live under
-// /exchanges/{slug}/. Legacy sections (/bonuses/, /bonus-codes/, /compare/,
-// /categories/, /countries/, /coins/, /use-cases/, /reviewers/) were retired
-// on 2026-07-14 (Legacy Sections Retirement v1) and must never be submitted.
+// Live rich promo pages served at /{slug}/ — the ONLY exchange pages on the
+// current site. All other exchanges.json entries are portal-era leftovers kept
+// for /go/ routing; their /exchanges/{slug}/ reviews and all /guides/* articles
+// were retired on 2026-07-14 (d061c12) and now 301 server-side (2bcc975).
+// Retired URLs must never be submitted as active — see the `legacy` set below.
+// Older retired sections (/bonuses/, /bonus-codes/, /compare/, /categories/,
+// /countries/, /coins/, /use-cases/, /reviewers/) are likewise never submitted.
 const LIVE_PROMO_SLUGS = ['bybit', 'mexc', 'okx', 'bitget', 'kucoin', 'bingx'];
 
 // ── URL builders ──────────────────────────────────────────────────────────────
@@ -127,22 +131,15 @@ function abs(path) {
  * Mirrors the sitemap policy: only indexable, approved-architecture pages.
  */
 function buildUrlSets() {
-  // Tier 1 — highest intent, submit most frequently
+  // Tier 1 — money pages, submit on every deploy (priority mode)
   const tier1 = [
     '/',
     '/promo-codes/',
     '/exchanges/',
     ...LIVE_PROMO_SLUGS.map(s => `/${s}/`),
-    ...exchanges.filter(e => !LIVE_PROMO_SLUGS.includes(e.slug)).map(e => `/exchanges/${e.slug}/`),
   ];
 
-  // Tier 2 — guides
-  const tier2 = [
-    '/guides/',
-    ...guides.map(g => `/guides/${g.slug}/`),
-  ];
-
-  // Tier 3 — trust/legal pages
+  // Tier 3 — trust/legal pages (submitted in `all` mode)
   const tier3 = [
     '/methodology/',
     '/about/',
@@ -154,14 +151,32 @@ function buildUrlSets() {
     '/terms/',
   ];
 
-  return { tier1, tier2, tier3 };
+  // Legacy — retired URLs that now 301 server-side (never submitted by
+  // default; `--mode legacy` exists only as a MANUAL one-off to push search
+  // engines to recrawl and discover the redirects faster).
+  const legacy = [
+    ...exchanges.filter(e => !LIVE_PROMO_SLUGS.includes(e.slug)).map(e => `/exchanges/${e.slug}/`),
+    '/guides/',
+    ...guides.map(g => `/guides/${g.slug}/`),
+  ];
+
+  return { tier1, tier3, legacy };
 }
 
 /**
- * Get URLs for a specific exchange.
+ * Get URLs for a specific exchange. Only the six live promo pages are
+ * submittable — retired /exchanges/{slug}/ reviews 301 to /exchanges/.
  */
 function buildExchangeUrls(slug) {
-  return [LIVE_PROMO_SLUGS.includes(slug) ? `/${slug}/` : `/exchanges/${slug}/`];
+  if (!LIVE_PROMO_SLUGS.includes(slug)) {
+    console.error(`Exchange "${slug}" has no live page (retired review, 301 → /exchanges/).`);
+    console.error(`Live pages: ${LIVE_PROMO_SLUGS.join(', ')}. To ping retired URLs use --mode legacy.`);
+    // Use exitCode (not process.exit) — same reason as the CLI entry point:
+    // hard exit trips a libuv handle assertion on Windows.
+    process.exitCode = 2;
+    return [];
+  }
+  return [`/${slug}/`];
 }
 
 /**
@@ -184,15 +199,17 @@ function resolveUrls() {
     return buildExchangeUrls(flags.exchange).map(abs);
   }
 
-  const { tier1, tier2, tier3 } = buildUrlSets();
+  const { tier1, tier3, legacy } = buildUrlSets();
 
   if (flags.mode === 'priority') return tier1.map(abs);
   if (flags.mode === 'evidence') return tier1.filter(u =>
     u.includes('/exchanges/') || LIVE_PROMO_SLUGS.some(s => u.endsWith(`/${s}/`))
   ).map(abs);
+  // MANUAL one-off: ping retired 301'd URLs so engines discover the redirects.
+  if (flags.mode === 'legacy') return legacy.map(abs);
 
-  // Default: all
-  return [...tier1, ...tier2, ...tier3].map(abs);
+  // Default: all — the full current sitemap set (tier1 + tier3)
+  return [...tier1, ...tier3].map(abs);
 }
 
 // ── Logging ───────────────────────────────────────────────────────────────────
@@ -321,21 +338,30 @@ export async function submitIndexNow(overrideUrls, opts = {}) {
 
   // When called programmatically (e.g. from deploy.mjs), use the opts.mode
   // override instead of the CLI flags (which would read deploy.mjs's argv).
+  // Without an opts.mode override (CLI invocation), resolveUrls() handles
+  // all flags including --urls and --exchange.
   const effectiveMode = opts.mode ?? flags.mode;
-  const urls = overrideUrls ?? (() => {
-    const { tier1, tier2, tier3 } = buildUrlSets();
+  const urls = overrideUrls ?? (opts.mode ? (() => {
+    const { tier1, tier3, legacy } = buildUrlSets();
     if (effectiveMode === 'priority') return tier1.map(abs);
-    if (effectiveMode === 'evidence') return [...tier1, ...tier2]
-      .filter(u => u.includes('/exchanges/') || u.includes('/bonuses/') || u.includes('/compare/'))
+    if (effectiveMode === 'evidence') return tier1
+      .filter(u => u.includes('/exchanges/') || LIVE_PROMO_SLUGS.some(s => u.endsWith(`/${s}/`)))
       .map(abs);
-    return [...tier1, ...tier2, ...tier3].map(abs);
-  })();
+    // MANUAL one-off: ping retired 301'd URLs (never the deploy default).
+    if (effectiveMode === 'legacy') return legacy.map(abs);
+    return [...tier1, ...tier3].map(abs);
+  })() : resolveUrls());
+
+  if (urls.length === 0) {
+    if (!silent) console.error('  ✗ No URLs to submit — nothing sent.');
+    return { ok: false, results: [] };
+  }
 
   if (!silent) {
     console.log(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
     console.log(`  CryptoBonusWorld — IndexNow Submit`);
     console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
-    console.log(`  Mode:    ${flags.exchange ? `exchange:${flags.exchange}` : flags.mode}`);
+    console.log(`  Mode:    ${flags.exchange ? `exchange:${flags.exchange}` : effectiveMode}`);
     console.log(`  URLs:    ${urls.length}`);
     console.log(`  Engines: ${engines.map(e => e.name).join(', ')}`);
     console.log(`  DryRun:  ${dryRun}`);

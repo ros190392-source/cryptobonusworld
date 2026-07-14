@@ -78,9 +78,11 @@ console.log('━━━━━━━━━━━━━━━━━━━━━━�
 if (!process.argv.includes('--no-indexnow')) {
   console.log('🔔  Notifying search engines via IndexNow…');
   try {
-    // Submit all URLs in priority mode (tier 1 + tier 2) on every deploy.
-    // Use --mode all for a full sweep or --mode priority for a quick blast.
-    const indexnowMode = process.argv.includes('--full-indexnow') ? 'all' : 'priority';
+    // Default deploy submits priority mode = tier1 money pages only
+    // (/, /promo-codes/, /exchanges/, six live review pages).
+    // Pass --full-indexnow for `all` mode = the full current sitemap set
+    // (tier1 + trust/legal pages). Retired 301'd URLs are never submitted
+    // on deploy — use `node scripts/indexnow.mjs --mode legacy` manually.
     const { ok, results } = await submitIndexNow(null, {
       silent: false,
       dryRun: process.argv.includes('--dry-run'),
