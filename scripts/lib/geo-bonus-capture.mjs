@@ -80,6 +80,7 @@ export const ERROR_CLASSES = [
   'PROXY_TARGET_TIMEOUT',   // exchange target too slow THROUGH the proxy
   'CLOUDFLARE_BLOCKED',     // challenge/anti-bot interstitial detected
   'PROXY_BLOCKED',          // proxy tunnel/auth failed
+  'BROWSER_PROXY_RENDER_FAILURE', // preflight reached everything, but Chromium landed on chrome-error:// through the proxy
   'NETWORK_FAILURE',        // DNS/connection-level failure
   'UNKNOWN_FAILURE',
 ];
@@ -93,10 +94,18 @@ export const CHALLENGE_RE = /(checking your browser|just a moment|attention requ
  * exit, our base site and the /go route all work, a slow/unreachable target
  * is classified as (PROXY_)TARGET_TIMEOUT and stays status='error'.
  */
-export function classifyFailure({ message = '', proxied = false, preflight = null, partialText = '', partialHtml = '' }) {
+export function classifyFailure({ message = '', proxied = false, preflight = null, partialText = '', partialHtml = '', partialUrl = '' }) {
   const msg = message || '';
   if (CHALLENGE_RE.test(partialText) || CHALLENGE_RE.test(partialHtml)) return 'CLOUDFLARE_BLOCKED';
   if (/ERR_TUNNEL_CONNECTION_FAILED|ERR_PROXY_|ERR_NO_SUPPORTED_PROXIES|ERR_SOCKS_CONNECTION/i.test(msg)) return 'PROXY_BLOCKED';
+  // Chromium landed on chrome-error:// through a proxy that preflight PROVED
+  // can reach the exit/base//go route — a browser-level rendering/tunnel
+  // problem, never a country restriction. If the target itself also failed
+  // preflight, it's the target being slow/unreachable through this proxy.
+  const hitChromeError = /chrome-error:/i.test(msg) || /^chrome-error:/i.test(partialUrl || '');
+  if (proxied && hitChromeError && preflight?.baseReachable && preflight?.goRouteReachable) {
+    return preflight?.targetReachable === false ? 'PROXY_TARGET_TIMEOUT' : 'BROWSER_PROXY_RENDER_FAILURE';
+  }
   if (/ERR_NAME_NOT_RESOLVED|ERR_CONNECTION_|ERR_INTERNET_DISCONNECTED|ERR_ADDRESS_UNREACHABLE|ERR_EMPTY_RESPONSE|ERR_HTTP2_PROTOCOL_ERROR|net::ERR_|chrome-error:/i.test(msg)) return 'NETWORK_FAILURE';
   if (preflight) {
     if (preflight.baseReachable === false) return 'BASE_SITE_UNREACHABLE';
@@ -277,6 +286,10 @@ export function buildSnapshot(fields) {
     note: fields.note ?? null,
     errorClass: fields.errorClass ?? null,
     preflight: fields.preflight ?? null,
+    // Direct-target browser fallback (used when the /go navigation dies on
+    // chrome-error but preflight proved the target host reachable).
+    fallbackAttempted: fields.fallbackAttempted ?? false,
+    fallbackResult: fields.fallbackResult ?? null,
   };
 }
 

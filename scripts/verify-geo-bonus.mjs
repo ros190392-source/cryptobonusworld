@@ -46,6 +46,7 @@ import {
   resolveProxy, describeProxy, buildTestedUrl, detectSignals,
   buildSnapshot, hashBuffer, classifyFailure,
 } from './lib/geo-bonus-capture.mjs';
+import { AFFILIATE_SNAPSHOT } from './lib/affiliate-snapshot.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
@@ -78,6 +79,45 @@ if (hasFlag('list')) {
   console.log('Countries:', CAPTURE_COUNTRIES.join(', '), '(european-union is never valid here)');
   console.log('Devices:  ', CAPTURE_DEVICES.join(', '));
   console.log('Exchanges:', CAPTURE_EXCHANGES.join(', '));
+  process.exit(0);
+}
+
+// ── Debug mode: --debug-proxy=<country> ──────────────────────────────────
+// Drives Playwright Chromium through the SAME proxy config the capture uses
+// and navigates a fixed diagnostic sequence (ipinfo → our base → /go →
+// direct exchange targets), printing status/finalUrl/title per step.
+// Writes no evidence files. Credentials are never printed.
+const debugProxyCountry = getArg('debug-proxy');
+if (debugProxyCountry) {
+  const proxyInfo = resolveProxy(debugProxyCountry);
+  if (!proxyInfo.configured || !proxyInfo.playwrightProxy) {
+    console.error(`--debug-proxy: ${describeProxy(proxyInfo)} — cannot debug without a configured proxy.`);
+    process.exit(1);
+  }
+  const urls = [
+    'https://ipinfo.io/json',
+    `${BASE_URL}/`,
+    buildTestedUrl('mexc', debugProxyCountry, BASE_URL),
+    AFFILIATE_SNAPSHOT.mexc?.affiliateUrl,
+    AFFILIATE_SNAPSHOT.bybit?.affiliateUrl,
+  ].filter(Boolean);
+  console.log(`Proxy browser debug — ${describeProxy(proxyInfo)} — ${urls.length} step(s), timeout ${TIMEOUTS.navigationTimeoutMs}ms each\n`);
+  const browser = await chromium.launch({ headless: true, args: ['--no-sandbox'], proxy: proxyInfo.playwrightProxy });
+  const context = await browser.newContext({ userAgent: DESKTOP_UA });
+  const page = await context.newPage();
+  for (const url of urls) {
+    const started = Date.now();
+    try {
+      const res = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: TIMEOUTS.navigationTimeoutMs });
+      const title = await page.title().catch(() => '');
+      console.log(`  OK   ${url}\n       → status=${res?.status() ?? '?'}, finalUrl=${page.url()}, title="${title.slice(0, 70)}", ${Date.now() - started}ms`);
+    } catch (e) {
+      let landed = '?';
+      try { landed = page.url(); } catch { /* gone */ }
+      console.log(`  FAIL ${url}\n       → ${String(e.message).split('\n')[0]} (landed on ${landed}, ${Date.now() - started}ms)`);
+    }
+  }
+  await browser.close().catch(() => {});
   process.exit(0);
 }
 
@@ -143,7 +183,7 @@ function findLatestOtherDevice(index, countrySlug, exchangeSlug, device) {
 // target is not the same thing as a dead proxy or a broken /go route.
 // A target preflight timeout does NOT abort the run — Playwright still gets
 // its (longer) chance; only base/go unreachability hard-fails.
-async function runPreflight(proxyInfo, testedUrl) {
+async function runPreflight(proxyInfo, testedUrl, exchangeSlug) {
   const result = {
     proxyExitCountry: null,
     baseReachable: null,
@@ -174,19 +214,26 @@ async function runPreflight(proxyInfo, testedUrl) {
     }
 
     try {
-      const goRes = await ctx.get(testedUrl, { maxRedirects: 0 });
-      const st = goRes.status();
-      result.goRouteReachable = st < 400;
-      const loc = goRes.headers()['location'];
-      if (loc) { try { result.targetHost = new URL(loc).hostname; } catch { /* relative/odd */ } }
+      // maxRedirects 3: production 301s /go/x → /go/x/ (same-host trailing
+      // slash) before serving the redirect page — an HTTP Location never
+      // points at the exchange (the page redirects via JS/meta refresh).
+      const goRes = await ctx.get(testedUrl, { maxRedirects: 3 });
+      result.goRouteReachable = goRes.status() < 400;
     } catch (e) {
       result.goRouteReachable = false;
       result.preflightError = `go: ${e.message}`;
     }
 
-    if (result.goRouteReachable && result.targetHost) {
+    // The REAL exchange target comes from the affiliate snapshot (the exact
+    // URL the /go page navigates to via JS), not from Location headers —
+    // v1 mistakenly re-tested our own host here after the trailing-slash 301.
+    const targetUrl = AFFILIATE_SNAPSHOT[exchangeSlug]?.affiliateUrl ?? null;
+    if (targetUrl) {
+      try { result.targetHost = new URL(targetUrl).hostname; } catch { /* malformed */ }
+    }
+    if (result.goRouteReachable && targetUrl) {
       try {
-        const tRes = await ctx.get(`https://${result.targetHost}/`, { maxRedirects: 3 });
+        const tRes = await ctx.get(targetUrl, { maxRedirects: 3 });
         result.targetReachable = tRes.status() < 500;
       } catch (e) {
         result.targetReachable = false; // slow/blocked target — Playwright still tries
@@ -223,7 +270,7 @@ async function runCapture(countrySlug, exchangeSlug, device, index) {
   const proxied = !!proxyInfo.playwrightProxy;
   let preflight = null;
   if (proxied) {
-    preflight = await runPreflight(proxyInfo, testedUrl);
+    preflight = await runPreflight(proxyInfo, testedUrl, exchangeSlug);
     console.log(`  [preflight] ${exchangeSlug} / ${countrySlug} / ${device} — exit=${preflight.proxyExitCountry ?? '?'}, base=${preflight.baseReachable}, go=${preflight.goRouteReachable}, target=${preflight.targetReachable ?? 'n/a'}`);
     if (preflight.baseReachable === false || preflight.goRouteReachable === false) {
       const errorClass = preflight.baseReachable === false ? 'BASE_SITE_UNREACHABLE' : 'GO_ROUTE_UNREACHABLE';
@@ -247,6 +294,8 @@ async function runCapture(countrySlug, exchangeSlug, device, index) {
   let partial = { url: null, title: null, text: '', html: '', screenshotBuf: null };
   const navChain = [];
   let lastStatus = null;
+  let fallbackAttempted = false;
+  let fallbackResult = null;
   try {
     browser = await chromium.launch(launchOpts);
     const viewport = VIEWPORTS[device];
@@ -280,7 +329,28 @@ async function runCapture(countrySlug, exchangeSlug, device, index) {
       partial.text = await page.evaluate(() => document.body ? document.body.innerText : '').catch(() => '');
       partial.html = await page.content().catch(() => '');
       partial.screenshotBuf = await page.screenshot({ timeout: TIMEOUTS.partialCaptureMs }).catch(() => null);
-      throw navErr;
+
+      // Fallback: the /go navigation died on chrome-error but preflight
+      // proved the target host reachable through this proxy — try the direct
+      // target URL (the exact URL the /go page redirects to) in the SAME
+      // browser before giving up. Success continues the normal capture path.
+      const directTargetUrl = AFFILIATE_SNAPSHOT[exchangeSlug]?.affiliateUrl ?? null;
+      const landedOnChromeError = (partial.url || '').startsWith('chrome-error:');
+      if (landedOnChromeError && preflight?.targetReachable && directTargetUrl) {
+        fallbackAttempted = true;
+        console.log(`  [fallback] ${exchangeSlug} / ${countrySlug} / ${device} — /go nav hit chrome-error; trying direct target`);
+        try {
+          await page.goto(directTargetUrl, { waitUntil: 'domcontentloaded', timeout: navTimeoutMs });
+          try { await page.waitForLoadState('networkidle', { timeout: TIMEOUTS.settleTimeoutMs }); } catch { /* settle */ }
+          fallbackResult = { ok: true, finalUrl: page.url() };
+          // Recovered — fall through to the normal capture path below.
+        } catch (fbErr) {
+          fallbackResult = { ok: false, error: String(fbErr.message).slice(0, 200) };
+          throw navErr;
+        }
+      } else {
+        throw navErr;
+      }
     }
 
     const finalUrl = page.url();
@@ -327,7 +397,11 @@ async function runCapture(countrySlug, exchangeSlug, device, index) {
       status: detected.status,
       confidence,
       preflight,
-      note: note ?? `proxy: ${describeProxy(proxyInfo)}`,
+      fallbackAttempted,
+      fallbackResult,
+      note: (fallbackAttempted
+        ? `Direct-target fallback used: /go browser navigation hit chrome-error through the proxy, but the direct target URL rendered (preflight had proved it reachable). Evidence below is from the direct target. `
+        : '') + (note ?? `proxy: ${describeProxy(proxyInfo)}`),
     });
 
     console.log(`  [${snapshot.status}] ${exchangeSlug} / ${countrySlug} / ${device} — confidence=${snapshot.confidence}, finalUrl=${finalUrl}`);
@@ -342,6 +416,7 @@ async function runCapture(countrySlug, exchangeSlug, device, index) {
       preflight,
       partialText: partial.text,
       partialHtml: partial.html,
+      partialUrl: partial.url ?? '',
     });
 
     let screenshotPath = null;
@@ -377,7 +452,12 @@ async function runCapture(countrySlug, exchangeSlug, device, index) {
       httpStatus: lastStatus,
       screenshotPath, htmlSnapshotPath, screenshotHash,
       status: 'error', confidence: 'unknown', errorClass, preflight,
-      note: `Capture error [${errorClass}]: ${err.message}${partialBits ? ` | partial: ${partialBits}` : ''} | proxy: ${describeProxy(proxyInfo)}`,
+      fallbackAttempted,
+      fallbackResult,
+      note: `Capture error [${errorClass}]: ${err.message}${partialBits ? ` | partial: ${partialBits}` : ''}${
+        errorClass === 'BROWSER_PROXY_RENDER_FAILURE'
+          ? ' | preflight reached exit/base//go/target but Chromium could not render through the proxy'
+          : ''}${fallbackAttempted ? ` | direct-target fallback: ${fallbackResult?.ok ? 'ok' : `failed (${fallbackResult?.error ?? '?'})`}` : ''} | proxy: ${describeProxy(proxyInfo)}`,
     });
     console.log(`  [error:${errorClass}] ${exchangeSlug} / ${countrySlug} / ${device} — ${err.message}${partialBits ? ` (partial: ${partialBits})` : ''}`);
     return snapshot;
