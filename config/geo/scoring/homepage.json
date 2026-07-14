@@ -1,0 +1,23 @@
+{
+  "$comment": "Homepage Rank Score — spec §7.6. Qualified Set thresholds gate entry; commercial weight deliberately limited.",
+  "qualified_set": {
+    "availability_score_min": 50,
+    "confidence_score_min": 60,
+    "registration_not": "NO",
+    "kyc_not": "NO",
+    "regulatory_status_not": "FORBIDDEN"
+  },
+  "weights": {
+    "user_fit": 0.35,
+    "usage": 0.25,
+    "availability": 0.20,
+    "commercial": 0.10,
+    "confidence": 0.10
+  },
+  "first_place_blockers": {
+    "confidence_score_min": 70,
+    "availability_score_min": 60,
+    "affiliate_status_not": "FORBIDDEN",
+    "critical_conflicts_max": 0
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "$comment": "Usage Score weights — spec §7.1. Values sum to 1.0. Popularity signals are normalised within the country's candidate set (§8); a scandal-driven search spike is not usage (Agent 07).",
+  "weights": {
+    "web_traffic": 0.25,
+    "search_demand": 0.20,
+    "app_popularity": 0.20,
+    "p2p_activity": 0.15,
+    "community_evidence": 0.10,
+    "local_payments_presence": 0.05,
+    "local_operational_presence": 0.05
+  },
+  "subscores": {
+    "web_traffic": { "estimated_local_visits": 0.40, "local_category_rank": 0.25, "traffic_stability": 0.20, "direct_traffic_share": 0.15 },
+    "search_demand": { "branded_searches": 0.40, "registration_deposit_searches": 0.20, "p2p_searches": 0.15, "withdrawal_searches": 0.10, "stability_12m": 0.10, "local_language_coverage": 0.05 },
+    "app_popularity": { "local_finance_rank": 0.35, "estimated_local_installs": 0.25, "review_velocity": 0.20, "local_review_count": 0.10, "rating_quality": 0.10 },
+    "p2p_activity": { "unique_merchants": 0.30, "active_offers": 0.25, "available_liquidity": 0.20, "payment_method_coverage": 0.10, "spread_quality": 0.10, "snapshot_stability": 0.05 },
+    "community_evidence": { "real_use_discussions": 0.35, "deposit_withdrawal_discussions": 0.20, "independent_howto": 0.15, "local_media_presence": 0.15, "recent_activity": 0.10, "source_diversity": 0.05 }
+  }
+}

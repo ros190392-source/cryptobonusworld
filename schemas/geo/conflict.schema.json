@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cryptobonusworld.com/schemas/geo/conflict.schema.json",
+  "title": "GEO Conflict Object",
+  "description": "A documented contradiction between evidence items. Conflicts are never hidden and never resolved toward the highest-converting answer. Spec §4 (Agent 17).",
+  "type": "object",
+  "required": ["conflict_id", "country", "exchange", "claim", "evidence_for", "evidence_against", "status", "final_value"],
+  "additionalProperties": false,
+  "properties": {
+    "conflict_id": { "type": "string", "pattern": "^cf-[a-z0-9-]+$" },
+    "country": { "type": "string" },
+    "exchange": { "type": "string", "enum": ["bybit", "mexc", "okx", "bitget", "kucoin", "bingx"] },
+    "claim": { "type": "string" },
+    "evidence_for": { "type": "array", "items": { "type": "string" } },
+    "evidence_against": { "type": "array", "items": { "type": "string" } },
+    "resolution": { "type": ["string", "null"], "description": "How it was resolved: entity mismatch, date precedence, regional version, re-test, or UNCERTAIN" },
+    "status": { "type": "string", "enum": ["resolved", "unresolved"] },
+    "critical": { "type": "boolean", "default": false, "description": "Critical unresolved conflicts block first place (Gate 04) and CTA (Gate 03)." },
+    "final_value": { "type": "string", "enum": ["YES", "NO", "PARTIAL", "UNKNOWN"] },
+    "confidence": { "type": "integer", "minimum": 0, "maximum": 100 }
+  }
+}

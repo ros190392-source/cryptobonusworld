@@ -1,0 +1,10 @@
+{
+  "$comment": "Evidence tier weights — spec §5. Tier D must never independently confirm a critical claim.",
+  "tiers": {
+    "A": { "weight": 1.00, "label": "Primary", "examples": ["regulator", "official register", "legislation", "official exchange terms", "official product page", "live registration flow", "official app store listing", "public exchange P2P interface"] },
+    "B": { "weight": 0.75, "label": "Strong analytical", "examples": ["Similarweb", "Google Trends", "established blockchain analytics", "recognised app intelligence", "established market intelligence"] },
+    "C": { "weight": 0.45, "label": "Independent secondary", "examples": ["major local media", "expert analysis", "local forums", "user discussions", "non-affiliate guides"] },
+    "D": { "weight": 0.15, "label": "Weak", "examples": ["SEO directories", "coupon websites", "affiliate reviews", "anonymous aggregators", "copied articles"] }
+  },
+  "rules": ["tier_D_never_confirms_critical_claim_alone"]
+}

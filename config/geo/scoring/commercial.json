@@ -1,0 +1,21 @@
+{
+  "$comment": "Commercial Score weights + hard rules — spec §7.4. Commercial value must not override factual availability or regulatory safety.",
+  "weights": {
+    "usage_score": 0.25,
+    "availability_score": 0.20,
+    "user_fit_score": 0.20,
+    "commercial_search_intent": 0.10,
+    "affiliate_eligibility": 0.10,
+    "promo_strength": 0.05,
+    "landing_page_quality": 0.05,
+    "expected_conversion": 0.05
+  },
+  "hard_rules": [
+    { "condition": "affiliate_geo_forbidden", "effect": "score = 0" },
+    { "condition": "affiliate_terms_unclear", "effect": "score <= 45" },
+    { "condition": "registration_impossible", "effect": "score = 0" },
+    { "condition": "kyc_impossible", "effect": "score <= 10" },
+    { "condition": "bonus_claim_not_verified", "effect": "promo_strength = 0" },
+    { "condition": "affiliate_link_broken", "effect": "score = 0" }
+  ]
+}

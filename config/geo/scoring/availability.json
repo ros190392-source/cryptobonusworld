@@ -1,0 +1,20 @@
+{
+  "$comment": "Availability Score weights + hard caps — spec §7.2. Absolute availability facts use fixed values (§8): confirmed=100, with_limitations=65, uncertain=35, not_available=0.",
+  "weights": {
+    "registration": 0.20,
+    "kyc": 0.20,
+    "legal_regulatory_status": 0.15,
+    "fiat_p2p_access": 0.15,
+    "core_product_access": 0.15,
+    "app_access": 0.10,
+    "support_language": 0.05
+  },
+  "fixed_values": { "confirmed": 100, "with_limitations": 65, "uncertain": 35, "not_available": 0 },
+  "hard_caps": [
+    { "condition": "country_explicitly_forbidden", "effect": "score = 0" },
+    { "condition": "registration_impossible", "effect": "score <= 25" },
+    { "condition": "kyc_impossible", "effect": "score <= 30" },
+    { "condition": "official_retail_restriction", "effect": "score <= 20" },
+    { "condition": "app_unavailable_web_available", "effect": "no hard zero" }
+  ]
+}

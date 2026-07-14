@@ -1,0 +1,16 @@
+{
+  "$comment": "Freshness windows in days — spec Gate 06. Expired evidence becomes STALE, never silently deleted.",
+  "windows_days": {
+    "registration_test": 30,
+    "restricted_country_terms": 30,
+    "affiliate_geo": 30,
+    "p2p_availability": 7,
+    "promo_landing_page": 3,
+    "bonus_amount": 3,
+    "regulatory_status": 30,
+    "app_availability": 30,
+    "search_popularity": 30,
+    "web_traffic": 60
+  },
+  "expired_status": "STALE"
+}

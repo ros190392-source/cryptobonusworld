@@ -1,0 +1,66 @@
+{
+  "$schema": "../../../../schemas/geo/exchange-geo-passport.schema.json",
+  "country": "KZ",
+  "exchange": "mexc",
+  "research_status": "not_started",
+  "identity": {
+    "brand": "MEXC",
+    "global_domain": null,
+    "local_domain": null,
+    "legal_entity": null,
+    "regulatory_entity": null
+  },
+  "availability": {
+    "website": "UNKNOWN",
+    "registration": "UNKNOWN",
+    "country_selector": "UNKNOWN",
+    "kyc": "UNKNOWN",
+    "local_documents": "UNKNOWN",
+    "app_ios": "UNKNOWN",
+    "app_android": "UNKNOWN"
+  },
+  "products": {
+    "spot": "UNKNOWN",
+    "futures": "UNKNOWN",
+    "p2p": "UNKNOWN",
+    "earn": "UNKNOWN",
+    "card": "UNKNOWN",
+    "fiat_deposit": "UNKNOWN",
+    "fiat_withdrawal": "UNKNOWN"
+  },
+  "local_fit": {
+    "currency": "KZT",
+    "currency_supported": null,
+    "local_language": null,
+    "local_banks": [],
+    "payment_methods": [],
+    "p2p_merchants": null
+  },
+  "affiliate": {
+    "go_route": "/go/mexc",
+    "promo_code": "mexc-CryptoBonus",
+    "link_status": "not_checked",
+    "code_status": "not_checked",
+    "geo_eligible": "UNKNOWN",
+    "bonus_claim_status": "not_checked"
+  },
+  "scores": {
+    "usage": null,
+    "availability": null,
+    "user_fit": null,
+    "commercial": null,
+    "confidence": null,
+    "homepage": null
+  },
+  "status": {
+    "editorial": null,
+    "cta": "not_decided",
+    "index_eligible": false
+  },
+  "prior_findings": "Sprint 8B (2026-07-03): KZ absent from official prohibited list (mexc.com/terms); no dedicated KZ support found. Partial signal only.",
+  "evidence_ids": [],
+  "conflict_ids": [],
+  "unknown_claim_ids": [],
+  "last_checked_at": null,
+  "next_check_at": null
+}

@@ -1,0 +1,26 @@
+{
+  "$comment": "Hard publication gates — spec §9. A research run starts publication_status=LOCKED; only passing these gates can change it. No config here can create pages: publication is a separate, owner-approved build step.",
+  "gates": {
+    "gate01_evidence_completeness": {
+      "required_categories": ["registration", "kyc", "restricted_countries", "spot", "p2p", "local_currency", "app", "affiliate_geo", "promo_code", "affiliate_link"],
+      "minimum_complete": 0.80,
+      "on_fail": "ranking_status = INCOMPLETE"
+    },
+    "gate02_regulatory_safety": {
+      "triggers": ["regulator_warning", "service_prohibition", "marketing_prohibition", "cannot_serve_residents_legally"],
+      "on_trigger_cta_states": ["informational_only", "restricted", "not_recommended"]
+    },
+    "gate03_affiliate_integrity": {
+      "cta_requires": ["affiliate_link_works", "final_domain_official", "geo_allowed", "promo_code_valid", "bonus_text_verified", "no_critical_unresolved_conflict"]
+    },
+    "gate04_ranking_integrity": {
+      "first_place_forbidden_when": { "confidence_score_lt": 70, "availability_score_lt": 60, "affiliate_status": "FORBIDDEN", "critical_conflicts_gt": 0 }
+    },
+    "gate05_no_paid_bias": {
+      "rule": "usage, availability and user_fit must be computed before the scoring agent can access affiliate commission data"
+    },
+    "gate06_freshness": { "config": "config/geo/freshness.json" }
+  },
+  "final_states": ["READY_TO_PUBLISH", "READY_WITH_WARNINGS", "OWNER_REVIEW_REQUIRED", "BLOCKED_BY_CONFLICT", "BLOCKED_BY_MISSING_EVIDENCE", "BLOCKED_BY_AFFILIATE_RULES"],
+  "owner_approval_required_before_any_page_is_created": true
+}

@@ -1,0 +1,102 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cryptobonusworld.com/schemas/geo/exchange-geo-passport.schema.json",
+  "title": "Exchange GEO Passport",
+  "description": "The complete research state for one country×exchange pair. Spec §11. Scores stay null until Phase 8 scoring runs with real evidence; availability values default to UNKNOWN and must never be upgraded without linked evidence.",
+  "type": "object",
+  "required": ["country", "exchange", "research_status", "availability", "affiliate", "scores", "status"],
+  "additionalProperties": false,
+  "definitions": {
+    "tri": { "type": "string", "enum": ["YES", "NO", "PARTIAL", "THIRD_PARTY", "P2P_ONLY", "UNKNOWN"] }
+  },
+  "properties": {
+    "country": { "type": "string" },
+    "exchange": { "type": "string", "enum": ["bybit", "mexc", "okx", "bitget", "kucoin", "bingx"] },
+    "research_status": { "type": "string", "enum": ["not_started", "in_progress", "complete", "blocked"] },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "brand": { "type": "string" },
+        "global_domain": { "type": ["string", "null"] },
+        "local_domain": { "type": ["string", "null"] },
+        "legal_entity": { "type": ["string", "null"] },
+        "regulatory_entity": { "type": ["string", "null"] }
+      }
+    },
+    "availability": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "website": { "$ref": "#/definitions/tri" },
+        "registration": { "$ref": "#/definitions/tri" },
+        "country_selector": { "$ref": "#/definitions/tri" },
+        "kyc": { "$ref": "#/definitions/tri" },
+        "local_documents": { "$ref": "#/definitions/tri" },
+        "app_ios": { "$ref": "#/definitions/tri" },
+        "app_android": { "$ref": "#/definitions/tri" }
+      }
+    },
+    "products": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/definitions/tri" },
+      "description": "spot, futures, options, margin, p2p, earn, staking, launchpool, card, copy_trading, fiat_deposit, fiat_withdrawal. Product restrictions must not be generalised to the whole exchange."
+    },
+    "local_fit": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "currency": { "type": "string" },
+        "currency_supported": { "type": ["boolean", "null"] },
+        "local_language": { "type": ["boolean", "null"] },
+        "local_banks": { "type": "array", "items": { "type": "string" } },
+        "payment_methods": { "type": "array", "items": { "type": "string" } },
+        "p2p_merchants": { "type": ["integer", "null"] }
+      }
+    },
+    "affiliate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["go_route", "promo_code"],
+      "properties": {
+        "go_route": { "type": "string", "pattern": "^/go/[a-z-]+$", "description": "Internal route only — raw affiliate URLs are never stored here." },
+        "promo_code": { "type": "string", "description": "Canonical code from src/data/offers.ts — IMMUTABLE, research never changes it." },
+        "link_status": { "type": "string", "enum": ["VERIFIED", "VERIFIED_WITH_LIMITS", "CLAIM_MISMATCH", "CODE_NOT_VISIBLE", "LINK_BROKEN", "GEO_NOT_ELIGIBLE", "AFFILIATE_TERMS_UNCLEAR", "MANUAL_CHECK_REQUIRED", "FORBIDDEN", "not_checked"] },
+        "code_status": { "type": "string", "enum": ["VERIFIED", "VERIFIED_WITH_LIMITS", "CLAIM_MISMATCH", "CODE_NOT_VISIBLE", "MANUAL_CHECK_REQUIRED", "not_checked"] },
+        "geo_eligible": { "$ref": "#/definitions/tri" },
+        "bonus_claim_status": { "type": "string", "enum": ["VERIFIED", "CLAIM_MISMATCH", "MANUAL_CHECK_REQUIRED", "not_checked"] }
+      }
+    },
+    "scores": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "All null until scoring runs (Phase 8). Never hand-filled.",
+      "properties": {
+        "usage": { "type": ["number", "null"] },
+        "availability": { "type": ["number", "null"] },
+        "user_fit": { "type": ["number", "null"] },
+        "commercial": { "type": ["number", "null"] },
+        "confidence": { "type": ["number", "null"] },
+        "homepage": { "type": ["number", "null"] }
+      }
+    },
+    "status": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "editorial": { "type": ["string", "null"], "enum": [null, "BEST_OVERALL", "MOST_POPULAR", "BEST_FOR_P2P", "BEST_FOR_BEGINNERS", "BEST_LOCAL_FIAT_SUPPORT", "AVAILABLE_WITH_LIMITS", "INFORMATIONAL_ONLY", "INSUFFICIENT_EVIDENCE", "RESTRICTED", "NOT_AVAILABLE"] },
+        "cta": { "type": "string", "enum": ["ALLOWED", "INFORMATIONAL_ONLY", "FORBIDDEN", "not_decided"] },
+        "index_eligible": { "type": "boolean", "default": false }
+      }
+    },
+    "prior_findings": {
+      "type": ["string", "null"],
+      "description": "Informational pointer to pre-existing repo evidence (geoRankings.ts overrides, evidence packs). Context only — does NOT populate availability values."
+    },
+    "evidence_ids": { "type": "array", "items": { "type": "string" } },
+    "conflict_ids": { "type": "array", "items": { "type": "string" } },
+    "unknown_claim_ids": { "type": "array", "items": { "type": "string" } },
+    "last_checked_at": { "type": ["string", "null"] },
+    "next_check_at": { "type": ["string", "null"] }
+  }
+}

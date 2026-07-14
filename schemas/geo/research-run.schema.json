@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cryptobonusworld.com/schemas/geo/research-run.schema.json",
+  "title": "GEO Research Run",
+  "description": "State of one orchestrated research run for a country. Spec §13 (phases) + §4 Agent 01 output.",
+  "type": "object",
+  "required": ["research_run_id", "country", "exchanges", "run_status", "publication_status"],
+  "additionalProperties": false,
+  "properties": {
+    "research_run_id": { "type": "string", "pattern": "^run-[a-z]{2}-[0-9]{4}-[0-9]{2}-[0-9]{2}(-[0-9]+)?$" },
+    "country": { "type": "string" },
+    "spec_version": { "type": "string" },
+    "created_at": { "type": "string" },
+    "exchanges": { "type": "array", "items": { "type": "string", "enum": ["bybit", "mexc", "okx", "bitget", "kucoin", "bingx"] }, "minItems": 1 },
+    "run_status": { "type": "string", "enum": ["initialised", "in_progress", "complete", "aborted"] },
+    "phases": {
+      "type": "object",
+      "description": "Phase 0–13 statuses",
+      "additionalProperties": { "type": "string", "enum": ["not_started", "in_progress", "complete", "blocked", "skipped"] }
+    },
+    "completed_tasks": { "type": "array", "items": { "type": "string" } },
+    "failed_tasks": { "type": "array", "items": { "type": "string" } },
+    "missing_evidence": { "type": "array", "items": { "type": "string" } },
+    "unresolved_conflicts": { "type": "array", "items": { "type": "string" } },
+    "ranking_status": { "type": "string", "enum": ["not_started", "INCOMPLETE", "ready", "unstable"] },
+    "publication_status": { "type": "string", "enum": ["LOCKED", "READY_TO_PUBLISH", "READY_WITH_WARNINGS", "OWNER_REVIEW_REQUIRED", "BLOCKED_BY_CONFLICT", "BLOCKED_BY_MISSING_EVIDENCE", "BLOCKED_BY_AFFILIATE_RULES"], "description": "Starts LOCKED (Phase 0 locks publication). Only the gates in config/geo/publication-gates.json may change it." }
+  }
+}

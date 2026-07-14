@@ -1,0 +1,24 @@
+{
+  "$comment": "Task manifest for run-kz-2026-07-14. Each task maps a spec agent role to a concrete unit of work. Statuses: not_checked | in_progress | done | blocked | owner_review_required. This is a plan, not results.",
+  "research_run_id": "run-kz-2026-07-14",
+  "tasks": [
+    { "id": "kz-t01", "role": "country-context", "scope": "country", "description": "Country baseline: regulators (AFSA/AIFC, NBK), registers, legal regime, banks (Kaspi, Halyk), payment methods, languages", "status": "not_checked" },
+    { "id": "kz-t02", "role": "official-terms", "scope": "per-exchange", "description": "ToS/eligibility/restricted-countries/KYC/fiat/P2P/app/affiliate rules — 7 minimum official sources per exchange", "status": "not_checked" },
+    { "id": "kz-t03", "role": "live-availability", "scope": "per-exchange", "description": "Proxied read-only tests via scripts/verify-geo-bonus.mjs (--country=kazakhstan): registration page, country selector, promo landing, code visibility", "status": "blocked", "blocker": "PROXY_KZ not configured" },
+    { "id": "kz-t04", "role": "app-store", "scope": "per-exchange", "description": "iOS + Android local availability, publisher, rank, review signals", "status": "not_checked" },
+    { "id": "kz-t05", "role": "search-demand", "scope": "per-exchange", "description": "Branded/intent query demand in kk/ru/en incl. transliteration; classify intents", "status": "not_checked" },
+    { "id": "kz-t06", "role": "web-traffic", "scope": "per-exchange", "description": "Local visits/share/rank/trends across relevant subdomains", "status": "not_checked" },
+    { "id": "kz-t07", "role": "p2p-liquidity", "scope": "per-exchange", "description": "KZT P2P snapshots (USDT/BTC/USDC × BUY/SELL × Kaspi/Halyk/bank) at 3 time slots", "status": "not_checked" },
+    { "id": "kz-t08", "role": "community", "scope": "per-exchange", "description": "Telegram/YouTube/forums real-use evidence, classified; affiliate content excluded", "status": "not_checked" },
+    { "id": "kz-t09", "role": "local-payments", "scope": "per-exchange", "description": "KZT deposit/withdrawal matrix incl. Kaspi/Halyk, cards, transfers", "status": "not_checked" },
+    { "id": "kz-t10", "role": "product-availability", "scope": "per-exchange", "description": "Product map: spot/futures/margin/P2P/earn/card/fiat", "status": "not_checked" },
+    { "id": "kz-t11", "role": "affiliate-validator", "scope": "per-exchange", "description": "/go/ route behaviour from KZ, final domain, code visibility, bonus claim match, affiliate GEO terms", "status": "blocked", "blocker": "PROXY_KZ not configured" },
+    { "id": "kz-t12", "role": "fees", "scope": "per-exchange", "description": "Locally relevant fees (P2P first, then spot/futures/withdrawal)", "status": "not_checked" },
+    { "id": "kz-t13", "role": "security-trust", "scope": "per-exchange", "description": "PoR, incident history, enforcement, entity transparency", "status": "not_checked" },
+    { "id": "kz-t14", "role": "evidence-normalizer", "scope": "country", "description": "Build evidence/claims/conflicts/unknowns ledgers", "status": "not_checked" },
+    { "id": "kz-t15", "role": "conflict-resolver", "scope": "country", "description": "Resolve or mark UNCERTAIN; e.g. bitget ToS-prohibited vs observed P2P activity", "status": "not_checked" },
+    { "id": "kz-t16", "role": "scoring", "scope": "country", "description": "Phase 8 scoring per config/geo/scoring/*", "status": "not_checked" },
+    { "id": "kz-t17", "role": "red-team", "scope": "country", "description": "Challenge ranking per spec Phase 10 checklist", "status": "not_checked" },
+    { "id": "kz-t18", "role": "editorial-qa", "scope": "country", "description": "Editorial from approved claims only + final QA + publish-or-block", "status": "not_checked" }
+  ]
+}

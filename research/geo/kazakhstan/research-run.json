@@ -1,0 +1,31 @@
+{
+  "$schema": "../../../schemas/geo/research-run.schema.json",
+  "research_run_id": "run-kz-2026-07-14",
+  "country": "KZ",
+  "spec_version": "GEO_EXCHANGE_RESEARCH_SYSTEM v1 (docs/geo-research/)",
+  "created_at": "2026-07-14",
+  "exchanges": ["bybit", "mexc", "okx", "bitget", "kucoin", "bingx"],
+  "run_status": "initialised",
+  "phases": {
+    "phase00_initialisation": "complete",
+    "phase01_country_baseline": "not_started",
+    "phase02_official_exchange_research": "not_started",
+    "phase03_live_geo_validation": "blocked",
+    "phase04_popularity_research": "not_started",
+    "phase05_user_fit_research": "not_started",
+    "phase06_evidence_normalisation": "not_started",
+    "phase07_conflict_resolution": "not_started",
+    "phase08_scoring": "not_started",
+    "phase09_sensitivity_analysis": "not_started",
+    "phase10_red_team": "not_started",
+    "phase11_editorial_generation": "not_started",
+    "phase12_final_qa": "not_started",
+    "phase13_publish_or_block": "not_started"
+  },
+  "completed_tasks": [],
+  "failed_tasks": [],
+  "missing_evidence": ["ALL — no research tasks have run yet; phase03 blocked until PROXY_KZ is provisioned"],
+  "unresolved_conflicts": [],
+  "ranking_status": "not_started",
+  "publication_status": "LOCKED"
+}

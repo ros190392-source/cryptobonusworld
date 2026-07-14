@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cryptobonusworld.com/schemas/geo/scoring-result.schema.json",
+  "title": "GEO Scoring Result",
+  "description": "Output of the Phase 8 scoring engine for one country. Weights come from config/geo/scoring/*.json; caps/penalties are applied after weighting. Spec §7–§8.",
+  "type": "object",
+  "required": ["country", "research_run_id", "scored_at", "results"],
+  "additionalProperties": false,
+  "properties": {
+    "country": { "type": "string" },
+    "research_run_id": { "type": "string" },
+    "scored_at": { "type": "string" },
+    "scoring_config_version": { "type": "string" },
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["exchange", "scores", "qualified", "gates"],
+        "additionalProperties": false,
+        "properties": {
+          "exchange": { "type": "string", "enum": ["bybit", "mexc", "okx", "bitget", "kucoin", "bingx"] },
+          "scores": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "usage": { "type": ["number", "null"] },
+              "availability": { "type": ["number", "null"] },
+              "user_fit": { "type": ["number", "null"] },
+              "commercial": { "type": ["number", "null"] },
+              "confidence": { "type": ["number", "null"] },
+              "homepage": { "type": ["number", "null"] }
+            }
+          },
+          "applied_caps": { "type": "array", "items": { "type": "string" }, "description": "Which hard caps/penalties fired, e.g. 'registration_impossible→availability≤25'" },
+          "qualified": { "type": "boolean", "description": "Passed the Qualified Set thresholds in config/geo/scoring/homepage.json" },
+          "rank": { "type": ["integer", "null"] },
+          "editorial_label": { "type": ["string", "null"] },
+          "gates": {
+            "type": "object",
+            "additionalProperties": { "type": "string", "enum": ["pass", "fail", "not_evaluated"] },
+            "description": "Per-gate result keyed by gate id (gate01…gate06)"
+          }
+        }
+      }
+    },
+    "sensitivity": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "scenarios_run": { "type": "array", "items": { "type": "string" } },
+        "ranking_stability": { "type": "string", "enum": ["HIGH", "MEDIUM", "LOW"] },
+        "notes": { "type": ["string", "null"] }
+      }
+    }
+  }
+}

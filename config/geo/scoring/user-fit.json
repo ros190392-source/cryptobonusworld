@@ -1,0 +1,14 @@
+{
+  "$comment": "User Fit Score weights — spec §7.3.",
+  "weights": {
+    "availability": 0.20,
+    "local_payments": 0.20,
+    "p2p_quality": 0.15,
+    "fees": 0.10,
+    "product_coverage": 0.10,
+    "app_quality": 0.10,
+    "local_language": 0.05,
+    "support": 0.05,
+    "trust_security": 0.05
+  }
+}

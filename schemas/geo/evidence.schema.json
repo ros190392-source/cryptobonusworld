@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cryptobonusworld.com/schemas/geo/evidence.schema.json",
+  "title": "GEO Evidence Object",
+  "description": "One piece of evidence supporting or contradicting a claim for a country×exchange pair. Spec: docs/geo-research/GEO_EXCHANGE_RESEARCH_SYSTEM.md §4 (Agent 03) + §5 (tiers). Live-capture fields connect to scripts/verify-geo-bonus.mjs snapshots (Sprint 8F).",
+  "type": "object",
+  "required": ["evidence_id", "country", "exchange", "claim", "status", "source_tier", "checked_at"],
+  "additionalProperties": false,
+  "properties": {
+    "evidence_id": { "type": "string", "pattern": "^ev-[a-z0-9-]+$" },
+    "country": { "type": "string", "description": "ISO 3166-1 alpha-2, e.g. KZ" },
+    "exchange": { "type": "string", "enum": ["bybit", "mexc", "okx", "bitget", "kucoin", "bingx"] },
+    "category": { "type": "string", "enum": ["registration", "kyc", "restricted_countries", "regulatory", "products", "fiat", "p2p", "app", "payments", "fees", "security", "affiliate", "promo_code", "bonus_claim", "usage", "community", "other"] },
+    "claim": { "type": "string", "description": "The factual statement this evidence addresses" },
+    "status": { "type": "string", "enum": ["confirmed", "contradicted", "uncertain"] },
+    "source_tier": { "type": "string", "enum": ["A", "B", "C", "D"], "description": "See config/geo/evidence-tiers.json for weights. Tier D must never independently confirm a critical claim." },
+    "source_url": { "type": ["string", "null"] },
+    "source_title": { "type": ["string", "null"] },
+    "published_at": { "type": ["string", "null"], "description": "ISO date the source was published/updated" },
+    "checked_at": { "type": "string", "description": "ISO date this evidence was collected" },
+    "extract": { "type": ["string", "null"], "description": "Verbatim quote from the source" },
+    "interpretation": { "type": ["string", "null"] },
+    "limitations": { "type": ["string", "null"] },
+    "capture": {
+      "type": ["object", "null"],
+      "description": "Present when evidence comes from a live proxied test (scripts/verify-geo-bonus.mjs output).",
+      "additionalProperties": false,
+      "properties": {
+        "exit_ip_country": { "type": ["string", "null"] },
+        "tested_url": { "type": ["string", "null"] },
+        "final_url": { "type": ["string", "null"] },
+        "http_status": { "type": ["integer", "null"] },
+        "screenshot_path": { "type": ["string", "null"] },
+        "html_snapshot_path": { "type": ["string", "null"] },
+        "screenshot_hash": { "type": ["string", "null"] },
+        "error_class": { "type": ["string", "null"], "enum": [null, "SITE_AVAILABLE", "REGISTRATION_AVAILABLE", "COUNTRY_NOT_LISTED", "REGION_RESTRICTED", "PRODUCT_RESTRICTED", "APP_ONLY", "LOGIN_REQUIRED", "CLOUDFLARE_BLOCKED", "PROXY_BLOCKED", "NETWORK_FAILURE", "UNKNOWN_FAILURE"] }
+      }
+    }
+  }
+}

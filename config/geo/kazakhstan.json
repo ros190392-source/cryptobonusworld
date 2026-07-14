@@ -1,0 +1,23 @@
+{
+  "$comment": "First target GEO for the GEO Exchange Research System. Candidate set = the six exchanges currently configured on CryptoBonusWorld (owner decision — NOT the Binance/Crypto.com/Gate.io example set from the spec). This config cannot generate pages; publication is gated separately.",
+  "country": "KZ",
+  "country_slug": "kazakhstan",
+  "country_name": "Kazakhstan",
+  "local_currency": "KZT",
+  "languages": ["kk", "ru"],
+  "exchanges": ["bybit", "mexc", "okx", "bitget", "kucoin", "bingx"],
+  "proxy_env": "PROXY_KZ",
+  "evidence_status": "not_started",
+  "publication_status": "blocked_by_missing_evidence",
+  "homepage_eligible": false,
+  "prior_repo_evidence": {
+    "$comment": "Existing terms-level research (Sprint 8B, 2026-07-03) — context for researchers, NOT pre-filled passport values.",
+    "geo_model": "src/data/geoRankings.ts (MANUAL_OVERRIDES.kazakhstan)",
+    "evidence_pack": "reports/evidence/geo/kazakhstan/2026-07-03/ (untracked)",
+    "known_findings": [
+      "bybit: active AFSA license AFSA-A-LA-2024-0027 confirmed on Kazakhstan's official register (verified)",
+      "bitget: Kazakhstan explicitly named in Bitget's own Terms of Use Prohibited Countries (verified)",
+      "mexc/okx/kucoin/bingx: absent from own restriction lists; no dedicated KZ support found (partial)"
+    ]
+  }
+}
