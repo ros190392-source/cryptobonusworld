@@ -58,6 +58,54 @@ export const MOBILE_UA  = 'Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/
 
 export const DEFAULT_BASE_URL = 'https://cryptobonusworld.com';
 
+// ── Timeouts ──────────────────────────────────────────────────────────────
+// Proxied navigation goes through residential/mobile exits that are MUCH
+// slower than direct connections (observed: mexc.com through PROXY_KZ takes
+// >60s to first byte). navigationTimeoutMs applies to proxied runs;
+// softTimeoutMs keeps un-proxied (global baseline) runs fast.
+export const TIMEOUTS = {
+  navigationTimeoutMs: 90000, // proxied page.goto
+  softTimeoutMs: 30000,       // un-proxied page.goto (global)
+  targetTimeoutMs: 90000,     // overall per-target budget (== navigation)
+  settleTimeoutMs: 20000,     // best-effort networkidle after goto
+  preflightTimeoutMs: 15000,  // per-request preflight budget
+  partialCaptureMs: 10000,    // screenshot/html attempts after a timeout
+};
+
+// ── Failure classification ────────────────────────────────────────────────
+export const ERROR_CLASSES = [
+  'BASE_SITE_UNREACHABLE',  // our own site unreachable through this route
+  'GO_ROUTE_UNREACHABLE',   // /go/{exchange} itself failed
+  'TARGET_TIMEOUT',         // exchange target too slow (direct connection)
+  'PROXY_TARGET_TIMEOUT',   // exchange target too slow THROUGH the proxy
+  'CLOUDFLARE_BLOCKED',     // challenge/anti-bot interstitial detected
+  'PROXY_BLOCKED',          // proxy tunnel/auth failed
+  'NETWORK_FAILURE',        // DNS/connection-level failure
+  'UNKNOWN_FAILURE',
+];
+
+// Anti-bot / challenge interstitials (checked against partial text+HTML).
+export const CHALLENGE_RE = /(checking your browser|just a moment|attention required|cf-browser-verification|verify (that )?you are (a )?human|ddos[- ]protection|enable javascript and cookies)/i;
+
+/**
+ * Map a capture failure to an ERROR_CLASSES value. A timeout on the exchange
+ * target is NEVER a country restriction — when preflight proved the proxy
+ * exit, our base site and the /go route all work, a slow/unreachable target
+ * is classified as (PROXY_)TARGET_TIMEOUT and stays status='error'.
+ */
+export function classifyFailure({ message = '', proxied = false, preflight = null, partialText = '', partialHtml = '' }) {
+  const msg = message || '';
+  if (CHALLENGE_RE.test(partialText) || CHALLENGE_RE.test(partialHtml)) return 'CLOUDFLARE_BLOCKED';
+  if (/ERR_TUNNEL_CONNECTION_FAILED|ERR_PROXY_|ERR_NO_SUPPORTED_PROXIES|ERR_SOCKS_CONNECTION/i.test(msg)) return 'PROXY_BLOCKED';
+  if (/ERR_NAME_NOT_RESOLVED|ERR_CONNECTION_|ERR_INTERNET_DISCONNECTED|ERR_ADDRESS_UNREACHABLE|ERR_EMPTY_RESPONSE|ERR_HTTP2_PROTOCOL_ERROR|net::ERR_|chrome-error:/i.test(msg)) return 'NETWORK_FAILURE';
+  if (preflight) {
+    if (preflight.baseReachable === false) return 'BASE_SITE_UNREACHABLE';
+    if (preflight.goRouteReachable === false) return 'GO_ROUTE_UNREACHABLE';
+  }
+  if (/Timeout .*exceeded|TimeoutError|timed? ?out/i.test(msg)) return proxied ? 'PROXY_TARGET_TIMEOUT' : 'TARGET_TIMEOUT';
+  return 'UNKNOWN_FAILURE';
+}
+
 // ── Proxy resolution ─────────────────────────────────────────────────────
 // Never hardcode credentials. Only reads process.env at call time and never
 // returns the raw value to a caller that might log/persist it — call
@@ -201,6 +249,8 @@ export function detectSignals(rawText, rawHtml, exchangeSlug) {
  * @property {'verified'|'partial'|'unknown'} confidence
  * @property {'not_available'|'verified'|'not_verified'|'blocked'} postSignupVerification
  * @property {string|null} note
+ * @property {string|null} errorClass  one of ERROR_CLASSES when status='error'
+ * @property {object|null} preflight   { proxyExitCountry, baseReachable, goRouteReachable, targetReachable, targetHost, preflightError }
  */
 
 export function buildSnapshot(fields) {
@@ -225,6 +275,8 @@ export function buildSnapshot(fields) {
     // Binding default — this tool never performs account/dashboard verification.
     postSignupVerification: fields.postSignupVerification ?? 'not_available',
     note: fields.note ?? null,
+    errorClass: fields.errorClass ?? null,
+    preflight: fields.preflight ?? null,
   };
 }
 
