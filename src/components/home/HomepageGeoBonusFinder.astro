@@ -1,22 +1,27 @@
 ---
 /**
- * HomepageGeoBonusFinder — above-the-fold homepage mini bonus aggregator.
+ * HomepageGeoBonusFinder v2 — simplified, conversion-focused GEO bonus finder.
  *
- * Renders one static panel per supported country (server-side, no fetch),
- * then a small inline script toggles visibility client-side based on a
- * manual selection (persisted to localStorage under a namespaced key) or
- * the existing site-wide `cbw_geo` value already set by Analytics.astro.
- * No new country pages, no sitemap entries, no EU country option — see
- * do-not-invent rules in src/data/geoRankings.ts and
- * src/data/geoBonusEvidence.ts, which this section reads but never overrides.
+ * The homepage IS this finder: detect country → show the best promo codes for
+ * it immediately. One static panel per supported country is rendered
+ * server-side; a small inline script toggles panels and swaps the H1 based on
+ * (1) the user's manual choice (localStorage cbw_gf_country), (2) the site's
+ * existing cbw_geo signal set by Analytics.astro, (3) Global fallback.
+ * No geolocation permission prompts, no blocking, no new detection mechanisms.
+ *
+ * Data: geoRankings.ts (evidence-backed country rows + global ranking),
+ * exchanges.ts (rich page URLs, /go/ routes), offers.ts (codes, bonus text),
+ * exchanges.json (CBW rating only). Nothing invented — see do-not-invent
+ * rules in src/data/geoRankings.ts and src/data/geoBonusEvidence.ts.
+ * EU is never a selectable country (regulatory overlay only).
  */
+import ExchangeLogo from '../ExchangeLogo.astro';
 import { getExchange } from '../../data/exchanges';
 import { getOffer } from '../../data/offers';
+import exchangesJson from '../../data/exchanges.json';
 import {
-  getSupportedPromoCountries,
   getGlobalPromoRanking,
   getCountryPromoRanking,
-  isEuCountry,
   type PromoCountrySlug,
 } from '../../data/geoRankings';
 
@@ -27,7 +32,7 @@ type Confidence = 'verified' | 'partial' | 'unknown';
 interface FinderRow {
   slug: string;
   name: string;
-  logoText: string;
+  rating: number | null;
   pageUrl: string;
   goUrl: string;
   promoCode: string;
@@ -37,56 +42,51 @@ interface FinderRow {
   bonusAvailability: BonusAvailability;
   confidence: Confidence;
   evidenceDate: string | null;
-  restrictionNote: string | null;
-  bonusNote: string | null;
   isGlobalFallback: boolean;
 }
 
-const COUNTRY_META: { slug: PromoCountrySlug; label: string; flag: string }[] = [
-  { slug: 'global',          label: 'Global',         flag: '🌍' },
-  { slug: 'poland',          label: 'Poland',         flag: '🇵🇱' },
-  { slug: 'germany',         label: 'Germany',        flag: '🇩🇪' },
-  { slug: 'kazakhstan',      label: 'Kazakhstan',     flag: '🇰🇿' },
-  { slug: 'turkey',          label: 'Turkey',         flag: '🇹🇷' },
-  { slug: 'united-kingdom',  label: 'United Kingdom', flag: '🇬🇧' },
-  { slug: 'united-states',   label: 'United States',  flag: '🇺🇸' },
+const COUNTRY_META: { slug: PromoCountrySlug; label: string; flag: string; headline: string }[] = [
+  { slug: 'global',         label: 'Global',         flag: '🌍', headline: 'Best Crypto Bonus Codes Worldwide' },
+  { slug: 'poland',         label: 'Poland',         flag: '🇵🇱', headline: 'Best Crypto Bonus Codes for Poland' },
+  { slug: 'germany',        label: 'Germany',        flag: '🇩🇪', headline: 'Best Crypto Bonus Codes for Germany' },
+  { slug: 'kazakhstan',     label: 'Kazakhstan',     flag: '🇰🇿', headline: 'Best Crypto Bonus Codes for Kazakhstan' },
+  { slug: 'turkey',         label: 'Turkey',         flag: '🇹🇷', headline: 'Best Crypto Bonus Codes for Turkey' },
+  { slug: 'united-kingdom', label: 'United Kingdom', flag: '🇬🇧', headline: 'Best Crypto Bonus Codes for the United Kingdom' },
+  { slug: 'united-states',  label: 'United States',  flag: '🇺🇸', headline: 'Best Crypto Bonus Codes for the United States' },
 ];
-// European Union is a regulatory overlay only (geoRankings.ts) — never a
-// selectable country here. See isEuCountry() usage below for the ONLY way
-// EU shows up: an informational note under Poland/Germany.
+// European Union is a regulatory overlay only (geoRankings.ts) — never a country here.
+
+// CBW editorial rating (existing approved data from exchanges.json — same value
+// shown on exchange detail pages). Never invented; null when absent.
+const ratingBySlug: Record<string, number> = Object.fromEntries(
+  (exchangesJson as any[]).filter(e => typeof e.rating === 'number').map(e => [e.slug, e.rating]),
+);
 
 const AVAIL_WEIGHT: Record<Availability, number> = { available: 0, unknown: 1, restricted: 2 };
 const CONF_WEIGHT: Record<Confidence, number> = { verified: 0, partial: 1, unknown: 2 };
-const MAX_ROWS = 5;
+const MAX_ROWS = 6;
 
 function buildRowsFor(countrySlug: PromoCountrySlug): FinderRow[] {
   if (countrySlug === 'global') {
     return getGlobalPromoRanking()
       .slice(0, MAX_ROWS)
-      .map(entry => {
-        const ex = getExchange(entry.exchangeSlug)!;
-        return {
-          slug: entry.exchangeSlug,
-          name: entry.exchangeName,
-          logoText: ex.logoText,
-          pageUrl: entry.reviewUrl,
-          goUrl: entry.claimUrl,
-          promoCode: entry.promoCode,
-          bonusHeadline: entry.bonusSnapshot,
-          offerStatus: entry.offerStatus,
-          availability: 'available',
-          bonusAvailability: 'available',
-          confidence: entry.offerStatus === 'verified' ? 'verified' : 'partial',
-          evidenceDate: getOffer(entry.exchangeSlug)?.lastChecked ?? null,
-          restrictionNote: null,
-          bonusNote: null,
-          isGlobalFallback: false,
-        } satisfies FinderRow;
-      });
+      .map(entry => ({
+        slug: entry.exchangeSlug,
+        name: entry.exchangeName,
+        rating: ratingBySlug[entry.exchangeSlug] ?? null,
+        pageUrl: entry.reviewUrl,
+        goUrl: entry.claimUrl,
+        promoCode: entry.promoCode,
+        bonusHeadline: entry.bonusSnapshot,
+        offerStatus: entry.offerStatus,
+        availability: 'available' as const,
+        bonusAvailability: 'available' as const,
+        confidence: entry.offerStatus === 'verified' ? 'verified' as const : 'partial' as const,
+        evidenceDate: getOffer(entry.exchangeSlug)?.lastChecked ?? null,
+        isGlobalFallback: false,
+      }));
   }
-
-  const rows = getCountryPromoRanking(countrySlug);
-  return rows
+  return getCountryPromoRanking(countrySlug)
     .map(row => {
       const ex = getExchange(row.exchangeSlug);
       const offer = getOffer(row.exchangeSlug);
@@ -94,7 +94,7 @@ function buildRowsFor(countrySlug: PromoCountrySlug): FinderRow[] {
       return {
         slug: row.exchangeSlug,
         name: ex.name,
-        logoText: ex.logoText,
+        rating: ratingBySlug[row.exchangeSlug] ?? null,
         pageUrl: ex.pageUrl ?? `/exchanges/${ex.slug}/`,
         goUrl: ex.affiliateUrl,
         promoCode: offer.promoCode,
@@ -104,10 +104,7 @@ function buildRowsFor(countrySlug: PromoCountrySlug): FinderRow[] {
         bonusAvailability: row.bonusAvailability,
         confidence: row.confidence,
         evidenceDate: row.evidenceDate,
-        restrictionNote: row.restrictionNote,
-        bonusNote: row.bonusNote,
-        // No dedicated evidence was ever captured for this exchange×country —
-        // this is a pure catalog-derived default, not a researched verdict.
+        // No dedicated evidence captured for this exchange×country — catalog default.
         isGlobalFallback: row.evidenceUrl === null,
       } satisfies FinderRow;
     })
@@ -121,54 +118,35 @@ function buildRowsFor(countrySlug: PromoCountrySlug): FinderRow[] {
 
 function badgeFor(countrySlug: PromoCountrySlug, row: FinderRow): { text: string; tone: string } {
   if (row.availability === 'restricted') return { text: 'Restricted in this country', tone: 'restricted' };
-  if (countrySlug === 'global') return { text: 'Global offer · shown on registration page', tone: 'progress' };
-  if (row.isGlobalFallback) return { text: 'Global offer — country evidence in progress', tone: 'progress' };
+  if (countrySlug === 'global') return { text: 'Global offer', tone: 'progress' };
+  if (row.isGlobalFallback) return { text: 'Global offer · country evidence in progress', tone: 'progress' };
   if (row.availability === 'available' && row.confidence === 'verified') return { text: 'Country evidence: checked', tone: 'verified' };
   if (row.availability === 'available' && row.confidence === 'partial') return { text: 'Early evidence · partially checked', tone: 'partial' };
   return { text: 'Availability evidence in progress', tone: 'progress' };
 }
 
-function bonusNoteFor(row: FinderRow): string | null {
-  if (row.bonusAvailability === 'not_available') return 'Tracked bonus not confirmed available in this country.';
-  if (row.bonusNote) return row.bonusNote;
-  if (row.restrictionNote) return row.restrictionNote;
-  return null;
-}
-
-function ctaFor(row: FinderRow): { label: string; href: string | null; primary: boolean } {
+function ctaFor(row: FinderRow): { label: string; href: string; primary: boolean } {
   if (row.availability === 'restricted') {
-    return { label: 'View details →', href: row.pageUrl, primary: false };
+    return { label: 'View details', href: row.pageUrl, primary: false };
   }
   if (row.bonusAvailability === 'not_available') {
-    return { label: `Visit ${row.name} →`, href: row.goUrl, primary: false };
+    return { label: `Visit ${row.name}`, href: row.goUrl, primary: false };
   }
-  // Researched but still unresolved (has dedicated evidence, availability
-  // stayed 'unknown') — e.g. no MiCA license confirmed either way. Softer
-  // than a plain fallback: we looked, and genuinely can't say yet.
+  // Researched but unresolved availability — softer CTA (see Sprint 8E note).
   if (row.availability === 'unknown' && !row.isGlobalFallback) {
-    return { label: `Check ${row.name} offer →`, href: row.goUrl, primary: false };
+    return { label: 'Check offer', href: row.goUrl, primary: false };
   }
-  return { label: 'Claim Bonus →', href: row.goUrl, primary: true };
+  return { label: 'Claim Bonus', href: row.goUrl, primary: true };
 }
 
-const panels = COUNTRY_META.map(meta => ({
-  ...meta,
-  rows: buildRowsFor(meta.slug),
-  euNote: isEuCountry(meta.slug),
-}));
-
-const countryMetaJson = JSON.stringify(COUNTRY_META.map(({ slug, label, flag }) => ({ slug, label, flag })));
+const panels = COUNTRY_META.map(meta => ({ ...meta, rows: buildRowsFor(meta.slug) }));
+const countryMetaJson = JSON.stringify(COUNTRY_META.map(({ slug, label, flag, headline }) => ({ slug, label, flag, headline })));
 ---
 
-<section class="gf" id="geo-bonus-finder" aria-label="Find crypto bonuses by country">
+<section class="gf" id="geo-bonus-finder" aria-label="Best crypto bonus codes by country">
   <div class="gf-wrap">
-    <div class="gf-left">
-      <div class="gf-label">Bonus Finder</div>
-      <h1 class="gf-h1">Find the Best Crypto Bonuses in Your Country</h1>
-      <p class="gf-sub">
-        Compare crypto exchange bonuses checked from registration pages, country availability evidence and official terms.
-      </p>
 
+    <div class="gf-head">
       <div class="gf-selector-row">
         <span class="gf-flag" id="gf-current-flag" aria-hidden="true">🌍</span>
         <label class="gf-select-wrap">
@@ -180,65 +158,58 @@ const countryMetaJson = JSON.stringify(COUNTRY_META.map(({ slug, label, flag }) 
           </select>
         </label>
       </div>
-
-      <p class="gf-trust">
-        Registration page checked. Terms and KYC may apply. Final eligibility can depend on local restrictions.
-      </p>
+      <h1 class="gf-h1" id="gf-h1">Best Crypto Bonus Codes Worldwide</h1>
+      <p class="gf-trust">Crypto bonus codes checked by country. Terms and KYC may apply.</p>
     </div>
 
-    <div class="gf-right">
-      {panels.map(panel => (
-        <div class="gf-panel" data-country={panel.slug} hidden={panel.slug !== 'global'}>
-          <div class="gf-panel-head">
-            <span class="gf-panel-flag" aria-hidden="true">{panel.flag}</span>
-            <span class="gf-panel-title">Best crypto bonuses for {panel.label}</span>
-          </div>
-          {panel.euNote && (
-            <p class="gf-eu-note">
-              ⓘ {panel.label} is covered by the EU/MiCA regulatory framework — a license there does not by itself guarantee this bonus is available or claimable locally.
-            </p>
-          )}
-          <div class="gf-rows">
-            {panel.rows.map(row => {
-              const badge = badgeFor(panel.slug, row);
-              const note = bonusNoteFor(row);
-              const cta = ctaFor(row);
-              return (
-                <div class="gf-row">
-                  <div class="gf-row-main">
+    {panels.map(panel => (
+      <div class="gf-panel" data-country={panel.slug} hidden={panel.slug !== 'global'}>
+        <div class="gf-rows">
+          {panel.rows.map(row => {
+            const badge = badgeFor(panel.slug, row);
+            const cta = ctaFor(row);
+            return (
+              <div class="gf-row">
+                <div class="gf-row-id">
+                  <ExchangeLogo slug={row.slug} name={row.name} size={40} variant="square" lazy={false} />
+                  <div class="gf-row-idtext">
                     <span class="gf-row-name">{row.name}</span>
-                    <span class={`gf-badge gf-badge-${badge.tone}`}>{badge.text}</span>
-                  </div>
-                  <div class="gf-row-bonus">{row.bonusHeadline}</div>
-                  <div class="gf-row-bottom">
-                    <button
-                      class="gf-code-btn"
-                      data-code={row.promoCode}
-                      type="button"
-                      aria-label={`Copy promo code ${row.promoCode} for ${row.name}`}
-                    >
-                      <span class="gf-code-text">{row.promoCode}</span>
-                      <span class="gf-copy-icon" aria-hidden="true">⧉</span>
-                      <span class="gf-copy-check" aria-hidden="true">✓</span>
-                    </button>
-                    {cta.href ? (
-                      <a href={cta.href} class={cta.primary ? 'gf-cta gf-cta-primary' : 'gf-cta gf-cta-secondary'}>
-                        {cta.label}
-                      </a>
-                    ) : (
-                      <span class="gf-cta gf-cta-disabled">{cta.label}</span>
+                    {row.rating !== null && (
+                      <span class="gf-row-rating" title="CryptoBonusWorld editorial score">★ {row.rating.toFixed(1)}/10</span>
                     )}
                   </div>
-                  {note && <p class="gf-row-note">{note}</p>}
-                  {row.evidenceDate && <p class="gf-row-checked">Last checked {row.evidenceDate}</p>}
+                  <span class={`gf-badge gf-badge-${badge.tone}`}>{badge.text}</span>
                 </div>
-              );
-            })}
-          </div>
-          <a href="/promo-codes/" class="gf-view-all">View full comparison →</a>
+                <div class="gf-row-bonus">{row.bonusHeadline}</div>
+                {row.bonusAvailability === 'not_available' && (
+                  <p class="gf-row-note">Tracked bonus not confirmed for this country.</p>
+                )}
+                <div class="gf-row-actions">
+                  <button
+                    class="gf-code-btn"
+                    data-code={row.promoCode}
+                    type="button"
+                    aria-label={`Copy promo code ${row.promoCode} for ${row.name}`}
+                  >
+                    <span class="gf-code-text">{row.promoCode}</span>
+                    <span class="gf-copy-icon" aria-hidden="true">⧉</span>
+                    <span class="gf-copy-check" aria-hidden="true">✓</span>
+                  </button>
+                  <div class="gf-row-btns">
+                    <a href={cta.href} class={cta.primary ? 'gf-cta gf-cta-primary' : 'gf-cta gf-cta-secondary'}>
+                      {cta.label} →
+                    </a>
+                    <a href={row.pageUrl} class="gf-review">Review</a>
+                  </div>
+                </div>
+                {row.evidenceDate && <p class="gf-row-checked">Last checked {row.evidenceDate}</p>}
+              </div>
+            );
+          })}
         </div>
-      ))}
-    </div>
+        <a href="/promo-codes/" class="gf-view-all">View full comparison →</a>
+      </div>
+    ))}
   </div>
 </section>
 
@@ -250,9 +221,9 @@ const countryMetaJson = JSON.stringify(COUNTRY_META.map(({ slug, label, flag }) 
   var SLUGS = META.map(function (m) { return m.slug; });
   var STORAGE_KEY = 'cbw_gf_country';
 
-  // Map the site-wide 2-letter cbw_geo code (set by Analytics.astro) to our
-  // supported PromoCountrySlug values. Only a positive, exact match is used —
-  // anything unmapped falls back to 'global', never guessed.
+  // Existing site-wide 2-letter geo signal (cbw_geo, set by Analytics.astro)
+  // mapped to supported country slugs. Exact allowlist only — anything
+  // unmapped falls back to 'global', never guessed. No permission prompts.
   var GEO_CODE_MAP = {
     pl: 'poland', de: 'germany', kz: 'kazakhstan', tr: 'turkey',
     gb: 'united-kingdom', uk: 'united-kingdom', us: 'united-states',
@@ -277,14 +248,17 @@ const countryMetaJson = JSON.stringify(COUNTRY_META.map(({ slug, label, flag }) 
       panels[i].hidden = panels[i].getAttribute('data-country') !== slug;
     }
     var meta = META.find(function (m) { return m.slug === slug; });
-    var flagEl = document.getElementById('gf-current-flag');
-    if (flagEl && meta) flagEl.textContent = meta.flag;
+    if (meta) {
+      var flagEl = document.getElementById('gf-current-flag');
+      if (flagEl) flagEl.textContent = meta.flag;
+      var h1 = document.getElementById('gf-h1');
+      if (h1) h1.textContent = meta.headline;
+    }
     var select = document.getElementById('gf-country-select');
     if (select && select.value !== slug) select.value = slug;
   }
 
-  var initial = detectInitialCountry();
-  applyCountry(initial);
+  applyCountry(detectInitialCountry());
 
   var selectEl = document.getElementById('gf-country-select');
   if (selectEl) {
@@ -324,71 +298,55 @@ const countryMetaJson = JSON.stringify(COUNTRY_META.map(({ slug, label, flag }) 
   .gf {
     background: linear-gradient(180deg, #FAFAF7 0%, #FFFFFF 100%);
     border-bottom: 1px solid #E5E7EB;
-    padding: 28px 0 32px;
+    padding: 18px 0 28px;
   }
   .gf-wrap {
-    max-width: 1120px;
+    max-width: 760px;
     margin: 0 auto;
-    padding: 0 20px;
+    padding: 0 16px;
     box-sizing: border-box;
-    display: grid;
-    gap: 24px;
   }
-  @media (min-width: 820px) {
-    .gf-wrap { padding: 0 32px; grid-template-columns: minmax(0, 380px) minmax(0, 1fr); align-items: start; gap: 36px; }
-  }
+  @media (min-width: 820px) { .gf-wrap { padding: 0 32px; } .gf { padding: 24px 0 36px; } }
 
-  /* ── Left column ─────────────────────────────────────────────── */
-  .gf-label {
-    display: inline-block; font-size: 11px; font-weight: 700;
-    text-transform: uppercase; letter-spacing: .1em; color: #F7931A;
-    background: rgba(247,147,26,.08); border: 1px solid rgba(247,147,26,.22);
-    padding: 4px 12px; border-radius: 20px; margin-bottom: 12px;
-  }
-  .gf-h1 {
-    font-size: clamp(24px, 4vw, 32px); font-weight: 800; line-height: 1.18;
-    letter-spacing: -.02em; color: #111827; margin: 0 0 10px;
-  }
-  .gf-sub { font-size: 14.5px; line-height: 1.6; color: #4B5563; margin: 0 0 18px; }
+  /* ── Head: selector + headline + trust ───────────────────────── */
+  .gf-head { text-align: center; margin-bottom: 14px; }
 
   .gf-selector-row {
-    display: flex; align-items: center; gap: 12px;
+    display: inline-flex; align-items: center; gap: 12px;
     background: #fff; border: 1px solid #E5E7EB; border-radius: 12px;
-    padding: 10px 14px; margin-bottom: 14px;
+    padding: 8px 16px 8px 12px; margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.04);
   }
-  .gf-flag { font-size: 30px; line-height: 1; flex-shrink: 0; }
-  .gf-select-wrap { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+  .gf-flag { font-size: 34px; line-height: 1; flex-shrink: 0; }
+  .gf-select-wrap { display: flex; flex-direction: column; gap: 1px; text-align: left; }
   .gf-select-label { font-size: 10px; text-transform: uppercase; letter-spacing: .07em; color: #9CA3AF; font-weight: 600; }
   #gf-country-select {
-    font-size: 14.5px; font-weight: 700; color: #111827;
-    border: none; background: transparent; padding: 2px 0;
-    width: 100%; cursor: pointer;
+    font-size: 15px; font-weight: 700; color: #111827;
+    border: none; background: transparent; padding: 1px 0; cursor: pointer;
   }
   #gf-country-select:focus-visible { outline: 2px solid #16A34A; outline-offset: 2px; border-radius: 4px; }
 
-  .gf-trust { font-size: 12px; line-height: 1.6; color: #6B7280; margin: 0; }
-
-  /* ── Right column: ranking rows ──────────────────────────────── */
-  .gf-panel-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
-  .gf-panel-flag { font-size: 20px; line-height: 1; }
-  .gf-panel-title { font-size: 15px; font-weight: 800; color: #111827; letter-spacing: -.01em; }
-
-  .gf-eu-note {
-    font-size: 12px; line-height: 1.55; color: #6B7280;
-    background: #F3F4F6; border-radius: 8px; padding: 8px 10px;
-    margin: 8px 0 4px;
+  .gf-h1 {
+    font-size: clamp(22px, 4vw, 30px); font-weight: 800; line-height: 1.16;
+    letter-spacing: -.02em; color: #111827; margin: 0 0 6px;
   }
+  .gf-trust { font-size: 12.5px; line-height: 1.5; color: #6B7280; margin: 0; }
 
-  .gf-rows { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+  /* ── Rows ─────────────────────────────────────────────────────── */
+  .gf-rows { display: flex; flex-direction: column; gap: 10px; }
 
   .gf-row {
     background: #fff; border: 1px solid #E5E7EB; border-radius: 12px;
     padding: 12px 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.03);
   }
-  .gf-row-main { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
-  .gf-row-name { font-size: 14.5px; font-weight: 800; color: #111827; letter-spacing: -.01em; }
 
+  .gf-row-id { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; flex-wrap: wrap; }
+  .gf-row-idtext { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+  .gf-row-name { font-size: 15px; font-weight: 800; color: #111827; letter-spacing: -.01em; }
+  .gf-row-rating { font-size: 11.5px; font-weight: 700; color: #B45309; }
   .gf-badge {
+    margin-left: auto;
     font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 20px;
     white-space: nowrap;
   }
@@ -397,18 +355,21 @@ const countryMetaJson = JSON.stringify(COUNTRY_META.map(({ slug, label, flag }) 
   .gf-badge-progress   { background: #F3F4F6; color: #4B5563; border: 1px solid #E5E7EB; }
   .gf-badge-restricted { background: #FEF2F2; color: #B91C1C; border: 1px solid #FECACA; }
 
-  .gf-row-bonus { font-size: 13px; color: #374151; line-height: 1.45; margin-bottom: 9px; }
+  .gf-row-bonus { font-size: 13px; color: #374151; line-height: 1.4; margin-bottom: 8px; }
+  .gf-row-note { font-size: 11.5px; color: #9CA3AF; margin: -4px 0 8px; }
 
-  .gf-row-bottom { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .gf-row-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
   .gf-code-btn {
     display: inline-flex; align-items: center; gap: 5px;
     font-size: 12.5px; font-weight: 900;
     font-family: 'SFMono-Regular', Consolas, monospace;
     background: #FFF7ED; border: 1.5px solid #FED7AA; color: #C2410C;
-    padding: 6px 9px; border-radius: 6px; letter-spacing: .06em; cursor: pointer;
+    padding: 8px 10px; border-radius: 7px; letter-spacing: .05em; cursor: pointer;
     transition: background .12s, border-color .12s;
+    max-width: 100%; overflow: hidden;
   }
+  .gf-code-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .gf-code-btn:hover { background: #FEF3C7; border-color: #F59E0B; }
   .gf-code-btn:focus-visible { outline: 2px solid #16A34A; outline-offset: 2px; }
   .gf-copy-icon { opacity: .6; }
@@ -417,19 +378,22 @@ const countryMetaJson = JSON.stringify(COUNTRY_META.map(({ slug, label, flag }) 
   .gf-code-btn.copied .gf-copy-icon { display: none; }
   .gf-code-btn.copied .gf-copy-check { display: inline; }
 
+  .gf-row-btns { display: flex; align-items: center; gap: 8px; margin-left: auto; }
   .gf-cta {
-    text-decoration: none; font-size: 13px; font-weight: 700;
-    padding: 7px 14px; border-radius: 8px; white-space: nowrap;
-    margin-left: auto;
+    text-decoration: none; font-size: 13.5px; font-weight: 700;
+    padding: 9px 16px; border-radius: 8px; white-space: nowrap;
   }
   .gf-cta-primary { background: #16A34A; color: #fff; }
   .gf-cta-primary:hover { background: #15803D; }
   .gf-cta-secondary { background: #fff; color: #374151; border: 1.5px solid #D1D5DB; }
   .gf-cta-secondary:hover { border-color: #9CA3AF; }
-  .gf-cta-disabled { background: #F3F4F6; color: #9CA3AF; border: 1.5px solid #E5E7EB; cursor: default; }
+  .gf-review {
+    font-size: 12.5px; font-weight: 600; color: #6B7280;
+    text-decoration: underline; text-underline-offset: 2px; white-space: nowrap;
+  }
+  .gf-review:hover { color: #111827; }
 
-  .gf-row-note { font-size: 11.5px; color: #9CA3AF; line-height: 1.5; margin: 7px 0 0; }
-  .gf-row-checked { font-size: 11px; color: #9CA3AF; margin: 2px 0 0; }
+  .gf-row-checked { font-size: 10.5px; color: #9CA3AF; margin: 6px 0 0; }
 
   .gf-view-all {
     display: inline-block; margin-top: 12px; font-size: 12.5px; font-weight: 700;
@@ -438,8 +402,10 @@ const countryMetaJson = JSON.stringify(COUNTRY_META.map(({ slug, label, flag }) 
   .gf-view-all:hover { color: #166534; }
 
   @media (max-width: 480px) {
-    .gf-row-bottom { flex-direction: column; align-items: stretch; }
-    .gf-cta { margin-left: 0; text-align: center; }
+    .gf-row-actions { flex-direction: column; align-items: stretch; }
+    .gf-row-btns { margin-left: 0; }
+    .gf-cta { flex: 1; text-align: center; }
     .gf-code-btn { justify-content: center; }
+    .gf-badge { margin-left: 0; width: fit-content; }
   }
 </style>
