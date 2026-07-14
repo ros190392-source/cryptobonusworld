@@ -45,17 +45,6 @@ const rows = exchanges
   })
   .map((r, i) => ({ ...r, rank: i + 1 }));
 
-const countryOptions = [
-  'Global / All countries',
-  'Poland',
-  'Germany',
-  'Kazakhstan',
-  'Turkey',
-  'United Kingdom',
-  'European Union',
-  'United States',
-];
-
 const faqs = [
   {
     q: 'What is a crypto promo code?',
@@ -74,8 +63,8 @@ const faqs = [
     a: 'Bonus programs are subject to local regulations, exchange licensing, and KYC requirements. An offer available in one country may be restricted or unavailable in another — always check the exchange\'s terms for your region.',
   },
   {
-    q: 'Which country should I select?',
-    a: 'Select the country you are registering from. For v1, the selector is a guide to what to check, not a source of verified local rankings — country-specific availability is still being checked and should be confirmed against the exchange\'s own terms.',
+    q: 'How do I check offers for my country?',
+    a: 'Use the bonus finder on the homepage — it shows tracked offers and availability notes for supported countries. Country-specific availability is still being verified, so always confirm eligibility against the exchange\'s own terms for your region.',
   },
   {
     q: 'Are these affiliate links?',
@@ -124,17 +113,14 @@ const faqSchema = {
     </div>
   </section>
 
-  <!-- 2. Country selector -->
+  <!-- 2. Country availability pointer (replaces the former static selector) -->
   <section class="pc-country">
     <div class="pc-text-wrap">
-      <label for="pc-country-select" class="pc-country-label">Viewing offers for</label>
-      <select id="pc-country-select" class="pc-country-select">
-        {countryOptions.map(c => <option value={c}>{c}</option>)}
-      </select>
+      <p class="pc-country-label">Country availability</p>
       <p class="pc-country-note">
-        Country-specific availability is still being checked. The table below shows
-        globally tracked offers and should be verified against the exchange terms for
-        your location.
+        The table below shows globally tracked offers — availability and terms vary by
+        country. Need country-specific availability?
+        <a href="/#finder" class="pc-country-link">Use the bonus finder →</a>
       </p>
     </div>
   </section>
@@ -257,18 +243,6 @@ const faqSchema = {
 
 </CleanLayout>
 
-<script>
-  // Country selector — v1 static UI only. No country-specific ranking data exists yet,
-  // so switching the selector does not change the table; it only surfaces the note above.
-  const select = document.getElementById('pc-country-select');
-  const note = document.querySelector('.pc-country-note');
-  select?.addEventListener('change', () => {
-    if (note) {
-      note.textContent = `Country-specific availability for ${(select as HTMLSelectElement).value} is still being checked. The table below shows globally tracked offers and should be verified against the exchange terms for your location.`;
-    }
-  });
-</script>
-
 <style>
   .bg-white { background: #fff; }
   .bg-gray  { background: #F7F8F4; }
@@ -296,15 +270,12 @@ const faqSchema = {
   .pc-sub { font-size: 15px; line-height: 1.65; color: #4B5563; margin-bottom: 8px; }
   .pc-caveat { font-size: 13px; line-height: 1.6; color: #9CA3AF; }
 
-  /* ── 2. Country selector ─────────────────────────────────────── */
+  /* ── 2. Country availability pointer ─────────────────────────── */
   .pc-country { background: #F0FDF4; border-top: 1px solid #D1FAE5; border-bottom: 1px solid #D1FAE5; padding: 18px 0; text-align: center; }
   .pc-country-label { display: block; font-size: 12px; font-weight: 700; color: #15803D; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; }
-  .pc-country-select {
-    font-size: 14px; font-weight: 600; color: #111827;
-    padding: 8px 14px; border-radius: 8px; border: 1.5px solid #A7F3D0;
-    background: #fff; cursor: pointer; margin-bottom: 10px;
-  }
-  .pc-country-note { font-size: 12px; color: #374151; line-height: 1.6; max-width: 620px; margin: 0 auto; }
+  .pc-country-note { font-size: 13px; color: #374151; line-height: 1.6; max-width: 620px; margin: 0 auto; }
+  .pc-country-link { color: #15803D; font-weight: 700; text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }
+  .pc-country-link:hover { color: #166534; }
 
   /* ── 3. Ranking table ─────────────────────────────────────────── */
   .pc-table-section { padding: 32px 0 48px; }

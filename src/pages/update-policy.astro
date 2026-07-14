@@ -1,5 +1,5 @@
 ---
-import Layout from '../layouts/Layout.astro';
+import InfoLayout from '../layouts/InfoLayout.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
 import { SITE_NAME } from '../utils/seo';
 
@@ -24,7 +24,7 @@ const SCHEDULES = [
 ];
 ---
 
-<Layout title={pageTitle} description={pageDesc} canonical="/update-policy/">
+<InfoLayout title={pageTitle} description={pageDesc} canonical="/update-policy/">
   <div class="container">
     <Breadcrumbs crumbs={crumbs} />
 
@@ -144,7 +144,7 @@ const SCHEDULES = [
       </p>
     </div>
   </div>
-</Layout>
+</InfoLayout>
 
 <style>
   .container { max-width: 820px; margin: 0 auto; padding: 0 var(--container-pad); }

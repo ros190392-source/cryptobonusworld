@@ -1,5 +1,5 @@
 ---
-import Layout from '../layouts/Layout.astro';
+import InfoLayout from '../layouts/InfoLayout.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
 import { SITE_NAME } from '../utils/seo';
 
@@ -32,7 +32,7 @@ const crumbs = [
 ];
 ---
 
-<Layout title={pageTitle} description={pageDesc} canonical="/methodology/" schema={methodologySchema}>
+<InfoLayout title={pageTitle} description={pageDesc} canonical="/methodology/" schema={methodologySchema}>
   <div class="container">
     <Breadcrumbs crumbs={crumbs} />
 
@@ -269,7 +269,7 @@ const crumbs = [
       </ul>
     </div>
   </div>
-</Layout>
+</InfoLayout>
 
 <style>
   .container { max-width: 820px; margin: 0 auto; padding: 0 var(--container-pad); }

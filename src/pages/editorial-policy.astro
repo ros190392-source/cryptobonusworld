@@ -1,5 +1,5 @@
 ---
-import Layout from '../layouts/Layout.astro';
+import InfoLayout from '../layouts/InfoLayout.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
 import { SITE_NAME, SITE_URL, buildArticleSchema } from '../utils/seo';
 
@@ -22,14 +22,11 @@ const editorialSchema = buildArticleSchema({
 });
 ---
 
-<Layout
+<InfoLayout
   title={pageTitle}
   description={pageDesc}
   canonical="/editorial-policy/"
   schema={editorialSchema}
-  ogType="article"
-  publishedTime="2024-01-01"
-  modifiedTime="2026-05-25"
 >
   <div class="container">
     <Breadcrumbs crumbs={crumbs} />
@@ -229,7 +226,7 @@ const editorialSchema = buildArticleSchema({
       </p>
     </div>
   </div>
-</Layout>
+</InfoLayout>
 
 <style>
   .container { max-width: 820px; margin: 0 auto; padding: 0 var(--container-pad); }

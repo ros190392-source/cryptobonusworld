@@ -1,5 +1,5 @@
 ---
-import Layout from '../layouts/Layout.astro';
+import InfoLayout from '../layouts/InfoLayout.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
 import { buildOrganizationSchema, SITE_URL } from '../utils/seo';
 
@@ -16,7 +16,7 @@ const aboutSchema = {
 };
 ---
 
-<Layout
+<InfoLayout
   title="About CryptoBonusWorld — Crypto Bonus Comparison Platform"
   description="About CryptoBonusWorld.com — an independent editorial platform comparing crypto exchange bonus offers worldwide. Our mission, standards and approach."
   canonical="/about/"
@@ -66,4 +66,4 @@ const aboutSchema = {
       <p>For questions, data corrections or business inquiries, visit our <a href="/contact/">Contact page</a>.</p>
     </div>
   </div>
-</Layout>
+</InfoLayout>

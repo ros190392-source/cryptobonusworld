@@ -1,14 +1,13 @@
 ---
-import Layout from '../layouts/Layout.astro';
+import CleanLayout from '../layouts/CleanLayout.astro';
 ---
 
-<Layout
+<CleanLayout
   title="Page Not Found — CryptoBonusWorld"
   description="The page you were looking for doesn't exist. Find the best crypto exchange bonuses on CryptoBonusWorld."
-  canonical="/404/"
-  robots="noindex, follow"
+  noindex={true}
 >
-  <div class="container">
+  <div class="nf-container">
     <div class="not-found">
       <div class="not-found-code">404</div>
       <h1 class="not-found-title">Page Not Found</h1>
@@ -23,17 +22,27 @@ import Layout from '../layouts/Layout.astro';
         <p class="popular-label">Popular pages:</p>
         <ul class="popular-list">
           <li><a href="/promo-codes/">All Promo Codes</a></li>
-          <li><a href="/bybit/">Bybit Bonus 2026</a></li>
-          <li><a href="/mexc/">MEXC Bonus 2026</a></li>
-          <li><a href="/okx/">OKX Bonus 2026</a></li>
-          <li><a href="/bitget/">Bitget Bonus 2026</a></li>
+          <li><a href="/bybit/">Bybit Bonus</a></li>
+          <li><a href="/mexc/">MEXC Bonus</a></li>
+          <li><a href="/okx/">OKX Bonus</a></li>
+          <li><a href="/bitget/">Bitget Bonus</a></li>
+          <li><a href="/kucoin/">KuCoin Bonus</a></li>
+          <li><a href="/bingx/">BingX Bonus</a></li>
         </ul>
       </div>
     </div>
   </div>
-</Layout>
+</CleanLayout>
 
 <style>
+  .nf-container {
+    max-width: var(--cbw-page-max, 1180px);
+    margin: 0 auto;
+    padding: 0 var(--cbw-pad-mobile, 20px);
+  }
+  @media (min-width: 640px) { .nf-container { padding: 0 var(--cbw-pad-tablet, 24px); } }
+  @media (min-width: 820px) { .nf-container { padding: 0 var(--cbw-pad-desktop, 32px); } }
+
   .not-found {
     display: flex;
     flex-direction: column;
@@ -47,22 +56,22 @@ import Layout from '../layouts/Layout.astro';
   .not-found-code {
     font-size: 6rem;
     font-weight: 900;
-    color: var(--color-accent);
+    color: #F7931A;
     line-height: 1;
     margin-bottom: 1rem;
-    opacity: 0.8;
+    opacity: 0.85;
   }
 
   .not-found-title {
     font-size: 2rem;
     font-weight: 700;
-    color: var(--color-text-primary);
+    color: #111827;
     margin: 0 0 1rem;
   }
 
   .not-found-desc {
     font-size: 1rem;
-    color: var(--color-text-secondary);
+    color: #4B5563;
     margin-bottom: 2rem;
     max-width: 400px;
   }
@@ -75,38 +84,11 @@ import Layout from '../layouts/Layout.astro';
     margin-bottom: 3rem;
   }
 
-  .btn-primary {
-    display: inline-block;
-    padding: 0.75rem 1.5rem;
-    background: var(--color-accent);
-    color: #000;
-    font-weight: 700;
-    font-size: 0.9rem;
-    border-radius: 8px;
-    text-decoration: none;
-    transition: opacity 0.2s;
-  }
-  .btn-primary:hover { opacity: 0.85; }
-
-  .btn-secondary {
-    display: inline-block;
-    padding: 0.75rem 1.5rem;
-    background: var(--color-bg-secondary);
-    color: var(--color-text-primary);
-    font-weight: 600;
-    font-size: 0.9rem;
-    border-radius: 8px;
-    text-decoration: none;
-    border: 1px solid var(--color-border);
-    transition: border-color 0.2s;
-  }
-  .btn-secondary:hover { border-color: var(--color-accent-dim); }
-
   .not-found-popular { text-align: center; }
 
   .popular-label {
     font-size: 0.8rem;
-    color: var(--color-text-muted);
+    color: #6B7280;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     font-weight: 600;
@@ -126,17 +108,17 @@ import Layout from '../layouts/Layout.astro';
   .popular-list a {
     display: inline-block;
     padding: 0.3rem 0.75rem;
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
+    background: #fff;
+    border: 1px solid #E5E7EB;
     border-radius: 20px;
     font-size: 0.8rem;
-    color: var(--color-text-secondary);
+    color: #4B5563;
     text-decoration: none;
     transition: border-color 0.2s, color 0.2s;
   }
   .popular-list a:hover {
-    border-color: var(--color-accent-dim);
-    color: var(--color-accent);
+    border-color: #F7931A;
+    color: #B45309;
   }
 
   @media (max-width: 480px) {

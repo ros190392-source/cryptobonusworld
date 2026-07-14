@@ -37,10 +37,11 @@ const currentPath = Astro.url.pathname;
         </div>
       </div>
       <a href="/promo-codes/" class={`ph-nav-item${currentPath.startsWith('/promo-codes') ? ' is-active' : ''}`}>Promo Codes</a>
+      <a href="/methodology/" class={`ph-nav-item${currentPath.startsWith('/methodology') ? ' is-active' : ''}`}>How We Verify</a>
     </nav>
 
     <div class="ph-right">
-      <a href="/bybit/" class="ph-cta">Get Bonus</a>
+      <a href="/#finder" class="ph-cta">Find My Bonus</a>
       <button class="ph-burger" aria-label="Open menu" aria-expanded="false" id="ph-burger-btn">
         <span class="ph-burger-bar"></span>
         <span class="ph-burger-bar"></span>
@@ -50,6 +51,8 @@ const currentPath = Astro.url.pathname;
   </div>
 
   <div class="ph-mobile-menu" id="ph-mobile-menu" aria-hidden="true">
+    <a href="/#finder" class="ph-mobile-item ph-mobile-cta">Find My Bonus →</a>
+    <a href="/promo-codes/" class="ph-mobile-item">Promo Codes <span class="ph-mobile-chevron">›</span></a>
     <a href="/exchanges/" class="ph-mobile-item">Exchanges <span class="ph-mobile-chevron">›</span></a>
     <a href="/bybit/" class="ph-mobile-item ph-mobile-sub">↳ Bybit</a>
     <a href="/mexc/" class="ph-mobile-item ph-mobile-sub">↳ MEXC</a>
@@ -57,8 +60,7 @@ const currentPath = Astro.url.pathname;
     <a href="/bitget/" class="ph-mobile-item ph-mobile-sub">↳ Bitget</a>
     <a href="/kucoin/" class="ph-mobile-item ph-mobile-sub">↳ KuCoin</a>
     <a href="/bingx/" class="ph-mobile-item ph-mobile-sub">↳ BingX</a>
-    <a href="/promo-codes/" class="ph-mobile-item">Promo Codes <span class="ph-mobile-chevron">›</span></a>
-    <a href="/bybit/" class="ph-mobile-item ph-mobile-cta">Get Bybit Bonus →</a>
+    <a href="/methodology/" class="ph-mobile-item">How We Verify <span class="ph-mobile-chevron">›</span></a>
   </div>
 </header>
 
