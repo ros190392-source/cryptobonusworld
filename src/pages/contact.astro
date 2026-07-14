@@ -1,9 +1,9 @@
 ---
-import Layout from '../layouts/Layout.astro';
+import InfoLayout from '../layouts/InfoLayout.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
 ---
 
-<Layout
+<InfoLayout
   title="Contact — CryptoBonusWorld"
   description="Contact CryptoBonusWorld. Report incorrect bonus data, suggest an exchange, or send a business inquiry."
   canonical="/contact/"
@@ -64,7 +64,7 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
       </div>
     </div>
   </div>
-</Layout>
+</InfoLayout>
 
 <style>
   .contact-grid {
@@ -142,8 +142,8 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
   .form-group textarea { resize: vertical; min-height: 120px; }
   .form-submit {
     padding: 0.7rem 1.5rem;
-    background: var(--color-accent);
-    color: #000;
+    background: var(--cbw-green, #16A34A);
+    color: #fff;
     font-size: 0.9rem;
     font-weight: 700;
     border: none;
