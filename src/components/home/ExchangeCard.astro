@@ -49,6 +49,7 @@ const { exchange: ex, offer } = Astro.props;
       </div>
     )}
     <a href={ex.affiliateUrl} class="ec-cta">Claim Bonus →</a>
+    <a href={ex.pageUrl ?? `/exchanges/${ex.slug}/`} class="ec-review-link">Read {ex.name} review</a>
   </div>
 </div>
 
@@ -155,4 +156,12 @@ const { exchange: ex, offer } = Astro.props;
     transition: background .15s;
   }
   .ec-cta:hover { background: var(--cbw-green-hover, #15803D); }
+
+  .ec-review-link {
+    display: block; text-align: center;
+    font-size: 12px; font-weight: 600;
+    color: var(--cbw-gray-500, #6B7280); text-decoration: none;
+    padding: 2px 0;
+  }
+  .ec-review-link:hover { color: #1D4ED8; text-decoration: underline; text-underline-offset: 2px; }
 </style>

@@ -19,8 +19,14 @@ export const SITE_URL = 'https://cryptobonusworld.com';
 export const SITE_NAME = 'CryptoBonusWorld';
 export const YEAR = new Date().getFullYear();
 
-/** Live exchange count — single source of truth for "N Exchanges" UI copy. */
-export const EXCHANGE_COUNT = (exchangesData as Array<unknown>).length;
+/**
+ * Live exchange count — single source of truth for "N Exchanges" UI copy.
+ * Counts only the six exchanges with current review pages (the rebuilt site);
+ * legacy portal-era entries in exchanges.json are kept for /go/ routing only.
+ */
+const LIVE_REVIEW_SLUGS = new Set(['bybit', 'mexc', 'okx', 'bitget', 'kucoin', 'bingx']);
+export const EXCHANGE_COUNT = (exchangesData as Array<{ slug: string }>)
+  .filter(ex => LIVE_REVIEW_SLUGS.has(ex.slug)).length;
 
 /**
  * Honest freshness label, e.g. "June 2026" — derived from the most recent

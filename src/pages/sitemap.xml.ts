@@ -1,6 +1,4 @@
 import type { APIRoute } from 'astro';
-import exchanges from '../data/exchanges.json';
-import guides from '../data/guides.json';
 import {
   getAvailableLocalesForPage,
   buildSitemapAlternates,
@@ -46,6 +44,10 @@ export const GET: APIRoute = () => {
   // /use-cases/, /categories/, /countries/, /reviewers/,
   // /best-exchanges-for/) were RETIRED on 2026-07-14 (Legacy Sections
   // Retirement v1): routes deleted, hubs replaced by noindex redirect stubs.
+  // Portal-era /guides/* articles and the old /exchanges/{slug}/ review
+  // template were RETIRED on 2026-07-14 (Homepage/Redesign Alignment v1):
+  // both replaced by noindex redirect stubs; only the six live /{slug}/
+  // review pages remain indexable.
   // Also excluded by design: /go/ (robots-blocked), /contact/ (noindex),
   // the hub redirect stubs, and the /exchanges/{slug}/ redirect stubs for
   // the six live promo exchanges.
@@ -57,7 +59,6 @@ export const GET: APIRoute = () => {
     { url: '/', priority: '1.0', changefreq: 'daily', lastmod: today, type: 'static' as const },
     { url: '/exchanges/', priority: '0.85', changefreq: 'weekly', lastmod: today, type: 'static' as const },
     { url: '/promo-codes/', priority: '0.9', changefreq: 'weekly', lastmod: today, type: 'static' as const },
-    { url: '/guides/', priority: '0.75', changefreq: 'weekly', lastmod: today, type: 'static' as const },
     // Site info / methodology — indexed for E-E-A-T signals
     { url: '/methodology/', priority: '0.5', changefreq: 'monthly', lastmod: today, type: 'static' as const },
     { url: '/about/', priority: '0.4', changefreq: 'monthly', lastmod: today, type: 'static' as const },
@@ -83,41 +84,9 @@ export const GET: APIRoute = () => {
     { url: '/bingx/',  priority: '0.97', changefreq: 'weekly', lastmod: today, type: 'static' as const },
   ];
 
-  // Slugs whose /exchanges/{slug}/ URL is a noindex redirect stub to the rich /slug/ page.
-  // Noindexed pages must not appear in the sitemap (same rule as /contact/ above).
-  const LIVE_PROMO_SLUGS = new Set(['bybit', 'mexc', 'okx', 'bitget', 'kucoin', 'bingx']);
-
-  // Top-tier money pages get boosted priority for crawl budget signalling
-  const TOP_EXCHANGE_SLUGS = new Set(['bybit', 'okx', 'mexc', 'phemex', 'kucoin', 'binance', 'bitget']);
-
-  const exchangePages = exchanges.filter(ex => !LIVE_PROMO_SLUGS.has(ex.slug)).map(ex => ({
-    url: `/exchanges/${ex.slug}/`,
-    priority: TOP_EXCHANGE_SLUGS.has(ex.slug) ? '0.90' : '0.85',
-    changefreq: 'weekly',
-    lastmod: (ex as any).lastVerified ?? ex.updatedAt,
-    type: 'exchange' as const,
-    slug: ex.slug,
-  }));
-
   // Noindexed page groups (bonuses, bonus-codes, categories, countries, compare,
-  // coins, use-cases, reviewers) are deliberately NOT generated into the sitemap —
-  // see SITEMAP POLICY above.
-
-  const guidePages = guides.map(g => {
-    // How-To Guides and Bonus Guides are highest-intent for SERP
-    const cat: string = (g as any).category ?? '';
-    let gPriority = '0.75';
-    if (cat === 'How-To Guides') gPriority = '0.82';
-    else if (cat === 'Bonus Guides') gPriority = '0.80';
-    else if (cat === 'Exchange Guides') gPriority = '0.78';
-    return {
-      url: `/guides/${g.slug}/`,
-      priority: gPriority,
-      changefreq: 'weekly',
-      lastmod: g.lastUpdated,
-      type: 'static' as const,
-    };
-  });
+  // coins, use-cases, reviewers, guides, legacy /exchanges/{slug}/ reviews) are
+  // deliberately NOT generated into the sitemap — see SITEMAP POLICY above.
 
   type PageEntry = {
     url: string;
@@ -131,8 +100,6 @@ export const GET: APIRoute = () => {
   const allPages: PageEntry[] = [
     ...staticPages,
     ...richExchangePages,
-    ...exchangePages,
-    ...guidePages,
   ];
 
   // ── Build page entries with locale awareness ──────────────────────────────
@@ -152,118 +119,18 @@ export const GET: APIRoute = () => {
   // When hasMultipleLocales is true, add SITEMAP_XHTML_NS to urlset.
   const xhtmlNs = hasMultipleLocales ? ` ${SITEMAP_XHTML_NS}` : '';
 
-  // Image sitemap entries
-  // Exchange pages: OG card + real screenshots (ui, bonus, app) if files exist
-  // Real screenshots live at /media/exchanges/{slug}/{type}-{YYYY-MM}.webp
-  // Registry maps slug → screenshot dates (null = not yet captured)
-  const imageNs = ' xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"';
-
-  // Screenshot registry — populate capturedAt as real screenshots land
-  // null = placeholder only, skip from sitemap
-  const screenshotRegistry: Record<string, {
-    ui?: string;      // YYYY-MM
-    bonus?: string;   // YYYY-MM
-    app?: string;     // YYYY-MM
-    p2p?: string;     // YYYY-MM
-    futures?: string; // YYYY-MM
-  }> = {
-    // Add entries here as screenshots are captured, e.g.:
-    // bybit: { ui: '2026-05', bonus: '2026-05', p2p: '2026-05', futures: '2026-05' },
-  };
-
-  // Walkthrough screenshots — actual captured files at /screenshots/{slug}/steps/
-  // Each entry: { loc, title, caption }
-  const walkthroughImages: Record<string, Array<{ loc: string; title: string; caption: string }>> = {
-    binance: [
-      { loc: `${site}/screenshots/binance/steps/bn-01c-landing-19800-arrow.webp`, title: 'Binance registration page — 19,800 USDT + 20% fee rebate with code CRYPTOBONW', caption: 'Binance sign-up page confirming 19,800 USDT welcome bonus and 20% trading fee rebate via referral code CRYPTOBONW (June 2026)' },
-      { loc: `${site}/screenshots/binance/steps/bn-07-welcome-desktop.webp`, title: 'Binance welcome screen — account linked to referral code CRYPTOBONW', caption: 'Binance welcome screen confirming account creation and referral code attachment (June 2026)' },
-      { loc: `${site}/screenshots/binance/steps/bn-11-rewards-tasks.webp`, title: 'Binance Rewards Hub — Stage 1 bonus tasks (June 2026)', caption: 'Binance Rewards Hub showing four Stage 1 tasks: KYC, deposit $10, trade $10, trade $2,000 (June 2026)' },
-      { loc: `${site}/screenshots/binance/steps/bn-owner-task-reward-overview-2026-06-v5.webp`, title: 'Binance Task & Reward Overview — seven Stage 2 tiers up to 19,800 USDT', caption: 'Binance Task and Reward Overview showing complete bonus structure including Stage 2 tiers (June 2026)' },
-      { loc: `${site}/screenshots/binance/steps/bn-038-fees-spot-margin.webp`, title: 'Binance spot and margin trading fees — VIP 0 rate 0.1%', caption: 'Binance fee schedule for spot and margin trading, VIP 0 level (June 2026)' },
-      { loc: `${site}/screenshots/binance/steps/bn-039-fees-usdm-futures.webp`, title: 'Binance USDT-M futures trading fees — 0.02% maker, 0.05% taker', caption: 'Binance USDT-M perpetual futures fee schedule showing maker and taker rates (June 2026)' },
-      { loc: `${site}/screenshots/binance/steps/bn-035-p2p-marketplace-listings.webp`, title: 'Binance P2P marketplace — USDT buy listings', caption: 'Binance P2P marketplace showing available USDT purchase listings with seller ratings (June 2026)' },
-      { loc: `${site}/screenshots/binance/steps/bn-030-futures-demo-mode.webp`, title: 'Binance futures trading interface — demo mode', caption: 'Binance perpetual futures trading interface in demo mode showing order entry and position management (June 2026)' },
-      { loc: `${site}/screenshots/binance/steps/bn-08-kyc-country-select.webp`, title: 'Binance KYC verification — country selection step', caption: 'Binance identity verification process showing country selection screen (June 2026)' },
-      { loc: `${site}/screenshots/binance/steps/mob-061-rewards-hub-voucher-10usdt.webp`, title: 'Binance mobile app — Rewards Hub voucher 10 USDT', caption: 'Binance mobile app showing 10 USDT voucher awarded in Rewards Hub after completing Stage 1 task (June 2026)' },
-    ],
-  };
-
-  function buildImageTags(pageUrl: string): string {
-    const slug = pageUrl.replace('/exchanges/', '').replace(/\/$/, '');
-    const ex = exchanges.find((e: any) => e.slug === slug) as any;
-    if (!ex) return '';
-
-    const tags: string[] = [];
-    const reg = screenshotRegistry[slug] ?? {};
-    const exName = ex.name as string;
-
-    // Always include OG card
-    tags.push(`
-    <image:image>
-      <image:loc>${site}/og/exchange-${slug}.png</image:loc>
-      <image:title>${exName} Bonus &amp; Review — CryptoBonusWorld</image:title>
-      <image:caption>${exName} crypto exchange — bonus offer and review card</image:caption>
-    </image:image>`);
-
-    // Real screenshots — only included when captured
-    if (reg.ui) tags.push(`
-    <image:image>
-      <image:loc>${site}/media/exchanges/${slug}/ui-${reg.ui}.webp</image:loc>
-      <image:title>${exName} trading interface — ${reg.ui}</image:title>
-      <image:caption>${exName} spot trading interface screenshot, captured ${reg.ui}</image:caption>
-    </image:image>`);
-
-    if (reg.bonus) tags.push(`
-    <image:image>
-      <image:loc>${site}/media/exchanges/${slug}/bonus-${reg.bonus}.webp</image:loc>
-      <image:title>${exName} welcome bonus page — ${reg.bonus}</image:title>
-      <image:caption>${exName} new user bonus offer page screenshot, captured ${reg.bonus}</image:caption>
-    </image:image>`);
-
-    if (reg.app) tags.push(`
-    <image:image>
-      <image:loc>${site}/media/exchanges/${slug}/app-${reg.app}.webp</image:loc>
-      <image:title>${exName} mobile app — ${reg.app}</image:title>
-      <image:caption>${exName} mobile app screenshot on iOS, captured ${reg.app}</image:caption>
-    </image:image>`);
-
-    if (reg.p2p) tags.push(`
-    <image:image>
-      <image:loc>${site}/media/exchanges/${slug}/p2p-${reg.p2p}.webp</image:loc>
-      <image:title>${exName} P2P trading marketplace — ${reg.p2p}</image:title>
-      <image:caption>${exName} P2P marketplace screenshot, captured ${reg.p2p}</image:caption>
-    </image:image>`);
-
-    if (reg.futures) tags.push(`
-    <image:image>
-      <image:loc>${site}/media/exchanges/${slug}/futures-${reg.futures}.webp</image:loc>
-      <image:title>${exName} futures trading interface — ${reg.futures}</image:title>
-      <image:caption>${exName} perpetual futures interface screenshot, captured ${reg.futures}</image:caption>
-    </image:image>`);
-
-    // Walkthrough screenshots for this exchange
-    const walkthroughs = walkthroughImages[slug] ?? [];
-    for (const img of walkthroughs) {
-      tags.push(`
-    <image:image>
-      <image:loc>${img.loc}</image:loc>
-      <image:title>${img.title}</image:title>
-      <image:caption>${img.caption}</image:caption>
-    </image:image>`);
-    }
-
-    return tags.join('');
-  }
+  // Image sitemap entries were retired together with the legacy
+  // /exchanges/{slug}/ review pages (Homepage/Redesign Alignment v1) —
+  // no sitemap URL carries image tags anymore.
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"${xhtmlNs}${imageNs}>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"${xhtmlNs}>
 ${pageEntries.map(page => {
-  const imgTags = (page.type === 'exchange') ? buildImageTags(page.url) : '';
   return `  <url>
     <loc>${site}${page.url}</loc>
     <lastmod>${'lastmod' in page ? page.lastmod : today}</lastmod>
     <changefreq>${page.changefreq}</changefreq>
-    <priority>${page.priority}</priority>${page.alternates ? '\n' + page.alternates : ''}${imgTags}
+    <priority>${page.priority}</priority>${page.alternates ? '\n' + page.alternates : ''}
   </url>`;
 }).join('\n')}
 </urlset>`;
