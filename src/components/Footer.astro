@@ -36,20 +36,6 @@ const year = new Date().getFullYear();
       </div>
 
       <div class="footer-links">
-        <h4><a href="/categories/" class="footer-h4-link">Bonus Categories</a></h4>
-        <ul>
-          <li><a href="/categories/signup-bonuses/">Signup Bonuses</a></li>
-          <li><a href="/categories/no-deposit-bonuses/">No Deposit Bonuses</a></li>
-          <li><a href="/categories/deposit-bonuses/">Deposit Bonuses</a></li>
-          <li><a href="/categories/futures-bonuses/">Futures Bonuses</a></li>
-          <li><a href="/categories/welcome-bonuses/">Welcome Bonuses</a></li>
-          <li><a href="/categories/no-kyc-bonuses/">No KYC Bonuses</a></li>
-          <li><a href="/categories/trading-rewards/">Trading Rewards</a></li>
-          <li><a href="/categories/referral-bonuses/">Referral Bonuses</a></li>
-        </ul>
-      </div>
-
-      <div class="footer-links">
         <h4>Top Exchanges</h4>
         <ul>
           <li><a href="/bybit/">Bybit Bonus</a></li>
@@ -61,34 +47,6 @@ const year = new Date().getFullYear();
           <li><a href="/bingx/">BingX Bonus</a></li>
           <li><a href="/exchanges/coinbase/">Coinbase Bonus</a></li>
           <li><a href="/exchanges/">All {EXCHANGE_COUNT} Exchanges →</a></li>
-        </ul>
-      </div>
-
-      <div class="footer-links">
-        <h4><a href="/use-cases/" class="footer-h4-link">By Trading Goal</a></h4>
-        <ul>
-          <li><a href="/use-cases/beginners/">Best for Beginners</a></li>
-          <li><a href="/use-cases/futures/">Futures Trading</a></li>
-          <li><a href="/use-cases/no-kyc/">No KYC Exchanges</a></li>
-          <li><a href="/use-cases/copy-trading/">Copy Trading</a></li>
-          <li><a href="/use-cases/low-fees/">Low Fee Exchanges</a></li>
-          <li><a href="/use-cases/p2p/">P2P Trading</a></li>
-          <li><a href="/use-cases/altcoins/">Altcoin Trading</a></li>
-          <li><a href="/use-cases/high-leverage/">High Leverage</a></li>
-        </ul>
-      </div>
-
-      <div class="footer-links">
-        <h4><a href="/coins/" class="footer-h4-link">Buy Crypto</a></h4>
-        <ul>
-          <li><a href="/coins/bitcoin/">Buy Bitcoin (BTC)</a></li>
-          <li><a href="/coins/ethereum/">Buy Ethereum (ETH)</a></li>
-          <li><a href="/coins/usdt/">Buy USDT</a></li>
-          <li><a href="/coins/solana/">Buy Solana (SOL)</a></li>
-          <li><a href="/coins/bnb/">Buy BNB</a></li>
-          <li><a href="/coins/xrp/">Buy XRP</a></li>
-          <li><a href="/coins/doge/">Buy Dogecoin</a></li>
-          <li><a href="/coins/">All 15 Coins →</a></li>
         </ul>
       </div>
 
@@ -106,32 +64,9 @@ const year = new Date().getFullYear();
       </div>
 
       <div class="footer-links">
-        <h4><a href="/countries/" class="footer-h4-link">By Country</a></h4>
-        <ul>
-          <li><a href="/countries/global/">Global</a></li>
-          <li><a href="/countries/india/">India</a></li>
-          <li><a href="/countries/turkey/">Turkey</a></li>
-          <li><a href="/countries/nigeria/">Nigeria</a></li>
-          <li><a href="/countries/indonesia/">Indonesia</a></li>
-          <li><a href="/countries/brazil/">Brazil</a></li>
-          <li><a href="/countries/united-states/">United States</a></li>
-          <li><a href="/countries/united-arab-emirates/">UAE</a></li>
-          <li><a href="/countries/vietnam/">Vietnam</a></li>
-          <li><a href="/countries/philippines/">Philippines</a></li>
-          <li><a href="/countries/mexico/">Mexico</a></li>
-          <li><a href="/countries/argentina/">Argentina</a></li>
-          <li><a href="/countries/kenya/">Kenya</a></li>
-          <li><a href="/countries/ukraine/">Ukraine</a></li>
-          <li><a href="/countries/pakistan/">Pakistan</a></li>
-        </ul>
-      </div>
-
-      <div class="footer-links">
         <h4>Resources</h4>
         <ul>
           <li><a href="/guides/">Trading Guides</a></li>
-          <li><a href="/compare/">Compare Exchanges</a></li>
-          <li><a href="/reviewers/">Our Reviewers</a></li>
           <li><a href="/methodology/">Our Methodology</a></li>
           <li><a href="/update-policy/">Update Policy</a></li>
           <li><a href="/about/">About Us</a></li>
@@ -169,7 +104,7 @@ const year = new Date().getFullYear();
   .footer-inner { padding: 3rem 0 2rem; }
   .footer-grid {
     display: grid;
-    grid-template-columns: 1.4fr repeat(7, 1fr);
+    grid-template-columns: 1.4fr repeat(3, 1fr);
     gap: 1.5rem 1.25rem;
     margin-bottom: 2rem;
   }
@@ -253,10 +188,6 @@ const year = new Date().getFullYear();
   }
   .footer-h4-link:hover { color: var(--color-accent); }
 
-  @media (max-width: 1280px) {
-    .footer-grid { grid-template-columns: 1.4fr repeat(4, 1fr); }
-    .footer-brand { grid-column: 1 / -1; }
-  }
   @media (max-width: 900px) {
     .footer-grid { grid-template-columns: repeat(3, 1fr); }
     .footer-brand { grid-column: 1 / -1; }

@@ -57,14 +57,10 @@ const maxBonus = rankedAvailable.length > 0
   : 0;
 const maxBonusFmt = maxBonus.toLocaleString('en-US');
 
-// ── Thin content guard ────────────────────────────────────────────────────────
-// If a country page has zero available exchanges it has no unique content to offer
-// searchers. Block indexation to protect crawl budget and avoid thin-page penalties.
-// In practice this should never trigger — all countries in countries.json have
-// at least one global exchange. Guard exists for data-integrity safety.
-const hasMinContent = rankedAvailable.length >= 1;
-// Pages with 1–2 exchanges are thin but acceptable; 0 = noindex.
-const pageRobotsDirective = !hasMinContent ? 'noindex, nofollow' : undefined;
+// Indexation: this legacy route is unconditionally noindexed via the Layout
+// robots prop below, per SITEMAP POLICY (sitemap.xml.ts). Country pages return
+// to the index only via the evidence-backed geo model (geoRankings.ts) after
+// owner approval — never through this legacy route.
 
 // SEO: cross-link to relevant categories
 const relatedCats = getCountryCategoryLinks(rankedAvailable as any, categories as any);

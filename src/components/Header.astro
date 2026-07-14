@@ -1,12 +1,11 @@
 ---
 import { EXCHANGE_COUNT } from '../utils/seo';
-// Primary nav must point to indexable canonical pages; /compare/ and /use-cases/
-// stay as deliberate internal-support links until those sections are upgraded.
+// Primary nav points ONLY to indexable canonical pages of the approved
+// architecture. Legacy sections (/compare/, /use-cases/, etc.) are noindex
+// and de-linked from nav per Legacy Cleanup v1 (2026-07-14).
 const navLinks = [
   { href: '/promo-codes/', label: 'Promo Codes', icon: '🏆' },
   { href: '/exchanges/',   label: 'Exchanges',   icon: '🏦' },
-  { href: '/compare/',     label: 'Compare',     icon: '⚖️' },
-  { href: '/use-cases/',   label: 'By Goal',     icon: '🎯' },
   { href: '/guides/',      label: 'Guides',      icon: '📚' },
 ];
 
