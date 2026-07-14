@@ -35,8 +35,6 @@ import { USE_CASES } from '../../data/use-cases';
 import { COINS } from '../../data/coins';
 import { BONUS_CODES } from '../../data/bonus-codes';
 
-import RelatedCategoriesBlock from '../../components/RelatedCategoriesBlock.astro';
-import CountryCrossLinksBlock from '../../components/CountryCrossLinksBlock.astro';
 import EditorSummary from '../../components/EditorSummary.astro';
 import GeoContentBlock from '../../components/GeoContentBlock.astro';
 import GeoPaymentBlock from '../../components/GeoPaymentBlock.astro';
@@ -47,7 +45,6 @@ import WalkthroughStepImage from '../../components/WalkthroughStepImage.astro';
 import FeeSnippetBlock from '../../components/FeeSnippetBlock.astro';
 import RelatedNextReads from '../../components/RelatedNextReads.astro';
 import PromoCodeBox from '../../components/PromoCodeBox.astro';
-import PeopleAlsoCompare from '../../components/PeopleAlsoCompare.astro';
 import ExchangeVerdictBlock from '../../components/ExchangeVerdictBlock.astro';
 import ScreenshotGallery from '../../components/ScreenshotGallery.astro';
 import ContextualEvidenceScreenshot from '../../components/ContextualEvidenceScreenshot.astro';
@@ -94,7 +91,7 @@ const pageReviewer = _primaryReviewer ? {
   title:      _primaryReviewer.title,
   bio:        _primaryReviewer.bio,
   reviewedAt: (ex as any).lastVerified ?? ex.updatedAt,
-  profileUrl: `/reviewers/${_primaryReviewer.slug}/`,
+  profileUrl: '/about/', // reviewer profile pages retired (Legacy Retirement v1) — team info lives on /about/
   initials:   _primaryReviewer.initials,
   avatarSrc:  _primaryReviewer.photo ?? undefined,
   expertise:  _primaryReviewer.expertise,
@@ -233,7 +230,7 @@ const myComparePairs = comparePairs
 // Pass primary reviewer as Person entity when available (E-E-A-T signal).
 // Falls back to Organization author when no reviewer is assigned.
 const _reviewerEntity = _primaryReviewer
-  ? { name: _primaryReviewer.name, url: `https://cryptobonusworld.com/reviewers/${_primaryReviewer.slug}/` }
+  ? { name: _primaryReviewer.name, url: 'https://cryptobonusworld.com/about/' }
   : undefined;
 const reviewPageSchema = buildReviewPageSchema(ex as any, _reviewerEntity);
 // FinancialService schema — standalone entity with licences, areaServed, serviceType
@@ -480,18 +477,10 @@ const _bonusPriceSafe = !!(
 // Evidence guard passed so offers.price is only emitted when bonus data is verified.
 const schema = buildProductSchema(ex as any, undefined, { bonusPriceSafe: _bonusPriceSafe });
 
-// ── Related Next Reads — top compare pairs + related guides for internal distribution
+// ── Related Next Reads — related guides for internal distribution.
+// Compare links retired with the /compare/ section (Legacy Retirement v1).
 const rnrItems = [
-  ...myComparePairs.slice(0, 2).map(p => {
-    const otherSlug = p.a === ex.slug ? p.b : p.a;
-    const other = exMap[otherSlug] as any;
-    return {
-      type: 'compare' as const,
-      label: `${ex.name} vs ${other?.name ?? otherSlug} — Fees, Bonuses & KYC`,
-      href: `/compare/${p.pair}/`,
-    };
-  }),
-  ...relatedGuides.slice(0, 2).map(g => ({
+  ...relatedGuides.slice(0, 4).map(g => ({
     type: 'guide' as const,
     label: g.title,
     href: `/guides/${g.slug}/`,
@@ -528,7 +517,7 @@ const rnrItems = [
       initials="AS"
       photo="/avatars/alexandr-shadurskyi.webp"
       reviewedAt={(ex as any).lastVerified ?? ex.updatedAt}
-      profileUrl="/reviewers/alexandr-shadurskyi/"
+      profileUrl="/about/"
     />
     <div class="ex-freshness-row">
       <FreshnessLabel dateStr={(ex as any).lastVerified ?? ex.updatedAt} variant="review" />
@@ -1321,15 +1310,6 @@ const rnrItems = [
             />
           )}
 
-          {/* People Also Compare — behavioral SEO + internal linking widget */}
-          {myComparePairs.length > 0 && (
-            <PeopleAlsoCompare
-              pairs={myComparePairs}
-              exchanges={exMap as any}
-              currentSlug={ex.slug}
-              limit={5}
-            />
-          )}
         </section>
 
         <!-- Pros & Cons -->
@@ -1345,28 +1325,7 @@ const rnrItems = [
 
           <!-- Geo-aware regulatory note (shown for visitor's country) -->
           <GeoRegulatoryNote exchange={ex as any} />
-
-          {countryCrossLinks.length > 0 && (
-            <CountryCrossLinksBlock
-              countries={countryCrossLinks as any}
-              heading="Explore Country-Specific Bonus Guides"
-            />
-          )}
         </section>
-
-        <!-- Related bonus categories (internal linking) -->
-        {relatedCats.length > 0 && (
-          <section class="ex-section">
-            <h2 class="ex-section-title">Compare by Bonus Type</h2>
-            <p class="ex-prose" style="margin-bottom: 0.75rem">
-              {ex.name} qualifies across multiple bonus categories. Browse the full comparison for each type:
-            </p>
-            <RelatedCategoriesBlock
-              categories={relatedCats as any}
-              heading="Bonus Categories"
-            />
-          </section>
-        )}
 
         <!-- Related Guides (internal linking) -->
         {relatedGuides.length > 0 && (
@@ -1379,20 +1338,6 @@ const rnrItems = [
           </section>
         )}
 
-        <!-- Use-case cross-links -->
-        {relatedUseCases.length > 0 && (
-          <section class="ex-section ex-use-case-links">
-            <h2 class="ex-section-title" style="margin-bottom: 0.5rem">{ex.name} is recommended for:</h2>
-            <div class="ex-uc-chips">
-              {relatedUseCases.map(uc => (
-                <a href={`/use-cases/${uc.slug}/`} class="ex-uc-chip">
-                  {uc.label}
-                </a>
-              ))}
-            </div>
-          </section>
-        )}
-
         <!-- Related Next Reads — internal distribution, dead-end elimination -->
         {rnrItems.length > 0 && (
           <RelatedNextReads
@@ -1402,37 +1347,16 @@ const rnrItems = [
           />
         )}
 
-        <!-- Bonus landing page link + bonus code cross-link -->
+        <!-- Promo codes cross-link (legacy per-exchange bonus/bonus-code pages retired) -->
         <section class="ex-section">
           <div class="bonus-page-link-strip">
             <div>
-              <div class="bonus-page-link-label">Step-by-step bonus guide</div>
-              <div class="bonus-page-link-title">How to Claim the {ex.name} Bonus</div>
+              <div class="bonus-page-link-label">Compare all verified offers</div>
+              <div class="bonus-page-link-title">Crypto Promo Codes &amp; Referral Bonuses</div>
             </div>
-            <a href={`/bonuses/${ex.slug}-bonus/`} class="bonus-page-link-cta">Claim Guide →</a>
+            <a href="/promo-codes/" class="bonus-page-link-cta">View All Codes →</a>
           </div>
-          {hasBonusCode && (
-            <div class="bonus-code-strip">
-              <span class="bonus-code-strip-label">🔑 Working promo codes</span>
-              <a href={`/bonus-codes/${ex.slug}/`} class="bonus-code-strip-link">{ex.name} Bonus Code {new Date().getFullYear()} →</a>
-            </div>
-          )}
         </section>
-
-        <!-- Coins available on this exchange — internal linking to /coins/ -->
-        {relatedCoins.length > 0 && (
-          <section class="ex-section">
-            <h3 class="ex-section-title" style="font-size:0.9rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--color-text-muted)">Buy Crypto on {ex.name}</h3>
-            <div class="ex-coin-chips">
-              {relatedCoins.map(coin => (
-                <a href={`/coins/${coin.slug}/`} class="ex-coin-chip">
-                  {(coin as any).symbol ?? coin.slug.toUpperCase()}
-                </a>
-              ))}
-              <a href="/coins/" class="ex-coin-chip ex-coin-chip--all">All Coins →</a>
-            </div>
-          </section>
-        )}
 
         <!-- How we evaluate — compact E-E-A-T methodology reference -->
         <HowWeEvaluate variant="compact" />
@@ -1577,31 +1501,6 @@ const rnrItems = [
 
     <!-- Full-width sections below two-column -->
     <AlternativesBlock currentSlug={ex.slug} exchanges={exchanges} />
-
-    <!-- Compare vs. section -->
-    {myComparePairs.length > 0 && (
-      <section class="compare-vs-section">
-        <h2 class="section-heading">Compare {ex.name} vs Alternatives</h2>
-        <div class="compare-vs-grid">
-          {myComparePairs.map(p => {
-            const otherSlug = p.a === ex.slug ? p.b : p.a;
-            const other = exMap[otherSlug] as any;
-            if (!other) return null;
-            return (
-              <a href={`/compare/${p.pair}/`} class="compare-vs-card">
-                <div class="compare-vs-logos">
-                  <ExchangeLogo slug={ex.slug} name={ex.name} size={44} variant="square" lazy={false} />
-                  <span class="compare-vs-divider">vs</span>
-                  <ExchangeLogo slug={otherSlug} name={other.name} size={44} variant="square" lazy={false} />
-                </div>
-                <span class="compare-vs-label">{ex.name} vs {other.name}</span>
-                <span class="compare-vs-arrow">→</span>
-              </a>
-            );
-          })}
-        </div>
-      </section>
-    )}
 
     <RiskDisclaimer />
   </div>

@@ -108,20 +108,13 @@ function loadJSON(relativePath) {
 }
 
 const exchanges   = loadJSON('src/data/exchanges.json');
-const categories  = loadJSON('src/data/categories.json');
-const countries   = loadJSON('src/data/countries.json');
-const comparePairs= loadJSON('src/data/compare-pairs.json');
 const guides      = loadJSON('src/data/guides.json');
 
-// Bonus codes slug list (just use exchanges that have bonus codes in bonus-codes.ts)
-// We can safely re-derive this from exchange slugs since all have bonus pages
-const bonusCodeSlugs = (() => {
-  try {
-    const raw = readFileSync(join(ROOT, 'src/data/bonus-codes.ts'), 'utf8');
-    const matches = [...raw.matchAll(/exchangeSlug:\s*['"]([^'"]+)['"]/g)];
-    return matches.map(m => m[1]);
-  } catch { return []; }
-})();
+// Live rich promo pages served at /{slug}/ — all other exchanges live under
+// /exchanges/{slug}/. Legacy sections (/bonuses/, /bonus-codes/, /compare/,
+// /categories/, /countries/, /coins/, /use-cases/, /reviewers/) were retired
+// on 2026-07-14 (Legacy Sections Retirement v1) and must never be submitted.
+const LIVE_PROMO_SLUGS = ['bybit', 'mexc', 'okx', 'bitget', 'kucoin', 'bingx'];
 
 // ── URL builders ──────────────────────────────────────────────────────────────
 
@@ -131,59 +124,44 @@ function abs(path) {
 
 /**
  * All site URLs grouped by tier for selective submission.
+ * Mirrors the sitemap policy: only indexable, approved-architecture pages.
  */
 function buildUrlSets() {
   // Tier 1 — highest intent, submit most frequently
   const tier1 = [
     '/',
+    '/promo-codes/',
     '/exchanges/',
-    '/bonuses/',
-    '/bonus-codes/',
-    ...exchanges.map(e => `/exchanges/${e.slug}/`),
-    ...exchanges.map(e => `/bonuses/${e.slug}-bonus/`),
-    ...bonusCodeSlugs.map(s => `/bonus-codes/${s}/`),
+    ...LIVE_PROMO_SLUGS.map(s => `/${s}/`),
+    ...exchanges.filter(e => !LIVE_PROMO_SLUGS.includes(e.slug)).map(e => `/exchanges/${e.slug}/`),
   ];
 
-  // Tier 2 — compare pages, guides, categories
+  // Tier 2 — guides
   const tier2 = [
-    '/compare/',
     '/guides/',
-    '/categories/',
-    ...comparePairs.map(p => `/compare/${p.pair}/`),
     ...guides.map(g => `/guides/${g.slug}/`),
-    ...categories.map(c => `/categories/${c.slug}/`),
   ];
 
-  // Tier 3 — supporting pages
+  // Tier 3 — trust/legal pages
   const tier3 = [
-    '/countries/',
-    '/coins/',
-    '/use-cases/',
-    '/reviewers/',
     '/methodology/',
     '/about/',
-    ...countries.map(c => `/countries/${c.slug}/`),
+    '/editorial-policy/',
+    '/update-policy/',
+    '/affiliate-disclosure/',
+    '/disclaimer/',
+    '/privacy-policy/',
+    '/terms/',
   ];
 
   return { tier1, tier2, tier3 };
 }
 
 /**
- * Get URLs for a specific exchange + all related pages.
+ * Get URLs for a specific exchange.
  */
 function buildExchangeUrls(slug) {
-  const urls = [
-    `/exchanges/${slug}/`,
-    `/bonuses/${slug}-bonus/`,
-  ];
-  if (bonusCodeSlugs.includes(slug)) {
-    urls.push(`/bonus-codes/${slug}/`);
-  }
-  // Compare pages involving this exchange
-  const compares = comparePairs
-    .filter(p => p.pair.includes(slug))
-    .map(p => `/compare/${p.pair}/`);
-  return [...urls, ...compares];
+  return [LIVE_PROMO_SLUGS.includes(slug) ? `/${slug}/` : `/exchanges/${slug}/`];
 }
 
 /**
@@ -209,8 +187,8 @@ function resolveUrls() {
   const { tier1, tier2, tier3 } = buildUrlSets();
 
   if (flags.mode === 'priority') return tier1.map(abs);
-  if (flags.mode === 'evidence') return [...tier1, ...tier2].filter(u =>
-    u.includes('/exchanges/') || u.includes('/bonuses/') || u.includes('/compare/')
+  if (flags.mode === 'evidence') return tier1.filter(u =>
+    u.includes('/exchanges/') || LIVE_PROMO_SLUGS.some(s => u.endsWith(`/${s}/`))
   ).map(abs);
 
   // Default: all

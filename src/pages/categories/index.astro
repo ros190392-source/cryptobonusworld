@@ -1,178 +1,27 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import Breadcrumbs from '../../components/Breadcrumbs.astro';
-import categories from '../../data/categories.json';
-
-const bonusTypeIcons: Record<string, string> = {
-  'signup':          '🎁',
-  'no-deposit':      '🆓',
-  'deposit':         '💵',
-  'futures':         '📈',
-  'welcome':         '🌟',
-  'no-kyc':          '🔓',
-  'trading-rewards': '🏆',
-  'referral':        '🤝',
-};
-
-const schema = {
-  '@context': 'https://schema.org',
-  '@type': 'CollectionPage',
-  name: 'Crypto Bonus Categories — CryptoBonusWorld',
-  description: 'Browse all crypto exchange bonus types: signup bonuses, deposit bonuses, no-KYC bonuses, futures bonuses and more.',
-  url: 'https://cryptobonusworld.com/categories/',
-  publisher: { '@type': 'Organization', name: 'CryptoBonusWorld', url: 'https://cryptobonusworld.com' },
-};
+// /categories/ → redirect stub. Legacy section retired 2026-07-14
+// (Legacy Sections Retirement v1) — content replaced by /promo-codes/
+// noindex + meta refresh (static-site equivalent of 301).
 ---
-
-<Layout
-  title="Crypto Bonus Categories 2026 — Browse by Bonus Type"
-  description="Browse all crypto exchange bonus categories. Compare signup bonuses, deposit bonuses, no-KYC bonuses, futures bonuses, referral rewards and trading rewards."
-  canonical="/categories/"
-  schema={schema}
-  noindex={true}
->
-  <div class="container">
-    <Breadcrumbs crumbs={[
-      { label: 'Home', href: '/' },
-      { label: 'Bonus Categories' },
-    ]} />
-
-    <header class="cats-header">
-      <h1>Crypto Bonus Categories</h1>
-      <p class="cats-subtitle">
-        Not all bonuses are equal. Browse by bonus type to find the offer that fits your trading style.
-      </p>
-    </header>
-
-    <div class="cats-grid">
-      {categories.map(cat => (
-        <a href={`/categories/${cat.slug}/`} class="cat-card">
-          <span class="cat-icon">{bonusTypeIcons[cat.bonusType] ?? '🎯'}</span>
-          <div class="cat-info">
-            <h2 class="cat-name">{cat.name}</h2>
-            <p class="cat-desc">{cat.description}</p>
-          </div>
-          <span class="cat-arrow">→</span>
-        </a>
-      ))}
-    </div>
-
-    <div class="cats-cta">
-      <p>Looking for the top picks across all categories?</p>
-      <a href="/bonuses/" class="btn-primary">View All Bonuses</a>
-    </div>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Redirecting…</title>
+  <meta name="robots" content="noindex, follow" />
+  <link rel="canonical" href="https://cryptobonusworld.com/promo-codes/" />
+  <meta http-equiv="refresh" content="0;url=/promo-codes/" />
+  <style>
+    body { margin:0; font-family:system-ui,sans-serif; background:#F7F8F4;
+           display:flex; align-items:center; justify-content:center; min-height:100vh; }
+    .msg { text-align:center; color:#6B7280; font-size:14px; }
+    a { color:#16A34A; }
+  </style>
+</head>
+<body>
+  <div class="msg">
+    <p>This section has moved. Redirecting to <a href="/promo-codes/">all crypto promo codes</a>…</p>
   </div>
-</Layout>
-
-<style>
-  .container {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 2rem 1rem 4rem;
-  }
-
-  .cats-header {
-    text-align: center;
-    margin-bottom: 2.5rem;
-  }
-
-  .cats-header h1 {
-    font-size: clamp(1.6rem, 4vw, 2.4rem);
-    font-weight: 700;
-    color: var(--color-text, #f0f0f0);
-    margin-bottom: 0.75rem;
-  }
-
-  .cats-subtitle {
-    color: var(--color-muted, #9ca3af);
-    font-size: 1.05rem;
-    max-width: 540px;
-    margin: 0 auto;
-  }
-
-  .cats-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    margin-bottom: 3rem;
-  }
-
-  .cat-card {
-    display: flex;
-    align-items: center;
-    gap: 1.25rem;
-    background: var(--color-card, #1a1a2e);
-    border: 1px solid var(--color-border, #2a2a4a);
-    border-radius: 12px;
-    padding: 1.25rem 1.5rem;
-    text-decoration: none;
-    color: inherit;
-    transition: border-color 0.2s, background 0.2s;
-  }
-
-  .cat-card:hover {
-    border-color: var(--color-gold, #f5c542);
-    background: var(--color-card-hover, #1e1e3a);
-  }
-
-  .cat-icon {
-    font-size: 2rem;
-    flex-shrink: 0;
-    width: 2.5rem;
-    text-align: center;
-  }
-
-  .cat-info {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .cat-name {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: var(--color-text, #f0f0f0);
-    margin: 0 0 0.3rem;
-  }
-
-  .cat-desc {
-    font-size: 0.9rem;
-    color: var(--color-muted, #9ca3af);
-    margin: 0;
-    line-height: 1.4;
-  }
-
-  .cat-arrow {
-    font-size: 1.25rem;
-    color: var(--color-gold, #f5c542);
-    flex-shrink: 0;
-  }
-
-  .cats-cta {
-    text-align: center;
-    padding: 2rem;
-    background: var(--color-card, #1a1a2e);
-    border: 1px solid var(--color-border, #2a2a4a);
-    border-radius: 12px;
-  }
-
-  .cats-cta p {
-    color: var(--color-muted, #9ca3af);
-    margin-bottom: 1rem;
-  }
-
-  .btn-primary {
-    display: inline-block;
-    background: var(--color-gold, #f5c542);
-    color: #0a0a1a;
-    font-weight: 700;
-    padding: 0.7rem 2rem;
-    border-radius: 8px;
-    text-decoration: none;
-    font-size: 0.95rem;
-    transition: opacity 0.2s;
-  }
-
-  .btn-primary:hover {
-    opacity: 0.9;
-  }
-</style>
+</body>
+</html>

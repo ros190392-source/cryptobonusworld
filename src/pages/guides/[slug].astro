@@ -132,8 +132,8 @@ function buildNextStep(): NextStep {
       body: 'Compare all current signup bonuses, deposit matches and futures rewards in one place — filtered by your preferences.',
       cta: 'Compare all bonuses',
       href: '/promo-codes/',
-      secondaryCta: 'See signup bonuses only',
-      secondaryHref: '/categories/signup-bonuses/',
+      secondaryCta: 'Browse all exchanges',
+      secondaryHref: '/exchanges/',
       type: 'guide',
       internal: true,
     };
@@ -143,7 +143,7 @@ function buildNextStep(): NextStep {
     return {
       body: 'Compare exchanges side by side — bonuses, KYC requirements, fees and features. Find the best fit for your needs.',
       cta: 'Compare exchanges',
-      href: '/compare/',
+      href: '/promo-codes/',
       secondaryCta: 'Browse all exchanges',
       secondaryHref: '/exchanges/',
       type: 'compare',
@@ -170,7 +170,7 @@ function buildNextStep(): NextStep {
     return {
       body: 'Compare exchanges for futures trading — fees, leverage limits, interface quality and welcome bonuses for new traders.',
       cta: 'Compare futures exchanges',
-      href: '/categories/futures-bonuses/',
+      href: '/promo-codes/',
       secondaryCta: 'Browse all bonuses',
       secondaryHref: '/promo-codes/',
       type: 'compare',
@@ -256,7 +256,7 @@ const categoryColors: Record<string, string> = {
       initials="AS"
       photo="/avatars/alexandr-shadurskyi.webp"
       reviewedAt={meta.lastUpdated}
-      profileUrl="/reviewers/alexandr-shadurskyi/"
+      profileUrl="/about/"
     />
 
     <div class="guide-layout">
@@ -360,20 +360,6 @@ const categoryColors: Record<string, string> = {
           </section>
         )}
 
-        <!-- Use-case cross-links -->
-        {relatedUseCases.length > 0 && (
-          <section class="guide-section guide-uc-links">
-            <h3 class="guide-uc-title">Related Use Cases</h3>
-            <div class="guide-uc-chips">
-              {relatedUseCases.map(uc => (
-                <a href={`/use-cases/${uc.slug}/`} class="guide-uc-chip">
-                  {uc.label} →
-                </a>
-              ))}
-            </div>
-          </section>
-        )}
-
         <!-- Related Next Reads — internal distribution, dead-end elimination -->
         {guideRnrItems.length > 0 && (
           <RelatedNextReads
@@ -422,10 +408,8 @@ const categoryColors: Record<string, string> = {
         <!-- Quick links -->
         <div class="guide-sidebar-links">
           <div class="guide-sidebar-label">Explore More</div>
-          <a href="/promo-codes/" class="guide-sidebar-link">🏆 All Exchange Bonuses</a>
-          <a href="/categories/no-kyc-bonuses/" class="guide-sidebar-link">🔓 No-KYC Bonuses</a>
-          <a href="/categories/signup-bonuses/" class="guide-sidebar-link">🚀 Signup Bonuses</a>
-          <a href="/compare/" class="guide-sidebar-link">⚖️ Compare Exchanges</a>
+          <a href="/promo-codes/" class="guide-sidebar-link">🏆 All Promo Codes</a>
+          <a href="/exchanges/" class="guide-sidebar-link">🏦 All Exchanges</a>
           <a href="/guides/" class="guide-sidebar-link">📚 All Guides</a>
         </div>
       </aside>

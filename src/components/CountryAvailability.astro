@@ -34,16 +34,9 @@ const countryMeta: Record<string, { label: string; linked: boolean }> = {
         {countries.map(c => {
           const meta = countryMeta[c];
           const label = meta?.label ?? c;
-          const linkable = meta?.linked ?? false;
-          return linkable
-            ? (
-              <a href={`/countries/${c}/`} class="ca-tag ca-tag--available ca-tag--link" title={`Compare bonuses in ${label.replace(/^\S+\s/, '')}`}>
-                {label}
-              </a>
-            )
-            : (
-              <span class="ca-tag ca-tag--available">{label}</span>
-            );
+          // Country tags render as plain labels — /countries/ pages retired
+          // (Legacy Retirement v1); country UX lives in the homepage GEO finder.
+          return <span class="ca-tag ca-tag--available">{label}</span>;
         })}
       </div>
     </div>

@@ -1,133 +1,27 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import Breadcrumbs from '../../components/Breadcrumbs.astro';
-import AffiliateDisclosure from '../../components/AffiliateDisclosure.astro';
-import RiskDisclaimer from '../../components/RiskDisclaimer.astro';
-import { USE_CASES } from '../../data/use-cases';
-import type { PageContext } from '../../utils/analytics';
-
-const analyticsContext: PageContext = { pageType: 'category' };
-
-const priorityOrder: Record<string, number> = { 'very-high': 0, high: 1, medium: 2 };
-const sorted = [...USE_CASES].sort((a, b) =>
-  (priorityOrder[a.priority] ?? 3) - (priorityOrder[b.priority] ?? 3)
-);
+// /use-cases/ → redirect stub. Legacy section retired 2026-07-14
+// (Legacy Sections Retirement v1) — content replaced by /promo-codes/
+// noindex + meta refresh (static-site equivalent of 301).
 ---
-
-<Layout
-  title="Best Crypto Exchanges by Use Case 2026"
-  description="Find the best crypto exchange for your specific needs — beginners, scalping, futures, copy trading, no-KYC, low fees, P2P and altcoins."
-  canonical="/use-cases/"
-  analyticsContext={analyticsContext}
-  noindex={true}
->
-  <div class="container">
-    <Breadcrumbs crumbs={[
-      { label: 'Home', href: '/' },
-      { label: 'Exchange Use Cases' },
-    ]} />
-
-    <div class="page-header">
-      <h1>Best Crypto Exchanges by Use Case</h1>
-      <p class="lead">
-        Find the right exchange for your specific trading style, experience level or requirements.
-        Each page includes a ranked comparison, scoring rationale and FAQ.
-      </p>
-    </div>
-
-    <AffiliateDisclosure compact />
-
-    <div class="uc-grid">
-      {sorted.map(uc => (
-        <a href={`/use-cases/${uc.slug}/`} class="uc-card">
-          <div class="uc-card-top">
-            <span class="uc-card-label">{uc.label}</span>
-            {uc.priority === 'very-high' && <span class="uc-popular-tag">Popular</span>}
-          </div>
-          <p class="uc-card-heading">{uc.heading}</p>
-          <p class="uc-card-intro">{uc.intro.split('.')[0]}.</p>
-          <span class="uc-card-cta">Compare exchanges →</span>
-        </a>
-      ))}
-    </div>
-
-    <RiskDisclaimer />
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Redirecting…</title>
+  <meta name="robots" content="noindex, follow" />
+  <link rel="canonical" href="https://cryptobonusworld.com/promo-codes/" />
+  <meta http-equiv="refresh" content="0;url=/promo-codes/" />
+  <style>
+    body { margin:0; font-family:system-ui,sans-serif; background:#F7F8F4;
+           display:flex; align-items:center; justify-content:center; min-height:100vh; }
+    .msg { text-align:center; color:#6B7280; font-size:14px; }
+    a { color:#16A34A; }
+  </style>
+</head>
+<body>
+  <div class="msg">
+    <p>This section has moved. Redirecting to <a href="/promo-codes/">the promo codes comparison</a>…</p>
   </div>
-</Layout>
-
-<style>
-  .page-header { margin-bottom: 1.75rem; }
-
-  .uc-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1rem;
-    margin-bottom: 2rem;
-  }
-
-  .uc-card {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    padding: 1.125rem 1.25rem;
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
-    border-radius: 12px;
-    text-decoration: none;
-    transition: border-color 0.15s, background 0.15s;
-  }
-  .uc-card:hover {
-    border-color: rgba(245,197,66,0.3);
-    background: rgba(245,197,66,0.02);
-  }
-
-  .uc-card-top {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .uc-card-label {
-    font-size: 0.7rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--color-accent);
-  }
-
-  .uc-popular-tag {
-    font-size: 0.62rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: #000;
-    background: var(--color-accent);
-    border-radius: 4px;
-    padding: 0.1rem 0.35rem;
-  }
-
-  .uc-card-heading {
-    font-size: 0.9rem;
-    font-weight: 700;
-    color: var(--color-text-primary);
-    margin: 0;
-    line-height: 1.35;
-  }
-
-  .uc-card-intro {
-    font-size: 0.78rem;
-    color: var(--color-text-muted);
-    margin: 0;
-    line-height: 1.55;
-    flex: 1;
-  }
-
-  .uc-card-cta {
-    font-size: 0.78rem;
-    font-weight: 700;
-    color: var(--color-accent);
-    margin-top: 0.25rem;
-    transition: opacity 0.15s;
-  }
-  .uc-card:hover .uc-card-cta { opacity: 0.8; }
-</style>
+</body>
+</html>

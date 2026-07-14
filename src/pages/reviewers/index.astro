@@ -1,235 +1,27 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import Breadcrumbs from '../../components/Breadcrumbs.astro';
-import { EDITORIAL_TEAM, getActiveReviewers } from '../../data/reviewers';
-import { SITE_NAME } from '../../utils/seo';
-
-const reviewers = getActiveReviewers();
-
-const pageTitle = `Our Editorial Team — Crypto Exchange Analysts`;
-const pageDesc  = `Meet the analysts and researchers behind CryptoBonusWorld. Our team manually verifies all crypto exchange bonus data, KYC conditions, and deposit requirements.`;
-
-const orgSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'Organization',
-  name: SITE_NAME,
-  url: 'https://cryptobonusworld.com',
-  employee: reviewers.map(r => ({
-    '@type': 'Person',
-    name: r.name,
-    jobTitle: r.title,
-    description: r.bio,
-    url: `https://cryptobonusworld.com/reviewers/${r.slug}/`,
-  })),
-};
-
-const crumbs = [
-  { label: 'Home', href: '/' },
-  { label: 'Our Team', href: '/reviewers/' },
-];
+// /reviewers/ → redirect stub. Legacy section retired 2026-07-14
+// (Legacy Sections Retirement v1) — content replaced by /about/
+// noindex + meta refresh (static-site equivalent of 301).
 ---
-
-<Layout title={pageTitle} description={pageDesc} canonical="/reviewers/" schema={orgSchema} noindex={true}>
-  <div class="container">
-    <Breadcrumbs crumbs={crumbs} />
-
-    <div class="page-header">
-      <div class="header-badge">👥 Editorial Team</div>
-      <h1>Our Editorial Team</h1>
-      <p class="lead">
-        Every exchange listing on CryptoBonusWorld is manually verified by a member of our
-        research team. We do not accept payment for ratings or review positions.
-      </p>
-    </div>
-
-    <div class="team-grid">
-      {reviewers.map(reviewer => (
-        <a href={`/reviewers/${reviewer.slug}/`} class="team-card" itemscope itemtype="https://schema.org/Person">
-          <div class="team-card__avatar" aria-hidden="true">
-            {reviewer.photo
-              ? <img src={reviewer.photo} alt={reviewer.name} width="64" height="64" />
-              : <span class="team-card__initials">{reviewer.initials}</span>
-            }
-          </div>
-          <div class="team-card__body">
-            <div class="team-card__name" itemprop="name">{reviewer.name}</div>
-            <div class="team-card__title" itemprop="jobTitle">{reviewer.title}</div>
-            <p class="team-card__bio" itemprop="description">{reviewer.bio}</p>
-            <div class="team-card__stats">
-              <span class="stat">
-                <strong>{reviewer.reviewCount}</strong> reviews
-              </span>
-              <span class="stat">
-                <strong>{reviewer.articleCount}</strong> articles
-              </span>
-              <span class="stat-badge">
-                {reviewer.credibilityScore >= 90 ? '⭐ Expert' : '✓ Verified'}
-              </span>
-            </div>
-          </div>
-        </a>
-      ))}
-    </div>
-
-    <section class="trust-section prose">
-      <h2>Our Editorial Independence</h2>
-      <p>
-        CryptoBonusWorld operates on a strict editorial independence policy. Affiliate
-        commissions from exchanges fund our research operations, but no exchange can pay
-        for a specific rating, ranking position, or review score. Our methodology is
-        published openly at <a href="/methodology/">our methodology page</a>.
-      </p>
-      <h2>How We Verify Data</h2>
-      <ul>
-        <li>All bonus amounts sourced directly from official exchange promotion pages</li>
-        <li>KYC requirements tested via account sign-up flow (where possible)</li>
-        <li>Deposit minimums and withdrawal limits cross-referenced with T&amp;Cs</li>
-        <li>Trading volume requirements verified against official bonus terms</li>
-        <li>Each exchange re-verified at least every 30–45 days</li>
-      </ul>
-      <p>
-        <a href="/editorial-policy/">Read our full editorial policy →</a>
-      </p>
-    </section>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Redirecting…</title>
+  <meta name="robots" content="noindex, follow" />
+  <link rel="canonical" href="https://cryptobonusworld.com/about/" />
+  <meta http-equiv="refresh" content="0;url=/about/" />
+  <style>
+    body { margin:0; font-family:system-ui,sans-serif; background:#F7F8F4;
+           display:flex; align-items:center; justify-content:center; min-height:100vh; }
+    .msg { text-align:center; color:#6B7280; font-size:14px; }
+    a { color:#16A34A; }
+  </style>
+</head>
+<body>
+  <div class="msg">
+    <p>This section has moved. Redirecting to <a href="/about/">the About page</a>…</p>
   </div>
-</Layout>
-
-<style>
-  .container { max-width: var(--container-max); margin: 0 auto; padding: 0 var(--container-pad); }
-
-  .page-header {
-    padding: 3rem 0 2.5rem;
-    border-bottom: 1px solid var(--color-border);
-    margin-bottom: 2.5rem;
-  }
-  .header-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: var(--text-xs);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--color-accent);
-    background: var(--color-accent-muted);
-    border: 1px solid rgba(245,197,66,0.2);
-    border-radius: var(--radius-pill);
-    padding: 0.3rem 0.75rem;
-    margin-bottom: 1rem;
-  }
-  .page-header h1 {
-    font-size: clamp(1.75rem, 4vw, 2.5rem);
-    font-weight: 800;
-    margin: 0 0 0.75rem;
-    letter-spacing: -0.02em;
-  }
-  .page-header .lead {
-    font-size: 1rem;
-    color: var(--color-text-secondary);
-    max-width: 600px;
-    margin: 0;
-  }
-
-  .team-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 1.25rem;
-    margin-bottom: 3rem;
-  }
-
-  .team-card {
-    display: flex;
-    gap: 1rem;
-    padding: 1.5rem;
-    background: var(--surface-raised);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
-    text-decoration: none;
-    color: var(--color-text-primary);
-    transition: border-color var(--duration-base), box-shadow var(--duration-base), transform var(--duration-base);
-  }
-  .team-card:hover {
-    border-color: var(--color-accent);
-    box-shadow: var(--glow-card);
-    transform: translateY(-2px);
-  }
-
-  .team-card__avatar {
-    flex-shrink: 0;
-    width: 64px;
-    height: 64px;
-  }
-  .team-card__initials {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    background: rgba(245,197,66,0.12);
-    border: 1px solid rgba(245,197,66,0.25);
-    color: var(--color-accent);
-    font-size: 1.1rem;
-    font-weight: 800;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    letter-spacing: -0.02em;
-  }
-  .team-card__body {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    min-width: 0;
-  }
-  .team-card__name {
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--color-text-primary);
-  }
-  .team-card__title {
-    font-size: var(--text-sm);
-    color: var(--color-accent);
-    font-weight: 600;
-  }
-  .team-card__bio {
-    font-size: var(--text-sm);
-    color: var(--color-text-secondary);
-    line-height: 1.55;
-    margin: 0.375rem 0 0.5rem;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-  .team-card__stats {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-  }
-  .stat {
-    font-size: var(--text-xs);
-    color: var(--color-text-muted);
-  }
-  .stat strong { color: var(--color-text-primary); font-weight: 700; }
-  .stat-badge {
-    font-size: var(--text-xs);
-    font-weight: 700;
-    color: var(--color-accent);
-    background: var(--color-accent-muted);
-    border-radius: var(--radius-pill);
-    padding: 0.15rem 0.5rem;
-  }
-
-  .trust-section {
-    max-width: 720px;
-    margin: 0 auto 3rem;
-    padding: 2rem;
-    background: var(--surface-raised);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-xl);
-  }
-
-  @media (max-width: 640px) {
-    .team-grid { grid-template-columns: 1fr; }
-    .trust-section { padding: 1.25rem; }
-  }
-</style>
+</body>
+</html>
