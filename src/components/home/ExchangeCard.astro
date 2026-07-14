@@ -2,6 +2,7 @@
 import type { Exchange } from '../../data/exchanges';
 import type { Offer } from '../../data/offers';
 import PromoCodeCopy from '../promo/PromoCodeCopy.astro';
+import ExchangeLogo from '../ExchangeLogo.astro';
 
 export interface Props {
   exchange: Exchange;
@@ -9,48 +10,46 @@ export interface Props {
 }
 
 const { exchange: ex, offer } = Astro.props;
+const reviewUrl = ex.pageUrl ?? `/exchanges/${ex.slug}/`;
 ---
 
 <div class="ec">
-  <a href={ex.pageUrl ?? `/exchanges/${ex.slug}/`} class="ec-img-link" tabindex="-1" aria-label={`${ex.name} exchange page`}>
-    <div class="ec-img-wrap">
-      <img
-        src={ex.cardImage}
-        alt={`${ex.name} referral code — claim bonus`}
-        class="ec-img"
-        width="1200" height="800"
-        loading="eager"
-      />
-    </div>
-  </a>
-  <div class="ec-body">
-    <a href={ex.pageUrl ?? `/exchanges/${ex.slug}/`} class="ec-name">{ex.name}</a>
-    {offer && (
-      <div class="ec-bonus">{offer.bonusHeadline}</div>
-    )}
-    {offer && (
-      <div class="ec-code-band">
-        <div class="ec-code-meta">
-          <span class="ec-code-label">Promo code</span>
-          {offer.status === 'verified' && <span class="ec-verified">✓ verified</span>}
-        </div>
-        <PromoCodeCopy code={offer.promoCode} exchange={ex.name} />
-      </div>
-    )}
-    <a href={ex.affiliateUrl} class="ec-cta">Claim Bonus →</a>
-    <a href={ex.pageUrl ?? `/exchanges/${ex.slug}/`} class="ec-review-link">Read {ex.name} review</a>
+  <!-- 1. Logo + 2. name + 3. trust line -->
+  <div class="ec-head">
+    <a href={reviewUrl} class="ec-logo-link" tabindex="-1" aria-label={`${ex.name} review`}>
+      <ExchangeLogo slug={ex.slug} name={ex.name} size={96} variant="square" lazy={false} class="ec-logo" />
+    </a>
+    <a href={reviewUrl} class="ec-name">{ex.name}</a>
+    {offer?.status === 'verified' && <span class="ec-verified">✓ Verified offer</span>}
   </div>
+
+  <!-- 4. Bonus summary -->
+  {offer && <p class="ec-bonus">{offer.bonusHeadline}</p>}
+
+  <!-- 5. Promo-code copy (shared canonical UI) -->
+  {offer && (
+    <div class="ec-code-band">
+      <span class="ec-code-label">Promo code</span>
+      <PromoCodeCopy code={offer.promoCode} exchange={ex.name} />
+    </div>
+  )}
+
+  <!-- 6. Primary CTA + 7. secondary review link -->
+  <a href={ex.affiliateUrl} class="ec-cta">Claim Bonus →</a>
+  <a href={reviewUrl} class="ec-review-link">Read {ex.name} review</a>
 </div>
 
 <style>
   .ec {
-    display: flex; flex-direction: column;
+    display: flex; flex-direction: column; align-items: center;
+    min-width: 0; /* allow grid tracks (minmax(auto,1fr)) to shrink below content min */
     background: var(--cbw-card-bg, #fff);
     border: 1px solid var(--cbw-card-border, #E5E7EB);
-    border-radius: var(--cbw-card-radius, 12px);
-    overflow: hidden;
+    border-radius: var(--cbw-card-radius, 14px);
+    padding: 22px 18px 18px;
     box-shadow: var(--cbw-card-shadow, 0 2px 6px rgba(0,0,0,0.06));
     transition: box-shadow .2s, transform .15s, border-color .2s;
+    text-align: center;
   }
   .ec:hover {
     box-shadow: var(--cbw-card-shadow-h, 0 6px 20px rgba(0,0,0,0.11));
@@ -58,49 +57,68 @@ const { exchange: ex, offer } = Astro.props;
     border-color: var(--cbw-card-border-h, #C7D2FE);
   }
 
-  .ec-img-link { display: block; text-decoration: none; }
-  .ec-img-wrap {
-    overflow: hidden;
-    border-bottom: 1px solid var(--cbw-gray-100, #F3F4F6);
-    aspect-ratio: 16/9;
-  }
-  .ec-img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .35s; }
-  .ec:hover .ec-img { transform: scale(1.025); }
-
-  .ec-body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 5px; }
+  /* ── 1–3. Logo / name / trust ─────────────────────────────────── */
+  .ec-head { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; }
+  .ec-logo-link { display: inline-flex; line-height: 0; border-radius: 21px; }
+  .ec-logo-link:focus-visible { outline: 2px solid #16A34A; outline-offset: 3px; }
+  /* Large, crisp, undistorted brand logo — object-fit:contain via ExchangeLogo.
+     ~4x the visual prominence of the previous inline mark. */
+  .ec-logo-link :global(.ec-logo) { box-shadow: 0 1px 4px rgba(0,0,0,0.10); }
 
   .ec-name {
-    font-size: 15px; font-weight: 800; color: var(--cbw-gray-900, #111827);
+    font-size: 18px; font-weight: 800; color: var(--cbw-gray-900, #111827);
     letter-spacing: -.01em; text-decoration: none; display: block;
   }
   .ec-name:hover { color: #1D4ED8; text-decoration: underline; }
 
-  .ec-bonus { font-size: 13px; color: var(--cbw-gray-700, #374151); line-height: 1.45; }
+  .ec-verified {
+    font-size: 11px; font-weight: 700; color: var(--cbw-green, #16A34A);
+    background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 20px;
+    padding: 2px 10px; white-space: nowrap;
+  }
 
-  /* Promo code band — field itself is the shared canonical PromoCodeCopy */
-  .ec-code-band { display: flex; flex-direction: column; gap: 4px; }
-  .ec-code-meta { display: flex; align-items: center; gap: 7px; }
+  /* ── 4. Bonus ─────────────────────────────────────────────────── */
+  .ec-bonus {
+    font-size: 13.5px; color: var(--cbw-gray-700, #374151); line-height: 1.5;
+    margin: 14px 0 12px; min-height: 40px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* ── 5. Promo-code band — field is the shared canonical PromoCodeCopy ── */
+  .ec-code-band {
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+    width: 100%; margin-bottom: 16px;
+  }
   .ec-code-label {
     font-size: 10px; text-transform: uppercase; letter-spacing: .07em;
     color: var(--cbw-coupon-label, #92400E); font-weight: 600; white-space: nowrap;
   }
-  .ec-verified { font-size: 10px; color: var(--cbw-green, #16A34A); font-weight: 700; white-space: nowrap; }
 
+  /* ── 6. Primary CTA — visually dominant ───────────────────────── */
   .ec-cta {
-    margin-top: 4px;
-    display: block; text-align: center; text-decoration: none;
+    display: flex; align-items: center; justify-content: center;
+    width: 100%; text-decoration: none;
     background: var(--cbw-green, #16A34A); color: #fff;
-    font-size: 13px; font-weight: 700;
-    padding: 8px 14px; border-radius: 8px;
-    transition: background .15s;
+    font-size: 15.5px; font-weight: 800; letter-spacing: .01em;
+    height: 48px; border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(22,163,74,0.28);
+    transition: background .15s, box-shadow .15s, transform .1s;
   }
-  .ec-cta:hover { background: var(--cbw-green-hover, #15803D); }
+  .ec-cta:hover { background: var(--cbw-green-hover, #15803D); box-shadow: 0 4px 14px rgba(22,163,74,0.34); transform: translateY(-1px); }
+  .ec-cta:active { transform: translateY(0); }
 
+  /* ── 7. Secondary review link — clearly subordinate ───────────── */
   .ec-review-link {
     display: block; text-align: center;
-    font-size: 12px; font-weight: 600;
+    font-size: 12.5px; font-weight: 600;
     color: var(--cbw-gray-500, #6B7280); text-decoration: none;
-    padding: 2px 0;
+    padding: 9px 0 2px;
   }
   .ec-review-link:hover { color: #1D4ED8; text-decoration: underline; text-underline-offset: 2px; }
+
+  /* ── Mobile: slightly smaller logo box (~72px) ────────────────── */
+  @media (max-width: 480px) {
+    .ec-logo-link :global(.exlogo),
+    .ec-logo-link :global(.exlogo-img) { width: 72px !important; height: 72px !important; }
+  }
 </style>
