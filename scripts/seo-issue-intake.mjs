@@ -197,7 +197,7 @@ function mapToFiles(issueType, affectedUrls) {
     files.push('src/pages/sitemap.xml.ts', 'public/robots.txt');
   }
   if (issueType?.startsWith('core-web-vitals:') || issueType?.startsWith('mobile-usability:')) {
-    files.push('src/layouts/Layout.astro', 'src/styles/');
+    files.push('src/layouts/CleanLayout.astro', 'src/styles/');
   }
   if (issueType?.startsWith('sitemap:')) {
     files.push('src/pages/sitemap.xml.ts');
@@ -206,7 +206,7 @@ function mapToFiles(issueType, affectedUrls) {
     files.push('src/components/Analytics.astro', 'src/utils/analytics.ts');
   }
   if (issueType?.startsWith('ux:')) {
-    files.push('src/layouts/Layout.astro', 'src/styles/');
+    files.push('src/layouts/CleanLayout.astro', 'src/styles/');
   }
 
   return [...new Set(files)];
