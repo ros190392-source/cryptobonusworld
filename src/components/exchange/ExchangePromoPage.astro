@@ -288,6 +288,9 @@ const bonusMaxFmt = c.bonusMax.toLocaleString('en-US');
     display: flex; align-items: flex-start; gap: 12px;
     counter-increment: p2-step-counter;
     font-size: 14px; color: #374151; line-height: 1.55;
+    /* Long unbreakable tokens (e.g. promo code CRYPTOBONUSWORLD) must not
+       stretch the anonymous flex text item past the viewport on mobile. */
+    overflow-wrap: anywhere; min-width: 0;
   }
   .p2-step::before {
     content: counter(p2-step-counter);
