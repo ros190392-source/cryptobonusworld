@@ -81,6 +81,14 @@ export interface GeoRankingRow {
   evidenceUrl: string | null;
   evidenceLabel: string | null;
   evidenceDate: string | null;   // e.g. 'June 2026' (from offer.lastChecked)
+  /**
+   * Evidence-backed local-regulator caution (e.g. the country's regulator
+   * publicly naming the exchange as unlicensed). Display-layer safety signal:
+   * the homepage finder shows an under-review badge and prefers Review/Details
+   * over affiliate CTAs. Never changes availability/bonusAvailability/sort
+   * order — clearing or upgrading it is an owner decision.
+   */
+  regulatorCautionNote: string | null;
   confidence: EvidenceConfidence;
   rankingScore: number | null;   // null until enough verified data exists
   rankingReason: string | null;
@@ -297,6 +305,14 @@ const MANUAL_OVERRIDES: Partial<Record<PromoCountrySlug, Partial<Record<LiveExch
         + '(mexc.com/terms, captured 2026-07-03). No dedicated Kazakhstan support page, KZT '
         + 'currency page, or AFSA/AIFC license found. Not-prohibited is a partial positive '
         + 'signal (Kazakhstan has no EU-style blanket licensing mandate) but not a confirmation.',
+      // Phase 1-2 research (2026-07-14, run-kz-2026-07-14): AFSA warning of
+      // 2026-04-29 names MEXC among unlicensed platforms toward Kazakhstan
+      // citizens (ev-kz-afsa-warning-003, cf-kz-mexc-terms-vs-regulator —
+      // critical, unresolved). Display caution only; verdicts unchanged.
+      regulatorCautionNote:
+        'Kazakhstan\'s AIFC regulator (AFSA) publicly listed MEXC among unlicensed digital asset '
+        + 'platforms for Kazakhstan (warning of 2026-04-29). Availability is under review — check '
+        + 'official terms before registering.',
       evidenceUrl: 'https://www.mexc.com/terms',
       evidenceLabel: 'MEXC User Agreement — prohibited jurisdictions (dated capture on file)',
       evidenceDate: '2026-07-03',
@@ -310,6 +326,14 @@ const MANUAL_OVERRIDES: Partial<Record<PromoCountrySlug, Partial<Record<LiveExch
         + 'list (Section 3, captured 2026-07-03). No dedicated Kazakhstan support page, KZT '
         + 'currency page, or AFSA/AIFC license found. Not-restricted is a partial positive '
         + 'signal but not a confirmation.',
+      // Phase 1-2 research (2026-07-14, run-kz-2026-07-14): AFSA warning of
+      // 2026-04-29 names OKX among unlicensed platforms toward Kazakhstan
+      // citizens (ev-kz-afsa-warning-003, cf-kz-okx-terms-vs-regulator —
+      // critical, unresolved). Display caution only; verdicts unchanged.
+      regulatorCautionNote:
+        'Kazakhstan\'s AIFC regulator (AFSA) publicly listed OKX among unlicensed digital asset '
+        + 'platforms for Kazakhstan (warning of 2026-04-29). Availability is under review — check '
+        + 'official terms before registering.',
       evidenceUrl: 'https://www.okx.com/en-us/help/risk-compliance-disclosure',
       evidenceLabel: 'OKX Risk & Compliance Disclosure, Section 3 (dated capture on file)',
       evidenceDate: '2026-07-03',
@@ -513,6 +537,7 @@ function buildCountryRow(country: PromoCountrySlug, slug: LiveExchangeSlug): Geo
       ? `Listed in the tracked offer's restricted countries (${offer!.lastChecked}).`
       : null,
     bonusNote: null,
+    regulatorCautionNote: null,
     evidenceUrl: restrictedHit ? offer!.sourceUrl : null,
     evidenceLabel: restrictedHit ? 'Offer terms page (tracked offer source)' : null,
     evidenceDate: restrictedHit ? offer!.lastChecked : null,

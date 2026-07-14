@@ -43,6 +43,7 @@ interface FinderRow {
   confidence: Confidence;
   evidenceDate: string | null;
   isGlobalFallback: boolean;
+  regulatorCautionNote: string | null;
 }
 
 const COUNTRY_META: { slug: PromoCountrySlug; label: string; flag: string; headline: string }[] = [
@@ -84,6 +85,7 @@ function buildRowsFor(countrySlug: PromoCountrySlug): FinderRow[] {
         confidence: entry.offerStatus === 'verified' ? 'verified' as const : 'partial' as const,
         evidenceDate: getOffer(entry.exchangeSlug)?.lastChecked ?? null,
         isGlobalFallback: false,
+        regulatorCautionNote: null,
       }));
   }
   return getCountryPromoRanking(countrySlug)
@@ -106,6 +108,7 @@ function buildRowsFor(countrySlug: PromoCountrySlug): FinderRow[] {
         evidenceDate: row.evidenceDate,
         // No dedicated evidence captured for this exchange×country — catalog default.
         isGlobalFallback: row.evidenceUrl === null,
+        regulatorCautionNote: row.regulatorCautionNote,
       } satisfies FinderRow;
     })
     .filter((r): r is FinderRow => r !== null)
@@ -118,6 +121,9 @@ function buildRowsFor(countrySlug: PromoCountrySlug): FinderRow[] {
 
 function badgeFor(countrySlug: PromoCountrySlug, row: FinderRow): { text: string; tone: string } {
   if (row.availability === 'restricted') return { text: 'Restricted in this country', tone: 'restricted' };
+  // Local regulator publicly flagged the platform for this country (evidence-
+  // backed, see geoRankings.ts) — never presented as verified or recommended.
+  if (row.regulatorCautionNote) return { text: 'Regulatory status under review', tone: 'partial' };
   if (countrySlug === 'global') return { text: 'Global offer', tone: 'progress' };
   if (row.isGlobalFallback) return { text: 'Global offer · country evidence in progress', tone: 'progress' };
   if (row.availability === 'available' && row.confidence === 'verified') return { text: 'Country evidence: checked', tone: 'verified' };
@@ -127,6 +133,11 @@ function badgeFor(countrySlug: PromoCountrySlug, row: FinderRow): { text: string
 
 function ctaFor(row: FinderRow): { label: string; href: string; primary: boolean } {
   if (row.availability === 'restricted') {
+    return { label: 'View details', href: row.pageUrl, primary: false };
+  }
+  // Regulator-flagged for this country: prefer Review/Details over any
+  // affiliate CTA until the conflict is resolved (owner decision).
+  if (row.regulatorCautionNote) {
     return { label: 'View details', href: row.pageUrl, primary: false };
   }
   if (row.bonusAvailability === 'not_available') {
@@ -184,7 +195,14 @@ const countryMetaJson = JSON.stringify(COUNTRY_META.map(({ slug, label, flag, he
                 {row.bonusAvailability === 'not_available' && (
                   <p class="gf-row-note">Tracked bonus not confirmed for this country.</p>
                 )}
+                {panel.slug !== 'global' && row.availability === 'available' && row.bonusAvailability === 'unknown' && (
+                  <p class="gf-row-note">Bonus terms for this country not fully verified yet — final eligibility may depend on local terms.</p>
+                )}
+                {row.regulatorCautionNote && (
+                  <p class="gf-row-note gf-row-note-caution">{row.regulatorCautionNote}</p>
+                )}
                 <div class="gf-row-actions">
+                  {row.availability !== 'restricted' && (
                   <button
                     class="gf-code-btn"
                     data-code={row.promoCode}
@@ -195,6 +213,7 @@ const countryMetaJson = JSON.stringify(COUNTRY_META.map(({ slug, label, flag, he
                     <span class="gf-copy-icon" aria-hidden="true">⧉</span>
                     <span class="gf-copy-check" aria-hidden="true">✓</span>
                   </button>
+                  )}
                   <div class="gf-row-btns">
                     <a href={cta.href} class={cta.primary ? 'gf-cta gf-cta-primary' : 'gf-cta gf-cta-secondary'}>
                       {cta.label} →
@@ -357,6 +376,7 @@ const countryMetaJson = JSON.stringify(COUNTRY_META.map(({ slug, label, flag, he
 
   .gf-row-bonus { font-size: 13px; color: #374151; line-height: 1.4; margin-bottom: 8px; }
   .gf-row-note { font-size: 11.5px; color: #9CA3AF; margin: -4px 0 8px; }
+  .gf-row-note-caution { color: #B45309; }
 
   .gf-row-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
