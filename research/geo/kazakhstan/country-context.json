@@ -1,0 +1,31 @@
+{
+  "$comment": "Phase 1 country baseline for Kazakhstan (run-kz-2026-07-14). Every factual statement links to evidence-ledger evidence_ids. Detailed maps: country-regulatory-map.json / country-payment-map.json / country-language-map.json; all sources in country-source-map.json.",
+  "country": "KZ",
+  "country_name": "Kazakhstan",
+  "researched_at": "2026-07-14",
+  "legal_status": {
+    "summary": "Crypto is legal and actively regulated. Law No. 193-VII 'On Digital Assets' (eff. 2023-04-01, amended 2026-01-16) plus a comprehensive licensing framework in force since 2026-05-01. Organising circulation of digital assets without a licence is prohibited (Art. 11(5)); trading profits on LICENSED platforms are income-tax-exempt per presidential decree of 2026-07-07.",
+    "evidence_ids": ["ev-kz-law-digital-assets-001", "ev-kz-framework-2026-002", "ev-kz-afsa-warning-003", "ev-kz-presidential-decree-004"],
+    "claim_ids": ["kz-country-regulatory-status-001", "kz-country-unlicensed-prohibition-003", "kz-country-tax-decree-007"]
+  },
+  "market_risks": {
+    "summary": "Active enforcement against unlicensed platforms: 1,100+ blocked in the year to Jan 2026; AFM AML seizures; AFSA 2026-04-29 warning explicitly names OKX, HTX, Bitget and MEXC as unlicensed toward Kazakhstan citizens. For CBW this puts three of six candidate exchanges under a Gate 02 regulator-warning trigger.",
+    "evidence_ids": ["ev-kz-enforcement-blocking-005", "ev-kz-enforcement-afm-006", "ev-kz-afsa-warning-003"]
+  },
+  "marketing_restrictions": {
+    "summary": "The AFSA warning targets platforms that 'advertise or promote their services to citizens of the Republic of Kazakhstan' without authorisation — promotion of unlicensed platforms to KZ users is itself the regulator's stated concern. No dedicated affiliate-marketing statute captured yet.",
+    "evidence_ids": ["ev-kz-afsa-warning-003"],
+    "open_question": "Whether third-party affiliate promotion (as opposed to the platform's own advertising) is separately restricted — owner-review input for any future KZ page."
+  },
+  "currency": { "code": "KZT", "claim_ids": ["kz-country-currency-kzt-004"] },
+  "languages": { "codes": ["kk", "ru"], "claim_ids": ["kz-country-languages-005"] },
+  "banking_p2p": {
+    "summary": "Kaspi and Halyk dominate retail payments; KZT P2P settles mainly via bank transfer to Kaspi/Halyk/Forte/Jusan/BCC/Freedom. The only verified regulated KZT P2P among the six candidates is Bybit Kazakhstan (Halyk, Nov 2025).",
+    "evidence_ids": ["ev-kz-banking-payments-007", "ev-kz-bybit-p2p-launch-102"],
+    "claim_ids": ["kz-country-banking-p2p-006", "kz-bybit-p2p-kzt-003"]
+  },
+  "mobile_environment": {
+    "summary": "UNKNOWN — per-exchange KZ storefront availability not researched yet (kz-t04).",
+    "evidence_ids": []
+  }
+}

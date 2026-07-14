@@ -1,0 +1,62 @@
+{
+  "$comment": "Kazakhstan explicit unknowns — facts we do NOT know and refuse to infer. Each maps to a claim with status=unknown (or a research gap with no claim yet). Unknowns stay visible until Phase 3+ evidence resolves them.",
+  "research_run_id": "run-kz-2026-07-14",
+  "unknowns": [
+    {
+      "id": "unk-kz-bybit-product-routing",
+      "exchange": "bybit",
+      "claim_id": "kz-bybit-registration-availability-004",
+      "description": "Whether KZ users via global bybit.com (/go/bybit) get the global product+bonus or are routed to the AFSA-licensed Bybit Kazakhstan product with different terms.",
+      "blocked_by": "PROXY_KZ (kz-t03 live registration test)"
+    },
+    {
+      "id": "unk-kz-bonus-availability-all",
+      "exchange": null,
+      "claim_id": "kz-bybit-bonus-availability-005 / kz-mexc-bonus-availability-004 / kz-okx-bonus-availability-004 / kz-kucoin-bonus-availability-003 / kz-bingx-bonus-availability-003",
+      "description": "Whether any tracked welcome bonus/promo code is actually claimable by Kazakhstan-registered users. postSignupVerification remains not_available by policy.",
+      "blocked_by": "PROXY_KZ (kz-t03/kz-t11 proxied capture)"
+    },
+    {
+      "id": "unk-kz-affiliate-geo-all",
+      "exchange": null,
+      "claim_id": "kz-bybit-affiliate-geo-006 (+ equivalents not yet claimed for other exchanges)",
+      "description": "Affiliate-program GEO eligibility of Kazakhstan traffic for all six exchanges — no official affiliate-terms source captured yet.",
+      "blocked_by": "official affiliate terms research (kz-t02 remainder) + PROXY_KZ (kz-t11)"
+    },
+    {
+      "id": "unk-kz-state-blocking-status",
+      "exchange": null,
+      "claim_id": "kz-mexc-availability-003 / kz-okx-availability-003 / kz-kucoin-availability-002 / kz-bingx-availability-002",
+      "description": "Whether mexc/okx/kucoin/bingx are among the 1,100+ platforms technically blocked inside Kazakhstan — no official blocked-platform list found; only a live in-country test can tell.",
+      "blocked_by": "PROXY_KZ (kz-t03)"
+    },
+    {
+      "id": "unk-kz-kyc-local-documents",
+      "exchange": null,
+      "claim_id": null,
+      "description": "Per-exchange KYC acceptance of Kazakhstan identity documents (ID card/passport) — no official acceptable-documents source captured for any of the six.",
+      "blocked_by": "kz-t02 remainder (official KYC doc pages)"
+    },
+    {
+      "id": "unk-kz-app-availability",
+      "exchange": null,
+      "claim_id": null,
+      "description": "iOS App Store / Google Play availability in the Kazakhstan storefronts for all six exchanges.",
+      "blocked_by": "kz-t04 (app-store research)"
+    },
+    {
+      "id": "unk-kz-p2p-kzt-non-bybit",
+      "exchange": null,
+      "claim_id": null,
+      "description": "KZT P2P support and liquidity on mexc/okx/kucoin/bingx (bybit covered by kz-bybit-p2p-kzt-003 at verified_with_limits).",
+      "blocked_by": "kz-t07 (P2P snapshots; needs live access)"
+    },
+    {
+      "id": "unk-kz-nbk-license-list",
+      "exchange": null,
+      "claim_id": null,
+      "description": "Whether the NBK (post-2026-05-01 regime) has licensed/registered any of the six exchanges outside the AIFC — NBK register not yet located/captured.",
+      "blocked_by": "kz-t02 remainder (NBK registry search)"
+    }
+  ]
+}

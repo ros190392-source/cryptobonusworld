@@ -9,7 +9,7 @@
   "properties": {
     "evidence_id": { "type": "string", "pattern": "^ev-[a-z0-9-]+$" },
     "country": { "type": "string", "description": "ISO 3166-1 alpha-2, e.g. KZ" },
-    "exchange": { "type": "string", "enum": ["bybit", "mexc", "okx", "bitget", "kucoin", "bingx"] },
+    "exchange": { "type": ["string", "null"], "enum": [null, "bybit", "mexc", "okx", "bitget", "kucoin", "bingx"], "description": "null = country-level evidence (Phase 1 baseline) not tied to one exchange" },
     "category": { "type": "string", "enum": ["registration", "kyc", "restricted_countries", "regulatory", "products", "fiat", "p2p", "app", "payments", "fees", "security", "affiliate", "promo_code", "bonus_claim", "usage", "community", "other"] },
     "claim": { "type": "string", "description": "The factual statement this evidence addresses" },
     "status": { "type": "string", "enum": ["confirmed", "contradicted", "uncertain"] },

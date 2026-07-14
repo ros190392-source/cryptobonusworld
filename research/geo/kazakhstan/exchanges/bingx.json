@@ -57,10 +57,10 @@
     "cta": "not_decided",
     "index_eligible": false
   },
-  "prior_findings": "Sprint 8B (2026-07-03): KZ absent from official Disclaimer restricted list; no dedicated KZ support found. Partial signal only.",
-  "evidence_ids": [],
+  "prior_findings": "Sprint 8B (2026-07-03): KZ absent from official Disclaimer restricted list; no dedicated KZ support found. Partial signal only. Phase 1-2 (2026-07-14): disclaimer re-verified (KZ still absent; NOTE: document dated 2023-12-11, predates Kazakhstan's 2026 framework — weight reduced); BingX NOT named in the AFSA 2026-04-29 warning; no local (AFSA/NBK) authorisation found. Overall availability UNKNOWN pending live test (Phase 3).",
+  "evidence_ids": ["ev-kz-bingx-disclaimer-151"],
   "conflict_ids": [],
-  "unknown_claim_ids": [],
-  "last_checked_at": null,
-  "next_check_at": null
+  "unknown_claim_ids": ["kz-bingx-availability-002", "kz-bingx-bonus-availability-003"],
+  "last_checked_at": "2026-07-14",
+  "next_check_at": "2026-08-13"
 }

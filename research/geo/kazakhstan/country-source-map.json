@@ -1,0 +1,22 @@
+{
+  "$comment": "Phase 1 source map for Kazakhstan (run-kz-2026-07-14): where authoritative answers live, by topic, with tiers per config/geo/evidence-tiers.json.",
+  "country": "KZ",
+  "researched_at": "2026-07-14",
+  "sources": [
+    { "topic": "digital-asset legal framework", "tier": "A", "url": "https://nationalbank.kz/en/page/digital-assets-legal-framework", "title": "NBK — Regulation of the digital assets market", "used_in": ["ev-kz-law-digital-assets-001"] },
+    { "topic": "2026 framework announcement", "tier": "A", "url": "https://nationalbank.kz/en/news/informacionnye-soobshcheniya/19193", "title": "NBK — Kazakhstan introduces regulation of digital asset turnover", "used_in": ["ev-kz-framework-2026-002"] },
+    { "topic": "regulator warnings", "tier": "A", "url": "https://afsa.aifc.kz/afsa-warning-on-unlicensed-digital-asset-platforms/", "title": "AFSA Warning on Unlicensed Digital Asset Platforms (2026-04-29)", "used_in": ["ev-kz-afsa-warning-003"] },
+    { "topic": "licence verification", "tier": "A", "url": "https://publicreg.myafsa.com", "title": "AFSA Public Register", "used_in": ["ev-kz-bybit-afsa-license-101"] },
+    { "topic": "exchange own terms", "tier": "A", "url": "per-exchange (see evidence-ledger ev-kz-*-terms-*)", "title": "ToS / disclaimers of the six candidate exchanges", "used_in": ["ev-kz-bybit-terms-exclusion-103", "ev-kz-mexc-terms-111", "ev-kz-okx-terms-121", "ev-kz-bitget-terms-131", "ev-kz-kucoin-terms-141", "ev-kz-bingx-disclaimer-151"] },
+    { "topic": "corporate announcements", "tier": "B", "url": "https://www.investing.com/news/cryptocurrency-news/bybit-kazakhstan-launches-the-countrys-first-fully-regulated-p2p-platform-4379750", "title": "Chainwire press release — Bybit Kazakhstan regulated P2P", "used_in": ["ev-kz-bybit-p2p-launch-102"] },
+    { "topic": "policy/enforcement news", "tier": "C", "url": "https://cryptobriefing.com/kazakhstan-crypto-decree-tax-stablecoin/ | https://crypto.news/kazakhstan-blocks-1100-unlicensed-crypto-exchanges-in-crackdown/ | https://www.cryptopolitan.com/kazakhstan-cryptocurrency-illegal-activities/", "title": "Secondary reporting (decree, blocking, AFM)", "used_in": ["ev-kz-presidential-decree-004", "ev-kz-enforcement-blocking-005", "ev-kz-enforcement-afm-006"] },
+    { "topic": "payments context", "tier": "C", "url": "https://rexlama.kz/en/news/article/integraciya-platezhnyh-sistem-kazahstana-kaspi/", "title": "Kazakhstan payment systems integration overview", "used_in": ["ev-kz-banking-payments-007"] }
+  ],
+  "not_yet_located": [
+    "NBK register of licensed digital-asset providers (post-2026-05-01)",
+    "Official list of state-blocked platforms",
+    "Official affiliate-terms pages of the six exchanges (KZ eligibility)",
+    "Official KYC acceptable-documents pages (KZ documents)"
+  ],
+  "tier_d_policy": "Affiliate/coupon/SEO pages were not used anywhere in this run (Tier D never confirms critical claims)."
+}

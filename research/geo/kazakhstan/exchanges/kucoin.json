@@ -57,10 +57,10 @@
     "cta": "not_decided",
     "index_eligible": false
   },
-  "prior_findings": "Sprint 8B (2026-07-03): KZ absent from Terms of Use Art. 17(5) Restricted Locations; no dedicated KZ support found. Partial signal only.",
-  "evidence_ids": [],
+  "prior_findings": "Sprint 8B (2026-07-03): KZ absent from Terms of Use Art. 17(5) Restricted Locations; no dedicated KZ support found. Partial signal only. Phase 1-2 (2026-07-14): terms re-verified (KZ still absent, doc updated 2026-01-29); KuCoin NOT named in the AFSA 2026-04-29 warning; no local (AFSA/NBK) authorisation found. Overall availability UNKNOWN pending live test (Phase 3).",
+  "evidence_ids": ["ev-kz-kucoin-terms-141"],
   "conflict_ids": [],
-  "unknown_claim_ids": [],
-  "last_checked_at": null,
-  "next_check_at": null
+  "unknown_claim_ids": ["kz-kucoin-availability-002", "kz-kucoin-bonus-availability-003"],
+  "last_checked_at": "2026-07-14",
+  "next_check_at": "2026-08-13"
 }

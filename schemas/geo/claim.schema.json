@@ -9,7 +9,7 @@
   "properties": {
     "claim_id": { "type": "string", "pattern": "^[a-z]{2}-[a-z-]+-[a-z0-9-]+-[0-9]{3}$", "description": "e.g. kz-bybit-p2p-kzt-001" },
     "country": { "type": "string" },
-    "exchange": { "type": "string", "enum": ["bybit", "mexc", "okx", "bitget", "kucoin", "bingx"] },
+    "exchange": { "type": ["string", "null"], "enum": [null, "bybit", "mexc", "okx", "bitget", "kucoin", "bingx"], "description": "null = country-level claim (Phase 1 baseline) not tied to one exchange" },
     "category": { "type": "string" },
     "claim": { "type": "string" },
     "value": { "type": ["boolean", "string", "number", "null"] },

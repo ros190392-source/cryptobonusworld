@@ -1,0 +1,45 @@
+{
+  "$comment": "Kazakhstan conflict ledger — validates against schemas/geo/conflict.schema.json. Conflicts are never hidden and never resolved toward the higher-converting answer. Critical unresolved conflicts block CTA (Gate 03) and first place (Gate 04).",
+  "research_run_id": "run-kz-2026-07-14",
+  "conflicts": [
+    {
+      "conflict_id": "cf-kz-mexc-terms-vs-regulator",
+      "country": "KZ",
+      "exchange": "mexc",
+      "claim": "MEXC is available/permitted for Kazakhstan residents",
+      "evidence_for": ["ev-kz-mexc-terms-111"],
+      "evidence_against": ["ev-kz-afsa-warning-003", "ev-kz-enforcement-blocking-005"],
+      "resolution": "UNCERTAIN — both facts are true on their own level: MEXC's own terms (Tier A, 2025-05-29) do not restrict Kazakhstan, but the local regulator (Tier A, 2026-04-29) names MEXC as unlicensed and Kazakhstan actively blocks unlicensed platforms. Practical accessibility from KZ is untested (Phase 3 blocked on PROXY_KZ). Regulatory safety takes precedence for any CTA/ranking decision; owner review required.",
+      "status": "unresolved",
+      "critical": true,
+      "final_value": "UNKNOWN",
+      "confidence": 40
+    },
+    {
+      "conflict_id": "cf-kz-okx-terms-vs-regulator",
+      "country": "KZ",
+      "exchange": "okx",
+      "claim": "OKX is available/permitted for Kazakhstan residents",
+      "evidence_for": ["ev-kz-okx-terms-121"],
+      "evidence_against": ["ev-kz-afsa-warning-003", "ev-kz-enforcement-blocking-005"],
+      "resolution": "UNCERTAIN — OKX's own current disclosure (Tier A, updated 2026-07-08) does not restrict Kazakhstan, but the local regulator (Tier A, 2026-04-29) names OKX as unlicensed and Kazakhstan actively blocks unlicensed platforms. Practical accessibility from KZ is untested (Phase 3 blocked on PROXY_KZ). Regulatory safety takes precedence for any CTA/ranking decision; owner review required.",
+      "status": "unresolved",
+      "critical": true,
+      "final_value": "UNKNOWN",
+      "confidence": 40
+    },
+    {
+      "conflict_id": "cf-kz-bitget-official-vs-p2p-activity",
+      "country": "KZ",
+      "exchange": "bitget",
+      "claim": "Bitget serves Kazakhstan users despite its own prohibition",
+      "evidence_for": [],
+      "evidence_against": ["ev-kz-bitget-terms-131", "ev-kz-afsa-warning-003"],
+      "resolution": "Resolved by official-source precedence: Sprint 8B noted third-party P2P trackers showing live Bitget KZT order flow (unverified Tier C/D market observation, not admitted as ledger evidence), but Bitget's OWN current terms (2026-06-16) explicitly prohibit Kazakhstan AND the regulator names Bitget as unlicensed. Two independent Tier-A sources agree: NOT available. Observed grey-market activity does not override official terms.",
+      "status": "resolved",
+      "critical": true,
+      "final_value": "NO",
+      "confidence": 90
+    }
+  ]
+}

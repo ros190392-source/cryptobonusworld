@@ -57,10 +57,10 @@
     "cta": "not_decided",
     "index_eligible": false
   },
-  "prior_findings": "Sprint 8B (2026-07-03): KZ absent from Risk & Compliance Disclosure restricted list; no dedicated KZ support found. Partial signal only.",
-  "evidence_ids": [],
-  "conflict_ids": [],
-  "unknown_claim_ids": [],
-  "last_checked_at": null,
-  "next_check_at": null
+  "prior_findings": "Sprint 8B (2026-07-03): KZ absent from Risk & Compliance Disclosure restricted list; no dedicated KZ support found. Partial signal only. Phase 1-2 (2026-07-14): disclosure re-verified (KZ still absent, doc updated 2026-07-08) — BUT the AFSA warning of 2026-04-29 explicitly names OKX as an unlicensed platform toward Kazakhstan citizens (Gate 02 regulator_warning trigger). Availability CONFLICTED (cf-kz-okx-terms-vs-regulator, critical, unresolved). OWNER_REVIEW_REQUIRED for any KZ decision on this exchange.",
+  "evidence_ids": ["ev-kz-okx-terms-121", "ev-kz-afsa-warning-003"],
+  "conflict_ids": ["cf-kz-okx-terms-vs-regulator"],
+  "unknown_claim_ids": ["kz-okx-bonus-availability-004"],
+  "last_checked_at": "2026-07-14",
+  "next_check_at": "2026-08-13"
 }

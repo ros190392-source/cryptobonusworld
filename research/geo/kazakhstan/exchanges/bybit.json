@@ -2,13 +2,13 @@
   "$schema": "../../../../schemas/geo/exchange-geo-passport.schema.json",
   "country": "KZ",
   "exchange": "bybit",
-  "research_status": "not_started",
+  "research_status": "in_progress",
   "identity": {
     "brand": "Bybit",
     "global_domain": null,
     "local_domain": null,
-    "legal_entity": null,
-    "regulatory_entity": "AFSA (license AFSA-A-LA-2024-0027 — per prior repo evidence; re-verify in run)"
+    "legal_entity": "Bybit Limited (AIFC entity per AFSA register)",
+    "regulatory_entity": "AFSA license AFSA-A-LA-2024-0027 — Active, re-verified on the AFSA public register 2026-07-14 (ev-kz-bybit-afsa-license-101)"
   },
   "availability": {
     "website": "UNKNOWN",
@@ -22,7 +22,7 @@
   "products": {
     "spot": "UNKNOWN",
     "futures": "UNKNOWN",
-    "p2p": "UNKNOWN",
+    "p2p": "PARTIAL",
     "earn": "UNKNOWN",
     "card": "UNKNOWN",
     "fiat_deposit": "UNKNOWN",
@@ -30,10 +30,10 @@
   },
   "local_fit": {
     "currency": "KZT",
-    "currency_supported": null,
+    "currency_supported": true,
     "local_language": null,
-    "local_banks": [],
-    "payment_methods": [],
+    "local_banks": ["Halyk Bank"],
+    "payment_methods": ["bank transfer via verified Halyk cards through corporate accounts of AFSA-licensed institutions (initial rollout, Nov 2025)"],
     "p2p_merchants": null
   },
   "affiliate": {
@@ -57,10 +57,10 @@
     "cta": "not_decided",
     "index_eligible": false
   },
-  "prior_findings": "Sprint 8B (2026-07-03): Bybit Limited holds active AFSA license AFSA-A-LA-2024-0027 (verified on publicreg.myafsa.com); regulated local P2P launched Nov 2025. Tracked global bonus availability from KZ unverified. See geoRankings.ts MANUAL_OVERRIDES.kazakhstan.bybit.",
-  "evidence_ids": [],
+  "prior_findings": "Sprint 8B (2026-07-03): Bybit Limited holds active AFSA license AFSA-A-LA-2024-0027 (verified on publicreg.myafsa.com); regulated local P2P launched Nov 2025. Tracked global bonus availability from KZ unverified. See geoRankings.ts MANUAL_OVERRIDES.kazakhstan.bybit. Phase 1-2 (2026-07-14): license re-verified Active on the AFSA register; regulated KZT P2P (Halyk) verified_with_limits from Tier-B press release; products.p2p=PARTIAL because it runs on the separately licensed local entity with Halyk-only rollout, not confirmed on the global product. Global-vs-local product routing for /go/bybit signups remains the key unknown (Phase 3).",
+  "evidence_ids": ["ev-kz-bybit-afsa-license-101", "ev-kz-bybit-p2p-launch-102", "ev-kz-bybit-terms-exclusion-103"],
   "conflict_ids": [],
-  "unknown_claim_ids": [],
-  "last_checked_at": null,
-  "next_check_at": null
+  "unknown_claim_ids": ["kz-bybit-registration-availability-004", "kz-bybit-bonus-availability-005", "kz-bybit-affiliate-geo-006"],
+  "last_checked_at": "2026-07-14",
+  "next_check_at": "2026-08-13"
 }

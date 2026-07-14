@@ -2,7 +2,7 @@
   "$schema": "../../../../schemas/geo/exchange-geo-passport.schema.json",
   "country": "KZ",
   "exchange": "bitget",
-  "research_status": "not_started",
+  "research_status": "in_progress",
   "identity": {
     "brand": "Bitget",
     "global_domain": null,
@@ -12,7 +12,7 @@
   },
   "availability": {
     "website": "UNKNOWN",
-    "registration": "UNKNOWN",
+    "registration": "NO",
     "country_selector": "UNKNOWN",
     "kyc": "UNKNOWN",
     "local_documents": "UNKNOWN",
@@ -57,10 +57,10 @@
     "cta": "not_decided",
     "index_eligible": false
   },
-  "prior_findings": "Sprint 8B (2026-07-03): Kazakhstan EXPLICITLY named in Bitget Terms of Use Prohibited Countries (verified). Known conflict candidate: third-party trackers show KZT P2P activity — official terms take precedence pending resolution. OWNER_REVIEW_REQUIRED before any KZ publication decision for this exchange.",
-  "evidence_ids": [],
-  "conflict_ids": [],
+  "prior_findings": "Sprint 8B (2026-07-03): Kazakhstan EXPLICITLY named in Bitget Terms of Use Prohibited Countries (verified). Phase 1-2 (2026-07-14): re-confirmed on the CURRENT ToS version (updated 2026-06-16) AND independently corroborated by the AFSA warning of 2026-04-29 naming Bitget as unlicensed toward Kazakhstan citizens. availability.registration=NO on two agreeing Tier-A sources (claim kz-bitget-not-available-003). Conflict with observed third-party P2P activity resolved by official-source precedence (cf-kz-bitget-official-vs-p2p-activity, final NO). cta stays not_decided: OWNER_REVIEW_REQUIRED before any KZ publication decision for this exchange.",
+  "evidence_ids": ["ev-kz-bitget-terms-131", "ev-kz-afsa-warning-003"],
+  "conflict_ids": ["cf-kz-bitget-official-vs-p2p-activity"],
   "unknown_claim_ids": [],
-  "last_checked_at": null,
-  "next_check_at": null
+  "last_checked_at": "2026-07-14",
+  "next_check_at": "2026-08-13"
 }

@@ -1,0 +1,12 @@
+{
+  "$comment": "Phase 1 language map for Kazakhstan (run-kz-2026-07-14).",
+  "country": "KZ",
+  "researched_at": "2026-07-14",
+  "languages": [
+    { "code": "kk", "name": "Kazakh", "status": "state language", "exchange_ux_note": "kk UI/support is rare on global exchanges — a differentiator, not a baseline requirement." },
+    { "code": "ru", "name": "Russian", "status": "official use, lingua franca", "exchange_ux_note": "ru UI/support effectively covers the KZ audience; all six candidates ship ru UI globally (per-exchange verification pending, kz-t05)." },
+    { "code": "en", "name": "English", "status": "limited", "exchange_ux_note": "Not sufficient alone for mass-market user fit." }
+  ],
+  "search_demand_note": "Branded queries occur in ru, kk and latin transliteration (kz-t05 pending).",
+  "claim_ids": ["kz-country-languages-005"]
+}

@@ -1,0 +1,21 @@
+{
+  "$comment": "Phase 1 regulatory map for Kazakhstan (run-kz-2026-07-14). Evidence-linked; UNKNOWN where not captured.",
+  "country": "KZ",
+  "researched_at": "2026-07-14",
+  "laws": [
+    { "name": "Law No. 193-VII 'On Digital Assets in the Republic of Kazakhstan'", "adopted": "2023-02-06", "effective": "2023-04-01", "note": "Foundational digital-asset law; Art. 11(5) prohibits organising circulation without a licence.", "evidence_ids": ["ev-kz-law-digital-assets-001", "ev-kz-afsa-warning-003"] },
+    { "name": "Amendments 'On amendments and additions to certain legislative acts'", "adopted": "2026-01-16", "effective": "2026-05-01", "note": "Comprehensive framework: DFAs incl. stablecoins; NBK licensing of providers outside the AIFC.", "evidence_ids": ["ev-kz-law-digital-assets-001", "ev-kz-framework-2026-002"] },
+    { "name": "Presidential decree on digital-asset adoption", "adopted": "2026-07-07", "effective": null, "note": "Income-tax exemption for trades on licensed platforms; stablecoin settlement; tokenized instruments. Tier C source only.", "evidence_ids": ["ev-kz-presidential-decree-004"] }
+  ],
+  "regulators": [
+    { "name": "National Bank of Kazakhstan (NBK)", "scope": "Licenses/registers unsecured digital-asset exchange operators and trading/DFA platform operators OUTSIDE the AIFC (since 2026-05-01); maintains registries.", "register": "not located yet (see unknowns: unk-kz-nbk-license-list)", "evidence_ids": ["ev-kz-framework-2026-002"] },
+    { "name": "Astana Financial Services Authority (AFSA)", "scope": "Regulator of the AIFC; licenses digital-asset activities in/from the AIFC; issues public warnings.", "register": "https://publicreg.myafsa.com", "evidence_ids": ["ev-kz-afsa-warning-003", "ev-kz-bybit-afsa-license-101"] },
+    { "name": "Agency for Regulation and Development of the Financial Market (ARDFM)", "scope": "Digital financial assets except stablecoins.", "register": null, "evidence_ids": ["ev-kz-framework-2026-002"] },
+    { "name": "Financial Monitoring Agency (AFM)", "scope": "AML/CFT enforcement: platform closures, asset seizures.", "register": null, "evidence_ids": ["ev-kz-enforcement-afm-006"] },
+    { "name": "Ministry of Artificial Intelligence and Digital Development", "scope": "Licenses digital miners (not exchange-relevant).", "register": null, "evidence_ids": ["ev-kz-law-digital-assets-001"] }
+  ],
+  "licensing_relevance_for_cbw": {
+    "summary": "Two lawful paths to serve Kazakhstan: AFSA licence (AIFC) or NBK licence/registration (since 2026-05-01). Of the six CBW exchanges only Bybit (Bybit Limited, AFSA-A-LA-2024-0027, Active) holds a verified local authorisation. OKX, Bitget and MEXC are explicitly named unlicensed by AFSA (2026-04-29). KuCoin and BingX: no authorisation found, not named in the warning.",
+    "evidence_ids": ["ev-kz-bybit-afsa-license-101", "ev-kz-afsa-warning-003"]
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "$comment": "Phase 1 payment map for Kazakhstan (run-kz-2026-07-14). Country-level context only — per-exchange KZT support must come from per-exchange evidence, never inferred from this map (kz-t07/kz-t09 pending).",
+  "country": "KZ",
+  "currency": { "code": "KZT", "name": "Kazakhstani tenge", "issuer": "National Bank of Kazakhstan", "claim_ids": ["kz-country-currency-kzt-004"] },
+  "researched_at": "2026-07-14",
+  "major_banks": [
+    { "name": "Kaspi Bank", "role": "Dominant retail payments super-app; most common P2P transfer rail", "confidence": "verified_with_limits (Tier C)" },
+    { "name": "Halyk Bank", "role": "Largest bank; the launch rail of Bybit Kazakhstan's regulated P2P (verified Tier B)", "confidence": "verified_with_limits" },
+    { "name": "ForteBank", "role": "Common P2P method", "confidence": "context only (Tier C)" },
+    { "name": "Jusan Bank", "role": "Common P2P method", "confidence": "context only (Tier C)" },
+    { "name": "Bank CenterCredit", "role": "Common P2P method", "confidence": "context only (Tier C)" },
+    { "name": "Freedom Bank", "role": "Common P2P method", "confidence": "context only (Tier C)" }
+  ],
+  "payment_methods": ["bank card", "bank transfer", "P2P via bank transfer (Kaspi/Halyk first)"],
+  "p2p_relevance": "High — KZT on-ramp is predominantly P2P via local bank transfer; presence/liquidity of KZT P2P with Kaspi/Halyk methods is the key user-fit signal for exchange ranking.",
+  "regulated_p2p_note": "Only verified regulated KZT P2P among candidates: Bybit Kazakhstan (Halyk-only at Nov 2025 launch; 2.5M KZT/tx, 5M KZT/day).",
+  "evidence_ids": ["ev-kz-banking-payments-007", "ev-kz-bybit-p2p-launch-102"]
+}

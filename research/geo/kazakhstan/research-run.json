@@ -5,11 +5,11 @@
   "spec_version": "GEO_EXCHANGE_RESEARCH_SYSTEM v1 (docs/geo-research/)",
   "created_at": "2026-07-14",
   "exchanges": ["bybit", "mexc", "okx", "bitget", "kucoin", "bingx"],
-  "run_status": "initialised",
+  "run_status": "in_progress",
   "phases": {
     "phase00_initialisation": "complete",
-    "phase01_country_baseline": "not_started",
-    "phase02_official_exchange_research": "not_started",
+    "phase01_country_baseline": "complete",
+    "phase02_official_exchange_research": "in_progress",
     "phase03_live_geo_validation": "blocked",
     "phase04_popularity_research": "not_started",
     "phase05_user_fit_research": "not_started",
@@ -22,10 +22,18 @@
     "phase12_final_qa": "not_started",
     "phase13_publish_or_block": "not_started"
   },
-  "completed_tasks": [],
+  "completed_tasks": ["kz-t01"],
   "failed_tasks": [],
-  "missing_evidence": ["ALL — no research tasks have run yet; phase03 blocked until PROXY_KZ is provisioned"],
-  "unresolved_conflicts": [],
-  "ranking_status": "not_started",
-  "publication_status": "LOCKED"
+  "missing_evidence": [
+    "live registration/country-selector/promo tests for all six exchanges (kz-t03/kz-t11 — blocked on PROXY_KZ)",
+    "official affiliate-terms KZ eligibility for all six (kz-t02 remainder)",
+    "official KYC acceptable-documents pages (kz-t02 remainder)",
+    "app-store KZ availability (kz-t04)",
+    "KZT P2P support/liquidity for mexc/okx/kucoin/bingx (kz-t07)",
+    "NBK register of licensed providers post-2026-05-01 (kz-t02 remainder)",
+    "Bybit global terms re-capture (bybit.com blocks automated fetch; Sprint 8B capture still in window)"
+  ],
+  "unresolved_conflicts": ["cf-kz-mexc-terms-vs-regulator", "cf-kz-okx-terms-vs-regulator"],
+  "ranking_status": "INCOMPLETE",
+  "publication_status": "BLOCKED_BY_MISSING_EVIDENCE"
 }
