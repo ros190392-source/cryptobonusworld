@@ -325,7 +325,9 @@ const IS_DEV = import.meta.env.DEV;
     /* ── Layout ── */
     --font-sans:     'Inter', system-ui, -apple-system, sans-serif;
     --container-max: 1200px;
-    --container-pad: 1.5rem;
+    /* Unified padding standard (Layout Width Audit 2026-07-14):
+       32px desktop / 24px tablet / 20px mobile — overridden in media queries */
+    --container-pad: 32px;
   }
 
   *, *::before, *::after {
@@ -456,11 +458,18 @@ const IS_DEV = import.meta.env.DEV;
     .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
 
+  @media (max-width: 819px) {
+    :root { --container-pad: 24px; }
+  }
+
   @media (max-width: 768px) {
     .grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    :root { --container-pad: 1rem; }
     .page-header { padding: 1.5rem 0 1rem; }
     .page-header h1 { font-size: clamp(1.4rem, 5.5vw, 2rem); }
+  }
+
+  @media (max-width: 639px) {
+    :root { --container-pad: 20px; }
   }
 
   @media (max-width: 520px) {
@@ -469,11 +478,8 @@ const IS_DEV = import.meta.env.DEV;
     .grid-4 { grid-template-columns: minmax(0, 1fr); }
   }
 
-  @media (max-width: 375px) {
-    :root { --container-pad: 0.875rem; }
-  }
-
-  /* Prose */
+  /* Prose — capped at readable measure (was uncapped → 1152px on legal pages) */
+  .prose { max-width: 800px; }
   .prose h2 { font-size: 1.3rem; font-weight: 700; margin: 2rem 0 0.75rem; }
   .prose h3 { font-size: 1.1rem; font-weight: 700; margin: 1.5rem 0 0.5rem; }
   .prose p { color: var(--color-text-secondary); line-height: 1.75; margin-bottom: 1rem; }

@@ -144,8 +144,8 @@ const faqSchema = {
   .bg-gray  { background: #F7F8F4; }
 
   /* ── Width utilities (matches homepage v2 discipline) ──────────── */
-  .exd-text-wrap  { max-width: 800px; margin: 0 auto; padding: 0 20px; box-sizing: border-box; }
-  .exd-grid-wrap  { max-width: 960px; margin: 0 auto; padding: 0 20px; box-sizing: border-box; }
+  .exd-text-wrap  { max-width: var(--cbw-prose-max, 800px); margin: 0 auto; padding: 0 20px; box-sizing: border-box; }
+  .exd-grid-wrap  { max-width: var(--cbw-wide-max, 1120px); margin: 0 auto; padding: 0 20px; box-sizing: border-box; }
   @media (min-width: 820px) {
     .exd-text-wrap, .exd-grid-wrap { padding: 0 32px; }
   }

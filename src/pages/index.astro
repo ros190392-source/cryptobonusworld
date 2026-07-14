@@ -193,8 +193,8 @@ const faqSchema = {
 
 <style>
   /* ── Width utilities ─────────────────────────────────────────── */
-  .hp-text-wrap      { max-width: 800px; margin: 0 auto; padding: 0 20px; box-sizing: border-box; }
-  .hp-directory-wrap  { max-width: 960px; margin: 0 auto; padding: 0 20px; box-sizing: border-box; }
+  .hp-text-wrap      { max-width: var(--cbw-prose-max, 800px); margin: 0 auto; padding: 0 20px; box-sizing: border-box; }
+  .hp-directory-wrap  { max-width: var(--cbw-wide-max, 1120px); margin: 0 auto; padding: 0 20px; box-sizing: border-box; }
   @media (min-width: 820px) {
     .hp-text-wrap, .hp-directory-wrap { padding: 0 32px; }
   }

@@ -78,6 +78,19 @@ const resolvedCanonical = canonical ?? `${siteBase}${Astro.url.pathname}`;
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      /* Unified layout width standard (Layout Width Audit 2026-07-14).
+         page  — header/footer/nav shell
+         wide  — directory surfaces: card grids, promo table, GEO finder section
+         prose — readable text columns (guides, FAQ, legal)
+         Review pages keep their own article measure (540/720/760) by design. */
+      --cbw-page-max: 1180px;
+      --cbw-wide-max: 1120px;
+      --cbw-prose-max: 800px;
+      --cbw-pad-mobile: 20px;
+      --cbw-pad-tablet: 24px;
+      --cbw-pad-desktop: 32px;
+    }
     html {
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
       font-size: 16px; line-height: 1.6;
@@ -91,8 +104,9 @@ const resolvedCanonical = canonical ?? `${siteBase}${Astro.url.pathname}`;
     button { font-family: inherit; cursor: pointer; }
 
     /* Shared utility classes */
-    .container { max-width: 1180px; margin: 0 auto; padding: 0 20px; }
-    @media (min-width: 820px) { .container { padding: 0 32px; } }
+    .container { max-width: var(--cbw-page-max); margin: 0 auto; padding: 0 var(--cbw-pad-mobile); }
+    @media (min-width: 640px) { .container { padding: 0 var(--cbw-pad-tablet); } }
+    @media (min-width: 820px) { .container { padding: 0 var(--cbw-pad-desktop); } }
 
     .section { padding: 56px 0; }
     @media (min-width: 820px) { .section { padding: 72px 0; } }

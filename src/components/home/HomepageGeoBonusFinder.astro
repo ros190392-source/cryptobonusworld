@@ -320,7 +320,9 @@ const countryMetaJson = JSON.stringify(COUNTRY_META.map(({ slug, label, flag, he
     padding: 18px 0 28px;
   }
   .gf-wrap {
-    max-width: 760px;
+    /* Section aligns with the wide directory standard; the interactive rows
+       below are capped separately (stacked row cards stretch past ~960px). */
+    max-width: var(--cbw-wide-max, 1120px);
     margin: 0 auto;
     padding: 0 16px;
     box-sizing: border-box;
@@ -352,7 +354,11 @@ const countryMetaJson = JSON.stringify(COUNTRY_META.map(({ slug, label, flag, he
   .gf-trust { font-size: 12.5px; line-height: 1.5; color: #6B7280; margin: 0; }
 
   /* ── Rows ─────────────────────────────────────────────────────── */
-  .gf-rows { display: flex; flex-direction: column; gap: 10px; }
+  .gf-rows {
+    display: flex; flex-direction: column; gap: 10px;
+    /* Balanced cap: at the full 1120px the stacked row cards look stretched */
+    max-width: 960px; margin: 0 auto;
+  }
 
   .gf-row {
     background: #fff; border: 1px solid #E5E7EB; border-radius: 12px;
