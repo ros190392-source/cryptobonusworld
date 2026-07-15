@@ -59,6 +59,7 @@ export const GET: APIRoute = () => {
     { url: '/', priority: '1.0', changefreq: 'daily', lastmod: today, type: 'static' as const },
     { url: '/exchanges/', priority: '0.85', changefreq: 'weekly', lastmod: today, type: 'static' as const },
     { url: '/promo-codes/', priority: '0.9', changefreq: 'weekly', lastmod: today, type: 'static' as const },
+    { url: '/faq/', priority: '0.6', changefreq: 'monthly', lastmod: today, type: 'static' as const },
     // Site info / methodology — indexed for E-E-A-T signals
     { url: '/methodology/', priority: '0.5', changefreq: 'monthly', lastmod: today, type: 'static' as const },
     { url: '/about/', priority: '0.4', changefreq: 'monthly', lastmod: today, type: 'static' as const },

@@ -1,0 +1,268 @@
+---
+import CleanLayout from '../../layouts/CleanLayout.astro';
+
+/**
+ * /faq/ — central FAQ hub (Phase 2B).
+ *
+ * Grouped, cautious FAQ covering promo/referral codes, claiming bonuses,
+ * country availability, verification, and safety/affiliate/risk.
+ *
+ * Single source of truth: FAQ_GROUPS. Visible <details> answers render the
+ * SAME HTML string (`set:html`) that the FAQPage JSON-LD uses as its answer
+ * `text`, so schema text matches visible text exactly. Answers may contain
+ * internal <a> links — Google's FAQPage spec permits HTML in answer text.
+ *
+ * Wording rules enforced here: bonuses are never described as guaranteed;
+ * eligibility is always conditioned on exchange terms/region/account/KYC/
+ * activity/campaign rules; landing-page evidence != dashboard eligibility;
+ * no country-availability claim without evidence; EU is not a country; no
+ * financial advice. No promo codes, offer amounts, or affiliate URLs appear.
+ */
+
+interface FaqItem { q: string; a: string; }
+interface FaqGroup { title: string; items: FaqItem[]; }
+
+const FAQ_GROUPS: FaqGroup[] = [
+  {
+    title: 'Promo codes & referral codes',
+    items: [
+      {
+        q: 'What is a crypto promo or referral code?',
+        a: 'A crypto promo or referral code is a short code entered when you create a new exchange account. It links your account to a partner offer and can unlock a new-user reward — such as a welcome bonus, fee discount, or trading voucher — that may not be available without it. The reward is set by the exchange, not by CryptoBonusWorld, and it is subject to that exchange\'s own terms. You can see the codes we track on our <a href="/promo-codes/">crypto promo codes</a> page.',
+      },
+      {
+        q: 'Do I need to enter the code manually?',
+        a: 'It depends on the exchange. Some referral links prefill the code automatically when you click through, so you just complete registration. Others require you to paste the code into a field during sign-up. To be safe, copy the code before you click through, in case the field is not prefilled. Each <a href="/exchanges/">exchange review page</a> notes how its code is applied.',
+      },
+      {
+        q: 'What is the difference between a referral link and a promo code?',
+        a: 'A referral link is a URL that already carries the partner attribution, so clicking it can associate your new account with the offer automatically. A promo (or referral) code is the text value you may need to type into a field during sign-up. They often work together: the link opens the correct sign-up page, and the code is the value applied on that page. Either way, the offer terms are set and controlled by the exchange.',
+      },
+      {
+        q: 'Why might a referral code not work?',
+        a: 'The most common reason is that codes must be entered during account creation — most exchanges will not let you add a code to an account that already exists. A code may also be rejected if it is mistyped, if you did not reach the sign-up form through the official exchange link, or if the offer is restricted or unavailable in your country. If a code still will not apply, check the exchange\'s official promotions page and contact its support.',
+      },
+    ],
+  },
+  {
+    title: 'Claiming bonuses',
+    items: [
+      {
+        q: 'Are crypto sign-up bonuses guaranteed?',
+        a: 'No. Crypto sign-up bonuses are never guaranteed. Advertised figures are maximums, not typical results, and reaching them usually requires completing a series of tasks — such as identity verification (KYC), a qualifying deposit, and trading-volume milestones — within a limited time window. Eligibility and the actual reward depend on the exchange\'s terms, your region, your account status, and the current campaign rules. Many users receive only a partial reward, or none, if the conditions are not met.',
+      },
+      {
+        q: 'Why is the advertised bonus amount higher than what I received?',
+        a: 'The headline number is the advertised maximum across every task in a promotion combined — not a flat amount paid on sign-up. What you actually receive depends on which tasks you complete, how much you deposit and trade, whether you finish within the campaign window, and the rules that apply to your account and region. Most welcome rewards are issued as conditional credits or trading vouchers rather than withdrawable cash, so the real value depends on your activity after signing up.',
+      },
+      {
+        q: 'Does clicking a registration link prove I am eligible for the full bonus?',
+        a: 'No. A registration or landing page showing an offer only confirms that the offer exists at sign-up — it does not prove you are eligible for the full bonus after registration. Post-signup eligibility is decided inside the exchange\'s own dashboard or activity center, based on your region, account status, verification, deposit and trading activity, and the campaign rules in force at the time. Always confirm what applies to your account on the exchange\'s official pages before depositing.',
+      },
+      {
+        q: 'Can I add a promo code after signing up?',
+        a: 'Usually not. On most exchanges a referral or promo code has to be applied during account creation and cannot be added to an existing account afterwards. If you already registered without a code, check whether the exchange runs separate promotions available from inside your account — but do not assume the original new-user offer can be applied retroactively.',
+      },
+    ],
+  },
+  {
+    title: 'Country availability',
+    items: [
+      {
+        q: 'Why do offers differ by country?',
+        a: 'Bonus programs are shaped by local regulations, exchange licensing, and KYC requirements, all of which vary by jurisdiction. An offer available in one country may be reduced, restricted, or unavailable in another, and some exchanges do not operate in certain regions at all. Because of this, availability shown for a global offer may not apply to your specific location — always confirm on the exchange\'s own terms for your country.',
+      },
+      {
+        q: 'How can I check offers for my country?',
+        a: 'Use the bonus finder on our homepage: <a href="/#finder">open the bonus finder</a> and select your country to see the offers and availability notes we currently track for supported locations. This is a guide to what to check, not a guarantee — country-specific availability is still being verified, so confirm eligibility against each exchange\'s official terms before registering.',
+      },
+      {
+        q: 'Why is my country not listed?',
+        a: 'We only show a country once we have evidence to support what we display for it, so locations we have not yet verified are not listed. A missing country does not mean an offer is or is not available there — it means we do not yet have confirmed information to show. In that case, check the exchange\'s official site directly to see whether it operates and offers promotions in your region.',
+      },
+      {
+        q: 'Is the European Union a country option?',
+        a: 'No. The European Union is not a country, so it is not a selectable location in our bonus finder. EU-wide rules (such as MiCA) can affect how offers work across member states, but availability and terms still depend on the individual country and the exchange\'s licensing there. Select your specific country to see what we track, and confirm details on the exchange\'s own terms.',
+      },
+    ],
+  },
+  {
+    title: 'Verification & updates',
+    items: [
+      {
+        q: 'How does CryptoBonusWorld verify promo codes?',
+        a: 'We check each listed code and offer against the exchange\'s own official promotions and terms pages, rather than relying on other comparison sites or user submissions. Our full process — data sources, how we score exchanges, and our verification standards — is described on our <a href="/methodology/">methodology</a> page. We still recommend confirming current terms on the exchange before you register.',
+      },
+      {
+        q: 'What does "last verified" mean?',
+        a: 'A "last verified" date is the date a member of our team last checked the listing against the exchange\'s official source and confirmed it was accurate. It does not mean the offer changed on that date — only that it was reviewed then. Because exchange terms can change without notice, always treat the exchange\'s own promotions page as the final word.',
+      },
+      {
+        q: 'How often are codes checked?',
+        a: 'We re-check codes and offers on a regular schedule, and promo-code listings in particular are reviewed frequently because codes can expire quickly. The individual <a href="/exchanges/">exchange review pages</a> show when each listing was last verified. Between checks, offers can still change, so confirm the current terms on the exchange before acting.',
+      },
+      {
+        q: 'What should I do if a code looks outdated?',
+        a: 'If a code or offer on our site looks outdated or does not apply, check the exchange\'s official promotions page for the latest version first. You are also welcome to let us know so we can re-verify the listing. Because bonus terms change frequently, the exchange\'s own current terms always take precedence over anything shown here.',
+      },
+    ],
+  },
+  {
+    title: 'Safety, risk & affiliate disclosure',
+    items: [
+      {
+        q: 'Are these affiliate links?',
+        a: 'Yes. The registration and "Claim" links on our exchange pages are affiliate referral links. If you register through one, CryptoBonusWorld may earn a commission from the exchange. This does not change your bonus or the price you pay. Full details are in our <a href="/affiliate-disclosure/">affiliate disclosure</a>.',
+      },
+      {
+        q: 'Does using an affiliate link cost extra?',
+        a: 'No. Using our affiliate links costs you nothing extra. Exchange fees, trading rates, and bonus terms are the same whether you arrive through our link or go to the exchange directly — the commission is paid by the exchange, not added to your costs. See our <a href="/affiliate-disclosure/">affiliate disclosure</a> for how this works.',
+      },
+      {
+        q: 'Is crypto trading risky?',
+        a: 'Yes. Cryptocurrency trading carries significant risk, and the value of digital assets can fall as well as rise — you may lose some or all of your funds. Bonus promotions add further conditions, such as trading-volume requirements that can encourage more trading than is appropriate for you. Only trade with money you can afford to lose, and read our <a href="/disclaimer/">risk disclaimer</a> before making any decisions.',
+      },
+      {
+        q: 'Does CryptoBonusWorld give financial advice?',
+        a: 'No. CryptoBonusWorld provides informational content about crypto exchange promo codes, referral offers, and bonuses. Nothing on this site is financial, investment, legal, or tax advice, and nothing here is a recommendation to open an account or trade. Consider your own situation, and consult a qualified professional if you need advice.',
+      },
+    ],
+  },
+];
+
+const allItems = FAQ_GROUPS.flatMap(g => g.items);
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: allItems.map(item => ({
+    '@type': 'Question',
+    name: item.q,
+    acceptedAnswer: { '@type': 'Answer', text: item.a },
+  })),
+};
+---
+
+<CleanLayout
+  title="Crypto Promo Code & Bonus FAQ | CryptoBonusWorld"
+  description="Answers about crypto promo codes, referral codes, claiming bonuses, country availability, verification, and affiliate links. Bonuses are not guaranteed."
+  canonical="https://cryptobonusworld.com/faq/"
+>
+
+  <!-- 1. Intro -->
+  <section class="faq-intro">
+    <div class="faq-text-wrap">
+      <div class="faq-label">Help Center</div>
+      <h1 class="faq-h1">Crypto Bonus & Promo Code FAQ</h1>
+      <p class="faq-sub">
+        Straight answers about crypto promo codes, referral codes, sign-up bonuses,
+        country availability, how we verify listings, and affiliate links.
+      </p>
+      <p class="faq-caveat">
+        Bonuses are never guaranteed. Eligibility depends on each exchange's terms,
+        your region, account status, KYC, deposit and trading activity, and current
+        campaign rules. This page is informational and is not financial advice.
+      </p>
+    </div>
+  </section>
+
+  <!-- 2. Grouped FAQ -->
+  <section class="section bg-white" id="faq">
+    <div class="faq-text-wrap">
+      {FAQ_GROUPS.map(group => (
+        <div class="faq-group">
+          <h2 class="faq-group-title">{group.title}</h2>
+          <div class="faq-list">
+            {group.items.map(item => (
+              <details class="faq-item">
+                <summary class="faq-q">{item.q}</summary>
+                <p class="faq-a" set:html={item.a} />
+              </details>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      <p class="faq-foot">
+        Still deciding? Compare tracked offers on the
+        <a href="/promo-codes/">crypto promo codes</a> page, browse
+        <a href="/exchanges/">exchange reviews</a>, or
+        <a href="/#finder">find a bonus for your country</a>.
+      </p>
+    </div>
+  </section>
+
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+
+</CleanLayout>
+
+<style>
+  .bg-white { background: #fff; }
+
+  .faq-text-wrap {
+    max-width: var(--cbw-prose-max, 800px); margin: 0 auto;
+    padding: 0 20px; box-sizing: border-box;
+  }
+  @media (min-width: 820px) { .faq-text-wrap { padding: 0 32px; } }
+
+  /* ── 1. Intro ─────────────────────────────────────────────────── */
+  .faq-intro { background: #fff; padding: 40px 0 24px; text-align: center; }
+  @media (min-width: 820px) { .faq-intro { padding: 56px 0 32px; } }
+  .faq-label {
+    display: inline-block; font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .1em; color: #F7931A;
+    background: rgba(247,147,26,.08); border: 1px solid rgba(247,147,26,.22);
+    padding: 4px 12px; border-radius: 20px; margin-bottom: 14px;
+  }
+  .faq-h1 {
+    font-size: clamp(26px, 4.2vw, 38px); font-weight: 800; line-height: 1.15;
+    letter-spacing: -.02em; color: #111827; margin-bottom: 12px;
+  }
+  .faq-sub { font-size: 15px; line-height: 1.65; color: #4B5563; margin-bottom: 10px; }
+  .faq-caveat { font-size: 13px; line-height: 1.6; color: #9CA3AF; max-width: 620px; margin: 0 auto; }
+
+  /* ── 2. Groups ────────────────────────────────────────────────── */
+  .faq-group { margin-bottom: 36px; }
+  .faq-group:last-of-type { margin-bottom: 8px; }
+  .faq-group-title {
+    font-size: 18px; font-weight: 800; color: #111827;
+    letter-spacing: -.01em; margin-bottom: 12px;
+    padding-bottom: 8px; border-bottom: 2px solid #F3F4F6;
+  }
+
+  .faq-list { display: flex; flex-direction: column; gap: 8px; }
+  .faq-item {
+    background: #fff; border: 1px solid #E5E7EB; border-radius: 10px;
+    overflow: hidden; transition: border-color .15s;
+  }
+  .faq-item[open] { border-color: #D1D5DB; }
+  .faq-q {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 14px 16px; cursor: pointer; list-style: none;
+    font-size: 14.5px; font-weight: 600; color: #111827; line-height: 1.4;
+  }
+  .faq-q::-webkit-details-marker { display: none; }
+  .faq-q::after {
+    content: '+'; flex-shrink: 0; font-size: 18px; font-weight: 400; color: #9CA3AF;
+  }
+  .faq-item[open] .faq-q::after { content: '\2212'; }
+  .faq-q:hover { background: #F9FAFB; }
+  .faq-a {
+    padding: 0 16px 15px; font-size: 13.5px; color: #4B5563; line-height: 1.6;
+  }
+  .faq-a :global(a) {
+    color: #15803D; font-weight: 600;
+    text-decoration: underline; text-underline-offset: 2px;
+  }
+  .faq-a :global(a:hover) { color: #166534; }
+
+  .faq-foot {
+    margin-top: 28px; padding-top: 20px; border-top: 1px solid #F3F4F6;
+    font-size: 13.5px; color: #6B7280; line-height: 1.7; text-align: center;
+  }
+  .faq-foot a {
+    color: #15803D; font-weight: 600;
+    text-decoration: underline; text-underline-offset: 2px;
+  }
+  .faq-foot a:hover { color: #166534; }
+</style>
