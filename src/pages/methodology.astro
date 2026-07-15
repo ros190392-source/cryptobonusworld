@@ -30,377 +30,536 @@ const crumbs = [
   { label: 'Home', href: '/' },
   { label: 'Methodology' },
 ];
+
+// ── Trust chips (hero) — only claims already supported by our process ──────
+const trustChips = [
+  { icon: '🌐', label: 'Public pages only' },
+  { icon: '🏷️', label: 'Promo code checks' },
+  { icon: '📄', label: 'Affiliate disclosure' },
+  { icon: '🌍', label: 'Country restrictions reviewed' },
+];
+
+// ── Verification in 60 seconds ────────────────────────────────────────────
+const tldrPoints = [
+  'We read the exchange\'s own public promotion and terms pages — not other comparison sites.',
+  'We check how the promo or referral code is presented, where the public page allows it.',
+  'We review the offer\'s conditions, expiry, and important restrictions.',
+  'We avoid availability claims we cannot support, and flag country cautions.',
+  'Bonuses are never guaranteed — the exchange sets and controls the final terms.',
+];
+
+// ── Verification process steps ────────────────────────────────────────────
+const steps = [
+  {
+    n: 1,
+    title: 'Offer source review',
+    body: 'Every bonus starts from the exchange\'s own official promotion page, terms and conditions, and verified announcements — the canonical source for amounts and conditions. We do not use other comparison sites, user-submitted data, or AI-generated summaries as primary sources.',
+  },
+  {
+    n: 2,
+    title: 'Promo code & link check',
+    body: 'Where the public sign-up flow allows, we check how the promo or referral code is presented and applied. Registration and “Claim” links are affiliate referral links, disclosed as such — they do not change your bonus or the price you pay.',
+  },
+  {
+    n: 3,
+    title: 'Terms & restrictions review',
+    body: 'We read the conditions attached to each offer: trading-volume requirements, expiry dates, eligible products, minimum deposits, and KYC steps. Offers that bury key conditions in footnotes or another language are noted so you know what to check.',
+  },
+  {
+    n: 4,
+    title: 'Country caution & eligibility',
+    body: 'Availability is shaped by local regulation and licensing, and can be more granular than any summary. We flag restrictions we can support and avoid claiming availability we cannot verify. The European Union is a bloc, not a country — eligibility still depends on your specific location.',
+  },
+  {
+    n: 5,
+    title: 'Page update & disclosure',
+    body: 'Confirmed details are published with a “Last Verified” date — the date of most recent manual confirmation, not the most recent content change. Affiliate relationships are disclosed inline and on our disclosure page. No exchange can pay to improve its rating or position.',
+  },
+  {
+    n: 6,
+    title: 'Recheck & correction',
+    body: 'Listings are re-checked on a schedule — exchange and bonus pages roughly every 30 days, promo-code pages roughly every 21 days — and corrected when terms change. Because exchange terms can change without notice, the official page is always the final word.',
+  },
+];
+
+// ── We verify / We do not guarantee ───────────────────────────────────────
+const weVerify = [
+  'The public wording of the advertised offer',
+  'Whether a promo or referral code is present',
+  'Exchange landing pages where they are publicly accessible',
+  'Important restrictions and caution notes',
+  'That affiliate relationships are disclosed',
+];
+const weDontGuarantee = [
+  'Your post-signup dashboard eligibility',
+  'That you will receive the full advertised amount',
+  'The outcome of an exchange\'s approval or KYC review',
+  'Availability of an offer in every country',
+  'That a campaign will continue in the future',
+];
+
+// ── Rating criteria (preserved) ───────────────────────────────────────────
+const criteria = [
+  { weight: '25%', name: 'Bonus Value', body: 'The headline amount versus the industry average for the exchange\'s size tier, adjusted for conditions — a large bonus locked behind heavy volume scores lower than a smaller, easily unlocked one. We model an effective value for a typical $500 new-user deposit.' },
+  { weight: '20%', name: 'Conditions Clarity', body: 'How clearly the exchange communicates volume requirements, expiry dates, eligible pairs, minimum deposits, and activation steps. Burying key conditions in footnotes or foreign-language terms is penalised.' },
+  { weight: '15%', name: 'KYC Requirements', body: 'Scored across No-KYC (highest), partial KYC for activation (mid), and full verification before withdrawal (lowest). This reflects accessibility for new users — not a judgment on AML practices.' },
+  { weight: '15%', name: 'Country Availability', body: 'Based on where the exchange operates without restrictions, from our tracked country list. Active licences in major markets score higher; exchanges that restrict access for most of our user base are excluded.' },
+  { weight: '15%', name: 'Exchange Reputation', body: 'Years of operation, absence of major unresolved security incidents, regulatory compliance record, and community trust signals from independent sources — not paid reviews.' },
+  { weight: '10%', name: 'Ease of Claiming', body: 'The number of steps to activate and receive the bonus, based on direct account testing where possible. One-click or automatic credit scores highest; manual support tickets score lowest.' },
+];
+const scoreScale = [
+  { range: '8.0 – 10.0', label: 'Excellent', mod: 'excellent' },
+  { range: '6.5 – 7.9', label: 'Good', mod: 'good' },
+  { range: '5.0 – 6.4', label: 'Fair', mod: 'fair' },
+  { range: '< 5.0', label: 'Below Average', mod: 'poor' },
+];
+
+// ── Review pages (worked examples) ────────────────────────────────────────
+const reviewPages = [
+  { name: 'Bybit', href: '/bybit/' },
+  { name: 'MEXC', href: '/mexc/' },
+  { name: 'OKX', href: '/okx/' },
+  { name: 'Bitget', href: '/bitget/' },
+  { name: 'KuCoin', href: '/kucoin/' },
+  { name: 'BingX', href: '/bingx/' },
+];
+
+// ── Related pages (cross-links) ───────────────────────────────────────────
+const relatedPages = [
+  { name: 'Crypto Promo Codes', href: '/promo-codes/', desc: 'Every code we currently track' },
+  { name: 'All Exchanges', href: '/exchanges/', desc: 'Browse the exchanges we review' },
+  { name: 'Affiliate Disclosure', href: '/affiliate-disclosure/', desc: 'How we earn, and what it does not change' },
+  { name: 'Update Policy', href: '/update-policy/', desc: 'How often we re-verify listings' },
+  { name: 'Editorial Policy', href: '/editorial-policy/', desc: 'Our independence standards' },
+  { name: 'Risk Disclaimer', href: '/disclaimer/', desc: 'Important limitations and risk notes' },
+];
 ---
 
 <InfoLayout title={pageTitle} description={pageDesc} canonical="/methodology/" schema={methodologySchema}>
-  <div class="container">
-    <Breadcrumbs crumbs={crumbs} />
-
-    <div class="page-header">
-      <div class="header-badge">🔬 Methodology</div>
-      <h1>Our Methodology</h1>
-      <p class="lead">
-        How CryptoBonusWorld researches, verifies, and scores crypto exchange bonus offers.
-        Every rating is based on defined criteria, applied consistently across all exchanges.
-      </p>
-      <p class="meta">Last updated: <time datetime="2026-05-25">May 2026</time></p>
+  <div class="mth">
+    <div class="mth-prose mth-crumbs">
+      <Breadcrumbs crumbs={crumbs} />
     </div>
 
-    <nav class="toc" aria-label="Contents">
-      <div class="toc__title">Contents</div>
-      <ol class="toc__list">
-        <li><a href="#what-we-do">What We Do</a></li>
-        <li><a href="#data-sources">Data Sources</a></li>
-        <li><a href="#rating-system">Rating System</a></li>
-        <li><a href="#criteria">Rating Criteria (6 Factors)</a></li>
-        <li><a href="#kyc-assessment">KYC Assessment Method</a></li>
-        <li><a href="#bonus-types">Bonus Type Classification</a></li>
-        <li><a href="#freshness">Data Freshness</a></li>
-        <li><a href="#independence">Editorial Independence</a></li>
-        <li><a href="#limitations">Limitations</a></li>
+    <!-- A. Hero -->
+    <header class="mth-hero">
+      <div class="mth-prose">
+        <div class="mth-eyebrow">🔍 How We Verify</div>
+        <h1>How CryptoBonusWorld Verifies Promo Codes</h1>
+        <p class="mth-lead">
+          How we research, verify, and rate crypto exchange bonus offers — using each
+          exchange's own public pages, applied consistently, without inventing evidence
+          or availability claims we cannot support.
+        </p>
+        <p class="mth-updated">Last updated: <time datetime="2026-05-25">May 2026</time></p>
+        <ul class="mth-chips" aria-label="What our process covers">
+          {trustChips.map(chip => (
+            <li class="mth-chip"><span aria-hidden="true">{chip.icon}</span>{chip.label}</li>
+          ))}
+        </ul>
+      </div>
+    </header>
+
+    <!-- B. Verification in 60 seconds -->
+    <section class="mth-prose mth-section" aria-labelledby="tldr">
+      <div class="mth-tldr">
+        <div class="mth-tldr-head">
+          <span class="mth-tldr-badge">⏱️ 60-second version</span>
+          <h2 id="tldr">Verification in 60 seconds</h2>
+        </div>
+        <ul class="mth-tldr-list">
+          {tldrPoints.map(pt => <li>{pt}</li>)}
+        </ul>
+      </div>
+    </section>
+
+    <!-- C. Process steps -->
+    <section class="mth-wide mth-section" aria-labelledby="process">
+      <div class="mth-section-head">
+        <h2 id="process">Our verification process</h2>
+        <p>Every listed offer moves through the same six checks before it goes live.</p>
+      </div>
+      <ol class="mth-steps">
+        {steps.map(step => (
+          <li class="mth-step">
+            <div class="mth-step-n" aria-hidden="true">{step.n}</div>
+            <div class="mth-step-body">
+              <h3>{step.title}</h3>
+              <p>{step.body}</p>
+            </div>
+          </li>
+        ))}
       </ol>
-    </nav>
+    </section>
 
-    <div class="prose">
-
-      <h2 id="what-we-do">1. What We Do</h2>
-      <p>
-        CryptoBonusWorld is a crypto exchange bonus comparison platform. We research, verify
-        and compare promotional offers from centralised crypto exchanges to help users find
-        bonuses that match their trading goals and country of residence.
-      </p>
-      <p>
-        We do not place deposits, execute trades, or provide investment advice. We compare
-        publicly available promotional information sourced directly from official exchange pages.
-      </p>
-      <p>
-        Our scope covers: welcome bonuses, deposit match bonuses, trading rewards, referral
-        bonuses, futures bonuses, no-KYC bonus offers, and promotional code-activated offers.
-      </p>
-
-      <h2 id="data-sources">2. Data Sources</h2>
-      <p>All bonus data on this site is sourced exclusively from:</p>
-      <ul>
-        <li><strong>Official exchange promotion pages</strong> — the canonical source for all
-            bonus amounts and conditions</li>
-        <li><strong>Exchange terms and conditions documents</strong> — for trading volume
-            requirements, expiry dates, and eligibility conditions</li>
-        <li><strong>Official exchange announcements</strong> — blog posts, press releases, and
-            verified email campaigns where promotion terms are clarified</li>
-        <li><strong>Direct account testing</strong> — where feasible, our team creates test
-            accounts to verify sign-up flow, KYC steps, and bonus activation</li>
-      </ul>
-      <p>
-        We do not use other comparison websites, user-submitted data, or AI-generated summaries
-        as primary sources. All factual claims must be traceable to an official source.
-      </p>
-
-      <h2 id="rating-system">3. Rating System</h2>
-      <p>
-        Exchange ratings are expressed as a single score from <strong>1.0 to 10.0</strong>,
-        computed from six weighted criteria. Scores are calculated mechanically — no subjective
-        adjustment is permitted after the criteria scores are set.
-      </p>
-      <p>
-        A score of 8.0+ indicates an excellent bonus offer with clear conditions, broad country
-        support, and strong exchange reputation. A score below 5.0 indicates significant
-        limitations that may make the bonus difficult to claim or less valuable in practice.
-      </p>
-
-      <div class="score-scale">
-        <div class="scale-item scale-item--excellent"><span class="scale-range">8.0 – 10.0</span><span class="scale-label">Excellent</span></div>
-        <div class="scale-item scale-item--good"><span class="scale-range">6.5 – 7.9</span><span class="scale-label">Good</span></div>
-        <div class="scale-item scale-item--fair"><span class="scale-range">5.0 – 6.4</span><span class="scale-label">Fair</span></div>
-        <div class="scale-item scale-item--poor"><span class="scale-range">< 5.0</span><span class="scale-label">Below Average</span></div>
+    <!-- D. What we verify / what we do not guarantee -->
+    <section class="mth-wide mth-section" aria-labelledby="scope">
+      <div class="mth-section-head">
+        <h2 id="scope">What we verify — and what we don't</h2>
+        <p>We are precise about the limits of a public-page review.</p>
       </div>
-
-      <h2 id="criteria">4. Rating Criteria</h2>
-      <p>The six criteria and their weights:</p>
-
-      <div class="criteria-grid">
-        <div class="criterion">
-          <div class="criterion__header">
-            <span class="criterion__weight">25%</span>
-            <span class="criterion__name">Bonus Value</span>
-          </div>
-          <p>
-            The headline bonus amount compared to the industry average for the exchange's
-            size tier. We account for conditions: a 30,000 USDT bonus requiring $1M in
-            trading volume is scored lower than a 500 USDT bonus that unlocks at $5,000
-            volume. We calculate an effective bonus value based on a typical new user
-            deposit of $500.
-          </p>
+      <div class="mth-cols">
+        <div class="mth-col mth-col--yes">
+          <div class="mth-col-title"><span aria-hidden="true">✓</span> We verify</div>
+          <ul>{weVerify.map(i => <li>{i}</li>)}</ul>
         </div>
-        <div class="criterion">
-          <div class="criterion__header">
-            <span class="criterion__weight">20%</span>
-            <span class="criterion__name">Conditions Clarity</span>
-          </div>
-          <p>
-            We assess how clearly the exchange communicates: trading volume requirements,
-            bonus expiry dates, eligible trading pairs, minimum deposit thresholds, and
-            step-by-step activation instructions. Exchanges that bury key conditions in
-            footnotes or link to terms hosted in a different language are penalised.
-          </p>
-        </div>
-        <div class="criterion">
-          <div class="criterion__header">
-            <span class="criterion__weight">15%</span>
-            <span class="criterion__name">KYC Requirements</span>
-          </div>
-          <p>
-            We score three KYC tiers: No KYC required (highest score), partial KYC
-            required for bonus activation (mid score), and full identity verification
-            required before any withdrawal (lowest score). This criterion reflects
-            accessibility for new users, not a judgment on AML practices.
-          </p>
-        </div>
-        <div class="criterion">
-          <div class="criterion__header">
-            <span class="criterion__weight">15%</span>
-            <span class="criterion__name">Country Availability</span>
-          </div>
-          <p>
-            Based on the number of countries where the exchange operates without
-            restrictions, from our tracked list of 60+ countries. Exchanges with active
-            licences in major markets (EU, UK, Australia, Canada) score higher. We
-            explicitly exclude exchanges that restrict access for 50%+ of our user base.
-          </p>
-        </div>
-        <div class="criterion">
-          <div class="criterion__header">
-            <span class="criterion__weight">15%</span>
-            <span class="criterion__name">Exchange Reputation</span>
-          </div>
-          <p>
-            Based on: years of operation (more years = higher score), absence of major
-            security incidents or unresolved fund loss events, regulatory compliance
-            record (active licences, no enforcement actions), and community trust signals
-            (verified positive patterns from independent sources, not paid reviews).
-          </p>
-        </div>
-        <div class="criterion">
-          <div class="criterion__header">
-            <span class="criterion__weight">10%</span>
-            <span class="criterion__name">Ease of Claiming</span>
-          </div>
-          <p>
-            The number of steps required to activate and receive the bonus, based on
-            direct account testing where possible. Exchanges with one-click activation
-            or automatic credit on deposit score highest. Exchanges requiring manual
-            support tickets to activate bonuses score lowest.
-          </p>
+        <div class="mth-col mth-col--no">
+          <div class="mth-col-title"><span aria-hidden="true">!</span> We do not guarantee</div>
+          <ul>{weDontGuarantee.map(i => <li>{i}</li>)}</ul>
         </div>
       </div>
+    </section>
 
-      <h2 id="kyc-assessment">5. KYC Assessment Method</h2>
-      <p>We classify KYC requirements into four levels:</p>
-      <ul>
-        <li><strong>Level 0 — No KYC:</strong> Trading and withdrawal possible without any identity verification (up to exchange limits)</li>
-        <li><strong>Level 1 — Email only:</strong> Account creation requires email; no document upload for basic trading access</li>
-        <li><strong>Level 2 — Partial KYC:</strong> Photo ID required for withdrawals above a threshold, but trading starts without verification</li>
-        <li><strong>Level 3 — Full KYC:</strong> Full identity verification required before any trading or withdrawal</li>
-      </ul>
-      <p>
-        KYC level is determined through direct testing of the sign-up and withdrawal flow, not
-        solely from published terms (which may be out of date or ambiguous).
-      </p>
+    <!-- How we rate (preserved rating methodology) -->
+    <section class="mth-wide mth-section" aria-labelledby="rating">
+      <div class="mth-section-head">
+        <h2 id="rating">How we rate bonus offers</h2>
+        <p>
+          Where we score an exchange, the rating runs from <strong>1.0 to 10.0</strong>,
+          computed mechanically from six weighted criteria — no subjective adjustment after
+          the criteria scores are set.
+        </p>
+      </div>
+      <div class="mth-scale">
+        {scoreScale.map(s => (
+          <div class={`mth-scale-item mth-scale-item--${s.mod}`}>
+            <span class="mth-scale-range">{s.range}</span>
+            <span class="mth-scale-label">{s.label}</span>
+          </div>
+        ))}
+      </div>
+      <div class="mth-criteria">
+        {criteria.map(c => (
+          <div class="mth-criterion">
+            <div class="mth-criterion-head">
+              <span class="mth-criterion-weight">{c.weight}</span>
+              <span class="mth-criterion-name">{c.name}</span>
+            </div>
+            <p>{c.body}</p>
+          </div>
+        ))}
+      </div>
+    </section>
 
-      <h2 id="bonus-types">6. Bonus Type Classification</h2>
-      <p>We classify bonuses into the following types:</p>
-      <ul>
-        <li><strong>Welcome Bonus:</strong> Awarded upon first registration — may include a no-deposit component</li>
-        <li><strong>Deposit Bonus:</strong> Match bonus activated by first or subsequent deposit</li>
-        <li><strong>Trading Reward:</strong> Volume-based reward unlocked by completing trading milestones</li>
-        <li><strong>Futures Bonus:</strong> Credited specifically to the futures/derivatives trading account</li>
-        <li><strong>No-Deposit Bonus:</strong> Awarded without requiring a deposit — typically smaller and volume-locked</li>
-        <li><strong>Referral Bonus:</strong> Earned by referring new users</li>
-        <li><strong>Promotional Code Bonus:</strong> Activated by entering a specific code at sign-up</li>
-      </ul>
-      <p>
-        When an exchange offers multiple bonus types, we rate the primary welcome package
-        (the offer presented to new users at sign-up). Additional bonus types are noted
-        as supplementary features.
-      </p>
+    <!-- Standards & definitions (preserved facts, compact) -->
+    <section class="mth-prose mth-section" aria-labelledby="standards">
+      <div class="mth-section-head mth-section-head--left">
+        <h2 id="standards">Standards &amp; definitions</h2>
+      </div>
 
-      <h2 id="freshness">7. Data Freshness</h2>
-      <p>
-        Exchange data is re-verified on the following schedule as a minimum:
-      </p>
-      <ul>
-        <li>Exchange pages and bonus landing pages: every 30 days</li>
-        <li>Bonus code pages: every 21 days</li>
-        <li>Compare pages: every 45 days or when either exchange updates</li>
-      </ul>
-      <p>
-        The "Last Verified" date shown on exchange pages is the date of most recent manual
-        confirmation, not the most recent content change. We do not publish data that is
-        more than 45 days old without re-verification.
-      </p>
-      <p>See our <a href="/update-policy/">Content Update Policy</a> for full details.</p>
+      <div class="mth-def">
+        <h3>Data sources</h3>
+        <p>All bonus data is sourced exclusively from official exchange promotion pages, the
+        exchange's terms and conditions, official announcements, and — where feasible — direct
+        account testing of the sign-up, KYC, and activation flow. Every factual claim must be
+        traceable to an official source.</p>
+      </div>
 
-      <h2 id="independence">8. Editorial Independence</h2>
-      <p>
+      <div class="mth-def">
+        <h3>KYC levels</h3>
+        <ul>
+          <li><strong>Level 0 — No KYC:</strong> trading and withdrawal possible without identity verification (up to exchange limits).</li>
+          <li><strong>Level 1 — Email only:</strong> account creation needs an email; no document upload for basic trading.</li>
+          <li><strong>Level 2 — Partial KYC:</strong> photo ID required for withdrawals above a threshold; trading starts unverified.</li>
+          <li><strong>Level 3 — Full KYC:</strong> full identity verification required before any trading or withdrawal.</li>
+        </ul>
+        <p>KYC level is determined through direct testing of the sign-up and withdrawal flow, not solely from published terms, which can be out of date or ambiguous.</p>
+      </div>
+
+      <div class="mth-def">
+        <h3>Bonus types we classify</h3>
+        <p>Welcome, deposit-match, trading-reward, futures, no-deposit, referral, and
+        promotional-code bonuses. When an exchange offers several, we rate the primary welcome
+        package shown to new users and note the rest as supplementary.</p>
+      </div>
+
+      <div class="mth-def">
+        <h3>Data freshness</h3>
+        <p>As a minimum, exchange and bonus landing pages are re-verified every 30 days and
+        bonus-code pages every 21 days. The “Last Verified” date is the date of most recent
+        manual confirmation. See our <a href="/update-policy/">Content Update Policy</a> for details.</p>
+      </div>
+    </section>
+
+    <!-- Editorial independence -->
+    <section class="mth-prose mth-section" aria-labelledby="independence">
+      <div class="mth-section-head mth-section-head--left">
+        <h2 id="independence">Editorial independence</h2>
+      </div>
+      <p class="mth-body">
         CryptoBonusWorld earns affiliate commissions when users register through our links.
-        This does not affect our ratings. Specifically:
+        This does not affect our ratings:
       </p>
-      <ul>
-        <li>No exchange can pay to improve its score</li>
-        <li>No exchange can pay for a specific position in comparison tables</li>
-        <li>Affiliate status does not determine listing eligibility</li>
-        <li>We list cons, limitations, and conditions for every exchange regardless of commercial relationship</li>
+      <ul class="mth-body-list">
+        <li>No exchange can pay to improve its score.</li>
+        <li>No exchange can pay for a specific position in comparison tables.</li>
+        <li>Affiliate status does not determine listing eligibility.</li>
+        <li>We list cons, limitations, and conditions for every exchange, regardless of commercial relationship.</li>
       </ul>
-      <p>
+      <p class="mth-body">
         All affiliate links are disclosed inline and via our
-        <a href="/affiliate-disclosure/">Affiliate Disclosure page</a>. See also our full
+        <a href="/affiliate-disclosure/">Affiliate Disclosure</a> page. See also our full
         <a href="/editorial-policy/">Editorial Policy</a>.
       </p>
+    </section>
 
-      <h2 id="limitations">9. Limitations of Our Data</h2>
-      <p>
-        Users should be aware of the following limitations before relying on our data:
-      </p>
-      <ul>
+    <!-- Limitations -->
+    <section class="mth-prose mth-section" aria-labelledby="limitations">
+      <div class="mth-section-head mth-section-head--left">
+        <h2 id="limitations">Limitations of our data</h2>
+      </div>
+      <ul class="mth-body-list">
         <li><strong>Bonus terms can change without notice.</strong> Always check the official exchange promotion page before registering or depositing.</li>
         <li><strong>Country restrictions may be more granular than we report.</strong> Some exchanges restrict access at the state or province level, which we may not capture.</li>
-        <li><strong>Effective bonus value varies by user.</strong> Our calculations assume a standard new user with a $500 starting deposit. Your actual bonus value may differ.</li>
-        <li><strong>We cannot verify every exchange's financial standing.</strong> Our reputation scoring is based on available public information; it is not an audit or regulatory assessment.</li>
-        <li><strong>We are not a regulated financial service.</strong> Nothing on this site constitutes financial advice or a recommendation to open an account with any exchange.</li>
+        <li><strong>Effective bonus value varies by user.</strong> Our calculations assume a standard new user with a $500 starting deposit; your actual value may differ.</li>
+        <li><strong>We cannot verify every exchange's financial standing.</strong> Reputation scoring is based on public information — it is not an audit or regulatory assessment.</li>
+        <li><strong>We are not a regulated financial service.</strong> Nothing on this site is financial advice or a recommendation to open an account with any exchange.</li>
       </ul>
-    </div>
+    </section>
+
+    <!-- E. Worked examples / review pages -->
+    <section class="mth-wide mth-section" aria-labelledby="examples">
+      <div class="mth-section-head">
+        <h2 id="examples">See the process applied</h2>
+        <p>Each exchange review page shows the verified offer, its code, and its caution notes.</p>
+      </div>
+      <ul class="mth-reviews">
+        {reviewPages.map(p => (
+          <li>
+            <a href={p.href} class="mth-review">
+              <span class="mth-review-name">{p.name}</span>
+              <span class="mth-review-go" aria-hidden="true">→</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <!-- F. Cross-links -->
+    <section class="mth-wide mth-section" aria-labelledby="related">
+      <div class="mth-section-head">
+        <h2 id="related">Related pages</h2>
+      </div>
+      <div class="mth-related">
+        {relatedPages.map(p => (
+          <a href={p.href} class="mth-related-card">
+            <span class="mth-related-name">{p.name}</span>
+            <span class="mth-related-desc">{p.desc}</span>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <!-- G. CTA -->
+    <section class="mth-prose mth-section">
+      <div class="mth-cta">
+        <h2>Ready to check a bonus?</h2>
+        <p>Start with the codes we currently track, or browse the exchanges we review.</p>
+        <div class="mth-cta-actions">
+          <a href="/promo-codes/" class="btn-primary">View Promo Codes →</a>
+          <a href="/exchanges/" class="btn-secondary">Browse Exchanges</a>
+        </div>
+      </div>
+    </section>
   </div>
 </InfoLayout>
 
 <style>
-  .container { max-width: 820px; margin: 0 auto; padding: 0 var(--container-pad); }
+  /* ── Width wrappers ─────────────────────────────────────────────── */
+  .mth { padding-top: 8px; }
+  .mth-prose,
+  .mth-wide {
+    margin: 0 auto;
+    padding-left: var(--container-pad, 20px);
+    padding-right: var(--container-pad, 20px);
+    box-sizing: border-box;
+  }
+  .mth-prose { max-width: 800px; }
+  .mth-wide  { max-width: 1120px; }
 
-  .page-header {
-    padding: 3rem 0 2.5rem;
-    border-bottom: 1px solid var(--color-border);
-    margin-bottom: 2rem;
-  }
-  .header-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: var(--text-xs);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--color-accent);
-    background: var(--color-accent-muted);
-    border: 1px solid rgba(245,197,66,0.2);
-    border-radius: var(--radius-pill);
-    padding: 0.3rem 0.75rem;
-    margin-bottom: 1rem;
-  }
-  .page-header h1 {
-    font-size: clamp(1.75rem, 4vw, 2.5rem);
-    font-weight: 800;
-    margin: 0 0 0.75rem;
-    letter-spacing: -0.02em;
-  }
-  .page-header .lead { font-size: 1.05rem; color: var(--color-text-secondary); margin: 0 0 0.5rem; }
-  .page-header .meta { font-size: var(--text-xs); color: var(--color-text-muted); margin: 0; }
+  .mth-crumbs { padding-top: 12px; }
+  .mth-section { margin-top: 40px; }
+  @media (min-width: 820px) { .mth-section { margin-top: 56px; } }
 
-  /* TOC */
-  .toc {
-    background: var(--surface-raised);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
-    padding: 1.25rem 1.5rem;
-    margin-bottom: 2.5rem;
+  /* ── A. Hero ────────────────────────────────────────────────────── */
+  .mth-hero {
+    margin-top: 20px;
+    padding: 36px 0 8px;
+    border-bottom: 1px solid #EEF0EC;
   }
-  .toc__title {
-    font-size: var(--text-xs);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--color-text-muted);
-    margin-bottom: 0.75rem;
+  .mth-eyebrow {
+    display: inline-block;
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .1em; color: #B45309;
+    background: rgba(247,147,26,.10); border: 1px solid rgba(247,147,26,.22);
+    padding: 5px 12px; border-radius: 100px; margin-bottom: 16px;
   }
-  .toc__list {
-    margin: 0;
-    padding-left: 1.25rem;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.35rem;
+  .mth-hero h1 {
+    font-size: clamp(28px, 4.4vw, 42px); font-weight: 800;
+    letter-spacing: -.02em; line-height: 1.12; color: #111827; margin: 0 0 14px;
   }
-  .toc__list a {
-    font-size: var(--text-sm);
-    color: var(--color-text-secondary);
-    text-decoration: none;
-    font-weight: 500;
+  .mth-lead {
+    font-size: clamp(15px, 1.6vw, 18px); line-height: 1.65;
+    color: #4B5563; margin: 0 0 12px; max-width: 640px;
   }
-  .toc__list a:hover { color: var(--color-accent); }
+  .mth-updated { font-size: 12px; color: #9CA3AF; margin: 0 0 22px; }
+  .mth-chips { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 8px; padding: 0; }
+  .mth-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12.5px; font-weight: 600; color: #374151;
+    background: #fff; border: 1px solid #E5E7EB; border-radius: 100px;
+    padding: 7px 13px;
+  }
 
-  /* Score scale */
-  .score-scale {
-    display: flex;
-    gap: 0.5rem;
-    margin: 1rem 0 1.5rem;
-    flex-wrap: wrap;
+  /* ── Section headings ───────────────────────────────────────────── */
+  .mth-section-head { text-align: center; max-width: 620px; margin: 0 auto 24px; }
+  .mth-section-head--left { text-align: left; margin-left: 0; margin-right: 0; }
+  .mth-section-head h2 {
+    font-size: clamp(20px, 2.6vw, 28px); font-weight: 800;
+    letter-spacing: -.01em; color: #111827; margin: 0 0 8px;
   }
-  .scale-item {
-    flex: 1;
-    min-width: 120px;
-    padding: 0.75rem 1rem;
-    border-radius: var(--radius-lg);
+  .mth-section-head p { font-size: 14.5px; line-height: 1.6; color: #6B7280; margin: 0; }
+
+  /* ── B. 60-second box ───────────────────────────────────────────── */
+  .mth-tldr {
+    background: linear-gradient(180deg, #FFFDF8 0%, #FFFFFF 100%);
+    border: 1px solid #F1E7CF; border-radius: 16px;
+    padding: 24px; box-shadow: 0 1px 2px rgba(17,24,39,.03);
+  }
+  @media (min-width: 640px) { .mth-tldr { padding: 28px 32px; } }
+  .mth-tldr-head { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+  .mth-tldr-badge {
+    align-self: flex-start; font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .08em; color: #B45309; background: rgba(247,147,26,.10);
+    border-radius: 100px; padding: 4px 11px;
+  }
+  .mth-tldr-head h2 { font-size: clamp(19px, 2.4vw, 24px); font-weight: 800; color: #111827; margin: 0; }
+  .mth-tldr-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 11px; }
+  .mth-tldr-list li {
+    position: relative; padding-left: 30px;
+    font-size: 14.5px; line-height: 1.6; color: #374151;
+  }
+  .mth-tldr-list li::before {
+    content: '✓'; position: absolute; left: 0; top: 0;
+    width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: #16A34A;
+    background: rgba(22,163,74,.10); border-radius: 50%;
+  }
+
+  /* ── C. Process steps ───────────────────────────────────────────── */
+  .mth-steps {
+    list-style: none; margin: 0; padding: 0;
+    display: grid; grid-template-columns: 1fr; gap: 14px;
+  }
+  @media (min-width: 720px) { .mth-steps { grid-template-columns: 1fr 1fr; gap: 16px; } }
+  .mth-step {
+    display: flex; gap: 14px;
+    background: #fff; border: 1px solid #E5E7EB; border-radius: 14px;
+    padding: 20px;
+  }
+  .mth-step-n {
+    flex-shrink: 0; width: 34px; height: 34px; border-radius: 10px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 800; color: #B45309;
+    background: rgba(247,147,26,.10); border: 1px solid rgba(247,147,26,.20);
+  }
+  .mth-step-body h3 { font-size: 15.5px; font-weight: 700; color: #111827; margin: 4px 0 6px; }
+  .mth-step-body p { font-size: 13.5px; line-height: 1.6; color: #4B5563; margin: 0; }
+
+  /* ── D. Two columns ─────────────────────────────────────────────── */
+  .mth-cols { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  @media (min-width: 720px) { .mth-cols { grid-template-columns: 1fr 1fr; } }
+  .mth-col { border-radius: 14px; padding: 22px; border: 1px solid #E5E7EB; background: #fff; }
+  .mth-col--yes { border-color: rgba(22,163,74,.25); background: rgba(22,163,74,.035); }
+  .mth-col--no  { border-color: rgba(217,119,6,.25); background: rgba(217,119,6,.035); }
+  .mth-col-title {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 15px; font-weight: 800; color: #111827; margin-bottom: 12px;
+  }
+  .mth-col-title span {
+    width: 22px; height: 22px; flex-shrink: 0; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 800; color: #fff;
+  }
+  .mth-col--yes .mth-col-title span { background: #16A34A; }
+  .mth-col--no  .mth-col-title span { background: #D97706; }
+  .mth-col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 9px; }
+  .mth-col li { position: relative; padding-left: 18px; font-size: 13.5px; line-height: 1.55; color: #374151; }
+  .mth-col li::before { content: ''; position: absolute; left: 0; top: 8px; width: 6px; height: 6px; border-radius: 50%; }
+  .mth-col--yes li::before { background: #16A34A; }
+  .mth-col--no  li::before { background: #D97706; }
+
+  /* ── Rating scale + criteria (preserved) ────────────────────────── */
+  .mth-scale { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
+  @media (min-width: 640px) { .mth-scale { grid-template-columns: repeat(4, 1fr); } }
+  .mth-scale-item {
+    text-align: center; padding: 14px 10px; border-radius: 12px; border: 1px solid #E5E7EB; background: #fff;
+  }
+  .mth-scale-range { display: block; font-size: 16px; font-weight: 800; }
+  .mth-scale-label { display: block; font-size: 11.5px; color: #6B7280; margin-top: 3px; }
+  .mth-scale-item--excellent { border-color: rgba(34,197,94,.3); background: rgba(34,197,94,.05); }
+  .mth-scale-item--excellent .mth-scale-range { color: #16A34A; }
+  .mth-scale-item--good { border-color: rgba(245,158,11,.3); background: rgba(245,158,11,.05); }
+  .mth-scale-item--good .mth-scale-range { color: #B45309; }
+  .mth-scale-item--fair { border-color: rgba(249,115,22,.3); background: rgba(249,115,22,.05); }
+  .mth-scale-item--fair .mth-scale-range { color: #EA580C; }
+  .mth-scale-item--poor { border-color: rgba(239,68,68,.3); background: rgba(239,68,68,.05); }
+  .mth-scale-item--poor .mth-scale-range { color: #DC2626; }
+
+  .mth-criteria { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  @media (min-width: 720px) { .mth-criteria { grid-template-columns: 1fr 1fr; gap: 16px; } }
+  .mth-criterion { background: #fff; border: 1px solid #E5E7EB; border-radius: 14px; padding: 18px 20px; }
+  .mth-criterion-head { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+  .mth-criterion-weight { font-size: 16px; font-weight: 800; color: #B45309; min-width: 44px; }
+  .mth-criterion-name { font-size: 14.5px; font-weight: 700; color: #111827; }
+  .mth-criterion p { font-size: 13.5px; line-height: 1.6; color: #4B5563; margin: 0; }
+
+  /* ── Standards / prose blocks ───────────────────────────────────── */
+  .mth-def { margin-bottom: 20px; }
+  .mth-def h3 { font-size: 16px; font-weight: 700; color: #111827; margin: 0 0 8px; }
+  .mth-def p { font-size: 14.5px; line-height: 1.7; color: #4B5563; margin: 0 0 8px; }
+  .mth-def ul, .mth-body-list { margin: 0 0 10px; padding-left: 20px; }
+  .mth-def li, .mth-body-list li { font-size: 14px; line-height: 1.65; color: #4B5563; margin-bottom: 6px; }
+  .mth-def a, .mth-body a { color: #B45309; text-decoration: underline; text-underline-offset: 3px; font-weight: 600; }
+  .mth-def a:hover, .mth-body a:hover { opacity: .8; }
+  .mth-body { font-size: 14.5px; line-height: 1.7; color: #4B5563; margin: 0 0 10px; }
+  .mth-body-list li strong, .mth-def li strong { color: #111827; }
+
+  /* ── E. Review page links ───────────────────────────────────────── */
+  .mth-reviews {
+    list-style: none; margin: 0; padding: 0;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  }
+  @media (min-width: 720px) { .mth-reviews { grid-template-columns: repeat(3, 1fr); gap: 12px; } }
+  .mth-review {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 15px 18px; background: #fff; border: 1px solid #E5E7EB; border-radius: 12px;
+    font-weight: 700; color: #111827; transition: border-color .15s, transform .1s;
+  }
+  .mth-review:hover { border-color: #16A34A; transform: translateY(-1px); }
+  .mth-review-go { color: #16A34A; font-weight: 800; }
+
+  /* ── F. Related cards ───────────────────────────────────────────── */
+  .mth-related { display: grid; grid-template-columns: 1fr; gap: 12px; }
+  @media (min-width: 640px) { .mth-related { grid-template-columns: 1fr 1fr; } }
+  @media (min-width: 900px) { .mth-related { grid-template-columns: repeat(3, 1fr); } }
+  .mth-related-card {
+    display: flex; flex-direction: column; gap: 4px;
+    padding: 16px 18px; background: #fff; border: 1px solid #E5E7EB; border-radius: 12px;
+    transition: border-color .15s, transform .1s;
+  }
+  .mth-related-card:hover { border-color: #D1D5DB; transform: translateY(-1px); }
+  .mth-related-name { font-size: 14.5px; font-weight: 700; color: #111827; }
+  .mth-related-desc { font-size: 12.5px; line-height: 1.5; color: #6B7280; }
+
+  /* ── G. CTA ─────────────────────────────────────────────────────── */
+  .mth-cta {
     text-align: center;
-    border: 1px solid var(--color-border);
+    background: linear-gradient(180deg, #FFFDF8 0%, #FFFFFF 100%);
+    border: 1px solid #F1E7CF; border-radius: 18px;
+    padding: 36px 24px; box-shadow: 0 1px 2px rgba(17,24,39,.03);
   }
-  .scale-range { display: block; font-size: 1.1rem; font-weight: 800; }
-  .scale-label { display: block; font-size: var(--text-xs); color: var(--color-text-muted); margin-top: 0.2rem; }
-  .scale-item--excellent { border-color: rgba(34,197,94,0.3); background: rgba(34,197,94,0.06); }
-  .scale-item--excellent .scale-range { color: #22c55e; }
-  .scale-item--good      { border-color: rgba(245,197,66,0.3); background: rgba(245,197,66,0.06); }
-  .scale-item--good      .scale-range { color: var(--color-accent); }
-  .scale-item--fair      { border-color: rgba(249,115,22,0.3); background: rgba(249,115,22,0.06); }
-  .scale-item--fair      .scale-range { color: #f97316; }
-  .scale-item--poor      { border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.06); }
-  .scale-item--poor      .scale-range { color: #ef4444; }
-
-  /* Criteria grid */
-  .criteria-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    margin: 1rem 0 1.5rem;
-  }
-  .criterion {
-    background: var(--surface-raised);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
-    padding: 1.25rem;
-  }
-  .criterion__header {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 0.75rem;
-  }
-  .criterion__weight {
-    font-size: 1.1rem;
-    font-weight: 800;
-    color: var(--color-accent);
-    flex-shrink: 0;
-    min-width: 44px;
-  }
-  .criterion__name {
-    font-size: var(--text-sm);
-    font-weight: 700;
-    color: var(--color-text-primary);
-  }
-  .criterion p {
-    font-size: var(--text-sm);
-    color: var(--color-text-secondary);
-    line-height: 1.65;
-    margin: 0;
-  }
-
-  @media (max-width: 640px) {
-    .toc__list { grid-template-columns: 1fr; }
-    .criteria-grid { grid-template-columns: 1fr; }
-    .score-scale { gap: 0.375rem; }
-  }
+  .mth-cta h2 { font-size: clamp(20px, 2.6vw, 26px); font-weight: 800; color: #111827; margin: 0 0 8px; }
+  .mth-cta p { font-size: 14.5px; line-height: 1.6; color: #6B7280; margin: 0 0 20px; }
+  .mth-cta-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
 </style>
