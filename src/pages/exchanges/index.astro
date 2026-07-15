@@ -1,6 +1,7 @@
 ---
 import CleanLayout from '../../layouts/CleanLayout.astro';
 import ExchangeCard from '../../components/home/ExchangeCard.astro';
+import PageHero from '../../components/PageHero.astro';
 import { getFeaturedExchanges } from '../../data/exchanges';
 import { getOffer } from '../../data/offers';
 
@@ -54,17 +55,17 @@ const faqSchema = {
   canonical="https://cryptobonusworld.com/exchanges/"
 >
 
-  <!-- 1. Compact intro -->
-  <section class="exd-intro">
-    <div class="exd-text-wrap">
-      <div class="exd-label">Exchange Directory</div>
-      <h1 class="exd-h1">Crypto Exchange Promo Codes</h1>
-      <p class="exd-sub">
+  <!-- 1. Compact intro (hero band) -->
+  <PageHero img="/media/page-heroes/cbw-exchanges-hero-v1.webp" variant="tall">
+    <div class="ph-content">
+      <div class="ph-eyebrow">Exchange Directory</div>
+      <h1 class="ph-title">Crypto Exchange Promo Codes</h1>
+      <p class="ph-sub">
         Browse verified crypto exchange referral codes, bonus links, and exchange review pages.
         Bonus availability and terms may vary by country and account.
       </p>
     </div>
-  </section>
+  </PageHero>
 
   <!-- 2. Trust strip -->
   <div class="exd-trust-bar">

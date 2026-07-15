@@ -1,0 +1,143 @@
+---
+/**
+ * PageHero — reusable dark hero band for NON-exchange pages
+ * (homepage, /exchanges/, /promo-codes/, /methodology/).
+ *
+ * A full-bleed band whose 3:1 background artwork sits on the right (center-right)
+ * with a strong left→right dark gradient overlay, so left-aligned HTML text stays
+ * readable. No text is baked into the image — H1/subtitle/buttons remain real HTML
+ * passed via the default slot.
+ *
+ * NOT for exchange review pages — those keep their own `.brand-hero` conversion
+ * header (Bybit/MEXC/OKX/Bitget/KuCoin/BingX) and are intentionally excluded.
+ *
+ * Content authoring: put a `.ph-content` wrapper in the slot and use the provided
+ * `.ph-eyebrow` / `.ph-title` / `.ph-sub` / `.ph-caveat` / `.ph-chips`/`.ph-chip`
+ * / `.ph-actions` classes for consistent styling.
+ *
+ * Heights (min-height, content-driven):
+ *   tall  — home/exchanges/promo: 240 / 320 / 400 (mobile / tablet / desktop)
+ *   short — methodology:          220 / 300 / 350
+ */
+export interface Props {
+  /** Background image path (prefer the .webp). */
+  img: string;
+  /** 'tall' (default) or 'short' (methodology). */
+  variant?: 'tall' | 'short';
+  /** Extra class(es) on the band. */
+  class?: string;
+}
+const { img, variant = 'tall', class: cls = '' } = Astro.props;
+---
+
+<section class:list={['page-hero', `page-hero--${variant}`, cls]} style={`--ph-img:url('${img}')`}>
+  <div class="page-hero__inner">
+    <slot />
+  </div>
+</section>
+
+<style>
+  .page-hero {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background-color: #0B1220;
+    background-image: var(--ph-img);
+    background-size: cover;
+    background-position: center right;
+    background-repeat: no-repeat;
+    overflow: hidden;
+  }
+  /* Left→right dark gradient overlay for text legibility on the left. */
+  .page-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: linear-gradient(
+      90deg,
+      rgba(8, 12, 20, 0.97) 0%,
+      rgba(8, 12, 20, 0.93) 32%,
+      rgba(8, 12, 20, 0.60) 64%,
+      rgba(8, 12, 20, 0.20) 100%
+    );
+  }
+  @media (max-width: 767px) {
+    .page-hero { background-position: center right -40px; }
+    .page-hero::before {
+      background: linear-gradient(
+        90deg,
+        rgba(8, 12, 20, 0.96) 0%,
+        rgba(8, 12, 20, 0.90) 50%,
+        rgba(8, 12, 20, 0.66) 100%
+      );
+    }
+  }
+
+  /* ── Heights ─────────────────────────────────────────────────── */
+  .page-hero--tall  { min-height: 240px; }
+  .page-hero--short { min-height: 220px; }
+  @media (min-width: 640px)  { .page-hero--tall { min-height: 320px; } .page-hero--short { min-height: 300px; } }
+  @media (min-width: 1024px) { .page-hero--tall { min-height: 400px; } .page-hero--short { min-height: 350px; } }
+
+  /* ── Inner content wrapper ───────────────────────────────────── */
+  .page-hero__inner {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: var(--cbw-page-max, 1180px);
+    margin: 0 auto;
+    padding: 28px 20px;
+    box-sizing: border-box;
+  }
+  @media (min-width: 640px) { .page-hero__inner { padding: 32px 24px; } }
+  @media (min-width: 820px) { .page-hero__inner { padding: 40px 32px; } }
+
+  /* ── Slotted content helpers (global — slot children aren't scoped) ── */
+  .page-hero :global(.ph-content) { max-width: 600px; }
+
+  .page-hero :global(.ph-eyebrow) {
+    display: inline-block;
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em;
+    color: #F7C24B;
+    background: rgba(247, 166, 0, 0.12);
+    border: 1px solid rgba(247, 166, 0, 0.30);
+    padding: 4px 12px; border-radius: 20px; margin-bottom: 14px;
+  }
+  .page-hero :global(.ph-title) {
+    font-size: clamp(26px, 4vw, 40px); font-weight: 800; line-height: 1.12;
+    letter-spacing: -.02em; color: #ffffff; margin: 0 0 12px;
+  }
+  .page-hero :global(.ph-sub) {
+    font-size: clamp(14px, 1.5vw, 17px); line-height: 1.6;
+    color: rgba(255, 255, 255, 0.80); margin: 0 0 10px; max-width: 560px;
+  }
+  .page-hero :global(.ph-caveat) {
+    font-size: 13px; line-height: 1.55; color: rgba(255, 255, 255, 0.55);
+    margin: 6px 0 0; max-width: 560px;
+  }
+  .page-hero :global(.ph-content a) {
+    color: #7CE0A0; text-decoration: underline; text-underline-offset: 2px;
+  }
+  .page-hero :global(.ph-content a:hover) { color: #A5EDBE; }
+
+  .page-hero :global(.ph-updated) {
+    font-size: 12px; color: rgba(255, 255, 255, 0.45); margin: 12px 0 0;
+  }
+  .page-hero :global(.ph-updated time) { color: rgba(255, 255, 255, 0.6); }
+
+  .page-hero :global(.ph-chips) {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin: 16px 0 0; padding: 0; list-style: none;
+  }
+  .page-hero :global(.ph-chip) {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12.5px; font-weight: 600; color: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 100px; padding: 6px 12px;
+  }
+  .page-hero :global(.ph-actions) {
+    display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px;
+  }
+</style>

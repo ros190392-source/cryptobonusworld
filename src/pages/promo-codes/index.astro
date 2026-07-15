@@ -1,6 +1,7 @@
 ---
 import CleanLayout from '../../layouts/CleanLayout.astro';
 import PromoCodeCopy from '../../components/promo/PromoCodeCopy.astro';
+import PageHero from '../../components/PageHero.astro';
 import { getFeaturedExchanges } from '../../data/exchanges';
 import { getOffer } from '../../data/offers';
 
@@ -97,21 +98,21 @@ const faqSchema = {
   canonical="https://cryptobonusworld.com/promo-codes/"
 >
 
-  <!-- 1. Compact intro -->
-  <section class="pc-intro">
-    <div class="pc-text-wrap">
-      <div class="pc-label">Verified · Updated July 2026</div>
-      <h1 class="pc-h1">Crypto Promo Codes by Exchange</h1>
-      <p class="pc-sub">
+  <!-- 1. Compact intro (hero band) -->
+  <PageHero img="/media/page-heroes/cbw-promo-codes-hero-v1.webp" variant="tall">
+    <div class="ph-content">
+      <div class="ph-eyebrow">Verified · Updated July 2026</div>
+      <h1 class="ph-title">Crypto Promo Codes by Exchange</h1>
+      <p class="ph-sub">
         Compare tracked crypto exchange promo codes, referral links, and sign-up bonus
         pages — checked directly against each exchange's official promotions page.
       </p>
-      <p class="pc-caveat">
+      <p class="ph-caveat">
         Bonus availability, KYC, deposit requirements, trading volume requirements, and
         regional eligibility may vary by country and account.
       </p>
     </div>
-  </section>
+  </PageHero>
 
   <!-- 2. Country availability pointer (replaces the former static selector) -->
   <section class="pc-country">

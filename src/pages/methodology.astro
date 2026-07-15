@@ -1,6 +1,7 @@
 ---
 import InfoLayout from '../layouts/InfoLayout.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
+import PageHero from '../components/PageHero.astro';
 import { SITE_NAME } from '../utils/seo';
 
 // Target ≤65 chars. Previous title was 73 chars (included | CryptoBonusWorld).
@@ -141,24 +142,24 @@ const relatedPages = [
       <Breadcrumbs crumbs={crumbs} />
     </div>
 
-    <!-- A. Hero -->
-    <header class="mth-hero">
-      <div class="mth-prose">
-        <div class="mth-eyebrow">🔍 How We Verify</div>
-        <h1>How CryptoBonusWorld Verifies Promo Codes</h1>
-        <p class="mth-lead">
+    <!-- A. Hero (dark image band) -->
+    <PageHero img="/media/page-heroes/cbw-methodology-hero-v1.webp" variant="short">
+      <div class="ph-content">
+        <div class="ph-eyebrow">🔍 How We Verify</div>
+        <h1 class="ph-title">How CryptoBonusWorld Verifies Promo Codes</h1>
+        <p class="ph-sub">
           How we research, verify, and rate crypto exchange bonus offers — using each
           exchange's own public pages, applied consistently, without inventing evidence
           or availability claims we cannot support.
         </p>
-        <p class="mth-updated">Last updated: <time datetime="2026-05-25">May 2026</time></p>
-        <ul class="mth-chips" aria-label="What our process covers">
+        <p class="ph-updated">Last updated: <time datetime="2026-05-25">May 2026</time></p>
+        <ul class="ph-chips" aria-label="What our process covers">
           {trustChips.map(chip => (
-            <li class="mth-chip"><span aria-hidden="true">{chip.icon}</span>{chip.label}</li>
+            <li class="ph-chip"><span aria-hidden="true">{chip.icon}</span>{chip.label}</li>
           ))}
         </ul>
       </div>
-    </header>
+    </PageHero>
 
     <!-- B. Verification in 60 seconds -->
     <section class="mth-prose mth-section" aria-labelledby="tldr">
