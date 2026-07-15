@@ -1,153 +1,35 @@
 ---
-/**
- * /exchanges/coinex/ — neutral "Current Status" recovery page.
- *
- * Restores the legacy /exchanges/coinex URL (meaningful organic traffic) as an
- * honest status page instead of a redirect stub. CoinEx is NOT one of the six
- * live promo exchanges and has no verified CBW bonus offer, so this page makes
- * NO bonus claim, NO KYC/availability claim, and shows NO active affiliate CTA.
- * It steers users to the verified promo-code comparison and the exchange hub.
- *
- * Data-safety: no promo code, no bonus amount, no affiliate URL, no /go/ link is
- * rendered here — only the honest "under review" status and internal links.
- *
- * NOTE: coinex is excluded from src/pages/exchanges/[slug].astro's stub
- * generator so this dedicated page owns the route (no build collision).
- * Shipping also requires removing `coinex` from the nginx legacy-301 group
- * (config/nginx/cbw-legacy-redirects.conf) and adding /exchanges/coinex/ to the
- * sitemap — handled as a separate, approved step.
- */
-import CleanLayout from '../../../layouts/CleanLayout.astro';
-import Breadcrumbs from '../../../components/Breadcrumbs.astro';
-
-const pageTitle = 'CoinEx Referral Code: Current Status | CryptoBonusWorld';
-const pageDesc  = 'CoinEx referral code status on CryptoBonusWorld. We do not currently list a verified CoinEx promo code — compare verified crypto exchange promo codes and bonuses instead.';
-
-const crumbs = [
-  { label: 'Home', href: '/' },
-  { label: 'Exchanges', href: '/exchanges/' },
-  { label: 'CoinEx' },
-];
-
-const statusRows = [
-  { label: 'Verified CBW code', value: 'Not listed' },
-  { label: 'Affiliate CTA',     value: 'Not active' },
-  { label: 'Bonus amount',      value: 'Not verified' },
-  { label: 'Last reviewed',     value: 'July 2026' },
-  { label: 'Status',            value: 'Under review', highlight: true },
-];
+// /exchanges/coinex/ → redirect stub to the canonical /coinex/ route.
+//
+// The CoinEx status page moved to the root exchange URL pattern (/coinex/,
+// matching /bybit/, /mexc/, …). This legacy path preserves old organic traffic:
+// noindex + canonical /coinex/ + meta refresh (static-site equivalent of a 301).
+// Production nginx also 301s /exchanges/coinex(/) → /coinex/ (see
+// config/nginx/cbw-legacy-redirects.conf); this stub is the build-time fallback.
+//
+// coinex stays excluded from src/pages/exchanges/[slug].astro's stub generator
+// so this dedicated stub owns the route (no build collision). No bonus, code,
+// affiliate URL, or claim appears here.
 ---
-
-<CleanLayout
-  title={pageTitle}
-  description={pageDesc}
-  canonical="https://cryptobonusworld.com/exchanges/coinex/"
-  ogImage="/media/exchanges/coinex/final/coinex-og-final-v1-1200x630-869369dc.jpg"
->
-  <div class="cx">
-    <div class="cx-wrap cx-crumbs">
-      <Breadcrumbs crumbs={crumbs} />
-    </div>
-
-    <!-- Hero -->
-    <header class="cx-wrap cx-hero">
-      <div class="cx-eyebrow">Exchange status</div>
-      <h1>CoinEx Referral Code: Current Status</h1>
-      <p class="cx-lead">
-        We do not currently list a verified CoinEx promo code. Compare verified
-        crypto exchange promo codes below.
-      </p>
-    </header>
-
-    <!-- Status card -->
-    <section class="cx-wrap cx-section" aria-labelledby="cx-status">
-      <div class="cx-card">
-        <h2 id="cx-status" class="cx-card-title">CoinEx status at a glance</h2>
-        <dl class="cx-status">
-          {statusRows.map(row => (
-            <div class="cx-status-row">
-              <dt>{row.label}</dt>
-              <dd class={row.highlight ? 'cx-badge' : ''}>{row.value}</dd>
-            </div>
-          ))}
-        </dl>
-        <p class="cx-note">
-          CoinEx is not currently one of our verified exchanges. Until we can
-          confirm current terms directly with the exchange, we are not showing a
-          promo code, bonus amount, or claim link for it. This page will be
-          updated if that changes — see our
-          <a href="/methodology/">verification methodology</a>.
-        </p>
-      </div>
-    </section>
-
-    <!-- CTAs -->
-    <section class="cx-wrap cx-section">
-      <div class="cx-cta">
-        <h2>Looking for a verified crypto bonus?</h2>
-        <p>Use a promo code we have actually checked against the exchange's official page.</p>
-        <div class="cx-cta-actions">
-          <a href="/promo-codes/" class="btn-primary">View Verified Promo Codes →</a>
-          <a href="/exchanges/" class="btn-secondary">Browse Exchanges</a>
-        </div>
-      </div>
-    </section>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Redirecting…</title>
+  <meta name="robots" content="noindex, follow" />
+  <link rel="canonical" href="https://cryptobonusworld.com/coinex/" />
+  <meta http-equiv="refresh" content="0;url=/coinex/" />
+  <style>
+    body { margin:0; font-family:system-ui,sans-serif; background:#F7F8F4;
+           display:flex; align-items:center; justify-content:center; min-height:100vh; }
+    .msg { text-align:center; color:#6B7280; font-size:14px; }
+    a { color:#16A34A; }
+  </style>
+</head>
+<body>
+  <div class="msg">
+    <p>This page has moved. Redirecting to <a href="/coinex/">CoinEx status</a>…</p>
   </div>
-</CleanLayout>
-
-<style>
-  .cx-wrap {
-    max-width: 760px; margin: 0 auto;
-    padding-left: 20px; padding-right: 20px; box-sizing: border-box;
-  }
-  @media (min-width: 820px) { .cx-wrap { padding-left: 32px; padding-right: 32px; } }
-
-  .cx-crumbs { padding-top: 16px; }
-  .cx-section { margin-top: 28px; }
-
-  /* Hero */
-  .cx-hero { padding: 28px 0 8px; border-bottom: 1px solid #EEF0EC; }
-  .cx-eyebrow {
-    display: inline-block; font-size: 11px; font-weight: 700; text-transform: uppercase;
-    letter-spacing: .1em; color: #B45309; background: rgba(247,147,26,.10);
-    border: 1px solid rgba(247,147,26,.22); padding: 4px 12px; border-radius: 100px; margin-bottom: 14px;
-  }
-  .cx-hero h1 {
-    font-size: clamp(26px, 4vw, 38px); font-weight: 800; letter-spacing: -.02em;
-    line-height: 1.15; color: #111827; margin: 0 0 12px;
-  }
-  .cx-lead { font-size: 16px; line-height: 1.65; color: #4B5563; margin: 0 0 8px; }
-
-  /* Status card */
-  .cx-card {
-    background: #fff; border: 1px solid #E5E7EB; border-radius: 14px;
-    padding: 24px; box-shadow: 0 1px 2px rgba(17,24,39,.03);
-  }
-  @media (min-width: 640px) { .cx-card { padding: 28px 32px; } }
-  .cx-card-title { font-size: 15px; font-weight: 800; color: #111827; margin: 0 0 14px; }
-  .cx-status { margin: 0 0 16px; padding: 0; }
-  .cx-status-row {
-    display: flex; align-items: center; justify-content: space-between; gap: 16px;
-    padding: 11px 0; border-bottom: 1px solid #F3F4F6;
-  }
-  .cx-status-row:last-child { border-bottom: none; }
-  .cx-status dt { font-size: 14px; color: #6B7280; margin: 0; }
-  .cx-status dd { font-size: 14px; font-weight: 700; color: #374151; margin: 0; text-align: right; }
-  .cx-badge {
-    font-size: 12px !important; font-weight: 700 !important; color: #B45309 !important;
-    background: rgba(247,147,26,.10); border: 1px solid rgba(247,147,26,.28);
-    border-radius: 100px; padding: 3px 11px;
-  }
-  .cx-note { font-size: 13.5px; line-height: 1.6; color: #6B7280; margin: 0; }
-  .cx-note a { color: #B45309; text-decoration: underline; text-underline-offset: 3px; font-weight: 600; }
-  .cx-note a:hover { opacity: .8; }
-
-  /* CTA */
-  .cx-cta {
-    text-align: center; background: linear-gradient(180deg, #FFFDF8 0%, #FFFFFF 100%);
-    border: 1px solid #F1E7CF; border-radius: 16px; padding: 32px 24px;
-  }
-  .cx-cta h2 { font-size: clamp(19px, 2.4vw, 24px); font-weight: 800; color: #111827; margin: 0 0 8px; }
-  .cx-cta p { font-size: 14.5px; line-height: 1.6; color: #6B7280; margin: 0 0 20px; }
-  .cx-cta-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
-</style>
+</body>
+</html>
