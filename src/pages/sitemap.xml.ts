@@ -58,6 +58,9 @@ export const GET: APIRoute = () => {
   const staticPages = [
     { url: '/', priority: '1.0', changefreq: 'daily', lastmod: today, type: 'static' as const },
     { url: '/exchanges/', priority: '0.85', changefreq: 'weekly', lastmod: today, type: 'static' as const },
+    // CoinEx recovery: indexable neutral "Current Status" page (no offer/CTA) —
+    // restores legacy /exchanges/coinex traffic. Low priority (status page).
+    { url: '/exchanges/coinex/', priority: '0.3', changefreq: 'monthly', lastmod: today, type: 'static' as const },
     { url: '/promo-codes/', priority: '0.9', changefreq: 'weekly', lastmod: today, type: 'static' as const },
     { url: '/faq/', priority: '0.6', changefreq: 'monthly', lastmod: today, type: 'static' as const },
     // Site info / methodology — indexed for E-E-A-T signals

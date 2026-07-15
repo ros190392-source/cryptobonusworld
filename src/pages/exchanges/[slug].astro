@@ -11,8 +11,12 @@ export function getStaticPaths() {
   // Only the slugs WITHOUT a live promo page — the six live exchanges already
   // have dedicated alias stubs at src/pages/exchanges/{slug}/index.astro.
   const LIVE_PROMO_SLUGS = new Set(['bybit', 'mexc', 'okx', 'bitget', 'kucoin', 'bingx']);
+  // Slugs that now have their own dedicated page at src/pages/exchanges/{slug}/
+  // must NOT also be generated here, or Astro sees two routes for the same path.
+  // coinex → neutral "Current Status" recovery page (legacy /exchanges/coinex traffic).
+  const HAS_DEDICATED_PAGE = new Set(['coinex']);
   return legacyExchanges
-    .filter(ex => !LIVE_PROMO_SLUGS.has(ex.slug))
+    .filter(ex => !LIVE_PROMO_SLUGS.has(ex.slug) && !HAS_DEDICATED_PAGE.has(ex.slug))
     .map(ex => ({ params: { slug: ex.slug } }));
 }
 ---
