@@ -1,0 +1,87 @@
+---
+// PREVIEW HUB — Batch 01. noindex, not linked from production navigation.
+import CleanLayout from '../../../../layouts/CleanLayout.astro';
+import { batch01 } from '../../../../data/exchangePreview/batch-01';
+---
+
+<CleanLayout
+  title="Exchange Preview Batch 01 | CryptoBonusWorld (Preview)"
+  description="Internal preview hub for exchange pages under review. No verified codes or bonuses are listed."
+  noindex={true}
+>
+  <style>
+    .hub-warn {
+      background: #78350F; color: #FDE68A; text-align: center;
+      font-size: 14px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+      padding: 14px 20px;
+    }
+    .hub-wrap { max-width: 1000px; margin: 0 auto; padding: 28px 20px 60px; }
+    .hub-h1 { font-size: 26px; font-weight: 800; color: #111827; margin: 0 0 6px; }
+    .hub-sub { font-size: 14px; color: #6B7280; margin: 0 0 26px; line-height: 1.6; }
+    .hub-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+    .hub-card {
+      border: 1px solid #E5E7EB; border-radius: 12px; background: #fff;
+      overflow: hidden; display: flex; flex-direction: column;
+      text-decoration: none; transition: border-color .15s, box-shadow .15s;
+    }
+    .hub-card:hover { border-color: #9CA3AF; box-shadow: 0 4px 14px rgba(0,0,0,.08); }
+    .hub-hero { height: 96px; background: #0B0F17 center/cover no-repeat; position: relative; }
+    .hub-hero.no-bg { display: flex; align-items: center; justify-content: center; }
+    .hub-hero.no-bg span { font-size: 11px; color: #94A3B8; font-weight: 600; letter-spacing: .04em; }
+    .hub-logo-band { background: #0C1526; display: flex; align-items: center; justify-content: center; padding: 12px 16px; border-top: 1px solid rgba(255,255,255,.06); }
+    .hub-logo-band img { max-width: 220px; max-height: 64px; object-fit: contain; }
+    .hub-body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 8px; }
+    .hub-row1 { display: flex; align-items: center; gap: 8px; }
+    .hub-num { font-size: 12px; font-weight: 800; color: #94A3B8; }
+    .hub-name { font-size: 16px; font-weight: 700; color: #111827; }
+    .hub-badges { display: flex; flex-wrap: wrap; gap: 6px; }
+    .hub-badge { font-size: 11px; font-weight: 700; border-radius: 6px; padding: 3px 8px; border: 1px solid; }
+    .b-status { color: #B45309; border-color: #FCD34D; background: #FEF3C7; }
+    .b-conf-high { color: #15803D; border-color: #86EFAC; background: #F0FDF4; }
+    .b-conf-medium { color: #0369A1; border-color: #7DD3FC; background: #F0F9FF; }
+    .b-conf-low { color: #B91C1C; border-color: #FCA5A5; background: #FEF2F2; }
+    .b-review { color: #B91C1C; border-color: #FCA5A5; background: #FEF2F2; }
+    .b-hero-needed { color: #FCA5A5; border-color: #F87171; background: #450A0A; }
+    .b-mode { color: #4B5563; border-color: #D1D5DB; background: #F9FAFB; }
+    .hub-note { font-size: 12px; color: #6B7280; line-height: 1.5; }
+    .hub-open { font-size: 13px; font-weight: 700; color: #2563EB; }
+  </style>
+
+  <div class="hub-warn">Preview only — Batch 01 · under review · noindex · no verified codes or bonuses</div>
+  <div class="hub-wrap">
+    <h1 class="hub-h1">Exchange Preview — Batch 01</h1>
+    <p class="hub-sub">
+      Ten production-shaped preview pages. Every commercial field is intentionally blank:
+      no referral codes, no bonus amounts, no affiliate CTAs, no redirect routes.
+      Not linked from production navigation.
+    </p>
+    <div class="hub-grid">
+      {batch01.map(e => (
+        <a class="hub-card" href={e.pageRoute}>
+          {e.heroBackgroundPath
+            ? <div class="hub-hero" style={`background-image:url('${e.heroBackgroundPath}')`}></div>
+            : <div class="hub-hero no-bg"><span>HERO ASSET NEEDED — temporary gradient fallback</span></div>
+          }
+          <div class="hub-logo-band"><img src={e.logoSlotPath} alt={e.displayName} loading="lazy" /></div>
+          <div class="hub-body">
+            <div class="hub-row1">
+              <span class="hub-num">#{String(e.number).padStart(2, '0')}</span>
+              <span class="hub-name">{e.displayName}</span>
+            </div>
+            <div class="hub-badges">
+              <span class="hub-badge b-status">Under review</span>
+              <span class={`hub-badge b-conf-${e.sourceConfidence}`}>confidence: {e.sourceConfidence}</span>
+              <span class="hub-badge b-mode">{e.logoMode === 'official_wordmark' ? 'official wordmark' : 'CBW icon lockup'}</span>
+              {e.ownerReviewRequired && <span class="hub-badge b-review">OWNER REVIEW</span>}
+              {e.heroAssetNeeded && <span class="hub-badge b-hero-needed">HERO ASSET NEEDED</span>}
+            </div>
+            {e.ownerReviewNotice && <p class="hub-note" style="color:#B91C1C;font-weight:600;">{e.ownerReviewNotice}</p>}
+            {e.heroAssetNeeded && <p class="hub-note">Required hero: {e.heroAssetSpec}</p>}
+            {e.notes && <p class="hub-note">{e.notes}</p>}
+            <span class="hub-open">Open preview page →</span>
+          </div>
+        </a>
+      ))}
+    </div>
+  </div>
+</CleanLayout>

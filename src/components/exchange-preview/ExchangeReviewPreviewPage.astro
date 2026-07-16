@@ -1,0 +1,453 @@
+---
+/**
+ * ExchangeReviewPreviewPage — PREVIEW-ONLY exchange page template.
+ *
+ * Visually follows the six live exchange pages (ExchangePromoPage) but is
+ * hard-locked into safe preview behavior:
+ *   - no affiliate URL anywhere (registry stores null)
+ *   - no /go/* links
+ *   - no active Claim/Get Bonus CTA — primary button is disabled "Under review"
+ *   - promo code field shows "Not listed"; Copy button disabled
+ *   - no FAQPage schema (pages are noindex)
+ *   - facts table shows only "Not verified / Not listed / Under review"
+ *
+ * Used ONLY by /preview/exchanges/* wrappers. Never wire into production
+ * routes without the activation flow (see "How activation works" section).
+ */
+import type { ExchangePreviewEntry } from '../../data/exchangePreview/batch-01';
+import { verifiedAlternatives } from '../../data/exchangePreview/batch-01';
+import ExchangePromoLogoSlot from '../ExchangePromoLogoSlot.astro';
+
+export interface Props {
+  entry: ExchangePreviewEntry;
+}
+
+const { entry: e } = Astro.props;
+
+const bhStyle = [
+  `--bh-bgFrom:${e.heroGradient.from}`,
+  `--bh-bgTo:${e.heroGradient.to}`,
+  `--bh-accent:${e.accentColor}`,
+].join(';');
+
+const heroBgImg = e.heroBackgroundPath ? `url('${e.heroBackgroundPath}')` : 'none';
+
+const faqItems = [
+  {
+    q: `Does CryptoBonusWorld currently list a ${e.displayName} referral code?`,
+    a: `No. CryptoBonusWorld has not published a verified ${e.displayName} referral code yet. The code field on this page intentionally shows “Not listed” until an official code passes our verification process.`,
+  },
+  {
+    q: `Is a ${e.displayName} bonus verified?`,
+    a: `No bonus amount, welcome package, or reward claim for ${e.displayName} is verified or published on CryptoBonusWorld at this time. Any bonus figures you may see elsewhere have not been checked by our editorial process.`,
+  },
+  {
+    q: `Why is this page marked under review?`,
+    a: `${e.displayName} is in our review pipeline. We publish referral codes and bonus terms only after checking them against official exchange sources. Until that check is complete, the page stays in preview status with no commercial claims.`,
+  },
+  {
+    q: `When can this page become active?`,
+    a: `The page can be promoted from preview to a production listing after an official referral link/code is added, offer terms are checked against public evidence, and country/KYC/bonus wording passes editorial review. No timeline is guaranteed.`,
+  },
+];
+---
+
+<style define:vars={{ heroBgImg, accent: e.accentColor, logoOpticalScale: String(e.logoOpticalScale ?? 1) }}>
+  /* ── Preview banner ── */
+  .pv-banner {
+    background: #78350F; color: #FDE68A; text-align: center;
+    font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+    padding: 8px 16px;
+  }
+
+  /* ── Title bar (mirrors live pages) ── */
+  .title-bar {
+    background: #ffffff; border-bottom: 1px solid #E5E7EB;
+    text-align: center; padding: 9px 20px;
+    color-scheme: light; forced-color-adjust: none;
+  }
+  .title-bar h1 { font-size: 20px; font-weight: 700; color: #111827; margin: 0; line-height: 1.25; }
+  .title-bar .tb-badge {
+    display: inline-block; vertical-align: 2px; margin-left: 10px;
+    font-size: 11px; font-weight: 800; letter-spacing: .06em;
+    color: #B45309; background: #FEF3C7; border: 1px solid #FCD34D;
+    border-radius: 6px; padding: 2px 8px; text-transform: uppercase;
+  }
+  @media (max-width: 479px) { .title-bar h1 { font-size: 17px; } }
+
+  /* ── Brand hero (same geometry as live pages) ── */
+  .brand-hero {
+    background:
+      var(--heroBgImg) center center / cover no-repeat,
+      linear-gradient(160deg, var(--bh-bgFrom) 0%, var(--bh-bgTo) 100%);
+    padding: 35px 0 54px; color: #fff; position: relative; overflow: hidden;
+  }
+  @media (min-width: 640px) {
+    .brand-hero { padding: 42px 0 46px; display: flex; flex-direction: column; justify-content: center; }
+  }
+  .bh-inner { width: 100%; max-width: 540px; margin: 0 auto; padding: 0 20px; text-align: center; box-sizing: border-box; position: relative; z-index: 1; }
+
+  .bh-promo-label {
+    display: block;
+    font-family: "Barlow Condensed", "Oswald", "Arial Narrow", sans-serif;
+    font-size: 24px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 0.05em; color: white; line-height: 1;
+    margin-top: 2px; margin-bottom: 22px;
+  }
+  @media (min-width: 640px) { .bh-promo-label { font-size: 34px; } }
+
+  .bh-promo-row {
+    width: 100%; max-width: 298px; margin: 0 auto 18px;
+    display: flex; align-items: stretch;
+    background: #ffffff; border: 1px solid #D1D5DB; border-radius: 8px;
+    overflow: hidden; height: 56px;
+    color-scheme: light; forced-color-adjust: none;
+  }
+  .bh-promo-code {
+    flex: 1; display: flex; align-items: center; justify-content: center; padding: 0 14px;
+    font-family: "Arial Narrow", "Roboto Condensed", "Inter Tight", Inter, system-ui, sans-serif;
+    font-size: 19px; font-weight: 800; text-transform: uppercase;
+    color: #9CA3AF; -webkit-text-fill-color: #9CA3AF;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .bh-copy-btn {
+    flex-shrink: 0; width: 68px;
+    display: flex; align-items: center; justify-content: center;
+    border: none; border-left: 1px solid #e5e7eb;
+    font-size: 12px; font-weight: 700; color: #9CA3AF; -webkit-text-fill-color: #9CA3AF;
+    background: #F3F4F6; cursor: not-allowed; letter-spacing: .03em;
+  }
+
+  .bh-cta-btn {
+    display: flex; align-items: center; justify-content: center;
+    width: 100%; max-width: 320px; margin: 0 auto 16px;
+    background: #6B7280; color: #E5E7EB;
+    font-size: 22px; font-weight: 700; border-radius: 6px;
+    height: 68px; letter-spacing: 0; border: none; cursor: not-allowed;
+  }
+  @media (min-width: 640px) { .bh-cta-btn { font-size: 24px; } }
+
+  .bh-source { font-size: 14px; color: rgba(255,255,255,0.55); line-height: 1.65; margin: 8px 0 0; text-align: center; }
+  @media (min-width: 640px) { .bh-source { font-size: 15px; } }
+
+  /* logoOpticalScale — canonical optical-occupancy token (default 1).
+     Applied identically to the top hero and bottom status logo slots.
+     Fixed slot container dimensions are never altered; the scale transform
+     only adjusts visible occupancy for assets that cannot be re-normalized. */
+  .bh-logo-zoom { display: inline-block; transform: scale(var(--logoOpticalScale, 1)); transform-origin: center bottom; }
+
+  /* HERO ASSET NEEDED ribbon (temporary gradient fallback) */
+  .bh-hero-needed {
+    position: absolute; top: 10px; right: 10px; z-index: 2;
+    font-size: 10px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase;
+    color: #FCA5A5; background: rgba(69,10,10,.72); border: 1px solid #F87171;
+    border-radius: 6px; padding: 4px 9px;
+  }
+
+  /* Owner-review notice */
+  .pv-owner-notice {
+    max-width: 720px; margin: 0 auto; padding: 12px 20px;
+  }
+  .pv-owner-notice-box {
+    background: #FEF2F2; border: 1.5px solid #FCA5A5; border-radius: 8px;
+    padding: 12px 16px; font-size: 13.5px; color: #991B1B; font-weight: 600; line-height: 1.55;
+    color-scheme: light; forced-color-adjust: none;
+  }
+  .pv-owner-notice-box b { text-transform: uppercase; letter-spacing: .05em; font-size: 11.5px; display: block; margin-bottom: 3px; color: #B91C1C; }
+
+  /* Hero-asset spec note (temporary fallback pages) */
+  .pv-hero-spec {
+    font-size: 12px; color: rgba(255,255,255,.5); margin: 10px 0 0; text-align: center; line-height: 1.5;
+  }
+
+  /* ── Compact facts table (mirrors live pages) ── */
+  .compact-facts { background: #ffffff !important; padding: 20px 16px 6px; color-scheme: light; forced-color-adjust: none; }
+  .cf-inner { max-width: 720px; margin: 0 auto; background: #F3F4F6; border: 1px solid #D1D5DB; border-radius: 8px; overflow: hidden; }
+  .cf-table { width: 100%; border-collapse: collapse; font-size: 14px; background: #F3F4F6; table-layout: fixed; }
+  .cf-table tr { border-bottom: 1px solid #E5E7EB; }
+  .cf-table tr:last-child { border-bottom: none; }
+  .cf-table td { padding: 11px 16px; vertical-align: middle; color: #111827; word-wrap: break-word; }
+  .cf-table td:first-child { color: #374151 !important; font-size: 14px; font-weight: 500; width: 50%; }
+  .cf-table td:last-child { font-weight: 600; color: #111827 !important; }
+  @media (max-width: 479px) { .cf-table td { padding: 10px 12px; font-size: 13px; } }
+  .cf-muted { color: #9CA3AF !important; -webkit-text-fill-color: #9CA3AF !important; font-weight: 500 !important; }
+  .cf-review { color: #B45309 !important; -webkit-text-fill-color: #B45309 !important; }
+
+  /* ── Sections (p2 vocabulary from live pages) ── */
+  .p2-section { background: #ffffff; border-bottom: 1px solid #E5E7EB; padding: 28px 0; color-scheme: light; forced-color-adjust: none; }
+  .p2-section-alt { background: #F9FAFB; }
+  .p2-inner { max-width: 720px; margin: 0 auto; padding: 0 20px; }
+  .p2-h2 { font-size: 20px; font-weight: 700; color: #111827; margin: 0 0 14px; line-height: 1.3; }
+  @media (min-width: 640px) { .p2-h2 { font-size: 22px; } }
+  .p2-text { font-size: 14px; color: #374151; line-height: 1.7; margin: 0 0 12px; }
+  .p2-text:last-child { margin-bottom: 0; }
+  @media (min-width: 640px) { .p2-text { font-size: 15px; } }
+
+  /* Verified / not verified two-column */
+  .pv-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 560px) { .pv-cols { grid-template-columns: 1fr; } }
+  .pv-col { border: 1px solid #E5E7EB; border-radius: 8px; padding: 16px; background: #fff; }
+  .pv-col h3 { font-size: 15px; font-weight: 700; margin: 0 0 10px; }
+  .pv-col--ok h3 { color: #15803D; }
+  .pv-col--no h3 { color: #B45309; }
+  .pv-col ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 7px; }
+  .pv-col li { font-size: 13.5px; color: #374151; line-height: 1.5; display: flex; gap: 8px; align-items: flex-start; }
+  .pv-col--ok li::before { content: '✓'; color: #16A34A; font-weight: 700; flex-shrink: 0; }
+  .pv-col--no li::before { content: '—'; color: #D97706; font-weight: 700; flex-shrink: 0; }
+
+  /* Steps */
+  .p2-steps { margin: 0; padding: 0; list-style: none; counter-reset: c; display: flex; flex-direction: column; gap: 10px; }
+  .p2-step { display: flex; align-items: flex-start; gap: 12px; counter-increment: c; font-size: 14px; color: #374151; line-height: 1.55; overflow-wrap: anywhere; min-width: 0; }
+  .p2-step::before {
+    content: counter(c); flex-shrink: 0; width: 26px; height: 26px;
+    background: #111827; color: #fff; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; margin-top: 1px;
+  }
+  @media (min-width: 640px) { .p2-step { font-size: 15px; } }
+
+  /* Related / alternatives grid (mirrors live pages) */
+  .p2-related-intro { font-size: 14px; color: #6B7280; line-height: 1.6; margin: 0 0 14px; }
+  .p2-related-grid { display: flex; flex-direction: column; gap: 10px; }
+  .p2-rel-card {
+    border: 1px solid #E5E7EB; border-radius: 8px; padding: 12px 14px;
+    background: #fff; display: flex; align-items: center; gap: 14px;
+    color-scheme: light; forced-color-adjust: none;
+  }
+  .p2-rel-logo-wrap { flex-shrink: 0; width: 72px; height: 64px; border-radius: 6px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .p2-rel-logo { max-width: 60px; max-height: 54px; object-fit: contain; }
+  .p2-rel-info { flex: 1; min-width: 0; }
+  .p2-rel-name { font-size: 15px; font-weight: 700; color: #111827; }
+  .p2-rel-bonus { font-size: 13px; color: #374151; margin-top: 2px; }
+  .p2-rel-tag { font-size: 12px; color: #16A34A; font-weight: 600; margin-top: 2px; }
+  .p2-rel-link { flex-shrink: 0; font-size: 13px; font-weight: 600; color: #2563EB; text-decoration: none; white-space: nowrap; }
+  .p2-rel-link:hover { text-decoration: underline; }
+  @media (max-width: 520px) {
+    .p2-rel-card { flex-wrap: wrap; }
+    .p2-rel-link { margin-left: 86px; }
+  }
+
+  /* FAQ */
+  .p2-faq { display: flex; flex-direction: column; gap: 4px; }
+  .p2-faq-item { border: 1px solid #E5E7EB; border-radius: 8px; overflow: hidden; background: #fff; color-scheme: light; forced-color-adjust: none; }
+  .p2-faq-q {
+    padding: 13px 16px; font-size: 14px; font-weight: 600; color: #111827;
+    cursor: pointer; list-style: none; display: flex; align-items: center;
+    justify-content: space-between; gap: 8px;
+  }
+  .p2-faq-q::-webkit-details-marker { display: none; }
+  .p2-faq-q::after { content: '+'; flex-shrink: 0; font-size: 18px; font-weight: 400; color: #9CA3AF; }
+  .p2-faq-item[open] .p2-faq-q::after { content: '−'; }
+  .p2-faq-q:hover { background: #F9FAFB; }
+  .p2-faq-a { padding: 0 16px 14px; font-size: 13px; color: #4B5563; line-height: 1.5; }
+
+  /* Bottom status hero */
+  .bh-status-title {
+    font-family: "Barlow Condensed", "Oswald", "Arial Narrow", sans-serif;
+    font-size: 26px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: .05em; margin: 2px 0 8px;
+  }
+  .bh-status-pill {
+    display: inline-block; font-size: 13px; font-weight: 800; letter-spacing: .06em;
+    text-transform: uppercase; color: #FDE68A; border: 1.5px solid #FCD34D;
+    background: rgba(120,53,15,.55); border-radius: 8px; padding: 7px 16px; margin-bottom: 20px;
+  }
+  .bh-int-ctas { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+  .bh-int-primary {
+    display: flex; align-items: center; justify-content: center;
+    width: 100%; max-width: 320px; height: 56px;
+    background: #16A34A; color: #fff; font-size: 17px; font-weight: 700;
+    border-radius: 6px; text-decoration: none; transition: background .15s;
+  }
+  .bh-int-primary:hover { background: #15803D; }
+  .bh-int-secondary {
+    display: flex; align-items: center; justify-content: center;
+    width: 100%; max-width: 320px; height: 48px;
+    background: rgba(255,255,255,.10); color: #fff; font-size: 15px; font-weight: 600;
+    border: 1px solid rgba(255,255,255,.35); border-radius: 6px; text-decoration: none;
+    transition: background .15s;
+  }
+  .bh-int-secondary:hover { background: rgba(255,255,255,.18); }
+</style>
+
+<!-- Preview banner -->
+<div class="pv-banner">Preview — under review · not a live listing · noindex</div>
+
+<!-- Title bar -->
+<div class="title-bar">
+  <h1>{e.displayName} Referral Code<span class="tb-badge">Preview</span></h1>
+</div>
+
+<!-- Brand hero (top) -->
+<section class="brand-hero" style={bhStyle}>
+  {e.heroAssetNeeded && <span class="bh-hero-needed">Hero asset needed</span>}
+  <div class="bh-inner">
+    <div class="bh-logo-zoom">
+      <ExchangePromoLogoSlot
+        src={e.logoSlotPath}
+        alt={e.displayName}
+        mode={e.logoGlow ?? 'clean'}
+        fetchpriority="high"
+      />
+    </div>
+    <p class="bh-promo-label">Referral Code</p>
+    <div class="bh-promo-row">
+      <span class="bh-promo-code">Not listed</span>
+      <button class="bh-copy-btn" type="button" disabled aria-disabled="true">Copy</button>
+    </div>
+    <button class="bh-cta-btn" type="button" disabled aria-disabled="true">Under review</button>
+    <p class="bh-source">No verified CryptoBonusWorld offer is currently listed.</p>
+    {e.heroAssetNeeded && <p class="pv-hero-spec">Temporary preview background. Required hero asset: {e.heroAssetSpec}</p>}
+  </div>
+</section>
+
+<!-- Compact facts table -->
+<div class="compact-facts">
+  <div class="cf-inner">
+    <table class="cf-table">
+      <tbody>
+        <tr><td>👉 Exchange</td><td>{e.displayName}</td></tr>
+        <tr><td>➡️ Referral code</td><td class="cf-muted">Not listed</td></tr>
+        <tr><td>💰 Bonus</td><td class="cf-muted">Not verified</td></tr>
+        <tr><td>🔎 Status</td><td class="cf-review">Under review</td></tr>
+        <tr><td>🔗 Affiliate CTA</td><td class="cf-muted">Not active</td></tr>
+        <tr><td>🔐 KYC</td><td class="cf-muted">Not verified</td></tr>
+        <tr><td>📊 Fees</td><td class="cf-muted">Not verified</td></tr>
+        <tr><td>🌍 Availability</td><td class="cf-muted">Not verified</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{e.ownerReviewNotice && (
+  <div class="pv-owner-notice">
+    <div class="pv-owner-notice-box"><b>Owner review required</b>{e.ownerReviewNotice}</div>
+  </div>
+)}
+
+<!-- Intro -->
+<div class="p2-section">
+  <div class="p2-inner">
+    <h2 class="p2-h2">About this preview</h2>
+    <p class="p2-text">
+      CryptoBonusWorld is reviewing {e.displayName} for a possible future listing.
+      We have not yet published a verified referral code, bonus amount,
+      country-availability claim, or affiliate CTA for this exchange.
+    </p>
+    <p class="p2-text">
+      Everything commercial on this page is intentionally blank. The layout matches our
+      standard exchange review pages so the owner can evaluate the final look before
+      any offer is verified and activated.
+    </p>
+  </div>
+</div>
+
+<!-- Verified / Not verified -->
+<div class="p2-section p2-section-alt">
+  <div class="p2-inner">
+    <h2 class="p2-h2">What is verified — and what is not</h2>
+    <div class="pv-cols">
+      <div class="pv-col pv-col--ok">
+        <h3>Verified now</h3>
+        <ul>
+          {e.sourceConfidence === 'high'
+            ? <li>Official brand/logo source ({e.logoMode === 'official_wordmark' ? 'official wordmark' : 'official icon in CBW display lockup'})</li>
+            : <li>Brand/logo sourced from the exchange’s official website ({e.sourceConfidence} confidence{e.ownerReviewRequired ? ', owner review pending' : ''})</li>
+          }
+          <li>Page visual identity (CBW review-page standard)</li>
+          <li>Exchange name: {e.displayName}</li>
+        </ul>
+      </div>
+      <div class="pv-col pv-col--no">
+        <h3>Not yet verified</h3>
+        <ul>
+          <li>Referral code</li>
+          <li>Bonus amount</li>
+          <li>Affiliate link</li>
+          <li>Eligibility</li>
+          <li>Country availability</li>
+          <li>KYC terms</li>
+          <li>Fee claims</li>
+        </ul>
+      </div>
+    </div>
+    {e.logoMode === 'cbw_icon_lockup' && (
+      <p class="p2-text" style="margin-top:12px;font-size:12.5px;color:#6B7280;">
+        Note: the logo shown is a CBW display lockup — the exchange’s official icon combined
+        with a generated display name. It is not an official wordmark.
+      </p>
+    )}
+  </div>
+</div>
+
+<!-- How activation works -->
+<div class="p2-section">
+  <div class="p2-inner">
+    <h2 class="p2-h2">How this page becomes active</h2>
+    <ol class="p2-steps">
+      <li class="p2-step">The owner adds the official referral link/code for {e.displayName}.</li>
+      <li class="p2-step">Offer terms and public evidence are checked against official exchange sources.</li>
+      <li class="p2-step">Country, KYC, and bonus wording is reviewed for accuracy and compliance.</li>
+      <li class="p2-step">The page is promoted from this preview to a production route with verified data only.</li>
+    </ol>
+  </div>
+</div>
+
+<!-- Verified alternatives -->
+<div class="p2-section p2-section-alt">
+  <div class="p2-inner">
+    <h2 class="p2-h2">Verified alternatives available now</h2>
+    <p class="p2-related-intro">While {e.displayName} is under review, these exchanges already have verified CryptoBonusWorld listings.</p>
+    <div class="p2-related-grid">
+      {verifiedAlternatives.map(ex => (
+        <div class="p2-rel-card">
+          <div class="p2-rel-logo-wrap" style={`background:${ex.tileBg};`}>
+            <img src={ex.logo} alt={ex.name} class="p2-rel-logo" loading="lazy" width="60" height="54" />
+          </div>
+          <div class="p2-rel-info">
+            <div class="p2-rel-name">{ex.name}</div>
+            <div class="p2-rel-bonus">{ex.bonus}</div>
+            <div class="p2-rel-tag">Verified listing</div>
+          </div>
+          <a href={ex.pageUrl} class="p2-rel-link">View review →</a>
+        </div>
+      ))}
+    </div>
+  </div>
+</div>
+
+<!-- FAQ (no schema — noindex preview) -->
+<div class="p2-section">
+  <div class="p2-inner">
+    <h2 class="p2-h2">Frequently asked questions</h2>
+    <div class="p2-faq">
+      {faqItems.map(item => (
+        <details class="p2-faq-item">
+          <summary class="p2-faq-q">{item.q}</summary>
+          <div class="p2-faq-a">{item.a}</div>
+        </details>
+      ))}
+    </div>
+  </div>
+</div>
+
+<!-- Bottom status card (closing hero) -->
+<section class="brand-hero" style={bhStyle}>
+  {e.heroAssetNeeded && <span class="bh-hero-needed">Hero asset needed</span>}
+  <div class="bh-inner">
+    <div class="bh-logo-zoom">
+      <ExchangePromoLogoSlot
+        src={e.logoSlotPath}
+        alt={e.displayName}
+        mode={e.logoGlow ?? 'clean'}
+        loading="lazy"
+      />
+    </div>
+    <p class="bh-status-title">{e.displayName} listing status</p>
+    <span class="bh-status-pill">Under review</span>
+    <div class="bh-int-ctas">
+      <a href="/promo-codes/" class="bh-int-primary">View Verified Promo Codes</a>
+      <a href="/exchanges/" class="bh-int-secondary">Browse Exchanges</a>
+    </div>
+  </div>
+</section>
