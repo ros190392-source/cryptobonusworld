@@ -63,6 +63,8 @@ export interface ExchangePreviewEntry {
   articleInlineImage?: string;
   /** Final validated 1200×630 OG/social asset (canonicalBannerLogo enforced). */
   ogImage?: string;
+  /** Final validated 1200×800 homepage/card asset (canonicalBannerLogo enforced). */
+  cardImage?: string;
   sourceConfidence: 'high' | 'medium' | 'low';
   ownerReviewRequired: boolean;
   status: 'under_review';

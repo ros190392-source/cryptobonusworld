@@ -24,7 +24,14 @@ const media2 = (slug: string) => ({
   logoSlotPath: `/preview-media/exchanges/${slug}/${slug}-logo-lockup-512x160-v1.png`,
   // FACTORY RULE: one canonical banner-logo asset per exchange (see batch-01.ts)
   canonicalBannerLogo: `/preview-media/exchanges/${slug}/${slug}-logo-lockup-512x160-v1.png`,
-  heroBackgroundPath: `/preview-media/exchanges/${slug}/${slug}-hero-2172x724-v1.webp`,
+  // Batch 02 Full Visual Pack (owner archive CBW-Batch-02-Full-Visual-Pack.zip,
+  // 2026-07-17): A hero → v2 WebP; article/OG/card rebuilt from the A background
+  // with the exact canonicalBannerLogo + fixed factory template
+  // (scripts/build-batch02-visual-pack.mjs). Raw B/C sources are never served.
+  heroBackgroundPath: `/preview-media/exchanges/${slug}/${slug}-hero-2172x724-v2.webp`,
+  articleInlineImage: `/preview-media/exchanges/${slug}/${slug}-article-inline-banner-v1.webp`,
+  ogImage: `/preview-media/exchanges/${slug}/${slug}-og-1200x630-v1.jpg`,
+  cardImage: `/preview-media/exchanges/${slug}/${slug}-card-1200x800-v1.jpg`,
 });
 
 const HERO_GEN = 'cbw_generated_pending_owner_approval';
@@ -33,9 +40,11 @@ export const batch02: ExchangePreviewEntry[] = [
   {
     number: 33, slug: 'htx', displayName: 'HTX',
     pageRoute: '/preview/exchanges/htx/', ...media2('htx'),
-    // Hero v2: OWNER APPROVED candidate №4 (2026-07-17) — ChatGPT set
-    // 2026-07-16 15:45, deep-blue scene matching the HTX brand color.
-    heroBackgroundPath: '/preview-media/exchanges/htx/htx-hero-2172x724-v2.webp',
+    // Hero v3: Batch 02 Full Visual Pack A file — OWNER APPROVED (2026-07-18)
+    // as part of the fully regenerated Batch 02 set. The earlier candidate №4
+    // (hero v2) belongs to the previous visual generation and is historical
+    // only — do not re-wire it.
+    heroBackgroundPath: '/preview-media/exchanges/htx/htx-hero-2172x724-v3.webp',
     logoPresentation: { heroVisualScale: 1.00, bottomVisualScale: 1.00 },
     // Hero Brand Zone v1: normalized wordmark-first lockup (official icon crop +
     // re-rendered CBW display text; icon ~104 canvas, word ~56 canvas)

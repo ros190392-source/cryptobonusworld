@@ -12,6 +12,7 @@ const entry = batch02.find(e => e.slug === 'htx')!;
   description="Preview the current CryptoBonusWorld review status for HTX. No verified referral code or bonus is currently listed."
   canonical={`https://cryptobonusworld.com${entry.pageRoute}`}
   noindex={true}
+  ogImage={entry.ogImage}
 >
   <ExchangeReviewPreviewPage entry={entry} ctaMode="preview" />
 </CleanLayout>
