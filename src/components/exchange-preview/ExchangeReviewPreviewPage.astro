@@ -19,6 +19,7 @@ import { verifiedAlternatives } from '../../data/exchangePreview/batch-01';
 import type { CtaMode } from '../../data/exchangePreview/cta-contract';
 import { resolveAlternativeCtas } from '../../data/exchangePreview/cta-contract';
 import ExchangePromoLogoSlot from '../ExchangePromoLogoSlot.astro';
+import { heroBrandZone as hb } from '../../data/exchangePreview/hero-brand-tokens';
 
 export interface Props {
   entry: ExchangePreviewEntry;
@@ -38,6 +39,25 @@ const { entry: e, ctaMode = 'preview' } = Astro.props;
  * not the shared standard.
  */
 const LIVE_LOGO_VISUAL_SCALE = 0.70;
+
+/**
+ * Hero Brand Zone Standard v1 (Variant B): per-exchange optical scale comes
+ * from registry logoPresentation; factory default 1.00 (full Variant B
+ * budget). Slot geometry comes from the shared heroBrandZone tokens and is
+ * passed to ExchangePromoLogoSlot as props — live pages are untouched.
+ */
+const heroVS = e.logoPresentation?.heroVisualScale ?? 1.0;
+const bottomVS = e.logoPresentation?.bottomVisualScale ?? 1.0;
+// Slot geometry override is applied via scoped :global CSS below —
+// the shared ExchangePromoLogoSlot stays byte-identical for live pages.
+const heroImg = {
+  dW: Math.round(hb.logoBudget.desktop.w * heroVS), dH: Math.round(hb.logoBudget.desktop.h * heroVS),
+  mW: Math.round(hb.logoBudget.mobile.w * heroVS), mH: Math.round(hb.logoBudget.mobile.h * heroVS),
+};
+const bottomImg = {
+  dW: Math.round(hb.logoBudget.desktop.w * bottomVS), dH: Math.round(hb.logoBudget.desktop.h * bottomVS),
+  mW: Math.round(hb.logoBudget.mobile.w * bottomVS), mH: Math.round(hb.logoBudget.mobile.h * bottomVS),
+};
 
 const altCards = verifiedAlternatives.map(ex => ({ ...ex, ...resolveAlternativeCtas(ex, ctaMode) }));
 
@@ -69,7 +89,35 @@ const faqItems = [
 ];
 ---
 
-<style define:vars={{ heroBgImg, accent: e.accentColor, logoOpticalScale: String(e.logoOpticalScale ?? 1) }}>
+<style define:vars={{
+  heroBgImg, accent: e.accentColor, logoOpticalScale: String(e.logoOpticalScale ?? 1),
+  hbLabelFsD: hb.label.desktop.fontSize, hbLabelLhD: hb.label.desktop.lineHeight,
+  hbLabelFsM: hb.label.mobile.fontSize, hbLabelLhM: hb.label.mobile.lineHeight,
+  hbGapBrandLabelD: (hb.gapBrandLabel.desktop - 10) + 'px',
+  hbGapBrandLabelM: (hb.gapBrandLabel.mobile - 10) + 'px',
+  hbGapLabelFieldD: hb.gapLabelField.desktop + 'px',
+  hbGapLabelFieldM: hb.gapLabelField.mobile + 'px',
+  hbHeroPadD: hb.heroPadding.desktop.top + 'px 0 ' + hb.heroPadding.desktop.bottom + 'px',
+  hbHeroPadM: hb.heroPadding.mobile.top + 'px 0 ' + hb.heroPadding.mobile.bottom + 'px',
+  hbSlotDW: hb.slot.desktop.w + 'px', hbSlotDH: hb.slot.desktop.h + 'px',
+  hbSlotMW: hb.slot.mobile.w + 'px', hbSlotMH: hb.slot.mobile.h + 'px',
+  heroImgDW: heroImg.dW + 'px', heroImgDH: heroImg.dH + 'px',
+  heroImgMW: heroImg.mW + 'px', heroImgMH: heroImg.mH + 'px',
+  bottomImgDW: bottomImg.dW + 'px', bottomImgDH: bottomImg.dH + 'px',
+  bottomImgMW: bottomImg.mW + 'px', bottomImgMH: bottomImg.mH + 'px',
+}}>
+
+  /* Hero Brand Zone v1 (Variant B) — slot geometry override, PREVIEW ONLY.
+     The shared ExchangePromoLogoSlot keeps the frozen live geometry; these
+     :global overrides apply only inside this component's markup. */
+  .bh-logo-zoom :global(.cbw-logo-slot) { width: var(--hbSlotMW); height: var(--hbSlotMH); }
+  .bh-hero-slot :global(.cbw-logo-slot__img) { max-width: var(--heroImgMW); max-height: var(--heroImgMH); }
+  .bh-bottom-slot :global(.cbw-logo-slot__img) { max-width: var(--bottomImgMW); max-height: var(--bottomImgMH); }
+  @media (min-width: 640px) {
+    .bh-logo-zoom :global(.cbw-logo-slot) { width: var(--hbSlotDW); height: var(--hbSlotDH); }
+    .bh-hero-slot :global(.cbw-logo-slot__img) { max-width: var(--heroImgDW); max-height: var(--heroImgDH); }
+    .bh-bottom-slot :global(.cbw-logo-slot__img) { max-width: var(--bottomImgDW); max-height: var(--bottomImgDH); }
+  }
   /* ── Preview banner ── */
   .pv-banner {
     background: #78350F; color: #FDE68A; text-align: center;
@@ -97,21 +145,24 @@ const faqItems = [
     background:
       var(--heroBgImg) center center / cover no-repeat,
       linear-gradient(160deg, var(--bh-bgFrom) 0%, var(--bh-bgTo) 100%);
-    padding: 35px 0 54px; color: #fff; position: relative; overflow: hidden;
+    padding: var(--hbHeroPadM, 35px 0 54px); color: #fff; position: relative; overflow: hidden;
   }
   @media (min-width: 640px) {
-    .brand-hero { padding: 42px 0 46px; display: flex; flex-direction: column; justify-content: center; }
+    .brand-hero { padding: var(--hbHeroPadD, 42px 0 46px); display: flex; flex-direction: column; justify-content: center; }
   }
   .bh-inner { width: 100%; max-width: 540px; margin: 0 auto; padding: 0 20px; text-align: center; box-sizing: border-box; position: relative; z-index: 1; }
 
   .bh-promo-label {
     display: block;
     font-family: "Barlow Condensed", "Oswald", "Arial Narrow", sans-serif;
-    font-size: 24px; font-weight: 800; text-transform: uppercase;
-    letter-spacing: 0.05em; color: white; line-height: 1;
-    margin-top: 2px; margin-bottom: 22px;
+    font-size: var(--hbLabelFsM, 24px); font-weight: 800; text-transform: uppercase;
+    letter-spacing: 0.05em; color: white; line-height: var(--hbLabelLhM, 1);
+    margin-top: var(--hbGapBrandLabelM, 2px); margin-bottom: var(--hbGapLabelFieldM, 22px);
   }
-  @media (min-width: 640px) { .bh-promo-label { font-size: 34px; } }
+  @media (min-width: 640px) { .bh-promo-label {
+    font-size: var(--hbLabelFsD, 34px); line-height: var(--hbLabelLhD, 1);
+    margin-top: var(--hbGapBrandLabelD, 2px); margin-bottom: var(--hbGapLabelFieldD, 22px);
+  } }
 
   .bh-promo-row {
     width: 100%; max-width: 298px; margin: 0 auto 18px;
@@ -348,12 +399,11 @@ const faqItems = [
 <section class="brand-hero" style={bhStyle}>
   {e.heroAssetNeeded && <span class="bh-hero-needed">Hero asset needed</span>}
   <div class="bh-inner">
-    <div class="bh-logo-zoom">
+    <div class="bh-logo-zoom bh-hero-slot">
       <ExchangePromoLogoSlot
         src={e.canonicalBannerLogo}
         alt={e.displayName}
         mode={e.logoGlow ?? 'clean'}
-        visualScale={LIVE_LOGO_VISUAL_SCALE}
         fetchpriority="high"
       />
     </div>
@@ -515,12 +565,11 @@ const faqItems = [
 <section class="brand-hero" style={bhStyle}>
   {e.heroAssetNeeded && <span class="bh-hero-needed">Hero asset needed</span>}
   <div class="bh-inner">
-    <div class="bh-logo-zoom">
+    <div class="bh-logo-zoom bh-bottom-slot">
       <ExchangePromoLogoSlot
         src={e.canonicalBannerLogo}
         alt={e.displayName}
         mode={e.logoGlow ?? 'clean'}
-        visualScale={LIVE_LOGO_VISUAL_SCALE}
         loading="lazy"
       />
     </div>

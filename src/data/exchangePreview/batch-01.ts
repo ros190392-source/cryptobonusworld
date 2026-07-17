@@ -35,6 +35,12 @@ export interface ExchangePreviewEntry {
   /** Logo slot glow family (CBW standard): dark marks on dark heroes need soft-glow. */
   logoGlow?: 'clean' | 'soft-glow';
   /**
+   * Hero Brand Zone Standard v1: per-exchange optical logo scale for the
+   * hero and bottom logo slots. Absent = factory default 1.00 (full
+   * Variant B budget). NEVER reused for alternatives/article/OG/homepage.
+   */
+  logoPresentation?: { heroVisualScale: number; bottomVisualScale: number };
+  /**
    * logoOpticalScale — canonical optical-occupancy token (default 1).
    * Consumed identically by the top hero and bottom status logo slots.
    * 1 = the normalized 512x160 asset already has canonical optical occupancy
@@ -103,6 +109,7 @@ export const batch01: ExchangePreviewEntry[] = [
   {
     number: 5, slug: 'bydfi', displayName: 'BYDFi',
     pageRoute: '/preview/exchanges/bydfi/', ...media('bydfi', true),
+    logoPresentation: { heroVisualScale: 1.00, bottomVisualScale: 1.00 },
     accentColor: '#F7C600', heroGradient: { from: '#1a1602', to: '#0B0F17' },
     logoMode: 'official_wordmark', sourceConfidence: 'medium', ownerReviewRequired: false, ...SAFE,
     notes: 'Official BYDFi full wordmark (V-mark + BYDFi text) from bydfi.com/static/images/brand/logo5.png — replaces the earlier square app tile. logoOpticalScale = 1.',
@@ -110,18 +117,25 @@ export const batch01: ExchangePreviewEntry[] = [
   {
     number: 8, slug: 'bitunix', displayName: 'Bitunix',
     pageRoute: '/preview/exchanges/bitunix/', ...media('bitunix', true),
+    logoPresentation: { heroVisualScale: 1.00, bottomVisualScale: 1.00 },
     accentColor: '#B6F04A', heroGradient: { from: '#101a06', to: '#0B0F17' },
     logoMode: 'cbw_icon_lockup', sourceConfidence: 'medium', ownerReviewRequired: false, ...SAFE,
   },
   {
     number: 13, slug: 'hyperliquid', displayName: 'Hyperliquid',
     pageRoute: '/preview/exchanges/hyperliquid/', ...media('hyperliquid', true),
+    logoPresentation: { heroVisualScale: 1.00, bottomVisualScale: 1.00 },
     accentColor: '#97FCE4', heroGradient: { from: '#04211c', to: '#0B0F17' },
     logoMode: 'cbw_icon_lockup', sourceConfidence: 'high', ownerReviewRequired: false, ...SAFE,
   },
   {
     number: 16, slug: 'gate-com', displayName: 'Gate.com',
     pageRoute: '/preview/exchanges/gate-com/', ...media('gate-com', true),
+    logoPresentation: { heroVisualScale: 1.00, bottomVisualScale: 1.00 },
+    // Hero Brand Zone v1: normalized wordmark-first lockup (official icon crop +
+    // re-rendered CBW display text; icon ~104 canvas, word ~56 canvas)
+    logoSlotPath: '/preview-media/exchanges/gate-com/gate-com-logo-lockup-512x160-v2.png',
+    canonicalBannerLogo: '/preview-media/exchanges/gate-com/gate-com-logo-lockup-512x160-v2.png',
     accentColor: '#2354E6', heroGradient: { from: '#071433', to: '#0B0F17' },
     logoMode: 'cbw_icon_lockup', sourceConfidence: 'medium', ownerReviewRequired: true, ...SAFE,
     ownerReviewNotice: 'Gate.com naming and Gate.io deduplication require owner approval before production.',
@@ -130,12 +144,18 @@ export const batch01: ExchangePreviewEntry[] = [
   {
     number: 17, slug: 'blofin', displayName: 'BloFin',
     pageRoute: '/preview/exchanges/blofin/', ...media('blofin', true),
+    logoPresentation: { heroVisualScale: 1.00, bottomVisualScale: 1.00 },
     accentColor: '#12D2B0', heroGradient: { from: '#03201b', to: '#0B0F17' },
     logoMode: 'official_wordmark', sourceConfidence: 'high', ownerReviewRequired: false, ...SAFE,
   },
   {
     number: 18, slug: 'evedex', displayName: 'EVEDEX',
     pageRoute: '/preview/exchanges/evedex/', ...media('evedex', true),
+    logoPresentation: { heroVisualScale: 1.00, bottomVisualScale: 1.00 },
+    // Hero Brand Zone v1: normalized wordmark-first lockup (official icon crop +
+    // re-rendered CBW display text; icon ~104 canvas, word ~56 canvas)
+    logoSlotPath: '/preview-media/exchanges/evedex/evedex-logo-lockup-512x160-v2.png',
+    canonicalBannerLogo: '/preview-media/exchanges/evedex/evedex-logo-lockup-512x160-v2.png',
     accentColor: '#18C08F', heroGradient: { from: '#052519', to: '#0B0F17' },
     logoMode: 'cbw_icon_lockup', sourceConfidence: 'medium', ownerReviewRequired: false, ...SAFE,
     heroStatus: 'owner_supplied_ab_pack_v2 (2026-07-16)',
@@ -144,12 +164,24 @@ export const batch01: ExchangePreviewEntry[] = [
   {
     number: 19, slug: 'vest-markets', displayName: 'Vest Markets',
     pageRoute: '/preview/exchanges/vest-markets/', ...media('vest-markets', true),
+    logoPresentation: { heroVisualScale: 1.00, bottomVisualScale: 1.00 },
+    // NEEDS_OFFICIAL_SOURCE (Hero Brand Zone v1 audit 2026-07-17): the
+    // 12-character wordmark cannot reach the 33px render target inside the
+    // 512x160 canonical canvas (best achieved ratio 0.88 vs required 1.10).
+    // Keeps the previous committed canonical until an official compact
+    // Vest Markets wordmark/lockup is sourced (separate rework task).
+    // No scale/CSS hack is permitted to force a pass.
     accentColor: '#35B0FF', heroGradient: { from: '#06182b', to: '#0B0F17' },
     logoMode: 'cbw_icon_lockup', sourceConfidence: 'medium', ownerReviewRequired: false, ...SAFE,
   },
   {
     number: 20, slug: 'phemex', displayName: 'Phemex',
     pageRoute: '/preview/exchanges/phemex/', ...media('phemex', true),
+    logoPresentation: { heroVisualScale: 1.00, bottomVisualScale: 1.00 },
+    // Hero Brand Zone v1: normalized wordmark-first lockup (official icon crop +
+    // re-rendered CBW display text; icon ~104 canvas, word ~56 canvas)
+    logoSlotPath: '/preview-media/exchanges/phemex/phemex-logo-lockup-512x160-v2.png',
+    canonicalBannerLogo: '/preview-media/exchanges/phemex/phemex-logo-lockup-512x160-v2.png',
     accentColor: '#16A34A', heroGradient: { from: '#06210f', to: '#0B0F17' },
     logoMode: 'cbw_icon_lockup', logoGlow: 'soft-glow', sourceConfidence: 'high', ownerReviewRequired: false, ...SAFE,
     heroStatus: 'owner_supplied_ab_pack_v2 (2026-07-16)',
@@ -158,12 +190,18 @@ export const batch01: ExchangePreviewEntry[] = [
   {
     number: 21, slug: 'binance', displayName: 'Binance',
     pageRoute: '/preview/exchanges/binance/', ...media('binance', true),
+    logoPresentation: { heroVisualScale: 1.00, bottomVisualScale: 1.00 },
     accentColor: '#F0B90B', heroGradient: { from: '#1d1502', to: '#0B0F17' },
     logoMode: 'official_wordmark', sourceConfidence: 'high', ownerReviewRequired: false, ...SAFE,
   },
   {
     number: 25, slug: 'whitebit', displayName: 'WhiteBIT',
     pageRoute: '/preview/exchanges/whitebit/', ...media('whitebit', true),
+    logoPresentation: { heroVisualScale: 1.00, bottomVisualScale: 1.00 },
+    // Hero Brand Zone v1: normalized wordmark-first lockup (official icon crop +
+    // re-rendered CBW display text; icon ~104 canvas, word ~56 canvas)
+    logoSlotPath: '/preview-media/exchanges/whitebit/whitebit-logo-lockup-512x160-v2.png',
+    canonicalBannerLogo: '/preview-media/exchanges/whitebit/whitebit-logo-lockup-512x160-v2.png',
     accentColor: '#7C5CFF', heroGradient: { from: '#140f2e', to: '#0B0F17' },
     logoMode: 'cbw_icon_lockup', sourceConfidence: 'medium', ownerReviewRequired: true, ...SAFE,
     ownerReviewNotice: 'Official transparent wordmark recommended before production.',
