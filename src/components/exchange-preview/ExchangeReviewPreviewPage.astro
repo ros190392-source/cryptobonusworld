@@ -358,12 +358,9 @@ const faqItems = [
   .p2-faq-q:hover { background: #F9FAFB; }
   .p2-faq-a { padding: 0 16px 14px; font-size: 13px; color: #4B5563; line-height: 1.5; }
 
-  /* Bottom status hero */
-  .bh-status-title {
-    font-family: "Barlow Condensed", "Oswald", "Arial Narrow", sans-serif;
-    font-size: 26px; font-weight: 800; text-transform: uppercase;
-    letter-spacing: .05em; margin: 2px 0 8px;
-  }
+  /* Bottom status hero — same factory system as the top hero: canonical
+     logo slot + shared "Referral Code" heading (.bh-promo-label tokens).
+     Custom headings ("{name} listing status" etc.) are forbidden. */
   .bh-status-pill {
     display: inline-block; font-size: 13px; font-weight: 800; letter-spacing: .06em;
     text-transform: uppercase; color: #FDE68A; border: 1.5px solid #FCD34D;
@@ -573,8 +570,11 @@ const faqItems = [
         loading="lazy"
       />
     </div>
-    <p class="bh-status-title">{e.displayName} listing status</p>
-    <span class="bh-status-pill">Under review</span>
+    {/* Factory wording contract: the bottom block uses the SAME heading
+        family as the top hero ("Referral Code"). Status wording is
+        secondary/supporting only — never the main heading. */}
+    <p class="bh-promo-label">Referral Code</p>
+    <span class="bh-status-pill">Under review — no verified code listed</span>
     <div class="bh-int-ctas">
       <a href="/promo-codes/" class="bh-int-primary">View Verified Promo Codes</a>
       <a href="/exchanges/" class="bh-int-secondary">Browse Exchanges</a>
