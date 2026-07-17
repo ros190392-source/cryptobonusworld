@@ -14,9 +14,10 @@
  * It is a display convenience, NOT an official wordmark.
  *
  * Hero backgrounds: owner-supplied EMPTY backgrounds (no text/logo/CTA),
- * normalized to 2172×724. EVEDEX and Phemex have no color-matched empty
- * background in the current batch → heroBackgroundPath is null and the
- * page falls back to the brand gradient (pending owner mapping).
+ * normalized to 2172×724 WebP. Current source: CBW-Batch-01-Full-A+B-Pack.zip
+ * (2026-07-16) — N.A = hero background, N.B = inline article/claim visual.
+ * The N.B artwork contains AI-rendered brand marks and is used ONLY as an
+ * inline illustration; it is never a source for official logo assets.
  */
 
 export interface ExchangePreviewEntry {
@@ -25,6 +26,8 @@ export interface ExchangePreviewEntry {
   displayName: string;
   pageRoute: string;              // /preview/exchanges/{slug}/
   logoSlotPath: string;           // 512×160 optical-fit slot (official-source)
+  /** The ONE canonical banner-logo asset — shared verbatim by hero, inline article banner, hub card and packs. */
+  canonicalBannerLogo: string;
   heroBackgroundPath: string | null; // 2172×724 empty background, or null = gradient fallback
   accentColor: string;
   heroGradient: { from: string; to: string };
@@ -46,6 +49,14 @@ export interface ExchangePreviewEntry {
   heroAssetSpec?: string;
   /** Owner-review notice rendered prominently on the page and hub. */
   ownerReviewNotice?: string;
+  /** Provenance of the logo asset (official URL or repo path). */
+  logoSource?: string;
+  /** Hero background provenance/status label (e.g. owner_supplied, cbw_generated_pending_approval). */
+  heroStatus?: string;
+  /** Preview-only inline article visual (branded claim-bonus graphic). NOT a CTA, NOT the hero. */
+  articleInlineImage?: string;
+  /** Final validated 1200×630 OG/social asset (canonicalBannerLogo enforced). */
+  ogImage?: string;
   sourceConfidence: 'high' | 'medium' | 'low';
   ownerReviewRequired: boolean;
   status: 'under_review';
@@ -68,7 +79,24 @@ const SAFE = {
 
 const media = (slug: string, hero: boolean) => ({
   logoSlotPath: `/preview-media/exchanges/${slug}/${slug}-logo-slot-512x160.png`,
-  heroBackgroundPath: hero ? `/preview-media/exchanges/${slug}/${slug}-hero-preview-2172x724.webp` : null,
+  /**
+   * canonicalBannerLogo — FACTORY RULE: exactly ONE banner-logo asset per
+   * exchange. This exact file is the source for the top hero logo block, the
+   * inline article banner, the hub card overlay, and every generated pack
+   * image (OG/article/card). No AI-redrawn, "similar", or re-rendered
+   * variants are ever permitted anywhere.
+   */
+  canonicalBannerLogo: `/preview-media/exchanges/${slug}/${slug}-logo-slot-512x160.png`,
+  // v2 heroes: owner-supplied A+B pack (CBW-Batch-01-Full-A+B-Pack.zip, 2026-07-16), N.A files
+  heroBackgroundPath: hero ? `/preview-media/exchanges/${slug}/${slug}-hero-2172x724-v2.webp` : null,
+  // inline article banner v3: rebuilt from the approved v2 hero background +
+  // canonicalBannerLogo + approved preview text template. The owner N.B claim
+  // graphics (claim-bonus-source-v2.png) contained AI-redrawn logo variants and
+  // are retained as reference sources only — never rendered on pages.
+  articleInlineImage: `/preview-media/exchanges/${slug}/${slug}-article-inline-banner-v3.webp`,
+  // final validated OG/social asset (owner C composition + canonicalBannerLogo,
+  // rebuilt by scripts/build-exchange-og-final.mjs; raw C source never served)
+  ogImage: `/preview-media/exchanges/${slug}/${slug}-og-1200x630-v1.jpg`,
 });
 
 export const batch01: ExchangePreviewEntry[] = [
@@ -107,12 +135,11 @@ export const batch01: ExchangePreviewEntry[] = [
   },
   {
     number: 18, slug: 'evedex', displayName: 'EVEDEX',
-    pageRoute: '/preview/exchanges/evedex/', ...media('evedex', false),
+    pageRoute: '/preview/exchanges/evedex/', ...media('evedex', true),
     accentColor: '#18C08F', heroGradient: { from: '#052519', to: '#0B0F17' },
     logoMode: 'cbw_icon_lockup', sourceConfidence: 'medium', ownerReviewRequired: false, ...SAFE,
-    heroAssetNeeded: true,
-    heroAssetSpec: '2172×724 · deep navy + teal/green · no text · no logo · no CTA · no code · no charts',
-    notes: 'Temporary gradient fallback. Low-res favicon source — better official asset preferred.',
+    heroStatus: 'owner_supplied_ab_pack_v2 (2026-07-16)',
+    notes: 'Hero: owner-supplied cinematic background. Low-res favicon source — better official asset preferred.',
   },
   {
     number: 19, slug: 'vest-markets', displayName: 'Vest Markets',
@@ -122,12 +149,11 @@ export const batch01: ExchangePreviewEntry[] = [
   },
   {
     number: 20, slug: 'phemex', displayName: 'Phemex',
-    pageRoute: '/preview/exchanges/phemex/', ...media('phemex', false),
+    pageRoute: '/preview/exchanges/phemex/', ...media('phemex', true),
     accentColor: '#16A34A', heroGradient: { from: '#06210f', to: '#0B0F17' },
     logoMode: 'cbw_icon_lockup', logoGlow: 'soft-glow', sourceConfidence: 'high', ownerReviewRequired: false, ...SAFE,
-    heroAssetNeeded: true,
-    heroAssetSpec: '2172×724 · deep navy + restrained green/blue · no text · no logo · no CTA · no code · no charts',
-    notes: 'Temporary gradient fallback. Dark disc icon → soft-glow slot (CBW glow standard).',
+    heroStatus: 'owner_supplied_ab_pack_v2 (2026-07-16)',
+    notes: 'Hero: owner-supplied cinematic background. no_glow tested 2026-07-16: black disc edge loses contrast against dark space → minimal soft_glow retained (CBW glow standard).',
   },
   {
     number: 21, slug: 'binance', displayName: 'Binance',
@@ -153,11 +179,20 @@ export const batch01: ExchangePreviewEntry[] = [
 // Icons: preview-only normalized standard (256×256 transparent, plates removed,
 // official colors preserved) in /preview-media/alternatives/. Raw /logos/*.png
 // remain untouched for the six live pages.
+// Alternatives use the rectangular canonicalBannerLogo system (owner decision
+// 2026-07-16): transparent 512×160 canonical slots rendered in a fixed
+// rectangular row slot — no tiles, no plates.
+// Promo cards v2 (owner decision 2026-07-17): promoCode / bonus / descriptor
+// surface the already-approved live data from src/data/exchanges.json
+// (promoCode, bonusTitle, featureBadges) — nothing invented here.
+// BingX uses the v2 asset: canonical lockup optically re-normalized at asset
+// level (visible group 263×112 → 342×146) to match the others' visual weight.
+// Both links stay INTERNAL (live review pages) — no /go/* inside previews.
 export const verifiedAlternatives = [
-  { slug: 'bybit',  name: 'Bybit',  pageUrl: '/bybit/',  logo: '/preview-media/alternatives/bybit-icon-square-256x256-v1.png',  bonus: 'Up to 30,000 USDT', tileBg: '#1A1F2E' },
-  { slug: 'mexc',   name: 'MEXC',   pageUrl: '/mexc/',   logo: '/preview-media/alternatives/mexc-icon-square-256x256-v1.png',   bonus: 'Up to 10,000 USDT', tileBg: '#F5F3FF' },
-  { slug: 'okx',    name: 'OKX',    pageUrl: '/okx/',    logo: '/preview-media/alternatives/okx-icon-square-256x256-v1.png',    bonus: 'Mystery Boxes up to $10,000', tileBg: '#111111' },
-  { slug: 'bitget', name: 'Bitget', pageUrl: '/bitget/', logo: '/preview-media/alternatives/bitget-icon-square-256x256-v1.png', bonus: 'Up to 6,200 USDT',  tileBg: '#ECFDF5' },
-  { slug: 'kucoin', name: 'KuCoin', pageUrl: '/kucoin/', logo: '/preview-media/alternatives/kucoin-icon-square-256x256-v1.png', bonus: 'Welcome rewards',   tileBg: '#0A1628' },
-  { slug: 'bingx',  name: 'BingX',  pageUrl: '/bingx/',  logo: '/preview-media/alternatives/bingx-icon-square-256x256-v1.png',  bonus: 'Welcome rewards',   tileBg: '#0F1B33' },
+  { slug: 'bybit',  name: 'Bybit',  pageUrl: '/bybit/',  logo: '/preview-media/alternatives/bybit-logo-slot-512x160-v1.png',  promoCode: 'CRYPTOBONUSW',     bonus: 'Up to 30,000 USDT Welcome Package', descriptor: 'Spot, futures & copy trading' },
+  { slug: 'mexc',   name: 'MEXC',   pageUrl: '/mexc/',   logo: '/preview-media/alternatives/mexc-logo-slot-512x160-v1.png',   promoCode: 'mexc-CryptoBonus', bonus: 'Up to 10,000 USDT Welcome Bonus',   descriptor: 'Spot & futures · no-KYC signup' },
+  { slug: 'okx',    name: 'OKX',    pageUrl: '/okx/',    logo: '/preview-media/alternatives/okx-logo-slot-512x160-v1.png',    promoCode: 'CRYPTOBONUSW',     bonus: 'Up to 5,000 USDT Welcome Package',  descriptor: 'Spot, futures & Web3 wallet' },
+  { slug: 'bitget', name: 'Bitget', pageUrl: '/bitget/', logo: '/preview-media/alternatives/bitget-logo-slot-512x160-v1.png', promoCode: 'CryptoBonW',       bonus: 'Up to 6,200 USDT New User Bonus',   descriptor: 'Copy trading & futures' },
+  { slug: 'kucoin', name: 'KuCoin', pageUrl: '/kucoin/', logo: '/preview-media/alternatives/kucoin-logo-slot-512x160-v1.png', promoCode: 'CRYPTOBONW',       bonus: 'Up to 500 USDT Welcome Bonus',      descriptor: 'Spot, futures & staking' },
+  { slug: 'bingx',  name: 'BingX',  pageUrl: '/bingx/',  logo: '/preview-media/alternatives/bingx-logo-slot-512x160-v2.png',  promoCode: 'CRYPTOBONUSWORLD', bonus: 'Up to 11,000 USDT Welcome Package', descriptor: 'Social & copy trading' },
 ] as const;

@@ -11,7 +11,8 @@ const entry = batch01.find(e => e.slug === 'bydfi')!;
   title="BYDFi Referral Code: Preview Status | CryptoBonusWorld"
   description="Preview the current CryptoBonusWorld review status for BYDFi. No verified referral code or bonus is currently listed."
   canonical={`https://cryptobonusworld.com${entry.pageRoute}`}
+  ogImage={entry.ogImage}
   noindex={true}
 >
-  <ExchangeReviewPreviewPage entry={entry} />
+  <ExchangeReviewPreviewPage entry={entry} ctaMode="preview" />
 </CleanLayout>

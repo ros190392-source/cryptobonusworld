@@ -1,0 +1,17 @@
+---
+// PREVIEW ONLY — noindex, excluded from sitemap. Batch 02.
+import CleanLayout from '../../../../layouts/CleanLayout.astro';
+import ExchangeReviewPreviewPage from '../../../../components/exchange-preview/ExchangeReviewPreviewPage.astro';
+import { batch02 } from '../../../../data/exchangePreview/batch-02';
+
+const entry = batch02.find(e => e.slug === 'margex')!;
+---
+
+<CleanLayout
+  title="Margex Referral Code: Preview Status | CryptoBonusWorld"
+  description="Preview the current CryptoBonusWorld review status for Margex. No verified referral code or bonus is currently listed."
+  canonical={`https://cryptobonusworld.com${entry.pageRoute}`}
+  noindex={true}
+>
+  <ExchangeReviewPreviewPage entry={entry} ctaMode="preview" />
+</CleanLayout>
