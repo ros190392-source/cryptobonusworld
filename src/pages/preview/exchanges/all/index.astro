@@ -1,0 +1,200 @@
+---
+// TEMPORARY OWNER-REVIEW HUB — combined Batch 01 + Batch 02.
+// noindex, absent from sitemap and production navigation. UNCOMMITTED until
+// owner approval. Asset flags are computed against the real filesystem so an
+// untracked-but-present file still counts as "present" HERE (working tree);
+// commit-only availability is audited separately in the clean worktree.
+import { existsSync } from 'node:fs';
+import CleanLayout from '../../../../layouts/CleanLayout.astro';
+import { batch01 } from '../../../../data/exchangePreview/batch-01';
+import { batch02 } from '../../../../data/exchangePreview/batch-02';
+import { getReview } from '../../../../data/exchangePreview/review-state';
+
+const flag = (e: (typeof batch01)[number], batch: string) => {
+  const review = getReview(e.slug);
+  const pub = (p: string | null | undefined) => (p ? existsSync(`public${p}`) : false);
+  const heroOk = pub(e.heroBackgroundPath);
+  const logoOk = pub(e.canonicalBannerLogo);
+  const artOk = pub((e as any).articleInlineImage);
+  const ogOk = pub((e as any).ogImage);
+  const cardOk = existsSync(`public/preview-media/exchanges/${e.slug}/${e.slug}-card-1200x800.jpg`);
+  const missingAsset = !heroOk || !logoOk || (batch === '01' && (!artOk || !ogOk || !cardOk));
+  const missingHero = !!e.heroAssetNeeded || !heroOk;
+  const ownerReview = !!e.ownerReviewRequired || e.heroStatus === 'cbw_generated_pending_owner_approval';
+  const pass = !missingAsset && !ownerReview;
+  // every preview entry intentionally has null commercial data
+  const missingCommercial = e.promoCode === null;
+  return { ...e, ...review, batch, heroOk, logoOk, artOk, ogOk, cardOk, missingAsset, missingHero, ownerReview, pass, missingCommercial };
+};
+
+const all = [
+  ...batch01.map(e => flag(e, '01')),
+  ...batch02.map(e => flag(e as any, '02')),
+];
+const groups = [
+  { label: 'Batch 01', items: all.filter(e => e.batch === '01') },
+  { label: 'Batch 02', items: all.filter(e => e.batch === '02') },
+];
+---
+
+<CleanLayout
+  title="ALL Exchanges Owner Review Hub | CryptoBonusWorld (Preview)"
+  description="Temporary combined owner-review hub for Batch 01 + Batch 02 preview pages."
+  noindex={true}
+>
+  <style>
+    .ah-warn { background: #78350F; color: #FDE68A; text-align: center; font-size: 13px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; padding: 12px 20px; }
+    .ah-wrap { max-width: 1180px; margin: 0 auto; padding: 26px 20px 60px; }
+    .ah-h1 { font-size: 26px; font-weight: 800; color: #111827; margin: 0 0 4px; }
+    .ah-sub { font-size: 13px; color: #6B7280; margin: 0 0 18px; }
+    .ah-filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 22px; }
+    .ah-filter { font-size: 12.5px; font-weight: 700; border: 1px solid #D1D5DB; background: #fff; color: #374151; border-radius: 999px; padding: 7px 14px; cursor: pointer; }
+    .ah-filter.active { background: #111827; color: #fff; border-color: #111827; }
+    .ah-group-h { font-size: 19px; font-weight: 800; color: #111827; margin: 26px 0 12px; }
+    .ah-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+    .ah-card { border: 1px solid #E5E7EB; border-radius: 12px; background: #fff; overflow: hidden; display: flex; flex-direction: column; }
+    .ah-card.hidden { display: none; }
+    .ah-visual { position: relative; aspect-ratio: 16 / 9; background: #0B0F17 center/cover no-repeat; overflow: hidden; }
+    .ah-visual-logo { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); max-width: 78%; max-height: 68px; width: auto; height: auto; object-fit: contain; }
+    .ah-visual-logo.glow-soft { filter: drop-shadow(0 0 4px rgba(255,255,255,.12)); }
+    .ah-visual-miss { display: flex; align-items: center; justify-content: center; font-size: 11px; color: #FCA5A5; font-weight: 700; letter-spacing: .04em; }
+    .ah-body { padding: 13px 15px 15px; display: flex; flex-direction: column; gap: 7px; }
+    .ah-row1 { display: flex; align-items: baseline; gap: 8px; }
+    .ah-num { font-size: 12px; font-weight: 800; color: #94A3B8; }
+    .ah-name { font-size: 16px; font-weight: 700; color: #111827; }
+    .ah-batch { margin-left: auto; font-size: 10.5px; font-weight: 800; color: #6366F1; letter-spacing: .06em; }
+    .ah-badges { display: flex; flex-wrap: wrap; gap: 5px; }
+    .ah-b { font-size: 10.5px; font-weight: 700; border-radius: 6px; padding: 2px 7px; border: 1px solid; }
+    .b-pass { color: #15803D; border-color: #86EFAC; background: #F0FDF4; }
+    .b-rev { color: #B91C1C; border-color: #FCA5A5; background: #FEF2F2; }
+    .b-st-pending { color: #6B7280; border-color: #D1D5DB; background: #F9FAFB; }
+    .b-st-pass { color: #15803D; border-color: #86EFAC; background: #F0FDF4; }
+    .b-st-rework { color: #B45309; border-color: #FCD34D; background: #FFFBEB; }
+    .b-st-owner_review { color: #B91C1C; border-color: #FCA5A5; background: #FEF2F2; }
+    .b-issue { color: #7C3AED; border-color: #C4B5FD; background: #F5F3FF; }
+    .ah-owner-notes { border-left: 3px solid #FCA5A5; padding-left: 8px; display: flex; flex-direction: column; gap: 3px; }
+    .b-miss { color: #B45309; border-color: #FCD34D; background: #FFFBEB; }
+    .b-mode { color: #4B5563; border-color: #D1D5DB; background: #F9FAFB; }
+    .b-conf-high { color: #15803D; border-color: #86EFAC; background: #F0FDF4; }
+    .b-conf-medium { color: #0369A1; border-color: #7DD3FC; background: #F0F9FF; }
+    .b-conf-low { color: #B91C1C; border-color: #FCA5A5; background: #FEF2F2; }
+    .ah-note { font-size: 11.5px; color: #6B7280; line-height: 1.45; }
+    .ah-note.warn { color: #B91C1C; font-weight: 600; }
+    .ah-meta { font-size: 11px; color: #94A3B8; line-height: 1.5; }
+    .ah-open { font-size: 13px; font-weight: 700; color: #2563EB; text-decoration: none; }
+    .ah-open:hover { text-decoration: underline; }
+  </style>
+
+  <div class="ah-warn">Owner review hub — Batch 01 + 02 · preview only · noindex · not in sitemap · uncommitted</div>
+  <div class="ah-wrap">
+    <h1 class="ah-h1">All Prepared Exchanges — Owner Review</h1>
+    <p class="ah-sub">20 preview pages (10 + 10). Asset flags reflect the current working tree; commit-only availability is reported separately.</p>
+
+    <div class="ah-filters" id="ahFilters">
+      <button class="ah-filter active" data-f="all">All</button>
+      <button class="ah-filter" data-f="b01">Batch 01</button>
+      <button class="ah-filter" data-f="b02">Batch 02</button>
+      <button class="ah-filter" data-f="st-pending">Pending</button>
+      <button class="ah-filter" data-f="st-pass">PASS</button>
+      <button class="ah-filter" data-f="st-rework">Rework</button>
+      <button class="ah-filter" data-f="st-owner">OWNER REVIEW</button>
+      <button class="ah-filter" data-f="i-hero">Hero issues</button>
+      <button class="ah-filter" data-f="i-logo">Logo issues</button>
+      <button class="ah-filter" data-f="i-article">Article issues</button>
+      <button class="ah-filter" data-f="i-og">OG issues</button>
+      <button class="ah-filter" data-f="i-card">Card issues</button>
+      <button class="ah-filter" data-f="i-datacomp">Data/compliance issues</button>
+      <button class="ah-filter" data-f="missasset">Missing asset</button>
+      <button class="ah-filter" data-f="misshero">Missing hero</button>
+      <button class="ah-filter" data-f="misscomm">Missing commercial data</button>
+    </div>
+
+    {groups.map(g => (
+      <section>
+        <h2 class="ah-group-h">{g.label}</h2>
+        <div class="ah-grid">
+          {g.items.map(e => (
+            <div
+              class="ah-card"
+              data-batch={e.batch}
+              data-pass={e.pass ? 1 : 0}
+              data-review={e.ownerReview ? 1 : 0}
+              data-missasset={e.missingAsset ? 1 : 0}
+              data-misshero={e.missingHero ? 1 : 0}
+              data-misscomm={e.missingCommercial ? 1 : 0}
+              data-status={e.ownerReviewStatus}
+              data-issues={e.ownerIssueTypes.join(',')}
+            >
+              {e.heroOk
+                ? <div class="ah-visual" style={`background-image:url('${e.heroBackgroundPath}')`}>
+                    {e.logoOk
+                      ? <img class={`ah-visual-logo${(e as any).logoGlow === 'soft-glow' ? ' glow-soft' : ''}`} src={e.canonicalBannerLogo} alt={e.displayName} loading="lazy" />
+                      : <span class="ah-visual-miss">CANONICAL LOGO MISSING</span>}
+                  </div>
+                : <div class="ah-visual ah-visual-miss">HERO ASSET MISSING</div>
+              }
+              <div class="ah-body">
+                <div class="ah-row1">
+                  <span class="ah-num">#{String(e.number).padStart(2, '0')}</span>
+                  <span class="ah-name">{e.displayName}</span>
+                  <span class="ah-batch">BATCH {e.batch}</span>
+                </div>
+                <div class="ah-badges">
+                  <span class={`ah-b b-st-${e.ownerReviewStatus}`}>{e.ownerReviewStatus.replace('_', ' ').toUpperCase()}</span>
+                  {e.ownerIssueTypes.map(t => <span class="ah-b b-issue">issue: {t}</span>)}
+                  {e.missingAsset && <span class="ah-b b-miss">MISSING ASSET</span>}
+                  <span class="ah-b b-mode">{e.logoMode === 'official_wordmark' ? 'official wordmark' : 'CBW icon lockup'}</span>
+                  <span class={`ah-b b-conf-${e.sourceConfidence}`}>confidence: {e.sourceConfidence}</span>
+                </div>
+                {e.ownerNotes.length > 0 && (
+                  <div class="ah-owner-notes">
+                    {e.ownerNotes.map(n => <p class="ah-note warn">📝 {n}</p>)}
+                    {e.lastOwnerReview && <p class="ah-meta">last owner review: {e.lastOwnerReview}</p>}
+                  </div>
+                )}
+                <p class="ah-meta">
+                  hero: {e.heroStatus ?? 'owner_supplied_ab_pack_v2 (2026-07-16)'}<br />
+                  page status: {e.status} · commercial data: none (preview)
+                </p>
+                {e.ownerReviewNotice && <p class="ah-note warn">{e.ownerReviewNotice}</p>}
+                {e.notes && <p class="ah-note">{e.notes}</p>}
+                <a class="ah-open" href={e.pageRoute}>Open full preview →</a>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    ))}
+  </div>
+
+  <script>
+    const btns = document.querySelectorAll('.ah-filter');
+    const cards = document.querySelectorAll('.ah-card');
+    btns.forEach(b => b.addEventListener('click', () => {
+      btns.forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      const f = b.dataset.f;
+      cards.forEach(c => {
+        const issues = (c.dataset.issues || '').split(',');
+        const show =
+          f === 'all' ? true :
+          f === 'b01' ? c.dataset.batch === '01' :
+          f === 'b02' ? c.dataset.batch === '02' :
+          f === 'st-pending' ? c.dataset.status === 'pending' :
+          f === 'st-pass' ? c.dataset.status === 'pass' :
+          f === 'st-rework' ? c.dataset.status === 'rework' :
+          f === 'st-owner' ? c.dataset.status === 'owner_review' :
+          f === 'i-hero' ? issues.includes('hero') :
+          f === 'i-logo' ? issues.includes('logo') :
+          f === 'i-article' ? issues.includes('article') :
+          f === 'i-og' ? issues.includes('og') :
+          f === 'i-card' ? issues.includes('card') :
+          f === 'i-datacomp' ? (issues.includes('data') || issues.includes('compliance')) :
+          f === 'missasset' ? c.dataset.missasset === '1' :
+          f === 'misshero' ? c.dataset.misshero === '1' :
+          c.dataset.misscomm === '1';
+        c.classList.toggle('hidden', !show);
+      });
+    }));
+  </script>
+</CleanLayout>
