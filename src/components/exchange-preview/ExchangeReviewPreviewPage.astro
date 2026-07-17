@@ -28,6 +28,17 @@ export interface Props {
 
 const { entry: e, ctaMode = 'preview' } = Astro.props;
 
+/**
+ * Live-six geometry standard (2026-07-17 audit, .tmp-live-preview-geometry):
+ * the majority shared live pages (OKX/Bitget/Bybit via ExchangePromoPage)
+ * render the hero logo at visualScale 0.70 of the fixed slot budget
+ * (visible ≈ 192×60 desktop / ≈152×48 mobile). The preview factory was
+ * passing no visualScale (=1 → 275×86), which oversized the hero UI.
+ * MEXC/KuCoin/BingX use larger per-logo tuning — intentional branding,
+ * not the shared standard.
+ */
+const LIVE_LOGO_VISUAL_SCALE = 0.70;
+
 const altCards = verifiedAlternatives.map(ex => ({ ...ex, ...resolveAlternativeCtas(ex, ctaMode) }));
 
 const bhStyle = [
@@ -128,13 +139,18 @@ const faqItems = [
     display: flex; align-items: center; justify-content: center;
     width: 100%; max-width: 320px; margin: 0 auto 16px;
     background: #6B7280; color: #E5E7EB;
-    font-size: 22px; font-weight: 700; border-radius: 6px;
+    font-size: 24px; font-weight: 700; border-radius: 6px;
     height: 68px; letter-spacing: 0; border: none; cursor: not-allowed;
   }
-  @media (min-width: 640px) { .bh-cta-btn { font-size: 24px; } }
+  /* live-six standard (ExchangePromoPage): 24px base / 28px ≥640 */
+  @media (min-width: 640px) { .bh-cta-btn { font-size: 28px; } }
 
-  .bh-source { font-size: 14px; color: rgba(255,255,255,0.55); line-height: 1.65; margin: 8px 0 0; text-align: center; }
-  @media (min-width: 640px) { .bh-source { font-size: 15px; } }
+  /* live-six .bh-source is 14px/1.65; the preview status sentence is longer
+     than the live "Verified {date} on {domain}" line and wraps to 2 lines at
+     390px, inflating the hero by ~23px vs live. Documented exception:
+     mobile-only 12.5px keeps it to one line so hero height matches live. */
+  .bh-source { font-size: 12.5px; color: rgba(255,255,255,0.55); line-height: 1.65; margin: 8px 0 0; text-align: center; }
+  @media (min-width: 640px) { .bh-source { font-size: 14px; } }
 
   /* logoOpticalScale — canonical optical-occupancy token (default 1).
      Applied identically to the top hero and bottom status logo slots.
@@ -317,6 +333,7 @@ const faqItems = [
         src={e.canonicalBannerLogo}
         alt={e.displayName}
         mode={e.logoGlow ?? 'clean'}
+        visualScale={LIVE_LOGO_VISUAL_SCALE}
         fetchpriority="high"
       />
     </div>
@@ -483,6 +500,7 @@ const faqItems = [
         src={e.canonicalBannerLogo}
         alt={e.displayName}
         mode={e.logoGlow ?? 'clean'}
+        visualScale={LIVE_LOGO_VISUAL_SCALE}
         loading="lazy"
       />
     </div>
