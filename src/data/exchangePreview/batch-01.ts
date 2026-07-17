@@ -194,5 +194,8 @@ export const verifiedAlternatives = [
   { slug: 'okx',    name: 'OKX',    pageUrl: '/okx/',    logo: '/preview-media/alternatives/okx-logo-slot-512x160-v1.png',    promoCode: 'CRYPTOBONUSW',     bonus: 'Up to 5,000 USDT Welcome Package',  descriptor: 'Spot, futures & Web3 wallet' },
   { slug: 'bitget', name: 'Bitget', pageUrl: '/bitget/', logo: '/preview-media/alternatives/bitget-logo-slot-512x160-v1.png', promoCode: 'CryptoBonW',       bonus: 'Up to 6,200 USDT New User Bonus',   descriptor: 'Copy trading & futures' },
   { slug: 'kucoin', name: 'KuCoin', pageUrl: '/kucoin/', logo: '/preview-media/alternatives/kucoin-logo-slot-512x160-v1.png', promoCode: 'CRYPTOBONW',       bonus: 'Up to 500 USDT Welcome Bonus',      descriptor: 'Spot, futures & staking' },
-  { slug: 'bingx',  name: 'BingX',  pageUrl: '/bingx/',  logo: '/preview-media/alternatives/bingx-logo-slot-512x160-v2.png',  promoCode: 'CRYPTOBONUSWORLD', bonus: 'Up to 11,000 USDT Welcome Package', descriptor: 'Social & copy trading' },
+  // BingX v3: optical centering fix — dense icon tile pulled visual mass left
+  // (alpha centroid 183 vs canvas center 255); group shifted +48px right
+  // (centroid 231). Same pixels as v2 — no scaling/distortion/recolor.
+  { slug: 'bingx',  name: 'BingX',  pageUrl: '/bingx/',  logo: '/preview-media/alternatives/bingx-logo-slot-512x160-v3.png',  promoCode: 'CRYPTOBONUSWORLD', bonus: 'Up to 11,000 USDT Welcome Package', descriptor: 'Social & copy trading' },
 ] as const;

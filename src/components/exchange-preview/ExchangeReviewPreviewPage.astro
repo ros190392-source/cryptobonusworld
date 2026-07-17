@@ -233,43 +233,63 @@ const faqItems = [
   }
   @media (min-width: 640px) { .p2-step { font-size: 15px; } }
 
-  /* Related / alternatives — promo cards v2 (owner redesign 2026-07-17).
-     Dark-navy but lighter/cleaner than the old rows; canonical rectangular
-     logo sits DIRECTLY on the card surface — no tile, no plate, no strip,
-     no plaque, no glow. */
-  .p2-related-intro { font-size: 14px; color: #6B7280; line-height: 1.6; margin: 0 0 14px; }
-  .p2-related-grid { display: flex; flex-direction: column; gap: 14px; }
+  /* Alternatives — CBW Alternatives Editorial Card Standard v1 (Variant C,
+     owner-approved 2026-07-17): light editorial section, white cards,
+     compact fixed navy logo well behind the logo ONLY (hero-white canonical
+     assets stay readable without recolor). No full dark cards, no full-width
+     strips, no gradients. Navy surfaces stay reserved for header/hero/footer. */
+  .p2-alt-editorial { background: #F7F9FC; }
+  .p2-related-intro { font-size: 14px; color: #64748B; line-height: 1.6; margin: 0 0 14px; }
+  .p2-related-grid { display: flex; flex-direction: column; gap: 14px; margin: 0; padding: 0; list-style: none; }
   .p2-rel-card {
-    border: 1px solid #1B3358; border-radius: 12px; padding: 18px 20px;
-    background: #0A1F3F; box-shadow: 0 4px 14px rgba(2, 8, 20, .25);
+    border: 1px solid #DCE4EE; border-radius: 12px; padding: 18px 20px;
+    background: #FFFFFF; box-shadow: 0 6px 18px rgba(15, 23, 42, .07);
     display: flex; align-items: center; gap: 22px; min-height: 108px;
-    forced-color-adjust: none;
+    forced-color-adjust: none; transition: background .15s, border-color .15s;
   }
-  .p2-rel-logo-wrap { flex-shrink: 0; width: 168px; height: 58px; display: flex; align-items: center; justify-content: center; }
-  .p2-rel-logo { max-width: 168px; max-height: 58px; width: auto; height: auto; object-fit: contain; }
-  .p2-rel-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
-  .p2-rel-name { font-size: 17px; font-weight: 800; color: #F8FAFC; }
-  .p2-rel-code { font-size: 12.5px; color: #93C5FD; font-weight: 600; letter-spacing: .02em; }
-  .p2-rel-code b { font-weight: 800; color: #DBEAFE; letter-spacing: .06em; }
-  .p2-rel-bonus { font-size: 14px; font-weight: 700; color: #FDE68A; }
-  .p2-rel-desc { font-size: 12.5px; color: #94A3B8; }
-  .p2-rel-tag { font-size: 11.5px; color: #4ADE80; font-weight: 700; }
-  .p2-rel-actions { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .p2-rel-card:hover { background: #FBFDFF; border-color: #B8C7D9; }
+  /* compact fixed navy logo well — dark field exists ONLY behind the logo */
+  .p2-rel-logo-wrap {
+    flex-shrink: 0; width: 168px; height: 58px; box-sizing: border-box;
+    display: flex; align-items: center; justify-content: center;
+    background: #12284A; border: 1px solid #27405F; border-radius: 8px; padding: 4px 7px;
+  }
+  .p2-rel-logo { max-width: 152px; max-height: 48px; width: auto; height: auto; object-fit: contain; }
+  .p2-rel-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+  .p2-rel-name { font-size: 17px; font-weight: 800; color: #0F172A; }
+  .p2-rel-code {
+    font-size: 12.5px; color: #475569; font-weight: 600; letter-spacing: .02em;
+    background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 6px;
+    padding: 2px 8px; align-self: flex-start;
+  }
+  .p2-rel-code b { font-weight: 800; color: #12325A; letter-spacing: .06em; }
+  .p2-rel-bonus { font-size: 14px; font-weight: 700; color: #B45309; }
+  .p2-rel-desc { font-size: 12.5px; color: #64748B; }
+  .p2-rel-tag { font-size: 11.5px; color: #15803D; font-weight: 700; }
+  .p2-rel-actions { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; }
   .p2-rel-cta {
     display: inline-flex; align-items: center; justify-content: center;
     width: 148px; height: 44px; border-radius: 10px;
-    background: #22C55E; color: #06210F; font-size: 14px; font-weight: 800;
+    background: #15803D; color: #FFFFFF; font-size: 14px; font-weight: 800;
     letter-spacing: .02em; text-decoration: none; white-space: nowrap;
     transition: background .15s;
   }
-  .p2-rel-cta:hover { background: #34D97B; }
-  .p2-rel-link { font-size: 13px; font-weight: 600; color: #60A5FA; text-decoration: none; white-space: nowrap; }
+  .p2-rel-cta:hover { background: #166534; }
+  /* 44px interaction area via padding; visible focus for both links */
+  .p2-rel-link {
+    font-size: 13px; font-weight: 600; color: #2563EB; text-decoration: none;
+    white-space: nowrap; display: inline-flex; align-items: center;
+    min-height: 44px; padding: 0 10px;
+  }
   .p2-rel-link:hover { text-decoration: underline; }
+  .p2-rel-cta:focus-visible, .p2-rel-link:focus-visible {
+    outline: 3px solid #2563EB; outline-offset: 2px; border-radius: 10px;
+  }
   @media (max-width: 639px) {
     .p2-rel-card { flex-direction: column; align-items: flex-start; gap: 14px; min-height: 0; padding: 16px; }
-    .p2-rel-logo-wrap { width: 148px; height: 50px; justify-content: flex-start; }
-    .p2-rel-logo { max-width: 148px; max-height: 50px; }
-    .p2-rel-actions { flex-direction: row; align-items: center; gap: 14px; width: 100%; }
+    .p2-rel-logo-wrap { width: 148px; height: 50px; justify-content: center; }
+    .p2-rel-logo { max-width: 132px; max-height: 40px; }
+    .p2-rel-actions { flex-direction: row; align-items: center; gap: 10px; width: 100%; }
     .p2-rel-cta { flex: 1; max-width: 220px; }
   }
 
@@ -447,16 +467,16 @@ const faqItems = [
   </div>
 </div>
 
-<!-- Verified alternatives -->
-<div class="p2-section p2-section-alt">
+<!-- Verified alternatives — Editorial Card Standard v1 (semantic list) -->
+<section class="p2-section p2-alt-editorial">
   <div class="p2-inner">
     <h2 class="p2-h2">Verified alternatives available now</h2>
     <p class="p2-related-intro">While {e.displayName} is under review, these exchanges already have verified CryptoBonusWorld listings.</p>
-    <div class="p2-related-grid">
+    <ul class="p2-related-grid">
       {altCards.map(ex => (
-        <div class="p2-rel-card">
+        <li class="p2-rel-card">
           <div class="p2-rel-logo-wrap">
-            <img src={ex.logo} alt={ex.name} class="p2-rel-logo" loading="lazy" width="168" height="58" />
+            <img src={ex.logo} alt={ex.name} class="p2-rel-logo" loading="lazy" width="152" height="48" />
           </div>
           <div class="p2-rel-info">
             <div class="p2-rel-name">{ex.name}</div>
@@ -470,11 +490,11 @@ const faqItems = [
             <a href={ex.claimHref} class="p2-rel-cta">Claim Bonus</a>
             <a href={ex.reviewHref} class="p2-rel-link">View review →</a>
           </div>
-        </div>
+        </li>
       ))}
-    </div>
+    </ul>
   </div>
-</div>
+</section>
 
 <!-- FAQ (no schema — noindex preview) -->
 <div class="p2-section">
