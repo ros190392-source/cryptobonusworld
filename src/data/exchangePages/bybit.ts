@@ -18,6 +18,8 @@ export const bybitConfig: ExchangePromoPageConfig = {
   ogImage: '/media/exchanges/bybit/final/bybit-og-final-v3-1200x630.jpg',
   heroBackgroundImg: '/media/hero-backgrounds/bybit-hero-custom-v1.png',
   heroBackgroundPosition: 'left center',
+  // ≤640px focal: planet rim + moon behind the H1 block, streak enters bottom-right
+  heroBackgroundPositionMobile: '22% center',
   logoImg: '/logos/bybit.png',
 
   // ─── Commercial ──────────────────────────────────────────────

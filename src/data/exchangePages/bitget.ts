@@ -50,6 +50,9 @@ export const bitgetConfig: ExchangePromoPageConfig = {
   // ── Media (Visual Pack V1 — generated 2026-06-28) ──────────────────────────
   wordmarkImg:       '/logos/bitget-wordmark-official-v1.png',
   heroBackgroundImg: '/media/hero-backgrounds/bitget-hero-custom-v1.png',
+  // ≤640px focal: teal planet upper-right + ring sweep fill the frame
+  // (desktop keeps the default left-anchored crop — unchanged)
+  heroBackgroundPositionMobile: '100% center',
   articleImg:        '/media/exchanges/bitget/final/bitget-article-final-v1-1200x675.jpg',
   ogImage:           '/media/exchanges/bitget/final/bitget-og-final-v1-1200x630.jpg',
   logoImg:           '/logos/bitget.png',

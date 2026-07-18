@@ -143,7 +143,7 @@ const relatedPages = [
     </div>
 
     <!-- A. Hero (dark image band) -->
-    <PageHero img="/media/page-heroes/cbw-methodology-hero-v1.webp" variant="short">
+    <PageHero img="/media/site/hero/cbw-section-hero-bg.webp" variant="short">
       <div class="ph-content">
         <div class="ph-eyebrow">🔍 How We Verify</div>
         <h1 class="ph-title">How CryptoBonusWorld Verifies Promo Codes</h1>
@@ -152,14 +152,22 @@ const relatedPages = [
           exchange's own public pages, applied consistently, without inventing evidence
           or availability claims we cannot support.
         </p>
-        <p class="ph-updated">Last updated: <time datetime="2026-05-25">May 2026</time></p>
-        <ul class="ph-chips" aria-label="What our process covers">
+      </div>
+    </PageHero>
+
+    <!-- Post-hero metadata/trust strip (2026-07 site hero system): secondary
+         hero content moved here so the hero keeps the exact 360/384/432
+         heights. Visually part of the hero band; not counted in its height. -->
+    <div class="mth-meta-strip">
+      <div class="mth-meta-inner">
+        <p class="mth-meta-updated">Last updated: <time datetime="2026-05-25">May 2026</time></p>
+        <ul class="mth-meta-chips" aria-label="What our process covers">
           {trustChips.map(chip => (
-            <li class="ph-chip"><span aria-hidden="true">{chip.icon}</span>{chip.label}</li>
+            <li class="mth-meta-chip"><span aria-hidden="true">{chip.icon}</span>{chip.label}</li>
           ))}
         </ul>
       </div>
-    </PageHero>
+    </div>
 
     <!-- B. Verification in 60 seconds -->
     <section class="mth-prose mth-section" aria-labelledby="tldr">
@@ -563,4 +571,30 @@ const relatedPages = [
   .mth-cta h2 { font-size: clamp(20px, 2.6vw, 26px); font-weight: 800; color: #111827; margin: 0 0 8px; }
   .mth-cta p { font-size: 14.5px; line-height: 1.6; color: #6B7280; margin: 0 0 20px; }
   .mth-cta-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+
+  /* ── Post-hero metadata/trust strip (belongs to the hero band visually) ── */
+  .mth-meta-strip {
+    background: #0E1826;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 12px 0;
+  }
+  .mth-meta-inner {
+    max-width: var(--cbw-page-max, 1180px); margin: 0 auto;
+    padding: 0 20px; box-sizing: border-box;
+    display: flex; align-items: center; gap: 10px 16px; flex-wrap: wrap;
+  }
+  @media (min-width: 820px) { .mth-meta-inner { padding: 0 32px; } }
+  .mth-meta-updated { font-size: 12px; color: rgba(255, 255, 255, 0.45); margin: 0; white-space: nowrap; }
+  .mth-meta-updated time { color: rgba(255, 255, 255, 0.6); }
+  .mth-meta-chips {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin: 0; padding: 0; list-style: none;
+  }
+  .mth-meta-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 600; color: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 100px; padding: 5px 11px;
+  }
 </style>

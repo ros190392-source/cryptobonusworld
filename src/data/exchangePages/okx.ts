@@ -46,6 +46,9 @@ export const okxConfig: ExchangePromoPageConfig = {
   ogImage:               '/media/exchanges/okx/final/okx-og-final-v2-1200x630.jpg',
   heroBackgroundImg:     '/media/hero-backgrounds/okx-hero-custom-v2.png',
   heroBackgroundPosition:'center center',
+  // ≤640px focal: keep the sunrise/horizon glow centered under the panel;
+  // dark upper space carries the white H1 (presentation only)
+  heroBackgroundPositionMobile: '50% center',
   logoImg:               '/logos/okx.png',
 
   // ── Commercial ─────────────────────────────────────────────────────────────

@@ -18,6 +18,8 @@ export const kucoinConfig: ExchangePromoPageConfig = {
   ogImage: '/media/exchanges/kucoin/final/kucoin-og-final-v1-1200x630.jpg',
   heroBackgroundImg: '/media/hero-backgrounds/kucoin-hero-custom-v1.png',
   heroBackgroundPosition: 'center center',
+  // ≤640px focal: green horizon glow centered, orbit arcs balance the top
+  heroBackgroundPositionMobile: '50% center',
   logoImg: '/logos/kucoin.png',
 
   // ─── Commercial ──────────────────────────────────────────────

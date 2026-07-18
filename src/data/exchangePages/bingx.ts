@@ -23,6 +23,8 @@ export const bingxConfig: ExchangePromoPageConfig = {
   ogImage: '/media/exchanges/bingx/final/bingx-og-final-v1-1200x630-e08ccb64.jpg',
   heroBackgroundImg: '/media/hero-backgrounds/bingx-hero-custom-v1-b012814a.png',
   heroBackgroundPosition: 'center center',
+  // ≤640px focal: top-right planet + flare balances the bottom horizon glow
+  heroBackgroundPositionMobile: '85% center',
   logoImg: '/logos/bingx.png',
 
   // ─── Commercial ──────────────────────────────────────────────

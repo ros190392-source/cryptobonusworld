@@ -15,24 +15,38 @@
  * `.ph-eyebrow` / `.ph-title` / `.ph-sub` / `.ph-caveat` / `.ph-chips`/`.ph-chip`
  * / `.ph-actions` classes for consistent styling.
  *
- * Heights (min-height, content-driven):
- *   tall  — home/exchanges/promo: 240 / 320 / 400 (mobile / tablet / desktop)
- *   short — methodology:          220 / 300 / 350
+ * Optional named slot `panel`: right-side functional panel (e.g. the homepage
+ * GEO panel). When present, the inner layout becomes a two-column grid on
+ * desktop and stacks on mobile.
+ *
+ * Unified site hero height standard (2026-07 site-level hero system):
+ *   mobile <640px: 360px · tablet ≥640px: 384px · desktop ≥1024px: 432px
+ * Both 'tall' and 'short' variants now resolve to the same standard so every
+ * section page carries identical visual weight ('short' kept for API
+ * compatibility with existing call sites).
  */
 export interface Props {
   /** Background image path (prefer the .webp). */
   img: string;
-  /** 'tall' (default) or 'short' (methodology). */
+  /** 'tall' (default) or 'short' — both use the unified standard height. */
   variant?: 'tall' | 'short';
   /** Extra class(es) on the band. */
   class?: string;
 }
 const { img, variant = 'tall', class: cls = '' } = Astro.props;
+const hasPanel = Astro.slots.has('panel');
 ---
 
 <section class:list={['page-hero', `page-hero--${variant}`, cls]} style={`--ph-img:url('${img}')`}>
-  <div class="page-hero__inner">
-    <slot />
+  <div class:list={['page-hero__inner', { 'page-hero__inner--panel': hasPanel }]}>
+    <div class="page-hero__main">
+      <slot />
+    </div>
+    {hasPanel && (
+      <div class="page-hero__panel">
+        <slot name="panel" />
+      </div>
+    )}
   </div>
 </section>
 
@@ -74,11 +88,13 @@ const { img, variant = 'tall', class: cls = '' } = Astro.props;
     }
   }
 
-  /* ── Heights ─────────────────────────────────────────────────── */
-  .page-hero--tall  { min-height: 240px; }
-  .page-hero--short { min-height: 220px; }
-  @media (min-width: 640px)  { .page-hero--tall { min-height: 320px; } .page-hero--short { min-height: 300px; } }
-  @media (min-width: 1024px) { .page-hero--tall { min-height: 400px; } .page-hero--short { min-height: 350px; } }
+  /* ── Heights — unified site standard, EXACT (360 / 384 / 432).
+        Fixed height by contract: pages must keep hero content essential;
+        secondary content belongs in a post-hero strip, not in hero growth. ── */
+  .page-hero--tall,
+  .page-hero--short { height: 360px; }
+  @media (min-width: 641px)  { .page-hero--tall, .page-hero--short { height: 384px; } }
+  @media (min-width: 1024px) { .page-hero--tall, .page-hero--short { height: 432px; } }
 
   /* ── Inner content wrapper ───────────────────────────────────── */
   .page-hero__inner {
@@ -87,11 +103,25 @@ const { img, variant = 'tall', class: cls = '' } = Astro.props;
     width: 100%;
     max-width: var(--cbw-page-max, 1180px);
     margin: 0 auto;
-    padding: 28px 20px;
+    padding: 24px 20px;
     box-sizing: border-box;
   }
   @media (min-width: 640px) { .page-hero__inner { padding: 32px 24px; } }
   @media (min-width: 820px) { .page-hero__inner { padding: 40px 32px; } }
+
+  /* ── Two-column layout when a right panel is provided ────────── */
+  .page-hero__inner--panel {
+    display: flex;
+    align-items: center;
+    gap: 36px;
+  }
+  .page-hero__inner--panel .page-hero__main { flex: 1 1 auto; min-width: 0; }
+  .page-hero__panel { flex: 0 0 330px; box-sizing: border-box; }
+  @media (max-width: 1023px) and (min-width: 640px) { .page-hero__panel { flex-basis: 300px; } }
+  @media (max-width: 639px) {
+    .page-hero__inner--panel { flex-direction: column; align-items: stretch; justify-content: center; gap: 14px; }
+    .page-hero__panel { flex: none; width: 100%; }
+  }
 
   /* ── Slotted content helpers (global — slot children aren't scoped) ── */
   .page-hero :global(.ph-content) { max-width: 600px; }

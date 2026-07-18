@@ -2,6 +2,7 @@
 import CleanLayout from '../../layouts/CleanLayout.astro';
 import { getOffer } from '../../data/offers';
 import ExchangePromoLogoSlot from '../../components/ExchangePromoLogoSlot.astro';
+import ExchangeReviewHero from '../../components/exchange/ExchangeReviewHero.astro';
 
 const offer = getOffer('bybit')!;
 
@@ -534,41 +535,27 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
 </style>
 
 <!-- ═══════════════════════════════════════════════════════════
-     BLOCK 1 — TITLE BAR (white strip above dark hero)
+     BLOCKS 1+2 — UNIFIED EXCHANGE REVIEW HERO
+     (2026-07 site hero system: H1 inside the hero, factory artwork
+     preserved, shared PromoCodeCopy, approved outbound CTA behavior)
 ═══════════════════════════════════════════════════════════ -->
-<div class="title-bar">
-  <h1>{exchange.name} Referral Code</h1>
-</div>
-
-<!-- ═══════════════════════════════════════════════════════════
-     BLOCK 2 — BRAND HERO (dark, compact conversion header)
-═══════════════════════════════════════════════════════════ -->
-<section class="brand-hero" style={bhStyle}>
-  <div class="bh-inner">
-
-    <a href={exchange.affiliateUrl} target="_blank" rel="noopener noreferrer sponsored" aria-label={`Get ${exchange.name} bonus`} style="display:block;line-height:0;">
-      <ExchangePromoLogoSlot
-        src={exchange.wordmarkImg}
-        alt={exchange.name}
-        mode="clean"
-        visualScale={0.70}
-        fetchpriority="high"
-      />
-    </a>
-
-    <p class="bh-promo-label">PROMO CODE</p>
-    <div class="bh-promo-row">
-      <span class="bh-promo-code">{offer.promoCode}</span>
-      <button class="bh-copy-btn" id="copy-btn-hero" type="button">Copy</button>
-    </div>
-
-    <a href={exchange.affiliateUrl} class="bh-cta-btn" target="_blank" rel="noopener noreferrer sponsored">
-      Get Bonus
-    </a>
-
-    <p class="bh-source">Verified {offer.lastChecked} on <a href={offer.sourceUrl} target="_blank" rel="noopener noreferrer nofollow">{exchange.officialDomain}</a></p>
-  </div>
-</section>
+<ExchangeReviewHero
+  name={exchange.name}
+  heroBackgroundImg="/media/hero-backgrounds/bybit-hero-custom-v1.png"
+  heroBackgroundPosition="left center"
+  heroBackgroundPositionMobile="22% center"
+  bgFrom={brandHeroTokens['bh-bgFrom']}
+  bgTo={brandHeroTokens['bh-bgTo']}
+  wordmarkImg={exchange.wordmarkImg}
+  logoVisualScale={0.70}
+  promoLabel="PROMO CODE"
+  promoCode={offer.promoCode}
+  bonusHeadline={offer.bonusHeadline}
+  lastChecked={offer.lastChecked}
+  sourceUrl={offer.sourceUrl}
+  officialDomain={exchange.officialDomain}
+  affiliateUrl={exchange.affiliateUrl}
+/>
 
 <!-- ═══════════════════════════════════════════════════════════
      BLOCK 3 — COMPACT FACTS TABLE (directly under hero)
