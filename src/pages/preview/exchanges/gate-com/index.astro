@@ -1,0 +1,18 @@
+---
+// PREVIEW ONLY — noindex, excluded from sitemap. Batch 01.
+import CleanLayout from '../../../../layouts/CleanLayout.astro';
+import ExchangeReviewPreviewPage from '../../../../components/exchange-preview/ExchangeReviewPreviewPage.astro';
+import { batch01 } from '../../../../data/exchangePreview/batch-01';
+
+const entry = batch01.find(e => e.slug === 'gate-com')!;
+---
+
+<CleanLayout
+  title="Gate.com Referral Code: Preview Status | CryptoBonusWorld"
+  description="Preview the current CryptoBonusWorld review status for Gate.com. No verified referral code or bonus is currently listed."
+  canonical={`https://cryptobonusworld.com${entry.pageRoute}`}
+  ogImage={entry.ogImage}
+  noindex={true}
+>
+  <ExchangeReviewPreviewPage entry={entry} ctaMode="preview" />
+</CleanLayout>
