@@ -207,7 +207,7 @@ const countryMetaJson = JSON.stringify(COUNTRY_META.map(({ slug, label, flag, he
                     <PromoCodeCopy code={row.promoCode} exchange={row.name} />
                   )}
                   <div class="gf-row-btns">
-                    <a href={cta.href} class={cta.primary ? 'gf-cta gf-cta-primary' : 'gf-cta gf-cta-secondary'}>
+                    <a href={cta.href} class={cta.primary ? 'gf-cta gf-cta-primary' : 'gf-cta gf-cta-secondary'} target="_blank" rel="noopener noreferrer sponsored">
                       {cta.label} →
                     </a>
                     <a href={row.pageUrl} class="gf-review">Review</a>

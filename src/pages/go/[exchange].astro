@@ -42,6 +42,13 @@ const { exchange: ex } = Astro.props;
 // bybit has a dedicated /bybit/ route; all others fall back to /exchanges/[slug]/
 const fallbackUrl = ex.slug === 'bybit' ? '/bybit/' : `/exchanges/${ex.slug}/`;
 
+// Server-rendered href for the visible "Continue" fallback button (works even
+// with JS disabled). Uses the default affiliate URL when it's a real https
+// link; placeholder/retired exchanges fall back to the safe internal page.
+// The client script upgrades this to the fully resolved GEO/tracked URL.
+const rawDefault = ex.affiliateLinks?.default ?? ex.affiliateUrl ?? '#';
+const continueHref = /^https?:\/\//.test(rawDefault) ? rawDefault : fallbackUrl;
+
 // Serialise affiliate link data for client-side resolution
 const linkData = {
   slug:    ex.slug,
@@ -56,7 +63,7 @@ const linkData = {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Redirecting to {ex.name}…</title>
+  <title>Opening {ex.name} — CryptoBonusWorld</title>
 
   <!-- SEO: noindex this redirect page; canonical → content page -->
   <meta name="robots" content="noindex, nofollow" />
@@ -67,77 +74,120 @@ const linkData = {
     We redirect to the detail page (not affiliate URL) so the fallback is
     always safe regardless of URL placeholder state.
   -->
-  <meta http-equiv="refresh" content={`3;url=${fallbackUrl}`} />
+  <meta http-equiv="refresh" content={`8;url=${fallbackUrl}`} />
 
   <style>
     *, *::before, *::after { box-sizing: border-box; }
     body {
       margin: 0;
-      background: #0a0a0a;
-      color: #aaaaaa;
+      background: #0B1220;
+      color: #94A3B8;
       font-family: Inter, system-ui, sans-serif;
       display: flex;
       align-items: center;
       justify-content: center;
       min-height: 100vh;
-      padding: 1.5rem;
+      padding: 1.25rem;
     }
     .card {
-      background: #111;
-      border: 1px solid #252525;
+      background: #13233E; /* header navy */
+      border: 1px solid #27405F;
       border-radius: 16px;
-      padding: 2.5rem 2rem;
+      padding: 2rem 1.75rem 1.75rem;
       text-align: center;
-      max-width: 380px;
+      max-width: 400px;
       width: 100%;
     }
-    .spinner {
-      width: 40px;
-      height: 40px;
-      border: 3px solid #252525;
-      border-top-color: #f5c542;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin: 0 auto 1.5rem;
+    .brand {
+      font-size: 0.8rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      color: #F8FAFC;
+      margin: 0 0 1.25rem;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    .brand .accent { color: #F5A623; }
+    .ex-logo {
+      height: 44px;
+      max-width: 200px;
+      object-fit: contain;
+      margin: 0 auto 0.9rem;
+      display: block;
+    }
     h1 {
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: #f0f0f0;
-      margin: 0 0 0.5rem;
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #FFFFFF;
+      margin: 0 0 0.6rem;
     }
     p {
       font-size: 0.85rem;
-      color: #606060;
-      margin: 0 0 1.5rem;
-      line-height: 1.5;
+      color: #94A3B8;
+      margin: 0 0 0.6rem;
+      line-height: 1.55;
     }
-    .fallback-link {
+    .progress {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin: 1rem 0 1.1rem;
       font-size: 0.8rem;
-      color: #f5c542;
-      text-decoration: none;
+      color: #CBD5E1;
     }
-    .fallback-link:hover { opacity: 0.8; }
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid #27405F;
+      border-top-color: #F5A623;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      flex: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .continue-btn {
+      display: block;
+      width: 100%;
+      padding: 0.85rem 1rem;
+      border-radius: 10px;
+      background: #15803D;
+      color: #FFFFFF;
+      font-size: 0.9rem;
+      font-weight: 800;
+      text-decoration: none;
+      line-height: 1.2;
+    }
+    .continue-btn:hover { background: #166534; }
     .disclaimer {
       font-size: 0.68rem;
-      color: #3a3a3a;
-      margin-top: 1.5rem;
+      color: #64748B;
+      margin: 1.1rem 0 0;
       line-height: 1.5;
     }
   </style>
 </head>
 <body>
   <div class="card">
-    <div class="spinner" aria-hidden="true"></div>
-    <h1>Redirecting to {ex.name}</h1>
-    <p>You're being securely redirected to the {ex.name} bonus offer.</p>
+    <p class="brand">Crypto<span class="accent">Bonus</span>World</p>
+    <img
+      class="ex-logo"
+      src={`/logos/${ex.slug}.png`}
+      alt={`${ex.name} logo`}
+      onerror="this.style.display='none'"
+    />
+    <h1>Opening {ex.name}</h1>
+    <p>You’re being redirected to the official {ex.name} registration page.</p>
+    <p>Your referral code and available bonus will be applied where supported.</p>
+    <div class="progress">
+      <span class="spinner" aria-hidden="true"></span>
+      <span>Redirecting securely…</span>
+    </div>
     <a
-      href={fallbackUrl}
-      class="fallback-link"
-      rel="nofollow"
+      id="cbw-continue"
+      href={continueHref}
+      class="continue-btn"
+      rel="noopener noreferrer sponsored"
     >
-      Taking too long? Click here →
+      Continue to {ex.name}
     </a>
     <p class="disclaimer">
       Conditions apply. Always verify bonus terms on the official exchange website before registering.
@@ -299,9 +349,20 @@ const linkData = {
       console.info('[CBW /go/] Resolved:', { slug: __exchangeSlug, linkSource, finalUrl, geo, device });
     }
 
+    // ── Fallback button: upgrade to the fully resolved GEO/tracked URL ────────
+    try {
+      var btn = document.getElementById('cbw-continue');
+      if (btn) btn.setAttribute('href', finalUrl);
+    } catch(_) {}
+
     // ── Redirect ──────────────────────────────────────────────────────────────
-    // Use location.replace() so /go/ doesn't appear in browser history (302 semantics)
-    window.location.replace(finalUrl);
+    // Branded screen stays visible for ~1000 ms (owner spec), then this tab
+    // navigates to the resolved destination. location.replace() keeps /go/ out
+    // of browser history (302 semantics). The referring CBW page stays open in
+    // its own tab because CTAs open /go/ with target="_blank".
+    setTimeout(function () {
+      window.location.replace(finalUrl);
+    }, 1000);
 
   })();
   </script>

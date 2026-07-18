@@ -546,7 +546,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
 <section class="brand-hero" style={bhStyle}>
   <div class="bh-inner">
 
-    <a href={exchange.affiliateUrl} rel="noopener sponsored" aria-label={`Get ${exchange.name} bonus`} style="display:block;line-height:0;">
+    <a href={exchange.affiliateUrl} target="_blank" rel="noopener noreferrer sponsored" aria-label={`Get ${exchange.name} bonus`} style="display:block;line-height:0;">
       <ExchangePromoLogoSlot
         src={exchange.wordmarkImg}
         alt={exchange.name}
@@ -562,7 +562,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
       <button class="bh-copy-btn" id="copy-btn-hero" type="button">Copy</button>
     </div>
 
-    <a href={exchange.affiliateUrl} class="bh-cta-btn" rel="noopener sponsored">
+    <a href={exchange.affiliateUrl} class="bh-cta-btn" target="_blank" rel="noopener noreferrer sponsored">
       Get Bonus
     </a>
 
@@ -610,7 +610,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
 <!-- 01. Full-width CTA after intro text -->
 <div class="p2-section p2-cta-block">
   <div class="p2-inner">
-    <a href={exchange.affiliateUrl} class="p2-cta-bar" rel="noopener sponsored">Get {exchange.name} Bonus Now</a>
+    <a href={exchange.affiliateUrl} class="p2-cta-bar" target="_blank" rel="noopener noreferrer sponsored">Get {exchange.name} Bonus Now</a>
   </div>
 </div>
 
@@ -658,7 +658,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
 <!-- 04b. Full-width CTA immediately after screenshot 1 -->
 <div class="p2-section p2-cta-block">
   <div class="p2-inner">
-    <a href={exchange.affiliateUrl} class="p2-cta-bar" rel="noopener sponsored">Get {exchange.name} Bonus Now</a>
+    <a href={exchange.affiliateUrl} class="p2-cta-bar" target="_blank" rel="noopener noreferrer sponsored">Get {exchange.name} Bonus Now</a>
   </div>
 </div>
 
@@ -744,7 +744,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
     <p class="p2-text">Exact rewards — including any crypto coupons, fee benefits, trading bonuses, and Rewards Hub tasks — depend on {exchange.name}'s current terms, your region, KYC status, deposit amounts, and trading activity. Always check the current offer on the official {exchange.name} bonus page after creating your new account.</p>
 
     <figure class="p2-article-banner-figure">
-      <a href={exchange.affiliateUrl} rel="noopener sponsored" aria-label={`Get ${exchange.name} bonus`}>
+      <a href={exchange.affiliateUrl} target="_blank" rel="noopener noreferrer sponsored" aria-label={`Get ${exchange.name} bonus`}>
         <img
           src={exchange.articleImg}
           alt={`${exchange.name} referral code bonus illustration for CryptoBonusWorld`}
@@ -965,7 +965,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
             <div class="p2-rel-tag">{ex.tag}</div>
           </div>
           <div class="p2-rel-actions">
-            <a href={`/go/${ex.slug}/`} class="p2-rel-btn" data-exchange={ex.slug} rel="noopener sponsored">Get Bonus</a>
+            <a href={`/go/${ex.slug}/`} class="p2-rel-btn" data-exchange={ex.slug} target="_blank" rel="noopener noreferrer sponsored">Get Bonus</a>
             <a href={(ex as any).pageUrl ?? `/exchanges/${ex.slug}/`} class="p2-rel-link">View details →</a>
           </div>
         </div>
@@ -977,7 +977,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
 <!-- 17b. Closing conversion block — exact repeat of top dark hero + compact table standard -->
 <section class="brand-hero" style={bhStyle}>
   <div class="bh-inner">
-    <a href={exchange.affiliateUrl} rel="noopener sponsored" aria-label={`Get ${exchange.name} bonus`} style="display:block;line-height:0;">
+    <a href={exchange.affiliateUrl} target="_blank" rel="noopener noreferrer sponsored" aria-label={`Get ${exchange.name} bonus`} style="display:block;line-height:0;">
       <ExchangePromoLogoSlot
         src={exchange.wordmarkImg}
         alt={exchange.name}
@@ -991,7 +991,7 @@ const bhStyle = Object.entries(brandHeroTokens).map(([k,v]) => `--${k}:${v}`).jo
       <span class="bh-promo-code">{offer.promoCode}</span>
       <button class="bh-copy-btn" id="copy-btn-coupon" type="button">Copy</button>
     </div>
-    <a href={exchange.affiliateUrl} class="bh-cta-btn" rel="noopener sponsored">Get Bonus</a>
+    <a href={exchange.affiliateUrl} class="bh-cta-btn" target="_blank" rel="noopener noreferrer sponsored">Get Bonus</a>
     <p class="bh-source">Verified {offer.lastChecked} on <a href={offer.sourceUrl} target="_blank" rel="noopener noreferrer nofollow">{exchange.officialDomain}</a></p>
   </div>
 </section>

@@ -35,7 +35,7 @@ const reviewUrl = ex.pageUrl ?? `/exchanges/${ex.slug}/`;
   )}
 
   <!-- 6. Primary CTA + 7. secondary review link -->
-  <a href={ex.affiliateUrl} class="ec-cta">Claim Bonus →</a>
+  <a href={ex.affiliateUrl} class="ec-cta" target="_blank" rel="noopener noreferrer sponsored">Claim Bonus →</a>
   <a href={reviewUrl} class="ec-review-link">Read {ex.name} review</a>
 </div>
 
