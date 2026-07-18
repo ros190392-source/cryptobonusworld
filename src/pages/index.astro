@@ -2,7 +2,6 @@
 import CleanLayout from '../layouts/CleanLayout.astro';
 import ExchangeCard from '../components/home/ExchangeCard.astro';
 import HomepageGeoBonusFinder from '../components/home/HomepageGeoBonusFinder.astro';
-import PageHero from '../components/PageHero.astro';
 import { getFeaturedExchanges } from '../data/exchanges';
 import { getOffer } from '../data/offers';
 
@@ -94,20 +93,20 @@ const faqSchema = {
   <!-- 0. Homepage GEO Bonus Finder (above the fold) -->
   <HomepageGeoBonusFinder />
 
-  <!-- 1. Compact intro (hero band — finder above stays interactive) -->
-  <PageHero img="/media/page-heroes/cbw-home-hero-v1.webp" variant="tall">
-    <div class="ph-content">
-      <div class="ph-eyebrow">Verified · Updated July 2026</div>
-      <h2 class="ph-title">Crypto Sign-Up Bonuses &amp; Referral Codes</h2>
-      <p class="ph-sub">
+  <!-- 1. Compact intro (light — finder above stays the primary hero) -->
+  <section class="hp-intro">
+    <div class="hp-text-wrap">
+      <div class="hp-intro-label">Verified · Updated July 2026</div>
+      <h2 class="hp-intro-h1">Crypto Sign-Up Bonuses &amp; Referral Codes</h2>
+      <p class="hp-intro-sub">
         CryptoBonusWorld tracks verified crypto exchange referral codes and bonus links,
         checked directly against each exchange's official promotions page.
       </p>
-      <p class="ph-caveat">
+      <p class="hp-intro-caveat">
         Bonus availability, KYC, region, deposit, and trading requirements may vary by exchange and account.
       </p>
     </div>
-  </PageHero>
+  </section>
 
   <!-- 2. Trust strip -->
   <div class="trust-bar">
