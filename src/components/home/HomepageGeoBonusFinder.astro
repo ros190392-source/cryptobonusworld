@@ -17,17 +17,6 @@
  */
 import ExchangeLogo from '../ExchangeLogo.astro';
 import PromoCodeCopy from '../promo/PromoCodeCopy.astro';
-
-interface Props {
-  /**
-   * true when the homepage site hero above owns the H1 + country selector
-   * (2026-07 site hero system): the finder then renders only the country
-   * panels. The hero writes the same cbw_gf_country key and toggles the
-   * same .gf-panel elements, so behavior stays in sync.
-   */
-  embedded?: boolean;
-}
-const { embedded = false } = Astro.props as Props;
 import { getExchange } from '../../data/exchanges';
 import { getOffer } from '../../data/offers';
 import exchangesJson from '../../data/exchanges.json';
@@ -58,10 +47,16 @@ interface FinderRow {
   regulatorCautionNote: string | null;
 }
 
-// Country meta moved verbatim to src/data/homepageCountryMeta.ts so the site
-// hero GEO panel and this finder share one source (2026-07 site hero system).
+const COUNTRY_META: { slug: PromoCountrySlug; label: string; flag: string; headline: string }[] = [
+  { slug: 'global',         label: 'Global',         flag: '🌍', headline: 'Best Crypto Bonus Codes Worldwide' },
+  { slug: 'poland',         label: 'Poland',         flag: '🇵🇱', headline: 'Best Crypto Bonus Codes for Poland' },
+  { slug: 'germany',        label: 'Germany',        flag: '🇩🇪', headline: 'Best Crypto Bonus Codes for Germany' },
+  { slug: 'kazakhstan',     label: 'Kazakhstan',     flag: '🇰🇿', headline: 'Best Crypto Bonus Codes for Kazakhstan' },
+  { slug: 'turkey',         label: 'Turkey',         flag: '🇹🇷', headline: 'Best Crypto Bonus Codes for Turkey' },
+  { slug: 'united-kingdom', label: 'United Kingdom', flag: '🇬🇧', headline: 'Best Crypto Bonus Codes for the United Kingdom' },
+  { slug: 'united-states',  label: 'United States',  flag: '🇺🇸', headline: 'Best Crypto Bonus Codes for the United States' },
+];
 // European Union is a regulatory overlay only (geoRankings.ts) — never a country here.
-import { HOMEPAGE_COUNTRY_META as COUNTRY_META } from '../../data/homepageCountryMeta';
 
 // CBW editorial rating (existing approved data from exchanges.json — same value
 // shown on exchange detail pages). Never invented; null when absent.
@@ -163,23 +158,21 @@ const countryMetaJson = JSON.stringify(COUNTRY_META.map(({ slug, label, flag, he
 <section class="gf" id="finder" aria-label="Best crypto bonus codes by country">
   <div class="gf-wrap">
 
-    {!embedded && (
-      <div class="gf-head">
-        <div class="gf-selector-row">
-          <span class="gf-flag" id="gf-current-flag" aria-hidden="true">🌍</span>
-          <label class="gf-select-wrap">
-            <span class="gf-select-label">Your country</span>
-            <select id="gf-country-select" aria-label="Select your country">
-              {COUNTRY_META.map(c => (
-                <option value={c.slug}>{c.flag} {c.label}</option>
-              ))}
-            </select>
-          </label>
-        </div>
-        <h1 class="gf-h1" id="gf-h1">Best Crypto Bonus Codes Worldwide</h1>
-        <p class="gf-trust">Crypto bonus codes checked by country. Terms and KYC may apply.</p>
+    <div class="gf-head">
+      <div class="gf-selector-row">
+        <span class="gf-flag" id="gf-current-flag" aria-hidden="true">🌍</span>
+        <label class="gf-select-wrap">
+          <span class="gf-select-label">Your country</span>
+          <select id="gf-country-select" aria-label="Select your country">
+            {COUNTRY_META.map(c => (
+              <option value={c.slug}>{c.flag} {c.label}</option>
+            ))}
+          </select>
+        </label>
       </div>
-    )}
+      <h1 class="gf-h1" id="gf-h1">Best Crypto Bonus Codes Worldwide</h1>
+      <p class="gf-trust">Crypto bonus codes checked by country. Terms and KYC may apply.</p>
+    </div>
 
     {panels.map(panel => (
       <div class="gf-panel" data-country={panel.slug} hidden={panel.slug !== 'global'}>

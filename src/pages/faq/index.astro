@@ -1,6 +1,5 @@
 ---
 import CleanLayout from '../../layouts/CleanLayout.astro';
-import PageHero from '../../components/PageHero.astro';
 
 /**
  * /faq/ — central FAQ hub (Phase 2B).
@@ -150,23 +149,22 @@ const faqSchema = {
   canonical="https://cryptobonusworld.com/faq/"
 >
 
-  <!-- 1. Intro — site hero (2026-07 site hero system; same section artwork
-       and 360/384/432 heights as the other section pages) -->
-  <PageHero img="/media/site/hero/cbw-section-hero-bg.webp" variant="tall">
-    <div class="ph-content">
-      <div class="ph-eyebrow">Help Center</div>
-      <h1 class="ph-title">Crypto Bonus & Promo Code FAQ</h1>
-      <p class="ph-sub">
+  <!-- 1. Intro -->
+  <section class="faq-intro">
+    <div class="faq-text-wrap">
+      <div class="faq-label">Help Center</div>
+      <h1 class="faq-h1">Crypto Bonus & Promo Code FAQ</h1>
+      <p class="faq-sub">
         Straight answers about crypto promo codes, referral codes, sign-up bonuses,
         country availability, how we verify listings, and affiliate links.
       </p>
-      <p class="ph-caveat">
+      <p class="faq-caveat">
         Bonuses are never guaranteed. Eligibility depends on each exchange's terms,
         your region, account status, KYC, deposit and trading activity, and current
         campaign rules. This page is informational and is not financial advice.
       </p>
     </div>
-  </PageHero>
+  </section>
 
   <!-- 2. Grouped FAQ -->
   <section class="section bg-white" id="faq">
@@ -267,21 +265,4 @@ const faqSchema = {
     text-decoration: underline; text-underline-offset: 2px;
   }
   .faq-foot a:hover { color: #166534; }
-
-  /* FAQ hero has the longest approved intro of the section pages — tighten
-     mobile typography slightly (page-scoped) so the full text fits the
-     360px standard hero without hiding or clipping anything. */
-  /* Repeated-class selectors (0-4-0) are required to out-rank PageHero's
-     scoped `.page-hero[data-astro-cid] .ph-*` rules (0-3-0) deterministically. */
-  @media (max-width: 639px) {
-    :global(.page-hero .ph-eyebrow.ph-eyebrow.ph-eyebrow) { margin-bottom: 9px; padding: 3px 11px; }
-    :global(.page-hero .ph-title.ph-title.ph-title) { margin-bottom: 10px; }
-    :global(.page-hero .ph-sub.ph-sub.ph-sub) { font-size: 13.5px; line-height: 1.45; margin-bottom: 8px; }
-    :global(.page-hero .ph-caveat.ph-caveat.ph-caveat) { font-size: 11.5px; line-height: 1.45; margin-top: 4px; }
-  }
-  /* narrowest phones wrap one extra line — keep the intro inside exact 360px */
-  @media (max-width: 374px) {
-    :global(.page-hero .ph-sub.ph-sub.ph-sub) { font-size: 13px; }
-    :global(.page-hero .ph-caveat.ph-caveat.ph-caveat) { font-size: 11px; line-height: 1.4; }
-  }
 </style>

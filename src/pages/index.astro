@@ -2,12 +2,8 @@
 import CleanLayout from '../layouts/CleanLayout.astro';
 import ExchangeCard from '../components/home/ExchangeCard.astro';
 import HomepageGeoBonusFinder from '../components/home/HomepageGeoBonusFinder.astro';
-import PageHero from '../components/PageHero.astro';
 import { getFeaturedExchanges } from '../data/exchanges';
 import { getOffer } from '../data/offers';
-import { HOMEPAGE_COUNTRY_META } from '../data/homepageCountryMeta';
-
-const heroCountryMetaJson = JSON.stringify(HOMEPAGE_COUNTRY_META);
 
 const exchanges = getFeaturedExchanges();
 const exchangesWithOffers = exchanges.map(ex => ({
@@ -94,40 +90,8 @@ const faqSchema = {
   ogImage="/og-default.png"
 >
 
-  <!-- 0. Site hero — homepage variant (2026-07 site hero system).
-       Owns the H1 + country selector; the finder below renders panels only
-       (embedded) and stays in sync via the shared cbw_gf_country key. -->
-  <PageHero img="/media/site/hero/cbw-homepage-hero-bg.webp" variant="tall">
-    <div class="ph-content">
-      <h1 class="ph-title" id="hp-hero-h1">Best Crypto Bonus Codes Worldwide</h1>
-      <p class="ph-sub">Crypto bonus codes checked by country. Terms and KYC may apply.</p>
-    </div>
-    <div slot="panel" class="hp-geo-panel" aria-label="Country and language">
-      <div class="hp-geo-status">
-        <span class="hp-geo-dot" aria-hidden="true"></span>
-        <span id="hp-geo-status">Region: Global</span>
-      </div>
-      <div class="hp-geo-fields">
-        <label class="hp-geo-field">
-          <span class="hp-geo-label">Your country</span>
-          <select id="hp-hero-country" aria-label="Select your country">
-            {HOMEPAGE_COUNTRY_META.map(c => (
-              <option value={c.slug}>{c.flag} {c.label}</option>
-            ))}
-          </select>
-        </label>
-        <!-- single live locale: honest static value, not a fake dropdown -->
-        <div class="hp-geo-field">
-          <span class="hp-geo-label">Language</span>
-          <span class="hp-geo-lang">English</span>
-        </div>
-      </div>
-      <p class="hp-geo-note">Country unknown? We show <b>Global</b> offers. Change it anytime.</p>
-    </div>
-  </PageHero>
-
-  <!-- 1. Homepage GEO Bonus Finder (panels only — hero above owns head) -->
-  <HomepageGeoBonusFinder embedded={true} />
+  <!-- 0. Homepage GEO Bonus Finder (above the fold) -->
+  <HomepageGeoBonusFinder />
 
   <!-- 1. Compact intro (light — finder above stays the primary hero) -->
   <section class="hp-intro">
@@ -227,57 +191,6 @@ const faqSchema = {
 
 </CleanLayout>
 
-<script define:vars={{ __hpHeroMeta: JSON.parse(heroCountryMetaJson) }} is:inline>
-// Site-hero GEO panel — owns the homepage H1 + country selection.
-// Same precedence and storage key as the finder (cbw_gf_country → cbw_geo →
-// Global); toggles the finder's .gf-panel elements directly so both stay in
-// sync. Timezone-derived signal — wording never claims IP detection.
-(function () {
-  'use strict';
-  var META = __hpHeroMeta;
-  var SLUGS = META.map(function (m) { return m.slug; });
-  var KEY = 'cbw_gf_country';
-  var GEO = { pl: 'poland', de: 'germany', kz: 'kazakhstan', tr: 'turkey', gb: 'united-kingdom', uk: 'united-kingdom', us: 'united-states' };
-
-  function detect() {
-    try { var s = localStorage.getItem(KEY); if (s && SLUGS.indexOf(s) !== -1) return { slug: s, src: 'saved' }; } catch (_) {}
-    try { var g = (localStorage.getItem('cbw_geo') || '').toLowerCase(); if (GEO[g]) return { slug: GEO[g], src: 'auto' }; } catch (_) {}
-    return { slug: 'global', src: 'fallback' };
-  }
-
-  function apply(slug, src) {
-    if (SLUGS.indexOf(slug) === -1) slug = 'global';
-    var meta = META.find(function (m) { return m.slug === slug; });
-    if (!meta) return;
-    var h1 = document.getElementById('hp-hero-h1');
-    if (h1) h1.textContent = meta.headline;
-    var status = document.getElementById('hp-geo-status');
-    if (status) {
-      status.textContent =
-        src === 'auto' ? 'Auto-detected: ' + meta.label :
-        src === 'fallback' ? 'Region: Global' : 'Your choice: ' + meta.label;
-    }
-    var panels = document.querySelectorAll('.gf-panel');
-    for (var i = 0; i < panels.length; i++) {
-      panels[i].hidden = panels[i].getAttribute('data-country') !== slug;
-    }
-    var sel = document.getElementById('hp-hero-country');
-    if (sel && sel.value !== slug) sel.value = slug;
-  }
-
-  var init = detect();
-  apply(init.slug, init.src);
-
-  var sel = document.getElementById('hp-hero-country');
-  if (sel) {
-    sel.addEventListener('change', function () {
-      apply(sel.value, 'manual');
-      try { localStorage.setItem(KEY, sel.value); } catch (_) {}
-    });
-  }
-})();
-</script>
-
 <style>
   /* ── Width utilities ─────────────────────────────────────────── */
   .hp-text-wrap      { max-width: var(--cbw-prose-max, 800px); margin: 0 auto; padding: 0 20px; box-sizing: border-box; }
@@ -360,35 +273,4 @@ const faqSchema = {
 
   /* ── Shared section header sizing within text-width sections ──── */
   #guide .section-sub, #faq .section-sub { max-width: none; }
-
-  /* ── Site-hero GEO panel (right column of the homepage hero) ──── */
-  .hp-geo-panel {
-    box-sizing: border-box; width: 100%;
-    background: rgba(7, 24, 48, 0.86);
-    border: 1px solid rgba(148, 163, 184, 0.28);
-    border-radius: 12px; padding: 16px 18px;
-    color: #fff; backdrop-filter: blur(3px);
-  }
-  .hp-geo-status { display: flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 700; margin-bottom: 10px; }
-  .hp-geo-dot { width: 8px; height: 8px; border-radius: 50%; background: #34D27B; box-shadow: 0 0 0 3px rgba(52, 210, 123, .22); }
-  .hp-geo-fields { display: flex; gap: 8px; margin-bottom: 9px; }
-  .hp-geo-field {
-    flex: 1; min-width: 0; box-sizing: border-box;
-    display: flex; flex-direction: column; gap: 2px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    border-radius: 8px; padding: 5px 9px 6px;
-  }
-  .hp-geo-label { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: #8FA5C4; }
-  .hp-geo-field select {
-    border: none; background: transparent; color: #fff;
-    font-family: inherit; font-size: 13px; font-weight: 600;
-    padding: 0; cursor: pointer; outline: none; width: 100%; min-height: 22px;
-  }
-  .hp-geo-field select:focus-visible { outline: 2px solid #F7931A; outline-offset: 2px; border-radius: 3px; }
-  .hp-geo-field select option { color: #111827; }
-  .hp-geo-lang { font-size: 13px; font-weight: 600; color: #fff; line-height: 22px; }
-  .hp-geo-note { font-size: 11.5px; line-height: 1.5; color: #8FA5C4; margin: 0; }
-  .hp-geo-note b { color: #D7E1F0; }
-  @media (max-width: 639px) { .hp-geo-panel { padding: 12px 14px; } }
 </style>

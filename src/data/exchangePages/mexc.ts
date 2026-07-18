@@ -19,8 +19,6 @@ export const mexcConfig: ExchangePromoPageConfig = {
   ogImage: '/media/exchanges/mexc/final/mexc-og-final-v3-1200x630.jpg',
   heroBackgroundImg: '/media/hero-backgrounds/mexc-hero-custom-v1.png',
   heroBackgroundPosition: 'center center',
-  // ≤640px focal: planet rim lower-left + galaxy glow upper-right diagonal
-  heroBackgroundPositionMobile: '30% center',
   logoImg: '/logos/mexc.png',
 
   // ─── Commercial ──────────────────────────────────────────────

@@ -65,11 +65,7 @@ export interface ExchangePromoPageConfig {
   articleImg: string;
   ogImage: string;
   heroBackgroundImg: string;
-  heroBackgroundPosition?: string; // default 'left center' (desktop focal)
-  /** Presentation-only responsive focal points for the hero artwork —
-      never store factual offer data here. Fallback: mobile → tablet → desktop. */
-  heroBackgroundPositionTablet?: string; // 641–1023px focal
-  heroBackgroundPositionMobile?: string; // ≤640px focal (per-artwork, not generic)
+  heroBackgroundPosition?: string; // default 'left center'
   logoImg: string;
 
   // ─── Commercial ─────────────────────────────────────────────

@@ -20,8 +20,6 @@
 
 import type { ExchangePromoPageConfig } from '../../data/exchangePages/types';
 import ExchangePromoLogoSlot from '../ExchangePromoLogoSlot.astro';
-import ExchangeReviewHero from './ExchangeReviewHero.astro';
-import { getOffer } from '../../data/offers';
 
 export interface Props {
   config: ExchangePromoPageConfig;
@@ -65,10 +63,6 @@ const faqSchema = {
 };
 
 const bonusMaxFmt = c.bonusMax.toLocaleString('en-US');
-
-// Approved offer headline for the unified hero (registry-backed; falls back
-// to the config's own bonus facts — never invented).
-const heroBonusHeadline = getOffer(c.slug)?.bonusHeadline ?? `Up to ${bonusMaxFmt} ${c.currency}`;
 ---
 
 <style define:vars={{
@@ -518,28 +512,32 @@ const heroBonusHeadline = getOffer(c.slug)?.bonusHeadline ?? `Up to ${bonusMaxFm
   }
 </style>
 
-<!-- BLOCKS 1+2 — UNIFIED EXCHANGE REVIEW HERO (2026-07 site hero system).
-     H1 lives inside the hero (old white title-bar removed); factory artwork
-     and brand gradient preserved from the config; code via shared
-     PromoCodeCopy; CTA keeps the approved outbound behavior. -->
-<ExchangeReviewHero
-  name={c.name}
-  heroBackgroundImg={c.heroBackgroundImg}
-  heroBackgroundPosition={c.heroBackgroundPosition}
-  heroBackgroundPositionTablet={c.heroBackgroundPositionTablet}
-  heroBackgroundPositionMobile={c.heroBackgroundPositionMobile}
-  bgFrom={c.heroTokens.bgFrom}
-  bgTo={c.heroTokens.bgTo}
-  wordmarkImg={c.wordmarkImg}
-  logoVisualScale={c.logoVisualScale ?? 1}
-  promoLabel={c.heroPromoLabel}
-  promoCode={c.promoCode}
-  bonusHeadline={heroBonusHeadline}
-  lastChecked={c.lastChecked}
-  sourceUrl={c.sourceUrl}
-  officialDomain={c.officialDomain}
-  affiliateUrl={c.affiliateUrl}
-/>
+<!-- BLOCK 1 — TITLE BAR -->
+<div class="title-bar">
+  <h1>{c.name} Referral Code</h1>
+</div>
+
+<!-- BLOCK 2 — BRAND HERO (top) -->
+<section class="brand-hero" style={bhStyle}>
+  <div class="bh-inner">
+    <a href={c.affiliateUrl} target="_blank" rel="noopener noreferrer sponsored" aria-label={`Get ${c.name} bonus`} style="display:block;line-height:0;">
+      <ExchangePromoLogoSlot
+        src={c.wordmarkImg}
+        alt={c.name}
+        mode="clean"
+        visualScale={c.logoVisualScale ?? 1}
+        fetchpriority="high"
+      />
+    </a>
+    <p class="bh-promo-label">{c.heroPromoLabel}</p>
+    <div class="bh-promo-row">
+      <span class="bh-promo-code">{c.promoCode}</span>
+      <button class="bh-copy-btn" id="copy-btn-hero" type="button">Copy</button>
+    </div>
+    <a href={c.affiliateUrl} class="bh-cta-btn" target="_blank" rel="noopener noreferrer sponsored">Get Bonus</a>
+    <p class="bh-source">Verified {c.lastChecked} on <a href={c.sourceUrl} target="_blank" rel="noopener noreferrer nofollow">{c.officialDomain}</a></p>
+  </div>
+</section>
 
 <!-- BLOCK 3 — COMPACT FACTS TABLE -->
 <div class="compact-facts">
