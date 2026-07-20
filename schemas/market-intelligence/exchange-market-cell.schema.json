@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CBW Exchange Market Cell",
+  "type": "object",
+  "required": [
+    "exchangeId",
+    "countryCode",
+    "overallAvailability",
+    "registrationStatus",
+    "productStatuses",
+    "rankingEligibility",
+    "ctaEligibility",
+    "confidence",
+    "checkedDate",
+    "sourceIds"
+  ],
+  "properties": {
+    "exchangeId": {
+      "type": "string"
+    },
+    "countryCode": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 2
+    },
+    "exchangeLegalEntity": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "overallAvailability": {
+      "enum": [
+        "AVAILABLE",
+        "AVAILABLE_WITH_LIMITS",
+        "RESTRICTED",
+        "UNAVAILABLE",
+        "UNDER_REVIEW",
+        "CONFLICTING",
+        "UNKNOWN",
+        "STALE"
+      ]
+    },
+    "registrationStatus": {
+      "type": "string"
+    },
+    "productStatuses": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "rankingEligibility": {
+      "type": "boolean"
+    },
+    "ctaEligibility": {
+      "type": "boolean"
+    },
+    "promoEligibility": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "confidence": {
+      "enum": [
+        "LOW",
+        "MEDIUM",
+        "HIGH"
+      ]
+    },
+    "freshness": {
+      "enum": [
+        "CURRENT",
+        "DUE_SOON",
+        "STALE",
+        "UNDER_REVIEW",
+        "CONFLICTING"
+      ]
+    },
+    "checkedDate": {
+      "type": "string",
+      "format": "date"
+    },
+    "nextReviewDate": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date"
+    },
+    "reasonCodes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "sourceIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "conflictIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "alternativeExchangeIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "liveVerificationState": {
+      "enum": [
+        "LIVE_VERIFIED",
+        "NOT_LIVE_VERIFIED",
+        "NOT_APPLICABLE",
+        "UNKNOWN"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

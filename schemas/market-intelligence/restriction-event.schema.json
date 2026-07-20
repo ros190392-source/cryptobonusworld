@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CBW Restriction Event",
+  "type": "object",
+  "required": [
+    "eventId",
+    "exchangeId",
+    "countryCode",
+    "eventType",
+    "detectedDate",
+    "sourceIds",
+    "reviewStatus"
+  ],
+  "properties": {
+    "eventId": {
+      "type": "string"
+    },
+    "exchangeId": {
+      "type": "string"
+    },
+    "countryCode": {
+      "type": "string"
+    },
+    "eventType": {
+      "type": "string"
+    },
+    "productScope": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "detectedDate": {
+      "type": "string",
+      "format": "date"
+    },
+    "effectiveDate": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "previousState": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "newState": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "sourceIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "confidence": {
+      "enum": [
+        "LOW",
+        "MEDIUM",
+        "HIGH"
+      ]
+    },
+    "reviewStatus": {
+      "enum": [
+        "PROPOSED",
+        "UNDER_REVIEW",
+        "APPROVED",
+        "REJECTED",
+        "SUPERSEDED"
+      ]
+    },
+    "affectedCells": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "affectedPages": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": false
+}

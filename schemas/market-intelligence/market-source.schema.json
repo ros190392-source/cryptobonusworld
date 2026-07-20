@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CBW Market Intelligence Source",
+  "type": "object",
+  "required": [
+    "sourceId",
+    "url",
+    "sourceTier",
+    "publisher",
+    "retrievedDate",
+    "status"
+  ],
+  "properties": {
+    "sourceId": {
+      "type": "string"
+    },
+    "exchangeId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "countryCode": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "productScope": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "claimType": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "url": {
+      "type": "string"
+    },
+    "sourceTier": {
+      "enum": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ]
+    },
+    "publisher": {
+      "type": "string"
+    },
+    "title": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "publishedDate": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "updatedDate": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "retrievedDate": {
+      "type": "string",
+      "format": "date"
+    },
+    "effectiveFrom": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "effectiveTo": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "language": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "contentHash": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "evidenceSummary": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "quotedClaim": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "captureType": {
+      "enum": [
+        "HTML",
+        "PDF",
+        "SCREENSHOT",
+        "API",
+        "DATASET",
+        "MANUAL_BROWSER",
+        "NEWS"
+      ]
+    },
+    "status": {
+      "enum": [
+        "ACTIVE",
+        "MOVED",
+        "REMOVED",
+        "SUPERSEDED",
+        "BLOCKED",
+        "STALE"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

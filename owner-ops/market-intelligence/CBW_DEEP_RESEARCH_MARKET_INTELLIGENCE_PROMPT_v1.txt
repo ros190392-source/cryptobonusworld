@@ -1,0 +1,71 @@
+START DEEP RESEARCH:
+
+CBW COUNTRY EXCHANGE MARKET INTELLIGENCE RUN
+
+COUNTRY:
+{COUNTRY_NAME}
+
+COUNTRY CODE:
+{COUNTRY_CODE}
+
+EXCHANGE UNIVERSE:
+Use the canonical CBW exchange identity registry. Target all meaningful global and local exchanges, up to approximately 200.
+
+OBJECTIVE:
+
+Build a structured evidence package for every exchange relevant to this country.
+
+FOR EACH EXCHANGE RESEARCH:
+
+- registration eligibility;
+- residency exclusions;
+- KYC;
+- spot;
+- derivatives;
+- margin/options;
+- P2P;
+- local fiat;
+- bank/card/payment rails;
+- app availability;
+- support language;
+- regulation/license/warnings;
+- sanctions relevance;
+- promo eligibility;
+- CTA eligibility;
+- fees and limits;
+- checked date;
+- confidence;
+- conflicts;
+- source IDs;
+- alternatives.
+
+SOURCE PRIORITY:
+
+1. regulator/license/sanctions official sources;
+2. exchange terms/restricted-region/help/product/fee pages;
+3. official app stores, banks and payment rails;
+4. reputable news for event discovery;
+5. community only for discovery/usability signals.
+
+Do not infer availability from website access.
+Do not use VPN/proxy/KYC bypass.
+Mark unverified local behavior NOT_LIVE_VERIFIED or UNKNOWN.
+
+RETURN FILES:
+
+research-run.json
+exchange-universe.json
+country-exchange-cells.json
+source-registry.json
+claim-ledger.json
+restriction-events.json
+fee-records.json
+conflicts.json
+ranking-candidates.json
+publication-blockers.json
+monitoring-targets.json
+research-report.md
+
+Do not return only prose.
+Do not publish.
+Do not change rankings or affiliate facts.
