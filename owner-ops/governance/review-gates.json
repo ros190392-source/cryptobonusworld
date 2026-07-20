@@ -1,0 +1,70 @@
+{
+  "version": "1.0",
+  "gates": [
+    {
+      "id": "G01",
+      "name": "Product intent",
+      "owner": "R01"
+    },
+    {
+      "id": "G02",
+      "name": "Research and evidence",
+      "owner": "R06"
+    },
+    {
+      "id": "G03",
+      "name": "Design-system consistency",
+      "owner": "R02"
+    },
+    {
+      "id": "G04",
+      "name": "Technical SEO",
+      "owner": "R03"
+    },
+    {
+      "id": "G05",
+      "name": "AI-answer structure",
+      "owner": "R04"
+    },
+    {
+      "id": "G06",
+      "name": "Editorial quality",
+      "owner": "R05"
+    },
+    {
+      "id": "G07",
+      "name": "Mobile parity",
+      "owner": "R07"
+    },
+    {
+      "id": "G08",
+      "name": "Accessibility",
+      "owner": "R07"
+    },
+    {
+      "id": "G09",
+      "name": "Performance",
+      "owner": "R08"
+    },
+    {
+      "id": "G10",
+      "name": "Structured-data honesty",
+      "owner": "R03"
+    },
+    {
+      "id": "G11",
+      "name": "Commercial/compliance safety",
+      "owner": "R09"
+    },
+    {
+      "id": "G12",
+      "name": "Preview/noindex QA",
+      "owner": "R10"
+    },
+    {
+      "id": "G13",
+      "name": "Owner approval",
+      "owner": "OWNER"
+    }
+  ]
+}

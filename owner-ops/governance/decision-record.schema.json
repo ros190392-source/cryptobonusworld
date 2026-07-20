@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CBW Council Decision Record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "decisionId",
+    "date",
+    "scope",
+    "problem",
+    "rolesConsulted",
+    "decision",
+    "ownerApproval",
+    "nextReviewDate"
+  ],
+  "properties": {
+    "decisionId": {
+      "type": "string"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "scope": {
+      "type": "string"
+    },
+    "problem": {
+      "type": "string"
+    },
+    "options": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "rolesConsulted": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "evidenceReviewed": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "seoImpact": {
+      "type": "string"
+    },
+    "aiAnswerImpact": {
+      "type": "string"
+    },
+    "editorialImpact": {
+      "type": "string"
+    },
+    "mobileAccessibilityImpact": {
+      "type": "string"
+    },
+    "performanceImpact": {
+      "type": "string"
+    },
+    "complianceImpact": {
+      "type": "string"
+    },
+    "implementationImpact": {
+      "type": "string"
+    },
+    "decision": {
+      "type": "string"
+    },
+    "rejectedAlternatives": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "ownerApproval": {
+      "type": "boolean"
+    },
+    "nextReviewDate": {
+      "type": "string",
+      "format": "date"
+    },
+    "affectedFilesPages": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

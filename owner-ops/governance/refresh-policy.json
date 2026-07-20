@@ -1,0 +1,54 @@
+{
+  "version": "1.0",
+  "weekly": {
+    "owners": [
+      "R03",
+      "R04",
+      "R06",
+      "R09"
+    ],
+    "output": "reports/governance/weekly/YYYY-MM-DD-search-ai-weekly.md",
+    "auto_publish": false
+  },
+  "monthly": {
+    "owners": [
+      "R01",
+      "R02",
+      "R03",
+      "R04",
+      "R05",
+      "R06",
+      "R07",
+      "R08",
+      "R09",
+      "R10"
+    ],
+    "output": "reports/governance/monthly/YYYY-MM-product-health.md"
+  },
+  "quarterly": {
+    "owners": [
+      "R01",
+      "R02",
+      "R03",
+      "R04",
+      "R05",
+      "R06",
+      "R07",
+      "R08",
+      "R09",
+      "R10"
+    ],
+    "output": "reports/governance/quarterly/YYYY-QN-standards-refresh.md"
+  },
+  "event_triggers": [
+    "GOOGLE_CORE_UPDATE",
+    "GOOGLE_SPAM_UPDATE",
+    "AI_SEARCH_FEATURE_CHANGE",
+    "STRUCTURED_DATA_CHANGE",
+    "REGULATOR_CHANGE",
+    "EXCHANGE_TERMS_CHANGE",
+    "MAJOR_TRAFFIC_DROP",
+    "FRAMEWORK_OR_BROWSER_CHANGE",
+    "OWNER_ARCHITECTURE_CHANGE"
+  ]
+}

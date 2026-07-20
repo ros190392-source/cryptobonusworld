@@ -1,0 +1,55 @@
+{
+  "version": "1.0",
+  "baseline_date": "2026-07-20",
+  "project": "CryptoBonusWorld",
+  "roles": [
+    {
+      "id": "R01",
+      "name": "Lead Product Designer"
+    },
+    {
+      "id": "R02",
+      "name": "Design-System Architect"
+    },
+    {
+      "id": "R03",
+      "name": "Technical SEO Architect"
+    },
+    {
+      "id": "R04",
+      "name": "AI Search / Answer Optimization Architect"
+    },
+    {
+      "id": "R05",
+      "name": "Editor-in-Chief / Content Architect"
+    },
+    {
+      "id": "R06",
+      "name": "GEO Research Lead"
+    },
+    {
+      "id": "R07",
+      "name": "Mobile & Accessibility Lead"
+    },
+    {
+      "id": "R08",
+      "name": "Performance Engineer"
+    },
+    {
+      "id": "R09",
+      "name": "Affiliate & Compliance Reviewer"
+    },
+    {
+      "id": "R10",
+      "name": "Frontend Implementation Architect"
+    }
+  ],
+  "freshness_states": [
+    "CURRENT",
+    "DUE_SOON",
+    "STALE",
+    "SUPERSEDED",
+    "UNDER_REVIEW",
+    "CONFLICTING"
+  ]
+}

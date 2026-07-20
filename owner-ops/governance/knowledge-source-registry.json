@@ -1,0 +1,158 @@
+{
+  "version": "1.0",
+  "baseline_date": "2026-07-20",
+  "sources": [
+    {
+      "id": "google-ai-features",
+      "roles": [
+        "R03",
+        "R04"
+      ],
+      "tier": "A",
+      "url": "https://developers.google.com/search/docs/appearance/ai-features",
+      "cadence": "WEEKLY"
+    },
+    {
+      "id": "google-ai-optimization",
+      "roles": [
+        "R03",
+        "R04"
+      ],
+      "tier": "A",
+      "url": "https://developers.google.com/search/docs/fundamentals/ai-optimization-guide",
+      "cadence": "WEEKLY"
+    },
+    {
+      "id": "google-spam-policies",
+      "roles": [
+        "R03",
+        "R05"
+      ],
+      "tier": "A",
+      "url": "https://developers.google.com/search/docs/essentials/spam-policies",
+      "cadence": "WEEKLY"
+    },
+    {
+      "id": "google-localized",
+      "roles": [
+        "R03",
+        "R06"
+      ],
+      "tier": "A",
+      "url": "https://developers.google.com/search/docs/specialty/international/localized-versions",
+      "cadence": "MONTHLY"
+    },
+    {
+      "id": "google-locale-adaptive",
+      "roles": [
+        "R03",
+        "R06"
+      ],
+      "tier": "A",
+      "url": "https://developers.google.com/search/docs/specialty/international/locale-adaptive-pages",
+      "cadence": "MONTHLY"
+    },
+    {
+      "id": "google-structured-data",
+      "roles": [
+        "R03",
+        "R04"
+      ],
+      "tier": "A",
+      "url": "https://developers.google.com/search/docs/appearance/structured-data/sd-policies",
+      "cadence": "MONTHLY"
+    },
+    {
+      "id": "google-mobile-first",
+      "roles": [
+        "R03",
+        "R07"
+      ],
+      "tier": "A",
+      "url": "https://developers.google.com/search/docs/crawling-indexing/mobile/mobile-sites-mobile-first-indexing",
+      "cadence": "MONTHLY"
+    },
+    {
+      "id": "google-images",
+      "roles": [
+        "R02",
+        "R03",
+        "R04"
+      ],
+      "tier": "A",
+      "url": "https://developers.google.com/search/docs/appearance/google-images",
+      "cadence": "MONTHLY"
+    },
+    {
+      "id": "web-vitals",
+      "roles": [
+        "R08",
+        "R10"
+      ],
+      "tier": "A",
+      "url": "https://web.dev/articles/vitals",
+      "cadence": "MONTHLY"
+    },
+    {
+      "id": "wcag22",
+      "roles": [
+        "R07",
+        "R10"
+      ],
+      "tier": "A",
+      "url": "https://www.w3.org/TR/WCAG22/",
+      "cadence": "QUARTERLY"
+    },
+    {
+      "id": "wcag30-watch",
+      "roles": [
+        "R07"
+      ],
+      "tier": "A",
+      "url": "https://www.w3.org/TR/wcag-3.0/",
+      "cadence": "QUARTERLY",
+      "status": "DRAFT_WATCH_ONLY"
+    },
+    {
+      "id": "openai-deep-research",
+      "roles": [
+        "R04",
+        "R06",
+        "R10"
+      ],
+      "tier": "A",
+      "url": "https://developers.openai.com/api/docs/guides/deep-research",
+      "cadence": "MONTHLY"
+    },
+    {
+      "id": "openai-web-search",
+      "roles": [
+        "R04",
+        "R10"
+      ],
+      "tier": "A",
+      "url": "https://developers.openai.com/api/docs/guides/tools-web-search",
+      "cadence": "MONTHLY"
+    },
+    {
+      "id": "openai-file-search",
+      "roles": [
+        "R04",
+        "R10"
+      ],
+      "tier": "A",
+      "url": "https://developers.openai.com/api/docs/guides/tools-file-search",
+      "cadence": "MONTHLY"
+    },
+    {
+      "id": "indexnow",
+      "roles": [
+        "R03",
+        "R10"
+      ],
+      "tier": "A",
+      "url": "https://www.indexnow.org/documentation",
+      "cadence": "QUARTERLY"
+    }
+  ]
+}
