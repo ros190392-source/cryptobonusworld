@@ -1,0 +1,170 @@
+{
+  "decisionId": "CBW-KZ-BYBIT-P0A-CANDIDATE-OWNER-REVIEW-v1",
+  "taskId": "CBW-KZ-BYBIT-P0A-CANDIDATE-OWNER-REVIEW-001",
+  "project": "CryptoBonusWorld",
+  "repository": "C:/projects/CryptoBonusWorld",
+  "branch": "master",
+  "head": "0fa0791b4a5255b662ed67cf6df6033ed53a55cd",
+  "date": "2026-07-21",
+  "countryCode": "KZ",
+  "exchangeId": "bybit",
+  "batchId": "KZ-P0-A",
+  "mode": "READ_ONLY_REVIEW + OWNER_DECISION_RECORD",
+  "status": "OWNER_APPROVED_DECISION_RECORD",
+  "stagingRef": {
+    "dir": "research/market-intelligence/staging/kz/bybit/p0a-v1",
+    "reproducible": true,
+    "checkResult": "CHECK OK (regeneration byte-identical)",
+    "packageStatus": "RECOVERED / UNVERIFIED"
+  },
+
+  "sourceReview": {
+    "count": 43, "tierA": 8, "tierB": 32, "tierC": 3,
+    "duplicateSourceIds": 0,
+    "unsupportedStatus": 0, "statusValues": ["ACTIVE"],
+    "unsupportedCaptureType": 0, "captureTypeValues": ["HTML"],
+    "extraFieldsBeyondMarketSourceSchema": "NONE",
+    "confidenceAndLimitationsPreservedInQa": true,
+    "verificationStatePreservedInQa": true,
+    "supplementalDistinguishable": true, "supplementalCount": 4,
+    "activeDerivedFromCurrentStatusNotReviewed": true,
+    "result": "PASS"
+  },
+
+  "linkageReview": {
+    "count": 77, "duplicateLinkIds": 0,
+    "allClaimIdsResolve": true, "allSourceIdsResolve": true,
+    "relationshipValues": ["SUPPORTS", "LIMITS", "CONTRADICTS", "CONTEXT"],
+    "contradictsAllForOffer002": true,
+    "contradictsSources": ["src-kz-bybit-011", "src-kz-bybit-031", "sup-kz-bybit-001", "sup-kz-bybit-003"],
+    "contextLinksNotTreatedAsSupport": true,
+    "contextLinks": [["clm-kz-bybit-derivatives-001", "src-kz-bybit-025"], ["clm-kz-bybit-kyc-001", "src-kz-bybit-013"], ["clm-kz-bybit-kyc-002", "src-kz-bybit-013"]],
+    "correctedClaimsRetainOriginalProvenance": true,
+    "result": "PASS"
+  },
+
+  "correctionReview": {
+    "count": 4,
+    "claims": ["clm-kz-bybit-entity-003", "clm-kz-bybit-registration-002", "clm-kz-bybit-offer-001", "clm-kz-bybit-offer-002"],
+    "originalTextPreservedInProvenance": true,
+    "correctedTextSeparatelyRepresented": true,
+    "offer002OriginalProposedStatus": "UNKNOWN",
+    "offer002CurrentState": "CONTRADICTED",
+    "amountsSeparate": { "localReferralUpToUsdt": 1032, "kazakhstanCampaignPrizePoolUsdt": 2500, "combined": false, "isGlobalMaximum": false },
+    "promoEligibility": false, "ctaEligibility": false,
+    "result": "PASS"
+  },
+
+  "conflictReview": {
+    "cf-kz-bybit-001": { "status": "PARTIALLY_RESOLVED", "autoResolved": false, "ownerReviewRequired": true, "routingMatrix": "n/a (segment conflict; per-segment reviewedResolution preserved)", "unresolvedEvidenceVisible": true },
+    "cf-kz-bybit-002": { "status": "PARTIALLY_RESOLVED", "autoResolved": false, "ownerReviewRequired": true, "routingMatrixPreserved": true, "unresolvedEvidenceVisible": true },
+    "neitherFlattenedIntoAvailable": true,
+    "result": "PASS"
+  },
+
+  "productStatusDecisions": {
+    "overall": "AVAILABLE_WITH_LIMITS",
+    "presentation": { "primaryVisualState": "GREEN", "label": "Available", "secondaryLimitationIndicator": "AMBER", "secondaryLabel": "Some limits apply" },
+    "perProduct": [
+      { "product": "registration", "status": "AVAILABLE_WITH_LIMITS", "ownerVerdict": "APPROVED", "note": "Confirmed local registration; residency/citizenship scope partial (cf-001)." },
+      { "product": "kyc", "status": "AVAILABLE_WITH_LIMITS", "ownerVerdict": "APPROVED", "note": "Mandatory KYC; document scope differs individual vs business." },
+      { "product": "spot", "status": "AVAILABLE", "ownerVerdict": "APPROVED", "note": "Spot confirmed on local materials." },
+      { "product": "derivatives", "status": "AVAILABLE_WITH_LIMITS", "ownerVerdict": "APPROVED", "note": "Perps/expiry/options confirmed; KYC/region conditions." },
+      { "product": "margin", "status": "AVAILABLE_WITH_LIMITS", "ownerVerdict": "APPROVED", "note": "Risk-tier limits; not isolated for spot margin." },
+      { "product": "p2p", "status": "AVAILABLE_WITH_LIMITS", "ownerVerdict": "APPROVED", "note": "Available but KYC-required; conservative vs ECF AVAILABLE, accepted." },
+      { "product": "kzt_p2p", "status": "AVAILABLE", "ownerVerdict": "APPROVED", "note": "Dedicated KZT P2P market page confirmed." },
+      { "product": "direct_kzt_deposit", "status": "AVAILABLE_WITH_LIMITS", "ownerVerdict": "APPROVED", "note": "KZT bank transfer; identity-bound (IIN/BIN, no third-party); conservative accepted." },
+      { "product": "direct_kzt_withdrawal", "status": "AVAILABLE_WITH_LIMITS", "ownerVerdict": "APPROVED", "note": "KZT bank transfer/IBAN; identity-bound; conservative accepted." },
+      { "product": "bank_card_purchase", "status": "CONFLICTING", "ownerVerdict": "APPROVED", "note": "bybit.kz vs bybit.com routing unresolved (cf-002)." },
+      { "product": "bybit_card", "status": "AVAILABLE_WITH_LIMITS", "ownerVerdict": "APPROVED", "note": "Local AIFC card docs with supported-country/eligibility limits." },
+      { "product": "referral", "status": "UNKNOWN", "ownerVerdict": "APPROVED", "note": "Global referral-code compatibility unverified (offer-001)." },
+      { "product": "promotions", "status": "AVAILABLE_WITH_LIMITS", "ownerVerdict": "APPROVED", "note": "Local programs exist; campaign-specific; amounts separate; no CTA/promo." }
+    ],
+    "allApproved": true,
+    "result": "APPROVED"
+  },
+
+  "candidateShapeDecision": {
+    "inspected": true,
+    "currentShapeValidatesAgainstSchema": false,
+    "extraFieldsBeyondSchema": ["canonical", "futureRankingCandidate", "migration5Authorized", "offerAmounts", "presentation", "productStatusRationale", "productionEligible", "provenance", "recordState", "schemaNote", "schemaRef"],
+    "reason": "exchange-market-cell.schema.json is additionalProperties:false; the current candidate is a superset and does NOT validate. OPTION C (current shape) is therefore not permitted.",
+    "decision": "OPTION_A_WRAPPED_CANDIDATE",
+    "requiredShape": {
+      "candidateMetadata": {
+        "recordState": "CANDIDATE", "canonical": false, "productionEligible": false, "migration5Authorized": false,
+        "futureRankingCandidate": true, "presentation": "{GREEN primary / AMBER secondary}",
+        "productStatusRationale": "{per-product rationale}", "offerAmounts": "{1032/2500 separate}", "provenance": "{owner decision + package status}"
+      },
+      "cell": "exact exchange-market-cell.schema.json instance (schema-valid; additionalProperties respected): exchangeId, countryCode, exchangeLegalEntity, overallAvailability, registrationStatus, productStatuses, rankingEligibility, ctaEligibility, promoEligibility, confidence, freshness, checkedDate, nextReviewDate, reasonCodes, limitations, sourceIds, conflictIds, alternativeExchangeIds, liveVerificationState"
+    },
+    "appliedInThisTask": false,
+    "toBeAppliedBy": "a follow-up staging re-run (owner-gated) that emits exchange-market-cell.candidate.json in OPTION A shape; this review does not modify staging files."
+  },
+
+  "controlledDecisions": {
+    "productScope": {
+      "schema": "market-source.schema.json productScope = array of strings (multi-value allowed)",
+      "decision": "Populate productScope as an ARRAY derived deterministically from the claim categories of the claims each source supports (via claim-source links). No fabrication; multi-product sources retain ALL applicable scope tokens.",
+      "claimCategoryToScopeMap": {
+        "legal_entity": ["entity"], "jurisdiction": ["entity"], "regulation": ["regulation"],
+        "registration": ["registration"], "kyc": ["kyc"], "restrictions": ["restrictions"],
+        "spot": ["spot"], "derivatives": ["derivatives"], "margin_and_leverage": ["margin"],
+        "p2p": ["p2p"], "kzt_p2p": ["kzt_p2p"],
+        "direct_fiat_deposit": ["direct_kzt_deposit"], "direct_fiat_withdrawal": ["direct_kzt_withdrawal"],
+        "payments_restrictions": ["direct_kzt_deposit", "direct_kzt_withdrawal"],
+        "cards_and_bank_transfers": ["cards", "bank_card_purchase"], "cards": ["bybit_card", "cards"],
+        "earn": ["earn"], "other_products": ["other_products"], "applications": ["applications"],
+        "language_and_support": ["language_support"], "offer_eligibility": ["referral", "promotions"]
+      },
+      "rule": "productScope[source] = sorted union of tokens over categories of that source's supported claims; empty array if no verified supported claim."
+    },
+    "claimType": {
+      "schema": "market-source.schema.json claimType = string|null",
+      "decision": "DO NOT store claimType on normalized market-source records (a source supports multiple claim categories; forcing one is lossy). Represent claim relationship/category via the claim-source LINKAGE (relationship already present) and/or at later canonical claim creation.",
+      "marketSourceClaimType": null
+    },
+    "updatedDate": {
+      "decision": "CONFIRMED. Use an official page update date only when explicitly verified; otherwise null. Never substitute checkedDate/retrievedDate. No wall-clock inference.",
+      "currentStagingBehavior": "updatedDate=null for all 43 (no verified official metadata) — compliant."
+    },
+    "entityRouting": {
+      "decision": "Adopt preferred representation. Legal-entity + domain routing detail lives in source/claim/conflict provenance and the full routingMatrix stays in normalized-conflicts + qa-provenance. The exchange-market-cell (cell) stores only decision-relevant routing STATUS + reasonCodes + conflictIds; do NOT flatten multiple entities (Bybit Limited core platform vs affiliate stack vs unresolved global bank-card route) into a single legal entity on the cell.",
+      "cellCarries": ["overallAvailability", "productStatuses.bank_card_purchase=CONFLICTING", "reasonCodes", "conflictIds"],
+      "provenanceCarries": ["full routingMatrix (cf-002)", "legalEntityComparison", "per-service routing", "domain routing"]
+    }
+  },
+
+  "finalOwnerDecisions": {
+    "candidateWrapperShape": "OPTION_A_WRAPPED_CANDIDATE",
+    "productScopeMapping": "derived array from claim-category map (see controlledDecisions.productScope)",
+    "claimTypeTimingLocation": "linkage / later canonical creation; not on market-source records",
+    "updatedDatePolicy": "verified official metadata only, else null; never checkedDate/retrieval; no wall-clock",
+    "entityRoutingRepresentation": "provenance + conflict carry routing/entities; cell carries status + reasonCodes + conflictIds only",
+    "productStatuses": "all 13 APPROVED as proposed",
+    "overallStatus": "AVAILABLE_WITH_LIMITS",
+    "presentationSemantics": "GREEN primary Available + AMBER secondary Some limits apply",
+    "stagingCommitDecision": "APPROVE_AFTER_FIXES"
+  },
+
+  "stagingCommitDecision": {
+    "decision": "APPROVE_AFTER_FIXES",
+    "fixesRequiredBeforeCommit": [
+      "Restructure research/market-intelligence/staging/kz/bybit/p0a-v1/exchange-market-cell.candidate.json into OPTION A (candidateMetadata + schema-valid cell), so the embedded cell validates against exchange-market-cell.schema.json (additionalProperties:false)."
+    ],
+    "recordsApproveAsIs": ["normalized-sources.json", "claim-source-links.json", "qa-provenance.json", "normalized-conflicts.json", "transform-report.md", "import-manifest.json", "import-kz-bybit-p0a.mjs"],
+    "productScopeAndClaimTypeNote": "productScope/claimType controlled decisions are resolved here; applying them to normalized-sources (adding productScope arrays) is OPTIONAL for the OPTION A fix and may be folded into the same follow-up staging re-run.",
+    "canonicalImportAuthorized": false
+  },
+
+  "authorizationsWithheld": {
+    "stagingCommitted": false, "canonicalImportAuthorized": false, "miCellCreated": false,
+    "legacyPassportUpdated": false, "productionChangeAuthorized": false, "rankingEligibilityAuthorized": false,
+    "ctaEligibilityAuthorized": false, "promoEligibilityAuthorized": false, "migration5Authorized": false,
+    "stagingFilesModifiedThisTask": false
+  },
+
+  "recommendation": "NEEDS_FIXES",
+  "recommendationScope": "Staging import is internally correct and reproducible; the ONLY required fix is the OPTION A candidate-shape restructure so the embedded cell validates against the committed schema. All other records approved. Canonical import, MI cell, ranking/CTA/promo, and MIGRATION_5 remain BLOCKED.",
+  "nextTask": "CBW-KZ-BYBIT-P0A-CANDIDATE-RESHAPE-002 — owner-gated staging re-run that (a) emits exchange-market-cell.candidate.json in OPTION A (candidateMetadata + schema-valid cell), (b) optionally adds derived productScope arrays to normalized-sources per the approved map, keeping claimType off market-source records, then re-verifies determinism/--check. Still staging-only; canonical import, MI cell, ranking/CTA/promo, and MIGRATION_5 remain separate later owner-gated tasks."
+}
