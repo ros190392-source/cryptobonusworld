@@ -1,0 +1,338 @@
+{
+  "decisionId": "CBW-MI-GEO-MIG4-KZ-OWNER-DECISION-v1",
+  "project": "CryptoBonusWorld",
+  "countryCode": "KZ",
+  "migrationPhase": "MIGRATION_4",
+  "status": "OWNER_APPROVED_DECISION_RECORD",
+  "ownerApproved": true,
+  "ownerApprovalScope": "DECISION_RECORD_ONLY (not council approval, not production approval, not publication approval, not MIGRATION_5 approval)",
+  "productionChangeAuthorized": false,
+  "rankingIntegrationAuthorized": false,
+  "routeActivationAuthorized": false,
+  "deepPassportPublicationAuthorized": false,
+  "productionRemainsAuthoritative": true,
+  "EnglishOnly": true,
+  "affiliateInfluencesDecision": false,
+  "noProxyMode": true,
+  "sourceCommits": {
+    "MIGRATION_0": "967fcebcbf1357b41aed002341c4a050621a8d8e",
+    "MIGRATION_1": "5fa3685a09c65d473b99df0acd076a648a321179",
+    "MIGRATION_2": "56208c73104bf8ca0971dee38de9cc8109976caa",
+    "MIGRATION_3A": "bbe53fc1531685527998600be7ab10e8cd207829",
+    "MIGRATION_3B": "c8e7d052d4febe89363eb61b39e51ff69b295f55"
+  },
+  "snapshotRef": {
+    "path": "owner-ops/market-intelligence/snapshots/production-geo-availability-kz.json",
+    "sourcePath": "src/data/geoRankings.ts",
+    "sourceSha256": "75a360ccbe1d61af0fccd500b13545ac1ec3ea0ffccc755243aa7cfda456d343",
+    "sourceHashMatchesAtDecision": true
+  },
+  "discrepancyToolRef": {
+    "path": "scripts/market-intelligence/mi-geo-discrepancy-report.mjs",
+    "invocation": "node scripts/market-intelligence/mi-geo-discrepancy-report.mjs --country KZ --dry-run --format json",
+    "discrepancyJsonSha256": "676678d2b3e9c35bba7512e3fdef1b13476e895b4c855d2ec62cf8384bf47940",
+    "note": "This decision corresponds to the exact discrepancy run above. If snapshot.sourceSha256 or discrepancyJsonSha256 drifts, this decision record no longer applies and MIGRATION_4 must be re-issued."
+  },
+  "discrepancySummary": {
+    "exchangeCount": 6,
+    "MATCH": 3,
+    "LEGACY_MORE_PERMISSIVE": 1,
+    "MI_MORE_PERMISSIVE": 0,
+    "INCOMPARABLE": 2,
+    "MISSING_PRODUCTION": 0,
+    "MISSING_MI": 0,
+    "NO_ACTION_SHADOW": 1,
+    "HOLD_CONFLICTING": 2,
+    "HOLD_REVIEW": 1,
+    "NEEDS_EVIDENCE": 2,
+    "BLOCK_MIGRATION": 0
+  },
+  "exchangeDecisions": [
+    {
+      "exchangeId": "bybit",
+      "productionAvailability": "available",
+      "miAvailability": "UNKNOWN",
+      "comparisonState": "LEGACY_MORE_PERMISSIVE",
+      "shadowOutcome": "HOLD_REVIEW",
+      "ownerDecision": [
+        "keep current production behavior unchanged",
+        "do not migrate the production availability into the canonical MI cell yet",
+        "do not treat the current production state as fully evidence-complete",
+        "require additional official Kazakhstan-specific evidence",
+        "future noindex Bybit x Kazakhstan Deep Passport remains blocked from factual implementation until the evidence package is reviewed",
+        "visual prototype may remain approved as illustrative only (not factual publication approval)"
+      ],
+      "rankingIntegrationState": "BLOCKED",
+      "ctaState": "NO_KZ_SPECIFIC_CTA",
+      "promoState": "NOT_AUTHORIZED_KZ",
+      "researchPriority": "P0",
+      "requiredEvidence": [
+        "official registration eligibility for Kazakhstan residents",
+        "official restricted-country or terms evidence",
+        "Kazakhstan product availability",
+        "KYC eligibility",
+        "spot availability",
+        "derivatives availability",
+        "P2P availability",
+        "KZT support",
+        "local fiat versus P2P distinction",
+        "local offer eligibility",
+        "checked date and confidence",
+        "official source IDs"
+      ],
+      "nextAction": "Capture and review the official Kazakhstan-specific evidence package above before creating any canonical MI cell; do not raise production above 'available' and do not lower it in this phase."
+    },
+    {
+      "exchangeId": "mexc",
+      "productionAvailability": "unknown",
+      "miAvailability": "CONFLICTING",
+      "comparisonState": "INCOMPARABLE",
+      "shadowOutcome": "HOLD_CONFLICTING",
+      "ownerDecision": [
+        "keep production unchanged",
+        "do not rank as verified available",
+        "do not activate a Kazakhstan-specific CTA based on this record",
+        "resolve regulator-versus-exchange-source conflict before migration"
+      ],
+      "rankingIntegrationState": "BLOCKED",
+      "ctaState": "NO_KZ_SPECIFIC_CTA",
+      "promoState": "NOT_AUTHORIZED_KZ",
+      "researchPriority": "P0",
+      "requiredEvidence": [
+        "current official exchange terms",
+        "official restricted-region policy",
+        "Kazakhstan regulator or warning evidence",
+        "registration and KYC eligibility",
+        "products available in Kazakhstan",
+        "conflict-resolution notes with source tiers and dates"
+      ],
+      "nextAction": "Resolve the AFSA-warning-vs-terms conflict (cf-kz-mexc-terms-vs-regulator) with tiered, dated official sources; if unresolved, explicitly retain availability as CONFLICTING."
+    },
+    {
+      "exchangeId": "okx",
+      "productionAvailability": "unknown",
+      "miAvailability": "CONFLICTING",
+      "comparisonState": "INCOMPARABLE",
+      "shadowOutcome": "HOLD_CONFLICTING",
+      "ownerDecision": [
+        "keep production unchanged",
+        "do not rank as verified available",
+        "do not activate a Kazakhstan-specific CTA based on this record",
+        "resolve official-source conflict before migration"
+      ],
+      "rankingIntegrationState": "BLOCKED",
+      "ctaState": "NO_KZ_SPECIFIC_CTA",
+      "promoState": "NOT_AUTHORIZED_KZ",
+      "researchPriority": "P0",
+      "requiredEvidence": [
+        "current official regional terms",
+        "restricted-country policy",
+        "Kazakhstan regulator evidence",
+        "registration and KYC eligibility",
+        "spot, derivatives, P2P and fiat status",
+        "conflict-resolution notes with source tiers and dates"
+      ],
+      "nextAction": "Resolve the AFSA-warning-vs-terms conflict (cf-kz-okx-terms-vs-regulator) with tiered, dated official sources; if unresolved, explicitly retain availability as CONFLICTING."
+    },
+    {
+      "exchangeId": "bitget",
+      "productionAvailability": "restricted",
+      "miAvailability": "RESTRICTED",
+      "comparisonState": "MATCH",
+      "shadowOutcome": "NO_ACTION_SHADOW",
+      "ownerDecision": [
+        "confirm RESTRICTED as the current migration candidate",
+        "keep production behavior unchanged",
+        "no Kazakhstan commercial CTA",
+        "no promo-code presentation on a Kazakhstan-specific page",
+        "alternatives may be shown",
+        "still require freshness validation before any MIGRATION_5 integration"
+      ],
+      "rankingIntegrationState": "CANDIDATE_PENDING_FRESHNESS",
+      "ctaState": "NO_KZ_CTA_RESTRICTED",
+      "promoState": "NOT_AUTHORIZED_KZ",
+      "researchPriority": "P1",
+      "requiredEvidence": [
+        "confirm the current restriction remains effective",
+        "record official source and checked date",
+        "confirm whether the restriction covers registration, KYC or specific products",
+        "define next recheck date"
+      ],
+      "nextAction": "Reconfirm the Bitget Terms-of-Use Prohibited-Countries restriction freshness and set an explicit next recheck date; RESTRICTED remains the only candidate and still requires a separate MIGRATION_5 GO."
+    },
+    {
+      "exchangeId": "kucoin",
+      "productionAvailability": "unknown",
+      "miAvailability": "UNKNOWN",
+      "comparisonState": "MATCH",
+      "shadowOutcome": "NEEDS_EVIDENCE",
+      "ownerDecision": [
+        "keep UNKNOWN",
+        "do not interpret agreement as proof of availability",
+        "do not rank as verified available",
+        "no Kazakhstan-specific commercial CTA until evidence exists"
+      ],
+      "rankingIntegrationState": "BLOCKED",
+      "ctaState": "NO_KZ_SPECIFIC_CTA",
+      "promoState": "NOT_AUTHORIZED_KZ",
+      "researchPriority": "P1",
+      "requiredEvidence": [
+        "official registration eligibility",
+        "KYC eligibility",
+        "restricted-region terms",
+        "products",
+        "P2P",
+        "KZT or local-payment support",
+        "current checked date and confidence"
+      ],
+      "nextAction": "Capture official Kazakhstan evidence; MATCH on UNKNOWN is agreement on absence of a claim, not confirmation — do not promote without official confirmation."
+    },
+    {
+      "exchangeId": "bingx",
+      "productionAvailability": "unknown",
+      "miAvailability": "UNKNOWN",
+      "comparisonState": "MATCH",
+      "shadowOutcome": "NEEDS_EVIDENCE",
+      "ownerDecision": [
+        "keep UNKNOWN",
+        "do not interpret agreement as proof of availability",
+        "do not rank as verified available",
+        "no Kazakhstan-specific commercial CTA until evidence exists"
+      ],
+      "rankingIntegrationState": "BLOCKED",
+      "ctaState": "NO_KZ_SPECIFIC_CTA",
+      "promoState": "NOT_AUTHORIZED_KZ",
+      "researchPriority": "P1",
+      "requiredEvidence": [
+        "official registration eligibility",
+        "KYC eligibility",
+        "restricted-region terms",
+        "products",
+        "P2P",
+        "KZT or local-payment support",
+        "current checked date and confidence"
+      ],
+      "nextAction": "Capture official Kazakhstan evidence; MATCH on UNKNOWN is agreement on absence of a claim, not confirmation — do not promote without official confirmation."
+    }
+  ],
+  "globalOwnerDecision": [
+    "current production GEO remains authoritative and unchanged",
+    "MIGRATION_4 approves no ranking integration",
+    "MIGRATION_5 remains BLOCKED",
+    "no CTA or promo state changes are authorized",
+    "no production availability changes are authorized",
+    "no public Country x Exchange route is authorized",
+    "no persisted canonical MI cells are authorized yet",
+    "no compiled matrix is authorized",
+    "no multilingual work is authorized",
+    "English only remains the current page-development policy",
+    "no proxy, VPN, local-IP simulation, KYC bypass or account automation is permitted",
+    "affiliate value remains irrelevant to ranking",
+    "visual prototype approval does not equal factual publication approval"
+  ],
+  "migration5Gate": {
+    "status": "BLOCKED",
+    "anyConditionPassedThisTask": false,
+    "conditions": [
+      "Bybit additional official evidence is reviewed",
+      "MEXC conflict is resolved or explicitly retained as conflicting",
+      "OKX conflict is resolved or explicitly retained as conflicting",
+      "Bitget restriction freshness is reconfirmed",
+      "KuCoin evidence review is completed",
+      "BingX evidence review is completed",
+      "canonical MI cells exist and validate",
+      "discrepancy decisions have an owner-approved decision record",
+      "ranking and CTA eligibility are separately reviewed",
+      "G02, G10, G11 and G13 pass",
+      "no snapshot/source hash is stale",
+      "a separate MIGRATION_5 owner GO is issued"
+    ]
+  },
+  "noindexPilotGate": {
+    "status": "BLOCKED",
+    "target": "Kazakhstan x Bybit (English only, noindex, prototype route only after separate approval)",
+    "conditions": [
+      "official evidence package is completed",
+      "MI cell is created and validated",
+      "offer eligibility is separately verified",
+      "factual content replaces illustrative prototype data",
+      "English-only page copy is generated from structured evidence",
+      "route remains noindex",
+      "G01-G13 are reviewed",
+      "owner gives separate approval"
+    ]
+  },
+  "prohibitedActions": [
+    "run new Deep Research",
+    "change availability",
+    "change rankings",
+    "activate or remove CTA",
+    "create MI cells",
+    "create compiled matrix",
+    "create page or route",
+    "create translations",
+    "modify production snapshot/exporter/adapter/core/shadow/discrepancy CLI",
+    "proxy/VPN/local-IP simulation/KYC bypass/account automation",
+    "commit/push/deploy in this task"
+  ],
+  "reviewGates": {
+    "note": "Gate ids/owners from owner-ops/governance/review-gates.json. This decision record satisfies only the decision-record scope of G13; MIGRATION_5 requires G02, G10, G11 and G13 to pass, none of which are passed here.",
+    "gates": [
+      { "id": "G01", "name": "Product intent", "owner": "R01", "status": "NOT_REQUIRED_FOR_THIS_DECISION" },
+      { "id": "G02", "name": "Research and evidence", "owner": "R06", "status": "NOT_PASSED", "reason": "P0 Kazakhstan evidence packages incomplete; conflicts unresolved for mexc/okx" },
+      { "id": "G03", "name": "Design-system consistency", "owner": "R02", "status": "NOT_REQUIRED_FOR_THIS_DECISION" },
+      { "id": "G04", "name": "Technical SEO", "owner": "R03", "status": "NOT_REQUIRED_FOR_THIS_DECISION" },
+      { "id": "G05", "name": "AI-answer structure", "owner": "R04", "status": "NOT_REQUIRED_FOR_THIS_DECISION" },
+      { "id": "G06", "name": "Editorial quality", "owner": "R05", "status": "NOT_REQUIRED_FOR_THIS_DECISION" },
+      { "id": "G07", "name": "Mobile parity", "owner": "R07", "status": "NOT_REQUIRED_FOR_THIS_DECISION" },
+      { "id": "G08", "name": "Accessibility", "owner": "R07", "status": "NOT_REQUIRED_FOR_THIS_DECISION" },
+      { "id": "G09", "name": "Performance", "owner": "R08", "status": "NOT_REQUIRED_FOR_THIS_DECISION" },
+      { "id": "G10", "name": "Structured-data honesty", "owner": "R03", "status": "NOT_PASSED", "reason": "no structured-data honesty review of Kazakhstan facts performed; required before MIGRATION_5" },
+      { "id": "G11", "name": "Commercial/compliance safety", "owner": "R09", "status": "NOT_PASSED", "reason": "unresolved regulator conflicts (mexc/okx); restricted candidate (bitget) not yet freshness-confirmed" },
+      { "id": "G12", "name": "Preview/noindex QA", "owner": "R10", "status": "NOT_REQUIRED_FOR_THIS_DECISION", "reason": "required later for the noindex Deep Passport pilot" },
+      { "id": "G13", "name": "Owner approval", "owner": "OWNER", "status": "PASSED_FOR_DECISION_RECORD_SCOPE_ONLY", "reason": "owner approves this decision record only; not production/ranking/publication/MIGRATION_5" }
+    ]
+  },
+  "governanceDecisionRecord": {
+    "_note": "This sub-object conforms to owner-ops/governance/decision-record.schema.json (additionalProperties:false). The surrounding MIGRATION_4 structure is a superset the committed schema cannot represent; see schemaCompatibility.",
+    "decisionId": "CBW-MI-GEO-MIG4-KZ-OWNER-DECISION-v1",
+    "date": "2026-07-21",
+    "scope": "Market Intelligence x GEO reconciliation — Kazakhstan six-exchange MIGRATION_3B discrepancy owner decision (documentation only; no production/ranking/route/publication change)",
+    "problem": "MIGRATION_3B surfaced production-vs-MI discrepancies for Kazakhstan (bybit LEGACY_MORE_PERMISSIVE/HOLD_REVIEW; mexc/okx INCOMPARABLE/HOLD_CONFLICTING; bitget MATCH/NO_ACTION_SHADOW; kucoin/bingx MATCH/NEEDS_EVIDENCE). An explicit owner disposition is required before any ranking integration, while production must remain frozen and authoritative.",
+    "options": [
+      "Freeze production, record per-exchange owner decisions, define required evidence, and keep MIGRATION_5 blocked (SELECTED)",
+      "Migrate production availability into canonical MI cells now (REJECTED — evidence incomplete, conflicts unresolved)",
+      "Flip bybit production to a verified MI state now (REJECTED — no official Kazakhstan-specific evidence reviewed)"
+    ],
+    "rolesConsulted": ["R06", "R09", "R03", "OWNER"],
+    "evidenceReviewed": [
+      "owner-ops/market-intelligence/snapshots/production-geo-availability-kz.json (sourceSha256 75a360cc...)",
+      "scripts/market-intelligence/mi-geo-discrepancy-report.mjs output (discrepancyJsonSha256 676678d2...)",
+      "research/geo/kazakhstan/** (tracked GEO passports; run-kz-2026-07-14 BLOCKED_BY_MISSING_EVIDENCE)",
+      "src/data/geoRankings.ts MANUAL_OVERRIDES.kazakhstan (production, read-only)"
+    ],
+    "complianceImpact": "No production, ranking, CTA, promo, route or publication change. Unresolved AFSA regulator conflicts (mexc/okx) retained as CONFLICTING; bitget restriction retained; affiliate value irrelevant to ranking; NO-PROXY mode; English only.",
+    "decision": "OWNER_APPROVED_DECISION_RECORD: production GEO remains authoritative and unchanged; per-exchange decisions recorded (bybit HOLD_REVIEW P0; mexc/okx HOLD_CONFLICTING P0; bitget RESTRICTED candidate pending freshness P1; kucoin/bingx UNKNOWN NEEDS_EVIDENCE P1); MIGRATION_5 and the noindex Bybit x Kazakhstan Deep Passport pilot remain BLOCKED; no production/ranking/route/publication/MI-cell/compiled-matrix/translation work is authorized.",
+    "rejectedAlternatives": [
+      "Migrate availability into canonical MI cells now",
+      "Promote bybit to a verified available MI state now",
+      "Activate any Kazakhstan-specific CTA/promo"
+    ],
+    "ownerApproval": true,
+    "nextReviewDate": "2026-08-21",
+    "affectedFilesPages": [
+      "owner-ops/market-intelligence/decisions/CBW_MI_GEO_MIGRATION_4_KAZAKHSTAN_OWNER_DECISION_v1.md",
+      "owner-ops/market-intelligence/decisions/CBW_MI_GEO_MIGRATION_4_KAZAKHSTAN_OWNER_DECISION_v1.json"
+    ]
+  },
+  "schemaCompatibility": {
+    "referenceSchema": "owner-ops/governance/decision-record.schema.json",
+    "referenceSchemaDraft": "https://json-schema.org/draft/2020-12/schema",
+    "fullTopLevelValidation": false,
+    "reason": "The committed decision-record schema sets additionalProperties:false and defines a fixed council-decision shape. The MIGRATION_4 record requires migration-specific fields (countryCode, migrationPhase, exchangeDecisions, migration5Gate, authorization booleans, etc.) that the committed schema cannot represent. Per task instruction the schema was NOT modified.",
+    "compatibleSubObject": "governanceDecisionRecord",
+    "compatibleSubObjectValidates": true,
+    "validationPerformed": "Honest structural validation: JSON parses; governanceDecisionRecord contains all 8 required fields with correct types (decisionId,date,scope,problem,rolesConsulted,decision,ownerApproval,nextReviewDate) and only schema-declared properties; ISO dates well-formed."
+  },
+  "nextTask": "CBW-MI-GEO-KZ-EVIDENCE-RESEARCH-QUEUE-001 — owner-gated capture/review of the P0 (bybit, mexc, okx) then P1 (bitget freshness, kucoin, bingx) official Kazakhstan evidence packages defined here (NO-PROXY, official-source, dated), feeding a later MIGRATION_5 GO. No MI cell, ranking, CTA, route, page, translation, or Deep Research is authorized by this record."
+}
