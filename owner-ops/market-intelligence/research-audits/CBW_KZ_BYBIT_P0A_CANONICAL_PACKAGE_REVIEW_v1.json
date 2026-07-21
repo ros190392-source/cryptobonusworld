@@ -1,0 +1,244 @@
+{
+  "auditId": "CBW-KZ-BYBIT-P0A-CANONICAL-PACKAGE-REVIEW-v1",
+  "taskId": "CBW-KZ-BYBIT-P0A-CANONICAL-PACKAGE-REVIEW-008",
+  "project": "CryptoBonusWorld",
+  "repository": "C:/projects/CryptoBonusWorld",
+  "branch": "master",
+  "baselineHead": "2080e469f58d1412680bcb15e858c07a02f0755e",
+  "date": "2026-07-21",
+  "countryCode": "KZ",
+  "exchangeId": "bybit",
+  "batchId": "KZ-P0-A",
+  "mode": "READ_ONLY_CANONICAL_PACKAGE_REVIEW",
+  "webBrowsingUsed": false,
+  "packageStatus": "RECOVERED / UNVERIFIED",
+
+  "packageStructure": {
+    "fileCount": 6,
+    "exactFiles": [
+      "data/market-intelligence/cells/by-country/kz/bybit.json",
+      "data/market-intelligence/sources/by-country/kz/bybit.json",
+      "data/market-intelligence/linkages/by-country/kz/bybit.json",
+      "data/market-intelligence/provenance/by-country/kz/bybit.json",
+      "data/market-intelligence/conflicts/by-country/kz/bybit.json",
+      "data/market-intelligence/bindings/by-country/kz/bybit.json"
+    ],
+    "seventhFile": false,
+    "byExchangeCopy": false,
+    "temporaryImportDir": false,
+    "backupManifestReportScriptHidden": false,
+    "allParseJson": true,
+    "zeroByteOrTruncated": false,
+    "result": "PASS"
+  },
+
+  "hashIntegrity": {
+    "result": "PASS",
+    "perFile": {
+      "data/market-intelligence/cells/by-country/kz/bybit.json": { "bytes": 2887, "sha256": "5a49fad6923df016db084f2e82717c7342d573235f7da220772e074a0eaac4d2", "match": true },
+      "data/market-intelligence/sources/by-country/kz/bybit.json": { "bytes": 30542, "sha256": "c4080198aa2b5a51f2f1c7204852894ee0885b3ffbfc3f80e34c373be6027e2e", "match": true },
+      "data/market-intelligence/linkages/by-country/kz/bybit.json": { "bytes": 24754, "sha256": "fad231c3f10e12ada15d50630d348d6232f290ad2dadec3794d988e4c438c342", "match": true },
+      "data/market-intelligence/provenance/by-country/kz/bybit.json": { "bytes": 57155, "sha256": "de2550cc02311f3c9714aa5d06f5b1a20790ecbf73bf46c8fa28a2e1a644b020", "match": true },
+      "data/market-intelligence/conflicts/by-country/kz/bybit.json": { "bytes": 11873, "sha256": "15aeb754ab5b97ce5505b6ab39804412a6db2713799273f3f0b22de677499d1f", "match": true },
+      "data/market-intelligence/bindings/by-country/kz/bybit.json": { "bytes": 1881, "sha256": "a14e0e8e8872b0e1c1ef721dcac3202f21c2652360187884daeae160a36d5ea6", "match": true }
+    }
+  },
+
+  "cellReview": {
+    "byteIdenticalToPreview": true,
+    "semanticallyEqualToCandidateCell": true,
+    "schemaValid": true,
+    "noCandidateMetadata": true,
+    "noStagingOnlyFields": true,
+    "noAdditionalProperties": true,
+    "overallAvailability": "AVAILABLE_WITH_LIMITS",
+    "confidence": "MEDIUM",
+    "liveVerificationState": "NOT_LIVE_VERIFIED",
+    "rankingEligibility": false,
+    "ctaEligibility": false,
+    "promoEligibility": false,
+    "thirteenProductStatusesUnchanged": true,
+    "noUpgradeOrDowngrade": true,
+    "result": "PASS"
+  },
+
+  "sourceReview": {
+    "envelopeCorrect": true,
+    "records": 43,
+    "tierA": 8, "tierB": 32, "tierC": 3,
+    "sourceIdsUnique": true,
+    "sortedBySourceId": true,
+    "eachValidatesMarketSourceSchema": true,
+    "productScopeSortedDuplicateFree": true,
+    "claimTypeOmitted": true,
+    "updatedDateNullAll43": true,
+    "supplementalDistinguishable": 4,
+    "qaFieldsNotLeakedIntoSources": true,
+    "canonicalEqualsStagingByteForByte": true,
+    "fieldDifferencesVsStaging": 0,
+    "result": "PASS"
+  },
+
+  "linkageReview": {
+    "envelopeCorrect": true,
+    "links": 77,
+    "sortedByLinkId": true,
+    "duplicateLinkIds": 0,
+    "danglingSourceIds": 0,
+    "danglingClaimIds": 0,
+    "relationships": ["SUPPORTS", "LIMITS", "CONTRADICTS", "CONTEXT"],
+    "supportedClaimIdsNotReintroducedIntoSources": true,
+    "canonicalEqualsStagingByteForByte": true,
+    "differencesVsStaging": 0,
+    "result": "PASS"
+  },
+
+  "provenanceReview": {
+    "schemaVersion": "1",
+    "countryCode": "KZ",
+    "exchangeId": "bybit",
+    "packageStatus": "RECOVERED / UNVERIFIED",
+    "liveVerificationState": "NOT_LIVE_VERIFIED",
+    "recoveredAndSourceTruthPackageHashes": true,
+    "perFileRecoveryHashes": 8,
+    "inputPackageHashes": 2,
+    "stagingImportCommit": "1dfbadfb58ebc444fa502d1445f36745481723f7",
+    "canonicalPathDecisionCommit": "59f96dc123e199d5331670e2cfc816a6ef7da1e6",
+    "canonicalImportAuthorizationCommit": "2080e469f58d1412680bcb15e858c07a02f0755e",
+    "otherOwnerDecisionReferences": true,
+    "sourceQaRecords": 43,
+    "claimQaRecords": 41,
+    "sourceAndClaimConfidencePreserved": true,
+    "limitationsPreserved": true,
+    "originalClaimStatePreserved": true,
+    "correctedClaimTextPreserved": true,
+    "correctionRequiredStatePreserved": true,
+    "correctionDetails": 4,
+    "unresolvedEvidencePreserved": true,
+    "entityDomainRoutingPreserved": true,
+    "importHistoryPresent": true,
+    "grantedWriteAuthorizations": true,
+    "withheldProductionActivationAuthorizations": true,
+    "noWallClockTimestamp": true,
+    "stagingQaCarriedVerbatim": true,
+    "missingProvenanceElements": [],
+    "note": "Original claim text is represented by originalProposedStatus + correctionNote (the committed staging representation; verbatim source-package claim strings are not committed and were not invented); corrected text via correctionNote/correctionIntent. Nothing present in committed staging was silently discarded.",
+    "result": "PASS"
+  },
+
+  "correctionReview": {
+    "count": 4,
+    "claims": ["clm-kz-bybit-entity-003", "clm-kz-bybit-registration-002", "clm-kz-bybit-offer-001", "clm-kz-bybit-offer-002"],
+    "originalAndCorrectedDistinguishable": true,
+    "localReferralUpToUsdt": 1032,
+    "kazakhstanCampaignPrizePoolUsdt": 2500,
+    "combined": false,
+    "neitherIsGlobalMaximum": true,
+    "globalReferralCodeCompatibility": "UNVERIFIED",
+    "promoEligibility": false,
+    "ctaEligibility": false,
+    "result": "PASS"
+  },
+
+  "conflictReview": {
+    "envelopeCorrect": true,
+    "conflicts": ["cf-kz-bybit-001", "cf-kz-bybit-002"],
+    "bothPartiallyResolved": true,
+    "autoResolvedFalse": true,
+    "ownerReviewRequiredTrue": true,
+    "reviewedSourcesPreserved": true,
+    "unresolvedEvidencePreserved": true,
+    "routingMatrixPreserved": true,
+    "notFlattenedIntoAvailable": true,
+    "notForcedIntoRestrictionEventSchema": true,
+    "canonicalEqualsStagingByteForByte": true,
+    "differencesVsStaging": 0,
+    "result": "PASS"
+  },
+
+  "bindingReview": {
+    "byteIdenticalToPreview": true,
+    "schemaValid": true,
+    "ownerApproved": false,
+    "reviewStatus": "PROPOSED",
+    "canonicalRecord": "GEO_LEGACY",
+    "productionStable": true,
+    "productionRouteUnchanged": true,
+    "migrationPhase": "MIGRATION_4",
+    "affiliateInfluencesRanking": false,
+    "bindingExistsButNotActive": true,
+    "existingGeoRemainsProductionTruth": true,
+    "rankingSuppressed": true,
+    "ctaSuppressed": true,
+    "promoSuppressed": true,
+    "noProductionConsumerReferencesBinding": true,
+    "result": "PASS"
+  },
+
+  "noProductionConsumer": {
+    "referencesInSrc": 0,
+    "runtimeLoader": false,
+    "rankingConsumer": false,
+    "ctaConsumer": false,
+    "promoConsumer": false,
+    "pageOrRouteConsumer": false,
+    "buildScriptIncludesCanonical": false,
+    "sitemapOrDeploymentIntegration": false,
+    "autoSyncToLegacyGeo": false,
+    "allReferencesAreDocumentationOrStagingPreview": true,
+    "referencingFiles": [
+      "owner-ops/market-intelligence/decisions/* (5 decision records — documentation)",
+      "owner-ops/market-intelligence/CBW_EXCHANGE_MARKET_INTELLIGENCE_BRAIN_v1.md (authority)",
+      "research/market-intelligence/staging/kz/bybit/p0a-v1/canonical-preview/* (non-runtime staging previews)",
+      "_handoff/** (untracked handoff copy)"
+    ],
+    "result": "PASS"
+  },
+
+  "immutability": {
+    "stagingUnchanged": true,
+    "legacyGeoUnchanged": true,
+    "geoRankingsUnchanged": true,
+    "configGeoUnchanged": true,
+    "packageJsonUnchanged": true,
+    "schemasUnchanged": true,
+    "ownerOpsUnchanged": true,
+    "srcUnchanged": true,
+    "publicUnchanged": true,
+    "gitDiffEmpty": true,
+    "result": "PASS"
+  },
+
+  "verdicts": {
+    "PACKAGE_STRUCTURE": "PASS",
+    "HASH_INTEGRITY": "PASS",
+    "CELL_SCHEMA_INTEGRITY": "PASS",
+    "SOURCE_SCHEMA_INTEGRITY": "PASS",
+    "LINKAGE_INTEGRITY": "PASS",
+    "PROVENANCE_COMPLETENESS": "PASS",
+    "CONFLICT_PRESERVATION": "PASS",
+    "BINDING_NON_ACTIVATION": "PASS",
+    "NO_PRODUCTION_CONSUMER": "PASS",
+    "CANONICAL_PACKAGE_COMMIT_READINESS": "READY"
+  },
+
+  "filesCreated": [
+    "owner-ops/market-intelligence/research-audits/CBW_KZ_BYBIT_P0A_CANONICAL_PACKAGE_REVIEW_v1.md",
+    "owner-ops/market-intelligence/research-audits/CBW_KZ_BYBIT_P0A_CANONICAL_PACKAGE_REVIEW_v1.json"
+  ],
+  "canonicalFilesModified": false,
+  "authorizationFlags": {
+    "canonicalPackageCommitReady": true,
+    "miGeoBindingActivationAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionIntegrationAuthorized": false,
+    "rankingEligibilityAuthorized": false,
+    "ctaEligibilityAuthorized": false,
+    "promoEligibilityAuthorized": false,
+    "migration5Authorized": false
+  },
+
+  "recommendation": "APPROVE",
+  "recommendationScope": "All nine integrity dimensions PASS; the six canonical files are intact, schema-valid, byte-identical to committed staging/previews, provenance-complete, conflicts preserved, binding non-active, and read by no production consumer. Package is READY to commit as a non-production canonical research package. Binding activation, production integration, ranking/CTA/promo, and MIGRATION_5 remain BLOCKED.",
+  "nextTask": "CBW-KZ-BYBIT-P0A-CANONICAL-IMPORT-EXECUTE-007-COMMIT — owner-gated commit of exactly the six canonical files with push master -> origin/master. MI-GEO binding activation, GEO-vs-MI discrepancy review, production integration, ranking/CTA/promo, and MIGRATION_5 remain separate later owner-gated tasks."
+}
