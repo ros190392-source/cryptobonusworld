@@ -1,0 +1,261 @@
+{
+  "decisionId": "CBW-KZ-BYBIT-P0A-OWNER-DECISION-AND-IMPORT-PREP-v1",
+  "taskId": "CBW-KZ-BYBIT-P0A-OWNER-DECISION-AND-IMPORT-PREP-001",
+  "project": "CryptoBonusWorld",
+  "repository": "C:/projects/CryptoBonusWorld",
+  "branch": "master",
+  "head": "9e21dce7cc59f22da31321b70ac6a6bfb2bf9e57",
+  "date": "2026-07-21",
+  "countryCode": "KZ",
+  "exchangeId": "bybit",
+  "batchId": "KZ-P0-A",
+  "mode": "OWNER_DECISION_RECORD + DETERMINISTIC_TRANSFORM_DESIGN_ONLY",
+  "status": "OWNER_APPROVED_DECISION_RECORD",
+  "sourceTruthReviewRefs": {
+    "auditMd": "owner-ops/market-intelligence/research-audits/CBW_KZ_BYBIT_P0A_SOURCE_TRUTH_REVIEW_PACKAGE_AUDIT_v1.md",
+    "auditJson": "owner-ops/market-intelligence/research-audits/CBW_KZ_BYBIT_P0A_SOURCE_TRUTH_REVIEW_PACKAGE_AUDIT_v1.json",
+    "auditCommit": "9e21dce7cc59f22da31321b70ac6a6bfb2bf9e57",
+    "reviewPackageStatus": "RECOVERED / UNVERIFIED"
+  },
+
+  "ownerAvailabilityDecision": {
+    "overallAvailability": "AVAILABLE_WITH_LIMITS",
+    "confidence": "MEDIUM",
+    "liveVerificationState": "NOT_LIVE_VERIFIED",
+    "accepted": true,
+    "meaning": [
+      "Bybit is overall available in Kazakhstan.",
+      "Primary presentation state is positive/green.",
+      "Exact limitations must remain visible.",
+      "AVAILABLE_WITH_LIMITS is NOT presented as restricted or unavailable.",
+      "Ranking, CTA and promo eligibility remain separate decisions."
+    ],
+    "primaryPublicFacingConcept": "Available in Kazakhstan",
+    "secondaryLimitationConcept": "Some eligibility and service-routing limits apply",
+    "requiredVisibleLimitationAreas": [
+      "registration/residency/citizenship rules remain partially resolved",
+      "bybit.kz is the confirmed local route for core trading and KZT rails, but some bybit.com / card / referral routing remains partially resolved",
+      "global referral-code compatibility remains unverified",
+      "Kazakhstan promotional eligibility is narrower than platform availability",
+      "local promotional amounts exist, but they must not be confused with a globally advertised maximum",
+      "liveVerificationState remains NOT_LIVE_VERIFIED"
+    ]
+  },
+
+  "presentationSemantics": {
+    "note": "Canonical availability→presentation mapping. AVAILABLE_WITH_LIMITS primary color is GREEN (never amber); amber is only the SECONDARY limitation indicator.",
+    "states": {
+      "AVAILABLE": { "primaryVisualState": "GREEN", "label": "Available" },
+      "AVAILABLE_WITH_LIMITS": {
+        "primaryVisualState": "GREEN",
+        "label": "Available",
+        "secondaryLimitationIndicator": "AMBER",
+        "secondaryLabel": "Some limits apply",
+        "exactLimitationsRequired": true,
+        "rankingConsiderable": "may be considered for ranking when the limitation does not block the user's core use case"
+      },
+      "CONFLICTING": { "primaryVisualState": "AMBER", "definitivePositiveCommercialClaim": false },
+      "UNDER_REVIEW": { "primaryVisualState": "AMBER", "definitivePositiveCommercialClaim": false },
+      "UNKNOWN": { "primaryVisualState": "GRAY" },
+      "STALE": { "primaryVisualState": "GRAY" },
+      "RESTRICTED": { "primaryVisualState": "RED", "commercialCta": false },
+      "UNAVAILABLE": { "primaryVisualState": "RED", "commercialCta": false }
+    },
+    "invariants": [
+      "Do not use amber as the primary availability color for AVAILABLE_WITH_LIMITS.",
+      "Bybit x Kazakhstan primary color = GREEN; secondary limitation indicator = AMBER."
+    ]
+  },
+
+  "rankingCtaPromoSeparation": {
+    "availability": "AVAILABLE_WITH_LIMITS",
+    "futureRankingCandidate": true,
+    "rankingEligibilityAuthorized": false,
+    "ctaEligibilityAuthorized": false,
+    "promoEligibilityAuthorized": false,
+    "productionChangeAuthorized": false,
+    "migration5Authorized": false,
+    "rule": "AVAILABLE_WITH_LIMITS must not automatically activate a ranking, CTA or promo. Future ranking review may consider Bybit because registration and core product access are supported, but ranking activation remains a separate owner-gated task.",
+    "affiliateInfluencesRanking": false
+  },
+
+  "correctionRequiredClaims": [
+    {
+      "claimId": "clm-kz-bybit-entity-003",
+      "approvedCorrectionIntent": "The Bybit Limited entity finding applies to the core local trading platform and must not automatically be applied to every ancillary bybit.kz program."
+    },
+    {
+      "claimId": "clm-kz-bybit-registration-002",
+      "approvedCorrectionIntent": "The resident-only wording cannot be presented as the complete current rule without the newer foreign-national announcement and an explicit conflict note."
+    },
+    {
+      "claimId": "clm-kz-bybit-offer-001",
+      "approvedCorrectionIntent": "Referral-code entry exists, but compatibility of a global referral code with Bybit Kazakhstan remains unverified."
+    },
+    {
+      "claimId": "clm-kz-bybit-offer-002",
+      "approvedCorrectionIntent": "Replace the old claim that no Kazakhstan-specific amount was verified. Current reviewed evidence reports two SEPARATE local programs.",
+      "localPrograms": [
+        { "program": "local referral page", "amountUsdt": 1032, "descriptor": "up to 1,032 USDT" },
+        { "program": "Kazakhstan campaign prize pool", "amountUsdt": 2500, "descriptor": "separate 2,500 USDT prize pool" }
+      ],
+      "handlingRules": [
+        "These amounts represent different local programs.",
+        "Do not combine them.",
+        "Do not present them as one bonus.",
+        "Do not infer that the global advertised maximum applies locally.",
+        "Do not authorize a promo or CTA."
+      ]
+    }
+  ],
+  "correctionRequiredCount": 4,
+
+  "conflictDecisions": [
+    {
+      "conflictId": "cf-kz-bybit-001",
+      "status": "PARTIALLY_RESOLVED",
+      "topic": "residency / citizenship / foreign-national eligibility",
+      "ownerInterpretation": {
+        "kazakhstanCitizens": "strongest confirmed segment",
+        "kazakhstanResidents": "supported with limits",
+        "foreignNationalsResidentInKazakhstan": "partially confirmed",
+        "nonResidents": "unverified"
+      }
+    },
+    {
+      "conflictId": "cf-kz-bybit-002",
+      "status": "PARTIALLY_RESOLVED",
+      "topic": "bybit.kz / bybit.com legal-entity and service-routing",
+      "ownerInterpretation": {
+        "registration_kyc_spot_derivatives_p2p_kztDeposit_kztWithdrawal": "local bybit.kz stack",
+        "bankCardPurchase": "unresolved routing",
+        "bybitCard": "local with limits",
+        "referralAffiliate": "entity and interoperability remain unresolved",
+        "promotions": "local programs exist but eligibility is campaign-specific"
+      }
+    }
+  ],
+
+  "importPreparationDesign": {
+    "executed": false,
+    "note": "Design only. No transform, normalized record, canonical claim record, or MI cell was created. This is a deterministic plan for a future, separately owner-gated import task.",
+    "transformSteps": [
+      {
+        "step": 1,
+        "inputFile": "source-verification.json",
+        "target": "normalized market-source records (schemas/market-intelligence/market-source.schema.json)",
+        "fieldMappings": [
+          { "inputField": "sourceId", "targetPath": "sourceId", "mappingType": "COPY", "reject": "missing/empty" },
+          { "inputField": "url", "targetPath": "url", "mappingType": "COPY", "reject": "missing/non-http(s)" },
+          { "inputField": "sourceTier", "targetPath": "sourceTier", "mappingType": "ENUM_CONVERT", "enumConversion": { "TIER_A": "A", "TIER_B": "B", "TIER_C": "C", "TIER_D": "D", "A": "A", "B": "B", "C": "C", "D": "D" }, "reject": "value not in {A,B,C,D} after conversion" },
+          { "inputField": "publisher", "targetPath": "publisher", "mappingType": "COPY", "reject": "missing/empty" },
+          { "inputField": "captureType", "targetPath": "captureType", "mappingType": "ENUM_VALIDATE", "note": "source-truth review already emits captureType; validate ∈ {HTML,PDF,SCREENSHOT,API,DATASET,MANUAL_BROWSER,NEWS}", "reject": "value not in captureType enum" },
+          { "inputField": "sourceType", "targetPath": "captureType", "mappingType": "ENUM_CONVERT_FALLBACK", "note": "only if captureType absent: map sourceType (official_*) → HTML; discard original sourceType field", "default": "null (require manual review, do not fabricate)" },
+          { "inputField": "currentStatus", "targetPath": "status", "mappingType": "ENUM_VALIDATE", "enum": ["ACTIVE", "MOVED", "REMOVED", "SUPERSEDED", "BLOCKED", "STALE"], "rule": "Use source-truth review currentStatus to determine status. Do NOT map REVIEWED blindly to ACTIVE.", "reject": "currentStatus missing or not in enum" },
+          { "inputField": "checkedDate", "targetPath": "retrievedDate", "mappingType": "COPY_AS_DATE", "reject": "not ISO YYYY-MM-DD" },
+          { "inputField": "updatedDate", "targetPath": "updatedDate", "mappingType": "CONDITIONAL", "rule": "use verified official page metadata only; otherwise null", "default": null },
+          { "inputField": "supportedClaimIds", "targetPath": "REMOVED_FROM_MARKET_SOURCE", "mappingType": "RELOCATE", "relocateTo": "separate claim-source linkage plan (not a market-source field)" },
+          { "inputField": "confidence", "targetPath": "QA_PROVENANCE_LAYER", "mappingType": "RELOCATE", "rule": "preserve in QA/provenance records; do not silently discard" },
+          { "inputField": "limitations", "targetPath": "QA_PROVENANCE_LAYER", "mappingType": "RELOCATE", "rule": "preserve in QA/provenance records; do not silently discard" },
+          { "inputField": "productScope", "targetPath": "productScope", "mappingType": "CONTROLLED_DECISION_REQUIRED", "rule": "require controlled mapping decision (single vs multi-value taxonomy); do not fabricate" },
+          { "inputField": "claimType", "targetPath": "claimType", "mappingType": "CONTROLLED_DECISION_REQUIRED", "rule": "decide per-source import vs derive at claim-link time; do not fabricate" }
+        ],
+        "provenancePreservation": "confidence, limitations, verificationState, original sourceType retained in a QA/provenance sidecar keyed by sourceId.",
+        "defaultBehavior": "Unknown/absent optional field → null; never invent a value.",
+        "rejectionCondition": "Any required target field (sourceId,url,sourceTier,publisher,retrievedDate,status) unresolved → reject that record for manual review; never force ACTIVE."
+      },
+      {
+        "step": 2,
+        "inputFile": "claim-verdicts.json",
+        "target": "normalized claim-review records (no committed schema — STRUCTURAL CONTRACT; NOT a canonical MI-cell claim)",
+        "fieldMappings": [
+          { "inputField": "claimId", "targetPath": "claimId", "mappingType": "COPY", "reject": "missing/duplicate" },
+          { "inputField": "verifiedSources", "targetPath": "sourceIds", "mappingType": "COPY_ARRAY", "reject": "any id not resolvable to a normalized market-source record" },
+          { "inputField": "verificationState", "targetPath": "verificationState", "mappingType": "ENUM_VALIDATE", "enum": ["CONFIRMED", "CONFIRMED_WITH_LIMITS", "CONTRADICTED"] },
+          { "inputField": "currentStatus", "targetPath": "productOrAvailabilityStatus", "mappingType": "COPY" },
+          { "inputField": "confidence", "targetPath": "confidence", "mappingType": "ENUM_VALIDATE", "enum": ["LOW", "MEDIUM", "HIGH"] },
+          { "inputField": "correctionRequired", "targetPath": "correctionApplied", "mappingType": "CORRECTION_APPLY", "rule": "For the 4 correction-required claims, apply the approved correctionIntent from this decision record; carry the corrected text, never the superseded original, into any public projection." },
+          { "inputField": "limitations", "targetPath": "limitations", "mappingType": "COPY_ARRAY", "rule": "preserve" }
+        ],
+        "correctionApplication": "clm-kz-bybit-entity-003 / registration-002 / offer-001 / offer-002 corrected per this record; offer-002 keeps 1,032 USDT and 2,500 USDT as TWO separate programs.",
+        "unknownPreservation": "Any claim/finding that remains UNKNOWN/UNVERIFIED stays UNKNOWN/UNVERIFIED; never upgraded by import.",
+        "rejectionCondition": "verificationState CONTRADICTED without an applied correction → reject for manual review."
+      },
+      {
+        "step": 3,
+        "inputFile": "conflict-resolution.json",
+        "target": "normalized conflict records (no committed schema — STRUCTURAL CONTRACT)",
+        "fieldMappings": [
+          { "inputField": "conflictId", "targetPath": "conflictId", "mappingType": "COPY" },
+          { "inputField": "status", "targetPath": "status", "mappingType": "ENUM_VALIDATE", "enum": ["RESOLVED", "PARTIALLY_RESOLVED", "UNRESOLVED"], "rule": "cf-001 and cf-002 remain PARTIALLY_RESOLVED" },
+          { "inputField": "sourcesReviewed", "targetPath": "sourceIds", "mappingType": "COPY_ARRAY", "reject": "unresolvable source id" },
+          { "inputField": "routingMatrix", "targetPath": "routingMatrix", "mappingType": "COPY_STRUCTURE", "rule": "preserve per-service separation; never collapse into overall status" }
+        ],
+        "conflictPreservation": "Both conflicts imported as PARTIALLY_RESOLVED; never auto-resolved toward a commercially convenient answer; production route unchanged.",
+        "rejectionCondition": "status not in enum, or a resolution asserted without evidence → reject."
+      },
+      {
+        "step": 4,
+        "inputFile": "reviewed findings (claim-verdicts + conflict-resolution + offer-eligibility-review)",
+        "target": "future exchange-market-cell CANDIDATE (schemas/market-intelligence/exchange-market-cell.schema.json) — designed only, NOT created",
+        "rule": "Projected only after a separate owner-gated import task; keeps product statuses separate (see miCellCandidatePlan).",
+        "rejectionCondition": "Any product status derived from availability rather than its own claim → reject."
+      }
+    ],
+    "deterministic": true,
+    "targetSchemaModificationRequired": false,
+    "controlledDecisionsStillRequired": [
+      "productScope taxonomy (single value vs list such as ['registration','kyc','fiat_deposit'])",
+      "whether claimType is imported per-source or derived at claim-link time",
+      "updatedDate source policy (verified official page metadata only; else null)",
+      "how to represent domain/entity-routing ambiguity when one domain hosts multiple legal-program stacks"
+    ]
+  },
+
+  "sourceNormalizationRules": {
+    "sourceTier": { "TIER_A": "A", "TIER_B": "B", "TIER_C": "C", "TIER_D": "D" },
+    "sourceTypeToCaptureType": "sourceType → captureType (official_* → HTML); discard original sourceType",
+    "statusRule": "Do NOT map REVIEWED blindly to ACTIVE. Use source-truth review currentStatus to determine ACTIVE / MOVED / REMOVED / SUPERSEDED / BLOCKED / STALE.",
+    "supportedClaimIds": "remove from market-source records; preserve in a separate claim-source linkage plan",
+    "confidenceAndLimitations": "preserve in QA/provenance records; do not silently discard",
+    "productScopeAndClaimType": "require controlled mapping decisions; do not fabricate",
+    "updatedDate": "use verified official page metadata only; otherwise null"
+  },
+
+  "miCellCandidatePlan": {
+    "created": false,
+    "note": "Future candidate field design only. Do not create the record.",
+    "overall": {
+      "overallAvailability": "AVAILABLE_WITH_LIMITS",
+      "confidence": "MEDIUM",
+      "liveVerificationState": "NOT_LIVE_VERIFIED",
+      "rankingEligibility": false,
+      "ctaEligibility": false,
+      "promoEligibility": false
+    },
+    "productProjectionKeepSeparate": [
+      "registration", "kyc", "spot", "derivatives", "margin", "p2p", "kztP2p",
+      "directKztDeposit", "directKztWithdrawal", "cards", "bankCardPurchase",
+      "bybitCard", "referral", "promotions"
+    ],
+    "invariant": "Do not flatten every product into the overall status; each product status derives from its own claim/finding, not from overallAvailability."
+  },
+
+  "authorizationsWithheld": {
+    "importAuthorized": false,
+    "productionChangeAuthorized": false,
+    "migration5Authorized": false,
+    "rankingEligibilityAuthorized": false,
+    "ctaEligibilityAuthorized": false,
+    "promoEligibilityAuthorized": false,
+    "normalizedRecordsCreated": false,
+    "canonicalClaimRecordsCreated": false,
+    "miCellCreated": false,
+    "legacyPassportUpdated": false,
+    "transformExecuted": false
+  },
+
+  "recommendation": "APPROVE",
+  "recommendationScope": "Owner decision recorded + deterministic import transform designed (not executed). Import, normalized-record creation, MI-cell creation, ranking/CTA/promo, legacy-passport update, and MIGRATION_5 remain BLOCKED and separately owner-gated. Review package remains RECOVERED / UNVERIFIED.",
+  "nextTask": "CBW-KZ-BYBIT-P0A-IMPORT-EXECUTE-001 — owner-gated execution of the deterministic transform designed here: build normalized market-source records + claim-source linkage + QA/provenance sidecar + conflict records, resolve the four controlled decisions (productScope, claimType, updatedDate, entity-routing), then assemble the exchange-market-cell CANDIDATE (still not production). Ranking/CTA/promo activation and MIGRATION_5 remain separate later owner-gated tasks."
+}
