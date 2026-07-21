@@ -1,0 +1,531 @@
+{
+  "auditId": "CBW-KZ-BYBIT-P0A-RECOVERED-PACKAGE-AUDIT-v1",
+  "taskId": "CBW-KZ-BYBIT-P0A-RECOVERED-PACKAGE-AUDIT-001",
+  "project": "CryptoBonusWorld",
+  "repository": "C:/projects/CryptoBonusWorld",
+  "branch": "master",
+  "head": "208501012e389f850bc8433420813ac6bf4e7c99",
+  "date": "2026-07-21",
+  "countryCode": "KZ",
+  "exchangeId": "bybit",
+  "batchId": "KZ-P0-A",
+  "mode": "READ_ONLY_RECOVERED_PACKAGE_AUDIT",
+  "webBrowsingUsed": false,
+  "packageStatus": "RECOVERED / UNVERIFIED",
+  "auditedInputs": {
+    "recoveredZip": "C:/Users/ros19/Downloads/CBW_KZ_BYBIT_P0A_RESEARCH_PACKAGE_v2_RECOVERED.zip",
+    "recoveredZipBytes": 23022,
+    "recoveredZipSha256": "7796d015c123e4b1c1dc39724740c13bc001399e2763f5b073d84e867eb3a854",
+    "recoveryIntegrityAudit": "C:/Users/ros19/Downloads/CBW_KZ_BYBIT_P0A_RECOVERY_INTEGRITY_AUDIT_v1.md",
+    "deepResearchReport": "C:/Users/ros19/Downloads/deep-research-report (3).md"
+  },
+  "verdicts": {
+    "PACKAGE_INTEGRITY": "PASS",
+    "SEMANTIC_COMPLETENESS": "PASS",
+    "CROSS_REFERENCE_INTEGRITY": "PASS",
+    "SCHEMA_COMPATIBILITY": "WARN",
+    "CRYPTOGRAPHIC_ORIGINALITY": "WARN",
+    "SOURCE_TRUTH_VERIFICATION": "NOT_PERFORMED",
+    "IMPORT_READINESS": "READY_FOR_SOURCE_REVIEW"
+  },
+  "structure": {
+    "exactlyEightFiles": true,
+    "files": [
+      "claim-ledger.json",
+      "conflicts.json",
+      "exchange-country-findings.json",
+      "publication-blockers.json",
+      "research-report.md",
+      "research-run.json",
+      "source-registry.json",
+      "unknowns.json"
+    ],
+    "extras": [],
+    "missing": [],
+    "zeroByte": [],
+    "nestedDirectories": false,
+    "duplicateEntries": false,
+    "hiddenFiles": false,
+    "executableFiles": false,
+    "pathTraversal": false,
+    "truncatedFiles": false
+  },
+  "jsonAudit": {
+    "allParse": true,
+    "rootTypes": {
+      "research-run.json": "object",
+      "source-registry.json": "array",
+      "claim-ledger.json": "array",
+      "exchange-country-findings.json": "object",
+      "conflicts.json": "array",
+      "unknowns.json": "array",
+      "publication-blockers.json": "array"
+    },
+    "markdownFencesInJson": false,
+    "ellipsisPlaceholders": false,
+    "unfinishedPlaceholders": false
+  },
+  "counts": {
+    "sources": {
+      "actual": 39,
+      "declared": 39,
+      "ok": true
+    },
+    "tierA": {
+      "actual": 8,
+      "declared": 8,
+      "ok": true
+    },
+    "tierB": {
+      "actual": 29,
+      "declared": 29,
+      "ok": true
+    },
+    "tierC": {
+      "actual": 2,
+      "declared": 2,
+      "ok": true
+    },
+    "tierD": {
+      "actual": 0,
+      "declared": 0,
+      "ok": true
+    },
+    "claims": {
+      "actual": 41,
+      "declared": 41,
+      "ok": true
+    },
+    "conflicts": {
+      "actual": 2,
+      "declared": 2,
+      "ok": true
+    },
+    "unknowns": {
+      "actual": 6,
+      "declared": 6,
+      "ok": true
+    },
+    "blockers": {
+      "actual": 5
+    },
+    "proposedOverallAvailability": "AVAILABLE_WITH_LIMITS",
+    "confidence": "MEDIUM",
+    "liveVerificationState": "NOT_LIVE_VERIFIED",
+    "productionChangeAuthorized": false,
+    "migration5Authorized": false,
+    "ownerReviewRequired": true
+  },
+  "countsAllMatchDeclared": true,
+  "uniqueIds": {
+    "duplicatesFound": {
+      "source": [],
+      "claim": [],
+      "conflict": [],
+      "unknown": [],
+      "blocker": []
+    }
+  },
+  "crossReference": {
+    "danglingCount": 0,
+    "dangling": []
+  },
+  "sourceMetadata": {
+    "duplicateUrls": [],
+    "malformedUrls": [],
+    "contentHashFormatOk": true,
+    "tierValues": [
+      "TIER_A",
+      "TIER_B",
+      "TIER_C"
+    ],
+    "statusValues": [
+      "REVIEWED"
+    ],
+    "futureDatedSources": [],
+    "snippetOnlySources": [
+      "src-kz-bybit-008",
+      "src-kz-bybit-032"
+    ],
+    "sourcesNotBackReferencedByCitedClaims": [
+      "src-kz-bybit-002",
+      "src-kz-bybit-013",
+      "src-kz-bybit-015"
+    ],
+    "malformedDateFields": [],
+    "narrativeDateFieldsFlaggedNonBlocking": [
+      "conf[0].dateComparison=Registration guide updated 2025-11-25; account-settings FAQ updated 2025-11-25; foreign-nationals announcement published 2026-01-26.",
+      "conf[1].dateComparison=Local card/deposit sources were updated in 2026-04 to 2026-06; global One-Click-Buy support page was updated 2026-06-26."
+    ]
+  },
+  "semanticCoherence": {
+    "overallRecommendation": "AVAILABLE_WITH_LIMITS",
+    "matchesResearchRun": true,
+    "offerEligibility": "UNKNOWN",
+    "offerIsUnknown": true,
+    "rankingEligibilityAuthorized": false,
+    "ctaEligibilityAuthorized": false,
+    "promoEligibilityAuthorized": false,
+    "kztP2PSeparateFromDirectFiat": true,
+    "routingConflictPreserved": true,
+    "registrationConflictPreserved": true,
+    "offerClaimsUnknown": [
+      {
+        "id": "clm-kz-bybit-offer-001",
+        "status": "UNKNOWN"
+      },
+      {
+        "id": "clm-kz-bybit-offer-002",
+        "status": "UNKNOWN"
+      }
+    ],
+    "proposedStatusValues": [
+      "AVAILABLE",
+      "AVAILABLE_WITH_LIMITS",
+      "RESTRICTED",
+      "UNKNOWN",
+      "CONFLICTING"
+    ]
+  },
+  "warnings": [
+    {
+      "id": "warn-001",
+      "severity": "LOW",
+      "area": "cross-reference asymmetry",
+      "detail": "3 corroborating sources (src-002 AFSA guidance, src-013 KYC how-to, src-015 KYC failures) declare supportedClaimIds but the cited claims do not list them in sourceIds. Not dangling; one-directional linkage."
+    },
+    {
+      "id": "warn-002",
+      "severity": "MEDIUM",
+      "area": "snippet-only dependency",
+      "detail": "clm-kz-bybit-registration-004 (foreign-nationals registration expansion, drives cf-001) rests solely on snippet-only source src-032; clm-kz-bybit-restrictions-002 (global restricted list) rests solely on partially-captured src-008. Both correctly marked MEDIUM/with limitations, but require full-body reconfirmation before import."
+    },
+    {
+      "id": "warn-003",
+      "severity": "MEDIUM",
+      "area": "schema compatibility",
+      "detail": "source-registry.json does not validate against committed market-source.schema.json: sourceTier uses TIER_A/B/C (schema enum A/B/C/D), status uses REVIEWED (schema enum ACTIVE/MOVED/REMOVED/SUPERSEDED/BLOCKED/STALE), and field names differ (supportedClaimIds, sourceType, publishedDate, effectiveFrom, retrievedDate vs schema captureType/retrievedDate). All schema-required fields are present by name where they overlap. Normalization required before import."
+    },
+    {
+      "id": "warn-004",
+      "severity": "MEDIUM",
+      "area": "cryptographic originality",
+      "detail": "0/8 package files are byte-identical to the Deep Research report's declared original hashes. All 8 are semantically identical to the recovery appendix. Differences are serialization-only (JSON indent/unicode-escaping/final-newline). The recovered ZIP cannot be certified as the original archive."
+    }
+  ],
+  "schemaCompatibility": {
+    "marketSourceSchema": {
+      "requiredFields": [
+        "sourceId",
+        "url",
+        "sourceTier",
+        "publisher",
+        "retrievedDate",
+        "status"
+      ],
+      "packageMissingRequired": [],
+      "tierEnumSchema": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "tierEnumPackage": [
+        "TIER_A",
+        "TIER_B",
+        "TIER_C"
+      ],
+      "tierEnumMismatch": true,
+      "statusEnumSchema": [
+        "ACTIVE",
+        "MOVED",
+        "REMOVED",
+        "SUPERSEDED",
+        "BLOCKED",
+        "STALE"
+      ],
+      "statusEnumPackage": [
+        "REVIEWED"
+      ],
+      "statusEnumMismatch": true,
+      "fieldNameGaps": "package uses supportedClaimIds/retrievedDate/publishedDate/effectiveFrom/sourceType/status=REVIEWED vs schema captureType/retrievedDate + status enum"
+    },
+    "filesWithNoCommittedSchema": [
+      "research-run.json",
+      "claim-ledger.json",
+      "exchange-country-findings.json",
+      "conflicts.json",
+      "unknowns.json",
+      "publication-blockers.json",
+      "research-report.md"
+    ],
+    "validationMethodForUnmatched": "STRUCTURAL CONTRACT VALIDATION (no committed schema; honest structural checks only)",
+    "exchangeMarketCellSchemaNote": "No MI cell was created; exchange-country-findings.json is a research findings shape, not an exchange-market-cell instance. Import to a canonical MI cell would require mapping to schemas/market-intelligence/exchange-market-cell.schema.json (overallAvailability/registrationStatus/productStatuses/rankingEligibility/ctaEligibility/confidence/checkedDate/sourceIds + enums)."
+  },
+  "hashAudit": {
+    "research-run.json": {
+      "extractedBytes": 1401,
+      "declaredBytes": 1350,
+      "extractedSha": "2372a39abd0ee15ddbb7b0a0ad51a96db02cd948ad305eea7465d2f16dab514c",
+      "declaredSha": "3e8af72246380aef38da7cde6bf7191708aef81ebdbdf2c255ed8b3f13a0c58e",
+      "exactMatch": false,
+      "semanticMatchToAppendix": true,
+      "classification": "SERIALIZATION_ONLY_UNREPRODUCED_semantically_identical"
+    },
+    "source-registry.json": {
+      "extractedBytes": 29733,
+      "declaredBytes": 29702,
+      "extractedSha": "e608afbd4c9321326135fde9a87fbb24e33a2f1a9f293b6f718a67ef44cbe3e7",
+      "declaredSha": "70da9663cb8b1371440465e10950a8e3ed63783e6e931580b1e5e6fbf72dd212",
+      "exactMatch": false,
+      "semanticMatchToAppendix": true,
+      "classification": "SERIALIZATION_ONLY_UNREPRODUCED_semantically_identical"
+    },
+    "claim-ledger.json": {
+      "extractedBytes": 28854,
+      "declaredBytes": 28818,
+      "extractedSha": "863ad9f69966f467629537db6318339693f4f4f8bd0080c2148e8b322cdce868",
+      "declaredSha": "aff7bfdd9150ee0edded7342819f9b82b04ec0f7817d04d1e0dc53e2f56562b7",
+      "exactMatch": false,
+      "semanticMatchToAppendix": true,
+      "classification": "SERIALIZATION_ONLY"
+    },
+    "exchange-country-findings.json": {
+      "extractedBytes": 7538,
+      "declaredBytes": 7539,
+      "extractedSha": "a059f75d203d9fcef220ef2f099b3ef48b68124540f7d1cbb432164496e4057c",
+      "declaredSha": "0aeb4806f9d2737c99b9dee6261d69a5ed5af5a6b58040cba462337e0eaf0074",
+      "exactMatch": false,
+      "semanticMatchToAppendix": true,
+      "classification": "SERIALIZATION_ONLY_UNREPRODUCED_semantically_identical"
+    },
+    "conflicts.json": {
+      "extractedBytes": 3159,
+      "declaredBytes": 3160,
+      "extractedSha": "aa14842914a6ed30dfa7b2e46bc6012750490d41bc655f5b914981091889fa0f",
+      "declaredSha": "c7354a32b5498ac7ddc61d53c99e5b5823292908b48d48e68b230f1dafb5822b",
+      "exactMatch": false,
+      "semanticMatchToAppendix": true,
+      "classification": "UNICODE_ESCAPING_ONLY"
+    },
+    "unknowns.json": {
+      "extractedBytes": 4561,
+      "declaredBytes": 4562,
+      "extractedSha": "5067a1c7d5ad2fbe594d21f90f021cbbd7e681c0fffc6b5085fbcd256b52c766",
+      "declaredSha": "c4f65d55cd4db6a6b5e7b125ef8061fcbb73879dc8cbefee1a83fe233b820a36",
+      "exactMatch": false,
+      "semanticMatchToAppendix": true,
+      "classification": "SERIALIZATION_ONLY_UNREPRODUCED_semantically_identical"
+    },
+    "publication-blockers.json": {
+      "extractedBytes": 2893,
+      "declaredBytes": 2894,
+      "extractedSha": "2916b4b410b27e8cfebb5ac0289a7226f6c11e4f6d08eb8c91aa7486bf0a63bd",
+      "declaredSha": "279fddbaba2bf93dd47cb2dc40e70dabb89614a443c37102498dbfb9eba671d5",
+      "exactMatch": false,
+      "semanticMatchToAppendix": true,
+      "classification": "UNICODE_ESCAPING_ONLY"
+    },
+    "research-report.md": {
+      "extractedBytes": 21762,
+      "declaredBytes": 22007,
+      "extractedSha": "83d5726eb660674157e1bdda6a7d3864921e09ffe3b2e781dce6692133bef7dd",
+      "declaredSha": "a79e702d109afa7feba479c3b2a2cec21e7b58c20af0b38f992d71e3eaea332e",
+      "exactMatch": false,
+      "semanticMatchToAppendix": true,
+      "classification": "SERIALIZATION_ONLY_UNREPRODUCED_semantically_identical"
+    }
+  },
+  "cryptographicOriginality": {
+    "byteIdenticalToDeclaredOriginal": 0,
+    "ofTotal": 8,
+    "allSemanticallyIdenticalToAppendix": true,
+    "substantiveDifferences": [],
+    "label": "RECOVERED / UNVERIFIED"
+  },
+  "queueCoverageMatrix": [
+    {
+      "area": "legal entity",
+      "classification": "COMPLETE",
+      "note": "AFSA register (Tier A) + Bybit legal docs; entity Bybit Limited, licence AFSA-A-LA-2024-0027"
+    },
+    {
+      "area": "jurisdiction",
+      "classification": "COMPLETE",
+      "note": "AIFC; clm-entity-003"
+    },
+    {
+      "area": "registration",
+      "classification": "CONFLICTING",
+      "note": "KZ-resident guide vs 2026-01-26 foreign-nationals announcement; cf-kz-bybit-001"
+    },
+    {
+      "area": "KYC",
+      "classification": "COMPLETE",
+      "note": "mandatory KYC; individual/business document scope; clm-kyc-001..004"
+    },
+    {
+      "area": "restricted-country terms",
+      "classification": "COMPLETE",
+      "note": "local Tier A restricted-countries page excludes KZ; global page PARTIAL (snippet)"
+    },
+    {
+      "area": "spot",
+      "classification": "COMPLETE",
+      "note": "clm-spot-001"
+    },
+    {
+      "area": "KZT spot",
+      "classification": "PARTIAL",
+      "note": "KZT pairs live but exact pair list unrecovered; unk-kz-bybit-003"
+    },
+    {
+      "area": "derivatives",
+      "classification": "COMPLETE",
+      "note": "perps/expiry/options; clm-derivatives-001..003"
+    },
+    {
+      "area": "margin and leverage",
+      "classification": "COMPLETE",
+      "note": "documented with risk-tier limits; clm-margin-001..003"
+    },
+    {
+      "area": "P2P",
+      "classification": "COMPLETE",
+      "note": "clm-p2p-001/002"
+    },
+    {
+      "area": "KZT P2P",
+      "classification": "COMPLETE",
+      "note": "dedicated KZT P2P market page; clm-kzt-p2p-001 (kept separate from direct fiat)"
+    },
+    {
+      "area": "direct KZT fiat deposit",
+      "classification": "COMPLETE",
+      "note": "KZT bank transfer; clm-fiat-001"
+    },
+    {
+      "area": "direct KZT fiat withdrawal",
+      "classification": "COMPLETE",
+      "note": "KZT bank transfer / IBAN; clm-fiat-002"
+    },
+    {
+      "area": "bank transfer",
+      "classification": "COMPLETE",
+      "note": "clm-fiat-001/002"
+    },
+    {
+      "area": "cards",
+      "classification": "CONFLICTING",
+      "note": "local card docs + global Visa/MC list; local-vs-global routing unresolved; cf-kz-bybit-002"
+    },
+    {
+      "area": "third-party payment providers",
+      "classification": "MISSING",
+      "note": "provider matrix not disclosed; thirdPartyPaymentProviders=UNKNOWN; unk-kz-bybit-004"
+    },
+    {
+      "area": "iOS",
+      "classification": "COMPLETE",
+      "note": "KZ App Store listing; clm-app-002"
+    },
+    {
+      "area": "Android",
+      "classification": "COMPLETE",
+      "note": "Google Play listing; clm-app-001/002"
+    },
+    {
+      "area": "language",
+      "classification": "COMPLETE",
+      "note": "en/ru/kk locales; Kazakh partly machine-translated (with limits)"
+    },
+    {
+      "area": "support",
+      "classification": "PARTIAL",
+      "note": "channels documented; support-language coverage unresolved; unk-kz-bybit-005"
+    },
+    {
+      "area": "regulation",
+      "classification": "COMPLETE",
+      "note": "AFSA active licence; framed as footprint not safety guarantee; forged-licence alert correctly not enforcement"
+    },
+    {
+      "area": "offer eligibility",
+      "classification": "MISSING",
+      "note": "UNKNOWN; no KZ referral interoperability/bonus verified; clm-offer-001/002; blocker-003; unk-006"
+    },
+    {
+      "area": "checked dates",
+      "classification": "COMPLETE",
+      "note": "all claims checkedDate 2026-07-21"
+    },
+    {
+      "area": "confidence",
+      "classification": "COMPLETE",
+      "note": "per-claim + overall MEDIUM"
+    },
+    {
+      "area": "source IDs",
+      "classification": "COMPLETE",
+      "note": "every claim cites >=1 source; 0 dangling"
+    },
+    {
+      "area": "unknowns",
+      "classification": "COMPLETE",
+      "note": "6 unknowns recorded"
+    },
+    {
+      "area": "publication blockers",
+      "classification": "COMPLETE",
+      "note": "5 blockers recorded"
+    },
+    {
+      "area": "next-review dates",
+      "classification": "COMPLETE",
+      "note": "all nextReviewDate 2026-08-21"
+    }
+  ],
+  "queueCoverageSummary": {
+    "COMPLETE": 22,
+    "PARTIAL": 2,
+    "MISSING": 2,
+    "CONFLICTING": 2,
+    "NOT_APPLICABLE": 0
+  },
+  "legacyPassportComparison": {
+    "legacyResearchStatus": "in_progress",
+    "legacyKeyStates": "availability.* mostly UNKNOWN; products.p2p=PARTIAL; conflict_ids=[]; AFSA licence noted in identity/prior_findings",
+    "packageDelta": "Package finds materially broader current official evidence (registration, mandatory KYC, spot, derivatives, KZT P2P, direct KZT bank-transfer, apps, cards). Package must NOT silently overwrite the legacy passport; MIGRATION reconciliation + owner review required (blocker blk-kz-bybit-004)."
+  },
+  "overstrongOrUnsupportedClaims": {
+    "overstrong": [],
+    "hedgedButWeaklySourced": [
+      "clm-kz-bybit-registration-004 (snippet-only)",
+      "clm-kz-bybit-restrictions-002 (snippet-only)"
+    ],
+    "note": "No claim overstates AVAILABLE beyond its evidence; regulation is framed as a regulated footprint, not a safety endorsement; offer eligibility correctly UNKNOWN. AVAILABLE_WITH_LIMITS is used, not an unqualified AVAILABLE."
+  },
+  "authorizationsWithheld": {
+    "productionChangeAuthorized": false,
+    "rankingIntegrationAuthorized": false,
+    "ctaActivationAuthorized": false,
+    "promoActivationAuthorized": false,
+    "miCellCreated": false,
+    "compiledMatrixCreated": false,
+    "legacyPassportUpdated": false,
+    "routeOrPageCreated": false,
+    "translationsCreated": false,
+    "migration5Authorized": false,
+    "importPerformed": false
+  },
+  "additionalChecksBeforeAcceptingAvailableWithLimits": [
+    "Separate source-truth verification of the 8 Tier A + critical Tier B URLs (owner/analyst; not in this audit).",
+    "Full-body reconfirmation of snippet-only sources src-032 (foreign-nationals announcement) and src-008 (global restricted list).",
+    "Resolve cf-kz-bybit-001 (registration residency vs citizenship) and cf-kz-bybit-002 (bybit.kz vs bybit.com routing).",
+    "Verify KZ referral/promo/offer eligibility before any CTA/promo.",
+    "Normalize source-registry to market-source.schema.json enums/field names before import.",
+    "Owner review + MIGRATION reconciliation of the legacy GEO passport vs the stronger package evidence."
+  ],
+  "recommendation": "APPROVE_FOR_SOURCE_REVIEW",
+  "nextTask": "CBW-KZ-BYBIT-P0A-SOURCE-TRUTH-REVIEW-001 — owner/analyst source-truth verification of the Tier A + critical Tier B URLs and resolution of cf-kz-bybit-001/002 and offer eligibility, followed by schema normalization; import remains blocked until then. No MI cell, ranking, CTA, promo, route, page, translation, or MIGRATION_5 is authorized."
+}
