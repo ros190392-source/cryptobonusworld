@@ -1,0 +1,210 @@
+{
+  "auditId": "CBW-KZ-BYBIT-P0A-MI-GEO-DISCREPANCY-REVIEW-v1",
+  "taskId": "CBW-KZ-BYBIT-P0A-MI-GEO-DISCREPANCY-REVIEW-009",
+  "project": "CryptoBonusWorld",
+  "repository": "C:/projects/CryptoBonusWorld",
+  "branch": "master",
+  "baselineHead": "8a51bf21a5abf69b71593923ad681d3c7e95b099",
+  "date": "2026-07-21",
+  "countryCode": "KZ",
+  "exchangeId": "bybit",
+  "mode": "READ_ONLY_THREE_LAYER_DISCREPANCY_REVIEW",
+  "webBrowsingUsed": false,
+
+  "availabilitySemantics": "AVAILABLE and AVAILABLE_WITH_LIMITS are BOTH positive primary availability (GREEN). Production 'available' vs canonical 'AVAILABLE_WITH_LIMITS' is PRIMARY_MATCH_MI_MORE_PRECISE, not a conflict. A true availability CONFLICT requires one layer available and another restricted/unavailable, or a materially different supported core scenario.",
+
+  "layer1_canonicalMI": {
+    "overallAvailability": "AVAILABLE_WITH_LIMITS",
+    "confidence": "MEDIUM",
+    "liveVerificationState": "NOT_LIVE_VERIFIED",
+    "rankingEligibility": false,
+    "ctaEligibility": false,
+    "promoEligibility": false,
+    "reasonCodes": ["LOCAL_AIFC_LICENSED", "REGISTRATION_SCOPE_PARTIAL", "ROUTING_PARTIAL", "OFFER_ELIGIBILITY_UNVERIFIED", "NOT_LIVE_VERIFIED"],
+    "conflictIds": ["cf-kz-bybit-001", "cf-kz-bybit-002"],
+    "sourceCount": 43,
+    "sourceTiers": { "A": 8, "B": 32, "C": 3 },
+    "links": 77,
+    "corrections": 4,
+    "conflicts": 2,
+    "conflictsBothPartiallyResolved": true,
+    "exchangeLegalEntity": "Bybit Limited (AIFC / AFSA AFSA-A-LA-2024-0027)",
+    "productStatuses": {
+      "registration": "AVAILABLE_WITH_LIMITS", "kyc": "AVAILABLE_WITH_LIMITS", "spot": "AVAILABLE",
+      "derivatives": "AVAILABLE_WITH_LIMITS", "margin": "AVAILABLE_WITH_LIMITS", "p2p": "AVAILABLE_WITH_LIMITS",
+      "kzt_p2p": "AVAILABLE", "direct_kzt_deposit": "AVAILABLE_WITH_LIMITS", "direct_kzt_withdrawal": "AVAILABLE_WITH_LIMITS",
+      "bank_card_purchase": "CONFLICTING", "bybit_card": "AVAILABLE_WITH_LIMITS", "referral": "UNKNOWN", "promotions": "AVAILABLE_WITH_LIMITS"
+    },
+    "entityDomainRouting": "bybit.kz local Bybit Limited stack for core trading/KYC/KZT rails; bank-card purchase + referral routing UNRESOLVED; affiliate stack = Bybit Technology Limited (cf-002 routingMatrix)",
+    "offerEligibility": { "localReferralUpToUsdt": 1032, "kazakhstanCampaignPrizePoolUsdt": 2500, "combined": false, "isGlobalMaximum": false },
+    "globalReferralCodeCompatibility": "UNVERIFIED",
+    "packageStatus": "RECOVERED / UNVERIFIED",
+    "binding": { "ownerApproved": false, "reviewStatus": "PROPOSED", "canonicalRecord": "GEO_LEGACY", "productionStable": true, "productionRouteUnchanged": true, "migrationPhase": "MIGRATION_4", "active": false }
+  },
+
+  "layer2_legacyGeoPassport": {
+    "file": "research/geo/kazakhstan/exchanges/bybit.json",
+    "researchStatus": "in_progress",
+    "availability": { "website": "UNKNOWN", "registration": "UNKNOWN", "country_selector": "UNKNOWN", "kyc": "UNKNOWN", "local_documents": "UNKNOWN", "app_ios": "UNKNOWN", "app_android": "UNKNOWN" },
+    "products": { "spot": "UNKNOWN", "futures": "UNKNOWN", "p2p": "PARTIAL", "earn": "UNKNOWN", "card": "UNKNOWN", "fiat_deposit": "UNKNOWN", "fiat_withdrawal": "UNKNOWN" },
+    "localFit": { "currency": "KZT", "currency_supported": true, "local_banks": ["Halyk Bank"] },
+    "legalEntity": "Bybit Limited (AIFC entity per AFSA register)",
+    "affiliate": { "go_route": "/go/bybit", "promo_code": "CRYPTOBONUSW", "geo_eligible": "UNKNOWN", "bonus_claim_status": "not_checked" },
+    "scores": { "confidence": null, "availability": null, "homepage": null },
+    "status": { "cta": "not_decided", "index_eligible": false },
+    "conflictIds": [],
+    "unknownClaimIds": ["kz-bybit-registration-availability-004", "kz-bybit-bonus-availability-005", "kz-bybit-affiliate-geo-006"],
+    "lastCheckedAt": "2026-07-14",
+    "modelsProductLevelDetail": "partial (spot/futures/p2p/earn/card/fiat_deposit/fiat_withdrawal only); does NOT model registration/kyc/margin/kzt_p2p/bank_card_purchase/bybit_card/referral/promotions distinctly; does NOT model the two MI conflicts"
+  },
+
+  "layer3_production": {
+    "rankingFile": "src/data/geoRankings.ts (MANUAL_OVERRIDES.kazakhstan.bybit)",
+    "availability": "available",
+    "bonusAvailability": "unknown",
+    "confidence": "verified (refers to AFSA license verification, not overall availability)",
+    "kycNote": "KYC required",
+    "restrictionNote": "AFSA license AFSA-A-LA-2024-0027; first regulated P2P Nov 2025; not on global 14-jurisdiction exclusion list",
+    "bonusNote": "No evidence global welcome package is claimable by KZ users; needs dedicated verification",
+    "affiliateRoute": "/go/bybit",
+    "promoCode": "CRYPTOBONUSW",
+    "productionAvailabilitySnapshot": "available / position 1 (owner-ops snapshot; AST-derived order)",
+    "configKazakhstan": { "file": "config/geo/kazakhstan.json", "homepage_eligible": false, "publication_status": "blocked_by_missing_evidence", "evidence_status": "in_progress" },
+    "livePublicationState": "Kazakhstan GEO is NOT live-published (homepage_eligible=false, publication blocked). Ranking/CTA/bonus data exists in geoRankings but is not shown to users.",
+    "productLevelModeling": "overall availability + bonusAvailability + kycNote only; no per-product granularity"
+  },
+
+  "fieldComparison": [
+    { "field": "1 overall availability", "mi": "AVAILABLE_WITH_LIMITS", "legacy": "availability.* UNKNOWN (in_progress)", "production": "available", "classification": "PRIMARY_MATCH_MI_MORE_PRECISE", "materiality": "LOW", "materialityTags": ["PRESENTATION_ONLY", "RESEARCH_PRECISION_ONLY"], "userFacingImpact": "None. Both MI and production indicate positive primary availability; MI adds visible limitations. Legacy passport is evidence-blocked UNKNOWN.", "migrationAction": "On migration, present GREEN 'Available' + AMBER limitations.", "reason": "Production available == MI positive primary; legacy UNKNOWN is conservatism, not contradiction." },
+    { "field": "2 presentation state", "mi": "GREEN primary + AMBER secondary", "legacy": "scores null / no presentation", "production": "available (green)", "classification": "PRIMARY_MATCH_MI_MORE_PRECISE", "materiality": "LOW", "materialityTags": ["PRESENTATION_ONLY"], "userFacingImpact": "MI adds an AMBER limitation marker not present in production.", "migrationAction": "Add AMBER 'Some limits apply'.", "reason": "Same positive state; MI more precise." },
+    { "field": "3 registration eligibility", "mi": "AVAILABLE_WITH_LIMITS (citizenship/residency scope partial, cf-001)", "legacy": "UNKNOWN", "production": "not modeled at product level (overall available)", "classification": "MI_MORE_CONSERVATIVE", "materiality": "MEDIUM", "materialityTags": ["ELIGIBILITY_RELEVANT"], "userFacingImpact": "MI flags residency/citizenship/foreign-national scope; production/legacy do not.", "migrationAction": "Surface registration scope limitation on migration.", "reason": "MI exposes an eligibility limitation the other layers omit." },
+    { "field": "4 KYC eligibility", "mi": "AVAILABLE_WITH_LIMITS", "legacy": "UNKNOWN", "production": "KYC required (note)", "classification": "PRIMARY_MATCH_MI_MORE_PRECISE", "materiality": "LOW", "materialityTags": ["RESEARCH_PRECISION_ONLY"], "userFacingImpact": "All agree KYC required; MI details document scope.", "migrationAction": "None material.", "reason": "Production kycNote aligns with MI; legacy UNKNOWN conservative." },
+    { "field": "5 spot", "mi": "AVAILABLE", "legacy": "UNKNOWN", "production": "not modeled", "classification": "LEGACY_MORE_CONSERVATIVE", "materiality": "LOW", "materialityTags": ["RESEARCH_PRECISION_ONLY"], "userFacingImpact": "None (legacy evidence-blocked).", "migrationAction": "MI provides confirmed spot.", "reason": "Legacy UNKNOWN vs MI AVAILABLE — precision gap." },
+    { "field": "6 derivatives", "mi": "AVAILABLE_WITH_LIMITS", "legacy": "futures UNKNOWN", "production": "not modeled", "classification": "LEGACY_MORE_CONSERVATIVE", "materiality": "LOW", "materialityTags": ["RESEARCH_PRECISION_ONLY"], "userFacingImpact": "None.", "migrationAction": "MI provides derivatives-with-limits.", "reason": "Precision gap." },
+    { "field": "7 margin", "mi": "AVAILABLE_WITH_LIMITS", "legacy": "not modeled", "production": "not modeled", "classification": "MI_ONLY", "materiality": "LOW", "materialityTags": ["RESEARCH_PRECISION_ONLY"], "userFacingImpact": "None.", "migrationAction": "MI adds margin.", "reason": "Only MI models margin." },
+    { "field": "8 P2P", "mi": "AVAILABLE_WITH_LIMITS", "legacy": "PARTIAL", "production": "regulated P2P noted", "classification": "PRIMARY_MATCH_MI_MORE_PRECISE", "materiality": "LOW", "materialityTags": ["RESEARCH_PRECISION_ONLY"], "userFacingImpact": "All three agree P2P is available-with-limits.", "migrationAction": "None material.", "reason": "Legacy PARTIAL == MI AWL positive-with-limits; strongest cross-layer alignment." },
+    { "field": "9 KZT P2P", "mi": "AVAILABLE", "legacy": "p2p PARTIAL + KZT supported true", "production": "regulated KZT P2P (Halyk) noted", "classification": "PRIMARY_MATCH_MI_MORE_PRECISE", "materiality": "LOW", "materialityTags": ["RESEARCH_PRECISION_ONLY"], "userFacingImpact": "Aligned positive.", "migrationAction": "None material.", "reason": "All indicate KZT P2P exists; MI cleanest." },
+    { "field": "10 direct KZT deposit", "mi": "AVAILABLE_WITH_LIMITS", "legacy": "fiat_deposit UNKNOWN", "production": "not modeled", "classification": "LEGACY_MORE_CONSERVATIVE", "materiality": "LOW", "materialityTags": ["RESEARCH_PRECISION_ONLY"], "userFacingImpact": "None.", "migrationAction": "MI provides identity-bound KZT deposit.", "reason": "Precision gap." },
+    { "field": "11 direct KZT withdrawal", "mi": "AVAILABLE_WITH_LIMITS", "legacy": "fiat_withdrawal UNKNOWN", "production": "not modeled", "classification": "LEGACY_MORE_CONSERVATIVE", "materiality": "LOW", "materialityTags": ["RESEARCH_PRECISION_ONLY"], "userFacingImpact": "None.", "migrationAction": "MI provides identity-bound KZT withdrawal.", "reason": "Precision gap." },
+    { "field": "12 bank-card purchase", "mi": "CONFLICTING (bybit.kz vs bybit.com routing unresolved, cf-002)", "legacy": "card UNKNOWN", "production": "not modeled", "classification": "MI_MORE_CONSERVATIVE", "materiality": "MEDIUM", "materialityTags": ["ROUTING_RELEVANT", "ELIGIBILITY_RELEVANT"], "userFacingImpact": "MI marks bank-card routing CONFLICTING; others silent.", "migrationAction": "Do not present bank-card purchase as plainly available; carry CONFLICTING + cf-002.", "reason": "MI exposes an unresolved routing conflict." },
+    { "field": "13 Bybit Card", "mi": "AVAILABLE_WITH_LIMITS", "legacy": "card UNKNOWN", "production": "not modeled", "classification": "LEGACY_MORE_CONSERVATIVE", "materiality": "LOW", "materialityTags": ["RESEARCH_PRECISION_ONLY"], "userFacingImpact": "None.", "migrationAction": "MI provides card-with-limits.", "reason": "Precision gap." },
+    { "field": "14 referral-code support", "mi": "UNKNOWN (referral)", "legacy": "affiliate present, geo_eligible UNKNOWN", "production": "promo_code CRYPTOBONUSW present", "classification": "MATCH", "materiality": "MEDIUM", "materialityTags": ["CTA_RELEVANT"], "userFacingImpact": "All three treat referral-code eligibility as unverified/unknown.", "migrationAction": "Keep referral UNKNOWN; verify before any CTA.", "reason": "All layers unverified on referral eligibility." },
+    { "field": "15 global referral compatibility", "mi": "UNVERIFIED", "legacy": "geo_eligible UNKNOWN", "production": "/go/bybit global route present; bonusAvailability unknown", "classification": "PRIMARY_MATCH_MI_MORE_PRECISE", "materiality": "HIGH", "materialityTags": ["CTA_RELEVANT", "PROMO_RELEVANT", "ROUTING_RELEVANT"], "userFacingImpact": "A global /go/bybit affiliate link exists in production data; MI confirms global-code local compatibility is UNVERIFIED. Any live KZ CTA using the global code would be an unverified claim.", "migrationAction": "Owner review required before any KZ Bybit CTA/promo; do not present the global code as locally claimable.", "reason": "MI formalizes the unverified compatibility the other layers only flag as unknown." },
+    { "field": "16 promotions", "mi": "AVAILABLE_WITH_LIMITS (local programs exist; campaign-specific)", "legacy": "bonus not modeled (bonus_claim_status not_checked)", "production": "bonusAvailability unknown", "classification": "PRIMARY_MATCH_MI_MORE_PRECISE", "materiality": "MEDIUM", "materialityTags": ["PROMO_RELEVANT"], "userFacingImpact": "MI documents local promo programs exist but eligibility is campaign-specific; production makes no bonus claim.", "migrationAction": "promoEligibility stays false; local programs not presented as a claimable bonus.", "reason": "MI more precise; production correctly conservative (no claim)." },
+    { "field": "17 bonus amounts", "mi": "1,032 USDT + 2,500 USDT (separate, not global max)", "legacy": "P2P KZT limits (2.5M/5M KZT — different concept)", "production": "no bonus amount claimed", "classification": "MI_ONLY", "materiality": "MEDIUM", "materialityTags": ["PROMO_RELEVANT"], "userFacingImpact": "MI documents two separate local program amounts; must never be combined or shown as a global maximum. Production shows no amount.", "migrationAction": "Keep amounts separate; no promo/CTA.", "reason": "Only MI models the local amounts; production correctly claims none." },
+    { "field": "18 ranking eligibility", "mi": "false", "legacy": "index_eligible false; scores null", "production": "available -> position 1 (data), BUT homepage_eligible=false (not published)", "classification": "PRODUCTION_MORE_PERMISSIVE", "materiality": "HIGH", "materialityTags": ["RANKING_RELEVANT"], "userFacingImpact": "Production DATA would rank Bybit #1 in KZ, but KZ is publication-blocked so nothing is shown live. MI has not authorized ranking (rankingEligibility=false).", "migrationAction": "Do not change ranking; a future ranking activation is a separate owner decision gated on NOT_LIVE_VERIFIED + conflicts.", "reason": "Production ranking data is more permissive than MI eligibility, but unpublished." },
+    { "field": "19 CTA eligibility", "mi": "false", "legacy": "cta not_decided", "production": "cta data present, not published; bonusAvailability unknown", "classification": "MATCH", "materiality": "MEDIUM", "materialityTags": ["CTA_RELEVANT"], "userFacingImpact": "No live CTA is shown (KZ unpublished); MI explicitly withholds CTA eligibility.", "migrationAction": "Keep CTA off; owner review before any KZ CTA.", "reason": "Neither layer makes a live CTA claim." },
+    { "field": "20 promo eligibility", "mi": "false", "legacy": "bonus not_checked", "production": "bonusAvailability unknown (no live promo)", "classification": "MATCH", "materiality": "MEDIUM", "materialityTags": ["PROMO_RELEVANT"], "userFacingImpact": "No live promo shown; MI explicitly withholds promo eligibility.", "migrationAction": "Keep promo off.", "reason": "Neither layer makes a live promo claim." },
+    { "field": "21 confidence", "mi": "MEDIUM", "legacy": "scores.confidence null", "production": "'verified' (AFSA license only)", "classification": "NOT_COMPARABLE", "materiality": "LOW", "materialityTags": ["RESEARCH_PRECISION_ONLY"], "userFacingImpact": "Different scales/scopes; production 'verified' = license verification, not overall availability confidence.", "migrationAction": "Adopt MI MEDIUM overall confidence.", "reason": "Confidence semantics differ across layers." },
+    { "field": "22 live verification", "mi": "NOT_LIVE_VERIFIED", "legacy": "not modeled", "production": "not modeled", "classification": "MI_ONLY", "materiality": "MEDIUM", "materialityTags": ["ELIGIBILITY_RELEVANT", "RANKING_RELEVANT"], "userFacingImpact": "MI records that live in-country behavior is not verified (NO-PROXY); relevant to any ranking/CTA activation.", "migrationAction": "Keep NOT_LIVE_VERIFIED visible; blocks confident ranking/CTA.", "reason": "Only MI records live-verification state." },
+    { "field": "23 conflict handling", "mi": "2 PARTIALLY_RESOLVED (cf-001, cf-002)", "legacy": "conflict_ids [] (omits); partial narrative on routing", "production": "restrictionNote partially notes local-vs-global; no formal conflict", "classification": "MI_ONLY", "materiality": "HIGH", "materialityTags": ["ELIGIBILITY_RELEVANT", "ROUTING_RELEVANT"], "userFacingImpact": "Legacy omits both conflicts; production narrates part of cf-002 informally. MI formalizes both.", "migrationAction": "Carry both conflicts into any migrated record; do not resolve.", "reason": "MI is the only layer that formally models the conflicts." },
+    { "field": "24 legal-entity routing", "mi": "Bybit Limited core + Bybit Technology Limited affiliate (separated)", "legacy": "Bybit Limited (AIFC)", "production": "Bybit Limited", "classification": "PRIMARY_MATCH_MI_MORE_PRECISE", "materiality": "MEDIUM", "materialityTags": ["ROUTING_RELEVANT"], "userFacingImpact": "MI separates the affiliate legal entity from the core platform entity.", "migrationAction": "Preserve entity separation.", "reason": "Same core entity; MI adds affiliate-entity distinction." },
+    { "field": "25 domain routing", "mi": "bybit.kz vs bybit.com routingMatrix (bank-card + referral UNRESOLVED)", "legacy": "'global-vs-local routing remains key unknown'", "production": "'separately licensed Bybit Kazakhstan product vs global'", "classification": "PRIMARY_MATCH_MI_MORE_PRECISE", "materiality": "MEDIUM", "materialityTags": ["ROUTING_RELEVANT"], "userFacingImpact": "All acknowledge routing ambiguity; MI formalizes per-service routing.", "migrationAction": "Preserve routingMatrix.", "reason": "MI formalizes what legacy/production only narrate." },
+    { "field": "26 source/provenance depth", "mi": "43 sources + full provenance", "legacy": "3 evidence_ids", "production": "1 evidenceUrl", "classification": "PRIMARY_MATCH_MI_MORE_PRECISE", "materiality": "LOW", "materialityTags": ["RESEARCH_PRECISION_ONLY"], "userFacingImpact": "MI provides far deeper evidence.", "migrationAction": "Use MI provenance.", "reason": "MI is deepest; not a contradiction." },
+    { "field": "27 last-checked / freshness", "mi": "2026-07-21", "legacy": "2026-07-14", "production": "2026-07-03", "classification": "PRIMARY_MATCH_MI_MORE_PRECISE", "materiality": "LOW", "materialityTags": ["RESEARCH_PRECISION_ONLY"], "userFacingImpact": "MI is freshest.", "migrationAction": "None material.", "reason": "Freshness ordering, no conflict." },
+    { "field": "28 production consumer behavior", "mi": "0 consumers (canonical not read by runtime)", "legacy": "consumed via GEO system", "production": "geoRankings is the consumer", "classification": "MI_ONLY", "materiality": "NONE", "materialityTags": ["DOCUMENTATION_ONLY"], "userFacingImpact": "Canonical MI changes nothing live.", "migrationAction": "Integration is a separate gated task.", "reason": "Canonical package intentionally has no consumer yet." },
+    { "field": "29 binding activation", "mi": "non-active (canonicalRecord GEO_LEGACY)", "legacy": "production truth", "production": "production truth", "classification": "MATCH", "materiality": "NONE", "materialityTags": ["DOCUMENTATION_ONLY"], "userFacingImpact": "None.", "migrationAction": "Activation is a separate gated task.", "reason": "Binding explicitly defers to GEO_LEGACY." },
+    { "field": "30 legacy GEO production ownership", "mi": "cedes to GEO_LEGACY until migration", "legacy": "owns production availability", "production": "owns ranking/CTA", "classification": "MATCH", "materiality": "NONE", "materialityTags": ["DOCUMENTATION_ONLY"], "userFacingImpact": "None.", "migrationAction": "Ownership transfer only at MIGRATION_7.", "reason": "MI explicitly keeps legacy as production truth." }
+  ],
+
+  "productStatusComparison": {
+    "note": "Legacy passport models a partial product set; production models overall availability only. Missing product-level detail in legacy/production is a precision gap, not a contradiction. Product-level differences are NOT flattened into overall status.",
+    "rows": [
+      { "product": "registration", "mi": "AVAILABLE_WITH_LIMITS", "legacy": "UNKNOWN", "legacyModels": true, "production": "overall available", "productionModels": false, "classification": "MI_MORE_CONSERVATIVE", "migrationChangesUserBehavior": "adds registration scope limitation" },
+      { "product": "kyc", "mi": "AVAILABLE_WITH_LIMITS", "legacy": "UNKNOWN", "legacyModels": true, "production": "KYC required (note)", "productionModels": true, "classification": "PRIMARY_MATCH_MI_MORE_PRECISE", "migrationChangesUserBehavior": "no" },
+      { "product": "spot", "mi": "AVAILABLE", "legacy": "UNKNOWN", "legacyModels": true, "production": "not modeled", "productionModels": false, "classification": "LEGACY_MORE_CONSERVATIVE", "migrationChangesUserBehavior": "confirms spot" },
+      { "product": "derivatives", "mi": "AVAILABLE_WITH_LIMITS", "legacy": "futures UNKNOWN", "legacyModels": true, "production": "not modeled", "productionModels": false, "classification": "LEGACY_MORE_CONSERVATIVE", "migrationChangesUserBehavior": "adds derivatives" },
+      { "product": "margin", "mi": "AVAILABLE_WITH_LIMITS", "legacy": "not modeled", "legacyModels": false, "production": "not modeled", "productionModels": false, "classification": "MI_ONLY", "migrationChangesUserBehavior": "adds margin" },
+      { "product": "p2p", "mi": "AVAILABLE_WITH_LIMITS", "legacy": "PARTIAL", "legacyModels": true, "production": "regulated P2P noted", "productionModels": true, "classification": "PRIMARY_MATCH_MI_MORE_PRECISE", "migrationChangesUserBehavior": "no" },
+      { "product": "kzt_p2p", "mi": "AVAILABLE", "legacy": "PARTIAL + KZT true", "legacyModels": true, "production": "KZT P2P noted", "productionModels": true, "classification": "PRIMARY_MATCH_MI_MORE_PRECISE", "migrationChangesUserBehavior": "no" },
+      { "product": "direct_kzt_deposit", "mi": "AVAILABLE_WITH_LIMITS", "legacy": "fiat_deposit UNKNOWN", "legacyModels": true, "production": "not modeled", "productionModels": false, "classification": "LEGACY_MORE_CONSERVATIVE", "migrationChangesUserBehavior": "adds identity-bound KZT deposit" },
+      { "product": "direct_kzt_withdrawal", "mi": "AVAILABLE_WITH_LIMITS", "legacy": "fiat_withdrawal UNKNOWN", "legacyModels": true, "production": "not modeled", "productionModels": false, "classification": "LEGACY_MORE_CONSERVATIVE", "migrationChangesUserBehavior": "adds identity-bound KZT withdrawal" },
+      { "product": "bank_card_purchase", "mi": "CONFLICTING", "legacy": "card UNKNOWN", "legacyModels": true, "production": "not modeled", "productionModels": false, "classification": "MI_MORE_CONSERVATIVE", "migrationChangesUserBehavior": "marks bank-card routing CONFLICTING" },
+      { "product": "bybit_card", "mi": "AVAILABLE_WITH_LIMITS", "legacy": "card UNKNOWN", "legacyModels": true, "production": "not modeled", "productionModels": false, "classification": "LEGACY_MORE_CONSERVATIVE", "migrationChangesUserBehavior": "adds card-with-limits" },
+      { "product": "referral", "mi": "UNKNOWN", "legacy": "geo_eligible UNKNOWN", "legacyModels": true, "production": "promo_code present, eligibility unknown", "productionModels": true, "classification": "MATCH", "migrationChangesUserBehavior": "no" },
+      { "product": "promotions", "mi": "AVAILABLE_WITH_LIMITS", "legacy": "not_checked", "legacyModels": false, "production": "bonusAvailability unknown", "productionModels": true, "classification": "PRIMARY_MATCH_MI_MORE_PRECISE", "migrationChangesUserBehavior": "documents local programs; no claim" }
+    ],
+    "allThirteenCompared": true,
+    "flattenedIntoOverall": false
+  },
+
+  "rankingReview": {
+    "bybitRankedInProduction": "yes in data (position 1) — but KZ homepage_eligible=false, publication blocked; not shown live",
+    "currentPositionOrTier": "position 1 (unpublished)",
+    "canonicalAuthorizesRanking": false,
+    "productionMorePermissiveThanCanonical": true,
+    "shouldRemainUnchangedPendingOwner": true,
+    "CURRENT_PRODUCTION_RANKING_SAFETY": "SAFE_WITH_DISCLOSED_GAP",
+    "FUTURE_RANKING_DECISION_READINESS": "READY_WITH_LIMITS",
+    "rationale": "Production availability (available) aligns with MI positive primary availability, and KZ is not live-published, so no false live ranking claim exists. The disclosed gap: MI adds limitations, NOT_LIVE_VERIFIED, two unresolved conflicts, and rankingEligibility=false. A future ranking activation is a separate owner decision."
+  },
+
+  "ctaPromoReview": {
+    "productionCta": "cta data present (/go/bybit) but KZ unpublished; not shown live",
+    "productionAffiliateReferralCode": "CRYPTOBONUSW",
+    "productionOffer": "bonusAvailability unknown (no live bonus claim)",
+    "canonicalCtaEligibility": false,
+    "canonicalPromoEligibility": false,
+    "globalReferralCompatibility": "UNVERIFIED",
+    "localReferralUpToUsdt": 1032,
+    "kazakhstanCampaignPrizePoolUsdt": 2500,
+    "amountsSeparate": true,
+    "neitherIsGlobalMaximum": true,
+    "CURRENT_PRODUCTION_CTA_SAFETY": "SAFE_WITH_DISCLOSED_GAP",
+    "CURRENT_PRODUCTION_PROMO_SAFETY": "SAFE_WITH_DISCLOSED_GAP",
+    "rationale": "No live CTA/promo is shown (KZ unpublished, bonusAvailability unknown). The disclosed gap: a global /go/bybit + CRYPTOBONUSW code exist in data while MI records global referral compatibility UNVERIFIED and ctaEligibility/promoEligibility=false. Any future KZ CTA/promo activation NEEDS_OWNER_REVIEW and must keep the 1,032/2,500 USDT amounts separate."
+  },
+
+  "conflictComparison": {
+    "cf-kz-bybit-001": { "issue": "residency/citizenship/foreign-national scope", "mi": "PARTIALLY_RESOLVED, formalized", "legacy": "OMITS (conflict_ids empty; unknown_claim_ids for registration)", "production": "OMITS (restrictionNote silent on citizenship scope)", "hiddenUserRisk": "LOW-MEDIUM — production 'available' does not disclose citizenship/residency scope, but availability is genuinely positive so this is a limitation not a false claim", "resolvedThisTask": false },
+    "cf-kz-bybit-002": { "issue": "bybit.kz / bybit.com entity & service routing (bank-card, referral)", "mi": "PARTIALLY_RESOLVED, routingMatrix", "legacy": "PARTIALLY COMMUNICATES ('global-vs-local routing key unknown'; p2p PARTIAL)", "production": "PARTIALLY COMMUNICATES ('separately licensed Bybit Kazakhstan product vs global')", "hiddenUserRisk": "MEDIUM — the /go/bybit affiliate link routes to the global product while local entity/code compatibility is unresolved; relevant before any CTA", "resolvedThisTask": false }
+  },
+
+  "materialDiscrepancies": [
+    "Global referral compatibility UNVERIFIED while production carries a global /go/bybit + CRYPTOBONUSW code (field 15 — HIGH, CTA/PROMO/ROUTING).",
+    "Conflict handling: MI formalizes cf-001 + cf-002; legacy omits, production only narrates part (field 23 — HIGH, ELIGIBILITY/ROUTING).",
+    "Ranking: production data would rank Bybit #1 while MI rankingEligibility=false and state is NOT_LIVE_VERIFIED (field 18 — HIGH, RANKING); mitigated by KZ being unpublished.",
+    "bank_card_purchase CONFLICTING in MI, unmodeled elsewhere (field 12 — MEDIUM, ROUTING).",
+    "Bonus amounts (1,032 / 2,500 USDT) modeled only in MI; must stay separate and never shown as global max (field 17 — MEDIUM, PROMO)."
+  ],
+
+  "documentationOrPrecisionOnlyDiscrepancies": [
+    "overall availability MI AWL vs production available (PRESENTATION/PRECISION).",
+    "spot/derivatives/margin/direct KZT deposit/withdrawal/Bybit Card: legacy UNKNOWN or unmodeled vs MI granular (RESEARCH_PRECISION).",
+    "source/provenance depth, freshness, KYC detail (RESEARCH_PRECISION).",
+    "production consumer behavior / binding activation / legacy production ownership (DOCUMENTATION_ONLY)."
+  ],
+
+  "noProductionChangeCheck": {
+    "canonicalZeroProductionConsumers": true,
+    "bindingNonActive": true,
+    "legacyGeoRemainsProductionTruth": true,
+    "noRuntimeConsumerAdded": true,
+    "noSourceRankingCtaPromoRouteSitemapPageChanged": true,
+    "noAutomaticSync": true,
+    "result": "PASS"
+  },
+
+  "migrationRecommendation": {
+    "PRIMARY_AVAILABILITY_ALIGNMENT": "MATCH_WITH_MI_LIMITATIONS",
+    "LEGACY_GEO_ALIGNMENT": "ALIGNED_WITH_PRECISION_GAPS",
+    "PRODUCTION_ALIGNMENT": "ALIGNED_WITH_PRECISION_GAPS",
+    "MIGRATION_5_OWNER_DECISION_READINESS": "READY_WITH_LIMITS",
+    "MIGRATION_5_AUTHORIZATION": false,
+    "MI_GEO_BINDING_ACTIVATION_AUTHORIZATION": false,
+    "PRODUCTION_CHANGE_AUTHORIZATION": false,
+    "RANKING_CHANGE_AUTHORIZATION": false,
+    "CTA_CHANGE_AUTHORIZATION": false,
+    "PROMO_CHANGE_AUTHORIZATION": false,
+    "rationale": "Primary availability aligns (production available == MI positive primary; MI more precise). No user-facing availability CONFLICT. Legacy passport is evidence-blocked (precision gaps, not contradictions). Material gaps are ranking permissiveness, referral/CTA/promo verification, and formal conflict disclosure — all separate from availability and all currently non-live (KZ publication-blocked). An owner MIGRATION_5 decision can be taken but only WITH LIMITS: NOT_LIVE_VERIFIED, MEDIUM confidence, two unresolved conflicts, and UNVERIFIED global referral compatibility must be carried."
+  },
+
+  "filesCreated": [
+    "owner-ops/market-intelligence/research-audits/CBW_KZ_BYBIT_P0A_MI_GEO_DISCREPANCY_REVIEW_v1.md",
+    "owner-ops/market-intelligence/research-audits/CBW_KZ_BYBIT_P0A_MI_GEO_DISCREPANCY_REVIEW_v1.json"
+  ],
+
+  "recommendation": "APPROVE",
+  "recommendationScope": "Read-only three-layer discrepancy review complete. Primary availability aligns with MI-added limitations; no availability conflict. Current production (unpublished KZ) is SAFE_WITH_DISCLOSED_GAP for ranking/CTA/promo. MIGRATION_5 owner decision is READY_WITH_LIMITS. No migration, binding activation, production/ranking/CTA/promo change is authorized.",
+  "nextTask": "CBW-KZ-BYBIT-P0A-MIGRATION-5-OWNER-DECISION-010 — owner decision (documentation only) on whether/how to proceed toward MIGRATION_5 given READY_WITH_LIMITS, carrying NOT_LIVE_VERIFIED + two unresolved conflicts + UNVERIFIED global referral compatibility. Binding activation, production integration, ranking/CTA/promo activation, and starting another exchange (e.g. MEXC) remain separate later owner-gated tasks."
+}
