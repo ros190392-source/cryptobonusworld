@@ -1,0 +1,222 @@
+{
+  "decisionId": "CBW-KZ-BYBIT-P0A-MIGRATION-5-OWNER-DECISION-v1",
+  "taskId": "CBW-KZ-BYBIT-P0A-MIGRATION-5-OWNER-DECISION-010",
+  "project": "CryptoBonusWorld",
+  "repository": "C:/projects/CryptoBonusWorld",
+  "branch": "master",
+  "baselineHead": "8d5284d4c8870effe3b0fd25a3c2353e2182ac7b",
+  "date": "2026-07-21",
+  "countryCode": "KZ",
+  "exchangeId": "bybit",
+  "batchId": "KZ-P0-A",
+  "mode": "OWNER_DECISION_RECORD_ONLY",
+  "status": "OWNER_APPROVED_MIGRATION_5_SCOPE_DECISION",
+  "scopeStatement": "Records the owner decision for the limited next phase of Bybit x Kazakhstan MIGRATION_5. Authorizes ONLY a future non-production migration preview + adapter design. Does NOT execute the migration and does NOT authorize any current runtime/production change.",
+
+  "migration5ScopeDecision": {
+    "MIGRATION_5_SCOPE_DECISION": "APPROVED_WITH_LIMITS",
+    "MIGRATION_5_PREPARATION_AUTHORIZED": true,
+    "MIGRATION_5_EXECUTION_AUTHORIZED": false,
+    "MIGRATION_5_PRODUCTION_ACTIVATION_AUTHORIZED": false,
+    "authorizesOnly": "a future non-production migration preview and adapter design"
+  },
+
+  "approvedMigrationPreparationScope": {
+    "fields": [
+      "overall availability", "confidence", "live-verification state",
+      "primary and secondary presentation semantics", "exact limitation disclosure",
+      "product-level availability statuses", "reason codes", "conflict references",
+      "provenance references", "ownership and discrepancy metadata"
+    ],
+    "preserved": {
+      "overallAvailability": "AVAILABLE_WITH_LIMITS",
+      "confidence": "MEDIUM",
+      "liveVerificationState": "NOT_LIVE_VERIFIED",
+      "presentation": { "primaryState": "GREEN", "primaryLabel": "Available", "secondaryState": "AMBER", "secondaryLabel": "Some limits apply" }
+    },
+    "notReinterpretedAsRestricted": true
+  },
+
+  "approvedProductStates": {
+    "registration": "AVAILABLE_WITH_LIMITS",
+    "kyc": "AVAILABLE_WITH_LIMITS",
+    "spot": "AVAILABLE",
+    "derivatives": "AVAILABLE_WITH_LIMITS",
+    "margin": "AVAILABLE_WITH_LIMITS",
+    "p2p": "AVAILABLE_WITH_LIMITS",
+    "kzt_p2p": "AVAILABLE",
+    "direct_kzt_deposit": "AVAILABLE_WITH_LIMITS",
+    "direct_kzt_withdrawal": "AVAILABLE_WITH_LIMITS",
+    "bank_card_purchase": "CONFLICTING",
+    "bybit_card": "AVAILABLE_WITH_LIMITS",
+    "referral": "UNKNOWN",
+    "promotions": "AVAILABLE_WITH_LIMITS",
+    "noUpgradeOrDowngrade": true
+  },
+
+  "limitationsThatMustRemainVisible": [
+    "residency, citizenship and foreign-national scope remains partially resolved",
+    "bybit.kz / bybit.com and legal-entity routing remains partially resolved",
+    "bank-card purchase remains CONFLICTING",
+    "global referral-code compatibility remains UNVERIFIED",
+    "local promotional eligibility is narrower than overall platform availability",
+    "live verification remains NOT_LIVE_VERIFIED",
+    "package status remains RECOVERED / UNVERIFIED"
+  ],
+  "conflicts": {
+    "cf-kz-bybit-001": "PARTIALLY_RESOLVED",
+    "cf-kz-bybit-002": "PARTIALLY_RESOLVED",
+    "doNotResolveOrHide": true
+  },
+
+  "fieldsBlockedFromMigration": {
+    "rankingEligibility": false,
+    "ctaEligibility": false,
+    "promoEligibility": false,
+    "doNotMigrateOrActivate": [
+      "production ranking position", "recommendation status", "affiliate route", "referral code",
+      "CTA", "bonus claim", "promotional amount", "global referral interoperability",
+      "production eligibility", "publication eligibility"
+    ],
+    "previewMayDisplayAsBlockedButNotActivate": true
+  },
+
+  "offerBoundaries": {
+    "localReferralUpToUsdt": 1032,
+    "kazakhstanCampaignPrizePoolUsdt": 2500,
+    "combined": false,
+    "globalMaximumVerified": false,
+    "globalReferralCodeCompatibility": "UNVERIFIED",
+    "remainResearchEvidenceOnly": true,
+    "notForProductionCtaHeroRankingRowOrPromoBlock": true
+  },
+
+  "rankingDecision": {
+    "currentProductionRankingSafety": "SAFE_WITH_DISCLOSED_GAP",
+    "futureRankingDecisionReadiness": "READY_WITH_LIMITS",
+    "rankingChangeAuthorized": false,
+    "note": "Production data places Bybit at position 1, but Kazakhstan remains publication-blocked and canonical rankingEligibility remains false. No ranking change in this phase."
+  },
+
+  "ctaDecision": {
+    "currentProductionCtaSafety": "SAFE_WITH_DISCLOSED_GAP",
+    "ctaChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "referralCodeActivationAuthorized": false,
+    "note": "Existing global /go/bybit and CRYPTOBONUSW must not be treated as verified for Kazakhstan until global referral compatibility is resolved. Route and code unchanged."
+  },
+
+  "promoDecision": {
+    "currentProductionPromoSafety": "SAFE_WITH_DISCLOSED_GAP",
+    "promoChangeAuthorized": false,
+    "doNotPublishOrActivate": ["1,032 USDT", "2,500 USDT", "a combined amount", "the global advertised maximum"]
+  },
+
+  "bindingDecision": {
+    "miGeoBindingWriteState": "WRITTEN_NON_ACTIVE",
+    "miGeoBindingActivationAuthorized": false,
+    "preserved": {
+      "ownerApproved": false,
+      "reviewStatus": "PROPOSED",
+      "canonicalRecord": "GEO_LEGACY",
+      "productionStable": true,
+      "productionRouteUnchanged": true,
+      "migrationPhase": "MIGRATION_4"
+    },
+    "existingGeoRemainsProductionTruth": true,
+    "doNotChangeToMiCell": true
+  },
+
+  "legacyGeoDecision": {
+    "legacyGeoReplacementAuthorized": false,
+    "legacyGeoUpdateAuthorized": false,
+    "productionRankingUpdateAuthorized": false,
+    "configGeoUpdateAuthorized": false,
+    "note": "The legacy passport may be compared in future previews but must not be rewritten by this decision task."
+  },
+
+  "productionAndPublicationDecision": {
+    "productionIntegrationAuthorized": false,
+    "productionChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "pageOrRouteChangeAuthorized": false,
+    "deployAuthorized": false,
+    "kazakhstan": { "homepage_eligible": false, "publication_status": "blocked_by_missing_evidence" },
+    "doNotPublishKazakhstanPage": true
+  },
+
+  "noDuplicateTruthRule": {
+    "canonicalMiResearchTruth": "data/market-intelligence/**",
+    "stagingEvidence": "research/market-intelligence/staging/**",
+    "currentProductionTruth": ["research/geo/**", "src/data/geoRankings.ts"],
+    "nonActiveBinding": "data/market-intelligence/bindings/**",
+    "noAutomaticSynchronizationAuthorized": true,
+    "noCanonicalValueMaySilentlyOverwriteLegacyOrProduction": true
+  },
+
+  "nextImplementationGate": {
+    "authorizedTask": "CBW-KZ-BYBIT-P0A-MIGRATION-5-PREVIEW-IMPLEMENTATION-011",
+    "mayCreate": [
+      "a deterministic migration projection",
+      "a field-level legacy-to-MI mapping",
+      "a shadow comparison",
+      "a proposed non-active adapter output",
+      "validation reports"
+    ],
+    "mustNot": [
+      "modify legacy GEO", "modify production ranking", "activate the binding",
+      "enable CTA", "enable promo", "publish Kazakhstan", "deploy"
+    ]
+  },
+
+  "authorizationFlags": {
+    "canonicalResearchStorageEligible": true,
+    "canonicalImportCompleted": true,
+    "migration5PreparationAuthorized": true,
+    "migration5ExecutionAuthorized": false,
+    "migration5ProductionActivationAuthorized": false,
+    "miGeoBindingActivationAuthorized": false,
+    "legacyGeoReplacementAuthorized": false,
+    "legacyGeoUpdateAuthorized": false,
+    "productionIntegrationAuthorized": false,
+    "productionChangeAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "referralCodeActivationAuthorized": false,
+    "publicationAuthorized": false,
+    "pageOrRouteChangeAuthorized": false,
+    "deployAuthorized": false
+  },
+
+  "canonicalMiStateReference": {
+    "overallAvailability": "AVAILABLE_WITH_LIMITS",
+    "confidence": "MEDIUM",
+    "liveVerificationState": "NOT_LIVE_VERIFIED",
+    "rankingEligibility": false,
+    "ctaEligibility": false,
+    "promoEligibility": false,
+    "sources": 43,
+    "links": 77,
+    "corrections": 4,
+    "conflicts": 2,
+    "packageStatus": "RECOVERED / UNVERIFIED",
+    "sourceCommits": {
+      "stagingImport": "1dfbadfb58ebc444fa502d1445f36745481723f7",
+      "canonicalPathsDecision": "59f96dc123e199d5331670e2cfc816a6ef7da1e6",
+      "canonicalImportAuthorization": "2080e469f58d1412680bcb15e858c07a02f0755e",
+      "canonicalPackageWrite": "8a51bf21a5abf69b71593923ad681d3c7e95b099",
+      "discrepancyReview": "8d5284d4c8870effe3b0fd25a3c2353e2182ac7b"
+    }
+  },
+
+  "filesCreated": [
+    "owner-ops/market-intelligence/decisions/CBW_KZ_BYBIT_P0A_MIGRATION_5_OWNER_DECISION_v1.md",
+    "owner-ops/market-intelligence/decisions/CBW_KZ_BYBIT_P0A_MIGRATION_5_OWNER_DECISION_v1.json"
+  ],
+
+  "recommendation": "APPROVE",
+  "recommendationScope": "MIGRATION_5 scope APPROVED_WITH_LIMITS: only a future non-production migration preview + adapter design is authorized. Execution, production activation, binding activation, legacy GEO replacement, ranking/CTA/promo/affiliate/referral changes, publication, page/route changes, and deploy remain BLOCKED. Availability stays AVAILABLE_WITH_LIMITS (GREEN + AMBER); 13 product statuses unchanged; both conflicts PARTIALLY_RESOLVED; offer amounts separate; global referral compatibility UNVERIFIED; Kazakhstan remains publication-blocked.",
+  "nextTask": "CBW-KZ-BYBIT-P0A-MIGRATION-5-PREVIEW-IMPLEMENTATION-011 — owner-gated creation of a deterministic, non-production migration preview (field-level legacy-to-MI mapping + shadow comparison + proposed non-active adapter output + validation reports). Must not modify legacy GEO / production ranking, activate the binding, enable CTA/promo, publish Kazakhstan, or deploy."
+}
