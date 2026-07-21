@@ -1,0 +1,167 @@
+{
+  "decisionId": "CBW-KZ-BYBIT-P0A-CLOSEOUT-v1",
+  "taskId": "CBW-KZ-BYBIT-P0A-CLOSEOUT-013",
+  "project": "CryptoBonusWorld",
+  "repository": "C:/projects/CryptoBonusWorld",
+  "branch": "master",
+  "baselineHead": "e9f7d6c0efd437cba3b3fcddd46ff21732c71dec",
+  "date": "2026-07-21",
+  "countryCode": "KZ",
+  "exchangeId": "bybit",
+  "batchId": "KZ-P0-A",
+  "mode": "DOCUMENTATION_ONLY_CLOSEOUT",
+
+  "closeoutState": {
+    "BATCH": "KZ-P0-A",
+    "EXCHANGE": "Bybit",
+    "COUNTRY": "Kazakhstan",
+    "PIPELINE_STATUS": "COMPLETE",
+    "CANONICAL_RESEARCH_STATUS": "COMMITTED",
+    "MIGRATION_5_PREVIEW_STATUS": "COMMITTED_NON_PRODUCTION",
+    "PRODUCTION_STATUS": "UNCHANGED",
+    "DEPLOY_STATUS": "NOT_DEPLOYED"
+  },
+
+  "finalBybitKzState": {
+    "overallAvailability": "AVAILABLE_WITH_LIMITS",
+    "confidence": "MEDIUM",
+    "liveVerificationState": "NOT_LIVE_VERIFIED",
+    "presentation": { "primaryState": "GREEN", "primaryLabel": "Available", "secondaryState": "AMBER", "secondaryLabel": "Some limits apply" },
+    "rankingEligibility": false,
+    "ctaEligibility": false,
+    "promoEligibility": false,
+    "packageStatus": "RECOVERED / UNVERIFIED",
+    "notReinterpretedAsRestricted": true,
+    "productStatuses": {
+      "registration": "AVAILABLE_WITH_LIMITS", "kyc": "AVAILABLE_WITH_LIMITS", "spot": "AVAILABLE",
+      "derivatives": "AVAILABLE_WITH_LIMITS", "margin": "AVAILABLE_WITH_LIMITS", "p2p": "AVAILABLE_WITH_LIMITS",
+      "kzt_p2p": "AVAILABLE", "direct_kzt_deposit": "AVAILABLE_WITH_LIMITS", "direct_kzt_withdrawal": "AVAILABLE_WITH_LIMITS",
+      "bank_card_purchase": "CONFLICTING", "bybit_card": "AVAILABLE_WITH_LIMITS", "referral": "UNKNOWN", "promotions": "AVAILABLE_WITH_LIMITS"
+    }
+  },
+
+  "completedPipelineStages": [
+    "GEO production availability snapshot (MIGRATION_3A)",
+    "MI-vs-production discrepancy report (MIGRATION_3B)",
+    "MIGRATION_4 Kazakhstan owner decision",
+    "Kazakhstan exchange evidence research queue",
+    "Deep Research input pack + recovered-package audit",
+    "Source-truth review package audit",
+    "Owner decision + deterministic import-prep design",
+    "Deterministic staging import (43 sources / 77 links / 4 corrections / 2 conflicts / MI-cell candidate)",
+    "Candidate owner review (OPTION A) + reshape",
+    "Staging import commit",
+    "Canonical import preparation (previews) + owner review",
+    "Canonical storage paths owner decision",
+    "Canonical import authorization",
+    "Atomic six-file canonical research write + package review",
+    "Canonical package commit",
+    "MI-GEO-production three-layer discrepancy review",
+    "MIGRATION_5 owner scope decision (APPROVED_WITH_LIMITS, preparation only)",
+    "MIGRATION_5 non-production preview implementation + review",
+    "MIGRATION_5 preview commit",
+    "Closeout (this record)"
+  ],
+
+  "finalCounts": {
+    "sources": 43,
+    "sourceTiers": { "A": 8, "B": 32, "C": 3 },
+    "claimSourceLinks": 77,
+    "corrections": 4,
+    "conflicts": 2,
+    "productStatuses": 13,
+    "migrationPreviewFieldRows": 31,
+    "migrationPreviewLimitations": 7,
+    "migrationPreviewBlockedFields": 11
+  },
+
+  "unresolvedItems": {
+    "cf-kz-bybit-001": "PARTIALLY_RESOLVED",
+    "cf-kz-bybit-002": "PARTIALLY_RESOLVED",
+    "globalReferralCodeCompatibility": "UNVERIFIED",
+    "bankCardPurchase": "CONFLICTING",
+    "packageStatus": "RECOVERED / UNVERIFIED",
+    "liveVerificationState": "NOT_LIVE_VERIFIED",
+    "note": "These do not invalidate positive primary availability (AVAILABLE_WITH_LIMITS remains GREEN). They continue to block production activation of ranking, CTA, promo and binding.",
+    "corrections": ["clm-kz-bybit-entity-003", "clm-kz-bybit-registration-002", "clm-kz-bybit-offer-001", "clm-kz-bybit-offer-002"],
+    "offerAmounts": { "localReferralUpToUsdt": 1032, "kazakhstanCampaignPrizePoolUsdt": 2500, "combined": false, "isGlobalMaximum": false }
+  },
+
+  "withheldAuthorizations": {
+    "migration5ExecutionAuthorized": false,
+    "migration5ProductionActivationAuthorized": false,
+    "miGeoBindingActivationAuthorized": false,
+    "legacyGeoReplacementAuthorized": false,
+    "legacyGeoUpdateAuthorized": false,
+    "productionIntegrationAuthorized": false,
+    "productionChangeAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "referralCodeActivationAuthorized": false,
+    "publicationAuthorized": false,
+    "pageOrRouteChangeAuthorized": false,
+    "deployAuthorized": false
+  },
+
+  "productionAndPublicationState": {
+    "canonicalMiConsumersInProduction": 0,
+    "miGeoBinding": "WRITTEN_NON_ACTIVE (GEO_LEGACY, PROPOSED, MIGRATION_4)",
+    "legacyGeoRemainsProductionTruth": true,
+    "productionRankingUnchanged": true,
+    "kazakhstan": { "homepage_eligible": false, "publication_status": "blocked_by_missing_evidence" },
+    "deployed": false
+  },
+
+  "importantCommits": {
+    "canonicalStagingImport": "1dfbadfb58ebc444fa502d1445f36745481723f7",
+    "canonicalResearchPackage": "8a51bf21a5abf69b71593923ad681d3c7e95b099",
+    "miGeoDiscrepancyReview": "8d5284d4c8870effe3b0fd25a3c2353e2182ac7b",
+    "migration5OwnerDecision": "ec185cd7055b4ec26f5a8fcbba9ee1a040815c6e",
+    "migration5PreviewReview": "668955c43eb3b6185e8a933b591734b1b9090c1a",
+    "migration5Preview": "e9f7d6c0efd437cba3b3fcddd46ff21732c71dec"
+  },
+
+  "queueDecision": {
+    "BYBIT_KZ_P0A_COMPLETE": true,
+    "BYBIT_KZ_FURTHER_WORK_AUTHORIZED": false,
+    "KAZAKHSTAN_QUEUE_MAY_ADVANCE": true,
+    "NEXT_EXCHANGE": "MEXC",
+    "NEXT_BATCH": "KZ-P0-B",
+    "NEXT_TASK_CANDIDATE": "CBW-KZ-MEXC-P0-B-EVIDENCE-RESEARCH-QUEUE-001",
+    "note": "This closeout permits PLANNING the MEXC queue after the closeout record is committed. It does NOT start MEXC research automatically."
+  },
+
+  "validationResults": {
+    "kzP0aComplete": true,
+    "canonicalPackageCommitted": true,
+    "migration5PreviewCommitted": true,
+    "productionUnchanged": true,
+    "deployDidNotOccur": true,
+    "overallAvailabilityUnchanged": true,
+    "greenPrimaryAmberSecondary": true,
+    "finalCountsAgreeWithCommittedData": true,
+    "bothConflictsPartiallyResolved": true,
+    "globalReferralCompatibilityUnverified": true,
+    "allProductionActivationAuthorizationsFalse": true,
+    "kazakhstanPublicationBlocked": true,
+    "bybitFurtherImplementationNotAutomaticallyAuthorized": true,
+    "kazakhstanQueueMayAdvanceToMexc": true,
+    "mexcResearchNotStarted": true,
+    "mdJsonAgree": true,
+    "jsonParses": true,
+    "exactlyTwoFilesCreated": true,
+    "noProductionRuntimeFileChanged": true,
+    "nothingCommittedPushedDeployed": true
+  },
+
+  "filesCreated": [
+    "owner-ops/market-intelligence/decisions/CBW_KZ_BYBIT_P0A_CLOSEOUT_v1.md",
+    "owner-ops/market-intelligence/decisions/CBW_KZ_BYBIT_P0A_CLOSEOUT_v1.json"
+  ],
+
+  "recommendation": "APPROVE",
+  "recommendationScope": "Bybit x Kazakhstan batch KZ-P0-A pipeline is COMPLETE: canonical research package committed, MIGRATION_5 non-production preview committed, production UNCHANGED, nothing deployed. Availability remains AVAILABLE_WITH_LIMITS (GREEN + AMBER). All production/activation authorizations remain false; both conflicts PARTIALLY_RESOLVED; global referral compatibility UNVERIFIED; Kazakhstan publication blocked. Kazakhstan queue MAY advance to MEXC (KZ-P0-B) on a separate owner GO; MEXC research is not started here.",
+  "nextTask": "CBW-KZ-MEXC-P0-B-EVIDENCE-RESEARCH-QUEUE-001 — owner-gated start of the next Kazakhstan exchange (MEXC, batch KZ-P0-B) evidence research queue under the same MI pipeline. Bybit KZ MIGRATION_5 execution, MI-GEO binding activation, production integration, ranking/CTA/promo activation, and Kazakhstan publication remain separate later owner-gated tasks (none authorized)."
+}
