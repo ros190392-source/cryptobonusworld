@@ -1,0 +1,1242 @@
+{
+  "schemaVersion": "1",
+  "countryCode": "KZ",
+  "exchangeId": "bybit",
+  "batchId": "KZ-P0-A",
+  "packageStatus": "RECOVERED / UNVERIFIED",
+  "liveVerificationState": "NOT_LIVE_VERIFIED",
+  "reviewedRecommendation": "AVAILABLE_WITH_LIMITS",
+  "confidence": "MEDIUM",
+  "commits": {
+    "stagingImport": "1dfbadfb58ebc444fa502d1445f36745481723f7",
+    "candidateOwnerReview": "e084d64c36f68be01881b635e6202aea28165ca3",
+    "canonicalImportPrep": "c65a5e658f2fd1d3bdfe8a0e0195977e690e7c03",
+    "canonicalPathsDecision": "59f96dc123e199d5331670e2cfc816a6ef7da1e6",
+    "canonicalImportAuthorization": "2080e469f58d1412680bcb15e858c07a02f0755e"
+  },
+  "ownerDecisionReferences": [
+    {
+      "decisionId": "CBW-KZ-BYBIT-P0A-OWNER-DECISION-AND-IMPORT-PREP-v1",
+      "commit": "0fa0791b4a5255b662ed67cf6df6033ed53a55cd"
+    },
+    {
+      "decisionId": "CBW-KZ-BYBIT-P0A-CANDIDATE-OWNER-REVIEW-v1",
+      "commit": "e084d64c36f68be01881b635e6202aea28165ca3"
+    },
+    {
+      "decisionId": "CBW-KZ-BYBIT-P0A-CANONICAL-IMPORT-PREP-v1",
+      "commit": "c65a5e658f2fd1d3bdfe8a0e0195977e690e7c03"
+    },
+    {
+      "decisionId": "CBW-KZ-BYBIT-P0A-CANONICAL-PATHS-OWNER-DECISION-v1",
+      "commit": "59f96dc123e199d5331670e2cfc816a6ef7da1e6"
+    },
+    {
+      "decisionId": "CBW-KZ-BYBIT-P0A-CANONICAL-IMPORT-AUTHORIZATION-v1",
+      "commit": "2080e469f58d1412680bcb15e858c07a02f0755e"
+    }
+  ],
+  "inputPackages": [
+    {
+      "name": "CBW_KZ_BYBIT_P0A_SOURCE_TRUTH_REVIEW_v1_RECOVERED.zip",
+      "sha256": "a6d7d262c47018b55fe07cf42837d69c1d3f14e6e9650ebcdedda328962a4234",
+      "role": "source-truth review package"
+    },
+    {
+      "name": "CBW_KZ_BYBIT_P0A_RESEARCH_PACKAGE_v2_RECOVERED.zip",
+      "sha256": "7796d015c123e4b1c1dc39724740c13bc001399e2763f5b073d84e867eb3a854",
+      "role": "recovered original research package (inside CBW_KZ_BYBIT_SOURCE_TRUTH_REVIEW_INPUT_v2.zip)"
+    }
+  ],
+  "packageHashRecovery": {
+    "label": "RECOVERED / UNVERIFIED",
+    "exactMatches": 5,
+    "ofTotal": 8,
+    "serializationDifferences": 3,
+    "perFile": {
+      "review-run.json": {
+        "recoveredSha256": "ac7da3aa2cf6711ae37e65452346b1a83971eaca7719679b244f3b59a0b8d80b",
+        "declaredSha256": "ac7da3aa2cf6711ae37e65452346b1a83971eaca7719679b244f3b59a0b8d80b",
+        "classification": "EXACT_MATCH"
+      },
+      "source-verification.json": {
+        "recoveredSha256": "60efb86b11432c37c7ae4ef4d5565225a6e78d252bcc096b65abe16af9ce78ce",
+        "declaredSha256": "97c27aec21b80a97ba8152427e67e40b50c25c8a0d6137fb2dee8bcdc7c60686",
+        "classification": "SERIALIZATION_DIFFERENCE"
+      },
+      "claim-verdicts.json": {
+        "recoveredSha256": "ef3dbef9fa4d68c653b99c782f8b39d9dd254914a6b96bddc06b444167a39882",
+        "declaredSha256": "a957bd8bf1ebf154dc64670e01afb7dd1fb2f06b80803d7de03e42138175322e",
+        "classification": "SERIALIZATION_DIFFERENCE"
+      },
+      "conflict-resolution.json": {
+        "recoveredSha256": "f3998a208c54efd68e1001c1a0465cff984322bad7ef397e73422d5a429e21d3",
+        "declaredSha256": "f3998a208c54efd68e1001c1a0465cff984322bad7ef397e73422d5a429e21d3",
+        "classification": "EXACT_MATCH"
+      },
+      "offer-eligibility-review.json": {
+        "recoveredSha256": "3c5f2c88afc34421e57315dcecd7799f6321e177cf9f28ebbd50c391a1c346dc",
+        "declaredSha256": "3c5f2c88afc34421e57315dcecd7799f6321e177cf9f28ebbd50c391a1c346dc",
+        "classification": "EXACT_MATCH"
+      },
+      "schema-normalization-notes.json": {
+        "recoveredSha256": "e095b6eda7d66e0fffd6924e73b2e11363474d6d5b2462bf3814d3892b8a53d9",
+        "declaredSha256": "e095b6eda7d66e0fffd6924e73b2e11363474d6d5b2462bf3814d3892b8a53d9",
+        "classification": "EXACT_MATCH"
+      },
+      "import-readiness.json": {
+        "recoveredSha256": "5897c6e6542e1885fea2b6a7756eb08e9f2f71b04180c29711629a6a3724268c",
+        "declaredSha256": "5897c6e6542e1885fea2b6a7756eb08e9f2f71b04180c29711629a6a3724268c",
+        "classification": "EXACT_MATCH"
+      },
+      "source-truth-review-report.md": {
+        "recoveredSha256": "896ea5d915ae027bd1408dee8155386b6c0caf94a612cbd4f82f121f27d63617",
+        "declaredSha256": "35e3334be5095c771c027b6d5c22703dc3eea202dec7b616787cb259c4f72d9a",
+        "classification": "SERIALIZATION_DIFFERENCE"
+      }
+    },
+    "note": "declaredSha256 = original package hash; recoveredSha256 = recovered package hash; source-truth review hashes included."
+  },
+  "correctionsApplied": [
+    {
+      "claimId": "clm-kz-bybit-entity-003",
+      "correctionIntent": "Core Bybit Limited entity applies to the local trading platform, not automatically to every ancillary bybit.kz program."
+    },
+    {
+      "claimId": "clm-kz-bybit-registration-002",
+      "correctionIntent": "Resident-only wording is incomplete without the newer foreign-national announcement and conflict note."
+    },
+    {
+      "claimId": "clm-kz-bybit-offer-001",
+      "correctionIntent": "Referral-code entry exists, but global-code compatibility with Bybit Kazakhstan remains unverified."
+    },
+    {
+      "claimId": "clm-kz-bybit-offer-002",
+      "correctionIntent": "Replace the old \"no local amount verified\" claim: two separate local programs exist (up to 1,032 USDT local referral; separate 2,500 USDT Kazakhstan campaign prize pool). Never combine; never treat as global advertised maximum; never authorize CTA/promo."
+    }
+  ],
+  "correctionDetail": [
+    {
+      "claimId": "clm-kz-bybit-entity-003",
+      "originalConfidence": "HIGH",
+      "currentConfidence": "MEDIUM",
+      "originalProposedStatus": "AVAILABLE",
+      "currentStatus": "AVAILABLE_WITH_LIMITS",
+      "verificationState": "CONFIRMED_WITH_LIMITS",
+      "limitations": "Affiliate/referral terms on bybit.kz use Bybit Technology Limited.",
+      "correctionNote": "Clarify that this is true for the core local trading platform, not automatically for every ancillary program on bybit.kz.",
+      "correctionIntent": "Core Bybit Limited entity applies to the local trading platform, not automatically to every ancillary bybit.kz program."
+    },
+    {
+      "claimId": "clm-kz-bybit-offer-001",
+      "originalConfidence": "MEDIUM",
+      "currentConfidence": "MEDIUM",
+      "originalProposedStatus": "UNKNOWN",
+      "currentStatus": "UNKNOWN",
+      "verificationState": "CONFIRMED_WITH_LIMITS",
+      "limitations": "Local referral and affiliate materials exist, but interoperability is not expressly documented.",
+      "correctionNote": "Clarify that referral-code entry exists, but cross-stack/global-code compatibility remains unverified.",
+      "correctionIntent": "Referral-code entry exists, but global-code compatibility with Bybit Kazakhstan remains unverified."
+    },
+    {
+      "claimId": "clm-kz-bybit-offer-002",
+      "originalConfidence": "MEDIUM",
+      "currentConfidence": "HIGH",
+      "originalProposedStatus": "UNKNOWN",
+      "currentStatus": "AVAILABLE_WITH_LIMITS",
+      "verificationState": "CONTRADICTED",
+      "limitations": "The referral page does not state exactly which user categories are eligible, and local campaign terms can be narrower than general local platform availability.",
+      "correctionNote": "Replace the old 'no official bonus amount verified' claim with a narrower statement: official Kazakhstan-specific promotional amounts now exist, but user-segment eligibility and overlap with global maximums remain unresolved.",
+      "correctionIntent": "Replace the old \"no local amount verified\" claim: two separate local programs exist (up to 1,032 USDT local referral; separate 2,500 USDT Kazakhstan campaign prize pool). Never combine; never treat as global advertised maximum; never authorize CTA/promo."
+    },
+    {
+      "claimId": "clm-kz-bybit-registration-002",
+      "originalConfidence": "HIGH",
+      "currentConfidence": "MEDIUM",
+      "originalProposedStatus": "AVAILABLE_WITH_LIMITS",
+      "currentStatus": "CONFLICTING",
+      "verificationState": "CONFIRMED_WITH_LIMITS",
+      "limitations": "Current public docs conflict.",
+      "correctionNote": "Do not publish the resident-only sentence as the complete current rule without the newer announcement and conflict note.",
+      "correctionIntent": "Resident-only wording is incomplete without the newer foreign-national announcement and conflict note."
+    }
+  ],
+  "offerAmounts": {
+    "localReferralUpToUsdt": 1032,
+    "kazakhstanCampaignPrizePoolUsdt": 2500,
+    "combined": false,
+    "isGlobalMaximum": false,
+    "note": "Two separate local programs. Never combined. Not the global advertised maximum. No CTA/promo authorized."
+  },
+  "offerBoundaries": {
+    "globalReferralCodeCompatibility": "UNVERIFIED",
+    "combined": false,
+    "isGlobalMaximum": false,
+    "promoEligibility": false,
+    "ctaEligibility": false
+  },
+  "perSource": [
+    {
+      "sourceId": "src-kz-bybit-001",
+      "originalConfidence": "HIGH",
+      "reviewVerificationState": "CONFIRMED",
+      "reviewNotes": "AFSA public register page remains live and lists Bybit Limited with active licence AFSA-A-LA-2024-0027 from 2024-09-25 plus six regulated activities.",
+      "originalLimitations": "",
+      "originalSourceType": "official_register",
+      "isSupplemental": false
+    },
+    {
+      "sourceId": "src-kz-bybit-002",
+      "originalConfidence": "HIGH",
+      "reviewVerificationState": "CONFIRMED",
+      "reviewNotes": "AFSA regulated-activity page remains live and defines Operating a Digital Asset Trading Facility.",
+      "originalLimitations": "",
+      "originalSourceType": "regulatory_guidance",
+      "isSupplemental": false
+    },
+    {
+      "sourceId": "src-kz-bybit-003",
+      "originalConfidence": "HIGH",
+      "reviewVerificationState": "CONFIRMED",
+      "reviewNotes": "AFSA stablecoin-fees notice remains live and names Bybit Limited as inaugural signatory/provider in the pilot.",
+      "originalLimitations": "",
+      "originalSourceType": "regulatory_notice",
+      "isSupplemental": false
+    },
+    {
+      "sourceId": "src-kz-bybit-004",
+      "originalConfidence": "HIGH",
+      "reviewVerificationState": "CONFIRMED",
+      "reviewNotes": "AIFC/AFSA forged-licence alert remains live and describes impersonation using a forged older licence, not disciplinary action against Bybit Limited.",
+      "originalLimitations": "",
+      "originalSourceType": "regulatory_alert",
+      "isSupplemental": false
+    },
+    {
+      "sourceId": "src-kz-bybit-005",
+      "originalConfidence": "HIGH",
+      "reviewVerificationState": "CONFIRMED",
+      "reviewNotes": "Bybit Kazakhstan Privacy Policy remains live and states the platform is provided by Bybit Limited.",
+      "originalLimitations": "",
+      "originalSourceType": "official_legal_policy",
+      "isSupplemental": false
+    },
+    {
+      "sourceId": "src-kz-bybit-006",
+      "originalConfidence": "HIGH",
+      "reviewVerificationState": "CONFIRMED",
+      "reviewNotes": "Bybit Kazakhstan Risk Disclosure remains live and states the platform is provided by Bybit Limited.",
+      "originalLimitations": "",
+      "originalSourceType": "official_legal_policy",
+      "isSupplemental": false
+    },
+    {
+      "sourceId": "src-kz-bybit-007",
+      "originalConfidence": "HIGH",
+      "reviewVerificationState": "CONFIRMED",
+      "reviewNotes": "Local restricted-countries policy remains live; Kazakhstan is not listed. Local excluded-jurisdiction list differs materially from the global page, which is relevant to routing.",
+      "originalLimitations": "",
+      "originalSourceType": "official_restriction_policy",
+      "isSupplemental": false
+    },
+    {
+      "sourceId": "src-kz-bybit-008",
+      "originalConfidence": "MEDIUM",
+      "reviewVerificationState": "CONFIRMED",
+      "reviewNotes": "Global restricted-countries policy remains live; Kazakhstan is not listed. Global excluded-jurisdiction list differs materially from the local Kazakhstan page.",
+      "originalLimitations": "Recovered as snippet rather than fully parsed article body.",
+      "originalSourceType": "official_restriction_policy",
+      "isSupplemental": false
+    },
+    {
+      "sourceId": "src-kz-bybit-009",
+      "originalConfidence": "HIGH",
+      "reviewVerificationState": "CONFIRMED",
+      "reviewNotes": "Getting-started page remains live and still describes registration, KYC, one-click buy using KZT fiat balance, spot, earn and launchpad on Bybit Kazakhstan.",
+      "originalLimitations": "",
+      "originalSourceType": "help_center_article",
+      "isSupplemental": false
+    },
+    {
+      "sourceId": "src-kz-bybit-010",
+      "originalConfidence": "HIGH",
+      "reviewVerificationState": "CONFIRMED_WITH_LIMITS",
+      "reviewNotes": "Registration guide remains live and still says email/mobile registration is available and that only KZ residents can register; this now conflicts with the newer foreign-nationals announcement.",
+      "originalLimitations": "",
+      "originalSourceType": "help_center_article",
+      "isSupplemental": false
+    },
+    {
+      "sourceId": "src-kz-bybit-011",
+      "originalConfidence": "HIGH",
+      "reviewVerificationState": "CONFIRMED",
+      "reviewNotes": "Account settings FAQ remains live and still confirms referral-code entry at sign-up, email registration fallback, app-store download links, and restricted-country login rules.",
+      "originalLimitations": "",
+      "originalSourceType": "help_center_article",
+      "isSupplemental": false
+    },
+    {
+      "sourceId": "src-kz-bybit-012",
+      "originalConfidence": "HIGH",
+      "reviewVerificationState": "CONFIRMED_WITH_LIMITS",
+      "reviewNotes": "English parser was unstable, but the same official article in Russian and Kazakh locales remained live and confirmed mandatory individual KYC, accepted identity documents, proof-of-address rules, and citizenship-based territorial language.",
+      "originalLimitations": "",
+      "originalSourceType": "help_center_article",
+      "isSupplemental": false
+    },
+    {
+      "sourceId": "src-kz-bybit-013",
+      "originalConfidence": "MEDIUM",
+      "reviewVerificationState": "CONFIRMED_WITH_LIMITS",
+      "reviewNotes": "Individual KYC guide remains live and confirms standard verification components, Kazakhstan proof-of-address requirement, and supported-products access after verification.",
+      "originalLimitations": "",
+      "originalSourceType": "help_center_article",
+      "isSupplemental": false
+    },
+    {
+      "sourceId": "src-kz-bybit-014",
+      "originalConfidence": "HIGH",
+      "reviewVerificationState": "CONFIRMED",
+      "reviewNotes": "Business KYC FAQ remains live and confirms accepted identity documents, proof-of-address timing, compliance contact email, and business-KYC restrictions.",
+      "originalLimitations": "",
+      "originalSourceType": "help_center_article",
+      "isSupplemental": false
+    },
+    {
+      "sourceId": "src-kz-bybit-015",
+      "originalConfidence": "HIGH",
+      "reviewVerificationState": "CONFIRMED",
+      "reviewNotes": "KYC-failure article remains live and confirms accepted/unaccepted identity and address documents and unsupported-country rejection reasons.",
+      "originalLimitations": "",
+      "originalSourceType": "help_center_article",
+      "isSupplemental": false
+    },
+    {
+      "sourceId": "src-kz-bybit-016",
+      "originalConfidence": "HIGH",
+      "reviewVerificationState": "CONFIRMED",
+      "reviewNotes": "P2P FAQ remains live and confirms P2P availability on website/app and KYC requirement.",
+      "originalLimitations": "",
+      "originalSourceType": "help_center_article",
+      "isSupplemental": false
+    },
+    {
+      "sourceId": "src-kz-bybit-017",
+      "originalConfidence": "HIGH",
+      "reviewVerificationState": "CONFIRMED_WITH_LIMITS",
+      "reviewNotes": "Local P2P USDT/KZT market page remains live and shows KZT offers and bank examples, but detailed payment-method scope should be read with care because other official help content narrows supported setup options.",
+      "originalLimitations": "",
+      "originalSourceType": "official_market_page",
+      "isSupplemental": false
+    },
+    {
+      "sourceId": "src-kz-bybit-018",
+      "originalConfidence": "HIGH",
+      "reviewVerificationState": "CONFIRMED",
+      "reviewNotes": "Fiat-deposit guide remains live and still shows only KZT via bank transfer, with IIN/BIN and BCC-account requirements.",
+      "originalLimitations": "",
+      "originalSourceType": "help_center_article",
+      "isSupplemental": false
+    },
+    {
+      "sourceId": "src-kz-bybit-019",
+      "originalConfidence": "HIGH",
+      "reviewVerificationState": "CONFIRMED",
+      "reviewNotes": "Fiat-deposit FAQ remains live and still confirms KZT-only, bank-transfer-only, Kazakhstan-verified-user eligibility, and strict KYC-matching/no-third-party payment rules.",
+      "originalLimitations": "",
+      "originalSourceType": "help_center_article",
+      "isSupplemental": false
+    },
+    {
+      "sourceId": "src-kz-bybit-020",
+      "originalConfidence": "HIGH",
+      "reviewVerificationState": "CONFIRMED",
+      "reviewNotes": "Fiat-withdrawal guide remains live and still shows only KZT via bank transfer, with first-deposit requirement for withdrawal setup.",
+      "originalLimitations": "",
+      "originalSourceType": "help_center_article",
+      "isSupplemental": false
+    },
+    {
+      "sourceId": "src-kz-bybit-021",
+      "originalConfidence": "HIGH",
+      "reviewVerificationState": "CONFIRMED",
+      "reviewNotes": "Fiat-withdrawal FAQ remains live and still confirms KZT-only, bank-transfer/IBAN-linked withdrawal accounts, Kazakhstan-verified-user eligibility, and strict beneficiary/IIN/BIN matching.",
+      "originalLimitations": "",
+      "originalSourceType": "help_center_article",
+      "isSupplemental": false
+    },
+    {
+      "sourceId": "src-kz-bybit-022",
+      "originalConfidence": "HIGH",
+      "reviewVerificationState": "CONFIRMED",
+      "reviewNotes": "Local one-click-buy via fiat-balance article remains live and still documents KZT balance purchases for BTC, ETH, USDT and USDC.",
+      "originalLimitations": "",
+      "originalSourceType": "help_center_article",
+      "isSupplemental": false
+    },
+    {
+      "sourceId": "src-kz-bybit-023",
+      "originalConfidence": "HIGH",
+      "reviewVerificationState": "CONFIRMED",
+      "reviewNotes": "Perpetual/expiry trading-page guide remains live and still documents derivatives page features on Bybit Kazakhstan.",
+      "originalLimitations": "",
+      "originalSourceType": "help_center_article",
+      "isSupplemental": false
+    },
+    {
+      "sourceId": "src-kz-bybit-024",
+      "originalConfidence": "HIGH",
+      "reviewVerificationState": "CONFIRMED",
+      "reviewNotes": "Inverse perpetual/expiry FAQ remains live and still documents perpetual vs expiry contracts and derivatives access prerequisites.",
+      "originalLimitations": "",
+      "originalSourceType": "help_center_article",
+      "isSupplemental": false
+    },
+    {
+      "sourceId": "src-kz-bybit-025",
+      "originalConfidence": "HIGH",
+      "reviewVerificationState": "CONFIRMED",
+      "reviewNotes": "Futures getting-started guide remains live and still documents isolated/cross/portfolio margin and default cross-mode 10× order entry.",
+      "originalLimitations": "",
+      "originalSourceType": "help_center_article",
+      "isSupplemental": false
+    },
+    {
+      "sourceId": "src-kz-bybit-026",
+      "originalConfidence": "HIGH",
+      "reviewVerificationState": "CONFIRMED",
+      "reviewNotes": "Spot-margin FAQ remains live and still states cross and portfolio margin are supported while isolated margin is not.",
+      "originalLimitations": "",
+      "originalSourceType": "help_center_article",
+      "isSupplemental": false
+    },
+    {
+      "sourceId": "src-kz-bybit-027",
+      "originalConfidence": "HIGH",
+      "reviewVerificationState": "CONFIRMED",
+      "reviewNotes": "Spot-margin getting-started guide remains live and still documents cross/portfolio setup and default enablement within supported margin modes.",
+      "originalLimitations": "",
+      "originalSourceType": "help_center_article",
+      "isSupplemental": false
+    },
+    {
+      "sourceId": "src-kz-bybit-028",
+      "originalConfidence": "HIGH",
+      "reviewVerificationState": "CONFIRMED",
+      "reviewNotes": "Risk-limit article remains live and still states that maximum leverage, IMR, MMR and position limits change with risk-parameter adjustments.",
+      "originalLimitations": "",
+      "originalSourceType": "help_center_article",
+      "isSupplemental": false
+    },
+    {
+      "sourceId": "src-kz-bybit-029",
+      "originalConfidence": "HIGH",
+      "reviewVerificationState": "CONFIRMED",
+      "reviewNotes": "Options introduction remains live and still states Bybit Kazakhstan offers USDT-margined and USDT-settled options.",
+      "originalLimitations": "",
+      "originalSourceType": "help_center_article",
+      "isSupplemental": false
+    },
+    {
+      "sourceId": "src-kz-bybit-030",
+      "originalConfidence": "HIGH",
+      "reviewVerificationState": "CONFIRMED_WITH_LIMITS",
+      "reviewNotes": "Bybit Card application guide remains live and documents local card onboarding through bybit.kz, but availability is limited by supported countries, stronger KYC, address checks, and phased physical rollout.",
+      "originalLimitations": "",
+      "originalSourceType": "help_center_article",
+      "isSupplemental": false
+    },
+    {
+      "sourceId": "src-kz-bybit-031",
+      "originalConfidence": "HIGH",
+      "reviewVerificationState": "CONFIRMED",
+      "reviewNotes": "Rewards-type article remains live and confirms reward structures across Bybit Kazakhstan products, including card-related rewards and trading/fiat fee savers.",
+      "originalLimitations": "",
+      "originalSourceType": "help_center_article",
+      "isSupplemental": false
+    },
+    {
+      "sourceId": "src-kz-bybit-032",
+      "originalConfidence": "HIGH",
+      "reviewVerificationState": "CONFIRMED_WITH_LIMITS",
+      "reviewNotes": "Official announcement page remains live by title/date; parser exposed only the shell, but official search/index snippets still state that Bybit Kazakhstan accepts users with non-Kazakhstan citizenship for registration and KYC.",
+      "originalLimitations": "Public parser exposed title and search snippet, not full body text.",
+      "originalSourceType": "official_announcement",
+      "isSupplemental": false
+    },
+    {
+      "sourceId": "src-kz-bybit-033",
+      "originalConfidence": "MEDIUM",
+      "reviewVerificationState": "CONFIRMED_WITH_LIMITS",
+      "reviewNotes": "Announcement index remains live and still lists KZT trading pairs launch and the foreign-nationals announcement, but article-body parsing is limited.",
+      "originalLimitations": "Index page only exposes announcement titles in parser output.",
+      "originalSourceType": "official_announcement_index",
+      "isSupplemental": false
+    },
+    {
+      "sourceId": "src-kz-bybit-034",
+      "originalConfidence": "MEDIUM",
+      "reviewVerificationState": "CONFIRMED_WITH_LIMITS",
+      "reviewNotes": "Global one-click-buy/bank-card support page remains live and still lists Kazakhstan for Visa/Mastercard and Apple Pay issuing-country support, but it does not resolve Kazakhstan-local entity routing.",
+      "originalLimitations": "Global operational source does not make local-entity routing explicit.",
+      "originalSourceType": "help_center_article",
+      "isSupplemental": false
+    },
+    {
+      "sourceId": "src-kz-bybit-035",
+      "originalConfidence": "HIGH",
+      "reviewVerificationState": "CONFIRMED",
+      "reviewNotes": "Kazakhstan App Store listing remains live.",
+      "originalLimitations": "",
+      "originalSourceType": "app_store_listing",
+      "isSupplemental": false
+    },
+    {
+      "sourceId": "src-kz-bybit-036",
+      "originalConfidence": "HIGH",
+      "reviewVerificationState": "CONFIRMED",
+      "reviewNotes": "Google Play listing remains live.",
+      "originalLimitations": "",
+      "originalSourceType": "app_store_listing",
+      "isSupplemental": false
+    },
+    {
+      "sourceId": "src-kz-bybit-037",
+      "originalConfidence": "HIGH",
+      "reviewVerificationState": "CONFIRMED_WITH_LIMITS",
+      "reviewNotes": "English locale homepage remains live; parser exposure is minimal but the locale endpoint and title resolve.",
+      "originalLimitations": "",
+      "originalSourceType": "official_website",
+      "isSupplemental": false
+    },
+    {
+      "sourceId": "src-kz-bybit-038",
+      "originalConfidence": "HIGH",
+      "reviewVerificationState": "CONFIRMED_WITH_LIMITS",
+      "reviewNotes": "Russian locale homepage remains live; parser exposure is minimal but the locale endpoint and title resolve.",
+      "originalLimitations": "",
+      "originalSourceType": "official_website",
+      "isSupplemental": false
+    },
+    {
+      "sourceId": "src-kz-bybit-039",
+      "originalConfidence": "HIGH",
+      "reviewVerificationState": "CONFIRMED_WITH_LIMITS",
+      "reviewNotes": "Kazakh locale homepage remains live; parser exposure is minimal but the locale endpoint and title resolve.",
+      "originalLimitations": "",
+      "originalSourceType": "official_website",
+      "isSupplemental": false
+    },
+    {
+      "sourceId": "sup-kz-bybit-001",
+      "originalConfidence": null,
+      "reviewVerificationState": "CONFIRMED_WITH_LIMITS",
+      "reviewNotes": "Official bybit.kz referral landing page currently advertises local referral tasks and says one referral code can invite friends to use Bybit Kazakhstan products.",
+      "originalLimitations": null,
+      "originalSourceType": null,
+      "isSupplemental": true
+    },
+    {
+      "sourceId": "sup-kz-bybit-002",
+      "originalConfidence": null,
+      "reviewVerificationState": "CONFIRMED",
+      "reviewNotes": "Official bybit.kz affiliate terms state the affiliate platform is operated by Bybit Technology Limited and define Affiliate Code / Affiliate Link mechanics.",
+      "originalLimitations": null,
+      "originalSourceType": null,
+      "isSupplemental": true
+    },
+    {
+      "sourceId": "sup-kz-bybit-003",
+      "originalConfidence": null,
+      "reviewVerificationState": "CONFIRMED_WITH_LIMITS",
+      "reviewNotes": "Official bybit.kz campaign page states the event is exclusively for Bybit Kazakhstan users and its visible terms limit participation to citizens of the Republic of Kazakhstan aged 18+.",
+      "originalLimitations": null,
+      "originalSourceType": null,
+      "isSupplemental": true
+    },
+    {
+      "sourceId": "sup-kz-bybit-004",
+      "originalConfidence": null,
+      "reviewVerificationState": "CONFIRMED_WITH_LIMITS",
+      "reviewNotes": "Official bybit.kz help content currently states that only Halyk Bank payment details can be added for P2P, which is narrower than some live market-page bank examples.",
+      "originalLimitations": null,
+      "originalSourceType": null,
+      "isSupplemental": true
+    }
+  ],
+  "perClaim": [
+    {
+      "claimId": "clm-kz-bybit-app-001",
+      "originalConfidence": "HIGH",
+      "currentConfidence": "HIGH",
+      "originalProposedStatus": "AVAILABLE",
+      "currentStatus": "AVAILABLE",
+      "verificationState": "CONFIRMED",
+      "limitations": "None material.",
+      "correctionRequired": false,
+      "correctionNote": "No correction needed.",
+      "changedSinceResearch": false
+    },
+    {
+      "claimId": "clm-kz-bybit-app-002",
+      "originalConfidence": "HIGH",
+      "currentConfidence": "HIGH",
+      "originalProposedStatus": "AVAILABLE",
+      "currentStatus": "AVAILABLE",
+      "verificationState": "CONFIRMED",
+      "limitations": "Store availability is not the same as local legal entitlement to every product.",
+      "correctionRequired": false,
+      "correctionNote": "No correction needed.",
+      "changedSinceResearch": false
+    },
+    {
+      "claimId": "clm-kz-bybit-card-001",
+      "originalConfidence": "HIGH",
+      "currentConfidence": "MEDIUM",
+      "originalProposedStatus": "AVAILABLE_WITH_LIMITS",
+      "currentStatus": "AVAILABLE_WITH_LIMITS",
+      "verificationState": "CONFIRMED_WITH_LIMITS",
+      "limitations": "Supported-country, mobile-number and verification constraints remain material.",
+      "correctionRequired": false,
+      "correctionNote": "No correction needed.",
+      "changedSinceResearch": true
+    },
+    {
+      "claimId": "clm-kz-bybit-card-002",
+      "originalConfidence": "MEDIUM",
+      "currentConfidence": "MEDIUM",
+      "originalProposedStatus": "AVAILABLE_WITH_LIMITS",
+      "currentStatus": "AVAILABLE_WITH_LIMITS",
+      "verificationState": "CONFIRMED_WITH_LIMITS",
+      "limitations": "This page does not identify the Kazakhstan-local serving entity or prove that every Kazakhstan user should use a bybit.com bank-card flow.",
+      "correctionRequired": false,
+      "correctionNote": "No correction needed.",
+      "changedSinceResearch": true
+    },
+    {
+      "claimId": "clm-kz-bybit-copybot-001",
+      "originalConfidence": "MEDIUM",
+      "currentConfidence": "MEDIUM",
+      "originalProposedStatus": "AVAILABLE_WITH_LIMITS",
+      "currentStatus": "AVAILABLE_WITH_LIMITS",
+      "verificationState": "CONFIRMED_WITH_LIMITS",
+      "limitations": "Do not overstate per-product availability beyond the current public references.",
+      "correctionRequired": false,
+      "correctionNote": "No correction needed.",
+      "changedSinceResearch": true
+    },
+    {
+      "claimId": "clm-kz-bybit-derivatives-001",
+      "originalConfidence": "HIGH",
+      "currentConfidence": "HIGH",
+      "originalProposedStatus": "AVAILABLE",
+      "currentStatus": "AVAILABLE",
+      "verificationState": "CONFIRMED",
+      "limitations": "None material.",
+      "correctionRequired": false,
+      "correctionNote": "No correction needed.",
+      "changedSinceResearch": false
+    },
+    {
+      "claimId": "clm-kz-bybit-derivatives-002",
+      "originalConfidence": "HIGH",
+      "currentConfidence": "HIGH",
+      "originalProposedStatus": "AVAILABLE",
+      "currentStatus": "AVAILABLE",
+      "verificationState": "CONFIRMED",
+      "limitations": "None material.",
+      "correctionRequired": false,
+      "correctionNote": "No correction needed.",
+      "changedSinceResearch": false
+    },
+    {
+      "claimId": "clm-kz-bybit-derivatives-003",
+      "originalConfidence": "HIGH",
+      "currentConfidence": "HIGH",
+      "originalProposedStatus": "AVAILABLE_WITH_LIMITS",
+      "currentStatus": "AVAILABLE_WITH_LIMITS",
+      "verificationState": "CONFIRMED_WITH_LIMITS",
+      "limitations": "Region-dependent advanced-KYC triggers are not fully enumerated in public docs.",
+      "correctionRequired": false,
+      "correctionNote": "No correction needed.",
+      "changedSinceResearch": true
+    },
+    {
+      "claimId": "clm-kz-bybit-earn-001",
+      "originalConfidence": "HIGH",
+      "currentConfidence": "MEDIUM",
+      "originalProposedStatus": "AVAILABLE",
+      "currentStatus": "AVAILABLE",
+      "verificationState": "CONFIRMED",
+      "limitations": "Product-by-product eligibility can vary.",
+      "correctionRequired": false,
+      "correctionNote": "No correction needed.",
+      "changedSinceResearch": false
+    },
+    {
+      "claimId": "clm-kz-bybit-entity-001",
+      "originalConfidence": "HIGH",
+      "currentConfidence": "HIGH",
+      "originalProposedStatus": "AVAILABLE",
+      "currentStatus": "AVAILABLE",
+      "verificationState": "CONFIRMED",
+      "limitations": "Stable regulator register.",
+      "correctionRequired": false,
+      "correctionNote": "No correction needed.",
+      "changedSinceResearch": false
+    },
+    {
+      "claimId": "clm-kz-bybit-entity-002",
+      "originalConfidence": "HIGH",
+      "currentConfidence": "HIGH",
+      "originalProposedStatus": "AVAILABLE",
+      "currentStatus": "AVAILABLE",
+      "verificationState": "CONFIRMED",
+      "limitations": "Stable regulator register.",
+      "correctionRequired": false,
+      "correctionNote": "No correction needed.",
+      "changedSinceResearch": false
+    },
+    {
+      "claimId": "clm-kz-bybit-entity-003",
+      "originalConfidence": "HIGH",
+      "currentConfidence": "MEDIUM",
+      "originalProposedStatus": "AVAILABLE",
+      "currentStatus": "AVAILABLE_WITH_LIMITS",
+      "verificationState": "CONFIRMED_WITH_LIMITS",
+      "limitations": "Affiliate/referral terms on bybit.kz use Bybit Technology Limited.",
+      "correctionRequired": true,
+      "correctionNote": "Clarify that this is true for the core local trading platform, not automatically for every ancillary program on bybit.kz.",
+      "changedSinceResearch": true
+    },
+    {
+      "claimId": "clm-kz-bybit-fiat-001",
+      "originalConfidence": "HIGH",
+      "currentConfidence": "HIGH",
+      "originalProposedStatus": "AVAILABLE",
+      "currentStatus": "AVAILABLE",
+      "verificationState": "CONFIRMED",
+      "limitations": "Actual provider/bank availability can vary by user.",
+      "correctionRequired": false,
+      "correctionNote": "No correction needed.",
+      "changedSinceResearch": false
+    },
+    {
+      "claimId": "clm-kz-bybit-fiat-002",
+      "originalConfidence": "HIGH",
+      "currentConfidence": "HIGH",
+      "originalProposedStatus": "AVAILABLE",
+      "currentStatus": "AVAILABLE",
+      "verificationState": "CONFIRMED",
+      "limitations": "A successful prior deposit may be required before withdrawal.",
+      "correctionRequired": false,
+      "correctionNote": "No correction needed.",
+      "changedSinceResearch": false
+    },
+    {
+      "claimId": "clm-kz-bybit-fiat-003",
+      "originalConfidence": "HIGH",
+      "currentConfidence": "HIGH",
+      "originalProposedStatus": "RESTRICTED",
+      "currentStatus": "RESTRICTED",
+      "verificationState": "CONFIRMED",
+      "limitations": "Fiat rails remain tightly identity-bound.",
+      "correctionRequired": false,
+      "correctionNote": "No correction needed.",
+      "changedSinceResearch": false
+    },
+    {
+      "claimId": "clm-kz-bybit-fiat-004",
+      "originalConfidence": "HIGH",
+      "currentConfidence": "HIGH",
+      "originalProposedStatus": "AVAILABLE_WITH_LIMITS",
+      "currentStatus": "AVAILABLE",
+      "verificationState": "CONFIRMED",
+      "limitations": "This confirms local fiat-balance one-click-buy, not necessarily global bank-card purchase routing.",
+      "correctionRequired": false,
+      "correctionNote": "No correction needed.",
+      "changedSinceResearch": false
+    },
+    {
+      "claimId": "clm-kz-bybit-kyc-001",
+      "originalConfidence": "HIGH",
+      "currentConfidence": "HIGH",
+      "originalProposedStatus": "AVAILABLE",
+      "currentStatus": "AVAILABLE",
+      "verificationState": "CONFIRMED",
+      "limitations": "None material.",
+      "correctionRequired": false,
+      "correctionNote": "No correction needed.",
+      "changedSinceResearch": false
+    },
+    {
+      "claimId": "clm-kz-bybit-kyc-002",
+      "originalConfidence": "HIGH",
+      "currentConfidence": "HIGH",
+      "originalProposedStatus": "AVAILABLE_WITH_LIMITS",
+      "currentStatus": "AVAILABLE_WITH_LIMITS",
+      "verificationState": "CONFIRMED_WITH_LIMITS",
+      "limitations": "Confirmed from official Russian/Kazakh locale because the English parser was unstable.",
+      "correctionRequired": false,
+      "correctionNote": "No correction needed.",
+      "changedSinceResearch": true
+    },
+    {
+      "claimId": "clm-kz-bybit-kyc-003",
+      "originalConfidence": "HIGH",
+      "currentConfidence": "HIGH",
+      "originalProposedStatus": "AVAILABLE_WITH_LIMITS",
+      "currentStatus": "AVAILABLE_WITH_LIMITS",
+      "verificationState": "CONFIRMED_WITH_LIMITS",
+      "limitations": "This point is specifically in business-KYC identity handling, not general individual-KYC identity handling.",
+      "correctionRequired": false,
+      "correctionNote": "No correction needed.",
+      "changedSinceResearch": true
+    },
+    {
+      "claimId": "clm-kz-bybit-kyc-004",
+      "originalConfidence": "HIGH",
+      "currentConfidence": "HIGH",
+      "originalProposedStatus": "AVAILABLE",
+      "currentStatus": "AVAILABLE",
+      "verificationState": "CONFIRMED",
+      "limitations": "None material.",
+      "correctionRequired": false,
+      "correctionNote": "No correction needed.",
+      "changedSinceResearch": false
+    },
+    {
+      "claimId": "clm-kz-bybit-kzt-p2p-001",
+      "originalConfidence": "HIGH",
+      "currentConfidence": "HIGH",
+      "originalProposedStatus": "AVAILABLE",
+      "currentStatus": "AVAILABLE",
+      "verificationState": "CONFIRMED",
+      "limitations": "Live ads and payment methods can vary.",
+      "correctionRequired": false,
+      "correctionNote": "No correction needed.",
+      "changedSinceResearch": false
+    },
+    {
+      "claimId": "clm-kz-bybit-language-001",
+      "originalConfidence": "HIGH",
+      "currentConfidence": "HIGH",
+      "originalProposedStatus": "AVAILABLE_WITH_LIMITS",
+      "currentStatus": "AVAILABLE",
+      "verificationState": "CONFIRMED",
+      "limitations": "Homepage parser exposure is minimal, but locale endpoints resolve.",
+      "correctionRequired": false,
+      "correctionNote": "No correction needed.",
+      "changedSinceResearch": false
+    },
+    {
+      "claimId": "clm-kz-bybit-margin-001",
+      "originalConfidence": "HIGH",
+      "currentConfidence": "HIGH",
+      "originalProposedStatus": "AVAILABLE_WITH_LIMITS",
+      "currentStatus": "AVAILABLE_WITH_LIMITS",
+      "verificationState": "CONFIRMED",
+      "limitations": "Operational margin parameters can change.",
+      "correctionRequired": false,
+      "correctionNote": "No correction needed.",
+      "changedSinceResearch": false
+    },
+    {
+      "claimId": "clm-kz-bybit-margin-002",
+      "originalConfidence": "HIGH",
+      "currentConfidence": "HIGH",
+      "originalProposedStatus": "AVAILABLE_WITH_LIMITS",
+      "currentStatus": "AVAILABLE_WITH_LIMITS",
+      "verificationState": "CONFIRMED",
+      "limitations": "Actual leverage availability depends on contract/risk tier.",
+      "correctionRequired": false,
+      "correctionNote": "No correction needed.",
+      "changedSinceResearch": false
+    },
+    {
+      "claimId": "clm-kz-bybit-margin-003",
+      "originalConfidence": "HIGH",
+      "currentConfidence": "HIGH",
+      "originalProposedStatus": "AVAILABLE_WITH_LIMITS",
+      "currentStatus": "AVAILABLE_WITH_LIMITS",
+      "verificationState": "CONFIRMED_WITH_LIMITS",
+      "limitations": "Exact tier tables can change over time.",
+      "correctionRequired": false,
+      "correctionNote": "No correction needed.",
+      "changedSinceResearch": true
+    },
+    {
+      "claimId": "clm-kz-bybit-offer-001",
+      "originalConfidence": "MEDIUM",
+      "currentConfidence": "MEDIUM",
+      "originalProposedStatus": "UNKNOWN",
+      "currentStatus": "UNKNOWN",
+      "verificationState": "CONFIRMED_WITH_LIMITS",
+      "limitations": "Local referral and affiliate materials exist, but interoperability is not expressly documented.",
+      "correctionRequired": true,
+      "correctionNote": "Clarify that referral-code entry exists, but cross-stack/global-code compatibility remains unverified.",
+      "changedSinceResearch": true
+    },
+    {
+      "claimId": "clm-kz-bybit-offer-002",
+      "originalConfidence": "MEDIUM",
+      "currentConfidence": "HIGH",
+      "originalProposedStatus": "UNKNOWN",
+      "currentStatus": "AVAILABLE_WITH_LIMITS",
+      "verificationState": "CONTRADICTED",
+      "limitations": "The referral page does not state exactly which user categories are eligible, and local campaign terms can be narrower than general local platform availability.",
+      "correctionRequired": true,
+      "correctionNote": "Replace the old 'no official bonus amount verified' claim with a narrower statement: official Kazakhstan-specific promotional amounts now exist, but user-segment eligibility and overlap with global maximums remain unresolved.",
+      "changedSinceResearch": true
+    },
+    {
+      "claimId": "clm-kz-bybit-p2p-001",
+      "originalConfidence": "HIGH",
+      "currentConfidence": "HIGH",
+      "originalProposedStatus": "AVAILABLE",
+      "currentStatus": "AVAILABLE",
+      "verificationState": "CONFIRMED",
+      "limitations": "Bank-method scope within P2P should not be overclaimed.",
+      "correctionRequired": false,
+      "correctionNote": "No correction needed.",
+      "changedSinceResearch": false
+    },
+    {
+      "claimId": "clm-kz-bybit-p2p-002",
+      "originalConfidence": "HIGH",
+      "currentConfidence": "HIGH",
+      "originalProposedStatus": "AVAILABLE_WITH_LIMITS",
+      "currentStatus": "AVAILABLE_WITH_LIMITS",
+      "verificationState": "CONFIRMED",
+      "limitations": "Operational risk reviews and payment-method rules still apply.",
+      "correctionRequired": false,
+      "correctionNote": "No correction needed.",
+      "changedSinceResearch": false
+    },
+    {
+      "claimId": "clm-kz-bybit-registration-001",
+      "originalConfidence": "HIGH",
+      "currentConfidence": "HIGH",
+      "originalProposedStatus": "AVAILABLE",
+      "currentStatus": "AVAILABLE",
+      "verificationState": "CONFIRMED",
+      "limitations": "None material.",
+      "correctionRequired": false,
+      "correctionNote": "No correction needed.",
+      "changedSinceResearch": false
+    },
+    {
+      "claimId": "clm-kz-bybit-registration-002",
+      "originalConfidence": "HIGH",
+      "currentConfidence": "MEDIUM",
+      "originalProposedStatus": "AVAILABLE_WITH_LIMITS",
+      "currentStatus": "CONFLICTING",
+      "verificationState": "CONFIRMED_WITH_LIMITS",
+      "limitations": "Current public docs conflict.",
+      "correctionRequired": true,
+      "correctionNote": "Do not publish the resident-only sentence as the complete current rule without the newer announcement and conflict note.",
+      "changedSinceResearch": true
+    },
+    {
+      "claimId": "clm-kz-bybit-registration-003",
+      "originalConfidence": "MEDIUM",
+      "currentConfidence": "MEDIUM",
+      "originalProposedStatus": "AVAILABLE_WITH_LIMITS",
+      "currentStatus": "AVAILABLE_WITH_LIMITS",
+      "verificationState": "CONFIRMED_WITH_LIMITS",
+      "limitations": "This does not independently settle residency/citizenship eligibility.",
+      "correctionRequired": false,
+      "correctionNote": "No correction needed.",
+      "changedSinceResearch": true
+    },
+    {
+      "claimId": "clm-kz-bybit-registration-004",
+      "originalConfidence": "HIGH",
+      "currentConfidence": "MEDIUM",
+      "originalProposedStatus": "AVAILABLE_WITH_LIMITS",
+      "currentStatus": "AVAILABLE_WITH_LIMITS",
+      "verificationState": "CONFIRMED_WITH_LIMITS",
+      "limitations": "Parser did not expose the full article body; current truth relies on the official announcement shell plus official search/index snippet.",
+      "correctionRequired": false,
+      "correctionNote": "No correction needed.",
+      "changedSinceResearch": true
+    },
+    {
+      "claimId": "clm-kz-bybit-regulation-001",
+      "originalConfidence": "HIGH",
+      "currentConfidence": "HIGH",
+      "originalProposedStatus": "AVAILABLE",
+      "currentStatus": "AVAILABLE",
+      "verificationState": "CONFIRMED",
+      "limitations": "None material.",
+      "correctionRequired": false,
+      "correctionNote": "No correction needed.",
+      "changedSinceResearch": false
+    },
+    {
+      "claimId": "clm-kz-bybit-regulation-002",
+      "originalConfidence": "HIGH",
+      "currentConfidence": "HIGH",
+      "originalProposedStatus": "AVAILABLE_WITH_LIMITS",
+      "currentStatus": "AVAILABLE_WITH_LIMITS",
+      "verificationState": "CONFIRMED",
+      "limitations": "The alert also underscores the need to rely on the AFSA public register.",
+      "correctionRequired": false,
+      "correctionNote": "No correction needed.",
+      "changedSinceResearch": false
+    },
+    {
+      "claimId": "clm-kz-bybit-restrictions-001",
+      "originalConfidence": "HIGH",
+      "currentConfidence": "HIGH",
+      "originalProposedStatus": "AVAILABLE",
+      "currentStatus": "AVAILABLE",
+      "verificationState": "CONFIRMED",
+      "limitations": "Local list differs materially from the global list.",
+      "correctionRequired": false,
+      "correctionNote": "No correction needed.",
+      "changedSinceResearch": false
+    },
+    {
+      "claimId": "clm-kz-bybit-restrictions-002",
+      "originalConfidence": "MEDIUM",
+      "currentConfidence": "HIGH",
+      "originalProposedStatus": "AVAILABLE",
+      "currentStatus": "AVAILABLE",
+      "verificationState": "CONFIRMED",
+      "limitations": "Global list differs materially from the local Kazakhstan list.",
+      "correctionRequired": false,
+      "correctionNote": "No correction needed.",
+      "changedSinceResearch": false
+    },
+    {
+      "claimId": "clm-kz-bybit-routing-001",
+      "originalConfidence": "MEDIUM",
+      "currentConfidence": "HIGH",
+      "originalProposedStatus": "CONFLICTING",
+      "currentStatus": "CONFLICTING",
+      "verificationState": "CONFIRMED",
+      "limitations": "Do not flatten routing and entity differences into a single universal Bybit-Kazakhstan path.",
+      "correctionRequired": false,
+      "correctionNote": "No correction needed.",
+      "changedSinceResearch": false
+    },
+    {
+      "claimId": "clm-kz-bybit-spot-001",
+      "originalConfidence": "HIGH",
+      "currentConfidence": "HIGH",
+      "originalProposedStatus": "AVAILABLE",
+      "currentStatus": "AVAILABLE",
+      "verificationState": "CONFIRMED",
+      "limitations": "None material.",
+      "correctionRequired": false,
+      "correctionNote": "No correction needed.",
+      "changedSinceResearch": false
+    },
+    {
+      "claimId": "clm-kz-bybit-spot-002",
+      "originalConfidence": "MEDIUM",
+      "currentConfidence": "MEDIUM",
+      "originalProposedStatus": "AVAILABLE_WITH_LIMITS",
+      "currentStatus": "AVAILABLE_WITH_LIMITS",
+      "verificationState": "CONFIRMED_WITH_LIMITS",
+      "limitations": "Public parser did not expose the full pair list.",
+      "correctionRequired": false,
+      "correctionNote": "No correction needed.",
+      "changedSinceResearch": true
+    },
+    {
+      "claimId": "clm-kz-bybit-support-001",
+      "originalConfidence": "HIGH",
+      "currentConfidence": "HIGH",
+      "originalProposedStatus": "AVAILABLE",
+      "currentStatus": "AVAILABLE",
+      "verificationState": "CONFIRMED",
+      "limitations": "None material.",
+      "correctionRequired": false,
+      "correctionNote": "No correction needed.",
+      "changedSinceResearch": false
+    }
+  ],
+  "entityAndDomainRouting": {
+    "cf-kz-bybit-001": {
+      "legalEntityComparison": "All sources concern Bybit Kazakhstan / Bybit Limited local Kazakhstan service context.",
+      "reviewedResolution": {
+        "kazakhstanCitizens": {
+          "finding": "Strongest confirmed user segment. Current public sources support local registration, KYC and fiat access for Kazakhstan-based users, and an official local campaign page explicitly limits one current promotion to citizens of the Republic of Kazakhstan.",
+          "status": "CONFIRMED_WITH_LIMITS"
+        },
+        "kazakhstanResidents": {
+          "finding": "Public local materials still support a Kazakhstan-residence model: the registration guide still says only KZ residents can register, the individual-KYC guide requires proof of residency within Kazakhstan, and fiat services are limited to Kazakhstan-verified users.",
+          "status": "CONFIRMED_WITH_LIMITS"
+        },
+        "foreignNationalsResidentInKazakhstan": {
+          "finding": "Material support exists but is not fully harmonized. The 2026-01-26 official announcement says Bybit Kazakhstan now accepts users with non-Kazakhstan citizenship for registration and KYC. KYC materials accept foreign-country passport/ID documents, and business-KYC materials also accept residence permits/driving licenses. However, the older resident-only registration guide was not updated, and the individual-KYC FAQ still contains citizenship-based territorial wording.",
+          "status": "PARTIALLY_CONFIRMED"
+        },
+        "nonResidents": {
+          "finding": "Not confirmed for the local Bybit Kazakhstan stack. Current public local materials continue to point to Kazakhstan residence and Kazakhstan verification for local registration/KYC/fiat workflows.",
+          "status": "UNVERIFIED"
+        },
+        "acceptedIdentityDocuments": {
+          "finding": "For individual KYC, current official content accepts passport and national ID issued by the user's country of origin, and rejects domestic passports and visas. For business-KYC-associated identity checks, passport, identity card, residence permit and driving license are accepted if issued by the person's country of origin.",
+          "status": "CONFIRMED"
+        },
+        "proofOfAddressAndIINRequirements": {
+          "finding": "Proof of address generally must be dated within three months. The individual-KYC guide currently says only proof of residency within Kazakhstan is accepted. IIN/BIN matching is explicitly required on local fiat bank-transfer deposit and withdrawal flows. Current public sources do not prove that an IIN is universally required merely to open an account; they prove it for fiat/bank-transfer rails and related verification fields.",
+          "status": "CONFIRMED_WITH_LIMITS"
+        }
+      },
+      "routingMatrix": null,
+      "unresolvedEvidence": "Updated Bybit Kazakhstan registration/KYC article or platform terms expressly defining whether eligibility depends on Kazakhstan residence, Kazakhstan citizenship, or specific Kazakhstan-issued identity/address elements."
+    },
+    "cf-kz-bybit-002": {
+      "legalEntityComparison": "Local pages operate in the Bybit Kazakhstan/Bybit Limited/AIFC context; global payment-support pages are broader Bybit.com operational pages and do not always specify local-entity routing.",
+      "routingMatrix": [
+        {
+          "service": "registration",
+          "controllingDomain": "bybit.kz",
+          "entityAssessment": "Bybit Limited for the local trading platform context.",
+          "state": "CONFIRMED_WITH_LIMITS",
+          "notes": "Registration/KYC flow is described on bybit.kz help pages tied to the local platform, but foreign-national scope remains conflicted."
+        },
+        {
+          "service": "kyc",
+          "controllingDomain": "bybit.kz",
+          "entityAssessment": "Bybit Limited for the local trading platform context.",
+          "state": "CONFIRMED_WITH_LIMITS",
+          "notes": "KYC, privacy and risk pages on bybit.kz point to Bybit Limited."
+        },
+        {
+          "service": "spot",
+          "controllingDomain": "bybit.kz",
+          "entityAssessment": "Bybit Limited for the local trading platform context.",
+          "state": "CONFIRMED",
+          "notes": "Current spot support is described on bybit.kz local materials."
+        },
+        {
+          "service": "derivatives",
+          "controllingDomain": "bybit.kz",
+          "entityAssessment": "Bybit Limited for the local trading platform context.",
+          "state": "CONFIRMED",
+          "notes": "Current derivatives support is described on bybit.kz local materials."
+        },
+        {
+          "service": "p2p",
+          "controllingDomain": "bybit.kz",
+          "entityAssessment": "Bybit Limited for the local trading platform context.",
+          "state": "CONFIRMED_WITH_LIMITS",
+          "notes": "P2P is local on bybit.kz, but narrower bank-method/payment-setup details require caution."
+        },
+        {
+          "service": "kzt_deposit",
+          "controllingDomain": "bybit.kz",
+          "entityAssessment": "Bybit Limited local stack plus local provider/bank rails.",
+          "state": "CONFIRMED",
+          "notes": "Local KZT fiat deposit is documented only on bybit.kz help pages."
+        },
+        {
+          "service": "kzt_withdrawal",
+          "controllingDomain": "bybit.kz",
+          "entityAssessment": "Bybit Limited local stack plus local provider/bank rails.",
+          "state": "CONFIRMED",
+          "notes": "Local KZT withdrawal is documented only on bybit.kz help pages."
+        },
+        {
+          "service": "bank_card_purchase",
+          "controllingDomain": "UNRESOLVED",
+          "entityAssessment": "UNRESOLVED",
+          "state": "CONFLICTING",
+          "notes": "The local bybit.kz stack clearly documents KZT fiat-balance one-click-buy, while the global bybit.com support page separately lists Kazakhstan for Visa/Mastercard and Apple Pay. Current public pages do not identify the Kazakhstan-serving legal entity for direct bank-card purchase."
+        },
+        {
+          "service": "bybit_card",
+          "controllingDomain": "bybit.kz",
+          "entityAssessment": "Likely local Bybit Kazakhstan flow, but cardholder legal stack is not fully exposed in the retrieved public text.",
+          "state": "CONFIRMED_WITH_LIMITS",
+          "notes": "Card application is handled on bybit.kz and requires acceptance of Bybit Kazakhstan terms and cardholder terms."
+        },
+        {
+          "service": "one_click_buy",
+          "controllingDomain": "bybit.kz for KZT fiat-balance flow; bybit.com remains separately relevant for direct bank-card support references",
+          "entityAssessment": "Local fiat-balance path aligns with Bybit Limited; direct bank-card path remains unresolved.",
+          "state": "CONFIRMED_WITH_LIMITS",
+          "notes": "Do not collapse local fiat-balance one-click-buy into global bank-card support."
+        },
+        {
+          "service": "referral_codes",
+          "controllingDomain": "bybit.kz",
+          "entityAssessment": "Mixed. Front-end referral page is local, but affiliate-program terms on bybit.kz identify Bybit Technology Limited.",
+          "state": "CONFLICTING",
+          "notes": "Global-code interoperability and exact legal entity for the referral stack are not fully resolved."
+        },
+        {
+          "service": "promotions",
+          "controllingDomain": "bybit.kz",
+          "entityAssessment": "Brand-local, but the specific controlling legal entity is not consistently stated in retrieved public promo text.",
+          "state": "CONFIRMED_WITH_LIMITS",
+          "notes": "Current promo pages are plainly branded for Bybit Kazakhstan users, yet entity-level legal text is incomplete in the retrieved campaign pages."
+        }
+      ],
+      "reviewedResolution": null,
+      "unresolvedEvidence": "Updated Bybit legal/payment documentation explicitly stating which entity and domain serve Kazakhstan residents for One-Click Buy, bank-card purchase and Bybit Card onboarding."
+    },
+    "note": "Bybit Limited local core platform vs Bybit Technology Limited affiliate stack vs unresolved global bank-card route vs local bybit.kz service routes vs campaign-specific promo routing are kept separate; not flattened."
+  },
+  "importHistory": [
+    {
+      "phase": "staging-import",
+      "task": "CBW-KZ-BYBIT-P0A-IMPORT-EXECUTE-001 / RESHAPE-002",
+      "commit": "1dfbadfb58ebc444fa502d1445f36745481723f7"
+    },
+    {
+      "phase": "candidate-owner-review",
+      "task": "CBW-KZ-BYBIT-P0A-CANDIDATE-OWNER-REVIEW-001",
+      "commit": "e084d64c36f68be01881b635e6202aea28165ca3"
+    },
+    {
+      "phase": "canonical-import-prep",
+      "task": "CBW-KZ-BYBIT-P0A-CANONICAL-IMPORT-PREP-004",
+      "commit": "c65a5e658f2fd1d3bdfe8a0e0195977e690e7c03"
+    },
+    {
+      "phase": "canonical-paths-decision",
+      "task": "CBW-KZ-BYBIT-P0A-CANONICAL-PATHS-OWNER-DECISION-005",
+      "commit": "59f96dc123e199d5331670e2cfc816a6ef7da1e6"
+    },
+    {
+      "phase": "canonical-import-authorization",
+      "task": "CBW-KZ-BYBIT-P0A-CANONICAL-IMPORT-AUTHORIZATION-006",
+      "commit": "2080e469f58d1412680bcb15e858c07a02f0755e"
+    },
+    {
+      "phase": "canonical-import-execute",
+      "task": "CBW-KZ-BYBIT-P0A-CANONICAL-IMPORT-EXECUTE-007",
+      "commit": null
+    }
+  ],
+  "authorizationsGranted": {
+    "canonicalResearchStorageEligible": true,
+    "canonicalImportAuthorized": true,
+    "canonicalCellWriteAuthorized": true,
+    "canonicalSourcesWriteAuthorized": true,
+    "canonicalLinkagesWriteAuthorized": true,
+    "canonicalProvenanceWriteAuthorized": true,
+    "canonicalConflictsWriteAuthorized": true,
+    "miGeoBindingWriteAuthorized": true
+  },
+  "authorizationsWithheld": {
+    "miGeoBindingActivationAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionIntegrationAuthorized": false,
+    "legacyGeoReplacementAuthorized": false,
+    "rankingEligibilityAuthorized": false,
+    "ctaEligibilityAuthorized": false,
+    "promoEligibilityAuthorized": false,
+    "affiliateRoutingActivationAuthorized": false,
+    "migration5Authorized": false,
+    "pageOrRouteChangeAuthorized": false,
+    "deployAuthorized": false
+  },
+  "note": "Non-runtime research evidence. No provenance silently discarded. Deterministic — no wall-clock. Existing GEO remains production truth."
+}
