@@ -1,0 +1,201 @@
+{
+  "decisionId": "CBW-KZ-BYBIT-P0A-CANONICAL-IMPORT-AUTHORIZATION-v1",
+  "taskId": "CBW-KZ-BYBIT-P0A-CANONICAL-IMPORT-AUTHORIZATION-006",
+  "project": "CryptoBonusWorld",
+  "repository": "C:/projects/CryptoBonusWorld",
+  "branch": "master",
+  "baselineHead": "59f96dc123e199d5331670e2cfc816a6ef7da1e6",
+  "date": "2026-07-21",
+  "countryCode": "KZ",
+  "exchangeId": "bybit",
+  "batchId": "KZ-P0-A",
+  "mode": "OWNER_AUTHORIZATION_DECISION_RECORD_ONLY",
+  "status": "OWNER_AUTHORIZED_CANONICAL_RESEARCH_WRITE",
+  "packageStatus": "RECOVERED / UNVERIFIED",
+  "scopeStatement": "Authorizes ONLY a future deterministic, atomic write of six non-production canonical research files. Does NOT perform the write. Does NOT authorize production integration, legacy GEO replacement, ranking/CTA/promo/affiliate activation, MI-GEO binding activation, or MIGRATION_5.",
+
+  "canonicalWriteAuthorizationSummary": {
+    "authorized": true,
+    "target": "atomic six-file canonical research package for KZ x bybit",
+    "root": "data/market-intelligence/",
+    "nonProduction": true,
+    "performsWrite": false,
+    "pathDecisionRef": { "decisionId": "CBW-KZ-BYBIT-P0A-CANONICAL-PATHS-OWNER-DECISION-v1", "commit": "59f96dc123e199d5331670e2cfc816a6ef7da1e6" }
+  },
+
+  "authorizedPaths": [
+    "data/market-intelligence/cells/by-country/kz/bybit.json",
+    "data/market-intelligence/sources/by-country/kz/bybit.json",
+    "data/market-intelligence/linkages/by-country/kz/bybit.json",
+    "data/market-intelligence/provenance/by-country/kz/bybit.json",
+    "data/market-intelligence/conflicts/by-country/kz/bybit.json",
+    "data/market-intelligence/bindings/by-country/kz/bybit.json"
+  ],
+  "notAuthorizedPaths": [
+    "data/market-intelligence/cells/by-exchange/**",
+    "duplicate copies (any orientation)",
+    "generated indexes",
+    "production adapters",
+    "runtime consumers",
+    "any legacy GEO change"
+  ],
+
+  "atomicWriteContract": {
+    "allOrNone": true,
+    "steps": [
+      "1. generate all six outputs in an OS temporary directory",
+      "2. validate all six outputs before touching canonical paths",
+      "3. validate: cell vs exchange-market-cell.schema.json; every source vs market-source.schema.json; binding vs mi-geo-binding.schema.json; source/link/conflict IDs and counts; package envelopes; provenance completeness",
+      "4. confirm the canonical root and all six target files are ABSENT before the first import",
+      "5. refuse overwrite unless a separate future owner authorization explicitly permits replacement",
+      "6. create the directory tree only after all temporary outputs pass",
+      "7. promote the six outputs as one controlled operation",
+      "8. on any final write failure: remove every file created by this execution; leave no partial canonical package; report failure; do not modify staging or legacy GEO",
+      "9. validate the six canonical files again after writing",
+      "10. do not commit, push or deploy during the execution task unless separately authorized after review"
+    ],
+    "firstWriteNoOverwrite": true,
+    "rollbackOnFailure": true,
+    "noPartialPackage": true
+  },
+
+  "bindingWriteVsActivation": {
+    "miGeoBindingWriteAuthorized": true,
+    "appliesOnlyToApprovedNonActiveBinding": true,
+    "requiredNonActiveContract": {
+      "ownerApproved": false,
+      "reviewStatus": "PROPOSED",
+      "canonicalRecord": "GEO_LEGACY",
+      "productionStable": true,
+      "productionRouteUnchanged": true,
+      "migrationPhase": "MIGRATION_4",
+      "affiliateInfluencesRanking": false,
+      "rankingSuppressed": true,
+      "ctaSuppressed": true,
+      "promoSuppressed": true,
+      "existingGeoRemainsProductionTruth": true
+    },
+    "miGeoBindingActivationAuthorized": false,
+    "note": "Writing the binding file must NOT activate it. Existing GEO layer remains production truth."
+  },
+
+  "authorizationFlags": {
+    "authorizedTrue": {
+      "canonicalResearchStorageEligible": true,
+      "canonicalImportAuthorized": true,
+      "canonicalCellWriteAuthorized": true,
+      "canonicalSourcesWriteAuthorized": true,
+      "canonicalLinkagesWriteAuthorized": true,
+      "canonicalProvenanceWriteAuthorized": true,
+      "canonicalConflictsWriteAuthorized": true,
+      "miGeoBindingWriteAuthorized": true
+    },
+    "mustRemainFalse": {
+      "miGeoBindingActivationAuthorized": false,
+      "productionChangeAuthorized": false,
+      "productionIntegrationAuthorized": false,
+      "legacyGeoReplacementAuthorized": false,
+      "rankingEligibilityAuthorized": false,
+      "ctaEligibilityAuthorized": false,
+      "promoEligibilityAuthorized": false,
+      "affiliateRoutingActivationAuthorized": false,
+      "migration5Authorized": false,
+      "pageOrRouteChangeAuthorized": false,
+      "deployAuthorized": false
+    }
+  },
+
+  "canonicalVsProductionSeparation": {
+    "canonicalMiResearchTruth": "data/market-intelligence/cells/by-country/**",
+    "stagingEvidence": "research/market-intelligence/staging/**",
+    "currentProductionTruth": ["research/geo/**", "src/data/geoRankings.ts"],
+    "noAutomaticSynchronization": true,
+    "noProductionConsumerReadsCanonicalYet": true,
+    "noSilentOverwriteOfLegacyGeo": true,
+    "promotionRequires": "a separate discrepancy review, owner decision and MIGRATION_5 authorization",
+    "mustRemainFullySeparate": true
+  },
+
+  "expectedCanonicalContent": {
+    "normalizedSources": 43,
+    "sourceTiers": { "A": 8, "B": 32, "C": 3 },
+    "claimSourceLinks": 77,
+    "correctedClaims": 4,
+    "conflicts": 2,
+    "corrections": ["clm-kz-bybit-entity-003", "clm-kz-bybit-registration-002", "clm-kz-bybit-offer-001", "clm-kz-bybit-offer-002"],
+    "conflictStates": { "cf-kz-bybit-001": "PARTIALLY_RESOLVED", "cf-kz-bybit-002": "PARTIALLY_RESOLVED" },
+    "doNotAutoResolveConflicts": true
+  },
+
+  "cellState": {
+    "overallAvailability": "AVAILABLE_WITH_LIMITS",
+    "confidence": "MEDIUM",
+    "liveVerificationState": "NOT_LIVE_VERIFIED",
+    "rankingEligibility": false,
+    "ctaEligibility": false,
+    "promoEligibility": false,
+    "productStatuses": {
+      "registration": "AVAILABLE_WITH_LIMITS",
+      "kyc": "AVAILABLE_WITH_LIMITS",
+      "spot": "AVAILABLE",
+      "derivatives": "AVAILABLE_WITH_LIMITS",
+      "margin": "AVAILABLE_WITH_LIMITS",
+      "p2p": "AVAILABLE_WITH_LIMITS",
+      "kzt_p2p": "AVAILABLE",
+      "direct_kzt_deposit": "AVAILABLE_WITH_LIMITS",
+      "direct_kzt_withdrawal": "AVAILABLE_WITH_LIMITS",
+      "bank_card_purchase": "CONFLICTING",
+      "bybit_card": "AVAILABLE_WITH_LIMITS",
+      "referral": "UNKNOWN",
+      "promotions": "AVAILABLE_WITH_LIMITS"
+    },
+    "doNotUpgradeOrDowngrade": true,
+    "presentation": { "primaryState": "GREEN", "primaryLabel": "Available", "secondaryState": "AMBER", "secondaryLabel": "Some limits apply" },
+    "futureRankingCandidate": true,
+    "notReinterpretedAsRestricted": true
+  },
+
+  "offerBoundaries": {
+    "localReferralUpToUsdt": 1032,
+    "kazakhstanCampaignPrizePoolUsdt": 2500,
+    "combined": false,
+    "isGlobalMaximum": false,
+    "globalReferralCodeCompatibility": "UNVERIFIED",
+    "promoEligibility": false,
+    "ctaEligibility": false
+  },
+
+  "provenanceRequirements": {
+    "mustPreserve": [
+      "RECOVERED / UNVERIFIED state",
+      "NOT_LIVE_VERIFIED state",
+      "original package hashes",
+      "recovered package hashes",
+      "source-truth review hashes",
+      "staging import commit 1dfbadfb58ebc444fa502d1445f36745481723f7",
+      "canonical path decision commit 59f96dc123e199d5331670e2cfc816a6ef7da1e6",
+      "all owner-decision references",
+      "original and corrected claim text",
+      "source and claim confidence",
+      "limitations",
+      "unresolved evidence",
+      "entity/domain routing",
+      "canonical-import authorization decision reference (this record)",
+      "every withheld production authorization"
+    ],
+    "stagingImportCommit": "1dfbadfb58ebc444fa502d1445f36745481723f7",
+    "canonicalPathDecisionCommit": "59f96dc123e199d5331670e2cfc816a6ef7da1e6",
+    "noProvenanceSilentlyDiscarded": true
+  },
+
+  "filesCreated": [
+    "owner-ops/market-intelligence/decisions/CBW_KZ_BYBIT_P0A_CANONICAL_IMPORT_AUTHORIZATION_v1.md",
+    "owner-ops/market-intelligence/decisions/CBW_KZ_BYBIT_P0A_CANONICAL_IMPORT_AUTHORIZATION_v1.json"
+  ],
+  "dataDirectoryCreated": false,
+  "writePerformed": false,
+
+  "recommendation": "APPROVE",
+  "recommendationScope": "Explicit owner authorization recorded for a FUTURE atomic six-file canonical research write into data/market-intelligence/ per the approved paths/contracts. This record performs no write. Binding-write authorized only in its non-active state; binding activation, production integration, legacy GEO replacement, ranking/CTA/promo/affiliate activation, and MIGRATION_5 remain BLOCKED.",
+  "nextTask": "CBW-KZ-BYBIT-P0A-CANONICAL-IMPORT-EXECUTE-007 — owner-gated deterministic execution of the atomic six-file write per this authorization and the canonical-paths decision (temp-generate -> validate all six -> confirm absence -> promote as one operation -> re-validate -> rollback on any failure). Commit/push of the written package and any production/ranking/CTA/promo/MIGRATION_5 step remain separate later owner-gated tasks."
+}
