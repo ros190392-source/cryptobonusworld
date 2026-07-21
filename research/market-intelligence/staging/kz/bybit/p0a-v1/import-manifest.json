@@ -1,0 +1,78 @@
+{
+  "task": "CBW-KZ-BYBIT-P0A-CANDIDATE-RESHAPE-002",
+  "project": "CryptoBonusWorld",
+  "repository": "C:/projects/CryptoBonusWorld",
+  "branch": "master",
+  "baselineHead": "e084d64c36f68be01881b635e6202aea28165ca3",
+  "countryCode": "KZ",
+  "exchangeId": "bybit",
+  "batchId": "KZ-P0-A",
+  "transformVersion": "kz-bybit-p0a-v1",
+  "packageStatus": "RECOVERED / UNVERIFIED",
+  "ownerImportPrepDecisionCommit": "0fa0791b4a5255b662ed67cf6df6033ed53a55cd",
+  "ownerReviewDecisionCommit": "e084d64c36f68be01881b635e6202aea28165ca3",
+  "candidateShape": "OPTION_A_WRAPPED_CANDIDATE",
+  "cellSchemaValidation": "PASS (structural contract vs exchange-market-cell.schema.json)",
+  "productScopeApplied": true,
+  "claimTypeOnSources": false,
+  "scopeStats": {
+    "single": 21,
+    "multi": 18,
+    "empty": 4
+  },
+  "inputPackages": [
+    {
+      "name": "CBW_KZ_BYBIT_P0A_SOURCE_TRUTH_REVIEW_v1_RECOVERED.zip",
+      "sha256": "a6d7d262c47018b55fe07cf42837d69c1d3f14e6e9650ebcdedda328962a4234",
+      "role": "source-truth review package"
+    },
+    {
+      "name": "CBW_KZ_BYBIT_P0A_RESEARCH_PACKAGE_v2_RECOVERED.zip",
+      "sha256": "7796d015c123e4b1c1dc39724740c13bc001399e2763f5b073d84e867eb3a854",
+      "role": "recovered original research package (inside CBW_KZ_BYBIT_SOURCE_TRUTH_REVIEW_INPUT_v2.zip)"
+    }
+  ],
+  "generatedFiles": {
+    "scripts/market-intelligence/import-kz-bybit-p0a.mjs": {
+      "bytes": 33227,
+      "sha256": "61791cb6686ef4b725fbfb498a80d19ff56ce077c43382839b9f83e1026e831a"
+    },
+    "research/market-intelligence/staging/kz/bybit/p0a-v1/normalized-sources.json": {
+      "bytes": 28605,
+      "sha256": "4e92ba9cc513deeaf6548a6ab424e8f3f627721c7f4c177bf63855837113c5ab"
+    },
+    "research/market-intelligence/staging/kz/bybit/p0a-v1/claim-source-links.json": {
+      "bytes": 23279,
+      "sha256": "3fe1326e1cbc02fe8afc30eb773fcad3d3a2ff924a216d734a0e22b1ff69bb0e"
+    },
+    "research/market-intelligence/staging/kz/bybit/p0a-v1/qa-provenance.json": {
+      "bytes": 40159,
+      "sha256": "e84364d8f643360629b1c4111b9229f02ccd00f4e2849238e038322b51f1ee1d"
+    },
+    "research/market-intelligence/staging/kz/bybit/p0a-v1/normalized-conflicts.json": {
+      "bytes": 11416,
+      "sha256": "4cb0f43cbedaa18684e8b339f827c5eefe4db24311e78ec92955c35c782535e3"
+    },
+    "research/market-intelligence/staging/kz/bybit/p0a-v1/exchange-market-cell.candidate.json": {
+      "bytes": 5322,
+      "sha256": "04c8d7d9e2efabab80d279d1855429d9c85044ce8000e99b359d9ff07e6b2bac"
+    },
+    "research/market-intelligence/staging/kz/bybit/p0a-v1/transform-report.md": {
+      "bytes": 5989,
+      "sha256": "00b1d3622082980528011e7854228b7a82757a6800ccb07b17a207e39d359d8d"
+    }
+  },
+  "counts": {
+    "sources": 43,
+    "links": 77,
+    "conflicts": 2,
+    "corrections": 4
+  },
+  "stagingOnly": true,
+  "canonicalImportAuthorized": false,
+  "productionChangeAuthorized": false,
+  "migration5Authorized": false,
+  "rankingEligibilityAuthorized": false,
+  "ctaEligibilityAuthorized": false,
+  "promoEligibilityAuthorized": false
+}

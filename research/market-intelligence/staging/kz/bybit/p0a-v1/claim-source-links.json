@@ -1,0 +1,695 @@
+[
+  {
+    "linkId": "clm-kz-bybit-app-001|src-kz-bybit-009",
+    "claimId": "clm-kz-bybit-app-001",
+    "sourceId": "src-kz-bybit-009",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-app-001|src-kz-bybit-035",
+    "claimId": "clm-kz-bybit-app-001",
+    "sourceId": "src-kz-bybit-035",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-app-002|src-kz-bybit-035",
+    "claimId": "clm-kz-bybit-app-002",
+    "sourceId": "src-kz-bybit-035",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-app-002|src-kz-bybit-036",
+    "claimId": "clm-kz-bybit-app-002",
+    "sourceId": "src-kz-bybit-036",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-card-001|src-kz-bybit-030",
+    "claimId": "clm-kz-bybit-card-001",
+    "sourceId": "src-kz-bybit-030",
+    "relationship": "LIMITS",
+    "verificationState": "CONFIRMED_WITH_LIMITS",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-card-001|src-kz-bybit-031",
+    "claimId": "clm-kz-bybit-card-001",
+    "sourceId": "src-kz-bybit-031",
+    "relationship": "LIMITS",
+    "verificationState": "CONFIRMED_WITH_LIMITS",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-card-002|src-kz-bybit-034",
+    "claimId": "clm-kz-bybit-card-002",
+    "sourceId": "src-kz-bybit-034",
+    "relationship": "LIMITS",
+    "verificationState": "CONFIRMED_WITH_LIMITS",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-copybot-001|src-kz-bybit-009",
+    "claimId": "clm-kz-bybit-copybot-001",
+    "sourceId": "src-kz-bybit-009",
+    "relationship": "LIMITS",
+    "verificationState": "CONFIRMED_WITH_LIMITS",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-copybot-001|src-kz-bybit-031",
+    "claimId": "clm-kz-bybit-copybot-001",
+    "sourceId": "src-kz-bybit-031",
+    "relationship": "LIMITS",
+    "verificationState": "CONFIRMED_WITH_LIMITS",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-derivatives-001|src-kz-bybit-023",
+    "claimId": "clm-kz-bybit-derivatives-001",
+    "sourceId": "src-kz-bybit-023",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-derivatives-001|src-kz-bybit-024",
+    "claimId": "clm-kz-bybit-derivatives-001",
+    "sourceId": "src-kz-bybit-024",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-derivatives-001|src-kz-bybit-025",
+    "claimId": "clm-kz-bybit-derivatives-001",
+    "sourceId": "src-kz-bybit-025",
+    "relationship": "CONTEXT",
+    "verificationState": null,
+    "checkedDate": "2026-07-21",
+    "provenance": "source-verification.supportedClaimIds"
+  },
+  {
+    "linkId": "clm-kz-bybit-derivatives-001|src-kz-bybit-029",
+    "claimId": "clm-kz-bybit-derivatives-001",
+    "sourceId": "src-kz-bybit-029",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-derivatives-002|src-kz-bybit-024",
+    "claimId": "clm-kz-bybit-derivatives-002",
+    "sourceId": "src-kz-bybit-024",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-derivatives-003|src-kz-bybit-024",
+    "claimId": "clm-kz-bybit-derivatives-003",
+    "sourceId": "src-kz-bybit-024",
+    "relationship": "LIMITS",
+    "verificationState": "CONFIRMED_WITH_LIMITS",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-earn-001|src-kz-bybit-009",
+    "claimId": "clm-kz-bybit-earn-001",
+    "sourceId": "src-kz-bybit-009",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-earn-001|src-kz-bybit-031",
+    "claimId": "clm-kz-bybit-earn-001",
+    "sourceId": "src-kz-bybit-031",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-entity-001|src-kz-bybit-001",
+    "claimId": "clm-kz-bybit-entity-001",
+    "sourceId": "src-kz-bybit-001",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-entity-002|src-kz-bybit-001",
+    "claimId": "clm-kz-bybit-entity-002",
+    "sourceId": "src-kz-bybit-001",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-entity-003|src-kz-bybit-001",
+    "claimId": "clm-kz-bybit-entity-003",
+    "sourceId": "src-kz-bybit-001",
+    "relationship": "LIMITS",
+    "verificationState": "CONFIRMED_WITH_LIMITS",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-entity-003|src-kz-bybit-005",
+    "claimId": "clm-kz-bybit-entity-003",
+    "sourceId": "src-kz-bybit-005",
+    "relationship": "LIMITS",
+    "verificationState": "CONFIRMED_WITH_LIMITS",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-entity-003|src-kz-bybit-006",
+    "claimId": "clm-kz-bybit-entity-003",
+    "sourceId": "src-kz-bybit-006",
+    "relationship": "LIMITS",
+    "verificationState": "CONFIRMED_WITH_LIMITS",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-fiat-001|src-kz-bybit-018",
+    "claimId": "clm-kz-bybit-fiat-001",
+    "sourceId": "src-kz-bybit-018",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-fiat-001|src-kz-bybit-019",
+    "claimId": "clm-kz-bybit-fiat-001",
+    "sourceId": "src-kz-bybit-019",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-fiat-002|src-kz-bybit-020",
+    "claimId": "clm-kz-bybit-fiat-002",
+    "sourceId": "src-kz-bybit-020",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-fiat-002|src-kz-bybit-021",
+    "claimId": "clm-kz-bybit-fiat-002",
+    "sourceId": "src-kz-bybit-021",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-fiat-003|src-kz-bybit-019",
+    "claimId": "clm-kz-bybit-fiat-003",
+    "sourceId": "src-kz-bybit-019",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-fiat-003|src-kz-bybit-021",
+    "claimId": "clm-kz-bybit-fiat-003",
+    "sourceId": "src-kz-bybit-021",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-fiat-004|src-kz-bybit-022",
+    "claimId": "clm-kz-bybit-fiat-004",
+    "sourceId": "src-kz-bybit-022",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-kyc-001|src-kz-bybit-012",
+    "claimId": "clm-kz-bybit-kyc-001",
+    "sourceId": "src-kz-bybit-012",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-kyc-001|src-kz-bybit-013",
+    "claimId": "clm-kz-bybit-kyc-001",
+    "sourceId": "src-kz-bybit-013",
+    "relationship": "CONTEXT",
+    "verificationState": null,
+    "checkedDate": "2026-07-21",
+    "provenance": "source-verification.supportedClaimIds"
+  },
+  {
+    "linkId": "clm-kz-bybit-kyc-002|src-kz-bybit-012",
+    "claimId": "clm-kz-bybit-kyc-002",
+    "sourceId": "src-kz-bybit-012",
+    "relationship": "LIMITS",
+    "verificationState": "CONFIRMED_WITH_LIMITS",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-kyc-002|src-kz-bybit-013",
+    "claimId": "clm-kz-bybit-kyc-002",
+    "sourceId": "src-kz-bybit-013",
+    "relationship": "CONTEXT",
+    "verificationState": null,
+    "checkedDate": "2026-07-21",
+    "provenance": "source-verification.supportedClaimIds"
+  },
+  {
+    "linkId": "clm-kz-bybit-kyc-003|src-kz-bybit-014",
+    "claimId": "clm-kz-bybit-kyc-003",
+    "sourceId": "src-kz-bybit-014",
+    "relationship": "LIMITS",
+    "verificationState": "CONFIRMED_WITH_LIMITS",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-kyc-004|src-kz-bybit-012",
+    "claimId": "clm-kz-bybit-kyc-004",
+    "sourceId": "src-kz-bybit-012",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-kyc-004|src-kz-bybit-014",
+    "claimId": "clm-kz-bybit-kyc-004",
+    "sourceId": "src-kz-bybit-014",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-kzt-p2p-001|src-kz-bybit-017",
+    "claimId": "clm-kz-bybit-kzt-p2p-001",
+    "sourceId": "src-kz-bybit-017",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-kzt-p2p-001|sup-kz-bybit-004",
+    "claimId": "clm-kz-bybit-kzt-p2p-001",
+    "sourceId": "sup-kz-bybit-004",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-language-001|src-kz-bybit-037",
+    "claimId": "clm-kz-bybit-language-001",
+    "sourceId": "src-kz-bybit-037",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-language-001|src-kz-bybit-038",
+    "claimId": "clm-kz-bybit-language-001",
+    "sourceId": "src-kz-bybit-038",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-language-001|src-kz-bybit-039",
+    "claimId": "clm-kz-bybit-language-001",
+    "sourceId": "src-kz-bybit-039",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-margin-001|src-kz-bybit-026",
+    "claimId": "clm-kz-bybit-margin-001",
+    "sourceId": "src-kz-bybit-026",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-margin-001|src-kz-bybit-027",
+    "claimId": "clm-kz-bybit-margin-001",
+    "sourceId": "src-kz-bybit-027",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-margin-002|src-kz-bybit-025",
+    "claimId": "clm-kz-bybit-margin-002",
+    "sourceId": "src-kz-bybit-025",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-margin-003|src-kz-bybit-028",
+    "claimId": "clm-kz-bybit-margin-003",
+    "sourceId": "src-kz-bybit-028",
+    "relationship": "LIMITS",
+    "verificationState": "CONFIRMED_WITH_LIMITS",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-offer-001|src-kz-bybit-011",
+    "claimId": "clm-kz-bybit-offer-001",
+    "sourceId": "src-kz-bybit-011",
+    "relationship": "LIMITS",
+    "verificationState": "CONFIRMED_WITH_LIMITS",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-offer-001|sup-kz-bybit-001",
+    "claimId": "clm-kz-bybit-offer-001",
+    "sourceId": "sup-kz-bybit-001",
+    "relationship": "LIMITS",
+    "verificationState": "CONFIRMED_WITH_LIMITS",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-offer-001|sup-kz-bybit-002",
+    "claimId": "clm-kz-bybit-offer-001",
+    "sourceId": "sup-kz-bybit-002",
+    "relationship": "LIMITS",
+    "verificationState": "CONFIRMED_WITH_LIMITS",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-offer-002|src-kz-bybit-011",
+    "claimId": "clm-kz-bybit-offer-002",
+    "sourceId": "src-kz-bybit-011",
+    "relationship": "CONTRADICTS",
+    "verificationState": "CONTRADICTED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-offer-002|src-kz-bybit-031",
+    "claimId": "clm-kz-bybit-offer-002",
+    "sourceId": "src-kz-bybit-031",
+    "relationship": "CONTRADICTS",
+    "verificationState": "CONTRADICTED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-offer-002|sup-kz-bybit-001",
+    "claimId": "clm-kz-bybit-offer-002",
+    "sourceId": "sup-kz-bybit-001",
+    "relationship": "CONTRADICTS",
+    "verificationState": "CONTRADICTED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-offer-002|sup-kz-bybit-003",
+    "claimId": "clm-kz-bybit-offer-002",
+    "sourceId": "sup-kz-bybit-003",
+    "relationship": "CONTRADICTS",
+    "verificationState": "CONTRADICTED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-p2p-001|src-kz-bybit-016",
+    "claimId": "clm-kz-bybit-p2p-001",
+    "sourceId": "src-kz-bybit-016",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-p2p-001|sup-kz-bybit-004",
+    "claimId": "clm-kz-bybit-p2p-001",
+    "sourceId": "sup-kz-bybit-004",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-p2p-002|src-kz-bybit-016",
+    "claimId": "clm-kz-bybit-p2p-002",
+    "sourceId": "src-kz-bybit-016",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-registration-001|src-kz-bybit-010",
+    "claimId": "clm-kz-bybit-registration-001",
+    "sourceId": "src-kz-bybit-010",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-registration-002|src-kz-bybit-010",
+    "claimId": "clm-kz-bybit-registration-002",
+    "sourceId": "src-kz-bybit-010",
+    "relationship": "LIMITS",
+    "verificationState": "CONFIRMED_WITH_LIMITS",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-registration-003|src-kz-bybit-011",
+    "claimId": "clm-kz-bybit-registration-003",
+    "sourceId": "src-kz-bybit-011",
+    "relationship": "LIMITS",
+    "verificationState": "CONFIRMED_WITH_LIMITS",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-registration-004|src-kz-bybit-032",
+    "claimId": "clm-kz-bybit-registration-004",
+    "sourceId": "src-kz-bybit-032",
+    "relationship": "LIMITS",
+    "verificationState": "CONFIRMED_WITH_LIMITS",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-regulation-001|src-kz-bybit-001",
+    "claimId": "clm-kz-bybit-regulation-001",
+    "sourceId": "src-kz-bybit-001",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-regulation-001|src-kz-bybit-003",
+    "claimId": "clm-kz-bybit-regulation-001",
+    "sourceId": "src-kz-bybit-003",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-regulation-002|src-kz-bybit-004",
+    "claimId": "clm-kz-bybit-regulation-002",
+    "sourceId": "src-kz-bybit-004",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-restrictions-001|src-kz-bybit-007",
+    "claimId": "clm-kz-bybit-restrictions-001",
+    "sourceId": "src-kz-bybit-007",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-restrictions-002|src-kz-bybit-008",
+    "claimId": "clm-kz-bybit-restrictions-002",
+    "sourceId": "src-kz-bybit-008",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-routing-001|src-kz-bybit-007",
+    "claimId": "clm-kz-bybit-routing-001",
+    "sourceId": "src-kz-bybit-007",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-routing-001|src-kz-bybit-010",
+    "claimId": "clm-kz-bybit-routing-001",
+    "sourceId": "src-kz-bybit-010",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-routing-001|src-kz-bybit-018",
+    "claimId": "clm-kz-bybit-routing-001",
+    "sourceId": "src-kz-bybit-018",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-routing-001|src-kz-bybit-030",
+    "claimId": "clm-kz-bybit-routing-001",
+    "sourceId": "src-kz-bybit-030",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-routing-001|src-kz-bybit-034",
+    "claimId": "clm-kz-bybit-routing-001",
+    "sourceId": "src-kz-bybit-034",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-routing-001|sup-kz-bybit-002",
+    "claimId": "clm-kz-bybit-routing-001",
+    "sourceId": "sup-kz-bybit-002",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-spot-001|src-kz-bybit-009",
+    "claimId": "clm-kz-bybit-spot-001",
+    "sourceId": "src-kz-bybit-009",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-spot-001|src-kz-bybit-024",
+    "claimId": "clm-kz-bybit-spot-001",
+    "sourceId": "src-kz-bybit-024",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-spot-002|src-kz-bybit-033",
+    "claimId": "clm-kz-bybit-spot-002",
+    "sourceId": "src-kz-bybit-033",
+    "relationship": "LIMITS",
+    "verificationState": "CONFIRMED_WITH_LIMITS",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-spot-002|src-kz-bybit-034",
+    "claimId": "clm-kz-bybit-spot-002",
+    "sourceId": "src-kz-bybit-034",
+    "relationship": "LIMITS",
+    "verificationState": "CONFIRMED_WITH_LIMITS",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-support-001|src-kz-bybit-012",
+    "claimId": "clm-kz-bybit-support-001",
+    "sourceId": "src-kz-bybit-012",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-support-001|src-kz-bybit-014",
+    "claimId": "clm-kz-bybit-support-001",
+    "sourceId": "src-kz-bybit-014",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  },
+  {
+    "linkId": "clm-kz-bybit-support-001|src-kz-bybit-021",
+    "claimId": "clm-kz-bybit-support-001",
+    "sourceId": "src-kz-bybit-021",
+    "relationship": "SUPPORTS",
+    "verificationState": "CONFIRMED",
+    "checkedDate": "2026-07-21",
+    "provenance": "claim-verdicts.verifiedSources"
+  }
+]

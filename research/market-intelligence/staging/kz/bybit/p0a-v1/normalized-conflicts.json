@@ -1,0 +1,184 @@
+[
+  {
+    "conflictId": "cf-kz-bybit-001",
+    "issue": "Registration scope conflict between the Bybit Kazakhstan registration guide and the later official foreign-nationals announcement.",
+    "status": "PARTIALLY_RESOLVED",
+    "confidence": "MEDIUM",
+    "autoResolved": false,
+    "affectedClaimIds": [
+      "clm-kz-bybit-registration-002",
+      "clm-kz-bybit-registration-003",
+      "clm-kz-bybit-registration-004"
+    ],
+    "sourcesReviewed": [
+      "src-kz-bybit-010",
+      "src-kz-bybit-011",
+      "src-kz-bybit-012",
+      "src-kz-bybit-013",
+      "src-kz-bybit-014",
+      "src-kz-bybit-018",
+      "src-kz-bybit-019",
+      "src-kz-bybit-020",
+      "src-kz-bybit-021",
+      "src-kz-bybit-030",
+      "src-kz-bybit-032",
+      "sup-kz-bybit-003"
+    ],
+    "legalEntityComparison": "All sources concern Bybit Kazakhstan / Bybit Limited local Kazakhstan service context.",
+    "dateComparison": "Registration guide updated 2025-11-25; account-settings FAQ updated 2025-11-25; foreign-nationals announcement published 2026-01-26.",
+    "sourceTierComparison": "All involved sources are official Bybit Tier B sources; the 2026-01-26 announcement is newer than the 2025 registration/help articles.",
+    "currentAssessment": "The newer announcement is stronger on recency and explicitly extends registration/KYC to non-Kazakhstan citizens, but the public help articles were not correspondingly updated. The safest conclusion is that Bybit Kazakhstan is available, but exact citizenship-versus-residency conditions remain partially unresolved.",
+    "reviewedResolution": {
+      "kazakhstanCitizens": {
+        "finding": "Strongest confirmed user segment. Current public sources support local registration, KYC and fiat access for Kazakhstan-based users, and an official local campaign page explicitly limits one current promotion to citizens of the Republic of Kazakhstan.",
+        "status": "CONFIRMED_WITH_LIMITS"
+      },
+      "kazakhstanResidents": {
+        "finding": "Public local materials still support a Kazakhstan-residence model: the registration guide still says only KZ residents can register, the individual-KYC guide requires proof of residency within Kazakhstan, and fiat services are limited to Kazakhstan-verified users.",
+        "status": "CONFIRMED_WITH_LIMITS"
+      },
+      "foreignNationalsResidentInKazakhstan": {
+        "finding": "Material support exists but is not fully harmonized. The 2026-01-26 official announcement says Bybit Kazakhstan now accepts users with non-Kazakhstan citizenship for registration and KYC. KYC materials accept foreign-country passport/ID documents, and business-KYC materials also accept residence permits/driving licenses. However, the older resident-only registration guide was not updated, and the individual-KYC FAQ still contains citizenship-based territorial wording.",
+        "status": "PARTIALLY_CONFIRMED"
+      },
+      "nonResidents": {
+        "finding": "Not confirmed for the local Bybit Kazakhstan stack. Current public local materials continue to point to Kazakhstan residence and Kazakhstan verification for local registration/KYC/fiat workflows.",
+        "status": "UNVERIFIED"
+      },
+      "acceptedIdentityDocuments": {
+        "finding": "For individual KYC, current official content accepts passport and national ID issued by the user's country of origin, and rejects domestic passports and visas. For business-KYC-associated identity checks, passport, identity card, residence permit and driving license are accepted if issued by the person's country of origin.",
+        "status": "CONFIRMED"
+      },
+      "proofOfAddressAndIINRequirements": {
+        "finding": "Proof of address generally must be dated within three months. The individual-KYC guide currently says only proof of residency within Kazakhstan is accepted. IIN/BIN matching is explicitly required on local fiat bank-transfer deposit and withdrawal flows. Current public sources do not prove that an IIN is universally required merely to open an account; they prove it for fiat/bank-transfer rails and related verification fields.",
+        "status": "CONFIRMED_WITH_LIMITS"
+      }
+    },
+    "routingMatrix": null,
+    "netAssessment": "Availability for Kazakhstan is real, but the public documentation still does not cleanly separate citizenship, residence, and Kazakhstan-specific verification requirements for every user category. The safest publication posture remains availability with user-segment limits.",
+    "unresolvedEvidence": "Updated Bybit Kazakhstan registration/KYC article or platform terms expressly defining whether eligibility depends on Kazakhstan residence, Kazakhstan citizenship, or specific Kazakhstan-issued identity/address elements.",
+    "ownerReviewRequired": true
+  },
+  {
+    "conflictId": "cf-kz-bybit-002",
+    "issue": "Official local and global Bybit pages coexist for Kazakhstan-related services, creating unresolved product-routing ambiguity.",
+    "status": "PARTIALLY_RESOLVED",
+    "confidence": "MEDIUM",
+    "autoResolved": false,
+    "affectedClaimIds": [
+      "clm-kz-bybit-card-001",
+      "clm-kz-bybit-card-002",
+      "clm-kz-bybit-routing-001"
+    ],
+    "sourcesReviewed": [
+      "src-kz-bybit-005",
+      "src-kz-bybit-006",
+      "src-kz-bybit-007",
+      "src-kz-bybit-008",
+      "src-kz-bybit-009",
+      "src-kz-bybit-010",
+      "src-kz-bybit-018",
+      "src-kz-bybit-020",
+      "src-kz-bybit-022",
+      "src-kz-bybit-030",
+      "src-kz-bybit-034",
+      "sup-kz-bybit-001",
+      "sup-kz-bybit-002",
+      "sup-kz-bybit-003"
+    ],
+    "legalEntityComparison": "Local pages operate in the Bybit Kazakhstan/Bybit Limited/AIFC context; global payment-support pages are broader Bybit.com operational pages and do not always specify local-entity routing.",
+    "dateComparison": "Local card/deposit sources were updated in 2026-04 to 2026-06; global One-Click-Buy support page was updated 2026-06-26.",
+    "sourceTierComparison": "Local Bybit Kazakhstan help pages and global Bybit payment-support pages are all official Bybit sources, with local service-restriction sources carrying stronger local-context weight.",
+    "currentAssessment": "Core Kazakhstan availability is supported, but exact boundary lines between services offered through bybit.kz and services reachable through broader bybit.com flows remain incomplete in official public documents. This affects interpretation of bank-card and some buy-crypto flows.",
+    "reviewedResolution": null,
+    "routingMatrix": [
+      {
+        "service": "registration",
+        "controllingDomain": "bybit.kz",
+        "entityAssessment": "Bybit Limited for the local trading platform context.",
+        "state": "CONFIRMED_WITH_LIMITS",
+        "notes": "Registration/KYC flow is described on bybit.kz help pages tied to the local platform, but foreign-national scope remains conflicted."
+      },
+      {
+        "service": "kyc",
+        "controllingDomain": "bybit.kz",
+        "entityAssessment": "Bybit Limited for the local trading platform context.",
+        "state": "CONFIRMED_WITH_LIMITS",
+        "notes": "KYC, privacy and risk pages on bybit.kz point to Bybit Limited."
+      },
+      {
+        "service": "spot",
+        "controllingDomain": "bybit.kz",
+        "entityAssessment": "Bybit Limited for the local trading platform context.",
+        "state": "CONFIRMED",
+        "notes": "Current spot support is described on bybit.kz local materials."
+      },
+      {
+        "service": "derivatives",
+        "controllingDomain": "bybit.kz",
+        "entityAssessment": "Bybit Limited for the local trading platform context.",
+        "state": "CONFIRMED",
+        "notes": "Current derivatives support is described on bybit.kz local materials."
+      },
+      {
+        "service": "p2p",
+        "controllingDomain": "bybit.kz",
+        "entityAssessment": "Bybit Limited for the local trading platform context.",
+        "state": "CONFIRMED_WITH_LIMITS",
+        "notes": "P2P is local on bybit.kz, but narrower bank-method/payment-setup details require caution."
+      },
+      {
+        "service": "kzt_deposit",
+        "controllingDomain": "bybit.kz",
+        "entityAssessment": "Bybit Limited local stack plus local provider/bank rails.",
+        "state": "CONFIRMED",
+        "notes": "Local KZT fiat deposit is documented only on bybit.kz help pages."
+      },
+      {
+        "service": "kzt_withdrawal",
+        "controllingDomain": "bybit.kz",
+        "entityAssessment": "Bybit Limited local stack plus local provider/bank rails.",
+        "state": "CONFIRMED",
+        "notes": "Local KZT withdrawal is documented only on bybit.kz help pages."
+      },
+      {
+        "service": "bank_card_purchase",
+        "controllingDomain": "UNRESOLVED",
+        "entityAssessment": "UNRESOLVED",
+        "state": "CONFLICTING",
+        "notes": "The local bybit.kz stack clearly documents KZT fiat-balance one-click-buy, while the global bybit.com support page separately lists Kazakhstan for Visa/Mastercard and Apple Pay. Current public pages do not identify the Kazakhstan-serving legal entity for direct bank-card purchase."
+      },
+      {
+        "service": "bybit_card",
+        "controllingDomain": "bybit.kz",
+        "entityAssessment": "Likely local Bybit Kazakhstan flow, but cardholder legal stack is not fully exposed in the retrieved public text.",
+        "state": "CONFIRMED_WITH_LIMITS",
+        "notes": "Card application is handled on bybit.kz and requires acceptance of Bybit Kazakhstan terms and cardholder terms."
+      },
+      {
+        "service": "one_click_buy",
+        "controllingDomain": "bybit.kz for KZT fiat-balance flow; bybit.com remains separately relevant for direct bank-card support references",
+        "entityAssessment": "Local fiat-balance path aligns with Bybit Limited; direct bank-card path remains unresolved.",
+        "state": "CONFIRMED_WITH_LIMITS",
+        "notes": "Do not collapse local fiat-balance one-click-buy into global bank-card support."
+      },
+      {
+        "service": "referral_codes",
+        "controllingDomain": "bybit.kz",
+        "entityAssessment": "Mixed. Front-end referral page is local, but affiliate-program terms on bybit.kz identify Bybit Technology Limited.",
+        "state": "CONFLICTING",
+        "notes": "Global-code interoperability and exact legal entity for the referral stack are not fully resolved."
+      },
+      {
+        "service": "promotions",
+        "controllingDomain": "bybit.kz",
+        "entityAssessment": "Brand-local, but the specific controlling legal entity is not consistently stated in retrieved public promo text.",
+        "state": "CONFIRMED_WITH_LIMITS",
+        "notes": "Current promo pages are plainly branded for Bybit Kazakhstan users, yet entity-level legal text is incomplete in the retrieved campaign pages."
+      }
+    ],
+    "netAssessment": "Core Kazakhstan trading and fiat rails are local bybit.kz flows. The unresolved boundary sits mainly around direct bank-card purchase and referral/affiliate stacks, where bybit.com pages and Bybit Technology Limited affiliate terms coexist with local Bybit Limited platform materials.",
+    "unresolvedEvidence": "Updated Bybit legal/payment documentation explicitly stating which entity and domain serve Kazakhstan residents for One-Click Buy, bank-card purchase and Bybit Card onboarding.",
+    "ownerReviewRequired": true
+  }
+]
