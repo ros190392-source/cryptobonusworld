@@ -1,0 +1,168 @@
+{
+  "auditId": "CBW-KZ-BYBIT-P0A-MIGRATION-5-PREVIEW-REVIEW-v1",
+  "taskId": "CBW-KZ-BYBIT-P0A-MIGRATION-5-PREVIEW-REVIEW-012",
+  "project": "CryptoBonusWorld",
+  "repository": "C:/projects/CryptoBonusWorld",
+  "branch": "master",
+  "baselineHead": "ec185cd7055b4ec26f5a8fcbba9ee1a040815c6e",
+  "date": "2026-07-21",
+  "countryCode": "KZ",
+  "exchangeId": "bybit",
+  "mode": "READ_ONLY_MIGRATION_5_PREVIEW_REVIEW",
+  "webBrowsingUsed": false,
+
+  "previewStructure": { "sevenFilesPresent": true, "scriptPlusSixOutputs": true, "result": "PASS" },
+
+  "hashIntegrity": {
+    "result": "PASS",
+    "perFile": {
+      "scripts/market-intelligence/build-kz-bybit-migration5-preview.mjs": { "bytes": 42063, "sha256": "529e40a811521866d8a21bcd7434be7d8673a45e7ee13b99a02cf7019d9cb0dc", "match": true },
+      "research/market-intelligence/staging/kz/bybit/p0a-v1/migration5-preview/preview-manifest.json": { "bytes": 3019, "sha256": "3433b7fb5138fe4baae1376f90f98922c543ad692633d4015d5a0359ae3f7131", "match": true },
+      "research/market-intelligence/staging/kz/bybit/p0a-v1/migration5-preview/legacy-to-mi-field-map.json": { "bytes": 28210, "sha256": "da973a284872e5b70091a067c62b93a3e66477531141ad5f712c9ea535129ece", "match": true },
+      "research/market-intelligence/staging/kz/bybit/p0a-v1/migration5-preview/shadow-comparison.json": { "bytes": 13705, "sha256": "ee9a8b2a1c26542975927f02f3a35e8b2e469b54a5580ec2641b3e63b47a66f1", "match": true },
+      "research/market-intelligence/staging/kz/bybit/p0a-v1/migration5-preview/non-active-adapter.preview.json": { "bytes": 15956, "sha256": "b8d00e48b66be101332c3a037eb5bac505b8caa8307392ee8759227a2c64b1cf", "match": true },
+      "research/market-intelligence/staging/kz/bybit/p0a-v1/migration5-preview/validation-report.json": { "bytes": 1560, "sha256": "fdaeca9aef23c0fd25c44b48585437cd70138af116e9a480d2c6ada555bb1f68", "match": true },
+      "research/market-intelligence/staging/kz/bybit/p0a-v1/migration5-preview/validation-report.md": { "bytes": 2368, "sha256": "69d25e474b6474af7574708cd258533b82857e769ed7cef2a545396c6ed73991", "match": true }
+    }
+  },
+
+  "scriptSafety": {
+    "modes": ["--dry-run", "--write-preview", "--check"],
+    "writesOnlyPreviewDir": true, "refusesUnsafePaths": true,
+    "noNetwork": true, "noBrowser": true, "noChildProcess": true, "noGit": true, "noWallClock": true,
+    "nodeBuiltinsOnly": true, "packageJsonUnchanged": true,
+    "noWriteToCanonical": true, "noWriteToLegacyGeo": true, "noWriteToSrc": true, "noWriteToConfigGeo": true,
+    "noRuntimeAdapter": true, "noProductionImport": true,
+    "exitCodes": { "noMode": 2, "unknownArg": 1, "success": 0 },
+    "result": "PASS"
+  },
+
+  "determinism": {
+    "checkResult": "CHECK OK",
+    "matchesManifestHashes": true, "manifestNoSelfReference": true, "noWallClockField": true,
+    "deterministicallySorted": true, "noRandomIdentifier": true, "noEnvDependentAbsolutePath": true,
+    "result": "PASS"
+  },
+
+  "fieldMappingReview": {
+    "rows": 31, "fieldIdsUnique": true, "sortedByFieldId": true,
+    "everyRowExactlyOneClassification": true, "classificationsWithinEnum": true,
+    "allRequiredKeysPresent": true, "everyRowApprovedForExecutionFalse": true, "everyRowApprovedForProductionActivationFalse": true,
+    "missingFields": [],
+    "coversAvailabilityProductRankingCtaPromoReferralOfferConflictBindingOwnershipPublication": true,
+    "result": "PASS"
+  },
+
+  "primaryAvailabilityReview": {
+    "canonicalAvailability": "AVAILABLE_WITH_LIMITS", "legacyCompatiblePrimaryAvailability": "available",
+    "primaryState": "GREEN", "primaryLabel": "Available", "secondaryState": "AMBER", "secondaryLabel": "Some limits apply",
+    "limitationDisclosureRequired": true, "confidence": "MEDIUM", "liveVerificationState": "NOT_LIVE_VERIFIED",
+    "precisionPreserving": true, "notRestricted": true, "limitationLayerNotDropped": true, "primaryNotDowngradedToAmber": true,
+    "result": "PASS"
+  },
+
+  "productStatusReview": {
+    "thirteenProductsEachOnce": true,
+    "statuses": { "registration": "AVAILABLE_WITH_LIMITS", "kyc": "AVAILABLE_WITH_LIMITS", "spot": "AVAILABLE", "derivatives": "AVAILABLE_WITH_LIMITS", "margin": "AVAILABLE_WITH_LIMITS", "p2p": "AVAILABLE_WITH_LIMITS", "kzt_p2p": "AVAILABLE", "direct_kzt_deposit": "AVAILABLE_WITH_LIMITS", "direct_kzt_withdrawal": "AVAILABLE_WITH_LIMITS", "bank_card_purchase": "CONFLICTING", "bybit_card": "AVAILABLE_WITH_LIMITS", "referral": "UNKNOWN", "promotions": "AVAILABLE_WITH_LIMITS" },
+    "canonicalEqualsProposedShadow": true, "noUpgradeOrDowngrade": true, "allBlockedFromExecution": true,
+    "notFlattenedIntoOverall": true, "conflictAndReasonReferencesAttached": true,
+    "result": "PASS"
+  },
+
+  "limitationReview": {
+    "count": 7,
+    "ids": ["lim-residency-citizenship", "lim-entity-domain-routing", "lim-bank-card-conflict", "lim-global-referral-unverified", "lim-narrower-promo-eligibility", "lim-not-live-verified", "lim-recovered-unverified"],
+    "allRequiredKeysPresent": true, "requiredForFuturePresentationTrue": true, "blocksExecutionTrue": true, "blocksProductionActivationTrue": true,
+    "result": "PASS"
+  },
+
+  "conflictReview": {
+    "cf-kz-bybit-001": "PARTIALLY_RESOLVED", "cf-kz-bybit-002": "PARTIALLY_RESOLVED",
+    "everyConflictHasAllRepresentations": true, "unresolvedEvidencePresent": true, "affectedFieldsPresent": true, "hiddenRiskLevelPresent": true,
+    "blocksExecution": true, "blocksProductionActivation": true,
+    "neitherResolvedSimplifiedFlattenedRemovedOrConvertedToAvailable": true,
+    "result": "PASS"
+  },
+
+  "blockedFieldReview": {
+    "blocked": { "ranking": true, "cta": true, "promo": true, "affiliateRoute": true, "referralCode": true, "bonusAmount": true, "publication": true, "productionIntegration": true, "bindingActivation": true, "legacyGeoWrite": true, "productionRankingWrite": true },
+    "migration5ExecutionAuthorized": false, "migration5ProductionActivationAuthorized": false,
+    "rankingChangeAuthorized": false, "ctaChangeAuthorized": false, "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false, "referralCodeActivationAuthorized": false, "publicationAuthorized": false,
+    "result": "PASS"
+  },
+
+  "rankingReview": {
+    "currentProductionPosition": 1, "currentProductionRankingSafety": "SAFE_WITH_DISCLOSED_GAP",
+    "futureRankingDecisionReadiness": "READY_WITH_LIMITS", "canonicalRankingEligibility": false,
+    "proposedRankingChange": "NONE", "rankingChangeAuthorized": false, "recommendsAutomaticActivation": false,
+    "result": "PASS"
+  },
+
+  "ctaReferralReview": {
+    "currentRoute": "/go/bybit", "currentCode": "CRYPTOBONUSW", "globalReferralCodeCompatibility": "UNVERIFIED",
+    "canonicalCtaEligibility": false, "currentProductionCtaSafety": "SAFE_WITH_DISCLOSED_GAP",
+    "proposedCtaChange": "NONE", "proposedRouteChange": "NONE", "proposedCodeActivation": false,
+    "ctaChangeAuthorized": false, "affiliateRouteChangeAuthorized": false, "referralCodeActivationAuthorized": false,
+    "doesNotClaimRouteOrCodeVerifiedForKz": true,
+    "result": "PASS"
+  },
+
+  "promoReview": {
+    "localReferralProgram": { "amount": 1032, "currency": "USDT" }, "localCampaignPrizePool": { "amount": 2500, "currency": "USDT" },
+    "combined": false, "globalMaximumVerified": false, "canonicalPromoEligibility": false,
+    "currentProductionPromoSafety": "SAFE_WITH_DISCLOSED_GAP", "proposedPromoChange": "NONE", "promoChangeAuthorized": false,
+    "neitherAmountInProductionReadyOfferField": true,
+    "result": "PASS"
+  },
+
+  "adapterNonActivation": {
+    "topLevelKeysExact": ["previewMetadata", "sourceOwnership", "availabilityProjection", "productProjection", "limitations", "conflicts", "blockedFields", "bindingProjection", "publicationProjection", "safety"],
+    "recordState": "PREVIEW", "nonProduction": true, "runtimeConsumed": false,
+    "migration5PreparationAuthorized": true, "migration5ExecutionAuthorized": false, "migration5ProductionActivationAuthorized": false,
+    "binding": { "currentWriteState": "WRITTEN_NON_ACTIVE", "ownerApproved": false, "reviewStatus": "PROPOSED", "canonicalRecord": "GEO_LEGACY", "migrationPhase": "MIGRATION_4", "proposedActivation": false },
+    "publication": { "homepageEligible": false, "publicationStatus": "blocked_by_missing_evidence", "proposedPublication": false },
+    "everySafetyFlagFalse": true,
+    "result": "PASS"
+  },
+
+  "noProductionConsumer": {
+    "referencesInSrc": 0, "runtimeLoader": false, "rankingConsumer": false, "ctaConsumer": false, "promoConsumer": false,
+    "routeConsumer": false, "pageConsumer": false, "buildOrDeployIntegration": false, "automaticSync": false, "activeAdapter": false,
+    "onlyExternalReference": "scripts/market-intelligence/build-kz-bybit-migration5-preview.mjs (the generator referencing its own output paths)",
+    "result": "PASS"
+  },
+
+  "inputImmutability": {
+    "canonicalMiUnchanged": true, "legacyGeoUnchanged": true, "productionUnchanged": true, "configGeoUnchanged": true,
+    "packageJsonUnchanged": true, "schemasUnchanged": true, "ownerOpsUnchanged": true, "publicUnchanged": true,
+    "stagingOutsidePreviewUnchanged": true, "gitDiffEmpty": true, "result": "PASS"
+  },
+
+  "verdicts": {
+    "PREVIEW_STRUCTURE": "PASS",
+    "HASH_INTEGRITY": "PASS",
+    "SCRIPT_SAFETY": "PASS",
+    "DETERMINISM": "PASS",
+    "FIELD_MAPPING_COMPLETENESS": "PASS",
+    "PRIMARY_AVAILABILITY_SEMANTICS": "PASS",
+    "PRODUCT_STATUS_PRESERVATION": "PASS",
+    "LIMITATION_DISCLOSURE": "PASS",
+    "CONFLICT_PRESERVATION": "PASS",
+    "BLOCKED_FIELD_ENFORCEMENT": "PASS",
+    "ADAPTER_NON_ACTIVATION": "PASS",
+    "NO_PRODUCTION_CONSUMER": "PASS",
+    "NO_PRODUCTION_CHANGE": "PASS",
+    "PREVIEW_COMMIT_READINESS": "READY"
+  },
+
+  "filesCreated": [
+    "owner-ops/market-intelligence/research-audits/CBW_KZ_BYBIT_P0A_MIGRATION_5_PREVIEW_REVIEW_v1.md",
+    "owner-ops/market-intelligence/research-audits/CBW_KZ_BYBIT_P0A_MIGRATION_5_PREVIEW_REVIEW_v1.json"
+  ],
+  "previewFilesModified": false,
+
+  "recommendation": "APPROVE",
+  "recommendationScope": "All 13 integrity dimensions PASS; the seven MIGRATION_5 preview files are intact, hash-matched, deterministic, path-safe, complete, semantics-preserving (GREEN + AMBER), product-status-preserving, limitation/conflict-visible, fully blocked, non-active, and read by no production consumer. PREVIEW_COMMIT_READINESS = READY. MIGRATION_5 execution, binding activation, production integration, ranking/CTA/promo, and Kazakhstan publication remain BLOCKED.",
+  "nextTask": "CBW-KZ-BYBIT-P0A-MIGRATION-5-PREVIEW-IMPLEMENTATION-011-COMMIT — owner-gated commit of exactly the seven preview files (script + six outputs) with push master -> origin/master. MIGRATION_5 execution, MI-GEO binding activation, production integration, ranking/CTA/promo activation, Kazakhstan publication, and starting another exchange remain separate later owner-gated tasks."
+}
