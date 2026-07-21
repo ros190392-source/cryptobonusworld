@@ -1,0 +1,56 @@
+{
+  "bindingId": "bind-kz-bybit",
+  "exchangeId": "bybit",
+  "countryCode": "KZ",
+  "canonicalRecord": "GEO_LEGACY",
+  "miCellRef": "research/market-intelligence/staging/kz/bybit/p0a-v1/canonical-preview/exchange-market-cell.preview.json (PREVIEW; future canonical data/market-intelligence/cells/by-country/kz/bybit.json)",
+  "legacyGeoPassportRef": "research/geo/kazakhstan/exchanges/bybit.json",
+  "deepPassportRef": null,
+  "migrationPhase": "MIGRATION_4",
+  "ownership": {
+    "exchangeIdentity": "GLOBAL_PASSPORT",
+    "countryIdentity": "MI",
+    "availability": "MI",
+    "productStatuses": "MI",
+    "registration": "MI",
+    "kyc": "MI",
+    "p2p": "MI",
+    "localFiat": "MI",
+    "fees": "MI",
+    "restrictions": "MI",
+    "evidence": "MI",
+    "confidence": "MI",
+    "freshness": "MI",
+    "offerEligibility": "OFFER_REGISTRY",
+    "rankingEligibility": "RANKING_ENGINE",
+    "ctaEligibility": "MI",
+    "languagePresentation": "LANGUAGE_LAYER"
+  },
+  "eligibility": {
+    "availability": "AVAILABLE_WITH_LIMITS",
+    "rankingEligibility": false,
+    "ctaEligibility": false,
+    "promoEligibility": false,
+    "affiliateInfluencesRanking": false
+  },
+  "evidencePrecedence": [
+    "REGULATOR_SANCTIONS",
+    "EXCHANGE_TERMS_RESTRICTED_REGION",
+    "OFFICIAL_PRODUCT_FEE",
+    "BANKS_PAYMENT_RAILS",
+    "NEWS",
+    "COMMUNITY"
+  ],
+  "conflictResolution": {
+    "case": "LIVE_VERIFICATION_UNAVAILABLE",
+    "outcome": "OWNER_REVIEW_REQUIRED",
+    "ctaSuppressed": true,
+    "rankingSuppressed": true,
+    "productionRouteUnchanged": true,
+    "notes": "RECOVERED/UNVERIFIED; NOT_LIVE_VERIFIED; cf-kz-bybit-001 & cf-kz-bybit-002 remain PARTIALLY_RESOLVED. Non-active PREVIEW only; GEO_LEGACY remains canonical production truth."
+  },
+  "liveVerificationState": "NOT_LIVE_VERIFIED",
+  "productionStable": true,
+  "ownerApproved": false,
+  "reviewStatus": "PROPOSED"
+}

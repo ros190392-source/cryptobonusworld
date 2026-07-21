@@ -1,0 +1,185 @@
+{
+  "decisionId": "CBW-KZ-BYBIT-P0A-CANONICAL-IMPORT-PREP-v1",
+  "taskId": "CBW-KZ-BYBIT-P0A-CANONICAL-IMPORT-PREP-004",
+  "project": "CryptoBonusWorld",
+  "repository": "C:/projects/CryptoBonusWorld",
+  "branch": "master",
+  "sourceStagingCommit": "1dfbadfb58ebc444fa502d1445f36745481723f7",
+  "date": "2026-07-21",
+  "countryCode": "KZ",
+  "exchangeId": "bybit",
+  "batchId": "KZ-P0-A",
+  "mode": "READ_ONLY_ARCHITECTURE_REVIEW + NON_CANONICAL_PREVIEW_OUTPUTS",
+  "packageStatus": "RECOVERED / UNVERIFIED",
+
+  "stagingIntegrity": {
+    "checkResult": "CHECK OK",
+    "inputPackagesVerified": true,
+    "normalizedSources": 43,
+    "sourceTiers": { "A": 8, "B": 32, "C": 3 },
+    "claimSourceLinks": 77,
+    "correctionRequiredClaims": 4,
+    "conflicts": 2,
+    "candidateTopLevelKeys": ["candidateMetadata", "cell"],
+    "candidateCellStructurallyValid": true,
+    "thirteenProductStatusesUnchanged": true,
+    "result": "PASS"
+  },
+
+  "overall": {
+    "overallAvailability": "AVAILABLE_WITH_LIMITS",
+    "confidence": "MEDIUM",
+    "liveVerificationState": "NOT_LIVE_VERIFIED",
+    "presentation": { "primaryState": "GREEN", "primaryLabel": "Available", "secondaryState": "AMBER", "secondaryLabel": "Some limits apply" },
+    "notReinterpretedAsRestricted": true
+  },
+
+  "productStatuses": {
+    "registration": "AVAILABLE_WITH_LIMITS",
+    "kyc": "AVAILABLE_WITH_LIMITS",
+    "spot": "AVAILABLE",
+    "derivatives": "AVAILABLE_WITH_LIMITS",
+    "margin": "AVAILABLE_WITH_LIMITS",
+    "p2p": "AVAILABLE_WITH_LIMITS",
+    "kzt_p2p": "AVAILABLE",
+    "direct_kzt_deposit": "AVAILABLE_WITH_LIMITS",
+    "direct_kzt_withdrawal": "AVAILABLE_WITH_LIMITS",
+    "bank_card_purchase": "CONFLICTING",
+    "bybit_card": "AVAILABLE_WITH_LIMITS",
+    "referral": "UNKNOWN",
+    "promotions": "AVAILABLE_WITH_LIMITS"
+  },
+
+  "counts": { "sources": 43, "links": 77, "corrections": 4, "conflicts": 2 },
+
+  "proposedCanonicalPaths": {
+    "authority": "CBW_EXCHANGE_MARKET_INTELLIGENCE_BRAIN_v1.md §2/§20 (data/market-intelligence/ tree) + CBW_MI_GEO_RECONCILIATION_STANDARD_v1.md §2 (MI cell canonical; one binding per pair)",
+    "normalizedMarketSources": {
+      "path": "data/market-intelligence/sources/",
+      "precedent": "MI Brain §2 and §20 list data/market-intelligence/sources/",
+      "exists": false,
+      "affectsProductionConsumer": false,
+      "note": "Per-pair sharding (sources/kz/bybit/) is an option; the authority shows a flat sources/ dir. Owner confirmation of sharding required."
+    },
+    "canonicalExchangeMarketCell": {
+      "path": "data/market-intelligence/cells/by-country/kz/bybit.json",
+      "mirrorIndex": "data/market-intelligence/cells/by-exchange/bybit/kz.json",
+      "precedent": "MI Brain §2 lists cells/by-exchange/ and cells/by-country/",
+      "exists": false,
+      "affectsProductionConsumer": false
+    },
+    "miGeoBinding": {
+      "path": "data/market-intelligence/bindings/bind-kz-bybit.json",
+      "precedent": "Derived from the data/market-intelligence/ root convention (MI Brain §20). NO authority explicitly names a bindings/ subdir — OWNER CONFIRMATION REQUIRED before any canonical write.",
+      "exists": false,
+      "affectsProductionConsumer": false,
+      "authorityGap": true
+    },
+    "claimSourceLinkageAndQaProvenance": {
+      "conflictsPath": "data/market-intelligence/conflicts/",
+      "linkageQaPath": "data/market-intelligence/sources/ (or a provenance/ sibling) — OWNER CONFIRMATION REQUIRED",
+      "precedent": "MI Brain §20 lists conflicts/; linkage/QA-provenance placement is not explicitly named.",
+      "exists": false,
+      "affectsProductionConsumer": false,
+      "authorityGap": true
+    },
+    "noPathWrittenThisTask": true
+  },
+
+  "schemaValidation": {
+    "exchangeMarketCellPreview": "PASS (structural contract vs schemas/market-intelligence/exchange-market-cell.schema.json; additionalProperties:false; no staging metadata)",
+    "cellPreviewEqualsCandidateCell": true,
+    "miGeoBindingPreview": "PASS (structural contract vs schemas/market-intelligence/mi-geo-binding.schema.json; non-active)",
+    "engine": "structural contract validation (no committed third-party JSON-Schema engine)",
+    "schemasModified": false
+  },
+
+  "recoveredUnverifiedAssessment": {
+    "packageStatus": "RECOVERED / UNVERIFIED",
+    "sourceTruthAuditVerdicts": "PACKAGE_INTEGRITY/CLAIM_REVIEW_COMPLETENESS/CROSS_REFERENCE_INTEGRITY PASS; hash label RECOVERED/UNVERIFIED (5/8 exact, 3/8 serialization differences); IMPORT_AUTHORIZATION false",
+    "allowsCanonicalResearchStorage": true,
+    "conditions": [
+      "confidence MEDIUM preserved (never upgraded)",
+      "liveVerificationState NOT_LIVE_VERIFIED preserved and visible",
+      "explicit provenance (owner decisions + RECOVERED/UNVERIFIED + input package hashes)",
+      "both conflicts preserved as PARTIALLY_RESOLVED",
+      "productionEligible false"
+    ],
+    "sixDistinctDecisions": {
+      "1_canonicalResearchStorage": "PERMITTED_WITH_LIMITS (research-layer canonical record; not production)",
+      "2_productionEligibility": "false",
+      "3_rankingEligibility": "false",
+      "4_ctaEligibility": "false",
+      "5_promoEligibility": "false",
+      "6_migration5Authorization": "false"
+    },
+    "conclusion": "RECOVERED/UNVERIFIED + NOT_LIVE_VERIFIED do NOT prevent canonical research storage; they constrain confidence and BLOCK production/ranking/CTA/promo use until separately verified and owner-approved."
+  },
+
+  "readiness": {
+    "CANONICAL_CELL_CREATION_READINESS": "READY_WITH_LIMITS",
+    "MI_GEO_BINDING_CREATION_READINESS": "READY_WITH_LIMITS",
+    "PRODUCTION_MIGRATION_READINESS": "NOT_READY"
+  },
+
+  "correctionPreservation": {
+    "claims": ["clm-kz-bybit-entity-003", "clm-kz-bybit-registration-002", "clm-kz-bybit-offer-001", "clm-kz-bybit-offer-002"],
+    "amountsSeparate": { "localReferralUpToUsdt": 1032, "kazakhstanCampaignPrizePoolUsdt": 2500, "combined": false, "isGlobalMaximum": false },
+    "globalReferralCodeCompatibility": "UNVERIFIED",
+    "promoEligibility": false,
+    "ctaEligibility": false,
+    "result": "PRESERVED"
+  },
+
+  "conflictPreservation": {
+    "cf-kz-bybit-001": "PARTIALLY_RESOLVED",
+    "cf-kz-bybit-002": "PARTIALLY_RESOLVED",
+    "conflictIdsReferencedInCell": true,
+    "routingNotFlattened": true,
+    "foreignNationalScopeVisible": true,
+    "bankCardAndReferralRoutingVisible": true,
+    "neitherConverted": true,
+    "result": "PRESERVED"
+  },
+
+  "legacyGeoComparison": {
+    "legacyGeoPassport": "research/geo/kazakhstan/exchanges/bybit.json — availability all UNKNOWN (evidence-blocked run run-kz-2026-07-14)",
+    "productionRanking": "src/data/geoRankings.ts MANUAL_OVERRIDES.kazakhstan ranks bybit position 1 (production snapshot: available/1)",
+    "miCell": "AVAILABLE_WITH_LIMITS (GREEN primary + AMBER secondary)",
+    "conflictClass": "No GEO_AVAILABLE_MI_RESTRICTED (MI is not RESTRICTED). GEO remains frozen production truth (canonicalRecord GEO_LEGACY).",
+    "geoUntouched": true
+  },
+
+  "unresolvedBlockers": [
+    "Package is RECOVERED / UNVERIFIED (5/8 exact-hash, 3/8 serialization-difference); not byte-original.",
+    "liveVerificationState NOT_LIVE_VERIFIED (NO-PROXY mode; live behavior not verified).",
+    "cf-kz-bybit-001 (residency/citizenship/foreign-national scope) PARTIALLY_RESOLVED.",
+    "cf-kz-bybit-002 (bybit.kz vs bybit.com entity/routing; bank-card + referral) PARTIALLY_RESOLVED.",
+    "Global referral-code compatibility UNVERIFIED; local promo amounts kept separate.",
+    "No canonical data/market-intelligence/ tree exists; bindings/ and linkage/QA-provenance sub-paths are not authority-named (owner path confirmation required).",
+    "MIGRATION_5 ranking integration not authorized."
+  ],
+
+  "nextGate": "CBW-KZ-BYBIT-P0A-CANONICAL-IMPORT-EXECUTE-005 — separate owner authorization to write the canonical MI cell + normalized sources + conflicts + non-active binding into an owner-confirmed data/market-intelligence/ path. Ranking/CTA/promo activation (MIGRATION_5+) remain separate later owner-gated tasks.",
+
+  "authorizationFlags": {
+    "canonicalImportAuthorized": false,
+    "miGeoBindingActivationAuthorized": false,
+    "productionChangeAuthorized": false,
+    "rankingEligibilityAuthorized": false,
+    "ctaEligibilityAuthorized": false,
+    "promoEligibilityAuthorized": false,
+    "migration5Authorized": false
+  },
+
+  "filesCreated": [
+    "owner-ops/market-intelligence/decisions/CBW_KZ_BYBIT_P0A_CANONICAL_IMPORT_PREP_v1.md",
+    "owner-ops/market-intelligence/decisions/CBW_KZ_BYBIT_P0A_CANONICAL_IMPORT_PREP_v1.json",
+    "research/market-intelligence/staging/kz/bybit/p0a-v1/canonical-preview/exchange-market-cell.preview.json",
+    "research/market-intelligence/staging/kz/bybit/p0a-v1/canonical-preview/mi-geo-binding.preview.json",
+    "research/market-intelligence/staging/kz/bybit/p0a-v1/canonical-preview/projection-report.md"
+  ],
+
+  "recommendation": "APPROVE",
+  "recommendationScope": "Canonical import PREPARATION complete: staging re-verified, cell + non-active binding previews assembled and schema-valid, canonical paths proposed, RECOVERED/UNVERIFIED assessed. This record does NOT grant canonical-import authorization. Canonical write, mi-geo-binding activation, production migration, ranking/CTA/promo, and MIGRATION_5 remain BLOCKED and owner-gated."
+}
