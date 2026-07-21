@@ -1,0 +1,244 @@
+{
+  "auditId": "CBW-KZ-BYBIT-P0A-SOURCE-TRUTH-REVIEW-PACKAGE-AUDIT-v1",
+  "taskId": "CBW-KZ-BYBIT-P0A-SOURCE-TRUTH-REVIEW-PACKAGE-AUDIT-001",
+  "project": "CryptoBonusWorld",
+  "repository": "C:/projects/CryptoBonusWorld",
+  "branch": "master",
+  "head": "9581d69425395f9ccedbf4cac3a627c37dcab3e3",
+  "date": "2026-07-21",
+  "countryCode": "KZ",
+  "exchangeId": "bybit",
+  "batchId": "KZ-P0-A",
+  "mode": "READ_ONLY_SOURCE_TRUTH_REVIEW_PACKAGE_AUDIT",
+  "webBrowsingUsed": false,
+  "packageStatus": "RECOVERED / UNVERIFIED",
+  "auditedInputs": {
+    "reviewZip": "C:/projects/CryptoBonusWorld/_handoff/source-truth-review-input/CBW_KZ_BYBIT_P0A_SOURCE_TRUTH_REVIEW_v1_RECOVERED.zip",
+    "reviewZipBytes": 23339,
+    "reviewZipSha256": "a6d7d262c47018b55fe07cf42837d69c1d3f14e6e9650ebcdedda328962a4234",
+    "recoveryAudit": "C:/projects/CryptoBonusWorld/_handoff/source-truth-review-input/CBW_KZ_BYBIT_P0A_SOURCE_TRUTH_REVIEW_RECOVERY_AUDIT_v1.md",
+    "deepResearchReport": "C:/projects/CryptoBonusWorld/_handoff/source-truth-review-input/deep-research-report (4).md"
+  },
+  "verdicts": {
+    "PACKAGE_INTEGRITY": "PASS",
+    "CLAIM_REVIEW_COMPLETENESS": "PASS",
+    "CROSS_REFERENCE_INTEGRITY": "PASS",
+    "SOURCE_TRUTH_REVIEW_COHERENCE": "PASS",
+    "SCHEMA_NORMALIZATION_READINESS": "PASS",
+    "OWNER_DECISION_READINESS": "READY",
+    "IMPORT_PREPARATION_READINESS": "READY",
+    "IMPORT_AUTHORIZATION": false,
+    "PRODUCTION_CHANGE_AUTHORIZATION": false,
+    "MIGRATION_5_AUTHORIZATION": false
+  },
+  "packageStructure": {
+    "entries": 8,
+    "eightRequiredPresent": true,
+    "duplicates": 0,
+    "testzipClean": true,
+    "pathTraversal": [],
+    "hiddenOrTempFiles": [],
+    "zeroByteFiles": [],
+    "nonUtf8Files": [],
+    "truncation": false,
+    "jsonParse": "7/7",
+    "utf8": "8/8"
+  },
+  "counts": {
+    "sourcesTotal": 43,
+    "declaredTotal": 43,
+    "originalRecoveredSources": 39,
+    "supplementalOfficialSources": 4,
+    "claims": 41,
+    "conflicts": 2,
+    "CONFIRMED": 27,
+    "CONFIRMED_WITH_LIMITS": 13,
+    "CONTRADICTED": 1,
+    "declaredCounts": {
+      "CONFIRMED": 27,
+      "CONFIRMED_WITH_LIMITS": 13,
+      "CONTRADICTED": 1
+    },
+    "allMatchDeclared": true
+  },
+  "crossReference": {
+    "duplicateSourceIds": 0,
+    "duplicateClaimIds": 0,
+    "duplicateConflictIds": 0,
+    "danglingReferences": 0,
+    "checked": [
+      "claim.verifiedSources->sources",
+      "source.supportedClaimIds->claims",
+      "conflict.sourcesReviewed->sources"
+    ]
+  },
+  "correctionRequiredClaims": [
+    {
+      "claimId": "clm-kz-bybit-entity-003",
+      "verificationState": "CONFIRMED_WITH_LIMITS",
+      "correctionNote": "Clarify that this is true for the core local trading platform, not automatically for every ancillary program on bybit.kz."
+    },
+    {
+      "claimId": "clm-kz-bybit-registration-002",
+      "verificationState": "CONFIRMED_WITH_LIMITS",
+      "correctionNote": "Do not publish the resident-only sentence as the complete current rule without the newer announcement and conflict note."
+    },
+    {
+      "claimId": "clm-kz-bybit-offer-001",
+      "verificationState": "CONFIRMED_WITH_LIMITS",
+      "correctionNote": "Clarify that referral-code entry exists, but cross-stack/global-code compatibility remains unverified."
+    },
+    {
+      "claimId": "clm-kz-bybit-offer-002",
+      "verificationState": "CONTRADICTED",
+      "correctionNote": "Replace the old 'no official bonus amount verified' claim with a narrower statement: official Kazakhstan-specific promotional amounts now exist, but user-segment eligibility and overlap with global maximums remain unresolved."
+    }
+  ],
+  "correctionRequiredCount": 4,
+  "expectedCorrectionCandidates": [
+    "clm-kz-bybit-entity-003",
+    "clm-kz-bybit-registration-002",
+    "clm-kz-bybit-offer-001",
+    "clm-kz-bybit-offer-002"
+  ],
+  "correctionCandidatesMatch": true,
+  "contradictedClaim": {
+    "claimId": "clm-kz-bybit-offer-002",
+    "localReferralAmountUsdt": 1032,
+    "kazakhstanCampaignPrizePoolUsdt": 2500,
+    "note": "Old no-official-bonus-amount claim is CONTRADICTED; local KZ promotional amounts now exist, but user-segment eligibility and overlap with global maximums remain unresolved. NOT an authorization to show promo/CTA."
+  },
+  "conflicts": [
+    {
+      "conflictId": "cf-kz-bybit-001",
+      "status": "PARTIALLY_RESOLVED",
+      "confidence": "MEDIUM",
+      "issue": "Residency versus citizenship versus foreign-national eligibility for Bybit Kazakhstan registration and KYC.",
+      "hasRoutingMatrix": false
+    },
+    {
+      "conflictId": "cf-kz-bybit-002",
+      "status": "PARTIALLY_RESOLVED",
+      "confidence": "MEDIUM",
+      "issue": "bybit.kz versus bybit.com legal-entity and service-routing ambiguity.",
+      "hasRoutingMatrix": true
+    }
+  ],
+  "routingMatrixSeparates": {
+    "localPlatform": true,
+    "kztDepositWithdrawal": true,
+    "bankCardPurchase": true,
+    "bybitCard": true,
+    "referralStack": true,
+    "promotions": true
+  },
+  "offerEligibility": {
+    "referralCodeEntryExists": "CONFIRMED",
+    "globalReferralCodeCompatibility": "UNVERIFIED",
+    "kazakhstanCitizensEligible": "CONFIRMED_WITH_LIMITS",
+    "foreignNationalsEligible": "UNVERIFIED",
+    "officialKazakhstanPromotionTermsExist": "CONFIRMED",
+    "globalAdvertisedMaximumAppliesLocally": "UNVERIFIED",
+    "promoEligibilityAuthorized": false,
+    "ctaEligibilityAuthorized": false,
+    "netAssessment": "Official local offer mechanics exist, but user-segment eligibility is narrower and less settled than platform availability. Current evidence supports referral-code entry and local Kazakhstan promotional pages, but not cross-stack referral-code interoperability or universal resident/foreign-national eligibility."
+  },
+  "schemaNormalizationPlan": {
+    "targetSchema": "schemas/market-intelligence/market-source.schema.json",
+    "targetSchemaModificationRequired": false,
+    "deterministic": true,
+    "mappings": {
+      "sourceTier": "TIER_A/B/C/D -> A/B/C/D (drop TIER_ prefix)",
+      "sourceType": "-> captureType (official_* -> HTML); discard original field",
+      "status": "REVIEWED must NOT map blindly to ACTIVE; map per-source currentStatus with a limitation note for snippet-only pages",
+      "supportedClaimIds": "relocate OUTSIDE market-source records (claim-link layer)",
+      "confidence": "drop/relocate to QA/provenance layer",
+      "limitations": "relocate to QA notes/review report"
+    },
+    "ownerSchemaDecisionsStillRequired": [
+      "How to represent domain/entity-routing ambiguity when a single URL domain hosts multiple legal-program stacks.",
+      "Whether productScope should allow multiple values such as ['registration','kyc','fiat_deposit'] or use a stricter taxonomy.",
+      "Whether claimType should be imported per source or derived only at claim-link time.",
+      "Whether updatedDate should prefer live-page metadata collected during review over recovered-package values.",
+      "Whether review confidence/limitations require a parallel provenance schema rather than being dropped entirely."
+    ],
+    "netInstruction": "Do not modify the target schema in this review. Normalize the recovered registry through a separate transform layer."
+  },
+  "hashRecovery": {
+    "exactMatches": 5,
+    "ofTotal": 8,
+    "serializationDifferences": 3,
+    "differingFiles": [
+      "source-verification.json",
+      "claim-verdicts.json",
+      "source-truth-review-report.md"
+    ],
+    "label": "RECOVERED / UNVERIFIED",
+    "perFile": {
+      "review-run.json": {
+        "recoveredSha256": "ac7da3aa2cf6711ae37e65452346b1a83971eaca7719679b244f3b59a0b8d80b",
+        "declaredSha256": "ac7da3aa2cf6711ae37e65452346b1a83971eaca7719679b244f3b59a0b8d80b",
+        "classification": "EXACT_MATCH"
+      },
+      "source-verification.json": {
+        "recoveredSha256": "60efb86b11432c37c7ae4ef4d5565225a6e78d252bcc096b65abe16af9ce78ce",
+        "declaredSha256": "97c27aec21b80a97ba8152427e67e40b50c25c8a0d6137fb2dee8bcdc7c60686",
+        "classification": "SERIALIZATION_DIFFERENCE"
+      },
+      "claim-verdicts.json": {
+        "recoveredSha256": "ef3dbef9fa4d68c653b99c782f8b39d9dd254914a6b96bddc06b444167a39882",
+        "declaredSha256": "a957bd8bf1ebf154dc64670e01afb7dd1fb2f06b80803d7de03e42138175322e",
+        "classification": "SERIALIZATION_DIFFERENCE"
+      },
+      "conflict-resolution.json": {
+        "recoveredSha256": "f3998a208c54efd68e1001c1a0465cff984322bad7ef397e73422d5a429e21d3",
+        "declaredSha256": "f3998a208c54efd68e1001c1a0465cff984322bad7ef397e73422d5a429e21d3",
+        "classification": "EXACT_MATCH"
+      },
+      "offer-eligibility-review.json": {
+        "recoveredSha256": "3c5f2c88afc34421e57315dcecd7799f6321e177cf9f28ebbd50c391a1c346dc",
+        "declaredSha256": "3c5f2c88afc34421e57315dcecd7799f6321e177cf9f28ebbd50c391a1c346dc",
+        "classification": "EXACT_MATCH"
+      },
+      "schema-normalization-notes.json": {
+        "recoveredSha256": "e095b6eda7d66e0fffd6924e73b2e11363474d6d5b2462bf3814d3892b8a53d9",
+        "declaredSha256": "e095b6eda7d66e0fffd6924e73b2e11363474d6d5b2462bf3814d3892b8a53d9",
+        "classification": "EXACT_MATCH"
+      },
+      "import-readiness.json": {
+        "recoveredSha256": "5897c6e6542e1885fea2b6a7756eb08e9f2f71b04180c29711629a6a3724268c",
+        "declaredSha256": "5897c6e6542e1885fea2b6a7756eb08e9f2f71b04180c29711629a6a3724268c",
+        "classification": "EXACT_MATCH"
+      },
+      "source-truth-review-report.md": {
+        "recoveredSha256": "896ea5d915ae027bd1408dee8155386b6c0caf94a612cbd4f82f121f27d63617",
+        "declaredSha256": "35e3334be5095c771c027b6d5c22703dc3eea202dec7b616787cb259c4f72d9a",
+        "classification": "SERIALIZATION_DIFFERENCE"
+      }
+    }
+  },
+  "missingOrDamagedData": "None. All 8 files present, parse, non-zero, UTF-8, no truncation, 0 dangling references.",
+  "importPreparationCriteria": {
+    "packageIntegrityPasses": true,
+    "allCorrectionClaimsIdentified": true,
+    "conflictsAndOfferBoundariesExplicit": true,
+    "normalizationPlanDeterministic": true,
+    "noSchemaModificationRequired": true,
+    "allMet": true
+  },
+  "recommendation": "APPROVE",
+  "recommendationScope": "Approved for OWNER DECISION and IMPORT PREPARATION (transform design) only. Import, production change, CTA/promo, canonical MI cell, legacy passport update, source-registry normalization write, and MIGRATION_5 remain BLOCKED and owner-gated. Package is RECOVERED / UNVERIFIED.",
+  "authorizationsWithheld": {
+    "importAuthorized": false,
+    "productionChangeAuthorized": false,
+    "migration5Authorized": false,
+    "promoEligibilityAuthorized": false,
+    "ctaEligibilityAuthorized": false,
+    "miCellCreated": false,
+    "legacyPassportUpdated": false,
+    "sourceRegistryNormalized": false,
+    "rankingChanged": false,
+    "pageOrRouteCreated": false
+  },
+  "nextTask": "CBW-KZ-BYBIT-P0A-OWNER-DECISION-AND-IMPORT-PREP-001 — owner decision on the AVAILABLE_WITH_LIMITS review + the 4 correction-required claims (esp. offer-002 amounts), then design the deterministic source-registry normalization transform (per schema-normalization-notes) and the exchange-market-cell mapping, resolving the flagged owner schema decisions (productScope taxonomy, claimType timing, updatedDate source, entity-routing representation). Import, CTA/promo, and MIGRATION_5 remain blocked."
+}
