@@ -1,0 +1,43 @@
+{
+  "snapshotVersion": "MIGRATION_3A",
+  "snapshotKind": "PRODUCTION_GEO_AVAILABILITY",
+  "countryCode": "KZ",
+  "countrySlug": "kazakhstan",
+  "sourcePath": "src/data/geoRankings.ts",
+  "sourceObjectPath": "MANUAL_OVERRIDES.kazakhstan",
+  "sourceSha256": "75a360ccbe1d61af0fccd500b13545ac1ec3ea0ffccc755243aa7cfda456d343",
+  "productionRemainsAuthoritative": true,
+  "generatedSnapshotIsReadOnly": true,
+  "exchanges": [
+    {
+      "exchangeId": "bybit",
+      "productionAvailability": "available",
+      "productionPosition": 1
+    },
+    {
+      "exchangeId": "mexc",
+      "productionAvailability": "unknown",
+      "productionPosition": 2
+    },
+    {
+      "exchangeId": "okx",
+      "productionAvailability": "unknown",
+      "productionPosition": 3
+    },
+    {
+      "exchangeId": "bitget",
+      "productionAvailability": "restricted",
+      "productionPosition": 4
+    },
+    {
+      "exchangeId": "kucoin",
+      "productionAvailability": "unknown",
+      "productionPosition": 5
+    },
+    {
+      "exchangeId": "bingx",
+      "productionAvailability": "unknown",
+      "productionPosition": 6
+    }
+  ]
+}
