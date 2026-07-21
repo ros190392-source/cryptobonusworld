@@ -1,0 +1,427 @@
+{
+  "sources": {
+    "canonicalMI": "data/market-intelligence/cells/by-country/kz/bybit.json",
+    "legacyGeo": "research/geo/kazakhstan/exchanges/bybit.json",
+    "production": "src/data/geoRankings.ts",
+    "proposedPreview": "research/market-intelligence/staging/kz/bybit/p0a-v1/migration5-preview/non-active-adapter.preview.json"
+  },
+  "sourceCommits": {
+    "canonicalMI": "8a51bf21a5abf69b71593923ad681d3c7e95b099",
+    "discrepancyReview": "8d5284d4c8870effe3b0fd25a3c2353e2182ac7b",
+    "migration5OwnerDecision": "ec185cd7055b4ec26f5a8fcbba9ee1a040815c6e"
+  },
+  "comparisonRows": [
+    {
+      "fieldId": "affiliate-route",
+      "canonicalValue": null,
+      "legacyValue": "/go/bybit",
+      "productionValue": "/go/bybit",
+      "previewProjection": "BLOCKED (reference only)",
+      "classification": "NOT_COMPARABLE",
+      "materiality": "MEDIUM"
+    },
+    {
+      "fieldId": "availability-confidence",
+      "canonicalValue": "MEDIUM",
+      "legacyValue": null,
+      "productionValue": "verified (license only)",
+      "previewProjection": "MEDIUM",
+      "classification": "NOT_COMPARABLE",
+      "materiality": "LOW"
+    },
+    {
+      "fieldId": "availability-live-verification",
+      "canonicalValue": "NOT_LIVE_VERIFIED",
+      "legacyValue": null,
+      "productionValue": null,
+      "previewProjection": "NOT_LIVE_VERIFIED",
+      "classification": "MI_ONLY",
+      "materiality": "MEDIUM"
+    },
+    {
+      "fieldId": "availability-overall",
+      "canonicalValue": "AVAILABLE_WITH_LIMITS",
+      "legacyValue": "UNKNOWN (in_progress)",
+      "productionValue": "available",
+      "previewProjection": "AVAILABLE_WITH_LIMITS",
+      "classification": "PRIMARY_MATCH_MI_MORE_PRECISE",
+      "materiality": "LOW"
+    },
+    {
+      "fieldId": "binding-state",
+      "canonicalValue": "PROPOSED/GEO_LEGACY/MIGRATION_4",
+      "legacyValue": "production truth (no binding)",
+      "productionValue": "production truth",
+      "previewProjection": "PROPOSED/GEO_LEGACY/MIGRATION_4",
+      "classification": "MI_ONLY",
+      "materiality": "NONE"
+    },
+    {
+      "fieldId": "conflict-ids",
+      "canonicalValue": [
+        "cf-kz-bybit-001:PARTIALLY_RESOLVED",
+        "cf-kz-bybit-002:PARTIALLY_RESOLVED"
+      ],
+      "legacyValue": [],
+      "productionValue": "partial narrative only",
+      "previewProjection": [
+        "cf-kz-bybit-001:PARTIALLY_RESOLVED",
+        "cf-kz-bybit-002:PARTIALLY_RESOLVED"
+      ],
+      "classification": "MI_ONLY",
+      "materiality": "HIGH"
+    },
+    {
+      "fieldId": "eligibility-cta",
+      "canonicalValue": false,
+      "legacyValue": "not_decided",
+      "productionValue": "not published; bonusAvailability unknown",
+      "previewProjection": false,
+      "classification": "MATCH",
+      "materiality": "MEDIUM"
+    },
+    {
+      "fieldId": "eligibility-promo",
+      "canonicalValue": false,
+      "legacyValue": "not_checked",
+      "productionValue": "unknown",
+      "previewProjection": false,
+      "classification": "MATCH",
+      "materiality": "MEDIUM"
+    },
+    {
+      "fieldId": "eligibility-ranking",
+      "canonicalValue": false,
+      "legacyValue": false,
+      "productionValue": "available (ranked, unpublished)",
+      "previewProjection": false,
+      "classification": "PRODUCTION_MORE_PERMISSIVE",
+      "materiality": "HIGH"
+    },
+    {
+      "fieldId": "global-referral-compatibility",
+      "canonicalValue": "UNVERIFIED",
+      "legacyValue": "UNKNOWN",
+      "productionValue": "global /go/bybit route present; unverified",
+      "previewProjection": "UNVERIFIED",
+      "classification": "PRIMARY_MATCH_MI_MORE_PRECISE",
+      "materiality": "HIGH"
+    },
+    {
+      "fieldId": "legacy-ownership",
+      "canonicalValue": "cedes to GEO_LEGACY until migration",
+      "legacyValue": "owns production availability",
+      "productionValue": "owns ranking/CTA",
+      "previewProjection": "cedes to GEO_LEGACY until migration",
+      "classification": "MATCH",
+      "materiality": "NONE"
+    },
+    {
+      "fieldId": "offer-kazakhstan-campaign-amount",
+      "canonicalValue": 2500,
+      "legacyValue": null,
+      "productionValue": "no amount claimed",
+      "previewProjection": "BLOCKED (reference only)",
+      "classification": "MI_ONLY",
+      "materiality": "MEDIUM"
+    },
+    {
+      "fieldId": "offer-local-referral-amount",
+      "canonicalValue": 1032,
+      "legacyValue": null,
+      "productionValue": "no amount claimed (bonusAvailability unknown)",
+      "previewProjection": "BLOCKED (reference only)",
+      "classification": "MI_ONLY",
+      "materiality": "MEDIUM"
+    },
+    {
+      "fieldId": "presentation-primary-state",
+      "canonicalValue": "GREEN / Available",
+      "legacyValue": null,
+      "productionValue": "available (green)",
+      "previewProjection": "GREEN / Available",
+      "classification": "PRIMARY_MATCH_MI_MORE_PRECISE",
+      "materiality": "LOW"
+    },
+    {
+      "fieldId": "presentation-secondary-state",
+      "canonicalValue": "AMBER / Some limits apply",
+      "legacyValue": null,
+      "productionValue": null,
+      "previewProjection": "AMBER / Some limits apply",
+      "classification": "MI_ONLY",
+      "materiality": "LOW"
+    },
+    {
+      "fieldId": "product-bank_card_purchase",
+      "canonicalValue": "CONFLICTING",
+      "legacyValue": "UNKNOWN",
+      "productionValue": "not modeled",
+      "previewProjection": "CONFLICTING",
+      "classification": "MI_MORE_CONSERVATIVE",
+      "materiality": "MEDIUM"
+    },
+    {
+      "fieldId": "product-bybit_card",
+      "canonicalValue": "AVAILABLE_WITH_LIMITS",
+      "legacyValue": "UNKNOWN",
+      "productionValue": "not modeled",
+      "previewProjection": "AVAILABLE_WITH_LIMITS",
+      "classification": "LEGACY_MORE_CONSERVATIVE",
+      "materiality": "LOW"
+    },
+    {
+      "fieldId": "product-derivatives",
+      "canonicalValue": "AVAILABLE_WITH_LIMITS",
+      "legacyValue": "UNKNOWN",
+      "productionValue": "not modeled",
+      "previewProjection": "AVAILABLE_WITH_LIMITS",
+      "classification": "LEGACY_MORE_CONSERVATIVE",
+      "materiality": "LOW"
+    },
+    {
+      "fieldId": "product-direct_kzt_deposit",
+      "canonicalValue": "AVAILABLE_WITH_LIMITS",
+      "legacyValue": "UNKNOWN",
+      "productionValue": "not modeled",
+      "previewProjection": "AVAILABLE_WITH_LIMITS",
+      "classification": "LEGACY_MORE_CONSERVATIVE",
+      "materiality": "LOW"
+    },
+    {
+      "fieldId": "product-direct_kzt_withdrawal",
+      "canonicalValue": "AVAILABLE_WITH_LIMITS",
+      "legacyValue": "UNKNOWN",
+      "productionValue": "not modeled",
+      "previewProjection": "AVAILABLE_WITH_LIMITS",
+      "classification": "LEGACY_MORE_CONSERVATIVE",
+      "materiality": "LOW"
+    },
+    {
+      "fieldId": "product-kyc",
+      "canonicalValue": "AVAILABLE_WITH_LIMITS",
+      "legacyValue": "UNKNOWN",
+      "productionValue": "KYC required (note)",
+      "previewProjection": "AVAILABLE_WITH_LIMITS",
+      "classification": "PRIMARY_MATCH_MI_MORE_PRECISE",
+      "materiality": "LOW"
+    },
+    {
+      "fieldId": "product-kzt_p2p",
+      "canonicalValue": "AVAILABLE",
+      "legacyValue": "PARTIAL",
+      "productionValue": "regulated KZT P2P noted",
+      "previewProjection": "AVAILABLE",
+      "classification": "PRIMARY_MATCH_MI_MORE_PRECISE",
+      "materiality": "LOW"
+    },
+    {
+      "fieldId": "product-margin",
+      "canonicalValue": "AVAILABLE_WITH_LIMITS",
+      "legacyValue": null,
+      "productionValue": "not modeled",
+      "previewProjection": "AVAILABLE_WITH_LIMITS",
+      "classification": "MI_ONLY",
+      "materiality": "LOW"
+    },
+    {
+      "fieldId": "product-p2p",
+      "canonicalValue": "AVAILABLE_WITH_LIMITS",
+      "legacyValue": "PARTIAL",
+      "productionValue": "regulated P2P noted",
+      "previewProjection": "AVAILABLE_WITH_LIMITS",
+      "classification": "PRIMARY_MATCH_MI_MORE_PRECISE",
+      "materiality": "LOW"
+    },
+    {
+      "fieldId": "product-promotions",
+      "canonicalValue": "AVAILABLE_WITH_LIMITS",
+      "legacyValue": "not_checked",
+      "productionValue": "unknown",
+      "previewProjection": "AVAILABLE_WITH_LIMITS",
+      "classification": "PRIMARY_MATCH_MI_MORE_PRECISE",
+      "materiality": "MEDIUM"
+    },
+    {
+      "fieldId": "product-referral",
+      "canonicalValue": "UNKNOWN",
+      "legacyValue": "UNKNOWN",
+      "productionValue": "promo_code present; eligibility unknown",
+      "previewProjection": "UNKNOWN",
+      "classification": "MATCH",
+      "materiality": "MEDIUM"
+    },
+    {
+      "fieldId": "product-registration",
+      "canonicalValue": "AVAILABLE_WITH_LIMITS",
+      "legacyValue": "UNKNOWN",
+      "productionValue": "overall available (not per-product)",
+      "previewProjection": "AVAILABLE_WITH_LIMITS",
+      "classification": "MI_MORE_CONSERVATIVE",
+      "materiality": "MEDIUM"
+    },
+    {
+      "fieldId": "product-spot",
+      "canonicalValue": "AVAILABLE",
+      "legacyValue": "UNKNOWN",
+      "productionValue": "not modeled",
+      "previewProjection": "AVAILABLE",
+      "classification": "LEGACY_MORE_CONSERVATIVE",
+      "materiality": "LOW"
+    },
+    {
+      "fieldId": "publication-eligibility",
+      "canonicalValue": false,
+      "legacyValue": false,
+      "productionValue": "blocked_by_missing_evidence",
+      "previewProjection": false,
+      "classification": "MATCH",
+      "materiality": "NONE"
+    },
+    {
+      "fieldId": "ranking-position",
+      "canonicalValue": null,
+      "legacyValue": null,
+      "productionValue": 1,
+      "previewProjection": "BLOCKED (reference only)",
+      "classification": "PRODUCTION_ONLY",
+      "materiality": "MEDIUM"
+    },
+    {
+      "fieldId": "referral-code",
+      "canonicalValue": null,
+      "legacyValue": "CRYPTOBONUSW",
+      "productionValue": "CRYPTOBONUSW",
+      "previewProjection": "BLOCKED (reference only)",
+      "classification": "NOT_COMPARABLE",
+      "materiality": "MEDIUM"
+    }
+  ],
+  "primaryAvailabilityAlignment": "MATCH_WITH_MI_LIMITATIONS",
+  "legacyGeoAlignment": "ALIGNED_WITH_PRECISION_GAPS",
+  "productionAlignment": "ALIGNED_WITH_PRECISION_GAPS",
+  "productLevelAlignment": [
+    {
+      "product": "registration",
+      "canonical": "AVAILABLE_WITH_LIMITS",
+      "legacy": "UNKNOWN",
+      "production": "overall available (not per-product)",
+      "preview": "AVAILABLE_WITH_LIMITS"
+    },
+    {
+      "product": "kyc",
+      "canonical": "AVAILABLE_WITH_LIMITS",
+      "legacy": "UNKNOWN",
+      "production": "KYC required (note)",
+      "preview": "AVAILABLE_WITH_LIMITS"
+    },
+    {
+      "product": "spot",
+      "canonical": "AVAILABLE",
+      "legacy": "UNKNOWN",
+      "production": "not modeled",
+      "preview": "AVAILABLE"
+    },
+    {
+      "product": "derivatives",
+      "canonical": "AVAILABLE_WITH_LIMITS",
+      "legacy": "UNKNOWN",
+      "production": "not modeled",
+      "preview": "AVAILABLE_WITH_LIMITS"
+    },
+    {
+      "product": "margin",
+      "canonical": "AVAILABLE_WITH_LIMITS",
+      "legacy": null,
+      "production": "not modeled",
+      "preview": "AVAILABLE_WITH_LIMITS"
+    },
+    {
+      "product": "p2p",
+      "canonical": "AVAILABLE_WITH_LIMITS",
+      "legacy": "PARTIAL",
+      "production": "regulated P2P noted",
+      "preview": "AVAILABLE_WITH_LIMITS"
+    },
+    {
+      "product": "kzt_p2p",
+      "canonical": "AVAILABLE",
+      "legacy": "PARTIAL",
+      "production": "regulated KZT P2P noted",
+      "preview": "AVAILABLE"
+    },
+    {
+      "product": "direct_kzt_deposit",
+      "canonical": "AVAILABLE_WITH_LIMITS",
+      "legacy": "UNKNOWN",
+      "production": "not modeled",
+      "preview": "AVAILABLE_WITH_LIMITS"
+    },
+    {
+      "product": "direct_kzt_withdrawal",
+      "canonical": "AVAILABLE_WITH_LIMITS",
+      "legacy": "UNKNOWN",
+      "production": "not modeled",
+      "preview": "AVAILABLE_WITH_LIMITS"
+    },
+    {
+      "product": "bank_card_purchase",
+      "canonical": "CONFLICTING",
+      "legacy": "UNKNOWN",
+      "production": "not modeled",
+      "preview": "CONFLICTING"
+    },
+    {
+      "product": "bybit_card",
+      "canonical": "AVAILABLE_WITH_LIMITS",
+      "legacy": "UNKNOWN",
+      "production": "not modeled",
+      "preview": "AVAILABLE_WITH_LIMITS"
+    },
+    {
+      "product": "referral",
+      "canonical": "UNKNOWN",
+      "legacy": "UNKNOWN",
+      "production": "promo_code present; eligibility unknown",
+      "preview": "UNKNOWN"
+    },
+    {
+      "product": "promotions",
+      "canonical": "AVAILABLE_WITH_LIMITS",
+      "legacy": "not_checked",
+      "production": "unknown",
+      "preview": "AVAILABLE_WITH_LIMITS"
+    }
+  ],
+  "blockedFieldSummary": [
+    "ranking",
+    "ranking-position",
+    "cta",
+    "promo",
+    "affiliate-route",
+    "referral-code",
+    "offer-amounts",
+    "publication",
+    "production-integration",
+    "binding-activation",
+    "legacy-geo-write",
+    "production-ranking-write"
+  ],
+  "ownershipSummary": {
+    "availability": "MI",
+    "productStatuses": "MI",
+    "offerEligibility": "OFFER_REGISTRY",
+    "rankingEligibility": "RANKING_ENGINE",
+    "currentProductionTruth": "GEO_LEGACY + geoRankings"
+  },
+  "userFacingImpact": "NONE — Kazakhstan is publication-blocked; preview is non-runtime and changes nothing shown to users.",
+  "potentialFutureChange": "A future owner-approved MIGRATION_5 execution could present GREEN Available + AMBER limitations, preserving product statuses, conflicts and blocked eligibility. Not performed here.",
+  "migrationExecuted": false,
+  "noChangeConfirmation": {
+    "canonicalFilesModified": false,
+    "legacyFilesModified": false,
+    "productionFilesModified": false,
+    "bindingActivated": false,
+    "deployOccurred": false
+  }
+}

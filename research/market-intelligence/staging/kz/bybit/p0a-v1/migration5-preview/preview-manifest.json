@@ -1,0 +1,61 @@
+{
+  "task": "CBW-KZ-BYBIT-P0A-MIGRATION-5-PREVIEW-IMPLEMENTATION-011",
+  "project": "CryptoBonusWorld",
+  "repository": "C:/projects/CryptoBonusWorld",
+  "branch": "master",
+  "baselineHead": "ec185cd7055b4ec26f5a8fcbba9ee1a040815c6e",
+  "countryCode": "KZ",
+  "exchangeId": "bybit",
+  "batchId": "KZ-P0-A",
+  "canonicalMiCommit": "8a51bf21a5abf69b71593923ad681d3c7e95b099",
+  "discrepancyReviewCommit": "8d5284d4c8870effe3b0fd25a3c2353e2182ac7b",
+  "migration5OwnerDecisionCommit": "ec185cd7055b4ec26f5a8fcbba9ee1a040815c6e",
+  "generatedFiles": [
+    "scripts/market-intelligence/build-kz-bybit-migration5-preview.mjs",
+    "research/market-intelligence/staging/kz/bybit/p0a-v1/migration5-preview/preview-manifest.json",
+    "research/market-intelligence/staging/kz/bybit/p0a-v1/migration5-preview/legacy-to-mi-field-map.json",
+    "research/market-intelligence/staging/kz/bybit/p0a-v1/migration5-preview/shadow-comparison.json",
+    "research/market-intelligence/staging/kz/bybit/p0a-v1/migration5-preview/non-active-adapter.preview.json",
+    "research/market-intelligence/staging/kz/bybit/p0a-v1/migration5-preview/validation-report.json",
+    "research/market-intelligence/staging/kz/bybit/p0a-v1/migration5-preview/validation-report.md"
+  ],
+  "hashesExcludingManifest": {
+    "scripts/market-intelligence/build-kz-bybit-migration5-preview.mjs": {
+      "bytes": 42063,
+      "sha256": "529e40a811521866d8a21bcd7434be7d8673a45e7ee13b99a02cf7019d9cb0dc"
+    },
+    "research/market-intelligence/staging/kz/bybit/p0a-v1/migration5-preview/legacy-to-mi-field-map.json": {
+      "bytes": 28210,
+      "sha256": "da973a284872e5b70091a067c62b93a3e66477531141ad5f712c9ea535129ece"
+    },
+    "research/market-intelligence/staging/kz/bybit/p0a-v1/migration5-preview/shadow-comparison.json": {
+      "bytes": 13705,
+      "sha256": "ee9a8b2a1c26542975927f02f3a35e8b2e469b54a5580ec2641b3e63b47a66f1"
+    },
+    "research/market-intelligence/staging/kz/bybit/p0a-v1/migration5-preview/non-active-adapter.preview.json": {
+      "bytes": 15956,
+      "sha256": "b8d00e48b66be101332c3a037eb5bac505b8caa8307392ee8759227a2c64b1cf"
+    },
+    "research/market-intelligence/staging/kz/bybit/p0a-v1/migration5-preview/validation-report.json": {
+      "bytes": 1560,
+      "sha256": "fdaeca9aef23c0fd25c44b48585437cd70138af116e9a480d2c6ada555bb1f68"
+    },
+    "research/market-intelligence/staging/kz/bybit/p0a-v1/migration5-preview/validation-report.md": {
+      "bytes": 2368,
+      "sha256": "69d25e474b6474af7574708cd258533b82857e769ed7cef2a545396c6ed73991"
+    }
+  },
+  "deterministic": true,
+  "nonProduction": true,
+  "runtimeConsumed": false,
+  "migration5PreparationAuthorized": true,
+  "migration5ExecutionAuthorized": false,
+  "productionActivationAuthorized": false,
+  "bindingActivationAuthorized": false,
+  "legacyGeoWriteAuthorized": false,
+  "productionRankingWriteAuthorized": false,
+  "ctaChangeAuthorized": false,
+  "promoChangeAuthorized": false,
+  "publicationAuthorized": false,
+  "deployAuthorized": false
+}

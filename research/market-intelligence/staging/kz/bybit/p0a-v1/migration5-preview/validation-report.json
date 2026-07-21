@@ -1,0 +1,37 @@
+{
+  "task": "CBW-KZ-BYBIT-P0A-MIGRATION-5-PREVIEW-IMPLEMENTATION-011",
+  "baselineHead": "ec185cd7055b4ec26f5a8fcbba9ee1a040815c6e",
+  "verdicts": {
+    "INPUT_INTEGRITY": "PASS",
+    "FIELD_MAPPING_COMPLETENESS": "PASS",
+    "PRIMARY_AVAILABILITY_SEMANTICS": "PASS",
+    "PRODUCT_STATUS_PRESERVATION": "PASS",
+    "LIMITATION_DISCLOSURE": "PASS",
+    "CONFLICT_PRESERVATION": "PASS",
+    "BLOCKED_FIELD_ENFORCEMENT": "PASS",
+    "ADAPTER_NON_ACTIVATION": "PASS",
+    "NO_PRODUCTION_CHANGE": "PASS",
+    "PREVIEW_COMMIT_READINESS": "READY"
+  },
+  "inputsHashed": {
+    "research/market-intelligence/staging/kz/bybit/p0a-v1/migration5-preview/legacy-to-mi-field-map.json": {
+      "bytes": 28210,
+      "sha256": "da973a284872e5b70091a067c62b93a3e66477531141ad5f712c9ea535129ece"
+    },
+    "research/market-intelligence/staging/kz/bybit/p0a-v1/migration5-preview/shadow-comparison.json": {
+      "bytes": 13705,
+      "sha256": "ee9a8b2a1c26542975927f02f3a35e8b2e469b54a5580ec2641b3e63b47a66f1"
+    },
+    "research/market-intelligence/staging/kz/bybit/p0a-v1/migration5-preview/non-active-adapter.preview.json": {
+      "bytes": 15956,
+      "sha256": "b8d00e48b66be101332c3a037eb5bac505b8caa8307392ee8759227a2c64b1cf"
+    },
+    "scripts/market-intelligence/build-kz-bybit-migration5-preview.mjs": {
+      "bytes": 42063,
+      "sha256": "529e40a811521866d8a21bcd7434be7d8673a45e7ee13b99a02cf7019d9cb0dc"
+    }
+  },
+  "deterministic": true,
+  "nonProduction": true,
+  "note": "PREVIEW_COMMIT_READINESS is READY only when every integrity dimension PASSes."
+}

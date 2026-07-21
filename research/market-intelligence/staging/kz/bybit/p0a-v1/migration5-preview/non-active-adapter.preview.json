@@ -1,0 +1,426 @@
+{
+  "previewMetadata": {
+    "recordState": "PREVIEW",
+    "nonProduction": true,
+    "runtimeConsumed": false,
+    "migration5PreparationAuthorized": true,
+    "migration5ExecutionAuthorized": false,
+    "migration5ProductionActivationAuthorized": false,
+    "sourceCommit": "ec185cd7055b4ec26f5a8fcbba9ee1a040815c6e"
+  },
+  "sourceOwnership": {
+    "canonicalResearchTruth": "data/market-intelligence/cells/by-country/kz/bybit.json",
+    "legacyProductionTruth": "research/geo/kazakhstan/exchanges/bybit.json",
+    "productionRankingTruth": "src/data/geoRankings.ts",
+    "automaticSynchronizationAuthorized": false
+  },
+  "availabilityProjection": {
+    "canonicalAvailability": "AVAILABLE_WITH_LIMITS",
+    "legacyCompatiblePrimaryAvailability": "available",
+    "primaryState": "GREEN",
+    "primaryLabel": "Available",
+    "secondaryState": "AMBER",
+    "secondaryLabel": "Some limits apply",
+    "limitationDisclosureRequired": true,
+    "confidence": "MEDIUM",
+    "liveVerificationState": "NOT_LIVE_VERIFIED"
+  },
+  "productProjection": [
+    {
+      "product": "registration",
+      "canonicalStatus": "AVAILABLE_WITH_LIMITS",
+      "legacyStatus": "UNKNOWN",
+      "productionStatus": "overall available (not per-product)",
+      "proposedShadowStatus": "AVAILABLE_WITH_LIMITS",
+      "legacyCanRepresentExactly": false,
+      "limitationDisclosureRequired": true,
+      "blockedFromExecution": true,
+      "conflictIds": [
+        "cf-kz-bybit-001"
+      ],
+      "reasonCodes": [
+        "REGISTRATION_SCOPE_PARTIAL"
+      ],
+      "notes": "Legacy GEO passport enum (UNKNOWN/PARTIAL) cannot represent AVAILABLE_WITH_LIMITS/CONFLICTING exactly; preview projects the canonical status with limitation disclosure; not executed."
+    },
+    {
+      "product": "kyc",
+      "canonicalStatus": "AVAILABLE_WITH_LIMITS",
+      "legacyStatus": "UNKNOWN",
+      "productionStatus": "KYC required (note)",
+      "proposedShadowStatus": "AVAILABLE_WITH_LIMITS",
+      "legacyCanRepresentExactly": false,
+      "limitationDisclosureRequired": true,
+      "blockedFromExecution": true,
+      "conflictIds": [
+        "cf-kz-bybit-001"
+      ],
+      "reasonCodes": [],
+      "notes": "Legacy GEO passport enum (UNKNOWN/PARTIAL) cannot represent AVAILABLE_WITH_LIMITS/CONFLICTING exactly; preview projects the canonical status with limitation disclosure; not executed."
+    },
+    {
+      "product": "spot",
+      "canonicalStatus": "AVAILABLE",
+      "legacyStatus": "UNKNOWN",
+      "productionStatus": "not modeled",
+      "proposedShadowStatus": "AVAILABLE",
+      "legacyCanRepresentExactly": false,
+      "limitationDisclosureRequired": false,
+      "blockedFromExecution": true,
+      "conflictIds": [],
+      "reasonCodes": [],
+      "notes": "Legacy GEO passport enum (UNKNOWN/PARTIAL) cannot represent AVAILABLE_WITH_LIMITS/CONFLICTING exactly; preview projects the canonical status with limitation disclosure; not executed."
+    },
+    {
+      "product": "derivatives",
+      "canonicalStatus": "AVAILABLE_WITH_LIMITS",
+      "legacyStatus": "UNKNOWN",
+      "productionStatus": "not modeled",
+      "proposedShadowStatus": "AVAILABLE_WITH_LIMITS",
+      "legacyCanRepresentExactly": false,
+      "limitationDisclosureRequired": true,
+      "blockedFromExecution": true,
+      "conflictIds": [],
+      "reasonCodes": [],
+      "notes": "Legacy GEO passport enum (UNKNOWN/PARTIAL) cannot represent AVAILABLE_WITH_LIMITS/CONFLICTING exactly; preview projects the canonical status with limitation disclosure; not executed."
+    },
+    {
+      "product": "margin",
+      "canonicalStatus": "AVAILABLE_WITH_LIMITS",
+      "legacyStatus": null,
+      "productionStatus": "not modeled",
+      "proposedShadowStatus": "AVAILABLE_WITH_LIMITS",
+      "legacyCanRepresentExactly": false,
+      "limitationDisclosureRequired": true,
+      "blockedFromExecution": true,
+      "conflictIds": [],
+      "reasonCodes": [],
+      "notes": "Legacy GEO passport enum (UNKNOWN/PARTIAL) cannot represent AVAILABLE_WITH_LIMITS/CONFLICTING exactly; preview projects the canonical status with limitation disclosure; not executed."
+    },
+    {
+      "product": "p2p",
+      "canonicalStatus": "AVAILABLE_WITH_LIMITS",
+      "legacyStatus": "PARTIAL",
+      "productionStatus": "regulated P2P noted",
+      "proposedShadowStatus": "AVAILABLE_WITH_LIMITS",
+      "legacyCanRepresentExactly": false,
+      "limitationDisclosureRequired": true,
+      "blockedFromExecution": true,
+      "conflictIds": [],
+      "reasonCodes": [],
+      "notes": "Legacy GEO passport enum (UNKNOWN/PARTIAL) cannot represent AVAILABLE_WITH_LIMITS/CONFLICTING exactly; preview projects the canonical status with limitation disclosure; not executed."
+    },
+    {
+      "product": "kzt_p2p",
+      "canonicalStatus": "AVAILABLE",
+      "legacyStatus": "PARTIAL",
+      "productionStatus": "regulated KZT P2P noted",
+      "proposedShadowStatus": "AVAILABLE",
+      "legacyCanRepresentExactly": false,
+      "limitationDisclosureRequired": false,
+      "blockedFromExecution": true,
+      "conflictIds": [],
+      "reasonCodes": [],
+      "notes": "Legacy GEO passport enum (UNKNOWN/PARTIAL) cannot represent AVAILABLE_WITH_LIMITS/CONFLICTING exactly; preview projects the canonical status with limitation disclosure; not executed."
+    },
+    {
+      "product": "direct_kzt_deposit",
+      "canonicalStatus": "AVAILABLE_WITH_LIMITS",
+      "legacyStatus": "UNKNOWN",
+      "productionStatus": "not modeled",
+      "proposedShadowStatus": "AVAILABLE_WITH_LIMITS",
+      "legacyCanRepresentExactly": false,
+      "limitationDisclosureRequired": true,
+      "blockedFromExecution": true,
+      "conflictIds": [],
+      "reasonCodes": [],
+      "notes": "Legacy GEO passport enum (UNKNOWN/PARTIAL) cannot represent AVAILABLE_WITH_LIMITS/CONFLICTING exactly; preview projects the canonical status with limitation disclosure; not executed."
+    },
+    {
+      "product": "direct_kzt_withdrawal",
+      "canonicalStatus": "AVAILABLE_WITH_LIMITS",
+      "legacyStatus": "UNKNOWN",
+      "productionStatus": "not modeled",
+      "proposedShadowStatus": "AVAILABLE_WITH_LIMITS",
+      "legacyCanRepresentExactly": false,
+      "limitationDisclosureRequired": true,
+      "blockedFromExecution": true,
+      "conflictIds": [],
+      "reasonCodes": [],
+      "notes": "Legacy GEO passport enum (UNKNOWN/PARTIAL) cannot represent AVAILABLE_WITH_LIMITS/CONFLICTING exactly; preview projects the canonical status with limitation disclosure; not executed."
+    },
+    {
+      "product": "bank_card_purchase",
+      "canonicalStatus": "CONFLICTING",
+      "legacyStatus": "UNKNOWN",
+      "productionStatus": "not modeled",
+      "proposedShadowStatus": "CONFLICTING",
+      "legacyCanRepresentExactly": false,
+      "limitationDisclosureRequired": true,
+      "blockedFromExecution": true,
+      "conflictIds": [
+        "cf-kz-bybit-002"
+      ],
+      "reasonCodes": [
+        "ROUTING_PARTIAL"
+      ],
+      "notes": "Legacy GEO passport enum (UNKNOWN/PARTIAL) cannot represent AVAILABLE_WITH_LIMITS/CONFLICTING exactly; preview projects the canonical status with limitation disclosure; not executed."
+    },
+    {
+      "product": "bybit_card",
+      "canonicalStatus": "AVAILABLE_WITH_LIMITS",
+      "legacyStatus": "UNKNOWN",
+      "productionStatus": "not modeled",
+      "proposedShadowStatus": "AVAILABLE_WITH_LIMITS",
+      "legacyCanRepresentExactly": false,
+      "limitationDisclosureRequired": true,
+      "blockedFromExecution": true,
+      "conflictIds": [
+        "cf-kz-bybit-002"
+      ],
+      "reasonCodes": [
+        "ROUTING_PARTIAL"
+      ],
+      "notes": "Legacy GEO passport enum (UNKNOWN/PARTIAL) cannot represent AVAILABLE_WITH_LIMITS/CONFLICTING exactly; preview projects the canonical status with limitation disclosure; not executed."
+    },
+    {
+      "product": "referral",
+      "canonicalStatus": "UNKNOWN",
+      "legacyStatus": "UNKNOWN",
+      "productionStatus": "promo_code present; eligibility unknown",
+      "proposedShadowStatus": "UNKNOWN",
+      "legacyCanRepresentExactly": false,
+      "limitationDisclosureRequired": true,
+      "blockedFromExecution": true,
+      "conflictIds": [
+        "cf-kz-bybit-002"
+      ],
+      "reasonCodes": [
+        "OFFER_ELIGIBILITY_UNVERIFIED"
+      ],
+      "notes": "Legacy GEO passport enum (UNKNOWN/PARTIAL) cannot represent AVAILABLE_WITH_LIMITS/CONFLICTING exactly; preview projects the canonical status with limitation disclosure; not executed."
+    },
+    {
+      "product": "promotions",
+      "canonicalStatus": "AVAILABLE_WITH_LIMITS",
+      "legacyStatus": "not_checked",
+      "productionStatus": "unknown",
+      "proposedShadowStatus": "AVAILABLE_WITH_LIMITS",
+      "legacyCanRepresentExactly": false,
+      "limitationDisclosureRequired": true,
+      "blockedFromExecution": true,
+      "conflictIds": [
+        "cf-kz-bybit-002"
+      ],
+      "reasonCodes": [
+        "OFFER_ELIGIBILITY_UNVERIFIED"
+      ],
+      "notes": "Legacy GEO passport enum (UNKNOWN/PARTIAL) cannot represent AVAILABLE_WITH_LIMITS/CONFLICTING exactly; preview projects the canonical status with limitation disclosure; not executed."
+    }
+  ],
+  "limitations": [
+    {
+      "limitationId": "lim-residency-citizenship",
+      "publicSummary": "Some registration eligibility limits apply (residency/citizenship).",
+      "internalDetail": "Residency/citizenship/foreign-national scope remains partially resolved (cf-kz-bybit-001).",
+      "severity": "MEDIUM",
+      "conflictIds": [
+        "cf-kz-bybit-001"
+      ],
+      "affectedFields": [
+        "availability-overall",
+        "product-registration",
+        "product-kyc"
+      ],
+      "requiredForFuturePresentation": true,
+      "blocksExecution": true,
+      "blocksProductionActivation": true
+    },
+    {
+      "limitationId": "lim-entity-domain-routing",
+      "publicSummary": "Some services route through separate local/global entities.",
+      "internalDetail": "bybit.kz/bybit.com and legal-entity routing partially resolved (cf-kz-bybit-002).",
+      "severity": "MEDIUM",
+      "conflictIds": [
+        "cf-kz-bybit-002"
+      ],
+      "affectedFields": [
+        "product-bank_card_purchase",
+        "product-bybit_card",
+        "product-referral",
+        "product-promotions"
+      ],
+      "requiredForFuturePresentation": true,
+      "blocksExecution": true,
+      "blocksProductionActivation": true
+    },
+    {
+      "limitationId": "lim-bank-card-conflict",
+      "publicSummary": "Bank-card purchase routing is unresolved.",
+      "internalDetail": "bank_card_purchase = CONFLICTING (bybit.kz vs bybit.com routing, cf-kz-bybit-002).",
+      "severity": "MEDIUM",
+      "conflictIds": [
+        "cf-kz-bybit-002"
+      ],
+      "affectedFields": [
+        "product-bank_card_purchase"
+      ],
+      "requiredForFuturePresentation": true,
+      "blocksExecution": true,
+      "blocksProductionActivation": true
+    },
+    {
+      "limitationId": "lim-global-referral-unverified",
+      "publicSummary": "Referral-code compatibility is not verified for Kazakhstan.",
+      "internalDetail": "Global referral-code compatibility remains UNVERIFIED; /go/bybit + CRYPTOBONUSW not verified locally.",
+      "severity": "HIGH",
+      "conflictIds": [
+        "cf-kz-bybit-002"
+      ],
+      "affectedFields": [
+        "global-referral-compatibility",
+        "affiliate-route",
+        "referral-code",
+        "eligibility-cta"
+      ],
+      "requiredForFuturePresentation": true,
+      "blocksExecution": true,
+      "blocksProductionActivation": true
+    },
+    {
+      "limitationId": "lim-narrower-promo-eligibility",
+      "publicSummary": "Local promotional eligibility is narrower than platform availability.",
+      "internalDetail": "Local promo programs exist (1,032 USDT referral; 2,500 USDT campaign) but are campaign-specific; not a global maximum.",
+      "severity": "MEDIUM",
+      "conflictIds": [],
+      "affectedFields": [
+        "product-promotions",
+        "offer-local-referral-amount",
+        "offer-kazakhstan-campaign-amount",
+        "eligibility-promo"
+      ],
+      "requiredForFuturePresentation": true,
+      "blocksExecution": true,
+      "blocksProductionActivation": true
+    },
+    {
+      "limitationId": "lim-not-live-verified",
+      "publicSummary": "Live in-country behavior has not been verified.",
+      "internalDetail": "liveVerificationState = NOT_LIVE_VERIFIED (NO-PROXY mode).",
+      "severity": "MEDIUM",
+      "conflictIds": [],
+      "affectedFields": [
+        "availability-live-verification",
+        "eligibility-ranking"
+      ],
+      "requiredForFuturePresentation": true,
+      "blocksExecution": true,
+      "blocksProductionActivation": true
+    },
+    {
+      "limitationId": "lim-recovered-unverified",
+      "publicSummary": "Underlying research package is recovered/unverified.",
+      "internalDetail": "packageStatus = RECOVERED / UNVERIFIED (not byte-original).",
+      "severity": "MEDIUM",
+      "conflictIds": [],
+      "affectedFields": [
+        "availability-overall",
+        "availability-confidence"
+      ],
+      "requiredForFuturePresentation": true,
+      "blocksExecution": true,
+      "blocksProductionActivation": true
+    }
+  ],
+  "conflicts": [
+    {
+      "conflictId": "cf-kz-bybit-001",
+      "status": "PARTIALLY_RESOLVED",
+      "autoResolved": false,
+      "ownerReviewRequired": true,
+      "previewRepresentation": "PRESERVED (not resolved/flattened)"
+    },
+    {
+      "conflictId": "cf-kz-bybit-002",
+      "status": "PARTIALLY_RESOLVED",
+      "autoResolved": false,
+      "ownerReviewRequired": true,
+      "previewRepresentation": "PRESERVED (not resolved/flattened)"
+    }
+  ],
+  "blockedFields": {
+    "ranking": true,
+    "cta": true,
+    "promo": true,
+    "affiliateRoute": true,
+    "referralCode": true,
+    "bonusAmount": true,
+    "publication": true,
+    "productionIntegration": true,
+    "bindingActivation": true,
+    "legacyGeoWrite": true,
+    "productionRankingWrite": true
+  },
+  "bindingProjection": {
+    "currentWriteState": "WRITTEN_NON_ACTIVE",
+    "ownerApproved": false,
+    "reviewStatus": "PROPOSED",
+    "canonicalRecord": "GEO_LEGACY",
+    "migrationPhase": "MIGRATION_4",
+    "proposedActivation": false
+  },
+  "publicationProjection": {
+    "homepageEligible": false,
+    "publicationStatus": "blocked_by_missing_evidence",
+    "proposedPublication": false
+  },
+  "safety": {
+    "productionFilesModified": false,
+    "canonicalFilesModified": false,
+    "legacyFilesModified": false,
+    "runtimeFilesModified": false,
+    "bindingActivated": false,
+    "rankingChanged": false,
+    "ctaChanged": false,
+    "promoChanged": false,
+    "publicationChanged": false,
+    "deployOccurred": false
+  },
+  "rankingProjection": {
+    "currentProductionPosition": 1,
+    "currentProductionRankingSafety": "SAFE_WITH_DISCLOSED_GAP",
+    "futureRankingDecisionReadiness": "READY_WITH_LIMITS",
+    "canonicalRankingEligibility": false,
+    "proposedRankingChange": "NONE",
+    "rankingChangeAuthorized": false
+  },
+  "ctaReferralProjection": {
+    "currentRoute": "/go/bybit",
+    "currentCode": "CRYPTOBONUSW",
+    "globalReferralCodeCompatibility": "UNVERIFIED",
+    "canonicalCtaEligibility": false,
+    "currentProductionCtaSafety": "SAFE_WITH_DISCLOSED_GAP",
+    "proposedCtaChange": "NONE",
+    "proposedRouteChange": "NONE",
+    "proposedCodeActivation": false,
+    "ctaChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "referralCodeActivationAuthorized": false
+  },
+  "promoProjection": {
+    "localReferralProgram": {
+      "amount": 1032,
+      "currency": "USDT"
+    },
+    "localCampaignPrizePool": {
+      "amount": 2500,
+      "currency": "USDT"
+    },
+    "combined": false,
+    "globalMaximumVerified": false,
+    "canonicalPromoEligibility": false,
+    "currentProductionPromoSafety": "SAFE_WITH_DISCLOSED_GAP",
+    "proposedPromoChange": "NONE",
+    "promoChangeAuthorized": false
+  }
+}
