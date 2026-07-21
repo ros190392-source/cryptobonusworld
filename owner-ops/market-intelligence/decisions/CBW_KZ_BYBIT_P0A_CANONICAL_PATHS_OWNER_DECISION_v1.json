@@ -1,0 +1,216 @@
+{
+  "decisionId": "CBW-KZ-BYBIT-P0A-CANONICAL-PATHS-OWNER-DECISION-v1",
+  "taskId": "CBW-KZ-BYBIT-P0A-CANONICAL-PATHS-OWNER-DECISION-005",
+  "project": "CryptoBonusWorld",
+  "repository": "C:/projects/CryptoBonusWorld",
+  "branch": "master",
+  "baselineHead": "c65a5e658f2fd1d3bdfe8a0e0195977e690e7c03",
+  "date": "2026-07-21",
+  "countryCode": "KZ",
+  "exchangeId": "bybit",
+  "batchId": "KZ-P0-A",
+  "mode": "ARCHITECTURE_DECISION_RECORD_ONLY",
+  "status": "OWNER_APPROVED_ARCHITECTURE_DECISION",
+  "packageStatus": "RECOVERED / UNVERIFIED",
+  "notes": "Records approved canonical storage paths and deterministic storage contracts ONLY. Creates no data/market-intelligence/ directory, no canonical record, no binding. Path approval does NOT authorize file creation.",
+
+  "canonicalRoot": {
+    "path": "data/market-intelligence/",
+    "approved": true,
+    "properties": [
+      "canonical research storage",
+      "non-production by default",
+      "not consumed by runtime until a separately approved integration",
+      "separate from legacy research/geo/**",
+      "separate from src/** production data"
+    ],
+    "creatingRecordsDoesNotAffect": [
+      "production availability", "ranking", "CTA", "promo", "affiliate routing", "pages", "MIGRATION_5"
+    ],
+    "authorities": "CBW_EXCHANGE_MARKET_INTELLIGENCE_BRAIN_v1.md §2/§20 (data/market-intelligence/ tree) + CBW_MI_GEO_RECONCILIATION_STANDARD_v1.md §2 (MI cell canonical; one binding per pair)"
+  },
+
+  "approvedPaths": {
+    "cell": {
+      "path": "data/market-intelligence/cells/by-country/kz/bybit.json",
+      "convention": "data/market-intelligence/cells/by-country/{country-code-lowercase}/{exchange-slug}.json",
+      "schema": "schemas/market-intelligence/exchange-market-cell.schema.json",
+      "isDirectSchemaInstance": true,
+      "rules": [
+        "single canonical cell path",
+        "no duplicate canonical copy under cells/by-exchange/**",
+        "any future by-exchange view is a generated index/lookup artifact, never competing truth"
+      ]
+    },
+    "sources": {
+      "path": "data/market-intelligence/sources/by-country/kz/bybit.json",
+      "convention": "data/market-intelligence/sources/by-country/{country-code-lowercase}/{exchange-slug}.json",
+      "envelope": { "schemaVersion": "1", "countryCode": "KZ", "exchangeId": "bybit", "records": [] },
+      "recordSchema": "schemas/market-intelligence/market-source.schema.json",
+      "expectedRecordCount": 43,
+      "rules": [
+        "records contains the 43 normalized source records",
+        "every records[] item independently validates against market-source.schema.json",
+        "records sorted deterministically by sourceId",
+        "no duplicate sourceIds",
+        "envelope is a repository storage wrapper, NOT a replacement for market-source.schema.json",
+        "confidence/limitations must not be forced into source records when prohibited by the source schema (they live in provenance)"
+      ]
+    },
+    "linkages": {
+      "path": "data/market-intelligence/linkages/by-country/kz/bybit.json",
+      "convention": "data/market-intelligence/linkages/by-country/{country-code-lowercase}/{exchange-slug}.json",
+      "envelope": { "schemaVersion": "1", "countryCode": "KZ", "exchangeId": "bybit", "links": [] },
+      "expectedLinkCount": 77,
+      "relationships": ["SUPPORTS", "LIMITS", "CONTRADICTS", "CONTEXT"],
+      "rules": [
+        "preserve all 77 claim-source links",
+        "sort deterministically by linkId",
+        "every claimId and sourceId resolves",
+        "canonical relationship layer between claims and sources",
+        "does not influence production directly",
+        "do NOT place supportedClaimIds back into market-source records"
+      ]
+    },
+    "provenance": {
+      "path": "data/market-intelligence/provenance/by-country/kz/bybit.json",
+      "convention": "data/market-intelligence/provenance/by-country/{country-code-lowercase}/{exchange-slug}.json",
+      "isNonRuntimeResearchEvidence": true,
+      "mustPreserve": [
+        "package status RECOVERED / UNVERIFIED",
+        "original and recovered package hashes",
+        "source-truth review package hashes",
+        "staging import commit",
+        "owner-decision references",
+        "source confidence",
+        "claim confidence",
+        "limitations",
+        "correctionRequired state",
+        "original and corrected claim text",
+        "liveVerificationState",
+        "unresolved evidence",
+        "entity and domain routing provenance",
+        "import history",
+        "canonical-import authorization state"
+      ],
+      "rule": "No provenance may be silently discarded."
+    },
+    "conflicts": {
+      "path": "data/market-intelligence/conflicts/by-country/kz/bybit.json",
+      "convention": "data/market-intelligence/conflicts/by-country/{country-code-lowercase}/{exchange-slug}.json",
+      "envelope": { "schemaVersion": "1", "countryCode": "KZ", "exchangeId": "bybit", "conflicts": [] },
+      "expectedConflicts": ["cf-kz-bybit-001", "cf-kz-bybit-002"],
+      "bothStatus": "PARTIALLY_RESOLVED",
+      "rules": [
+        "preserve exactly cf-kz-bybit-001 and cf-kz-bybit-002",
+        "both remain PARTIALLY_RESOLVED",
+        "sort deterministically by conflictId",
+        "preserve routingMatrix",
+        "preserve reviewed sources",
+        "preserve unresolved evidence",
+        "preserve ownerReviewRequired",
+        "do NOT auto-resolve conflicts during import",
+        "NOT a restriction-event file unless an individual record actually conforms to restriction-event.schema.json",
+        "do NOT force normalized conflict records into the restriction-event schema"
+      ]
+    },
+    "binding": {
+      "path": "data/market-intelligence/bindings/by-country/kz/bybit.json",
+      "convention": "data/market-intelligence/bindings/by-country/{country-code-lowercase}/{exchange-slug}.json",
+      "schema": "schemas/market-intelligence/mi-geo-binding.schema.json",
+      "isDirectSchemaInstance": true,
+      "initialState": {
+        "active": false,
+        "ownerApproved": false,
+        "reviewStatus": "PROPOSED",
+        "canonicalRecord": "GEO_LEGACY",
+        "productionStable": true,
+        "productionRouteUnchanged": true,
+        "migrationPhase": "MIGRATION_4",
+        "rankingSuppressed": true,
+        "ctaSuppressed": true,
+        "promoSuppressed": true,
+        "affiliateInfluencesRanking": false,
+        "existingGeoRemainsProductionTruth": true
+      },
+      "rule": "Writing this non-active binding later does NOT authorize activation."
+    }
+  },
+
+  "pathNormalizationRules": {
+    "countryDirectory": "lowercase ISO alpha-2 (kz)",
+    "exchangeFilename": "canonical lowercase exchange slug (bybit.json)",
+    "repositoryPathSeparator": "forward-slash in records and manifests",
+    "prohibitions": [
+      "no uppercase country directories",
+      "no spaces in canonical filenames",
+      "no duplicate canonical record in another orientation",
+      "no symlinks",
+      "no generated timestamp directories",
+      "no version suffix in the canonical filename",
+      "history is preserved via Git + provenance, not bybit-v2.json"
+    ]
+  },
+
+  "atomicCanonicalPackage": {
+    "isAtomicSixFilePackage": true,
+    "files": [
+      "data/market-intelligence/cells/by-country/kz/bybit.json",
+      "data/market-intelligence/sources/by-country/kz/bybit.json",
+      "data/market-intelligence/linkages/by-country/kz/bybit.json",
+      "data/market-intelligence/provenance/by-country/kz/bybit.json",
+      "data/market-intelligence/conflicts/by-country/kz/bybit.json",
+      "data/market-intelligence/bindings/by-country/kz/bybit.json"
+    ],
+    "rule": "The future execute task must create ALL six valid files or NONE. No partial canonical package.",
+    "onValidationFailure": ["stop", "write nothing", "leave existing canonical data unchanged"]
+  },
+
+  "noDuplicateTruth": {
+    "canonicalMiTruth": "data/market-intelligence/cells/by-country/**",
+    "stagingEvidence": "research/market-intelligence/staging/**",
+    "legacyGeoProductionTruth": "research/geo/** (until migration)",
+    "currentProductionConsumer": "src/data/geoRankings.ts",
+    "rules": [
+      "no automatic synchronization is permitted yet",
+      "no canonical value may silently overwrite legacy GEO",
+      "discrepancies require explicit migration reports and owner decisions"
+    ]
+  },
+
+  "canonicalVsProductionSeparation": {
+    "canonicalResearchStorageEligible": true,
+    "canonicalImportAuthorized": false,
+    "miGeoBindingWriteAuthorized": false,
+    "miGeoBindingActivationAuthorized": false,
+    "productionChangeAuthorized": false,
+    "rankingEligibilityAuthorized": false,
+    "ctaEligibilityAuthorized": false,
+    "promoEligibilityAuthorized": false,
+    "migration5Authorized": false,
+    "note": "The path decision does not authorize file creation."
+  },
+
+  "bybitKazakhstanState": {
+    "overallAvailability": "AVAILABLE_WITH_LIMITS",
+    "confidence": "MEDIUM",
+    "liveVerificationState": "NOT_LIVE_VERIFIED",
+    "presentation": { "primaryState": "GREEN", "primaryLabel": "Available", "secondaryState": "AMBER", "secondaryLabel": "Some limits apply" },
+    "futureRankingCandidate": true,
+    "rankingEligibility": false,
+    "ctaEligibility": false,
+    "promoEligibility": false,
+    "packageStatus": "RECOVERED / UNVERIFIED",
+    "notReinterpretedAsRestricted": true
+  },
+
+  "filesCreated": [
+    "owner-ops/market-intelligence/decisions/CBW_KZ_BYBIT_P0A_CANONICAL_PATHS_OWNER_DECISION_v1.md",
+    "owner-ops/market-intelligence/decisions/CBW_KZ_BYBIT_P0A_CANONICAL_PATHS_OWNER_DECISION_v1.json"
+  ],
+  "dataDirectoryCreated": false,
+
+  "recommendation": "APPROVE",
+  "recommendationScope": "Canonical storage architecture approved (root + six by-country paths + envelopes + atomic-package + normalization + no-duplicate-truth). Records architecture ONLY; creates nothing under data/market-intelligence/. Canonical import execution, binding write/activation, production change, ranking/CTA/promo, and MIGRATION_5 remain BLOCKED and owner-gated.",
+  "nextTask": "CBW-KZ-BYBIT-P0A-CANONICAL-IMPORT-EXECUTE-006 — owner-gated deterministic write of the atomic six-file canonical package into data/market-intelligence/ per these approved paths/contracts (all-or-none; each file schema-valid; binding non-active). Ranking/CTA/promo activation and MIGRATION_5 remain separate later owner-gated tasks."
+}
