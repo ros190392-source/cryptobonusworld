@@ -1,0 +1,229 @@
+{
+  "decisionId": "CBW-KZ-MEXC-P0B-OWNER-DECISION-v1",
+  "taskId": "CBW-KZ-MEXC-P0-B-OWNER-DECISION-001",
+  "project": "CryptoBonusWorld",
+  "repository": "C:\\projects\\CryptoBonusWorld",
+  "branch": "master",
+  "baselineHead": "5aa41f01b8d899223be925faaea01093c3125b6e",
+  "date": "2026-07-22",
+  "countryCode": "KZ",
+  "country": "Kazakhstan",
+  "exchangeId": "mexc",
+  "exchange": "MEXC",
+  "batchId": "KZ-P0-B",
+  "mode": "OWNER DECISION RECORD ONLY",
+  "webBrowsingUsed": false,
+  "basedOn": {
+    "sourceTruthReviewTaskId": "CBW-KZ-MEXC-P0-B-SOURCE-TRUTH-REVIEW-001",
+    "sourceTruthReviewPackageAudit": "owner-ops/market-intelligence/research-audits/CBW_KZ_MEXC_P0B_SOURCE_TRUTH_REVIEW_PACKAGE_AUDIT_v1",
+    "recoveredPackageAudit": "owner-ops/market-intelligence/research-audits/CBW_KZ_MEXC_P0B_RECOVERED_PACKAGE_AUDIT_v1",
+    "researchPackageBaselineCommit": "67bdca323928a4a26aaa4cbe48ec18200fdc1d1d"
+  },
+  "availabilityDecision": {
+    "ownerDecision": "ACCEPT_SOURCE_TRUTH_REVIEW",
+    "overallAvailability": "RESTRICTED",
+    "confidence": "HIGH",
+    "liveVerificationState": "NOT_LIVE_VERIFIED",
+    "packageStatus": "RECOVERED / UNVERIFIED",
+    "publicationPosture": "BLOCKED",
+    "legalAvailability": "RESTRICTED",
+    "technicalSiteReachability": "NOT_DETERMINED",
+    "restrictedIsNotTechnicalInaccessibilityProof": true,
+    "acceptedConclusion": "Kazakhstan is expressly listed as a prohibited jurisdiction in the reviewed current MEXC User Agreement (src-kz-mexc-terms-001, lastUpdated 2025-05-29, checked 2026-07-22); MEXC states it does not provide services, accept user registration, or accept trade applications in prohibited jurisdictions."
+  },
+  "presentationDecision": {
+    "primaryVisualState": "RED",
+    "primaryLabel": "Restricted in Kazakhstan",
+    "secondaryLabel": "MEXC’s current terms list Kazakhstan as a prohibited jurisdiction",
+    "greenForbidden": true,
+    "availableWithLimitsForbidden": true,
+    "visibleAppP2pKztPagesNotPositiveEligibility": true,
+    "restrictionReasoningInEvidenceDetailLayer": true
+  },
+  "termsPageFlipDecision": {
+    "termsPageFlipState": "CURRENT_RESTRICTIVE_SOURCE_ACCEPTED_WITH_MONITORING",
+    "termsPageFlipOwnerAttentionRequired": true,
+    "sourceChangeOrPriorMisreadUnresolved": true,
+    "productionPublicationRecheckRequired": true,
+    "restrictionMonitoringRequired": true,
+    "earlierCaptures": [
+      { "date": "2026-07-03", "finding": "Kazakhstan reportedly absent from prohibited-jurisdiction list" },
+      { "date": "2026-07-14", "finding": "Kazakhstan reportedly still absent; document update date 2025-05-29" }
+    ],
+    "sourceTruthReviewCheck": {
+      "date": "2026-07-22",
+      "finding": "Kazakhstan expressly present in prohibited-jurisdiction list; document still displays update date 2025-05-29"
+    },
+    "currentRestrictiveSourceControls": true,
+    "earlierCapturesPreservedInProvenance": true
+  },
+  "regulationDecision": {
+    "afsaFinding": "CONFIRMED",
+    "afsaFindingMeaning": "UNLICENSED_OR_UNAUTHORIZED_LOCAL_ACTIVITY",
+    "afsaTechnicalUnavailabilityProof": false,
+    "afsaSourceId": "src-kz-mexc-afsa-warning-001",
+    "afsaPublishedDate": "2026-04-28",
+    "role": "Strengthens the restriction and publication-blocking decision; not treated alone as proof of technical inaccessibility."
+  },
+  "registrationKycDecision": {
+    "registration": "RESTRICTED",
+    "registrationScope": "KAZAKHSTAN_RESIDENTS_AND_USERS_IN_KAZAKHSTAN",
+    "citizenshipOnlyRestriction": "NOT_ESTABLISHED",
+    "kyc": "RESTRICTED",
+    "kazakhstanSpecificKycDocumentAcceptance": "UNVERIFIED",
+    "proofOfAddressWorkflowForKazakhstan": "UNVERIFIED",
+    "genericDocumentGuidanceNotKazakhstanEligibility": true
+  },
+  "productDecisions": {
+    "spot": "RESTRICTED",
+    "derivatives": "RESTRICTED",
+    "margin": "RESTRICTED",
+    "copyTrading": "RESTRICTED_WITH_PRODUCT_DETAIL_UNVERIFIED",
+    "p2p": "CONFLICTING",
+    "kztP2p": "CONFLICTING",
+    "directKztDeposit": "UNKNOWN",
+    "directKztWithdrawal": "UNKNOWN",
+    "bankCardPurchase": "UNAVAILABLE",
+    "mobileApplication": "CONFLICTING",
+    "earn": "CONFLICTING",
+    "interpretation": {
+      "lowerLevelSignalsDoNotOverridePlatformRestriction": true,
+      "directKztFiatRailsUnverified": true,
+      "cardPurchaseUnavailableUnderCurrent38CountryGuide": true,
+      "conflictingSignalsRemainVisible": true
+    }
+  },
+  "conflictDecisions": {
+    "allSevenPreserved": true,
+    "ownerReviewRequiredAll": true,
+    "fourPartiallyResolvedNotFlattened": true,
+    "conflicts": {
+      "cf-kz-mexc-terms-vs-regulator": "RESOLVED_RESTRICTIVE",
+      "cf-kz-mexc-terms-vs-app-support": "PARTIALLY_RESOLVED",
+      "cf-kz-mexc-terms-vs-p2p-kzt": "PARTIALLY_RESOLVED",
+      "cf-kz-mexc-terms-vs-fiat-tn": "PARTIALLY_RESOLVED",
+      "cf-kz-mexc-terms-vs-earn": "PARTIALLY_RESOLVED",
+      "cf-kz-mexc-card-guide-scope": "RESOLVED_BY_SPECIFICITY",
+      "cf-kz-mexc-global-referral-vs-kz-restriction": "RESOLVED_RESTRICTIVE"
+    }
+  },
+  "referralAffiliateDecision": {
+    "globalReferralMechanics": "VERIFIED_GLOBAL_ONLY",
+    "kazakhstanReferralCompatibility": "NOT_VERIFIED_AND_NOT_ELIGIBLE_UNDER_CURRENT_COUNTRY_PROHIBITION",
+    "repositoryRoute": "/go/mexc",
+    "repositoryRouteStatus": "IMPLEMENTATION_FACT_ONLY",
+    "repositoryCode": "mexc-CryptoBonus",
+    "repositoryCodeStatus": "IMPLEMENTATION_FACT_ONLY",
+    "rankingEligibility": false,
+    "ctaEligibility": false,
+    "affiliateRouteEligibility": false,
+    "referralCodeEligibility": false,
+    "routeAndCodeNotEligibilityEvidence": true,
+    "routeAndCodeNotActivatedForKazakhstan": true
+  },
+  "promoDecision": {
+    "currentKazakhstanCampaign": "NONE_VERIFIED",
+    "historicalKazakhstanRelevantCampaign": "ENDED",
+    "historicalCampaignWindow": "2025-08-11 to 2025-09-01",
+    "locallyVerifiedCurrentBonusAmount": null,
+    "globalMaximumApplicableToKazakhstan": "UNVERIFIED",
+    "promoEligibility": false,
+    "doNotPublish": [
+      "expired campaign",
+      "current Kazakhstan bonus amount",
+      "global maximum",
+      "combined reward amount"
+    ]
+  },
+  "rankingPublicationDecision": {
+    "futureRankingCandidate": false,
+    "rankingEligibility": false,
+    "ctaEligibility": false,
+    "promoEligibility": false,
+    "publicationEligibility": false,
+    "publicationPosture": "BLOCKED",
+    "restrictionOnlyPublicationCandidate": true,
+    "restrictionOnlyPublicationAuthorized": false,
+    "note": "The future site may eventually display MEXC as restricted after a separate publication decision; this owner decision publishes nothing."
+  },
+  "productionDecision": {
+    "legacyGeoUpdateAuthorized": false,
+    "productionRankingUpdateAuthorized": false,
+    "productionAvailabilityUpdateAuthorized": false,
+    "productionRouteUpdateAuthorized": false,
+    "productionCodeUpdateAuthorized": false,
+    "productionChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "deployAuthorized": false,
+    "existingProductionMexcDataUnchanged": true,
+    "kazakhstanRemainsPublicationBlocked": true
+  },
+  "recoveryBoundary": {
+    "unavailableOriginalArtifact": {
+      "bytes": 37001,
+      "sha256": "3f0e10d231efc2ce33f77fac85182809197c11bf5b0cf400f32c77bad4774281"
+    },
+    "recoveredDeliveredArtifact": {
+      "bytes": 27833,
+      "sha256": "f7658b5f7bddc29d24fd09a2c06de09d2dcfe65e6de64cc40e91c0399a380c5f"
+    },
+    "recoveryIntegrity": "WARN",
+    "semanticCompleteness": true,
+    "byteIdenticalOriginalityEstablished": false,
+    "packageStatusMustRemain": "RECOVERED / UNVERIFIED"
+  },
+  "importPreparationDecision": {
+    "ownerDecisionReadiness": "READY",
+    "importPreparationReadiness": "READY_WITH_LIMITS",
+    "importReadiness": "NOT_READY",
+    "importPreparationDesignAuthorized": true,
+    "normalizationExecutionAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "designScopeLimitedToSchemaDecisions": [
+      "Whether countryScope and productScope accept arrays",
+      "Whether claim links remain inside source records or use a separate linkage registry",
+      "How source-verification provenance is preserved without altering canonical source facts",
+      "How contradictory-source relationships are preserved"
+    ],
+    "noNormalizationOrImportInThisTask": true
+  },
+  "authorizations": {
+    "ownerDecisionCompleted": true,
+    "importPreparationDesignAuthorized": true,
+    "researchImportAuthorized": false,
+    "normalizationExecutionAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "legacyGeoUpdateAuthorized": false,
+    "productionChangeAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "referralCodeActivationAuthorized": false,
+    "publicationAuthorized": false,
+    "migration5Authorized": false,
+    "pageOrRouteChangeAuthorized": false,
+    "deployAuthorized": false
+  },
+  "filesCreated": [
+    "owner-ops/market-intelligence/decisions/CBW_KZ_MEXC_P0B_OWNER_DECISION_v1.md",
+    "owner-ops/market-intelligence/decisions/CBW_KZ_MEXC_P0B_OWNER_DECISION_v1.json"
+  ],
+  "nextTask": "CBW-KZ-MEXC-P0-B-IMPORT-PREP-DESIGN-002",
+  "nextTaskScope": [
+    "deterministic normalization design",
+    "source mapping plan",
+    "claim-source linkage plan",
+    "provenance plan",
+    "conflict-preservation plan",
+    "non-production candidate design",
+    "validation report"
+  ],
+  "nextTaskProhibitions": [
+    "must not normalize",
+    "must not import",
+    "must not modify production"
+  ]
+}
