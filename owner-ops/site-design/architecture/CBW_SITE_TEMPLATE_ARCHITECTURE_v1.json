@@ -1,0 +1,284 @@
+{
+  "documentId": "CBW_SITE_TEMPLATE_ARCHITECTURE_v1",
+  "documentVersion": "1.0.0",
+  "task": "CBW-SITE-TEMPLATE-ARCHITECTURE-AUTHORITY-001",
+  "project": "CryptoBonusWorld",
+  "date": "2026-07-22",
+  "authorityStatus": "OWNER_APPROVED_DESIGN_AUTHORITY",
+  "draftNote": "Promoted from draft to owner-approved design authority by CBW-SITE-TEMPLATE-ARCHITECTURE-AUTHORITY-001-COMMIT.",
+  "approvedPrototypeCommit": "1de294d1a389f966c3ffef7d178f454d39d33ab0",
+  "designBranch": "feat/cbw-exchange-review-template-v1",
+  "prototypeRoute": "/__design/exchange-review-template/",
+  "relatedAuthorities": [
+    "owner-ops/site-design/standards/CBW_FIRST_SCREEN_CONVERSION_STANDARD_v1.md",
+    "owner-ops/design-system/CBW_SITE_DESIGN_SYSTEM_v2.md"
+  ],
+  "ownerDecisions": [
+    "Exchange-review template v2 approved as the authority reference for the exchange-review family.",
+    "First Screen Conversion Standard v1 established project-wide for eligible, evidence-verified offers.",
+    "Ten page families and the rollout order approved as the site template architecture.",
+    "Never display a global promotion as locally eligible without country-level evidence."
+  ],
+  "urlPatternNote": "Patterns marked proposed require separate owner routing approval; live patterns recorded as-is.",
+  "pageFamilies": [
+    {
+      "id": 1,
+      "name": "Homepage",
+      "purpose": "Global or country-resolved discovery of the best eligible exchanges and promo codes.",
+      "userIntent": "Which exchange should I use and what code do I enter?",
+      "urlPattern": { "pattern": "/", "status": "live" },
+      "primaryDataSource": "Owner-approved offer registry + canonical Market Intelligence states (country-resolved when available).",
+      "firstScreenStructure": {
+        "desktopAimsToShow": ["brand/header", "country context", "H1 and short value proposition", "compact Top 3 eligible exchange rows", "status, promo code, Copy and registration CTA for each authorized row"],
+        "mobileAimsToShow": ["country context", "H1", "at least the first two compact eligible exchange rows", "complete promo code, Copy and CTA for each visible authorized row"]
+      },
+      "firstScreenConversionRequirement": "First Screen Standard per authorized row; no oversized cards preventing commercial rows from entering the first screen.",
+      "mainBodySections": ["full eligible ranking", "category/finder modules", "trust strip", "methodology link", "FAQ"],
+      "bottomConversionBehavior": "Optional compact closing action (directory/finder); no forced full offer block.",
+      "availabilityStateBehavior": "Restricted exchanges never appear as claimable recommendations; fewer verified eligible exchanges mean fewer rows; never fill the list with unverified offers.",
+      "mobileBehavior": "First two eligible rows within first-screen target; 44px+ touch targets; no horizontal overflow.",
+      "seoIndexingPosture": "Indexable; brand + category head terms.",
+      "requiredComponents": ["SiteHeader", "CountryContext", "ExchangeRankingRow", "ExchangeStatusBadge", "PromoCodeControl", "RegistrationCTA", "LastChecked", "SiteFooter"],
+      "prohibitedBehavior": ["oversized hero cards displacing commercial rows", "restricted exchanges as claimable recommendations", "unverified offers filling rows", "global promos shown as locally eligible without evidence"]
+    },
+    {
+      "id": 2,
+      "name": "Country page",
+      "purpose": "Country-specific exchange availability, ranking, restrictions and local payment context.",
+      "userIntent": "Which exchanges work in my country, and which codes are valid here?",
+      "urlPattern": { "pattern": "/countries/{country}/", "status": "proposed" },
+      "primaryDataSource": "Canonical Market Intelligence country cells + owner-approved country evidence; never staging or RECOVERED/UNVERIFIED packages.",
+      "firstScreenStructure": {
+        "contains": ["country identity", "current evidence status", "short country verdict", "compact recommended exchange rows"],
+        "desktopTarget": "Top 3 eligible rows with complete permitted conversion controls",
+        "mobileTarget": "first two eligible rows with complete permitted conversion controls"
+      },
+      "firstScreenConversionRequirement": "First Screen Standard per eligible row; country verdict precedes conversion rows.",
+      "mainBodySections": ["recommended ranking", "Available but not currently recommended (separate compact section)", "Unavailable or restricted (separate compact section)", "Under review (separate compact section)", "local payment context", "evidence summary", "FAQ"],
+      "bottomConversionBehavior": "Compact offer of the leading eligible exchange, or alternatives module when none eligible.",
+      "availabilityStateBehavior": "Never mix restricted exchanges into the recommended ranking; each row renders its canonical state.",
+      "mobileBehavior": "Verdict + first two eligible rows in first-screen target; sections collapse cleanly.",
+      "seoIndexingPosture": "Indexable only after country evidence and publication are owner-approved.",
+      "requiredComponents": ["CountryContext", "EvidenceSummary", "ExchangeRankingRow", "ExchangeStatusBadge", "PromoCodeControl", "RegistrationCTA", "RestrictionNotice", "AlternativesList", "LastChecked"],
+      "prohibitedBehavior": ["restricted exchanges in the recommended ranking", "claim controls on restricted rows", "publication before owner authorization", "global-as-local promo claims"]
+    },
+    {
+      "id": 3,
+      "name": "Exchange directory",
+      "purpose": "Browse and filter exchanges.",
+      "userIntent": "Show me the options; let me filter by what matters to me.",
+      "urlPattern": { "pattern": "/exchanges/", "status": "live" },
+      "primaryDataSource": "Offer registry + canonical MI availability badges.",
+      "firstScreenStructure": {
+        "contains": ["directory H1", "country or availability context", "search/filter controls", "one compact recommended or featured eligible offer row when evidence allows"]
+      },
+      "firstScreenConversionRequirement": "Search/filter primacy; featured row follows the First Screen Standard; no forced promo offer without an authorized featured exchange.",
+      "mainBodySections": ["result rows with status, compact code chip and CTA per eligible row", "filter facets", "methodology link"],
+      "bottomConversionBehavior": "None forced.",
+      "availabilityStateBehavior": "Results clearly distinguish available, available with limits, restricted, under review; restricted rows carry no claim controls.",
+      "mobileBehavior": "Filters collapse; one row per line; codes copyable; no overflow.",
+      "seoIndexingPosture": "Indexable hub.",
+      "requiredComponents": ["ExchangeRankingRow", "ExchangeStatusBadge", "PromoCodeControl", "RegistrationCTA", "CountryContext", "LastChecked"],
+      "prohibitedBehavior": ["large unrelated promo hero displacing search", "forced featured offer without evidence", "undistinguished availability states"]
+    },
+    {
+      "id": 4,
+      "name": "Exchange review",
+      "purpose": "Full exchange evaluation plus authorized conversion; approved prototype is the authority reference.",
+      "userIntent": "Is this exchange good, and what is the code?",
+      "urlPattern": { "pattern": "/{exchange}/", "status": "live" },
+      "primaryDataSource": "Offer registry + canonical MI state + dated evidence registry.",
+      "firstScreenStructure": {
+        "eligible": ["exchange identity", "H1", "status", "verdict", "promo code", "Copy", "registration or Claim Bonus CTA", "eligibility note"],
+        "restricted": ["red state", "restriction reason", "View Available Alternatives"]
+      },
+      "firstScreenConversionRequirement": "Full First Screen Standard, all state rules, all six required viewports.",
+      "mainBodySections": ["compact facts table", "quick verdict", "availability and restrictions", "main products", "fees", "promo-code eligibility", "security and verification", "advantages and limitations", "FAQ"],
+      "bottomConversionBehavior": "Compact version of the same ExchangeOfferBlock; same rectangular logo, same state logic, same authorization rules.",
+      "availabilityStateBehavior": "AVAILABLE / AVAILABLE_WITH_LIMITS (with referralCompatibilityVerified sub-state) / RESTRICTED; both blocks always share one state.",
+      "mobileBehavior": "Prototype-proven 24/24 first-screen matrix; tables scroll in their own wrappers.",
+      "seoIndexingPosture": "Indexable exchange referral-code/review head terms; existing six live pages frozen until migration authorization.",
+      "requiredComponents": ["ExchangeOfferBlock", "ExchangeWordmarkSlot", "ExchangeStatusBadge", "PromoCodeControl", "RegistrationCTA", "EligibilityNotice", "LimitationNotice", "RestrictionNotice", "ProductAvailabilityTable", "FeesTable", "ProsCons", "FAQ", "EvidenceSummary", "LastChecked"],
+      "prohibitedBehavior": ["unverified bonus claims", "promo/claim controls in restricted state", "top/bottom block drift", "technical-inaccessibility claims"]
+    },
+    {
+      "id": 5,
+      "name": "Exchange x Country page",
+      "purpose": "Explain whether a specific exchange is suitable and available in a specific country.",
+      "userIntent": "Does this exchange work in my country; is the code valid here?",
+      "urlPattern": { "pattern": "/{exchange}/{country}/", "status": "proposed" },
+      "primaryDataSource": "Canonical MI exchange-x-country cell with dated evidence; never staging or RECOVERED/UNVERIFIED packages.",
+      "firstScreenStructure": {
+        "eligible": ["exchange + country identity", "exact local availability", "local verdict", "locally verified promo code", "Copy", "permitted registration CTA", "limitations"],
+        "restricted": ["red local restriction state", "reason", "evidence date", "View Available Alternatives", "no promo", "no registration CTA"]
+      },
+      "firstScreenConversionRequirement": "First Screen Standard with country-scoped evidence gate; global exchange availability never overrides a country-specific restriction.",
+      "mainBodySections": ["local availability matrix", "registration/KYC detail", "products locally", "payment rails", "restriction evidence", "alternatives", "FAQ"],
+      "bottomConversionBehavior": "ExchangeOfferBlock COMPACT when eligible; alternatives module when restricted.",
+      "availabilityStateBehavior": "Driven solely by the canonical country cell (e.g. MEXC x KZ RESTRICTED renders restriction-only presentation).",
+      "mobileBehavior": "Standard viewports; local verdict + state-correct action in first screen.",
+      "seoIndexingPosture": "Indexable only when that country-x-exchange publication is owner-authorized.",
+      "requiredComponents": ["ExchangeOfferBlock", "CountryContext", "ExchangeStatusBadge", "RestrictionNotice", "EvidenceSummary", "AlternativesList", "ProductAvailabilityTable", "ConflictNotice", "LastChecked"],
+      "prohibitedBehavior": ["global promo shown as locally eligible without evidence", "rendering from staging/unverified data", "overriding country restriction with global state", "claim controls in restricted state"]
+    },
+    {
+      "id": 6,
+      "name": "Referral / promo-code page",
+      "purpose": "Answer code, eligibility, reward and registration questions directly.",
+      "userIntent": "Give me the working code now.",
+      "urlPattern": { "pattern": "/promo-codes/{exchange}/", "status": "proposed", "hub": "/promo-codes/ (live)" },
+      "primaryDataSource": "Offer registry + canonical MI eligibility + dated offer evidence.",
+      "firstScreenStructure": {
+        "eligible": ["exact exchange and country scope", "current promo status", "complete code", "Copy", "registration CTA", "key eligibility condition", "last-checked context"],
+        "rule": "No large editorial introduction before the promo controls."
+      },
+      "firstScreenConversionRequirement": "Code and registration CTA are the dominant first-screen action.",
+      "mainBodySections": ["how to apply the code", "reward structure", "eligibility conditions", "terms warnings", "FAQ"],
+      "bottomConversionBehavior": "ExchangeOfferBlock COMPACT repeat.",
+      "availabilityStateBehavior": "Country compatibility unverified: hide the claimable code, show explicit eligibility warning, use Check Eligibility instead of Claim Bonus. Restricted: no code or claim at all.",
+      "mobileBehavior": "Code + CTA fully inside the first screen at all required viewports.",
+      "seoIndexingPosture": "Indexable exchange promo-code head terms.",
+      "requiredComponents": ["ExchangeOfferBlock", "PromoCodeControl", "RegistrationCTA", "EligibilityNotice", "LastChecked", "FAQ"],
+      "prohibitedBehavior": ["editorial wall before controls", "expired offer as current", "combined or unverified reward amounts", "claim language without verified compatibility"]
+    },
+    {
+      "id": 7,
+      "name": "Exchange comparison page",
+      "purpose": "Compare two or more exchanges.",
+      "userIntent": "A vs B - which should I pick and which code do I use?",
+      "urlPattern": { "pattern": "/compare/{a}-vs-{b}/", "status": "proposed" },
+      "primaryDataSource": "Canonical MI states + offer registry for each compared exchange.",
+      "firstScreenStructure": {
+        "twoExchange": "Both compact comparison offers in the first screen where layout allows without reducing readability; each eligible offer may show status, promo code, Copy, registration CTA.",
+        "threePlusDesktopTarget": "first three compact offers",
+        "threePlusMobileTarget": "first two compact offers"
+      },
+      "firstScreenConversionRequirement": "First Screen Standard per eligible offer; readability never sacrificed for density.",
+      "mainBodySections": ["comparison verdict", "dimension-by-dimension table", "fees", "products", "per-exchange offer detail", "FAQ"],
+      "bottomConversionBehavior": "COMPACT offer of the eligible winner only.",
+      "availabilityStateBehavior": "A restricted comparison winner never receives a promo code, claim CTA or registration CTA; a restricted exchange is never selected as a monetized winner.",
+      "mobileBehavior": "Comparison table scrolls in its own container; first two compact offers in first-screen target.",
+      "seoIndexingPosture": "Indexable X-vs-Y terms.",
+      "requiredComponents": ["ExchangeComparisonOffer", "ExchangeStatusBadge", "PromoCodeControl", "RegistrationCTA", "FeesTable", "ProsCons", "FAQ", "LastChecked"],
+      "prohibitedBehavior": ["monetizing a restricted winner", "claim controls on restricted columns", "unreadable compression to fit offers"]
+    },
+    {
+      "id": 8,
+      "name": "Guide / how-to page",
+      "purpose": "Complete a user task such as registration, purchase, deposit, withdrawal or P2P operation.",
+      "userIntent": "Show me how to do this, step by step.",
+      "urlPattern": { "pattern": "/guides/{slug}/", "status": "proposed revival (legacy retired)" },
+      "primaryDataSource": "Editorial steps + platform evidence screenshots; offer registry/MI for embedded offers.",
+      "firstScreenStructure": {
+        "primary": "Instructional title + first useful step.",
+        "commercialGuides": "May contain one recommended eligible exchange offer in the first screen when directly relevant to the task, with complete code and CTA when authorized.",
+        "neutralGuides": "Never forced to display a promo code."
+      },
+      "firstScreenConversionRequirement": "Applies only to the embedded offer module when present.",
+      "mainBodySections": ["informational steps", "commercial recommendation (separated)", "eligibility warning (separated)", "platform UI screenshots (separated)", "country restrictions (separated)"],
+      "bottomConversionBehavior": "Optional COMPACT offer when task-relevant.",
+      "availabilityStateBehavior": "Embedded modules obey full state rules; restricted exchanges get no claim language anywhere in the guide.",
+      "mobileBehavior": "Step 1 never displaced below the fold by a conversion element.",
+      "seoIndexingPosture": "Indexable informational terms.",
+      "requiredComponents": ["ExchangeOfferBlock (optional COMPACT)", "EligibilityNotice", "EvidenceSummary", "FAQ", "LastChecked"],
+      "prohibitedBehavior": ["forced promo in neutral guides", "commercial module displacing the first step", "mixing steps with commercial claims"]
+    },
+    {
+      "id": 9,
+      "name": "Restricted exchange / alternatives page",
+      "purpose": "Explain why an exchange is restricted and provide eligible alternatives.",
+      "userIntent": "This exchange does not work for me - why, and what should I use instead?",
+      "urlPattern": { "pattern": "/{exchange}/{country}/alternatives/", "status": "proposed" },
+      "primaryDataSource": "Canonical MI restriction evidence + eligible-alternative states.",
+      "firstScreenStructure": {
+        "contains": ["restricted exchange identity", "red restriction state", "concise reason", "evidence/recheck context", "eligible alternatives"],
+        "desktopTarget": "first three compact eligible alternatives where available",
+        "mobileTarget": "first two compact eligible alternatives where available"
+      },
+      "firstScreenConversionRequirement": "Conversion belongs to the alternatives: authorized alternatives may show promo code, Copy and registration CTA; the restricted exchange never shows those controls.",
+      "mainBodySections": ["restriction explanation with dated evidence", "what the restriction does and does not mean (no technical-inaccessibility claim unless separately verified)", "full alternatives list", "FAQ"],
+      "bottomConversionBehavior": "Alternatives module (COMPACT offers of eligible exchanges).",
+      "availabilityStateBehavior": "Restricted presentation per the standard; each alternative renders its own canonical state.",
+      "mobileBehavior": "Restriction reason + first alternative visible early; two alternatives in first-screen target.",
+      "seoIndexingPosture": "Indexable only when restriction-only publication is owner-authorized for that exchange x country.",
+      "requiredComponents": ["RestrictionNotice", "EvidenceSummary", "AlternativesList", "ExchangeStatusBadge", "PromoCodeControl", "RegistrationCTA", "ConflictNotice", "LastChecked"],
+      "prohibitedBehavior": ["any promo/claim/registration control for the restricted exchange", "technical-inaccessibility claims", "alternatives without verified eligibility"]
+    },
+    {
+      "id": 10,
+      "name": "Methodology / verification page",
+      "purpose": "Explain evidence, ranking, verification and update methodology.",
+      "userIntent": "Can I trust this site?",
+      "urlPattern": { "pattern": "/methodology/", "status": "live" },
+      "primaryDataSource": "Editorial methodology + verification-process facts.",
+      "firstScreenStructure": {
+        "contains": ["methodology H1", "concise trust statement", "verification principles", "last-updated or process status"]
+      },
+      "firstScreenConversionRequirement": "None. No promo code is required; commercial conversion controls are never forced into methodology pages.",
+      "mainBodySections": ["evidence standards", "ranking method", "verification cadence", "update policy", "conflict handling"],
+      "bottomConversionBehavior": "None forced; a soft directory link is permitted.",
+      "availabilityStateBehavior": "Explains the state system editorially; renders no commercial state.",
+      "mobileBehavior": "Readable article layout.",
+      "seoIndexingPosture": "Indexable trust page.",
+      "requiredComponents": ["SourceList", "EvidenceSummary", "LastChecked", "FAQ"],
+      "prohibitedBehavior": ["forced conversion controls", "commercial links blended into methodology claims"]
+    }
+  ],
+  "sharedComponentArchitecture": {
+    "components": [
+      "SiteHeader", "SiteFooter", "ExchangeWordmarkSlot", "ExchangeStatusBadge", "ExchangeOfferBlock",
+      "PromoCodeControl", "RegistrationCTA", "EligibilityNotice", "LimitationNotice", "RestrictionNotice",
+      "ExchangeRankingRow", "ExchangeComparisonOffer", "AlternativesList", "CountryContext", "EvidenceSummary",
+      "ProductAvailabilityTable", "FeesTable", "ProsCons", "FAQ", "SourceList", "ConflictNotice", "LastChecked",
+      "MobileConversionLayout"
+    ],
+    "ownershipRules": [
+      "Design/presentation components must not decide factual eligibility.",
+      "Market Intelligence or approved data adapters supply state.",
+      "Page templates render approved state.",
+      "Affiliate routes remain separately authorized.",
+      "No component may infer country eligibility from a stored code or URL."
+    ]
+  },
+  "dataDesignBoundary": {
+    "marketIntelligence": ["determines evidence-backed status", "determines product availability", "determines conflicts", "determines confidence", "determines publication and eligibility boundaries"],
+    "offerRegistry": ["stores route and code implementation facts", "does not prove country eligibility"],
+    "designSystem": ["renders the supplied approved state", "does not upgrade status", "does not invent bonuses", "does not resolve evidence conflicts"],
+    "productionPage": ["consumes only approved data", "requires separate migration authorization"],
+    "prototype": ["may use mock data", "must visibly identify mock state", "must not use real affiliate navigation"]
+  },
+  "seoRoutingBoundary": {
+    "prototypeRoutes": ["noindex,nofollow", "absent from sitemap", "absent from production navigation", "no real affiliate navigation"],
+    "productionRoutes": ["require separate owner approval", "require canonical and sitemap decisions", "require verified data binding", "require production QA", "require deploy authorization"],
+    "createsProductionRoutes": false
+  },
+  "rolloutOrder": [
+    { "order": 1, "family": "Exchange review", "status": "completed and approved in design branch" },
+    { "order": 2, "family": "Homepage" },
+    { "order": 3, "family": "Country page" },
+    { "order": 4, "family": "Exchange directory" },
+    { "order": 5, "family": "Exchange x Country" },
+    { "order": 6, "family": "Comparison" },
+    { "order": 7, "family": "Referral / promo page" },
+    { "order": 8, "family": "Guide" },
+    { "order": 9, "family": "Restricted alternatives" },
+    { "order": 10, "family": "Methodology" }
+  ],
+  "prototypeRequirementsPerFamily": ["isolated", "noindex", "based on mock data", "visually reviewed", "responsive-tested", "owner-approved", "committed to a design branch before production migration consideration"],
+  "authorizationFlags": {
+    "DESIGN_PROTOTYPE_AUTHORIZED": true,
+    "PRODUCTION_MIGRATION_AUTHORIZED": false,
+    "PRODUCTION_PAGE_CHANGE_AUTHORIZED": false,
+    "PRODUCTION_COMPONENT_CHANGE_AUTHORIZED": false,
+    "PRODUCTION_DATA_BINDING_AUTHORIZED": false,
+    "AFFILIATE_ROUTE_ACTIVATION_AUTHORIZED": false,
+    "PUBLICATION_AUTHORIZED": false,
+    "DEPLOY_AUTHORIZED": false
+  },
+  "authorityScopeNote": "These authority documents approve architecture and design standards only. They do not authorize production implementation.",
+  "nextTask": "CBW-HOMEPAGE-TEMPLATE-PROTOTYPE-001",
+  "nextImplementationTask": {
+    "id": "CBW-HOMEPAGE-TEMPLATE-PROTOTYPE-001",
+    "constraints": ["design branch only", "noindex", "mock data only", "no production integration", "no real affiliate navigation"]
+  }
+}
