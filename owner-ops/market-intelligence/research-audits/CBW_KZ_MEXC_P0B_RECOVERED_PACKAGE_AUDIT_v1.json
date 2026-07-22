@@ -1,0 +1,181 @@
+{
+  "auditId": "CBW-KZ-MEXC-P0B-RECOVERED-PACKAGE-AUDIT-v1",
+  "taskId": "CBW-KZ-MEXC-P0-B-RECOVERED-PACKAGE-AUDIT-002",
+  "project": "CryptoBonusWorld",
+  "repository": "C:/projects/CryptoBonusWorld",
+  "branch": "master",
+  "baselineHead": "682e19e48d24a5c72aa89e2fd479dc6854d07047",
+  "date": "2026-07-22",
+  "countryCode": "KZ",
+  "exchangeId": "mexc",
+  "batchId": "KZ-P0-B",
+  "mode": "READ_ONLY_RECOVERED_PACKAGE_AUDIT",
+  "webBrowsingUsed": false,
+  "packageStatus": "RECOVERED / UNVERIFIED",
+
+  "auditedInputs": {
+    "recoveredZip": "C:/projects/CryptoBonusWorld/_handoff/mexc-p0b-source-review/CBW_KZ_MEXC_P0B_RESEARCH_PACKAGE_v1_RECOVERED.zip",
+    "recoveredZipBytes": 30728,
+    "recoveredZipSha256": "aa4ee0a0e3399c74f80eb22de843815a9899fa43fb947b3b660a713aaa5dd242",
+    "integrityAudit": "C:/projects/CryptoBonusWorld/_handoff/mexc-p0b-source-review/CBW_KZ_MEXC_P0B_RESEARCH_PACKAGE_INTEGRITY_AUDIT_v1.md"
+  },
+
+  "packageIdentity": {
+    "project": "CryptoBonusWorld",
+    "country": "Kazakhstan (KZ)",
+    "exchange": "MEXC (mexc)",
+    "batch": "KZ-P0-B",
+    "task": "CBW-KZ-MEXC-P0-B-DEEP-RESEARCH-001",
+    "baselineHeadInPackage": "67bdca323928a4a26aaa4cbe48ec18200fdc1d1d",
+    "repoHeadNewerBecauseQueueCommitted": true,
+    "researchMode": "Official-source, evidence-first, NO-PROXY",
+    "liveVerificationState": "NOT_LIVE_VERIFIED",
+    "result": "PASS"
+  },
+
+  "packageStructure": {
+    "zipOpens": true,
+    "entryCount": 8,
+    "exactFiles": ["research-run.json", "source-registry.json", "claim-ledger.json", "exchange-country-findings.json", "conflicts.json", "unknowns.json", "publication-blockers.json", "research-report.md"],
+    "duplicateEntries": 0,
+    "pathTraversal": 0,
+    "hiddenFiles": 0,
+    "zeroByteFiles": 0,
+    "temporaryOrUnexpectedFiles": 0,
+    "utf8DecodeAll8": true,
+    "jsonParse7of7": true,
+    "result": "PASS"
+  },
+
+  "counts": {
+    "sources": 16,
+    "claims": 24,
+    "conflicts": 7,
+    "unknowns": 11,
+    "publicationBlockers": 8,
+    "expectedFromIntegrityAudit": { "sources": 16, "claims": 24, "conflicts": 7, "unknowns": 11, "publicationBlockers": 8 },
+    "allMatch": true,
+    "mismatches": []
+  },
+
+  "distributions": {
+    "sourceTier": { "TIER_A": 5, "TIER_B": 11 },
+    "sourceLanguage": { "English": 16 },
+    "claimCategory": { "entity": 1, "routing": 1, "regulation": 1, "restrictions": 1, "registration": 1, "kyc": 2, "spot": 1, "derivatives": 1, "margin": 1, "other": 2, "p2p": 1, "kzt": 1, "direct-fiat": 2, "card-purchase": 1, "mobile-app": 1, "referral": 2, "promotions": 2, "publication": 2 },
+    "claimStatus": { "SUPPORTED_NEGATIVE": 2, "CONFLICTING": 5, "SUPPORTED": 4, "SUPPORTED_WITH_OFFICIAL_CONFLICTS": 1, "PARTIALLY_SUPPORTED": 1, "SUPPORTED_RESTRICTIVE": 4, "RESTRICTED_WITH_PRODUCT_DETAIL_UNKNOWN": 1, "UNKNOWN": 2, "SUPPORTED_WITH_LOWER_SPECIFICITY_CONTRADICTION": 1, "SUPPORTED_GLOBAL_ONLY": 1, "SUPPORTED_HISTORICAL_ONLY": 1, "SUPPORTED_BY_TASK_AUTHORITY": 1 },
+    "claimConfidence": { "HIGH": 17, "MEDIUM": 5, "LOW": 2 },
+    "conflictStatus": { "RESOLVED_RESTRICTIVE": 1, "RESOLVED_BY_SPECIFICITY": 1, "OPEN": 4, "OPEN_POLICY_GATED": 1 },
+    "correctionRequiredClaims": 15,
+    "contradictedStatusClaims": 0,
+    "claimsWithNoSupportedSourceIds": 1,
+    "claimsWithNoSupportNote": "clm-kz-mexc-publication-002 is a task-authority/boundary statement (status SUPPORTED_BY_TASK_AUTHORITY), not an evidentiary claim — acceptable that it carries no source."
+  },
+
+  "idAndCrossReference": {
+    "sourceIdsUnique": true, "claimIdsUnique": true, "conflictIdsUnique": true, "unknownIdsUnique": true, "blockerIdsUnique": true,
+    "badSourcePrefixes": [], "badClaimPrefixes": [],
+    "expectedPrefixes": ["src-kz-mexc-", "sup-kz-mexc-", "clm-kz-mexc-"],
+    "danglingReferences": 0,
+    "duplicateReferences": 0,
+    "referencesToAbsentRecords": 0,
+    "malformedIds": 0,
+    "checked": ["claim.supportedSourceIds", "claim.contradictedSourceIds", "source.supportedClaimIds", "source.contradictedClaimIds", "conflict.sourceIds", "conflict.claimIds", "findings claim/source refs"],
+    "result": "PASS"
+  },
+
+  "reportJsonCoherence": {
+    "reportReflectsCounts": true,
+    "reportRecommendation": "RESTRICTED",
+    "reportConfidence": "HIGH",
+    "reportLiveVerificationState": "NOT_LIVE_VERIFIED",
+    "reportPublicationPosture": "BLOCKED",
+    "recoveryAppendixCoherence": "PASS (per supplied integrity audit; embedded JSON matches ZIP JSON)",
+    "inconsistencies": [],
+    "result": "PASS"
+  },
+
+  "finalRecommendationAudit": {
+    "overallRecommendation": "RESTRICTED",
+    "confidence": "HIGH",
+    "publicationPosture": "BLOCKED",
+    "recommendationFollowsFromOwnSourcesAndClaims": true,
+    "kazakhstanDirectlyNamedInRestrictedSource": "Package asserts YES — clm-kz-mexc-restrictions-001 states KZ is expressly listed as a Prohibited Jurisdiction in the CURRENT MEXC User Agreement (Tier A src-kz-mexc-terms-001). REQUIRES source-truth verification (flips the earlier repository signal that KZ was ABSENT from the prohibited list).",
+    "afsaWarningRepresentedAccurately": "Represented as regulation-001 (AFSA named MEXC unlicensed, promoting to KZ citizens) — scope/language requires source-truth review; not equated automatically with technical unavailability.",
+    "absenceFromOlderListHandledAsConflict": true,
+    "productPagesSeparatedFromLegalAvailability": true,
+    "unlicensedNotEquatedWithUnavailability": true,
+    "globalPresenceNotTreatedAsKzEligibility": true,
+    "legalProductRankingCtaPromoPublicationSeparated": true,
+    "notes": "RESTRICTED rests on Tier-A restrictions-001 (terms prohibition) + regulation-001 (AFSA unlicensed) + registration-001 (no KZ registration) + kyc-001 (no KZ KYC). Conflicting official app-support/P2P-KZT/fiat/Earn signals are held as CONFLICTING claims + OPEN conflicts, not as positive eligibility. eligibility block: ranking/CTA/promo/publication all UNAVAILABLE/BLOCKED; canonicalMiImport + migration5 NOT_AUTHORIZED. Internally coherent — NOT independently source-verified.",
+    "RECOMMENDATION_COHERENCE": "PASS"
+  },
+
+  "highRiskClaims": [
+    { "claimId": "clm-kz-mexc-restrictions-001", "statement": "Kazakhstan is expressly listed as a Prohibited Jurisdiction in the current MEXC User Agreement.", "supportedSourceIds": ["src-kz-mexc-terms-001"], "contradictedSourceIds": "5 official app/P2P/KZT/fiat/Earn sources", "confidence": "HIGH", "limitation": "Flips the earlier repository signal (KZ previously ABSENT from prohibited list); requires exact current dated terms text.", "sourceTruthReviewPriority": "P0" },
+    { "claimId": "clm-kz-mexc-regulation-001", "statement": "AFSA publicly identified MEXC as an unlicensed platform promoting services to Kazakhstan citizens.", "supportedSourceIds": ["src-kz-mexc-afsa-warning-001"], "contradictedSourceIds": [], "confidence": "HIGH", "limitation": "AFSA warning language/scope; 'unlicensed' vs 'prohibited' distinction must be verified.", "sourceTruthReviewPriority": "P0" },
+    { "claimId": "clm-kz-mexc-registration-001", "statement": "MEXC states it does not accept user registration from Kazakhstan.", "supportedSourceIds": ["src-kz-mexc-terms-001"], "contradictedSourceIds": "1", "confidence": "HIGH", "limitation": "Depends on the same current-terms verification + effective date.", "sourceTruthReviewPriority": "P0" },
+    { "claimId": "clm-kz-mexc-kyc-001", "statement": "Kazakhstan users are not eligible to submit KYC under MEXC policy.", "supportedSourceIds": ["2"], "contradictedSourceIds": "1", "confidence": "HIGH", "limitation": "KYC eligibility tied to the restriction claim; verify dated KYC policy.", "sourceTruthReviewPriority": "P0" },
+    { "claimId": "clm-kz-mexc-p2p-001", "statement": "Official MEXC pages expose KZT P2P functionality, but KZ P2P eligibility is CONFLICTING.", "supportedSourceIds": ["2"], "contradictedSourceIds": ["2"], "confidence": "HIGH", "limitation": "Product signal vs restriction conflict; verify current KZT P2P page.", "sourceTruthReviewPriority": "P1" },
+    { "claimId": "clm-kz-mexc-kzt-001", "statement": "KZT appears in official MEXC P2P/fiat materials (product signal, not eligibility).", "supportedSourceIds": ["4"], "contradictedSourceIds": ["1"], "confidence": "HIGH", "limitation": "Do not treat currency presence as KZ eligibility.", "sourceTruthReviewPriority": "P1" },
+    { "claimId": "clm-kz-mexc-derivatives-001", "statement": "Derivatives restricted by the broad country prohibition.", "supportedSourceIds": ["1"], "contradictedSourceIds": [], "confidence": "HIGH", "limitation": "Depends on restriction claim.", "sourceTruthReviewPriority": "P1" },
+    { "claimId": "clm-kz-mexc-direct-fiat-deposit-001", "statement": "Direct KZT bank-deposit rail not verified.", "supportedSourceIds": ["1"], "contradictedSourceIds": [], "confidence": "LOW", "limitation": "UNKNOWN — evidence gap.", "sourceTruthReviewPriority": "P1" },
+    { "claimId": "clm-kz-mexc-direct-fiat-withdrawal-001", "statement": "Direct KZT bank-withdrawal rail not verified.", "supportedSourceIds": ["1"], "contradictedSourceIds": [], "confidence": "LOW", "limitation": "UNKNOWN — evidence gap.", "sourceTruthReviewPriority": "P1" },
+    { "claimId": "clm-kz-mexc-referral-002", "statement": "KZ compatibility of any MEXC referral code (incl. repository code) is not officially verified.", "supportedSourceIds": ["3"], "contradictedSourceIds": [], "confidence": "HIGH", "limitation": "Repository route/code are implementation facts only.", "sourceTruthReviewPriority": "P1" },
+    { "claimId": "clm-kz-mexc-promotions-001", "statement": "Only KZ-relevant official KZT promotion was an ended August 20xx program.", "supportedSourceIds": ["1"], "contradictedSourceIds": [], "confidence": "MEDIUM", "limitation": "Historical only; verify dates.", "sourceTruthReviewPriority": "P2" },
+    { "claimId": "clm-kz-mexc-publication-001", "statement": "Positive KZ availability, ranking, CTA, referral-code and promo publication must remain blocked.", "supportedSourceIds": ["6"], "contradictedSourceIds": [], "confidence": "HIGH", "limitation": "Derived conclusion; verify once P0 restriction claims confirmed.", "sourceTruthReviewPriority": "P2" }
+  ],
+
+  "recoveryStatus": {
+    "classification": "RECOVERED / UNVERIFIED",
+    "zipSha256": "aa4ee0a0e3399c74f80eb22de843815a9899fa43fb947b3b660a713aaa5dd242",
+    "zipBytes": 30728,
+    "eightFileList": ["research-run.json", "source-registry.json", "claim-ledger.json", "exchange-country-findings.json", "conflicts.json", "unknowns.json", "publication-blockers.json", "research-report.md"],
+    "originalGeneratedHashesAvailable": false,
+    "anyFileByteIdenticalToOriginal": false,
+    "reconstructedFiles": "all 8 (per supplied integrity audit)",
+    "semanticCompletenessEstablished": true,
+    "byteIdenticalRecoveryEstablished": false,
+    "mustRemainRecoveredUnverified": true,
+    "RECOVERY_INTEGRITY": "WARN"
+  },
+
+  "authorizationBoundaries": {
+    "researchImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false
+  },
+
+  "verdicts": {
+    "PACKAGE_STRUCTURE": "PASS",
+    "JSON_PARSE_INTEGRITY": "PASS",
+    "PROJECT_TASK_IDENTITY": "PASS",
+    "COUNT_INTEGRITY": "PASS",
+    "ID_UNIQUENESS": "PASS",
+    "CROSS_REFERENCE_INTEGRITY": "PASS",
+    "REPORT_JSON_COHERENCE": "PASS",
+    "RECOMMENDATION_COHERENCE": "PASS",
+    "RECOVERY_INTEGRITY": "WARN",
+    "SOURCE_TRUTH_REVIEW_READINESS": "READY",
+    "IMPORT_READINESS": "NOT_READY",
+    "IMPORT_AUTHORIZATION": false,
+    "PRODUCTION_CHANGE_AUTHORIZATION": false,
+    "MIGRATION_5_AUTHORIZATION": false
+  },
+
+  "filesCreated": [
+    "owner-ops/market-intelligence/research-audits/CBW_KZ_MEXC_P0B_RECOVERED_PACKAGE_AUDIT_v1.md",
+    "owner-ops/market-intelligence/research-audits/CBW_KZ_MEXC_P0B_RECOVERED_PACKAGE_AUDIT_v1.json"
+  ],
+  "handoffZip": "C:/projects/CryptoBonusWorld/_handoff/CBW_KZ_MEXC_P0B_RECOVERED_PACKAGE_AUDIT_HANDOFF_v1.zip",
+
+  "recommendation": "APPROVE",
+  "recommendationScope": "The recovered MEXC x Kazakhstan (KZ-P0-B) Deep Research package is structurally intact (8 files, all JSON parse), identity-correct, count-correct (16/24/7/11/8), ID-unique, reference-complete (0 dangling), report/JSON coherent, and internally coherent toward RESTRICTED/HIGH/BLOCKED with legal/product/ranking/CTA/promo/publication kept separate. It remains RECOVERED / UNVERIFIED (no byte-identical original certifiable) and is READY for independent source-truth review — NOT for import. Import, canonical MI, production, ranking, CTA, promo, publication and MIGRATION_5 remain BLOCKED.",
+  "nextTask": "CBW-KZ-MEXC-P0-B-SOURCE-TRUTH-REVIEW-001 — owner-gated independent source-truth review that verifies the P0 high-risk claims (esp. clm-kz-mexc-restrictions-001 'KZ expressly prohibited in CURRENT terms' which flips the earlier repository signal, clm-kz-mexc-regulation-001 AFSA scope, registration-001, kyc-001) against tiered dated official sources, then owner decision. Import, canonical MI, and MIGRATION_5 remain blocked."
+}
