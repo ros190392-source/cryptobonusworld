@@ -1,0 +1,264 @@
+---
+/**
+ * DESIGN PREVIEW — ExchangeOfferBlock (prototype-local extraction).
+ *
+ * Embodies the future reusable component model approved in
+ * CBW-EXCHANGE-REVIEW-TEMPLATE-OWNER-REVIEW-002:
+ *   placement: TOP | BOTTOM  (FULL | COMPACT presentation)
+ *   availabilityState: AVAILABLE | AVAILABLE_WITH_LIMITS | RESTRICTED
+ *   referralCompatibilityVerified: true | false
+ *   mockMode: always true in this prototype
+ *
+ * One system controls both conversion blocks: rectangular wordmark logo,
+ * status badge, verdict, promo code + Copy, primary CTA, limitation notice,
+ * restriction notice, terms note and the restricted alternatives action.
+ * State is applied client-side by the page controller via
+ * [data-offer-block] / [data-role] hooks; this component renders the shared
+ * structure with server-rendered defaults.
+ *
+ * PROTOTYPE ONLY — not a production component; no production page imports it.
+ * All CTAs are inert preview actions; no /go/**, affiliate or external URLs.
+ */
+import ExchangePromoLogoSlot from '../ExchangePromoLogoSlot.astro';
+
+export interface Props {
+  placement: 'top' | 'bottom';
+  defaultExchangeName: string;
+  defaultBadgeText: string;
+  defaultVerdict: string;
+  defaultBonusLabel?: string | null;
+  defaultPromoCode?: string | null;
+  defaultCtaLabel: string;
+  defaultEligibilityNote: string;
+  defaultTermsWarning?: string | null;
+  lastCheckedLabel?: string | null;
+  defaultAvailabilityLabel?: string | null;
+}
+
+const {
+  placement,
+  defaultExchangeName,
+  defaultBadgeText,
+  defaultVerdict,
+  defaultBonusLabel = null,
+  defaultPromoCode = null,
+  defaultCtaLabel,
+  defaultEligibilityNote,
+  defaultTermsWarning = null,
+  lastCheckedLabel = null,
+  defaultAvailabilityLabel = null,
+} = Astro.props;
+
+const isTop = placement === 'top';
+---
+
+<section
+  class:list={['offer-block', isTop ? 'ob-full brand-bybit' : 'ob-compact', 'ob-dark']}
+  data-offer-block={placement}
+>
+  <div class="ob-inner">
+
+    <!-- Rectangular wordmark logo — identical slot system in both placements -->
+    <div class="ob-brand" data-brand-slot="bybit">
+      <ExchangePromoLogoSlot
+        src="/logos/bybit-wordmark-official.png"
+        alt="Bybit (design preview)"
+        mode="clean"
+        visualScale={isTop ? 0.70 : 0.52}
+        loading={isTop ? 'eager' : 'lazy'}
+      />
+    </div>
+    <div class="ob-brand" data-brand-slot="mexc" hidden>
+      <ExchangePromoLogoSlot
+        src="/logos/mexc-wordmark-hero-white-v1-8fb6d655.png"
+        alt="MEXC (design preview)"
+        mode="clean"
+        visualScale={isTop ? 0.78 : 0.58}
+        loading="lazy"
+      />
+    </div>
+
+    <div class="ob-id-row">
+      <span class="ob-exchange-name" data-role="exchange-name">{defaultExchangeName}</span>
+      <span class="ob-badge badge-green" data-role="badge">{defaultBadgeText}</span>
+      {isTop && defaultAvailabilityLabel && (
+        <span class="ob-availability" data-role="availability">{defaultAvailabilityLabel}</span>
+      )}
+    </div>
+
+    <p class="ob-verdict" data-role="verdict">{defaultVerdict}</p>
+
+    {isTop && (
+      <p class="ob-bonus-label" data-role="bonus-label">{defaultBonusLabel}</p>
+    )}
+
+    <div class="ob-notice ob-notice-amber" data-role="limit-notice" data-dp-hidden></div>
+    <div class="ob-notice ob-notice-red" data-role="restrict-notice" data-dp-hidden></div>
+
+    <div data-role="promo-wrap">
+      {isTop && <p class="ob-promo-label">Promo Code</p>}
+      <div class="ob-promo-row" data-copy-row>
+        <span class="ob-promo-code" data-role="promo-code">{defaultPromoCode}</span>
+        <button class="ob-copy-btn" type="button" data-copy-btn>Copy</button>
+      </div>
+    </div>
+
+    <button class="ob-cta" type="button" data-role="cta" data-preview-cta>
+      {defaultCtaLabel}
+    </button>
+
+    <p class="ob-eligibility" data-role="eligibility">{defaultEligibilityNote}</p>
+
+    {isTop && lastCheckedLabel && (
+      <p class="ob-source">{lastCheckedLabel} · no value on this page is verified</p>
+    )}
+
+    {isTop && (
+      <div class="ob-trust">
+        <span class="ob-trust-item">🧪 Mock preview data</span>
+        <span class="ob-trust-item">📝 Prototype copy</span>
+        <span class="ob-trust-item">🚫 No live verification</span>
+      </div>
+    )}
+
+    {!isTop && defaultTermsWarning && (
+      <p class="ob-terms" data-role="terms">{defaultTermsWarning}</p>
+    )}
+  </div>
+</section>
+
+<style>
+  /* ── Shared dark conversion surface ─────────────────────────── */
+  .offer-block { color: #fff; position: relative; overflow: hidden; }
+  .ob-dark { background: linear-gradient(160deg, #0C1118 0%, #141B25 100%); }
+  .offer-block.brand-bybit {
+    background:
+      url('/media/hero-backgrounds/bybit-hero-custom-v1.png') left center / cover no-repeat,
+      linear-gradient(160deg, #0C1118 0%, #141B25 100%);
+  }
+  .offer-block.brand-mexc {
+    background:
+      url('/media/hero-backgrounds/mexc-hero-custom-v1.png') center center / cover no-repeat,
+      linear-gradient(160deg, #0C1118 0%, #141B25 100%);
+  }
+
+  /* FULL (top hero) — compact paddings per First Screen Conversion Standard v1 */
+  .ob-full { padding: 16px 0 30px; }
+  @media (min-width: 640px) { .ob-full { padding: 20px 0 34px; } }
+  /* COMPACT (bottom closing block) — same system, tighter rhythm */
+  .ob-compact { padding: 20px 0 30px; }
+
+  .ob-inner {
+    width: 100%; max-width: 560px; margin: 0 auto; padding: 0 20px;
+    text-align: center; box-sizing: border-box; position: relative; z-index: 1;
+  }
+
+  .ob-brand[hidden] { display: none; }
+
+  .ob-id-row {
+    display: flex; align-items: center; justify-content: center; gap: 8px 10px;
+    flex-wrap: wrap; margin: 4px 0 2px;
+  }
+  .ob-exchange-name { font-size: 15px; font-weight: 700; letter-spacing: .02em; color: rgba(255,255,255,.92); }
+  .ob-availability { font-size: 12px; color: rgba(255,255,255,.55); }
+
+  .ob-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
+    padding: 4px 12px; border-radius: 100px; line-height: 1.4; white-space: nowrap;
+  }
+  .ob-badge::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .ob-badge.badge-green { background: rgba(22,163,74,.18); color: #4ade80; border: 1px solid rgba(74,222,128,.45); }
+  .ob-badge.badge-amber { background: rgba(245,158,11,.16); color: #fbbf24; border: 1px solid rgba(251,191,36,.45); }
+  .ob-badge.badge-red   { background: rgba(220,38,38,.18); color: #f87171; border: 1px solid rgba(248,113,113,.5); }
+
+  .ob-verdict {
+    font-size: 13px; color: rgba(255,255,255,.76); line-height: 1.5;
+    margin: 6px auto 10px; max-width: 460px;
+  }
+  @media (min-width: 640px) { .ob-verdict { font-size: 14px; } }
+  .ob-compact .ob-verdict { margin-bottom: 12px; }
+
+  .ob-bonus-label {
+    display: block;
+    font-family: "Barlow Condensed", "Oswald", "Arial Narrow", sans-serif;
+    font-size: 19px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: .05em; color: #fff; line-height: 1.15; margin: 0 0 10px;
+  }
+  @media (min-width: 640px) { .ob-bonus-label { font-size: 24px; } }
+
+  .ob-notice {
+    max-width: 430px; margin: 0 auto 12px; padding: 9px 13px;
+    border-radius: 8px; font-size: 12.5px; line-height: 1.5; text-align: left;
+  }
+  .ob-notice-amber { background: rgba(245,158,11,.14); border: 1px solid rgba(251,191,36,.45); color: #fde68a; }
+  .ob-notice-red   { background: rgba(220,38,38,.16); border: 1px solid rgba(248,113,113,.5); color: #fecaca; }
+
+  .ob-promo-label {
+    display: block;
+    font-family: "Barlow Condensed", "Oswald", "Arial Narrow", sans-serif;
+    font-size: 18px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: .06em; color: rgba(255,255,255,.9); line-height: 1; margin: 0 0 8px;
+  }
+  .ob-promo-row {
+    width: 100%; max-width: 298px; margin: 0 auto 12px;
+    display: flex; align-items: stretch;
+    background: #ffffff; border: 1px solid #D1D5DB; border-radius: 8px; overflow: hidden;
+    height: 52px; transition: border-color .18s, background .18s;
+    color-scheme: light; forced-color-adjust: none;
+  }
+  .ob-compact .ob-promo-row { max-width: 270px; height: 48px; }
+  .ob-promo-row.copy-success { border-color: #22c55e !important; background: #dcfce7 !important; }
+  .ob-promo-code {
+    flex: 1; display: flex; align-items: center; padding: 0 14px;
+    font-family: "Arial Narrow", "Roboto Condensed", "Inter Tight", Inter, system-ui, sans-serif;
+    font-size: 19px; font-weight: 800; letter-spacing: .01em; text-transform: uppercase;
+    color: #111827; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+    background: #ffffff;
+  }
+  @media (min-width: 640px) { .ob-promo-code { font-size: 21px; } }
+  .ob-compact .ob-promo-code { font-size: 17px; }
+  .ob-promo-row.copy-success .ob-promo-code { color: #166534 !important; background: #dcfce7 !important; }
+  .ob-copy-btn {
+    flex-shrink: 0; width: 64px; display: flex; align-items: center; justify-content: center;
+    border: none; border-left: 1px solid #e5e7eb; font-size: 12px; font-weight: 700;
+    color: #16a34a; background: #ffffff; cursor: pointer; letter-spacing: .03em;
+    transition: background .15s, color .15s;
+  }
+  .ob-copy-btn:hover { background: #f0fdf4; }
+  .ob-promo-row.copy-success .ob-copy-btn { background: #dcfce7 !important; color: #166534 !important; }
+
+  .ob-cta {
+    display: flex; align-items: center; justify-content: center;
+    width: 100%; max-width: 320px; margin: 0 auto 10px;
+    background: var(--cbw-green); color: #fff;
+    font-size: 20px; font-weight: 700; border-radius: 6px; height: 56px;
+    transition: background .15s, transform .1s; text-decoration: none; cursor: pointer;
+    border: none;
+  }
+  @media (min-width: 640px) { .ob-full .ob-cta { font-size: 23px; height: 62px; } }
+  .ob-compact .ob-cta { max-width: 300px; height: 52px; font-size: 18px; }
+  .ob-cta:hover { background: var(--cbw-green-hover); transform: translateY(-1px); }
+  .ob-cta.cta-neutral {
+    background: rgba(255,255,255,.10); border: 1.5px solid rgba(255,255,255,.45);
+    font-size: 16px; font-weight: 700; height: 52px;
+  }
+  .ob-cta.cta-neutral:hover { background: rgba(255,255,255,.18); transform: none; }
+
+  .ob-eligibility { font-size: 12.5px; color: rgba(255,255,255,.55); line-height: 1.55; margin: 0 0 8px; }
+  .ob-source { font-size: 12px; color: rgba(255,255,255,.42); line-height: 1.55; margin: 0 0 10px; }
+  .ob-terms {
+    font-size: 11px; color: rgba(255,255,255,.38); line-height: 1.6; margin: 4px auto 0;
+    max-width: 460px;
+  }
+
+  .ob-trust { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
+  .ob-trust-item {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 600; color: rgba(255,255,255,.6);
+    border: 1px solid rgba(255,255,255,.18); border-radius: 100px; padding: 4px 11px;
+    background: rgba(255,255,255,.05); white-space: nowrap;
+  }
+
+  :global([data-dp-hidden]) { display: none !important; }
+</style>
