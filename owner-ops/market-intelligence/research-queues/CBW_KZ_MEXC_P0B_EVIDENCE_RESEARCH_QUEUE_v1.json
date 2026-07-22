@@ -1,0 +1,199 @@
+{
+  "queueId": "CBW-KZ-MEXC-P0B-EVIDENCE-RESEARCH-QUEUE-v1",
+  "taskId": "CBW-KZ-MEXC-P0-B-EVIDENCE-RESEARCH-QUEUE-001",
+  "project": "CryptoBonusWorld",
+  "repository": "C:/projects/CryptoBonusWorld",
+  "branch": "master",
+  "baselineHead": "67bdca323928a4a26aaa4cbe48ec18200fdc1d1d",
+  "date": "2026-07-22",
+  "countryCode": "KZ",
+  "exchangeId": "mexc",
+  "batchId": "KZ-P0-B",
+  "priority": "P0",
+  "mode": "REPOSITORY_INVENTORY + RESEARCH_QUEUE + HANDOFF_PACKAGE_ONLY",
+  "researchPerformed": false,
+  "webBrowsingUsed": false,
+
+  "gatePreconditions": {
+    "bybitKzP0aClosed": true,
+    "bybitCloseoutCommit": "67bdca323928a4a26aaa4cbe48ec18200fdc1d1d",
+    "kazakhstanQueueMayAdvance": true,
+    "approvedNextExchange": "MEXC",
+    "batch": "KZ-P0-B",
+    "noMexcCanonicalPackage": true,
+    "noMexcStagingPipeline": true,
+    "noMexcMigration5Preview": true
+  },
+
+  "repositoryInventory": {
+    "legacyGeoPassport": {
+      "path": "research/geo/kazakhstan/exchanges/mexc.json",
+      "research_status": "not_started",
+      "availability": "all UNKNOWN",
+      "products": "all UNKNOWN",
+      "legalEntity": null,
+      "affiliate": { "go_route": "/go/mexc", "promo_code": "mexc-CryptoBonus", "geo_eligible": "UNKNOWN", "bonus_claim_status": "not_checked" },
+      "scores": "all null",
+      "status": { "cta": "not_decided", "index_eligible": false },
+      "evidence_ids": ["ev-kz-mexc-terms-111", "ev-kz-afsa-warning-003"],
+      "conflict_ids": ["cf-kz-mexc-terms-vs-regulator"],
+      "unknown_claim_ids": ["kz-mexc-bonus-availability-004"],
+      "last_checked_at": "2026-07-14",
+      "priorFindings": "KZ absent from mexc.com/terms prohibited list (terms updated 2025-05-29), BUT AFSA warning of 2026-04-29 names MEXC as unlicensed toward Kazakhstan citizens. Availability CONFLICTED; OWNER_REVIEW_REQUIRED."
+    },
+    "production": {
+      "path": "src/data/geoRankings.ts (MANUAL_OVERRIDES.kazakhstan.mexc)",
+      "availability": "unknown",
+      "rankOrPosition": "2 (production snapshot; unpublished)",
+      "route": "/go/mexc (implementation fact only)",
+      "referralCode": "mexc-CryptoBonus (implementation fact only)",
+      "storedOffer": "bonusAvailability unknown (no verified bonus claimed)",
+      "confidence": "partial (refers to terms capture, not a KZ availability confirmation)",
+      "recommendationState": "under review (regulatorCautionNote present)",
+      "publicationEligibility": "blocked (config/geo/kazakhstan.json homepage_eligible=false, publication_status=blocked_by_missing_evidence)",
+      "evidenceUrl": "https://www.mexc.com/terms",
+      "evidenceDate": "2026-07-03"
+    },
+    "masterQueueItem": {
+      "path": "owner-ops/market-intelligence/research-queues/CBW_KAZAKHSTAN_EXCHANGE_EVIDENCE_RESEARCH_QUEUE_v1.json (exchangeResearchItems[mexc])",
+      "priority": "P0",
+      "batchId": "KZ-P0-B",
+      "currentProductionAvailability": "unknown",
+      "currentMiAvailability": "CONFLICTING",
+      "discrepancyState": "INCOMPARABLE",
+      "shadowOutcome": "HOLD_CONFLICTING",
+      "knownConflictIds": ["cf-kz-mexc-terms-vs-regulator"],
+      "ownerReviewRequired": true,
+      "completionCriteria": "The AFSA-warning-vs-terms conflict is resolved with a decisive higher-tier official source, or explicitly retained as CONFLICTING with tiered dated provenance; owner review completed.",
+      "matchesExpectedDirection": true,
+      "mismatches": []
+    },
+    "mexcCanonicalMiExists": false,
+    "mexcStagingExists": false,
+    "mexcMigration5PreviewExists": false,
+    "note": "Production and legacy data are IMPLEMENTATION truth only, not verified research truth. Repository routes/codes are implementation facts, not eligibility evidence."
+  },
+
+  "researchPriorityDecision": {
+    "priority": "P0",
+    "batch": "KZ-P0-B",
+    "evidenceState": "CONFLICTING (cf-kz-mexc-terms-vs-regulator, critical, unresolved)",
+    "ownerAction": "additional tiered dated official-source research to resolve or explicitly retain CONFLICTING",
+    "rationale": "MEXC availability for Kazakhstan is CONFLICTING: KZ is absent from MEXC's own prohibited-jurisdictions terms (partial positive signal) while the AFSA regulator warning of 2026-04-29 names MEXC as unlicensed toward Kazakhstan citizens (Tier-A regulator). Per MI Brain source hierarchy, a regulator/sanctions source outranks exchange terms; the conflict must be resolved with a decisive higher-tier dated official source or explicitly retained. Do NOT resolve in this queue task."
+  },
+
+  "knownFactsFromRepositoryOnly": [
+    "Kazakhstan is absent from MEXC's official prohibited-jurisdictions list (mexc.com/terms, capture 2026-07-03; terms updated 2025-05-29) — a partial positive signal, NOT a confirmation.",
+    "The AIFC regulator (AFSA) publicly listed MEXC among unlicensed digital-asset platforms toward Kazakhstan citizens (warning of 2026-04-29).",
+    "No dedicated Kazakhstan support page, KZT currency page, or AFSA/AIFC license for MEXC was found in prior repository research.",
+    "Legacy GEO passport research_status = not_started; all availability/product fields UNKNOWN; legal entity null.",
+    "Production geoRankings marks MEXC availability=unknown, bonusAvailability=unknown, confidence=partial, with a regulator caution note; KZ page is publication-blocked.",
+    "An affiliate route (/go/mexc) and code (mexc-CryptoBonus) exist as implementation facts only; geo_eligible UNKNOWN; bonus not_checked.",
+    "No MEXC canonical MI package, staging pipeline, or MIGRATION_5 preview exists."
+  ],
+
+  "repositoryOnlyConflicts": [
+    { "conflictId": "cf-kz-mexc-terms-vs-regulator", "issue": "MEXC's own terms do not prohibit Kazakhstan, but the AFSA regulator warning (2026-04-29) names MEXC as unlicensed toward Kazakhstan citizens.", "status": "UNRESOLVED_CRITICAL", "tierComparison": "Regulator/sanctions (Tier A) vs exchange terms (Tier A) — recency and authority must be weighed with dated sources.", "doNotResolveInThisTask": true }
+  ],
+
+  "unknownsAndEvidenceGaps": [
+    "Legal entity and domain routing serving Kazakhstan (mexc.com vs any local entity/notice).",
+    "Registration eligibility for Kazakhstan citizens / residents / foreign nationals resident in KZ; new-registration acceptance; minimum age; excluded segments.",
+    "KYC support, accepted Kazakhstan documents, proof-of-address, citizenship-vs-residence handling.",
+    "Per-product availability: spot, derivatives, margin, copy trading, earn/staking, P2P, KZT P2P, direct KZT deposit, direct KZT withdrawal, bank-card purchase, mobile app, other KZ-relevant products.",
+    "KZT fiat: official P2P KZT support, listed payment methods, direct KZT deposit/withdrawal rails, Kazakhstan-issued card support, provider/entity/jurisdiction restrictions.",
+    "Regulation: any MEXC local authorization/claim for Kazakhstan; supported vs restricted vs prohibited; which restricted-jurisdiction lists apply; product-specific restrictions; sanctions/residency/regional exclusions.",
+    "Referral/affiliate: official referral-code entry flow; Kazakhstan compatibility of the global code; local KZ referral program; owning entity; registration-time entry requirement; existing-user exclusions.",
+    "Promotions/bonus: KZ-specific official promotions; any KZ-verified amount; whether global maximums apply locally; KYC/deposit/volume/date/segment conditions; separation of referral rewards vs campaign prize pools.",
+    "Whether the AFSA-warning-vs-terms conflict resolves with a decisive higher-tier dated source or must be retained as CONFLICTING.",
+    "kz-mexc-bonus-availability-004 (legacy unknown claim) remains unresolved."
+  ],
+
+  "researchMode": {
+    "mode": "Official-source, evidence-first, NO-PROXY",
+    "outputLanguage": "English",
+    "researchLanguages": ["English", "Russian", "Kazakh (when an official Kazakhstan-local source exists)"],
+    "prohibitedMethods": ["proxy", "VPN", "mobile-IP simulation", "account registration", "KYC submission", "identity documents", "deposit", "trade", "referral-code submission", "restricted-region bypass", "unofficial bonus aggregators as decision sources"],
+    "thirdPartyRule": "Third-party sources may be used only for discovery or contradiction context; they must never override current official evidence."
+  },
+
+  "researchQuestions": {
+    "A_legalEntityAndDomainRouting": ["Which legal entity serves Kazakhstan?", "Which domain and application route serve Kazakhstan?", "Is mexc.com the relevant route?", "Are there Kazakhstan-specific entities, notices or terms?", "Are trading, fiat, cards, referral and promotions served by the same entity?"],
+    "B_registrationEligibility": ["Can a Kazakhstan citizen register?", "Can a Kazakhstan resident register?", "Can a foreign national resident in Kazakhstan register?", "Are new registrations accepted?", "What minimum age applies?", "Are any territories or user segments excluded?"],
+    "C_kyc": ["Is Kazakhstan KYC supported?", "Which Kazakhstan documents are accepted?", "Is proof of address required?", "Are citizenship and residence treated differently?", "Which products and limits require KYC?"],
+    "D_productAvailability": ["registration", "KYC", "spot", "derivatives", "margin", "copy trading", "earn/staking", "P2P", "KZT P2P", "direct KZT deposit", "direct KZT withdrawal", "bank-card purchase", "mobile application", "other Kazakhstan-relevant products"],
+    "D_rule": "Do not flatten product statuses into one overall answer.",
+    "E_fiatAndKzt": ["Is KZT officially supported in P2P?", "Which payment methods are officially listed?", "Does an official direct KZT deposit rail exist?", "Does an official direct KZT withdrawal rail exist?", "Are Kazakhstan-issued cards supported?", "Are provider/entity/jurisdiction restrictions disclosed?"],
+    "F_regulationAndRestrictions": ["Is MEXC licensed/locally authorized in Kazakhstan?", "Does MEXC make an official Kazakhstan regulatory claim?", "Is Kazakhstan supported, restricted or prohibited?", "Which official restricted-jurisdiction lists apply?", "Are derivatives or particular products restricted separately?", "Are sanctions, residency or regional exclusions documented?"],
+    "F_rule": "Do not infer local authorization from availability.",
+    "G_referralAndAffiliate": ["Does an official referral-code entry flow exist?", "Is the project route or code compatible with Kazakhstan?", "Is global referral-code compatibility officially verified for Kazakhstan?", "Is there a local Kazakhstan referral program?", "Which entity owns the referral relationship?", "Must the code be entered during registration?", "Are existing users excluded?"],
+    "G_rule": "Repository routes and codes are implementation facts only, not eligibility evidence.",
+    "H_promotionsAndBonus": ["Are current official promotions specifically open to Kazakhstan?", "Is any bonus amount verified for Kazakhstan?", "Do global maximums apply locally?", "What KYC/deposit/trading-volume/date/user-segment conditions apply?", "Are referral rewards and campaign prize pools separate programs?"],
+    "H_rule": "Never combine unrelated amounts.",
+    "I_conflicts": ["supported-country vs restricted-country materials", "global vs Kazakhstan-local terms", "registration rules vs KYC rules", "legal entity vs domain routing", "product pages vs legal terms", "referral pages vs campaign terms", "current vs older official materials"],
+    "J_publicationBlockers": ["positive availability publication", "ranking eligibility", "CTA eligibility", "referral-code publication", "promo publication", "Kazakhstan page publication", "canonical MI import", "future MIGRATION_5 preparation"]
+  },
+
+  "claimModel": {
+    "claimIdPrefix": "clm-kz-mexc-",
+    "requiredClaimGroups": ["entity", "regulation", "registration", "kyc", "spot", "derivatives", "margin", "p2p", "kzt", "direct-fiat", "card-purchase", "mobile-app", "restrictions", "referral", "promotions", "publication", "routing"],
+    "requiredClaimFields": ["claimId", "claimCategory", "proposedStatement", "countryCode", "exchangeId", "supportedSourceIds", "contradictedSourceIds", "confidence", "limitations", "status", "correctionRequired", "publicationUse", "rankingUse", "ctaUse", "promoUse"],
+    "rule": "No claim may be confirmed solely because it appears in legacy or production data."
+  },
+
+  "sourceModel": {
+    "sourceIdPrefix": "src-kz-mexc-",
+    "supplementalPrefix": "sup-kz-mexc-",
+    "requiredSourceFields": ["sourceId", "url", "publisher", "title", "sourceType", "sourceTier", "language", "countryScope", "productScope", "legalEntityScope", "publishedDate", "effectiveDate", "checkedDate", "currentStatus", "capturedEvidence", "supportedClaimIds", "contradictedClaimIds", "limitations", "retrievalMethod", "noProxyConfirmation"],
+    "tierA": ["MEXC legal terms", "restricted-country / prohibited-jurisdiction lists", "KYC policy", "Kazakhstan regulator sources", "Kazakhstan-local MEXC terms/notices"],
+    "tierB": ["official product pages", "official help center", "official P2P and fiat pages", "official referral and campaign terms", "official announcements"],
+    "tierC": ["official app-store listings", "reproducible official support responses", "official social announcements with clear terms"],
+    "tierD": ["third-party context only; never sufficient alone for availability, ranking, CTA or promo"]
+  },
+
+  "expectedDeepResearchOutputContract": {
+    "zipFileCount": 8,
+    "files": ["research-run.json", "source-registry.json", "claim-ledger.json", "exchange-country-findings.json", "conflicts.json", "unknowns.json", "publication-blockers.json", "research-report.md"],
+    "reproducibleFromMarkdownRecoveryAppendix": true,
+    "allSevenJsonMustParse": true,
+    "allIdsUnique": true,
+    "allCrossReferencesResolve": true,
+    "mustDistinguish": ["platform availability", "product availability", "ranking eligibility", "CTA eligibility", "promo eligibility", "publication eligibility"],
+    "recommendationEnum": ["AVAILABLE", "AVAILABLE_WITH_LIMITS", "CONFLICTING", "RESTRICTED", "UNAVAILABLE", "UNKNOWN"],
+    "confidenceEnum": ["HIGH", "MEDIUM", "LOW"],
+    "defaultLiveVerificationState": "NOT_LIVE_VERIFIED",
+    "deepResearchAuthorizes": "research only — NOT import, production, ranking, CTA, promo, publication or MIGRATION_5"
+  },
+
+  "authorizationBoundaries": {
+    "researchImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false,
+    "note": "The queue authorizes research only."
+  },
+
+  "handoffPackage": {
+    "zipPath": "C:/projects/CryptoBonusWorld/_handoff/CBW_KZ_MEXC_P0B_DEEP_RESEARCH_INPUT_v1.zip",
+    "layout": "flat",
+    "entryCount": 21,
+    "untracked": true,
+    "packageStatus": "PREPARED / UNRESEARCHED",
+    "deepResearchTask": "CBW-KZ-MEXC-P0-B-DEEP-RESEARCH-001"
+  },
+
+  "filesCreated": [
+    "owner-ops/market-intelligence/research-queues/CBW_KZ_MEXC_P0B_EVIDENCE_RESEARCH_QUEUE_v1.md",
+    "owner-ops/market-intelligence/research-queues/CBW_KZ_MEXC_P0B_EVIDENCE_RESEARCH_QUEUE_v1.json"
+  ],
+
+  "recommendation": "APPROVE",
+  "recommendationScope": "MEXC x Kazakhstan (KZ-P0-B, P0) evidence-first research queue prepared from committed repository truth only. Current MEXC state is CONFLICTING (cf-kz-mexc-terms-vs-regulator, unresolved) with UNKNOWN legacy availability and publication-blocked production. No research conclusion was invented; no production/canonical change; no web browsing. All authorization flags false. Deep Research (eight-file package) is the only authorized next step, owner-gated.",
+  "nextTaskAfterQueueCommit": "CBW-KZ-MEXC-P0-B-DEEP-RESEARCH-001 — owner-gated ChatGPT Deep Research run (external tool) over the attached input ZIP, returning the eight-file structured output package under NO-PROXY rules for owner review. Claude Code does not conduct the research. Import, canonical MI, ranking, CTA, promo, publication and MIGRATION_5 remain unauthorized."
+}
