@@ -1,0 +1,173 @@
+{
+  "package": "CBW_UNIFIED_SITE_DESIGN_RESET_PACKAGE_v1",
+  "task": "CBW-UNIFIED-SITE-DESIGN-RESET-001",
+  "project": "CryptoBonusWorld",
+  "date": "2026-07-22",
+  "status": "OWNER_APPROVED_UNIFIED_DESIGN_DIRECTION",
+  "approvedBy": "owner",
+  "approvalTask": "CBW-UNIFIED-SITE-DESIGN-RESET-001-COMMIT",
+  "approvalDate": "2026-07-22",
+  "worktree": "C:\\projects\\CryptoBonusWorld-design",
+  "branch": "feat/cbw-homepage-template-v1",
+  "head": "b66468204196daa0b8e0f991fd8b8a0e7d061239",
+  "resetDecision": {
+    "summary": "Move from pages-that-share-tokens to one unified platform system: shared section grammar, one OfferSurface component family (5 layout variants over one state machine), and a measured logo-slot system. Homepage is reconceived as the platform front door; the plain-list/flag-grid direction is abandoned.",
+    "preserved": [
+      "top hero offer block + bottom compact offer block (exchange review principle)",
+      "CBW_FIRST_SCREEN_CONVERSION_STANDARD_v1 (absolute, all commercial surfaces)",
+      "evidence / eligibility boundaries (canonical MI decides; design renders decided state)",
+      "CBW token palette and typography (navy/amber/green/gray, Inter + Barlow Condensed)",
+      "restricted/unknown states never receive claim/registration/affiliate-style CTAs"
+    ],
+    "reset": [
+      "homepage composition (no plain list, no flag-grid country browsing)",
+      "site-wide section design language (kicker/h2/support grammar, band system)",
+      "logo-slot fitting system (measured content-box fit, AR classes, fill targets)",
+      "page-family visual variance (reduced to controlled variants of one system)"
+    ]
+  },
+  "documents": [
+    "owner-ops/site-design/direction/CBW_UNIFIED_DESIGN_DIRECTION_v1.md",
+    "owner-ops/site-design/direction/CBW_LOGO_SLOT_UPGRADE_PROPOSAL_v1.md",
+    "owner-ops/site-design/direction/CBW_HOMEPAGE_V2_DESIGN_PLAN_v1.md",
+    "owner-ops/site-design/direction/CBW_DESIGN_RESET_IMPLEMENTATION_SEQUENCE_v1.md",
+    "owner-ops/site-design/direction/CBW_UNIFIED_SITE_DESIGN_RESET_PACKAGE_v1.json"
+  ],
+  "offerSurfaceFamily": {
+    "stateMachine": "single shared implementation; variants are layout-only",
+    "variants": ["HERO_FULL", "COMPACT_BOTTOM", "RANKING_ROW", "COMPARISON_CELL", "RESTRICTED_NOTICE"]
+  },
+  "logoSlotDiagnosis": {
+    "method": "opaque-pixel content box measured per asset; fill% = visible content area / usable well area (current 92x30)",
+    "rootCauses": [
+      "transparent canvas padding (worst: bingx-wordmark.png loses 29.5% height; 55.9% fill)",
+      "one-size contain-fit across content aspect ratios 2.89-7.60 (binance 61.2% fill at AR 4.96; mexc-dark 40.3% at AR 7.60)"
+    ],
+    "fixSummary": "per-asset registry + AR classes (COMPACT <3.5 / WIDE 3.5-5.0 / ULTRA_WIDE >5.0) with height-first normalization, tighter slots (side padding 8->6px), 62-95% fill band + 14px height floor gates, lockup fallback, 5 slot sizes (XL/L/M/S/LOCKUP), no stretching/clipping/recoloring, repository assets only"
+  },
+  "homepageV2": {
+    "sectionOrder": [
+      "S1 platform hero (navy) with country intelligence control",
+      "S2 primary commercial area: Top-ranking RANKING_ROW list (first-screen compliant)",
+      "S3 how CBW works / verification system band (navy-tint)",
+      "S4 browse by country: region-grouped, text-first, no flag grid",
+      "S5 popular reviews (wordmark-well cards, informational)",
+      "S6 guides & education",
+      "S7 restricted or under review (separated; informational actions only)",
+      "S8 FAQ",
+      "S9 conversion recap (navy; permitted states only)",
+      "footer"
+    ],
+    "firstScreen": "desktop Top-3 / mobile Top-2 fully commercial incl. 56px header; V1 validated budgets are the baseline gate (worst-case 681/700 at 320x700)",
+    "scenarios": ["STANDARD_TOP10", "LIMITED_MIX", "LOW_COVERAGE (never padded)"]
+  },
+  "implementationSequence": [
+    "CBW-DESIGN-FOUNDATION-PROTOTYPE-001 (logo-slot system v2 + OfferSurface family + section grammar + specimen page)",
+    "CBW-HOMEPAGE-V2-PROTOTYPE-001",
+    "CBW-EXCHANGE-REVIEW-V2-ALIGNMENT-001",
+    "CBW-COUNTRY-PAGE-PROTOTYPE-001",
+    "CBW-COMPARISON-PAGE-PROTOTYPE-001",
+    "CBW-INFO-FAMILIES-PROTOTYPE-001",
+    "CBW-SITE-TEMPLATE-ARCHITECTURE-V2-AUTHORITY-001"
+  ],
+  "boundaries": [
+    "design worktree only; source master untouched; no production, merge or deploy",
+    "mock data only; inert CTAs; no /go/**; no live affiliate navigation",
+    "design routes noindex + sitemap-absent",
+    "no canonical or staging MI binding",
+    "repository assets only"
+  ],
+  "ownerDecisions": {
+    "homepagePrototypeV1Status": "SUPERSEDED_AS_DESIGN_DIRECTION_REFERENCE",
+    "homepagePrototypeV1CommitAuthorized": false,
+    "homepagePrototypeV1ProductionCandidate": false,
+    "homepagePrototypeV1Disposition": "uncommitted historical visual evidence only; not deleted, not modified",
+    "exchangeReviewPrototypeCommercialPattern": "APPROVED",
+    "exchangeReviewPrototypeFinalSiteVisualAuthority": "PARTIAL",
+    "exchangeReviewPreservedAuthority": [
+      "top commercial offer block",
+      "compact bottom commercial offer block",
+      "shared factual and authorization state",
+      "rectangular wordmark presentation",
+      "first-screen conversion behavior",
+      "restricted-state behavior"
+    ],
+    "exchangeReviewAlignment": "to be aligned to the unified V2 foundation later; not automatically the final site visual design",
+    "foundationFirstRequired": true,
+    "nextImplementationLayer": "UNIFIED_DESIGN_FOUNDATION",
+    "foundationGate": "no page-family V2 prototype may become the new design authority before the foundation specimen is owner-reviewed",
+    "logoSlotSystemV2Required": true,
+    "logoSlotRequiredPrinciples": [
+      "fit measured opaque content rather than transparent canvas bounds",
+      "preserve wordmark proportions",
+      "no stretch",
+      "no clipping",
+      "no recoloring",
+      "repository assets only",
+      "per-asset optical normalization",
+      "compact, wide and ultra-wide handling",
+      "automated visual-fill validation",
+      "lockup fallback where a raw wordmark cannot satisfy the slot"
+    ],
+    "offerSurfaceSharedAcrossVariants": [
+      "availability state",
+      "referral compatibility state",
+      "promo authorization",
+      "CTA authorization",
+      "country eligibility",
+      "limitation and restriction handling",
+      "wordmark system",
+      "evidence boundary"
+    ],
+    "offerSurfaceVarianceRule": "layout may vary; facts and authorization logic may not vary",
+    "siteWideVisualSystemApproved": [
+      "premium crypto-intelligence platform positioning",
+      "dark navy platform surfaces",
+      "light analytical content surfaces",
+      "controlled orange brand accent",
+      "green only for authorized commercial actions",
+      "amber for explicit limitations",
+      "red for restrictions",
+      "neutral gray for unknown and under-review",
+      "unified section-header grammar",
+      "unified card and row grammar",
+      "unified spacing and container system",
+      "no private page-family visual language",
+      "no cheap flag-grid homepage",
+      "no oversized promotional cards that break first-screen conversion"
+    ]
+  },
+  "futureDesignWorktree": "C:\\projects\\CryptoBonusWorld-design-v2",
+  "futureDesignBranch": "feat/cbw-unified-design-v2",
+  "futureEnvironmentCreationRule": "the future worktree and branch must be created only by the next task, not before",
+  "nextFoundationTaskBoundary": [
+    "create a clean separate worktree",
+    "create branch feat/cbw-unified-design-v2",
+    "start from the committed unified reset direction",
+    "build an isolated noindex foundation specimen",
+    "implement Logo Slot System v2",
+    "implement the OfferSurface prototype family",
+    "implement section grammar",
+    "use mock data only",
+    "use repository assets only",
+    "use no real affiliate navigation",
+    "leave production untouched",
+    "remain uncommitted until owner visual review"
+  ],
+  "authorizationFlags": {
+    "UNIFIED_DESIGN_DIRECTION_APPROVED": true,
+    "DESIGN_FOUNDATION_PROTOTYPE_AUTHORIZED": true,
+    "HOMEPAGE_V1_COMMIT_AUTHORIZED": false,
+    "PRODUCTION_MIGRATION_AUTHORIZED": false,
+    "PRODUCTION_PAGE_CHANGE_AUTHORIZED": false,
+    "PRODUCTION_COMPONENT_CHANGE_AUTHORIZED": false,
+    "PRODUCTION_DATA_BINDING_AUTHORIZED": false,
+    "CANONICAL_MI_BINDING_AUTHORIZED": false,
+    "AFFILIATE_ROUTE_ACTIVATION_AUTHORIZED": false,
+    "PUBLICATION_AUTHORIZED": false,
+    "MERGE_TO_MASTER_AUTHORIZED": false,
+    "DEPLOY_AUTHORIZED": false
+  },
+  "recommendedNextTask": "CBW-DESIGN-FOUNDATION-PROTOTYPE-001",
+  "nextTask": "CBW-DESIGN-FOUNDATION-PROTOTYPE-001"
+}
