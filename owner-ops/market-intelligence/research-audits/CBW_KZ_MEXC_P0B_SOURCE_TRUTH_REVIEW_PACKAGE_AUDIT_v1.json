@@ -1,0 +1,353 @@
+{
+  "auditId": "CBW-KZ-MEXC-P0B-SOURCE-TRUTH-REVIEW-PACKAGE-AUDIT-v1",
+  "taskId": "CBW-KZ-MEXC-P0-B-SOURCE-TRUTH-REVIEW-PACKAGE-AUDIT-004",
+  "project": "CryptoBonusWorld",
+  "repository": "C:\\projects\\CryptoBonusWorld",
+  "branch": "master",
+  "baselineHead": "2d1e94904491861a69f35329691514bb148407dd",
+  "researchPackageBaselineCommit": "67bdca323928a4a26aaa4cbe48ec18200fdc1d1d",
+  "date": "2026-07-22",
+  "countryCode": "KZ",
+  "exchangeId": "mexc",
+  "batchId": "KZ-P0-B",
+  "mode": "READ-ONLY SOURCE-TRUTH REVIEW PACKAGE AUDIT",
+  "webBrowsingUsed": false,
+  "packageStatus": "RECOVERED / UNVERIFIED",
+  "inputProvenance": {
+    "deviationDocumented": true,
+    "recoveredStrZip": {
+      "declaredPath": "_handoff/mexc-p0b-source-truth-result/CBW_KZ_MEXC_P0B_SOURCE_TRUTH_REVIEW_v1_RECOVERED.zip",
+      "actualPath": "_handoff/mexc-p0b-source-truth-result/CBW_KZ_MEXC_P0B_SOURCE_TRUTH_REVIEW_v1.zip",
+      "bytes": 27833,
+      "sha256": "f7658b5f7bddc29d24fd09a2c06de09d2dcfe65e6de64cc40e91c0399a380c5f",
+      "identityBasis": "Exact byte-size and full SHA-256 match to the declared recovered artifact; audited after owner task reissue."
+    },
+    "exportedReport": {
+      "declaredPath": "_handoff/mexc-p0b-source-truth-result/CBW_KZ_MEXC_P0B_SOURCE_TRUTH_REVIEW_EXPORTED_REPORT_v1.md",
+      "actualPath": "_handoff/mexc-p0b-source-truth-result/deep-research-report (5).md",
+      "bytes": 9450,
+      "sha256": "91b60e023da21387c53fb8bc1786e028ad68c3bc33c95a7ebc19bb78b974cc09",
+      "identityBasis": "No declared hash; identified by directory placement and content match."
+    },
+    "inputsModified": false
+  },
+  "recoveryIntegrity": {
+    "originalArtifact": {
+      "available": false,
+      "bytes": 37001,
+      "sha256": "3f0e10d231efc2ce33f77fac85182809197c11bf5b0cf400f32c77bad4774281"
+    },
+    "recoveredArtifact": {
+      "bytes": 27833,
+      "sha256": "f7658b5f7bddc29d24fd09a2c06de09d2dcfe65e6de64cc40e91c0399a380c5f"
+    },
+    "recoveredDiffersFromOriginal": true,
+    "allEightFilesPresent": true,
+    "semanticCompletenessAssessable": true,
+    "byteIdenticalOriginalityEstablished": false,
+    "anyFileDocumentedByteIdentical": false,
+    "mustRemainRecoveredUnverified": true
+  },
+  "packageStructure": {
+    "zipOpens": true,
+    "entryCount": 8,
+    "expectedEntryCount": 8,
+    "duplicateEntries": 0,
+    "traversalEntries": 0,
+    "hiddenEntries": 0,
+    "zeroByteEntries": 0,
+    "temporaryEntries": 0,
+    "unexpectedEntries": 0,
+    "utf8DecodeAllEight": true,
+    "jsonParseAllSeven": true,
+    "files": [
+      "review-run.json",
+      "source-verification.json",
+      "claim-verdicts.json",
+      "conflict-resolution.json",
+      "offer-eligibility-review.json",
+      "schema-normalization-notes.json",
+      "import-readiness.json",
+      "source-truth-review-report.md"
+    ]
+  },
+  "packageIdentity": {
+    "project": "CryptoBonusWorld",
+    "country": "Kazakhstan",
+    "countryCode": "KZ",
+    "exchange": "MEXC",
+    "exchangeId": "mexc",
+    "batchId": "KZ-P0-B",
+    "sourceTruthReviewTaskId": "CBW-KZ-MEXC-P0-B-SOURCE-TRUTH-REVIEW-001",
+    "projectBaselineCommit": "2d1e94904491861a69f35329691514bb148407dd",
+    "researchPackageBaselineCommit": "67bdca323928a4a26aaa4cbe48ec18200fdc1d1d",
+    "researchMode": "Official-source, evidence-first, NO-PROXY",
+    "noProxyMode": true,
+    "manifestGate": "MATCHED",
+    "liveVerificationState": "NOT_LIVE_VERIFIED",
+    "packageStatus": "RECOVERED / UNVERIFIED",
+    "identityConflicts": 0
+  },
+  "sourceReview": {
+    "originalSourcesReviewed": 16,
+    "originalSourcesExpected": 16,
+    "supplementalSources": 0,
+    "totalReviewedSources": 16,
+    "statusDistributionOriginal": {
+      "VERIFIED_CURRENT": 9,
+      "VERIFIED_WITH_LIMITS": 6,
+      "OUTDATED": 1
+    },
+    "expectedDistribution": {
+      "VERIFIED_CURRENT": 9,
+      "VERIFIED_WITH_LIMITS": 6,
+      "OUTDATED": 1
+    },
+    "distributionMismatches": 0,
+    "originalSupplementalDistinguishable": true,
+    "everyOriginalIdAppearsOnce": true,
+    "supplementalPrefixValid": true,
+    "everySourceHasFinalStatus": true,
+    "sourcesSilentlyRemoved": 0,
+    "sourceIdSetIdenticalToOriginalPackage": true
+  },
+  "claimReview": {
+    "originalClaimsReviewed": 24,
+    "originalClaimsExpected": 24,
+    "verdictDistribution": {
+      "CONFIRMED": 11,
+      "CONFIRMED_WITH_LIMITS": 11,
+      "UNVERIFIED": 2
+    },
+    "expectedVerdictDistribution": {
+      "CONFIRMED": 11,
+      "CONFIRMED_WITH_LIMITS": 11,
+      "UNVERIFIED": 2
+    },
+    "distributionMismatches": 0,
+    "claimIdSetIdenticalToOriginalPackage": true,
+    "allFourteenRequiredFieldsPresentOnEveryClaim": true,
+    "claimsMissingVerdict": 0,
+    "claimsWithEmptyVerifiedSourceIds": ["clm-kz-mexc-publication-002"],
+    "claimsWithEmptyVerifiedSourceIdsAcceptable": true,
+    "claimsWithUnresolvedReferences": 0,
+    "correctionRequiredOriginal": 15,
+    "correctionRequiredExplicitlyReviewed": 15,
+    "correctionRequiredSetIdenticalToOriginal": true,
+    "correctionsSilentlyPreserved": 0,
+    "identicalOriginalVerifiedStatementsDespiteCorrection": 15,
+    "identicalStatementsAssessment": "Coherent, non-blocking: verdicts confirm the package statements; per explicit correctionNotes the correction targets earlier positive/ambiguous legacy repository wording, not the claim text.",
+    "publicationRankingCtaPromoBoundaryConflicts": 0
+  },
+  "p0ClaimAudit": {
+    "result": "PASS",
+    "claims": {
+      "clm-kz-mexc-restrictions-001": {
+        "verdict": "CONFIRMED_WITH_LIMITS",
+        "confidence": "HIGH",
+        "correctionRequired": true,
+        "verifiedSourceIds": ["src-kz-mexc-terms-001"],
+        "contradictingSourceIds": [
+          "src-kz-mexc-app-countries-001",
+          "src-kz-mexc-p2p-kzt-page-001",
+          "src-kz-mexc-p2p-ad-rules-001",
+          "src-kz-mexc-fiat-tn-policy-001",
+          "src-kz-mexc-earn-agreement-001"
+        ],
+        "documentTitle": "MEXC User Agreement",
+        "verifiedUrl": "https://www.mexc.com/terms",
+        "lastUpdatedDate": "2025-05-29",
+        "checkedDate": "2026-07-22",
+        "pageStatus": "CURRENT_AT_CHECK",
+        "legalEntityScope": "MEXC contracting platform; no Kazakhstan-specific entity identified",
+        "affectedUserScope": "Kazakhstan residents and users located in Kazakhstan; not an express citizenship-only ban for Kazakh citizens abroad",
+        "effect": "No services, no user registration, no trade applications in prohibited jurisdictions",
+        "earlierRepositorySignalHandling": "Reversed and marked correction-required; package does not determine whether the page changed without a date bump or the earlier capture misread (owner-attention note; ownerReviewRequired true on cf-kz-mexc-terms-vs-regulator)"
+      },
+      "clm-kz-mexc-regulation-001": {
+        "verdict": "CONFIRMED",
+        "confidence": "HIGH",
+        "correctionRequired": false,
+        "verifiedSourceIds": ["src-kz-mexc-afsa-warning-001"],
+        "afsaPublishedDate": "2026-04-28",
+        "representation": "Unlicensed/unauthorized local activity naming MEXC among platforms advertising or promoting to Kazakhstan citizens; separate regulatory finding; correctly scoped; explicitly not a technical-access test; not equated with technical unavailability"
+      },
+      "clm-kz-mexc-registration-001": {
+        "verdict": "CONFIRMED",
+        "confidence": "HIGH",
+        "correctionRequired": true,
+        "verifiedSourceIds": ["src-kz-mexc-terms-001"],
+        "contradictingSourceIds": ["src-kz-mexc-signup-flow-001"],
+        "separateFromProductPageVisibility": true
+      },
+      "clm-kz-mexc-kyc-001": {
+        "verdict": "CONFIRMED",
+        "confidence": "HIGH",
+        "correctionRequired": true,
+        "verifiedSourceIds": ["src-kz-mexc-kyc-eligibility-001", "src-kz-mexc-terms-001"],
+        "contradictingSourceIds": ["src-kz-mexc-p2p-ad-rules-001"],
+        "separateFromGenericDocumentGuidance": true
+      }
+    }
+  },
+  "p1ClaimAudit": {
+    "result": "PASS",
+    "verdicts": {
+      "clm-kz-mexc-p2p-001": "CONFIRMED_WITH_LIMITS",
+      "clm-kz-mexc-kzt-001": "CONFIRMED_WITH_LIMITS",
+      "clm-kz-mexc-derivatives-001": "CONFIRMED",
+      "clm-kz-mexc-direct-fiat-deposit-001": "UNVERIFIED",
+      "clm-kz-mexc-direct-fiat-withdrawal-001": "UNVERIFIED",
+      "clm-kz-mexc-referral-002": "CONFIRMED"
+    },
+    "separationConfirmed": [
+      "interface visibility",
+      "KZT presence",
+      "technical product presence",
+      "registration eligibility",
+      "legal availability",
+      "product eligibility",
+      "referral compatibility"
+    ],
+    "globalVisibilityNotTreatedAsCountryEligibility": true
+  },
+  "conflictReview": {
+    "originalConflictsReviewed": 7,
+    "originalConflictsExpected": 7,
+    "finalStatusDistribution": {
+      "RESOLVED_RESTRICTIVE": 2,
+      "PARTIALLY_RESOLVED": 4,
+      "RESOLVED_BY_SPECIFICITY": 1
+    },
+    "expectedDistribution": {
+      "RESOLVED_RESTRICTIVE": 2,
+      "PARTIALLY_RESOLVED": 4,
+      "RESOLVED_BY_SPECIFICITY": 1
+    },
+    "distributionMismatches": 0,
+    "conflictIdSetIdenticalToOriginalPackage": true,
+    "allEightRequiredFieldsPresent": true,
+    "unreviewedConflicts": 0,
+    "missingSourceReferences": 0,
+    "missingClaimReferences": 0,
+    "conflictsSilentlyRemoved": 0,
+    "conflictsIncorrectlyMarkedFullyResolved": 0,
+    "finalStatusContradictsClaimVerdicts": 0,
+    "ownerReviewRequiredOnAllSeven": true
+  },
+  "idAndCrossReference": {
+    "sourceIdsUnique": true,
+    "claimIdsUnique": true,
+    "conflictIdsUnique": true,
+    "claimToSourceDangling": 0,
+    "sourceToClaimDangling": 0,
+    "conflictToSourceDangling": 0,
+    "conflictToClaimDangling": 0,
+    "offerVerifiedClaimIdsDangling": 0
+  },
+  "offerReferralPromoAudit": {
+    "result": "PASS",
+    "referralCodeEntryFlow": "VERIFIED_GLOBAL_ONLY",
+    "kazakhstanReferralCompatibility": "NOT_VERIFIED_AND_NOT_ELIGIBLE_UNDER_CURRENT_COUNTRY_PROHIBITION",
+    "repositoryRoute": "/go/mexc",
+    "repositoryRouteEligibility": "NOT_VERIFIED_FOR_KAZAKHSTAN",
+    "repositoryReferralCode": "mexc-CryptoBonus",
+    "repositoryReferralCodeEligibility": "NOT_VERIFIED_FOR_KAZAKHSTAN",
+    "routeAndCodeImplementationFactsOnly": true,
+    "newVsExistingUserRulesSeparated": true,
+    "currentKazakhstanCampaigns": 0,
+    "historicalCampaignPresentedAsCurrent": false,
+    "endedCampaignWindow": "2025-08-11 to 2025-09-01",
+    "locallyVerifiedBonusAmount": null,
+    "globalMaximumApplicability": "NOT_VERIFIED_FOR_KAZAKHSTAN",
+    "unrelatedRewardAmountsCombined": false,
+    "rankingEligibility": "BLOCKED",
+    "ctaEligibility": "BLOCKED",
+    "promoEligibility": "BLOCKED",
+    "publicationEligibility": "RESTRICTION_ONLY_AFTER_OWNER_AUTHORIZATION",
+    "canonicalImportReadiness": "PREPARATION_ONLY_NOT_AUTHORIZED",
+    "allAuthorizationFlagsFalse": true
+  },
+  "reportCoherence": {
+    "internalReportVsJson": "PASS",
+    "appendixEmbedsAllSevenJsonFiles": true,
+    "appendixDeepEqualsZipJson": true,
+    "exportedReportVsZip": "PASS",
+    "exportedReportArtifactMetadataRefersToOriginalUnavailableZip": true,
+    "exportedReportArtifactMetadataAssessment": "Expected under the recovery narrative; not an inconsistency",
+    "inconsistencies": []
+  },
+  "finalRecommendationAudit": {
+    "overallRecommendation": "RESTRICTED",
+    "confidence": "HIGH",
+    "publicationPosture": "BLOCKED",
+    "expectedValuesMatched": true,
+    "restrictionFollowsFromReviewedCurrentTerms": true,
+    "kazakhstanExplicitlyNamedByVerifiedCurrentSource": true,
+    "lowerLevelSignalsSubordinate": true,
+    "afsaStrengthensButDoesNotCreateTechnicalUnavailability": true,
+    "registrationAndKycConclusionsSeparate": true,
+    "productPresenceNotConfusedWithLegalEligibility": true,
+    "rankingCtaPromoReferralPublicationSeparate": true,
+    "unresolvedProductSignalsVisible": true,
+    "coherenceScope": "Package-internal only; not independently re-verified online by Claude Code"
+  },
+  "schemaNormalizationAudit": {
+    "result": "PASS",
+    "targetSchema": "schemas/market-intelligence/market-source.schema.json",
+    "fieldMappings": 20,
+    "deterministic": true,
+    "losslessForCriticalEvidence": true,
+    "explicitAboutMisfits": true,
+    "schemaDecisionsRequired": 4,
+    "explicitClaimSourceLinkages": true,
+    "explicitRestrictionsAndConflicts": true,
+    "explicitConfidenceAndProvenance": true,
+    "silentEnumUpgrades": false,
+    "productionActivation": false,
+    "normalizationStatus": "PREPARED_NOT_APPLIED",
+    "schemaModified": false,
+    "importPerformed": false
+  },
+  "ownerAttentionNotes": [
+    "Terms-page flip: legacy passport captures (2026-07-03, 2026-07-14) reported Kazakhstan ABSENT from the prohibited list of the same lastUpdated 2025-05-29 document; the STR (checked 2026-07-22) found Kazakhstan PRESENT. The package flips the signal but does not determine whether the page changed without a date bump or the earlier capture misread.",
+    "Minor date discrepancy: legacy repository notes date the AFSA warning 2026-04-29; the STR package consistently records 2026-04-28.",
+    "All 15 correction-required claims have identical original/verified statements; coherent because corrections target legacy repository wording per explicit correctionNotes.",
+    "Input files were delivered under non-canonical filenames; recovered STR ZIP identity established by exact SHA-256 match (see inputProvenance)."
+  ],
+  "verdicts": {
+    "PACKAGE_STRUCTURE": "PASS",
+    "JSON_PARSE_INTEGRITY": "PASS",
+    "PROJECT_TASK_IDENTITY": "PASS",
+    "SOURCE_REVIEW_COMPLETENESS": "PASS",
+    "CLAIM_REVIEW_COMPLETENESS": "PASS",
+    "CONFLICT_REVIEW_COMPLETENESS": "PASS",
+    "ID_UNIQUENESS": "PASS",
+    "CROSS_REFERENCE_INTEGRITY": "PASS",
+    "REPORT_JSON_COHERENCE": "PASS",
+    "EXPORTED_REPORT_COHERENCE": "PASS",
+    "RECOMMENDATION_COHERENCE": "PASS",
+    "RECOVERY_INTEGRITY": "WARN",
+    "SCHEMA_NORMALIZATION_READINESS": "PASS",
+    "OWNER_DECISION_READINESS": "READY",
+    "IMPORT_PREPARATION_READINESS": "READY_WITH_LIMITS",
+    "IMPORT_READINESS": "NOT_READY",
+    "IMPORT_AUTHORIZATION": false,
+    "PRODUCTION_CHANGE_AUTHORIZATION": false,
+    "RANKING_CHANGE_AUTHORIZATION": false,
+    "CTA_CHANGE_AUTHORIZATION": false,
+    "PROMO_CHANGE_AUTHORIZATION": false,
+    "AFFILIATE_ROUTE_CHANGE_AUTHORIZATION": false,
+    "PUBLICATION_AUTHORIZATION": false,
+    "MIGRATION_5_AUTHORIZATION": false,
+    "DEPLOY_AUTHORIZATION": false
+  },
+  "filesCreated": [
+    "owner-ops/market-intelligence/research-audits/CBW_KZ_MEXC_P0B_SOURCE_TRUTH_REVIEW_PACKAGE_AUDIT_v1.md",
+    "owner-ops/market-intelligence/research-audits/CBW_KZ_MEXC_P0B_SOURCE_TRUTH_REVIEW_PACKAGE_AUDIT_v1.json",
+    "_handoff/CBW_KZ_MEXC_P0B_SOURCE_TRUTH_REVIEW_AUDIT_HANDOFF_v1.zip"
+  ],
+  "recommendation": "APPROVE",
+  "recommendationScope": "Approved for owner decision only; import, canonical MI, production, ranking, CTA, promo, affiliate-route, publication, MIGRATION_5 and deploy remain blocked",
+  "nextTask": "CBW-KZ-MEXC-P0-B-OWNER-DECISION-001"
+}
