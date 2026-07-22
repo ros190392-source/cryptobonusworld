@@ -1,0 +1,803 @@
+---
+/**
+ * DESIGN PREVIEW — UNIFIED DESIGN FOUNDATION SPECIMEN (noindex, mock data).
+ *
+ * Isolated route: /__design/foundation/
+ * Task: CBW-DESIGN-FOUNDATION-PROTOTYPE-001
+ * Authority: CBW_UNIFIED_DESIGN_DIRECTION_v1 (+ logo-slot proposal, first-screen
+ * standard, site-template architecture). This is a SYSTEM SPECIMEN — not a
+ * production page, not a homepage. It proves, in one place:
+ * Logo Slot System v2 · OfferSurface family (5 variants) · availability-state
+ * matrix · promo/action controls · notice system · section grammar (4 bands) ·
+ * responsive behavior.
+ *
+ * ALL content is mock specimen data. All actions are inert (no /go/**, no
+ * affiliate, exchange or registration URLs). Not linked from production
+ * navigation or sitemap. No canonical MI or production-ranking import.
+ */
+import CleanLayout from '../../../layouts/CleanLayout.astro';
+import SectionBand from '../../../components/design-preview/foundation/SectionBand.astro';
+import SectionHeader from '../../../components/design-preview/foundation/SectionHeader.astro';
+import OfferSurface from '../../../components/design-preview/foundation/OfferSurface.astro';
+import ExchangeWordmarkSlotV2 from '../../../components/design-preview/foundation/ExchangeWordmarkSlotV2.astro';
+import SquareLogoTile from '../../../components/design-preview/foundation/SquareLogoTile.astro';
+import {
+  SQUARE_LOGO_REGISTRY,
+  type SquareTier,
+} from '../../../data/design-preview/foundation-logo-fit-registry';
+import {
+  STATE_MATRIX,
+  BY_KEY,
+  EXTRA_SPECIMENS,
+  GALLERY_ORDER,
+} from '../../../data/design-preview/foundation-mock';
+
+// Astro excludes literal underscore-prefixed page paths from routing, so the
+// required /__design/ URL segment is produced via a fixed dynamic param
+// (same approved strategy as the exchange-review prototype).
+export function getStaticPaths() {
+  return [{ params: { designRoot: '__design' } }];
+}
+
+const KIND_LABEL: Record<string, string> = {
+  PLATE: 'brand plate',
+  GLYPH: 'symbol glyph',
+  WORDMARK_PLAQUE: 'wordmark plaque',
+};
+const squareGallery = GALLERY_ORDER.map((key) => {
+  const entry = SQUARE_LOGO_REGISTRY[key];
+  return { key, entry, kindLabel: KIND_LABEL[entry.kind] };
+});
+const TIER_BLOCKS: { tier: SquareTier; label: string; usage: string }[] = [
+  { tier: 'HERO_XL', label: 'HERO_XL · 96px', usage: 'hero offer blocks & primary exchange identity' },
+  { tier: 'CARD_L', label: 'CARD_L · 76px', usage: 'comparison, featured & prominent recommendation cards' },
+  { tier: 'ROW_M', label: 'ROW_M · 60px', usage: 'homepage / country ranking rows & directory rows' },
+  { tier: 'COMPACT_S', label: 'COMPACT_S · 52px', usage: 'bottom offer blocks & compact list entries' },
+];
+const DIFFICULT = ['okx', 'phemex', 'htx', 'mexc', 'gate-io', 'coinex', 'bingx'] as const;
+
+const stateCaptions: Record<string, string> = {
+  AVAILABLE: 'Green state · promo code · Copy · authorized primary CTA · eligibility note.',
+  LIMITED_VERIFIED:
+    'Amber limitation treatment · code + Copy + CTA remain (mock referral compatibility verified).',
+  LIMITED_UNVERIFIED:
+    'No code, no Copy, no Claim wording — Check Eligibility only, with an explicit unverified-local-eligibility statement.',
+  RESTRICTED:
+    'Red country-specific state · concise reason · View Available Alternatives · zero commercial controls · no technical-inaccessibility claim.',
+  UNDER_REVIEW:
+    'Neutral state · no locally eligible promo claim · no Claim Bonus · Check Availability.',
+};
+---
+
+<CleanLayout
+  title="CBW Design Foundation — System Specimen (Mock Data)"
+  description="Internal design foundation specimen. Mock data only. Not a production page."
+  noindex={true}
+  bodyClass="dp-page"
+>
+
+<!-- ════════ 1 · SYSTEM OVERVIEW — first-screen system map ════════ -->
+<SectionBand band="LIGHT_ALT" compact id="overview">
+  <div class="ovw" data-overview>
+    <div class="ovw-head">
+      <h1>CBW Unified Design Foundation <span class="ovw-sub">system specimen</span></h1>
+      <span class="ovw-chip">🧪 Mock preview — nothing verified</span>
+    </div>
+
+    <div class="ovw-grid">
+      <div class="ovw-card" data-ovw="logo-classes">
+        <p class="ovw-label">Square logos</p>
+        <div class="ovw-logo-list">
+          <span class="ovw-logo-item"><SquareLogoTile registryKey="bybit" tier="COMPACT_S" eager /> <i>PLATE</i></span>
+          <span class="ovw-logo-item"><SquareLogoTile registryKey="htx" tier="COMPACT_S" eager /> <i>GLYPH</i></span>
+          <span class="ovw-logo-item"><SquareLogoTile registryKey="okx" tier="COMPACT_S" eager /> <i>SYMBOL</i></span>
+        </div>
+      </div>
+
+      <div class="ovw-card" data-ovw="variants">
+        <p class="ovw-label">OfferSurface variants</p>
+        <div class="ovw-mini-list">
+          <span class="ovw-mini"><span class="mv mv-dark"><b class="mvb mv-logo"></b><b class="mvb mv-code"></b><b class="mvb mv-cta"></b></span><i>HERO_FULL</i></span>
+          <span class="ovw-mini"><span class="mv mv-dark mv-short"><b class="mvb mv-code"></b><b class="mvb mv-cta"></b></span><i>COMPACT_BOTTOM</i></span>
+          <span class="ovw-mini"><span class="mv mv-light"><b class="mv-dot"></b><b class="mvb mv-bar"></b><b class="mvb mv-cta mv-cta-sm"></b></span><i>RANKING_ROW</i></span>
+          <span class="ovw-mini"><span class="mv mv-light mv-col"><b class="mvb mv-bar"></b><b class="mvb mv-code"></b><b class="mvb mv-cta"></b></span><i>COMPARISON_CELL</i></span>
+          <span class="ovw-mini"><span class="mv mv-light mv-restricted"><b class="mvb mv-red"></b><b class="mvb mv-bar"></b></span><i>RESTRICTED_NOTICE</i></span>
+        </div>
+      </div>
+
+      <div class="ovw-card" data-ovw="states">
+        <p class="ovw-label">States</p>
+        <div class="ovw-badge-list">
+          <span class="ob ob-green">● Available</span>
+          <span class="ob ob-amber">● Available with limits</span>
+          <span class="ob ob-red">● Restricted</span>
+          <span class="ob ob-gray">● Under review</span>
+        </div>
+      </div>
+
+      <div class="ovw-card" data-ovw="actions">
+        <p class="ovw-label">Actions</p>
+        <div class="ovw-action-list">
+          <span class="oa-copy"><i>CODE123</i><button type="button" data-copy-btn-demo>Copy</button></span>
+          <button type="button" class="oa oa-claim" data-preview-cta>Claim Bonus</button>
+          <button type="button" class="oa oa-sec" data-preview-cta>Check Eligibility</button>
+          <button type="button" class="oa oa-alt" data-preview-cta>View Alternatives</button>
+        </div>
+      </div>
+
+      <div class="ovw-card" data-ovw="surfaces">
+        <p class="ovw-label">Surfaces</p>
+        <div class="ovw-swatch-list">
+          <span class="sw sw-navy"><i>NAVY</i></span>
+          <span class="sw sw-light"><i>LIGHT</i></span>
+          <span class="sw sw-lightalt"><i>LIGHT_ALT</i></span>
+          <span class="sw sw-tint"><i>NAVY_TINT</i></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</SectionBand>
+
+<!-- ════════ 2 · SQUARE LOGO SYSTEM V1 (primary identity standard) ════════ -->
+<SectionBand band="LIGHT" id="logo-slots">
+  <SectionHeader
+    kicker="Foundation · 02"
+    title="Square Logo System v1"
+    support="One square identity tile per exchange — brand plates edge-to-edge, symbols and glyphs optically normalized; the exchange name always lives beside the tile as interface text. Repository assets only; never stretched, glyph-clipped or recolored."
+    marker="🧪 Mock specimen"
+  />
+
+  {TIER_BLOCKS.map(({ tier, label, usage }) => (
+    <div class="sq-tier-block" data-tier-block={tier}>
+      <h3 class="fnd-h3">{label} <span class="sq-tier-usage">— {usage}</span></h3>
+      <div class="sq-gallery" data-square-gallery>
+        {squareGallery.map(({ key, entry, kindLabel }) => (
+          <div class="sq-cell" data-gallery-name={entry.displayName}>
+            <SquareLogoTile registryKey={key} tier={tier} />
+            <p class="ls-meta">
+              <b>{entry.displayName}</b>
+              {tier === 'HERO_XL' && <span>{kindLabel}</span>}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  ))}
+
+  <h3 class="fnd-h3">Optical harmony — all eleven side by side (ROW_M)</h3>
+  <div class="sq-harmony" data-harmony-strip>
+    {squareGallery.map(({ key }) => <SquareLogoTile registryKey={key} tier="ROW_M" />)}
+  </div>
+
+  <h3 class="fnd-h3">Difficult brands — CARD_L comparison</h3>
+  <div class="sq-harmony sq-difficult" data-difficult-strip>
+    {DIFFICULT.map((key) => (
+      <span class="sq-diff-item">
+        <SquareLogoTile registryKey={key} tier="CARD_L" />
+        <i>{SQUARE_LOGO_REGISTRY[key].displayName}</i>
+      </span>
+    ))}
+  </div>
+
+  <h3 class="fnd-h3">Tiles on every surface</h3>
+  <div class="sq-surfaces" data-square-surfaces>
+    {(['NAVY', 'LIGHT', 'LIGHT_ALT'] as const).map((surf) => (
+      <div class:list={['sq-surf', `sq-surf-${surf.toLowerCase().replace('_', '-')}`]}>
+        <span class="sq-surf-label">{surf}</span>
+        <SquareLogoTile registryKey="bybit" tier="ROW_M" />
+        <SquareLogoTile registryKey="mexc" tier="ROW_M" />
+        <SquareLogoTile registryKey="bitget" tier="ROW_M" />
+        <SquareLogoTile registryKey="htx" tier="ROW_M" />
+        <SquareLogoTile registryKey="okx" tier="ROW_M" />
+      </div>
+    ))}
+  </div>
+
+  <h3 class="fnd-h3">Secondary: rectangular wordmark slots (wide-format contexts only)</h3>
+  <div class="ls-wells">
+    <span class="ls-well-item"><ExchangeWordmarkSlotV2 registryKey="bybit" slot="L" /> <i>DARK well wordmark</i></span>
+    <span class="ls-well-item"><ExchangeWordmarkSlotV2 registryKey="bitget" slot="L" /> <i>LIGHT well wordmark</i></span>
+    <span class="ls-well-item"><ExchangeWordmarkSlotV2 registryKey="mexc-white" slot="L" /> <i>MEXC white wordmark (no “Global”)</i></span>
+  </div>
+
+  <div class="ls-exceptions" data-logo-exceptions>
+    <p><b>System rules & documented decisions (nothing silent):</b></p>
+    <p>
+      Square-first is the primary identity standard: PLATE assets render edge-to-edge
+      (rounded tile corners crop only the plate background, never a brand glyph);
+      GLYPH symbols center inside the tile (74–90% side). OKX uses a composed
+      app-icon treatment: the official modular symbol, isolated from the repository
+      lockup asset, sits at ≈74% side on a black plate tile (matching OKX’s own
+      white-on-black icon); the lockup’s wordmark lies fully outside the tile
+      viewport and never renders — the name appears beside the tile as interface
+      text. Card tiers: HERO_XL 96 · CARD_L 76 · ROW_M 60 · COMPACT_S 52, with
+      per-tier mark-height floors (48/40/32/26px) enforced at build time.
+    </p>
+    <p>
+      The repository “MEXC Global” wordmark (mexc-wordmark-dark.png) is retired from all
+      specimens; MEXC renders as its clean symbol plate (mexc.png), with the white
+      “MEXC” wordmark (no “Global”) reserved for wide-format dark contexts. Rectangular
+      wordmark slots remain a secondary system governed by the measured content-box
+      rules (62–95% fill band, 14px floor).
+    </p>
+  </div>
+</SectionBand>
+
+<!-- ════════ 3 · OFFERSURFACE VARIANTS ════════ -->
+<SectionBand band="LIGHT_ALT" id="offer-surfaces">
+  <SectionHeader
+    kicker="Foundation · 03"
+    title="OfferSurface family — five variants, one state model"
+    support="Layout varies per variant; facts and authorization logic never do. Every commercial rule is derived once and clamped."
+    marker="🧪 Mock specimen"
+  />
+
+  <div class="osv-grid">
+    <div class="osv-item osv-wide">
+      <p class="osv-cap">HERO_FULL — review-page top conversion block (HERO_XL tile · 96px)</p>
+      <OfferSurface variant="HERO_FULL" offer={BY_KEY.AVAILABLE} />
+    </div>
+
+    <div class="osv-item">
+      <p class="osv-cap">COMPACT_BOTTOM — closing conversion block (COMPACT_S tile · 52px)</p>
+      <OfferSurface variant="COMPACT_BOTTOM" offer={EXTRA_SPECIMENS.okx} />
+    </div>
+
+    <div class="osv-item">
+      <p class="osv-cap">COMPARISON_CELL — column cells (CARD_L tile · 76px, equal treatment)</p>
+      <div class="osv-cells">
+        <OfferSurface variant="COMPARISON_CELL" offer={BY_KEY.AVAILABLE} />
+        <OfferSurface variant="COMPARISON_CELL" offer={BY_KEY.LIMITED_VERIFIED} />
+        <OfferSurface variant="COMPARISON_CELL" offer={BY_KEY.UNDER_REVIEW} />
+      </div>
+    </div>
+
+    <div class="osv-item osv-wide">
+      <p class="osv-cap">RANKING_ROW — homepage / country / directory rows (ROW_M tile · 60px)</p>
+      <div class="osv-rows">
+        <OfferSurface variant="RANKING_ROW" offer={BY_KEY.AVAILABLE} rank={1} emphasized />
+        <OfferSurface variant="RANKING_ROW" offer={EXTRA_SPECIMENS.bitget} rank={2} emphasized />
+        <OfferSurface variant="RANKING_ROW" offer={EXTRA_SPECIMENS.binance} rank={3} />
+      </div>
+    </div>
+
+    <div class="osv-item osv-wide">
+      <p class="osv-cap">RESTRICTED_NOTICE — informational only, never commercial (ROW_M tile · 60px)</p>
+      <div class="osv-rows">
+        <OfferSurface variant="RESTRICTED_NOTICE" offer={BY_KEY.RESTRICTED} />
+        <OfferSurface variant="RESTRICTED_NOTICE" offer={BY_KEY.UNDER_REVIEW} />
+      </div>
+    </div>
+  </div>
+</SectionBand>
+
+<!-- ════════ 4 · AVAILABILITY STATE MATRIX ════════ -->
+<SectionBand band="LIGHT" id="state-matrix">
+  <SectionHeader
+    kicker="Foundation · 04"
+    title="Availability state matrix"
+    support="The five required configurations rendered through the same RANKING_ROW variant — one shared authorization model."
+    marker="🧪 Mock specimen"
+  />
+  <div class="sm-list" data-state-matrix>
+    {STATE_MATRIX.map((s, i) => (
+      <div class="sm-item" data-matrix-state={s.key}>
+        <p class="sm-cap"><b>{s.key.replace(/_/g, ' ')}</b> — {stateCaptions[s.key]}</p>
+        <OfferSurface variant="RANKING_ROW" offer={s} rank={i + 1} />
+      </div>
+    ))}
+  </div>
+</SectionBand>
+
+<!-- ════════ 5 · PROMO AND ACTION CONTROLS ════════ -->
+<SectionBand band="NAVY_TINT" id="controls">
+  <SectionHeader
+    kicker="Foundation · 05"
+    title="Promo and action controls"
+    support="Green is reserved exclusively for authorized commercial actions. Restricted and unknown surfaces contain no green."
+    marker="🧪 Mock specimen"
+  />
+  <div class="ctl-grid" data-controls>
+    <div class="ctl-card">
+      <p class="ctl-cap">Promo code + Copy (44px touch target)</p>
+      <div class="os-like-promo" data-copy-row>
+        <span class="olp-box">
+          <span class="olp-code" data-role="promo-code">CRYPTOBONUSW</span>
+          <button class="olp-copy" type="button" data-copy-btn aria-label="Copy mock code CRYPTOBONUSW">Copy</button>
+        </span>
+      </div>
+    </div>
+    <div class="ctl-card">
+      <p class="ctl-cap">Primary commercial CTA (authorized states only)</p>
+      <button type="button" class="ctl-btn ctl-claim" data-preview-cta>Claim Bonus</button>
+    </div>
+    <div class="ctl-card">
+      <p class="ctl-cap">Secondary eligibility actions</p>
+      <div class="ctl-row">
+        <button type="button" class="ctl-btn ctl-sec" data-preview-cta>Check Eligibility</button>
+        <button type="button" class="ctl-btn ctl-sec" data-preview-cta>Visit Exchange</button>
+      </div>
+    </div>
+    <div class="ctl-card">
+      <p class="ctl-cap">Alternatives action (restricted context)</p>
+      <button type="button" class="ctl-btn ctl-alt" data-preview-cta>View Available Alternatives</button>
+    </div>
+    <div class="ctl-card">
+      <p class="ctl-cap">Non-commercial placeholder (restricted / unknown)</p>
+      <button type="button" class="ctl-btn ctl-disabled" disabled>No commercial action available</button>
+    </div>
+  </div>
+</SectionBand>
+
+<!-- ════════ 6 · NOTICE SYSTEM ════════ -->
+<SectionBand band="LIGHT" id="notices">
+  <SectionHeader
+    kicker="Foundation · 06"
+    title="Notice system"
+    support="One notice grammar; color and icon express severity, text always carries the meaning."
+    marker="🧪 Mock specimen"
+  />
+  <div class="ntc-list" data-notices>
+    <p class="fnd-notice fnd-notice-gray"><b>Eligibility.</b> New users only · mock eligibility note for the specimen.</p>
+    <p class="fnd-notice fnd-notice-amber"><b>Limitation.</b> ⚠ Some products are limited in this mock region — referral rewards may differ.</p>
+    <p class="fnd-notice fnd-notice-red"><b>Restriction.</b> Restricted in Kazakhstan (mock): the exchange’s terms list the region as prohibited. Legal/eligibility state — not a claim about technical reachability.</p>
+    <p class="fnd-notice fnd-notice-blue"><b>Under review.</b> Country evidence is currently under review — availability is not confirmed and no locally eligible promo claim is made.</p>
+    <p class="fnd-notice fnd-notice-gray"><b>Evidence freshness.</b> Design preview — mock data · nothing on this page is verified.</p>
+  </div>
+</SectionBand>
+
+<!-- ════════ 7 · SECTION GRAMMAR ════════ -->
+<SectionBand band="LIGHT_ALT" id="grammar">
+  <SectionHeader
+    kicker="Foundation · 07"
+    title="Section grammar"
+    support="Every section site-wide: kicker · H2 · support line · optional marker and secondary action, on one of four band surfaces. 1160px container, shared vertical rhythm."
+    marker="🧪 Mock specimen"
+    actionLabel="Secondary action"
+  />
+  <div class="gr-bands" data-grammar-bands>
+    {(['NAVY', 'LIGHT', 'LIGHT_ALT', 'NAVY_TINT'] as const).map((b) => (
+      <div class:list={['gr-band-sample', `gr-${b.toLowerCase().replace('_', '-')}`]} data-band-sample={b}>
+        <p class="gr-kicker">Kicker</p>
+        <p class="gr-title">{b} band</p>
+        <p class="gr-support">Support line — one concise sentence.</p>
+      </div>
+    ))}
+  </div>
+  <h3 class="fnd-h3">Card and row grammar</h3>
+  <div class="gr-cards">
+    <div class="gr-card">
+      <p class="gr-card-title">Content card</p>
+      <p class="gr-card-body">Radius 10px · 1px border · shared padding scale. Commercial cards additionally carry the card shadow.</p>
+    </div>
+    <div class="gr-card gr-card-commercial">
+      <p class="gr-card-title">Commercial card</p>
+      <p class="gr-card-body">Same grammar + shadow; green appears only when the state authorizes a commercial action.</p>
+    </div>
+    <div class="gr-divider" role="separator"></div>
+    <p class="gr-note">Divider: 1px gray-200 · evidence labels in gray-400 11px · mobile stacks single-column with 34px band padding.</p>
+  </div>
+</SectionBand>
+
+<!-- ════════ 8 · RESPONSIVE COMPOSITION ════════ -->
+<SectionBand band="NAVY" id="responsive">
+  <SectionHeader
+    kicker="Foundation · 08"
+    title="Responsive composition"
+    support="Primitives stack, they don't shrink: rows become single-column surfaces, promo and CTA go full-width at 44px+ touch height, wells keep fixed geometry."
+    marker="🧪 Mock specimen"
+  />
+  <div class="rsp-grid">
+    <div class="rsp-frame-wrap">
+      <p class="rsp-cap">Comparison cell at 320px width</p>
+      <div class="rsp-frame">
+        <OfferSurface variant="COMPARISON_CELL" offer={BY_KEY.AVAILABLE} />
+      </div>
+    </div>
+    <ul class="rsp-rules">
+      <li>Ranking rows: desktop 5-column grid → single-column stacked surface below 900px; promo box and CTA become full-width.</li>
+      <li>Copy and CTA touch targets stay ≥ 44 CSS px on every mobile viewport.</li>
+      <li>Square tile geometry is fixed (XL 88 · L 64 · M 48 · S 32) — logos never resize responsively, layouts reflow around them.</li>
+      <li>No page-level horizontal overflow at any validated viewport (1440×1000 → 320×700); wide content scrolls inside its own container.</li>
+      <li>The overview system map compacts to a 2-column miniature grid on mobile while every system family stays represented.</li>
+    </ul>
+  </div>
+</SectionBand>
+
+<!-- ════════ 9 · FOUNDATION DECISIONS ════════ -->
+<SectionBand band="LIGHT" id="decisions">
+  <SectionHeader
+    kicker="Foundation · 09"
+    title="Foundation decisions"
+    support="Specimen notes — design-only status and production boundaries."
+    marker="🧪 Mock specimen"
+  />
+  <ul class="dec-list">
+    <li>Every value on this page is mock specimen data; no ranking, code, bonus or eligibility value is verified.</li>
+    <li>Square Logo System v1 is the primary identity standard: registry-driven PLATE / GLYPH / WORDMARK_PLAQUE fitting in four tiers, one shared tile chrome; the “MEXC Global” wordmark asset is retired from specimens (clean symbol plate + white “MEXC” wordmark instead). Rectangular wordmark slots remain a secondary, measured-content system for wide-format contexts.</li>
+    <li>OfferSurface derives authorization once: restricted and under-review states can never render a code, Copy, Claim wording or an affiliate-style CTA in any variant.</li>
+    <li>All actions are inert; no /go/**, affiliate, exchange or registration URL exists on this route.</li>
+    <li>Design-only status: no production route, component, data binding, sitemap or robots change; no canonical Market Intelligence import; production migration remains separately owner-gated.</li>
+  </ul>
+</SectionBand>
+
+<div class="dp-toast" data-dp-toast role="status" aria-live="polite"></div>
+
+<style is:global>
+  .dp-page { background: var(--cbw-bg); }
+</style>
+
+<style>
+  .fnd-h3 {
+    font-size: 15px; font-weight: 800; color: var(--cbw-gray-700);
+    margin: 26px 0 12px; letter-spacing: .01em;
+  }
+  :global(.sb-navy) .fnd-h3 { color: rgba(255,255,255,.85); }
+
+  /* ══ 1 · Overview system map ══ */
+  .ovw-head { display: flex; align-items: center; gap: 8px 14px; flex-wrap: wrap; margin: 0 0 10px; }
+  .ovw-head h1 {
+    font-size: 19px; font-weight: 800; color: var(--cbw-gray-900); margin: 0; line-height: 1.25;
+  }
+  .ovw-sub {
+    font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+    font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em;
+    color: var(--cbw-amber);
+  }
+  .ovw-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 600; color: var(--cbw-gray-500);
+    border: 1px solid var(--cbw-gray-300); border-radius: 100px; padding: 3px 10px;
+    background: var(--cbw-white); white-space: nowrap;
+  }
+  .ovw-grid {
+    display: grid; gap: 8px;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  @media (max-width: 1023px) { .ovw-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (max-width: 639px) { .ovw-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; } }
+  .ovw-card {
+    background: var(--cbw-white); border: 1px solid var(--cbw-gray-200);
+    border-radius: var(--cbw-r-md); padding: 8px 9px; min-width: 0;
+  }
+  .ovw-label {
+    font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+    font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--cbw-gray-500); margin: 0 0 7px;
+  }
+  .ovw-logo-list { display: flex; flex-direction: column; gap: 5px; }
+  .ovw-logo-item { display: inline-flex; align-items: center; gap: 7px; min-width: 0; }
+  .ovw-logo-item i { font-style: normal; font-size: 9.5px; font-weight: 700; color: var(--cbw-gray-500); white-space: nowrap; }
+
+  .ovw-mini-list { display: flex; flex-wrap: wrap; gap: 6px 8px; }
+  .ovw-mini { display: inline-flex; flex-direction: column; align-items: center; gap: 3px; }
+  .ovw-mini i { font-style: normal; font-size: 8.5px; font-weight: 700; color: var(--cbw-gray-500); letter-spacing: .02em; }
+  .mv {
+    width: 58px; height: 40px; border-radius: 5px; display: inline-flex;
+    flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+    box-sizing: border-box; padding: 4px;
+  }
+  .mv-dark { background: linear-gradient(160deg, #0C1118, #141B25); }
+  .mv-short { height: 32px; }
+  .mv-light { background: #fff; border: 1px solid var(--cbw-gray-200); flex-direction: row; }
+  .mv-col { flex-direction: column; }
+  .mv-restricted { border-color: #fecaca; flex-direction: column; }
+  .mvb { display: block; border-radius: 2px; }
+  .mv-logo { width: 26px; height: 7px; background: rgba(255,255,255,.85); }
+  .mv-code { width: 34px; height: 7px; background: #fff; border: 1px solid var(--cbw-gray-300); box-sizing: border-box; }
+  .mv-light .mv-code { background: var(--cbw-gray-100); }
+  .mv-cta { width: 34px; height: 8px; background: var(--cbw-green); }
+  .mv-cta-sm { width: 16px; }
+  .mv-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--cbw-amber); flex-shrink: 0; }
+  .mv-bar { width: 20px; height: 6px; background: var(--cbw-gray-300); }
+  .mv-red { width: 34px; height: 7px; background: #fecaca; }
+
+  .ovw-badge-list { display: flex; flex-wrap: wrap; gap: 5px; }
+  .ob {
+    font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .02em;
+    border-radius: 100px; padding: 3px 8px; white-space: nowrap;
+  }
+  .ob-green { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+  .ob-amber { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+  .ob-red   { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+  .ob-gray  { background: var(--cbw-gray-100); color: var(--cbw-gray-600); border: 1px solid var(--cbw-gray-300); }
+
+  .ovw-action-list { display: flex; flex-direction: column; gap: 5px; align-items: stretch; }
+  .oa-copy {
+    display: inline-flex; align-items: stretch; height: 26px; border-radius: 6px;
+    border: 1px solid var(--cbw-gray-300); overflow: hidden; background: #fff;
+  }
+  .oa-copy i {
+    flex: 1; display: inline-flex; align-items: center; padding: 0 8px;
+    font-style: normal; font-size: 10.5px; font-weight: 800; color: #111827; letter-spacing: .02em;
+  }
+  .oa-copy button {
+    border: none; border-left: 1px solid var(--cbw-gray-200); background: #fff;
+    color: var(--cbw-green); font-size: 9.5px; font-weight: 700; padding: 0 8px; cursor: pointer;
+  }
+  .oa {
+    border-radius: 6px; height: 26px; font-size: 10px; font-weight: 800;
+    cursor: pointer; padding: 0 8px; white-space: nowrap;
+  }
+  .oa-claim { background: var(--cbw-green); color: #fff; border: none; }
+  .oa-sec { background: #fff; color: var(--cbw-gray-700); border: 1px solid var(--cbw-gray-300); }
+  .oa-alt { background: #fff; color: #b91c1c; border: 1px solid #fecaca; }
+  .oa:focus-visible, .oa-copy button:focus-visible { outline: 2px solid var(--cbw-amber); outline-offset: 1px; }
+
+  .ovw-swatch-list { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+  .sw {
+    height: 30px; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center;
+  }
+  .sw i { font-style: normal; font-size: 8.5px; font-weight: 800; letter-spacing: .04em; }
+  .sw-navy { background: linear-gradient(160deg, var(--cbw-navy), var(--cbw-navy-header)); }
+  .sw-navy i { color: rgba(255,255,255,.8); }
+  .sw-light { background: #fff; border: 1px solid var(--cbw-gray-200); }
+  .sw-light i { color: var(--cbw-gray-500); }
+  .sw-lightalt { background: var(--cbw-gray-50); border: 1px solid var(--cbw-gray-200); }
+  .sw-lightalt i { color: var(--cbw-gray-500); }
+  .sw-tint { background: #EEF2F7; border: 1px solid #DBE3EE; }
+  .sw-tint i { color: var(--cbw-gray-600); }
+
+  /* Mobile overview: compact miniature system map — every family stays visible
+     inside the 320×700 first screen (56px header included). */
+  @media (max-width: 639px) {
+    .ovw-head { margin-bottom: 7px; gap: 4px 8px; }
+    .ovw-head h1 { font-size: 15px; }
+    .ovw-sub { font-size: 11px; }
+    .ovw-chip { font-size: 9.5px; padding: 2px 8px; }
+    .ovw-card { padding: 6px 7px; }
+    .ovw-label { font-size: 10px; margin-bottom: 5px; }
+    [data-ovw='logo-classes'], [data-ovw='variants'], [data-ovw='surfaces'] { grid-column: 1 / -1; }
+    .ovw-logo-list { flex-direction: row; gap: 5px; justify-content: space-between; }
+    .ovw-logo-item { flex-direction: column; align-items: center; gap: 2px; min-width: 0; }
+    .ovw-logo-item i { font-size: 8.5px; }
+    .ovw-mini-list { gap: 4px 6px; justify-content: space-between; }
+    .ovw-mini i { font-size: 7.5px; }
+    .mv { width: 44px; height: 28px; padding: 3px; gap: 2px; }
+    .mv-short { height: 22px; }
+    .mv-logo { width: 20px; height: 5px; }
+    .mv-code { width: 26px; height: 5px; }
+    .mv-cta { width: 26px; height: 6px; }
+    .mv-cta-sm { width: 12px; }
+    .mv-bar { width: 14px; height: 5px; }
+    .mv-red { width: 26px; height: 5px; }
+    .mv-dot { width: 6px; height: 6px; }
+    .ovw-badge-list { gap: 4px; }
+    .ob { font-size: 8.5px; padding: 2px 7px; }
+    .ovw-action-list { gap: 4px; }
+    .ovw-swatch-list { grid-template-columns: repeat(4, 1fr); }
+    .sw { height: 22px; }
+  }
+
+  /* ══ 2 · Logo slots ══ */
+  .ls-size-demo { display: flex; flex-direction: column; gap: 14px; }
+  .ls-size-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .ls-size-name { width: 120px; flex-shrink: 0; font-size: 13px; font-weight: 800; color: var(--cbw-gray-900); display: flex; flex-direction: column; gap: 2px; }
+  .ls-size-name i { font-style: normal; font-size: 10.5px; font-weight: 600; color: var(--cbw-gray-500); }
+  .ls-size-slots { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .ls-size-cell { display: inline-flex; flex-direction: column; align-items: center; gap: 4px; }
+  .ls-size-cell i { font-style: normal; font-size: 10px; font-weight: 700; color: var(--cbw-gray-400); }
+
+  .ls-gallery {
+    display: grid; gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(172px, 1fr));
+  }
+  .ls-cell {
+    background: var(--cbw-gray-50); border: 1px solid var(--cbw-gray-200);
+    border-radius: var(--cbw-r-md); padding: 12px; display: flex; flex-direction: column;
+    align-items: center; gap: 8px; text-align: center;
+  }
+  .ls-meta { margin: 0; font-size: 11px; color: var(--cbw-gray-500); display: flex; flex-direction: column; gap: 2px; }
+  .ls-meta b { font-size: 12px; color: var(--cbw-gray-900); }
+  .ls-exc { font-style: normal; color: #b45309; font-weight: 600; font-size: 10.5px; }
+
+  .ls-wells { display: flex; gap: 20px; flex-wrap: wrap; }
+  .ls-well-item { display: inline-flex; flex-direction: column; gap: 5px; align-items: center; }
+  .ls-well-item i { font-style: normal; font-size: 11px; color: var(--cbw-gray-500); }
+
+  .sq-gallery {
+    display: grid; gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  }
+  [data-tier-block='COMPACT_S'] .sq-gallery,
+  [data-tier-block='ROW_M'] .sq-gallery {
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  }
+  .sq-cell {
+    background: var(--cbw-gray-50); border: 1px solid var(--cbw-gray-200);
+    border-radius: var(--cbw-r-md); padding: 14px 10px 10px;
+    display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center;
+  }
+  .sq-tier-block { margin-bottom: 6px; }
+  .sq-tier-usage { font-weight: 600; color: var(--cbw-gray-400); font-size: 12.5px; }
+  .sq-harmony {
+    display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap;
+    background: var(--cbw-gray-50); border: 1px solid var(--cbw-gray-200);
+    border-radius: var(--cbw-r-md); padding: 16px;
+  }
+  .sq-diff-item { display: inline-flex; flex-direction: column; align-items: center; gap: 5px; }
+  .sq-diff-item i { font-style: normal; font-size: 11px; font-weight: 700; color: var(--cbw-gray-600); }
+  .sq-surfaces { display: flex; flex-direction: column; gap: 10px; }
+  .sq-surf {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    border-radius: var(--cbw-r-md); padding: 14px 16px;
+  }
+  .sq-surf-label {
+    width: 82px; flex-shrink: 0;
+    font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+    font-size: 12px; font-weight: 700; letter-spacing: .08em;
+  }
+  .sq-surf-navy { background: linear-gradient(160deg, var(--cbw-navy), var(--cbw-navy-header)); }
+  .sq-surf-navy .sq-surf-label { color: rgba(255,255,255,.7); }
+  .sq-surf-light { background: #fff; border: 1px solid var(--cbw-gray-200); }
+  .sq-surf-light .sq-surf-label { color: var(--cbw-gray-500); }
+  .sq-surf-light-alt { background: var(--cbw-gray-50); border: 1px solid var(--cbw-gray-200); }
+  .sq-surf-light-alt .sq-surf-label { color: var(--cbw-gray-500); }
+
+  .ls-exceptions {
+    margin-top: 22px; background: #fffbeb; border: 1px solid #fde68a;
+    border-radius: var(--cbw-r-md); padding: 12px 16px; font-size: 12.5px;
+    color: #92400e; line-height: 1.55;
+  }
+  .ls-exceptions p { margin: 0 0 6px; }
+  .ls-exceptions p:last-child { margin-bottom: 0; }
+  .ls-band-note { color: #a16207; }
+
+  /* ══ 3 · Variants ══ */
+  .osv-grid { display: grid; gap: 18px; grid-template-columns: 1fr 1fr; }
+  @media (max-width: 899px) { .osv-grid { grid-template-columns: 1fr; } }
+  .osv-wide { grid-column: 1 / -1; }
+  .osv-cap { font-size: 12px; font-weight: 700; color: var(--cbw-gray-500); margin: 0 0 8px; letter-spacing: .02em; }
+  .osv-cells { display: grid; gap: 10px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  @media (max-width: 767px) { .osv-cells { grid-template-columns: 1fr; } }
+  .osv-rows { display: flex; flex-direction: column; gap: 10px; }
+
+  /* ══ 4 · State matrix ══ */
+  .sm-list { display: flex; flex-direction: column; gap: 20px; }
+  .sm-cap { font-size: 12.5px; color: var(--cbw-gray-600); margin: 0 0 7px; line-height: 1.5; max-width: 860px; }
+  .sm-cap b { color: var(--cbw-gray-900); }
+
+  /* ══ 5 · Controls ══ */
+  .ctl-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+  .ctl-card {
+    background: var(--cbw-white); border: 1px solid var(--cbw-gray-200);
+    border-radius: var(--cbw-r-md); padding: 14px;
+    display: flex; flex-direction: column; gap: 10px; align-items: flex-start;
+  }
+  .ctl-cap { font-size: 12px; font-weight: 700; color: var(--cbw-gray-500); margin: 0; }
+  .ctl-row { display: flex; gap: 8px; flex-wrap: wrap; width: 100%; }
+  .ctl-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-height: 44px; padding: 0 16px; border-radius: 8px;
+    font-size: 13.5px; font-weight: 800; cursor: pointer; white-space: nowrap;
+  }
+  .ctl-claim { background: var(--cbw-green); color: #fff; border: none; }
+  .ctl-claim:hover { background: var(--cbw-green-hover); }
+  .ctl-sec { background: var(--cbw-btn-sec-bg); color: var(--cbw-gray-700); border: 1.5px solid var(--cbw-btn-sec-bd); }
+  .ctl-sec:hover { background: var(--cbw-btn-sec-h-bg); }
+  .ctl-alt { background: #fff; color: #b91c1c; border: 1.5px solid #fecaca; }
+  .ctl-alt:hover { background: #fef2f2; }
+  .ctl-disabled { background: var(--cbw-gray-100); color: var(--cbw-gray-400); border: 1.5px solid var(--cbw-gray-200); cursor: not-allowed; }
+  .ctl-btn:focus-visible { outline: 2px solid var(--cbw-amber); outline-offset: 1px; }
+  .os-like-promo { width: 100%; }
+  .olp-box {
+    display: flex; align-items: stretch; height: 44px; width: 100%; max-width: 260px;
+    background: #fff; border: 1px solid var(--cbw-gray-300); border-radius: 8px; overflow: hidden;
+    transition: border-color .15s, background .15s;
+  }
+  .os-like-promo.copy-success .olp-box { border-color: #22c55e; background: #dcfce7; }
+  .olp-code {
+    flex: 1; display: inline-flex; align-items: center; padding: 0 12px;
+    font-family: 'Arial Narrow', 'Roboto Condensed', Inter, system-ui, sans-serif;
+    font-size: 15px; font-weight: 800; text-transform: uppercase; color: #111827;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; background: #fff;
+  }
+  .olp-copy {
+    flex-shrink: 0; width: 54px; border: none; border-left: 1px solid var(--cbw-gray-200);
+    background: #fff; color: var(--cbw-green); font-size: 11px; font-weight: 700; cursor: pointer;
+  }
+  .os-like-promo.copy-success .olp-code,
+  .os-like-promo.copy-success .olp-copy { background: #dcfce7; color: #166534; }
+  .olp-copy:focus-visible { outline: 2px solid var(--cbw-amber); outline-offset: 1px; }
+
+  /* ══ 6 · Notices ══ */
+  .ntc-list { display: flex; flex-direction: column; gap: 10px; max-width: 760px; }
+  .fnd-notice { border-radius: 8px; font-size: 13px; line-height: 1.55; padding: 10px 14px; margin: 0; }
+  .fnd-notice b { font-weight: 800; }
+  .fnd-notice-gray { background: var(--cbw-gray-50); border: 1px solid var(--cbw-gray-200); color: var(--cbw-gray-600); }
+  .fnd-notice-amber { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+  .fnd-notice-red { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
+  .fnd-notice-blue { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; }
+
+  /* ══ 7 · Grammar ══ */
+  .gr-bands { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+  .gr-band-sample { border-radius: var(--cbw-r-md); padding: 16px; }
+  .gr-navy { background: linear-gradient(160deg, var(--cbw-navy), var(--cbw-navy-header)); color: #fff; }
+  .gr-light { background: #fff; border: 1px solid var(--cbw-gray-200); color: var(--cbw-gray-900); }
+  .gr-light-alt { background: var(--cbw-gray-50); border: 1px solid var(--cbw-gray-200); color: var(--cbw-gray-900); }
+  .gr-navy-tint { background: #EEF2F7; border: 1px solid #DBE3EE; color: var(--cbw-gray-900); }
+  .gr-kicker {
+    font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+    font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--cbw-amber); margin: 0 0 3px;
+  }
+  .gr-title { font-size: 16px; font-weight: 800; margin: 0 0 3px; }
+  .gr-support { font-size: 12px; margin: 0; opacity: .65; }
+  .gr-cards { margin-top: 4px; display: flex; flex-direction: column; gap: 12px; max-width: 640px; }
+  .gr-card { background: #fff; border: 1px solid var(--cbw-gray-200); border-radius: var(--cbw-r-md); padding: 14px; }
+  .gr-card-commercial { box-shadow: var(--cbw-card-shadow); }
+  .gr-card-title { font-size: 13.5px; font-weight: 800; color: var(--cbw-gray-900); margin: 0 0 4px; }
+  .gr-card-body { font-size: 12.5px; color: var(--cbw-gray-500); margin: 0; line-height: 1.5; }
+  .gr-divider { height: 1px; background: var(--cbw-gray-200); }
+  .gr-note { font-size: 12px; color: var(--cbw-gray-500); margin: 0; }
+
+  /* ══ 8 · Responsive ══ */
+  .rsp-grid { display: grid; gap: 24px; grid-template-columns: auto minmax(0, 1fr); align-items: start; }
+  @media (max-width: 767px) { .rsp-grid { grid-template-columns: minmax(0, 1fr); } }
+  .rsp-cap { font-size: 12px; font-weight: 700; color: rgba(255,255,255,.65); margin: 0 0 8px; }
+  .rsp-frame { width: 100%; max-width: 320px; background: var(--cbw-bg); border-radius: var(--cbw-r-md); padding: 10px; box-sizing: border-box; }
+  .rsp-frame-wrap { min-width: 0; }
+  .rsp-rules { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 8px; }
+  .rsp-rules li { font-size: 13px; line-height: 1.55; color: rgba(255,255,255,.78); }
+
+  /* ══ 9 · Decisions ══ */
+  .dec-list { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 8px; max-width: 820px; }
+  .dec-list li { font-size: 13px; line-height: 1.6; color: var(--cbw-gray-600); }
+
+  /* ══ Toast ══ */
+  .dp-toast {
+    position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%) translateY(8px);
+    background: #2e1065; color: #ede9fe; font-size: 13px; font-weight: 600;
+    padding: 10px 18px; border-radius: 100px; opacity: 0; pointer-events: none;
+    transition: opacity .2s, transform .2s; z-index: 90;
+    box-shadow: 0 6px 24px rgba(0,0,0,.3); max-width: 90vw; text-align: center;
+  }
+  .dp-toast.is-shown { opacity: 1; transform: translateX(-50%) translateY(0); }
+  @media (prefers-reduced-motion: reduce) {
+    .dp-toast { transition: none; }
+    .os-cta, .ctl-btn { transition: none; }
+  }
+</style>
+
+<script>
+  // Prototype-local controller: copy (mock-local) + inert preview actions.
+  const toast = document.querySelector('[data-dp-toast]') as HTMLElement;
+  let toastTimer: ReturnType<typeof setTimeout> | undefined;
+  function showToast(msg: string) {
+    if (!toast) return;
+    toast.textContent = msg;
+    toast.classList.add('is-shown');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('is-shown'), 1800);
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-copy-row]').forEach((row) => {
+    const btn = row.querySelector<HTMLButtonElement>('[data-copy-btn]');
+    const code = row.querySelector<HTMLElement>('[data-role="promo-code"]');
+    if (!btn || !code) return;
+    btn.addEventListener('click', async () => {
+      const value = code.textContent?.trim() ?? '';
+      try {
+        await navigator.clipboard.writeText(value);
+      } catch {
+        /* clipboard unavailable — mock copy still shows success state */
+      }
+      row.classList.add('copy-success');
+      showToast(`Mock code ${value} copied — design preview only`);
+      setTimeout(() => row.classList.remove('copy-success'), 1600);
+    });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-preview-cta]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      showToast('Design preview — navigation disabled');
+    });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-copy-btn-demo]').forEach((btn) => {
+    btn.addEventListener('click', () => showToast('Mock copy control — design preview only'));
+  });
+</script>
+
+</CleanLayout>

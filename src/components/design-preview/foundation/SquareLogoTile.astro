@@ -1,0 +1,100 @@
+---
+/**
+ * DESIGN PREVIEW — Square Logo System v1 tile (prototype-local).
+ *
+ * One square identity tile per exchange (owner direction: square-first).
+ * Three fitting kinds from the deterministic square registry:
+ *   PLATE — full-bleed brand plate, edge-to-edge with rounded tile corners
+ *           (app-icon treatment; only the plate background is corner-rounded,
+ *           brand glyphs are never cut);
+ *   GLYPH — transparent symbol centered at a normalized inner scale;
+ *   WORDMARK_PLAQUE — short wordmark centered by its measured content box on
+ *           a plate-style tile.
+ * Never stretched, never glyph-clipped, never recolored; repository assets
+ * only; presentation metadata only — no commercial meaning.
+ */
+import {
+  SQUARE_LOGO_REGISTRY,
+  computeSquareFit,
+  type SquareTier,
+} from '../../../data/design-preview/foundation-logo-fit-registry';
+
+export interface Props {
+  registryKey: string;
+  tier: SquareTier;
+  eager?: boolean;
+}
+
+const { registryKey, tier, eager = false } = Astro.props;
+const entry = SQUARE_LOGO_REGISTRY[registryKey];
+if (!entry) throw new Error(`[SquareLogoTile] unknown registry key: ${registryKey}`);
+const fit = computeSquareFit(entry, tier);
+
+const tileStyle = `width:${fit.tile}px;height:${fit.tile}px;border-radius:${fit.radius}px;`;
+const imgStyle =
+  entry.kind === 'PLATE'
+    ? `width:100%;height:100%;object-fit:cover;border-radius:inherit;`
+    : `left:${fit.imgLeft.toFixed(2)}px;top:${fit.imgTop.toFixed(2)}px;` +
+      `width:${fit.imgW.toFixed(2)}px;height:${fit.imgH.toFixed(2)}px;`;
+
+const sqData = JSON.stringify({
+  kind: entry.kind,
+  tile: fit.tile,
+  contentW: +fit.contentW.toFixed(2),
+  contentH: +fit.contentH.toFixed(2),
+  contentLeft: +fit.contentLeft.toFixed(2),
+  contentTop: +fit.contentTop.toFixed(2),
+  canvasAR: +(entry.measuredCanvas[0] / entry.measuredCanvas[1]).toFixed(4),
+});
+---
+
+<span
+  class:list={[
+    'sqt',
+    `sqt-kind-${entry.kind.toLowerCase().replace('_', '-')}`,
+    `sqt-tone-${entry.plateTone.toLowerCase()}`,
+    entry.kind !== 'PLATE' && `sqt-bg-${entry.tileBg.toLowerCase()}`,
+  ]}
+  style={tileStyle}
+  data-square-tile
+  data-exchange={entry.exchangeId}
+  data-tier={tier}
+  data-kind={entry.kind}
+  data-sqfit={sqData}
+  role="img"
+  aria-label={entry.accessibleLabel}
+>
+  <img
+    src={entry.assetPath}
+    alt=""
+    style={imgStyle}
+    loading={eager ? 'eager' : 'lazy'}
+    decoding="async"
+    data-square-img
+  />
+</span>
+
+<style>
+  .sqt {
+    position: relative; display: inline-block; flex-shrink: 0;
+    box-sizing: border-box; overflow: hidden;
+    color-scheme: light; forced-color-adjust: none;
+  }
+  /* one shared chrome ring so all tiles read as members of one system */
+  .sqt::after {
+    content: ''; position: absolute; inset: 0; border-radius: inherit;
+    border: 1px solid rgba(17, 24, 39, .1); pointer-events: none;
+  }
+  :global(.os-on-dark) .sqt::after,
+  :global(.sb-navy) .sqt::after { border-color: rgba(255, 255, 255, .18); }
+  .sqt-tone-dark::after { border-color: rgba(255, 255, 255, .08); }
+  :global(.sb-navy) .sqt-tone-dark::after,
+  :global(.os-on-dark) .sqt-tone-dark::after { border-color: rgba(255, 255, 255, .28); }
+
+  .sqt-bg-light { background: #ffffff; }
+  .sqt-bg-neutral { background: var(--cbw-gray-100); }
+  .sqt-bg-dark { background: #000000; }
+
+  .sqt img { display: block; max-width: none; }
+  .sqt-kind-glyph img, .sqt-kind-wordmark-plaque img { position: absolute; }
+</style>

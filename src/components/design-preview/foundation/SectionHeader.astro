@@ -1,0 +1,82 @@
+---
+/**
+ * DESIGN PREVIEW — SectionHeader (prototype-local section grammar).
+ *
+ * The one shared header grammar for every section site-wide:
+ * optional kicker (condensed, amber, uppercase) · H2 · concise support line ·
+ * optional evidence/status marker · optional small secondary action (inert in
+ * prototypes). No section may invent a private header style.
+ */
+export interface Props {
+  title: string;
+  kicker?: string;
+  support?: string;
+  /** small evidence / status marker chip (e.g. freshness, mock marker) */
+  marker?: string;
+  /** small inert secondary action label */
+  actionLabel?: string;
+  /** heading level flexibility for specimen nesting */
+  as?: 'h2' | 'h3';
+}
+const { title, kicker, support, marker, actionLabel, as: Tag = 'h2' } = Astro.props;
+---
+
+<header class="sh">
+  <div class="sh-main">
+    {kicker && <p class="sh-kicker">{kicker}</p>}
+    <Tag class="sh-title">{title}</Tag>
+    {support && <p class="sh-support">{support}</p>}
+  </div>
+  {(marker || actionLabel) && (
+    <div class="sh-side">
+      {marker && <span class="sh-marker">{marker}</span>}
+      {actionLabel && (
+        <button type="button" class="sh-action" data-preview-cta>{actionLabel}</button>
+      )}
+    </div>
+  )}
+</header>
+
+<style>
+  .sh {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    gap: 12px 20px; margin: 0 0 22px; flex-wrap: wrap;
+  }
+  @media (max-width: 639px) { .sh { margin-bottom: 14px; } }
+
+  .sh-main { min-width: 0; }
+  .sh-kicker {
+    font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+    font-size: 13px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--cbw-amber); margin: 0 0 4px;
+  }
+  .sh-title {
+    font-size: 28px; font-weight: 800; line-height: 1.2; margin: 0;
+    color: inherit;
+  }
+  @media (max-width: 639px) { .sh-title { font-size: 21px; } }
+  .sh-support {
+    font-size: 14px; line-height: 1.55; margin: 6px 0 0; max-width: 640px;
+    color: var(--cbw-gray-500);
+  }
+  :global(.sb-navy) .sh-support { color: rgba(255, 255, 255, .65); }
+
+  .sh-side { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .sh-marker {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 600; color: var(--cbw-gray-500);
+    border: 1px solid var(--cbw-gray-300); border-radius: 100px; padding: 3px 10px;
+    background: var(--cbw-white); white-space: nowrap;
+  }
+  :global(.sb-navy) .sh-marker {
+    color: rgba(255, 255, 255, .7); border-color: rgba(255, 255, 255, .25);
+    background: rgba(255, 255, 255, .06);
+  }
+  .sh-action {
+    font-size: 12px; font-weight: 700; color: var(--cbw-gray-700);
+    background: var(--cbw-btn-sec-bg); border: 1px solid var(--cbw-btn-sec-bd);
+    border-radius: 100px; padding: 6px 14px; cursor: pointer; white-space: nowrap;
+  }
+  .sh-action:hover { background: var(--cbw-btn-sec-h-bg); border-color: var(--cbw-btn-sec-h-bd); }
+  .sh-action:focus-visible { outline: 2px solid var(--cbw-amber); outline-offset: 1px; }
+</style>
