@@ -1,0 +1,338 @@
+{
+  "designId": "CBW-KZ-MEXC-P0B-IMPORT-PREP-DESIGN-v1",
+  "taskId": "CBW-KZ-MEXC-P0-B-IMPORT-PREP-DESIGN-002",
+  "project": "CryptoBonusWorld",
+  "repository": "C:\\projects\\CryptoBonusWorld",
+  "branch": "master",
+  "baselineHead": "6f922cdff5caf0a6fb0f5eeff7618ea895234c73",
+  "date": "2026-07-22",
+  "countryCode": "KZ",
+  "exchangeId": "mexc",
+  "batchId": "KZ-P0-B",
+  "mode": "DESIGN-ONLY IMPORT PREPARATION",
+  "webBrowsingUsed": false,
+  "packageStatus": "RECOVERED / UNVERIFIED",
+  "sourceTruthInput": {
+    "declaredPath": "_handoff/mexc-p0b-source-truth-result/CBW_KZ_MEXC_P0B_SOURCE_TRUTH_REVIEW_v1_RECOVERED.zip",
+    "usedPath": "_handoff/mexc-p0b-source-truth-result/CBW_KZ_MEXC_P0B_SOURCE_TRUTH_REVIEW_v1.zip",
+    "usedPathAllowedByTask": true,
+    "bytes": 27833,
+    "sha256": "f7658b5f7bddc29d24fd09a2c06de09d2dcfe65e6de64cc40e91c0399a380c5f",
+    "temporaryExtractionDeleted": true
+  },
+  "baselineFactsPreserved": {
+    "overallAvailability": "RESTRICTED",
+    "confidence": "HIGH",
+    "liveVerificationState": "NOT_LIVE_VERIFIED",
+    "packageStatus": "RECOVERED / UNVERIFIED",
+    "publicationPosture": "BLOCKED",
+    "primaryVisualState": "RED",
+    "primaryLabel": "Restricted in Kazakhstan",
+    "technicalSiteReachability": "NOT_DETERMINED",
+    "restrictedNotReinterpretedAsTechnicalInaccessibility": true,
+    "originalSources": 16,
+    "supplementalSources": 0,
+    "originalClaims": 24,
+    "correctionRequiredClaims": 15,
+    "conflicts": 7
+  },
+  "schemaDecision1_scopeCardinality": {
+    "status": "RESOLVED",
+    "schemaInspected": "schemas/market-intelligence/market-source.schema.json",
+    "productScope": {
+      "exactFieldType": "array of string (unconstrained tokens)",
+      "approved": "sorted unique arrays",
+      "derivation": "productScope(source) = sorted unique claim categories of all claims linked via SUPPORTS or CONTRADICTS; category parsed deterministically from claimId (clm-kz-mexc-<category>-NNN)",
+      "orderingRule": "lexicographic ascending",
+      "duplicateRemovalRule": "set semantics before sort",
+      "emptyScopeRule": "empty derived scope -> rejection",
+      "rejectionCondition": "unparseable claimId category token -> stop without writing",
+      "noScopeInventedFromUrlTitlePublisher": true
+    },
+    "countryScope": {
+      "schemaFinding": "market-source.schema.json has NO countryScope field; only scalar countryCode (string|null); additionalProperties:false",
+      "resolution": "countryCode constant \"KZ\" for all 16 sources; review countryScope arrays preserved verbatim per-source in qa-provenance (non-lossy); no arbitrary primary value chosen",
+      "lossless": true
+    },
+    "schemaModified": false
+  },
+  "schemaDecision2_linkagePlacement": {
+    "status": "RESOLVED",
+    "model": "market-source records contain source facts only; claim relationships live in separate claim-source-links.json registry; one record per claim/source/relationship",
+    "linkageFields": ["linkId", "claimId", "sourceId", "relationship", "verificationState", "confidence", "checkedDate", "provenance", "note"],
+    "linkIdRule": "<claimId>|<sourceId>|<relationship> (deterministic; extends Bybit claimId|sourceId precedent with relationship segment)",
+    "allowedRelationships": ["SUPPORTS", "LIMITS", "CONTRADICTS", "CONTEXT"],
+    "derivedCounts": { "SUPPORTS": 41, "CONTRADICTS": 14, "LIMITS": 0, "CONTEXT": 0, "total": 55, "duplicates": 0 },
+    "forwardReverseSymmetryVerified": true,
+    "requirements": {
+      "deterministicLinkId": true,
+      "allIdsResolve": true,
+      "noDuplicateRelationshipRecords": true,
+      "originalRelationshipPreserved": true,
+      "contradictoryEvidenceExplicit": true,
+      "noSupportedClaimIdsReinsertedIntoSources": true
+    }
+  },
+  "schemaDecision3_provenance": {
+    "status": "RESOLVED",
+    "sidecar": "qa-provenance.json (staging; no repository schema constraint; QA-only fields never placed into schema-constrained source records)",
+    "preserves": [
+      "RECOVERED / UNVERIFIED status",
+      "unavailable original ZIP metadata (37001 B, 3f0e10d231efc2ce33f77fac85182809197c11bf5b0cf400f32c77bad4774281)",
+      "recovered ZIP metadata (27833 B, f7658b5f7bddc29d24fd09a2c06de09d2dcfe65e6de64cc40e91c0399a380c5f)",
+      "source-truth review package metadata",
+      "per-source verificationStatus, checkedDate, pageStatus, limitations, legalEntityScope, review countryScope arrays, sourceOrigin, verifiedEvidence, reviewNotes, statusMappingNote",
+      "per-claim originalStatement, verifiedStatement, verdict, confidence, correctionRequired, correctionNote, limitations, publication/ranking/cta/promo uses",
+      "terms-page flip monitoring state",
+      "AFSA interpretation boundary (not technical-unavailability proof)",
+      "unresolved evidence",
+      "owner-decision references (6f922cdff5caf0a6fb0f5eeff7618ea895234c73, 5aa41f01b8d899223be925faaea01093c3125b6e)",
+      "granted authorizations (2) and withheld authorizations (15)",
+      "import history"
+    ],
+    "provenanceLossIsRejection": true
+  },
+  "schemaDecision4_contradictions": {
+    "status": "RESOLVED",
+    "representation": {
+      "claimSourceLinks": "14 explicit CONTRADICTS records; all contradictingSourceIds preserved 1:1",
+      "sourceRecords": "remain factual; never globally downgraded for contradicting one claim; status derives only from own verification/page status",
+      "qaProvenance": "per-claim contradicting IDs verbatim; unresolvedEvidence verbatim",
+      "normalizedConflicts": "7 records retain sourcesReviewed and unresolvedEvidence; terms-page flip explicit in cf-kz-mexc-terms-vs-regulator",
+      "candidateReasonCodes": [
+        "RESTRICTED_BY_CURRENT_TERMS_PROHIBITED_JURISDICTION",
+        "AFSA_UNLICENSED_WARNING_SUPPORTING",
+        "TERMS_PAGE_FLIP_MONITORING_REQUIRED",
+        "CONFLICTING_PRODUCT_SIGNALS_PRESERVED",
+        "DIRECT_FIAT_RAILS_UNVERIFIED",
+        "REFERRAL_KZ_COMPATIBILITY_UNVERIFIED",
+        "RECOVERED_PACKAGE_UNVERIFIED"
+      ]
+    },
+    "currentRestrictiveEvidenceControls": true,
+    "earlierCapturesRemainProvenance": true,
+    "noContradictionDeletedAfterOwnerDecision": true
+  },
+  "sourceNormalizationDesign": {
+    "input": "source-verification.json originalSources[16]",
+    "output": "normalized-sources.json (flat array sorted by sourceId; each record exact market-source.schema.json instance)",
+    "fieldMappings": {
+      "sourceId": "verbatim",
+      "exchangeId": "constant mexc",
+      "countryCode": "constant KZ",
+      "productScope": "derived per schema decision 1",
+      "claimType": "null",
+      "url": "verifiedUrl, deterministic fallback originalUrl (which-used recorded in provenance)",
+      "sourceTier": "TIER_A->A, TIER_B->B, TIER_C->C, TIER_D->D; unknown -> reject",
+      "publisher": "verbatim",
+      "title": "verbatim",
+      "publishedDate": "verbatim or null",
+      "updatedDate": "from lastUpdatedDate",
+      "effectiveFrom": "from effectiveDate",
+      "effectiveTo": "null",
+      "retrievedDate": "from checkedDate (2026-07-22)",
+      "language": "English->en, Russian->ru, Kazakh->kk; unknown -> reject",
+      "contentHash": "null + provenance note (recovered package preserves no hashes)",
+      "evidenceSummary": "from verifiedEvidence",
+      "quotedClaim": "null",
+      "captureType": "deterministic table: all 16 observed sourceType tokens -> HTML; sourceType verbatim in provenance; unmapped -> reject"
+    },
+    "statusMapping": {
+      "VERIFIED_CURRENT": "ACTIVE",
+      "VERIFIED_WITH_LIMITS": "ACTIVE (justified: all six have live-current pageStatus; limits live in links + provenance) + mandatory statusMappingNote",
+      "OUTDATED": "STALE (schema has no ARCHIVED) + mandatory note",
+      "MOVED": "MOVED",
+      "SUPERSEDED": "SUPERSEDED",
+      "REMOVED": "REMOVED",
+      "BLOCKED": "BLOCKED",
+      "NOT_VERIFIABLE": "STALE + provenance note + ownerReview flag",
+      "CONTRADICTED": "ACTIVE if pageStatus CURRENT_*-class else STALE; contradiction expressed via links, never via source status; + note + ownerReview flag"
+    },
+    "noBlindMapToActive": true,
+    "expectedStatusDistribution": { "ACTIVE": 15, "STALE": 1 },
+    "executed": false
+  },
+  "claimNormalizationDesign": {
+    "input": "claim-verdicts.json",
+    "output": "claim-review.json (staging-only; 24 records; no repository schema applies; not canonical)",
+    "recordFields": ["claimId", "category", "originalStatement", "verifiedStatement", "verdict", "confidence", "verifiedSourceIds", "contradictingSourceIds", "limitations", "correctionRequired", "correctionNote", "publicationUse", "rankingUse", "ctaUse", "promoUse", "ownerReviewRequired"],
+    "correctionApplicationPolicy": "corrections recorded, never applied; no legacy GEO text rewritten by staging; verified statement is future editorial source of truth; original preserved verbatim for audit",
+    "originalVersusCorrectedPreservation": "both statements verbatim side-by-side in every record",
+    "statusEnumMapping": "review verdicts kept verbatim; no coercion into any schema enum",
+    "ownerReviewFlags": "true where correctionRequired true, verdict UNVERIFIED, or claim referenced by a PARTIALLY_RESOLVED conflict",
+    "rejectionConditions": ["record count != 24", "missing any of the 14 review fields", "unknown verdict token", "dangling source reference", "correction count != 15"],
+    "ordering": "claimId ascending",
+    "executed": false
+  },
+  "conflictNormalizationDesign": {
+    "input": "conflict-resolution.json",
+    "output": "normalized-conflicts.json (7 free-form records, Bybit-precedent shape, sorted by conflictId)",
+    "preservedDistribution": { "RESOLVED_RESTRICTIVE": 2, "PARTIALLY_RESOLVED": 4, "RESOLVED_BY_SPECIFICITY": 1 },
+    "preservedFieldsPerRecord": ["conflictId", "originalStatus", "finalStatus", "sourcesReviewed", "claimsReviewed", "currentAssessment", "unresolvedEvidence", "ownerReviewRequired"],
+    "restrictionEventSchemaApplied": false,
+    "restrictionEventSchemaReason": "checked per-record: required eventId/eventType/detectedDate/reviewStatus + additionalProperties:false do not accommodate conflict fields; no record conforms; none forced",
+    "noAutoResolutionOfPartialConflicts": true,
+    "ownerReviewRequiredAllSeven": true,
+    "executed": false
+  },
+  "candidateDesign": {
+    "file": "exchange-market-cell.candidate.json",
+    "wrapper": "OPTION_A { candidateMetadata, cell }",
+    "candidateMetadata": {
+      "recordState": "CANDIDATE",
+      "canonical": false,
+      "productionEligible": false,
+      "migration5Authorized": false,
+      "futureRankingCandidate": false,
+      "primaryVisualState": "RED",
+      "primaryLabel": "Restricted in Kazakhstan",
+      "secondaryLabel": "MEXC’s current terms list Kazakhstan as a prohibited jurisdiction",
+      "packageStatus": "RECOVERED / UNVERIFIED",
+      "termsPageFlipMonitoringRequired": true,
+      "technicalSiteReachability": "NOT_DETERMINED",
+      "provenanceReferences": true,
+      "blockedAuthorizationSummary": true
+    },
+    "cell": {
+      "schema": "schemas/market-intelligence/exchange-market-cell.schema.json",
+      "exchangeId": "mexc",
+      "countryCode": "KZ",
+      "exchangeLegalEntity": null,
+      "overallAvailability": "RESTRICTED",
+      "registrationStatus": "RESTRICTED",
+      "productStatuses": {
+        "registration": "RESTRICTED",
+        "kyc": "RESTRICTED",
+        "spot": "RESTRICTED",
+        "derivatives": "RESTRICTED",
+        "margin": "RESTRICTED",
+        "copy_trading": "RESTRICTED_WITH_PRODUCT_DETAIL_UNVERIFIED",
+        "p2p": "CONFLICTING",
+        "kzt_p2p": "CONFLICTING",
+        "direct_kzt_deposit": "UNKNOWN",
+        "direct_kzt_withdrawal": "UNKNOWN",
+        "bank_card_purchase": "UNAVAILABLE",
+        "mobile_application": "CONFLICTING",
+        "earn": "CONFLICTING"
+      },
+      "rankingEligibility": false,
+      "ctaEligibility": false,
+      "promoEligibility": false,
+      "confidence": "HIGH",
+      "freshness": "UNDER_REVIEW",
+      "checkedDate": "2026-07-22",
+      "nextReviewDate": "2026-08-21",
+      "liveVerificationState": "NOT_LIVE_VERIFIED",
+      "sourceIds": "all 16 sorted",
+      "conflictIds": "all 7 sorted",
+      "alternativeExchangeIds": []
+    },
+    "schemaMismatch": "NONE — productStatuses accepts arbitrary string keys and values; every dictated product key and status token is representable exactly; no safe-projection fallback needed",
+    "schemaModified": false,
+    "candidateCreated": false
+  },
+  "termsPageFlipPreservation": {
+    "state": "CURRENT_RESTRICTIVE_SOURCE_ACCEPTED_WITH_MONITORING",
+    "earlierCaptures": [
+      { "date": "2026-07-03", "finding": "Kazakhstan reportedly absent" },
+      { "date": "2026-07-14", "finding": "Kazakhstan reportedly absent" }
+    ],
+    "sourceTruthReview": { "date": "2026-07-22", "finding": "Kazakhstan present; displayed document update date remained 2025-05-29" },
+    "locations": [
+      "qa-provenance.termsPageFlip block",
+      "normalized-conflicts cf-kz-mexc-terms-vs-regulator unresolvedEvidence",
+      "candidate reasonCode TERMS_PAGE_FLIP_MONITORING_REQUIRED + candidateMetadata.termsPageFlipMonitoringRequired",
+      "recheck schedule: cell.nextReviewDate 2026-08-21 (checkedDate + 30 days) + production-publication recheck provenance note"
+    ],
+    "notCollapsedIntoFinalRestrictionFlag": true
+  },
+  "importScriptContract": {
+    "path": "scripts/market-intelligence/import-kz-mexc-p0b.mjs",
+    "created": false,
+    "precedent": "scripts/market-intelligence/import-kz-bybit-p0a.mjs",
+    "modes": ["--dry-run", "--write-staging", "--check"],
+    "rules": {
+      "dryRunWritesNothing": true,
+      "writeStagingWritesOnly": "research/market-intelligence/staging/kz/mexc/p0b-v1/",
+      "checkRegeneratesInMemoryAndByteCompares": true,
+      "deterministicOutput": true,
+      "noWallClock": true,
+      "noNetwork": true,
+      "noBrowser": true,
+      "noChildProcess": true,
+      "noGitCommands": true,
+      "nodeBuiltinsOnly": true,
+      "noDependencyAddition": true,
+      "packageJsonUnchanged": true,
+      "overwriteRefusalUnlessSeparatelyAuthorized": true,
+      "inputHashGate": "f7658b5f7bddc29d24fd09a2c06de09d2dcfe65e6de64cc40e91c0399a380c5f / 27833 bytes"
+    },
+    "exitCodes": { "0": "success", "1": "validation/input error", "2": "unsafe mode / overwrite refusal" },
+    "proposedStagingRoot": "research/market-intelligence/staging/kz/mexc/p0b-v1/",
+    "stagingRootCreated": false
+  },
+  "futureStagingFiles": [
+    { "file": "import-manifest.json", "purpose": "run identity, package hashes, generated-file hashes, counts, stagingOnly:true, all authorization flags false", "schemaApplies": false },
+    { "file": "normalized-sources.json", "purpose": "16 market-source records", "schemaApplies": "market-source.schema.json per record", "count": 16 },
+    { "file": "claim-source-links.json", "purpose": "55 linkage records", "schemaApplies": false, "count": 55 },
+    { "file": "claim-review.json", "purpose": "24 claim-review staging records", "schemaApplies": false, "count": 24 },
+    { "file": "qa-provenance.json", "purpose": "complete provenance sidecar", "schemaApplies": false },
+    { "file": "normalized-conflicts.json", "purpose": "7 conflict records", "schemaApplies": false, "count": 7 },
+    { "file": "exchange-market-cell.candidate.json", "purpose": "OPTION A non-production candidate; cell validated against exchange-market-cell.schema.json", "schemaApplies": "cell only" },
+    { "file": "transform-report.md", "purpose": "human-readable deterministic run report", "schemaApplies": false }
+  ],
+  "expectedCounts": {
+    "normalizedSources": 16,
+    "sourceDistribution": { "VERIFIED_CURRENT": 9, "VERIFIED_WITH_LIMITS": 6, "OUTDATED": 1 },
+    "normalizedSourceStatusDistribution": { "ACTIVE": 15, "STALE": 1 },
+    "claimReviews": 24,
+    "claimDistribution": { "CONFIRMED": 11, "CONFIRMED_WITH_LIMITS": 11, "UNVERIFIED": 2 },
+    "correctionRequiredClaims": 15,
+    "conflicts": 7,
+    "conflictDistribution": { "RESOLVED_RESTRICTIVE": 2, "PARTIALLY_RESOLVED": 4, "RESOLVED_BY_SPECIFICITY": 1 },
+    "claimSourceLinks": {
+      "total": 55,
+      "SUPPORTS": 41,
+      "CONTRADICTS": 14,
+      "derivedNotGuessed": true,
+      "derivationMethod": "sum of claim-verdicts verifiedSourceIds (41) + contradictingSourceIds (14); 0 duplicate triples; forward set verified equal to reverse index from source-verification supportedClaimIds/contradictedClaimIds; future implementation must recompute both directions and require set equality and count 55"
+    }
+  },
+  "rejectionConditions": [
+    "package hash differs from f7658b5f… or bytes differ from 27833",
+    "package identity differs (project/country/exchange/batch/task/baselines)",
+    "any JSON fails to parse",
+    "expected source/claim/conflict ID set differs",
+    "duplicate ID exists (source, claim, conflict, linkId)",
+    "dangling reference exists (including forward/reverse link asymmetry)",
+    "source status cannot be safely mapped by the status decision table",
+    "product status cannot be represented without an owner-approved mapping",
+    "candidate cell fails exchange-market-cell.schema.json validation",
+    "any mandated provenance item would be lost",
+    "terms-page flip monitoring data would be lost",
+    "output path already exists without overwrite authorization",
+    "any write would touch production, canonical data/market-intelligence/**, legacy GEO, src/**, or schemas",
+    "counts or distributions drift from expected values",
+    "empty derived productScope",
+    "unknown enum token (tier, language, sourceType, verdict, conflict status)"
+  ],
+  "readiness": {
+    "DESIGN_COMPLETENESS": "PASS",
+    "SCHEMA_DECISION_1_SCOPE_CARDINALITY": "RESOLVED",
+    "SCHEMA_DECISION_2_LINKAGE_PLACEMENT": "RESOLVED",
+    "SCHEMA_DECISION_3_PROVENANCE": "RESOLVED",
+    "SCHEMA_DECISION_4_CONTRADICTIONS": "RESOLVED",
+    "STAGING_IMPLEMENTATION_READINESS": "READY",
+    "NORMALIZATION_EXECUTION_AUTHORIZATION": false,
+    "STAGING_IMPORT_AUTHORIZATION": false,
+    "CANONICAL_IMPORT_AUTHORIZATION": false,
+    "PRODUCTION_CHANGE_AUTHORIZATION": false,
+    "MIGRATION_5_AUTHORIZATION": false
+  },
+  "filesCreated": [
+    "owner-ops/market-intelligence/decisions/CBW_KZ_MEXC_P0B_IMPORT_PREP_DESIGN_v1.md",
+    "owner-ops/market-intelligence/decisions/CBW_KZ_MEXC_P0B_IMPORT_PREP_DESIGN_v1.json"
+  ],
+  "nextTask": "CBW-KZ-MEXC-P0-B-STAGING-IMPORT-003",
+  "nextTaskScope": "implement import-kz-mexc-p0b.mjs per contract; --dry-run, owner GO, --write-staging, --check; exactly eight staging files under research/market-intelligence/staging/kz/mexc/p0b-v1/; no canonical import, no production change, no MIGRATION_5"
+}
