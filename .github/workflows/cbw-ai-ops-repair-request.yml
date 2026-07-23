@@ -1,9 +1,9 @@
 name: CBW AI Ops Repair Request
 
-# Manual repair-CONTRACT preparation only. This is NOT an autonomous AI worker.
-# It validates inputs and emits a non-secret repair-request summary. It makes no
-# code changes, calls no AI provider, pushes no commit, merges nothing, deploys
-# nothing.
+# Manual repair-CONTRACT preparation only. NOT an autonomous AI worker. Every
+# workflow_dispatch input is passed through env and validated in Node from
+# process.env (no input is ever interpolated into a shell script). Makes no code
+# changes, calls no AI provider, pushes no commit, merges nothing, deploys nothing.
 
 on:
   workflow_dispatch:
@@ -12,26 +12,38 @@ on:
         description: Task ID (e.g. CBW-...-001)
         required: true
       failed_run_url:
-        description: URL of the failed CI run
+        description: GitHub Actions run URL for ros190392-source/cryptobonusworld
         required: true
       failure_category:
-        description: Failure category (must be an allowed deterministic category)
+        description: Failure category (allowed deterministic categories only)
         required: true
+        type: choice
+        options:
+          - formatting
+          - lint
+          - deterministic-type-error
+          - deterministic-build-error
+          - generated-index
+          - internal-link-error
+          - schema-validation-error
+          - test-fixture-correction
+          - narrow-ci-configuration-error
       current_attempt:
-        description: Current repair attempt (1 or 2)
+        description: Current repair attempt
         required: true
         default: "1"
+        type: choice
+        options:
+          - "1"
+          - "2"
       target_branch:
-        description: Feature branch the repair would target
+        description: Feature branch the repair would target (never master/main)
         required: true
       owner_approved:
         description: Owner approval to prepare a repair request
         required: true
-        default: "false"
-        type: choice
-        options:
-          - "false"
-          - "true"
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -40,6 +52,13 @@ jobs:
   prepare-repair-request:
     name: Prepare repair request (no code changes)
     runs-on: ubuntu-latest
+    env:
+      TASK_ID: ${{ github.event.inputs.task_id }}
+      FAILED_RUN_URL: ${{ github.event.inputs.failed_run_url }}
+      FAILURE_CATEGORY: ${{ github.event.inputs.failure_category }}
+      CURRENT_ATTEMPT: ${{ github.event.inputs.current_attempt }}
+      TARGET_BRANCH: ${{ github.event.inputs.target_branch }}
+      OWNER_APPROVED: ${{ github.event.inputs.owner_approved }}
     steps:
       - name: Checkout (read-only)
         uses: actions/checkout@v4
@@ -48,37 +67,65 @@ jobs:
 
       - name: Validate inputs and emit repair request
         run: |
-          set -euo pipefail
-          ATTEMPT="${{ github.event.inputs.current_attempt }}"
-          APPROVED="${{ github.event.inputs.owner_approved }}"
-          CATEGORY="${{ github.event.inputs.failure_category }}"
+          node <<'NODE'
+          const fs = require('node:fs');
+          const errors = [];
+          const single = (s) => typeof s === 'string' && !/[\r\n]/.test(s);
 
-          if [ "$ATTEMPT" != "1" ] && [ "$ATTEMPT" != "2" ]; then
-            echo "::error::current_attempt must be 1 or 2 (got '$ATTEMPT')"; exit 1
-          fi
-          if [ "$APPROVED" != "true" ]; then
-            echo "::error::owner_approved must be true to prepare a repair request"; exit 1
-          fi
+          const taskId = (process.env.TASK_ID || '').trim();
+          const runUrl = (process.env.FAILED_RUN_URL || '').trim();
+          const category = (process.env.FAILURE_CATEGORY || '').trim();
+          const attempt = (process.env.CURRENT_ATTEMPT || '').trim();
+          const branch = (process.env.TARGET_BRANCH || '').trim();
+          const approved = (process.env.OWNER_APPROVED || '').trim();
 
-          PROHIBITED="architecture-decision production-fact bonus-or-referral-value affiliate-url market-availability geo-eligibility legal-or-regulatory-claim security-incident secret workflow-permission-change branch-authority-change production-deployment scope-expansion delete-or-weaken-failing-test"
-          for p in $PROHIBITED; do
-            if [ "$CATEGORY" = "$p" ]; then
-              echo "::error::failure_category '$CATEGORY' is prohibited for automatic repair — escalate to owner"; exit 1
-            fi
-          done
+          const ALLOWED = ['formatting','lint','deterministic-type-error','deterministic-build-error','generated-index','internal-link-error','schema-validation-error','test-fixture-correction','narrow-ci-configuration-error'];
 
-          {
-            echo "## CBW Repair Request (owner-approved, manual)"
-            echo ""
-            echo "- task_id: ${{ github.event.inputs.task_id }}"
-            echo "- failed_run_url: ${{ github.event.inputs.failed_run_url }}"
-            echo "- failure_category: $CATEGORY"
-            echo "- current_attempt: $ATTEMPT of 2"
-            echo "- target_branch: ${{ github.event.inputs.target_branch }}"
-            echo ""
-            echo "This request makes no code changes, calls no AI provider, pushes no commit, merges nothing and deploys nothing."
-            echo "A human/Claude Code execution under a task contract must perform any actual repair, on the same branch, inside the original scope, as a new commit."
-          } | tee repair-request.md >> "$GITHUB_STEP_SUMMARY"
+          if (approved !== 'true') errors.push('owner_approved must be true');
+          if (attempt !== '1' && attempt !== '2') errors.push('current_attempt must be 1 or 2');
+          if (!ALLOWED.includes(category)) errors.push(`failure_category not in allowlist: ${category}`);
+          if (!/^CBW-[A-Z0-9]+(?:-[A-Z0-9]+)*-\d{3}(?:-[A-Z0-9]+)?$/.test(taskId)) errors.push('task_id does not match the CBW task-ID pattern');
+
+          // target_branch: git ref rules; reject master/main, malformed, control chars
+          const hasControl = [...branch].some((ch) => { const c = ch.charCodeAt(0); return c < 0x20 || c === 0x7f; });
+          const badRef =
+            branch === '' || hasControl || /\s/.test(branch) ||
+            branch === 'master' || branch === 'main' ||
+            branch.startsWith('/') || branch.endsWith('/') ||
+            branch.startsWith('-') || branch.includes('..') || branch.includes('~') ||
+            branch.includes('^') || branch.includes(':') || branch.includes('?') ||
+            branch.includes('*') || branch.includes('[') || branch.includes('\\') ||
+            branch.endsWith('.lock') ||
+            !/^[A-Za-z0-9._\/-]+$/.test(branch);
+          if (badRef) errors.push('target_branch is not a valid non-authority git ref');
+
+          // failed_run_url: strict GitHub Actions run URL for the known repo, single-line
+          const RUN_RE = /^https:\/\/github\.com\/ros190392-source\/cryptobonusworld\/actions\/runs\/\d+(?:\/[A-Za-z0-9._\/-]*)?$/;
+          if (!single(runUrl) || !RUN_RE.test(runUrl)) errors.push('failed_run_url must be a single-line GitHub Actions run URL for ros190392-source/cryptobonusworld');
+
+          if (errors.length) {
+            for (const e of errors) console.error(`::error::${e}`);
+            process.exit(1);
+          }
+
+          // All values validated + single-line. Build the summary from validated data only.
+          const lines = [
+            '## CBW Repair Request (owner-approved, manual)',
+            '',
+            `- task_id: ${taskId}`,
+            `- failed_run_url: ${runUrl}`,
+            `- failure_category: ${category}`,
+            `- current_attempt: ${attempt} of 2`,
+            `- target_branch: ${branch}`,
+            '',
+            'This request makes no code changes, calls no AI provider, pushes no commit, merges nothing and deploys nothing.',
+            'Any actual repair must be performed under a task contract on the same branch, inside the original scope, as a new commit.',
+            ''
+          ];
+          fs.writeFileSync('repair-request.md', lines.join('\n'));
+          if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join('\n'));
+          console.log('repair request prepared');
+          NODE
 
       - name: Upload repair-request summary (non-secret)
         uses: actions/upload-artifact@v4

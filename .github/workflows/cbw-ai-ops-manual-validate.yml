@@ -1,8 +1,10 @@
 name: CBW AI Ops Manual Validate
 
-# Manually dispatched, read-only validation of a target ref against the
-# master-side AI Ops validators. Never deploys, never modifies branches or PRs,
-# never invokes any AI provider API, never uploads secret-bearing artifacts.
+# Manually dispatched, read-only validation. Every workflow_dispatch input is
+# passed through step-level env (never interpolated into a run script). A final
+# aggregation step (if: always()) fails the run when a required validation
+# failed, so a failed validator can never appear as a successful run. Never
+# deploys, never modifies branches or PRs, never invokes any AI provider API.
 
 on:
   workflow_dispatch:
@@ -16,7 +18,7 @@ on:
         required: false
         default: ""
       changed_files_mode:
-        description: How to derive changed files for scope validation
+        description: How to derive changed files
         required: true
         default: git-diff
         type: choice
@@ -27,6 +29,11 @@ on:
         description: Base ref for git-diff mode
         required: true
         default: master
+      run_build:
+        description: Run the production build
+        required: true
+        default: true
+        type: boolean
 
 permissions:
   contents: read
@@ -35,6 +42,12 @@ jobs:
   validate:
     name: Read-only AI Ops validation
     runs-on: ubuntu-latest
+    env:
+      TARGET_REF: ${{ github.event.inputs.target_ref }}
+      BASE_REF: ${{ github.event.inputs.base_ref }}
+      CONTRACT_PATH: ${{ github.event.inputs.contract_path }}
+      CHANGED_FILES_MODE: ${{ github.event.inputs.changed_files_mode }}
+      RUN_BUILD: ${{ github.event.inputs.run_build }}
     steps:
       - name: Checkout target ref
         uses: actions/checkout@v4
@@ -51,59 +64,137 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Validate contract path (when provided)
+        id: contractpath
+        run: |
+          set -euo pipefail
+          if [ -z "${CONTRACT_PATH}" ]; then
+            echo "provided=false" >> "$GITHUB_OUTPUT"
+            echo "No contract_path provided."
+            exit 0
+          fi
+          node <<'NODE'
+          const p = (process.env.CONTRACT_PATH || '').trim();
+          const hasControl = [...p].some((ch) => { const c = ch.charCodeAt(0); return c < 0x20 || c === 0x7f; });
+          const unsafe =
+            p === '' || /\s/.test(p) || hasControl ||
+            p.startsWith('/') || /^[A-Za-z]:/.test(p) || p.startsWith('~') ||
+            p.split('/').includes('..');
+          if (unsafe) { console.error('invalid contract_path'); process.exit(1); }
+          NODE
+          if [ ! -f "${CONTRACT_PATH}" ]; then
+            echo "::error::contract_path does not exist in the checked-out ref: ${CONTRACT_PATH}"
+            exit 1
+          fi
+          echo "provided=true" >> "$GITHUB_OUTPUT"
+
       - name: AI Ops foundation validation
         id: foundation
         continue-on-error: true
         run: npm run ai-ops:validate
 
+      - name: Task-contract validation (when provided)
+        id: contract
+        if: steps.contractpath.outputs.provided == 'true'
+        continue-on-error: true
+        run: node scripts/ai-ops/validate-task-contract.mjs "${CONTRACT_PATH}"
+
       - name: Optional build
         id: build
+        if: env.RUN_BUILD == 'true'
         continue-on-error: true
         run: npm run build
 
-      - name: Contract validation (when provided)
-        id: contract
+      # git-diff mode: fail-closed changed-file discovery + branch/scope validation
+      - name: Determine changed files (git-diff mode, fail-closed)
+        id: diff
+        if: env.CHANGED_FILES_MODE == 'git-diff'
         continue-on-error: true
         run: |
-          CP="${{ github.event.inputs.contract_path }}"
-          if [ -n "$CP" ] && [ -f "$CP" ]; then
-            node scripts/ai-ops/validate-task-contract.mjs "$CP"
-          else
-            echo "No contract_path provided — contract check skipped."
+          set -euo pipefail
+          git rev-parse --verify HEAD >/dev/null
+          git fetch --no-tags origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
+          MB="$(git merge-base "refs/remotes/origin/${BASE_REF}" HEAD)"
+          if [ -z "${MB}" ]; then
+            echo "::error::no merge base between ${BASE_REF} and ${TARGET_REF}"
+            exit 1
           fi
+          git diff --name-only "${MB}" HEAD > changed-files.txt
+          echo "count=$(wc -l < changed-files.txt | tr -d ' ')" >> "$GITHUB_OUTPUT"
 
-      - name: Scope + branch-authority validation
+      - name: Branch authority validation (git-diff mode)
+        id: branch
+        if: env.CHANGED_FILES_MODE == 'git-diff' && steps.diff.outcome == 'success'
+        continue-on-error: true
+        run: node scripts/ai-ops/validate-branch-authority.mjs owner-ops/ai-ops/CBW_BRANCH_AUTHORITY_MAP_v1.json "${BASE_REF}" changed-files.txt
+
+      - name: Scope validation (git-diff mode, requires a contract)
         id: scope
+        if: env.CHANGED_FILES_MODE == 'git-diff' && steps.diff.outcome == 'success' && steps.contractpath.outputs.provided == 'true'
         continue-on-error: true
-        run: |
-          MODE="${{ github.event.inputs.changed_files_mode }}"
-          CP="${{ github.event.inputs.contract_path }}"
-          if [ "$MODE" = "git-diff" ]; then
-            git fetch origin "${{ github.event.inputs.base_ref }}" --depth=1 || true
-            git diff --name-only "origin/${{ github.event.inputs.base_ref }}...HEAD" > changed-files.txt || git diff --name-only HEAD > changed-files.txt || true
-          elif [ -n "$CP" ] && [ -f "$CP" ]; then
-            node -e "const c=require('./'+process.argv[1]);console.log((c.authorizedScope.exactPaths||[]).join('\n'))" "$CP" > changed-files.txt
-          else
-            : > changed-files.txt
-          fi
-          node scripts/ai-ops/validate-branch-authority.mjs owner-ops/ai-ops/CBW_BRANCH_AUTHORITY_MAP_v1.json "${{ github.event.inputs.base_ref }}" changed-files.txt || true
-          if [ -n "$CP" ] && [ -f "$CP" ]; then
-            node scripts/ai-ops/validate-scope.mjs "$CP" changed-files.txt
-          else
-            echo "No contract — scope check skipped."
-          fi
+        run: node scripts/ai-ops/validate-scope.mjs "${CONTRACT_PATH}" changed-files.txt
 
-      - name: Step summary
-        if: always()
+      - name: Contract-only note
+        id: contractonly
+        if: env.CHANGED_FILES_MODE == 'contract-only'
         run: |
+          echo "contract-only mode - changed-file scope and branch-authority are skipped."
+          echo "No real diff was requested; changed files are NOT fabricated from the contract."
+
+      # Final aggregation: a failed required validator makes the whole run FAIL.
+      - name: Final aggregation
+        if: always()
+        env:
+          O_CONTRACTPATH: ${{ steps.contractpath.outcome }}
+          O_FOUNDATION: ${{ steps.foundation.outcome }}
+          O_CONTRACT: ${{ steps.contract.outcome }}
+          O_BUILD: ${{ steps.build.outcome }}
+          O_DIFF: ${{ steps.diff.outcome }}
+          O_BRANCH: ${{ steps.branch.outcome }}
+          O_SCOPE: ${{ steps.scope.outcome }}
+          CONTRACT_PROVIDED: ${{ steps.contractpath.outputs.provided }}
+        run: |
+          set -uo pipefail
+          fail=0
+          note() { echo "$1"; }
+          # contract-path validation is required (it either confirms none or validates a provided path)
+          [ "${O_CONTRACTPATH}" = "success" ] || { note "contract-path validation FAILED"; fail=1; }
+          # foundation validation is always required
+          [ "${O_FOUNDATION}" = "success" ] || { note "ai-ops:validate FAILED"; fail=1; }
+          # contract validation required only when a contract was provided
+          if [ "${CONTRACT_PROVIDED}" = "true" ]; then
+            [ "${O_CONTRACT}" = "success" ] || { note "task-contract validation FAILED"; fail=1; }
+          fi
+          # build is optional; only a real failure (not skipped) counts
+          if [ "${O_BUILD}" = "failure" ]; then note "build FAILED"; fail=1; fi
+          # git-diff mode required checks
+          if [ "${CHANGED_FILES_MODE}" = "git-diff" ]; then
+            [ "${O_DIFF}" = "success" ] || { note "changed-file discovery FAILED"; fail=1; }
+            [ "${O_BRANCH}" = "success" ] || { note "branch-authority FAILED (or not evaluated)"; fail=1; }
+            if [ "${CONTRACT_PROVIDED}" = "true" ]; then
+              [ "${O_SCOPE}" = "success" ] || { note "scope FAILED (or not evaluated)"; fail=1; }
+            fi
+          fi
           {
             echo "## CBW AI Ops Manual Validate"
             echo ""
-            echo "- target_ref: ${{ github.event.inputs.target_ref }}"
-            echo "- foundation: ${{ steps.foundation.outcome }}"
-            echo "- build: ${{ steps.build.outcome }}"
-            echo "- contract: ${{ steps.contract.outcome }}"
-            echo "- scope/branch: ${{ steps.scope.outcome }}"
+            echo "- target_ref: ${TARGET_REF}"
+            echo "- mode: ${CHANGED_FILES_MODE}"
+            echo "- contract provided: ${CONTRACT_PROVIDED:-false}"
+            echo ""
+            echo "| Step | Outcome |"
+            echo "|---|---|"
+            echo "| contract-path | ${O_CONTRACTPATH} |"
+            echo "| ai-ops:validate | ${O_FOUNDATION} |"
+            echo "| task-contract | ${O_CONTRACT:-skipped} |"
+            echo "| build | ${O_BUILD:-skipped} |"
+            echo "| changed-file discovery | ${O_DIFF:-skipped} |"
+            echo "| branch-authority | ${O_BRANCH:-skipped} |"
+            echo "| scope | ${O_SCOPE:-skipped} |"
+            echo ""
+            if [ "${fail}" = "0" ]; then echo "**FINAL: PASS**"; else echo "**FINAL: FAIL**"; fi
             echo ""
             echo "> Read-only. No deploy, no branch/PR modification, no AI provider calls."
           } >> "$GITHUB_STEP_SUMMARY"
+          if [ "${fail}" != "0" ]; then echo "FINAL: FAIL"; exit 1; fi
+          echo "FINAL: PASS"
