@@ -1,0 +1,127 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-AI-OPS-FOUNDATION-V1-SMOKE-004",
+  "project": "CryptoBonusWorld",
+  "title": "Run AI Ops Foundation V1 smoke 004",
+  "stream": "ai-ops",
+  "riskLevel": "P2",
+  "taskType": "governance",
+  "status": "PR_OPEN",
+  "repository": "ros190392-source/cryptobonusworld",
+  "baseBranch": "master",
+  "baseSha": "cfa08ef5dc3a327b8faed2fb7036b39f03a4e8bb",
+  "worktreePath": "C:\\projects\\CryptoBonusWorld-ai-ops-smoke-004",
+  "featureBranch": "feat/cbw-ai-ops-smoke-004",
+  "executor": "CLAUDE_CODE",
+  "reviewer": "CHATGPT",
+  "sourceIssue": {
+    "number": 5,
+    "url": "https://github.com/ros190392-source/cryptobonusworld/issues/5",
+    "state": "OPEN",
+    "role": "canonical source of truth"
+  },
+  "authorizedScope": {
+    "exactPaths": [
+      "owner-ops/ai-ops/tasks/CBW-AI-OPS-FOUNDATION-V1-SMOKE-004.json",
+      "owner-ops/ai-ops/smoke/CBW_AI_OPS_FOUNDATION_V1_SMOKE_004.md"
+    ],
+    "allowedPrefixes": [],
+    "forbiddenPaths": [
+      "deploy.py",
+      "package.json",
+      "package-lock.json",
+      "astro.config.mjs"
+    ],
+    "forbiddenPrefixes": [
+      "src/",
+      "public/",
+      ".github/",
+      "scripts/",
+      "tests/",
+      "docs/",
+      "evidence/",
+      "research/",
+      "tools/",
+      "config/",
+      "schemas/"
+    ]
+  },
+  "requiredChecks": [
+    "ai-ops:validate",
+    "ai-ops:validate:fixtures",
+    "ai-ops:validate:contract",
+    "scope-validation",
+    "branch-authority-changed-file",
+    "branch-authority-contract",
+    "build",
+    "validate:affiliate",
+    "seo:check",
+    "git-diff-check"
+  ],
+  "stopConditions": [
+    "source repository, branch or base SHA differs from the governed baseline",
+    "source tracked tree is dirty",
+    "the preserved 172-path source untracked set differs",
+    "the requested worktree or feature branch contains unrelated work",
+    "either authorized output path already exists with conflicting content",
+    "another open PR already uses feat/cbw-ai-ops-smoke-004",
+    "AI Ops validators are missing or fail on the untouched baseline"
+  ],
+  "ownerAuthorizations": {
+    "implementation": true,
+    "merge": false,
+    "deploy": false,
+    "productionBinding": false,
+    "publication": false,
+    "affiliateActivation": false
+  },
+  "repairPolicy": {
+    "enabled": false,
+    "maxAttempts": 0,
+    "allowedCategories": [],
+    "prohibitedCategories": [
+      "architecture-decision",
+      "production-fact",
+      "bonus-or-referral-value",
+      "affiliate-url",
+      "market-availability",
+      "geo-eligibility",
+      "legal-or-regulatory-claim",
+      "security-incident",
+      "secret",
+      "workflow-permission-change",
+      "branch-authority-change",
+      "production-deployment",
+      "scope-expansion",
+      "delete-or-weaken-failing-test"
+    ]
+  },
+  "forbiddenActions": [
+    "force-push",
+    "history-rewrite",
+    "secret-disclosure",
+    "automatic-production-deployment",
+    "bypass-owner-authorization",
+    "merge-main-into-master",
+    "merge-master-into-main",
+    "no-merge",
+    "no-deploy",
+    "no-production-connection"
+  ],
+  "expectedOutputs": [
+    "one task contract at owner-ops/ai-ops/tasks/CBW-AI-OPS-FOUNDATION-V1-SMOKE-004.json",
+    "one smoke report at owner-ops/ai-ops/smoke/CBW_AI_OPS_FOUNDATION_V1_SMOKE_004.md",
+    "one pull request into master with the canonical task-contract marker (not merged)",
+    "a truthful advisory CI run",
+    "a structured final report"
+  ],
+  "finalReportRequirements": [
+    "Issue #5 verification and source-of-truth confirmation",
+    "exact two-file scope confirmation",
+    "state progression READY to IN_PROGRESS to PR_OPEN",
+    "local and advisory validation results",
+    "PR number, URL, base and head",
+    "no merge and no deploy confirmation",
+    "source master and 172-path preservation"
+  ]
+}
