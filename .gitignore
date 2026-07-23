@@ -2,6 +2,18 @@ dist/
 node_modules/
 .env
 .env.local
+# Real environment files must never be committed; the placeholder-only
+# .env.example is the single tracked exception.
+.env.*
+!.env.example
+# Private keys and credential material must never be committed.
+*.pem
+*.key
+*.ppk
+id_rsa
+id_ed25519
+id_ecdsa
+id_dsa
 .DS_Store
 *.log
 .wrangler/

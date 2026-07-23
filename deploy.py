@@ -1,43 +1,145 @@
 import paramiko
 import os
+import posixpath
+import shlex
 import sys
 import time
 
-HOST = '23.88.106.140'
-USER = 'root'
-PASS = 'E4mJNwJkX4qi'
-LOCAL_DIST = r'C:\projects\CryptoBonusWorld\dist'
-REMOTE_ROOT = '/var/www/cryptobonusworld/html'
+# ── Deployment configuration (environment-driven, public-key only) ────────────
+#
+# Required environment variables (deployment fails closed if any is missing):
+#   CBW_DEPLOY_HOST        production host name or IP
+#   CBW_DEPLOY_USER        deployment SSH user
+#   CBW_DEPLOY_KEY_PATH    path to the private key used for public-key auth
+#
+# Optional environment variables (documented defaults):
+#   CBW_DEPLOY_PORT        SSH port          (default: 22)
+#   CBW_DEPLOY_REMOTE_PATH remote web root   (default: /var/www/cryptobonusworld/html)
+#
+# No password is read, accepted or supported. See
+# docs/security/CBW_DEPLOYMENT_CREDENTIALS_STANDARD_v1.md.
+
+DEFAULT_PORT = 22
+DEFAULT_REMOTE_PATH = '/var/www/cryptobonusworld/html'
 
 MAX_RETRIES = 3
 
-def make_client():
+
+def _fail(message):
+    """Emit an actionable, non-sensitive configuration error and exit closed."""
+    sys.stderr.write(f"Deploy configuration error: {message}\n")
+    sys.stderr.flush()
+    sys.exit(2)
+
+
+def load_config():
+    """Read and validate deployment configuration from the environment.
+
+    Fails closed before any network operation. Never reads or accepts a
+    password, a default host, a default user or a machine-specific key path.
+    """
+    host = os.environ.get('CBW_DEPLOY_HOST', '').strip()
+    user = os.environ.get('CBW_DEPLOY_USER', '').strip()
+    key_path = os.environ.get('CBW_DEPLOY_KEY_PATH', '').strip()
+
+    missing = [name for name, value in (
+        ('CBW_DEPLOY_HOST', host),
+        ('CBW_DEPLOY_USER', user),
+        ('CBW_DEPLOY_KEY_PATH', key_path),
+    ) if not value]
+    if missing:
+        _fail(
+            'missing required environment variable(s): '
+            + ', '.join(missing)
+            + '. Set them to production values in your local secret manager; '
+            'do not hardcode them. Public-key authentication only.'
+        )
+
+    port_raw = os.environ.get('CBW_DEPLOY_PORT', str(DEFAULT_PORT)).strip()
+    if not port_raw.isdigit():
+        _fail("CBW_DEPLOY_PORT must be an integer from 1 through 65535.")
+    port = int(port_raw)
+    if not (1 <= port <= 65535):
+        _fail("CBW_DEPLOY_PORT must be an integer from 1 through 65535.")
+
+    # Remote path: non-empty absolute POSIX path, never exactly '/', no NUL/CR/LF.
+    # Normalized lexically (collapses redundant separators) without touching the
+    # filesystem, so the intended destination is preserved. Quoted with
+    # shlex.quote before it reaches the remote shell (see main()).
+    remote_root = os.environ.get('CBW_DEPLOY_REMOTE_PATH', DEFAULT_REMOTE_PATH).strip() \
+        or DEFAULT_REMOTE_PATH
+    if any(c in remote_root for c in ('\x00', '\r', '\n')):
+        _fail("CBW_DEPLOY_REMOTE_PATH must not contain NUL, CR or LF characters.")
+    if not remote_root.startswith('/'):
+        _fail("CBW_DEPLOY_REMOTE_PATH must be an absolute POSIX path beginning with '/'.")
+    remote_root = posixpath.normpath(remote_root)
+    if remote_root.strip('/') == '':
+        _fail("CBW_DEPLOY_REMOTE_PATH must be an absolute path other than '/'.")
+
+    key_path = os.path.expanduser(key_path)
+    if not os.path.isfile(key_path):
+        _fail(
+            "CBW_DEPLOY_KEY_PATH does not point to a readable private key file. "
+            "Provide the path to your deployment SSH private key."
+        )
+
+    local_dist = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dist')
+    if not os.path.isdir(local_dist):
+        _fail("local dist/ directory not found — build the site before deploying.")
+
+    return {
+        'host': host,
+        'user': user,
+        'port': port,
+        'key_path': key_path,
+        'remote_root': remote_root,
+        'local_dist': local_dist,
+    }
+
+
+def make_client(cfg):
+    """Open a strict, public-key-only SSH connection.
+
+    Host keys must already be known (system/user known_hosts); unknown hosts
+    are rejected. Agent and on-disk key discovery are disabled so only the
+    explicitly supplied key is used. No password is ever passed.
+    """
     client = paramiko.SSHClient()
-    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    client.connect(
-        HOST,
-        username=USER,
-        password=PASS,
-        timeout=30,
-        banner_timeout=30,
-        auth_timeout=30,
-    )
+    client.load_system_host_keys()
+    client.set_missing_host_key_policy(paramiko.RejectPolicy())
+    try:
+        client.connect(
+            cfg['host'],
+            port=cfg['port'],
+            username=cfg['user'],
+            key_filename=cfg['key_path'],
+            allow_agent=False,
+            look_for_keys=False,
+            timeout=30,
+            banner_timeout=30,
+            auth_timeout=30,
+        )
+    except paramiko.ssh_exception.SSHException as exc:
+        # Message may reference host-key rejection or auth failure, never a secret.
+        _fail(f"SSH connection failed ({exc.__class__.__name__}): {exc}")
     transport = client.get_transport()
     transport.set_keepalive(15)          # send keepalive every 15 s
     return client
+
 
 def upload_file_with_retry(sftp, local_path, remote_path, retries=MAX_RETRIES):
     for attempt in range(retries):
         try:
             sftp.put(local_path, remote_path)
             return
-        except Exception as e:
+        except Exception:
             if attempt < retries - 1:
                 sys.stdout.write(f"  retry {attempt+1}: {os.path.basename(local_path)}\n")
                 sys.stdout.flush()
                 time.sleep(2)
             else:
                 raise
+
 
 def upload_dir(sftp, local_dir, remote_dir):
     try:
@@ -53,30 +155,43 @@ def upload_dir(sftp, local_dir, remote_dir):
         else:
             upload_file_with_retry(sftp, local_path, remote_path)
 
+
 # ── Main ────────────────────────────────────────────────────────────────────
 
-client = make_client()
-sys.stdout.write("Connected. Clearing remote html dir...\n")
-sys.stdout.flush()
+def main():
+    cfg = load_config()
 
-stdin, stdout, stderr = client.exec_command(f'rm -rf {REMOTE_ROOT}/* && echo done')
-result = stdout.read().strip()
-sys.stdout.write(f"Cleared: {result.decode()}\n")
-sys.stdout.flush()
-
-sftp = client.open_sftp()
-sys.stdout.write("Uploading dist/...\n")
-sys.stdout.flush()
-
-try:
-    upload_dir(sftp, LOCAL_DIST, REMOTE_ROOT)
-    sftp.close()
-    client.close()
-    sys.stdout.write("Deploy complete.\n")
+    client = make_client(cfg)
+    sys.stdout.write("Connected. Clearing remote html dir...\n")
     sys.stdout.flush()
-except Exception as e:
-    sys.stdout.write(f"Deploy failed: {e}\n")
+
+    remote_root = cfg['remote_root']
+    # Quote the validated path for the remote POSIX shell; keep the glob and
+    # '--' outside the quotes so the glob still expands and option parsing ends
+    # before the path. Preserves the "clear directory contents" semantics.
+    cleanup_cmd = f'rm -rf -- {shlex.quote(remote_root)}/* && echo done'
+    stdin, stdout, stderr = client.exec_command(cleanup_cmd)
+    result = stdout.read().strip()
+    sys.stdout.write(f"Cleared: {result.decode()}\n")
     sys.stdout.flush()
-    sftp.close()
-    client.close()
-    sys.exit(1)
+
+    sftp = client.open_sftp()
+    sys.stdout.write("Uploading dist/...\n")
+    sys.stdout.flush()
+
+    try:
+        upload_dir(sftp, cfg['local_dist'], remote_root)
+        sftp.close()
+        client.close()
+        sys.stdout.write("Deploy complete.\n")
+        sys.stdout.flush()
+    except Exception as exc:
+        sys.stdout.write(f"Deploy failed: {exc}\n")
+        sys.stdout.flush()
+        sftp.close()
+        client.close()
+        sys.exit(1)
+
+
+if __name__ == '__main__':
+    main()
