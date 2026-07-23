@@ -1,0 +1,398 @@
+---
+/**
+ * DESIGN PREVIEW — OfferSurface (prototype-local, unified commercial family).
+ *
+ * ONE shared factual + authorization state model, FIVE layout variants:
+ *   HERO_FULL · COMPACT_BOTTOM · RANKING_ROW · COMPARISON_CELL · RESTRICTED_NOTICE
+ *
+ * Authorization is derived centrally in this frontmatter and clamped — no
+ * variant can override it. Layout may vary; facts and authorization may not:
+ *   - promo code + Copy render ONLY when state is AVAILABLE, or
+ *     AVAILABLE_WITH_LIMITS with referral compatibility verified;
+ *   - RESTRICTED / UNDER_REVIEW never render code, Copy, Claim wording,
+ *     registration or affiliate-style CTAs — informational actions only;
+ *   - AVAILABLE_WITH_LIMITS without verified compatibility renders no code and
+ *     an explicit unverified-local-eligibility statement.
+ *
+ * PROTOTYPE ONLY: mock data, inert actions, no /go/**, no affiliate or
+ * exchange URLs, no canonical MI binding. This component decides no
+ * eligibility — it renders the state supplied by mock specimen data.
+ */
+import SquareLogoTile from './SquareLogoTile.astro';
+import type { OfferSpecimen } from '../../../data/design-preview/foundation-mock';
+import type { SquareTier } from '../../../data/design-preview/foundation-logo-fit-registry';
+
+export type OfferVariant =
+  'HERO_FULL' | 'COMPACT_BOTTOM' | 'RANKING_ROW' | 'COMPARISON_CELL' | 'RESTRICTED_NOTICE';
+
+export interface Props {
+  variant: OfferVariant;
+  offer: OfferSpecimen;
+  /** RANKING_ROW only */
+  rank?: number;
+  emphasized?: boolean;
+}
+
+const { variant, offer: o, rank, emphasized = false } = Astro.props;
+
+/* ── The single shared authorization model (clamped, variant-independent) ── */
+const limited = o.state === 'AVAILABLE_WITH_LIMITS';
+const restricted = o.state === 'RESTRICTED';
+const underReview = o.state === 'UNDER_REVIEW';
+const promoAuthorized =
+  (o.state === 'AVAILABLE' || (limited && o.referralCompatibilityVerified)) &&
+  !!o.promoCode;
+const ctaAuthorized = promoAuthorized; // registration/claim CTA follows promo authorization here
+const ctaKind = ctaAuthorized
+  ? 'claim'
+  : limited
+    ? 'eligibility'
+    : restricted
+      ? 'alternatives'
+      : 'availability';
+const CTA_LABELS: Record<string, string> = {
+  claim: 'Claim Bonus',
+  eligibility: 'Check Eligibility',
+  alternatives: 'View Available Alternatives',
+  availability: 'Check Availability',
+};
+const ctaLabel = CTA_LABELS[ctaKind];
+
+const badge = restricted
+  ? { kind: 'red', text: `Restricted in ${o.countryContext}` }
+  : underReview
+    ? { kind: 'gray', text: 'Under review' }
+    : limited
+      ? { kind: 'amber', text: 'Available with limits' }
+      : { kind: 'green', text: 'Available' };
+
+// Square Logo System (owner refinements 003/005): every variant identifies the
+// exchange with a large square card tile + readable name beside it — the tile
+// is the primary visual identity, the name the primary readable identity.
+const TIER_FOR_VARIANT: Record<OfferVariant, SquareTier> = {
+  HERO_FULL: 'HERO_XL',      // 96px — logo + name form the brand header
+  COMPACT_BOTTOM: 'COMPACT_S', // 52px — compact but never a tiny icon
+  RANKING_ROW: 'ROW_M',      // 60px — anchors the row
+  COMPARISON_CELL: 'CARD_L', // 76px — equal treatment for compared exchanges
+  RESTRICTED_NOTICE: 'ROW_M', // 60px — identity stays strong, never recolored
+};
+const tier = TIER_FOR_VARIANT[variant];
+const isDarkSurface = variant === 'HERO_FULL' || variant === 'COMPACT_BOTTOM';
+const isRow = variant === 'RANKING_ROW';
+const vclass = `os-${variant.toLowerCase().replace(/_/g, '-')}`;
+---
+
+<article
+  class:list={['os', vclass, isDarkSurface && 'os-on-dark', emphasized && 'os-emph']}
+  data-offer-surface={variant}
+  data-state={o.state}
+  data-refcompat={limited ? String(o.referralCompatibilityVerified) : undefined}
+  data-promo-authorized={String(promoAuthorized)}
+>
+  {isRow && rank !== undefined && (
+    <span class="os-rank" aria-label={`Rank ${rank}`}>{rank}</span>
+  )}
+
+  <div class="os-brand">
+    <SquareLogoTile
+      registryKey={o.registryKey}
+      tier={tier}
+      eager={variant === 'HERO_FULL'}
+    />
+  </div>
+
+  <div class="os-id">
+    <span class="os-name" data-role="exchange-name">{o.exchangeName}</span>
+    <span class:list={['os-badge', `os-badge-${badge.kind}`]} data-role="status">
+      {badge.text}
+    </span>
+  </div>
+
+  <p class="os-verdict" data-role="verdict">
+    {o.verdict}
+    {o.bonusLabel && promoAuthorized && <em class="os-bonus"> · {o.bonusLabel}</em>}
+  </p>
+
+  {limited && o.limitationText && (
+    <p class="os-notice os-notice-amber" data-role="limit-notice">⚠ {o.limitationText}</p>
+  )}
+  {limited && !o.referralCompatibilityVerified && (
+    <p class="os-notice os-notice-amber" data-role="unverified-notice">
+      Local referral eligibility is not verified for {o.countryContext} — no promo code is shown.
+    </p>
+  )}
+  {restricted && o.restrictionText && (
+    <p class="os-notice os-notice-red" data-role="restrict-notice">{o.restrictionText}</p>
+  )}
+  {underReview && (
+    <p class="os-notice os-notice-gray" data-role="review-notice">
+      Country evidence for {o.countryContext} is under review — availability is not confirmed.
+    </p>
+  )}
+
+  {promoAuthorized && (
+    <div class="os-promo" data-copy-row>
+      {variant === 'HERO_FULL' && <span class="os-promo-label">Promo Code</span>}
+      <span class="os-promo-box">
+        <span class="os-code" data-role="promo-code">{o.promoCode}</span>
+        <button
+          class="os-copy"
+          type="button"
+          data-copy-btn
+          aria-label={`Copy mock code ${o.promoCode}`}
+        >Copy</button>
+      </span>
+    </div>
+  )}
+
+  <button
+    class:list={['os-cta', ctaAuthorized ? 'os-cta-claim' : restricted ? 'os-cta-alt' : 'os-cta-secondary']}
+    type="button"
+    data-role="cta"
+    data-cta-kind={ctaKind}
+    data-preview-cta
+  >{ctaLabel}</button>
+
+  <p class="os-note" data-role="note">{o.eligibilityNote}</p>
+  <p class="os-evidence" data-role="evidence">{o.evidenceLabel}</p>
+</article>
+
+<style>
+  /* ══ Shared bones (all variants) ══ */
+  .os { box-sizing: border-box; }
+  .os-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 10.5px; font-weight: 800; letter-spacing: .03em; text-transform: uppercase;
+    padding: 3px 10px; border-radius: 100px; white-space: nowrap; line-height: 1.4;
+  }
+  .os-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .os-badge-green { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+  .os-badge-amber { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+  .os-badge-red   { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+  .os-badge-gray  { background: var(--cbw-gray-100); color: var(--cbw-gray-600); border: 1px solid var(--cbw-gray-300); }
+  .os-on-dark .os-badge-green { background: rgba(22,163,74,.18); color: #4ade80; border-color: rgba(74,222,128,.45); }
+  .os-on-dark .os-badge-amber { background: rgba(245,158,11,.16); color: #fbbf24; border-color: rgba(251,191,36,.45); }
+  .os-on-dark .os-badge-red   { background: rgba(220,38,38,.18); color: #f87171; border-color: rgba(248,113,113,.5); }
+  .os-on-dark .os-badge-gray  { background: rgba(255,255,255,.08); color: rgba(255,255,255,.7); border-color: rgba(255,255,255,.28); }
+
+  .os-notice {
+    border-radius: 8px; font-size: 12.5px; line-height: 1.5; text-align: left;
+    padding: 8px 12px; margin: 0 0 10px;
+  }
+  .os-notice-amber { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+  .os-notice-red   { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
+  .os-notice-gray  { background: var(--cbw-gray-50); border: 1px solid var(--cbw-gray-200); color: var(--cbw-gray-600); }
+  .os-on-dark .os-notice-amber { background: rgba(245,158,11,.14); border-color: rgba(251,191,36,.45); color: #fde68a; }
+  .os-on-dark .os-notice-red   { background: rgba(220,38,38,.16); border-color: rgba(248,113,113,.5); color: #fecaca; }
+  .os-on-dark .os-notice-gray  { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.22); color: rgba(255,255,255,.72); }
+
+  .os-promo-box {
+    display: inline-flex; align-items: stretch; overflow: hidden;
+    background: #fff; border: 1px solid var(--cbw-gray-300); border-radius: 8px;
+    height: 44px; width: 100%; max-width: 260px;
+    transition: border-color .15s, background .15s;
+    color-scheme: light; forced-color-adjust: none;
+  }
+  .os-promo { margin: 0 0 10px; }
+  .os-promo[data-copy-row].copy-success .os-promo-box { border-color: #22c55e; background: #dcfce7; }
+  .os-code {
+    flex: 1; display: inline-flex; align-items: center; padding: 0 12px;
+    font-family: 'Arial Narrow', 'Roboto Condensed', Inter, system-ui, sans-serif;
+    font-size: 15px; font-weight: 800; letter-spacing: .01em; text-transform: uppercase;
+    color: #111827; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;
+    background: #fff;
+  }
+  .os-copy {
+    flex-shrink: 0; width: 54px; border: none; border-left: 1px solid var(--cbw-gray-200);
+    background: #fff; color: var(--cbw-green); font-size: 11px; font-weight: 700;
+    cursor: pointer; letter-spacing: .03em;
+  }
+  .os-copy:hover { background: #f0fdf4; }
+  .os-promo[data-copy-row].copy-success .os-code,
+  .os-promo[data-copy-row].copy-success .os-copy { background: #dcfce7; color: #166534; }
+
+  .os-cta {
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 8px; min-height: 44px; padding: 0 18px;
+    font-size: 14px; font-weight: 800; letter-spacing: .01em; white-space: nowrap;
+    cursor: pointer; transition: background .15s; border: none;
+  }
+  .os-cta-claim { background: var(--cbw-green); color: #fff; }
+  .os-cta-claim:hover { background: var(--cbw-green-hover); }
+  .os-cta-secondary {
+    background: var(--cbw-btn-sec-bg); color: var(--cbw-gray-700);
+    border: 1.5px solid var(--cbw-btn-sec-bd);
+  }
+  .os-cta-secondary:hover { background: var(--cbw-btn-sec-h-bg); border-color: var(--cbw-btn-sec-h-bd); }
+  .os-cta-alt {
+    background: #fff; color: #b91c1c; border: 1.5px solid #fecaca;
+  }
+  .os-cta-alt:hover { background: #fef2f2; }
+  .os-on-dark .os-cta-secondary,
+  .os-on-dark .os-cta-alt {
+    background: rgba(255,255,255,.08); color: #fff; border-color: rgba(255,255,255,.4);
+  }
+  .os-on-dark .os-cta-secondary:hover,
+  .os-on-dark .os-cta-alt:hover { background: rgba(255,255,255,.16); }
+  .os-copy:focus-visible, .os-cta:focus-visible { outline: 2px solid var(--cbw-amber); outline-offset: 1px; }
+
+  .os-note { font-size: 12px; line-height: 1.5; color: var(--cbw-gray-500); margin: 8px 0 0; }
+  .os-evidence { font-size: 11px; line-height: 1.5; color: var(--cbw-gray-400); margin: 4px 0 0; }
+  .os-on-dark .os-note { color: rgba(255,255,255,.6); }
+  .os-on-dark .os-evidence { color: rgba(255,255,255,.42); }
+  .os-verdict { font-size: 13px; line-height: 1.5; color: var(--cbw-gray-600); margin: 0 0 10px; }
+  .os-on-dark .os-verdict { color: rgba(255,255,255,.76); }
+  .os-bonus { font-style: normal; font-weight: 600; color: var(--cbw-gray-700); }
+  .os-on-dark .os-bonus { color: rgba(255,255,255,.88); }
+  .os-name { font-weight: 700; color: inherit; }
+
+  /* ══ HERO_FULL — full-width dark conversion band content ══ */
+  .os-hero-full {
+    background: linear-gradient(160deg, #0C1118 0%, #141B25 100%);
+    color: #fff; text-align: center; border-radius: var(--cbw-r-lg);
+    padding: 26px 20px 24px;
+  }
+  .os-hero-full .os-brand { display: flex; justify-content: center; margin-bottom: 12px; }
+  .os-hero-full .os-id { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+  .os-hero-full .os-name { font-size: 21px; letter-spacing: .01em; }
+  .os-hero-full .os-verdict { max-width: 480px; margin: 6px auto 12px; }
+  .os-hero-full .os-notice { max-width: 440px; margin-left: auto; margin-right: auto; }
+  .os-hero-full .os-promo { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .os-hero-full .os-promo-label {
+    font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+    font-size: 17px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em;
+    color: rgba(255,255,255,.9);
+  }
+  .os-hero-full .os-promo-box { max-width: 300px; height: 52px; }
+  .os-hero-full .os-code { font-size: 19px; }
+  .os-hero-full .os-cta { width: 100%; max-width: 320px; min-height: 56px; font-size: 19px; }
+  .os-hero-full .os-note, .os-hero-full .os-evidence { max-width: 460px; margin-left: auto; margin-right: auto; }
+  .os-hero-full .os-note { margin-top: 10px; }
+
+  /* ══ COMPACT_BOTTOM — compact dark closing block ══ */
+  .os-compact-bottom {
+    background: linear-gradient(160deg, #0C1118 0%, #141B25 100%);
+    color: #fff; text-align: center; border-radius: var(--cbw-r-lg);
+    padding: 20px 18px;
+  }
+  .os-compact-bottom .os-brand { display: flex; justify-content: center; margin-bottom: 10px; }
+  .os-compact-bottom .os-id { display: flex; align-items: center; justify-content: center; gap: 9px; flex-wrap: wrap; margin-bottom: 4px; }
+  .os-compact-bottom .os-name { font-size: 17px; }
+  .os-compact-bottom .os-verdict { max-width: 440px; margin: 4px auto 10px; }
+  .os-compact-bottom .os-notice { max-width: 420px; margin-left: auto; margin-right: auto; }
+  .os-compact-bottom .os-promo { display: flex; justify-content: center; }
+  .os-compact-bottom .os-promo-box { max-width: 270px; height: 48px; }
+  .os-compact-bottom .os-code { font-size: 17px; }
+  .os-compact-bottom .os-cta { width: 100%; max-width: 300px; min-height: 50px; font-size: 17px; }
+
+  /* ══ RANKING_ROW — light list row ══ */
+  .os-ranking-row {
+    background: var(--cbw-card-bg); border: 1px solid var(--cbw-card-border);
+    border-radius: var(--cbw-r-md); box-shadow: var(--cbw-card-shadow);
+    padding: 10px 14px; color-scheme: light; forced-color-adjust: none;
+    display: grid; align-items: center; gap: 4px 12px;
+    grid-template-columns: auto auto minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      'rank brand id promo cta'
+      'rank brand verdict promo cta'
+      'notice notice notice notice notice'
+      'note note note note note'
+      'evidence evidence evidence evidence evidence';
+  }
+  .os-emph { border-color: #C7D2FE; box-shadow: 0 2px 10px rgba(0,0,0,.08); }
+  .os-ranking-row .os-rank {
+    grid-area: rank; width: 26px; height: 26px; border-radius: 50%;
+    background: var(--cbw-gray-900); color: #fff;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 800;
+  }
+  .os-emph .os-rank { background: var(--cbw-amber); color: #1a1206; }
+  .os-ranking-row .os-brand { grid-area: brand; }
+  .os-ranking-row .os-id { grid-area: id; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; align-self: end; }
+  .os-ranking-row .os-name { font-size: 14px; color: var(--cbw-gray-900); }
+  .os-ranking-row .os-verdict {
+    grid-area: verdict; margin: 0; font-size: 12px; align-self: start;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .os-ranking-row .os-notice { grid-area: notice; margin: 4px 0 0; }
+  .os-ranking-row .os-promo { grid-area: promo; margin: 0; }
+  .os-ranking-row .os-promo-box { width: 176px; }
+  .os-ranking-row .os-cta { grid-area: cta; }
+  .os-ranking-row .os-note { grid-area: note; margin-top: 4px; }
+  .os-ranking-row .os-evidence { grid-area: evidence; margin-top: 0; }
+
+  @media (max-width: 899px) {
+    .os-ranking-row {
+      grid-template-columns: auto minmax(0, 1fr);
+      grid-template-areas:
+        'rank brand'
+        'id id'
+        'verdict verdict'
+        'notice notice'
+        'promo promo'
+        'cta cta'
+        'note note'
+        'evidence evidence';
+    }
+    .os-ranking-row .os-verdict { white-space: normal; }
+    .os-ranking-row .os-promo-box { width: 100%; max-width: none; }
+    .os-ranking-row .os-cta { width: 100%; }
+  }
+
+  /* ══ COMPARISON_CELL — light column cell ══ */
+  .os-comparison-cell {
+    background: var(--cbw-card-bg); border: 1px solid var(--cbw-card-border);
+    border-radius: var(--cbw-r-md); box-shadow: var(--cbw-card-shadow);
+    padding: 14px; color-scheme: light; forced-color-adjust: none;
+    display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+    min-width: 0;
+  }
+  .os-comparison-cell .os-id { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; max-width: 100%; }
+  .os-comparison-cell .os-name { font-size: 13px; color: var(--cbw-gray-900); }
+  .os-comparison-cell .os-badge {
+    white-space: normal; text-align: left; line-height: 1.3; max-width: 100%;
+    font-size: 9.5px;
+  }
+  .os-comparison-cell .os-verdict {
+    margin: 0; font-size: 11.5px;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .os-comparison-cell .os-notice { margin: 0; font-size: 11.5px; padding: 6px 9px; }
+  .os-comparison-cell .os-promo { margin: 0; width: 100%; }
+  .os-comparison-cell .os-promo-box { max-width: none; }
+  .os-comparison-cell .os-code { font-size: 13.5px; }
+  .os-comparison-cell .os-cta { width: 100%; font-size: 13px; padding: 0 10px; }
+  .os-comparison-cell .os-note { margin-top: 0; font-size: 11px; }
+  .os-comparison-cell .os-evidence { margin-top: 0; font-size: 10.5px; }
+
+  /* ══ RESTRICTED_NOTICE — informational, never commercial ══ */
+  .os-restricted-notice {
+    background: var(--cbw-card-bg); border: 1px solid #fecaca;
+    border-radius: var(--cbw-r-md); padding: 14px 16px;
+    color-scheme: light; forced-color-adjust: none;
+    display: grid; align-items: center; gap: 6px 12px;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      'brand id cta'
+      'verdict verdict cta'
+      'notice notice notice'
+      'note note note'
+      'evidence evidence evidence';
+  }
+  .os-restricted-notice[data-state='UNDER_REVIEW'] { border-color: var(--cbw-gray-300); }
+  .os-restricted-notice .os-brand { grid-area: brand; }
+  .os-restricted-notice .os-id { grid-area: id; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .os-restricted-notice .os-name { font-size: 14px; color: var(--cbw-gray-900); }
+  .os-restricted-notice .os-verdict { grid-area: verdict; margin: 0; font-size: 12px; }
+  .os-restricted-notice .os-notice { grid-area: notice; margin: 2px 0 0; }
+  .os-restricted-notice .os-cta { grid-area: cta; font-size: 13px; }
+  .os-restricted-notice .os-note { grid-area: note; margin-top: 0; }
+  .os-restricted-notice .os-evidence { grid-area: evidence; margin-top: 0; }
+  @media (max-width: 639px) {
+    .os-restricted-notice {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas: 'brand' 'id' 'verdict' 'notice' 'cta' 'note' 'evidence';
+    }
+    .os-restricted-notice .os-cta { width: 100%; }
+  }
+</style>

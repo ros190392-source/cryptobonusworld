@@ -1,0 +1,518 @@
+{
+  "document": "CBW_GLOBAL_PRODUCT_AND_PAGE_ARCHITECTURE_v3",
+  "task": "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-001",
+  "date": "2026-07-23",
+  "status": "ARCHITECTURE_V3_OWNER_APPROVED_COMMITTED",
+  "baselineCommit": "ee01f3ca7c65045dbd81bccbbb3fe5e64bc94ead",
+  "defersTo": [
+    "CBW_EXCHANGE_MARKET_INTELLIGENCE_BRAIN_v1",
+    "CBW_MI_GEO_RECONCILIATION_STANDARD_v1",
+    "CBW_FIRST_SCREEN_CONVERSION_STANDARD_v1",
+    "Unified Design Foundation v1 (ee01f3c)"
+  ],
+  "globalProduct": {
+    "definition": "Global multi-country multi-language crypto exchange availability- and bonus-intelligence platform",
+    "promise": "For your country and in your language: which exchanges genuinely work, which codes are genuinely eligible, what is genuinely restricted — with dated evidence",
+    "axes": {
+      "country": "factual — which market's MI decisions render",
+      "language": "presentational — which locale renders; never implies country",
+      "visual": "owner-approved CountryVisualProfile per covered country, one consistent art style"
+    },
+    "differentiators": [
+      "evidence-backed availability",
+      "honest never-padded rankings; affiliateInfluencesRanking=false",
+      "truthful restricted states with alternatives",
+      "one unified premium design system",
+      "per-country visual identity without flag-spam or fabricated localism"
+    ]
+  },
+  "informationArchitecture": {
+    "clusters": {
+      "exchange": [
+        "exchange-review (entity root)",
+        "referral-promo",
+        "exchange-country",
+        "comparison"
+      ],
+      "country": [
+        "country (hub)",
+        "exchange-country",
+        "restricted-alternatives"
+      ],
+      "discovery": [
+        "homepage",
+        "exchange-directory",
+        "comparison hub"
+      ],
+      "trust": [
+        "methodology-evidence",
+        "guides",
+        "legal"
+      ]
+    },
+    "spine": "header (Exchanges · Promo Codes · How We Verify · country control · language switch) + footer; RegionAvailabilityModule on all commercial surfaces; CountryMasthead on country surfaces"
+  },
+  "globalContractRules": [
+    "First Screen Conversion Standard v1 absolute",
+    "canonical MI decisions via approved adapters only; never staging/RECOVERED packages",
+    "RESTRICTED/UNKNOWN/UNDER_REVIEW/CONFLICTING/STALE render zero commercial controls",
+    "country and language are independent fields (countryCode/countrySlug/languageCode/localeTag; URL prefix derived, never one locale variable)",
+    "no IP-based hard redirects on SEO pages",
+    "market-first routes only for matrix-supported market-language pairs",
+    "country artwork textless, evergreen, promo/bonus/date-free",
+    "market-language pairs, defaults, fallbacks and x-default targets come from the explicit extensible MarketLanguageMatrix (KZ default ru; PL default pl incl. uk/ru; DE default de; English = fallback, never assumed default); page variants gated by PageLocaleCoverage"
+  ],
+  "pageFamilies": [
+    {
+      "id": "homepage",
+      "url": {
+        "global": "/",
+        "market": "market roots are F2: /kz/ru/ · /kz/kk/ · /kz/en/"
+      },
+      "purpose": "Country-resolved, locale-rendered front door: best eligible exchanges + codes",
+      "searchIntent": "best crypto exchange (in {country}) + localized equivalents",
+      "countryBehavior": "resolver precedence URL→manual→saved→IP→global; rows re-scope; coverage-honest",
+      "localeBehavior": "full UI+editorial translation; identical rankings/data per country across locales",
+      "countryVisualBehavior": "subtle resolved-country masthead accent in hero; platform-neutral art for global default",
+      "firstScreen": "compact hero + country control + Top-3 desktop / Top-2 mobile eligible RANKING_ROWs with complete code+Copy+CTA (56px header incl.)",
+      "commercialGates": "only ranking-eligible rows monetized; MI promo/CTA gates; never padded",
+      "blocks": [
+        "hero+country control",
+        "top-10 ranking",
+        "verification band",
+        "country browser",
+        "popular reviews",
+        "guides",
+        "separated restricted/under-review",
+        "FAQ",
+        "conversion recap"
+      ],
+      "bottomConversion": "compact recap of top eligible rows (permitted states only)",
+      "seo": "brand + head terms per locale; canonical per locale; hreflang cluster with x-default → /",
+      "schema": [
+        "Organization",
+        "WebSite/SearchAction",
+        "ItemList"
+      ],
+      "internalLinks": [
+        "directory",
+        "top reviews",
+        "promo hub",
+        "countries",
+        "methodology"
+      ],
+      "mobile": "two eligible rows fully commercial in first viewport; ≥44px targets; no overflow",
+      "restrictedBehavior": "restricted only in separated informational section",
+      "prohibited": [
+        "IP hard-redirects",
+        "flag-grid browsing",
+        "restricted/unverified rows in ranking",
+        "oversized hero",
+        "padded lists"
+      ]
+    },
+    {
+      "id": "country",
+      "url": {
+        "market": "/{countrySlug}/{languageCode}/ — /kz/ru/, /kz/kk/, /kz/en/, /pl/pl/, /pl/uk/, /pl/ru/, /pl/en/, /de/de/, /de/en/ (pairs only from the MarketLanguageMatrix)",
+        "status": "owner-gated; global hub /countries/ live",
+        "prohibited": "/kz/{lang}/countries/kazakhstan/ duplicate — 301 to market root, never indexed"
+      },
+      "purpose": "Market homepage and country verdict hub are ONE surface: /kz/ru/ (and siblings) is the canonical Kazakhstan market root; duplicate /kz/{lang}/countries/kazakhstan/ prohibited",
+      "searchIntent": "crypto exchanges in {country} + localized",
+      "countryBehavior": "URL pins country (precedence rank 1); resolver suggestions link, never redirect; market root carries full market ranking + verdict",
+      "localeBehavior": "fully localized copy; identical facts per country; locale switch preserves country",
+      "countryVisualBehavior": "primary CountryVisualProfile surface: masthead (desktop/mobile art) + accent palette; textless evergreen art",
+      "firstScreen": "compact masthead + country identity + evidence status + verdict + top eligible rows (3/2)",
+      "commercialGates": "country-verified eligibility only (G+MI gates); publication owner-gated per country",
+      "blocks": [
+        "masthead",
+        "verdict",
+        "recommended ranking",
+        "available-not-recommended",
+        "limited",
+        "under review",
+        "restricted",
+        "local payment rails",
+        "evidence summary",
+        "FAQ"
+      ],
+      "bottomConversion": "COMPACT_BOTTOM of leading eligible exchange or alternatives module",
+      "seo": "country head terms per locale; hreflang across locale variants",
+      "schema": [
+        "ItemList",
+        "FAQPage",
+        "BreadcrumbList"
+      ],
+      "internalLinks": [
+        "pair passports",
+        "reviews",
+        "restricted pages",
+        "methodology"
+      ],
+      "mobile": "verdict + 2 rows first-screen target; masthead ≤120px",
+      "restrictedBehavior": "own dated section; never in ranking",
+      "prohibited": [
+        "publication before GO",
+        "global-as-local promos",
+        "coat-of-arms without rights review",
+        "artwork with text/promos"
+      ]
+    },
+    {
+      "id": "directory",
+      "url": {
+        "global": "/exchanges/ (live)",
+        "market": "/kz/ru/exchanges/ · /kz/kk/exchanges/ · /kz/en/exchanges/"
+      },
+      "purpose": "Browse/filter all covered exchanges with availability badges",
+      "searchIntent": "list of crypto exchanges + localized",
+      "countryBehavior": "badges re-resolve per resolved country; availability filters",
+      "localeBehavior": "localized chrome/labels; identical result set per country",
+      "countryVisualBehavior": "neutral surfaces; resolved-country name chip only",
+      "firstScreen": "H1 + region context + search/filters + one featured eligible row when evidence allows",
+      "commercialGates": "compact code chip + CTA per eligible row; no forced featured offer",
+      "blocks": [
+        "filters",
+        "result rows (ROW_M tiles)",
+        "state legend",
+        "methodology link"
+      ],
+      "bottomConversion": "none forced",
+      "seo": "indexable hub; crawl spine; hreflang cluster",
+      "schema": [
+        "ItemList",
+        "BreadcrumbList"
+      ],
+      "internalLinks": [
+        "all reviews",
+        "comparison hub",
+        "country pages"
+      ],
+      "mobile": "filters collapse; codes copyable; one row per line",
+      "restrictedBehavior": "clearly badged; zero claim controls; alternatives links",
+      "prohibited": [
+        "undistinguished states",
+        "promo hero displacing search"
+      ]
+    },
+    {
+      "id": "exchange-review",
+      "url": {
+        "globalLegacy": "/{exchange}/ (live)",
+        "market": "/kz/ru/exchanges/bybit/ · /kz/kk/exchanges/bybit/ · /kz/en/exchanges/bybit/"
+      },
+      "purpose": "Canonical exchange entity page (THREE_ZONE_FIRST_SCREEN): full evaluation + authorized conversion",
+      "searchIntent": "{exchange} review / referral code + localized",
+      "countryBehavior": "RegionAvailabilityModule renders resolved-country state; both offer blocks swap together",
+      "localeBehavior": "localized editorial; identical facts per (exchange × country) across locales",
+      "countryVisualBehavior": "none by default; resolved-country chip in availability module",
+      "firstScreen": "Zone1 identity (tile 132/108/92 + name below + state + trust) · Zone2 verdict+conversion (code+Copy 48–52px, CTA 48–52px, note) · Zone3 compact facts; mobile 8-item stack",
+      "commercialGates": "full standard state rules; MI + offer registry gates",
+      "blocks": [
+        "trust strip",
+        "quick verdict",
+        "product availability",
+        "fees preview",
+        "pros/limitations",
+        "who it suits",
+        "security/verification",
+        "FAQ",
+        "COMPACT_BOTTOM"
+      ],
+      "bottomConversion": "same-state OfferSurface COMPACT_BOTTOM",
+      "seo": "primary money terms per locale; hreflang across variants",
+      "schema": [
+        "Review/Product",
+        "FAQPage",
+        "BreadcrumbList"
+      ],
+      "internalLinks": [
+        "pair passports",
+        "promo page",
+        "comparisons",
+        "guides"
+      ],
+      "mobile": "8-item first-screen stack; facts card below",
+      "restrictedBehavior": "red state + reason + evidence date + View Available Alternatives; zero commercial controls",
+      "prohibited": [
+        "unverified bonus claims",
+        "top/bottom drift",
+        "inaccessibility claims",
+        "wordmark-in-square identity"
+      ]
+    },
+    {
+      "id": "exchange-country",
+      "url": {
+        "primary": "/kz/{lang}/exchanges/{exchange}/ (= market review; pair intent fulfilled there)",
+        "optionalEvidenceSubpage": "/kz/{lang}/exchanges/{exchange}/availability/ (distinct documentary purpose; owner-gated)",
+        "retired": "/{exchange}/{country}/ pattern"
+      },
+      "purpose": "'{exchange} in {country}' intent fulfilled by the market exchange page (pair facts inherent in route); no competing deep-passport page; optional availability evidence subpage owner-gated with distinct purpose",
+      "searchIntent": "{exchange} in {country} / legal in {country} + localized",
+      "countryBehavior": "URL pins country; module shows pair state only",
+      "localeBehavior": "localized presentation of identical canonical MI cell facts",
+      "countryVisualBehavior": "compact country accent chip/mini-masthead; exchange brand primary",
+      "firstScreen": "pair identity + exact local state + local verdict + locally verified code/Copy/CTA or restriction presentation",
+      "commercialGates": "local evidence only; global never overrides local restriction",
+      "blocks": [
+        "local availability matrix",
+        "registration/KYC",
+        "payment rails",
+        "restriction evidence",
+        "alternatives",
+        "FAQ"
+      ],
+      "bottomConversion": "COMPACT_BOTTOM (eligible) or alternatives module",
+      "seo": "pair long-tail; per-pair publication GO; hreflang per variant",
+      "schema": [
+        "FAQPage",
+        "BreadcrumbList",
+        "Review (when warranted)"
+      ],
+      "internalLinks": [
+        "review root",
+        "country hub",
+        "alternatives",
+        "methodology"
+      ],
+      "mobile": "local verdict + state-correct action first screen",
+      "restrictedBehavior": "restriction-only presentation from MI cell",
+      "prohibited": [
+        "staging data",
+        "competing availability record",
+        "thin doorway content"
+      ]
+    },
+    {
+      "id": "referral-promo",
+      "url": {
+        "globalLegacy": "/promo-codes/{exchange}/ (hub live)",
+        "market": "/kz/ru/promo-codes/bybit/ · /kz/kk/promo-codes/bybit/ · /kz/en/promo-codes/bybit/",
+        "status": "owner-gated"
+      },
+      "purpose": "Direct answer: code, eligibility, reward, application",
+      "searchIntent": "{exchange} promo/referral code + localized",
+      "countryBehavior": "claimable only for verified-compatible resolved country; else Check Eligibility",
+      "localeBehavior": "localized terms copy; identical offer facts",
+      "countryVisualBehavior": "none (offer-first surface)",
+      "firstScreen": "exchange+scope · offer status · complete code+Copy+CTA · key condition · last-checked; no editorial wall",
+      "commercialGates": "offer registry + MI promo eligibility; unverified compat → no code + explicit statement",
+      "blocks": [
+        "how to apply",
+        "reward structure",
+        "conditions",
+        "terms warnings",
+        "FAQ"
+      ],
+      "bottomConversion": "COMPACT_BOTTOM repeat",
+      "seo": "highest-conversion long-tail; hreflang cluster",
+      "schema": [
+        "FAQPage",
+        "BreadcrumbList",
+        "Offer (verified-current only)"
+      ],
+      "internalLinks": [
+        "review root",
+        "pair pages",
+        "comparisons"
+      ],
+      "mobile": "code+CTA fully in first screen at all required viewports",
+      "restrictedBehavior": "no code/claim; alternatives action",
+      "prohibited": [
+        "expired-as-current",
+        "unverified maxima",
+        "claim language without verified compatibility"
+      ]
+    },
+    {
+      "id": "comparison",
+      "url": {
+        "global": "/compare/{a}-vs-{b}/ (live)",
+        "market": "/kz/ru/compare/bybit-vs-okx/ · /kz/kk/compare/bybit-vs-okx/ · /kz/en/compare/bybit-vs-okx/"
+      },
+      "purpose": "Decide between exchanges in the user's market",
+      "searchIntent": "{a} vs {b} + localized",
+      "countryBehavior": "both compared in same resolved market; per-exchange state badges",
+      "localeBehavior": "localized dimensions/verdict; identical data",
+      "countryVisualBehavior": "none",
+      "firstScreen": "both COMPARISON_CELL offers (CARD_L 76px, equal treatment) with complete controls per eligible cell",
+      "commercialGates": "winner monetized only if eligible; restricted never monetized nor favored",
+      "blocks": [
+        "verdict",
+        "dimension table",
+        "fees",
+        "products",
+        "per-exchange offers",
+        "FAQ"
+      ],
+      "bottomConversion": "COMPACT_BOTTOM of eligible winner only",
+      "seo": "vs long-tail; hreflang cluster",
+      "schema": [
+        "FAQPage",
+        "ItemList(2)",
+        "BreadcrumbList"
+      ],
+      "internalLinks": [
+        "both reviews",
+        "both promo pages",
+        "directory"
+      ],
+      "mobile": "cells stack; two compact offers first-screen target; table scrolls in container",
+      "restrictedBehavior": "restricted column informational + alternatives link",
+      "prohibited": [
+        "monetized restricted winner",
+        "unequal tile scale",
+        "comparing different markets as equal"
+      ]
+    },
+    {
+      "id": "guide",
+      "url": {
+        "global": "/guides/{slug}/ (live)",
+        "market": "/kz/ru/guides/how-to-buy-usdt/ · /kz/kk/guides/how-to-buy-usdt/ · /kz/en/guides/how-to-buy-usdt/"
+      },
+      "purpose": "Task completion (buy, deposit, withdraw, P2P, KYC)",
+      "searchIntent": "how to … + localized",
+      "countryBehavior": "embedded commercial module resolves country; steps stay neutral",
+      "localeBehavior": "fully translated steps; screenshots may stay EN with localized captions until localized capture",
+      "countryVisualBehavior": "none",
+      "firstScreen": "title + first useful step; commercial guides MAY carry one relevant eligible COMPACT offer",
+      "commercialGates": "module obeys full state rules; neutral guides never forced to show a code",
+      "blocks": [
+        "steps (separated)",
+        "screenshots",
+        "warnings",
+        "related guides"
+      ],
+      "bottomConversion": "optional COMPACT_BOTTOM when task-relevant",
+      "seo": "informational cluster; hreflang cluster",
+      "schema": [
+        "HowTo",
+        "FAQPage",
+        "BreadcrumbList"
+      ],
+      "internalLinks": [
+        "relevant reviews/promos",
+        "methodology"
+      ],
+      "mobile": "step 1 never displaced by conversion",
+      "restrictedBehavior": "no claim language for restricted exchanges anywhere",
+      "prohibited": [
+        "forced promos in neutral guides",
+        "commercial claims inside steps"
+      ]
+    },
+    {
+      "id": "restricted-alternatives",
+      "url": {
+        "market": "/kz/ru/exchanges/mexc/alternatives/ · /kz/kk/exchanges/mexc/alternatives/ · /kz/en/exchanges/mexc/alternatives/",
+        "status": "owner-gated; nested under market exchange route"
+      },
+      "purpose": "Why {exchange} is restricted in {country} + eligible alternatives",
+      "searchIntent": "{exchange} banned in {country}? + localized",
+      "countryBehavior": "country-pinned",
+      "localeBehavior": "localized explanation of identical facts",
+      "countryVisualBehavior": "country accent chip only; restrained informational surface",
+      "firstScreen": "restricted identity (unrecolored tile) + red state + reason + evidence date + first eligible alternatives (3/2)",
+      "commercialGates": "conversion belongs exclusively to eligible alternatives",
+      "blocks": [
+        "dated restriction explanation",
+        "what it does/doesn't mean",
+        "full alternatives",
+        "FAQ"
+      ],
+      "bottomConversion": "alternatives COMPACT offers",
+      "seo": "restriction long-tail; per-pair GO; hreflang cluster",
+      "schema": [
+        "FAQPage",
+        "ItemList",
+        "BreadcrumbList"
+      ],
+      "internalLinks": [
+        "pair page",
+        "country hub",
+        "alternative reviews"
+      ],
+      "mobile": "reason + first alternative early; two alternatives first-screen target",
+      "restrictedBehavior": "restricted exchange itself: zero commercial controls, no inaccessibility claims",
+      "prohibited": [
+        "any promo/registration control for the restricted exchange",
+        "alternatives without verified eligibility"
+      ]
+    },
+    {
+      "id": "methodology",
+      "url": {
+        "global": "/methodology/ (platform trust page, live)",
+        "market": "/kz/{lang}/methodology/ with market-specific verification context (distinct intent, cross-linked)"
+      },
+      "purpose": "Trust engine: evidence, states, rankings, rechecks",
+      "searchIntent": "is CBW trustworthy / how ranked + localized",
+      "countryBehavior": "none (explains the country system)",
+      "localeBehavior": "fully translated",
+      "countryVisualBehavior": "none",
+      "firstScreen": "H1 + trust statement + verification principles + last-updated",
+      "commercialGates": "none — zero conversion controls ever",
+      "blocks": [
+        "evidence tiers",
+        "decision states",
+        "refresh policy",
+        "conflict handling",
+        "editorial independence",
+        "affiliate disclosure link"
+      ],
+      "bottomConversion": "none; soft directory link permitted",
+      "seo": "trust/E-E-A-T anchor; hreflang cluster",
+      "schema": [
+        "WebPage/AboutPage",
+        "BreadcrumbList"
+      ],
+      "internalLinks": [
+        "all cluster roots",
+        "legal"
+      ],
+      "mobile": "readable article layout",
+      "restrictedBehavior": "n/a (explains it)",
+      "prohibited": [
+        "forced conversion",
+        "commercial links blended into methodology claims"
+      ]
+    }
+  ],
+  "rolloutOrder": [
+    "W1 Exchange Review V2 rollout",
+    "W2 Homepage V2",
+    "W3 Country/market root + RegionAvailabilityModule + CountryVisualProfile pilots (KZ/PL/DE; art generation separately authorized)",
+    "W4 Directory + Referral/Promo",
+    "W5 Market exchange pages (pair intent) — needs MI pilot data",
+    "W6 Restricted/Alternatives + Guides + Methodology",
+    "W7 Locale infrastructure + Kazakhstan pairs (/kz/ru/, /kz/kk/, /kz/en/; default ru)",
+    "W8 Poland pairs (/pl/pl/, /pl/uk/, /pl/ru/, /pl/en/; default pl) + Germany pairs (/de/de/, /de/en/; default de) + RTL audit",
+    "W9 Production migration waves per family (separately authorized)"
+  ],
+  "productionMigrationPlan": "prototype → owner visual approval → committed authority → data-binding (approved MI adapters; no staging) → localization pass → production QA (CI gate matrix) → owner production GO → migrate live route → post-deploy live QA → monitor; production pages and GEO-legacy path frozen until per-family/pair GO; one canonical data layer, N locale presentations",
+  "authorizationFlags": {
+    "ARCHITECTURE_DESIGN_AUTHORIZED": true,
+    "COUNTRY_ART_GENERATION_AUTHORIZED": false,
+    "PAGE_IMPLEMENTATION_AUTHORIZED": false,
+    "PRODUCTION_ASSET_EXPORT_AUTHORIZED": false,
+    "PRODUCTION_DATA_BINDING_AUTHORIZED": false,
+    "AFFILIATE_ACTIVATION_AUTHORIZED": false,
+    "MERGE_TO_MASTER_AUTHORIZED": false,
+    "PUBLICATION_AUTHORIZED": false,
+    "DEPLOY_AUTHORIZED": false
+  },
+  "correctedBy": [
+    "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-OWNER-REVIEW-002",
+    "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-OWNER-REVIEW-003"
+  ],
+  "urlArchitecture": "market-first × language-second: /{countrySlugLower}/{languageCodeLower}/… (language-first model rejected; see SEO doc rejectedPatterns)",
+  "lifecycle": {
+    "state": "ARCHITECTURE_V3_OWNER_APPROVED_COMMITTED",
+    "initialArchitectureCommit": "a3dea7e451d046d5f01515bf085962f6f92a9fa7",
+    "branch": "feat/cbw-global-site-architecture-v3",
+    "note": "implementation and production remain separately unauthorized"
+  }
+}

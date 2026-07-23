@@ -1,0 +1,559 @@
+---
+/**
+ * DESIGN PREVIEW — EXCHANGE REVIEW TEMPLATE PROTOTYPE (noindex, mock data).
+ *
+ * Isolated prototype route: /__design/exchange-review-template/
+ * Tasks: CBW-EXCHANGE-REVIEW-TEMPLATE-PROTOTYPE-001
+ *        CBW-EXCHANGE-REVIEW-TEMPLATE-OWNER-REVIEW-002 (iteration)
+ *
+ * - Reusable exchange-review template: top + bottom conversion blocks built
+ *   from ONE prototype-local component (ExchangeOfferBlock) — both use the
+ *   same rectangular wordmark logo-slot system (owner correction 002-1).
+ * - FIRST SCREEN CONVERSION STANDARD v1 applied (owner decision 002-2):
+ *   the full primary conversion action (code + Copy + CTA + note, or the
+ *   state-specific equivalent) fits in the first viewport including the
+ *   site header at 1440×900 / 1366×768 / 1280×720 / 390×844 / 360×800 /
+ *   320×700. The design-preview switcher floats bottom-right and takes no
+ *   vertical flow space.
+ * - Three controlled availability states + referral-compatibility toggle.
+ * - ALL content is mock preview data. Nothing is verified.
+ * - NO production navigation: no /go/**, no affiliate URLs, no external
+ *   exchange URLs. All CTAs are inert preview actions.
+ * - Not linked from any production page, header, footer or sitemap.
+ */
+import CleanLayout from '../../../layouts/CleanLayout.astro';
+import ExchangeOfferBlock from '../../../components/design-preview/ExchangeOfferBlock.astro';
+import {
+  PREVIEW_STATES,
+  LAST_CHECKED_LABEL,
+} from '../../../data/design-preview/exchange-review-template-mock';
+
+// Astro excludes literal underscore-prefixed page paths from routing, so the
+// required /__design/ URL segment is produced via a fixed dynamic param.
+// Only this exact path is ever generated or served.
+export function getStaticPaths() {
+  return [{ params: { designRoot: '__design' } }];
+}
+
+const statesJson = JSON.stringify(PREVIEW_STATES);
+const s = PREVIEW_STATES.AVAILABLE;
+---
+
+<CleanLayout
+  title="Exchange Review Template — Design Preview (Mock Data)"
+  description="Internal design prototype. Mock data only. Not a production page."
+  noindex={true}
+  bodyClass="dp-page"
+>
+
+<style>
+  /* ════════ Floating design-preview control (prototype-only chrome) ════════
+     Floats bottom-right so it consumes NO first-screen flow height
+     (First Screen Conversion Standard v1 measures header + page content). */
+  .dp-panel {
+    position: fixed; right: 14px; bottom: 14px; z-index: 80;
+    background: #2e1065; background-image: linear-gradient(135deg, #2e1065, #4c1d95);
+    color: #ede9fe; border-radius: 14px; padding: 10px 12px;
+    display: flex; flex-direction: column; gap: 8px;
+    font-size: 12px; box-shadow: 0 8px 30px rgba(46,16,101,.5);
+    max-width: min(320px, calc(100vw - 28px));
+  }
+  .dp-panel-label {
+    font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+    font-size: 10.5px; text-align: center;
+  }
+  .dp-switch { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+  .dp-state-btn {
+    border: 1px solid rgba(237,233,254,.35); background: rgba(255,255,255,.06);
+    color: #ede9fe; border-radius: 100px; padding: 5px 12px;
+    font-size: 11.5px; font-weight: 700; cursor: pointer; letter-spacing: .02em;
+    transition: background .15s, border-color .15s;
+  }
+  .dp-state-btn:hover { background: rgba(255,255,255,.14); }
+  .dp-state-btn.is-active { background: #ede9fe; color: #4c1d95; border-color: #ede9fe; }
+  .dp-refcompat {
+    display: none; align-items: center; gap: 6px; font-size: 11px;
+    background: rgba(255,255,255,.08); border: 1px dashed rgba(237,233,254,.4);
+    border-radius: 8px; padding: 4px 9px; cursor: pointer; user-select: none;
+    justify-content: center;
+  }
+  .dp-refcompat.is-visible { display: inline-flex; }
+  .dp-refcompat input { accent-color: #a78bfa; }
+  .dp-toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(8px);
+    background: #2e1065; color: #ede9fe; font-size: 13px; font-weight: 600;
+    padding: 10px 18px; border-radius: 100px; opacity: 0; pointer-events: none;
+    transition: opacity .2s, transform .2s; z-index: 90;
+    box-shadow: 0 6px 24px rgba(0,0,0,.3); max-width: 90vw; text-align: center;
+  }
+  .dp-toast.is-shown { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ════════ Title bar (compact review-page idiom) ════════ */
+  .title-bar {
+    background: #ffffff; border-bottom: 1px solid var(--cbw-gray-200);
+    text-align: center; padding: 7px 20px;
+    color-scheme: light; forced-color-adjust: none;
+  }
+  .title-bar h1 { font-size: 19px; font-weight: 700; color: var(--cbw-gray-900); margin: 0; line-height: 1.25; }
+  @media (max-width: 479px) { .title-bar h1 { font-size: 16px; } }
+
+  /* ════════ Compact facts table ════════ */
+  .compact-facts { background: var(--cbw-white); padding: 20px 16px 6px; color-scheme: light; forced-color-adjust: none; }
+  .cf-inner {
+    max-width: 720px; margin: 0 auto;
+    background: var(--cbw-gray-100); border: 1px solid var(--cbw-gray-300);
+    border-radius: var(--cbw-r-md); overflow: hidden;
+  }
+  .cf-table { width: 100%; border-collapse: collapse; font-size: 14px; table-layout: fixed; }
+  .cf-table tr { border-bottom: 1px solid var(--cbw-gray-200); }
+  .cf-table tr:last-child { border-bottom: none; }
+  .cf-table td { padding: 11px 16px; vertical-align: middle; color: var(--cbw-gray-900); overflow-wrap: break-word; }
+  .cf-table td:first-child { color: var(--cbw-gray-700); font-size: 14px; font-weight: 500; width: 50%; }
+  .cf-table td:last-child { font-weight: 600; }
+  @media (max-width: 479px) { .cf-table td { padding: 10px 12px; font-size: 13px; } }
+  .cf-code { font-family: 'Courier New', monospace; letter-spacing: .04em; color: #c47f00; }
+  .cf-warn { color: #b45309; font-weight: 500; }
+  .cf-restricted { color: #b91c1c; }
+
+  /* ════════ Article body (p2 idiom) ════════ */
+  .p2-section {
+    background: var(--cbw-white); border-bottom: 1px solid var(--cbw-gray-200);
+    padding: 28px 0; color-scheme: light; forced-color-adjust: none;
+  }
+  .p2-section-alt { background: var(--cbw-gray-50); }
+  .p2-inner { max-width: 720px; margin: 0 auto; padding: 0 20px; }
+  .p2-h2 { font-size: 20px; font-weight: 700; color: #111827; margin: 0 0 14px; line-height: 1.3; }
+  @media (min-width: 640px) { .p2-h2 { font-size: 22px; } }
+  .p2-text { font-size: 14px; color: #374151; line-height: 1.7; margin: 0 0 12px; }
+  .p2-text:last-child { margin-bottom: 0; }
+  @media (min-width: 640px) { .p2-text { font-size: 15px; } }
+  .p2-mock-note { font-size: 12px; color: #9CA3AF; font-style: italic; margin: 10px 0 0; }
+
+  .p2-table-wrap {
+    overflow-x: auto; border-radius: var(--cbw-r-md); border: 1px solid var(--cbw-gray-300);
+    margin-top: 10px;
+  }
+  .p2-table { width: 100%; border-collapse: collapse; font-size: 13px; background: var(--cbw-gray-50); min-width: 320px; }
+  .p2-table th {
+    background: var(--cbw-gray-100); padding: 10px 14px; text-align: left;
+    font-size: 12px; font-weight: 600; color: var(--cbw-gray-500);
+    border-bottom: 1px solid var(--cbw-gray-200); white-space: nowrap;
+  }
+  .p2-table td { padding: 10px 14px; color: var(--cbw-gray-700); border-bottom: 1px solid var(--cbw-gray-100); }
+  .p2-table tr:last-child td { border-bottom: none; }
+
+  .p2-notice { border-radius: 8px; padding: 12px 16px; font-size: 13px; line-height: 1.6; margin-top: 12px; }
+  .p2-notice-green { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+  .p2-notice-amber { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+  .p2-notice-red   { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
+
+  .p2-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 10px; }
+  @media (max-width: 639px) { .p2-cols { grid-template-columns: 1fr; } }
+  .p2-col-card { background: var(--cbw-white); border: 1px solid var(--cbw-gray-200); border-radius: var(--cbw-r-md); padding: 14px 16px; }
+  .p2-col-title { font-size: 13px; font-weight: 700; margin: 0 0 8px; }
+  .p2-col-title.is-pro { color: #15803d; }
+  .p2-col-title.is-con { color: #b45309; }
+  .p2-col-list { margin: 0; padding-left: 18px; font-size: 13px; color: #4B5563; line-height: 1.7; }
+
+  .p2-faq { display: flex; flex-direction: column; gap: 4px; }
+  .p2-faq-item { border: 1px solid var(--cbw-gray-200); border-radius: var(--cbw-r-md); overflow: hidden; background: var(--cbw-white); }
+  .p2-faq-q {
+    padding: 13px 16px; font-size: 14px; font-weight: 600; color: var(--cbw-gray-900);
+    cursor: pointer; list-style: none; display: flex; align-items: center;
+    justify-content: space-between; gap: 8px;
+  }
+  .p2-faq-q::-webkit-details-marker { display: none; }
+  .p2-faq-q::after { content: '+'; font-size: 18px; color: #9CA3AF; }
+  .p2-faq-item[open] .p2-faq-q::after { content: '−'; }
+  .p2-faq-q:hover { background: #F9FAFB; }
+  .p2-faq-a { padding: 0 16px 14px; font-size: 13px; color: #4B5563; line-height: 1.5; }
+</style>
+
+<!-- ════════ Title bar ════════ -->
+<div class="title-bar">
+  <h1 data-role="page-title">{s.pageTitle}</h1>
+</div>
+
+<!-- ════════ TOP OFFER BLOCK (FULL) — First Screen Conversion Standard v1 ════════ -->
+<ExchangeOfferBlock
+  placement="top"
+  defaultExchangeName={s.exchangeName}
+  defaultBadgeText={s.badgeText}
+  defaultVerdict={s.verdict}
+  defaultBonusLabel={s.bonusLabel}
+  defaultPromoCode={s.promoCode}
+  defaultCtaLabel={s.ctaLabelTop}
+  defaultEligibilityNote={s.eligibilityNote}
+  defaultAvailabilityLabel={s.availabilityLabel}
+  lastCheckedLabel={LAST_CHECKED_LABEL}
+/>
+
+<!-- ════════ Compact facts table ════════ -->
+<div class="compact-facts">
+  <div class="cf-inner">
+    <table class="cf-table">
+      <tbody>
+        <tr><td>👉 Exchange</td><td id="dp-fact-name">{s.exchangeName} (mock)</td></tr>
+        <tr id="dp-fact-code-row"><td>➡️ Referral Code</td><td class="cf-code" id="dp-fact-code">{s.promoCode}</td></tr>
+        <tr><td>💰 Bonus</td><td id="dp-fact-bonus">Welcome offer — mock preview value</td></tr>
+        <tr><td>✅ Status</td><td>{LAST_CHECKED_LABEL}</td></tr>
+        <tr><td>🔐 KYC required</td><td class="cf-warn">Yes — identity verification (mock)</td></tr>
+        <tr><td>📊 Spot fee</td><td>0.1% maker / 0.1% taker (mock)</td></tr>
+        <tr><td>🌍 Availability</td><td id="dp-fact-availability">{s.factsAvailability}</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ════════ ARTICLE BODY ════════ -->
+
+<div class="p2-section">
+  <div class="p2-inner">
+    <h2 class="p2-h2">Quick Verdict</h2>
+    <p class="p2-text">This exchange combines a broad spot and derivatives offering with a structured welcome program for new users. In this prototype layout, the quick verdict gives readers a two-sentence answer before the detailed sections below.</p>
+    <p class="p2-text">The verdict block also carries the current availability position for the reader's region, so the page never buries the eligibility answer below the fold.</p>
+    <div class="p2-notice p2-notice-green" id="dp-article-state-note">Mock note — updated by the state switcher.</div>
+    <p class="p2-mock-note">Prototype copy — mock data for design preview.</p>
+  </div>
+</div>
+
+<div class="p2-section p2-section-alt">
+  <div class="p2-inner">
+    <h2 class="p2-h2">Availability and Restrictions</h2>
+    <p class="p2-text">Exchange availability differs by country. Registration eligibility, KYC support, product access and promotional eligibility are separate questions — a visible website or app listing alone does not confirm that accounts in a given country are accepted.</p>
+    <div class="p2-table-wrap">
+      <table class="p2-table">
+        <thead><tr><th>Dimension</th><th>Status (mock)</th><th>Note</th></tr></thead>
+        <tbody>
+          <tr><td>Registration</td><td id="dp-tbl-reg">Available</td><td>Mock preview value</td></tr>
+          <tr><td>KYC</td><td id="dp-tbl-kyc">Supported</td><td>Mock preview value</td></tr>
+          <tr><td>Spot trading</td><td id="dp-tbl-spot">Available</td><td>Mock preview value</td></tr>
+          <tr><td>Derivatives</td><td id="dp-tbl-deriv">Available</td><td>Mock preview value</td></tr>
+          <tr><td>Promotions</td><td id="dp-tbl-promo">Eligible</td><td>Mock preview value</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="p2-mock-note">Prototype copy — statuses above are mock values controlled by the design-preview switcher.</p>
+  </div>
+</div>
+
+<div class="p2-section">
+  <div class="p2-inner">
+    <h2 class="p2-h2">Main Products</h2>
+    <p class="p2-text">The product set covers spot markets, perpetual futures, margin and a passive-earning section. This prototype section demonstrates content density with a compact product table.</p>
+    <div class="p2-table-wrap">
+      <table class="p2-table">
+        <thead><tr><th>Product</th><th>Coverage (mock)</th><th>Notes (mock)</th></tr></thead>
+        <tbody>
+          <tr><td>Spot</td><td>600+ pairs</td><td>Deep USDT liquidity</td></tr>
+          <tr><td>Perpetual futures</td><td>300+ contracts</td><td>Up to 100× leverage</td></tr>
+          <tr><td>Margin</td><td>Selected pairs</td><td>Cross and isolated</td></tr>
+          <tr><td>Earn</td><td>Flexible + fixed</td><td>Variable APR</td></tr>
+          <tr><td>P2P</td><td>Regional</td><td>Availability varies by country</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="p2-mock-note">Prototype copy — mock product data.</p>
+  </div>
+</div>
+
+<div class="p2-section p2-section-alt">
+  <div class="p2-inner">
+    <h2 class="p2-h2">Fees Overview</h2>
+    <p class="p2-text">Fees follow a maker/taker model with VIP tiers. The compact table keeps the fee answer scannable without leaving the page rhythm.</p>
+    <div class="p2-table-wrap">
+      <table class="p2-table">
+        <thead><tr><th>Market</th><th>Maker (mock)</th><th>Taker (mock)</th></tr></thead>
+        <tbody>
+          <tr><td>Spot</td><td>0.10%</td><td>0.10%</td></tr>
+          <tr><td>Futures</td><td>0.02%</td><td>0.055%</td></tr>
+          <tr><td>Options</td><td>0.02%</td><td>0.03%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="p2-mock-note">Prototype copy — mock fee data, not current rates.</p>
+  </div>
+</div>
+
+<div class="p2-section">
+  <div class="p2-inner">
+    <h2 class="p2-h2">Promo-Code Eligibility</h2>
+    <p class="p2-text">Referral and promo codes apply to new accounts only and must be entered during registration. Rewards are structured as tasks — deposit, trade volume and verification milestones — rather than a single fixed payout.</p>
+    <p class="p2-text" id="dp-promo-eligibility-text">Mock eligibility sentence — updated by the state switcher.</p>
+    <p class="p2-mock-note">Prototype copy — no promo value on this page is verified.</p>
+  </div>
+</div>
+
+<div class="p2-section p2-section-alt">
+  <div class="p2-inner">
+    <h2 class="p2-h2">Security and Verification</h2>
+    <p class="p2-text">Standard account protection includes two-factor authentication, withdrawal allow-lists and proof-of-reserves reporting. Identity verification (KYC) unlocks full deposit, trading and withdrawal limits.</p>
+    <p class="p2-text">Verification requirements and accepted documents differ by country of residence — the production template links each statement to dated evidence.</p>
+    <p class="p2-mock-note">Prototype copy — mock security summary.</p>
+  </div>
+</div>
+
+<div class="p2-section">
+  <div class="p2-inner">
+    <h2 class="p2-h2">Advantages and Limitations</h2>
+    <div class="p2-cols">
+      <div class="p2-col-card">
+        <p class="p2-col-title is-pro">Advantages (mock)</p>
+        <ul class="p2-col-list">
+          <li>Structured welcome program</li>
+          <li>Low headline trading fees</li>
+          <li>Wide derivatives coverage</li>
+          <li>Mature mobile apps</li>
+        </ul>
+      </div>
+      <div class="p2-col-card">
+        <p class="p2-col-title is-con">Limitations (mock)</p>
+        <ul class="p2-col-list">
+          <li>Bonus terms vary by region</li>
+          <li>KYC required for full limits</li>
+          <li>Product set differs by country</li>
+          <li>Promotions can change without notice</li>
+        </ul>
+      </div>
+    </div>
+    <p class="p2-mock-note">Prototype copy — mock assessment for design preview.</p>
+  </div>
+</div>
+
+<div class="p2-section p2-section-alt">
+  <div class="p2-inner">
+    <h2 class="p2-h2">FAQ</h2>
+    <div class="p2-faq">
+      <details class="p2-faq-item">
+        <summary class="p2-faq-q">Is the promo code on this page verified?</summary>
+        <div class="p2-faq-a">No — this is a design prototype. Every value on this page is mock preview data and nothing is verified.</div>
+      </details>
+      <details class="p2-faq-item">
+        <summary class="p2-faq-q">Who can use a referral code?</summary>
+        <div class="p2-faq-a">New accounts only, entered during registration (mock answer for layout preview).</div>
+      </details>
+      <details class="p2-faq-item">
+        <summary class="p2-faq-q">What does the restricted state mean?</summary>
+        <div class="p2-faq-a">It reflects the exchange’s own terms for a region. It is a legal/eligibility state — it does not describe whether the website is technically reachable.</div>
+      </details>
+      <details class="p2-faq-item">
+        <summary class="p2-faq-q">Where do the buttons on this page lead?</summary>
+        <div class="p2-faq-a">Nowhere — all actions are inert design-preview controls. No affiliate or external navigation exists on this page.</div>
+      </details>
+    </div>
+    <p class="p2-mock-note">Prototype copy — mock FAQ.</p>
+  </div>
+</div>
+
+<!-- ════════ BOTTOM OFFER BLOCK (COMPACT) — same conversion system ════════ -->
+<ExchangeOfferBlock
+  placement="bottom"
+  defaultExchangeName={s.exchangeName}
+  defaultBadgeText={s.badgeText}
+  defaultVerdict={s.finalVerdict}
+  defaultPromoCode={s.promoCode}
+  defaultCtaLabel={s.ctaLabelBottom}
+  defaultEligibilityNote={s.eligibilityNote}
+  defaultTermsWarning={s.termsWarning}
+/>
+
+<!-- ════════ Floating design-preview control + toast ════════ -->
+<div class="dp-panel" id="dp-panel">
+  <span class="dp-panel-label">🧪 Design preview · mock data</span>
+  <span class="dp-switch" role="group" aria-label="Preview state switcher">
+    <button class="dp-state-btn" type="button" data-state="AVAILABLE">Available</button>
+    <button class="dp-state-btn" type="button" data-state="AVAILABLE_WITH_LIMITS">Limits</button>
+    <button class="dp-state-btn" type="button" data-state="RESTRICTED">Restricted</button>
+  </span>
+  <label class="dp-refcompat" id="dp-refcompat-wrap">
+    <input type="checkbox" id="dp-refcompat" checked />
+    <span>mock: referralCompatibilityVerified</span>
+  </label>
+</div>
+<div class="dp-toast" id="dp-toast" role="status" aria-live="polite"></div>
+
+<script type="application/json" id="dp-states" set:html={statesJson}></script>
+
+<script is:inline>
+(() => {
+  const STATES = JSON.parse(document.getElementById('dp-states').textContent);
+  const $ = (id) => document.getElementById(id);
+  const badgeClass = { green: 'badge-green', amber: 'badge-amber', red: 'badge-red' };
+  const blocks = {
+    top: document.querySelector('[data-offer-block="top"]'),
+    bottom: document.querySelector('[data-offer-block="bottom"]'),
+  };
+  const role = (block, name) => block.querySelector(`[data-role="${name}"]`);
+
+  let currentKey = 'AVAILABLE';
+  let refCompat = true;
+
+  const toastEl = $('dp-toast');
+  let toastTimer = null;
+  function toast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('is-shown');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove('is-shown'), 1800);
+  }
+  function setHidden(el, hidden) {
+    if (!el) return;
+    if (hidden) el.setAttribute('data-dp-hidden', '');
+    else el.removeAttribute('data-dp-hidden');
+  }
+
+  function applyBlock(placement, s, opts) {
+    const block = blocks[placement];
+    const { codeVisible, limitedNoCompat, neutral } = opts;
+
+    // brand identity swap (rectangular wordmark slots in BOTH blocks)
+    block.querySelectorAll('[data-brand-slot]').forEach((el) => {
+      el.hidden = el.getAttribute('data-brand-slot') !== s.brand;
+    });
+    if (placement === 'top') {
+      block.classList.toggle('brand-bybit', s.brand === 'bybit');
+      block.classList.toggle('brand-mexc', s.brand === 'mexc');
+    }
+
+    role(block, 'exchange-name').textContent = s.exchangeName;
+    const badge = role(block, 'badge');
+    badge.textContent = s.badgeText;
+    badge.className = 'ob-badge ' + badgeClass[s.badgeKind];
+    const avail = role(block, 'availability');
+    if (avail) avail.textContent = s.availabilityLabel;
+
+    role(block, 'verdict').textContent = placement === 'top' ? s.verdict : s.finalVerdict;
+
+    const bonus = role(block, 'bonus-label');
+    if (bonus) {
+      setHidden(bonus, !s.bonusLabel);
+      if (s.bonusLabel) bonus.textContent = s.bonusLabel;
+    }
+
+    const limitEl = role(block, 'limit-notice');
+    setHidden(limitEl, !s.limitNotice);
+    if (s.limitNotice) {
+      limitEl.textContent = s.limitNotice + (limitedNoCompat && placement === 'top'
+        ? ' Referral-code compatibility for this mock region is NOT verified — the code is hidden and the action below opens the exchange without claim language.'
+        : '');
+    }
+    const restrictEl = role(block, 'restrict-notice');
+    setHidden(restrictEl, !s.restrictNotice);
+    if (s.restrictNotice) restrictEl.textContent = s.restrictNotice;
+
+    const promoWrap = role(block, 'promo-wrap');
+    setHidden(promoWrap, !codeVisible);
+    if (codeVisible) role(block, 'promo-code').textContent = s.promoCode;
+
+    const cta = role(block, 'cta');
+    cta.textContent = limitedNoCompat
+      ? (placement === 'top' ? 'Visit Exchange' : 'Check Eligibility')
+      : (placement === 'top' ? s.ctaLabelTop : s.ctaLabelBottom);
+    cta.classList.toggle('cta-neutral', neutral);
+
+    role(block, 'eligibility').textContent = (limitedNoCompat && placement === 'top')
+      ? 'Referral compatibility for this mock region is not verified — no claim language is shown. Mock preview note.'
+      : s.eligibilityNote;
+
+    const terms = role(block, 'terms');
+    if (terms) terms.textContent = s.termsWarning;
+  }
+
+  function applyState(key, opts = {}) {
+    const s = STATES[key];
+    if (!s) return;
+    currentKey = key;
+    if (typeof opts.refCompat === 'boolean') refCompat = opts.refCompat;
+
+    const limited = key === 'AVAILABLE_WITH_LIMITS';
+    const restricted = key === 'RESTRICTED';
+    const limitedNoCompat = limited && !refCompat;
+    const codeVisible = !!s.promoCode && (!limited || refCompat);
+    const neutral = s.ctaKind === 'neutral';
+
+    // switcher UI
+    document.querySelectorAll('.dp-state-btn').forEach((b) =>
+      b.classList.toggle('is-active', b.dataset.state === key));
+    $('dp-refcompat-wrap').classList.toggle('is-visible', limited);
+    $('dp-refcompat').checked = refCompat;
+
+    document.querySelector('[data-role="page-title"]').textContent = s.pageTitle;
+
+    applyBlock('top', s, { codeVisible, limitedNoCompat, neutral });
+    applyBlock('bottom', s, { codeVisible, limitedNoCompat, neutral });
+
+    // facts table
+    $('dp-fact-name').textContent = s.exchangeName + ' (mock)';
+    setHidden($('dp-fact-code-row'), !codeVisible);
+    if (codeVisible) $('dp-fact-code').textContent = s.promoCode;
+    $('dp-fact-availability').textContent = s.factsAvailability;
+    $('dp-fact-availability').className = restricted ? 'cf-restricted' : '';
+    $('dp-fact-bonus').textContent = restricted
+      ? 'Not shown for restricted regions'
+      : 'Welcome offer — mock preview value';
+
+    // article state note
+    const note = $('dp-article-state-note');
+    note.className = 'p2-notice ' + (restricted ? 'p2-notice-red' : limited ? 'p2-notice-amber' : 'p2-notice-green');
+    note.textContent = restricted
+      ? 'Restricted state (mock): the exchange’s current terms list Kazakhstan as a prohibited jurisdiction. This is a legal/eligibility restriction — it does not describe technical reachability.'
+      : limited
+        ? 'Limited state (mock): available with regional limitations — some products and promotions are restricted for this mock region.'
+        : 'Available state (mock): the full welcome offer and promo code apply for this mock region.';
+
+    const cells = {
+      'dp-tbl-reg': restricted ? 'Restricted' : 'Available',
+      'dp-tbl-kyc': restricted ? 'Not supported' : 'Supported',
+      'dp-tbl-spot': restricted ? 'Restricted' : 'Available',
+      'dp-tbl-deriv': restricted ? 'Restricted' : (limited ? 'Limited' : 'Available'),
+      'dp-tbl-promo': restricted ? 'Not eligible' : (limited ? 'Limited' : 'Eligible'),
+    };
+    for (const [id, v] of Object.entries(cells)) $(id).textContent = v;
+
+    $('dp-promo-eligibility-text').textContent = restricted
+      ? 'For restricted regions this template removes all promo-code and claim language and shows the restriction reasoning instead (mock sentence).'
+      : limitedNoCompat
+        ? 'Referral-code compatibility for this mock region is not verified, so the template hides the code and shows a neutral action instead (mock sentence).'
+        : 'For eligible regions the code is shown in the offer blocks at the top and bottom of the review (mock sentence).';
+
+    // URL state (no navigation)
+    const q = new URLSearchParams(location.search);
+    q.set('state', key.toLowerCase());
+    if (limited) q.set('refcompat', refCompat ? '1' : '0'); else q.delete('refcompat');
+    history.replaceState(null, '', location.pathname + '?' + q.toString());
+  }
+
+  document.querySelectorAll('.dp-state-btn').forEach((b) =>
+    b.addEventListener('click', () => applyState(b.dataset.state)));
+  $('dp-refcompat').addEventListener('change', (e) =>
+    applyState('AVAILABLE_WITH_LIMITS', { refCompat: e.target.checked }));
+
+  // copy buttons — mock code only, local action
+  document.querySelectorAll('[data-copy-row]').forEach((row) => {
+    const btn = row.querySelector('[data-copy-btn]');
+    btn.addEventListener('click', async () => {
+      const code = row.querySelector('[data-role="promo-code"]').textContent.trim();
+      try { await navigator.clipboard.writeText(code); } catch { /* preview only */ }
+      row.classList.add('copy-success');
+      btn.textContent = 'Copied';
+      toast('Mock code copied — design preview only');
+      setTimeout(() => { row.classList.remove('copy-success'); btn.textContent = 'Copy'; }, 1600);
+    });
+  });
+
+  // inert preview CTAs — never navigate
+  document.querySelectorAll('[data-preview-cta]').forEach((el) =>
+    el.addEventListener('click', (e) => {
+      e.preventDefault();
+      toast('Design preview — navigation disabled');
+    }));
+
+  const q = new URLSearchParams(location.search);
+  const map = { available: 'AVAILABLE', limited: 'AVAILABLE_WITH_LIMITS', restricted: 'RESTRICTED' };
+  const initial = map[(q.get('state') || 'available').toLowerCase()] || 'AVAILABLE';
+  const initialCompat = q.get('refcompat') !== '0';
+  applyState(initial, { refCompat: initialCompat });
+})();
+</script>
+
+</CleanLayout>

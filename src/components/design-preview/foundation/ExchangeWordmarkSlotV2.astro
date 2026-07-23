@@ -1,0 +1,120 @@
+---
+/**
+ * DESIGN PREVIEW — Logo Slot System v2 (prototype-local).
+ *
+ * Renders one rectangular wordmark well from the deterministic fit registry:
+ * measured opaque-content fitting (not canvas fitting), height-first
+ * normalization by aspect class, uniform scale only (never stretched, never
+ * clipped, never recolored), content-height floor with lockup fallback,
+ * documented (never silent) fill-band exceptions.
+ *
+ * All geometry is computed at build time from the registry — no runtime logic
+ * decides presentation, and nothing here encodes commercial state.
+ */
+import {
+  LOGO_FIT_REGISTRY,
+  SLOT_GEOMETRY,
+  computeSlotFit,
+  type SlotSize,
+  type WellKind,
+} from '../../../data/design-preview/foundation-logo-fit-registry';
+
+export interface Props {
+  registryKey: string;
+  slot: SlotSize;
+  /** override the registry's preferred well (specimen comparisons only) */
+  well?: WellKind;
+  eager?: boolean;
+}
+
+const { registryKey, slot, well, eager = false } = Astro.props;
+const entry = LOGO_FIT_REGISTRY[registryKey];
+if (!entry) throw new Error(`[ExchangeWordmarkSlotV2] unknown registry key: ${registryKey}`);
+
+const g = SLOT_GEOMETRY[slot];
+const fit = computeSlotFit(entry, slot);
+const wellKind: WellKind = well ?? entry.preferredWell;
+
+const boxStyle = `width:${g.w}px;height:${g.h}px;`;
+const imgStyle =
+  fit.mode === 'WORDMARK'
+    ? `left:${fit.imgLeft.toFixed(2)}px;top:${fit.imgTop.toFixed(2)}px;` +
+      `width:${fit.imgW.toFixed(2)}px;height:${fit.imgH.toFixed(2)}px;`
+    : '';
+
+// validation payload: expected opaque-content rect relative to the slot box
+const fitData = JSON.stringify({
+  mode: fit.mode,
+  contentLeft: +fit.contentLeft.toFixed(2),
+  contentTop: +fit.contentTop.toFixed(2),
+  contentW: +fit.contentW.toFixed(2),
+  contentH: +fit.contentH.toFixed(2),
+  fill: +fit.fill.toFixed(4),
+  canvasAR: entry.measuredCanvas[1] > 0 ? +(entry.measuredCanvas[0] / entry.measuredCanvas[1]).toFixed(4) : 0,
+});
+---
+
+<span
+  class:list={['lsv2', `lsv2-${wellKind.toLowerCase()}`, `lsv2-slot-${slot.toLowerCase()}`]}
+  style={boxStyle}
+  data-logo-slot
+  data-exchange={entry.exchangeId}
+  data-slot-size={slot}
+  data-well={wellKind}
+  data-aspect-class={entry.aspectClass}
+  data-fit={fitData}
+  data-fill-exception={fit.exceptionApplied ? entry.exceptionNote : undefined}
+  data-lockup-reason={fit.mode === 'LOCKUP' ? fit.lockupReason : undefined}
+  role="img"
+  aria-label={entry.accessibleLabel}
+>
+  {fit.mode === 'WORDMARK' ? (
+    <img
+      src={entry.assetPath}
+      alt=""
+      style={imgStyle}
+      loading={eager ? 'eager' : 'lazy'}
+      decoding="async"
+      data-wordmark-img
+    />
+  ) : (
+    <span class="lsv2-lockup" data-lockup>
+      <img src={entry.iconPath} alt="" loading="lazy" decoding="async" />
+      <span class="lsv2-lockup-name">{entry.displayName}</span>
+    </span>
+  )}
+</span>
+
+<style>
+  .lsv2 {
+    position: relative; display: inline-block; flex-shrink: 0;
+    border-radius: 8px; box-sizing: border-box;
+    /* overflow stays visible: only TRANSPARENT canvas padding may extend past
+       the box (content-box fitting); opaque content is always inside. */
+    overflow: visible;
+    color-scheme: light; forced-color-adjust: none;
+  }
+  .lsv2-light   { background: #ffffff; border: 1px solid var(--cbw-gray-200); }
+  .lsv2-dark    { background: var(--cbw-navy-header); border: 1px solid rgba(255, 255, 255, .14); }
+  .lsv2-neutral { background: var(--cbw-gray-100); border: 1px solid var(--cbw-gray-200); }
+
+  .lsv2 img[data-wordmark-img] {
+    position: absolute; display: block; max-width: none;
+  }
+
+  .lsv2-lockup {
+    position: absolute; inset: 0;
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 0 6px; min-width: 0;
+  }
+  .lsv2-lockup img { width: 20px; height: 20px; border-radius: 5px; flex-shrink: 0; }
+  .lsv2-lockup-name {
+    font-size: 13px; font-weight: 800; color: var(--cbw-gray-900);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .lsv2-dark .lsv2-lockup-name { color: #ffffff; }
+  .lsv2-slot-s .lsv2-lockup img { width: 16px; height: 16px; }
+  .lsv2-slot-s .lsv2-lockup-name { font-size: 11px; }
+  .lsv2-slot-xl .lsv2-lockup img { width: 30px; height: 30px; }
+  .lsv2-slot-xl .lsv2-lockup-name { font-size: 18px; }
+</style>

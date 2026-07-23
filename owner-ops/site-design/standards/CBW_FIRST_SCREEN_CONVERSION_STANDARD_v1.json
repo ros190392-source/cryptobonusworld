@@ -1,0 +1,193 @@
+{
+  "documentId": "CBW_FIRST_SCREEN_CONVERSION_STANDARD_v1",
+  "documentVersion": "1.0.0",
+  "task": "CBW-SITE-TEMPLATE-ARCHITECTURE-AUTHORITY-001",
+  "project": "CryptoBonusWorld",
+  "date": "2026-07-22",
+  "authorityStatus": "OWNER_APPROVED_DESIGN_AUTHORITY",
+  "draftNote": "Promoted from draft to owner-approved design authority by CBW-SITE-TEMPLATE-ARCHITECTURE-AUTHORITY-001-COMMIT.",
+  "approvedPrototypeCommit": "1de294d1a389f966c3ffef7d178f454d39d33ab0",
+  "designBranch": "feat/cbw-exchange-review-template-v1",
+  "prototypeRoute": "/__design/exchange-review-template/",
+  "relatedAuthorities": [
+    "owner-ops/design-system/CBW_SITE_DESIGN_SYSTEM_v2.md",
+    "owner-ops/site-design/architecture/CBW_SITE_TEMPLATE_ARCHITECTURE_v1.md"
+  ],
+  "ownerDecisions": [
+    "Exchange-review template v2 approved (rectangular bottom logo, shared ExchangeOfferBlock, first-screen behavior, all three states, desktop and mobile layouts).",
+    "Project-wide rule: for every commercial page where a promo code and registration CTA are authorized by verified country-level evidence, the complete promo-code conversion surface must fit inside the first viewport on desktop and mobile.",
+    "The complete lower edge of the primary CTA must remain inside the viewport.",
+    "The rule applies only when the offer is eligible and verified for the relevant user or country context.",
+    "Never display a global promotion as locally eligible without country-level evidence."
+  ],
+  "scope": {
+    "appliesTo": [
+      "exchange review", "exchange x country", "referral/promo page", "comparison page",
+      "country page", "homepage commercial rows", "restricted/alternatives page", "commercial guide modules"
+    ],
+    "excludes": ["methodology/trust pages", "purely informational content"],
+    "appliesToPrototypesInMockMode": true,
+    "productionAdoptionRequiresSeparateAuthorization": true
+  },
+  "terminology": {
+    "firstScreen": "Visible webpage viewport at page load, before any scroll.",
+    "primaryConversionSurface": "H1/identity + status + verdict + complete code + complete Copy + complete registration/claim CTA + required notice.",
+    "complete": "Full element box including bottom edge inside the viewport; partial visibility fails.",
+    "availabilityStates": ["AVAILABLE", "AVAILABLE_WITH_LIMITS", "RESTRICTED", "UNKNOWN", "UNDER_REVIEW"],
+    "referralCompatibilityVerified": "Evidence-backed boolean for country-context referral compatibility.",
+    "exchangeOfferBlock": "Single shared conversion component (top FULL / bottom COMPACT).",
+    "rectangularWordmarkSlot": "ExchangePromoLogoSlot system; wordmark never cropped square or stretched."
+  },
+  "viewportMeasurement": {
+    "definition": "Visible webpage viewport excluding browser chrome.",
+    "includes": [
+      "site header",
+      "any announcement bar",
+      "any in-flow country selector",
+      "any in-flow page controls",
+      "the complete primary commercial CTA"
+    ],
+    "rules": [
+      "Prototype-only debug controls must not consume document-flow height.",
+      "Fixed or sticky UI must not cover required conversion elements.",
+      "Complete bottom edge of the primary CTA must remain visible.",
+      "Partially visible buttons do not pass.",
+      "Do not pass by shrinking text below readable sizes.",
+      "Do not pass by hiding required eligibility warnings."
+    ]
+  },
+  "requiredFirstScreenElements": [
+    "page identity or H1",
+    "availability status",
+    "concise verdict",
+    "complete promo code",
+    "complete Copy button",
+    "complete registration or claim CTA",
+    "required eligibility or limitation notice"
+  ],
+  "stateRules": {
+    "AVAILABLE": {
+      "mustContain": ["H1 or page identity", "green availability state", "concise verdict", "complete promo code", "complete Copy button", "complete registration or Claim Bonus CTA", "eligibility note"],
+      "mustNotContain": []
+    },
+    "AVAILABLE_WITH_LIMITS_refCompatTrue": {
+      "mustContain": ["H1 or page identity", "availability state", "visible amber limitation notice", "concise verdict", "complete promo code", "complete Copy button", "complete CTA", "limitation or eligibility note"],
+      "mustNotContain": []
+    },
+    "AVAILABLE_WITH_LIMITS_refCompatFalse": {
+      "mustContain": ["H1 or page identity", "visible amber limitation notice", "concise verdict", "Check Eligibility or Visit Exchange action where permitted", "explicit statement that local referral eligibility is not verified"],
+      "mustNotContain": ["promo code", "Copy button", "Claim Bonus wording"]
+    },
+    "RESTRICTED": {
+      "mustContain": ["H1 or exchange identity", "red restricted state", "country-specific restriction label", "concise restriction reason", "View Available Alternatives action when alternatives exist"],
+      "mustNotContain": ["promo code", "Copy button", "Claim Bonus button", "registration CTA", "affiliate-style CTA", "claim of technical site inaccessibility unless separately verified"]
+    },
+    "UNKNOWN_OR_UNDER_REVIEW": {
+      "mustContain": ["neutral status", "concise explanation", "Check Availability or View Verified Alternatives action where appropriate"],
+      "mustNotContain": ["locally eligible promo claim", "Claim Bonus CTA"]
+    }
+  },
+  "validationMatrix": {
+    "requiredDesktop": ["1440x900", "1366x768", "1280x720"],
+    "requiredMobile": ["390x844", "360x800", "320x700"],
+    "optional": ["768x1024", "1280x900", "1440x1000"],
+    "perViewportPassConditions": [
+      "complete promo code visible when state-required",
+      "Copy control visible when state-required",
+      "complete primary CTA visible with bottom edge inside viewport",
+      "no vertical scrolling required to discover the CTA",
+      "no horizontal overflow",
+      "header included in the height calculation",
+      "state-required notice visible"
+    ],
+    "everyRequiredViewportMustPass": true,
+    "prototypeProof": "24/24 pass (4 state configurations x 6 required viewports); worst margin CTA bottom 650px at 320x700"
+  },
+  "commercialEvidenceGates": {
+    "promoCodeLocallyEligibleOnlyWhenAll": [
+      "exchange availability is not RESTRICTED",
+      "registration is eligible",
+      "referral compatibility is verified",
+      "the offer is current",
+      "country applicability is verified",
+      "the route and code are authorized",
+      "publication is authorized"
+    ],
+    "registrationOrClaimCtaOnlyWhenAll": [
+      "registration eligibility is confirmed",
+      "the offer action is permitted",
+      "the route is authorized",
+      "no conflicting restriction blocks the action"
+    ],
+    "repositoryRouteOrCodeIsImplementationFactOnly": true,
+    "neverShow": [
+      "an expired offer as current",
+      "a global maximum as locally applicable without evidence",
+      "a promo code for a restricted exchange",
+      "a registration CTA for a restricted exchange",
+      "a claim CTA when referral compatibility is unverified",
+      "a global promotion as locally verified without evidence"
+    ]
+  },
+  "usabilityRules": [
+    "CTA touch target at least 44 CSS pixels high",
+    "Copy button touch target at least 44 CSS pixels high on mobile",
+    "no horizontal page overflow",
+    "no clipped logo",
+    "no clipped promo code",
+    "no clipped status label",
+    "no clipped CTA label",
+    "no clipped limitation or restriction notice",
+    "readable text without artificial scale reduction",
+    "visible focus state",
+    "keyboard-operable Copy and CTA controls",
+    "status must not rely on color alone",
+    "restrained hero height",
+    "no oversized empty decorative area above the offer",
+    "no popup required to access the main offer",
+    "no obstructive sticky banner hiding page content"
+  ],
+  "failureConditions": [
+    "CTA bottom edge below the fold at any required viewport",
+    "state-required promo code or Copy control clipped or below the fold",
+    "required amber/red notice below the fold or hidden",
+    "horizontal overflow",
+    "required element covered by fixed/sticky UI",
+    "text shrunk below readable size to pass",
+    "eligibility warning suppressed to pass",
+    "promo/claim controls rendered in a state that forbids them",
+    "touch targets under 44 CSS pixels",
+    "global offer presented as locally eligible without evidence"
+  ],
+  "topBottomOfferRule": {
+    "component": "ExchangeOfferBlock",
+    "placementVariants": ["top", "bottom"],
+    "presentationVariants": ["FULL", "COMPACT"],
+    "sameStateLogicControlsBothInstances": true,
+    "topBlock": ["complete primary conversion surface", "must pass the first-screen standard", "may include richer verdict and trust information"],
+    "bottomBlock": ["same rectangular exchange wordmark system", "same status and eligibility logic", "same promo and CTA authorization", "compact layout", "deliberate closing conversion block", "must not drift into a separate visual or factual system"],
+    "restrictedRemovesPromoAndRegistrationFromBothBlocks": true,
+    "prototypeEmbodiment": "src/components/design-preview/ExchangeOfferBlock.astro"
+  },
+  "implementationBoundaries": [
+    "Design behavior authority only; no production routes, pages, components, data bindings, affiliate routes, sitemap, canonical or robots changes.",
+    "Prototypes: noindex/nofollow, sitemap-absent, mock data, no real affiliate navigation.",
+    "Production adoption requires separate owner migration authorization, verified data binding, production QA and deploy authorization.",
+    "Amendments require a new owner-approved version."
+  ],
+  "authorizationFlags": {
+    "DESIGN_PROTOTYPE_AUTHORIZED": true,
+    "PRODUCTION_MIGRATION_AUTHORIZED": false,
+    "PRODUCTION_PAGE_CHANGE_AUTHORIZED": false,
+    "PRODUCTION_COMPONENT_CHANGE_AUTHORIZED": false,
+    "PRODUCTION_DATA_BINDING_AUTHORIZED": false,
+    "AFFILIATE_ROUTE_ACTIVATION_AUTHORIZED": false,
+    "PUBLICATION_AUTHORIZED": false,
+    "DEPLOY_AUTHORIZED": false
+  },
+  "nextTask": "CBW-HOMEPAGE-TEMPLATE-PROTOTYPE-001",
+  "nextImplementationTask": {
+    "id": "CBW-HOMEPAGE-TEMPLATE-PROTOTYPE-001",
+    "constraints": ["design branch only", "noindex", "mock data only", "no production integration", "no real affiliate navigation"]
+  }
+}

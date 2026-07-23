@@ -1,0 +1,181 @@
+{
+  "document": "CBW_GLOBAL_SEO_ROUTING_AND_HREFLANG_ARCHITECTURE_v1",
+  "task": "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-001",
+  "correctedBy": [
+    "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-OWNER-REVIEW-002",
+    "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-OWNER-REVIEW-003"
+  ],
+  "date": "2026-07-23",
+  "status": "ARCHITECTURE_V3_OWNER_APPROVED_COMMITTED",
+  "rejectedPatterns": {
+    "note": "owner review 002 rejected the language-first model; listed here only as rejected",
+    "examples": [
+      "/ru/countries/kazakhstan/",
+      "/kk/countries/kazakhstan/",
+      "/{locale}/{page} language-first prefixes",
+      "/kz/kz/ (wrong Kazakh code)",
+      "/pl/ua/ (wrong Ukrainian code — uk is correct)"
+    ]
+  },
+  "urlModel": {
+    "pattern": "/{countrySlugLower}/{languageCodeLower}/...",
+    "examples": [
+      "/kz/ru/",
+      "/kz/kk/",
+      "/kz/en/",
+      "/pl/pl/",
+      "/pl/en/",
+      "/de/de/",
+      "/de/en/",
+      "/kz/ru/exchanges/bybit/",
+      "/kz/kk/exchanges/bybit/",
+      "/kz/en/exchanges/bybit/",
+      "/kz/ru/compare/bybit-vs-okx/",
+      "/kz/kk/compare/bybit-vs-okx/",
+      "/kz/en/compare/bybit-vs-okx/",
+      "/kz/ru/guides/how-to-buy-usdt/",
+      "/kz/kk/guides/how-to-buy-usdt/",
+      "/kz/en/guides/how-to-buy-usdt/",
+      "/kz/ru/promo-codes/bybit/",
+      "/kz/kk/promo-codes/bybit/",
+      "/kz/en/promo-codes/bybit/",
+      "/kz/ru/exchanges/bybit/alternatives/",
+      "/kz/kk/exchanges/bybit/alternatives/",
+      "/kz/en/exchanges/bybit/alternatives/",
+      "/pl/uk/",
+      "/pl/ru/",
+      "/pl/uk/exchanges/bybit/",
+      "/pl/ru/exchanges/bybit/",
+      "/pl/pl/exchanges/bybit/",
+      "/pl/en/exchanges/bybit/",
+      "/pl/uk/compare/bybit-vs-okx/",
+      "/pl/uk/promo-codes/bybit/",
+      "/pl/pl/guides/{stable-slug}/",
+      "/pl/uk/exchanges/{exchange}/alternatives/",
+      "/pl/uk/methodology/"
+    ],
+    "rules": [
+      "country segment = lowercase country slug (kz, pl, de)",
+      "language segment = lowercase ISO 639-1 code; Kazakh = kk never kz (/kz/kz/ forbidden); Ukrainian = uk never ua",
+      "stable Latin content slugs identical across variants; never translated/transliterated",
+      "lowercase-hyphen; trailing-slash canonical; no query-parameter content routes",
+      "routes exist only for matrix-supported market-language pairs (no Cartesian product)",
+      "new market routes owner-gated before creation",
+      "/go/{exchange} global, never indexable; /__design/** noindex + sitemap-absent"
+    ]
+  },
+  "coreDataModel": {
+    "countryCode": "KZ",
+    "countrySlug": "kz",
+    "languageCode": "ru | kk | en | pl | uk | de (ISO 639-1; kk never kz; uk never ua)",
+    "localeTag": "ru-KZ | kk-KZ | en-KZ | pl-PL | uk-PL | ru-PL | en-PL | de-DE | en-DE (BCP 47)",
+    "urlPrefix": "kz/ru | kz/kk | kz/en (derived, never stored as one authoritative locale variable)",
+    "rules": [
+      "country and language separate fields end-to-end",
+      "no inference in either direction",
+      "country selects factual MI; language selects presentation only"
+    ]
+  },
+  "globalLegacyRoutes": {
+    "preserved": [
+      "/",
+      "/exchanges/",
+      "/bybit/",
+      "/compare/bybit-vs-okx/",
+      "/guides/{slug}/",
+      "/methodology/"
+    ],
+    "contract": [
+      "global pages = platform-wide/global editorial context; no local-eligibility claims",
+      "/kz/{lang}/ = explicit Kazakhstan market; /pl/{lang}/ = Poland; /de/{lang}/ = Germany",
+      "market pages are first-class indexable pages once publication-authorized",
+      "market pages never canonicalized to global pages",
+      "global routes never silently IP-redirected to a country (dismissible suggestions only)",
+      "legacy routes remain until a separately authorized production-routing migration"
+    ]
+  },
+  "duplicateIntentResolutions": {
+    "marketRoot": "/kz/ru/ (and siblings) is the canonical Kazakhstan market homepage AND country market root — one surface; /kz/ru/countries/kazakhstan/ is prohibited (never created; incoming shape 301s to /kz/ru/; never indexed); global /countries/ stays a market directory",
+    "exchangeInMarket": "/kz/{lang}/exchanges/{exchange}/ is the single canonical page for the '{exchange} in {country}' intent (pair facts inherent); no competing deep-passport page; optional /kz/{lang}/exchanges/{exchange}/availability/ evidence subpage only with distinct documentary purpose, owner-gated",
+    "methodology": "global /methodology/ = platform-wide trust page; /kz/{lang}/methodology/ per LIVE language with market-specific verification context; distinct intents, cross-linked, no duplicated copy"
+  },
+  "canonicalHreflang": {
+    "clusterExample": {
+      "/kz/ru/exchanges/bybit/": {
+        "canonical": "self",
+        "hreflang": "ru-KZ",
+        "note": "market default · x-default target"
+      },
+      "/kz/kk/exchanges/bybit/": {
+        "canonical": "self",
+        "hreflang": "kk-KZ"
+      },
+      "/kz/en/exchanges/bybit/": {
+        "canonical": "self",
+        "hreflang": "en-KZ",
+        "note": "fallback language"
+      },
+      "x-default": "/kz/ru/exchanges/bybit/"
+    },
+    "xDefaultRule": "market clusters: x-default → the market's LIVE marketDefault sibling (KZ → /kz/ru/, PL → /pl/pl/, DE → /de/de/) per LOCALE22/LOCALE23; English never assumed default or x-default (LOCALE24); global clusters: x-default → global English URL",
+    "rules": [
+      "LIVE = the specific page's PageLocaleCoverage record is LIVE (market support alone adds nothing — LOCALE16/LOCALE18); emit only for LIVE siblings",
+      "regional BCP 47 tags mandatory for market pages (ru-KZ/kk-KZ/en-KZ); bare ru/kk/en forbidden there",
+      "clusters generated from one routing manifest (reciprocity cannot drift)",
+      "market pages join clusters only after publication GO",
+      "regional tags mandatory: ru-KZ/kk-KZ/en-KZ/pl-PL/uk-PL/ru-PL/en-PL/de-DE/en-DE; bare codes forbidden on market pages"
+    ],
+    "polandCluster": {
+      "tags": [
+        "pl-PL",
+        "uk-PL",
+        "ru-PL",
+        "en-PL"
+      ],
+      "xDefault": "/pl/pl/{stable-route}/",
+      "rule": "never English while the Polish market-default variant is LIVE"
+    },
+    "germanyCluster": {
+      "tags": [
+        "de-DE",
+        "en-DE"
+      ],
+      "xDefault": "/de/de/{stable-route}/"
+    }
+  },
+  "localizedMetadataSchema": [
+    "translated title/description with per-script length lint",
+    "localized OG text over the market's single country artwork",
+    "schema in page language (inLanguage = localeTag) with stable entity IDs",
+    "MI facts identical across language siblings; structured data never forks facts by language"
+  ],
+  "sitemapRobots": {
+    "sitemap": "explicit allowlist; LIVE market-language pairs + authorized global routes only; /go/**, /__design/**, previews, prohibited duplicates excluded; optional per-market partitions",
+    "robots": "owner-gated production tasks only",
+    "noCloaking": "no IP/browser-based serving differences"
+  },
+  "seoGates": {
+    "SEO01": "exactly one H1",
+    "SEO02": "title/description present; per-script length bands",
+    "SEO03": "canonical self-reference (market-language-correct)",
+    "SEO04": "robots meta per route class",
+    "SEO05": "sitemap allowlist = published LIVE routes only",
+    "SEO06": "schema valid, mirrors content, inLanguage correct",
+    "SEO07": "breadcrumbs on non-root families",
+    "SEO08": "internal links resolve and stay in current market-language namespace",
+    "SEO09": "localized alt-text coverage",
+    "SEO10": "slug uniqueness; no duplicate-intent routes (market-root + exchange-in-market prohibitions)",
+    "SEO11": "CWV budget; LCP = first-screen commercial surface; zero CLS from fixed tiles/mastheads",
+    "SEO12": "publication gates respected",
+    "SEO13": "hreflang complete, reciprocal, regional-tagged, x-default per rule",
+    "SEO14": "no IP/browser hard redirects or cloaking",
+    "SEO15": "no fallback page indexed as translated"
+  },
+  "localeGatesRef": "LOCALE01–LOCALE25 defined in CBW_CI_QA_STATUS_AND_OWNER_GATE_MATRIX_v1 and enforced together with SEO gates",
+  "lifecycle": {
+    "state": "ARCHITECTURE_V3_OWNER_APPROVED_COMMITTED",
+    "initialArchitectureCommit": "a3dea7e451d046d5f01515bf085962f6f92a9fa7",
+    "branch": "feat/cbw-global-site-architecture-v3",
+    "note": "implementation and production remain separately unauthorized"
+  }
+}

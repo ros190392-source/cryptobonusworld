@@ -1,0 +1,61 @@
+---
+/**
+ * DESIGN PREVIEW — SectionBand (prototype-local section grammar).
+ *
+ * One band = one section surface. Four approved surfaces:
+ * NAVY (platform bands), LIGHT (content), LIGHT_ALT (alternating content),
+ * NAVY_TINT (system/verification bands). Every band shares the same container
+ * width and vertical rhythm — no page family gets a private surface language.
+ */
+export type BandKind = 'NAVY' | 'LIGHT' | 'LIGHT_ALT' | 'NAVY_TINT';
+
+export interface Props {
+  band: BandKind;
+  id?: string;
+  /** tighter vertical rhythm (overview / recap style bands) */
+  compact?: boolean;
+}
+const { band, id, compact = false } = Astro.props;
+---
+
+<section
+  class:list={['sb', `sb-${band.toLowerCase().replace('_', '-')}`, compact && 'sb-compact']}
+  id={id}
+  data-band={band}
+>
+  <div class="sb-container"><slot /></div>
+</section>
+
+<style>
+  .sb { padding: 56px 0; }
+  .sb-compact { padding: 22px 0; }
+  @media (max-width: 639px) {
+    .sb { padding: 34px 0; }
+    .sb-compact { padding: 14px 0; }
+  }
+
+  .sb-container {
+    max-width: 1160px; margin: 0 auto; padding: 0 24px; box-sizing: border-box;
+  }
+  @media (max-width: 639px) { .sb-container { padding: 0 14px; } }
+
+  .sb-light {
+    background: var(--cbw-white); color: var(--cbw-gray-900);
+    color-scheme: light; forced-color-adjust: none;
+  }
+  .sb-light-alt {
+    background: var(--cbw-gray-50); color: var(--cbw-gray-900);
+    border-top: 1px solid var(--cbw-gray-200); border-bottom: 1px solid var(--cbw-gray-200);
+    color-scheme: light; forced-color-adjust: none;
+  }
+  .sb-navy {
+    background: linear-gradient(160deg, var(--cbw-navy) 0%, var(--cbw-navy-header) 100%);
+    color: #ffffff;
+  }
+  .sb-navy-tint {
+    background: #EEF2F7;
+    border-top: 1px solid #DBE3EE; border-bottom: 1px solid #DBE3EE;
+    color: var(--cbw-gray-900);
+    color-scheme: light; forced-color-adjust: none;
+  }
+</style>
