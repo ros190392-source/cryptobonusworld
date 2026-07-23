@@ -150,10 +150,11 @@ jobs:
           fi
           node scripts/ai-ops/validate-task-contract.mjs "${CONTRACT_PATH}"
 
-      # For a VALID declaration: THEN scope validation (only when discovery succeeded).
+      # For a VALID declaration: THEN scope validation, only when discovery
+      # succeeded AND the task contract itself validated successfully.
       - name: Scope validation (valid declaration)
         id: scope
-        if: steps.contract.outputs.decl == 'valid' && steps.changed.outcome == 'success'
+        if: steps.contract.outputs.decl == 'valid' && steps.changed.outcome == 'success' && steps.cvalidate.outcome == 'success'
         continue-on-error: true
         env:
           CONTRACT_PATH: ${{ steps.contract.outputs.path }}
@@ -189,10 +190,13 @@ jobs:
           fi
           case "${DECL}" in
             valid)
-              if [ "${O_DISCOVERY}" = "success" ]; then
-                if [ "${O_SCOPE}" = "success" ]; then SC_DISP=VALIDATED; else SC_DISP=FAILED; fi
-              else
+              # scope is only meaningful after discovery AND contract validation both succeeded
+              if [ "${O_DISCOVERY}" != "success" ] || [ "${O_CVALIDATE}" != "success" ]; then
                 SC_DISP=NOT_EVALUATED
+              elif [ "${O_SCOPE}" = "success" ]; then
+                SC_DISP=VALIDATED
+              else
+                SC_DISP=FAILED
               fi ;;
             legacy) SC_DISP=LEGACY_SKIP ;;
             missing) SC_DISP=MISSING ;;
