@@ -2,8 +2,10 @@ name: CBW AI Ops Repair Request
 
 # Manual repair-CONTRACT preparation only. NOT an autonomous AI worker. Every
 # workflow_dispatch input is passed through env and validated in Node from
-# process.env (no input is ever interpolated into a shell script). Makes no code
-# changes, calls no AI provider, pushes no commit, merges nothing, deploys nothing.
+# process.env (no input is ever interpolated into a shell script). target_branch
+# is validated with git itself (git check-ref-format --branch) via spawnSync with
+# no shell. Makes no code changes, calls no AI provider, pushes no commit, merges
+# nothing, deploys nothing.
 
 on:
   workflow_dispatch:
@@ -69,8 +71,10 @@ jobs:
         run: |
           node <<'NODE'
           const fs = require('node:fs');
+          const { spawnSync } = require('node:child_process');
           const errors = [];
           const single = (s) => typeof s === 'string' && !/[\r\n]/.test(s);
+          const hasControl = (s) => [...s].some((ch) => { const c = ch.charCodeAt(0); return c < 0x20 || c === 0x7f; });
 
           const taskId = (process.env.TASK_ID || '').trim();
           const runUrl = (process.env.FAILED_RUN_URL || '').trim();
@@ -80,26 +84,25 @@ jobs:
           const approved = (process.env.OWNER_APPROVED || '').trim();
 
           const ALLOWED = ['formatting','lint','deterministic-type-error','deterministic-build-error','generated-index','internal-link-error','schema-validation-error','test-fixture-correction','narrow-ci-configuration-error'];
+          const TASK_ID_RE = /^CBW-[A-Z0-9]+(?:-[A-Z0-9]+)*-\d{3}[A-Z]?(?:-R\d+)?$/;
 
           if (approved !== 'true') errors.push('owner_approved must be true');
           if (attempt !== '1' && attempt !== '2') errors.push('current_attempt must be 1 or 2');
           if (!ALLOWED.includes(category)) errors.push(`failure_category not in allowlist: ${category}`);
-          if (!/^CBW-[A-Z0-9]+(?:-[A-Z0-9]+)*-\d{3}(?:-[A-Z0-9]+)?$/.test(taskId)) errors.push('task_id does not match the CBW task-ID pattern');
+          if (!TASK_ID_RE.test(taskId)) errors.push('task_id does not match the governed CBW task-ID grammar');
 
-          // target_branch: git ref rules; reject master/main, malformed, control chars
-          const hasControl = [...branch].some((ch) => { const c = ch.charCodeAt(0); return c < 0x20 || c === 0x7f; });
-          const badRef =
-            branch === '' || hasControl || /\s/.test(branch) ||
-            branch === 'master' || branch === 'main' ||
-            branch.startsWith('/') || branch.endsWith('/') ||
-            branch.startsWith('-') || branch.includes('..') || branch.includes('~') ||
-            branch.includes('^') || branch.includes(':') || branch.includes('?') ||
-            branch.includes('*') || branch.includes('[') || branch.includes('\\') ||
-            branch.endsWith('.lock') ||
-            !/^[A-Za-z0-9._\/-]+$/.test(branch);
-          if (badRef) errors.push('target_branch is not a valid non-authority git ref');
+          // target_branch: JS pre-checks, then git-native validation (no shell).
+          const rawBranch = process.env.TARGET_BRANCH || '';
+          if (!single(rawBranch) || hasControl(rawBranch)) errors.push('target_branch must be single-line without control characters');
+          else if (branch === 'master' || branch === 'main' || branch === 'HEAD') errors.push('target_branch must not be an authority branch or HEAD');
+          else if (branch.startsWith('origin/')) errors.push('target_branch must not be a remote-tracking ref (origin/...)');
+          else if (branch.includes('@{')) errors.push('target_branch must not use @{...} syntax');
+          else if (!/^[A-Za-z0-9._\/-]+$/.test(branch)) errors.push('target_branch contains characters outside the safe allowlist (letters, digits, dot, underscore, slash, hyphen)');
+          else {
+            const r = spawnSync('git', ['check-ref-format', '--branch', branch], { shell: false, encoding: 'utf8' });
+            if (r.status !== 0) errors.push('target_branch failed git check-ref-format --branch');
+          }
 
-          // failed_run_url: strict GitHub Actions run URL for the known repo, single-line
           const RUN_RE = /^https:\/\/github\.com\/ros190392-source\/cryptobonusworld\/actions\/runs\/\d+(?:\/[A-Za-z0-9._\/-]*)?$/;
           if (!single(runUrl) || !RUN_RE.test(runUrl)) errors.push('failed_run_url must be a single-line GitHub Actions run URL for ros190392-source/cryptobonusworld');
 
@@ -108,7 +111,6 @@ jobs:
             process.exit(1);
           }
 
-          // All values validated + single-line. Build the summary from validated data only.
           const lines = [
             '## CBW Repair Request (owner-approved, manual)',
             '',
