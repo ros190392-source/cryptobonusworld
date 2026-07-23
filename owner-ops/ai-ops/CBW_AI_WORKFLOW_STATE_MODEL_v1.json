@@ -1,0 +1,52 @@
+{
+  "document": "CBW_AI_WORKFLOW_STATE_MODEL_v1",
+  "schemaVersion": "1.0.0",
+  "project": "CryptoBonusWorld",
+  "description": "Canonical task lifecycle states and allowed transitions. Invalid transitions are detectable by validation. No transition automatically infers merge or deploy authorization; MERGED and DEPLOYED require explicit prior owner authorization gates.",
+  "states": [
+    "DRAFT",
+    "READY",
+    "CLAIMED",
+    "IN_PROGRESS",
+    "PR_OPEN",
+    "CI_FAILED",
+    "REPAIRING",
+    "OWNER_REVIEW",
+    "APPROVED",
+    "MERGED",
+    "DEPLOY_READY",
+    "DEPLOYED",
+    "BLOCKED",
+    "CANCELLED"
+  ],
+  "initialState": "DRAFT",
+  "terminalStates": ["MERGED", "DEPLOYED", "CANCELLED"],
+  "allowedTransitions": {
+    "DRAFT": ["READY", "CANCELLED", "BLOCKED"],
+    "READY": ["CLAIMED", "CANCELLED", "BLOCKED"],
+    "CLAIMED": ["IN_PROGRESS", "READY", "CANCELLED", "BLOCKED"],
+    "IN_PROGRESS": ["PR_OPEN", "BLOCKED", "CANCELLED"],
+    "PR_OPEN": ["CI_FAILED", "OWNER_REVIEW", "BLOCKED", "CANCELLED"],
+    "CI_FAILED": ["REPAIRING", "BLOCKED", "CANCELLED"],
+    "REPAIRING": ["PR_OPEN", "CI_FAILED", "BLOCKED", "CANCELLED"],
+    "OWNER_REVIEW": ["APPROVED", "REPAIRING", "BLOCKED", "CANCELLED"],
+    "APPROVED": ["MERGED", "BLOCKED", "CANCELLED"],
+    "MERGED": ["DEPLOY_READY", "BLOCKED"],
+    "DEPLOY_READY": ["DEPLOYED", "BLOCKED", "CANCELLED"],
+    "DEPLOYED": [],
+    "BLOCKED": ["READY", "REPAIRING", "OWNER_REVIEW", "CANCELLED"],
+    "CANCELLED": []
+  },
+  "authorizationGates": {
+    "APPROVED_to_MERGED": "requires ownerAuthorizations.merge === true (explicit); never inferred from CI success or review",
+    "MERGED_to_DEPLOY_READY": "records that a merge occurred; does NOT grant deploy",
+    "DEPLOY_READY_to_DEPLOYED": "requires ownerAuthorizations.deploy === true (explicit) and an owner-approved master SHA"
+  },
+  "invariants": [
+    "no path exists from PR_OPEN or APPROVED to DEPLOYED without passing MERGED then DEPLOY_READY",
+    "reaching MERGED requires ownerAuthorizations.merge",
+    "reaching DEPLOYED requires ownerAuthorizations.deploy",
+    "CANCELLED and DEPLOYED are terminal",
+    "a transition not listed in allowedTransitions is invalid"
+  ]
+}

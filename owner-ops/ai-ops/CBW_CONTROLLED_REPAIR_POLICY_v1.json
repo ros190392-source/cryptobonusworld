@@ -1,0 +1,49 @@
+{
+  "document": "CBW_CONTROLLED_REPAIR_POLICY_v1",
+  "schemaVersion": "1.0.0",
+  "project": "CryptoBonusWorld",
+  "description": "Bounded repair loop for failing PR checks. A maximum of two repair attempts; each attempt stays on the same task branch and inside the original authorized scope, adds a new commit, preserves prior commits, reruns the failed checks, and reports the exact failure category. Never auto-merges, never auto-deploys.",
+  "maxAttempts": 2,
+  "allowedCategories": [
+    "formatting",
+    "lint",
+    "deterministic-type-error",
+    "deterministic-build-error",
+    "generated-index",
+    "internal-link-error",
+    "schema-validation-error",
+    "test-fixture-correction",
+    "narrow-ci-config-error"
+  ],
+  "prohibitedCategories": [
+    "architecture-decision",
+    "production-fact",
+    "bonus-or-referral-value",
+    "affiliate-url",
+    "market-availability",
+    "geo-eligibility",
+    "legal-or-regulatory-claim",
+    "security-incident",
+    "secret",
+    "workflow-permission-change",
+    "branch-authority-change",
+    "production-deployment",
+    "scope-expansion",
+    "delete-or-weaken-failing-test"
+  ],
+  "attemptRules": [
+    "remain on the same task feature branch",
+    "remain strictly inside the original authorized scope",
+    "create a new commit (never amend, never force-push)",
+    "preserve all previous commits",
+    "rerun the exact failed checks",
+    "report the exact failure category",
+    "stop after two unsuccessful attempts and escalate to OWNER_REVIEW"
+  ],
+  "escalation": {
+    "onProhibitedCategory": "stop immediately and escalate to owner (state BLOCKED/OWNER_REVIEW); do not attempt an automatic repair",
+    "onMaxAttemptsExceeded": "stop and escalate to OWNER_REVIEW; do not attempt a third repair",
+    "neverAutoMerge": true,
+    "neverAutoDeploy": true
+  }
+}

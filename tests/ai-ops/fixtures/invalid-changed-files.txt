@@ -1,0 +1,9 @@
+# Changed files that violate valid-contract.json scope:
+#  - src/pages/index.astro : out of scope (not exact, not under an allowed prefix)
+#  - deploy.py             : forbidden path
+#  - docs/security/x.md    : under a forbidden prefix
+#  - ../escape.txt         : unsafe (parent traversal)
+src/pages/index.astro
+deploy.py
+docs/security/x.md
+../escape.txt

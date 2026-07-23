@@ -1,0 +1,231 @@
+name: CBW PR Advisory Gate
+
+# Advisory-only gate for pull requests targeting master. Read-only permissions;
+# never deploys, never writes repository contents, and runs only on the safe
+# pull_request event (never the privileged target variant).
+# Changed-file discovery is fail-closed. The task-contract declaration is parsed
+# into one of: valid | invalid | legacy | missing | placeholder. No skipped
+# semantic state is ever displayed as scope PASS. Context values are passed
+# through step-level env, never interpolated directly into shell command text.
+
+on:
+  pull_request:
+    branches:
+      - master
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: cbw-pr-advisory-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  advisory:
+    name: Advisory validation (non-blocking)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR head with full history
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # --- Fail-closed changed-file discovery (no silent error suppression; verified merge base) ---
+      - name: Determine changed files (fail-closed)
+        id: changed
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+        run: |
+          set -euo pipefail
+          git cat-file -e "${HEAD_SHA}^{commit}"
+          git fetch --no-tags origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
+          MB="$(git merge-base "refs/remotes/origin/${BASE_REF}" "${HEAD_SHA}")"
+          if [ -z "${MB}" ]; then
+            echo "::error::no merge base between ${BASE_REF} and PR head"
+            exit 1
+          fi
+          git diff --name-only "${MB}" "${HEAD_SHA}" > changed-files.txt
+          echo "count=$(wc -l < changed-files.txt | tr -d ' ')" >> "$GITHUB_OUTPUT"
+
+      # --- Parse the canonical task-contract marker from the PR body (Node reads the event) ---
+      # decl is one of: valid | invalid | legacy | missing | placeholder
+      - name: Parse task-contract declaration
+        id: contract
+        if: always()
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const ev = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
+          let body = (ev.pull_request && ev.pull_request.body) || '';
+          body = body.replace(/<!--[\s\S]*?-->/g, ''); // ignore HTML comments (template guidance)
+          const LEGACY = 'Task contract path: legacy PR (no contract)';
+          const markers = body.match(/Task contract path:[^\r\n]*/g) || [];
+          let governed = [], legacy = 0, malformed = 0;
+          for (const line of markers) {
+            const t = line.trim();
+            if (t === LEGACY) { legacy++; continue; }
+            const gm = t.match(/^Task contract path:\s*`([^`]+)`$/);
+            if (gm) { governed.push(gm[1].trim()); continue; }
+            malformed++;
+          }
+          let decl = 'missing', path = '';
+          const total = governed.length + legacy + malformed;
+          if (total === 0) decl = 'missing';
+          else if (malformed > 0) decl = 'invalid';
+          else if (governed.length > 0 && legacy > 0) decl = 'invalid';
+          else if (governed.length > 1) decl = 'invalid';
+          else if (legacy > 1) decl = 'invalid';
+          else if (legacy === 1) decl = 'legacy';
+          else {
+            const p = governed[0];
+            if (p === 'REPLACE-ME.json') decl = 'placeholder';
+            else {
+              const hasControl = [...p].some((ch) => { const c = ch.charCodeAt(0); return c < 0x20 || c === 0x7f; });
+              const unsafe =
+                p === '' || /\s/.test(p) || hasControl || p.includes('\\') ||
+                p.startsWith('/') || /^[A-Za-z]:/.test(p) || p.startsWith('~') ||
+                p.split('/').includes('..') || !/\.json$/.test(p);
+              if (unsafe) decl = 'invalid';
+              else { decl = 'valid'; path = p; }
+            }
+          }
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `decl=${decl}\npath=${path}\n`);
+          NODE
+
+      - name: AI Ops foundation validation
+        id: aiops
+        if: always()
+        continue-on-error: true
+        run: npm run ai-ops:validate
+
+      - name: Production build
+        id: build
+        if: always()
+        continue-on-error: true
+        run: npm run build
+
+      - name: Affiliate integrity (safe)
+        id: affiliate
+        if: always()
+        continue-on-error: true
+        run: npm run validate:affiliate
+
+      - name: SEO check (safe)
+        id: seo
+        if: always()
+        continue-on-error: true
+        run: npm run seo:check
+
+      # Branch authority runs ONLY when discovery succeeded (never on an empty list).
+      - name: Branch authority validation
+        id: branch
+        if: steps.changed.outcome == 'success'
+        continue-on-error: true
+        run: node scripts/ai-ops/validate-branch-authority.mjs owner-ops/ai-ops/CBW_BRANCH_AUTHORITY_MAP_v1.json master changed-files.txt
+
+      # For a VALID declaration: validate the task contract FIRST.
+      - name: Task-contract validation (valid declaration)
+        id: cvalidate
+        if: steps.contract.outputs.decl == 'valid'
+        continue-on-error: true
+        env:
+          CONTRACT_PATH: ${{ steps.contract.outputs.path }}
+        run: |
+          set -euo pipefail
+          if [ ! -f "${CONTRACT_PATH}" ]; then
+            echo "::error::declared task contract not found in PR contents: ${CONTRACT_PATH}"
+            exit 1
+          fi
+          node scripts/ai-ops/validate-task-contract.mjs "${CONTRACT_PATH}"
+
+      # For a VALID declaration: THEN scope validation, only when discovery
+      # succeeded AND the task contract itself validated successfully.
+      - name: Scope validation (valid declaration)
+        id: scope
+        if: steps.contract.outputs.decl == 'valid' && steps.changed.outcome == 'success' && steps.cvalidate.outcome == 'success'
+        continue-on-error: true
+        env:
+          CONTRACT_PATH: ${{ steps.contract.outputs.path }}
+        run: node scripts/ai-ops/validate-scope.mjs "${CONTRACT_PATH}" changed-files.txt
+
+      - name: Step summary
+        if: always()
+        env:
+          O_DISCOVERY: ${{ steps.changed.outcome }}
+          DECL: ${{ steps.contract.outputs.decl }}
+          O_CVALIDATE: ${{ steps.cvalidate.outcome }}
+          O_SCOPE: ${{ steps.scope.outcome }}
+          O_AIOPS: ${{ steps.aiops.outcome }}
+          O_BUILD: ${{ steps.build.outcome }}
+          O_AFFILIATE: ${{ steps.affiliate.outcome }}
+          O_SEO: ${{ steps.seo.outcome }}
+          O_BRANCH: ${{ steps.branch.outcome }}
+          CHANGED_COUNT: ${{ steps.changed.outputs.count }}
+        run: |
+          set -uo pipefail
+          case "${DECL}" in
+            valid) DECL_DISP=VALIDATED ;;
+            legacy) DECL_DISP=LEGACY_SKIP ;;
+            missing) DECL_DISP=MISSING ;;
+            placeholder) DECL_DISP=PLACEHOLDER ;;
+            invalid) DECL_DISP=INVALID ;;
+            *) DECL_DISP=MISSING ;;
+          esac
+          if [ "${DECL}" = "valid" ]; then
+            if [ "${O_CVALIDATE}" = "success" ]; then CV_DISP=VALIDATED; else CV_DISP=FAILED; fi
+          else
+            CV_DISP=NOT_EVALUATED
+          fi
+          case "${DECL}" in
+            valid)
+              # scope is only meaningful after discovery AND contract validation both succeeded
+              if [ "${O_DISCOVERY}" != "success" ] || [ "${O_CVALIDATE}" != "success" ]; then
+                SC_DISP=NOT_EVALUATED
+              elif [ "${O_SCOPE}" = "success" ]; then
+                SC_DISP=VALIDATED
+              else
+                SC_DISP=FAILED
+              fi ;;
+            legacy) SC_DISP=LEGACY_SKIP ;;
+            missing) SC_DISP=MISSING ;;
+            placeholder) SC_DISP=PLACEHOLDER ;;
+            invalid) SC_DISP=INVALID ;;
+            *) SC_DISP=MISSING ;;
+          esac
+          {
+            echo "## CBW PR Advisory Gate (advisory / non-blocking)"
+            echo ""
+            echo "| Check | Result |"
+            echo "|---|---|"
+            echo "| changed-file discovery | ${O_DISCOVERY} |"
+            echo "| contract declaration status | ${DECL_DISP} |"
+            echo "| contract validation | ${CV_DISP} |"
+            echo "| scope validation | ${SC_DISP} |"
+            echo "| ai-ops:validate | ${O_AIOPS} |"
+            echo "| build | ${O_BUILD} |"
+            echo "| validate:affiliate | ${O_AFFILIATE} |"
+            echo "| seo:check | ${O_SEO} |"
+            echo "| branch-authority | ${O_BRANCH:-skipped} |"
+            echo ""
+            if [ "${O_DISCOVERY}" != "success" ]; then
+              echo "> **Changed-file discovery FAILED - branch-authority and scope were NOT evaluated and are NOT considered passing.**"
+            else
+              echo "Changed files: ${CHANGED_COUNT}"
+            fi
+            echo ""
+            echo "> Declaration states: VALIDATED (valid contract), FAILED (contract/scope failed), LEGACY_SKIP, MISSING, PLACEHOLDER (unfilled REPLACE-ME.json), INVALID, NOT_EVALUATED. A skipped state is never shown as scope PASS."
+            echo ""
+            echo "> V1 enforcement is ADVISORY. This workflow does not merge, deploy, or write repository contents."
+          } >> "$GITHUB_STEP_SUMMARY"

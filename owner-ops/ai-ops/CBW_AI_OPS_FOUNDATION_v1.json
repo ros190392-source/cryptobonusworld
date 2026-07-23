@@ -1,0 +1,66 @@
+{
+  "document": "CBW_AI_OPS_FOUNDATION_v1",
+  "schemaVersion": "1.0.0",
+  "project": "CryptoBonusWorld",
+  "status": "AI_OPS_FOUNDATION_V1_PROPOSED",
+  "description": "Governed AI operations foundation. GitHub is the single shared source of project-task truth; every task is a machine-readable contract with explicit scope, branch authority, bounded repair, and owner-gated merge/deploy. Enforcement in V1 is ADVISORY. No autonomous merge, no autonomous production deployment.",
+  "principles": [
+    "GitHub is the single shared source of project-task truth",
+    "every task is a structured, data-only contract (no embedded shell commands)",
+    "master = production/site/code/architecture/governance authority; main = default-branch control plane",
+    "master and main are never merged wholesale in either direction",
+    "Claude Code is the only executor; ChatGPT is architect/reviewer; the owner holds every merge/deploy gate",
+    "scope and authorization are validated deterministically and locally before and during PR review",
+    "repair is bounded to two attempts inside the original scope and never touches prohibited categories",
+    "no state transition infers merge or deploy authorization"
+  ],
+  "components": {
+    "taskContractSchema": "owner-ops/ai-ops/CBW_AI_TASK_CONTRACT_SCHEMA_v1.json",
+    "workflowStateModel": "owner-ops/ai-ops/CBW_AI_WORKFLOW_STATE_MODEL_v1.json",
+    "branchAuthorityMap": "owner-ops/ai-ops/CBW_BRANCH_AUTHORITY_MAP_v1.json",
+    "controlledRepairPolicy": "owner-ops/ai-ops/CBW_CONTROLLED_REPAIR_POLICY_v1.json",
+    "claudeCodeExecutionContract": "owner-ops/ai-ops/CBW_CLAUDE_CODE_EXECUTION_CONTRACT_v1.md",
+    "chatgptReviewContract": "owner-ops/ai-ops/CBW_CHATGPT_REVIEW_CONTRACT_v1.md",
+    "exampleContract": "owner-ops/ai-ops/examples/CBW_AI_TASK_CONTRACT_EXAMPLE_v1.json"
+  },
+  "validators": {
+    "taskContract": "scripts/ai-ops/validate-task-contract.mjs",
+    "scope": "scripts/ai-ops/validate-scope.mjs",
+    "branchAuthority": "scripts/ai-ops/validate-branch-authority.mjs",
+    "foundation": "scripts/ai-ops/validate-ai-ops-foundation.mjs",
+    "pathPolicyLib": "scripts/ai-ops/lib/path-policy.mjs",
+    "fixtureRunner": "tests/ai-ops/run-fixtures.mjs"
+  },
+  "packageScripts": {
+    "ai-ops:validate": "node scripts/ai-ops/validate-ai-ops-foundation.mjs",
+    "ai-ops:validate:contract": "node scripts/ai-ops/validate-task-contract.mjs",
+    "ai-ops:validate:fixtures": "node tests/ai-ops/run-fixtures.mjs",
+    "ai-ops:validate:scope": "node scripts/ai-ops/validate-scope.mjs",
+    "ai-ops:validate:branch": "node scripts/ai-ops/validate-branch-authority.mjs"
+  },
+  "prAdvisoryGate": {
+    "workflow": ".github/workflows/cbw-pr-advisory-gate.yml",
+    "enforcement": "ADVISORY",
+    "base": "master",
+    "permissions": { "contents": "read", "pull-requests": "read" },
+    "notes": "does not deploy, does not write repository contents, never uses pull_request_target, never a required check in this task"
+  },
+  "codeowners": ".github/CODEOWNERS",
+  "controlPlane": {
+    "authority": "main",
+    "issueForms": [".github/ISSUE_TEMPLATE/cbw-task.yml", ".github/ISSUE_TEMPLATE/cbw-bug.yml", ".github/ISSUE_TEMPLATE/cbw-research.yml", ".github/ISSUE_TEMPLATE/config.yml"],
+    "pullRequestTemplate": ".github/pull_request_template.md",
+    "manualWorkflows": [".github/workflows/cbw-ai-ops-manual-validate.yml", ".github/workflows/cbw-ai-ops-repair-request.yml"],
+    "authorityDoc": ".github/CBW_AI_OPS_DEFAULT_BRANCH_AUTHORITY_v1.md",
+    "note": "these live on main because Issue Forms, PR templates and workflow_dispatch control workflows only become active on the repository default branch"
+  },
+  "prohibited": [
+    "autonomous merge",
+    "autonomous production deployment",
+    "force-push",
+    "history rewrite",
+    "secret disclosure",
+    "invoking external AI provider APIs from CI",
+    "wholesale main<->master merge"
+  ]
+}
