@@ -1,0 +1,75 @@
+name: CBW Bug Report
+description: Report a defect for a governed, bounded repair. Never include passwords, keys or secrets.
+title: "[BUG] "
+labels: ["cbw-bug", "ai-ops"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Report a defect. Repairs are bounded (max two attempts) and stop for owner review on
+        facts, affiliate, security or production matters.
+        **Do not paste passwords, private keys, API secrets or session cookies.**
+  - type: textarea
+    id: observed_behavior
+    attributes:
+      label: Observed behavior
+    validations:
+      required: true
+  - type: textarea
+    id: expected_behavior
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+    validations:
+      required: true
+  - type: input
+    id: affected_route_or_component
+    attributes:
+      label: Affected route or component
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / output
+      description: Redact any secret values before pasting.
+    validations:
+      required: false
+  - type: dropdown
+    id: regression_risk
+    attributes:
+      label: Regression risk
+      options: ["low", "medium", "high"]
+    validations:
+      required: true
+  - type: textarea
+    id: authorized_repair_scope
+    attributes:
+      label: Authorized repair scope
+      description: Exact files/prefixes a repair may touch.
+    validations:
+      required: true
+  - type: dropdown
+    id: sensitive_involvement
+    attributes:
+      label: Does this involve facts, affiliates, security or production?
+      description: If yes, repair must stop for owner review (not auto-repaired).
+      options:
+        - "no — mechanical/deterministic only"
+        - "yes — facts / production"
+        - "yes — affiliate / bonus / market / GEO"
+        - "yes — security / secrets"
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety acknowledgement
+      options:
+        - label: This report contains no passwords, keys, recovery codes, API secrets or session cookies.
+          required: true

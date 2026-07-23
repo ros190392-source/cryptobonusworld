@@ -1,0 +1,78 @@
+name: CBW Research Request
+description: Request market-intelligence research. Never include passwords, keys or secrets.
+title: "[RESEARCH] "
+labels: ["cbw-research", "market-intelligence"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Request governed research. Research output binds to the repository or becomes publishable
+        only under separate explicit owner authorization.
+        **Do not include passwords, private keys, API secrets or session cookies.**
+  - type: input
+    id: country
+    attributes:
+      label: Country (market)
+      description: ISO country, e.g. KZ, PL, DE.
+    validations:
+      required: true
+  - type: input
+    id: exchange_entity
+    attributes:
+      label: Exchange / entity
+    validations:
+      required: true
+  - type: input
+    id: research_languages
+    attributes:
+      label: Research languages
+      description: Language codes, e.g. ru, kk, en (Kazakh = kk, Ukrainian = uk).
+    validations:
+      required: true
+  - type: dropdown
+    id: official_source_requirement
+    attributes:
+      label: Official-source requirement
+      options:
+        - "official primary sources required"
+        - "official + reputable secondary allowed"
+    validations:
+      required: true
+  - type: dropdown
+    id: output_format
+    attributes:
+      label: Output format
+      options: ["canonical MI cell (JSON)", "research package + audit", "evidence capture", "summary memo"]
+    validations:
+      required: true
+  - type: dropdown
+    id: evidence_freshness
+    attributes:
+      label: Evidence freshness
+      options: ["<= 7 days", "<= 30 days", "<= 90 days"]
+    validations:
+      required: true
+  - type: dropdown
+    id: repository_binding_authorization
+    attributes:
+      label: Repository binding authorization
+      description: May the result be written to the repository now?
+      options: ["not authorized (research only)", "authorized to stage (non-production)", "authorized to commit (non-production)"]
+    validations:
+      required: true
+  - type: dropdown
+    id: publication_authorization
+    attributes:
+      label: Publication authorization
+      options: ["not authorized", "authorized for a specific country/pair (owner-scoped)"]
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety acknowledgement
+      options:
+        - label: This request contains no passwords, keys, recovery codes, API secrets or session cookies.
+          required: true
+        - label: I understand MI data binds to production or publishes only under separate owner authorization.
+          required: true
