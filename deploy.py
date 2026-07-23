@@ -1,5 +1,7 @@
 import paramiko
 import os
+import posixpath
+import shlex
 import sys
 import time
 
@@ -54,13 +56,25 @@ def load_config():
         )
 
     port_raw = os.environ.get('CBW_DEPLOY_PORT', str(DEFAULT_PORT)).strip()
-    try:
-        port = int(port_raw)
-    except ValueError:
-        _fail("CBW_DEPLOY_PORT must be an integer.")
+    if not port_raw.isdigit():
+        _fail("CBW_DEPLOY_PORT must be an integer from 1 through 65535.")
+    port = int(port_raw)
+    if not (1 <= port <= 65535):
+        _fail("CBW_DEPLOY_PORT must be an integer from 1 through 65535.")
 
+    # Remote path: non-empty absolute POSIX path, never exactly '/', no NUL/CR/LF.
+    # Normalized lexically (collapses redundant separators) without touching the
+    # filesystem, so the intended destination is preserved. Quoted with
+    # shlex.quote before it reaches the remote shell (see main()).
     remote_root = os.environ.get('CBW_DEPLOY_REMOTE_PATH', DEFAULT_REMOTE_PATH).strip() \
         or DEFAULT_REMOTE_PATH
+    if any(c in remote_root for c in ('\x00', '\r', '\n')):
+        _fail("CBW_DEPLOY_REMOTE_PATH must not contain NUL, CR or LF characters.")
+    if not remote_root.startswith('/'):
+        _fail("CBW_DEPLOY_REMOTE_PATH must be an absolute POSIX path beginning with '/'.")
+    remote_root = posixpath.normpath(remote_root)
+    if remote_root.strip('/') == '':
+        _fail("CBW_DEPLOY_REMOTE_PATH must be an absolute path other than '/'.")
 
     key_path = os.path.expanduser(key_path)
     if not os.path.isfile(key_path):
@@ -152,7 +166,11 @@ def main():
     sys.stdout.flush()
 
     remote_root = cfg['remote_root']
-    stdin, stdout, stderr = client.exec_command(f'rm -rf {remote_root}/* && echo done')
+    # Quote the validated path for the remote POSIX shell; keep the glob and
+    # '--' outside the quotes so the glob still expands and option parsing ends
+    # before the path. Preserves the "clear directory contents" semantics.
+    cleanup_cmd = f'rm -rf -- {shlex.quote(remote_root)}/* && echo done'
+    stdin, stdout, stderr = client.exec_command(cleanup_cmd)
     result = stdout.read().strip()
     sys.stdout.write(f"Cleared: {result.decode()}\n")
     sys.stdout.flush()
