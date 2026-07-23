@@ -35,7 +35,7 @@ owner-only and recorded in the PR.
 | LOCALE07 | `html lang` matches the page's localeTag (e.g. `ru-KZ`). |
 | LOCALE08 | Canonical is self-referencing on every market-language page. |
 | LOCALE09 | Hreflang is reciprocal and complete across all LIVE siblings. |
-| LOCALE10 | x-default follows the approved rule (market clusters → the market's English variant; global clusters → global EN). |
+| LOCALE10 | x-default follows the approved per-market rule: explicit market clusters point to that market's **LIVE `marketDefault` page sibling**; global/legacy clusters point to the global English URL. Examples: KZ → `/kz/ru/{stable-route}/` · PL → `/pl/pl/{stable-route}/` · DE → `/de/de/{stable-route}/`. English fallback must not automatically become `marketDefault` or x-default. (LOCALE10 defines the global-versus-market rule; LOCALE23 enforces the market sibling target — complementary, not contradictory.) |
 | LOCALE11 | Sitemap contains LIVE pairs only. |
 | LOCALE12 | Internal links stay inside the current market-language namespace. |
 | LOCALE13 | MI facts are byte-identical across language siblings of the same market page. |

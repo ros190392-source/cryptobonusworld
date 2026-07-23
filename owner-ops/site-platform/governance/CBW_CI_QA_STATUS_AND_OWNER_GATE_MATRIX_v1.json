@@ -154,7 +154,8 @@
   },
   "correctedBy": [
     "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-OWNER-REVIEW-002",
-    "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-OWNER-REVIEW-003"
+    "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-OWNER-REVIEW-003",
+    "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-LOCALE10-CONSISTENCY-FIX-009"
   ],
   "localeGates": {
     "LOCALE01": "country and language stored separately (countryCode/countrySlug + languageCode/localeTag); URL prefix derived, never one locale variable",
@@ -166,7 +167,7 @@
     "LOCALE07": "html lang matches localeTag",
     "LOCALE08": "canonical self-referencing",
     "LOCALE09": "hreflang reciprocal and complete across LIVE siblings",
-    "LOCALE10": "x-default per approved rule (market clusters → market English variant; global clusters → global EN)",
+    "LOCALE10": "x-default follows the approved per-market rule: explicit market clusters point to the market's LIVE marketDefault page sibling; global/legacy clusters point to the global English URL; English fallback never automatically becomes marketDefault or x-default",
     "LOCALE11": "sitemap contains LIVE pairs only",
     "LOCALE12": "internal links stay in current market-language namespace",
     "LOCALE13": "MI facts byte-identical across language siblings",
