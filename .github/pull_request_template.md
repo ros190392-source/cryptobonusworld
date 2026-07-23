@@ -10,7 +10,19 @@
 
 ## Scope
 - **Exact changed-file scope:** <!-- list every changed path -->
-- **Task-contract path:** <!-- repository-relative path, or "legacy PR (no contract)" -->
+
+Task contract path: `REPLACE-ME.json`
+<!--
+  Canonical task-contract marker (read by the master-side advisory gate).
+  - Replace REPLACE-ME.json with the committed repository-relative task-contract
+    path, e.g. `owner-ops/ai-ops/tasks/CBW-EXAMPLE-001.json`.
+  - Governed PRs MUST provide a valid contract path; the REPLACE-ME.json
+    placeholder deliberately fails the advisory gate until it is replaced.
+  - Legacy pre-foundation PRs may instead use exactly this line (no backticks):
+    Task contract path: legacy PR (no contract)
+  - Keep the marker on its own line; do not add bold markdown inside it.
+-->
+
 
 ## Validation results
 - **ai-ops:validate:**
