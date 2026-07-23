@@ -42,34 +42,39 @@ advisory CI → independent ChatGPT review → STOP.
 2. `owner-ops/ai-ops/smoke/CBW_AI_OPS_FOUNDATION_V1_SMOKE_004.md`
 
 ## 10. State progression
-- READY (Issue #5) → **IN_PROGRESS** (this initial commit) → PR_OPEN (recorded after PR creation).
+- READY (Issue #5) → IN_PROGRESS (initial commit) → **PR_OPEN** (this commit, after PR creation + first advisory success).
 - No transition implies merge or deploy authorization.
 
 ## 11. Local validator results
-- To be recorded from the dedicated worktree run: `ai-ops:validate`, `ai-ops:validate:fixtures`,
-  `ai-ops:validate:contract`, scope validation, branch-authority (changed-file + contract mode), `git diff --check`.
+- `ai-ops:validate` PASS; `ai-ops:validate:fixtures` PASS (43/43); `validate-task-contract` (smoke contract) PASS.
+- `validate-scope` (2 paths) PASS; branch-authority changed-file PASS; branch-authority contract mode PASS (base master).
+- `git diff --check` clean; exactly two tracked paths differ from baseline; no forbidden path changed.
 
 ## 12. Build result
-- Recorded from the local `npm run build`.
+- `npm run build` PASS — 102 pages built.
 
 ## 13. Affiliate result
-- Recorded from `npm run validate:affiliate`.
+- `npm run validate:affiliate` PASS — affiliate routing integrity verified (13/13 clean).
 
 ## 14. SEO result
-- Recorded from `npm run seo:check`.
+- `npm run seo:check` PASS — 0 CI failures.
 
 ## 15. Pull request
 - Title: `test(ai-ops): run foundation smoke 004`
-- PR: **PENDING** (number/URL recorded after creation).
+- PR: **#6** — https://github.com/ros190392-source/cryptobonusworld/pull/6
 
 ## 16. PR base/head
-- Base: `master` · Head: `feat/cbw-ai-ops-smoke-004` (head SHA recorded after push/PR).
+- Base: `master` · Head: `feat/cbw-ai-ops-smoke-004`
+- First-commit head SHA: `74f832831fbc1f567caaa93a699d6c3554339715`
 
 ## 17. Canonical contract marker
 - `Task contract path: `owner-ops/ai-ops/tasks/CBW-AI-OPS-FOUNDATION-V1-SMOKE-004.json``
 
 ## 18. First advisory workflow run
-- Advisory CI: **PENDING** (run ID / URL / conclusion recorded after the first run).
+- Run ID: **30034721782** — https://github.com/ros190392-source/cryptobonusworld/actions/runs/30034721782
+- Conclusion: **success**. Semantic results: changed-file discovery = success; contract declaration = VALIDATED;
+  task-contract validation = VALIDATED; scope validation = VALIDATED; branch authority = success; AI Ops
+  foundation, build, affiliate integrity and SEO all success.
 
 ## 19. Final advisory workflow result
 - Recorded in the Claude final report (not re-committed here, to avoid a CI-recording loop).
