@@ -3,6 +3,8 @@
   "schemaVersion": "1.0.0",
   "project": "CryptoBonusWorld",
   "description": "Explicit branch authority for the two-branch model. master = production/site/code/architecture/governance authority; main = repository default branch hosting Issue Forms, PR templates and manually dispatched control workflows. The branches are never merged wholesale in either direction.",
+  "defaultAuthority": "master",
+  "defaultAuthorityMeaning": "explicitly main-owned paths/prefixes belong to main; explicitly shared-existing workflow paths belong to main/control-plane; explicitly master-owned paths/prefixes belong to master; every otherwise-unclassified path defaults to master (MASTER_DEFAULT). A main PR changing a MASTER_DEFAULT path fails; no path silently passes as UNCLASSIFIED.",
   "authorities": {
     "master": {
       "role": "production/site authority",

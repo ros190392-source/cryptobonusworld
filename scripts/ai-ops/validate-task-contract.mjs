@@ -2,20 +2,22 @@
 // CBW AI Ops — task-contract validator (dependency-free, deterministic).
 //
 // Parses ONE task-contract JSON file and checks structure, types, enums,
-// branch/base relationships, authorization booleans and unsafe path forms.
+// governed task-ID grammar, base/branch/SHA relationships, authorization
+// booleans, deploy gating, repair-policy consistency and scope consistency.
 // Never executes any command found in the contract. Exit 0 = PASS, non-zero = FAIL.
 //
 // Usage: node scripts/ai-ops/validate-task-contract.mjs <contract.json>
 
 import { readFileSync } from 'node:fs';
-import { unsafePathReason, findDuplicates, toPosix } from './lib/path-policy.mjs';
+import { unsafePathReason, findDuplicates, toPosix, underPrefix } from './lib/path-policy.mjs';
 
-const TASK_ID_RE = /^CBW-[A-Z0-9]+(?:-[A-Z0-9]+)*-\d{3}(?:-[A-Z0-9]+)?$/;
+// Governed CBW task-ID grammar (kept in sync with the schema and the repair workflow).
+export const TASK_ID_RE = /^CBW-[A-Z0-9]+(?:-[A-Z0-9]+)*-\d{3}[A-Z]?(?:-R\d+)?$/;
+
 const STATES = ['DRAFT','READY','CLAIMED','IN_PROGRESS','PR_OPEN','CI_FAILED','REPAIRING','OWNER_REVIEW','APPROVED','MERGED','DEPLOY_READY','DEPLOYED','BLOCKED','CANCELLED'];
 const STREAMS = ['design','architecture','market-intelligence','production','locale','security','ai-ops'];
 const RISKS = ['P0','P1','P2','P3'];
 const TASK_TYPES = ['feature','bugfix','docs','governance','research','reconciliation','closeout','review','ai-ops'];
-const BASE_BRANCHES = ['master','main'];
 const REQUIRED = ['schemaVersion','taskId','project','title','stream','riskLevel','taskType','status','repository','baseBranch','baseSha','worktreePath','featureBranch','executor','reviewer','authorizedScope','requiredChecks','stopConditions','ownerAuthorizations','repairPolicy','forbiddenActions','expectedOutputs','finalReportRequirements'];
 const SCOPE_FIELDS = ['exactPaths','allowedPrefixes','forbiddenPaths','forbiddenPrefixes'];
 const OWNER_AUTH_FIELDS = ['implementation','merge','deploy','productionBinding','publication','affiliateActivation'];
@@ -28,7 +30,31 @@ const DANGEROUS_FLAGS = ['allowForcePush','allowHistoryRewrite','allowSecretDisc
 const errors = [];
 const err = (m) => errors.push(m);
 
-function isStrArray(v) { return Array.isArray(v) && v.every((x) => typeof x === 'string'); }
+const isNonEmptyString = (v) => typeof v === 'string' && v.trim() !== '';
+const isSingleLine = (v) => typeof v === 'string' && !/[\r\n]/.test(v);
+const has40LowerHex = (v) => typeof v === 'string' && /^[0-9a-f]{40}$/.test(v);
+
+function isStrArrayNonEmptyEntries(v) {
+  return Array.isArray(v) && v.length > 0 && v.every((x) => isNonEmptyString(x) && isSingleLine(x));
+}
+
+// Regex-based git branch-form check (the repair workflow additionally uses
+// git check-ref-format). Rejects master/main, control/whitespace and malformed refs.
+function gitBranchInvalidReason(b) {
+  if (!isNonEmptyString(b)) return 'empty';
+  if (b === 'master' || b === 'main') return 'is an authority branch';
+  if ([...b].some((ch) => { const x = ch.charCodeAt(0); return x < 0x20 || x === 0x7f; })) return 'control character';
+  if (/\s/.test(b)) return 'whitespace';
+  if (!/^[A-Za-z0-9._\/-]+$/.test(b)) return 'illegal characters';
+  if (b.startsWith('/') || b.endsWith('/')) return 'leading/trailing slash';
+  if (b.startsWith('-')) return 'leading dash';
+  if (b.includes('//') || b.includes('..')) return 'double slash or ..';
+  if (b.includes('@{')) return '@{ sequence';
+  if (b.endsWith('.') || b.endsWith('.lock')) return 'ends with . or .lock';
+  if (b.split('/').some((seg) => seg.startsWith('.'))) return 'segment starts with .';
+  if (b.startsWith('origin/')) return 'begins with origin/';
+  return null;
+}
 
 function scanForShellKeys(obj, path = '') {
   if (obj === null || typeof obj !== 'object') return;
@@ -41,13 +67,30 @@ function scanForShellKeys(obj, path = '') {
 }
 
 function validatePaths(list, label) {
-  if (!isStrArray(list)) { err(`${label} must be a string[]`); return; }
+  if (!Array.isArray(list)) { err(`${label} must be an array`); return; }
   for (const p of list) {
+    if (!isNonEmptyString(p)) { err(`${label} has an empty/non-string entry`); continue; }
     const r = unsafePathReason(p);
     if (r) err(`${label} entry "${p}" is unsafe: ${r}`);
   }
-  const dups = findDuplicates(list);
-  if (dups.length) err(`${label} has duplicate entries: ${dups.join(', ')}`);
+  const dups = findDuplicates(list.filter((x) => typeof x === 'string'));
+  if (dups.length) err(`${label} has normalized duplicate entries: ${dups.join(', ')}`);
+}
+
+function validateScopeConsistency(scope) {
+  const exact = (scope.exactPaths || []).filter((x) => typeof x === 'string').map(toPosix);
+  const allowed = (scope.allowedPrefixes || []).filter((x) => typeof x === 'string').map(toPosix);
+  const fPaths = (scope.forbiddenPaths || []).filter((x) => typeof x === 'string').map(toPosix);
+  const fPrefixes = (scope.forbiddenPrefixes || []).filter((x) => typeof x === 'string').map(toPosix);
+
+  for (const p of exact) {
+    if (fPaths.includes(p)) err(`exact authorized path is also forbidden: ${p}`);
+    if (fPrefixes.some((pre) => underPrefix(p, pre))) err(`exact authorized path is under a forbidden prefix: ${p}`);
+  }
+  for (const ap of allowed) {
+    if (fPrefixes.some((fp) => underPrefix(ap, fp) || underPrefix(fp, ap))) err(`allowed prefix overlaps a forbidden prefix: ${ap}`);
+    for (const fpath of fPaths) if (underPrefix(fpath, ap)) err(`allowed prefix "${ap}" would include forbidden exact path "${fpath}"`);
+  }
 }
 
 function main() {
@@ -62,75 +105,70 @@ function main() {
     process.exit(1);
   }
 
-  // required fields
   for (const f of REQUIRED) if (!(f in c)) err(`missing required field: ${f}`);
 
-  if (typeof c.taskId === 'string' && !TASK_ID_RE.test(c.taskId)) err(`taskId "${c.taskId}" does not match ${TASK_ID_RE}`);
-  if (c.project !== 'CryptoBonusWorld') err(`project must be "CryptoBonusWorld"`);
+  if (c.schemaVersion !== '1.0.0') err('schemaVersion must be exactly "1.0.0"');
+  if (!isNonEmptyString(c.taskId) || !TASK_ID_RE.test(c.taskId)) err(`taskId "${c.taskId}" does not match ${TASK_ID_RE}`);
+  if (c.project !== 'CryptoBonusWorld') err('project must be "CryptoBonusWorld"');
+  if (!isNonEmptyString(c.title) || !isSingleLine(c.title)) err('title must be a non-empty single-line string');
+  if (c.repository !== 'ros190392-source/cryptobonusworld') err('repository must be "ros190392-source/cryptobonusworld"');
   if (!STREAMS.includes(c.stream)) err(`invalid stream: ${c.stream}`);
   if (!RISKS.includes(c.riskLevel)) err(`invalid riskLevel: ${c.riskLevel}`);
   if (!TASK_TYPES.includes(c.taskType)) err(`invalid taskType: ${c.taskType}`);
   if (!STATES.includes(c.status)) err(`invalid status: ${c.status}`);
-  if (!BASE_BRANCHES.includes(c.baseBranch)) err(`invalid baseBranch: ${c.baseBranch}`);
-  if (typeof c.baseSha !== 'string' || !/^[0-9a-f]{40}$/.test(c.baseSha)) err(`baseSha must be a 40-char hex string`);
-  if (c.executor !== 'CLAUDE_CODE') err(`executor must be CLAUDE_CODE`);
-  if (!['CHATGPT','OWNER'].includes(c.reviewer)) err(`invalid reviewer: ${c.reviewer}`);
+  if (!['master', 'main'].includes(c.baseBranch)) err(`invalid baseBranch: ${c.baseBranch}`);
+  if (!has40LowerHex(c.baseSha)) err('baseSha must be exactly 40 lowercase hex characters');
+  if (!isNonEmptyString(c.worktreePath) || /[\0\r\n]/.test(c.worktreePath) || !/^[A-Za-z]:[\\/]/.test(c.worktreePath)) {
+    err('worktreePath must be a non-empty absolute Windows path with no NUL/CR/LF');
+  }
+  const branchReason = gitBranchInvalidReason(c.featureBranch);
+  if (branchReason) err(`featureBranch invalid: ${branchReason}`);
+  if (c.executor !== 'CLAUDE_CODE') err('executor must be CLAUDE_CODE');
+  if (!['CHATGPT', 'OWNER'].includes(c.reviewer)) err(`invalid reviewer: ${c.reviewer}`);
 
-  // featureBranch must not be an authority branch
-  if (typeof c.featureBranch !== 'string' || ['master','main'].includes(c.featureBranch)) err(`featureBranch must be a dedicated feature branch (not master/main)`);
+  for (const [f, v] of [['requiredChecks', c.requiredChecks], ['stopConditions', c.stopConditions], ['forbiddenActions', c.forbiddenActions], ['expectedOutputs', c.expectedOutputs], ['finalReportRequirements', c.finalReportRequirements]]) {
+    if (!isStrArrayNonEmptyEntries(v)) err(`${f} must be a non-empty array of non-empty single-line strings`);
+  }
 
-  // authorizedScope
   if (c.authorizedScope && typeof c.authorizedScope === 'object') {
     for (const f of SCOPE_FIELDS) if (!(f in c.authorizedScope)) err(`authorizedScope missing: ${f}`);
     for (const f of SCOPE_FIELDS) validatePaths(c.authorizedScope[f] || [], `authorizedScope.${f}`);
-    // no path both authorized and forbidden
-    const authorized = new Set([...(c.authorizedScope.exactPaths||[]).map(toPosix)]);
-    const forbidden = new Set((c.authorizedScope.forbiddenPaths||[]).map(toPosix));
-    for (const p of authorized) if (forbidden.has(p)) err(`path is both authorized and forbidden: ${p}`);
-    for (const pre of (c.authorizedScope.allowedPrefixes||[]).map(toPosix)) {
-      if ((c.authorizedScope.forbiddenPrefixes||[]).map(toPosix).includes(pre)) err(`prefix is both allowed and forbidden: ${pre}`);
-    }
+    validateScopeConsistency(c.authorizedScope);
   } else err('authorizedScope must be an object');
 
-  // requiredChecks / stopConditions / expectedOutputs / finalReportRequirements
-  if (!isStrArray(c.requiredChecks) || c.requiredChecks.length === 0) err('requiredChecks must be a non-empty string[]');
-  if (!isStrArray(c.stopConditions) || c.stopConditions.length === 0) err('stopConditions must be a non-empty string[]');
-  if (!isStrArray(c.expectedOutputs)) err('expectedOutputs must be a string[]');
-  if (!isStrArray(c.finalReportRequirements)) err('finalReportRequirements must be a string[]');
-
-  // ownerAuthorizations
   if (c.ownerAuthorizations && typeof c.ownerAuthorizations === 'object') {
     for (const f of OWNER_AUTH_FIELDS) {
       if (!(f in c.ownerAuthorizations)) err(`ownerAuthorizations missing: ${f}`);
       else if (typeof c.ownerAuthorizations[f] !== 'boolean') err(`ownerAuthorizations.${f} must be boolean`);
     }
-    if (c.ownerAuthorizations.deploy === true && !c.ownerApprovedDeploySha) {
-      err('ownerAuthorizations.deploy=true requires an ownerApprovedDeploySha field');
+    if (c.ownerAuthorizations.deploy === true) {
+      if (c.baseBranch !== 'master') err('deploy authorization requires baseBranch master');
+      if (!has40LowerHex(c.ownerApprovedDeploySha)) err('deploy authorization requires ownerApprovedDeploySha of exactly 40 lowercase hex characters');
     }
   } else err('ownerAuthorizations must be an object');
 
-  // repairPolicy
   if (c.repairPolicy && typeof c.repairPolicy === 'object') {
     for (const f of REPAIR_FIELDS) if (!(f in c.repairPolicy)) err(`repairPolicy missing: ${f}`);
-    if (typeof c.repairPolicy.enabled !== 'boolean') err('repairPolicy.enabled must be boolean');
-    if (!Number.isInteger(c.repairPolicy.maxAttempts) || c.repairPolicy.maxAttempts < 0 || c.repairPolicy.maxAttempts > 2) err('repairPolicy.maxAttempts must be an integer 0..2');
-    if (!isStrArray(c.repairPolicy.allowedCategories)) err('repairPolicy.allowedCategories must be a string[]');
-    if (!isStrArray(c.repairPolicy.prohibitedCategories)) err('repairPolicy.prohibitedCategories must be a string[]');
-    if (isStrArray(c.repairPolicy.allowedCategories) && isStrArray(c.repairPolicy.prohibitedCategories)) {
-      const inter = c.repairPolicy.allowedCategories.filter((x) => c.repairPolicy.prohibitedCategories.includes(x));
+    const rp = c.repairPolicy;
+    if (typeof rp.enabled !== 'boolean') err('repairPolicy.enabled must be boolean');
+    if (!Number.isInteger(rp.maxAttempts)) err('repairPolicy.maxAttempts must be an integer');
+    else if (rp.enabled === false && rp.maxAttempts !== 0) err('repairPolicy.enabled=false requires maxAttempts=0');
+    else if (rp.enabled === true && !(rp.maxAttempts === 1 || rp.maxAttempts === 2)) err('repairPolicy.enabled=true requires maxAttempts 1 or 2');
+    if (!Array.isArray(rp.allowedCategories)) err('repairPolicy.allowedCategories must be an array');
+    if (!Array.isArray(rp.prohibitedCategories)) err('repairPolicy.prohibitedCategories must be an array');
+    if (Array.isArray(rp.allowedCategories) && Array.isArray(rp.prohibitedCategories)) {
+      const inter = rp.allowedCategories.filter((x) => rp.prohibitedCategories.includes(x));
       if (inter.length) err(`repairPolicy allowed/prohibited overlap: ${inter.join(', ')}`);
-      const missing = PROHIBITED_REPAIR.filter((x) => !c.repairPolicy.prohibitedCategories.includes(x));
+      const missing = PROHIBITED_REPAIR.filter((x) => !rp.prohibitedCategories.includes(x));
       if (missing.length) err(`repairPolicy.prohibitedCategories must include: ${missing.join(', ')}`);
     }
   } else err('repairPolicy must be an object');
 
-  // forbiddenActions must list the required forbidden tokens
-  if (isStrArray(c.forbiddenActions)) {
+  if (isStrArrayNonEmptyEntries(c.forbiddenActions)) {
     const missing = REQUIRED_FORBIDDEN_TOKENS.filter((t) => !c.forbiddenActions.includes(t));
     if (missing.length) err(`forbiddenActions must include: ${missing.join(', ')}`);
-  } else err('forbiddenActions must be a string[]');
+  }
 
-  // no embedded shell commands / dangerous flags anywhere
   scanForShellKeys(c);
 
   if (errors.length) {

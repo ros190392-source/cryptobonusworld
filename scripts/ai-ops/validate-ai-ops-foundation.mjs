@@ -61,6 +61,16 @@ function main() {
     if (!oa.includes(f)) err(`schema ownerAuthorizations missing required field: ${f}`);
   }
 
+  // governed task-ID grammar must be identical in the schema and the validator source
+  const GOVERNED_JSON = '^CBW-[A-Z0-9]+(?:-[A-Z0-9]+)*-\\d{3}[A-Z]?(?:-R\\d+)?$';
+  const GOVERNED_JS = String.raw`/^CBW-[A-Z0-9]+(?:-[A-Z0-9]+)*-\d{3}[A-Z]?(?:-R\d+)?$/`;
+  if (schema.taskIdPattern !== GOVERNED_JSON) err(`schema taskIdPattern is not the governed grammar: ${schema.taskIdPattern}`);
+  const validatorSrc = readFileSync(join(HERE, 'validate-task-contract.mjs'), 'utf8');
+  if (!validatorSrc.includes(GOVERNED_JS)) err('validate-task-contract.mjs does not use the governed task-ID grammar');
+
+  // branch authority: fail-closed default must be master
+  if (authorityMap.defaultAuthority !== 'master') err('branch authority map must declare defaultAuthority "master"');
+
   // branch authority sanity
   if (!(authorityMap.authorities && authorityMap.authorities.master && authorityMap.authorities.main)) err('branch authority map missing master/main');
   for (const rule of ['deployment may use an explicitly owner-approved master SHA only', 'no deploy action may be inferred from a merge']) {

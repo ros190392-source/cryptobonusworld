@@ -3,7 +3,7 @@
   "schemaVersion": "1.0.0",
   "project": "CryptoBonusWorld",
   "description": "Machine-readable task-contract shape enforced by scripts/ai-ops/validate-task-contract.mjs. Contracts declare scope and authorizations as data only; they never carry executable shell commands and can never authorize force-push, history rewrite, secret disclosure, automatic production deployment, or a bypass of owner authorization.",
-  "taskIdPattern": "^CBW-[A-Z0-9]+(?:-[A-Z0-9]+)*-\\d{3}(?:-[A-Z0-9]+)?$",
+  "taskIdPattern": "^CBW-[A-Z0-9]+(?:-[A-Z0-9]+)*-\\d{3}[A-Z]?(?:-R\\d+)?$",
   "enums": {
     "stream": ["design", "architecture", "market-intelligence", "production", "locale", "security", "ai-ops"],
     "riskLevel": ["P0", "P1", "P2", "P3"],
