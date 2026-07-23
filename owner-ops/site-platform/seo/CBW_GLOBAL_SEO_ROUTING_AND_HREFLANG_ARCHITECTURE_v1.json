@@ -6,7 +6,7 @@
     "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-OWNER-REVIEW-003"
   ],
   "date": "2026-07-23",
-  "status": "ARCHITECTURE_V3_DRAFT_FOR_OWNER_REVIEW",
+  "status": "ARCHITECTURE_V3_OWNER_APPROVED_COMMITTED",
   "rejectedPatterns": {
     "note": "owner review 002 rejected the language-first model; listed here only as rejected",
     "examples": [
@@ -171,5 +171,11 @@
     "SEO14": "no IP/browser hard redirects or cloaking",
     "SEO15": "no fallback page indexed as translated"
   },
-  "localeGatesRef": "LOCALE01–LOCALE25 defined in CBW_CI_QA_STATUS_AND_OWNER_GATE_MATRIX_v1 and enforced together with SEO gates"
+  "localeGatesRef": "LOCALE01–LOCALE25 defined in CBW_CI_QA_STATUS_AND_OWNER_GATE_MATRIX_v1 and enforced together with SEO gates",
+  "lifecycle": {
+    "state": "ARCHITECTURE_V3_OWNER_APPROVED_COMMITTED",
+    "initialArchitectureCommit": "a3dea7e451d046d5f01515bf085962f6f92a9fa7",
+    "branch": "feat/cbw-global-site-architecture-v3",
+    "note": "implementation and production remain separately unauthorized"
+  }
 }

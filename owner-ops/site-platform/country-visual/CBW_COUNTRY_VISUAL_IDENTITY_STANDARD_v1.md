@@ -1,7 +1,7 @@
 # CBW Country Visual Identity Standard — v1
 
 - Task: CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-001 · corrected by owner review 002 · 2026-07-23
-- Status: **ARCHITECTURE_V3_DRAFT_FOR_OWNER_REVIEW** (documentation only; no artwork generated)
+- Status: **ARCHITECTURE_V3_OWNER_APPROVED_COMMITTED** (owner-approved committed architecture authority — initial architecture commit `a3dea7e451d046d5f01515bf085962f6f92a9fa7` on branch `feat/cbw-global-site-architecture-v3`; implementation and production remain separately unauthorized)
 - Companion: [CBW_COUNTRY_VISUAL_IDENTITY_STANDARD_v1.json](CBW_COUNTRY_VISUAL_IDENTITY_STANDARD_v1.json)
 
 ## 1. Purpose
@@ -89,7 +89,7 @@ ChatGPT (art direction + generation per this standard)
 No pack may be generated before `COUNTRY_ART_GENERATION_AUTHORIZED` is true for that batch;
 no artwork enters `public/**` without the export gate.
 
-## 7. Pilot visual plan (defined only — NOT generated in this task)
+## 7. Pilot visual plan (defined only — generation pending explicit COUNTRY_ART_GENERATION_AUTHORIZED approval)
 
 | Pilot | Accent direction | Landmark/motif candidates (for owner selection) |
 |---|---|---|

@@ -1,7 +1,7 @@
 # CBW Global Product and Page Architecture — v3
 
 - Task: CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-001 · 2026-07-23
-- Status: **ARCHITECTURE_V3_DRAFT_FOR_OWNER_REVIEW** (documentation only; nothing implemented)
+- Status: **ARCHITECTURE_V3_OWNER_APPROVED_COMMITTED** (owner-approved committed architecture authority — initial architecture commit `a3dea7e451d046d5f01515bf085962f6f92a9fa7` on branch `feat/cbw-global-site-architecture-v3`; implementation and production remain separately unauthorized)
 - Baseline: Unified Design Foundation v1 @ `ee01f3ca…` · **corrected by owner review 002: market-first × language-second URL architecture** (`/{countrySlug}/{languageCode}/…`; the earlier language-first model is rejected — see the SEO doc's Rejected Patterns section)
 - Package: [../CBW_GLOBAL_SITE_ARCHITECTURE_PACKAGE_v3.json](../CBW_GLOBAL_SITE_ARCHITECTURE_PACKAGE_v3.json)
 - Companions: country-visual · locale · seo · region · delivery · governance documents (same package)

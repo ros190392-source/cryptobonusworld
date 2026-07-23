@@ -2,7 +2,7 @@
   "document": "CBW_CI_QA_STATUS_AND_OWNER_GATE_MATRIX_v1",
   "task": "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-001",
   "date": "2026-07-23",
-  "status": "ARCHITECTURE_V3_DRAFT_FOR_OWNER_REVIEW",
+  "status": "ARCHITECTURE_V3_OWNER_APPROVED_COMMITTED",
   "ciGateMatrix": {
     "prClasses": [
       "design-prototype",
@@ -183,5 +183,27 @@
     "LOCALE24": "English fallback does not automatically make English the market default",
     "LOCALE25": "all language siblings of a market use the same CountryVisualProfile identity"
   },
-  "localeGatesEnforcement": "ci-locale-lint + ci-seo-gates fail PRs on LOCALE01-LOCALE25 violations for touched routes"
+  "localeGatesEnforcement": "ci-locale-lint + ci-seo-gates fail PRs on LOCALE01-LOCALE25 violations for touched routes",
+  "lifecycle": {
+    "state": "ARCHITECTURE_V3_OWNER_APPROVED_COMMITTED",
+    "initialArchitectureCommit": "a3dea7e451d046d5f01515bf085962f6f92a9fa7",
+    "branch": "feat/cbw-global-site-architecture-v3",
+    "note": "implementation and production remain separately unauthorized"
+  },
+  "branchAuthority": {
+    "PRODUCTION_CODE_BRANCH": "master",
+    "CODE_DESIGN_ARCHITECTURE_PR_BASE": "master",
+    "WORKFLOW_BRANCH": "main",
+    "GITHUB_DEFAULT_BRANCH": "main (metadata only)",
+    "rules": [
+      "master is the production code and site-authority branch",
+      "code, design, architecture, content and data PRs target master",
+      "main is reserved for GitHub Actions and workflow-management files",
+      "workflows on main may check out master for actual site code",
+      "main and master remain separate; never merge main into master; never merge master into main",
+      "GitHub default-branch metadata does not redefine production authority",
+      "workflow-file changes require a separately scoped main-branch task",
+      "this architecture branch is not merged by the reconciliation task"
+    ]
+  }
 }

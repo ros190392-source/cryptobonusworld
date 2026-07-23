@@ -2,7 +2,7 @@
 
 - Task: CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-001 · corrected by owner reviews 002
   (market-first) and 003 (extensible matrix; per-market defaults and x-default) · 2026-07-23
-- Status: **ARCHITECTURE_V3_DRAFT_FOR_OWNER_REVIEW** (documentation only)
+- Status: **ARCHITECTURE_V3_OWNER_APPROVED_COMMITTED** (owner-approved committed architecture authority — initial architecture commit `a3dea7e451d046d5f01515bf085962f6f92a9fa7` on branch `feat/cbw-global-site-architecture-v3`; implementation and production remain separately unauthorized)
 - Companion: [CBW_GLOBAL_SEO_ROUTING_AND_HREFLANG_ARCHITECTURE_v1.json](CBW_GLOBAL_SEO_ROUTING_AND_HREFLANG_ARCHITECTURE_v1.json)
 
 ## 0. REJECTED PATTERNS (owner review 002)

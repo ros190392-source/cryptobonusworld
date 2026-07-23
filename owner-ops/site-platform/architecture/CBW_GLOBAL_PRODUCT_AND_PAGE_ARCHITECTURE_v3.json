@@ -2,7 +2,7 @@
   "document": "CBW_GLOBAL_PRODUCT_AND_PAGE_ARCHITECTURE_v3",
   "task": "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-001",
   "date": "2026-07-23",
-  "status": "ARCHITECTURE_V3_DRAFT_FOR_OWNER_REVIEW",
+  "status": "ARCHITECTURE_V3_OWNER_APPROVED_COMMITTED",
   "baselineCommit": "ee01f3ca7c65045dbd81bccbbb3fe5e64bc94ead",
   "defersTo": [
     "CBW_EXCHANGE_MARKET_INTELLIGENCE_BRAIN_v1",
@@ -508,5 +508,11 @@
     "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-OWNER-REVIEW-002",
     "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-OWNER-REVIEW-003"
   ],
-  "urlArchitecture": "market-first × language-second: /{countrySlugLower}/{languageCodeLower}/… (language-first model rejected; see SEO doc rejectedPatterns)"
+  "urlArchitecture": "market-first × language-second: /{countrySlugLower}/{languageCodeLower}/… (language-first model rejected; see SEO doc rejectedPatterns)",
+  "lifecycle": {
+    "state": "ARCHITECTURE_V3_OWNER_APPROVED_COMMITTED",
+    "initialArchitectureCommit": "a3dea7e451d046d5f01515bf085962f6f92a9fa7",
+    "branch": "feat/cbw-global-site-architecture-v3",
+    "note": "implementation and production remain separately unauthorized"
+  }
 }

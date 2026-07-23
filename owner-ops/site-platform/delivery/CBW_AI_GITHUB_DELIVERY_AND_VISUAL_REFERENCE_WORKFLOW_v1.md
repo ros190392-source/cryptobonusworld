@@ -1,7 +1,7 @@
 # CBW AI + GitHub Delivery and Visual Reference Workflow — v1
 
 - Task: CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-001 · corrected by owner review 002 (market-first URLs) · 2026-07-23
-- Status: **ARCHITECTURE_V3_DRAFT_FOR_OWNER_REVIEW** (documentation only)
+- Status: **ARCHITECTURE_V3_OWNER_APPROVED_COMMITTED** (owner-approved committed architecture authority — initial architecture commit `a3dea7e451d046d5f01515bf085962f6f92a9fa7` on branch `feat/cbw-global-site-architecture-v3`; implementation and production remain separately unauthorized)
 - Companion: [CBW_AI_GITHUB_DELIVERY_AND_VISUAL_REFERENCE_WORKFLOW_v1.json](CBW_AI_GITHUB_DELIVERY_AND_VISUAL_REFERENCE_WORKFLOW_v1.json)
 
 ## 1. Roles
@@ -42,6 +42,23 @@ Owner (intent)
 long-lived stream gets its own worktree (`C:\projects\CryptoBonusWorld-<stream>`), never sharing a
 checkout; worktrees are created from a pinned baseline commit stated in the task and are never
 reset/reused across streams. Uncommitted work never migrates between branches by hand.
+
+## Branch authority (codified — verified two-branch model)
+
+```
+PRODUCTION_CODE_BRANCH:            master
+CODE_DESIGN_ARCHITECTURE_PR_BASE:  master
+WORKFLOW_BRANCH:                   main
+GITHUB_DEFAULT_BRANCH:             main   (metadata only)
+```
+
+Rules: `master` is the production code and site-authority branch; code, design, architecture,
+content and data PRs target `master`; `main` is reserved for GitHub Actions and
+workflow-management files; workflows on `main` may check out `master` for actual site code;
+`main` and `master` must remain separate — never merge `main` into `master` and never merge
+`master` into `main`; GitHub default-branch metadata does not redefine production authority;
+workflow-file changes require a separately scoped `main`-branch task. (Documentation only —
+repository settings and branch contents unchanged; this architecture branch is not merged here.)
 
 ## 4. PR lifecycle
 

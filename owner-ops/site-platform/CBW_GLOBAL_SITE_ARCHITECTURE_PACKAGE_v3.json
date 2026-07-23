@@ -3,9 +3,9 @@
   "task": "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-001",
   "project": "CryptoBonusWorld",
   "date": "2026-07-23",
-  "status": "ARCHITECTURE_V3_DRAFT_FOR_OWNER_REVIEW",
-  "ownerApprovalRequired": true,
-  "committed": false,
+  "status": "ARCHITECTURE_V3_OWNER_APPROVED_COMMITTED",
+  "ownerApprovalRequired": false,
+  "committed": true,
   "worktree": "C:\\projects\\CryptoBonusWorld-architecture-v3",
   "branch": "feat/cbw-global-site-architecture-v3",
   "baselineCommit": "ee01f3ca7c65045dbd81bccbbb3fe5e64bc94ead",
@@ -68,9 +68,14 @@
     "PUBLICATION_AUTHORIZED": false,
     "DEPLOY_AUTHORIZED": false
   },
-  "recommendedNextTask": "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-COMMIT-004",
+  "recommendedNextTask": "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-POST-RECONCILE-VERIFY-007",
   "correctedBy": [
     "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-OWNER-REVIEW-002",
     "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-OWNER-REVIEW-003"
-  ]
+  ],
+  "committedCommitSha": "a3dea7e451d046d5f01515bf085962f6f92a9fa7",
+  "committedCommitShaMeaning": "the initial architecture-content commit (the later lifecycle-reconciliation commit is a separate follow-up commit on the same branch)",
+  "ownerApprovedByTask": "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-OWNER-REVIEW-003",
+  "committedByTask": "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-COMMIT-004",
+  "lifecycleReconciledByTask": "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-STATE-RECONCILE-006"
 }

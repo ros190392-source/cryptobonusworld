@@ -1,7 +1,7 @@
 # CBW CI, QA, Status and Owner Gate Matrix — v1
 
 - Task: CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-001 · corrected by owner reviews 002 (market-first URLs; LOCALE01-15) and 003 (extensible matrix; LOCALE16-25) · 2026-07-23
-- Status: **ARCHITECTURE_V3_DRAFT_FOR_OWNER_REVIEW** (documentation only)
+- Status: **ARCHITECTURE_V3_OWNER_APPROVED_COMMITTED** (owner-approved committed architecture authority — initial architecture commit `a3dea7e451d046d5f01515bf085962f6f92a9fa7` on branch `feat/cbw-global-site-architecture-v3`; implementation and production remain separately unauthorized)
 - Companion: [CBW_CI_QA_STATUS_AND_OWNER_GATE_MATRIX_v1.json](CBW_CI_QA_STATUS_AND_OWNER_GATE_MATRIX_v1.json)
 
 ## 1. CI gate matrix (per PR class)
@@ -54,6 +54,23 @@ owner-only and recorded in the PR.
 
 `ci-seo-gates` and `ci-locale-lint` fail a PR on any LOCALE01-LOCALE25 violation for the touched
 routes; the matrix in §1 includes these gates wherever `ci-seo-gates`/`ci-locale-lint` apply.
+
+## Branch authority (codified — verified two-branch model)
+
+```
+PRODUCTION_CODE_BRANCH:            master
+CODE_DESIGN_ARCHITECTURE_PR_BASE:  master
+WORKFLOW_BRANCH:                   main
+GITHUB_DEFAULT_BRANCH:             main   (metadata only)
+```
+
+Rules: `master` is the production code and site-authority branch; code, design, architecture,
+content and data PRs target `master`; `main` is reserved for GitHub Actions and
+workflow-management files; workflows on `main` may check out `master` for actual site code;
+`main` and `master` must remain separate — never merge `main` into `master` and never merge
+`master` into `main`; GitHub default-branch metadata does not redefine production authority;
+workflow-file changes require a separately scoped `main`-branch task. (Documentation only —
+repository settings and branch contents unchanged; this architecture branch is not merged here.)
 
 ## 2. QA and release gates
 

@@ -2,7 +2,7 @@
   "document": "CBW_AI_GITHUB_DELIVERY_AND_VISUAL_REFERENCE_WORKFLOW_v1",
   "task": "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-001",
   "date": "2026-07-23",
-  "status": "ARCHITECTURE_V3_DRAFT_FOR_OWNER_REVIEW",
+  "status": "ARCHITECTURE_V3_OWNER_APPROVED_COMMITTED",
   "roles": {
     "owner": "only decision authority: scoped tasks, approvals, every GO gate (commit, merge, publication, affiliate, deploy)",
     "chatgpt": "architecture, design direction, SEO strategy, art generation (country packs, references), Deep Research, per-market-language translation passes (locked glossary), independent PR/report review; never touches the repo",
@@ -26,7 +26,7 @@
     "post-deploy live QA + status update"
   ],
   "branchStrategy": {
-    "master": "protected; PR-only; green CI; owner approval",
+    "master": "production code + site-authority branch; protected; PR-only; green CI; owner approval; PR base for code/design/architecture/content/data",
     "namespaces": [
       "feat/*",
       "design/* (feat/cbw-*-v{n})",
@@ -39,7 +39,8 @@
       "each long-lived stream gets its own worktree from a pinned baseline commit",
       "worktrees never shared, reset or reused across streams",
       "uncommitted work never hand-migrated between branches"
-    ]
+    ],
+    "main": "workflow branch only (GitHub Actions); never merged with master in either direction"
   },
   "prLifecycle": [
     "open with task ID, exact scope list, validation summary, screenshot links, boundary confirmations",
@@ -101,5 +102,27 @@
   "correctedBy": [
     "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-OWNER-REVIEW-002",
     "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-OWNER-REVIEW-003"
-  ]
+  ],
+  "lifecycle": {
+    "state": "ARCHITECTURE_V3_OWNER_APPROVED_COMMITTED",
+    "initialArchitectureCommit": "a3dea7e451d046d5f01515bf085962f6f92a9fa7",
+    "branch": "feat/cbw-global-site-architecture-v3",
+    "note": "implementation and production remain separately unauthorized"
+  },
+  "branchAuthority": {
+    "PRODUCTION_CODE_BRANCH": "master",
+    "CODE_DESIGN_ARCHITECTURE_PR_BASE": "master",
+    "WORKFLOW_BRANCH": "main",
+    "GITHUB_DEFAULT_BRANCH": "main (metadata only)",
+    "rules": [
+      "master is the production code and site-authority branch",
+      "code, design, architecture, content and data PRs target master",
+      "main is reserved for GitHub Actions and workflow-management files",
+      "workflows on main may check out master for actual site code",
+      "main and master remain separate; never merge main into master; never merge master into main",
+      "GitHub default-branch metadata does not redefine production authority",
+      "workflow-file changes require a separately scoped main-branch task",
+      "this architecture branch is not merged by the reconciliation task"
+    ]
+  }
 }

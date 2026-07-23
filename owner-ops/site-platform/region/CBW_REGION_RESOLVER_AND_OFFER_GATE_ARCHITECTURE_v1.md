@@ -1,7 +1,7 @@
 # CBW Region Resolver and Offer Gate Architecture — v1
 
 - Task: CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-001 · corrected by owner reviews 002 (market-first URLs) and 003 (per-market defaults; explicit country-switch fallback) · 2026-07-23
-- Status: **ARCHITECTURE_V3_DRAFT_FOR_OWNER_REVIEW** (documentation only)
+- Status: **ARCHITECTURE_V3_OWNER_APPROVED_COMMITTED** (owner-approved committed architecture authority — initial architecture commit `a3dea7e451d046d5f01515bf085962f6f92a9fa7` on branch `feat/cbw-global-site-architecture-v3`; implementation and production remain separately unauthorized)
 - Companion: [CBW_REGION_RESOLVER_AND_OFFER_GATE_ARCHITECTURE_v1.json](CBW_REGION_RESOLVER_AND_OFFER_GATE_ARCHITECTURE_v1.json)
 - Defers to: MI Brain v1 (decision outputs), MI↔GEO Reconciliation Standard v1 (canonical record,
   ownership, commercial separation), First Screen Standard v1 (rendering rules).

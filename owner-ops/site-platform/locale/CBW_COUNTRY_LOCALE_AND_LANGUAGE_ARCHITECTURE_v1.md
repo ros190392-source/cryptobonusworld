@@ -2,7 +2,7 @@
 
 - Task: CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-001 · corrected by owner reviews 002
   (market-first URLs) and **003 (extensible market-language matrix, per-market defaults)** · 2026-07-23
-- Status: **ARCHITECTURE_V3_DRAFT_FOR_OWNER_REVIEW** (documentation only)
+- Status: **ARCHITECTURE_V3_OWNER_APPROVED_COMMITTED** (owner-approved committed architecture authority — initial architecture commit `a3dea7e451d046d5f01515bf085962f6f92a9fa7` on branch `feat/cbw-global-site-architecture-v3`; implementation and production remain separately unauthorized)
 - Companion: [CBW_COUNTRY_LOCALE_AND_LANGUAGE_ARCHITECTURE_v1.json](CBW_COUNTRY_LOCALE_AND_LANGUAGE_ARCHITECTURE_v1.json)
 
 ## 1. Core principle — two independent variables, market-first URLs

@@ -2,7 +2,7 @@
   "document": "CBW_COUNTRY_VISUAL_IDENTITY_STANDARD_v1",
   "task": "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-001",
   "date": "2026-07-23",
-  "status": "ARCHITECTURE_V3_DRAFT_FOR_OWNER_REVIEW",
+  "status": "ARCHITECTURE_V3_OWNER_APPROVED_COMMITTED",
   "purpose": "Premium owner-approved visual identity per covered country inside the unified CBW system; presentation only — never signals availability, eligibility or endorsement",
   "artStyle": {
     "style": "flat-vector geometric illustration; CBW navy base; one country accent duo; restrained line detail; landmark/motif silhouettes",
@@ -69,7 +69,7 @@
   ],
   "generationGate": "no pack generated before COUNTRY_ART_GENERATION_AUTHORIZED for that batch",
   "pilotPlan": {
-    "note": "defined only — NOT generated in this task",
+    "note": "defined only — country visual generation is pending explicit COUNTRY_ART_GENERATION_AUTHORIZED approval",
     "pilots": [
       {
         "countryCode": "KZ",
@@ -119,5 +119,11 @@
     ],
     "prohibited": "per-language artworks for one country",
     "ciGate": "LOCALE14 + LOCALE25: country artwork identity identical across language siblings"
+  },
+  "lifecycle": {
+    "state": "ARCHITECTURE_V3_OWNER_APPROVED_COMMITTED",
+    "initialArchitectureCommit": "a3dea7e451d046d5f01515bf085962f6f92a9fa7",
+    "branch": "feat/cbw-global-site-architecture-v3",
+    "note": "implementation and production remain separately unauthorized"
   }
 }
