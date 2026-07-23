@@ -16,9 +16,84 @@ import { submitIndexNow } from './indexnow.mjs';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT      = resolve(__dirname, '..');
 
-const SSH_KEY  = `${process.env.HOME || process.env.USERPROFILE}/.ssh/cryptovek_id`;
-const SERVER   = 'root@23.88.106.140';
-const WEB_ROOT = '/var/www/cryptobonusworld/html';
+// ── Deployment configuration (environment-driven, public-key only) ───────────
+//
+// Required environment variables (deployment fails closed if any is missing):
+//   CBW_DEPLOY_HOST        production host name or IP
+//   CBW_DEPLOY_USER        deployment SSH user
+//   CBW_DEPLOY_KEY_PATH    path to the private key used for public-key auth
+//
+// Optional environment variables (documented defaults):
+//   CBW_DEPLOY_PORT        SSH port          (default: 22)
+//   CBW_DEPLOY_REMOTE_PATH remote web root   (default: /var/www/cryptobonusworld/html)
+//
+// No password is read, accepted or supported. Host-key verification and
+// public-key-only authentication are enforced on every ssh/scp call. See
+// docs/security/CBW_DEPLOYMENT_CREDENTIALS_STANDARD_v1.md.
+
+function failConfig(message) {
+  console.error(`\nDeploy configuration error: ${message}`);
+  process.exit(2);
+}
+
+function loadDeployConfig() {
+  const host    = (process.env.CBW_DEPLOY_HOST     || '').trim();
+  const user    = (process.env.CBW_DEPLOY_USER     || '').trim();
+  const keyPath = (process.env.CBW_DEPLOY_KEY_PATH || '').trim();
+
+  const missing = [
+    ['CBW_DEPLOY_HOST', host],
+    ['CBW_DEPLOY_USER', user],
+    ['CBW_DEPLOY_KEY_PATH', keyPath],
+  ].filter(([, v]) => !v).map(([name]) => name);
+
+  if (missing.length) {
+    failConfig(
+      `missing required environment variable(s): ${missing.join(', ')}. ` +
+      `Set them to production values in your local secret manager; do not ` +
+      `hardcode them. Public-key authentication only.`
+    );
+  }
+
+  const portRaw = (process.env.CBW_DEPLOY_PORT || '22').trim();
+  const port = Number.parseInt(portRaw, 10);
+  if (!Number.isInteger(port) || port <= 0) {
+    failConfig('CBW_DEPLOY_PORT must be a positive integer.');
+  }
+
+  const remotePath =
+    (process.env.CBW_DEPLOY_REMOTE_PATH || '').trim() ||
+    '/var/www/cryptobonusworld/html';
+
+  if (!existsSync(keyPath)) {
+    failConfig(
+      'CBW_DEPLOY_KEY_PATH does not point to a readable private key file. ' +
+      'Provide the path to your deployment SSH private key.'
+    );
+  }
+
+  return { host, user, keyPath, port, remotePath };
+}
+
+const CFG = loadDeployConfig();
+const SERVER = `${CFG.user}@${CFG.host}`;
+const WEB_ROOT = CFG.remotePath;
+
+// Public-key-only, host-key-verified transport options for ssh and scp.
+// BatchMode disables all interactive prompts; the client falls back to no
+// other auth method, so a broken key fails closed instead of prompting.
+const SSH_HARDENING = [
+  '-o BatchMode=yes',
+  '-o PasswordAuthentication=no',
+  '-o KbdInteractiveAuthentication=no',
+  '-o PreferredAuthentications=publickey',
+  '-o IdentitiesOnly=yes',
+  '-o StrictHostKeyChecking=yes',
+].join(' ');
+
+// scp uses -P for port; ssh uses -p. Key path is quoted for paths with spaces.
+const SCP_BASE = `scp ${SSH_HARDENING} -P ${CFG.port} -i "${CFG.keyPath}"`;
+const SSH_BASE = `ssh ${SSH_HARDENING} -p ${CFG.port} -i "${CFG.keyPath}"`;
 
 function run(cmd, opts = {}) {
   console.log(`\n$ ${cmd}`);
@@ -56,11 +131,11 @@ run('tar czf dist.tar.gz -C dist .');
 
 // 4. Upload
 console.log('\n⬆️   Uploading...');
-run(`scp -i "${SSH_KEY}" dist.tar.gz ${SERVER}:/tmp/`);
+run(`${SCP_BASE} dist.tar.gz ${SERVER}:/tmp/`);
 
 // 5. Deploy on server
 console.log('\n🚀  Deploying on server...');
-run(`ssh -i "${SSH_KEY}" ${SERVER} "rm -rf ${WEB_ROOT}/* && tar xzf /tmp/dist.tar.gz -C ${WEB_ROOT}/ && rm /tmp/dist.tar.gz && echo SERVER_DONE"`);
+run(`${SSH_BASE} ${SERVER} "rm -rf ${WEB_ROOT}/* && tar xzf /tmp/dist.tar.gz -C ${WEB_ROOT}/ && rm /tmp/dist.tar.gz && echo SERVER_DONE"`);
 
 // 6. Cleanup local
 if (existsSync(`${ROOT}/dist.tar.gz`)) {
