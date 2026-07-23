@@ -1,0 +1,104 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-EXAMPLE-EXCHANGE-REVIEW-COPY-001",
+  "project": "CryptoBonusWorld",
+  "title": "Example: update mock copy in the exchange-review design preview",
+  "stream": "design",
+  "riskLevel": "P2",
+  "taskType": "docs",
+  "status": "READY",
+  "repository": "ros190392-source/cryptobonusworld",
+  "baseBranch": "master",
+  "baseSha": "aacdfe00bd97a39c3864947bf6e1e0db6de183aa",
+  "worktreePath": "C:/projects/CryptoBonusWorld-example-001",
+  "featureBranch": "feat/cbw-example-exchange-review-copy-001",
+  "executor": "CLAUDE_CODE",
+  "reviewer": "CHATGPT",
+  "authorizedScope": {
+    "exactPaths": [
+      "src/data/design-preview/exchange-review-template-mock.ts"
+    ],
+    "allowedPrefixes": [
+      "owner-ops/status/"
+    ],
+    "forbiddenPaths": [
+      "deploy.py",
+      "scripts/deploy.mjs",
+      "package.json"
+    ],
+    "forbiddenPrefixes": [
+      "src/pages/",
+      "public/",
+      "docs/security/"
+    ]
+  },
+  "requiredChecks": [
+    "ai-ops:validate",
+    "build",
+    "validate:affiliate",
+    "seo:check"
+  ],
+  "stopConditions": [
+    "baseSha does not match origin/master",
+    "worktree already contains unrelated work",
+    "an out-of-scope path would change",
+    "a forbidden path or prefix would change"
+  ],
+  "ownerAuthorizations": {
+    "implementation": true,
+    "merge": false,
+    "deploy": false,
+    "productionBinding": false,
+    "publication": false,
+    "affiliateActivation": false
+  },
+  "repairPolicy": {
+    "enabled": true,
+    "maxAttempts": 2,
+    "allowedCategories": [
+      "formatting",
+      "lint",
+      "deterministic-type-error",
+      "deterministic-build-error",
+      "internal-link-error",
+      "schema-validation-error",
+      "test-fixture-correction"
+    ],
+    "prohibitedCategories": [
+      "architecture-decision",
+      "production-fact",
+      "bonus-or-referral-value",
+      "affiliate-url",
+      "market-availability",
+      "geo-eligibility",
+      "legal-or-regulatory-claim",
+      "security-incident",
+      "secret",
+      "workflow-permission-change",
+      "branch-authority-change",
+      "production-deployment",
+      "scope-expansion",
+      "delete-or-weaken-failing-test"
+    ]
+  },
+  "forbiddenActions": [
+    "force-push",
+    "history-rewrite",
+    "secret-disclosure",
+    "automatic-production-deployment",
+    "bypass-owner-authorization",
+    "merge-main-into-master",
+    "merge-master-into-main"
+  ],
+  "expectedOutputs": [
+    "one commit on the feature branch",
+    "one pull request into master (not merged)",
+    "a structured final report"
+  ],
+  "finalReportRequirements": [
+    "changed-file scope confirmation",
+    "validation results",
+    "no merge / no deploy confirmation",
+    "recommended next task"
+  ]
+}

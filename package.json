@@ -3,6 +3,11 @@
   "type": "module",
   "version": "1.0.0",
   "scripts": {
+    "ai-ops:validate": "node scripts/ai-ops/validate-ai-ops-foundation.mjs",
+    "ai-ops:validate:contract": "node scripts/ai-ops/validate-task-contract.mjs",
+    "ai-ops:validate:fixtures": "node tests/ai-ops/run-fixtures.mjs",
+    "ai-ops:validate:scope": "node scripts/ai-ops/validate-scope.mjs",
+    "ai-ops:validate:branch": "node scripts/ai-ops/validate-branch-authority.mjs",
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",

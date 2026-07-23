@@ -1,0 +1,82 @@
+{
+  "document": "CBW_BRANCH_AUTHORITY_MAP_v1",
+  "schemaVersion": "1.0.0",
+  "project": "CryptoBonusWorld",
+  "description": "Explicit branch authority for the two-branch model. master = production/site/code/architecture/governance authority; main = repository default branch hosting Issue Forms, PR templates and manually dispatched control workflows. The branches are never merged wholesale in either direction.",
+  "authorities": {
+    "master": {
+      "role": "production/site authority",
+      "owns": [
+        "application code",
+        "production content",
+        "architecture",
+        "design governance",
+        "owner-ops governance",
+        "AI Ops validators used by PRs targeting master",
+        "the master-side advisory PR gate"
+      ],
+      "ownedPrefixes": [
+        "src/",
+        "public/",
+        "owner-ops/",
+        "scripts/",
+        "docs/",
+        "tests/",
+        "config/",
+        "schemas/",
+        "research/",
+        "tools/",
+        "evidence/"
+      ],
+      "ownedPaths": [
+        "package.json",
+        "package-lock.json",
+        "astro.config.mjs",
+        "deploy.py",
+        ".github/CODEOWNERS",
+        ".github/workflows/cbw-pr-advisory-gate.yml"
+      ]
+    },
+    "main": {
+      "role": "repository default branch / control plane",
+      "owns": [
+        "GitHub Issue Forms",
+        "pull-request template",
+        "manually dispatched control workflows",
+        "existing Telegram/report workflows",
+        "default-branch authority documentation"
+      ],
+      "ownedPrefixes": [
+        ".github/ISSUE_TEMPLATE/"
+      ],
+      "ownedPaths": [
+        ".github/pull_request_template.md",
+        ".github/workflows/cbw-ai-ops-manual-validate.yml",
+        ".github/workflows/cbw-ai-ops-repair-request.yml",
+        ".github/CBW_AI_OPS_DEFAULT_BRANCH_AUTHORITY_v1.md"
+      ]
+    }
+  },
+  "sharedExisting": {
+    "description": "Files that already exist on main and are intentionally left byte-identical by AI Ops V1; not owned by either new PR.",
+    "paths": [
+      ".github/workflows/critical-alerts.yml",
+      ".github/workflows/telegram-reports.yml"
+    ]
+  },
+  "rules": [
+    "code/content/architecture/governance PRs target master",
+    "default-branch Issue Form / PR template / control-workflow PRs target main",
+    "main and master must never be merged wholesale in either direction",
+    "main and master must never be rebased onto each other",
+    "cross-authority modifications require separate task contracts",
+    "deployment may use an explicitly owner-approved master SHA only",
+    "no deploy action may be inferred from a merge",
+    "a task contract must not request a wholesale main<->master merge"
+  ],
+  "validation": {
+    "masterPrForbidsMainOnly": "a PR whose baseBranch is master must not change any main-owned path (Issue Forms, PR template, control workflows, default-branch authority doc)",
+    "mainPrForbidsMasterOnly": "a PR whose baseBranch is main must not change any master-owned prefix or path (application code, owner-ops, scripts, docs, tests, advisory gate, CODEOWNERS, package.json)",
+    "wholesaleMergeForbidden": "a contract that lists the other authority's whole tree, or declares a main<->master merge, fails branch-authority validation"
+  }
+}

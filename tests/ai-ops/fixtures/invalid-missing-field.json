@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-FIXTURE-MISSING-FIELD-001",
+  "project": "CryptoBonusWorld",
+  "title": "Fixture: missing required ownerAuthorizations and repairPolicy",
+  "stream": "ai-ops",
+  "riskLevel": "P2",
+  "taskType": "docs",
+  "status": "READY",
+  "repository": "ros190392-source/cryptobonusworld",
+  "baseBranch": "master",
+  "baseSha": "aacdfe00bd97a39c3864947bf6e1e0db6de183aa",
+  "worktreePath": "C:/projects/CryptoBonusWorld-fixture-002",
+  "featureBranch": "feat/cbw-fixture-missing-002",
+  "executor": "CLAUDE_CODE",
+  "reviewer": "CHATGPT",
+  "authorizedScope": {
+    "exactPaths": ["src/data/design-preview/foundation-mock.ts"],
+    "allowedPrefixes": [],
+    "forbiddenPaths": [],
+    "forbiddenPrefixes": []
+  },
+  "requiredChecks": ["ai-ops:validate"],
+  "stopConditions": ["baseSha mismatch"],
+  "forbiddenActions": [
+    "force-push",
+    "history-rewrite",
+    "secret-disclosure",
+    "automatic-production-deployment",
+    "bypass-owner-authorization"
+  ],
+  "expectedOutputs": ["one commit"],
+  "finalReportRequirements": ["scope confirmation"]
+}

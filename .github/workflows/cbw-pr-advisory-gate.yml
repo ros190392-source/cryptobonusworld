@@ -1,0 +1,102 @@
+name: CBW PR Advisory Gate
+
+# Advisory-only gate for pull requests targeting master. Read-only permissions;
+# never deploys, never writes repository contents, never uses pull_request_target,
+# and is intentionally NOT configured as a required check by this task.
+
+on:
+  pull_request:
+    branches:
+      - master
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: cbw-pr-advisory-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  advisory:
+    name: Advisory validation (non-blocking)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR head (no persisted credentials)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: AI Ops foundation validation
+        id: aiops
+        continue-on-error: true
+        run: npm run ai-ops:validate
+
+      - name: Production build
+        id: build
+        continue-on-error: true
+        run: npm run build
+
+      - name: Affiliate integrity (safe)
+        id: affiliate
+        continue-on-error: true
+        run: npm run validate:affiliate
+
+      - name: SEO check (safe)
+        id: seo
+        continue-on-error: true
+        run: npm run seo:check
+
+      - name: Determine changed files
+        id: changed
+        continue-on-error: true
+        run: |
+          git fetch origin ${{ github.event.pull_request.base.ref }} --depth=1
+          git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD > changed-files.txt || true
+          echo "count=$(wc -l < changed-files.txt | tr -d ' ')" >> "$GITHUB_OUTPUT"
+
+      - name: Branch authority validation
+        id: branch
+        continue-on-error: true
+        run: node scripts/ai-ops/validate-branch-authority.mjs owner-ops/ai-ops/CBW_BRANCH_AUTHORITY_MAP_v1.json master changed-files.txt
+
+      - name: Scope validation (only when a task contract path is declared)
+        id: scope
+        continue-on-error: true
+        env:
+          CBW_TASK_CONTRACT: ${{ vars.CBW_TASK_CONTRACT }}
+        run: |
+          if [ -n "$CBW_TASK_CONTRACT" ] && [ -f "$CBW_TASK_CONTRACT" ]; then
+            node scripts/ai-ops/validate-scope.mjs "$CBW_TASK_CONTRACT" changed-files.txt
+          else
+            echo "No valid task-contract path declared — scope check skipped (advisory)."
+          fi
+
+      - name: Step summary
+        if: always()
+        run: |
+          {
+            echo "## CBW PR Advisory Gate (advisory / non-blocking)"
+            echo ""
+            echo "| Check | Result |"
+            echo "|---|---|"
+            echo "| ai-ops:validate | ${{ steps.aiops.outcome }} |"
+            echo "| build | ${{ steps.build.outcome }} |"
+            echo "| validate:affiliate | ${{ steps.affiliate.outcome }} |"
+            echo "| seo:check | ${{ steps.seo.outcome }} |"
+            echo "| branch-authority | ${{ steps.branch.outcome }} |"
+            echo "| scope | ${{ steps.scope.outcome }} |"
+            echo ""
+            echo "Changed files: ${{ steps.changed.outputs.count }}"
+            echo ""
+            echo "> V1 enforcement is ADVISORY. This workflow does not merge, deploy, or write repository contents. Legacy PRs without a task contract are allowed with this advisory notice."
+          } >> "$GITHUB_STEP_SUMMARY"

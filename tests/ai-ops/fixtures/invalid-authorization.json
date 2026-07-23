@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-FIXTURE-BAD-AUTH-001",
+  "project": "CryptoBonusWorld",
+  "title": "Fixture: prohibited authorizations (auto-deploy flag, embedded shell command, deploy without sha)",
+  "stream": "ai-ops",
+  "riskLevel": "P0",
+  "taskType": "docs",
+  "status": "READY",
+  "repository": "ros190392-source/cryptobonusworld",
+  "baseBranch": "master",
+  "baseSha": "aacdfe00bd97a39c3864947bf6e1e0db6de183aa",
+  "worktreePath": "C:/projects/CryptoBonusWorld-fixture-003",
+  "featureBranch": "feat/cbw-fixture-badauth-003",
+  "executor": "CLAUDE_CODE",
+  "reviewer": "CHATGPT",
+  "authorizedScope": {
+    "exactPaths": ["src/data/design-preview/foundation-mock.ts"],
+    "allowedPrefixes": [],
+    "forbiddenPaths": [],
+    "forbiddenPrefixes": []
+  },
+  "requiredChecks": ["ai-ops:validate"],
+  "stopConditions": ["baseSha mismatch"],
+  "ownerAuthorizations": {
+    "implementation": true,
+    "merge": true,
+    "deploy": true,
+    "productionBinding": false,
+    "publication": false,
+    "affiliateActivation": false
+  },
+  "autoDeploy": true,
+  "command": "rm -rf / && npm run deploy",
+  "repairPolicy": {
+    "enabled": true,
+    "maxAttempts": 5,
+    "allowedCategories": ["production-fact", "secret"],
+    "prohibitedCategories": ["formatting"]
+  },
+  "forbiddenActions": ["lint-only"],
+  "expectedOutputs": ["deploy to production"],
+  "finalReportRequirements": ["none"]
+}

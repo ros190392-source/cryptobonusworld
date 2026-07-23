@@ -1,0 +1,10 @@
+# CBW CODEOWNERS — AI Ops V1 (master authority)
+# The repository owner reviews changes to governed AI Ops, deployment and
+# security-sensitive areas. Only the known repository owner is assigned.
+
+/owner-ops/ai-ops/**        @ros190392-source
+/scripts/ai-ops/**          @ros190392-source
+/.github/workflows/**       @ros190392-source
+/deploy.py                  @ros190392-source
+/scripts/deploy.mjs         @ros190392-source
+/docs/security/**           @ros190392-source

@@ -1,0 +1,126 @@
+{
+  "document": "CBW_AI_TASK_CONTRACT_SCHEMA_v1",
+  "schemaVersion": "1.0.0",
+  "project": "CryptoBonusWorld",
+  "description": "Machine-readable task-contract shape enforced by scripts/ai-ops/validate-task-contract.mjs. Contracts declare scope and authorizations as data only; they never carry executable shell commands and can never authorize force-push, history rewrite, secret disclosure, automatic production deployment, or a bypass of owner authorization.",
+  "taskIdPattern": "^CBW-[A-Z0-9]+(?:-[A-Z0-9]+)*-\\d{3}(?:-[A-Z0-9]+)?$",
+  "enums": {
+    "stream": ["design", "architecture", "market-intelligence", "production", "locale", "security", "ai-ops"],
+    "riskLevel": ["P0", "P1", "P2", "P3"],
+    "taskType": ["feature", "bugfix", "docs", "governance", "research", "reconciliation", "closeout", "review", "ai-ops"],
+    "status": ["DRAFT", "READY", "CLAIMED", "IN_PROGRESS", "PR_OPEN", "CI_FAILED", "REPAIRING", "OWNER_REVIEW", "APPROVED", "MERGED", "DEPLOY_READY", "DEPLOYED", "BLOCKED", "CANCELLED"],
+    "baseBranch": ["master", "main"],
+    "executor": ["CLAUDE_CODE"],
+    "reviewer": ["CHATGPT", "OWNER"]
+  },
+  "requiredFields": [
+    "schemaVersion",
+    "taskId",
+    "project",
+    "title",
+    "stream",
+    "riskLevel",
+    "taskType",
+    "status",
+    "repository",
+    "baseBranch",
+    "baseSha",
+    "worktreePath",
+    "featureBranch",
+    "executor",
+    "reviewer",
+    "authorizedScope",
+    "requiredChecks",
+    "stopConditions",
+    "ownerAuthorizations",
+    "repairPolicy",
+    "forbiddenActions",
+    "expectedOutputs",
+    "finalReportRequirements"
+  ],
+  "fieldTypes": {
+    "schemaVersion": "string",
+    "taskId": "string(taskIdPattern)",
+    "project": "string(=CryptoBonusWorld)",
+    "title": "string",
+    "stream": "enum(stream)",
+    "riskLevel": "enum(riskLevel)",
+    "taskType": "enum(taskType)",
+    "status": "enum(status)",
+    "repository": "string",
+    "baseBranch": "enum(baseBranch)",
+    "baseSha": "string(40-hex)",
+    "worktreePath": "string",
+    "featureBranch": "string(not master, not main)",
+    "executor": "enum(executor)",
+    "reviewer": "enum(reviewer)",
+    "authorizedScope": "object(authorizedScope)",
+    "requiredChecks": "string[]",
+    "stopConditions": "string[]",
+    "ownerAuthorizations": "object(ownerAuthorizations)",
+    "repairPolicy": "object(repairPolicy)",
+    "forbiddenActions": "string[]",
+    "expectedOutputs": "string[]",
+    "finalReportRequirements": "string[]"
+  },
+  "authorizedScope": {
+    "requiredFields": ["exactPaths", "allowedPrefixes", "forbiddenPaths", "forbiddenPrefixes"],
+    "types": {
+      "exactPaths": "string[] (repository-relative POSIX; no absolute, no traversal)",
+      "allowedPrefixes": "string[] (repository-relative POSIX prefixes)",
+      "forbiddenPaths": "string[]",
+      "forbiddenPrefixes": "string[]"
+    },
+    "rules": [
+      "no absolute paths",
+      "no parent traversal (..)",
+      "no NUL/CR/LF",
+      "no duplicate entries within a list",
+      "no path both authorized (exact/prefix) and forbidden"
+    ]
+  },
+  "ownerAuthorizations": {
+    "requiredFields": ["implementation", "merge", "deploy", "productionBinding", "publication", "affiliateActivation"],
+    "types": "all boolean",
+    "rules": [
+      "each field must be an explicit boolean",
+      "merge=true is honored only with an explicit owner decision recorded outside the contract",
+      "deploy=true additionally requires an owner-approved master SHA",
+      "no authorization may be inferred from another"
+    ]
+  },
+  "repairPolicy": {
+    "requiredFields": ["enabled", "maxAttempts", "allowedCategories", "prohibitedCategories"],
+    "types": {
+      "enabled": "boolean",
+      "maxAttempts": "integer 0..2",
+      "allowedCategories": "string[]",
+      "prohibitedCategories": "string[]"
+    },
+    "rules": [
+      "maxAttempts must not exceed 2",
+      "allowedCategories and prohibitedCategories must be disjoint",
+      "prohibitedCategories must include every category listed in CBW_CONTROLLED_REPAIR_POLICY_v1"
+    ]
+  },
+  "prohibitedAuthorizations": {
+    "description": "Values a task contract may never contain anywhere (any field, including forbiddenActions must list them as forbidden, never as allowed).",
+    "forbiddenActionTokensRequired": [
+      "force-push",
+      "history-rewrite",
+      "secret-disclosure",
+      "automatic-production-deployment",
+      "bypass-owner-authorization"
+    ],
+    "hardFail": [
+      "any field named allowForcePush/allowHistoryRewrite/allowSecretDisclosure/autoDeploy/bypassOwner set truthy",
+      "any embedded shell command field (command, cmd, run, exec, shell, script)",
+      "ownerAuthorizations.deploy true without an ownerApprovedDeploySha field",
+      "a contract requesting a wholesale main<->master merge"
+    ]
+  },
+  "safety": {
+    "noExecutableCommands": "the contract carries data only; validators never execute contract-provided commands",
+    "noSecrets": "the contract must not contain passwords, private keys, tokens or session cookies"
+  }
+}

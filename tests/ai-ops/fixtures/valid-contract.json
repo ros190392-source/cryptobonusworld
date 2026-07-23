@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-FIXTURE-VALID-CONTRACT-001",
+  "project": "CryptoBonusWorld",
+  "title": "Fixture: a fully valid task contract",
+  "stream": "ai-ops",
+  "riskLevel": "P2",
+  "taskType": "docs",
+  "status": "READY",
+  "repository": "ros190392-source/cryptobonusworld",
+  "baseBranch": "master",
+  "baseSha": "aacdfe00bd97a39c3864947bf6e1e0db6de183aa",
+  "worktreePath": "C:/projects/CryptoBonusWorld-fixture-001",
+  "featureBranch": "feat/cbw-fixture-valid-001",
+  "executor": "CLAUDE_CODE",
+  "reviewer": "CHATGPT",
+  "authorizedScope": {
+    "exactPaths": ["src/data/design-preview/foundation-mock.ts"],
+    "allowedPrefixes": ["owner-ops/status/"],
+    "forbiddenPaths": ["deploy.py"],
+    "forbiddenPrefixes": ["docs/security/"]
+  },
+  "requiredChecks": ["ai-ops:validate", "build"],
+  "stopConditions": ["baseSha mismatch", "out-of-scope change"],
+  "ownerAuthorizations": {
+    "implementation": true,
+    "merge": false,
+    "deploy": false,
+    "productionBinding": false,
+    "publication": false,
+    "affiliateActivation": false
+  },
+  "repairPolicy": {
+    "enabled": true,
+    "maxAttempts": 2,
+    "allowedCategories": ["formatting", "lint", "schema-validation-error"],
+    "prohibitedCategories": [
+      "architecture-decision",
+      "production-fact",
+      "bonus-or-referral-value",
+      "affiliate-url",
+      "market-availability",
+      "geo-eligibility",
+      "legal-or-regulatory-claim",
+      "security-incident",
+      "secret",
+      "workflow-permission-change",
+      "branch-authority-change",
+      "production-deployment",
+      "scope-expansion",
+      "delete-or-weaken-failing-test"
+    ]
+  },
+  "forbiddenActions": [
+    "force-push",
+    "history-rewrite",
+    "secret-disclosure",
+    "automatic-production-deployment",
+    "bypass-owner-authorization",
+    "merge-main-into-master",
+    "merge-master-into-main"
+  ],
+  "expectedOutputs": ["one commit", "one PR into master (not merged)", "final report"],
+  "finalReportRequirements": ["scope confirmation", "validation results", "no merge / no deploy"]
+}
