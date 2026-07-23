@@ -1,0 +1,143 @@
+name: CBW Task Contract
+description: Propose a governed AI Ops task (scoped, owner-gated). Never include passwords, keys or secrets.
+title: "[TASK] "
+labels: ["cbw-task", "ai-ops"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Structured task request. This becomes the basis of a machine-readable task contract.
+        **Do not enter any password, private key, recovery code, API secret or session cookie.**
+  - type: input
+    id: task_title
+    attributes:
+      label: Task title
+      description: Short imperative summary.
+    validations:
+      required: true
+  - type: dropdown
+    id: stream
+    attributes:
+      label: Stream
+      options:
+        - design
+        - architecture
+        - market-intelligence
+        - production
+        - locale
+        - security
+        - ai-ops
+    validations:
+      required: true
+  - type: dropdown
+    id: risk
+    attributes:
+      label: Risk level
+      options: ["P0", "P1", "P2", "P3"]
+    validations:
+      required: true
+  - type: dropdown
+    id: task_type
+    attributes:
+      label: Task type
+      options: ["feature", "bugfix", "docs", "governance", "research", "reconciliation", "closeout", "review", "ai-ops"]
+    validations:
+      required: true
+  - type: dropdown
+    id: target_authority_branch
+    attributes:
+      label: Target authority branch
+      description: master = code/content/architecture/governance; main = default-branch control plane.
+      options: ["master", "main"]
+    validations:
+      required: true
+  - type: input
+    id: expected_base_sha
+    attributes:
+      label: Expected base SHA
+      description: 40-char commit SHA the work is based on.
+    validations:
+      required: true
+  - type: input
+    id: requested_worktree
+    attributes:
+      label: Requested worktree
+      description: Absolute path of the dedicated worktree.
+    validations:
+      required: true
+  - type: input
+    id: requested_feature_branch
+    attributes:
+      label: Requested feature branch
+      description: Dedicated feature branch (never master/main).
+    validations:
+      required: true
+  - type: textarea
+    id: exact_authorized_files
+    attributes:
+      label: Exact authorized files
+      description: One repository-relative POSIX path per line.
+    validations:
+      required: true
+  - type: textarea
+    id: allowed_path_prefixes
+    attributes:
+      label: Allowed path prefixes
+      description: One repository-relative POSIX prefix per line (optional).
+    validations:
+      required: false
+  - type: textarea
+    id: forbidden_paths
+    attributes:
+      label: Forbidden paths
+      description: Paths/prefixes that must never change.
+    validations:
+      required: false
+  - type: textarea
+    id: required_validation
+    attributes:
+      label: Required validation
+      description: Checks that must pass (e.g. ai-ops:validate, build, validate:affiliate, seo:check).
+    validations:
+      required: true
+  - type: dropdown
+    id: owner_authorization_state
+    attributes:
+      label: Owner authorization state
+      description: Current owner authorization for this task.
+      options:
+        - "implementation only"
+        - "implementation + merge"
+        - "implementation + merge + deploy"
+        - "review/documentation only"
+        - "not yet authorized"
+    validations:
+      required: true
+  - type: dropdown
+    id: deploy_permission
+    attributes:
+      label: Deploy permission
+      options: ["no deploy", "deploy authorized (owner-approved master SHA required)"]
+    validations:
+      required: true
+  - type: textarea
+    id: supporting_context
+    attributes:
+      label: Supporting context
+    validations:
+      required: false
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Acceptance criteria
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety acknowledgements
+      options:
+        - label: This issue contains no passwords, keys, recovery codes, API secrets or session cookies.
+          required: true
+        - label: I understand merge and deploy require a separate explicit owner decision.
+          required: true

@@ -1,0 +1,88 @@
+name: CBW AI Ops Repair Request
+
+# Manual repair-CONTRACT preparation only. This is NOT an autonomous AI worker.
+# It validates inputs and emits a non-secret repair-request summary. It makes no
+# code changes, calls no AI provider, pushes no commit, merges nothing, deploys
+# nothing.
+
+on:
+  workflow_dispatch:
+    inputs:
+      task_id:
+        description: Task ID (e.g. CBW-...-001)
+        required: true
+      failed_run_url:
+        description: URL of the failed CI run
+        required: true
+      failure_category:
+        description: Failure category (must be an allowed deterministic category)
+        required: true
+      current_attempt:
+        description: Current repair attempt (1 or 2)
+        required: true
+        default: "1"
+      target_branch:
+        description: Feature branch the repair would target
+        required: true
+      owner_approved:
+        description: Owner approval to prepare a repair request
+        required: true
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+
+permissions:
+  contents: read
+
+jobs:
+  prepare-repair-request:
+    name: Prepare repair request (no code changes)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (read-only)
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Validate inputs and emit repair request
+        run: |
+          set -euo pipefail
+          ATTEMPT="${{ github.event.inputs.current_attempt }}"
+          APPROVED="${{ github.event.inputs.owner_approved }}"
+          CATEGORY="${{ github.event.inputs.failure_category }}"
+
+          if [ "$ATTEMPT" != "1" ] && [ "$ATTEMPT" != "2" ]; then
+            echo "::error::current_attempt must be 1 or 2 (got '$ATTEMPT')"; exit 1
+          fi
+          if [ "$APPROVED" != "true" ]; then
+            echo "::error::owner_approved must be true to prepare a repair request"; exit 1
+          fi
+
+          PROHIBITED="architecture-decision production-fact bonus-or-referral-value affiliate-url market-availability geo-eligibility legal-or-regulatory-claim security-incident secret workflow-permission-change branch-authority-change production-deployment scope-expansion delete-or-weaken-failing-test"
+          for p in $PROHIBITED; do
+            if [ "$CATEGORY" = "$p" ]; then
+              echo "::error::failure_category '$CATEGORY' is prohibited for automatic repair — escalate to owner"; exit 1
+            fi
+          done
+
+          {
+            echo "## CBW Repair Request (owner-approved, manual)"
+            echo ""
+            echo "- task_id: ${{ github.event.inputs.task_id }}"
+            echo "- failed_run_url: ${{ github.event.inputs.failed_run_url }}"
+            echo "- failure_category: $CATEGORY"
+            echo "- current_attempt: $ATTEMPT of 2"
+            echo "- target_branch: ${{ github.event.inputs.target_branch }}"
+            echo ""
+            echo "This request makes no code changes, calls no AI provider, pushes no commit, merges nothing and deploys nothing."
+            echo "A human/Claude Code execution under a task contract must perform any actual repair, on the same branch, inside the original scope, as a new commit."
+          } | tee repair-request.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload repair-request summary (non-secret)
+        uses: actions/upload-artifact@v4
+        with:
+          name: cbw-repair-request
+          path: repair-request.md
+          if-no-files-found: error

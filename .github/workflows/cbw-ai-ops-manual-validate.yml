@@ -1,0 +1,109 @@
+name: CBW AI Ops Manual Validate
+
+# Manually dispatched, read-only validation of a target ref against the
+# master-side AI Ops validators. Never deploys, never modifies branches or PRs,
+# never invokes any AI provider API, never uploads secret-bearing artifacts.
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_ref:
+        description: Git ref to check out and validate
+        required: true
+        default: master
+      contract_path:
+        description: Repository-relative path to a task contract (optional)
+        required: false
+        default: ""
+      changed_files_mode:
+        description: How to derive changed files for scope validation
+        required: true
+        default: git-diff
+        type: choice
+        options:
+          - git-diff
+          - contract-only
+      base_ref:
+        description: Base ref for git-diff mode
+        required: true
+        default: master
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Read-only AI Ops validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout target ref
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.target_ref }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: AI Ops foundation validation
+        id: foundation
+        continue-on-error: true
+        run: npm run ai-ops:validate
+
+      - name: Optional build
+        id: build
+        continue-on-error: true
+        run: npm run build
+
+      - name: Contract validation (when provided)
+        id: contract
+        continue-on-error: true
+        run: |
+          CP="${{ github.event.inputs.contract_path }}"
+          if [ -n "$CP" ] && [ -f "$CP" ]; then
+            node scripts/ai-ops/validate-task-contract.mjs "$CP"
+          else
+            echo "No contract_path provided — contract check skipped."
+          fi
+
+      - name: Scope + branch-authority validation
+        id: scope
+        continue-on-error: true
+        run: |
+          MODE="${{ github.event.inputs.changed_files_mode }}"
+          CP="${{ github.event.inputs.contract_path }}"
+          if [ "$MODE" = "git-diff" ]; then
+            git fetch origin "${{ github.event.inputs.base_ref }}" --depth=1 || true
+            git diff --name-only "origin/${{ github.event.inputs.base_ref }}...HEAD" > changed-files.txt || git diff --name-only HEAD > changed-files.txt || true
+          elif [ -n "$CP" ] && [ -f "$CP" ]; then
+            node -e "const c=require('./'+process.argv[1]);console.log((c.authorizedScope.exactPaths||[]).join('\n'))" "$CP" > changed-files.txt
+          else
+            : > changed-files.txt
+          fi
+          node scripts/ai-ops/validate-branch-authority.mjs owner-ops/ai-ops/CBW_BRANCH_AUTHORITY_MAP_v1.json "${{ github.event.inputs.base_ref }}" changed-files.txt || true
+          if [ -n "$CP" ] && [ -f "$CP" ]; then
+            node scripts/ai-ops/validate-scope.mjs "$CP" changed-files.txt
+          else
+            echo "No contract — scope check skipped."
+          fi
+
+      - name: Step summary
+        if: always()
+        run: |
+          {
+            echo "## CBW AI Ops Manual Validate"
+            echo ""
+            echo "- target_ref: ${{ github.event.inputs.target_ref }}"
+            echo "- foundation: ${{ steps.foundation.outcome }}"
+            echo "- build: ${{ steps.build.outcome }}"
+            echo "- contract: ${{ steps.contract.outcome }}"
+            echo "- scope/branch: ${{ steps.scope.outcome }}"
+            echo ""
+            echo "> Read-only. No deploy, no branch/PR modification, no AI provider calls."
+          } >> "$GITHUB_STEP_SUMMARY"
