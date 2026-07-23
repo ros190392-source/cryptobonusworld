@@ -147,9 +147,9 @@ jobs:
         continue-on-error: true
         run: node scripts/ai-ops/validate-branch-authority.mjs owner-ops/ai-ops/CBW_BRANCH_AUTHORITY_MAP_v1.json "${BASE_REF}" changed-files.txt
 
-      - name: Scope validation (git-diff mode, requires a contract)
+      - name: Scope validation (git-diff mode, requires a validated contract)
         id: scope
-        if: env.CHANGED_FILES_MODE == 'git-diff' && steps.diff.outcome == 'success' && steps.contractpath.outputs.provided == 'true'
+        if: env.CHANGED_FILES_MODE == 'git-diff' && steps.diff.outcome == 'success' && steps.contractpath.outputs.provided == 'true' && steps.contract.outcome == 'success'
         continue-on-error: true
         run: node scripts/ai-ops/validate-scope.mjs "${CONTRACT_PATH}" changed-files.txt
 
@@ -186,7 +186,10 @@ jobs:
           if [ "${CHANGED_FILES_MODE}" = "git-diff" ]; then
             [ "${O_DIFF}" = "success" ] || { note "changed-file discovery FAILED"; fail=1; }
             [ "${O_BRANCH}" = "success" ] || { note "branch-authority FAILED (or not evaluated)"; fail=1; }
-            if [ "${CONTRACT_PROVIDED}" = "true" ]; then
+            # Scope is a required check only when a contract was provided AND it
+            # validated successfully. A contract-validation failure is already
+            # reported above; scope is then skipped and shown as skipped (never success).
+            if [ "${CONTRACT_PROVIDED}" = "true" ] && [ "${O_CONTRACT}" = "success" ]; then
               [ "${O_SCOPE}" = "success" ] || { note "scope FAILED (or not evaluated)"; fail=1; }
             fi
           elif [ "${CHANGED_FILES_MODE}" = "contract-only" ]; then
