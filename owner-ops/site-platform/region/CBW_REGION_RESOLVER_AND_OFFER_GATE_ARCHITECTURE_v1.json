@@ -1,0 +1,135 @@
+{
+  "document": "CBW_REGION_RESOLVER_AND_OFFER_GATE_ARCHITECTURE_v1",
+  "task": "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-001",
+  "date": "2026-07-23",
+  "status": "ARCHITECTURE_V3_DRAFT_FOR_OWNER_REVIEW",
+  "defersTo": [
+    "CBW_EXCHANGE_MARKET_INTELLIGENCE_BRAIN_v1",
+    "CBW_MI_GEO_RECONCILIATION_STANDARD_v1",
+    "CBW_FIRST_SCREEN_CONVERSION_STANDARD_v1"
+  ],
+  "regionResolver": {
+    "input": "request/URL context + user prefs + IP hint",
+    "output": {
+      "countryCode": "ISO2 | GLOBAL",
+      "resolutionSource": "URL|MANUAL|SAVED|IP|GLOBAL",
+      "confidence": "number",
+      "ipCaveat": "boolean"
+    },
+    "precedence": [
+      "explicit country in URL (market-first routes pin the country)",
+      "manual selection",
+      "saved preference",
+      "IP hint (labeled; IP ≠ residence)",
+      "GLOBAL"
+    ],
+    "constraints": [
+      "never redirects",
+      "never writes MI",
+      "never influences facts",
+      "country and language resolve independently",
+      "explicit URL always wins; no hard redirects of indexed URLs by IP/browser language (dismissible suggestions only)",
+      "MI facts identical across language siblings of the same market page (LOCALE13)"
+    ]
+  },
+  "regionAvailabilityModule": {
+    "renders": [
+      "resolved region + resolution source + change control",
+      "MI decision surface: state badge, verdict, notices, checked date + confidence, reason-code copy"
+    ],
+    "drives": "all OfferSurface instances on the page — one state top and bottom, no drift",
+    "degradation": "no decision record → UNKNOWN presentation, zero commercial controls, never a guess",
+    "constraint": "owns no facts (renderer only)"
+  },
+  "offerGateChain": [
+    {
+      "gate": 1,
+      "name": "MI availability",
+      "rule": "AVAILABLE or approved AVAILABLE_WITH_LIMITS"
+    },
+    {
+      "gate": 2,
+      "name": "MI registration",
+      "rule": "registration eligible for resolved market"
+    },
+    {
+      "gate": 3,
+      "name": "MI promo eligibility",
+      "rule": "offer current + country-applicable evidence"
+    },
+    {
+      "gate": 4,
+      "name": "referral compatibility",
+      "rule": "referralCompatibilityVerified = true for the market"
+    },
+    {
+      "gate": 5,
+      "name": "offer registry",
+      "rule": "route + code authoritative (implementation facts only)"
+    },
+    {
+      "gate": 6,
+      "name": "affiliate authorization",
+      "rule": "AFFILIATE_ACTIVATION_AUTHORIZED for this surface"
+    },
+    {
+      "gate": 7,
+      "name": "publication",
+      "rule": "surface publication authorized by owner"
+    },
+    {
+      "gate": 8,
+      "name": "freshness",
+      "rule": "no STALE inputs; no unresolved critical conflict"
+    }
+  ],
+  "offerGateRules": [
+    "any broken link degrades to state-correct non-commercial presentation",
+    "one shared gate function; never re-implemented per page",
+    "GLOBAL fallback: globally advertised offers only, explicit non-local labeling, no local-eligibility claims"
+  ],
+  "states": {
+    "cellStatuses": [
+      "AVAILABLE",
+      "AVAILABLE_WITH_LIMITS",
+      "RESTRICTED",
+      "UNAVAILABLE",
+      "UNDER_REVIEW",
+      "CONFLICTING",
+      "UNKNOWN",
+      "STALE"
+    ],
+    "uiTreatments": {
+      "green": "commercial (AVAILABLE / approved AWL)",
+      "amber": "limited ± verified referral compatibility",
+      "red": "restricted — informational + alternatives",
+      "neutral": "under-review/unknown/conflicting/stale/unavailable — reason-code copy, identical commercial clamp"
+    },
+    "separationInvariant": "availability, rankingEligibility, ctaEligibility, promoEligibility never collapsed"
+  },
+  "miBoundary": [
+    "canonical MI cells/decisions → versioned read-only adapters → surfaces",
+    "UI never writes MI, never re-derives eligibility, never merges sources",
+    "staging/RECOVERED/UNVERIFIED packages never bound",
+    "GEO-legacy production path frozen until per-pair MIGRATION_7",
+    "prototypes bind visibly-marked mock data only",
+    "decision changes reach pages only through the MI lifecycle"
+  ],
+  "affiliateBoundary": [
+    "offer registry = implementation facts only; never eligibility evidence",
+    "/go/** only on fully authorized production surfaces; prototypes zero /go/** + inert CTAs",
+    "affiliateInfluencesRanking=false is a CI-enforced invariant",
+    "affiliate activation is a separate per-surface owner gate after migration + publication gates"
+  ],
+  "correctedBy": [
+    "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-OWNER-REVIEW-002",
+    "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-OWNER-REVIEW-003"
+  ],
+  "countrySwitchFallbackOrder": [
+    "1 preserve current language when target pair AND that page's PageLocaleCoverage are LIVE",
+    "2 target market's LIVE marketDefault language",
+    "3 target market's LIVE English fallback",
+    "4 explicit unavailable/resolver state",
+    "rule: visible fallback notice mandatory; unsupported URLs never silently serve another language (LOCALE19/LOCALE20); English never assumed market default (LOCALE24)"
+  ]
+}

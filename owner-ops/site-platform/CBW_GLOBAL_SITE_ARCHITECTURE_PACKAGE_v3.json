@@ -1,0 +1,76 @@
+{
+  "package": "CBW_GLOBAL_SITE_ARCHITECTURE_PACKAGE_v3",
+  "task": "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-001",
+  "project": "CryptoBonusWorld",
+  "date": "2026-07-23",
+  "status": "ARCHITECTURE_V3_DRAFT_FOR_OWNER_REVIEW",
+  "ownerApprovalRequired": true,
+  "committed": false,
+  "worktree": "C:\\projects\\CryptoBonusWorld-architecture-v3",
+  "branch": "feat/cbw-global-site-architecture-v3",
+  "baselineCommit": "ee01f3ca7c65045dbd81bccbbb3fe5e64bc94ead",
+  "supersedes": "CBW-SITE-PLATFORM-ARCHITECTURE-V2-001 (interrupted mid-flight by owner; its 5 uncommitted draft files remain untouched in C:\\projects\\CryptoBonusWorld-architecture-v2 awaiting owner disposition)",
+  "documents": [
+    "architecture/CBW_GLOBAL_PRODUCT_AND_PAGE_ARCHITECTURE_v3.md",
+    "architecture/CBW_GLOBAL_PRODUCT_AND_PAGE_ARCHITECTURE_v3.json",
+    "country-visual/CBW_COUNTRY_VISUAL_IDENTITY_STANDARD_v1.md",
+    "country-visual/CBW_COUNTRY_VISUAL_IDENTITY_STANDARD_v1.json",
+    "locale/CBW_COUNTRY_LOCALE_AND_LANGUAGE_ARCHITECTURE_v1.md",
+    "locale/CBW_COUNTRY_LOCALE_AND_LANGUAGE_ARCHITECTURE_v1.json",
+    "seo/CBW_GLOBAL_SEO_ROUTING_AND_HREFLANG_ARCHITECTURE_v1.md",
+    "seo/CBW_GLOBAL_SEO_ROUTING_AND_HREFLANG_ARCHITECTURE_v1.json",
+    "region/CBW_REGION_RESOLVER_AND_OFFER_GATE_ARCHITECTURE_v1.md",
+    "region/CBW_REGION_RESOLVER_AND_OFFER_GATE_ARCHITECTURE_v1.json",
+    "delivery/CBW_AI_GITHUB_DELIVERY_AND_VISUAL_REFERENCE_WORKFLOW_v1.md",
+    "delivery/CBW_AI_GITHUB_DELIVERY_AND_VISUAL_REFERENCE_WORKFLOW_v1.json",
+    "governance/CBW_CI_QA_STATUS_AND_OWNER_GATE_MATRIX_v1.md",
+    "governance/CBW_CI_QA_STATUS_AND_OWNER_GATE_MATRIX_v1.json",
+    "CBW_GLOBAL_SITE_ARCHITECTURE_PACKAGE_v3.json"
+  ],
+  "summary": {
+    "product": "global multi-country multi-language availability- and bonus-intelligence platform; independent country (facts) / language (presentation) / visual (country identity) axes",
+    "pageFamilies": 10,
+    "countryVisual": "CountryVisualProfile per country; one flat-vector art style; textless/evergreen/promo-free/bonus-free/date-free artwork; flags glyph-only; emblems require rights review; masthead system; owner-gated generation + export; pilots defined (KZ, PL, DE) but not generated; one profile per country serves all language siblings (LOCALE14) — never per-language artwork",
+    "localeSystem": "country != language; explicit extensible MarketLanguageMatrix (KZ: ru*/kk/en, PL: pl*/uk/ru/en, DE: de*/en; * = marketDefault & xDefaultTarget; English = fallback only, never assumed default; kk never kz, uk never ua; extensible without URL-model change, no Cartesian product) + per-page PageLocaleCoverage (PLANNED->LIVE) gating switchers/hreflang/sitemap; country-switch fallback order language->marketDefault->English->resolver with mandatory visible notice; no IP/browser hard redirects",
+    "seo": "stable Latin slugs; self-canonical siblings; reciprocal regional hreflang (ru-KZ/kk-KZ/en-KZ/pl-PL/uk-PL/ru-PL/en-PL/de-DE/en-DE; bare codes forbidden on market pages); x-default -> LIVE market-default sibling (/kz/ru/, /pl/pl/, /de/de/); LIVE-only allowlist sitemap; SEO01-SEO15 + LOCALE01-LOCALE25",
+    "region": "RegionResolver (URL→manual→saved→IP→global) + RegionAvailabilityModule (renderer, owns no facts) + 8-link offer gate chain; MI canonical via read-only adapters; affiliate registry = implementation facts only; affiliateInfluencesRanking=false",
+    "delivery": "Owner → ChatGPT shaping → Claude Code implementation → owner GO commit/push → PR → Actions gate matrix → fix loop → ChatGPT review → owner approval → merge → separate production gates → deploy → live QA; reference images via owner-assets + REFERENCE_MANIFEST.json, never public/**",
+    "governance": "CI gate matrix per PR class; QA-1…QA-6 release gates; versioned visual-regression baselines; CBW_CURRENT_PROJECT_STATE.{md,json} status system with exact schema; 12 owner-decision gate types, default-deny",
+    "urlModel": "market-first × language-second: /{countrySlugLower}/{languageCodeLower}/… (e.g. /kz/ru/, /kz/kk/, /kz/en/, /pl/pl/, /pl/en/, /de/de/, /de/en/); Kazakh = kk (never /kz/kz/); language-first model rejected (recorded in SEO doc rejectedPatterns); market root = market homepage (no /kz/{lang}/countries/kazakhstan/ duplicate); market exchange page fulfills the pair intent"
+  },
+  "pilotVisualPlan": {
+    "pilots": [
+      "KZ",
+      "PL",
+      "DE"
+    ],
+    "state": "defined only; generation requires COUNTRY_ART_GENERATION_AUTHORIZED"
+  },
+  "rolloutOrder": [
+    "W1 Exchange Review V2 rollout",
+    "W2 Homepage V2",
+    "W3 Country/market root + RegionAvailabilityModule + CountryVisualProfile pilots (KZ/PL/DE)",
+    "W4 Directory + Referral/Promo",
+    "W5 Market exchange pages (pair intent) — needs MI pilot data",
+    "W6 Restricted/Alternatives + Guides + Methodology",
+    "W7 Locale infrastructure + Kazakhstan pairs (/kz/ru/, /kz/kk/, /kz/en/; default ru)",
+    "W8 Poland pairs (/pl/pl/, /pl/uk/, /pl/ru/, /pl/en/; default pl) + Germany pairs (/de/de/, /de/en/; default de) + RTL audit",
+    "W9 Production migration waves per family (separately authorized)"
+  ],
+  "authorizationFlags": {
+    "ARCHITECTURE_DESIGN_AUTHORIZED": true,
+    "COUNTRY_ART_GENERATION_AUTHORIZED": false,
+    "PAGE_IMPLEMENTATION_AUTHORIZED": false,
+    "PRODUCTION_ASSET_EXPORT_AUTHORIZED": false,
+    "PRODUCTION_DATA_BINDING_AUTHORIZED": false,
+    "AFFILIATE_ACTIVATION_AUTHORIZED": false,
+    "MERGE_TO_MASTER_AUTHORIZED": false,
+    "PUBLICATION_AUTHORIZED": false,
+    "DEPLOY_AUTHORIZED": false
+  },
+  "recommendedNextTask": "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-COMMIT-004",
+  "correctedBy": [
+    "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-OWNER-REVIEW-002",
+    "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-OWNER-REVIEW-003"
+  ]
+}

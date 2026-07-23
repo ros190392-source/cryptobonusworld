@@ -1,0 +1,123 @@
+{
+  "document": "CBW_COUNTRY_VISUAL_IDENTITY_STANDARD_v1",
+  "task": "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-001",
+  "date": "2026-07-23",
+  "status": "ARCHITECTURE_V3_DRAFT_FOR_OWNER_REVIEW",
+  "purpose": "Premium owner-approved visual identity per covered country inside the unified CBW system; presentation only — never signals availability, eligibility or endorsement",
+  "artStyle": {
+    "style": "flat-vector geometric illustration; CBW navy base; one country accent duo; restrained line detail; landmark/motif silhouettes",
+    "forbidden": [
+      "photorealism",
+      "stock photography",
+      "3D renders",
+      "people",
+      "any text inside artwork",
+      "gradients beyond navy band family"
+    ],
+    "composition": "wide masthead scene, content-safe zone, silhouettes edge-anchored, calm density under 56px header",
+    "consistency": "all countries share style, stroke weight, perspective grammar, navy base"
+  },
+  "countryVisualProfileContract": {
+    "countryCode": "ISO 3166-1 alpha-2",
+    "displayName": "English display name (localized names from locale layer)",
+    "accentPalette": "exactly 2 accents (+ optional tint), harmonized with CBW navy/amber, contrast-checked",
+    "landmarks": "1–3 approved landmark silhouettes",
+    "motifs": "abstract cultural/geographic motifs; non-religious, non-political",
+    "flagPolicy": "flag only as small identification glyph in controls/chips; never artwork base, background or grids",
+    "emblemPolicy": "official coats of arms NOT used by default; requires explicit owner approval + documented rights/usage review",
+    "desktopArtwork": "masthead 2400x600 master with safe zones",
+    "mobileArtwork": "800x400 master; rendered band ≤120px",
+    "ogArtwork": "1200x630 social card; brand chrome outside artwork layer",
+    "cardArtwork": "800x500 for country browsers/cross-links",
+    "safeZones": "explicit per-artwork content-safe rectangles",
+    "altText": "descriptive; localized via locale layer",
+    "attributionRights": "generation source, license/usage basis, rights review, reviewer, date",
+    "approvalStatus": "DRAFT → OWNER_REVIEW → APPROVED → RETIRED; only APPROVED ships"
+  },
+  "artworkRules": [
+    "textless",
+    "evergreen",
+    "promo-free",
+    "bonus-free",
+    "date-free",
+    "responsive (masters + defined crops; no layout-critical detail outside safe zones)",
+    "localization-safe (nothing to translate; cultural review; no religious/political symbols; no contested-border maps)",
+    "legible under light and dark chrome",
+    "never contains or recolors exchange brands"
+  ],
+  "storage": {
+    "masters": "owner-assets/site-design/country-visual/{countryCode}/",
+    "registry": "COUNTRY_VISUAL_REGISTRY.json (profiles, checksums, rights records)",
+    "publicRule": "web-optimized exports enter public/** only via owner-gated PRODUCTION_ASSET_EXPORT task"
+  },
+  "countryMastheadSystem": {
+    "desktopBand": "≤200px artwork + UI-typeset country name + evidence chip",
+    "mobileBand": "≤120px",
+    "accentUsage": "accent palette drives kickers/chips only on that country's surfaces",
+    "placement": "Country pages primary; compact optional on exchange-country and restricted pages; never on offer-first or methodology surfaces",
+    "rule": "masthead never carries commercial controls"
+  },
+  "generationApprovalWorkflow": [
+    "ChatGPT art direction + generation per standard",
+    "candidate pack (desktop/mobile/OG/card + palette + safe-zone spec)",
+    "owner review (style, recognizability, cultural check) with revision loop",
+    "handoff to Claude Code",
+    "ingestion into owner-assets + registry entry (checksums, rights record)",
+    "design-branch commit (owner-gated)",
+    "prototype usage (mock pages)",
+    "PRODUCTION_ASSET_EXPORT task (separately authorized) for public/** derivatives"
+  ],
+  "generationGate": "no pack generated before COUNTRY_ART_GENERATION_AUTHORIZED for that batch",
+  "pilotPlan": {
+    "note": "defined only — NOT generated in this task",
+    "pilots": [
+      {
+        "countryCode": "KZ",
+        "accentDirection": "sky-turquoise + gold",
+        "candidates": [
+          "Baiterek Tower silhouette",
+          "steppe horizon",
+          "sun-ray motif"
+        ]
+      },
+      {
+        "countryCode": "PL",
+        "accentDirection": "crimson + silver-gray",
+        "candidates": [
+          "Warsaw skyline with Palace of Culture silhouette",
+          "Vistula curve",
+          "eagle-free geometric motif"
+        ]
+      },
+      {
+        "countryCode": "DE",
+        "accentDirection": "amber-gold + graphite",
+        "candidates": [
+          "Brandenburg Gate silhouette",
+          "Rhine/skyline band",
+          "precision-grid motif"
+        ]
+      }
+    ]
+  },
+  "ciBlocks": [
+    "artwork referenced without APPROVED status",
+    "artwork in public/** without export-task trail",
+    "flags used outside glyph contexts",
+    "emblem use without rights record"
+  ],
+  "correctedBy": [
+    "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-OWNER-REVIEW-002",
+    "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-OWNER-REVIEW-003"
+  ],
+  "languageSiblingRule": {
+    "rule": "a CountryVisualProfile belongs to the country, not the language; the same pack serves every language sibling — KZ: /kz/ru/, /kz/kk/, /kz/en/ · PL: /pl/pl/, /pl/uk/, /pl/ru/, /pl/en/ · DE: /de/de/, /de/en/ — identical artwork, palette, safe zones",
+    "localizedOnly": [
+      "UI-rendered text",
+      "metadata",
+      "alt text"
+    ],
+    "prohibited": "per-language artworks for one country",
+    "ciGate": "LOCALE14 + LOCALE25: country artwork identity identical across language siblings"
+  }
+}

@@ -1,0 +1,105 @@
+{
+  "document": "CBW_AI_GITHUB_DELIVERY_AND_VISUAL_REFERENCE_WORKFLOW_v1",
+  "task": "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-001",
+  "date": "2026-07-23",
+  "status": "ARCHITECTURE_V3_DRAFT_FOR_OWNER_REVIEW",
+  "roles": {
+    "owner": "only decision authority: scoped tasks, approvals, every GO gate (commit, merge, publication, affiliate, deploy)",
+    "chatgpt": "architecture, design direction, SEO strategy, art generation (country packs, references), Deep Research, per-market-language translation passes (locked glossary), independent PR/report review; never touches the repo",
+    "claudeCode": "only implementer: scoped worktrees/branches, prototypes, validation, screenshots, reports, status updates; commits/pushes only on explicit owner GO; never merges/publishes/deploys",
+    "github": "repository of record: branches, PRs, Actions, review artifacts, history"
+  },
+  "deliveryPipeline": [
+    "Owner intent",
+    "ChatGPT architecture/design/SEO task shaping",
+    "approved task + visual references handed to Claude Code",
+    "Claude Code implementation (isolated worktree/branch, mock data, local validation)",
+    "owner GO → branch commit/push",
+    "PR (never direct to master)",
+    "GitHub Actions CI gate matrix",
+    "fix loop on the same branch",
+    "ChatGPT review (diff + screenshots + validation report)",
+    "owner approval",
+    "merge (MERGE_TO_MASTER_AUTHORIZED)",
+    "optional production gates (data binding / publication / affiliate — each separate)",
+    "deploy (owner-gated)",
+    "post-deploy live QA + status update"
+  ],
+  "branchStrategy": {
+    "master": "protected; PR-only; green CI; owner approval",
+    "namespaces": [
+      "feat/*",
+      "design/* (feat/cbw-*-v{n})",
+      "arch/*",
+      "mi/*",
+      "hotfix/*"
+    ],
+    "rules": [
+      "one task = one branch = one scoped commit set",
+      "each long-lived stream gets its own worktree from a pinned baseline commit",
+      "worktrees never shared, reset or reused across streams",
+      "uncommitted work never hand-migrated between branches"
+    ]
+  },
+  "prLifecycle": [
+    "open with task ID, exact scope list, validation summary, screenshot links, boundary confirmations",
+    "CI green required",
+    "ChatGPT review addressed or owner-waived",
+    "owner approval triggers squash-merge with commit-message convention",
+    "branch deleted after merge; status file updated same cycle"
+  ],
+  "githubActionsInventory": [
+    "ci-build (install, typecheck, astro build)",
+    "ci-route-audit (noindex/sitemap/robots per route class; /__design and /go policies)",
+    "ci-link-audit (no /go/affiliate/exchange URLs in prototypes; internal links resolve)",
+    "ci-boundary-audit (no canonical-MI/staging imports in design routes; affiliateInfluencesRanking=false; design PRs touch no production files)",
+    "ci-first-screen (Playwright matrix on changed families)",
+    "ci-visual-regression (screenshot diff vs approved baselines)",
+    "ci-seo-gates (SEO01–SEO15)",
+    "ci-locale-lint (ICU placeholders, glossary locks, coverage thresholds, market-language pair registry; enforces LOCALE01-LOCALE25; PageLocaleCoverage advancement gates each page variant)",
+    "ci-schema-validate (JSON-LD + registry/manifest schemas)"
+  ],
+  "designReferenceWorkflow": {
+    "chain": [
+      "ChatGPT-generated reference image",
+      "owner approval (per image or pack)",
+      "handoff to Claude Code",
+      "ingestion into owner-assets/site-design/references/{topic}/",
+      "REFERENCE_MANIFEST.json entry",
+      "design-branch commit (owner-gated)",
+      "prototype implementation cites referenceId"
+    ],
+    "manifestEntry": {
+      "referenceId": "string",
+      "topic": "string",
+      "files": [
+        "paths"
+      ],
+      "checksums": [
+        "sha256"
+      ],
+      "source": "CHATGPT",
+      "ownerApproval": "date",
+      "intendedUse": "string",
+      "rightsNote": "string",
+      "status": "APPROVED|SUPERSEDED"
+    },
+    "rules": [
+      "approved reference images never enter public/**",
+      "shippable derivatives require the separately authorized production-asset-export task",
+      "unmanifested images may not be committed",
+      "superseded references archived, not deleted",
+      "country visual packs follow the same chain via COUNTRY_VISUAL_REGISTRY"
+    ]
+  },
+  "reportingConventions": [
+    "every task ends with a structured report (scope, validation, git state, verdict, next task) and stops",
+    "owner GO required between implement → commit → push → merge → deploy",
+    "_handoff/** stays untracked",
+    "status system updated at task completion when authorized"
+  ],
+  "correctedBy": [
+    "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-OWNER-REVIEW-002",
+    "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-OWNER-REVIEW-003"
+  ]
+}

@@ -1,0 +1,187 @@
+{
+  "document": "CBW_CI_QA_STATUS_AND_OWNER_GATE_MATRIX_v1",
+  "task": "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-001",
+  "date": "2026-07-23",
+  "status": "ARCHITECTURE_V3_DRAFT_FOR_OWNER_REVIEW",
+  "ciGateMatrix": {
+    "prClasses": [
+      "design-prototype",
+      "architecture-docs",
+      "data-mi",
+      "production"
+    ],
+    "gates": {
+      "ci-build": {
+        "design-prototype": "required",
+        "architecture-docs": "required",
+        "data-mi": "required",
+        "production": "required"
+      },
+      "ci-route-audit": {
+        "design-prototype": "required",
+        "architecture-docs": "n/a",
+        "data-mi": "n/a",
+        "production": "required"
+      },
+      "ci-link-audit": {
+        "design-prototype": "required",
+        "architecture-docs": "required (doc links)",
+        "data-mi": "n/a",
+        "production": "required"
+      },
+      "ci-boundary-audit": {
+        "design-prototype": "required",
+        "architecture-docs": "required",
+        "data-mi": "required",
+        "production": "required"
+      },
+      "ci-first-screen": {
+        "design-prototype": "required (changed families)",
+        "architecture-docs": "n/a",
+        "data-mi": "n/a",
+        "production": "required"
+      },
+      "ci-visual-regression": {
+        "design-prototype": "required vs baselines",
+        "architecture-docs": "n/a",
+        "data-mi": "n/a",
+        "production": "required"
+      },
+      "ci-seo-gates": {
+        "design-prototype": "subset SEO01/04/05",
+        "architecture-docs": "n/a",
+        "data-mi": "n/a",
+        "production": "full SEO01–SEO15"
+      },
+      "ci-locale-lint": {
+        "design-prototype": "when locale files touched",
+        "architecture-docs": "n/a",
+        "data-mi": "n/a",
+        "production": "required for LIVE locales"
+      },
+      "ci-schema-validate": {
+        "design-prototype": "manifests touched",
+        "architecture-docs": "required (JSON pairs)",
+        "data-mi": "required (MI schemas)",
+        "production": "required"
+      }
+    },
+    "failurePolicy": "any required gate red blocks merge; fixes on same branch; waivers owner-only and PR-recorded"
+  },
+  "qaReleaseGates": [
+    "QA-1 local validation harness (first-screen, state clamps, logo gates, a11y, links) before owner review",
+    "QA-2 owner visual review (screenshots + preview; explicit APPROVE)",
+    "QA-3 CI matrix on PR",
+    "QA-4 ChatGPT independent review",
+    "QA-5 pre-release (production): data-binding audit, publication gates G01–G13 + MI01–MI10 + SEO12, rollback plan",
+    "QA-6 post-deploy live QA (route smoke, CWV sample, state spot-checks) into status system"
+  ],
+  "visualRegressionProcess": {
+    "working": "_handoff/** screenshot sets (untracked)",
+    "baselines": "owner-assets/qa/visual-baselines/{surface}/{version}/ (committed via explicit promotion task on owner APPROVE)",
+    "ci": "diff PR screenshots vs approved baseline; per-surface thresholds; above-threshold diffs require owner re-approval + new baseline version",
+    "rules": [
+      "baselines never silently overwritten",
+      "superseded baselines archived"
+    ]
+  },
+  "statusSystem": {
+    "files": [
+      "owner-ops/status/CBW_CURRENT_PROJECT_STATE.md",
+      "owner-ops/status/CBW_CURRENT_PROJECT_STATE.json"
+    ],
+    "jsonSchema": {
+      "updatedAt": "ISO datetime",
+      "updatedBy": "CLAUDE_CODE | OWNER",
+      "updateTrigger": "task id",
+      "streams": [
+        {
+          "streamId": "design|architecture|market-intelligence|production|locale",
+          "activeWorktree": "path",
+          "activeBranch": "name",
+          "head": "sha",
+          "currentTask": "id|null",
+          "lastCompletedTask": "id",
+          "state": "IDLE|IN_PROGRESS|AWAITING_OWNER|BLOCKED",
+          "uncommittedScope": [
+            "paths"
+          ],
+          "notes": "short"
+        }
+      ],
+      "pendingOwnerDecisions": [
+        {
+          "id": "string",
+          "question": "string",
+          "blockedTasks": [
+            "ids"
+          ]
+        }
+      ],
+      "authorizationFlags": "current global flag values",
+      "lastDeploy": {
+        "date": "ISO",
+        "scope": "string"
+      }
+    },
+    "updateResponsibility": "Claude Code updates both files at every task completion, owner GO, or block event (when status update is in authorized scope); owner may edit decisions directly; CI validates JSON; MD regenerated from JSON, never hand-drifted"
+  },
+  "ownerDecisionGates": [
+    "OWNER_GO_COMMIT (per task)",
+    "OWNER_GO_PUSH",
+    "OWNER_APPROVE_VISUAL (per prototype/artwork)",
+    "OWNER_APPROVE_ARCHITECTURE (per authority doc)",
+    "COUNTRY_ART_GENERATION_AUTHORIZED (per batch)",
+    "PAGE_IMPLEMENTATION_AUTHORIZED (per family)",
+    "PRODUCTION_ASSET_EXPORT_AUTHORIZED (per asset set)",
+    "PRODUCTION_DATA_BINDING_AUTHORIZED (per family)",
+    "PUBLICATION_AUTHORIZED (per country/pair/locale)",
+    "AFFILIATE_ACTIVATION_AUTHORIZED (per surface)",
+    "MERGE_TO_MASTER_AUTHORIZED (per PR)",
+    "DEPLOY_AUTHORIZED (per release)"
+  ],
+  "gateDefaults": "everything false until explicitly granted; grants scoped and non-transferable; every grant recorded in the status system",
+  "currentAuthorizationFlags": {
+    "ARCHITECTURE_DESIGN_AUTHORIZED": true,
+    "COUNTRY_ART_GENERATION_AUTHORIZED": false,
+    "PAGE_IMPLEMENTATION_AUTHORIZED": false,
+    "PRODUCTION_ASSET_EXPORT_AUTHORIZED": false,
+    "PRODUCTION_DATA_BINDING_AUTHORIZED": false,
+    "AFFILIATE_ACTIVATION_AUTHORIZED": false,
+    "MERGE_TO_MASTER_AUTHORIZED": false,
+    "PUBLICATION_AUTHORIZED": false,
+    "DEPLOY_AUTHORIZED": false
+  },
+  "correctedBy": [
+    "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-OWNER-REVIEW-002",
+    "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-OWNER-REVIEW-003"
+  ],
+  "localeGates": {
+    "LOCALE01": "country and language stored separately (countryCode/countrySlug + languageCode/localeTag); URL prefix derived, never one locale variable",
+    "LOCALE02": "routed market-language pair exists in the matrix registry (no Cartesian product)",
+    "LOCALE03": "full translation coverage before LIVE",
+    "LOCALE04": "no mixed-language indexable page",
+    "LOCALE05": "language switch preserves route identity, country, slugs, safe query params, anchor",
+    "LOCALE06": "country switch targets only supported pairs; market-default fallback with visible notice",
+    "LOCALE07": "html lang matches localeTag",
+    "LOCALE08": "canonical self-referencing",
+    "LOCALE09": "hreflang reciprocal and complete across LIVE siblings",
+    "LOCALE10": "x-default per approved rule (market clusters → market English variant; global clusters → global EN)",
+    "LOCALE11": "sitemap contains LIVE pairs only",
+    "LOCALE12": "internal links stay in current market-language namespace",
+    "LOCALE13": "MI facts byte-identical across language siblings",
+    "LOCALE14": "country artwork identity identical across language siblings",
+    "LOCALE15": "no IP/browser hard redirects",
+    "LOCALE16": "market-level language support does not imply page-level translation (PageLocaleCoverage separate)",
+    "LOCALE17": "Ukrainian language code is uk; ua forbidden as languageCode",
+    "LOCALE18": "only LIVE PageLocaleCoverage variants enter hreflang, sitemap and production switchers",
+    "LOCALE19": "country-switch fallback explicit and visible (mandatory notice)",
+    "LOCALE20": "no unsupported market-language URL silently serves another language",
+    "LOCALE21": "exactly one marketDefault language per market",
+    "LOCALE22": "exactly one xDefaultTarget per market",
+    "LOCALE23": "x-default points to the LIVE market-default page sibling",
+    "LOCALE24": "English fallback does not automatically make English the market default",
+    "LOCALE25": "all language siblings of a market use the same CountryVisualProfile identity"
+  },
+  "localeGatesEnforcement": "ci-locale-lint + ci-seo-gates fail PRs on LOCALE01-LOCALE25 violations for touched routes"
+}

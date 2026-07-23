@@ -1,0 +1,89 @@
+{
+  "document": "CBW_COUNTRY_LOCALE_AND_LANGUAGE_ARCHITECTURE_v1",
+  "task": "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-001",
+  "correctedBy": ["CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-OWNER-REVIEW-002", "CBW-GLOBAL-COUNTRY-LOCALE-SITE-ARCHITECTURE-V3-OWNER-REVIEW-003"],
+  "date": "2026-07-23",
+  "status": "ARCHITECTURE_V3_DRAFT_FOR_OWNER_REVIEW",
+  "corePrinciple": {
+    "country": "market variable — decides facts (MI decisions)",
+    "language": "presentation variable — decides rendering only",
+    "independence": "separate fields end-to-end; never inferred from each other",
+    "urlModel": "market-first, language-second: /{countrySlug}/{languageCode}/…",
+    "languageCodeRules": "ISO 639-1; Kazakh = kk (never kz); Ukrainian = uk (never ua)"
+  },
+  "coreDataModel": {
+    "countryCode": "KZ", "countrySlug": "kz",
+    "languageCode": "ru | kk | en | pl | uk | de | …",
+    "localeTag": "ru-KZ | kk-KZ | en-KZ | pl-PL | uk-PL | ru-PL | en-PL | de-DE | en-DE",
+    "urlPrefix": "derived from countrySlug + languageCode; never stored as one authoritative locale variable"
+  },
+  "marketLanguageMatrix": {
+    "recordFields": ["countryCode", "countrySlug", "languageCode", "localeTag", "urlPrefix", "nativeLanguageName", "marketDefault", "fallbackLanguage", "xDefaultTarget", "fallbackPriority", "lifecycleStatus", "ownerPublicationAuthorized"],
+    "invariants": [
+      "exactly one marketDefault=true per market (LOCALE21)",
+      "exactly one xDefaultTarget=true per market (LOCALE22) — the market default",
+      "English may be fallbackLanguage=true without being market default (LOCALE24)",
+      "never assume marketDefault=en or x-default=English globally",
+      "pairs exist only as explicit registry records; no Cartesian product",
+      "owner-approved languages may be added later (e.g. /de/uk/, /de/ru/, /de/pl/, /pl/de/, /kz/uk/) without changing the market-first URL model — NOT created now"
+    ],
+    "records": [
+      { "countryCode": "KZ", "countrySlug": "kz", "languageCode": "ru", "localeTag": "ru-KZ", "urlPrefix": "/kz/ru/", "nativeLanguageName": "Русский", "marketDefault": true,  "fallbackLanguage": false, "xDefaultTarget": true,  "fallbackPriority": 1, "lifecycleStatus": "PLANNED", "ownerPublicationAuthorized": false },
+      { "countryCode": "KZ", "countrySlug": "kz", "languageCode": "kk", "localeTag": "kk-KZ", "urlPrefix": "/kz/kk/", "nativeLanguageName": "Қазақша", "marketDefault": false, "fallbackLanguage": false, "xDefaultTarget": false, "fallbackPriority": 3, "lifecycleStatus": "PLANNED", "ownerPublicationAuthorized": false },
+      { "countryCode": "KZ", "countrySlug": "kz", "languageCode": "en", "localeTag": "en-KZ", "urlPrefix": "/kz/en/", "nativeLanguageName": "English", "marketDefault": false, "fallbackLanguage": true,  "xDefaultTarget": false, "fallbackPriority": 2, "lifecycleStatus": "PLANNED", "ownerPublicationAuthorized": false },
+      { "countryCode": "PL", "countrySlug": "pl", "languageCode": "pl", "localeTag": "pl-PL", "urlPrefix": "/pl/pl/", "nativeLanguageName": "Polski", "marketDefault": true,  "fallbackLanguage": false, "xDefaultTarget": true,  "fallbackPriority": 1, "lifecycleStatus": "PLANNED", "ownerPublicationAuthorized": false },
+      { "countryCode": "PL", "countrySlug": "pl", "languageCode": "uk", "localeTag": "uk-PL", "urlPrefix": "/pl/uk/", "nativeLanguageName": "Українська", "marketDefault": false, "fallbackLanguage": false, "xDefaultTarget": false, "fallbackPriority": 3, "lifecycleStatus": "PLANNED", "ownerPublicationAuthorized": false },
+      { "countryCode": "PL", "countrySlug": "pl", "languageCode": "ru", "localeTag": "ru-PL", "urlPrefix": "/pl/ru/", "nativeLanguageName": "Русский", "marketDefault": false, "fallbackLanguage": false, "xDefaultTarget": false, "fallbackPriority": 4, "lifecycleStatus": "PLANNED", "ownerPublicationAuthorized": false },
+      { "countryCode": "PL", "countrySlug": "pl", "languageCode": "en", "localeTag": "en-PL", "urlPrefix": "/pl/en/", "nativeLanguageName": "English", "marketDefault": false, "fallbackLanguage": true,  "xDefaultTarget": false, "fallbackPriority": 2, "lifecycleStatus": "PLANNED", "ownerPublicationAuthorized": false },
+      { "countryCode": "DE", "countrySlug": "de", "languageCode": "de", "localeTag": "de-DE", "urlPrefix": "/de/de/", "nativeLanguageName": "Deutsch", "marketDefault": true,  "fallbackLanguage": false, "xDefaultTarget": true,  "fallbackPriority": 1, "lifecycleStatus": "PLANNED", "ownerPublicationAuthorized": false },
+      { "countryCode": "DE", "countrySlug": "de", "languageCode": "en", "localeTag": "en-DE", "urlPrefix": "/de/en/", "nativeLanguageName": "English", "marketDefault": false, "fallbackLanguage": true,  "xDefaultTarget": false, "fallbackPriority": 2, "lifecycleStatus": "PLANNED", "ownerPublicationAuthorized": false }
+    ],
+    "marketDefaults": { "KZ": "ru", "PL": "pl", "DE": "de" },
+    "fallbacks": { "KZ": "en", "PL": "en", "DE": "en" }
+  },
+  "pageLocaleCoverage": {
+    "purpose": "market-level language support does not imply page-level translation (LOCALE16)",
+    "recordFields": ["pageId", "stableRouteId", "pageFamily", "countryCode", "languageCode", "localeTag", "translationStatus", "sharedUiStatus", "headerFooterStatus", "bodyStatus", "metadataStatus", "structuredDataStatus", "glossaryStatus", "internalLinkStatus", "responsiveQaStatus", "publicationStatus"],
+    "lifecycle": ["PLANNED", "IN_TRANSLATION", "REVIEW", "LIVE", "RETIRED"],
+    "rule": "production language switchers, hreflang clusters and sitemap include only LIVE variants of that specific stable page (LOCALE18)"
+  },
+  "countryPrecedence": ["1 explicit country in URL", "2 manual selection", "3 saved preference", "4 IP-derived ('detected'; IP ≠ residence)", "5 global fallback"],
+  "languagePrecedence": ["1 explicit language in URL", "2 manual selection", "3 saved preference", "4 browser Accept-Language", "5 market's marketDefault language, then fallbackLanguage per fallbackPriority"],
+  "resolutionRules": ["explicit URL always wins", "no hard redirects of indexed URLs by IP/browser; dismissible suggestions only", "crawlers receive URL-determined content"],
+  "languageSwitching": {
+    "examples": ["/pl/pl/exchanges/bybit/ → uk → /pl/uk/exchanges/bybit/", "/pl/uk/exchanges/bybit/ → ru → /pl/ru/exchanges/bybit/", "/pl/ru/exchanges/bybit/ → en → /pl/en/exchanges/bybit/"],
+    "preserves": ["market", "page family", "exchange", "comparison pair", "promo exchange", "guide stable ID", "safe query parameters", "anchor"],
+    "changes": "complete presentation layer (html lang → dates/numbers)",
+    "neverChanges": "any MI or market fact (LOCALE13)",
+    "switcherRule": "lists only LIVE PageLocaleCoverage variants of the current page (LOCALE18)"
+  },
+  "countrySwitchFallbackOrder": [
+    "1 preserve current language when target pair AND specific PageLocaleCoverage record are LIVE (e.g. /kz/ru/exchanges/bybit/ → /pl/ru/exchanges/bybit/)",
+    "2 otherwise target market's LIVE marketDefault language (e.g. /kz/kk/exchanges/bybit/ → /pl/pl/exchanges/bybit/)",
+    "3 otherwise target market's LIVE English fallback",
+    "4 otherwise explicit unavailable/resolver state"
+  ],
+  "fallbackNotice": "mandatory and visible, e.g. 'The requested language is not available for Poland. The Polish version is shown.'; fallback content never served silently under the unsupported requested URL (LOCALE19/LOCALE20)",
+  "missingTranslationPolicy": {
+    "never": ["indexable URL", "sitemap entry", "hreflang entry", "production language-switch link", "mixed-language page", "unrelated-homepage redirect", "silent English body beneath another locale URL"],
+    "preview": "TRANSLATION_IN_PROGRESS allowed in preview builds only",
+    "production": "language visible only after PageLocaleCoverage is LIVE"
+  },
+  "translationWorkflow": [
+    "canonical EN strings + collections", "batch export per market-language pair",
+    "ChatGPT pass with locked glossary", "mandatory human/owner review of commercial/legal/state strings",
+    "import + lint (ICU, budgets, no HTML injection)", "PageLocaleCoverage advancement per page",
+    "preview with LOCALE gates → owner GO → LIVE"
+  ],
+  "rtlReadiness": ["logical CSS properties", "html dir per language", "audited foundation components", "directional icon variants", "dedicated RTL QA before any RTL launch", "nothing may preclude RTL"],
+  "switchingUX": {
+    "countryControl": "shows resolution source (detected vs your choice)",
+    "languageSwitch": "native names; only LIVE/previewable variants of the current page",
+    "mobile": "both controls in header sheet"
+  },
+  "contentModel": [
+    "one canonical data layer for all pairs; language never forks facts",
+    "one CountryVisualProfile per country serves all language siblings (LOCALE14/LOCALE25); only UI copy, metadata, alt text localize",
+    "schema in page language with stable entity references"
+  ]
+}
