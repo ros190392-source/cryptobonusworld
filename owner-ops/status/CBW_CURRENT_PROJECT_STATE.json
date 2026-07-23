@@ -1,0 +1,179 @@
+{
+  "updatedAt": "2026-07-23T13:08:44Z",
+  "updatedBy": "CLAUDE_CODE",
+  "updateTrigger": "CBW-SITE-PLATFORM-CURRENT-STATE-COMMIT-013-R2",
+  "streams": [
+    {
+      "streamId": "production",
+      "activeWorktree": "C:\\projects\\CryptoBonusWorld",
+      "activeBranch": "master",
+      "head": "0948fed6f29bb2d2ed7058fba4ed16fac636b3c8",
+      "currentTask": null,
+      "lastCompletedTask": "CBW-PRODUCTION-SECRETS-EMERGENCY-CLOSEOUT-017",
+      "state": "IDLE",
+      "uncommittedScope": [],
+      "notes": "master is production/site authority; local master = origin/master = 0948fed6f29bb2d2ed7058fba4ed16fac636b3c8 (fast-forwarded after the security remediation merge, PR #1). Tracked tree is clean. The security remediation merge was NOT deployed: production behavior remains the 2026-07-18 rollback deployment (183d5559af9e608f168636a7ff998b8fdf7f5a6b, restoring the tracked behavior/tree of the a4d89d4d1df420fc1922625cdde126f2064da4a2 release). Production exchange-review pages and their vertical hero cards remain frozen; no public GEO/market page was created or published; no architecture implementation was deployed. No architecture/design branch is merged into master except the security remediation. The 172 untracked entries in this physical worktree belong to the market-intelligence stream (evidence/tooling/temp artifacts), not to production, and must not be cleaned or treated as architecture implementation."
+    },
+    {
+      "streamId": "architecture",
+      "activeWorktree": "C:\\projects\\CryptoBonusWorld-architecture-v3",
+      "activeBranch": "feat/cbw-global-site-architecture-v3",
+      "head": "1cb69ab1cf79f9f42d1eb8a68678abad76fdc981",
+      "currentTask": null,
+      "lastCompletedTask": "CBW-SITE-PLATFORM-CURRENT-STATE-COMMIT-013-R2",
+      "state": "AWAITING_OWNER",
+      "uncommittedScope": [],
+      "notes": "Architecture V3 is designed, owner-approved and committed on its feature branch: package status ARCHITECTURE_V3_OWNER_APPROVED_COMMITTED; commit chain a3dea7e451d046d5f01515bf085962f6f92a9fa7 (initial architecture, task 004) -> 55aacac97554de11d7e8e42823857dcf56444b74 (lifecycle reconciliation, task 006) -> 1cb69ab1cf79f9f42d1eb8a68678abad76fdc981 (LOCALE10 consistency fix, task 009; verified by task 010) -> this current-state reconciliation commit (task 013-R2, which advances the branch by one documentation commit above the 1cb69ab baseline). Architecture V3 is NOT yet merged into master; MERGE_TO_MASTER_AUTHORIZED=false; implementation and production publication remain unauthorized. The market-first URL architecture, locale rules, ten page-family definitions, RegionResolver, CountryVisualProfile system, RegionAvailabilityModule and the read-only Market Intelligence boundary are preserved unchanged. Next: CBW-GLOBAL-SITE-ARCHITECTURE-V3-PR-REVIEW-014."
+    },
+    {
+      "streamId": "design",
+      "activeWorktree": "C:\\projects\\CryptoBonusWorld-design-v2",
+      "activeBranch": "feat/cbw-exchange-review-v2",
+      "head": "ee01f3ca7c65045dbd81bccbbb3fe5e64bc94ead",
+      "currentTask": null,
+      "lastCompletedTask": "CBW-EXCHANGE-REVIEW-V2-SELECTED-PROTOTYPE-001",
+      "state": "AWAITING_OWNER",
+      "uncommittedScope": [
+        "src/pages/[designRoot]/exchange-review-v2/ (untracked prototype route)",
+        "src/components/design-preview/review-v2/ (untracked prototype components)",
+        "src/data/design-preview/exchange-review-v2-mock.ts (untracked mock data)",
+        "_handoff/ (untracked screenshots + preview notes; never committed by convention)"
+      ],
+      "notes": "Unified Design Foundation v1 is COMMITTED at ee01f3ca7c65045dbd81bccbbb3fe5e64bc94ead (branch feat/cbw-unified-design-v2; square-first logo system, OfferSurface family, section grammar). The Exchange Review V2 review prototype (owner-selected THREE_ZONE_FIRST_SCREEN direction) remains SEPARATE and UNCOMMITTED on feat/cbw-exchange-review-v2, awaiting owner review (CBW-EXCHANGE-REVIEW-V2-OWNER-REVIEW-002). The region-aware layout is still not committed anywhere. Production review pages and their vertical hero cards remain frozen; no production route was changed. Older design-v1 worktree C:\\projects\\CryptoBonusWorld-design remains at c8d004a95f0a36a62d3d29070ff4fd42a33f1a81 (feat/cbw-homepage-template-v1) with 5 untracked superseded homepage-template entries; it is not the active design worktree and no cleanup of it is authorized."
+    },
+    {
+      "streamId": "market-intelligence",
+      "activeWorktree": "C:\\projects\\CryptoBonusWorld",
+      "activeBranch": "master",
+      "head": "0948fed6f29bb2d2ed7058fba4ed16fac636b3c8",
+      "currentTask": null,
+      "lastCompletedTask": "CBW-KZ-MEXC-P0-B-IMPORT-PREP-DESIGN-002",
+      "state": "AWAITING_OWNER",
+      "uncommittedScope": [
+        "evidence/bybit/global-en/** — 67 entries — completed MI awaiting owner disposition (Bybit evidence-capture outputs of the closed P0-A / evidence-factory program)",
+        "scripts/** (QA/screenshot/preview tooling, root level) — 55 entries — shared-worktree temporary/QA scope not owned by production",
+        ".tmp-* (QA/preview temp dirs) — 17 entries — shared-worktree temporary/QA scope not owned by production",
+        "public/media/** + public/coins/ (uncommitted media) — 15 entries — not yet reconciled (uncommitted media candidates; incl. orphaned homepage hero v2 files flagged by the 2026-07-18 audit)",
+        "tools/evidence-capture/** — 12 entries — completed MI awaiting owner disposition (Bybit fees/evidence capture tooling)",
+        "scripts/market-intelligence/** (import-kz-mexc-p0b.mjs) — 1 entry — active MI scope (prepared importer for the pending CBW-KZ-MEXC-P0-B-STAGING-IMPORT-003)",
+        "research/market-intelligence/staging/** — 1 entry — active MI scope (kz/mexc P0-B staging target; also holds completed kz/bybit P0-A staging candidates awaiting owner disposition)",
+        "owner-assets/ — 1 entry — historical governed artifact (governed owner-assets ingestion area)",
+        "incoming/bybit-visual-master-v1/ — 1 entry — historical governed artifact (visual-master handoff intake)",
+        "docs/CBW_EXCHANGE_PAGE_SEO_EVIDENCE_FACTORY_v1.md — 1 entry — not yet reconciled (uncommitted evidence-factory doc)",
+        "_handoff/ — 1 entry — shared-worktree temporary/QA scope not owned by production (handoff artifacts stay untracked by convention)",
+        "TOTAL: 172 entries — reconciles exactly to git status --porcelain count; preserved unchanged across the security remediation merge and master fast-forward"
+      ],
+      "notes": "Active source-master untracked research/evidence files remain preserved (the same 172-path set). KZ Bybit P0-A pipeline is CLOSED (closeout committed 67bdca3, 2026-07-21: canonical package committed, MIGRATION_5 preview committed non-production, production UNCHANGED, NOT_DEPLOYED). KZ MEXC P0-B is in flight at the documentation stage: its import-prep design was committed in the commit that later became SHA 0198d9f (2026-07-22, now an ancestor of master). The next MI import task CBW-KZ-MEXC-P0-B-STAGING-IMPORT-003 has NOT started and awaits owner issuance. MI data is canonical only via read-only adapters and cannot bind directly to production pages. None of the untracked entries is a production change."
+    },
+    {
+      "streamId": "locale",
+      "activeWorktree": "C:\\projects\\CryptoBonusWorld-architecture-v3",
+      "activeBranch": "feat/cbw-global-site-architecture-v3",
+      "head": "1cb69ab1cf79f9f42d1eb8a68678abad76fdc981",
+      "currentTask": null,
+      "lastCompletedTask": "NOT_RECONCILED",
+      "state": "IDLE",
+      "uncommittedScope": [],
+      "notes": "Architecture only — no locale-stream implementation task has ever executed (locale architecture documents were delivered by the architecture stream). No locale routes are implemented. No market-language pair is published. KZ (/kz/ru/ default, /kz/kk/, /kz/en/), PL (/pl/pl/ default, /pl/uk/, /pl/ru/, /pl/en/) and DE (/de/de/ default, /de/en/) pairs all remain PLANNED in the MarketLanguageMatrix. Publication and data binding remain unauthorized."
+    },
+    {
+      "streamId": "security",
+      "activeWorktree": "C:\\projects\\CryptoBonusWorld",
+      "activeBranch": "master",
+      "head": "0948fed6f29bb2d2ed7058fba4ed16fac636b3c8",
+      "currentTask": null,
+      "lastCompletedTask": "CBW-PRODUCTION-SECRETS-EMERGENCY-CLOSEOUT-017",
+      "state": "IDLE",
+      "uncommittedScope": [],
+      "notes": "Production-credential incident CLOSED (status RESOLVED_CURRENT_TREE / ACCESS_REVOKED / NO_DEPLOY). The exposed production credential was rotated and revoked out-of-band; SSH password authentication and keyboard-interactive authentication are disabled; root access is restricted to public-key authentication with the authorized root key verified; the current deployment code no longer contains hardcoded production credentials; remediation PR #1 was merged into master (merge commit 0948fed6f29bb2d2ed7058fba4ed16fac636b3c8) with NO deployment; Hetzner account 2FA is enabled; the security worktree and security branch were removed after merge. No current P0 access exposure. Accepted backlog: the revoked credential remains in historical Git objects (a full Git-history rewrite is deferred and requires separate owner authorization); future migration from root deployment to a restricted non-root deploy user. See securityIncident. No secret value is recorded anywhere in this file."
+    }
+  ],
+  "securityIncident": {
+    "id": "CBW-PRODUCTION-SECRETS-EMERGENCY",
+    "status": "RESOLVED_CURRENT_TREE / ACCESS_REVOKED / NO_DEPLOY",
+    "summary": "A hardcoded production deployment credential in tracked deployment code was removed from the current tree; the exposed credential was rotated/revoked out-of-band; no deployment occurred during remediation.",
+    "remediation": [
+      "exposed production root password rotated and revoked out-of-band",
+      "SSH password authentication disabled",
+      "keyboard-interactive authentication disabled",
+      "root access restricted to public-key authentication",
+      "authorized root SSH key verified",
+      "current deployment code no longer contains hardcoded production credentials",
+      "remediation PR #1 merged into master (merge commit 0948fed6f29bb2d2ed7058fba4ed16fac636b3c8)",
+      "Hetzner account 2FA enabled",
+      "no production deployment occurred during incident remediation",
+      "security worktree and security branch removed after merge"
+    ],
+    "acceptedBacklog": [
+      "the revoked credential remains in historical Git objects; a full Git-history rewrite is deferred and requires separate owner authorization",
+      "future migration from root deployment to a restricted non-root deploy user"
+    ],
+    "secretHandling": "no password, host, IP, username, key path or key fingerprint is recorded; the historical credential is described only as revoked/compromised and is never printed or reconstructed"
+  },
+  "recommendedNextSequence": [
+    {
+      "order": 1,
+      "task": "CBW-GLOBAL-SITE-ARCHITECTURE-V3-PR-REVIEW-014",
+      "note": "independent review of the architecture V3 feature branch before any merge; no implementation or deployment"
+    },
+    {
+      "order": 2,
+      "task": "owner-authorized merge of the architecture V3 branch into master",
+      "note": "gated on MERGE_TO_MASTER_AUTHORIZED (currently false); documentation/architecture only, still no implementation or deployment"
+    },
+    {
+      "order": 3,
+      "task": "CBW-AI-OPS-FOUNDATION-V1-001",
+      "note": "governance and automation infrastructure only — GitHub task contracts, issue forms, pull-request templates, branch authority, scope guards, CI gates, ChatGPT review flow, Claude Code execution contracts, controlled repair loop; explicitly no automatic production deployment"
+    }
+  ],
+  "pendingOwnerDecisions": [
+    {
+      "id": "OD-2026-07-23-ARCHITECTURE-PR",
+      "question": "Proceed with an independent architecture V3 PR review (CBW-GLOBAL-SITE-ARCHITECTURE-V3-PR-REVIEW-014) and then an owner-authorized merge of feat/cbw-global-site-architecture-v3 into master?",
+      "blockedTasks": [
+        "CBW-GLOBAL-SITE-ARCHITECTURE-V3-PR-REVIEW-014",
+        "owner-authorized merge of the architecture V3 branch into master",
+        "MERGE_TO_MASTER_AUTHORIZED grant"
+      ]
+    },
+    {
+      "id": "OD-2026-07-23-EXCHANGE-REVIEW-V2-DISPOSITION",
+      "question": "Disposition of the uncommitted Exchange Review V2 prototype in C:\\projects\\CryptoBonusWorld-design-v2 — approve and commit, request revisions, or discard?",
+      "blockedTasks": [
+        "CBW-EXCHANGE-REVIEW-V2-OWNER-REVIEW-002"
+      ]
+    },
+    {
+      "id": "OD-2026-07-23-MI-P0B-AND-UNTRACKED-DISPOSITION",
+      "question": "Proceed with the KZ MEXC P0-B staging import, and how should the 172 untracked MI/evidence/QA entries in the master worktree be dispositioned (commit governed scopes vs. bulk cleanup per the 2026-07-18 audit recommendation)?",
+      "blockedTasks": [
+        "CBW-KZ-MEXC-P0-B-STAGING-IMPORT-003",
+        "untracked-scope cleanup task (not yet scoped)"
+      ]
+    },
+    {
+      "id": "OD-2026-07-23-IMPLEMENTATION-WAVE-1",
+      "question": "Authorize the first implementation wave (W1 Exchange Review V2 rollout), which requires PAGE_IMPLEMENTATION_AUTHORIZED and depends on the Exchange Review V2 prototype disposition and the architecture V3 merge?",
+      "blockedTasks": [
+        "W1 Exchange Review V2 rollout (rolloutOrder)",
+        "PAGE_IMPLEMENTATION_AUTHORIZED grant"
+      ]
+    }
+  ],
+  "authorizationFlags": {
+    "ARCHITECTURE_DESIGN_AUTHORIZED": true,
+    "COUNTRY_ART_GENERATION_AUTHORIZED": false,
+    "PAGE_IMPLEMENTATION_AUTHORIZED": false,
+    "PRODUCTION_ASSET_EXPORT_AUTHORIZED": false,
+    "PRODUCTION_DATA_BINDING_AUTHORIZED": false,
+    "AFFILIATE_ACTIVATION_AUTHORIZED": false,
+    "MERGE_TO_MASTER_AUTHORIZED": false,
+    "PUBLICATION_AUTHORIZED": false,
+    "DEPLOY_AUTHORIZED": false
+  },
+  "lastDeploy": {
+    "date": "2026-07-18",
+    "scope": "Rollback commit 183d5559af9e608f168636a7ff998b8fdf7f5a6b deployed to production, restoring the tracked site behavior/tree of the a4d89d4d1df420fc1922625cdde126f2064da4a2 release (outbound registration new-tab hotfix). This remains the most recent production deployment: the later security remediation merge (master 0948fed6f29bb2d2ed7058fba4ed16fac636b3c8) was NOT deployed, and no architecture, design or MI work has been deployed. Evidence chain: the 2026-07-18 full-site audit (artifacts 15:21-15:26) live-verified the a4d89d4 deployment; the unified-hero commit b4abec9 (16:48) was reverted by 183d555 (17:01); dist/ was then rebuilt at 17:03 from the post-revert tree (light hp-intro homepage present, unified-hero assets absent) via the standard clean-build-and-upload deploy pipeline, and the design-authority docs treat the reverted state as the live baseline (the unified-hero redesign must not be restored)."
+  }
+}
