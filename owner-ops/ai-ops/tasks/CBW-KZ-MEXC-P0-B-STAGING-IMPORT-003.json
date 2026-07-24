@@ -6,7 +6,7 @@
   "stream": "market-intelligence",
   "riskLevel": "P1",
   "taskType": "governance",
-  "status": "IN_PROGRESS",
+  "status": "PR_OPEN",
   "repository": "ros190392-source/cryptobonusworld",
   "baseBranch": "master",
   "baseSha": "81ac46616387226778e1562fa9a60a2e26657885",
@@ -25,6 +25,14 @@
     "url": "https://github.com/ros190392-source/cryptobonusworld/issues/7",
     "state": "CLOSED",
     "role": "scope resolver (result PASS)"
+  },
+  "pullRequest": {
+    "number": 9,
+    "url": "https://github.com/ros190392-source/cryptobonusworld/pull/9",
+    "base": "master",
+    "head": "feat/cbw-kz-mexc-p0b-staging-import-003",
+    "state": "OPEN",
+    "merged": false
   },
   "authorizedScope": {
     "exactPaths": [
