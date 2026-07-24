@@ -1,0 +1,137 @@
+{
+  "schemaVersion": "1",
+  "countryCode": "KZ",
+  "exchangeId": "mexc",
+  "conflicts": [
+    {
+      "conflictId": "cf-kz-mexc-card-guide-scope",
+      "originalStatus": "RESOLVED_BY_SPECIFICITY",
+      "finalStatus": "RESOLVED_BY_SPECIFICITY",
+      "sourcesReviewed": [
+        "src-kz-mexc-buy-guide-001",
+        "src-kz-mexc-card-guide-001"
+      ],
+      "claimsReviewed": [
+        "clm-kz-mexc-card-purchase-001"
+      ],
+      "currentAssessment": "The specific current supported-country guide controls the product conclusion; Kazakhstan card purchase is treated as unavailable.",
+      "unresolvedEvidence": [],
+      "ownerReviewRequired": true
+    },
+    {
+      "conflictId": "cf-kz-mexc-global-referral-vs-kz-restriction",
+      "originalStatus": "OPEN_POLICY_GATED",
+      "finalStatus": "RESOLVED_RESTRICTIVE",
+      "sourcesReviewed": [
+        "src-kz-mexc-affiliate-fee-001",
+        "src-kz-mexc-invite-flow-001",
+        "src-kz-mexc-referrer-linking-001",
+        "src-kz-mexc-signup-flow-001",
+        "src-kz-mexc-terms-001"
+      ],
+      "claimsReviewed": [
+        "clm-kz-mexc-referral-001",
+        "clm-kz-mexc-referral-002",
+        "clm-kz-mexc-registration-001"
+      ],
+      "currentAssessment": "Global mechanics are documented, but Kazakhstan use remains ineligible/not verified under the current prohibition.",
+      "unresolvedEvidence": [],
+      "ownerReviewRequired": true
+    },
+    {
+      "conflictId": "cf-kz-mexc-terms-vs-app-support",
+      "originalStatus": "OPEN",
+      "finalStatus": "PARTIALLY_RESOLVED",
+      "sourcesReviewed": [
+        "src-kz-mexc-app-countries-001",
+        "src-kz-mexc-terms-001"
+      ],
+      "claimsReviewed": [
+        "clm-kz-mexc-mobile-app-001",
+        "clm-kz-mexc-restrictions-001",
+        "clm-kz-mexc-routing-001"
+      ],
+      "currentAssessment": "MEXC legal terms prohibit Kazakhstan while an official app-support page lists Kazakhstan as supported.",
+      "unresolvedEvidence": [
+        "The lower-level official page remains visible/current, but account-level Kazakhstan eligibility was not live-tested and is controlled by the broader User Agreement prohibition."
+      ],
+      "ownerReviewRequired": true
+    },
+    {
+      "conflictId": "cf-kz-mexc-terms-vs-earn",
+      "originalStatus": "OPEN",
+      "finalStatus": "PARTIALLY_RESOLVED",
+      "sourcesReviewed": [
+        "src-kz-mexc-earn-agreement-001",
+        "src-kz-mexc-terms-001"
+      ],
+      "claimsReviewed": [
+        "clm-kz-mexc-earn-001",
+        "clm-kz-mexc-restrictions-001"
+      ],
+      "currentAssessment": "The product-specific Earn agreement reviewed did not list Kazakhstan, while the broader User Agreement prohibits Kazakhstan.",
+      "unresolvedEvidence": [
+        "The lower-level official page remains visible/current, but account-level Kazakhstan eligibility was not live-tested and is controlled by the broader User Agreement prohibition.",
+        "Product-specific Earn wording remains internally inconsistent with the broader platform terms."
+      ],
+      "ownerReviewRequired": true
+    },
+    {
+      "conflictId": "cf-kz-mexc-terms-vs-fiat-tn",
+      "originalStatus": "OPEN",
+      "finalStatus": "PARTIALLY_RESOLVED",
+      "sourcesReviewed": [
+        "src-kz-mexc-fiat-tn-policy-001",
+        "src-kz-mexc-terms-001"
+      ],
+      "claimsReviewed": [
+        "clm-kz-mexc-direct-fiat-deposit-001",
+        "clm-kz-mexc-direct-fiat-withdrawal-001",
+        "clm-kz-mexc-kzt-001"
+      ],
+      "currentAssessment": "Kazakhstan appears in an official fiat-channel withdrawal waiting-period policy even though MEXC terms prohibit Kazakhstan.",
+      "unresolvedEvidence": [
+        "The lower-level official page remains visible/current, but account-level Kazakhstan eligibility was not live-tested and is controlled by the broader User Agreement prohibition."
+      ],
+      "ownerReviewRequired": true
+    },
+    {
+      "conflictId": "cf-kz-mexc-terms-vs-p2p-kzt",
+      "originalStatus": "OPEN",
+      "finalStatus": "PARTIALLY_RESOLVED",
+      "sourcesReviewed": [
+        "src-kz-mexc-kyc-eligibility-001",
+        "src-kz-mexc-p2p-ad-rules-001",
+        "src-kz-mexc-p2p-kzt-page-001",
+        "src-kz-mexc-terms-001"
+      ],
+      "claimsReviewed": [
+        "clm-kz-mexc-kyc-001",
+        "clm-kz-mexc-kzt-001",
+        "clm-kz-mexc-p2p-001"
+      ],
+      "currentAssessment": "MEXC terms prohibit Kazakhstan, but official public pages expose USDT/KZT P2P and KZT ad-posting rules.",
+      "unresolvedEvidence": [
+        "The lower-level official page remains visible/current, but account-level Kazakhstan eligibility was not live-tested and is controlled by the broader User Agreement prohibition."
+      ],
+      "ownerReviewRequired": true
+    },
+    {
+      "conflictId": "cf-kz-mexc-terms-vs-regulator",
+      "originalStatus": "RESOLVED_RESTRICTIVE",
+      "finalStatus": "RESOLVED_RESTRICTIVE",
+      "sourcesReviewed": [
+        "src-kz-mexc-afsa-warning-001",
+        "src-kz-mexc-terms-001"
+      ],
+      "claimsReviewed": [
+        "clm-kz-mexc-registration-001",
+        "clm-kz-mexc-regulation-001",
+        "clm-kz-mexc-restrictions-001"
+      ],
+      "currentAssessment": "Resolved in the restrictive direction using current Tier A MEXC legal terms checked 2026-07-22 and the dated Tier A AFSA warning published 2026-04-28.",
+      "unresolvedEvidence": [],
+      "ownerReviewRequired": true
+    }
+  ]
+}
