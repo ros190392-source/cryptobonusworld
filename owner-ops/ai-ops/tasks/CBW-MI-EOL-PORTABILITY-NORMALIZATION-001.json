@@ -6,7 +6,7 @@
   "stream": "market-intelligence",
   "riskLevel": "P2",
   "taskType": "governance",
-  "status": "IN_PROGRESS",
+  "status": "PR_OPEN",
   "repository": "ros190392-source/cryptobonusworld",
   "baseBranch": "master",
   "baseSha": "40b68632b9a41118035430cf0fd4e5569f1cd8e0",
@@ -25,6 +25,14 @@
     "url": "https://github.com/ros190392-source/cryptobonusworld/issues/10",
     "state": "OPEN",
     "role": "canonical-import scope resolver (result PASS)"
+  },
+  "pullRequest": {
+    "number": 12,
+    "url": "https://github.com/ros190392-source/cryptobonusworld/pull/12",
+    "base": "master",
+    "head": "feat/cbw-mi-eol-portability-normalization-001",
+    "state": "OPEN",
+    "merged": false
   },
   "authorizedScope": {
     "exactPaths": [
