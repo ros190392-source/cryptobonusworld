@@ -1,3 +1,8 @@
 ﻿# Ensure YAML workflow files are committed with LF line endings
 *.yml text eol=lf
 *.yaml text eol=lf
+
+# Ensure deterministic Market Intelligence files are committed and checked out with LF
+data/market-intelligence/** text eol=lf
+research/market-intelligence/staging/** text eol=lf
+scripts/market-intelligence/*.mjs text eol=lf
