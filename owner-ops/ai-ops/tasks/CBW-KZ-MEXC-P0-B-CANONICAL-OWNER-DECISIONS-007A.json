@@ -6,7 +6,7 @@
   "stream": "market-intelligence",
   "riskLevel": "P1",
   "taskType": "governance",
-  "status": "IN_PROGRESS",
+  "status": "PR_OPEN",
   "repository": "ros190392-source/cryptobonusworld",
   "baseBranch": "master",
   "baseSha": "a88ed799fb5c12de1e7f0f2424b2b4df0ac1aba1",
@@ -25,6 +25,14 @@
     "url": "https://github.com/ros190392-source/cryptobonusworld/issues/10",
     "state": "CLOSED",
     "role": "canonical-import scope resolver (result PASS)"
+  },
+  "pullRequest": {
+    "number": 14,
+    "url": "https://github.com/ros190392-source/cryptobonusworld/pull/14",
+    "base": "master",
+    "head": "feat/cbw-kz-mexc-p0b-canonical-owner-decisions-007a",
+    "state": "OPEN",
+    "merged": false
   },
   "authorizedScope": {
     "exactPaths": [
