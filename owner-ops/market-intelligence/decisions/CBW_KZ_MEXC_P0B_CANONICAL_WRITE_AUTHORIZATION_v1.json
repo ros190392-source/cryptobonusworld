@@ -1,0 +1,246 @@
+{
+  "decisionId": "CBW-KZ-MEXC-P0B-CANONICAL-WRITE-AUTHORIZATION-v1",
+  "taskId": "CBW-KZ-MEXC-P0-B-CANONICAL-WRITE-AUTHORIZATION-007B",
+  "project": "CryptoBonusWorld",
+  "repository": "C:/projects/CryptoBonusWorld",
+  "branch": "master",
+  "baselineHead": "d550b43b29871169f4087c75ee2af4289a66c894",
+  "date": "2026-07-24",
+  "countryCode": "KZ",
+  "exchangeId": "mexc",
+  "batchId": "KZ-P0-B",
+  "mode": "OWNER_AUTHORIZATION_DECISION_RECORD_ONLY",
+  "status": "OWNER_AUTHORIZED_CANONICAL_RESEARCH_WRITE",
+  "packageStatus": "RECOVERED / UNVERIFIED",
+  "scopeStatement": "Authorizes ONLY a future deterministic, atomic first-write of six non-production canonical research files for KZ x MEXC P0-B. Does NOT perform the write. Does NOT authorize production integration, legacy GEO replacement, ranking/CTA/promo/affiliate activation, MI-GEO binding activation, publication, MIGRATION_5 or deploy.",
+
+  "sourceIssue": { "number": 15, "url": "https://github.com/ros190392-source/cryptobonusworld/issues/15" },
+  "resolverIssue": { "number": 10, "url": "https://github.com/ros190392-source/cryptobonusworld/issues/10" },
+  "lineage": {
+    "stagingImportPr": 9,
+    "stagingImportHead": "96d688d4e814f25f1be5f8ef542bfbe3f604c026",
+    "stagingImportMerge": "40b68632b9a41118035430cf0fd4e5569f1cd8e0",
+    "eolPrerequisitePr": 12,
+    "eolPrerequisiteMerge": "a88ed799fb5c12de1e7f0f2424b2b4df0ac1aba1",
+    "ownerDecisionsPr": 14,
+    "ownerDecisionsHead": "b604168829357688a8d6651daf743d0f35826a7f",
+    "ownerDecisionsMerge": "d550b43b29871169f4087c75ee2af4289a66c894"
+  },
+  "pathDecisionRef": { "decisionId": "CBW-KZ-MEXC-P0B-CANONICAL-PATHS-OWNER-DECISION-v1" },
+  "importPrepRef": { "decisionId": "CBW-KZ-MEXC-P0B-CANONICAL-IMPORT-PREP-v1" },
+  "previewRefs": {
+    "cellPreview": "research/market-intelligence/staging/kz/mexc/p0b-v1/canonical-preview/exchange-market-cell.preview.json",
+    "bindingPreview": "research/market-intelligence/staging/kz/mexc/p0b-v1/canonical-preview/mi-geo-binding.preview.json",
+    "projectionReport": "research/market-intelligence/staging/kz/mexc/p0b-v1/canonical-preview/projection-report.md"
+  },
+
+  "canonicalWriteAuthorizationSummary": {
+    "authorized": true,
+    "target": "atomic six-file canonical research package for KZ x mexc",
+    "root": "data/market-intelligence/",
+    "nonProduction": true,
+    "performsWrite": false,
+    "firstWriteNoOverwrite": true,
+    "atomicAllOrNone": true
+  },
+
+  "authorizedPaths": [
+    "data/market-intelligence/cells/by-country/kz/mexc.json",
+    "data/market-intelligence/sources/by-country/kz/mexc.json",
+    "data/market-intelligence/linkages/by-country/kz/mexc.json",
+    "data/market-intelligence/provenance/by-country/kz/mexc.json",
+    "data/market-intelligence/conflicts/by-country/kz/mexc.json",
+    "data/market-intelligence/bindings/by-country/kz/mexc.json"
+  ],
+  "notAuthorizedPaths": [
+    "data/market-intelligence/cells/by-exchange/**",
+    "duplicate copies (any orientation)",
+    "generated indexes",
+    "production adapters",
+    "runtime consumers",
+    "any legacy GEO change",
+    "src/**",
+    "schemas/**"
+  ],
+
+  "authorizationFlags": {
+    "authorizedTrue": {
+      "canonicalResearchStorageEligible": true,
+      "canonicalImportAuthorized": true,
+      "canonicalCellWriteAuthorized": true,
+      "canonicalSourcesWriteAuthorized": true,
+      "canonicalLinkagesWriteAuthorized": true,
+      "canonicalProvenanceWriteAuthorized": true,
+      "canonicalConflictsWriteAuthorized": true,
+      "miGeoBindingWriteAuthorized": true
+    },
+    "mustRemainFalse": {
+      "miGeoBindingActivationAuthorized": false,
+      "productionChangeAuthorized": false,
+      "productionIntegrationAuthorized": false,
+      "legacyGeoReplacementAuthorized": false,
+      "publicationAuthorized": false,
+      "rankingEligibilityAuthorized": false,
+      "ctaEligibilityAuthorized": false,
+      "promoEligibilityAuthorized": false,
+      "affiliateRoutingActivationAuthorized": false,
+      "pageOrRouteChangeAuthorized": false,
+      "migration5Authorized": false,
+      "deployAuthorized": false
+    }
+  },
+
+  "transformationContract": {
+    "cell": {
+      "source": "research/market-intelligence/staging/kz/mexc/p0b-v1/canonical-preview/exchange-market-cell.preview.json",
+      "rule": "exact value equality with the merged cell preview and therefore with staging candidate .cell; no candidateMetadata; no factual upgrade/downgrade/flattening",
+      "preserve": {
+        "overallAvailability": "RESTRICTED",
+        "registrationStatus": "RESTRICTED",
+        "confidence": "HIGH",
+        "freshness": "UNDER_REVIEW",
+        "liveVerificationState": "NOT_LIVE_VERIFIED",
+        "rankingEligibility": false,
+        "ctaEligibility": false,
+        "promoEligibility": false,
+        "sourceIds": 16,
+        "conflictIds": 7,
+        "reasonCodes": 7,
+        "limitations": 5,
+        "productStatuses": 13
+      },
+      "schema": "schemas/market-intelligence/exchange-market-cell.schema.json"
+    },
+    "sources": {
+      "envelope": { "schemaVersion": "1", "countryCode": "KZ", "exchangeId": "mexc", "records": [] },
+      "recordSchema": "schemas/market-intelligence/market-source.schema.json",
+      "expectedRecordCount": 16,
+      "statusDistribution": { "ACTIVE": 15, "STALE": 1 },
+      "rules": ["sort by sourceId", "zero duplicate sourceIds", "each record validates against market-source.schema.json"]
+    },
+    "linkages": {
+      "envelope": { "schemaVersion": "1", "countryCode": "KZ", "exchangeId": "mexc", "links": [] },
+      "expectedLinkCount": 55,
+      "linkDistribution": { "SUPPORTS": 41, "CONTRADICTS": 14 },
+      "rules": ["sort by linkId", "zero duplicate triples", "every claimId and sourceId resolves"]
+    },
+    "conflicts": {
+      "envelope": { "schemaVersion": "1", "countryCode": "KZ", "exchangeId": "mexc", "conflicts": [] },
+      "expectedConflicts": 7,
+      "conflictIds": [
+        "cf-kz-mexc-card-guide-scope",
+        "cf-kz-mexc-global-referral-vs-kz-restriction",
+        "cf-kz-mexc-terms-vs-app-support",
+        "cf-kz-mexc-terms-vs-earn",
+        "cf-kz-mexc-terms-vs-fiat-tn",
+        "cf-kz-mexc-terms-vs-p2p-kzt",
+        "cf-kz-mexc-terms-vs-regulator"
+      ],
+      "rules": ["sort by conflictId", "every conflict ownerReviewRequired=true", "no auto-resolution", "preserve reviewed sources, affected claims, assessments and unresolved evidence"]
+    },
+    "provenance": {
+      "mustPreserve": [
+        "package status RECOVERED / UNVERIFIED",
+        "liveVerificationState NOT_LIVE_VERIFIED",
+        "recovered source-truth review package sha256 f7658b5f7bddc29d24fd09a2c06de09d2dcfe65e6de64cc40e91c0399a380c5f, 27833 bytes",
+        "unavailable original artifact sha256 3f0e10d231efc2ce33f77fac85182809197c11bf5b0cf400f32c77bad4774281, 37001 bytes",
+        "staging import PR #9 head 96d688d4e814f25f1be5f8ef542bfbe3f604c026 and merge 40b68632b9a41118035430cf0fd4e5569f1cd8e0",
+        "EOL prerequisite PR #12 merge a88ed799fb5c12de1e7f0f2424b2b4df0ac1aba1",
+        "owner decisions PR #14 head b604168829357688a8d6651daf743d0f35826a7f and merge d550b43b29871169f4087c75ee2af4289a66c894",
+        "source confidence and claim confidence",
+        "15 correction-required claims with original and corrected text",
+        "terms-page-flip monitoring (2026-07-03 / 2026-07-14 absent; 2026-07-22 present, displayed update date 2025-05-29)",
+        "every withheld production authorization",
+        "canonical-import authorization decision reference (this record)"
+      ],
+      "rule": "No provenance may be silently discarded."
+    },
+    "binding": {
+      "structuralSource": "research/market-intelligence/staging/kz/mexc/p0b-v1/canonical-preview/mi-geo-binding.preview.json",
+      "schema": "schemas/market-intelligence/mi-geo-binding.schema.json",
+      "exactCanonicalizationChange": {
+        "field": "miCellRef",
+        "fromPreview": "research/market-intelligence/staging/kz/mexc/p0b-v1/canonical-preview/exchange-market-cell.preview.json (PREVIEW; future canonical data/market-intelligence/cells/by-country/kz/mexc.json)",
+        "toCanonical": "data/market-intelligence/cells/by-country/kz/mexc.json"
+      },
+      "allOtherFieldsEquivalentToPreview": {
+        "bindingId": "bind-kz-mexc",
+        "canonicalRecord": "GEO_LEGACY",
+        "legacyGeoPassportRef": "research/geo/kazakhstan/exchanges/mexc.json",
+        "deepPassportRef": null,
+        "migrationPhase": "MIGRATION_4",
+        "ownershipComplete": true,
+        "eligibilityAvailability": "RESTRICTED",
+        "rankingEligibility": false,
+        "ctaEligibility": false,
+        "promoEligibility": false,
+        "affiliateInfluencesRanking": false,
+        "conflictResolutionCase": "OFFICIAL_SOURCES_DISAGREE",
+        "conflictResolutionOutcome": "OWNER_REVIEW_REQUIRED",
+        "ctaSuppressed": true,
+        "rankingSuppressed": true,
+        "productionRouteUnchanged": true,
+        "liveVerificationState": "NOT_LIVE_VERIFIED",
+        "productionStable": true,
+        "ownerApproved": false,
+        "reviewStatus": "PROPOSED"
+      },
+      "prohibitedFields": ["active", "promoSuppressed", "existingGeoRemainsProductionTruth", "top-level productionRouteUnchanged"]
+    }
+  },
+
+  "atomicWriteContract": {
+    "allOrNone": true,
+    "firstWriteNoOverwrite": true,
+    "rollbackOnFailure": true,
+    "noPartialPackage": true,
+    "steps": [
+      "1. generate all six outputs in an OS temporary directory outside every repository",
+      "2. validate all six before touching canonical paths",
+      "3. confirm all six target files are ABSENT before the first import",
+      "4. refuse any overwrite",
+      "5. create all six as one controlled first-write operation",
+      "6. on any write or final-validation failure, remove every file created by that execution",
+      "7. leave no partial canonical package",
+      "8. revalidate all six canonical files after promotion",
+      "9. verify the exact source file-level untracked set remains unchanged",
+      "10. open one PR for independent review; no merge or deploy inside the implementation executor"
+    ]
+  },
+
+  "futureImplementationScope": {
+    "createOnly": [
+      "owner-ops/ai-ops/tasks/CBW-KZ-MEXC-P0-B-CANONICAL-IMPORT-007.json",
+      "scripts/market-intelligence/promote-kz-mexc-p0b-canonical.mjs",
+      "data/market-intelligence/cells/by-country/kz/mexc.json",
+      "data/market-intelligence/sources/by-country/kz/mexc.json",
+      "data/market-intelligence/linkages/by-country/kz/mexc.json",
+      "data/market-intelligence/provenance/by-country/kz/mexc.json",
+      "data/market-intelligence/conflicts/by-country/kz/mexc.json",
+      "data/market-intelligence/bindings/by-country/kz/mexc.json"
+    ],
+    "noExistingTrackedFileModified": true,
+    "nextTask": "CBW-KZ-MEXC-P0-B-CANONICAL-IMPORT-007"
+  },
+
+  "canonicalVsProductionSeparation": {
+    "canonicalMiResearchTruth": "data/market-intelligence/cells/by-country/**",
+    "stagingEvidence": "research/market-intelligence/staging/**",
+    "currentProductionTruth": ["research/geo/kazakhstan/exchanges/mexc.json", "src/data/geoRankings.ts"],
+    "noProductionConsumerReadsCanonicalYet": true,
+    "noAutomaticSynchronization": true,
+    "noSilentOverwriteOfLegacyGeo": true,
+    "note": "Canonical research storage is not publication and is not production activation."
+  },
+
+  "filesCreated": [
+    "owner-ops/market-intelligence/decisions/CBW_KZ_MEXC_P0B_CANONICAL_WRITE_AUTHORIZATION_v1.md",
+    "owner-ops/market-intelligence/decisions/CBW_KZ_MEXC_P0B_CANONICAL_WRITE_AUTHORIZATION_v1.json"
+  ],
+  "dataDirectoryCreated": false,
+  "writePerformed": false,
+
+  "recommendation": "APPROVE",
+  "recommendationScope": "Explicit owner authorization recorded for a FUTURE atomic six-file canonical research write into data/market-intelligence/ for KZ x MEXC per the approved paths, transformation and atomic-write contracts. This record performs no write. Binding-write authorized only in its non-active state; binding activation, production integration, legacy GEO replacement, publication, ranking/CTA/promo/affiliate activation, MIGRATION_5 and deploy remain BLOCKED.",
+  "nextTask": "CBW-KZ-MEXC-P0-B-CANONICAL-IMPORT-007"
+}
