@@ -1,0 +1,223 @@
+{
+  "decisionId": "CBW-KZ-MEXC-P0B-CANONICAL-PATHS-OWNER-DECISION-v1",
+  "taskId": "CBW-KZ-MEXC-P0-B-CANONICAL-OWNER-DECISIONS-007A",
+  "project": "CryptoBonusWorld",
+  "repository": "C:/projects/CryptoBonusWorld",
+  "branch": "master",
+  "baselineHead": "a88ed799fb5c12de1e7f0f2424b2b4df0ac1aba1",
+  "date": "2026-07-24",
+  "countryCode": "KZ",
+  "exchangeId": "mexc",
+  "batchId": "KZ-P0-B",
+  "mode": "ARCHITECTURE_DECISION_RECORD_ONLY",
+  "status": "OWNER_APPROVED_ARCHITECTURE_DECISION",
+  "packageStatus": "RECOVERED / UNVERIFIED",
+  "notes": "Records approved canonical storage paths and deterministic storage contracts ONLY. Creates no data/market-intelligence/ record, no binding. Path approval does NOT authorize file creation.",
+  "sourceIssue": { "number": 13, "url": "https://github.com/ros190392-source/cryptobonusworld/issues/13" },
+  "resolverIssue": { "number": 10, "url": "https://github.com/ros190392-source/cryptobonusworld/issues/10" },
+  "eolPrerequisite": { "issue": 11, "pr": 12, "mergeCommit": "a88ed799fb5c12de1e7f0f2424b2b4df0ac1aba1" },
+
+  "canonicalRoot": {
+    "path": "data/market-intelligence/",
+    "approved": true,
+    "properties": [
+      "canonical research storage",
+      "non-production by default",
+      "not consumed by runtime until a separately approved integration",
+      "separate from legacy research/geo/**",
+      "separate from src/** production data"
+    ],
+    "creatingRecordsDoesNotAffect": [
+      "production availability", "ranking", "CTA", "promo", "affiliate routing", "pages", "MIGRATION_5"
+    ],
+    "authorities": "CBW_EXCHANGE_MARKET_INTELLIGENCE_BRAIN_v1.md (data/market-intelligence/ tree) + CBW_MI_GEO_RECONCILIATION_STANDARD_v1.md (MI cell canonical; one binding per pair); mirrors approved KZ x Bybit P0-A canonical-paths decision"
+  },
+
+  "approvedPaths": {
+    "cell": {
+      "path": "data/market-intelligence/cells/by-country/kz/mexc.json",
+      "convention": "data/market-intelligence/cells/by-country/{country-code-lowercase}/{exchange-slug}.json",
+      "schema": "schemas/market-intelligence/exchange-market-cell.schema.json",
+      "isDirectSchemaInstance": true,
+      "rules": [
+        "single canonical cell path",
+        "no duplicate canonical copy under cells/by-exchange/**",
+        "any future by-exchange view is a generated index/lookup artifact, never competing truth",
+        "cell is the bare exchange-market-cell object with candidateMetadata removed"
+      ]
+    },
+    "sources": {
+      "path": "data/market-intelligence/sources/by-country/kz/mexc.json",
+      "convention": "data/market-intelligence/sources/by-country/{country-code-lowercase}/{exchange-slug}.json",
+      "envelope": { "schemaVersion": "1", "countryCode": "KZ", "exchangeId": "mexc", "records": [] },
+      "recordSchema": "schemas/market-intelligence/market-source.schema.json",
+      "expectedRecordCount": 16,
+      "rules": [
+        "records contains the 16 normalized source records",
+        "every records[] item independently validates against market-source.schema.json",
+        "records sorted deterministically by sourceId",
+        "no duplicate sourceIds",
+        "envelope is a repository storage wrapper, NOT a replacement for market-source.schema.json",
+        "confidence/limitations must not be forced into source records when prohibited by the source schema (they live in provenance)"
+      ]
+    },
+    "linkages": {
+      "path": "data/market-intelligence/linkages/by-country/kz/mexc.json",
+      "convention": "data/market-intelligence/linkages/by-country/{country-code-lowercase}/{exchange-slug}.json",
+      "envelope": { "schemaVersion": "1", "countryCode": "KZ", "exchangeId": "mexc", "links": [] },
+      "expectedLinkCount": 55,
+      "relationships": ["SUPPORTS", "CONTRADICTS"],
+      "rules": [
+        "preserve all 55 claim-source links (41 SUPPORTS / 14 CONTRADICTS)",
+        "sort deterministically by linkId",
+        "every claimId and sourceId resolves",
+        "zero duplicate link triples",
+        "canonical relationship layer between claims and sources",
+        "does not influence production directly"
+      ]
+    },
+    "provenance": {
+      "path": "data/market-intelligence/provenance/by-country/kz/mexc.json",
+      "convention": "data/market-intelligence/provenance/by-country/{country-code-lowercase}/{exchange-slug}.json",
+      "isNonRuntimeResearchEvidence": true,
+      "mustPreserve": [
+        "package status RECOVERED / UNVERIFIED",
+        "recovered source-truth review package hash (f7658b5f7bddc29d24fd09a2c06de09d2dcfe65e6de64cc40e91c0399a380c5f, 27833 bytes)",
+        "unavailable original artifact (37001 bytes, 3f0e10d231efc2ce33f77fac85182809197c11bf5b0cf400f32c77bad4774281)",
+        "staging import PR #9 head 96d688d4e814f25f1be5f8ef542bfbe3f604c026 and merge commit 40b68632b9a41118035430cf0fd4e5569f1cd8e0; EOL prerequisite merge a88ed799fb5c12de1e7f0f2424b2b4df0ac1aba1",
+        "owner-decision references",
+        "source confidence and claim confidence",
+        "limitations",
+        "correctionRequired state and original/corrected claim text",
+        "liveVerificationState NOT_LIVE_VERIFIED",
+        "unresolved evidence and terms-page-flip monitoring",
+        "import history",
+        "canonical-import authorization state"
+      ],
+      "rule": "No provenance may be silently discarded."
+    },
+    "conflicts": {
+      "path": "data/market-intelligence/conflicts/by-country/kz/mexc.json",
+      "convention": "data/market-intelligence/conflicts/by-country/{country-code-lowercase}/{exchange-slug}.json",
+      "envelope": { "schemaVersion": "1", "countryCode": "KZ", "exchangeId": "mexc", "conflicts": [] },
+      "expectedConflicts": [
+        "cf-kz-mexc-card-guide-scope",
+        "cf-kz-mexc-global-referral-vs-kz-restriction",
+        "cf-kz-mexc-terms-vs-app-support",
+        "cf-kz-mexc-terms-vs-earn",
+        "cf-kz-mexc-terms-vs-fiat-tn",
+        "cf-kz-mexc-terms-vs-p2p-kzt",
+        "cf-kz-mexc-terms-vs-regulator"
+      ],
+      "rules": [
+        "preserve exactly the 7 conflicts",
+        "all remain ownerReviewRequired=true",
+        "sort deterministically by conflictId",
+        "preserve reviewed sources, claims and unresolved evidence",
+        "do NOT auto-resolve conflicts during import",
+        "NOT a restriction-event file unless an individual record actually conforms to restriction-event.schema.json"
+      ]
+    },
+    "binding": {
+      "path": "data/market-intelligence/bindings/by-country/kz/mexc.json",
+      "convention": "data/market-intelligence/bindings/by-country/{country-code-lowercase}/{exchange-slug}.json",
+      "schema": "schemas/market-intelligence/mi-geo-binding.schema.json",
+      "isDirectSchemaInstance": true,
+      "initialState": {
+        "canonicalRecord": "GEO_LEGACY",
+        "migrationPhase": "MIGRATION_4",
+        "productionStable": true,
+        "productionRouteUnchanged": true,
+        "rankingSuppressed": true,
+        "ctaSuppressed": true,
+        "affiliateInfluencesRanking": false,
+        "ownerApproved": false,
+        "reviewStatus": "PROPOSED"
+      },
+      "rule": "Writing this non-active binding later does NOT authorize activation. Existing GEO passport remains production truth. Schema-unsupported fields (top-level active, promoSuppressed, existingGeoRemainsProductionTruth) must NOT be added."
+    }
+  },
+
+  "pathNormalizationRules": {
+    "countryDirectory": "lowercase ISO alpha-2 (kz)",
+    "exchangeFilename": "canonical lowercase exchange slug (mexc.json)",
+    "repositoryPathSeparator": "forward-slash in records and manifests",
+    "prohibitions": [
+      "no uppercase country directories",
+      "no spaces in canonical filenames",
+      "no duplicate canonical record in another orientation",
+      "no symlinks",
+      "no generated timestamp directories",
+      "no version suffix in the canonical filename",
+      "history is preserved via Git + provenance, not mexc-v2.json"
+    ]
+  },
+
+  "atomicCanonicalPackage": {
+    "isAtomicSixFilePackage": true,
+    "files": [
+      "data/market-intelligence/cells/by-country/kz/mexc.json",
+      "data/market-intelligence/sources/by-country/kz/mexc.json",
+      "data/market-intelligence/linkages/by-country/kz/mexc.json",
+      "data/market-intelligence/provenance/by-country/kz/mexc.json",
+      "data/market-intelligence/conflicts/by-country/kz/mexc.json",
+      "data/market-intelligence/bindings/by-country/kz/mexc.json"
+    ],
+    "rule": "The future execute task must create ALL six valid files or NONE. No partial canonical package. First write only; refuse overwrite.",
+    "onValidationFailure": ["stop", "write nothing", "leave existing canonical data unchanged"]
+  },
+
+  "noDuplicateTruth": {
+    "canonicalMiTruth": "data/market-intelligence/cells/by-country/**",
+    "stagingEvidence": "research/market-intelligence/staging/**",
+    "legacyGeoProductionTruth": "research/geo/kazakhstan/exchanges/mexc.json (until migration)",
+    "currentProductionConsumer": "src/data/geoRankings.ts",
+    "rules": [
+      "no automatic synchronization is permitted yet",
+      "no canonical value may silently overwrite legacy GEO",
+      "no production consumer reads data/market-intelligence/cells/** during build",
+      "discrepancies require explicit migration reports and owner decisions"
+    ]
+  },
+
+  "mexcKazakhstanState": {
+    "overallAvailability": "RESTRICTED",
+    "confidence": "HIGH",
+    "freshness": "UNDER_REVIEW",
+    "liveVerificationState": "NOT_LIVE_VERIFIED",
+    "primaryVisualState": "RED",
+    "primaryLabel": "Restricted in Kazakhstan",
+    "rankingEligibility": false,
+    "ctaEligibility": false,
+    "promoEligibility": false,
+    "packageStatus": "RECOVERED / UNVERIFIED",
+    "termsPageFlipMonitoringRequired": true
+  },
+
+  "canonicalVsProductionSeparation": {
+    "canonicalResearchStorageEligible": true,
+    "canonicalImportAuthorized": false,
+    "miGeoBindingWriteAuthorized": false,
+    "miGeoBindingActivationAuthorized": false,
+    "productionChangeAuthorized": false,
+    "legacyGeoReplacementAuthorized": false,
+    "publicationAuthorized": false,
+    "rankingEligibilityAuthorized": false,
+    "ctaEligibilityAuthorized": false,
+    "promoEligibilityAuthorized": false,
+    "affiliateActivationAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false,
+    "note": "The path decision does not authorize file creation."
+  },
+
+  "filesCreated": [
+    "owner-ops/market-intelligence/decisions/CBW_KZ_MEXC_P0B_CANONICAL_PATHS_OWNER_DECISION_v1.md",
+    "owner-ops/market-intelligence/decisions/CBW_KZ_MEXC_P0B_CANONICAL_PATHS_OWNER_DECISION_v1.json"
+  ],
+  "dataDirectoryCreated": false,
+
+  "recommendation": "APPROVE",
+  "recommendationScope": "Canonical storage architecture approved (root + six by-country paths + envelopes + atomic-package + normalization + no-duplicate-truth) for KZ x MEXC. Records architecture ONLY; creates nothing under data/market-intelligence/. Canonical import execution, binding write/activation, production change, ranking/CTA/promo/affiliate, publication, MIGRATION_5 and deploy remain BLOCKED and owner-gated.",
+  "nextTask": "CBW-KZ-MEXC-P0-B-CANONICAL-WRITE-AUTHORIZATION-007B"
+}
