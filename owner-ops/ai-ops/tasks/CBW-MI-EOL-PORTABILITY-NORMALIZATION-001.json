@@ -1,0 +1,173 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-MI-EOL-PORTABILITY-NORMALIZATION-001",
+  "project": "CryptoBonusWorld",
+  "title": "Normalize MI line-ending portability",
+  "stream": "market-intelligence",
+  "riskLevel": "P2",
+  "taskType": "governance",
+  "status": "PR_OPEN",
+  "repository": "ros190392-source/cryptobonusworld",
+  "baseBranch": "master",
+  "baseSha": "40b68632b9a41118035430cf0fd4e5569f1cd8e0",
+  "worktreePath": "C:\\projects\\CryptoBonusWorld-mi-eol-001",
+  "featureBranch": "feat/cbw-mi-eol-portability-normalization-001",
+  "executor": "CLAUDE_CODE",
+  "reviewer": "CHATGPT",
+  "sourceIssue": {
+    "number": 11,
+    "url": "https://github.com/ros190392-source/cryptobonusworld/issues/11",
+    "state": "OPEN",
+    "role": "canonical source of truth"
+  },
+  "resolverIssue": {
+    "number": 10,
+    "url": "https://github.com/ros190392-source/cryptobonusworld/issues/10",
+    "state": "CLOSED",
+    "role": "canonical-import scope resolver (result PASS)"
+  },
+  "pullRequest": {
+    "number": 12,
+    "url": "https://github.com/ros190392-source/cryptobonusworld/pull/12",
+    "base": "master",
+    "head": "feat/cbw-mi-eol-portability-normalization-001",
+    "state": "OPEN",
+    "merged": false
+  },
+  "authorizedScope": {
+    "exactPaths": [
+      ".gitattributes",
+      "owner-ops/ai-ops/tasks/CBW-MI-EOL-PORTABILITY-NORMALIZATION-001.json"
+    ],
+    "allowedPrefixes": [],
+    "forbiddenPaths": [
+      "package.json",
+      "package-lock.json",
+      "astro.config.mjs",
+      "deploy.py"
+    ],
+    "forbiddenPrefixes": [
+      "data/market-intelligence/",
+      "research/market-intelligence/staging/",
+      "scripts/",
+      "schemas/",
+      "src/",
+      "public/",
+      ".github/",
+      "owner-ops/market-intelligence/",
+      "tests/",
+      "docs/",
+      "evidence/",
+      "config/",
+      "tools/"
+    ]
+  },
+  "requiredChecks": [
+    "ai-ops:validate",
+    "ai-ops:validate:fixtures",
+    "ai-ops:validate:contract",
+    "scope-validation",
+    "branch-authority-changed-file",
+    "branch-authority-contract",
+    "git-check-attr-eol",
+    "git-ls-files-eol",
+    "base-vs-head-mi-blob-comparison",
+    "fresh-windows-checkout-eol",
+    "importer-check-native",
+    "staging-manifest-reconciliation",
+    "build",
+    "validate:affiliate",
+    "seo:check",
+    "git-diff-check"
+  ],
+  "stopConditions": [
+    "source repository, branch or base SHA differs from the governed baseline 40b68632b9a41118035430cf0fd4e5569f1cd8e0",
+    "source tracked tree is dirty",
+    "the exact file-level source untracked set cannot be captured and preserved",
+    "live Issue #11 is not OPEN or conflicts with the execution prompt",
+    "a matching branch, worktree or PR already contains unrelated work",
+    ".gitattributes no longer has the expected YAML-only baseline or contains conflicting MI rules",
+    "the MEXC staging importer or tracked staging package is missing",
+    "any existing tracked MI file would need a content or blob change",
+    "any path outside the exact two-file scope changes",
+    "the Windows verification cannot be performed without modifying source or MI data"
+  ],
+  "ownerAuthorizations": {
+    "implementation": true,
+    "merge": false,
+    "deploy": false,
+    "productionBinding": false,
+    "publication": false,
+    "affiliateActivation": false
+  },
+  "repairPolicy": {
+    "enabled": false,
+    "maxAttempts": 0,
+    "allowedCategories": [],
+    "prohibitedCategories": [
+      "architecture-decision",
+      "production-fact",
+      "bonus-or-referral-value",
+      "affiliate-url",
+      "market-availability",
+      "geo-eligibility",
+      "legal-or-regulatory-claim",
+      "security-incident",
+      "secret",
+      "workflow-permission-change",
+      "branch-authority-change",
+      "production-deployment",
+      "scope-expansion",
+      "delete-or-weaken-failing-test"
+    ]
+  },
+  "forbiddenActions": [
+    "force-push",
+    "history-rewrite",
+    "secret-disclosure",
+    "automatic-production-deployment",
+    "bypass-owner-authorization",
+    "merge-main-into-master",
+    "merge-master-into-main",
+    "data-value-change",
+    "importer-logic-change",
+    "schema-change",
+    "canonical-import",
+    "production-binding",
+    "publication",
+    "affiliate-activation",
+    "migration5",
+    "scope-expansion",
+    "no-merge",
+    "no-deploy",
+    "no-production-connection"
+  ],
+  "expectedOutputs": [
+    "one modification to .gitattributes adding exactly three path-scoped eol=lf rules",
+    "one task contract at owner-ops/ai-ops/tasks/CBW-MI-EOL-PORTABILITY-NORMALIZATION-001.json",
+    "zero existing Market Intelligence data or importer blob changes",
+    "a fresh Windows checkout proving governed MI files are LF and the MEXC importer --check passes natively",
+    "one pull request into master with the canonical task-contract marker (not merged)",
+    "a truthful advisory CI run",
+    "a structured final report"
+  ],
+  "finalReportRequirements": [
+    "live Issue #11 verification",
+    "stop-condition results",
+    "baseline, master and main state",
+    "exact file-level untracked preservation",
+    "worktree, feature branch and base SHA",
+    "exact two changed paths and final .gitattributes rules",
+    "proof existing MI blob IDs and hashes unchanged",
+    "fresh Windows verification worktree path and effective core.autocrlf",
+    "git check-attr and git ls-files --eol results",
+    "native MEXC importer --check result and staging manifest reconciliation",
+    "build, affiliate and SEO results",
+    "commit SHA(s), push confirmation, PR number/URL and canonical marker",
+    "advisory run ID/URL/conclusion and semantic contract/scope/authority results",
+    "state progression IN_PROGRESS to PR_OPEN",
+    "confirmation PR is open and unmerged and no path outside scope changed",
+    "confirmation no data, schema, importer logic or runtime value changed and no deploy or production connection occurred",
+    "exact recommended next task CBW-MI-EOL-PORTABILITY-NORMALIZATION-REVIEW-002"
+  ]
+}
