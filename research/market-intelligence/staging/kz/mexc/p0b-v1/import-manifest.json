@@ -1,0 +1,95 @@
+{
+  "task": "CBW-KZ-MEXC-P0-B-STAGING-IMPORT-003",
+  "project": "CryptoBonusWorld",
+  "repository": "C:/projects/CryptoBonusWorld",
+  "branch": "master",
+  "baselineHead": "0198d9fe05ca7c8425c61d56fd85de475f5df8fc",
+  "countryCode": "KZ",
+  "country": "Kazakhstan",
+  "exchangeId": "mexc",
+  "exchange": "MEXC",
+  "batchId": "KZ-P0-B",
+  "transformVersion": "kz-mexc-p0b-v1",
+  "packageStatus": "RECOVERED / UNVERIFIED",
+  "sourceTruthReviewPackage": {
+    "name": "CBW_KZ_MEXC_P0B_SOURCE_TRUTH_REVIEW_v1_RECOVERED.zip",
+    "deliveredAs": "CBW_KZ_MEXC_P0B_SOURCE_TRUTH_REVIEW_v1.zip",
+    "bytes": 27833,
+    "sha256": "f7658b5f7bddc29d24fd09a2c06de09d2dcfe65e6de64cc40e91c0399a380c5f",
+    "role": "recovered source-truth review package"
+  },
+  "unavailableOriginalArtifact": {
+    "bytes": 37001,
+    "sha256": "3f0e10d231efc2ce33f77fac85182809197c11bf5b0cf400f32c77bad4774281",
+    "status": "ORIGINAL BYTES UNAVAILABLE"
+  },
+  "ownerDecisionCommit": "6f922cdff5caf0a6fb0f5eeff7618ea895234c73",
+  "importPrepDesignCommit": "0198d9fe05ca7c8425c61d56fd85de475f5df8fc",
+  "candidateShape": "OPTION_A_WRAPPED_CANDIDATE",
+  "cellSchemaValidation": "PASS (structural validation against exchange-market-cell.schema.json)",
+  "deterministic": true,
+  "stagingOnly": true,
+  "generatedFiles": [
+    "import-manifest.json",
+    "normalized-sources.json",
+    "claim-source-links.json",
+    "claim-review.json",
+    "qa-provenance.json",
+    "normalized-conflicts.json",
+    "exchange-market-cell.candidate.json",
+    "transform-report.md"
+  ],
+  "outputs": {
+    "normalized-sources.json": {
+      "bytes": 14068,
+      "sha256": "ab72d839cf45a04e7cc873dd768943eb8c871cadbaa42b77cd825cec5b88ec3a"
+    },
+    "claim-source-links.json": {
+      "bytes": 30388,
+      "sha256": "2115a97a1afa5b0ecf19f4ed675a39faacb36231122ce4092badd7eb1a0adeb7"
+    },
+    "claim-review.json": {
+      "bytes": 32099,
+      "sha256": "54102f3e36a0e1bd34114c626b487a781fc4c6a89c2227f7564729184f9a7f3e"
+    },
+    "qa-provenance.json": {
+      "bytes": 48071,
+      "sha256": "d86e7fd41db4d3eb30ad29051210c1e835caaa633786afb5ec844528c9c7574b"
+    },
+    "normalized-conflicts.json": {
+      "bytes": 5435,
+      "sha256": "02d27e35d1a954ca02cc355742360144c1a2f8d313ad9ec4a1c023005ec23d87"
+    },
+    "exchange-market-cell.candidate.json": {
+      "bytes": 4532,
+      "sha256": "86d4c9f4add640b2611dabffcfef123eac8191bb573f7b3528a881826a4aa10a"
+    },
+    "transform-report.md": {
+      "bytes": 3232,
+      "sha256": "706d398a97d7a2cf54e1b041a28fd5879c77f5d08db44067c1be267f264dc535"
+    }
+  },
+  "counts": {
+    "normalizedSources": 16,
+    "claimSourceLinks": 55,
+    "linkDistribution": {
+      "CONTRADICTS": 14,
+      "SUPPORTS": 41
+    },
+    "claimReviews": 24,
+    "correctionRequiredClaims": 15,
+    "conflicts": 7,
+    "sourceStatusDistribution": {
+      "ACTIVE": 15,
+      "STALE": 1
+    }
+  },
+  "canonicalImportAuthorized": false,
+  "productionChangeAuthorized": false,
+  "rankingChangeAuthorized": false,
+  "ctaChangeAuthorized": false,
+  "promoChangeAuthorized": false,
+  "publicationAuthorized": false,
+  "migration5Authorized": false,
+  "deployAuthorized": false
+}
