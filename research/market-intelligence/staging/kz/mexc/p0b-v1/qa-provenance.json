@@ -1,0 +1,929 @@
+{
+  "transformVersion": "kz-mexc-p0b-v1",
+  "taskId": "CBW-KZ-MEXC-P0-B-STAGING-IMPORT-003",
+  "packageStatus": "RECOVERED / UNVERIFIED",
+  "noProxyMode": true,
+  "webBrowsingUsed": false,
+  "sourceTruthReview": {
+    "taskId": "CBW-KZ-MEXC-P0-B-SOURCE-TRUTH-REVIEW-001",
+    "reviewDate": "2026-07-22",
+    "projectBaselineCommit": "2d1e94904491861a69f35329691514bb148407dd",
+    "researchPackageBaselineCommit": "67bdca323928a4a26aaa4cbe48ec18200fdc1d1d",
+    "liveVerificationState": "NOT_LIVE_VERIFIED",
+    "technicalSiteReachability": "NOT_DETERMINED"
+  },
+  "inputPackages": [
+    {
+      "name": "CBW_KZ_MEXC_P0B_SOURCE_TRUTH_REVIEW_v1_RECOVERED.zip",
+      "deliveredAs": "CBW_KZ_MEXC_P0B_SOURCE_TRUTH_REVIEW_v1.zip",
+      "bytes": 27833,
+      "sha256": "f7658b5f7bddc29d24fd09a2c06de09d2dcfe65e6de64cc40e91c0399a380c5f",
+      "role": "recovered source-truth review package"
+    },
+    {
+      "name": "ORIGINAL (unavailable)",
+      "bytes": 37001,
+      "sha256": "3f0e10d231efc2ce33f77fac85182809197c11bf5b0cf400f32c77bad4774281",
+      "status": "ORIGINAL BYTES UNAVAILABLE"
+    },
+    {
+      "name": "CBW_KZ_MEXC_P0B_RESEARCH_PACKAGE_v1_RECOVERED.zip",
+      "bytes": 30728,
+      "sha256": "aa4ee0a0e3399c74f80eb22de843815a9899fa43fb947b3b660a713aaa5dd242",
+      "role": "recovered original research package (context only; not read by this script)"
+    }
+  ],
+  "ownerDecisionRefs": {
+    "ownerDecision": "CBW-KZ-MEXC-P0B-OWNER-DECISION-v1 @ 6f922cdff5caf0a6fb0f5eeff7618ea895234c73",
+    "importPrepDesign": "CBW-KZ-MEXC-P0B-IMPORT-PREP-DESIGN-v1 @ 0198d9fe05ca7c8425c61d56fd85de475f5df8fc",
+    "sourceTruthReviewAudit": "CBW-KZ-MEXC-P0B-SOURCE-TRUTH-REVIEW-PACKAGE-AUDIT-v1 @ 5aa41f01b8d899223be925faaea01093c3125b6e",
+    "recoveredPackageAudit": "CBW-KZ-MEXC-P0B-RECOVERED-PACKAGE-AUDIT-v1"
+  },
+  "correctionDecisions": {
+    "count": 15,
+    "claimIds": [
+      "clm-kz-mexc-card-purchase-001",
+      "clm-kz-mexc-copy-trading-001",
+      "clm-kz-mexc-derivatives-001",
+      "clm-kz-mexc-earn-001",
+      "clm-kz-mexc-kyc-001",
+      "clm-kz-mexc-kzt-001",
+      "clm-kz-mexc-margin-001",
+      "clm-kz-mexc-mobile-app-001",
+      "clm-kz-mexc-p2p-001",
+      "clm-kz-mexc-promotions-002",
+      "clm-kz-mexc-publication-001",
+      "clm-kz-mexc-referral-002",
+      "clm-kz-mexc-registration-001",
+      "clm-kz-mexc-restrictions-001",
+      "clm-kz-mexc-spot-001"
+    ],
+    "policy": "corrections recorded, not applied; original and verified statements preserved separately"
+  },
+  "termsPageFlip": {
+    "state": "CURRENT_RESTRICTIVE_SOURCE_ACCEPTED_WITH_MONITORING",
+    "earlierCaptures": [
+      {
+        "date": "2026-07-03",
+        "finding": "Kazakhstan reportedly absent from the prohibited-jurisdiction list"
+      },
+      {
+        "date": "2026-07-14",
+        "finding": "Kazakhstan reportedly absent; document update date 2025-05-29"
+      }
+    ],
+    "currentReview": {
+      "date": "2026-07-22",
+      "finding": "Kazakhstan expressly present in the prohibited-jurisdiction list; displayed document update date remained 2025-05-29"
+    },
+    "sourceChangeOrPriorMisreadUnresolved": true,
+    "productionPublicationRecheckRequired": true,
+    "restrictionMonitoringRequired": true
+  },
+  "afsaInterpretation": {
+    "finding": "CONFIRMED",
+    "meaning": "UNLICENSED_OR_UNAUTHORIZED_LOCAL_ACTIVITY",
+    "technicalUnavailabilityProof": false,
+    "boundary": "The AFSA warning strengthens the restriction; it is never treated alone as proof of technical inaccessibility."
+  },
+  "unresolvedEvidence": [
+    {
+      "conflictId": "cf-kz-mexc-terms-vs-app-support",
+      "unresolvedEvidence": [
+        "The lower-level official page remains visible/current, but account-level Kazakhstan eligibility was not live-tested and is controlled by the broader User Agreement prohibition."
+      ]
+    },
+    {
+      "conflictId": "cf-kz-mexc-terms-vs-p2p-kzt",
+      "unresolvedEvidence": [
+        "The lower-level official page remains visible/current, but account-level Kazakhstan eligibility was not live-tested and is controlled by the broader User Agreement prohibition."
+      ]
+    },
+    {
+      "conflictId": "cf-kz-mexc-terms-vs-fiat-tn",
+      "unresolvedEvidence": [
+        "The lower-level official page remains visible/current, but account-level Kazakhstan eligibility was not live-tested and is controlled by the broader User Agreement prohibition."
+      ]
+    },
+    {
+      "conflictId": "cf-kz-mexc-terms-vs-earn",
+      "unresolvedEvidence": [
+        "The lower-level official page remains visible/current, but account-level Kazakhstan eligibility was not live-tested and is controlled by the broader User Agreement prohibition.",
+        "Product-specific Earn wording remains internally inconsistent with the broader platform terms."
+      ]
+    }
+  ],
+  "authorizations": {
+    "granted": [
+      "ownerDecisionCompleted",
+      "importPreparationDesignAuthorized",
+      "stagingImportExecuted (this task, non-production)"
+    ],
+    "withheld": [
+      "researchImportAuthorized",
+      "normalizationExecutionAuthorizedBeyondStaging",
+      "canonicalImportAuthorized",
+      "legacyGeoUpdateAuthorized",
+      "productionChangeAuthorized",
+      "rankingChangeAuthorized",
+      "ctaChangeAuthorized",
+      "promoChangeAuthorized",
+      "affiliateRouteChangeAuthorized",
+      "referralCodeActivationAuthorized",
+      "publicationAuthorized",
+      "migration5Authorized",
+      "pageOrRouteChangeAuthorized",
+      "deployAuthorized"
+    ]
+  },
+  "importHistory": [
+    {
+      "task": "CBW-KZ-MEXC-P0-B-STAGING-IMPORT-003",
+      "transformVersion": "kz-mexc-p0b-v1",
+      "action": "non-production staging import",
+      "baselineHead": "0198d9fe05ca7c8425c61d56fd85de475f5df8fc"
+    }
+  ],
+  "perSource": {
+    "src-kz-mexc-affiliate-fee-001": {
+      "sourceOrigin": "ORIGINAL",
+      "verificationStatus": "VERIFIED_CURRENT",
+      "pageStatus": "CURRENT_GLOBAL_FLOW",
+      "checkedDate": "2026-07-22",
+      "reviewCountryScope": [
+        "Global"
+      ],
+      "reviewProductScope": [
+        "affiliate attribution",
+        "trading fee rates"
+      ],
+      "reviewSourceType": "OFFICIAL_AFFILIATE_RULES",
+      "legalEntityScope": "Not stated",
+      "limitations": [
+        "Does not verify Kazakhstan compatibility or the repository code.",
+        "Does not create local authorization."
+      ],
+      "verifiedEvidence": "MEXC publishes global affiliate-channel rules and fee-rate explanations.",
+      "reviewNotes": [],
+      "urlUsed": "verifiedUrl",
+      "statusMappingNote": "review VERIFIED_CURRENT (pageStatus CURRENT_GLOBAL_FLOW) -> schema status ACTIVE; limits/contradictions preserved in claim-source-links, never as unrestricted evidence"
+    },
+    "src-kz-mexc-afsa-warning-001": {
+      "sourceOrigin": "ORIGINAL",
+      "verificationStatus": "VERIFIED_CURRENT",
+      "pageStatus": "CURRENT_AT_CHECK",
+      "checkedDate": "2026-07-22",
+      "reviewCountryScope": [
+        "Kazakhstan"
+      ],
+      "reviewProductScope": [
+        "digital-asset platform regulation",
+        "advertising",
+        "promotion",
+        "regulated activities"
+      ],
+      "reviewSourceType": "REGULATOR_WARNING",
+      "legalEntityScope": "MEXC named as an unlicensed platform; no licensed MEXC Kazakhstan/AIFC entity identified",
+      "limitations": [
+        "The warning is a regulatory warning, not a technical test of website or app access.",
+        "It does not by itself enumerate every product-level restriction."
+      ],
+      "verifiedEvidence": "AFSA warned of risks from unlicensed digital-asset platforms advertising or promoting services to Kazakhstan citizens and named MEXC. AFSA stated that only AFSA-licensed entities may lawfully carry on regulated activities in or from the AIFC.",
+      "reviewNotes": [
+        "AFSA names MEXC as unlicensed for regulated local activity/promotion; this is not a technical-access test."
+      ],
+      "urlUsed": "verifiedUrl",
+      "statusMappingNote": "review VERIFIED_CURRENT (pageStatus CURRENT_AT_CHECK) -> schema status ACTIVE; limits/contradictions preserved in claim-source-links, never as unrestricted evidence"
+    },
+    "src-kz-mexc-app-countries-001": {
+      "sourceOrigin": "ORIGINAL",
+      "verificationStatus": "VERIFIED_WITH_LIMITS",
+      "pageStatus": "CURRENT_BUT_CONFLICTING",
+      "checkedDate": "2026-07-22",
+      "reviewCountryScope": [
+        "Global country list",
+        "Kazakhstan"
+      ],
+      "reviewProductScope": [
+        "mobile app distribution/support"
+      ],
+      "reviewSourceType": "HELP_CENTER_PRODUCT_SUPPORT",
+      "legalEntityScope": "Not stated",
+      "limitations": [
+        "App listing/support does not prove lawful account eligibility or product availability.",
+        "Conflicts with the Tier A User Agreement country prohibition."
+      ],
+      "verifiedEvidence": "The official app-support country list presents Kazakhstan as supported for the MEXC app.",
+      "reviewNotes": [
+        "Official page/product signal was preserved, but it does not override the current MEXC User Agreement prohibition for Kazakhstan."
+      ],
+      "urlUsed": "verifiedUrl",
+      "statusMappingNote": "review VERIFIED_WITH_LIMITS (pageStatus CURRENT_BUT_CONFLICTING) -> schema status ACTIVE; limits/contradictions preserved in claim-source-links, never as unrestricted evidence"
+    },
+    "src-kz-mexc-buy-guide-001": {
+      "sourceOrigin": "ORIGINAL",
+      "verificationStatus": "VERIFIED_WITH_LIMITS",
+      "pageStatus": "CURRENT_BUT_NON_DECISIVE",
+      "checkedDate": "2026-07-22",
+      "reviewCountryScope": [
+        "Global marketing/general guidance"
+      ],
+      "reviewProductScope": [
+        "card purchase",
+        "P2P",
+        "fiat on-ramps"
+      ],
+      "reviewSourceType": "HELP_CENTER_GENERAL_GUIDE",
+      "legalEntityScope": "Not stated",
+      "limitations": [
+        "The statement is broad and does not supply a Kazakhstan eligibility list.",
+        "It is less specific than the later 38-country card guide and cannot override legal restrictions."
+      ],
+      "verifiedEvidence": "The general beginner guide broadly states that major card networks cover more than 200 countries.",
+      "reviewNotes": [
+        "Official page/product signal was preserved, but it does not override the current MEXC User Agreement prohibition for Kazakhstan."
+      ],
+      "urlUsed": "verifiedUrl",
+      "statusMappingNote": "review VERIFIED_WITH_LIMITS (pageStatus CURRENT_BUT_NON_DECISIVE) -> schema status ACTIVE; limits/contradictions preserved in claim-source-links, never as unrestricted evidence"
+    },
+    "src-kz-mexc-card-guide-001": {
+      "sourceOrigin": "ORIGINAL",
+      "verificationStatus": "VERIFIED_CURRENT",
+      "pageStatus": "CURRENT_AT_CHECK",
+      "checkedDate": "2026-07-22",
+      "reviewCountryScope": [
+        "38 supported countries",
+        "Kazakhstan absent"
+      ],
+      "reviewProductScope": [
+        "credit card purchase",
+        "debit card purchase"
+      ],
+      "reviewSourceType": "HELP_CENTER_PRODUCT_GUIDE",
+      "legalEntityScope": "Not stated",
+      "limitations": [
+        "The guide addresses the MEXC card-purchase feature, not every possible third-party on-ramp.",
+        "No Kazakhstan-issued card was tested."
+      ],
+      "verifiedEvidence": "The official card-purchase guide states that Visa and Mastercard purchases are available across 38 supported countries; Kazakhstan is not in that supported-country list.",
+      "reviewNotes": [],
+      "urlUsed": "verifiedUrl",
+      "statusMappingNote": "review VERIFIED_CURRENT (pageStatus CURRENT_AT_CHECK) -> schema status ACTIVE; limits/contradictions preserved in claim-source-links, never as unrestricted evidence"
+    },
+    "src-kz-mexc-cis-bonus-001": {
+      "sourceOrigin": "ORIGINAL",
+      "verificationStatus": "OUTDATED",
+      "pageStatus": "ENDED_HISTORICAL",
+      "checkedDate": "2026-07-22",
+      "reviewCountryScope": [
+        "CIS campaign",
+        "KZT included as a P2P currency"
+      ],
+      "reviewProductScope": [
+        "historical promotion",
+        "P2P",
+        "new-user campaign"
+      ],
+      "reviewSourceType": "OFFICIAL_CAMPAIGN_PAGE",
+      "legalEntityScope": "Not stated",
+      "limitations": [
+        "The campaign is ended and cannot support a current Kazakhstan bonus claim.",
+        "Campaign rewards must not be combined with unrelated referral rewards or global maximums."
+      ],
+      "verifiedEvidence": "The recovered research found a historical August 2025 CIS New User Bonus campaign that included KZT among eligible P2P currencies and required campaign-specific actions.",
+      "reviewNotes": [
+        "Historical/ended campaign; not current offer evidence."
+      ],
+      "urlUsed": "verifiedUrl",
+      "statusMappingNote": "review OUTDATED (pageStatus ENDED_HISTORICAL) -> schema status STALE; limits/contradictions preserved in claim-source-links, never as unrestricted evidence"
+    },
+    "src-kz-mexc-earn-agreement-001": {
+      "sourceOrigin": "ORIGINAL",
+      "verificationStatus": "VERIFIED_WITH_LIMITS",
+      "pageStatus": "CURRENT_BUT_CONFLICTING",
+      "checkedDate": "2026-07-22",
+      "reviewCountryScope": [
+        "Product-specific prohibited-country list"
+      ],
+      "reviewProductScope": [
+        "Earn",
+        "staking/yield products"
+      ],
+      "reviewSourceType": "PRODUCT_LEGAL_TERMS",
+      "legalEntityScope": "MEXC Earn service; entity not preserved in recovered output",
+      "limitations": [
+        "Omission from a product-specific list is not an affirmative Kazakhstan authorization.",
+        "Conflicts with the broader MEXC User Agreement that prohibits Kazakhstan."
+      ],
+      "verifiedEvidence": "The product-specific Earn agreement reviewed in the completed run did not list Kazakhstan in its own prohibited-country list.",
+      "reviewNotes": [
+        "Official page/product signal was preserved, but it does not override the current MEXC User Agreement prohibition for Kazakhstan."
+      ],
+      "urlUsed": "verifiedUrl",
+      "statusMappingNote": "review VERIFIED_WITH_LIMITS (pageStatus CURRENT_BUT_CONFLICTING) -> schema status ACTIVE; limits/contradictions preserved in claim-source-links, never as unrestricted evidence"
+    },
+    "src-kz-mexc-fiat-tn-policy-001": {
+      "sourceOrigin": "ORIGINAL",
+      "verificationStatus": "VERIFIED_WITH_LIMITS",
+      "pageStatus": "CURRENT_BUT_CONFLICTING",
+      "checkedDate": "2026-07-22",
+      "reviewCountryScope": [
+        "Multiple jurisdictions",
+        "Kazakhstan included"
+      ],
+      "reviewProductScope": [
+        "fiat channels",
+        "withdrawal waiting period"
+      ],
+      "reviewSourceType": "HELP_CENTER_FIAT_POLICY",
+      "legalEntityScope": "Not stated",
+      "limitations": [
+        "The policy does not identify a direct KZT deposit or withdrawal rail.",
+        "Country inclusion in a risk-control policy does not establish service eligibility.",
+        "Conflicts with the Tier A prohibition."
+      ],
+      "verifiedEvidence": "The official fiat T+N policy includes Kazakhstan among jurisdictions to which fiat-channel withdrawal waiting periods may apply.",
+      "reviewNotes": [
+        "Official page/product signal was preserved, but it does not override the current MEXC User Agreement prohibition for Kazakhstan."
+      ],
+      "urlUsed": "verifiedUrl",
+      "statusMappingNote": "review VERIFIED_WITH_LIMITS (pageStatus CURRENT_BUT_CONFLICTING) -> schema status ACTIVE; limits/contradictions preserved in claim-source-links, never as unrestricted evidence"
+    },
+    "src-kz-mexc-invite-flow-001": {
+      "sourceOrigin": "ORIGINAL",
+      "verificationStatus": "VERIFIED_CURRENT",
+      "pageStatus": "CURRENT_GLOBAL_FLOW",
+      "checkedDate": "2026-07-22",
+      "reviewCountryScope": [
+        "Global"
+      ],
+      "reviewProductScope": [
+        "referral links",
+        "invitation codes"
+      ],
+      "reviewSourceType": "OFFICIAL_REFERRAL_GUIDE",
+      "legalEntityScope": "Not stated",
+      "limitations": [
+        "No Kazakhstan-specific compatibility is stated.",
+        "Global referral mechanics cannot override country restrictions."
+      ],
+      "verifiedEvidence": "MEXC documents global referral-link and invitation-code mechanics.",
+      "reviewNotes": [],
+      "urlUsed": "verifiedUrl",
+      "statusMappingNote": "review VERIFIED_CURRENT (pageStatus CURRENT_GLOBAL_FLOW) -> schema status ACTIVE; limits/contradictions preserved in claim-source-links, never as unrestricted evidence"
+    },
+    "src-kz-mexc-kyc-documents-001": {
+      "sourceOrigin": "ORIGINAL",
+      "verificationStatus": "VERIFIED_CURRENT",
+      "pageStatus": "CURRENT_AT_CHECK",
+      "checkedDate": "2026-07-22",
+      "reviewCountryScope": [
+        "Global"
+      ],
+      "reviewProductScope": [
+        "KYC",
+        "identity documents"
+      ],
+      "reviewSourceType": "KYC_POLICY_GUIDANCE",
+      "legalEntityScope": "Not stated",
+      "limitations": [
+        "The page does not affirm that Kazakhstan residents or citizens are eligible.",
+        "Kazakhstan-specific document acceptance and proof-of-address requirements were not preserved as verified findings."
+      ],
+      "verifiedEvidence": "MEXC describes generally supported identity-document types, including government-issued national identity cards and passports.",
+      "reviewNotes": [],
+      "urlUsed": "verifiedUrl",
+      "statusMappingNote": "review VERIFIED_CURRENT (pageStatus CURRENT_AT_CHECK) -> schema status ACTIVE; limits/contradictions preserved in claim-source-links, never as unrestricted evidence"
+    },
+    "src-kz-mexc-kyc-eligibility-001": {
+      "sourceOrigin": "ORIGINAL",
+      "verificationStatus": "VERIFIED_CURRENT",
+      "pageStatus": "CURRENT_AT_CHECK",
+      "checkedDate": "2026-07-22",
+      "reviewCountryScope": [
+        "Global",
+        "restricted countries"
+      ],
+      "reviewProductScope": [
+        "KYC eligibility"
+      ],
+      "reviewSourceType": "KYC_POLICY_GUIDANCE",
+      "legalEntityScope": "Not stated",
+      "limitations": [
+        "The page must be read together with the current User Agreement, which lists Kazakhstan as prohibited."
+      ],
+      "verifiedEvidence": "MEXC states that users from countries or regions not restricted by MEXC are eligible to submit KYC verification and directs users to the restricted-country list.",
+      "reviewNotes": [],
+      "urlUsed": "verifiedUrl",
+      "statusMappingNote": "review VERIFIED_CURRENT (pageStatus CURRENT_AT_CHECK) -> schema status ACTIVE; limits/contradictions preserved in claim-source-links, never as unrestricted evidence"
+    },
+    "src-kz-mexc-p2p-ad-rules-001": {
+      "sourceOrigin": "ORIGINAL",
+      "verificationStatus": "VERIFIED_WITH_LIMITS",
+      "pageStatus": "CURRENT_BUT_CONFLICTING",
+      "checkedDate": "2026-07-22",
+      "reviewCountryScope": [
+        "Global",
+        "KZT listed"
+      ],
+      "reviewProductScope": [
+        "P2P",
+        "merchant/ad posting",
+        "KYC",
+        "KZT"
+      ],
+      "reviewSourceType": "HELP_CENTER_PRODUCT_RULES",
+      "legalEntityScope": "Not stated",
+      "limitations": [
+        "Currency inclusion does not establish Kazakhstan account eligibility.",
+        "Conflicts with the User Agreement prohibition."
+      ],
+      "verifiedEvidence": "The official P2P ad-posting rules include KZT and require Advanced KYC for eligible users.",
+      "reviewNotes": [
+        "Official page/product signal was preserved, but it does not override the current MEXC User Agreement prohibition for Kazakhstan."
+      ],
+      "urlUsed": "verifiedUrl",
+      "statusMappingNote": "review VERIFIED_WITH_LIMITS (pageStatus CURRENT_BUT_CONFLICTING) -> schema status ACTIVE; limits/contradictions preserved in claim-source-links, never as unrestricted evidence"
+    },
+    "src-kz-mexc-p2p-kzt-page-001": {
+      "sourceOrigin": "ORIGINAL",
+      "verificationStatus": "VERIFIED_WITH_LIMITS",
+      "pageStatus": "LIVE_PAGE_BUT_CONFLICTING",
+      "checkedDate": "2026-07-22",
+      "reviewCountryScope": [
+        "KZT fiat market signal",
+        "Kazakhstan-associated currency"
+      ],
+      "reviewProductScope": [
+        "P2P",
+        "USDT/KZT"
+      ],
+      "reviewSourceType": "OFFICIAL_PRODUCT_PAGE",
+      "legalEntityScope": "Not stated",
+      "limitations": [
+        "A public route does not prove a Kazakhstan resident can register, complete KYC, or transact.",
+        "No in-country order-book or account-level behavior was verified.",
+        "Conflicts with the Tier A User Agreement prohibition."
+      ],
+      "verifiedEvidence": "A public MEXC P2P page exists for buying and selling USDT with KZT and promotes zero-fee P2P trading.",
+      "reviewNotes": [
+        "Official page/product signal was preserved, but it does not override the current MEXC User Agreement prohibition for Kazakhstan."
+      ],
+      "urlUsed": "verifiedUrl",
+      "statusMappingNote": "review VERIFIED_WITH_LIMITS (pageStatus LIVE_PAGE_BUT_CONFLICTING) -> schema status ACTIVE; limits/contradictions preserved in claim-source-links, never as unrestricted evidence"
+    },
+    "src-kz-mexc-referrer-linking-001": {
+      "sourceOrigin": "ORIGINAL",
+      "verificationStatus": "VERIFIED_CURRENT",
+      "pageStatus": "CURRENT_GLOBAL_FLOW",
+      "checkedDate": "2026-07-22",
+      "reviewCountryScope": [
+        "Global"
+      ],
+      "reviewProductScope": [
+        "referrer linking",
+        "existing-user exclusions/time window"
+      ],
+      "reviewSourceType": "OFFICIAL_REFERRAL_RULES",
+      "legalEntityScope": "Not stated",
+      "limitations": [
+        "No Kazakhstan-specific eligibility is stated.",
+        "Account and region eligibility conditions still apply."
+      ],
+      "verifiedEvidence": "MEXC documents a 30-day self-service window for eligible main accounts to link a referrer.",
+      "reviewNotes": [],
+      "urlUsed": "verifiedUrl",
+      "statusMappingNote": "review VERIFIED_CURRENT (pageStatus CURRENT_GLOBAL_FLOW) -> schema status ACTIVE; limits/contradictions preserved in claim-source-links, never as unrestricted evidence"
+    },
+    "src-kz-mexc-signup-flow-001": {
+      "sourceOrigin": "ORIGINAL",
+      "verificationStatus": "VERIFIED_CURRENT",
+      "pageStatus": "CURRENT_GLOBAL_FLOW",
+      "checkedDate": "2026-07-22",
+      "reviewCountryScope": [
+        "Global"
+      ],
+      "reviewProductScope": [
+        "registration",
+        "referral-code entry"
+      ],
+      "reviewSourceType": "HELP_CENTER_REGISTRATION_GUIDE",
+      "legalEntityScope": "Not stated",
+      "limitations": [
+        "A global interface does not establish Kazakhstan registration eligibility.",
+        "The User Agreement expressly blocks registration in Kazakhstan."
+      ],
+      "verifiedEvidence": "MEXC provides a global web sign-up flow with a referral-code field.",
+      "reviewNotes": [],
+      "urlUsed": "verifiedUrl",
+      "statusMappingNote": "review VERIFIED_CURRENT (pageStatus CURRENT_GLOBAL_FLOW) -> schema status ACTIVE; limits/contradictions preserved in claim-source-links, never as unrestricted evidence"
+    },
+    "src-kz-mexc-terms-001": {
+      "sourceOrigin": "ORIGINAL",
+      "verificationStatus": "VERIFIED_CURRENT",
+      "pageStatus": "CURRENT_AT_CHECK",
+      "checkedDate": "2026-07-22",
+      "reviewCountryScope": [
+        "Global",
+        "Kazakhstan explicitly named"
+      ],
+      "reviewProductScope": [
+        "platform",
+        "registration",
+        "trading",
+        "services",
+        "restrictions"
+      ],
+      "reviewSourceType": "LEGAL_TERMS",
+      "legalEntityScope": "MEXC contracting platform; no Kazakhstan-specific entity identified in the recovered output",
+      "limitations": [
+        "No logged-in or in-country live behavior was tested.",
+        "The recovered report did not preserve a Kazakhstan-specific contracting entity name."
+      ],
+      "verifiedEvidence": "The current public User Agreement expressly lists Kazakhstan among Prohibited Jurisdictions and states that MEXC does not provide Services, accept user registration, or accept trade applications in prohibited jurisdictions.",
+      "reviewNotes": [
+        "Highest-priority source. Current terms expressly name Kazakhstan as a Prohibited Jurisdiction and bar services, registration, and trade applications there."
+      ],
+      "urlUsed": "verifiedUrl",
+      "statusMappingNote": "review VERIFIED_CURRENT (pageStatus CURRENT_AT_CHECK) -> schema status ACTIVE; limits/contradictions preserved in claim-source-links, never as unrestricted evidence"
+    }
+  },
+  "perClaim": {
+    "clm-kz-mexc-card-purchase-001": {
+      "originalStatement": "MEXC credit/debit-card purchase is not supported for Kazakhstan under the specific current 38-country guide, which omits Kazakhstan.",
+      "verifiedStatement": "MEXC credit/debit-card purchase is not supported for Kazakhstan under the specific current 38-country guide, which omits Kazakhstan.",
+      "verdict": "CONFIRMED_WITH_LIMITS",
+      "confidence": "HIGH",
+      "correctionRequired": true,
+      "correctionNote": "Original correction flag was explicitly reviewed and remains required; use the verified restrictive/qualified statement instead of any earlier positive or ambiguous repository wording.",
+      "limitations": [
+        "A broader general guide mentions 200+ countries but does not provide a Kazakhstan list and is less specific.",
+        "No Kazakhstan-issued card was tested."
+      ],
+      "publicationUse": "RESTRICTION_ONLY",
+      "rankingUse": "BLOCK",
+      "ctaUse": "BLOCK",
+      "promoUse": "BLOCK"
+    },
+    "clm-kz-mexc-copy-trading-001": {
+      "originalStatement": "Copy-trading availability for Kazakhstan was not independently verified and is gated by the broad country prohibition.",
+      "verifiedStatement": "Copy-trading availability for Kazakhstan was not independently verified and is gated by the broad country prohibition.",
+      "verdict": "CONFIRMED_WITH_LIMITS",
+      "confidence": "MEDIUM",
+      "correctionRequired": true,
+      "correctionNote": "Original correction flag was explicitly reviewed and remains required; use the verified restrictive/qualified statement instead of any earlier positive or ambiguous repository wording.",
+      "limitations": [
+        "No Kazakhstan-specific copy-trading terms were preserved in the completed output."
+      ],
+      "publicationUse": "RESTRICTION_ONLY",
+      "rankingUse": "BLOCK",
+      "ctaUse": "BLOCK",
+      "promoUse": "BLOCK"
+    },
+    "clm-kz-mexc-derivatives-001": {
+      "originalStatement": "Derivatives availability for Kazakhstan is restricted by the broad MEXC country prohibition; no Kazakhstan-specific derivatives permission was verified.",
+      "verifiedStatement": "Derivatives availability for Kazakhstan is restricted by the broad MEXC country prohibition; no Kazakhstan-specific derivatives permission was verified.",
+      "verdict": "CONFIRMED",
+      "confidence": "HIGH",
+      "correctionRequired": true,
+      "correctionNote": "Original correction flag was explicitly reviewed and remains required; use the verified restrictive/qualified statement instead of any earlier positive or ambiguous repository wording.",
+      "limitations": [
+        "No product-specific derivatives page for Kazakhstan was verified."
+      ],
+      "publicationUse": "RESTRICTION_ONLY",
+      "rankingUse": "BLOCK",
+      "ctaUse": "BLOCK",
+      "promoUse": "BLOCK"
+    },
+    "clm-kz-mexc-direct-fiat-deposit-001": {
+      "originalStatement": "A current direct KZT bank-deposit rail was not verified from the completed public official-source set.",
+      "verifiedStatement": "A current direct KZT bank-deposit rail was not verified from the completed public official-source set.",
+      "verdict": "UNVERIFIED",
+      "confidence": "LOW",
+      "correctionRequired": false,
+      "correctionNote": "Original correction flag was explicitly reviewed; no additional correction beyond the verified wording is required.",
+      "limitations": [
+        "The T+N policy is not proof of a direct KZT rail.",
+        "No login, provider checkout, or bank-transfer flow was tested."
+      ],
+      "publicationUse": "BLOCK",
+      "rankingUse": "BLOCK",
+      "ctaUse": "BLOCK",
+      "promoUse": "BLOCK"
+    },
+    "clm-kz-mexc-direct-fiat-withdrawal-001": {
+      "originalStatement": "A current direct KZT bank-withdrawal rail was not verified from the completed public official-source set.",
+      "verifiedStatement": "A current direct KZT bank-withdrawal rail was not verified from the completed public official-source set.",
+      "verdict": "UNVERIFIED",
+      "confidence": "LOW",
+      "correctionRequired": false,
+      "correctionNote": "Original correction flag was explicitly reviewed; no additional correction beyond the verified wording is required.",
+      "limitations": [
+        "The T+N policy concerns post-purchase asset withdrawal controls, not necessarily fiat withdrawal.",
+        "No login or bank-withdrawal flow was tested."
+      ],
+      "publicationUse": "BLOCK",
+      "rankingUse": "BLOCK",
+      "ctaUse": "BLOCK",
+      "promoUse": "BLOCK"
+    },
+    "clm-kz-mexc-earn-001": {
+      "originalStatement": "MEXC Earn documentation reviewed did not list Kazakhstan in its product-specific prohibited list, but Earn eligibility remains conflicting because the broader User Agreement prohibits Kazakhstan.",
+      "verifiedStatement": "MEXC Earn documentation reviewed did not list Kazakhstan in its product-specific prohibited list, but Earn eligibility remains conflicting because the broader User Agreement prohibits Kazakhstan.",
+      "verdict": "CONFIRMED_WITH_LIMITS",
+      "confidence": "MEDIUM",
+      "correctionRequired": true,
+      "correctionNote": "Original correction flag was explicitly reviewed and remains required; use the verified restrictive/qualified statement instead of any earlier positive or ambiguous repository wording.",
+      "limitations": [
+        "Omission is not affirmative eligibility.",
+        "No product enrollment was tested.",
+        "Lower-level product or interface visibility does not establish Kazakhstan legal/account eligibility and does not override the User Agreement."
+      ],
+      "publicationUse": "BLOCK",
+      "rankingUse": "BLOCK",
+      "ctaUse": "BLOCK",
+      "promoUse": "BLOCK"
+    },
+    "clm-kz-mexc-entity-001": {
+      "originalStatement": "No Kazakhstan-specific licensed MEXC legal entity or local MEXC notice was verified in the completed official-source research.",
+      "verifiedStatement": "No Kazakhstan-specific licensed MEXC legal entity or local MEXC notice was verified in the completed official-source research.",
+      "verdict": "CONFIRMED",
+      "confidence": "MEDIUM",
+      "correctionRequired": false,
+      "correctionNote": "Original correction flag was explicitly reviewed; no additional correction beyond the verified wording is required.",
+      "limitations": [
+        "Absence was determined from the completed source set, not an exhaustive corporate-registry export.",
+        "The exact global contracting entity was not preserved in the recovered report."
+      ],
+      "publicationUse": "BLOCK",
+      "rankingUse": "BLOCK",
+      "ctaUse": "BLOCK",
+      "promoUse": "BLOCK"
+    },
+    "clm-kz-mexc-kyc-001": {
+      "originalStatement": "Kazakhstan users are not eligible to submit KYC under MEXC policy because KYC is limited to users from non-restricted jurisdictions and Kazakhstan is prohibited in the User Agreement.",
+      "verifiedStatement": "Kazakhstan users are not eligible to submit KYC under MEXC policy because KYC is limited to users from non-restricted jurisdictions and Kazakhstan is prohibited in the User Agreement.",
+      "verdict": "CONFIRMED",
+      "confidence": "HIGH",
+      "correctionRequired": true,
+      "correctionNote": "Original correction flag was explicitly reviewed and remains required; use the verified restrictive/qualified statement instead of any earlier positive or ambiguous repository wording.",
+      "limitations": [
+        "No KYC submission was attempted.",
+        "Kazakhstan-specific document acceptance was not verified."
+      ],
+      "publicationUse": "RESTRICTION_ONLY",
+      "rankingUse": "BLOCK",
+      "ctaUse": "BLOCK",
+      "promoUse": "BLOCK"
+    },
+    "clm-kz-mexc-kyc-002": {
+      "originalStatement": "MEXC generally accepts government-issued identity cards and passports, but Kazakhstan-specific document and proof-of-address acceptance remains unverified.",
+      "verifiedStatement": "MEXC generally accepts government-issued identity cards and passports, but Kazakhstan-specific document and proof-of-address acceptance remains unverified.",
+      "verdict": "CONFIRMED_WITH_LIMITS",
+      "confidence": "MEDIUM",
+      "correctionRequired": false,
+      "correctionNote": "Original correction flag was explicitly reviewed; no additional correction beyond the verified wording is required.",
+      "limitations": [
+        "General document guidance is not a Kazakhstan eligibility confirmation."
+      ],
+      "publicationUse": "NOT_POSITIVE_ELIGIBILITY",
+      "rankingUse": "BLOCK",
+      "ctaUse": "BLOCK",
+      "promoUse": "BLOCK"
+    },
+    "clm-kz-mexc-kzt-001": {
+      "originalStatement": "KZT appears in official MEXC P2P and fiat-related materials, but this is a product/currency signal rather than verified Kazakhstan eligibility.",
+      "verifiedStatement": "KZT appears in official MEXC P2P and fiat-related materials, but this is a product/currency signal rather than verified Kazakhstan eligibility.",
+      "verdict": "CONFIRMED_WITH_LIMITS",
+      "confidence": "HIGH",
+      "correctionRequired": true,
+      "correctionNote": "Original correction flag was explicitly reviewed and remains required; use the verified restrictive/qualified statement instead of any earlier positive or ambiguous repository wording.",
+      "limitations": [
+        "KZT support does not prove direct bank rails or lawful service availability.",
+        "Lower-level product or interface visibility does not establish Kazakhstan legal/account eligibility and does not override the User Agreement."
+      ],
+      "publicationUse": "BLOCK_POSITIVE_CLAIM",
+      "rankingUse": "BLOCK",
+      "ctaUse": "BLOCK",
+      "promoUse": "BLOCK"
+    },
+    "clm-kz-mexc-margin-001": {
+      "originalStatement": "Margin availability for Kazakhstan is restricted by the broad MEXC country prohibition; no Kazakhstan-specific margin permission was verified.",
+      "verifiedStatement": "Margin availability for Kazakhstan is restricted by the broad MEXC country prohibition; no Kazakhstan-specific margin permission was verified.",
+      "verdict": "CONFIRMED",
+      "confidence": "HIGH",
+      "correctionRequired": true,
+      "correctionNote": "Original correction flag was explicitly reviewed and remains required; use the verified restrictive/qualified statement instead of any earlier positive or ambiguous repository wording.",
+      "limitations": [
+        "No account-level product access was tested."
+      ],
+      "publicationUse": "RESTRICTION_ONLY",
+      "rankingUse": "BLOCK",
+      "ctaUse": "BLOCK",
+      "promoUse": "BLOCK"
+    },
+    "clm-kz-mexc-mobile-app-001": {
+      "originalStatement": "The official MEXC app-support page lists Kazakhstan as supported, but app availability is conflicting with the User Agreement prohibition and cannot establish account or product eligibility.",
+      "verifiedStatement": "The official MEXC app-support page lists Kazakhstan as supported, but app availability is conflicting with the User Agreement prohibition and cannot establish account or product eligibility.",
+      "verdict": "CONFIRMED_WITH_LIMITS",
+      "confidence": "HIGH",
+      "correctionRequired": true,
+      "correctionNote": "Original correction flag was explicitly reviewed and remains required; use the verified restrictive/qualified statement instead of any earlier positive or ambiguous repository wording.",
+      "limitations": [
+        "App availability may mean distribution only.",
+        "No app-store region test or logged-in use was performed.",
+        "Lower-level product or interface visibility does not establish Kazakhstan legal/account eligibility and does not override the User Agreement."
+      ],
+      "publicationUse": "BLOCK_POSITIVE_CLAIM",
+      "rankingUse": "BLOCK",
+      "ctaUse": "BLOCK",
+      "promoUse": "BLOCK"
+    },
+    "clm-kz-mexc-p2p-001": {
+      "originalStatement": "Official MEXC pages expose KZT P2P functionality, but Kazakhstan P2P eligibility is conflicting because the User Agreement prohibits Kazakhstan.",
+      "verifiedStatement": "Official MEXC pages expose KZT P2P functionality, but Kazakhstan P2P eligibility is conflicting because the User Agreement prohibits Kazakhstan.",
+      "verdict": "CONFIRMED_WITH_LIMITS",
+      "confidence": "HIGH",
+      "correctionRequired": true,
+      "correctionNote": "Original correction flag was explicitly reviewed and remains required; use the verified restrictive/qualified statement instead of any earlier positive or ambiguous repository wording.",
+      "limitations": [
+        "No in-country user, merchant, order-book, payment method, or settlement behavior was tested.",
+        "Lower-level product or interface visibility does not establish Kazakhstan legal/account eligibility and does not override the User Agreement."
+      ],
+      "publicationUse": "BLOCK",
+      "rankingUse": "BLOCK",
+      "ctaUse": "BLOCK",
+      "promoUse": "BLOCK"
+    },
+    "clm-kz-mexc-promotions-001": {
+      "originalStatement": "The only Kazakhstan-relevant official KZT promotion preserved in the completed research was an ended August 2025 CIS New User Bonus campaign.",
+      "verifiedStatement": "The only Kazakhstan-relevant official KZT promotion preserved in the completed research was an ended August 2025 CIS New User Bonus campaign.",
+      "verdict": "CONFIRMED_WITH_LIMITS",
+      "confidence": "MEDIUM",
+      "correctionRequired": false,
+      "correctionNote": "Original correction flag was explicitly reviewed; no additional correction beyond the verified wording is required.",
+      "limitations": [
+        "The campaign is historical and exact event dates were not preserved in the recovered output."
+      ],
+      "publicationUse": "HISTORICAL_CONTEXT_ONLY",
+      "rankingUse": "NONE",
+      "ctaUse": "BLOCK",
+      "promoUse": "BLOCK"
+    },
+    "clm-kz-mexc-promotions-002": {
+      "originalStatement": "No current Kazakhstan-specific bonus amount or locally verified application of a global maximum was established.",
+      "verifiedStatement": "No current Kazakhstan-specific bonus amount or locally verified application of a global maximum was established.",
+      "verdict": "CONFIRMED",
+      "confidence": "HIGH",
+      "correctionRequired": true,
+      "correctionNote": "Original correction flag was explicitly reviewed and remains required; use the verified restrictive/qualified statement instead of any earlier positive or ambiguous repository wording.",
+      "limitations": [
+        "No logged-in campaign eligibility was tested.",
+        "Referral rewards and campaign prize pools must remain separate."
+      ],
+      "publicationUse": "BLOCK",
+      "rankingUse": "BLOCK",
+      "ctaUse": "BLOCK",
+      "promoUse": "BLOCK"
+    },
+    "clm-kz-mexc-publication-001": {
+      "originalStatement": "Positive Kazakhstan availability, ranking, CTA, referral-code, and promo publication must remain blocked.",
+      "verifiedStatement": "Positive Kazakhstan availability, ranking, CTA, referral-code, and promo publication must remain blocked.",
+      "verdict": "CONFIRMED",
+      "confidence": "HIGH",
+      "correctionRequired": true,
+      "correctionNote": "Original correction flag was explicitly reviewed and remains required; use the verified restrictive/qualified statement instead of any earlier positive or ambiguous repository wording.",
+      "limitations": [
+        "A future decisive official update could change the posture after a new owner-gated research cycle."
+      ],
+      "publicationUse": "BLOCK",
+      "rankingUse": "BLOCK",
+      "ctaUse": "BLOCK",
+      "promoUse": "BLOCK"
+    },
+    "clm-kz-mexc-publication-002": {
+      "originalStatement": "The research package does not authorize canonical MI import, production changes, ranking, CTA, promo, Kazakhstan publication, affiliate-route changes, or MIGRATION_5.",
+      "verifiedStatement": "The research package does not authorize canonical MI import, production changes, ranking, CTA, promo, Kazakhstan publication, affiliate-route changes, or MIGRATION_5.",
+      "verdict": "CONFIRMED",
+      "confidence": "HIGH",
+      "correctionRequired": false,
+      "correctionNote": "Original correction flag was explicitly reviewed; no additional correction beyond the verified wording is required.",
+      "limitations": [
+        "Authorization boundary originates from the task contract rather than an external source."
+      ],
+      "publicationUse": "BLOCK",
+      "rankingUse": "BLOCK",
+      "ctaUse": "BLOCK",
+      "promoUse": "BLOCK"
+    },
+    "clm-kz-mexc-referral-001": {
+      "originalStatement": "MEXC has a global referral-code/link flow, including code entry at signup and a limited self-service referrer-linking window for eligible main accounts.",
+      "verifiedStatement": "MEXC has a global referral-code/link flow, including code entry at signup and a limited self-service referrer-linking window for eligible main accounts.",
+      "verdict": "CONFIRMED_WITH_LIMITS",
+      "confidence": "HIGH",
+      "correctionRequired": false,
+      "correctionNote": "Original correction flag was explicitly reviewed; no additional correction beyond the verified wording is required.",
+      "limitations": [
+        "This is a global mechanics claim only and does not establish Kazakhstan compatibility."
+      ],
+      "publicationUse": "NOT_KZ_ELIGIBILITY",
+      "rankingUse": "NONE",
+      "ctaUse": "BLOCK",
+      "promoUse": "BLOCK"
+    },
+    "clm-kz-mexc-referral-002": {
+      "originalStatement": "Kazakhstan compatibility of any MEXC referral code, including the repository implementation code, is not officially verified and is not publication-safe while Kazakhstan is prohibited.",
+      "verifiedStatement": "Kazakhstan compatibility of any MEXC referral code, including the repository implementation code, is not officially verified and is not publication-safe while Kazakhstan is prohibited.",
+      "verdict": "CONFIRMED",
+      "confidence": "HIGH",
+      "correctionRequired": true,
+      "correctionNote": "Original correction flag was explicitly reviewed and remains required; use the verified restrictive/qualified statement instead of any earlier positive or ambiguous repository wording.",
+      "limitations": [
+        "No referral-code submission or account registration was performed.",
+        "Implementation presence is not eligibility evidence."
+      ],
+      "publicationUse": "BLOCK",
+      "rankingUse": "BLOCK",
+      "ctaUse": "BLOCK",
+      "promoUse": "BLOCK"
+    },
+    "clm-kz-mexc-registration-001": {
+      "originalStatement": "MEXC states that it does not accept user registration from Kazakhstan.",
+      "verifiedStatement": "MEXC states that it does not accept user registration from Kazakhstan.",
+      "verdict": "CONFIRMED",
+      "confidence": "HIGH",
+      "correctionRequired": true,
+      "correctionNote": "Original correction flag was explicitly reviewed and remains required; use the verified restrictive/qualified statement instead of any earlier positive or ambiguous repository wording.",
+      "limitations": [
+        "A global signup interface remains publicly documented but does not override jurisdictional terms.",
+        "Citizen, resident, and foreign-national-resident segmentation was not separately verified."
+      ],
+      "publicationUse": "RESTRICTION_ONLY",
+      "rankingUse": "BLOCK",
+      "ctaUse": "BLOCK",
+      "promoUse": "BLOCK"
+    },
+    "clm-kz-mexc-regulation-001": {
+      "originalStatement": "AFSA publicly identified MEXC as an unlicensed digital-asset platform advertising or promoting services to Kazakhstan citizens.",
+      "verifiedStatement": "AFSA publicly identified MEXC as an unlicensed digital-asset platform advertising or promoting services to Kazakhstan citizens.",
+      "verdict": "CONFIRMED",
+      "confidence": "HIGH",
+      "correctionRequired": false,
+      "correctionNote": "Original correction flag was explicitly reviewed; no additional correction beyond the verified wording is required.",
+      "limitations": [
+        "The warning is regulatory evidence, not a product-by-product technical-access test.",
+        "AFSA unlicensed status does not by itself prove technical unavailability; the technical restriction conclusion comes from MEXC terms, not the warning alone."
+      ],
+      "publicationUse": "RESTRICTION_ONLY",
+      "rankingUse": "BLOCK",
+      "ctaUse": "BLOCK",
+      "promoUse": "BLOCK"
+    },
+    "clm-kz-mexc-restrictions-001": {
+      "originalStatement": "Kazakhstan is expressly listed as a Prohibited Jurisdiction in the current MEXC User Agreement.",
+      "verifiedStatement": "Kazakhstan is expressly listed as a Prohibited Jurisdiction in the current MEXC User Agreement.",
+      "verdict": "CONFIRMED_WITH_LIMITS",
+      "confidence": "HIGH",
+      "correctionRequired": true,
+      "correctionNote": "Original correction flag was explicitly reviewed and remains required; use the verified restrictive/qualified statement instead of any earlier positive or ambiguous repository wording.",
+      "limitations": [
+        "Several lower-level or product-specific official pages remain inconsistent with the broad legal prohibition."
+      ],
+      "publicationUse": "RESTRICTION_ONLY",
+      "rankingUse": "BLOCK",
+      "ctaUse": "BLOCK",
+      "promoUse": "BLOCK"
+    },
+    "clm-kz-mexc-routing-001": {
+      "originalStatement": "mexc.com exposes public Kazakhstan-associated product routes, but no route was verified as a lawful Kazakhstan service route because the User Agreement prohibits Kazakhstan.",
+      "verifiedStatement": "mexc.com exposes public Kazakhstan-associated product routes, but no route was verified as a lawful Kazakhstan service route because the User Agreement prohibits Kazakhstan.",
+      "verdict": "CONFIRMED_WITH_LIMITS",
+      "confidence": "HIGH",
+      "correctionRequired": false,
+      "correctionNote": "Original correction flag was explicitly reviewed; no additional correction beyond the verified wording is required.",
+      "limitations": [
+        "Public route visibility is not live eligibility verification.",
+        "Lower-level product or interface visibility does not establish Kazakhstan legal/account eligibility and does not override the User Agreement."
+      ],
+      "publicationUse": "BLOCK",
+      "rankingUse": "BLOCK",
+      "ctaUse": "BLOCK",
+      "promoUse": "BLOCK"
+    },
+    "clm-kz-mexc-spot-001": {
+      "originalStatement": "Spot trading is not publication-safe for Kazakhstan because MEXC states it does not provide services or accept trade applications in Kazakhstan.",
+      "verifiedStatement": "Spot trading is not publication-safe for Kazakhstan because MEXC states it does not provide services or accept trade applications in Kazakhstan.",
+      "verdict": "CONFIRMED",
+      "confidence": "HIGH",
+      "correctionRequired": true,
+      "correctionNote": "Original correction flag was explicitly reviewed and remains required; use the verified restrictive/qualified statement instead of any earlier positive or ambiguous repository wording.",
+      "limitations": [
+        "No account-level product access was tested."
+      ],
+      "publicationUse": "RESTRICTION_ONLY",
+      "rankingUse": "BLOCK",
+      "ctaUse": "BLOCK",
+      "promoUse": "BLOCK"
+    }
+  }
+}
