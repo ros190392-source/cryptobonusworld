@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-008",
+  "project": "CryptoBonusWorld",
+  "governingIssue": 43,
+  "targetBranch": "main",
+  "authorizedBaselineSha": "04157b9dfb140918a8569a5026da747b429e5ed3",
+  "implementationBranch": "feat/researchops-subscription-factory-v1-1",
+  "productionAuthorityBranch": "master",
+  "protectedMasterHeadSha": "998fcedd7d9febbec5b130d4765dfeaafc40960b",
+  "state": "READY_FOR_IMPLEMENTATION",
+  "deliveryMode": "ONE_BRANCH_ONE_DRAFT_PR",
+  "canonicalCli": "node research-ops/factory-v1-1/bin/researchops.mjs",
+  "requiredCommands": [
+    "create",
+    "validate",
+    "status"
+  ],
+  "requiredTaskStates": [
+    "PREPARED",
+    "RESEARCH_CAPTURED",
+    "PACKAGE_VALIDATED",
+    "SOURCE_TRUTH_REVIEWED",
+    "CORRECTION_REQUIRED",
+    "CORRECTED",
+    "VALIDATED",
+    "OWNER_CLOSEOUT_REQUIRED",
+    "RESEARCH_RECORD_MERGE_AUTHORIZED",
+    "RESEARCH_RECORD_MERGED_TO_MAIN",
+    "BLOCKED"
+  ],
+  "writeBoundary": {
+    "allowedPrefixes": [
+      "research-ops/factory-v1-1/",
+      ".github/workflows/"
+    ],
+    "conditionallyAllowedFiles": [
+      "package.json"
+    ],
+    "forbiddenPrefixes": [
+      "research-ops-pilot/tasks/",
+      "data/market-intelligence/",
+      "src/",
+      "public/"
+    ]
+  },
+  "authorizations": {
+    "factoryImplementationAuthorized": true,
+    "factoryMergeToMainAuthorized": false,
+    "binancePilotAuthorized": false,
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false
+  },
+  "implementationCommitSha": null,
+  "validationOutcome": null,
+  "nextTaskOnPass": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-VALIDATION-009"
+}
