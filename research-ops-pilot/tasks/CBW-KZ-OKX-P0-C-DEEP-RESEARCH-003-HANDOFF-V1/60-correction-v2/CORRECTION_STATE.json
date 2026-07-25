@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-KZ-OKX-P0-C-RESEARCH-CORRECTION-V2-005",
+  "project": "CryptoBonusWorld",
+  "countryCode": "KZ",
+  "exchangeId": "okx",
+  "batchId": "KZ-P0-C",
+  "governingIssue": 36,
+  "sourceEvidenceHeadSha": "1b7b477fd2efa4783b42cb8435b6ba7837951585",
+  "sourceReviewHeadSha": "15d6367bc56162bf7584c3011cd4db545091a724",
+  "sourceReviewPullRequest": 35,
+  "state": "READY_FOR_CORRECTION",
+  "correctionCountRequired": 6,
+  "outputDirectory": "research-ops-pilot/tasks/CBW-KZ-OKX-P0-C-DEEP-RESEARCH-003-HANDOFF-V1/60-correction-v2/20-corrected-output",
+  "requiredOutputFiles": [
+    "research-run.json",
+    "source-verification.json",
+    "claim-verdicts.json",
+    "conflict-resolution.json",
+    "product-availability.json",
+    "payment-rails.json",
+    "offer-eligibility-review.json",
+    "schema-normalization-notes.json",
+    "import-readiness.json",
+    "source-truth-review-report.md",
+    "MANIFEST.txt"
+  ],
+  "preservedResult": {
+    "recommendation": "CONFLICTING",
+    "confidence": "MEDIUM",
+    "importReadiness": "BLOCKED",
+    "opsRecommendation": "HOLD_CONFLICTING",
+    "liveVerificationState": "NOT_LIVE_VERIFIED"
+  },
+  "authorizations": {
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false
+  },
+  "correctedPackageCommitSha": null,
+  "nextTaskAfterValidation": "CBW-KZ-OKX-P0-C-CORRECTION-V2-VALIDATION-006"
+}
