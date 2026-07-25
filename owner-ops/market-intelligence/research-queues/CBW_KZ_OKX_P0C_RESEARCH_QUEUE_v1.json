@@ -1,0 +1,259 @@
+{
+  "queueId": "CBW-KZ-OKX-P0C-RESEARCH-QUEUE-v1",
+  "taskId": "CBW-KZ-OKX-P0-C-RESEARCH-INTAKE-001",
+  "sourceIssue": "https://github.com/ros190392-source/cryptobonusworld/issues/21",
+  "project": "CryptoBonusWorld",
+  "repository": "ros190392-source/cryptobonusworld",
+  "branch": "master",
+  "baselineHead": "d55629487f99ede1957f8118602efd1717f6d180",
+  "originMain": "0a96f691f4d5b32003cc6b9e80db30436384496b",
+  "date": "2026-07-25",
+  "countryCode": "KZ",
+  "exchangeId": "okx",
+  "batchId": "KZ-P0-C",
+  "priority": "P0",
+  "mode": "REPOSITORY_INVENTORY + RESEARCH_QUEUE + INTAKE_PACKAGE_ONLY",
+  "researchPerformed": false,
+  "webBrowsingUsed": false,
+  "note": "This queue prepares an official-source-first Deep Research intake for OKX x Kazakhstan. It asserts no availability, KYC, registration, ranking, CTA, promo, affiliate or eligibility conclusion. Every URL below is a research lead only. Repository routes and codes are implementation facts, not eligibility evidence.",
+
+  "gatePreconditions": {
+    "kzWaveOrder": ["bybit", "mexc", "okx"],
+    "bybitKzP0aState": "canonical package present (positive precedent, AVAILABLE_WITH_LIMITS, ranking/CTA/promo still false)",
+    "mexcKzP0bState": "canonical package present (restrictive precedent, RESTRICTED, ranking/CTA/promo false)",
+    "approvedNextExchange": "OKX",
+    "batch": "KZ-P0-C",
+    "noOkxMiCell": true,
+    "noOkxStagingPipeline": true,
+    "noOkxCanonicalPackage": true,
+    "noOkxMigration5Preview": true
+  },
+
+  "repositoryInventory": {
+    "legacyGeoPassport": {
+      "path": "research/geo/kazakhstan/exchanges/okx.json",
+      "research_status": "not_started",
+      "availability": "all UNKNOWN",
+      "products": "all UNKNOWN",
+      "legalEntity": null,
+      "affiliate": { "go_route": "/go/okx", "promo_code": "CRYPTOBONUSW", "link_status": "not_checked", "code_status": "not_checked", "geo_eligible": "UNKNOWN", "bonus_claim_status": "not_checked" },
+      "scores": "all null",
+      "status": { "cta": "not_decided", "index_eligible": false },
+      "evidence_ids": ["ev-kz-okx-terms-121", "ev-kz-afsa-warning-003"],
+      "conflict_ids": ["cf-kz-okx-terms-vs-regulator"],
+      "unknown_claim_ids": ["kz-okx-bonus-availability-004"],
+      "last_checked_at": "2026-07-14",
+      "priorFindings": "Sprint 8B (2026-07-03) and Phase 1-2 (2026-07-14): KZ absent from OKX Risk & Compliance Disclosure restricted-locations list (doc updated 2026-07-08) - partial positive signal only; BUT the AFSA warning of 2026-04-29 explicitly names OKX as an unlicensed platform toward Kazakhstan citizens. Availability CONFLICTED (cf-kz-okx-terms-vs-regulator, critical, unresolved). OWNER_REVIEW_REQUIRED."
+    },
+    "production": {
+      "path": "src/data/geoRankings.ts (MANUAL_OVERRIDES.kazakhstan.okx)",
+      "availability": "unknown",
+      "bonusAvailability": "unknown",
+      "restrictionNote": "Kazakhstan is absent from OKX's Risk & Compliance Disclosure restricted-locations list (Section 3, captured 2026-07-03). No dedicated Kazakhstan support page, KZT currency page, or AFSA/AIFC license found. Not-restricted is a partial positive signal but not a confirmation.",
+      "regulatorCautionNote": "Kazakhstan's AIFC regulator (AFSA) publicly listed OKX among unlicensed digital asset platforms for Kazakhstan (warning of 2026-04-29). Availability is under review.",
+      "route": "/go/okx (implementation fact only)",
+      "referralCode": "CRYPTOBONUSW (implementation fact only)",
+      "evidenceUrl": "https://www.okx.com/en-us/help/risk-compliance-disclosure",
+      "evidenceLabel": "OKX Risk & Compliance Disclosure, Section 3 (dated capture on file)",
+      "evidenceDate": "2026-07-03",
+      "confidence": "partial",
+      "rankingReady": false,
+      "publicationEligibility": "blocked (config/geo/kazakhstan.json homepage_eligible=false, publication_status=blocked_by_missing_evidence)"
+    },
+    "exchangeRegistryImplementationFacts": {
+      "path": "src/data/exchanges.json, src/data/offers.ts, src/data/affiliate-links.ts, src/data/exchange-intelligence/okx.json, src/data/exchangePages/okx.ts",
+      "slug": "okx",
+      "displayName": "OKX",
+      "affiliateUrl": "https://okx.com/join/CRYPTOBONUSW (IMMUTABLE, ROLE 0 approval required to change)",
+      "promoCode": "CRYPTOBONUSW (IMMUTABLE)",
+      "ctaRoute": "/go/okx/",
+      "advertisedBonus": "Up to 5,000 USDT welcome package (global platform offer; not a Kazakhstan-verified value)",
+      "offersRestrictedCountries": ["US", "HK", "SG", "MY", "CA", "GB"],
+      "kzInOffersRestrictedList": false,
+      "officialRestrictedListUrl": "https://www.okx.com/help/okx-services-not-available",
+      "euEntityNote": "src/data/geoRankings.ts records OKX Europe Limited holding a MiCA CASP license (Malta MFSA, 2025-01-27) passported across the EEA. This is an EU/EEA fact and is NOT evidence of Kazakhstan authorization or availability.",
+      "warning": "These are IMPLEMENTATION facts only. Absence of KZ from an offer/exchange restricted list is not proof of eligibility; presence of a route/code/bonus is not proof of eligibility."
+    },
+    "masterQueueItem": {
+      "path": "owner-ops/market-intelligence/research-queues/CBW_KAZAKHSTAN_EXCHANGE_EVIDENCE_RESEARCH_QUEUE_v1.json (exchangeResearchItems[okx])",
+      "priority": "P0",
+      "batchId": "KZ-P0-C",
+      "currentProductionAvailability": "unknown",
+      "currentMiAvailability": "CONFLICTING",
+      "discrepancyState": "INCOMPARABLE",
+      "shadowOutcome": "HOLD_CONFLICTING",
+      "knownConflictIds": ["cf-kz-okx-terms-vs-regulator"],
+      "ownerReviewRequired": true,
+      "completionCriteria": "The AFSA-warning-vs-terms conflict (cf-kz-okx-terms-vs-regulator) is resolved with a decisive higher-tier official source, or explicitly retained as CONFLICTING with tiered dated provenance; owner review completed.",
+      "doNotResolveInThisTask": true
+    },
+    "okxMiCellExists": false,
+    "okxStagingExists": false,
+    "okxCanonicalPackageExists": false,
+    "okxMigration5PreviewExists": false,
+    "precedentCells": {
+      "bybit": "data/market-intelligence/cells/by-country/kz/bybit.json - overallAvailability AVAILABLE_WITH_LIMITS, confidence MEDIUM, local AFSA license AFSA-A-LA-2024-0027; rankingEligibility/ctaEligibility/promoEligibility all false; NOT_LIVE_VERIFIED",
+      "mexc": "data/market-intelligence/cells/by-country/kz/mexc.json - overallAvailability RESTRICTED, confidence HIGH, prohibited-jurisdiction terms + AFSA supporting warning; rankingEligibility/ctaEligibility/promoEligibility all false; NOT_LIVE_VERIFIED"
+    }
+  },
+
+  "implementationFactsVsResearchFacts": {
+    "rule": "Repository implementation facts (routes, codes, bonus figures, EU entity, production override values) are NOT research facts about Kazakhstan eligibility. Do not treat any referral route, promo code, P2P page or historical campaign as proof of current Kazakhstan eligibility.",
+    "implementationFacts": [
+      "OKX slug/display/route/code/bonus figures in src/data/*",
+      "OKX Europe Limited MiCA CASP license (EU/EEA only)",
+      "Production geoRankings okx override values (availability unknown, confidence partial)",
+      "Absence of KZ from OKX offer/exchange restricted lists in the repository"
+    ],
+    "researchFactsToEstablish": [
+      "Whether a Kazakhstan citizen or resident can currently register",
+      "Which legal entity serves Kazakhstan and under which terms",
+      "Whether KYC accepts Kazakhstan documents",
+      "Per-product availability for Kazakhstan",
+      "Whether KZT rails / cards / P2P are officially offered to Kazakhstan",
+      "The current authoritative status of the AFSA-vs-terms conflict"
+    ]
+  },
+
+  "researchPriorityDecision": {
+    "priority": "P0",
+    "batch": "KZ-P0-C",
+    "evidenceState": "CONFLICTING (cf-kz-okx-terms-vs-regulator, critical, unresolved)",
+    "ownerAction": "tiered dated official-source research to resolve or explicitly retain CONFLICTING",
+    "rationale": "KZ is absent from OKX's own Risk & Compliance Disclosure restricted-locations list (partial positive signal), while the AFSA regulator warning of 2026-04-29 names OKX as unlicensed toward Kazakhstan citizens. A visible KZT/P2P surface would be a product signal, not proof of account/legal eligibility; an AFSA warning is a regulatory signal, not by itself proof of technical unavailability. Do NOT resolve in this intake task.",
+    "doNotResolveInThisTask": true
+  },
+
+  "knownFactsFromRepositoryOnly": [
+    "Kazakhstan is absent from OKX's Risk & Compliance Disclosure restricted-locations list (Section 3, capture 2026-07-03; doc updated 2026-07-08) - a partial positive signal, NOT a confirmation.",
+    "The AIFC regulator (AFSA) publicly listed OKX among unlicensed digital-asset platforms toward Kazakhstan citizens (warning of 2026-04-29).",
+    "No dedicated Kazakhstan support page, KZT currency page, or AFSA/AIFC license for OKX was found in prior repository research.",
+    "OKX Europe Limited holds a MiCA CASP license (Malta MFSA, 2025-01-27) for the EEA - not a Kazakhstan authorization.",
+    "Legacy GEO passport research_status = not_started; all availability/product fields UNKNOWN; legal entity null.",
+    "Production geoRankings marks OKX availability=unknown, bonusAvailability=unknown, confidence=partial, with a regulator caution note; Kazakhstan is not ranking-ready and the page is publication-blocked.",
+    "An affiliate route (/go/okx) and code (CRYPTOBONUSW) and a 5,000 USDT global welcome figure exist as implementation facts only; geo_eligible UNKNOWN; bonus not_checked.",
+    "No OKX MI cell, staging pipeline, canonical package or MIGRATION_5 preview exists."
+  ],
+
+  "repositoryOnlyConflicts": [
+    { "conflictId": "cf-kz-okx-terms-vs-regulator", "issue": "OKX's own Risk & Compliance Disclosure does not list Kazakhstan as restricted, but the AFSA regulator warning (2026-04-29) names OKX as unlicensed toward Kazakhstan citizens.", "status": "UNRESOLVED_CRITICAL", "tierComparison": "Regulator warning (Tier A) vs exchange disclosure (Tier A) - recency and authority must be weighed with dated sources.", "doNotResolveInThisTask": true }
+  ],
+
+  "researchMode": {
+    "mode": "Official-source-first, evidence-first, NO-PROXY",
+    "outputLanguage": "English",
+    "researchLanguages": ["English", "Russian", "Kazakh"],
+    "prohibitedMethods": ["proxy", "VPN", "location spoofing", "mobile-IP simulation", "account registration", "login", "KYC submission", "identity documents", "deposit", "trade", "referral-code submission", "any live financial transaction", "restricted-region bypass", "unofficial bonus aggregators as decision sources"],
+    "separationRule": "Current evidence must be separated from historical campaigns.",
+    "productSignalRule": "A visible KZT/P2P page is a product signal, not by itself proof of account/legal eligibility.",
+    "regulatorSignalRule": "An AFSA warning is a regulatory signal, not by itself proof of technical unavailability.",
+    "thirdPartyRule": "Third-party sources may be used only for discovery or contradiction context; they must never override current official evidence."
+  },
+
+  "researchQuestions": {
+    "A_legalEntityAndContracting": ["Which legal/contracting entity serves Kazakhstan users?", "Which domain and application route serve Kazakhstan?", "Are there Kazakhstan-specific entities, notices or terms?", "Are trading, fiat, cards, referral and promotions served by the same entity?"],
+    "B_registrationEligibility": ["Can a Kazakhstan citizen register?", "Can a Kazakhstan resident register?", "Can a foreign national resident in Kazakhstan register?", "Are new registrations accepted?", "What minimum age applies?", "Are any segments excluded?"],
+    "C_kyc": ["Is Kazakhstan KYC supported?", "Which Kazakhstan identity documents are accepted?", "Is proof of address required?", "Are citizenship and residence treated differently?", "Which products/limits require KYC?"],
+    "D_productAvailability": ["registration", "KYC", "spot", "margin", "derivatives", "copy trading", "earn/staking", "mobile application", "P2P", "KZT P2P", "direct KZT deposit", "direct KZT withdrawal", "bank-card purchase", "other Kazakhstan-relevant products"],
+    "D_rule": "Do not flatten product statuses into one overall answer.",
+    "E_fiatAndKzt": ["Is KZT officially supported in P2P?", "Which USDT/KZT and other KZT markets exist?", "Which payment methods are officially listed?", "Does an official direct KZT deposit rail exist?", "Does an official direct KZT withdrawal rail exist?", "Are Kazakhstan-issued cards supported?", "Are provider/entity/jurisdiction restrictions disclosed?"],
+    "F_regulationAndRestrictions": ["Is OKX licensed/locally authorized in Kazakhstan?", "Does OKX make an official Kazakhstan regulatory claim?", "Is Kazakhstan supported, restricted or prohibited under current terms?", "Which official restricted-jurisdiction lists apply?", "Are derivatives or particular products restricted separately?", "What is the current AFSA/AIFC status and any public register entry?", "Distinguish legal availability, local authorization and technical reachability."],
+    "F_rule": "Do not infer local authorization from availability; do not infer technical unavailability from an AFSA warning alone.",
+    "G_referralAndAffiliate": ["Does an official referral-code entry flow exist?", "Is the global code compatible with Kazakhstan?", "Is there a local Kazakhstan referral program?", "Which entity owns the referral relationship?", "Must the code be entered during registration?", "Are existing users excluded?"],
+    "G_rule": "Repository routes and codes are implementation facts only, not eligibility evidence.",
+    "H_feesLimitsPromotions": ["Which fees and limits are relevant to Kazakhstan?", "Are current official promotions specifically open to Kazakhstan?", "Is any bonus amount verified for Kazakhstan?", "Do global maximums apply locally?", "What KYC/deposit/volume/date/segment conditions apply?"],
+    "H_rule": "Never combine unrelated amounts; separate referral rewards from campaign prize pools.",
+    "I_conflictsAndFreshness": ["supported-country vs restricted-country materials", "global vs Kazakhstan-local terms", "registration rules vs KYC rules", "legal entity vs domain routing", "product pages vs legal terms", "referral pages vs campaign terms", "current vs older official materials", "AFSA warning vs OKX disclosure", "evidence freshness and live-verification gaps"]
+  },
+
+  "seedInventoryContract": {
+    "classification": "Every seed is a RESEARCH LEAD ONLY, never a conclusion.",
+    "requiredSeedFields": ["seedId", "leadType", "url", "publisher", "expectedClaimScope", "language", "sourceTier", "retrievalDate", "checkedInRepo", "limitation", "overInferenceWarning"],
+    "requiredSeeds": [
+      "OKX Risk & Compliance Disclosure / restricted locations",
+      "OKX Terms of Service and applicable eligibility sections",
+      "OKX KYC / identity-verification guidance",
+      "OKX P2P eligibility and registered-region fiat rules",
+      "Current OKX P2P Express USDT/KZT and BTC/KZT surfaces",
+      "Official OKX announcements or historical campaigns explicitly mentioning Kazakhstan/KZT",
+      "AFSA warning on unlicensed digital-asset platforms naming OKX",
+      "AFSA public register search for any OKX-related licensed entity",
+      "Official Kazakhstan/AIFC regulatory sources relevant to digital-asset platform activity"
+    ]
+  },
+
+  "expectedDeepResearchOutputContract": {
+    "files": [
+      "research-run.json",
+      "source-verification.json",
+      "claim-verdicts.json",
+      "conflict-resolution.json",
+      "product-availability.json",
+      "payment-rails.json",
+      "offer-eligibility-review.json",
+      "schema-normalization-notes.json",
+      "import-readiness.json",
+      "source-truth-review-report.md",
+      "MANIFEST.txt"
+    ],
+    "manifestRequirement": "MANIFEST.txt must carry file hashes and counts.",
+    "perSourceRequiredFields": ["sourceUrl", "publisher", "title", "publishedDate", "effectiveDate", "checkedDate", "language", "sourceTier", "confidence", "limitations", "supportRelationships", "contradictionRelationships"],
+    "mustDistinguish": ["platform availability", "product availability", "ranking eligibility", "CTA eligibility", "promo eligibility", "publication eligibility"],
+    "recommendationEnum": ["AVAILABLE", "AVAILABLE_WITH_LIMITS", "CONFLICTING", "RESTRICTED", "UNAVAILABLE", "UNKNOWN"],
+    "confidenceEnum": ["HIGH", "MEDIUM", "LOW"],
+    "defaultLiveVerificationState": "NOT_LIVE_VERIFIED",
+    "deepResearchAuthorizes": "research only - NOT import, staging, canonical, production, ranking, CTA, promo, affiliate activation, publication or MIGRATION_5"
+  },
+
+  "authorizationBoundaries": {
+    "researchConclusionAuthorized": false,
+    "sourceTruthDecisionAuthorized": false,
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "schemaChangeAuthorized": false,
+    "legacyGeoChangeAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false,
+    "note": "This intake authorizes preparation of the Deep Research input package only."
+  },
+
+  "handoffPackage": {
+    "zipPath": "C:/projects/CBW-handoff/CBW_KZ_OKX_P0C_DEEP_RESEARCH_INPUT_v1.zip",
+    "layout": "flat",
+    "contains": [
+      "CBW_KZ_OKX_P0C_RESEARCH_QUEUE_v1.json",
+      "CBW_KZ_OKX_P0C_RESEARCH_QUEUE_v1.md",
+      "MANIFEST.txt",
+      "deep-research-prompt.md",
+      "source-seed-inventory.json",
+      "repository-context-report.md"
+    ],
+    "excludes": ["CBW-KZ-OKX-P0-C-RESEARCH-INTAKE-001.json (AI Ops task contract)"],
+    "lineEndings": "LF",
+    "untracked": true,
+    "packageStatus": "PREPARED / UNRESEARCHED",
+    "deepResearchTask": "CBW-KZ-OKX-P0-C-DEEP-RESEARCH-002"
+  },
+
+  "filesCreated": [
+    "owner-ops/ai-ops/tasks/CBW-KZ-OKX-P0-C-RESEARCH-INTAKE-001.json",
+    "owner-ops/market-intelligence/research-queues/CBW_KZ_OKX_P0C_RESEARCH_QUEUE_v1.json",
+    "owner-ops/market-intelligence/research-queues/CBW_KZ_OKX_P0C_RESEARCH_QUEUE_v1.md",
+    "research/market-intelligence/intake/kz/okx/p0c-v1/MANIFEST.txt",
+    "research/market-intelligence/intake/kz/okx/p0c-v1/deep-research-prompt.md",
+    "research/market-intelligence/intake/kz/okx/p0c-v1/source-seed-inventory.json",
+    "research/market-intelligence/intake/kz/okx/p0c-v1/repository-context-report.md"
+  ],
+
+  "recommendation": "APPROVE",
+  "recommendationScope": "OKX x Kazakhstan (KZ-P0-C, P0) official-source-first research intake prepared from committed repository truth only. Current OKX state is CONFLICTING (cf-kz-okx-terms-vs-regulator, unresolved) with UNKNOWN legacy availability and publication-blocked production. No research conclusion invented; no availability/KYC/ranking/CTA/promo/eligibility status asserted; no production/staging/canonical change; no web browsing. All authorization flags false. Deep Research (eleven-file package) is the only authorized next step, owner-gated.",
+  "nextTaskAfterQueueCommit": "CBW-KZ-OKX-P0-C-DEEP-RESEARCH-002 - owner-gated independent Deep Research run (external tool) over the attached input ZIP, returning the eleven-file structured output package under NO-PROXY rules for owner review. Claude Code does not conduct the research. Import, staging, canonical MI, ranking, CTA, promo, publication and MIGRATION_5 remain unauthorized."
+}

@@ -1,0 +1,37 @@
+CBW KZ x OKX P0-C Deep Research Intake — MANIFEST v1
+=====================================================
+Task:         CBW-KZ-OKX-P0-C-RESEARCH-INTAKE-001
+Source issue: https://github.com/ros190392-source/cryptobonusworld/issues/21
+Country x Exchange: KZ x OKX  (batch KZ-P0-C, priority P0)
+Baseline master:  d55629487f99ede1957f8118602efd1717f6d180
+origin/main:      0a96f691f4d5b32003cc6b9e80db30436384496b
+Generated:    2026-07-25
+Line endings: LF
+Status:       PREPARED / UNRESEARCHED — no research conclusion, no eligibility status asserted.
+
+This MANIFEST accompanies the external handoff package
+C:\projects\CBW-handoff\CBW_KZ_OKX_P0C_DEEP_RESEARCH_INPUT_v1.zip
+which contains six flat entries: the two research-queue files, this MANIFEST,
+and the three intake/context files below. The AI Ops task contract
+(CBW-KZ-OKX-P0-C-RESEARCH-INTAKE-001.json) is intentionally EXCLUDED from the ZIP.
+
+SHA-256 hashes and byte sizes of the five accompanying files
+(this MANIFEST.txt is self-excluded from its own hash list):
+
+SHA256                                                            BYTES  FILE
+5e614a9127055d8226c5212b8074da1508996d18ffb6915798820995275098de  19712  CBW_KZ_OKX_P0C_RESEARCH_QUEUE_v1.json
+6b140ad39408c21d9589a91240612e79acdeee157a5f5b4573fcc70799b869ac  11744  CBW_KZ_OKX_P0C_RESEARCH_QUEUE_v1.md
+2dd3b93f2afa14a9d1ffd653a99f5f7e8597b817cc42682bf1caf42a0365d566   8013  deep-research-prompt.md
+b8d6e049b29413baa145e8050df1a71804ba2c729bc3ab0a3ef0becbcd812e9c   8964  source-seed-inventory.json
+213521f19e2a5e24d6b1f2986d25a8f6d226a94c1f5b9f54e84951b65f531200   9372  repository-context-report.md
+
+Counts
+------
+ZIP entries:            6  (5 hashed above + this MANIFEST.txt)
+Hashed files listed:    5
+Source seeds (leads):   9  (all classified as research leads, 0 conclusions)
+Research conclusions:   0
+Eligibility statuses:   0
+Deep Research output files required: 11
+
+Next task (owner-gated): CBW-KZ-OKX-P0-C-DEEP-RESEARCH-002
