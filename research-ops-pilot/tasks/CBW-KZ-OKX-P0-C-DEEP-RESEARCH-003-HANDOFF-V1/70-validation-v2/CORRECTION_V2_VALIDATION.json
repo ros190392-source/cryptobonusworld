@@ -1,0 +1,196 @@
+{
+  "schemaVersion": "1.0.0",
+  "validationTaskId": "CBW-KZ-OKX-P0-C-CORRECTION-V2-VALIDATION-006",
+  "correctionTaskId": "CBW-KZ-OKX-P0-C-RESEARCH-CORRECTION-V2-005",
+  "sourceResearchTaskId": "CBW-KZ-OKX-P0-C-DEEP-RESEARCH-003-HANDOFF-V1",
+  "sourceReviewTaskId": "CBW-KZ-OKX-P0-C-SOURCE-TRUTH-REVIEW-004",
+  "governingIssue": 38,
+  "validationPullRequest": 39,
+  "correctionPullRequest": 37,
+  "reviewPullRequest": 35,
+  "evidencePullRequest": 32,
+  "validatedCorrectionCommitSha": "5dd0d14ed2bf984d0adba2e73a803b9c6b5b0215",
+  "sourceEvidenceHeadSha": "1b7b477fd2efa4783b42cb8435b6ba7837951585",
+  "sourceReviewHeadSha": "15d6367bc56162bf7584c3011cd4db545091a724",
+  "validatedAt": "2026-07-25",
+  "validatorRole": "Independent Corrected Research Package Validator",
+  "packageIntegrity": {
+    "verdict": "PASS",
+    "corruptFiles": 0,
+    "notes": "All checks computed on canonical UTF-8/LF content (git blobs). Windows autocrlf checkout adds CR per line in the working tree; canonical LF is authoritative and passes."
+  },
+  "manifestValidation": {
+    "verdict": "PASS",
+    "hashedFiles": 10,
+    "byteSizeMatches": 10,
+    "sha256Matches": 10,
+    "method": "Independently recomputed every MANIFEST.txt byte size and SHA-256 from canonical LF bytes; all match."
+  },
+  "inventoryValidation": {
+    "verdict": "PASS",
+    "totalFiles": 11,
+    "jsonFiles": 9,
+    "markdownFiles": 1,
+    "manifestFiles": 1
+  },
+  "jsonValidation": {
+    "verdict": "PASS",
+    "parsed": 9,
+    "expected": 9
+  },
+  "idValidation": {
+    "verdict": "PASS",
+    "uniqueSourceIds": 14,
+    "uniqueClaimIds": 10,
+    "uniqueConflictIds": 2,
+    "uniqueProductIds": 13,
+    "uniquePaymentRailIds": 4
+  },
+  "crossReferenceValidation": {
+    "verdict": "PASS",
+    "sourceReferencesResolve": true,
+    "claimReferencesResolve": true,
+    "danglingReferences": 0
+  },
+  "immutabilityValidation": {
+    "verdict": "PASS",
+    "v1LayerByteIdentical": true,
+    "reviewLayerByteIdentical": true,
+    "comparedBetween": ["238c793f605b96f7be996b4915971508c65976cb", "5dd0d14ed2bf984d0adba2e73a803b9c6b5b0215"],
+    "v1DiffCount": 0,
+    "reviewDiffCount": 0
+  },
+  "diffBoundaryValidation": {
+    "verdict": "PASS",
+    "changedFileCount": 12,
+    "changedFiles": [
+      "60-correction-v2/20-corrected-output/research-run.json",
+      "60-correction-v2/20-corrected-output/source-verification.json",
+      "60-correction-v2/20-corrected-output/claim-verdicts.json",
+      "60-correction-v2/20-corrected-output/conflict-resolution.json",
+      "60-correction-v2/20-corrected-output/product-availability.json",
+      "60-correction-v2/20-corrected-output/payment-rails.json",
+      "60-correction-v2/20-corrected-output/offer-eligibility-review.json",
+      "60-correction-v2/20-corrected-output/schema-normalization-notes.json",
+      "60-correction-v2/20-corrected-output/import-readiness.json",
+      "60-correction-v2/20-corrected-output/source-truth-review-report.md",
+      "60-correction-v2/20-corrected-output/MANIFEST.txt",
+      "60-correction-v2/CORRECTION_STATE.json"
+    ],
+    "correctionContractModified": false
+  },
+  "sixCorrectionValidation": {
+    "verdict": "PASS",
+    "corrections": [
+      {
+        "correction": 1,
+        "name": "SPOT",
+        "verdict": "PASS",
+        "observed": { "prod-spot.status": "CONFLICTING", "prod-spot.confidence": "LOW" },
+        "reasoningCheck": "PASS - the corrected package does not infer Kazakhstan spot availability from absence-in-restricted-list, mobile-app listing or generic platform availability; schema note corr-1-spot states no direct Kazakhstan spot source exists and spot cannot exceed the CONFLICTING registration/KYC gate."
+      },
+      {
+        "correction": 2,
+        "name": "KZT_P2P_URL",
+        "verdict": "PASS",
+        "observed": { "src-okx-p2p-kzt.url": "https://www.okx.com/ru/p2p-markets/kzt/buy-usdt" },
+        "officialSourceCheck": "Independently opened without login/proxy/VPN/account testing; official okx.com domain; page resolves and renders an OKX KZT/USDT P2P market surface (title: 'Из KZT в USDT: купите USDT за KZT с помощью P2P-торговли на OKX'). No claim that URL visibility alone proves lawful Kazakhstan eligibility."
+      },
+      {
+        "correction": 3,
+        "name": "AFSA_REGISTER_OBSERVATION",
+        "verdict": "PASS",
+        "observed": { "clm-kz-reviewed-register-pages-no-obvious-okx.confidence": "LOW" },
+        "wordingCheck": "PASS - claim and source limitations state visible register pages were only observed, no executed register query was performed, this is not a definitive negative determination, and it must not be the primary basis for RESTRICTED (which rests on the AFSA warning)."
+      },
+      {
+        "correction": 4,
+        "name": "P2P_CONFIDENCE_SPLIT",
+        "verdict": "PASS",
+        "observed": {
+          "prod-p2p": "AVAILABLE_WITH_LIMITS / MEDIUM",
+          "prod-kzt-p2p": "AVAILABLE_WITH_LIMITS / MEDIUM",
+          "rail-kzt-p2p": "AVAILABLE_WITH_LIMITS / MEDIUM",
+          "cf-kz-kzt-p2p-surface-vs-licensed-datf-rule.outcome": "AVAILABLE_WITH_LIMITS / MEDIUM",
+          "clm-kz-kzt-p2p-live.confidence": "HIGH"
+        },
+        "separationCheck": "PASS - surface existence remains HIGH confidence; product/rail/conflict eligibility confidence is MEDIUM; the two are clearly distinguished."
+      },
+      {
+        "correction": 5,
+        "name": "CRYPTO_TRANSFER",
+        "verdict": "PASS",
+        "observed": { "rail-crypto-transfer.status": "UNKNOWN", "rail-crypto-transfer.confidence": "LOW" },
+        "reasoningCheck": "PASS - the generic platform-model note is retained but is not presented as Kazakhstan-specific availability."
+      },
+      {
+        "correction": 6,
+        "name": "AFSA_DATE",
+        "verdict": "PASS",
+        "observed": {
+          "src-afsa-warning.lastUpdatedDate": null,
+          "clm-kz-afsa-warning.statement": "date 2026-04-29 removed",
+          "warningSubstanceRetained": true
+        },
+        "officialSourceCheck": "Independently opened the AFSA warning page; OKX is named among unlicensed platforms (substance confirmed); no publication date is displayed and 2026-04-29 is not visible. The corrected package does not assert the date as independently reconfirmed, sets the source date to null, and records a limitation. No date was invented."
+      }
+    ]
+  },
+  "officialUrlChecks": [
+    {
+      "target": "src-okx-p2p-kzt replacement URL",
+      "url": "https://www.okx.com/ru/p2p-markets/kzt/buy-usdt",
+      "result": "RESOLVES_OFFICIAL_KZT_P2P_SURFACE",
+      "httpObservation": "Page resolves and renders an official OKX KZT/USDT P2P market (not HTTP 404). Verified without login, proxy, VPN or account testing.",
+      "eligibilityCaveat": "Surface resolution does not prove lawful Kazakhstan eligibility."
+    },
+    {
+      "target": "AFSA warning page (date verification)",
+      "url": "https://afsa.aifc.kz/afsa-warning-on-unlicensed-digital-asset-platforms/",
+      "result": "OKX_NAMED_NO_DATE_DISPLAYED",
+      "httpObservation": "AFSA page names OKX among unlicensed digital-asset platforms; no explicit publication date is shown; 2026-04-29 is not visible on the page."
+    }
+  ],
+  "preservedResultValidation": {
+    "verdict": "PASS",
+    "overallRecommendation": "CONFLICTING",
+    "overallConfidence": "MEDIUM",
+    "platformAvailability": "AVAILABLE_WITH_LIMITS",
+    "localAuthorization": "RESTRICTED",
+    "technicalReachability": "AVAILABLE_WITH_LIMITS",
+    "offerEligibility": "UNKNOWN",
+    "liveVerificationState": "NOT_LIVE_VERIFIED",
+    "importReadiness": "BLOCKED",
+    "opsRecommendation": "HOLD_CONFLICTING",
+    "availabilityUpgradeDetected": false
+  },
+  "authorizationValidation": {
+    "verdict": "PASS_ALL_FALSE",
+    "checkedObjects": ["research-run.json", "import-readiness.json", "offer-eligibility-review.json", "MANIFEST.txt boundary"],
+    "anyTrue": false
+  },
+  "nonblockingNotes": [
+    "CORRECTION_STATE.json records correctedPackageCommitSha = null. This is a traceability note only: the validated correction commit is unambiguously 5dd0d14ed2bf984d0adba2e73a803b9c6b5b0215, established independently by (a) the diff 238c793..5dd0d14 containing exactly the eleven corrected files plus CORRECTION_STATE.json, (b) the research-run.json correction object pointing to the correct evidence SHA (1b7b477...) and review SHA (15d6367...), and (c) the MANIFEST byte/hash match. The null field was expected to remain null until after the correction commit and does not create ambiguity about which package was validated, so it is treated as nonblocking.",
+    "prod-spot retains its indirect-signal claim references (clm-kz-not-in-restricted-list, clm-kz-app-listed, clm-kz-afsa-warning) as evidence inputs, but the status is correctly CONFLICTING and does not assert availability - this is consistent with Correction 1 and is not a defect."
+  ],
+  "blockingFindings": [],
+  "validationOutcome": "VALIDATED_WITH_NONBLOCKING_NOTES",
+  "nextTask": "CBW-KZ-OKX-P0-C-RESEARCH-RECORD-CLOSEOUT-007",
+  "closeoutEligibility": "Eligible for research-record closeout on the control-plane main branch only. Does NOT authorize canonical import, production, ranking, CTA, promo, affiliate, publication, sitemap, indexability, MIGRATION_5 or deploy.",
+  "authorizations": {
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false
+  }
+}

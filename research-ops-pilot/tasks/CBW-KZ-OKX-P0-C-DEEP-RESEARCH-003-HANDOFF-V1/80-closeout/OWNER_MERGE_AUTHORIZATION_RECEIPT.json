@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-KZ-OKX-P0-C-RESEARCH-RECORD-CLOSEOUT-007",
+  "project": "CryptoBonusWorld",
+  "authorizationType": "RESEARCH_RECORD_STACK_MERGE_TO_CONTROL_PLANE_MAIN",
+  "authorizationStatus": "AUTHORIZED",
+  "ownerCommand": "AUTHORIZE OKX KZ RESEARCH RECORD MERGE TO MAIN",
+  "receivedAt": "2026-07-25T20:25:09+02:00",
+  "ownerAuthorizedScope": {
+    "researchRecordMergeToMainAuthorized": true,
+    "targetBranch": "main",
+    "stackPullRequests": [42, 39, 37, 35, 32],
+    "mergeStrategy": "TOP_DOWN_STACK_COLLAPSE"
+  },
+  "preAuthorizationState": {
+    "controlPlaneMainHead": "0a96f691f4d5b32003cc6b9e80db30436384496b",
+    "closeoutHead": "378cee196b76ca6f0fe45ceed4ab8fb0c8256333",
+    "validationHead": "80473b8d85744f33256374be270b718115b31e86",
+    "correctionHead": "5dd0d14ed2bf984d0adba2e73a803b9c6b5b0215",
+    "reviewHead": "15d6367bc56162bf7584c3011cd4db545091a724",
+    "evidenceHead": "1b7b477fd2efa4783b42cb8435b6ba7837951585"
+  },
+  "supersedesPreparedAuthorizationFlags": {
+    "OWNER_CLOSEOUT_DECISION.json.mergeAuthorization.mergeToMainAuthorized": false,
+    "MERGE_PLAN.json.mergeToMainAuthorized": false,
+    "MERGE_PLAN.json.authorizations.researchRecordMergeToMainAuthorized": false
+  },
+  "supersessionRule": "This later explicit owner authorization receipt supersedes only the prepared false research-record merge-to-main flags. It does not supersede any canonical, production, activation, publication or deploy prohibition.",
+  "authorizations": {
+    "researchRecordMergeToMainAuthorized": true,
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false
+  }
+}

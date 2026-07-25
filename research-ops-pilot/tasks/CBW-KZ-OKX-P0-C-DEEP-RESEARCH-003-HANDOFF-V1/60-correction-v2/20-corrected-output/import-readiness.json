@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "1.0",
+  "readiness": {
+    "researchImportReady": false,
+    "canonicalImportReady": false,
+    "productionReady": false,
+    "rankingReady": false,
+    "ctaReady": false,
+    "promoReady": false,
+    "affiliateReady": false,
+    "publicationReady": false,
+    "sitemapReady": false,
+    "indexabilityReady": false,
+    "migration5Ready": false,
+    "deployReady": false
+  },
+  "blockingReasons": [
+    "overall status remains CONFLICTING",
+    "no decisive Kazakhstan-specific authorization for OKX was established",
+    "Kazakhstan-specific KYC and direct-fiat/card rails remain unproven",
+    "two JSON intake files could not be locally rehashed in this runtime"
+  ],
+  "opsRecommendation": "HOLD_CONFLICTING"
+}

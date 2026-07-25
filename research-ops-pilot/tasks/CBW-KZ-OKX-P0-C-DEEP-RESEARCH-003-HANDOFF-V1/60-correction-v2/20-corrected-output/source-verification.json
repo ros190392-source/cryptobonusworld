@@ -1,0 +1,221 @@
+{
+  "schemaVersion": "1.0",
+  "sources": [
+    {
+      "sourceId": "src-okx-terms",
+      "url": "https://www.okx.com/help/terms-of-service",
+      "publisher": "OKX",
+      "title": "Terms of Service",
+      "language": "en",
+      "sourceTier": "A",
+      "officialSource": true,
+      "lastUpdatedDate": "2026-07-24",
+      "checkedDate": "2026-07-25",
+      "confidence": "HIGH",
+      "limitations": [
+        "global terms are not a Kazakhstan license notice"
+      ]
+    },
+    {
+      "sourceId": "src-okx-risk",
+      "url": "https://www.okx.com/en-gb/help/risk-compliance-disclosure",
+      "publisher": "OKX",
+      "title": "Risk & Compliance Disclosure",
+      "language": "en",
+      "sourceTier": "A",
+      "officialSource": true,
+      "lastUpdatedDate": "2026-07-08",
+      "checkedDate": "2026-07-25",
+      "confidence": "HIGH",
+      "limitations": [
+        "absence from a restricted list is only a partial positive signal"
+      ]
+    },
+    {
+      "sourceId": "src-okx-registration",
+      "url": "https://www.okx.com/ru/help/how-do-i-register-for-an-okx-account",
+      "publisher": "OKX",
+      "title": "How do I register for an OKX account?",
+      "language": "ru",
+      "sourceTier": "A",
+      "officialSource": true,
+      "lastUpdatedDate": "2026-05-29",
+      "checkedDate": "2026-07-25",
+      "confidence": "HIGH",
+      "limitations": [
+        "the article does not explicitly approve Kazakhstan"
+      ]
+    },
+    {
+      "sourceId": "src-okx-verification",
+      "url": "https://www.okx.com/help/how-do-i-verify-an-individual-account",
+      "publisher": "OKX",
+      "title": "How do I verify an individual account?",
+      "language": "en",
+      "sourceTier": "A",
+      "officialSource": true,
+      "lastUpdatedDate": null,
+      "checkedDate": "2026-07-25",
+      "confidence": "MEDIUM",
+      "limitations": [
+        "no Kazakhstan-specific document list on the reviewed page"
+      ]
+    },
+    {
+      "sourceId": "src-okx-app",
+      "url": "https://www.okx.com/en-eu/app-availability/ios",
+      "publisher": "OKX",
+      "title": "Countries and regions where OKX is available",
+      "language": "en",
+      "sourceTier": "B",
+      "officialSource": true,
+      "lastUpdatedDate": "2025-05-22",
+      "checkedDate": "2026-07-25",
+      "confidence": "MEDIUM",
+      "limitations": [
+        "app availability is not full legal eligibility"
+      ]
+    },
+    {
+      "sourceId": "src-okx-p2p-kzt",
+      "url": "https://www.okx.com/ru/p2p-markets/kzt/buy-usdt",
+      "publisher": "OKX",
+      "title": "OKX P2P: buy USDT with KZT (RU locale surface)",
+      "language": "ru",
+      "sourceTier": "B",
+      "officialSource": true,
+      "lastUpdatedDate": null,
+      "checkedDate": "2026-07-25",
+      "confidence": "HIGH",
+      "limitations": [
+        "surface existence is HIGH confidence; lawful Kazakhstan eligibility is not established and remains subject to the retained regulatory conflict",
+        "the v1 URL https://www.okx.com/p2p-markets/kzt/buy-usdt returned HTTP 404; this replacement /ru/ surface resolved (HTTP 200) at correction time 2026-07-25",
+        "a live KZT surface is not proof of legal eligibility"
+      ]
+    },
+    {
+      "sourceId": "src-okx-p2p-faq",
+      "url": "https://www.okx.com/help/p2p-sell-crypto-faq",
+      "publisher": "OKX",
+      "title": "P2P sell crypto FAQ",
+      "language": "en",
+      "sourceTier": "A",
+      "officialSource": true,
+      "lastUpdatedDate": null,
+      "checkedDate": "2026-07-25",
+      "confidence": "HIGH",
+      "limitations": [
+        "the FAQ explains region-based fiat listing rather than Kazakhstan-specific law"
+      ]
+    },
+    {
+      "sourceId": "src-okx-referral",
+      "url": "https://www.okx.com/help/what-is-okx-referral-program",
+      "publisher": "OKX",
+      "title": "Referral Program FAQ",
+      "language": "en",
+      "sourceTier": "A",
+      "officialSource": true,
+      "lastUpdatedDate": "2026-07-19",
+      "checkedDate": "2026-07-25",
+      "confidence": "HIGH",
+      "limitations": [
+        "current rewards are campaign-cycle and in-app dependent"
+      ]
+    },
+    {
+      "sourceId": "src-okx-affiliate",
+      "url": "https://www.okx.com/affiliates",
+      "publisher": "OKX",
+      "title": "OKX Affiliate Program",
+      "language": "en",
+      "sourceTier": "B",
+      "officialSource": true,
+      "lastUpdatedDate": null,
+      "checkedDate": "2026-07-25",
+      "confidence": "MEDIUM",
+      "limitations": [
+        "global affiliate page is not Kazakhstan-specific"
+      ]
+    },
+    {
+      "sourceId": "src-afsa-warning",
+      "url": "https://afsa.aifc.kz/afsa-warning-on-unlicensed-digital-asset-platforms/",
+      "publisher": "Astana Financial Services Authority",
+      "title": "AFSA Warning on Unlicensed Digital Asset Platforms",
+      "language": "en",
+      "sourceTier": "A",
+      "officialSource": true,
+      "lastUpdatedDate": null,
+      "checkedDate": "2026-07-25",
+      "confidence": "HIGH",
+      "limitations": [
+        "warning signal is not proof of technical blocking",
+        "the substance (OKX named among unlicensed digital-asset platforms toward Kazakhstan) was independently confirmed at correction time; no explicit publication date is displayed on the AFSA page",
+        "the original v1 run reported the date 2026-04-29, but neither the independent review nor this correction could confirm that exact date from the official page"
+      ]
+    },
+    {
+      "sourceId": "src-afsa-p2p",
+      "url": "https://afsa.aifc.kz/fintech/regulated-peer-to-peer-p2p-trading/",
+      "publisher": "Astana Financial Services Authority",
+      "title": "Regulated Peer-to-Peer (P2P) Trading",
+      "language": "en",
+      "sourceTier": "A",
+      "officialSource": true,
+      "lastUpdatedDate": null,
+      "checkedDate": "2026-07-25",
+      "confidence": "HIGH",
+      "limitations": [
+        "framework page is not OKX-specific approval"
+      ]
+    },
+    {
+      "sourceId": "src-afsa-cryptoexchanges",
+      "url": "https://afsa.aifc.kz/ru/kriptobirzhi/",
+      "publisher": "Astana Financial Services Authority",
+      "title": "Криптобиржи",
+      "language": "ru",
+      "sourceTier": "A",
+      "officialSource": true,
+      "lastUpdatedDate": null,
+      "checkedDate": "2026-07-25",
+      "confidence": "HIGH",
+      "limitations": [
+        "framework page is not an OKX-specific licence decision"
+      ]
+    },
+    {
+      "sourceId": "src-afsa-dasp-page1",
+      "url": "https://publicreg.myafsa.com/dasp/",
+      "publisher": "AFSA Public Register",
+      "title": "Digital Asset Service Providers page 1",
+      "language": "en",
+      "sourceTier": "A",
+      "officialSource": true,
+      "lastUpdatedDate": null,
+      "checkedDate": "2026-07-25",
+      "confidence": "MEDIUM",
+      "limitations": [
+        "non-executed page observation only; no register search query was run, so this is not a definitive negative register determination",
+        "must not be the primary basis for RESTRICTED (that rests on the AFSA warning)"
+      ]
+    },
+    {
+      "sourceId": "src-afsa-dasp-page2",
+      "url": "https://publicreg.myafsa.com/dasp/?page=2",
+      "publisher": "AFSA Public Register",
+      "title": "Digital Asset Service Providers page 2",
+      "language": "en",
+      "sourceTier": "A",
+      "officialSource": true,
+      "lastUpdatedDate": null,
+      "checkedDate": "2026-07-25",
+      "confidence": "MEDIUM",
+      "limitations": [
+        "non-executed page observation only; no register search query was run, so this is not a definitive negative register determination",
+        "must not be the primary basis for RESTRICTED (that rests on the AFSA warning)"
+      ]
+    }
+  ]
+}
