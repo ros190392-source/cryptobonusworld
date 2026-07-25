@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-008",
+  "project": "CryptoBonusWorld",
+  "authorizationType": "BUILD_RESEARCHOPS_SUBSCRIPTION_FACTORY_V1_1",
+  "authorizationStatus": "AUTHORIZED",
+  "ownerCommand": "AUTHORIZE BUILD RESEARCHOPS SUBSCRIPTION FACTORY V1.1",
+  "receivedAt": "2026-07-26",
+  "authorizedScope": {
+    "implementationBranch": "feat/researchops-subscription-factory-v1-1",
+    "targetBranch": "main",
+    "buildFactoryAuthorized": true,
+    "openDraftPullRequestAuthorized": true,
+    "mergeToMainAuthorized": false,
+    "startBinancePilotAuthorized": false
+  },
+  "authorizations": {
+    "factoryImplementationAuthorized": true,
+    "factoryMergeToMainAuthorized": false,
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false
+  }
+}
