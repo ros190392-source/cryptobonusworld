@@ -1,0 +1,56 @@
+{
+  "schemaId": "researchops-factory-v1-1/task-state",
+  "schemaVersion": "1.0.0",
+  "description": "TASK_STATE.json for a factory research task. Narrow and explicit; no pass-through fields.",
+  "requiredKeys": [
+    "schemaVersion",
+    "factoryVersion",
+    "taskId",
+    "project",
+    "countryCode",
+    "exchangeId",
+    "batchId",
+    "priority",
+    "state",
+    "createdAt",
+    "stages",
+    "requiredResearchInventory",
+    "branch",
+    "authorizations",
+    "history"
+  ],
+  "stateEnum": [
+    "PREPARED",
+    "RESEARCH_CAPTURED",
+    "PACKAGE_VALIDATED",
+    "SOURCE_TRUTH_REVIEWED",
+    "CORRECTION_REQUIRED",
+    "CORRECTED",
+    "VALIDATED",
+    "OWNER_CLOSEOUT_REQUIRED",
+    "RESEARCH_RECORD_MERGE_AUTHORIZED",
+    "RESEARCH_RECORD_MERGED_TO_MAIN",
+    "BLOCKED"
+  ],
+  "authorizationPolicy": {
+    "allMustBeFalseByDefault": true,
+    "ownerReceiptMayEnableOnly": "researchRecordMergeToMainAuthorized",
+    "neverImplicitlyAuthorized": [
+      "researchImportAuthorized",
+      "stagingImportAuthorized",
+      "canonicalImportAuthorized",
+      "productionChangeAuthorized",
+      "productionBindingAuthorized",
+      "rankingChangeAuthorized",
+      "ctaChangeAuthorized",
+      "promoChangeAuthorized",
+      "affiliateRouteChangeAuthorized",
+      "publicationAuthorized",
+      "sitemapAuthorized",
+      "indexabilityAuthorized",
+      "migration5Authorized",
+      "deployAuthorized",
+      "masterChangeAuthorized"
+    ]
+  }
+}

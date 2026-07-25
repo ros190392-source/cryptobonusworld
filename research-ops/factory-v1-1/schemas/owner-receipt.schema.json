@@ -1,0 +1,27 @@
+{
+  "schemaId": "researchops-factory-v1-1/owner-receipt",
+  "schemaVersion": "1.0.0",
+  "description": "Owner research-record merge receipt. The ONLY artifact that may authorize a single research-record merge to control-plane main.",
+  "requiredKeys": ["authorizationType", "taskId", "targetBranch", "authorizations"],
+  "constraints": {
+    "authorizationType": "RESEARCH_RECORD_MERGE_TO_MAIN",
+    "targetBranch": "main",
+    "onlyAuthorizationAllowedTrue": "researchRecordMergeToMainAuthorized",
+    "anyOtherAuthorizationTrue": "INVALID",
+    "mustNeverAuthorize": [
+      "masterChangeAuthorized",
+      "canonicalImportAuthorized",
+      "productionChangeAuthorized",
+      "productionBindingAuthorized",
+      "rankingChangeAuthorized",
+      "ctaChangeAuthorized",
+      "promoChangeAuthorized",
+      "affiliateRouteChangeAuthorized",
+      "publicationAuthorized",
+      "sitemapAuthorized",
+      "indexabilityAuthorized",
+      "migration5Authorized",
+      "deployAuthorized"
+    ]
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "schemaId": "researchops-factory-v1-1/research-package",
+  "schemaVersion": "1.0.0",
+  "description": "Exact eleven-file research package captured under 20-research-output/.",
+  "exactFileCount": 11,
+  "files": [
+    "research-run.json",
+    "source-verification.json",
+    "claim-verdicts.json",
+    "conflict-resolution.json",
+    "product-availability.json",
+    "payment-rails.json",
+    "offer-eligibility-review.json",
+    "schema-normalization-notes.json",
+    "import-readiness.json",
+    "source-truth-review-report.md",
+    "MANIFEST.txt"
+  ],
+  "jsonFiles": 9,
+  "idCollections": {
+    "source-verification.json": { "arrayKey": "sources", "idKey": "sourceId" },
+    "claim-verdicts.json": { "arrayKey": "claims", "idKey": "claimId" },
+    "conflict-resolution.json": { "arrayKey": "conflicts", "idKey": "conflictId" },
+    "product-availability.json": { "arrayKey": "products", "idKey": "productId" },
+    "payment-rails.json": { "arrayKey": "rails", "idKey": "railId" }
+  },
+  "crossReferences": [
+    { "from": "claim-verdicts.json.claims[].supportedSourceIds|contradictedSourceIds", "to": "source IDs" },
+    { "from": "conflict-resolution.json.conflicts[].availabilitySourceIds|restrictionSourceIds", "to": "source IDs" },
+    { "from": "payment-rails.json.rails[].sourceIds", "to": "source IDs" },
+    { "from": "product-availability.json.products[].claimIds", "to": "claim IDs" }
+  ],
+  "manifest": {
+    "file": "MANIFEST.txt",
+    "hashesEveryFileExceptItself": true,
+    "lineFormat": "<sha256>  <bytes>  <filename>",
+    "canonicalBytes": "UTF-8 without BOM, LF line endings"
+  },
+  "encoding": { "bom": "forbidden", "lineEndings": "LF" }
+}

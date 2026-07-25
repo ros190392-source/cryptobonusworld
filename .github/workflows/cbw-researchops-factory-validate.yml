@@ -1,0 +1,82 @@
+name: CBW ResearchOps Factory validate (advisory, read-only)
+
+# Read-only, fail-closed PR validation for the ResearchOps Subscription Factory.
+# Runs only the direct Node CLI/test runner. Never merges, never deploys,
+# never creates issues/branches/PRs, never calls an AI provider.
+
+on:
+  pull_request:
+    paths:
+      - 'research-ops/**'
+      - '.github/workflows/cbw-researchops-factory-validate.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: researchops-factory-validate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout (read-only)
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Syntax-check factory sources
+        run: |
+          set -euo pipefail
+          fail=0
+          while IFS= read -r f; do
+            node --check "$f" || fail=1
+          done < <(find research-ops/factory-v1-1 -type f -name '*.mjs' | sort)
+          exit $fail
+
+      - name: Run factory fixtures
+        run: node research-ops/factory-v1-1/fixtures/run.mjs
+
+      - name: Validate changed task roots (fail-closed)
+        run: |
+          set -euo pipefail
+          BASE="${{ github.event.pull_request.base.sha }}"
+          HEAD="${{ github.event.pull_request.head.sha }}"
+          git fetch --no-tags --depth=1 origin "$BASE" || true
+          CHANGED=$(git diff --name-only "$BASE" "$HEAD" || true)
+          echo "Changed files:"
+          echo "$CHANGED"
+          # Discover changed task roots under research-ops/tasks/<TASK_ID>/
+          TASKS=$(echo "$CHANGED" | awk -F/ '/^research-ops\/tasks\//{print $1"/"$2"/"$3}' | sort -u)
+          rc=0
+          if [ -z "$TASKS" ]; then
+            echo "No changed task roots to validate."
+          else
+            for t in $TASKS; do
+              if [ -d "$t" ]; then
+                echo "::group::validate $t"
+                node research-ops/factory-v1-1/bin/researchops.mjs validate --task-dir "$t" || rc=1
+                echo "::endgroup::"
+              fi
+            done
+          fi
+          exit $rc
+
+      - name: Step summary
+        if: always()
+        run: |
+          {
+            echo "# ResearchOps Factory validation"
+            echo ""
+            echo "- Node: 20"
+            echo "- Fixtures: executed via \`node research-ops/factory-v1-1/fixtures/run.mjs\`"
+            echo "- Permissions: contents:read (read-only)"
+            echo "- Merges/deploys/AI calls: none"
+          } >> "$GITHUB_STEP_SUMMARY"

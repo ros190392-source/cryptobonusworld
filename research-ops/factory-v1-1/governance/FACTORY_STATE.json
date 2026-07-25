@@ -8,7 +8,7 @@
   "implementationBranch": "feat/researchops-subscription-factory-v1-1",
   "productionAuthorityBranch": "master",
   "protectedMasterHeadSha": "998fcedd7d9febbec5b130d4765dfeaafc40960b",
-  "state": "READY_FOR_IMPLEMENTATION",
+  "state": "IMPLEMENTED_READY_FOR_VALIDATION",
   "deliveryMode": "ONE_BRANCH_ONE_DRAFT_PR",
   "canonicalCli": "node research-ops/factory-v1-1/bin/researchops.mjs",
   "requiredCommands": [
@@ -64,6 +64,35 @@
     "deployAuthorized": false
   },
   "implementationCommitSha": null,
-  "validationOutcome": null,
-  "nextTaskOnPass": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-VALIDATION-009"
+  "validationOutcome": "IMPLEMENTED_READY_FOR_VALIDATION",
+  "nextTaskOnPass": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-VALIDATION-009",
+  "implementationResult": {
+    "implementationCommitSha": null,
+    "exactImplementationFileCount": 20,
+    "cli": {
+      "commands": [
+        "create",
+        "validate",
+        "status"
+      ],
+      "runtime": "node20-builtin-only",
+      "dependencyFree": true
+    },
+    "fixtures": {
+      "passed": 24,
+      "failed": 0,
+      "scenariosCovered": 16
+    },
+    "cliValidationOutcome": "PASS",
+    "workflowValidationOutcome": "PASS_READONLY_FAIL_CLOSED",
+    "packageManifestFinding": "No root package.json exists on main; canonical CLI is standalone Node 20 ESM with built-ins only; no manifest was created or copied from master.",
+    "gitDiffCheck": "clean",
+    "changedFileBoundary": "within research-ops/factory-v1-1/ and .github/workflows/ only",
+    "masterUnchanged": true,
+    "binancePilotCreated": false,
+    "remainingLimitations": [
+      "Cross-stage git immutability and the append-only changed-file boundary are enforced at CI/PR time via base/head refs; the local validator enforces intra-package immutability through MANIFEST hashing and an optional --changed-files boundary check.",
+      "The generated skeleton leaves 20-research-output empty until a Deep Research capture populates the exact eleven files; an empty directory is not git-tracked until then."
+    ]
+  }
 }
