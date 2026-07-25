@@ -1,0 +1,103 @@
+{
+  "schemaVersion": "1.0",
+  "runId": "cbw-kz-okx-p0c-2026-07-25",
+  "taskId": "CBW-KZ-OKX-P0-C-DEEP-RESEARCH-003-HANDOFF-V1",
+  "project": "CryptoBonusWorld",
+  "repository": "ros190392-source/cryptobonusworld",
+  "issueNumber": 28,
+  "runDate": "2026-07-25",
+  "timezone": "Europe/Warsaw",
+  "subject": {
+    "countryCode": "KZ",
+    "countryName": "Kazakhstan",
+    "exchangeId": "okx",
+    "exchangeName": "OKX",
+    "currency": "KZT",
+    "batchId": "KZ-P0-C",
+    "priority": "P0"
+  },
+  "method": {
+    "officialSourceFirst": true,
+    "evidenceFirst": true,
+    "noProxy": true,
+    "noTesting": true,
+    "liveVerificationState": "NOT_LIVE_VERIFIED",
+    "researchLanguages": [
+      "en",
+      "ru",
+      "kk"
+    ],
+    "outputLanguage": "en"
+  },
+  "inputs": {
+    "requestedChannel": "ChatGPT File Library",
+    "effectiveChannel": "repository mirrors from Issue #21 / PR #22 because File Library access was unavailable in this runtime",
+    "manifestRead": true,
+    "inventoryValidated": true,
+    "byteSizesValidated": true,
+    "sha256ValidatedCount": 3,
+    "sha256DeclarationOnlyCount": 2,
+    "sha256DeclarationOnlyReason": "the runtime blocked local rehashing of downloaded JSON bodies",
+    "items": [
+      {
+        "filename": "MANIFEST.txt",
+        "identityValidated": true,
+        "bytesValidated": true,
+        "sha256Validated": false
+      },
+      {
+        "filename": "CBW_KZ_OKX_P0C_RESEARCH_QUEUE_v1.json",
+        "identityValidated": true,
+        "bytesValidated": true,
+        "sha256Validated": false
+      },
+      {
+        "filename": "CBW_KZ_OKX_P0C_RESEARCH_QUEUE_v1.md",
+        "identityValidated": true,
+        "bytesValidated": true,
+        "sha256Validated": true
+      },
+      {
+        "filename": "deep-research-prompt.md",
+        "identityValidated": true,
+        "bytesValidated": true,
+        "sha256Validated": true
+      },
+      {
+        "filename": "source-seed-inventory.json",
+        "identityValidated": true,
+        "bytesValidated": true,
+        "sha256Validated": false
+      },
+      {
+        "filename": "repository-context-report.md",
+        "identityValidated": true,
+        "bytesValidated": true,
+        "sha256Validated": true
+      }
+    ]
+  },
+  "overallFinding": {
+    "recommendation": "CONFLICTING",
+    "confidence": "MEDIUM",
+    "platformAvailability": "AVAILABLE_WITH_LIMITS",
+    "localAuthorization": "RESTRICTED",
+    "technicalReachability": "AVAILABLE_WITH_LIMITS",
+    "offerEligibility": "UNKNOWN"
+  },
+  "authorizations": {
+    "researchImport": false,
+    "stagingImport": false,
+    "canonicalImport": false,
+    "productionChange": false,
+    "rankingChange": false,
+    "ctaChange": false,
+    "promoChange": false,
+    "affiliateChange": false,
+    "publication": false,
+    "sitemap": false,
+    "indexability": false,
+    "migration5": false,
+    "deploy": false
+  }
+}
