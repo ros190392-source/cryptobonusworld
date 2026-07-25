@@ -1,0 +1,54 @@
+CBW OKX × Kazakhstan Deep Research Handoff — MANIFEST v1
+======================================================
+Task:         CBW-KZ-OKX-P0-C-DEEP-RESEARCH-003-HANDOFF-V1
+Project:      CryptoBonusWorld
+Country:      Kazakhstan (KZ)
+Exchange:     OKX (okx)
+Batch:        KZ-P0-C
+Generated:    2026-07-25
+Line endings: LF
+Encoding:     UTF-8
+
+SHA256                                                            BYTES  FILE
+4d5622a51a84dd9250bbf83f4ae7d240b02c8483f9e6bd2187df054f9e9b3121   2888  research-run.json
+44c5cfa465c333c5f8247dee5d84263360322b8a7ddcc0a902c52b2ac9f0fd3c   6729  source-verification.json
+965c3cce08ef92cf8911fd6f665857c65b04cabc811047a3d40e4c3f5899529d   5018  claim-verdicts.json
+f2aa5d46647258850e52b62f818c3c89e5f8e955f4ec4d10c57c20ad65129746   1425  conflict-resolution.json
+3c0ddfbcff437742dc74e8bc9b0fd75e1ed1b50b96f7472973bde13b5e9f8007   2380  product-availability.json
+542593f92054b7534e7a970080e3f8093493244b7c45dbd5ea447e63915320af   1359  payment-rails.json
+3bf5afaa2cbbca278dc89aa1919fcd4b737c7e7fa75f259aa93b5658f8b4b43c    868  offer-eligibility-review.json
+c8ab2d94c4477ac38fa0c7da76b98fc568f78ee6dd8073e08969b0b023eb4679   1131  schema-normalization-notes.json
+81e5211ec4176f7ed3c3c67294ba18f46863152cd038cd39e8fd453658a49d7f    737  import-readiness.json
+55f3e6d29b4df974e57e5a38757ca2200caf7acbf591c00468c2d99c0a0bb205   2372  source-truth-review-report.md
+
+Counts
+------
+Files:                 11
+JSON files:            9
+Markdown files:        1
+Manifest files:        1
+Sources reviewed:      14
+Claims resolved:       10
+Conflicts tracked:     2
+Product rows:          13
+Payment rails:         4
+
+Authorization boundary
+----------------------
+researchImport=false
+stagingImport=false
+canonicalImport=false
+productionChange=false
+rankingChange=false
+ctaChange=false
+promoChange=false
+affiliateChange=false
+publication=false
+sitemap=false
+indexability=false
+migration5=false
+deploy=false
+
+Overall recommendation: CONFLICTING
+Overall confidence:     MEDIUM
+
