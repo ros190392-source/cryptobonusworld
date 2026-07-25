@@ -1,0 +1,156 @@
+{
+  "schemaVersion": "1.0.0",
+  "reviewTaskId": "CBW-KZ-OKX-P0-C-SOURCE-TRUTH-REVIEW-004",
+  "sourceResearchTaskId": "CBW-KZ-OKX-P0-C-DEEP-RESEARCH-003-HANDOFF-V1",
+  "governingIssue": 33,
+  "evidencePullRequest": 32,
+  "reviewPullRequest": 34,
+  "reviewedEvidenceHeadSha": "1b7b477fd2efa4783b42cb8435b6ba7837951585",
+  "reviewBaseSha": "0a52cb2e3e2695ac6981c7d481017c055d09be67",
+  "reviewedAt": "2026-07-25",
+  "reviewerRole": "Independent adversarial Source Truth Reviewer",
+  "packageIntegrity": {
+    "verdict": "PASS",
+    "fileCount": 11,
+    "fileCountExpected": 11,
+    "jsonFilesParsed": 9,
+    "jsonFilesExpected": 9,
+    "byteSizeCheck": "PASS_ON_CANONICAL_LF",
+    "sha256Check": "PASS_ON_CANONICAL_LF",
+    "uniqueSourceIds": 14,
+    "uniqueClaimIds": 10,
+    "uniqueConflictIds": 2,
+    "uniqueProductIds": 13,
+    "uniquePaymentRailIds": 4,
+    "sourceCrossReferencesResolve": true,
+    "claimCrossReferencesResolve": true,
+    "authorizationsAllFalse": true,
+    "notes": [
+      "All 10 hashed files match the manifest byte size AND SHA-256 exactly when computed on canonical UTF-8/LF content (the stored git blobs).",
+      "On a Windows checkout with core.autocrlf=true the working-tree files are CRLF and therefore differ from the manifest by +1 byte per line; this is a local checkout artifact, NOT a package defect. The evidence files were not modified.",
+      "Informational: three claims (clm-kz-aux-cayes-fallback, clm-kz-reviewed-register-pages-no-obvious-okx, clm-kz-referral-affiliate-separate) are not referenced by any product row; they inform conflicts and offer review instead — acceptable.",
+      "Informational: five product rows (copy-trading, earn-staking, direct-kzt-deposit, direct-kzt-withdrawal, bank-card-purchase) carry zero claim support and are correctly UNKNOWN."
+    ]
+  },
+  "independentVerification": {
+    "method": "Official-source-first WebFetch/WebSearch, NO-PROXY, NO-TESTING (no login, registration, KYC, payment, deposit, trade or referral submission).",
+    "checkedSources": [
+      {
+        "sourceId": "src-afsa-warning",
+        "result": "CONFIRMED_SUBSTANCE",
+        "detail": "AFSA 'Warning on Unlicensed Digital Asset Platforms' explicitly names OKX (alongside HTX, Bitget, MEXC) as operating without required AFSA authorization. The exact warning date 2026-04-29 was not independently visible on the page at review time."
+      },
+      {
+        "sourceId": "src-okx-risk",
+        "result": "CONFIRMED",
+        "detail": "OKX Risk & Compliance Disclosure lists restricted locations (Afghanistan, Canada, Cuba, Hong Kong, Iran, India, Japan, Malaysia, Nepal, North Korea, Syria, Crimea/Donetsk/Luhansk, parts of the US) plus conditional restrictions (Australia, Bahamas, Brazil, Eritrea, Russia, South Korea, UK). Kazakhstan is absent from both lists — supports clm-kz-not-in-restricted-list."
+      },
+      {
+        "sourceId": "src-okx-p2p-kzt",
+        "result": "CONFIRMED_SURFACE_CITED_URL_404",
+        "detail": "The exact cited URL https://www.okx.com/p2p-markets/kzt/buy-usdt returned HTTP 404 at review time. Equivalent live OKX KZT P2P surfaces do exist and were confirmed (e.g. /ru/p2p-markets/kzt/buy-usdt, /p2p-markets/kzt/sell-usdt, /p2p/express/kzt/...), with active merchant offers priced in KZT. The underlying claim that a current KZT P2P surface exists is SUPPORTED; the specific citation is stale/non-resolving and should be corrected."
+      }
+    ]
+  },
+  "sourceVerdicts": [
+    { "sourceId": "src-okx-terms", "tierVerdict": "DEFENSIBLE", "confidenceVerdict": "DEFENSIBLE", "verdict": "ACCEPTED", "note": "Global ToS / Aux Cayes fallback correctly qualified as not a Kazakhstan authorization notice." },
+    { "sourceId": "src-okx-risk", "tierVerdict": "DEFENSIBLE", "confidenceVerdict": "DEFENSIBLE", "verdict": "ACCEPTED_INDEPENDENTLY_VERIFIED", "note": "KZ absent from restricted list confirmed independently." },
+    { "sourceId": "src-okx-registration", "tierVerdict": "DEFENSIBLE", "confidenceVerdict": "DEFENSIBLE", "verdict": "ACCEPTED", "note": "Residence-based registration; correctly noted as not a Kazakhstan approval." },
+    { "sourceId": "src-okx-verification", "tierVerdict": "DEFENSIBLE", "confidenceVerdict": "DEFENSIBLE", "verdict": "ACCEPTED", "note": "Generic KYC page; no KZ-specific document list; MEDIUM is appropriate." },
+    { "sourceId": "src-okx-app", "tierVerdict": "DEFENSIBLE", "confidenceVerdict": "DEFENSIBLE", "verdict": "ACCEPTED_WITH_CAUTION", "note": "App-availability list is a store signal only; must not be used to establish spot-trading availability." },
+    { "sourceId": "src-okx-p2p-kzt", "tierVerdict": "DEFENSIBLE", "confidenceVerdict": "OVERSTATED_CITATION", "verdict": "ACCEPTED_WITH_CORRECTION", "note": "Cited URL returns 404; equivalent KZT P2P surfaces are live. Correct the citation to a resolving URL." },
+    { "sourceId": "src-okx-p2p-faq", "tierVerdict": "DEFENSIBLE", "confidenceVerdict": "DEFENSIBLE", "verdict": "ACCEPTED", "note": "Region-dependent fiat listing framing is reasonable." },
+    { "sourceId": "src-okx-referral", "tierVerdict": "DEFENSIBLE", "confidenceVerdict": "DEFENSIBLE", "verdict": "ACCEPTED", "note": "Referral FAQ used only for program structure, not KZ eligibility." },
+    { "sourceId": "src-okx-affiliate", "tierVerdict": "DEFENSIBLE", "confidenceVerdict": "DEFENSIBLE", "verdict": "ACCEPTED", "note": "Global affiliate page; correctly not treated as KZ-specific." },
+    { "sourceId": "src-afsa-warning", "tierVerdict": "DEFENSIBLE", "confidenceVerdict": "DEFENSIBLE", "verdict": "ACCEPTED_INDEPENDENTLY_VERIFIED", "note": "OKX named as unlicensed confirmed; exact 2026-04-29 date not independently confirmed at review time." },
+    { "sourceId": "src-afsa-p2p", "tierVerdict": "DEFENSIBLE", "confidenceVerdict": "DEFENSIBLE", "verdict": "ACCEPTED", "note": "AIFC-licensed-DATF-only P2P framework; correctly not treated as OKX approval." },
+    { "sourceId": "src-afsa-cryptoexchanges", "tierVerdict": "DEFENSIBLE", "confidenceVerdict": "DEFENSIBLE", "verdict": "ACCEPTED", "note": "Framework context; not an OKX-specific licence decision." },
+    { "sourceId": "src-afsa-dasp-page1", "tierVerdict": "DEFENSIBLE", "confidenceVerdict": "UNDERQUALIFIED", "verdict": "ACCEPTED_WITH_LIMITATION", "note": "Page observation only; not a fully executed register search — weak basis for a negative register finding." },
+    { "sourceId": "src-afsa-dasp-page2", "tierVerdict": "DEFENSIBLE", "confidenceVerdict": "UNDERQUALIFIED", "verdict": "ACCEPTED_WITH_LIMITATION", "note": "Same limitation as page 1." }
+  ],
+  "claimVerdicts": [
+    { "claimId": "clm-kz-not-in-restricted-list", "verdict": "SUPPORTED", "reviewedConfidence": "HIGH", "note": "Independently confirmed; correctly limited to a partial positive signal." },
+    { "claimId": "clm-kz-aux-cayes-fallback", "verdict": "SUPPORTED", "reviewedConfidence": "HIGH", "note": "Reasonable reading of global terms; not a KZ authorization." },
+    { "claimId": "clm-kz-registration-residence-based", "verdict": "SUPPORTED", "reviewedConfidence": "MEDIUM", "note": "Residence-driven flow; correctly does not assert KZ approval. Recommendation label AVAILABLE_WITH_LIMITS is generous for a residence-gating statement whose KZ outcome is unresolved; the product row correctly downgrades registration to CONFLICTING." },
+    { "claimId": "clm-kz-kyc-generic-only", "verdict": "SUPPORTED", "reviewedConfidence": "MEDIUM", "note": "Generic KYC; UNKNOWN is correct." },
+    { "claimId": "clm-kz-app-listed", "verdict": "SUPPORTED_LIMITED", "reviewedConfidence": "MEDIUM", "note": "Store/app signal only; must not be escalated to spot availability." },
+    { "claimId": "clm-kz-kzt-p2p-live", "verdict": "SUPPORTED", "reviewedConfidence": "HIGH", "note": "KZT P2P surface confirmed via equivalent URLs; cited URL 404s and must be corrected." },
+    { "claimId": "clm-kz-afsa-warning", "verdict": "SUPPORTED", "reviewedConfidence": "HIGH", "note": "OKX named unlicensed confirmed; correctly NOT extended into technical unavailability. Exact date unverified at review time." },
+    { "claimId": "clm-kz-afsa-licensed-datf-only-for-p2p", "verdict": "SUPPORTED", "reviewedConfidence": "HIGH", "note": "Framework statement, not OKX approval — correctly framed." },
+    { "claimId": "clm-kz-reviewed-register-pages-no-obvious-okx", "verdict": "UNDERQUALIFIED", "reviewedConfidence": "LOW", "note": "Negative register finding rests on page observation, not an executed search. Should be LOW confidence and must not be leaned on for RESTRICTED (which the AFSA warning independently supports)." },
+    { "claimId": "clm-kz-referral-affiliate-separate", "verdict": "SUPPORTED", "reviewedConfidence": "MEDIUM", "note": "Program-structure claim; not decisive for KZ; not independently re-verified." }
+  ],
+  "conflictVerdicts": [
+    { "conflictId": "cf-kz-okx-terms-vs-regulator", "verdict": "CORRECTLY_RETAINED", "reviewedOutcome": "CONFLICTING / MEDIUM", "note": "Platform signals vs AFSA local-authorization signals genuinely diverge; retaining CONFLICTING is the correct call and the axes are properly separated." },
+    { "conflictId": "cf-kz-kzt-p2p-surface-vs-licensed-datf-rule", "verdict": "CORRECTLY_RETAINED", "reviewedOutcome": "AVAILABLE_WITH_LIMITS / MEDIUM", "note": "Live KZT P2P surface is real, but does not prove lawful KZ eligibility given the AFSA DATF rule and the warning naming OKX. AVAILABLE_WITH_LIMITS for the surface is defensible; HIGH confidence should be softened to MEDIUM because eligibility (not surface existence) is the operative question." }
+  ],
+  "productVerdicts": [
+    { "productId": "prod-registration", "originalStatus": "CONFLICTING", "reviewedStatus": "CONFLICTING", "verdict": "AGREE", "note": "Residence-based flow vs AFSA warning; CONFLICTING is correct." },
+    { "productId": "prod-kyc", "originalStatus": "UNKNOWN", "reviewedStatus": "UNKNOWN", "verdict": "AGREE" },
+    { "productId": "prod-spot", "originalStatus": "AVAILABLE_WITH_LIMITS", "reviewedStatus": "CONFLICTING", "verdict": "DOWNGRADE_REQUIRED", "note": "OVERSTATED. Spot rests on absence-in-restricted-list + app-listing + a negative AFSA signal, with no source directly evidencing KZ spot availability. It is internally inconsistent to rate spot (which requires a registered, verified account) as MORE available than registration, which is CONFLICTING. Spot availability cannot exceed registration availability; downgrade spot to CONFLICTING (or UNKNOWN)." },
+    { "productId": "prod-margin", "originalStatus": "UNKNOWN", "reviewedStatus": "UNKNOWN", "verdict": "AGREE" },
+    { "productId": "prod-derivatives", "originalStatus": "UNKNOWN", "reviewedStatus": "UNKNOWN", "verdict": "AGREE" },
+    { "productId": "prod-copy-trading", "originalStatus": "UNKNOWN", "reviewedStatus": "UNKNOWN", "verdict": "AGREE" },
+    { "productId": "prod-earn-staking", "originalStatus": "UNKNOWN", "reviewedStatus": "UNKNOWN", "verdict": "AGREE" },
+    { "productId": "prod-mobile-app", "originalStatus": "AVAILABLE_WITH_LIMITS", "reviewedStatus": "AVAILABLE_WITH_LIMITS", "verdict": "AGREE_WITH_CAUTION", "note": "App-availability listing is a genuine signal for app reachability; acceptable at MEDIUM as long as it is not transferred to spot/trading availability." },
+    { "productId": "prod-p2p", "originalStatus": "AVAILABLE_WITH_LIMITS", "reviewedStatus": "AVAILABLE_WITH_LIMITS", "verdict": "AGREE_LOWER_CONFIDENCE", "note": "Surface confirmed; soften confidence from HIGH to MEDIUM on the eligibility question." },
+    { "productId": "prod-kzt-p2p", "originalStatus": "AVAILABLE_WITH_LIMITS", "reviewedStatus": "AVAILABLE_WITH_LIMITS", "verdict": "AGREE_LOWER_CONFIDENCE", "note": "Same as prod-p2p; correct the KZT P2P citation to a resolving URL." },
+    { "productId": "prod-direct-kzt-deposit", "originalStatus": "UNKNOWN", "reviewedStatus": "UNKNOWN", "verdict": "AGREE" },
+    { "productId": "prod-direct-kzt-withdrawal", "originalStatus": "UNKNOWN", "reviewedStatus": "UNKNOWN", "verdict": "AGREE" },
+    { "productId": "prod-bank-card-purchase", "originalStatus": "UNKNOWN", "reviewedStatus": "UNKNOWN", "verdict": "AGREE" }
+  ],
+  "paymentRailVerdicts": [
+    { "railId": "rail-kzt-p2p", "originalStatus": "AVAILABLE_WITH_LIMITS", "reviewedStatus": "AVAILABLE_WITH_LIMITS", "verdict": "AGREE_LOWER_CONFIDENCE", "note": "Strongest KZ-relevant current signal; surface confirmed. Confidence HIGH is fine for surface existence, MEDIUM for lawful eligibility." },
+    { "railId": "rail-direct-kzt-fiat", "originalStatus": "UNKNOWN", "reviewedStatus": "UNKNOWN", "verdict": "AGREE" },
+    { "railId": "rail-bank-card-buy", "originalStatus": "UNKNOWN", "reviewedStatus": "UNKNOWN", "verdict": "AGREE" },
+    { "railId": "rail-crypto-transfer", "originalStatus": "AVAILABLE_WITH_LIMITS", "reviewedStatus": "UNKNOWN", "verdict": "DOWNGRADE_SUGGESTED", "note": "Mildly OVERSTATED. Inferred from generic 'platform model' via ToS/registration with no KZ-specific evidence; AVAILABLE_WITH_LIMITS implies a KZ-scoped signal that was not established. Prefer UNKNOWN for a KZ-specific rail verdict. Low operational stakes." }
+  ],
+  "unsupportedFindings": [],
+  "overstatedFindings": [
+    "prod-spot = AVAILABLE_WITH_LIMITS is overstated and internally inconsistent with prod-registration = CONFLICTING; no source directly evidences KZ spot availability.",
+    "rail-crypto-transfer = AVAILABLE_WITH_LIMITS is a KZ-unscoped platform-model inference; prefer UNKNOWN.",
+    "src-okx-p2p-kzt citation (…/p2p-markets/kzt/buy-usdt) returns HTTP 404 while carrying HIGH confidence; the surface exists at equivalent URLs but the specific citation is not resolving."
+  ],
+  "underqualifiedFindings": [
+    "clm-kz-reviewed-register-pages-no-obvious-okx is a negative register finding based on page observation rather than an executed AFSA DASP search; should be LOW confidence and not relied upon for RESTRICTED.",
+    "prod-p2p / prod-kzt-p2p / rail-kzt-p2p carry HIGH confidence that conflates 'a KZT P2P surface exists' (genuinely high) with 'P2P is lawfully available with limits' (which the retained regulatory conflict leaves at MEDIUM)."
+  ],
+  "unresolvedLimitations": [
+    "The exact AFSA warning date (2026-04-29) could not be independently confirmed from the AFSA page at review time; the substantive naming of OKX as unlicensed was confirmed.",
+    "The AFSA DASP public register was not searched with an executed query in the original package nor re-executed here; the absence of an OKX/Aux Cayes entry remains an observation, not a definitive negative.",
+    "NO-TESTING / NO-PROXY rules mean no logged-in KZ session, KYC attempt or transaction could confirm actual per-product entitlement for a Kazakhstan resident; all product statuses remain NOT_LIVE_VERIFIED.",
+    "The research run self-disclosed that two JSON input files could not be locally rehashed in its runtime (input-side, not output-side); this does not affect the output package integrity, which passes on canonical LF."
+  ],
+  "originalRecommendation": "CONFLICTING",
+  "reviewedRecommendation": "CONFLICTING",
+  "originalConfidence": "MEDIUM",
+  "reviewedConfidence": "MEDIUM",
+  "importReadinessVerdict": "BLOCKED / HOLD_CONFLICTING",
+  "importReadinessAgreement": "AGREE",
+  "requiredCorrections": [
+    "Downgrade prod-spot from AVAILABLE_WITH_LIMITS to CONFLICTING (or UNKNOWN) so spot does not exceed the CONFLICTING registration gate; remove the implicit escalation of app-listing/absence-in-restricted-list into spot availability.",
+    "Replace the non-resolving src-okx-p2p-kzt citation (https://www.okx.com/p2p-markets/kzt/buy-usdt, HTTP 404) with a currently resolving OKX KZT P2P URL (e.g. the /ru/p2p-markets/kzt/buy-usdt or /p2p-markets/kzt/sell-usdt surface).",
+    "Reduce clm-kz-reviewed-register-pages-no-obvious-okx confidence to LOW and mark it as a non-executed register observation, not a negative determination.",
+    "Soften P2P/KZT-P2P eligibility confidence from HIGH to MEDIUM (surface existence may remain HIGH; lawful eligibility is MEDIUM given the retained conflict).",
+    "Either downgrade rail-crypto-transfer to UNKNOWN for a KZ-specific verdict or restate it explicitly as a non-KZ-scoped platform-model note.",
+    "Qualify the AFSA warning date as not independently re-confirmed, or cite the dated AFSA source that fixes 2026-04-29."
+  ],
+  "finalReviewOutcome": "ACCEPT_WITH_CORRECTIONS_REQUIRED",
+  "reviewSummary": "Package integrity passes on canonical LF; the axis separation (platform availability vs local authorization vs technical reachability) is a genuine strength; the AFSA-supported RESTRICTED local-authorization judgment is correct and is NOT overextended into technical unavailability; the overall CONFLICTING / MEDIUM result and BLOCKED / HOLD_CONFLICTING import readiness are well founded and independently corroborated. The package is accepted as a research record subject to the required corrections above — principally the overstated spot status and the non-resolving KZT P2P citation. No production, import or activation is authorized.",
+  "authorizations": {
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false
+  }
+}

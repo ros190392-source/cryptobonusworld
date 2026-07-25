@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "1.0",
+  "notes": [
+    {
+      "noteId": "norm-overall",
+      "target": "overallAvailability",
+      "value": "CONFLICTING",
+      "reason": "Platform signals and local-authorization signals diverge."
+    },
+    {
+      "noteId": "norm-axes",
+      "target": "availabilityAxes",
+      "value": {
+        "platformAvailability": "AVAILABLE_WITH_LIMITS",
+        "localAuthorization": "RESTRICTED",
+        "technicalReachability": "AVAILABLE_WITH_LIMITS",
+        "offerEligibility": "UNKNOWN"
+      },
+      "reason": "Issue #28 requires axis separation."
+    },
+    {
+      "noteId": "norm-controls",
+      "target": "publicationControls",
+      "value": {
+        "researchImport": false,
+        "canonicalImport": false,
+        "productionChange": false,
+        "ranking": false,
+        "cta": false,
+        "promo": false,
+        "affiliate": false,
+        "publication": false,
+        "sitemap": false,
+        "indexability": false,
+        "migration5": false,
+        "deploy": false
+      },
+      "reason": "The task is research-only and the evidence is not publication-grade."
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "1.0",
+  "review": {
+    "referralProgramStatus": "AVAILABLE_WITH_LIMITS",
+    "affiliateProgramStatus": "AVAILABLE_WITH_LIMITS",
+    "kazakhstanOfferEligibility": "UNKNOWN",
+    "publicationSafeRewardClaim": false,
+    "notes": [
+      "Referral relationships must be established at registration time.",
+      "Affiliate and referral are separate programs.",
+      "No current Kazakhstan-specific reward value was established from live official sources reviewed in this run."
+    ],
+    "sourceIds": [
+      "src-okx-referral",
+      "src-okx-affiliate",
+      "src-okx-registration"
+    ]
+  },
+  "historicalCampaignUse": {
+    "allowedAsContextOnly": true,
+    "allowedAsCurrentEligibilityTruth": false
+  },
+  "authorizations": {
+    "ranking": false,
+    "cta": false,
+    "promo": false,
+    "affiliate": false,
+    "publication": false
+  }
+}

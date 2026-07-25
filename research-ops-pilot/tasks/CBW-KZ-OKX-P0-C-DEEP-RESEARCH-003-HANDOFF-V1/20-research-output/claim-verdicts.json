@@ -1,0 +1,148 @@
+{
+  "schemaVersion": "1.0",
+  "claims": [
+    {
+      "claimId": "clm-kz-not-in-restricted-list",
+      "statement": "Kazakhstan was not listed in the reviewed current OKX restricted-locations disclosure.",
+      "status": "SUPPORTED",
+      "recommendation": "AVAILABLE_WITH_LIMITS",
+      "supportedSourceIds": [
+        "src-okx-risk"
+      ],
+      "contradictedSourceIds": [],
+      "confidence": "HIGH",
+      "limitations": [
+        "not proof of legal eligibility"
+      ]
+    },
+    {
+      "claimId": "clm-kz-aux-cayes-fallback",
+      "statement": "The reviewed OKX global terms route non-localized eligible users to Aux Cayes FinTech Co. Ltd.; Kazakhstan was not separately localized on the reviewed terms page.",
+      "status": "SUPPORTED",
+      "recommendation": "AVAILABLE_WITH_LIMITS",
+      "supportedSourceIds": [
+        "src-okx-terms"
+      ],
+      "contradictedSourceIds": [],
+      "confidence": "HIGH",
+      "limitations": [
+        "not a Kazakhstan authorization notice"
+      ]
+    },
+    {
+      "claimId": "clm-kz-registration-residence-based",
+      "statement": "The reviewed OKX registration flow is driven by country/region of residence and says products may still vary by jurisdiction.",
+      "status": "SUPPORTED",
+      "recommendation": "AVAILABLE_WITH_LIMITS",
+      "supportedSourceIds": [
+        "src-okx-registration"
+      ],
+      "contradictedSourceIds": [],
+      "confidence": "HIGH",
+      "limitations": [
+        "the article does not say Kazakhstan is approved"
+      ]
+    },
+    {
+      "claimId": "clm-kz-kyc-generic-only",
+      "statement": "The reviewed OKX KYC page is generic and does not prove Kazakhstan-specific document acceptance.",
+      "status": "SUPPORTED",
+      "recommendation": "UNKNOWN",
+      "supportedSourceIds": [
+        "src-okx-verification"
+      ],
+      "contradictedSourceIds": [],
+      "confidence": "MEDIUM",
+      "limitations": [
+        "no live KYC test is allowed"
+      ]
+    },
+    {
+      "claimId": "clm-kz-app-listed",
+      "statement": "Kazakhstan appears in the reviewed OKX app-availability list.",
+      "status": "SUPPORTED",
+      "recommendation": "AVAILABLE_WITH_LIMITS",
+      "supportedSourceIds": [
+        "src-okx-app"
+      ],
+      "contradictedSourceIds": [],
+      "confidence": "MEDIUM",
+      "limitations": [
+        "store/app signal only"
+      ]
+    },
+    {
+      "claimId": "clm-kz-kzt-p2p-live",
+      "statement": "A current official KZT P2P market surface exists on OKX, and the reviewed P2P FAQ says listed fiat options are region dependent.",
+      "status": "SUPPORTED",
+      "recommendation": "AVAILABLE_WITH_LIMITS",
+      "supportedSourceIds": [
+        "src-okx-p2p-kzt",
+        "src-okx-p2p-faq"
+      ],
+      "contradictedSourceIds": [],
+      "confidence": "HIGH",
+      "limitations": [
+        "product signal only; not proof of legal eligibility"
+      ]
+    },
+    {
+      "claimId": "clm-kz-afsa-warning",
+      "statement": "AFSA warned on 2026-04-29 that OKX is among unlicensed digital-asset platforms targeting Kazakhstan citizens without the required authorization/licence/recognition.",
+      "status": "SUPPORTED",
+      "recommendation": "RESTRICTED",
+      "supportedSourceIds": [
+        "src-afsa-warning"
+      ],
+      "contradictedSourceIds": [],
+      "confidence": "HIGH",
+      "limitations": [
+        "warning alone does not prove technical blocking"
+      ]
+    },
+    {
+      "claimId": "clm-kz-afsa-licensed-datf-only-for-p2p",
+      "statement": "AFSA says regulated P2P is only permitted on AIFC-licensed DATFs and requires KYC/AML plus approved-bank conditions.",
+      "status": "SUPPORTED",
+      "recommendation": "RESTRICTED",
+      "supportedSourceIds": [
+        "src-afsa-p2p"
+      ],
+      "contradictedSourceIds": [],
+      "confidence": "HIGH",
+      "limitations": [
+        "framework statement, not OKX approval"
+      ]
+    },
+    {
+      "claimId": "clm-kz-reviewed-register-pages-no-obvious-okx",
+      "statement": "The reviewed AFSA DASP pages did not show an obvious OKX or Aux Cayes entry.",
+      "status": "SUPPORTED",
+      "recommendation": "CONFLICTING",
+      "supportedSourceIds": [
+        "src-afsa-dasp-page1",
+        "src-afsa-dasp-page2"
+      ],
+      "contradictedSourceIds": [],
+      "confidence": "MEDIUM",
+      "limitations": [
+        "page observation only, not a fully executed register search"
+      ]
+    },
+    {
+      "claimId": "clm-kz-referral-affiliate-separate",
+      "statement": "OKX has separate referral and affiliate surfaces; the reviewed referral FAQ says affiliate/sub-affiliate users are not eligible for standard referral rewards.",
+      "status": "SUPPORTED",
+      "recommendation": "AVAILABLE_WITH_LIMITS",
+      "supportedSourceIds": [
+        "src-okx-referral",
+        "src-okx-affiliate"
+      ],
+      "contradictedSourceIds": [],
+      "confidence": "HIGH",
+      "limitations": [
+        "no Kazakhstan-specific reward entitlement was established"
+      ]
+    }
+  ]
+}

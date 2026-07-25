@@ -1,0 +1,88 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-KZ-OKX-P0-C-RESEARCH-RECORD-CLOSEOUT-007",
+  "planState": "PREPARED_NOT_AUTHORIZED",
+  "targetControlPlaneBranch": "main",
+  "productionAuthorityBranch": "master",
+  "productionAuthorityBranchMustRemainUnchanged": true,
+  "mainBaselineAtPreparation": "0a96f691f4d5b32003cc6b9e80db30436384496b",
+  "requiredOwnerCommand": "AUTHORIZE OKX KZ RESEARCH RECORD MERGE TO MAIN",
+  "mergeToMainAuthorized": false,
+  "strategy": "TOP_DOWN_STACK_COLLAPSE",
+  "steps": [
+    {
+      "order": 1,
+      "pullRequest": 42,
+      "headBranch": "closeout/okx-kz-p0c-research-record-007",
+      "baseBranch": "validation/okx-kz-p0c-v2-006",
+      "expectedHeadSha": null,
+      "expectedHeadResolution": "Resolve and freeze the current PR #42 head immediately after explicit owner authorization and before merge.",
+      "status": "PREPARED_AWAITING_AUTHORIZATION"
+    },
+    {
+      "order": 2,
+      "pullRequest": 39,
+      "headBranch": "validation/okx-kz-p0c-v2-006",
+      "baseBranch": "correction/okx-kz-p0c-v2-005",
+      "expectedHeadSha": "80473b8d85744f33256374be270b718115b31e86",
+      "status": "PREPARED"
+    },
+    {
+      "order": 3,
+      "pullRequest": 37,
+      "headBranch": "correction/okx-kz-p0c-v2-005",
+      "baseBranch": "review/okx-kz-p0c-source-truth-004-clean",
+      "expectedHeadSha": "5dd0d14ed2bf984d0adba2e73a803b9c6b5b0215",
+      "status": "PREPARED"
+    },
+    {
+      "order": 4,
+      "pullRequest": 35,
+      "headBranch": "review/okx-kz-p0c-source-truth-004-clean",
+      "baseBranch": "research-handoff/okx-kz-p0c-inline-v1",
+      "expectedHeadSha": "15d6367bc56162bf7584c3011cd4db545091a724",
+      "status": "PREPARED"
+    },
+    {
+      "order": 5,
+      "pullRequest": 32,
+      "headBranch": "research-handoff/okx-kz-p0c-inline-v1",
+      "baseBranch": "main",
+      "expectedHeadSha": "1b7b477fd2efa4783b42cb8435b6ba7837951585",
+      "status": "PREPARED"
+    }
+  ],
+  "preMergeChecksRequiredForEveryStep": [
+    "pull request remains open and unmerged",
+    "head SHA equals the frozen expected value",
+    "base branch equals documented value",
+    "pull request is mergeable",
+    "changed-file boundary matches governed task",
+    "no authorization flag changed outside research-record mergeToMain",
+    "no master or production mutation",
+    "stop on any mismatch or failed check"
+  ],
+  "postMergeRequirements": [
+    "verify main contains the full research record chain",
+    "verify master is unchanged",
+    "verify production is unchanged",
+    "close Issues #28, #36 and #40 only after successful final merge",
+    "record final main merge SHA",
+    "do not start another exchange automatically"
+  ],
+  "authorizations": {
+    "researchRecordMergeToMainAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-KZ-OKX-P0-C-CORRECTION-V2-VALIDATION-006",
+  "project": "CryptoBonusWorld",
+  "countryCode": "KZ",
+  "exchangeId": "okx",
+  "batchId": "KZ-P0-C",
+  "governingIssue": 38,
+  "correctionPullRequest": 37,
+  "correctionHeadSha": "5dd0d14ed2bf984d0adba2e73a803b9c6b5b0215",
+  "reviewPullRequest": 35,
+  "reviewHeadSha": "15d6367bc56162bf7584c3011cd4db545091a724",
+  "evidencePullRequest": 32,
+  "evidenceHeadSha": "1b7b477fd2efa4783b42cb8435b6ba7837951585",
+  "state": "READY_FOR_INDEPENDENT_VALIDATION",
+  "allowedOutputFiles": [
+    "CORRECTION_V2_VALIDATION.json",
+    "CORRECTION_V2_VALIDATION.md"
+  ],
+  "authorizations": {
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false
+  },
+  "validationOutcome": null,
+  "validationCommitSha": null,
+  "nextTaskOnPass": "CBW-KZ-OKX-P0-C-RESEARCH-RECORD-CLOSEOUT-007"
+}

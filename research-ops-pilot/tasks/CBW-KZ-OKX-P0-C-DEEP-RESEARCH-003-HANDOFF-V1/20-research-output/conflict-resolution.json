@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "1.0",
+  "conflicts": [
+    {
+      "conflictId": "cf-kz-okx-terms-vs-regulator",
+      "status": "RETAINED-CONFLICTING",
+      "question": "Can OKX be treated as publication-grade available in Kazakhstan?",
+      "availabilitySourceIds": [
+        "src-okx-risk",
+        "src-okx-registration",
+        "src-okx-app",
+        "src-okx-p2p-kzt"
+      ],
+      "restrictionSourceIds": [
+        "src-afsa-warning",
+        "src-afsa-p2p",
+        "src-afsa-cryptoexchanges",
+        "src-afsa-dasp-page1",
+        "src-afsa-dasp-page2"
+      ],
+      "outcome": {
+        "recommendation": "CONFLICTING",
+        "confidence": "MEDIUM",
+        "reason": "Current platform signals and local-authorization signals point in different directions."
+      }
+    },
+    {
+      "conflictId": "cf-kz-kzt-p2p-surface-vs-licensed-datf-rule",
+      "status": "RETAINED-CONFLICTING",
+      "question": "Does a current KZT P2P page prove lawful Kazakhstan-facing P2P eligibility?",
+      "availabilitySourceIds": [
+        "src-okx-p2p-kzt",
+        "src-okx-p2p-faq"
+      ],
+      "restrictionSourceIds": [
+        "src-afsa-warning",
+        "src-afsa-p2p"
+      ],
+      "outcome": {
+        "recommendation": "AVAILABLE_WITH_LIMITS",
+        "confidence": "HIGH",
+        "reason": "The P2P surface is real, but AFSA's authorization framework prevents a clean legal-eligibility conclusion."
+      }
+    }
+  ]
+}
