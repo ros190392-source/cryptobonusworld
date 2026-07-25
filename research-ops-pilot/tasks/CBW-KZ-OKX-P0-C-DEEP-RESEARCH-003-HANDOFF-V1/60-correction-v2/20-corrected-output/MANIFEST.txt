@@ -1,0 +1,65 @@
+CBW OKX × Kazakhstan Deep Research Handoff — Corrected Package v2 MANIFEST
+=======================================================================
+Package version:      2.0 (corrected)
+Correction task:      CBW-KZ-OKX-P0-C-RESEARCH-CORRECTION-V2-005
+Governing issue:      #36
+Source research task: CBW-KZ-OKX-P0-C-DEEP-RESEARCH-003-HANDOFF-V1
+Source evidence SHA:  1b7b477fd2efa4783b42cb8435b6ba7837951585
+Source review task:   CBW-KZ-OKX-P0-C-SOURCE-TRUTH-REVIEW-004
+Source review SHA:    15d6367bc56162bf7584c3011cd4db545091a724
+Project:              CryptoBonusWorld
+Country:              Kazakhstan (KZ)
+Exchange:             OKX (okx)
+Batch:                KZ-P0-C
+Corrected:            2026-07-25
+Corrections applied:  6
+Line endings:         LF
+Encoding:             UTF-8
+Immutability:         v1 package under 20-research-output/ remains immutable and unmodified
+
+SHA256                                                            BYTES  FILE
+cbbb43113e7263cb0c16e47bf41842082bb2a1b3de5a16a74f9a975cc446b4e4   3564  research-run.json
+6c2795b17ff9b7178a6083736c4f56d7fa12828761f660bac479cf984d526930   7742  source-verification.json
+4eaace4051d4e60e92ff592fe5cc646495140da9b6f7f934927c4098a333e390   5386  claim-verdicts.json
+b4699c0a28c3618846c1b8eddd896ba0d3bee9e24db4914f3eae66076ea80759   1764  conflict-resolution.json
+13c25a8054f9d51beb6b2320667f0d6e37b9a0e25e56980523e7b15e9667335a   2374  product-availability.json
+95935e02e5d9e1ee488ca5b77690585415ae0f1c98cdd3bc6f0f890a25a76feb   1557  payment-rails.json
+3bf5afaa2cbbca278dc89aa1919fcd4b737c7e7fa75f259aa93b5658f8b4b43c    868  offer-eligibility-review.json
+a03db6a6333c53b7b9326f37f3315385db41ecb5233b3a29b33515d2c9601d5b   3989  schema-normalization-notes.json
+81e5211ec4176f7ed3c3c67294ba18f46863152cd038cd39e8fd453658a49d7f    737  import-readiness.json
+b471bc66566826b8d7b0a8696f2a941b61b3f3b15e02a034691115280c9f154b   4648  source-truth-review-report.md
+
+Counts
+------
+Files:                 11
+JSON files:            9
+Markdown files:        1
+Manifest files:        1
+Sources reviewed:      14
+Claims resolved:       10
+Conflicts tracked:     2
+Product rows:          13
+Payment rails:         4
+
+Authorization boundary
+----------------------
+researchImport=false
+stagingImport=false
+canonicalImport=false
+productionChange=false
+productionBinding=false
+rankingChange=false
+ctaChange=false
+promoChange=false
+affiliateChange=false
+publication=false
+sitemap=false
+indexability=false
+migration5=false
+deploy=false
+
+Overall recommendation: CONFLICTING
+Overall confidence:     MEDIUM
+Live verification:      NOT_LIVE_VERIFIED
+Import readiness:       BLOCKED
+Ops recommendation:     HOLD_CONFLICTING

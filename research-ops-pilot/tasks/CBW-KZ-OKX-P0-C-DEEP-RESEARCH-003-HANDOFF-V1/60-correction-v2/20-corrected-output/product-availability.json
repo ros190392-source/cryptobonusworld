@@ -1,0 +1,107 @@
+{
+  "schemaVersion": "1.0",
+  "products": [
+    {
+      "productId": "prod-registration",
+      "status": "CONFLICTING",
+      "confidence": "MEDIUM",
+      "claimIds": [
+        "clm-kz-not-in-restricted-list",
+        "clm-kz-registration-residence-based",
+        "clm-kz-afsa-warning"
+      ]
+    },
+    {
+      "productId": "prod-kyc",
+      "status": "UNKNOWN",
+      "confidence": "LOW",
+      "claimIds": [
+        "clm-kz-kyc-generic-only",
+        "clm-kz-afsa-warning"
+      ]
+    },
+    {
+      "productId": "prod-spot",
+      "status": "CONFLICTING",
+      "confidence": "LOW",
+      "claimIds": [
+        "clm-kz-not-in-restricted-list",
+        "clm-kz-app-listed",
+        "clm-kz-afsa-warning"
+      ]
+    },
+    {
+      "productId": "prod-margin",
+      "status": "UNKNOWN",
+      "confidence": "LOW",
+      "claimIds": [
+        "clm-kz-afsa-warning"
+      ]
+    },
+    {
+      "productId": "prod-derivatives",
+      "status": "UNKNOWN",
+      "confidence": "LOW",
+      "claimIds": [
+        "clm-kz-afsa-warning"
+      ]
+    },
+    {
+      "productId": "prod-copy-trading",
+      "status": "UNKNOWN",
+      "confidence": "LOW",
+      "claimIds": []
+    },
+    {
+      "productId": "prod-earn-staking",
+      "status": "UNKNOWN",
+      "confidence": "LOW",
+      "claimIds": []
+    },
+    {
+      "productId": "prod-mobile-app",
+      "status": "AVAILABLE_WITH_LIMITS",
+      "confidence": "MEDIUM",
+      "claimIds": [
+        "clm-kz-app-listed",
+        "clm-kz-afsa-warning"
+      ]
+    },
+    {
+      "productId": "prod-p2p",
+      "status": "AVAILABLE_WITH_LIMITS",
+      "confidence": "MEDIUM",
+      "claimIds": [
+        "clm-kz-kzt-p2p-live",
+        "clm-kz-afsa-licensed-datf-only-for-p2p"
+      ]
+    },
+    {
+      "productId": "prod-kzt-p2p",
+      "status": "AVAILABLE_WITH_LIMITS",
+      "confidence": "MEDIUM",
+      "claimIds": [
+        "clm-kz-kzt-p2p-live",
+        "clm-kz-afsa-licensed-datf-only-for-p2p"
+      ]
+    },
+    {
+      "productId": "prod-direct-kzt-deposit",
+      "status": "UNKNOWN",
+      "confidence": "LOW",
+      "claimIds": []
+    },
+    {
+      "productId": "prod-direct-kzt-withdrawal",
+      "status": "UNKNOWN",
+      "confidence": "LOW",
+      "claimIds": []
+    },
+    {
+      "productId": "prod-bank-card-purchase",
+      "status": "UNKNOWN",
+      "confidence": "LOW",
+      "claimIds": []
+    }
+  ]
+}

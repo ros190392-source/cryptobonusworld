@@ -9,7 +9,7 @@
   "sourceEvidenceHeadSha": "1b7b477fd2efa4783b42cb8435b6ba7837951585",
   "sourceReviewHeadSha": "15d6367bc56162bf7584c3011cd4db545091a724",
   "sourceReviewPullRequest": 35,
-  "state": "READY_FOR_CORRECTION",
+  "state": "CORRECTED_PACKAGE_READY_FOR_VALIDATION",
   "correctionCountRequired": 6,
   "outputDirectory": "research-ops-pilot/tasks/CBW-KZ-OKX-P0-C-DEEP-RESEARCH-003-HANDOFF-V1/60-correction-v2/20-corrected-output",
   "requiredOutputFiles": [
@@ -49,5 +49,20 @@
     "deployAuthorized": false
   },
   "correctedPackageCommitSha": null,
-  "nextTaskAfterValidation": "CBW-KZ-OKX-P0-C-CORRECTION-V2-VALIDATION-006"
+  "nextTaskAfterValidation": "CBW-KZ-OKX-P0-C-CORRECTION-V2-VALIDATION-006",
+  "correctionsApplied": 6,
+  "exactOutputFileCount": 11,
+  "jsonParse": "PASS",
+  "idUniqueness": "PASS",
+  "crossReferenceIntegrity": "PASS",
+  "manifestIntegrity": "PASS",
+  "authorizationBoundary": "PASS_ALL_FALSE",
+  "replacementKztP2pUrl": "https://www.okx.com/ru/p2p-markets/kzt/buy-usdt",
+  "correctedResult": {
+    "recommendation": "CONFLICTING",
+    "confidence": "MEDIUM",
+    "importReadiness": "BLOCKED",
+    "opsRecommendation": "HOLD_CONFLICTING",
+    "liveVerificationState": "NOT_LIVE_VERIFIED"
+  }
 }
