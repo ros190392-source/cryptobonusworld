@@ -10,7 +10,7 @@
   "receiverSetupIssue": 29,
   "handoffMode": "CHATGPT_SUBSCRIPTION_INLINE_ENVELOPE_TO_GITHUB",
   "handoffProtocol": "CBW_HANDOFF_ENVELOPE_V1",
-  "state": "READY_FOR_DEEP_RESEARCH",
+  "state": "SOURCE_FILES_PUBLISHED",
   "inputMode": "CHATGPT_FILE_LIBRARY_SIX_FILE_INTAKE",
   "requiredOutputDirectory": "research-ops-pilot/tasks/CBW-KZ-OKX-P0-C-DEEP-RESEARCH-003-HANDOFF-V1/20-research-output",
   "requiredOutputFiles": [
@@ -26,6 +26,23 @@
     "source-truth-review-report.md",
     "MANIFEST.txt"
   ],
+  "validation": {
+    "exactFileCount": 11,
+    "jsonParse": "PASS",
+    "idUniqueness": "PASS",
+    "crossReferenceIntegrity": "PASS",
+    "manifestByteSizes": "PASS",
+    "manifestSha256": "PASS",
+    "authorizationBoundary": "PASS_ALL_FALSE",
+    "sourceCount": 14,
+    "claimCount": 10,
+    "conflictCount": 2,
+    "productCount": 13,
+    "paymentRailCount": 4,
+    "overallRecommendation": "CONFLICTING",
+    "overallConfidence": "MEDIUM",
+    "importReadiness": "BLOCKED"
+  },
   "authorizations": {
     "researchImportAuthorized": false,
     "stagingImportAuthorized": false,
@@ -42,8 +59,8 @@
     "migration5Authorized": false,
     "deployAuthorized": false
   },
-  "handoffEnvelopeCaptured": false,
-  "sourceFilesCommitSha": null,
-  "nextStateOnEnvelope": "HANDOFF_ENVELOPE_READY_FOR_PUBLICATION",
+  "handoffEnvelopeCaptured": true,
+  "sourceFilesCommitSha": "ea74593753194239b432a1374354d1573cc178cb",
+  "nextStateOnEnvelope": null,
   "nextTaskAfterValidatedPublication": "CBW-KZ-OKX-P0-C-SOURCE-TRUTH-REVIEW-004"
 }
