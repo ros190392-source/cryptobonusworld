@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "1.0",
+  "rails": [
+    {
+      "railId": "rail-kzt-p2p",
+      "status": "AVAILABLE_WITH_LIMITS",
+      "confidence": "MEDIUM",
+      "summary": "Current KZT P2P market surface exists on OKX and is the strongest Kazakhstan-relevant current rail signal in the reviewed source set. Surface existence is strong; lawful Kazakhstan eligibility remains subject to the retained regulatory conflict, so eligibility confidence is MEDIUM.",
+      "sourceIds": [
+        "src-okx-p2p-kzt",
+        "src-okx-p2p-faq",
+        "src-afsa-p2p"
+      ]
+    },
+    {
+      "railId": "rail-direct-kzt-fiat",
+      "status": "UNKNOWN",
+      "confidence": "LOW",
+      "summary": "The reviewed current official sources did not prove a direct KZT deposit or withdrawal rail.",
+      "sourceIds": [
+        "src-okx-risk",
+        "src-okx-p2p-kzt"
+      ]
+    },
+    {
+      "railId": "rail-bank-card-buy",
+      "status": "UNKNOWN",
+      "confidence": "LOW",
+      "summary": "No reviewed current official source proved Kazakhstan-specific bank-card purchase entitlement.",
+      "sourceIds": [
+        "src-okx-terms"
+      ]
+    },
+    {
+      "railId": "rail-crypto-transfer",
+      "status": "UNKNOWN",
+      "confidence": "LOW",
+      "summary": "Crypto transfer functionality is part of OKX's platform model (generic contextual note), but no Kazakhstan-specific evidence establishes eligibility, so the Kazakhstan-specific rail verdict is UNKNOWN.",
+      "sourceIds": [
+        "src-okx-registration",
+        "src-okx-terms"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "1.0.0",
+  "reviewTaskId": "CBW-KZ-OKX-P0-C-SOURCE-TRUTH-REVIEW-004",
+  "sourceResearchTaskId": "CBW-KZ-OKX-P0-C-DEEP-RESEARCH-003-HANDOFF-V1",
+  "governingIssue": 33,
+  "evidencePullRequest": 32,
+  "evidenceHeadSha": "1b7b477fd2efa4783b42cb8435b6ba7837951585",
+  "reviewBranch": "review/okx-kz-p0c-source-truth-004",
+  "reviewBaseBranch": "research-handoff/okx-kz-p0c-inline-v1",
+  "state": "READY_FOR_CLAUDE_REVIEW",
+  "permittedOutputFiles": [
+    "SOURCE_TRUTH_REVIEW.json",
+    "SOURCE_TRUTH_REVIEW.md"
+  ],
+  "authorizations": {
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false
+  },
+  "reviewCommitSha": null,
+  "reviewOutcome": null
+}

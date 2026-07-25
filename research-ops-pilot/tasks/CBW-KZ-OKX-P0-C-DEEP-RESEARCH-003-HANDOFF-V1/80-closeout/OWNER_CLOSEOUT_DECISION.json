@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-KZ-OKX-P0-C-RESEARCH-RECORD-CLOSEOUT-007",
+  "project": "CryptoBonusWorld",
+  "countryCode": "KZ",
+  "exchangeId": "okx",
+  "batchId": "KZ-P0-C",
+  "governingIssue": 40,
+  "decisionState": "PREPARED_AWAITING_EXPLICIT_MERGE_AUTHORIZATION",
+  "preparedAt": "2026-07-25",
+  "acceptedRecord": {
+    "researchRecordAccepted": true,
+    "correctedPackageAcceptedAsResearchRecord": true,
+    "validationOutcomeAccepted": "VALIDATED_WITH_NONBLOCKING_NOTES",
+    "overallRecommendation": "CONFLICTING",
+    "overallConfidence": "MEDIUM",
+    "platformAvailability": "AVAILABLE_WITH_LIMITS",
+    "localAuthorization": "RESTRICTED",
+    "technicalReachability": "AVAILABLE_WITH_LIMITS",
+    "offerEligibility": "UNKNOWN",
+    "liveVerificationState": "NOT_LIVE_VERIFIED",
+    "importReadiness": "BLOCKED",
+    "opsRecommendation": "HOLD_CONFLICTING"
+  },
+  "acceptedChain": {
+    "evidencePullRequest": 32,
+    "evidenceHeadSha": "1b7b477fd2efa4783b42cb8435b6ba7837951585",
+    "reviewPullRequest": 35,
+    "reviewHeadSha": "15d6367bc56162bf7584c3011cd4db545091a724",
+    "correctionPullRequest": 37,
+    "correctionHeadSha": "5dd0d14ed2bf984d0adba2e73a803b9c6b5b0215",
+    "validationPullRequest": 39,
+    "validationHeadSha": "80473b8d85744f33256374be270b718115b31e86",
+    "controlPlaneMainBaselineAtPreparation": "0a96f691f4d5b32003cc6b9e80db30436384496b"
+  },
+  "nonblockingNotes": [
+    "CORRECTION_STATE.json retains correctedPackageCommitSha = null, but the validated correction commit is unambiguously 5dd0d14ed2bf984d0adba2e73a803b9c6b5b0215."
+  ],
+  "mergeAuthorization": {
+    "requiredExactOwnerCommand": "AUTHORIZE OKX KZ RESEARCH RECORD MERGE TO MAIN",
+    "mergeToMainAuthorized": false,
+    "authorizationReceivedAt": null,
+    "authorizationMessage": null
+  },
+  "authorizations": {
+    "researchRecordCloseoutAuthorized": true,
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false
+  }
+}

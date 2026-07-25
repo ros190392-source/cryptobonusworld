@@ -1,0 +1,105 @@
+{
+  "schemaVersion": "1.0",
+  "notes": [
+    {
+      "noteId": "norm-overall",
+      "target": "overallAvailability",
+      "value": "CONFLICTING",
+      "reason": "Platform signals and local-authorization signals diverge."
+    },
+    {
+      "noteId": "norm-axes",
+      "target": "availabilityAxes",
+      "value": {
+        "platformAvailability": "AVAILABLE_WITH_LIMITS",
+        "localAuthorization": "RESTRICTED",
+        "technicalReachability": "AVAILABLE_WITH_LIMITS",
+        "offerEligibility": "UNKNOWN"
+      },
+      "reason": "Issue #28 requires axis separation."
+    },
+    {
+      "noteId": "norm-controls",
+      "target": "publicationControls",
+      "value": {
+        "researchImport": false,
+        "canonicalImport": false,
+        "productionChange": false,
+        "ranking": false,
+        "cta": false,
+        "promo": false,
+        "affiliate": false,
+        "publication": false,
+        "sitemap": false,
+        "indexability": false,
+        "migration5": false,
+        "deploy": false
+      },
+      "reason": "The task is research-only and the evidence is not publication-grade."
+    },
+    {
+      "noteId": "corr-1-spot",
+      "correction": 1,
+      "target": "product-availability.prod-spot",
+      "value": {
+        "status": "CONFLICTING",
+        "confidence": "LOW"
+      },
+      "reason": "No direct Kazakhstan-specific spot entitlement source; registration is CONFLICTING and spot cannot exceed its registration/KYC gate; app listing and absence from the restricted list are only indirect signals."
+    },
+    {
+      "noteId": "corr-2-kzt-p2p-url",
+      "correction": 2,
+      "target": "source-verification.src-okx-p2p-kzt.url",
+      "value": "https://www.okx.com/ru/p2p-markets/kzt/buy-usdt",
+      "reason": "v1 URL https://www.okx.com/p2p-markets/kzt/buy-usdt returned HTTP 404; replaced with a currently resolving official OKX KZT P2P surface (HTTP 200 at 2026-07-25). Resolution does not assert lawful Kazakhstan eligibility."
+    },
+    {
+      "noteId": "corr-3-afsa-register",
+      "correction": 3,
+      "target": "claim-verdicts.clm-kz-reviewed-register-pages-no-obvious-okx",
+      "value": {
+        "confidence": "LOW"
+      },
+      "reason": "Only visible register pages were observed; no executed register search was performed; not a definitive negative determination; must not be the primary basis for RESTRICTED."
+    },
+    {
+      "noteId": "corr-4-p2p-confidence-split",
+      "correction": 4,
+      "target": [
+        "product-availability.prod-p2p",
+        "product-availability.prod-kzt-p2p",
+        "payment-rails.rail-kzt-p2p",
+        "conflict-resolution.cf-kz-kzt-p2p-surface-vs-licensed-datf-rule"
+      ],
+      "value": {
+        "status": "AVAILABLE_WITH_LIMITS",
+        "confidence": "MEDIUM"
+      },
+      "reason": "Surface existence remains HIGH; product/rail/conflict eligibility confidence reduced to MEDIUM due to the retained regulatory conflict. Status unchanged."
+    },
+    {
+      "noteId": "corr-5-crypto-transfer",
+      "correction": 5,
+      "target": "payment-rails.rail-crypto-transfer",
+      "value": {
+        "status": "UNKNOWN",
+        "confidence": "LOW"
+      },
+      "reason": "v1 relied on a generic platform-model inference rather than Kazakhstan-specific evidence; the Kazakhstan rail is not classified as available. Generic contextual note retained."
+    },
+    {
+      "noteId": "corr-6-afsa-date",
+      "correction": 6,
+      "target": [
+        "source-verification.src-afsa-warning.lastUpdatedDate",
+        "claim-verdicts.clm-kz-afsa-warning.statement"
+      ],
+      "value": {
+        "lastUpdatedDate": null,
+        "dateRemovedFromClaimText": true
+      },
+      "reason": "The exact date 2026-04-29 was not independently visible on the official AFSA page during review or correction; the warning substance (OKX named as unlicensed) was confirmed. Date nulled and removed from claim text with an explicit limitation. Date never invented."
+    }
+  ]
+}
