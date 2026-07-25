@@ -12,11 +12,12 @@
   "steps": [
     {
       "order": 1,
-      "pullRequest": null,
+      "pullRequest": 42,
       "headBranch": "closeout/okx-kz-p0c-research-record-007",
       "baseBranch": "validation/okx-kz-p0c-v2-006",
       "expectedHeadSha": null,
-      "status": "AWAITING_CLOSEOUT_PR"
+      "expectedHeadResolution": "Resolve and freeze the current PR #42 head immediately after explicit owner authorization and before merge.",
+      "status": "PREPARED_AWAITING_AUTHORIZATION"
     },
     {
       "order": 2,
@@ -53,11 +54,11 @@
   ],
   "preMergeChecksRequiredForEveryStep": [
     "pull request remains open and unmerged",
-    "head SHA equals expected value",
+    "head SHA equals the frozen expected value",
     "base branch equals documented value",
     "pull request is mergeable",
     "changed-file boundary matches governed task",
-    "no authorization flag changed to true",
+    "no authorization flag changed outside research-record mergeToMain",
     "no master or production mutation",
     "stop on any mismatch or failed check"
   ],
