@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-VALIDATION-009",
+  "project": "CryptoBonusWorld",
+  "governingIssue": 45,
+  "implementationTaskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-008",
+  "implementationIssue": 43,
+  "implementationPullRequest": 44,
+  "validatedImplementationCommitSha": "02997bb63be39012015486ecf55da707a3738f6b",
+  "implementationBaseSha": "04157b9dfb140918a8569a5026da747b429e5ed3",
+  "productionAuthorityBranch": "master",
+  "protectedMasterHeadSha": "998fcedd7d9febbec5b130d4765dfeaafc40960b",
+  "state": "READY_FOR_INDEPENDENT_VALIDATION",
+  "allowedOutputFiles": [
+    "FACTORY_VALIDATION.json",
+    "FACTORY_VALIDATION.md"
+  ],
+  "preliminaryRiskSignals": [
+    "require-package boolean alias may not reach opts.requirePackage",
+    "validate may not enforce state-to-artifact consistency",
+    "workflow uses git fetch and git diff with || true",
+    "workflow may skip deleted task roots",
+    "workflow does not visibly pass --changed-files to validator",
+    "canonical CLI --tasks-dir may permit repository escape",
+    "schemas may be documentation-only"
+  ],
+  "authorizations": {
+    "factoryValidationAuthorized": true,
+    "factoryMergeToMainAuthorized": false,
+    "binancePilotAuthorized": false,
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false
+  },
+  "validationOutcome": null,
+  "validationCommitSha": null,
+  "nextTaskOnPass": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-OWNER-CLOSEOUT-010",
+  "nextTaskOnCorrections": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CORRECTION-010"
+}
