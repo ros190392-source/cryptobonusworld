@@ -1,0 +1,214 @@
+{
+  "schemaVersion": "1.0.0",
+  "validationTaskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CORRECTION-VALIDATION-011",
+  "correctionTaskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CORRECTION-010",
+  "project": "CryptoBonusWorld",
+  "governingIssue": 50,
+  "implementationPullRequest": 44,
+  "originalValidationPullRequest": 46,
+  "correctionPullRequest": 49,
+  "validationPullRequest": 51,
+  "validatedCorrectionCommitSha": "2b9fecd8540070c92f1d1ba382ba05b64597a7e6",
+  "correctionInitialHeadSha": "289d6471b6dec95d8e1d98c2c36aa031293d2bbe",
+  "validationBranch": "validation/researchops-factory-v1-1-correction-011",
+  "initialValidationHeadSha": "0393a3e0df657016be330b1813f7726e059eb5dd",
+  "validatedAt": "2026-07-26",
+  "environment": {
+    "nodeVersion": "v24.14.0 (Node 20-compatible ESM/built-ins)",
+    "dependencyFree": true,
+    "os": "Windows 11",
+    "worktree": "C:\\projects\\CryptoBonusWorld-validation-correction-011",
+    "probeMethod": "independent library import + real CLI invocation + boundary simulation; NOT reliant on the 63 fixtures or the green advisory workflow"
+  },
+
+  "baselineVerification": {
+    "correctionHeadMatches": true,
+    "correctionInitialHeadMatches": true,
+    "originalValidationCommitMatches": true,
+    "implementationCommitMatches": true,
+    "mainSha": "04157b9dfb140918a8569a5026da747b429e5ed3",
+    "mainMatches": true,
+    "masterSha": "998fcedd7d9febbec5b130d4765dfeaafc40960b",
+    "masterMatches": true,
+    "pr49": { "state": "OPEN", "draft": true, "base": "validation/researchops-subscription-factory-v1-1-009", "baseTipSha": "2f95f8a373e21204548e6c61433677d009943b26", "head": "2b9fecd8540070c92f1d1ba382ba05b64597a7e6", "unmerged": true },
+    "note": "origin/main and origin/master (the control-plane authorities) equal the fixed lineage SHAs. Local main/master tracking branches sit ahead of origin from unrelated local dev worktrees; this validation neither created nor modified them."
+  },
+
+  "correctionDiffVerification": {
+    "range": "289d6471b6dec95d8e1d98c2c36aa031293d2bbe..2b9fecd8540070c92f1d1ba382ba05b64597a7e6",
+    "changedFileCount": 14,
+    "matchesReported14FileInventory": true,
+    "changedFiles": [
+      ".github/workflows/cbw-researchops-factory-validate.yml",
+      "research-ops/factory-v1-1/README.md",
+      "research-ops/factory-v1-1/bin/researchops.mjs",
+      "research-ops/factory-v1-1/correction-010/CORRECTION_RESULT.json",
+      "research-ops/factory-v1-1/correction-010/CORRECTION_RESULT.md",
+      "research-ops/factory-v1-1/fixtures/run.mjs",
+      "research-ops/factory-v1-1/lib/args.mjs",
+      "research-ops/factory-v1-1/lib/boundary.mjs",
+      "research-ops/factory-v1-1/lib/create.mjs",
+      "research-ops/factory-v1-1/lib/evidence.mjs",
+      "research-ops/factory-v1-1/lib/package.mjs",
+      "research-ops/factory-v1-1/lib/schema.mjs",
+      "research-ops/factory-v1-1/lib/status.mjs",
+      "research-ops/factory-v1-1/lib/validate.mjs"
+    ]
+  },
+
+  "immutableLayerVerification": {
+    "correctionContractStatePromptUnchanged": true,
+    "validation009Unchanged": true,
+    "governanceUnchanged": true,
+    "researchOpsPilotUnchanged": true,
+    "realResearchOpsTasksUntouched": true,
+    "method": "git diff --name-only across the correction range touches none of validation-009/**, correction-010 CONTRACT/STATE/PROMPT, governance/**, research-ops-pilot/**, or research-ops/tasks/**; name-only emptiness across the range proves byte-identity."
+  },
+
+  "syntaxAndFixtureReruns": {
+    "nodeCheck": "CLEAN (all factory .mjs)",
+    "fixtures": { "passed": 63, "failed": 0, "independentlyRerun": true },
+    "gitDiffCheck": "clean"
+  },
+
+  "cliSmokeResults": {
+    "create": "exit 0 (confined to <cwd>/research-ops/tasks/ — see pathConfinementResult)",
+    "validateHuman": "exit 0 on fresh PREPARED skeleton",
+    "validateJson": "exit 0",
+    "statusHuman": "exit 0",
+    "statusJson": "exit 0",
+    "requirePackageEmpty": "exit 1 (fails closed)",
+    "tasksDirFlag": "rejected: 'unknown flag: --tasks-dir' (exit 2)",
+    "checkBoundaryFactoryGovernance": "exit 0",
+    "checkBoundaryDeletion": "exit 1",
+    "checkBoundaryEmptyDiff": "exit 1",
+    "ownerReceiptValid": "owner-receipt check ok=true",
+    "ownerReceiptEscalation": "owner-receipt check ok=false (deploy escalation rejected)"
+  },
+
+  "correctionMatrixC1ToC9": [
+    { "id": "C1", "name": "force-package flag", "verdict": "PASS", "evidence": "validate --require-package on an empty skeleton fails closed (ok=false, forced check false); confirmed via library and CLI." },
+    { "id": "C2", "name": "state/evidence consistency", "verdict": "PASS", "evidence": "All 8 higher declared states over an empty package fail in validate AND report status inconsistent; one shared derivation (evidence.mjs) used by both." },
+    { "id": "C3", "name": "workflow discovery fail-closed", "verdict": "PASS", "evidence": "Workflow verifies non-empty base/head, git cat-file -e both commits, runs git diff --name-status with no '|| true'; empty changed set refused by check-boundary (exit 1). Advisory run on 2b9fecd succeeded read-only." },
+    { "id": "C4", "name": "task-root deletion rejected", "verdict": "PASS", "evidence": "check-boundary on a D record under a task root exits 1; boundary flags status=D governed deletions; missing referenced root fails the validate step." },
+    { "id": "C5", "name": "CI append-only boundary wired", "verdict": "PASS_WITH_NOTE", "evidence": "check-boundary is invoked by the workflow and enforces one-task-root/forbidden-area/top-level/traversal rules. NOTE: the boundary is shallow — see probes B (rename source), D (workflow allowlist) and E (stage immutability)." },
+    { "id": "C6", "name": "--tasks-dir confinement", "verdict": "PASS_WITH_NOTE", "evidence": "CLI exposes no output-path flag; --tasks-dir rejected as unknown; testRoot is library-only. NOTE: confinement is cwd-relative, not worktree-root-bound — probe A shows create writes <cwd>/research-ops/tasks/ outside the repo. See probe A (CORRECTION_REQUIRED)." },
+    { "id": "C7", "name": "nested package entries", "verdict": "PASS", "evidence": "Exactly eleven flat regular files enforced; nested directory, hidden file and any extra entry each make validate fail." },
+    { "id": "C8", "name": "reference field typing", "verdict": "PASS", "evidence": "null/string/object/number/non-string-item/empty-item/duplicate/unresolved reference values are each rejected." },
+    { "id": "C9", "name": "structural/schema enforcement", "verdict": "PASS", "evidence": "TASK_STATE (keys, taskId, state, full boolean auth matrix, unknown *Authorized-true rejected), IDENTITY (presence + TASK_STATE consistency + canonical inventory) and GITHUB_PLAN (taskId/model/base/draft/autoMerge/mergeAuthorized) enforced. SCOPE NOTE: does not cover the four non-ID research JSON shapes (probe H) nor GITHUB_PLAN branch cross-binding (probe F) nor identity grammar (probe G)." }
+  ],
+
+  "newBypassProbeMatrixAtoL": [
+    { "id": "A", "name": "actual repository-root confinement / CWD escape", "verdict": "CORRECTION_REQUIRED", "evidence": "createTask uses process.cwd()+research-ops/tasks. Real CLI from an OS temp dir created <TMPD>/research-ops/tasks/CBW-PROBE-A-TMP-001; from a repo subdirectory created <subdir>/research-ops/tasks/... (NOT the repo-root tasks dir). No worktree-root resolution and no fail-closed outside a supported worktree." },
+    { "id": "B", "name": "rename/copy name-status integrity", "verdict": "CORRECTION_REQUIRED", "evidence": "parseNameStatus keeps only parts[last] (the destination). An R100 record 'research-ops-pilot/tasks/OKX-DONE/immutable.json -> research-ops/tasks/CBW-A/00-contract/x.json' passes the boundary (ok=true): deletion/movement of an immutable governed SOURCE is hidden. Unknown/unsupported status codes (e.g. Z999) are accepted rather than rejected; source path never evaluated." },
+    { "id": "C", "name": "PR-mode identity", "verdict": "CORRECTION_REQUIRED", "evidence": "classifyChangeMode is derived only from changed paths. A change touching only a factory/workflow file is classified FACTORY_GOVERNANCE and passes regardless of branch/PR/task metadata; mode is not bound to trusted PR/branch/task identity — mode-confusion is possible." },
+    { "id": "D", "name": "workflow allowlist precision", "verdict": "CORRECTION_REQUIRED", "evidence": "FACTORY_PREFIXES allowlists the entire '.github/workflows/' prefix. A change to '.github/workflows/deploy-production.yml' passes in FACTORY_GOVERNANCE mode (ok=true). Factory governance grants blanket authority over all workflows, not just the factory validation workflow." },
+    { "id": "E", "name": "stage-aware append-only", "verdict": "CORRECTION_REQUIRED", "evidence": "checkChangedFileBoundary enforces only single-task-root + forbidden areas. Modifications (status M) to closed earlier stages (00-contract/**, re-manifested 20-research-output/**, 50-source-truth-review/**) within one root are all accepted (ok=true). No stage-transition immutability; a one-task-root rule is not append-only." },
+    { "id": "F", "name": "GITHUB_PLAN cross-binding", "verdict": "CORRECTION_REQUIRED", "evidence": "validateGithubPlanShape does not compare GITHUB_PLAN.taskBranch to TASK_STATE.branch, nor pullRequest.head to taskBranch. A plan with taskBranch/head mismatched to TASK_STATE.branch still passes (shape ok=true)." },
+    { "id": "G", "name": "identity grammar/types", "verdict": "CORRECTION_REQUIRED", "evidence": "At validate time IDENTITY fields are checked for presence and equality to TASK_STATE only, not grammar. Malformed-but-consistent countryCode='zz9!' and exchangeId='../evil' pass validation (ok=true). These fields drive deterministic branch/path generation." },
+    { "id": "H", "name": "all nine research JSON shapes", "verdict": "CORRECTION_REQUIRED", "evidence": "Manifest-valid packages whose top-level shape was replaced with [] were ACCEPTED for research-run.json, offer-eligibility-review.json, schema-normalization-notes.json and import-readiness.json. Structural validation is limited to the five ID-collection files plus cross-refs; four research JSONs accept arbitrary valid JSON." },
+    { "id": "I", "name": "owner receipt structure", "verdict": "PASS", "evidence": "Only the exact research-record merge receipt for the exact task passes. wrongType/wrongTask/wrongTarget/missingMerge/deploy-escalation/master-escalation/nested-escalation/non-object all yield mergeAuthorized=false; nested and master escalations explicitly rejected." },
+    { "id": "J", "name": "invalid UTF-8", "verdict": "CORRECTION_REQUIRED", "evidence": "Canonical encoding check tests only BOM and CR (hasBOM/hasCR). Invalid UTF-8 bytes (0xFF/0xFE/0x80) injected into source-truth-review-report.md and into a JSON string value, with MANIFEST recomputed over raw bytes, pass the canonical-UTF-8 check (ok=true). Replacement-character decoding is not validated against." },
+    { "id": "K", "name": "higher-stage marker integrity", "verdict": "CORRECTION_REQUIRED", "evidence": "stageSatisfied uses exists() only. A zero-byte 70-validation/VALIDATION.json and a malformed-JSON 70-validation/VALIDATION.json each satisfy the VALIDATED state gate (consistency ok=true). Markers are existence-only, not parsed or identity-bound. (Symlink markers are separately caught by findUnsafeEntries.)" },
+    { "id": "L", "name": "actual workflow + boundary behavior", "verdict": "PASS", "evidence": "Advisory workflow run 30206225962 on 2b9fecd succeeded, read-only (contents:read, persist-credentials:false), no merge/deploy/AI. Boundary simulation: multipleRoots=fail, taskOnly=pass, factoryOnly=pass, mixed=fail, deletion=fail, forbidden=fail, topLevel=fail, traversal=fail — as designed for the cases it covers. NOTE: green workflow is NOT sufficient evidence; the invoked boundary carries the B/C/D/E gaps." }
+  ],
+
+  "workflowValidation": {
+    "factoryValidateRunId": 30206225962,
+    "conclusion": "success",
+    "event": "pull_request",
+    "headSha": "2b9fecd8540070c92f1d1ba382ba05b64597a7e6",
+    "readOnly": true,
+    "permissions": "contents: read",
+    "persistCredentials": false,
+    "noMerge": true,
+    "noDeploy": true,
+    "noAiCall": true,
+    "noMasterMutation": true,
+    "failClosedDiscovery": true,
+    "unrelatedFailingWorkflows": ["telegram-reports.yml", "critical-alerts.yml"],
+    "unrelatedNote": "Those two failures are pre-existing push-triggered repo workflows unrelated to the factory and untouched by this correction; they do not gate factory validation.",
+    "judgment": "The factory workflow is correctly read-only and fail-closed at the discovery layer, but it delegates append-only enforcement to a boundary whose semantics are incomplete (probes B/C/D/E). A green run does not establish a tight append-only guarantee."
+  },
+
+  "pathConfinementResult": { "cliExposesNoOutputPath": true, "tasksDirRejected": true, "confinedToWorktreeRoot": false, "cwdRelativeEscapeReproduced": true, "probe": "A" },
+  "renameCopyBoundaryResult": { "sourceAndDestinationBothEvaluated": false, "renameHidesForbiddenSourceMovement": true, "unknownStatusCodesRejected": false, "probe": "B" },
+  "prModeIdentityResult": { "modeBoundToTrustedMetadata": false, "modeConfusionPossible": true, "probe": "C" },
+  "workflowAllowlistResult": { "preciseFactoryWorkflowAllowlist": false, "arbitraryWorkflowAccepted": true, "probe": "D" },
+  "stageAwareAppendOnlyResult": { "stageTransitionImmutabilityEnforced": false, "closedStageModificationAccepted": true, "probe": "E" },
+  "githubPlanBindingResult": { "taskIdBaseDraftAutoMergeMergeAuthEnforced": true, "branchTaskBranchHeadCrossBindingEnforced": false, "probe": "F" },
+  "identityGrammarResult": { "presenceAndEqualityEnforced": true, "grammarEnforcedAtValidate": false, "probe": "G" },
+  "allResearchJsonShapeResult": { "fiveIdCollectionsEnforced": true, "fourResearchJsonShapesUnvalidated": ["research-run.json", "offer-eligibility-review.json", "schema-normalization-notes.json", "import-readiness.json"], "probe": "H" },
+  "ownerReceiptShapeResult": { "onlyExactResearchRecordMergePasses": true, "escalationRejected": true, "nestedEscalationRejected": true, "probe": "I" },
+  "utf8ValidityResult": { "bomAndCrChecked": true, "invalidUtf8ByteSequencesRejected": false, "probe": "J" },
+  "higherStageMarkerResult": { "existenceOnlyMarkersAcceptEmptyAndMalformed": true, "markerParsedOrIdentityBound": false, "symlinkMarkersCaughtSeparately": true, "probe": "K" },
+
+  "authorizationValidation": {
+    "floorHolds": true,
+    "recursiveNestedForbiddenTrueRejected": true,
+    "unknownAuthorizedTrueRejected": true,
+    "ownerReceiptOnlyFlipsSingleMergeKey": true,
+    "noMasterCanonicalProductionDeployBinanceAuthorizable": true,
+    "note": "The authorization/security floor is intact and was not breached by any probe; the corrections-required findings are boundary/validation-completeness gaps, not privilege escalations."
+  },
+
+  "blockingFindings": [],
+
+  "correctionRequiredFindings": [
+    { "id": "A", "severity": "HIGH", "summary": "create is confined to <cwd>/research-ops/tasks/, not the actual worktree root; reproducibly writes outside the repository when invoked from a temp dir or subdirectory." },
+    { "id": "E", "severity": "HIGH", "summary": "No stage-aware append-only enforcement; modification of closed earlier stages within one task root is accepted." },
+    { "id": "B", "severity": "HIGH", "summary": "Rename/copy name-status parsing evaluates only the destination; deletion/movement of an immutable governed source is hidden, and unknown status codes are accepted." },
+    { "id": "D", "severity": "HIGH", "summary": "Factory-governance mode allowlists the entire .github/workflows/ prefix; an unrelated deploy/production workflow change is accepted." },
+    { "id": "H", "severity": "MEDIUM", "summary": "Four research JSON files (research-run, offer-eligibility-review, schema-normalization-notes, import-readiness) accept arbitrary valid-JSON top-level shapes." },
+    { "id": "J", "severity": "MEDIUM", "summary": "Invalid UTF-8 byte sequences are accepted; canonical encoding checks only BOM/CR, not byte-sequence validity." },
+    { "id": "C", "severity": "MEDIUM", "summary": "PR mode is derived only from changed paths, not bound to trusted branch/PR/task metadata; mode-confusion is possible." },
+    { "id": "K", "severity": "MEDIUM", "summary": "Higher-stage state gates are satisfied by existence-only markers; zero-byte and malformed-JSON markers pass without being parsed or identity-bound." },
+    { "id": "F", "severity": "MEDIUM", "summary": "GITHUB_PLAN.taskBranch/pullRequest.head are not cross-bound to TASK_STATE.branch." },
+    { "id": "G", "severity": "LOW", "summary": "Identity field grammar (country/exchange/batch/priority) is not enforced at validate time; only presence and equality to TASK_STATE are checked." }
+  ],
+
+  "nonblockingNotes": [
+    "Local main/master branches are ahead of origin from unrelated local dev worktrees; the control-plane origin SHAs match the fixed lineage and were not modified by this task.",
+    "Unrelated push-triggered workflows (telegram-reports.yml, critical-alerts.yml) fail on the correction head but are outside the factory scope and untouched by this correction.",
+    "Owner receipt validation does not require every canonical false authorization key to be present, but defaults are safe because any non-merge true key is rejected.",
+    "Symlink/executable/non-regular entries anywhere in a task are caught by findUnsafeEntries, so a symlink higher-stage marker is rejected even though marker content is otherwise unvalidated."
+  ],
+
+  "validationOutcome": "VALIDATED_WITH_CORRECTIONS_REQUIRED",
+
+  "requiredCorrections": [
+    "A: Resolve the actual Git worktree root for create output (or fail closed outside a supported worktree); never write <cwd>/research-ops/tasks when cwd is not the repo root.",
+    "B: Parse both source and destination of R/C records; reject deletion/movement of immutable governed sources; reject unknown/unsupported status codes and malformed records.",
+    "C: Bind FACTORY_GOVERNANCE vs RESEARCH_TASK to trusted branch/PR/task metadata, not changed paths alone.",
+    "D: Replace the blanket .github/workflows/ allowlist with an exact allowlist of the factory validation workflow (and explicitly governed factory files).",
+    "E: Enforce stage-transition append-only immutability within a task root, not just a single-root restriction.",
+    "F: Cross-bind TASK_STATE.branch, GITHUB_PLAN.taskBranch and pullRequest.head; enforce base=main across both plan fields.",
+    "G: Enforce safe grammar/types for identity fields used to generate deterministic branches and paths at validate time.",
+    "H: Enforce minimum top-level structural shapes for all nine research JSON files, not only the five ID collections.",
+    "J: Validate canonical UTF-8 byte-sequence validity (reject invalid bytes), not merely BOM/CR.",
+    "K: Require higher-stage markers to be regular, parseable and identity-bound where JSON is expected."
+  ],
+
+  "nextTask": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CORRECTION-V2-012",
+
+  "authorizations": {
+    "factoryMergeToMainAuthorized": false,
+    "researchRecordMergeToMainAuthorized": false,
+    "binancePilotAuthorized": false,
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false,
+    "masterChangeAuthorized": false
+  }
+}
