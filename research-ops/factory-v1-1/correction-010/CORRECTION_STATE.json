@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CORRECTION-010",
+  "project": "CryptoBonusWorld",
+  "governingIssue": 47,
+  "implementationPullRequest": 44,
+  "implementationHeadSha": "02997bb63be39012015486ecf55da707a3738f6b",
+  "validationPullRequest": 46,
+  "validationHeadSha": "2f95f8a373e21204548e6c61433677d009943b26",
+  "validationOutcome": "VALIDATED_WITH_CORRECTIONS_REQUIRED",
+  "correctionBranch": "correction/researchops-subscription-factory-v1-1-010",
+  "correctionBaseBranch": "validation/researchops-subscription-factory-v1-1-009",
+  "state": "READY_FOR_CORRECTION",
+  "requiredCorrectionCount": 9,
+  "requiredCorrections": [
+    "WIRE_REQUIRE_PACKAGE",
+    "ENFORCE_STATE_EVIDENCE_CONSISTENCY",
+    "FAIL_CLOSED_WORKFLOW_DISCOVERY",
+    "REJECT_TASK_ROOT_DELETION",
+    "WIRE_CI_APPEND_ONLY_BOUNDARY",
+    "CONFINE_CANONICAL_TASKS_DIR",
+    "REJECT_NESTED_PACKAGE_ENTRIES",
+    "ENFORCE_REFERENCE_ARRAY_TYPES",
+    "ENFORCE_MINIMUM_STRUCTURAL_SCHEMA"
+  ],
+  "requiredResultFiles": [
+    "CORRECTION_RESULT.json",
+    "CORRECTION_RESULT.md"
+  ],
+  "authorizations": {
+    "factoryCorrectionAuthorized": true,
+    "factoryMergeToMainAuthorized": false,
+    "binancePilotAuthorized": false,
+    "researchRecordMergeToMainAuthorized": false,
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false,
+    "masterChangeAuthorized": false
+  },
+  "correctionCommitSha": null,
+  "nextTaskOnPass": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CORRECTION-VALIDATION-011"
+}
