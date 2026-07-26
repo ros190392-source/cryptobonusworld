@@ -1,0 +1,141 @@
+{
+  "schemaVersion": "1.0.0",
+  "validationTaskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-VALIDATION-009",
+  "implementationTaskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-008",
+  "governingIssue": 45,
+  "implementationIssue": 43,
+  "implementationPullRequest": 44,
+  "validationPullRequest": 46,
+  "validatedImplementationCommitSha": "02997bb63be39012015486ecf55da707a3738f6b",
+  "implementationBaseSha": "04157b9dfb140918a8569a5026da747b429e5ed3",
+  "protectedMasterHeadSha": "998fcedd7d9febbec5b130d4765dfeaafc40960b",
+  "validatedAt": "2026-07-26",
+  "validatorRole": "Independent adversarial validator",
+  "environment": { "nodeVersion": "v24 (Node 20-compatible ESM/built-ins)", "dependencyFree": true },
+
+  "packageFileBoundaryResult": {
+    "changedFilesInPr44": 24,
+    "implementationFilesVsStart": 21,
+    "reconciliation": "24 PR files = 20 new implementation files + FACTORY_STATE.json update (=21 vs implementation start caa2686) + 3 pre-existing governance files (CLAUDE_IMPLEMENTATION_PROMPT.md, FACTORY_CONTRACT.md, OWNER_AUTHORIZATION_RECEIPT.json) added earlier on the branch relative to main. Counts are internally consistent.",
+    "verdict": "CONSISTENT"
+  },
+
+  "cliCommandResults": {
+    "create": "PASS (deterministic skeleton, create-only, fails on duplicate)",
+    "validate": "PARTIAL (package checks strong; does not enforce state-to-evidence; --require-package flag not wired)",
+    "status": "PASS (evidence-backed; catches state/evidence inconsistency with exit 1)",
+    "strictArgParsing": "PASS (rejects unknown flags, duplicate flags, missing values)"
+  },
+
+  "fixtureRerunResults": { "passed": 24, "failed": 0, "independentlyReproduced": true, "nodeCheckAllMjs": "PASS" },
+
+  "adversarialProbeMatrix": [
+    { "id": 1, "name": "--require-package forces empty skeleton to fail", "method": "CLI + direct validateTask with both key spellings", "expected": "fail (non-zero)", "observed": "CLI `--require-package` on empty skeleton exits 0; validateTask({requirePackage:true}) fails but validateTask({'require-package':true}) passes", "verdict": "CORRECTION_REQUIRED", "evidence": "bin/researchops.mjs booleans set stores key 'require-package'; lib/validate.mjs reads opts.requirePackage" },
+    { "id": 2, "name": "evidence-bearing states fail when artifacts absent", "method": "set TASK_STATE.state to each evidence state with empty 20-research-output; run validate + status", "expected": "validate fails closed", "observed": "validate.ok=true for ALL 8 evidence states with empty package; status catches it (consistent=false, exit 1)", "verdict": "CORRECTION_REQUIRED", "evidence": "lib/validate.mjs performs no state-to-evidence gate; only lib/status.mjs enforces consistency" },
+    { "id": 3, "name": "workflow discovery is fail-closed", "method": "inspect + simulate diff/fetch failure path", "expected": "failure fails the job", "observed": "`git fetch ... || true` (L52) and `git diff ... || true` (L53) swallow failures -> empty CHANGED -> empty TASKS -> rc=0 PASS", "verdict": "CORRECTION_REQUIRED", "evidence": ".github/workflows/cbw-researchops-factory-validate.yml:52-57" },
+    { "id": 4, "name": "workflow rejects task-root deletion", "method": "simulate deleted task path in diff with absent dir", "expected": "reject", "observed": "`if [ -d \"$t\" ]` (L63) silently skips a deleted/absent task root; rc stays 0", "verdict": "CORRECTION_REQUIRED", "evidence": ".github/workflows/cbw-researchops-factory-validate.yml:63" },
+    { "id": 5, "name": "workflow enforces append-only boundary", "method": "grep workflow for --changed-files / boundary invocation", "expected": "boundary enforced in CI", "observed": "workflow never invokes `validate --changed-files`; the correct library function checkAppendOnlyBoundary is unused in CI", "verdict": "CORRECTION_REQUIRED", "evidence": "lib/validate.mjs checkAppendOnlyBoundary correct in isolation; not wired into workflow" },
+    { "id": 6, "name": "immutable earlier stage cannot be silently mutated", "method": "mutate a research file without re-manifesting (fixture 14) and with re-manifest", "expected": "manifest catches silent mutation", "observed": "silent mutation caught by MANIFEST hash mismatch; a re-manifested change to an immutable stage would only be caught by the (currently unwired) CI append-only boundary", "verdict": "CORRECTION_REQUIRED", "evidence": "intra-package immutability OK via MANIFEST; cross-stage immutability depends on the missing CI boundary (probe 5)" },
+    { "id": 7, "name": "canonical CLI cannot escape via --tasks-dir", "method": "create with absolute and ../.. traversal --tasks-dir", "expected": "confined to research-ops/tasks/", "observed": "absolute --tasks-dir and ../.. traversal BOTH accepted; task skeleton written outside research-ops/tasks/", "verdict": "CORRECTION_REQUIRED", "evidence": "lib/create.mjs joins tasksDir without safeSubpath confinement; lib/util.mjs safeSubpath exists but is not applied to tasksDir" },
+    { "id": 8, "name": "schemas enforced or clearly documentation-only; malformed shapes rejected", "method": "missing taskId; IDENTITY/TASK_STATE taskId mismatch", "expected": "reject malformed required shapes", "observed": "schemas are documentation-only; TASK_STATE missing taskId validates; IDENTITY/TASK_STATE taskId mismatch validates", "verdict": "CORRECTION_REQUIRED", "evidence": "lib/validate.mjs has no required-key/identity-consistency checks; schemas/*.schema.json not loaded" },
+    { "id": 9, "name": "unknown/nested authorization privileges cannot bypass floor", "method": "nested forbidden true; unknown *Authorized; lowercase/non-suffix names; receipt escalations", "expected": "recognized authorizations rejected; escalation blocked", "observed": "nested forbidden true caught; unknown *Authorized rejected; receipt taskId-mismatch/target=master/extra-privilege all rejected; only arbitrary non-canonical names (deployauthorized lowercase, enableProductionNow) not detected by heuristic", "verdict": "PASS_WITH_NOTE", "evidence": "lib/authz.mjs collectAuthBooleans heuristic (suffix Authorized + known prefixes + recursion)" },
+    { "id": 10, "name": "generated task complete, deterministic, no unresolved tokens", "method": "create temp task; scan for {{tokens}}, dirs, plan, authorizations, prompt", "expected": "complete", "observed": "0 unresolved tokens; all 7 stage dirs; GITHUB_PLAN draft PR to main + autoMerge=false; all authorizations false; DEEP_RESEARCH_PROMPT preserves CBW_HANDOFF_ENVELOPE_V1 + eleven-file inventory", "verdict": "PASS", "evidence": "lib/create.mjs; templates/*" },
+    { "id": 11, "name": "status human and JSON agree across states/inconsistencies", "method": "status on PREPARED valid and declared-VALIDATED empty", "expected": "agree, stable exit codes", "observed": "human and --json agree; consistent=true/exit 0 for valid PREPARED; consistent=false/exit 1 for declared-VALIDATED empty; status does not verify 50/60/70/80 stage artifacts for higher states when a valid package exists", "verdict": "PASS_WITH_NOTE", "evidence": "lib/status.mjs derives evidence ceiling only up to PACKAGE_VALIDATED" },
+    { "id": 12, "name": "package validator depth", "method": "BOM, raw CRLF, nested dir, hidden file, non-array/non-string refs, numeric IDs, manifest absent/extra/malformed rows", "expected": "reject all malformed cases", "observed": "REJECTS: BOM, raw CRLF, hidden extra file, non-string-in-array ref, numeric ID, absent/extra/malformed MANIFEST row, dangling refs, symlink/exec. GAPS: (a) nested subdirectory with regular files under 20-research-output passes; (b) non-array (string/null) reference field silently treated as empty", "verdict": "CORRECTION_REQUIRED", "evidence": "lib/validate.mjs listFlatFiles is top-level only; crossref uses Array.isArray(x)?x:[]" },
+    { "id": 13, "name": "workflow permissions and side effects read-only and bounded", "method": "inspect workflow", "expected": "read-only, no AI/merge/deploy, bounded", "observed": "permissions: contents: read; persist-credentials: false; timeout-minutes: 10; no write token; no AI call; no branch/issue/PR creation; no merge; no deploy", "verdict": "PASS", "evidence": ".github/workflows/cbw-researchops-factory-validate.yml:13-14,23,28" }
+  ],
+
+  "workflowValidation": {
+    "permissions": "contents: read",
+    "credentials": "persist-credentials: false",
+    "aiProviderCall": false,
+    "createsBranchesIssuesPrs": false,
+    "merges": false,
+    "deploys": false,
+    "timeoutMinutes": 10,
+    "failClosed": false,
+    "failOpenFindings": [
+      "git fetch/diff use `|| true`; a discovery failure yields an empty changed set and a PASS",
+      "deleted/absent task roots are silently skipped by `if [ -d \"$t\" ]`",
+      "append-only changed-file boundary is not enforced (no `validate --changed-files` invocation)"
+    ]
+  },
+
+  "stateEvidenceConsistencyResult": { "validateEnforces": false, "statusEnforces": true, "verdict": "CORRECTION_REQUIRED" },
+  "appendOnlyEnforcementResult": { "libraryLogicCorrect": true, "wiredIntoCi": false, "verdict": "CORRECTION_REQUIRED" },
+  "pathSafetyResult": { "cliTasksDirConfined": false, "absoluteAccepted": true, "traversalAccepted": true, "verdict": "CORRECTION_REQUIRED" },
+  "schemaEnforcementResult": { "schemasActivelyEnforced": false, "documentationOnly": true, "malformedRequiredShapesRejected": false, "verdict": "CORRECTION_REQUIRED" },
+  "authorizationResult": { "floorHolds": true, "nestedCaught": true, "ownerReceiptEscalationRejected": true, "heuristicGapForArbitraryNames": true, "verdict": "PASS_WITH_NOTE" },
+  "generatedTaskResult": { "complete": true, "deterministic": true, "unresolvedTokens": 0, "autoMerge": false, "draftPrToMain": true, "allAuthorizationsFalse": true, "verdict": "PASS" },
+  "statusResult": { "humanJsonAgree": true, "stableExitCodes": true, "higherStateArtifactCheck": false, "verdict": "PASS_WITH_NOTE" },
+  "packageValidatorResult": { "strongCases": ["BOM", "CRLF", "inventory-missing", "inventory-extra", "malformed-json", "manifest-byte", "manifest-hash", "manifest-absent-row", "manifest-extra-row", "manifest-malformed-row", "duplicate-ids", "numeric-id", "non-string-in-array-ref", "dangling-source-ref", "dangling-claim-ref", "symlink", "executable-bit"], "gaps": ["nested-subdirectory-with-files", "non-array-reference-field"], "verdict": "CORRECTION_REQUIRED" },
+
+  "implementationStrengths": [
+    "Dependency-free Node ESM CLI (create/validate/status) runs directly with Node built-ins; no root package.json introduced.",
+    "Package validator is broad and correct on the core cases (encoding, inventory, manifest byte+hash, unique/typed IDs, dangling refs, symlink/exec).",
+    "Authorization floor rejects nested and *Authorized-suffixed forbidden trues; owner receipt correctly rejects taskId mismatch, target=master and any extra privilege.",
+    "append-only boundary library function is correct in isolation.",
+    "24/0 fixtures independently reproduced; node --check clean; workflow is read-only, credential-less, AI-free, non-merging, non-deploying, time-bounded.",
+    "Generated task is deterministic and complete with zero unresolved tokens and all authorizations false.",
+    "No research-ops-pilot/tasks mutation; no Binance pilot; master untouched."
+  ],
+
+  "blockingFindings": [],
+
+  "correctionRequiredFindings": [
+    "P1 --require-package CLI flag is not wired (parser key 'require-package' vs opts.requirePackage); it never forces the eleven-file package, so an empty skeleton passes with the flag.",
+    "P2 `validate` does not enforce state-to-evidence consistency; every evidence-bearing declared state passes with an empty package (only `status` catches it).",
+    "P3 Workflow is fail-open: `git fetch/diff ... || true` converts a discovery failure into an empty changed set and a PASS.",
+    "P4 Workflow silently skips deleted/absent task roots (`if [ -d \"$t\" ]`), so task-record deletion passes CI.",
+    "P5 Workflow does not enforce the append-only changed-file boundary (never invokes `validate --changed-files`).",
+    "P6 Canonical CLI `--tasks-dir` accepts absolute and `..` traversal paths, letting `create` write task skeletons outside `research-ops/tasks/`.",
+    "P7 Package validator does not reject nested subdirectories/files under `20-research-output/`.",
+    "P8 Package validator treats non-array/null reference fields as empty instead of flagging them.",
+    "P9 JSON schemas are documentation-only; malformed required shapes (missing `taskId`, IDENTITY/TASK_STATE `taskId` mismatch) pass validation."
+  ],
+
+  "nonblockingNotes": [
+    "Authorization detection is heuristic (keys ending in `Authorized` plus known prefixes, recursively); arbitrary non-canonical names are not detected. No recognized authorization key escapes and owner-receipt escalation is fully rejected; recommend enumerating a canonical authorization key set.",
+    "FACTORY_STATE.json retains implementationCommitSha=null and exactImplementationFileCount=20; these are traceability notes only. The validated commit is unambiguously 02997bb and file counts reconcile (see packageFileBoundaryResult).",
+    "`status` does not verify 50/60/70/80 stage artifacts for declared states above PACKAGE_VALIDATED when a valid package exists.",
+    "An empty `20-research-output/` is not git-tracked until populated."
+  ],
+
+  "requiredCorrections": [
+    "Wire `--require-package` to opts.requirePackage (alias fix) so it forces the eleven-file package check.",
+    "Make `validate` fail closed on declared-state-vs-evidence inconsistency (fold the status consistency gate into validate).",
+    "Remove/handle `|| true` in the workflow so a fetch/diff failure fails the job.",
+    "Make the workflow reject deletion/absence of a governed task root instead of skipping it.",
+    "Have the workflow build the PR changed-file list and run `validate --changed-files` to enforce the append-only boundary in CI.",
+    "Confine `--tasks-dir` to the repository `research-ops/tasks/` root (apply safeSubpath; reject absolute and `..` paths in `create`).",
+    "Reject unexpected subdirectories/files under `20-research-output/` in the package validator.",
+    "Flag non-array/null reference fields as invalid in cross-reference validation.",
+    "Add minimal structural enforcement (required keys incl. taskId; IDENTITY/TASK_STATE taskId consistency), or bind the schema files into the validator."
+  ],
+
+  "correctionCount": 9,
+
+  "mergeReadiness": "NOT_READY_FOR_OWNER_MERGE — the core architecture is usable, but the confirmed fail-open workflow behavior, the broken --require-package flag, the missing validate state/evidence gate, the un-enforced CI append-only boundary, and the CLI --tasks-dir path escape must be corrected before this becomes the canonical mechanism.",
+
+  "validationOutcome": "VALIDATED_WITH_CORRECTIONS_REQUIRED",
+  "nextTask": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CORRECTION-010",
+
+  "authorizations": {
+    "factoryMergeToMainAuthorized": false,
+    "binancePilotAuthorized": false,
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false
+  }
+}
