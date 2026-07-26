@@ -17,22 +17,44 @@ node research-ops/factory-v1-1/bin/researchops.mjs create \
   --task-id CBW-KZ-BINANCE-P0-D-DEEP-RESEARCH-001 \
   --country-code KZ --country-name Kazakhstan \
   --exchange-id binance --exchange-name Binance \
-  --batch-id KZ-P0-D --priority P0 \
-  --tasks-dir research-ops/tasks
+  --batch-id KZ-P0-D --priority P0
+
+# create ALWAYS writes below repository-relative research-ops/tasks/ (see "Path safety").
+# The canonical CLI exposes NO --tasks-dir; there is no user-controlled output path.
 
 # Validate a task at its current state (exit 0 = valid, 1 = invalid).
 node research-ops/factory-v1-1/bin/researchops.mjs validate --task-dir research-ops/tasks/<TASK_ID>
 node research-ops/factory-v1-1/bin/researchops.mjs validate --task-dir <dir> --json
 node research-ops/factory-v1-1/bin/researchops.mjs validate --task-dir <dir> --to-state RESEARCH_CAPTURED
+node research-ops/factory-v1-1/bin/researchops.mjs validate --task-dir <dir> --require-package
 node research-ops/factory-v1-1/bin/researchops.mjs validate --task-dir <dir> --owner-receipt <receipt.json>
-node research-ops/factory-v1-1/bin/researchops.mjs validate --task-dir <dir> --changed-files <list.txt>
 
 # Deterministic status (declared vs evidence-backed state).
 node research-ops/factory-v1-1/bin/researchops.mjs status --task-dir <dir>
+
+# CI append-only boundary check over a `git diff --name-status` file (fail-closed).
+node research-ops/factory-v1-1/bin/researchops.mjs check-boundary --changed-status <name-status.txt> \
+  --emit-task-roots <task-roots.txt>
 ```
 
 Strict argument parsing rejects unknown flags, duplicate flags, missing values, unsafe paths,
 invalid task IDs and unsupported states.
+
+### Path safety (create output confinement)
+
+The canonical CLI `create` never accepts an absolute path or `..` traversal — it exposes no
+output-path flag at all and always writes to `<cwd>/research-ops/tasks/<TASK_ID>`. Tests need OS
+temp roots, so the **library** `createTask()` accepts an explicit, clearly-named
+`testRoot` option that is **never** wired to CLI argument parsing. Production task creation
+therefore cannot escape `research-ops/tasks/`.
+
+### State/evidence consistency
+
+`validate` and `status` share one canonical evidence derivation (`lib/evidence.mjs`). A declared
+`TASK_STATE.state` that exceeds the on-disk artifacts (e.g. `RESEARCH_CAPTURED` or higher with an
+empty/invalid package, or `VALIDATED` without a `70-validation/` result) fails closed in both
+commands and in both human and JSON modes. `--require-package` forces the eleven-file package
+check even on an empty skeleton.
 
 ## Task layout
 
@@ -55,9 +77,14 @@ research-ops/tasks/<TASK_ID>/
 `offer-eligibility-review.json`, `schema-normalization-notes.json`, `import-readiness.json`,
 `source-truth-review-report.md`, `MANIFEST.txt`.
 
-Validation enforces: exact inventory, 9/9 JSON parse, canonical UTF-8/LF, `MANIFEST` byte-size
-and SHA-256, unique source/claim/conflict/product/rail IDs, resolved cross-references, no
-symlink/executable/hidden payload/path traversal, and the all-false authorization floor.
+Validation enforces: exactly eleven flat regular files with **no** nested directory, hidden,
+symlink, executable or non-regular entry anywhere under `20-research-output/`; 9/9 JSON parse;
+canonical UTF-8/LF; `MANIFEST` byte-size and SHA-256; unique source/claim/conflict/product/rail
+IDs; reference fields that are **arrays of non-empty, resolved string IDs** (null/string/object/
+number reference fields are rejected); minimum structural shapes for `TASK_STATE.json`,
+`00-contract/IDENTITY.json` (with taskId/identity consistency) and `00-contract/GITHUB_PLAN.json`
+(`draft=true`, `base=main`, `autoMerge=false`, `mergeAuthorized=false`); and the all-false
+authorization floor (only an exact owner receipt may enable a single research-record merge).
 
 ## States
 
@@ -86,7 +113,14 @@ Deterministic, Node-built-in fixtures using OS temp directories. They never writ
 
 ## CI
 
-`.github/workflows/cbw-researchops-factory-validate.yml` runs the fixtures and validates any
-changed task on pull requests touching `research-ops/**`. It is read-only (`contents: read`),
-Node 20, invokes only the direct Node CLI/test runner, never merges, never deploys and never
-calls an AI provider.
+`.github/workflows/cbw-researchops-factory-validate.yml` runs on pull requests touching
+`research-ops/**`. It is **fail-closed**: it verifies the base/head SHAs, runs
+`git diff --name-status` with **no** `|| true`, and feeds the result to
+`researchops check-boundary` (append-only enforcement). A discovery failure, an empty changed
+set, a boundary violation, deletion of a governed task root, or a referenced-but-missing task
+root fails the job. A normal research-task PR may change exactly one `research-ops/tasks/<ID>/`
+root and nothing else; factory/workflow paths may change only in a factory-governance PR (never
+as an escape in a research-task PR). Each discovered task root is validated with
+`researchops validate`. The workflow is read-only (`contents: read`,
+`persist-credentials: false`), Node 20, time-bounded, and never merges, deploys, calls an AI
+provider, or touches `master`.

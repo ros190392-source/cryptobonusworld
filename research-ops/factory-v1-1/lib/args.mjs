@@ -2,11 +2,14 @@
 // Rejects unknown flags, duplicate flags and missing values.
 
 export function parseArgs(argv, spec) {
-  // spec: { flags: { '--name': { required, aliasKey } }, booleans: Set }
+  // spec: { flags: { '--name': { required, aliasKey } },
+  //         booleans: { '--flag': { aliasKey } } | Set<'--flag'> }
   const out = {};
   const seen = new Set();
   const flags = spec.flags || {};
-  const booleans = spec.booleans || new Set();
+  const booleansSpec = spec.booleans || {};
+  const booleanNames = booleansSpec instanceof Set ? booleansSpec : new Set(Object.keys(booleansSpec));
+  const boolAlias = (name) => (booleansSpec instanceof Set ? undefined : booleansSpec[name]?.aliasKey);
 
   for (let i = 0; i < argv.length; i += 1) {
     const tok = argv[i];
@@ -20,7 +23,7 @@ export function parseArgs(argv, spec) {
       name = tok.slice(0, eq);
       inlineVal = tok.slice(eq + 1);
     }
-    if (!(name in flags) && !booleans.has(name)) {
+    if (!(name in flags) && !booleanNames.has(name)) {
       throw new Error(`unknown flag: ${name}`);
     }
     if (seen.has(name)) {
@@ -28,11 +31,11 @@ export function parseArgs(argv, spec) {
     }
     seen.add(name);
 
-    if (booleans.has(name)) {
+    if (booleanNames.has(name)) {
       if (inlineVal !== null && inlineVal !== 'true' && inlineVal !== 'false') {
         throw new Error(`boolean flag ${name} takes true/false, got ${inlineVal}`);
       }
-      out[flags[name]?.aliasKey || name.slice(2)] = inlineVal !== 'false';
+      out[boolAlias(name) || name.slice(2)] = inlineVal !== 'false';
       continue;
     }
 

@@ -1,8 +1,8 @@
 name: CBW ResearchOps Factory validate (advisory, read-only)
 
-# Read-only, fail-closed PR validation for the ResearchOps Subscription Factory.
+# Read-only, FAIL-CLOSED PR validation for the ResearchOps Subscription Factory.
 # Runs only the direct Node CLI/test runner. Never merges, never deploys,
-# never creates issues/branches/PRs, never calls an AI provider.
+# never creates issues/branches/PRs, never calls an AI provider, never touches master.
 
 on:
   pull_request:
@@ -25,6 +25,7 @@ jobs:
       - name: Checkout (read-only)
         uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Set up Node 20
@@ -44,30 +45,45 @@ jobs:
       - name: Run factory fixtures
         run: node research-ops/factory-v1-1/fixtures/run.mjs
 
-      - name: Validate changed task roots (fail-closed)
+      - name: Discover changed files (fail-closed)
         run: |
           set -euo pipefail
           BASE="${{ github.event.pull_request.base.sha }}"
           HEAD="${{ github.event.pull_request.head.sha }}"
-          git fetch --no-tags --depth=1 origin "$BASE" || true
-          CHANGED=$(git diff --name-only "$BASE" "$HEAD" || true)
-          echo "Changed files:"
-          echo "$CHANGED"
-          # Discover changed task roots under research-ops/tasks/<TASK_ID>/
-          TASKS=$(echo "$CHANGED" | awk -F/ '/^research-ops\/tasks\//{print $1"/"$2"/"$3}' | sort -u)
-          rc=0
-          if [ -z "$TASKS" ]; then
-            echo "No changed task roots to validate."
+          # C3 — an unresolved base/head must fail the job, not be swallowed.
+          [ -n "$BASE" ] || { echo "empty base sha"; exit 1; }
+          [ -n "$HEAD" ] || { echo "empty head sha"; exit 1; }
+          git cat-file -e "${BASE}^{commit}"
+          git cat-file -e "${HEAD}^{commit}"
+          # C3 — no `|| true`; a diff failure fails the job.
+          git diff --name-status "$BASE" "$HEAD" > changed-status.txt
+          echo "Changed (name-status):"
+          cat changed-status.txt
+
+      - name: Enforce append-only boundary (fail-closed)
+        run: |
+          set -euo pipefail
+          # C5 — invoke the canonical validator with the changed-status file.
+          # C4 — check-boundary rejects task-root deletion and missing roots.
+          node research-ops/factory-v1-1/bin/researchops.mjs check-boundary \
+            --changed-status changed-status.txt \
+            --emit-task-roots task-roots.txt
+
+      - name: Validate discovered task roots (fail-closed)
+        run: |
+          set -euo pipefail
+          if [ -s task-roots.txt ]; then
+            while IFS= read -r t; do
+              [ -n "$t" ] || continue
+              # C4 — a referenced-but-absent root fails the job.
+              [ -d "$t" ] || { echo "task root missing: $t"; exit 1; }
+              echo "::group::validate $t"
+              node research-ops/factory-v1-1/bin/researchops.mjs validate --task-dir "$t"
+              echo "::endgroup::"
+            done < task-roots.txt
           else
-            for t in $TASKS; do
-              if [ -d "$t" ]; then
-                echo "::group::validate $t"
-                node research-ops/factory-v1-1/bin/researchops.mjs validate --task-dir "$t" || rc=1
-                echo "::endgroup::"
-              fi
-            done
+            echo "Factory-governance PR: no research-task root to validate."
           fi
-          exit $rc
 
       - name: Step summary
         if: always()
@@ -77,6 +93,7 @@ jobs:
             echo ""
             echo "- Node: 20"
             echo "- Fixtures: executed via \`node research-ops/factory-v1-1/fixtures/run.mjs\`"
+            echo "- Boundary: enforced via \`researchops check-boundary\` (fail-closed)"
             echo "- Permissions: contents:read (read-only)"
-            echo "- Merges/deploys/AI calls: none"
+            echo "- Merges/deploys/AI calls/master mutation: none"
           } >> "$GITHUB_STEP_SUMMARY"

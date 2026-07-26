@@ -22,7 +22,14 @@ function renderTemplate(name, tokens) {
   return fill(readText(join(TEMPLATE_DIR, name)), tokens);
 }
 
-// opts: { taskId, countryCode, countryName, exchangeId, exchangeName, batchId, priority, tasksDir, createdAt }
+// opts: { taskId, countryCode, countryName, exchangeId, exchangeName, batchId, priority,
+//         repoRoot?, testRoot?, createdAt? }
+//
+// C6 — output confinement: the canonical output root is ALWAYS repository-relative
+// `research-ops/tasks/`. No user-controlled path is accepted. `testRoot` is a
+// LIBRARY-ONLY escape used exclusively by fixtures/tests; it is never wired to the
+// canonical CLI (the CLI exposes no `--tasks-dir`/`--test-root` flag), so production
+// task creation can never write outside `research-ops/tasks/`.
 export function createTask(opts) {
   const errors = [];
   const required = ['taskId', 'countryCode', 'countryName', 'exchangeId', 'exchangeName', 'batchId', 'priority'];
@@ -33,8 +40,11 @@ export function createTask(opts) {
   if (!/^[A-Z]{2}$/.test(opts.countryCode)) throw new Error(`invalid country code: ${opts.countryCode}`);
   if (!/^[a-z0-9-]+$/.test(opts.exchangeId)) throw new Error(`invalid exchange id: ${opts.exchangeId}`);
 
-  const tasksDir = opts.tasksDir || 'research-ops/tasks';
-  const taskDir = join(tasksDir, opts.taskId);
+  // taskId is validated (no slashes, no `..`), so it is a safe single path segment.
+  const baseRoot = opts.testRoot !== undefined
+    ? opts.testRoot                                        // library/test-only injected root
+    : join(opts.repoRoot || process.cwd(), 'research-ops', 'tasks');
+  const taskDir = join(baseRoot, opts.taskId);
 
   // Create-only: fail closed if the task path already exists.
   if (exists(taskDir)) throw new Error(`task already exists: ${taskDir}`);

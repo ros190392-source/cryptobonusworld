@@ -1,0 +1,99 @@
+{
+  "schemaVersion": "1.0.0",
+  "correctionTaskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CORRECTION-010",
+  "governingIssue": 47,
+  "implementationTaskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-008",
+  "implementationPullRequest": 44,
+  "validationTaskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-VALIDATION-009",
+  "validationPullRequest": 46,
+  "correctionPullRequest": 49,
+  "validatedImplementationCommitSha": "02997bb63be39012015486ecf55da707a3738f6b",
+  "validationCommitSha": "2f95f8a373e21204548e6c61433677d009943b26",
+  "initialCorrectionHeadSha": "289d6471b6dec95d8e1d98c2c36aa031293d2bbe",
+  "protectedMainSha": "04157b9dfb140918a8569a5026da747b429e5ed3",
+  "protectedMasterSha": "998fcedd7d9febbec5b130d4765dfeaafc40960b",
+  "correctedAt": "2026-07-26",
+  "environment": { "nodeVersion": "v24 (Node 20-compatible ESM/built-ins)", "dependencyFree": true },
+
+  "changedFileInventory": [
+    ".github/workflows/cbw-researchops-factory-validate.yml",
+    "research-ops/factory-v1-1/README.md",
+    "research-ops/factory-v1-1/bin/researchops.mjs",
+    "research-ops/factory-v1-1/fixtures/run.mjs",
+    "research-ops/factory-v1-1/lib/args.mjs",
+    "research-ops/factory-v1-1/lib/boundary.mjs",
+    "research-ops/factory-v1-1/lib/create.mjs",
+    "research-ops/factory-v1-1/lib/evidence.mjs",
+    "research-ops/factory-v1-1/lib/package.mjs",
+    "research-ops/factory-v1-1/lib/schema.mjs",
+    "research-ops/factory-v1-1/lib/status.mjs",
+    "research-ops/factory-v1-1/lib/validate.mjs",
+    "research-ops/factory-v1-1/correction-010/CORRECTION_RESULT.json",
+    "research-ops/factory-v1-1/correction-010/CORRECTION_RESULT.md"
+  ],
+  "newLibraryModules": ["lib/package.mjs", "lib/evidence.mjs", "lib/schema.mjs", "lib/boundary.mjs"],
+
+  "nineCorrectionMatrix": [
+    { "id": "C1", "name": "force-package flag", "change": "args.mjs now supports boolean flag aliases; bin maps --require-package -> requirePackage; validate.mjs forces the eleven-file check and fails when 20-research-output/ is empty. Removed the dead no-op line.", "evidence": "CLI: validate --require-package on empty skeleton exits 1; fixtures C1/C1b/C1c", "verdict": "APPLIED" },
+    { "id": "C2", "name": "state/evidence consistency", "change": "New lib/evidence.mjs provides one canonical derivation (STATE_REQUIREMENTS, deriveEvidence, checkStateConsistency, evidenceCeiling) shared by validate and status. validate now fails closed when the declared state exceeds on-disk artifacts.", "evidence": "fixtures C2 (all 8 evidence states with empty package fail in validate AND status), C2b/C2c/C2d", "verdict": "APPLIED" },
+    { "id": "C3", "name": "workflow discovery fail-closed", "change": "Removed both `|| true`. Workflow verifies non-empty base/head, `git cat-file -e` both commits, runs `git diff --name-status` without swallowing, and check-boundary refuses an empty changed set.", "evidence": "workflow steps 'Discover changed files' + 'Enforce append-only boundary'; CLI check-boundary on empty set exits 1", "verdict": "APPLIED" },
+    { "id": "C4", "name": "task-root deletion rejected", "change": "boundary.mjs flags any status=D under a governed task root; check-boundary and the validate step also fail if a referenced task root is missing on disk.", "evidence": "CLI check-boundary on a D record exits 1; fixture C4", "verdict": "APPLIED" },
+    { "id": "C5", "name": "CI append-only boundary", "change": "New lib/boundary.mjs (parseNameStatus, classifyChangeMode, checkChangedFileBoundary) + `check-boundary` CLI wired into the workflow. Research-task PRs may touch exactly one task root; factory/workflow paths only in a factory-governance PR; pilot/src/public/MI/top-level/traversal rejected.", "evidence": "fixtures C5..C5i; CLI check-boundary modes", "verdict": "APPLIED" },
+    { "id": "C6", "name": "--tasks-dir confinement", "change": "Removed --tasks-dir from the CLI entirely. create.mjs always writes <cwd>/research-ops/tasks/<TASK_ID>; a library-only `testRoot` (never parsed by CLI) is used by fixtures. Documented in README.", "evidence": "CLI create --tasks-dir -> unknown flag exit 2; CLI create writes under research-ops/tasks; fixtures C6/C6b", "verdict": "APPLIED" },
+    { "id": "C7", "name": "nested package entries", "change": "package.mjs scanPackageEntries requires exactly eleven flat regular files and rejects any nested directory, hidden file, symlink, executable or non-regular entry under 20-research-output/.", "evidence": "fixtures C7/C7b/C7c", "verdict": "APPLIED" },
+    { "id": "C8", "name": "reference field typing", "change": "package.mjs checkRefArray rejects null/string/object/number reference fields; requires arrays of unique non-empty strings that resolve; claim.supportedSourceIds and rail.sourceIds required.", "evidence": "fixtures C8..C8g", "verdict": "APPLIED" },
+    { "id": "C9", "name": "structural/schema enforcement", "change": "New lib/schema.mjs enforces TASK_STATE required keys + taskId/state + full boolean authorization matrix; IDENTITY presence/parse + taskId/identity consistency + canonical inventory; GITHUB_PLAN taskId/model/base/draft/autoMerge/mergeAuthorized. Wired into validate.mjs.", "evidence": "fixtures C9..C9g", "verdict": "APPLIED" }
+  ],
+
+  "cliSmokeResults": {
+    "create": "PASS (confined to <cwd>/research-ops/tasks/<TASK_ID>)",
+    "validate": "PASS (19/19 on a fresh PREPARED skeleton)",
+    "status": "PASS (consistent, exit 0)",
+    "requirePackageEmpty": "exit 1 (fails closed)",
+    "tasksDirFlag": "exit 2 (unknown flag rejected)",
+    "checkBoundaryFactoryGovernance": "exit 0",
+    "checkBoundaryTaskDeletion": "exit 1",
+    "checkBoundaryEmptyDiff": "exit 1 (no fail-open)"
+  },
+  "syntaxCheck": "PASS (node --check on all factory .mjs)",
+  "fixtureResults": { "passed": 63, "failed": 0 },
+  "gitDiffCheck": "clean",
+
+  "workflowFailClosedResult": { "removedFailOpen": true, "verifiesBaseHead": true, "diffNoSwallow": true, "boundaryEnforced": true, "rejectsDeletedRoot": true, "readOnly": true, "permissions": "contents: read", "persistCredentials": false, "noAiCall": true, "noMerge": true, "noDeploy": true, "noMasterMutation": true },
+  "pathSafetyResult": { "cliExposesNoOutputPath": true, "createConfinedToResearchOpsTasks": true, "libraryTestRootSeparation": true },
+  "stateEvidenceResult": { "sharedDerivation": true, "validateFailsClosed": true, "statusFailsClosed": true, "humanJsonAgree": true },
+  "appendOnlyResult": { "libraryWired": true, "singleTaskRootEnforced": true, "factoryGovernanceModeDetected": true },
+  "packageDepthResult": { "nestedEntriesRejected": true, "referenceArrayTypingEnforced": true },
+  "structuralSchemaResult": { "taskState": true, "identity": true, "githubPlan": true, "researchShapes": true, "ownerReceipt": true },
+  "authorizationResult": { "floorHolds": true, "nestedCaught": true, "ownerReceiptEscalationRejected": true, "unknownAuthorizedTrueRejected": true },
+
+  "remainingLimitations": [
+    "Authorization detection remains heuristic for arbitrary non-canonical key names, but TASK_STATE now requires the exact canonical boolean matrix and rejects unknown *Authorized keys set true, closing the practical gap for governed task state.",
+    "CI-time git-history immutability across stages is enforced through the append-only changed-file boundary plus per-file MANIFEST hashing; the workflow relies on GitHub-provided base/head SHAs which it now verifies before use.",
+    "Higher declared states (SOURCE_TRUTH_REVIEWED and above) require a conservative stage marker file; the deep semantic validation of those stage artifacts remains the responsibility of the corresponding governed review/validation tasks."
+  ],
+
+  "correctionOutcome": "CORRECTED_READY_FOR_INDEPENDENT_VALIDATION",
+  "nextTask": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CORRECTION-VALIDATION-011",
+
+  "authorizations": {
+    "factoryMergeToMainAuthorized": false,
+    "researchRecordMergeToMainAuthorized": false,
+    "binancePilotAuthorized": false,
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false,
+    "masterChangeAuthorized": false
+  }
+}
