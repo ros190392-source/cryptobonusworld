@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CORRECTION-V2-VALIDATION-013",
+  "project": "CryptoBonusWorld",
+  "governingIssue": 54,
+  "sourcePullRequest": 53,
+  "sourceCommitSha": "d3ed1128497cf682863c438d47eb65d26ebb536b",
+  "validationBranch": "validation/researchops-factory-v1-1-v2-013",
+  "state": "READY_FOR_INDEPENDENT_VALIDATION",
+  "requiredOutputs": [
+    "FACTORY_CORRECTION_V2_VALIDATION.json",
+    "FACTORY_CORRECTION_V2_VALIDATION.md"
+  ],
+  "authorizations": {
+    "factoryMergeToMainAuthorized": false,
+    "researchRecordMergeToMainAuthorized": false,
+    "binancePilotAuthorized": false,
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false,
+    "masterChangeAuthorized": false
+  }
+}
