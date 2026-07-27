@@ -11,7 +11,7 @@
 ## Exact refs
 
 - validation branch: `validation/researchops-factory-v1-1-v2-013`
-- expected initial validation HEAD: `2396ec498c2ae1f81a007e0b4f5710289135ca09`
+- freeze the current `origin/validation/researchops-factory-v1-1-v2-013` head immediately after `git fetch`; call it `INITIAL_VALIDATION_HEAD`
 - source correction branch: `correction/researchops-factory-v1-1-v2-012`
 - exact source commit: `d3ed1128497cf682863c438d47eb65d26ebb536b`
 - source validation commit: `a958f0c7d7ce2d707e4d79e5eafdd984fc851d2d`
@@ -22,7 +22,7 @@
 
 - governing Issue: #54
 - source Correction V2 PR: #53
-- validation PR: to be opened against `correction/researchops-factory-v1-1-v2-012`
+- validation PR targets `correction/researchops-factory-v1-1-v2-012`
 
 ## Isolated worktree
 
@@ -35,10 +35,11 @@ Do not modify the current repository working tree.
 ## Phase 0 — baseline
 
 1. `git fetch origin --prune`.
-2. Verify every exact ref above.
-3. Create or safely reuse the isolated worktree on `validation/researchops-factory-v1-1-v2-013`.
-4. Require clean status and exact initial validation HEAD.
-5. Stop with `VALIDATION BASELINE MISMATCH` on any mismatch.
+2. Freeze `INITIAL_VALIDATION_HEAD=$(git rev-parse origin/validation/researchops-factory-v1-1-v2-013)` and report it.
+3. Verify every other exact ref above.
+4. Create or safely reuse the isolated worktree on `validation/researchops-factory-v1-1-v2-013`.
+5. Require clean status and local HEAD exactly equal to `INITIAL_VALIDATION_HEAD`.
+6. Stop with `VALIDATION BASELINE MISMATCH` on any mismatch.
 
 Never reset, force-push, rewrite history, modify `main`/`master`, or delete another worktree.
 
@@ -135,7 +136,7 @@ Do not modify the three existing validation governance files.
 Require:
 
 - validation JSON parses;
-- `git diff --name-only 2396ec498c2ae1f81a007e0b4f5710289135ca09` contains exactly the two result files;
+- `git diff --name-only "$INITIAL_VALIDATION_HEAD"` contains exactly the two result files;
 - `git diff --check` clean;
 - no implementation or prior record changed.
 
@@ -158,7 +159,7 @@ Do not merge or mark any PR ready. Do not deploy. Do not create Binance.
 Return:
 
 1. PASS or BLOCKED execution result;
-2. initial validation HEAD;
+2. frozen initial validation HEAD;
 3. final validation commit SHA;
 4. exact two files created;
 5. validation outcome;
