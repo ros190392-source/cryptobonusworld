@@ -53,6 +53,24 @@ export const STAGE_DIRS = [
   '80-closeout',
 ];
 
+// V3-C5 — the exact deterministic initial skeleton produced by createTask.
+export const CONTRACT_FILES = [
+  'IDENTITY.json', 'DEEP_RESEARCH_PROMPT.md', 'SOURCE_TRUTH_REVIEW_CONTRACT.md',
+  'CORRECTION_CONTRACT.md', 'VALIDATION_CONTRACT.md', 'OWNER_CLOSEOUT_CONTRACT.md',
+  'RESEARCH_INVENTORY.json', 'GITHUB_PLAN.json',
+];
+// Stage dirs that carry a tracked .gitkeep at creation (all except 00-contract and
+// 20-research-output).
+export const GITKEEP_STAGES = ['10-input', '50-source-truth-review', '60-correction', '70-validation', '80-closeout'];
+// Exact set of task-root-relative files a fresh PREPARED skeleton must contain.
+export function canonicalSkeletonFiles() {
+  return [
+    'TASK_STATE.json',
+    ...CONTRACT_FILES.map((c) => `00-contract/${c}`),
+    ...GITKEEP_STAGES.map((s) => `${s}/.gitkeep`),
+  ];
+}
+
 // Exact eleven-file research inventory (order is canonical).
 export const RESEARCH_FILES = [
   'research-run.json',

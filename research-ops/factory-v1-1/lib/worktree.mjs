@@ -4,7 +4,7 @@
 // no user-controlled repository-root flag).
 
 import { execFileSync } from 'node:child_process';
-import { existsSync, statSync, readFileSync } from 'node:fs';
+import { existsSync, statSync, readFileSync, realpathSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
 // Ask Git to confirm a valid worktree and return its top level for `startDir`.
@@ -55,4 +55,31 @@ export function requireWorktreeRoot(startDir = process.cwd()) {
     throw new Error(`not inside a Git worktree (create confined to <worktree-root>/research-ops/tasks/): ${startDir}`);
   }
   return root;
+}
+
+// V3-C1 — resolve the worktree that CONTAINS the factory script, and require that the
+// current working directory resolves to the SAME worktree. This binds `create` output
+// to the CBW worktree the script lives in and fails closed when invoked by absolute
+// path from a different valid Git repository. Symlinked script paths are realpath'd
+// first; linked worktrees resolve through `git rev-parse` in resolveWorktreeRoot.
+export function requireScriptBoundWorktreeRoot(scriptPath, cwd = process.cwd()) {
+  let scriptDir;
+  try { scriptDir = resolve(realpathSync(scriptPath), '..'); }
+  catch { scriptDir = resolve(scriptPath, '..'); }
+  const scriptRoot = resolveWorktreeRoot(scriptDir);
+  if (!scriptRoot) {
+    throw new Error(`factory script is not inside a Git worktree: ${scriptPath}`);
+  }
+  const cwdRoot = resolveWorktreeRoot(cwd);
+  if (!cwdRoot) {
+    throw new Error(`current directory is not inside a Git worktree: ${cwd}`);
+  }
+  if (realOrSame(cwdRoot) !== realOrSame(scriptRoot)) {
+    throw new Error(`refusing to create outside the factory worktree: cwd worktree (${cwdRoot}) != script worktree (${scriptRoot})`);
+  }
+  return scriptRoot;
+}
+
+function realOrSame(p) {
+  try { return realpathSync(p); } catch { return p; }
 }

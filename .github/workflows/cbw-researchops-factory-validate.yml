@@ -63,23 +63,26 @@ jobs:
           git cat-file -e "${BASE_SHA}^{commit}"
           git cat-file -e "${HEAD_SHA}^{commit}"
           # C3 — no `|| true`; a diff failure fails the job.
-          git diff --name-status "$BASE_SHA" "$HEAD_SHA" > changed-status.txt
+          # V3-C10 — NUL-delimited, unquoted name-status: unambiguous for paths with
+          # tabs/newlines/quotes and immune to core.quotePath escaping.
+          git -c core.quotePath=false diff -z --name-status "$BASE_SHA" "$HEAD_SHA" > changed-status.z
           {
             echo "BASE_SHA=$BASE_SHA"; echo "HEAD_SHA=$HEAD_SHA"
             echo "HEAD_BRANCH=$HEAD_BRANCH"; echo "BASE_BRANCH=$BASE_BRANCH"
           } >> "$GITHUB_ENV"
-          echo "Changed (name-status):"
-          cat changed-status.txt
+          echo "Changed (name-status, human view):"
+          git --no-pager diff --name-status "$BASE_SHA" "$HEAD_SHA" || true
 
       - name: Enforce append-only boundary (fail-closed)
         run: |
           set -euo pipefail
-          # V2-C3/C4/C5 — the validator receives trusted PR head/base branch metadata
-          # (to bind change mode) and trusted base/head SHAs (to derive per-root stage
-          # transitions from Git blobs). C4 rejects any non-factory workflow change;
-          # C4/C2 reject task-root deletion, malformed statuses and missing roots.
+          # V2/V3 — the validator receives trusted PR head/base branch metadata (to bind
+          # change mode via the exact factory lineage), and trusted base/head SHAs (to
+          # derive per-root stage transitions, declared branch, task id and history from
+          # Git blobs). Rejects non-factory workflow changes, frozen-layer mutation,
+          # workflow deletion, task-root deletion, malformed statuses and missing roots.
           node research-ops/factory-v1-1/bin/researchops.mjs check-boundary \
-            --changed-status changed-status.txt \
+            --changed-status-z changed-status.z \
             --emit-task-roots task-roots.txt \
             --head-branch "$HEAD_BRANCH" \
             --base-branch "$BASE_BRANCH" \

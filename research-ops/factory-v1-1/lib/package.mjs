@@ -3,7 +3,7 @@
 
 import { join } from 'node:path';
 import { readdirSync, lstatSync } from 'node:fs';
-import { exists, readBuf, readText, byteLength, hasBOM, hasCR, isValidUtf8 } from './util.mjs';
+import { exists, readBuf, readText, byteLength, hasBOM, hasCR, isValidUtf8, hasForbiddenControls } from './util.mjs';
 import {
   RESEARCH_FILES, RESEARCH_JSON_FILES, MANIFEST_HASHED_FILES,
   ID_COLLECTIONS, CROSSREF_RULES,
@@ -21,6 +21,7 @@ const REQUIRED_REF_FIELDS = {
 // key present and of the named kind ('array' or 'object'). Compatible with the
 // proven OKX package shape and the fixture package shape.
 const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
+const nonEmptyStr = (v) => typeof v === 'string' && v.trim().length > 0;
 const RESEARCH_JSON_SHAPES = {
   'research-run.json': { overallFinding: 'object' },
   'source-verification.json': { sources: 'array' },
@@ -32,6 +33,8 @@ const RESEARCH_JSON_SHAPES = {
   'schema-normalization-notes.json': { notes: 'array' },
   'import-readiness.json': { readiness: 'object' },
 };
+// V3-C11 — non-vacuous minimum contents inside the governed top-level objects, aligned
+// with the proven OKX package and the normalized fixture package.
 function checkResearchShape(file, obj) {
   if (!isObj(obj)) return `${file}: top level must be a JSON object (got ${obj === null ? 'null' : Array.isArray(obj) ? 'array' : typeof obj})`;
   const spec = RESEARCH_JSON_SHAPES[file];
@@ -41,6 +44,14 @@ function checkResearchShape(file, obj) {
     if (v === undefined) return `${file}: missing required '${key}'`;
     if (kind === 'array' && !Array.isArray(v)) return `${file}.${key} must be an array`;
     if (kind === 'object' && !isObj(v)) return `${file}.${key} must be an object`;
+  }
+  if (file === 'research-run.json' && !nonEmptyStr(obj.overallFinding.recommendation)) return `${file}.overallFinding.recommendation must be a non-empty string`;
+  if (file === 'offer-eligibility-review.json' && !Array.isArray(obj.review.sourceIds)) return `${file}.review.sourceIds must be an array`;
+  if (file === 'import-readiness.json') {
+    const keys = Object.keys(obj.readiness);
+    if (keys.length === 0) return `${file}.readiness must not be empty`;
+    for (const k of keys) if (/Ready$/.test(k) && typeof obj.readiness[k] !== 'boolean') return `${file}.readiness.${k} must be boolean`;
+    if (!keys.some((k) => /Ready$/.test(k))) return `${file}.readiness must declare at least one *Ready boolean`;
   }
   return '';
 }
@@ -104,8 +115,9 @@ export function validatePackageDir(outDir, R) {
     if (!isValidUtf8(buf)) { encOk = false; encBad.push(`${f}:INVALID_UTF8`); }
     if (hasBOM(buf)) { encOk = false; encBad.push(`${f}:BOM`); }
     if (hasCR(buf)) { encOk = false; encBad.push(`${f}:CRLF`); }
+    if (hasForbiddenControls(buf)) { encOk = false; encBad.push(`${f}:CONTROL_BYTE`); } // V3-C12
   }
-  R.add('canonical UTF-8 (valid bytes, no BOM) and LF line endings', encOk, encBad.join(', '));
+  R.add('canonical UTF-8 (valid bytes, no BOM/CR, no control bytes) and LF line endings', encOk, encBad.join(', '));
 
   // JSON parse
   const parsed = {};

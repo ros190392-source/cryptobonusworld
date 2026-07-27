@@ -10,15 +10,16 @@ import { join } from 'node:path';
 import { createTask } from '../lib/create.mjs';
 import { validateTask } from '../lib/validate.mjs';
 import { statusTask } from '../lib/status.mjs';
-import { canTransition, isValidTaskId, validateIdentityValues } from '../lib/model.mjs';
+import { canTransition, isValidTaskId, validateIdentityValues, canonicalSkeletonFiles } from '../lib/model.mjs';
 import { validateOwnerReceipt, enforceAuthFloor } from '../lib/authz.mjs';
 import { buildManifest } from '../lib/manifest.mjs';
-import { checkChangedFileBoundary, parseNameStatus, trustedModeFromMeta } from '../lib/boundary.mjs';
-import { checkStageTransition } from '../lib/stage.mjs';
-import { resolveWorktreeRoot } from '../lib/worktree.mjs';
-import { validateMarker, REVIEW_MARKER, VALIDATION_MARKER } from '../lib/markers.mjs';
-import { validateGithubPlanShape } from '../lib/schema.mjs';
-import { isValidUtf8, writeCanonical, writeJson } from '../lib/util.mjs';
+import { checkChangedFileBoundary, parseNameStatus, parseNameStatusZ, trustedModeFromMeta } from '../lib/boundary.mjs';
+import { checkStageTransition, checkHistoryAppendOnly } from '../lib/stage.mjs';
+import { resolveWorktreeRoot, requireScriptBoundWorktreeRoot } from '../lib/worktree.mjs';
+import { validateMarker, REVIEW_MARKER, VALIDATION_MARKER, MERGE_MARKER } from '../lib/markers.mjs';
+import { validateGithubPlanShape, validateHistory } from '../lib/schema.mjs';
+import { factoryLineageEntry } from '../lib/lineage.mjs';
+import { isValidUtf8, hasForbiddenControls, writeCanonical, writeJson } from '../lib/util.mjs';
 
 let pass = 0; let fail = 0; const failures = [];
 function check(name, cond, detail = '') {
@@ -61,9 +62,27 @@ function writePkg(taskDir, mut = {}) {
   return out;
 }
 function rebuildManifest(out) { writeCanonical(join(out, 'MANIFEST.txt'), buildManifest(out, HASHED, {})); }
+// Canonical DIRECT history path to a state (no correction branch unless the state is on
+// the correction path). Keeps TASK_STATE.history valid under V3-C9.
+const DIRECT_PATH = {
+  PREPARED: ['PREPARED'],
+  RESEARCH_CAPTURED: ['PREPARED', 'RESEARCH_CAPTURED'],
+  PACKAGE_VALIDATED: ['PREPARED', 'RESEARCH_CAPTURED', 'PACKAGE_VALIDATED'],
+  SOURCE_TRUTH_REVIEWED: ['PREPARED', 'RESEARCH_CAPTURED', 'PACKAGE_VALIDATED', 'SOURCE_TRUTH_REVIEWED'],
+  CORRECTION_REQUIRED: ['PREPARED', 'RESEARCH_CAPTURED', 'PACKAGE_VALIDATED', 'SOURCE_TRUTH_REVIEWED', 'CORRECTION_REQUIRED'],
+  CORRECTED: ['PREPARED', 'RESEARCH_CAPTURED', 'PACKAGE_VALIDATED', 'SOURCE_TRUTH_REVIEWED', 'CORRECTION_REQUIRED', 'CORRECTED'],
+  VALIDATED: ['PREPARED', 'RESEARCH_CAPTURED', 'PACKAGE_VALIDATED', 'SOURCE_TRUTH_REVIEWED', 'VALIDATED'],
+  OWNER_CLOSEOUT_REQUIRED: ['PREPARED', 'RESEARCH_CAPTURED', 'PACKAGE_VALIDATED', 'SOURCE_TRUTH_REVIEWED', 'VALIDATED', 'OWNER_CLOSEOUT_REQUIRED'],
+  RESEARCH_RECORD_MERGE_AUTHORIZED: ['PREPARED', 'RESEARCH_CAPTURED', 'PACKAGE_VALIDATED', 'SOURCE_TRUTH_REVIEWED', 'VALIDATED', 'OWNER_CLOSEOUT_REQUIRED', 'RESEARCH_RECORD_MERGE_AUTHORIZED'],
+  RESEARCH_RECORD_MERGED_TO_MAIN: ['PREPARED', 'RESEARCH_CAPTURED', 'PACKAGE_VALIDATED', 'SOURCE_TRUTH_REVIEWED', 'VALIDATED', 'OWNER_CLOSEOUT_REQUIRED', 'RESEARCH_RECORD_MERGE_AUTHORIZED', 'RESEARCH_RECORD_MERGED_TO_MAIN'],
+  BLOCKED: ['PREPARED', 'BLOCKED'],
+};
+function buildHistory(state) { return (DIRECT_PATH[state] || ['PREPARED']).map((s, i) => ({ state: s, at: `2026-07-27T00:00:0${i}Z` })); }
 function setState(taskDir, state, extra = {}) {
   const p = join(taskDir, 'TASK_STATE.json'); const o = JSON.parse(readFileSync(p, 'utf8'));
-  o.state = state; Object.assign(o, extra); writeFileSync(p, JSON.stringify(o, null, 2) + '\n');
+  o.state = state;
+  if (!('history' in extra)) o.history = buildHistory(state);
+  Object.assign(o, extra); writeFileSync(p, JSON.stringify(o, null, 2) + '\n');
 }
 const nameStatus = (rows) => parseNameStatus(rows.map((r) => r.join('\t')).join('\n'));
 // V2-C10 — write cumulative identity-bound stage markers for BASE.taskId.
@@ -178,14 +197,14 @@ function run() {
   { const r = checkChangedFileBoundary(parseNameStatus('D\tresearch-ops/tasks/CBW-A-001/TASK_STATE.json'), { headBranch: 'research/kz-binance-b', baseBranch: 'main' }); check('V2-C2g rename/delete of governed record rejected', !r.ok && r.deletedTaskPaths.length === 1); }
 
   // ---- V2-C3 trusted PR/change-mode identity ----
-  { check('V2-C3 factory branch -> FACTORY_GOVERNANCE', trustedModeFromMeta({ headBranch: 'correction/researchops-factory-v1-1-v2-012', baseBranch: 'main' }) === 'FACTORY_GOVERNANCE'); }
+  { check('V2-C3 factory branch -> FACTORY_GOVERNANCE', trustedModeFromMeta({ headBranch: 'correction/researchops-factory-v1-1-v3-014', baseBranch: 'validation/researchops-factory-v1-1-v2-013' }) === 'FACTORY_GOVERNANCE'); }
   { check('V2-C3b research branch -> RESEARCH_TASK', trustedModeFromMeta({ headBranch: 'research/kz-binance-kz-p0-d', baseBranch: 'main' }) === 'RESEARCH_TASK'); }
   { const r = checkChangedFileBoundary(nameStatus([['M', 'research-ops/factory-v1-1/lib/util.mjs']]), { headBranch: 'research/kz-binance-kz-p0-d', baseBranch: 'main' }); check('V2-C3c research branch changing only a factory file rejected (mode confusion)', !r.ok); }
   { const r = checkChangedFileBoundary(nameStatus([['M', 'research-ops/factory-v1-1/lib/util.mjs']])); check('V2-C3d factory change with NO trusted metadata fails closed', !r.ok); }
 
   // ---- V2-C4 exact workflow allowlist ----
-  { const r = checkChangedFileBoundary(nameStatus([['M', '.github/workflows/deploy-production.yml']]), { headBranch: 'correction/researchops-factory-v1-1-v2-012', baseBranch: 'main' }); check('V2-C4 unrelated deploy workflow rejected', !r.ok); }
-  { const r = checkChangedFileBoundary(nameStatus([['M', '.github/workflows/cbw-researchops-factory-validate.yml']]), { headBranch: 'correction/researchops-factory-v1-1-v2-012', baseBranch: 'main' }); check('V2-C4b exact factory workflow accepted', r.ok && r.mode === 'FACTORY_GOVERNANCE'); }
+  { const r = checkChangedFileBoundary(nameStatus([['M', '.github/workflows/deploy-production.yml']]), { headBranch: 'correction/researchops-factory-v1-1-v3-014', baseBranch: 'validation/researchops-factory-v1-1-v2-013' }); check('V2-C4 unrelated deploy workflow rejected', !r.ok); }
+  { const r = checkChangedFileBoundary(nameStatus([['M', '.github/workflows/cbw-researchops-factory-validate.yml']]), { headBranch: 'correction/researchops-factory-v1-1-v3-014', baseBranch: 'validation/researchops-factory-v1-1-v2-013' }); check('V2-C4b exact factory workflow accepted', r.ok && r.mode === 'FACTORY_GOVERNANCE'); }
 
   // ---- V2-C5 stage-aware append-only (pure) ----
   { const r = checkStageTransition({ records: [{ status: 'M', rel: '00-contract/IDENTITY.json' }], baseState: 'VALIDATED', headState: 'VALIDATED', taskExistsAtBase: true }); check('V2-C5 00-contract modification after creation rejected', !r.ok); }
@@ -194,7 +213,7 @@ function run() {
   { const r = checkStageTransition({ records: [{ status: 'R', rel: '60-correction/x.json', srcRel: '60-correction/y.json' }], baseState: 'CORRECTED', headState: 'VALIDATED', taskExistsAtBase: true }); check('V2-C5d rename within closed 60-stage rejected', !r.ok); }
   { const r = checkStageTransition({ records: [{ status: 'A', rel: '70-validation/VALIDATION.json' }, { status: 'M', rel: 'TASK_STATE.json' }], baseState: 'SOURCE_TRUTH_REVIEWED', headState: 'VALIDATED', taskExistsAtBase: true }); check('V2-C5e legal add into open 70-stage on VALIDATED transition allowed', r.ok, r.violations.join('; ')); }
   { const r = checkStageTransition({ records: [{ status: 'A', rel: '80-closeout/EXTRA.json' }], baseState: 'CORRECTED', headState: 'VALIDATED', taskExistsAtBase: true }); check('V2-C5f unrelated addition in a non-open stage rejected', !r.ok); }
-  { const r = checkStageTransition({ records: [{ status: 'A', rel: '00-contract/IDENTITY.json' }], baseState: null, headState: 'PREPARED', taskExistsAtBase: false }); check('V2-C5g creation admits additions at PREPARED', r.ok); }
+  { const r = checkStageTransition({ records: canonicalSkeletonFiles().map((f) => ({ status: 'A', rel: f })), baseState: null, headState: 'PREPARED', taskExistsAtBase: false }); check('V2-C5g creation admits the exact skeleton at PREPARED', r.ok, r.violations.join('; ')); }
   { const r = checkStageTransition({ records: [{ status: 'M', rel: '20-research-output/x.json' }], baseState: 'PREPARED', headState: 'VALIDATED', taskExistsAtBase: true }); check('V2-C5h illegal transition PREPARED->VALIDATED rejected', !r.ok); }
 
   // ---- V2-C6 full GITHUB_PLAN cross-binding ----
@@ -233,6 +252,80 @@ function run() {
   { const t = mk(); writePkg(t); setState(t, 'VALIDATED'); writeJson(join(t, '70-validation', 'VALIDATION.json'), { taskId: BASE.taskId, validationOutcome: 'X' }); check('V2-C10d cumulative: VALIDATED without 50-review marker rejected', !validateTask(t, {}).ok); }
   { const t = mk(); writePkg(t); setState(t, 'VALIDATED'); writeMarkers(t, 'validation'); check('V2-C10e cumulative identity-bound markers accepted', validateTask(t, {}).ok); }
   { const r = validateMarker(mk(), REVIEW_MARKER, BASE.taskId); check('V2-C10f missing marker reported', !r.ok); }
+
+  // ================= V3 corrections =================
+  const FAC = { headBranch: 'correction/researchops-factory-v1-1-v3-014', baseBranch: 'validation/researchops-factory-v1-1-v2-013' };
+  const RES = (root, over = {}) => ({ headBranch: 'research/kz-binance-kz-p0-d', baseBranch: 'main', taskStates: { [root]: { base: 'PREPARED', head: 'RESEARCH_CAPTURED', existsAtBase: true, headBranch: 'research/kz-binance-kz-p0-d', headTaskId: root.split('/').pop(), baseHistory: [{ state: 'PREPARED' }], headHistory: [{ state: 'PREPARED' }, { state: 'RESEARCH_CAPTURED' }], ...over } } });
+
+  // ---- V3-C1 script-worktree binding ----
+  { const ext = mkdtempSync(join(tmpdir(), 'rops-foreign-')); roots.push(ext); let threw = false;
+    try { requireScriptBoundWorktreeRoot(join(process.cwd(), 'research-ops/factory-v1-1/bin/researchops.mjs'), ext); } catch { threw = true; }
+    check('V3-C1 foreign/non-git cwd rejected by script-bound resolver', threw); }
+  { const scriptRoot = requireScriptBoundWorktreeRoot(join(process.cwd(), 'research-ops/factory-v1-1/bin/researchops.mjs'), process.cwd());
+    check('V3-C1b same-worktree cwd resolves the script worktree', typeof scriptRoot === 'string' && scriptRoot.length > 0); }
+
+  // ---- V3-C2 exact factory lineage ----
+  { check('V3-C2 exact lineage pair accepted', !!factoryLineageEntry('correction/researchops-factory-v1-1-v3-014', 'validation/researchops-factory-v1-1-v2-013')); }
+  { const spoofs = ['feat/researchops-factory-v1-1-evil', 'correction/researchops-factory-v1-1-unrelated', 'validation/researchops-factory-v1-1-fake'];
+    check('V3-C2b spoof factory branches rejected', spoofs.every((b) => trustedModeFromMeta({ headBranch: b, baseBranch: 'main' }) === null)); }
+  { check('V3-C2c exact head with wrong base rejected', trustedModeFromMeta({ headBranch: 'correction/researchops-factory-v1-1-v3-014', baseBranch: 'main' }) === null); }
+
+  // ---- V3-C3 research head <-> task plan binding ----
+  { const root = 'research-ops/tasks/CBW-A-001'; const r = checkChangedFileBoundary(nameStatus([['A', `${root}/20-research-output/research-run.json`]]), RES(root, { headBranch: 'research/zz-mismatch-b' })); check('V3-C3 research head != declared branch rejected', !r.ok); }
+  { const root = 'research-ops/tasks/CBW-A-001'; const r = checkChangedFileBoundary(nameStatus([['A', `${root}/20-research-output/research-run.json`]]), RES(root)); check('V3-C3b matching research head accepted', r.ok, r.violations.join('; ')); }
+
+  // ---- V3-C4 frozen governance/history + workflow protection ----
+  { const frozen = ['governance/POLICY.md', 'validation-009/x.json', 'correction-010/CORRECTION_RESULT.json', 'correction-validation-011/y.json', 'correction-v2-012/CORRECTION_V2_CONTRACT.md', 'correction-v2-validation-013/z.json'];
+    const allRejected = frozen.every((f) => !checkChangedFileBoundary(nameStatus([['M', `research-ops/factory-v1-1/${f}`]]), FAC).ok);
+    check('V3-C4 frozen prior layers immutable under factory-governance', allRejected); }
+  { const r = checkChangedFileBoundary(nameStatus([['D', '.github/workflows/cbw-researchops-factory-validate.yml']]), FAC); check('V3-C4b factory workflow deletion rejected', !r.ok); }
+  { const r = checkChangedFileBoundary(nameStatus([['R100', '.github/workflows/cbw-researchops-factory-validate.yml', '.github/workflows/renamed.yml']]), FAC); check('V3-C4c factory workflow rename rejected', !r.ok); }
+  { const r = checkChangedFileBoundary(nameStatus([['M', 'research-ops/factory-v1-1/correction-v3-014/CORRECTION_V3_RESULT.json'], ['M', 'research-ops/factory-v1-1/lib/boundary.mjs']]), FAC); check('V3-C4d current result dir + impl allowed', r.ok, r.violations.join('; ')); }
+  { const r = checkChangedFileBoundary(nameStatus([['M', 'research-ops/factory-v1-1/correction-v2-validation-013/FACTORY_CORRECTION_V2_VALIDATION.json']]), FAC); check('V3-C4e other-task result dir rejected', !r.ok); }
+
+  // ---- V3-C5 exact initial skeleton ----
+  { const withExtra = [...canonicalSkeletonFiles(), 'ROGUE.txt'].map((f) => ({ status: 'A', rel: f }));
+    check('V3-C5 extra creation file rejected', !checkStageTransition({ records: withExtra, baseState: null, headState: 'PREPARED', taskExistsAtBase: false }).ok); }
+  { const missing = canonicalSkeletonFiles().filter((f) => f !== 'TASK_STATE.json').map((f) => ({ status: 'A', rel: f }));
+    check('V3-C5b missing skeleton file rejected', !checkStageTransition({ records: missing, baseState: null, headState: 'PREPARED', taskExistsAtBase: false }).ok); }
+
+  // ---- V3-C6 exact per-stage inventory + duplicate markers ----
+  { const r = checkStageTransition({ records: [{ status: 'A', rel: '70-validation/UNRELATED.json' }, { status: 'M', rel: 'TASK_STATE.json' }], baseState: 'SOURCE_TRUTH_REVIEWED', headState: 'VALIDATED', taskExistsAtBase: true }); check('V3-C6 unrelated file in stage rejected', !r.ok); }
+  { const t = mk(); writeJson(join(t, '70-validation', 'VALIDATION.json'), { taskId: BASE.taskId, validationOutcome: 'VALIDATED_FOR_OWNER_MERGE_REVIEW' }); writeJson(join(t, '70-validation', 'FACTORY_VALIDATION.json'), { taskId: BASE.taskId, validationOutcome: 'VALIDATED_FOR_OWNER_MERGE_REVIEW' });
+    check('V3-C6b conflicting duplicate markers rejected', !validateMarker(t, VALIDATION_MARKER, BASE.taskId).ok); }
+
+  // ---- V3-C7 marker outcome enums + merge lineage ----
+  { const t = mk(); writeJson(join(t, '70-validation', 'VALIDATION.json'), { taskId: BASE.taskId, validationOutcome: 'banana' }); check('V3-C7 arbitrary outcome rejected', !validateMarker(t, VALIDATION_MARKER, BASE.taskId).ok); }
+  { const t = mk(); writeJson(join(t, '80-closeout', 'MERGE_RECORD.json'), { taskId: BASE.taskId, mergeCommit: 'x' }); check('V3-C7b fake merge commit rejected', !validateMarker(t, MERGE_MARKER, BASE.taskId).ok); }
+  { const t = mk(); writeJson(join(t, '80-closeout', 'MERGE_RECORD.json'), { taskId: BASE.taskId, targetBranch: 'main', mergeCommit: 'a'.repeat(40), mergedState: 'RESEARCH_RECORD_MERGED_TO_MAIN', precedingReceiptTaskId: BASE.taskId }); check('V3-C7c valid 40-hex merge record accepted', validateMarker(t, MERGE_MARKER, BASE.taskId).ok, validateMarker(t, MERGE_MARKER, BASE.taskId).reason); }
+
+  // ---- V3-C8 cumulative correction from history ----
+  { const t = mk(); writePkg(t); writeMarkers(t, 'validation'); setState(t, 'VALIDATED', { history: buildHistory('CORRECTED').concat([{ state: 'VALIDATED', at: '2026-07-27T00:00:09Z' }]) }); check('V3-C8 VALIDATED via correction path without correction marker rejected', !validateTask(t, {}).ok); }
+  { const t = mk(); writePkg(t); writeMarkers(t, 'validation'); writeJson(join(t, '60-correction', 'CORRECTION_RESULT.json'), { taskId: BASE.taskId, correctionOutcome: 'CORRECTED_READY_FOR_INDEPENDENT_VALIDATION' }); setState(t, 'VALIDATED', { history: buildHistory('CORRECTED').concat([{ state: 'VALIDATED', at: '2026-07-27T00:00:09Z' }]) }); check('V3-C8b correction path WITH correction marker accepted', validateTask(t, {}).ok, validateTask(t, {}).checks.filter((c) => !c.ok).map((c) => c.name).join('|')); }
+
+  // ---- V3-C9 history integrity + append-only ----
+  { const t = mk(); const p = join(t, 'TASK_STATE.json'); const o = JSON.parse(readFileSync(p)); o.state = 'VALIDATED'; writeFileSync(p, JSON.stringify(o, null, 2) + '\n'); check('V3-C9 head state contradicting history rejected', !validateTask(t, {}).ok); }
+  { check('V3-C9b non-canonical history transition rejected', validateHistory([{ state: 'PREPARED' }, { state: 'VALIDATED' }], 'VALIDATED').length > 0); }
+  { check('V3-C9c append-only prefix ok', checkHistoryAppendOnly([{ state: 'PREPARED' }], [{ state: 'PREPARED' }, { state: 'RESEARCH_CAPTURED' }]).ok); }
+  { check('V3-C9d rewritten prior history rejected', !checkHistoryAppendOnly([{ state: 'PREPARED', at: 'a' }], [{ state: 'PREPARED', at: 'TAMPERED' }, { state: 'RESEARCH_CAPTURED' }]).ok); }
+
+  // ---- V3-C10 strict name-status grammar ----
+  { check('V3-C10 R101 rejected', !!parseNameStatus('R101\ta\tb')[0].malformed); }
+  { check('V3-C10b C999 rejected', !!parseNameStatus('C999\ta\tb')[0].malformed); }
+  { check('V3-C10c R100 (boundary) accepted', !parseNameStatus('R100\ta/b\tc/d')[0].malformed); }
+  { const recs = parseNameStatusZ('A\0research-ops/tasks/CBW-A-001/x.json\0R100\0research-ops/tasks/CBW-A-001/y.json\0research-ops/tasks/CBW-A-001/z.json'); check('V3-C10d NUL-delimited parse (A + R100 src/dst)', recs.length === 2 && recs[1].src.endsWith('y.json') && recs[1].dst.endsWith('z.json')); }
+  { check('V3-C10e quoted path in tab parser rejected', !!parseNameStatus('A\t"quoted\\tpath"')[0].malformed); }
+
+  // ---- V3-C11 non-vacuous minima ----
+  { const t = mk(); writePkg(t, { json: { 'research-run.json': { schemaVersion: '1.0', overallFinding: {} } } }); check('V3-C11 vacuous overallFinding {} rejected', !validateTask(t, {}).ok); }
+  { const t = mk(); writePkg(t, { json: { 'import-readiness.json': { schemaVersion: '1.0', readiness: {} } } }); check('V3-C11b vacuous readiness {} rejected', !validateTask(t, {}).ok); }
+  { const t = mk(); writePkg(t, { json: { 'offer-eligibility-review.json': { schemaVersion: '1.0', review: {} } } }); check('V3-C11c review without sourceIds rejected', !validateTask(t, {}).ok); }
+
+  // ---- V3-C12 control-byte rejection ----
+  { check('V3-C12 NUL byte flagged', hasForbiddenControls(Buffer.from([0x41, 0x00, 0x42]))); }
+  { check('V3-C12b BEL control flagged', hasForbiddenControls(Buffer.from([0x41, 0x07]))); }
+  { check('V3-C12c tab/LF allowed', !hasForbiddenControls(Buffer.from('a\tb\nc', 'utf8'))); }
+  { const t = mk(); const out = writePkg(t); writeFileSync(join(out, 'schema-normalization-notes.json'), Buffer.concat([Buffer.from('{"notes":[],"x":"a', 'utf8'), Buffer.from([0x00]), Buffer.from('b"}', 'utf8')])); writeFileSync(join(out, 'MANIFEST.txt'), Buffer.from(buildManifest(out, HASHED, {}), 'utf8')); check('V3-C12d NUL in JSON rejected with valid MANIFEST', !validateTask(t, {}).ok); }
 
   for (const r of roots) { try { rmSync(r, { recursive: true, force: true }); } catch { /* ignore */ } }
   console.log(`\nFIXTURES: ${pass} passed, ${fail} failed`);

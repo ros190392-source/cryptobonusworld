@@ -1,0 +1,124 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CORRECTION-V3-014",
+  "project": "CryptoBonusWorld",
+  "governingIssue": 56,
+  "correctionV3PullRequest": 57,
+  "sourceValidationIssue": 54,
+  "sourceValidationPullRequest": 55,
+  "sourceValidationCommitSha": "acd83d1d4e854db26ec1054b03c6e9cfd42bd2da",
+  "sourceCorrectionV2PullRequest": 53,
+  "sourceCorrectionV2CommitSha": "d3ed1128497cf682863c438d47eb65d26ebb536b",
+  "branch": "correction/researchops-factory-v1-1-v3-014",
+  "baseBranch": "validation/researchops-factory-v1-1-v2-013",
+  "frozenInitialCorrectionV3HeadSha": "78c56177ce569baa75c96613e0f74881078318cc",
+  "protectedMainSha": "04157b9dfb140918a8569a5026da747b429e5ed3",
+  "protectedMasterSha": "998fcedd7d9febbec5b130d4765dfeaafc40960b",
+  "correctedAt": "2026-07-27",
+  "environment": { "nodeVersion": "v24 (Node 20-compatible ESM/built-ins)", "dependencyFree": true, "scmBinary": "git (fixed-argument execFileSync; no shell)" },
+
+  "changedFileInventory": [
+    ".github/workflows/cbw-researchops-factory-validate.yml",
+    "research-ops/factory-v1-1/README.md",
+    "research-ops/factory-v1-1/bin/researchops.mjs",
+    "research-ops/factory-v1-1/fixtures/run.mjs",
+    "research-ops/factory-v1-1/lib/boundary.mjs",
+    "research-ops/factory-v1-1/lib/create.mjs",
+    "research-ops/factory-v1-1/lib/evidence.mjs",
+    "research-ops/factory-v1-1/lib/lineage.mjs",
+    "research-ops/factory-v1-1/lib/markers.mjs",
+    "research-ops/factory-v1-1/lib/model.mjs",
+    "research-ops/factory-v1-1/lib/package.mjs",
+    "research-ops/factory-v1-1/lib/schema.mjs",
+    "research-ops/factory-v1-1/lib/stage.mjs",
+    "research-ops/factory-v1-1/lib/util.mjs",
+    "research-ops/factory-v1-1/lib/worktree.mjs",
+    "research-ops/factory-v1-1/correction-v3-014/CORRECTION_V3_RESULT.json",
+    "research-ops/factory-v1-1/correction-v3-014/CORRECTION_V3_RESULT.md"
+  ],
+  "newLibraryModules": ["lib/lineage.mjs"],
+
+  "correctionMatrix": [
+    { "id": "V3-C1", "finding": "A", "name": "factory-script worktree binding", "change": "worktree.mjs requireScriptBoundWorktreeRoot resolves the worktree containing the factory script (realpath'd, linked-worktree aware) and requires cwd to resolve to the SAME worktree; create.mjs uses it. Foreign-worktree/absolute-path invocation fails closed.", "verdict": "APPLIED", "proof": "CLI from a foreign valid Git repo -> exit 2, nothing created; fixtures V3-C1/b" },
+    { "id": "V3-C2", "finding": "B", "name": "exact factory lineage", "change": "New lib/lineage.mjs enumerates the exact governed (head, base) factory stack; trustedModeFromMeta grants FACTORY_GOVERNANCE only on an exact pair. Broad prefix regex removed.", "verdict": "APPLIED", "proof": "fixtures V3-C2/b/c; spoof branches and wrong-base rejected" },
+    { "id": "V3-C3", "finding": "C", "name": "research head <-> plan binding", "change": "boundary binds the trusted PR head branch to the task's declared TASK_STATE.branch (from the head blob) and the root task id to the declared taskId; base must be main.", "verdict": "APPLIED", "proof": "fixtures V3-C3/b; CLI mismatch rejected" },
+    { "id": "V3-C4", "finding": "D/N", "name": "frozen governance/history + workflow protection", "change": "FACTORY_GOVERNANCE restricts writes to implementation paths plus the current task's single result dir (from lineage); FROZEN_FACTORY_PREFIXES are immutable; the factory workflow may not be deleted or renamed.", "verdict": "APPLIED", "proof": "fixtures V3-C4..e; CLI frozen mutation & workflow deletion -> exit 1; impl+own-result -> exit 0" },
+    { "id": "V3-C5", "finding": "E", "name": "exact initial skeleton", "change": "stage.mjs creation branch requires the changed additions to equal canonicalSkeletonFiles() exactly (all additions, head PREPARED); extra/missing files fail.", "verdict": "APPLIED", "proof": "fixtures V3-C5/b" },
+    { "id": "V3-C6", "finding": "F", "name": "exact per-stage inventory + duplicate markers", "change": "stage.mjs allows only the exact governed files per transition; markers.mjs requires exactly one candidate per stage (>1 conflicting -> reject).", "verdict": "APPLIED", "proof": "fixtures V3-C6/b" },
+    { "id": "V3-C7", "finding": "G", "name": "marker outcome enums + merge lineage", "change": "markers.mjs enforces controlled review/correction/validation outcome enums; the merge marker requires exact taskId, targetBranch main, 40-hex mergeCommit, recognized mergedState and preceding-receipt linkage.", "verdict": "APPLIED", "proof": "fixtures V3-C7..c; 'banana' and fake commit rejected, valid 40-hex accepted" },
+    { "id": "V3-C8", "finding": "H", "name": "cumulative correction from history", "change": "evidence.mjs adds the correction marker to the required cumulative set whenever TASK_STATE.history used CORRECTION_REQUIRED/CORRECTED and the state is VALIDATED or higher.", "verdict": "APPLIED", "proof": "fixtures V3-C8/b" },
+    { "id": "V3-C9", "finding": "I", "name": "history integrity + append-only", "change": "schema.mjs validateHistory (non-empty ordered objects, first PREPARED, last==state, canonical transitions, monotonic timestamps); boundary compares base/head history blobs so prior entries are append-only (checkHistoryAppendOnly).", "verdict": "APPLIED", "proof": "fixtures V3-C9..d" },
+    { "id": "V3-C10", "finding": "K", "name": "strict Git name-status grammar", "change": "boundary.mjs bounds R/C scores to 0-100, rejects quoted/escaped tab-form paths, and adds parseNameStatusZ; the workflow feeds `git -c core.quotePath=false diff -z`.", "verdict": "APPLIED", "proof": "fixtures V3-C10..e; CLI R101 -> exit 1" },
+    { "id": "V3-C11", "finding": "L", "name": "non-vacuous package minima", "change": "package.mjs requires overallFinding.recommendation (non-empty string), review.sourceIds (array) and non-empty boolean readiness.*Ready; empty {} objects rejected.", "verdict": "APPLIED", "proof": "fixtures V3-C11..c" },
+    { "id": "V3-C12", "finding": "M", "name": "canonical-text control-byte rejection", "change": "util.mjs hasForbiddenControls rejects NUL, C0 (except LF/TAB), DEL and C1 control code points; wired into package encoding and marker validation.", "verdict": "APPLIED", "proof": "fixtures V3-C12..d; NUL in JSON rejected with valid MANIFEST" }
+  ],
+
+  "syntaxCheck": "PASS (node --check on all factory .mjs)",
+  "fixtureResults": { "passed": 145, "failed": 0, "priorRetained": 108, "addedForV3": 37 },
+  "gitDiffCheck": "clean",
+
+  "cliSmokeResults": {
+    "createForeignWorktree": "exit 2 — fails closed, creates nothing in the foreign repo",
+    "createScriptBound": "writes only under the script's own worktree research-ops/tasks/",
+    "validate": "exit 0 (fresh PREPARED skeleton)",
+    "status": "exit 0",
+    "requirePackageEmpty": "exit 1",
+    "tasksDirFlag": "rejected (unknown flag)",
+    "ownerReceiptEscalation": "ok=false (deploy escalation rejected)",
+    "checkBoundaryFrozenMutation": "exit 1",
+    "checkBoundaryWorkflowDeletion": "exit 1",
+    "checkBoundaryImplPlusOwnResult": "exit 0",
+    "checkBoundaryR101Score": "exit 1"
+  },
+
+  "workflowResult": {
+    "onlyFactoryWorkflowChanged": true,
+    "permissions": "contents: read",
+    "persistCredentials": false,
+    "node": 20,
+    "timeBounded": true,
+    "nulDelimitedDiff": true,
+    "passesTrustedMetadata": ["base.sha", "head.sha", "head.ref", "base.ref", "GITHUB_WORKSPACE"],
+    "failsOnMissingMetadata": true,
+    "noAiCall": true, "noMerge": true, "noDeploy": true, "noBranchOrPrCreation": true, "noMasterMutation": true
+  },
+
+  "immutabilityVerification": {
+    "priorGovernanceValidationCorrectionUntouched": true,
+    "checkedFrozenLayers": ["governance/**", "validation-009/**", "correction-010/**", "correction-validation-011/**", "correction-v2-012/**", "correction-v2-validation-013/**"],
+    "researchOpsPilotUntouched": true,
+    "realResearchOpsTasksUntouched": true,
+    "correctionV3ContractStatePromptUnchanged": true
+  },
+
+  "remainingLimitations": [
+    "Worktree resolution and CLI stage/history derivation rely on the `git` binary (already required by SCM/CI); absent git, those paths fail closed.",
+    "Stage transitions, history append-only and research head<->plan binding are enforced in CI where trusted base/head SHAs and blobs are provided; a local `validate` without SHAs still enforces single-root/frozen/skeleton/marker/package/history-shape rules.",
+    "The factory lineage allowlist is an explicit governed constant extended by each authorized task (including the next validation branch); it must be updated as the stack grows.",
+    "Research-JSON validation enforces non-vacuous governed top-level minima; deep field-level semantics remain the responsibility of the source-truth review and validation stages."
+  ],
+
+  "correctionOutcome": "CORRECTED_READY_FOR_INDEPENDENT_VALIDATION",
+  "nextTask": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CORRECTION-V3-VALIDATION-015",
+
+  "authorizations": {
+    "factoryMergeToMainAuthorized": false,
+    "researchRecordMergeToMainAuthorized": false,
+    "binancePilotAuthorized": false,
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false,
+    "masterChangeAuthorized": false
+  }
+}

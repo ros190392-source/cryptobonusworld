@@ -30,6 +30,16 @@ export function isValidUtf8(buf) {
   catch { return false; }
 }
 
+// V3-C12 — reject disallowed canonical-text control characters. Allowed whitespace is
+// LF (0x0A) and TAB (0x09) only; CR is handled separately by hasCR. Rejects NUL and
+// other C0 controls, DEL (0x7F) and the C1 range (U+0080..U+009F). Operates on decoded
+// code points so UTF-8-encoded C1 controls are caught.
+const LENIENT_UTF8 = new TextDecoder('utf-8', { fatal: false, ignoreBOM: false });
+const FORBIDDEN_CONTROL_RE = new RegExp('[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F\\x7F-\\x9F]');
+export function hasForbiddenControls(buf) {
+  return FORBIDDEN_CONTROL_RE.test(LENIENT_UTF8.decode(buf));
+}
+
 // Read a file as a Buffer, failing closed.
 export function readBuf(path) {
   return readFileSync(path);

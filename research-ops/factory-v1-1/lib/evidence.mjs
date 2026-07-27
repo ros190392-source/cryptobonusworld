@@ -50,11 +50,19 @@ export function checkStateConsistency(declaredState, taskState, evidence, taskDi
   if (req.requiresPackage && !evidence.packageValid) {
     return { consistent: false, reason: evidence.packagePresent ? 'declared state requires a valid eleven-file package, but package validation failed' : 'declared state requires a research package, but 20-research-output/ is empty' };
   }
-  // V2-C10 — cumulative identity-bound stage markers.
-  if (req.markers && req.markers.length) {
+  // V2-C10 / V3-C8 — cumulative identity-bound stage markers, plus the correction
+  // marker whenever the governed history used the correction path.
+  let required = req.markers || [];
+  const VALIDATED_OR_HIGHER = ['VALIDATED', 'OWNER_CLOSEOUT_REQUIRED', 'RESEARCH_RECORD_MERGE_AUTHORIZED', 'RESEARCH_RECORD_MERGED_TO_MAIN'];
+  const history = Array.isArray(taskState && taskState.history) ? taskState.history : [];
+  const usedCorrection = history.some((h) => h && (h.state === 'CORRECTION_REQUIRED' || h.state === 'CORRECTED'));
+  if (usedCorrection && VALIDATED_OR_HIGHER.includes(declaredState) && !required.includes(CORRECTION_MARKER)) {
+    required = [...required, CORRECTION_MARKER];
+  }
+  if (required.length) {
     const taskId = taskState && taskState.taskId;
     if (!taskId) return { consistent: false, reason: 'declared state requires identity-bound markers but TASK_STATE.taskId is missing' };
-    const m = validateMarkers(taskDir, req.markers, taskId);
+    const m = validateMarkers(taskDir, required, taskId);
     if (!m.ok) return { consistent: false, reason: m.reason };
   }
   return { consistent: true, reason: '' };

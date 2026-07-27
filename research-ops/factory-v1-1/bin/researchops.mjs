@@ -12,7 +12,7 @@ import { parseArgs } from '../lib/args.mjs';
 import { createTask } from '../lib/create.mjs';
 import { validateTask } from '../lib/validate.mjs';
 import { statusTask } from '../lib/status.mjs';
-import { parseNameStatus, checkChangedFileBoundary } from '../lib/boundary.mjs';
+import { parseNameStatus, parseNameStatusZ, checkChangedFileBoundary } from '../lib/boundary.mjs';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 
@@ -94,15 +94,15 @@ function cmdStatus(argv) {
   process.exit(s.consistent ? 0 : 1);
 }
 
-// Read a task's TASK_STATE.state from a trusted Git blob at <sha>. Returns
-// { state|null, existsAtBase }. Fixed-arg execFile — no shell, no injection.
+// Read a task's TASK_STATE from a trusted Git blob at <sha>. Returns
+// { state, branch, taskId, history, existsAtBase }. Fixed-arg execFile — no shell.
 function taskStateAt(sha, root, repoRoot) {
   try {
     const out = execFileSync('git', ['show', `${sha}:${root}/TASK_STATE.json`], {
       cwd: repoRoot, stdio: ['ignore', 'pipe', 'ignore'], encoding: 'utf8', windowsHide: true,
     });
     const obj = JSON.parse(out);
-    return { state: obj.state, existsAtBase: true };
+    return { state: obj.state, branch: obj.branch, taskId: obj.taskId, history: obj.history, existsAtBase: true };
   } catch { return { state: null, existsAtBase: false }; }
 }
 
@@ -112,7 +112,8 @@ function taskStateAt(sha, root, repoRoot) {
 function cmdCheckBoundary(argv) {
   const a = parseArgs(argv, {
     flags: {
-      '--changed-status': { required: true, aliasKey: 'changedStatusPath' },
+      '--changed-status': { required: false, aliasKey: 'changedStatusPath' },
+      '--changed-status-z': { required: false, aliasKey: 'changedStatusZPath' },
       '--emit-task-roots': { required: false, aliasKey: 'emitTaskRoots' },
       '--head-branch': { required: false, aliasKey: 'headBranch' },
       '--base-branch': { required: false, aliasKey: 'baseBranch' },
@@ -121,14 +122,24 @@ function cmdCheckBoundary(argv) {
       '--repo-root': { required: false, aliasKey: 'repoRoot' },
     },
   });
-  if (!exists(a.changedStatusPath)) die(`changed-status file not found: ${a.changedStatusPath}`, 1);
-  const records = parseNameStatus(readText(a.changedStatusPath));
+  // V3-C10 — prefer the unambiguous NUL-delimited form when provided.
+  let records;
+  if (a.changedStatusZPath) {
+    if (!exists(a.changedStatusZPath)) die(`changed-status-z file not found: ${a.changedStatusZPath}`, 1);
+    records = parseNameStatusZ(readText(a.changedStatusZPath));
+  } else if (a.changedStatusPath) {
+    if (!exists(a.changedStatusPath)) die(`changed-status file not found: ${a.changedStatusPath}`, 1);
+    records = parseNameStatus(readText(a.changedStatusPath));
+  } else {
+    die('one of --changed-status or --changed-status-z is required', 2);
+  }
   if (records.length === 0) die('empty changed set — refusing to pass on an unresolved diff', 1);
 
   const meta = {};
   if (a.headBranch) meta.headBranch = a.headBranch;
   if (a.baseBranch) meta.baseBranch = a.baseBranch;
-  // V2-C5 — derive trusted per-root base/head states from Git blobs when SHAs given.
+  // V2-C5 / V3-C3 / V3-C9 — derive trusted per-root base/head state, declared branch,
+  // task id and history from Git blobs when SHAs are provided.
   if (a.baseSha && a.headSha) {
     const repoRoot = a.repoRoot || process.cwd();
     const roots = [...new Set(records.flatMap((r) => (r.paths || [])).map((p) => {
@@ -139,7 +150,11 @@ function cmdCheckBoundary(argv) {
     for (const root of roots) {
       const base = taskStateAt(a.baseSha, root, repoRoot);
       const head = taskStateAt(a.headSha, root, repoRoot);
-      meta.taskStates[root] = { base: base.state, head: head.state, existsAtBase: base.existsAtBase };
+      meta.taskStates[root] = {
+        base: base.state, head: head.state, existsAtBase: base.existsAtBase,
+        headBranch: head.branch, headTaskId: head.taskId,
+        baseHistory: base.history, headHistory: head.history,
+      };
     }
   }
 

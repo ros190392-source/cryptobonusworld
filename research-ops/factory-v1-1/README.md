@@ -43,13 +43,44 @@ invalid task IDs and unsupported states.
 ### Path safety (create output confinement)
 
 The canonical CLI `create` never accepts an absolute path or `..` traversal — it exposes no
-output-path flag at all. **V2-C1:** it resolves the **real Git worktree root** (`lib/worktree.mjs`,
-via `git rev-parse` with fixed arguments — no shell, no injection) and always writes to
-`<worktree-root>/research-ops/tasks/<TASK_ID>`, whether invoked from the repository root or any
-subdirectory. Invoked outside a real worktree (e.g. an external `cwd`), it **fails closed and
-creates nothing**; a bare directory that merely contains a `.git`-named file is rejected unless Git
-confirms a valid worktree. Tests need OS temp roots, so the **library** `createTask()` accepts
-clearly-named `testRoot`/`repoRoot` options that are **never** wired to CLI argument parsing.
+output-path flag at all. **V2-C1/V3-C1:** it resolves the worktree that **contains the factory
+script** (`lib/worktree.mjs`, via `git rev-parse` with fixed arguments — no shell, no injection),
+requires the current directory to resolve to that **same** worktree, and always writes to
+`<script-worktree-root>/research-ops/tasks/<TASK_ID>`, whether invoked from the repository root or
+any subdirectory. Invoked by absolute path while `cwd` is inside a **different** valid Git
+repository, it **fails closed and creates nothing there**; symlinked script paths are realpath'd and
+linked worktrees resolve through Git. A bare directory that merely contains a `.git`-named file is
+rejected unless Git confirms a valid worktree. Tests need OS temp roots, so the **library**
+`createTask()` accepts clearly-named `testRoot`/`repoRoot` options **never** wired to CLI parsing.
+
+### V3 boundary hardening (Correction V3 014)
+
+- **V3-C2 exact factory lineage:** `FACTORY_GOVERNANCE` is granted only to an **exact** governed
+  (head, base) pair from `lib/lineage.mjs` — spoof branches (`…factory-v1-1-evil`) fail.
+- **V3-C3 research head↔plan binding:** a research PR's trusted head branch must equal the changed
+  task's `TASK_STATE.branch`, and the root task id must equal the declared `taskId`.
+- **V3-C4 frozen layers + workflow:** prior `governance/**`, `validation-009/**`, `correction-010/**`,
+  `correction-validation-011/**`, `correction-v2-012/**`, `correction-v2-validation-013/**` are
+  immutable; the factory workflow may not be deleted/renamed; a factory task may write only
+  implementation paths plus its own single result directory.
+- **V3-C5 exact skeleton:** an initial creation PR must equal the deterministic factory skeleton
+  exactly (no extra/missing/hidden/executable/symlink payloads).
+- **V3-C6 exact per-stage inventory:** each transition may add only its exact governed files; a
+  stage marker must be the single existing candidate (a valid marker cannot hide an invalid duplicate).
+- **V3-C7 marker outcomes/merge lineage:** review/correction/validation outcomes use controlled
+  enums; a merge record requires the exact task id, `main` target, a real 40-hex commit SHA, a
+  recognized merged state and preceding-receipt linkage.
+- **V3-C8 cumulative correction:** when history used `CORRECTION_REQUIRED`/`CORRECTED`, later
+  validated/closeout states require the correction marker.
+- **V3-C9 history integrity:** `TASK_STATE.history` is a non-empty ordered array beginning at
+  `PREPARED`, ending at the current state, with canonical transitions and monotonic timestamps;
+  prior entries are append-only across trusted base/head blobs.
+- **V3-C10 strict name-status:** only `A/M/D/T` and `R/C` scores in 0–100; the workflow feeds
+  NUL-delimited, unquoted `git diff -z` for unambiguous paths.
+- **V3-C11 non-vacuous minima:** `overallFinding.recommendation`, `review.sourceIds` and non-empty
+  boolean `readiness.*Ready` are required; empty `{}` objects are rejected.
+- **V3-C12 control bytes:** NUL and forbidden C0/C1 control characters are rejected in canonical
+  package text even with a recomputed MANIFEST (only LF and TAB whitespace are accepted).
 
 ### V2 boundary hardening (Correction V2 012)
 

@@ -7,7 +7,7 @@ import {
   FACTORY_VERSION, STAGE_DIRS, RESEARCH_FILES, RESEARCH_JSON_FILES,
   freshAuthorizations, isValidTaskId, validateIdentityValues, deterministicBranch,
 } from './model.mjs';
-import { requireWorktreeRoot } from './worktree.mjs';
+import { requireScriptBoundWorktreeRoot } from './worktree.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const TEMPLATE_DIR = join(HERE, '..', 'templates');
@@ -47,11 +47,14 @@ export function createTask(opts) {
   // and `repoRoot` are LIBRARY-ONLY injections never wired to the CLI. Invoked
   // outside a worktree (e.g. an external cwd), requireWorktreeRoot throws and nothing
   // is created.
+  // V3-C1 — the canonical output root is the worktree that CONTAINS this factory
+  // script, and the current directory must resolve to that same worktree; invoked by
+  // absolute path from a foreign Git repo, this throws and nothing is created there.
   const baseRoot = opts.testRoot !== undefined
     ? opts.testRoot                                        // library/test-only injected root
     : opts.repoRoot !== undefined
       ? join(opts.repoRoot, 'research-ops', 'tasks')       // library-only injected repo root
-      : join(requireWorktreeRoot(process.cwd()), 'research-ops', 'tasks'); // canonical
+      : join(requireScriptBoundWorktreeRoot(fileURLToPath(import.meta.url), process.cwd()), 'research-ops', 'tasks'); // canonical
   const taskDir = join(baseRoot, opts.taskId);
 
   // Create-only: fail closed if the task path already exists.

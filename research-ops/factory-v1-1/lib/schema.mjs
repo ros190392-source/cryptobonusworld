@@ -3,13 +3,39 @@
 
 import {
   isValidTaskId, isState, RESEARCH_FILES, OWNER_MERGE_KEY, FORBIDDEN_TRUE_AUTH_KEYS,
-  validateIdentityValues, BRANCH_RE, deterministicBranch,
+  validateIdentityValues, BRANCH_RE, deterministicBranch, canTransition,
 } from './model.mjs';
 
 export const CANONICAL_AUTH_KEYS = [OWNER_MERGE_KEY, ...FORBIDDEN_TRUE_AUTH_KEYS];
 
 const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
 const nonEmptyStr = (v) => typeof v === 'string' && v.length > 0;
+
+// V3-C9 — validate TASK_STATE.history integrity (independent of base/head comparison,
+// which lives in the boundary). Non-empty ordered array of objects; first PREPARED;
+// last equals TASK_STATE.state; every consecutive step canonical or same-state; any
+// `at` timestamps are well-typed and monotonic non-decreasing.
+export function validateHistory(history, headState) {
+  const e = [];
+  if (!Array.isArray(history)) return ['TASK_STATE.history must be an array'];
+  if (history.length === 0) return ['TASK_STATE.history must be non-empty'];
+  for (let i = 0; i < history.length; i += 1) {
+    const h = history[i];
+    if (!isObj(h)) { e.push(`history[${i}] must be an object`); continue; }
+    if (!isState(h.state)) e.push(`history[${i}].state invalid: ${JSON.stringify(h.state)}`);
+    if ('at' in h && typeof h.at !== 'string') e.push(`history[${i}].at must be a string`);
+  }
+  if (e.length) return e;
+  if (history[0].state !== 'PREPARED') e.push('history must begin at PREPARED');
+  if (isState(headState) && history[history.length - 1].state !== headState) e.push(`history last state (${history[history.length - 1].state}) != TASK_STATE.state (${headState})`);
+  for (let i = 1; i < history.length; i += 1) {
+    const prev = history[i - 1].state; const cur = history[i].state;
+    if (prev !== cur && !canTransition(prev, cur)) e.push(`history transition ${prev} -> ${cur} is not canonical`);
+    const pa = history[i - 1].at; const ca = history[i].at;
+    if (typeof pa === 'string' && typeof ca === 'string' && ca < pa) e.push(`history[${i}].at is not monotonic`);
+  }
+  return e;
+}
 
 // TASK_STATE.json structural shape.
 export function validateTaskStateShape(ts) {
@@ -26,7 +52,8 @@ export function validateTaskStateShape(ts) {
     if (!BRANCH_RE.test(ts.branch)) e.push(`TASK_STATE.branch is not canonical grammar: ${ts.branch}`);
     else if (ts.branch !== deterministicBranch(ts)) e.push(`TASK_STATE.branch (${ts.branch}) is not deterministic from identity (${deterministicBranch(ts)})`);
   }
-  if ('history' in ts && !Array.isArray(ts.history)) e.push('TASK_STATE.history must be an array');
+  // V3-C9 — full history integrity.
+  if ('history' in ts) for (const he of validateHistory(ts.history, ts.state)) e.push(`TASK_STATE.${he}`);
   if (!isObj(ts.authorizations)) e.push('TASK_STATE.authorizations must be an object');
   else {
     for (const k of CANONICAL_AUTH_KEYS) {

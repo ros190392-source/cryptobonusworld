@@ -1,108 +1,99 @@
-// ResearchOps Factory V1.1 — stage-aware append-only transition rules (V2-C5).
-// Pure and deterministic. The CLI/workflow feed it the task's base and head
-// TASK_STATE (read from trusted Git blobs at base/head commits); fixtures call it
-// directly with synthetic inputs. No Git or filesystem writes here.
+// ResearchOps Factory V1.1 — stage-aware append-only transition rules.
+// V2-C5 stage immutability; V3-C5 exact initial skeleton; V3-C6 exact per-stage
+// inventory; V3-C9 TASK_STATE.history append-only. Pure and deterministic. The
+// CLI/workflow feed the task's base/head TASK_STATE (and history) read from trusted
+// Git blobs; fixtures call directly. No Git or filesystem writes here.
 
-import { isState, canTransition } from './model.mjs';
+import { isState, canTransition, RESEARCH_FILES, canonicalSkeletonFiles } from './model.mjs';
 
 // Ordered append-only stage directories inside a task root.
 export const STAGE_ORDER = [
-  '00-contract',
-  '10-input',
-  '20-research-output',
-  '50-source-truth-review',
-  '60-correction',
-  '70-validation',
-  '80-closeout',
+  '00-contract', '10-input', '20-research-output',
+  '50-source-truth-review', '60-correction', '70-validation', '80-closeout',
 ];
 
-// The single stage a given declared state is actively writing into (its working
-// stage). Additions are permitted ONLY into the working stage of the head state.
-const WORKING_STAGE = {
-  PREPARED: null,
-  RESEARCH_CAPTURED: '20-research-output',
-  PACKAGE_VALIDATED: '20-research-output',
-  SOURCE_TRUTH_REVIEWED: '50-source-truth-review',
-  CORRECTION_REQUIRED: '50-source-truth-review',
-  CORRECTED: '60-correction',
-  VALIDATED: '70-validation',
-  OWNER_CLOSEOUT_REQUIRED: '70-validation',
-  RESEARCH_RECORD_MERGE_AUTHORIZED: '80-closeout',
-  RESEARCH_RECORD_MERGED_TO_MAIN: '80-closeout',
-  BLOCKED: null,
+// V3-C6 — the EXACT files a transition INTO a given head state may add. A state that
+// adds nothing (a pure validation gate) is omitted. 20-research-output is captured
+// only while entering RESEARCH_CAPTURED and is immutable thereafter.
+const RESEARCH_FILE_SET = new Set(RESEARCH_FILES);
+const STAGE_ADD_ALLOW = {
+  RESEARCH_CAPTURED: { dir: '20-research-output', files: RESEARCH_FILE_SET },
+  SOURCE_TRUTH_REVIEWED: { dir: '50-source-truth-review', files: new Set(['SOURCE_TRUTH_REVIEW.json']) },
+  CORRECTION_REQUIRED: { dir: '50-source-truth-review', files: new Set(['SOURCE_TRUTH_REVIEW.json']) },
+  CORRECTED: { dir: '60-correction', files: new Set(['CORRECTION_STATE.json', 'CORRECTION_RESULT.json']) },
+  VALIDATED: { dir: '70-validation', files: new Set(['VALIDATION.json', 'FACTORY_VALIDATION.json', 'CORRECTION_V2_VALIDATION.json', 'CORRECTION_V3_VALIDATION.json']) },
+  RESEARCH_RECORD_MERGE_AUTHORIZED: { dir: '80-closeout', files: new Set(['OWNER_CLOSEOUT_RECEIPT.json']) },
+  RESEARCH_RECORD_MERGED_TO_MAIN: { dir: '80-closeout', files: new Set(['RESEARCH_RECORD_MERGE.json', 'MERGE_RECORD.json']) },
 };
 
-// Given a task-root-relative path, return its stage dir or null (root-level file).
 export function stageOfRelPath(rel) {
   const r = String(rel).replace(/\\/g, '/');
   const seg = r.split('/')[0];
   return STAGE_ORDER.includes(seg) ? seg : null;
 }
 
-// records: [{ status: 'A'|'M'|'D'|'T'|'R'|'C', rel, srcRel? }] already scoped to ONE
-//   task root and made root-relative (rel = path under the root; for R/C, rel is the
-//   destination and srcRel the source).
-// baseState: TASK_STATE.state at base, or null when the task root did not exist at base.
-// headState: TASK_STATE.state at head.
-// Returns { ok, violations[] }.
+function allowedAdd(headState, rel) {
+  const spec = STAGE_ADD_ALLOW[headState];
+  if (!spec) return false;
+  const r = String(rel).replace(/\\/g, '/');
+  const parts = r.split('/');
+  return parts.length === 2 && parts[0] === spec.dir && spec.files.has(parts[1]);
+}
+
+// records: [{ status, rel, srcRel? }] scoped to ONE task root, root-relative.
 export function checkStageTransition({ records, baseState, headState, taskExistsAtBase }) {
   const violations = [];
   const isCreation = !taskExistsAtBase || baseState === null || baseState === undefined;
 
-  if (!isState(headState)) {
-    return { ok: false, violations: [`head TASK_STATE.state is not canonical: ${JSON.stringify(headState)}`] };
-  }
+  if (!isState(headState)) return { ok: false, violations: [`head TASK_STATE.state is not canonical: ${JSON.stringify(headState)}`] };
 
   if (isCreation) {
-    // Initial task creation: create-only, one new root, head must be PREPARED, and
-    // every changed record must be a pure addition.
+    // V3-C5 — exact deterministic skeleton, additions only, head PREPARED.
     if (headState !== 'PREPARED') violations.push(`new task root must be created at PREPARED, got ${headState}`);
-    for (const r of records) {
-      if (r.status !== 'A') violations.push(`${r.rel}: new task creation admits additions only (got ${r.status})`);
-    }
+    for (const r of records) if (r.status !== 'A') violations.push(`${r.rel}: new task creation admits additions only (got ${r.status})`);
+    const expected = new Set(canonicalSkeletonFiles());
+    const got = new Set(records.map((r) => String(r.rel).replace(/\\/g, '/')));
+    for (const f of got) if (!expected.has(f)) violations.push(`${f}: not part of the deterministic factory skeleton`);
+    for (const f of expected) if (!got.has(f)) violations.push(`${f}: required skeleton file missing from creation`);
     return { ok: violations.length === 0, violations };
   }
 
-  // Existing task: require a canonical transition or a same-state append.
-  if (!isState(baseState)) {
-    violations.push(`base TASK_STATE.state is not canonical: ${JSON.stringify(baseState)}`);
-  } else if (baseState !== headState && !canTransition(baseState, headState)) {
-    violations.push(`disallowed state transition ${baseState} -> ${headState}`);
-  }
-
-  const openStage = WORKING_STAGE[headState] || null;
+  if (!isState(baseState)) violations.push(`base TASK_STATE.state is not canonical: ${JSON.stringify(baseState)}`);
+  else if (baseState !== headState && !canTransition(baseState, headState)) violations.push(`disallowed state transition ${baseState} -> ${headState}`);
 
   for (const r of records) {
     const rel = String(r.rel).replace(/\\/g, '/');
-    // TASK_STATE.json at the root is the only always-mutable governed record.
     if (rel === 'TASK_STATE.json') {
       if (r.status === 'A' || r.status === 'M') continue;
       violations.push(`TASK_STATE.json: only add/modify permitted (got ${r.status})`);
       continue;
     }
-    const stage = stageOfRelPath(rel);
-    // Rename/copy: the SOURCE side is a removal/reference of existing governed content.
-    if (r.status === 'R') {
-      violations.push(`${r.srcRel} -> ${rel}: rename of governed content is not append-only`);
-      continue;
-    }
-    if (r.status === 'C') {
-      // copy: destination is a new file; still only allowed into the open stage.
-      if (stage === openStage && openStage) continue;
-      violations.push(`${rel}: copy destination outside the open stage ${openStage || '(none)'}`);
-      continue;
-    }
-    if (r.status === 'D' || r.status === 'M' || r.status === 'T') {
-      violations.push(`${rel}: modification/deletion of a closed/earlier stage is not permitted (${r.status})`);
-      continue;
-    }
-    if (r.status === 'A') {
-      if (stage === openStage && openStage) continue;
-      violations.push(`${rel}: addition into ${stage || '(root)'} not permitted at state ${headState} (open stage: ${openStage || 'none'})`);
+    if (r.status === 'R') { violations.push(`${r.srcRel} -> ${rel}: rename of governed content is not append-only`); continue; }
+    if (r.status === 'D' || r.status === 'M' || r.status === 'T') { violations.push(`${rel}: modification/deletion of a closed/earlier stage is not permitted (${r.status})`); continue; }
+    if (r.status === 'A' || r.status === 'C') {
+      // V3-C6 — additions/copies must be exactly the files this transition may add.
+      if (allowedAdd(headState, rel)) continue;
+      violations.push(`${rel}: not an exact permitted ${r.status === 'C' ? 'copy' : 'addition'} for state ${headState}`);
       continue;
     }
     violations.push(`${rel}: unsupported change status ${r.status}`);
   }
 
+  return { ok: violations.length === 0, violations };
+}
+
+// V3-C9 — TASK_STATE.history must be append-only across trusted base/head blobs: the
+// base history must be an exact prefix of the head history (prior entries may not be
+// rewritten, deleted or reordered). Returns { ok, violations }.
+export function checkHistoryAppendOnly(baseHistory, headHistory) {
+  const violations = [];
+  const b = Array.isArray(baseHistory) ? baseHistory : null;
+  const h = Array.isArray(headHistory) ? headHistory : null;
+  if (b === null) return { ok: true, violations }; // no base history to compare (creation)
+  if (h === null) { violations.push('head TASK_STATE.history is missing or not an array'); return { ok: false, violations }; }
+  if (h.length < b.length) { violations.push(`head history (${h.length}) shorter than base history (${b.length}) — entries removed`); return { ok: false, violations }; }
+  for (let i = 0; i < b.length; i += 1) {
+    if (JSON.stringify(b[i]) !== JSON.stringify(h[i])) violations.push(`history entry ${i} was rewritten/reordered`);
+  }
   return { ok: violations.length === 0, violations };
 }
