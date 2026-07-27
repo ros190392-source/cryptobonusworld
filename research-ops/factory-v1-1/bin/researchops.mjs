@@ -15,7 +15,7 @@ import { statusTask } from '../lib/status.mjs';
 import { parseNameStatus, parseNameStatusZ, checkChangedFileBoundary } from '../lib/boundary.mjs';
 import { roleForBranch } from '../lib/roles.mjs';
 import { checkEventIntegrity } from '../lib/eventintegrity.mjs';
-import { resolveEnforcement, checkSetupPhase } from '../lib/bootstrap.mjs';
+import { resolveEnforcement, checkSetupPhase, discoverFrozenSetupBoundary } from '../lib/bootstrap.mjs';
 import { FROZEN_FACTORY_PREFIXES, FACTORY_IMPL_PREFIXES, FACTORY_IMPL_FILES } from '../lib/lineage.mjs';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
@@ -309,10 +309,47 @@ function cmdCheckSetupPhase(argv) {
   process.exit(0);
 }
 
+// R2 — GENERIC descendant frozen owner-setup boundary discovery. Walks the exact
+// commits approvedBase..head (from trusted event SHAs), derives the task result dir from
+// the full diff, and deterministically locates the unique frozen setup boundary. Prints
+// `FROZEN_SETUP_SHA=<sha>` for the workflow to capture. Fail closed. Read-only Git.
+function cmdDiscoverSetupBoundary(argv) {
+  const a = parseArgs(argv, {
+    flags: {
+      '--approved-base-sha': { required: true, aliasKey: 'approvedBaseSha' },
+      '--head-sha': { required: true, aliasKey: 'headSha' },
+      '--head-branch': { required: false, aliasKey: 'headBranch' },
+      '--repo-root': { required: false, aliasKey: 'repoRoot' },
+    },
+  });
+  const repoRoot = a.repoRoot || process.cwd();
+  // Derive the task result directory from the FULL approvedBase..head diff (trusted SHAs).
+  let fullZ;
+  try { fullZ = execFileSync('git', ['-c', 'core.quotePath=false', 'diff', '-z', '--name-status', a.approvedBaseSha, a.headSha], { cwd: repoRoot, stdio: ['ignore', 'pipe', 'ignore'], encoding: 'utf8', windowsHide: true }); }
+  catch (e) { die(`full diff failed: ${e.message}`, 1); }
+  const resultDir = deriveResultDirForCli(parseNameStatusZ(fullZ));
+  if (!resultDir) die('could not derive a single task result directory from the range', 1);
+
+  // Ordered commit list (oldest first) with per-commit name-status.
+  let shaList;
+  try { shaList = execFileSync('git', ['rev-list', '--reverse', `${a.approvedBaseSha}..${a.headSha}`], { cwd: repoRoot, stdio: ['ignore', 'pipe', 'ignore'], encoding: 'utf8', windowsHide: true }).split('\n').map((s) => s.trim()).filter(Boolean); }
+  catch (e) { die(`rev-list failed: ${e.message}`, 1); }
+  const commits = shaList.map((sha) => {
+    const z = execFileSync('git', ['-c', 'core.quotePath=false', 'diff-tree', '--no-commit-id', '-r', '--name-status', '-z', sha], { cwd: repoRoot, stdio: ['ignore', 'pipe', 'ignore'], encoding: 'utf8', windowsHide: true });
+    return { sha, records: parseNameStatusZ(z) };
+  });
+
+  const r = discoverFrozenSetupBoundary(commits, resultDir);
+  if (!r.ok) { for (const v of r.violations) console.error(`  - setup-boundary: ${v}`); die('descendant owner setup-phase boundary invalid', 1); }
+  console.log(`FROZEN_SETUP_SHA=${r.frozenSetupSha}`);
+  console.log(`RESULT: SETUP BOUNDARY OK (resultDir=${resultDir}, frozenSetup=${r.frozenSetupSha})`);
+  process.exit(0);
+}
+
 function main() {
   const [cmd, ...rest] = process.argv.slice(2);
   if (!cmd || cmd === '--help' || cmd === '-h') {
-    console.log('usage: researchops <create|validate|status|check-boundary|resolve-enforcement|check-setup-phase> [flags]');
+    console.log('usage: researchops <create|validate|status|check-boundary|resolve-enforcement|check-setup-phase|discover-setup-boundary> [flags]');
     process.exit(cmd ? 0 : 2);
   }
   try {
@@ -322,6 +359,7 @@ function main() {
     if (cmd === 'check-boundary') return cmdCheckBoundary(rest);
     if (cmd === 'resolve-enforcement') return cmdResolveEnforcement(rest);
     if (cmd === 'check-setup-phase') return cmdCheckSetupPhase(rest);
+    if (cmd === 'discover-setup-boundary') return cmdDiscoverSetupBoundary(rest);
     die(`unknown command: ${cmd}`, 2);
   } catch (e) {
     die(e.message, 2);

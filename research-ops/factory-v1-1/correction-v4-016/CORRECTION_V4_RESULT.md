@@ -131,6 +131,42 @@ RESULT: BOUNDARY OK
 ```
 
 The prior failed run `30297251691` failed before these steps (they were skipped); the remediated run
-runs all of them to success. Final Acceptance 017's base carries the V4 policy, so it exercises the
-**DESCENDANT** protected-base path — independently proving the descendant trusted-base path works.
-Every one of the 18 authorizations remains false.
+runs all of them to success. Every one of the 18 authorizations remains false.
+
+## CI Remediation R2 — generic descendant owner-setup path
+
+**R1 accepted** (run `30303380262`, success). **Descendant setup-path defect:** the R1 DESCENDANT
+path ran the boundary with `base-sha` = the protected base and diff = `base..head`. For a real **new**
+governed task the owner setup `*_STATE.json` does not exist at the protected base (it is added on the
+new branch), so the governed record read returned null ("no owner-created governed record"), and the
+new branch's setup-file **additions** appeared in the diff and were rejected as immutable — so a real
+new validation/correction task could never bootstrap under DESCENDANT.
+
+**R2 fix — generic frozen owner-setup boundary:** `lib/bootstrap.mjs` now derives the expected setup
+inventory from task role + result directory + canonical naming (exactly one `*_CONTRACT.md`, one
+`*_STATE.json`, one `CLAUDE_*_PROMPT.md`) and `discoverFrozenSetupBoundary` locates the **unique**
+frozen owner-setup commit — the last commit of the maximal initial run of setup-only commits. The new
+CLI `discover-setup-boundary` walks `git rev-list --reverse approvedBase..head` + `git diff-tree -z`
+per commit. It rejects: implementation/result files before the boundary, missing/duplicate/ambiguous/
+multiple candidate boundaries, and setup mutation after the freeze. The workflow DESCENDANT branch now
+executes policy **from the protected base**, discovers the frozen setup boundary, reads the governed
+`*_STATE.json` **from the frozen setup commit**, and evaluates the worker diff **only frozen-setup →
+head**. Governance authority is never read from mutable worker-head content. The one-time V4 BOOTSTRAP
+anchor is unchanged and still pinned to Issue #60 / PR #61 only — Final Acceptance 017 is **not**
+preauthorized.
+
+**Real temporary Git-graph end-to-end proof (Final-Acceptance-017 style):** protected base carries V4
+policy → validation branch from that base → owner setup introduced in a setup-only commit → frozen
+setup boundary **uniquely identified** (`SETUP BOUNDARY OK`) → two validation result files added later
+→ protected-base policy validates `frozen-setup → head` → **BOUNDARY OK** (validation role, 2 result
+files). Negative control: the same diff evaluated wrongly from the approved base (including setup
+files) is **rejected** (setup immutable), proving the endpoint must be the frozen setup.
+
+**Regression:** **206 passed / 0 failed** (193 retained + 13 new R2 checks) covering governed record
+absent from the boundary, setup only at worker head, setup rewritten after freeze, implementation file
+in setup phase, arbitrary fourth setup file, result before setup freeze, multiple/ambiguous
+boundaries, worker diff from the wrong endpoint, and future task without an owner setup record.
+`node --check` clean; `git diff --check` clean; no frozen prior directory touched.
+
+**New successful workflow run:** _recorded below after the R2 push triggers it._ All 18 authorizations
+remain false.

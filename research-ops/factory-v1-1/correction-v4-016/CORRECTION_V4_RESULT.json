@@ -51,7 +51,7 @@
   "ancestryGovernanceModel": "govrecord.mjs: owner *_STATE.json record binds taskId/role(from branch)/head/base/approvedBaseSha; boundary requires the record + head-descends-approvedBase; lineage.mjs no longer preauthorizes any task by branch name.",
 
   "syntaxCheck": "PASS (node --check on all factory .mjs)",
-  "fixtureResults": { "passed": 193, "failed": 0, "priorRetained": 145, "addedForV4": 32, "addedForCiRemediationR1": 16 },
+  "fixtureResults": { "passed": 206, "failed": 0, "priorRetained": 145, "addedForV4": 32, "addedForCiRemediationR1": 16, "addedForCiRemediationR2": 13 },
   "gitDiffCheck": "clean",
   "cliSmokeResults": {
     "createForeignWorktree": "exit 2 (fails closed)",
@@ -108,6 +108,27 @@
     },
     "finalAcceptance017DescendantPathProvable": true,
     "regressionScenariosCovered": ["PR merge-commit vs exact head SHA", "checked-out HEAD mismatch", "old base validator + unsupported V4 flags (avoided via BOOTSTRAP)", "bootstrap anchor mismatch", "bootstrap used by unrelated branch/task", "setup files modified after frozen setup", "worker diff from wrong endpoint / setup-phase integrity", "final descendant trusted-base execution"]
+  },
+
+  "ciRemediationR2": {
+    "remediationTaskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CORRECTION-V4-016-CI-REMEDIATION-R2",
+    "r1AcceptedSuccessRunId": 30303380262,
+    "descendantSetupPathDefect": "The R1 DESCENDANT path ran the boundary with base-sha = the protected base and diff = base..head. For a real NEW governed task the owner setup STATE record does not exist at the protected base (it is added on the new branch), so govRecordAt(protectedBase) returned null and the boundary failed 'no owner-created governed record'; and the new branch's setup-file ADDITIONS appeared in the diff and were rejected as immutable setup files. A real new validation/correction task could therefore never bootstrap under DESCENDANT.",
+    "design": "A generic frozen owner-setup boundary is now discovered from the protected-base policy. lib/bootstrap.mjs adds classifyCanonicalSetupBase / isCanonicalSetupPath / checkDescendantSetupPhase / discoverFrozenSetupBoundary. The CLI `discover-setup-boundary` derives the task result dir from the full approvedBase..head diff, walks the ordered commits (git rev-list --reverse + git diff-tree -z per commit), and locates the UNIQUE frozen owner-setup boundary: the last commit of the maximal initial run of setup-only commits. It requires the setup phase to add exactly the role-specific canonical triple (one *_CONTRACT.md, one *_STATE.json, one CLAUDE_*_PROMPT.md) under the result dir, additions only; rejects implementation/result files before the boundary, missing/duplicate/ambiguous/multiple boundaries, and setup mutation after the freeze. The workflow DESCENDANT branch now: executes policy from the protected base (../trusted-base), discovers the frozen setup boundary, reads the governed *_STATE.json from the frozen setup commit (base-sha = frozen setup for the boundary CLI), binds the approved base for ancestry, and evaluates the worker diff ONLY frozen-setup -> trusted head. Governance authority is never read from mutable worker-head content.",
+    "genericSetupInventoryRule": "Derived from task role + result directory + canonical setup naming: exactly one <PREFIX>_CONTRACT.md, one <PREFIX>_STATE.json and one CLAUDE_<PREFIX>_PROMPT.md directly under the result directory (validation role: exactly the contract, state and Claude prompt setup records).",
+    "bootstrapAnchorUnchanged": "The one-time V4 BOOTSTRAP anchor remains pinned to Issue #60 / PR #61 only; it was NOT broadened, and Final Acceptance 017 / any future branch is NOT preauthorized.",
+    "realGitGraphEndToEndProof": {
+      "protectedBaseCarriesV4Policy": true,
+      "validationBranchFromBase": true,
+      "ownerSetupIntroducedSetupOnlyCommit": true,
+      "frozenSetupBoundaryUniquelyIdentified": "FROZEN_SETUP_SHA = the owner setup commit (SETUP BOUNDARY OK)",
+      "twoValidationResultFilesAddedLater": true,
+      "protectedBasePolicyValidatesFrozenSetupToHead": "BOUNDARY OK (validation role, 2 result files)",
+      "negativeWorkerDiffFromApprovedBaseRejected": "REJECTED (setup files immutable) — proves the worker diff must be evaluated frozen-setup -> head, not approvedBase -> head"
+    },
+    "negativeCasesCovered": ["governed record absent from setup boundary", "setup record only at worker head", "setup file rewritten after freeze", "implementation file in setup phase", "arbitrary fourth setup file", "result file before setup freeze", "multiple possible setup boundaries", "worker diff evaluated from approved base", "unrelated validation branch/task identity", "future task without owner setup record"],
+    "newSuccessfulRunId": "PENDING_PUSH",
+    "stepsExecutedNotSkipped": "PENDING_PUSH"
   },
 
   "correctionOutcome": "CORRECTED_READY_FOR_FINAL_ACCEPTANCE_VALIDATION",

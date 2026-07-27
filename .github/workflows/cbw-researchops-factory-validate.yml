@@ -93,12 +93,20 @@ jobs:
           ANCHOR_APPROVED_BASE_SHA=07d0e38a540355244b2bcab0258d3eb5463ed1af
           ANCHOR_FROZEN_SETUP_SHA=063078ac56423d3ab3544f17e69b09ed4bdc6d9e
           if [ "$BASE_HAS_V4" = "true" ]; then
-            # DESCENDANT — normal path: run the validator from the PROTECTED BASE. Worker
-            # diff is the full base->head range; the approved base is the PR base.
+            # DESCENDANT — normal path: policy is executed from the PROTECTED BASE. R2 —
+            # the new task's owner setup phase adds exactly the three role-specific setup
+            # records before any worker/result commit. Discover the UNIQUE frozen owner-
+            # setup boundary generically (from the protected-base policy), then evaluate
+            # the worker diff frozen-setup -> head. The governed record is read from the
+            # frozen setup commit; policy authority never comes from mutable worker head.
             echo "ENFORCEMENT: DESCENDANT (protected base policy)"
             git worktree add --detach ../trusted-base "$BASE_SHA"
             ENFORCE_BIN="../trusted-base/research-ops/factory-v1-1/bin/researchops.mjs"
-            DIFF_BASE="$BASE_SHA"; APPROVED_BASE_SHA="$BASE_SHA"
+            FROZEN_SETUP_LINE="$(node "$ENFORCE_BIN" discover-setup-boundary \
+              --approved-base-sha "$BASE_SHA" --head-sha "$HEAD_SHA" \
+              --head-branch "$HEAD_BRANCH" --repo-root "$GITHUB_WORKSPACE" | sed -n 's/^FROZEN_SETUP_SHA=//p')"
+            [ -n "$FROZEN_SETUP_LINE" ] || { echo "could not resolve a unique frozen setup boundary"; exit 1; }
+            DIFF_BASE="$FROZEN_SETUP_LINE"; APPROVED_BASE_SHA="$BASE_SHA"
           else
             # BOOTSTRAP — one-time, pinned. The approved base predates V4; validate ONLY
             # this exact remediation range from the VERIFIED head policy (HEAD==head.sha).

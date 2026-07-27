@@ -21,7 +21,7 @@ import { validateGithubPlanShape, validateHistory } from '../lib/schema.mjs';
 import { roleForBranch, capabilityForRole } from '../lib/roles.mjs';
 import { validateGovernedRecord } from '../lib/govrecord.mjs';
 import { checkEventIntegrity, reconcileRecovery } from '../lib/eventintegrity.mjs';
-import { resolveEnforcement, checkSetupPhase, BOOTSTRAP_ANCHOR } from '../lib/bootstrap.mjs';
+import { resolveEnforcement, checkSetupPhase, BOOTSTRAP_ANCHOR, checkDescendantSetupPhase, discoverFrozenSetupBoundary } from '../lib/bootstrap.mjs';
 import { verifyMergeRecord } from '../lib/mergeproof.mjs';
 import { validateSkeletonContent, canonicalizeText } from '../lib/skeleton.mjs';
 import { renderSkeleton } from '../lib/create.mjs';
@@ -439,6 +439,46 @@ function run() {
   // (8) final descendant trusted-base execution
   { const r = resolveEnforcement(anchorCtx({ baseHasV4Policy: true, headBranch: 'validation/researchops-factory-v1-1-final-acceptance-017', baseBranch: 'correction/researchops-factory-v1-1-v4-016', approvedBaseSha: 'z'.repeat(40) }));
     check('R1-8 descendant (base carries V4 policy) -> DESCENDANT protected base', r.mode === 'DESCENDANT'); }
+
+  // ================= R2 generic descendant owner-setup boundary =================
+  const RD = 'research-ops/factory-v1-1/correction-v3-validation-015/';
+  const SETUP = { contract: RD + 'VALIDATION_CONTRACT.md', state: RD + 'VALIDATION_STATE.json', prompt: RD + 'CLAUDE_VALIDATION_PROMPT.md' };
+  const RES1 = RD + 'FACTORY_CORRECTION_V3_VALIDATION.json'; const RES2 = RD + 'FACTORY_CORRECTION_V3_VALIDATION.md';
+  const cmt = (sha, rows) => ({ sha, records: nameStatus(rows) });
+  const setupAdds = [['A', SETUP.contract], ['A', SETUP.state], ['A', SETUP.prompt]];
+
+  // Positive: one-commit setup then worker/result commit -> unique boundary
+  { const commits = [cmt('setup1', setupAdds), cmt('work1', [['A', RES1], ['A', RES2]])];
+    const r = discoverFrozenSetupBoundary(commits, RD);
+    check('R2 unique frozen setup boundary (single setup commit)', r.ok && r.frozenSetupSha === 'setup1', r.violations.join('; ')); }
+  // Positive: setup spread across two setup-only commits then result
+  { const commits = [cmt('s1', [['A', SETUP.contract], ['A', SETUP.state]]), cmt('s2', [['A', SETUP.prompt]]), cmt('w1', [['A', RES1], ['A', RES2]])];
+    const r = discoverFrozenSetupBoundary(commits, RD);
+    check('R2b frozen boundary at last setup-only commit', r.ok && r.frozenSetupSha === 's2', r.violations.join('; ')); }
+  // Positive: check exact descendant setup inventory
+  { check('R2c exact canonical setup triple accepted', checkDescendantSetupPhase(nameStatus(setupAdds), RD).ok); }
+
+  // Negatives
+  // (a) governed record / state absent from setup boundary
+  { check('R2-a setup phase missing state record rejected', !checkDescendantSetupPhase(nameStatus([['A', SETUP.contract], ['A', SETUP.prompt]]), RD).ok); }
+  // (b) setup record only present at worker head (first commit is worker/impl)
+  { const commits = [cmt('w1', [['A', RES1]]), cmt('s1', setupAdds)]; const r = discoverFrozenSetupBoundary(commits, RD); check('R2-b setup only at worker head rejected', !r.ok); }
+  // (c) setup file rewritten after freeze
+  { const commits = [cmt('s1', setupAdds), cmt('w1', [['A', RES1]]), cmt('w2', [['M', SETUP.state]])]; const r = discoverFrozenSetupBoundary(commits, RD); check('R2-c setup rewritten after freeze rejected', !r.ok); }
+  // (d) implementation file included in setup phase
+  { const commits = [cmt('s1', [...setupAdds, ['A', 'research-ops/factory-v1-1/lib/evil.mjs']]), cmt('w1', [['A', RES1]])]; const r = discoverFrozenSetupBoundary(commits, RD); check('R2-d implementation file in setup phase rejected', !r.ok); }
+  // (e) arbitrary fourth setup file
+  { check('R2-e arbitrary fourth setup file rejected', !checkDescendantSetupPhase(nameStatus([...setupAdds, ['A', RD + 'EXTRA_STATE.json']]), RD).ok); }
+  // (f) result file added before setup freeze
+  { const commits = [cmt('s1', [['A', SETUP.contract], ['A', SETUP.state], ['A', SETUP.prompt], ['A', RES1]]), cmt('w1', [['A', RES2]])]; const r = discoverFrozenSetupBoundary(commits, RD); check('R2-f result file before setup freeze rejected', !r.ok); }
+  // (g) multiple possible setup boundaries (setup split by a worker commit)
+  { const commits = [cmt('s1', [['A', SETUP.contract], ['A', SETUP.state]]), cmt('w1', [['A', RES1]]), cmt('s2', [['A', SETUP.prompt]])]; const r = discoverFrozenSetupBoundary(commits, RD); check('R2-g ambiguous / multiple setup boundaries rejected', !r.ok); }
+  // (h) setup-phase mutation (non-addition) rejected
+  { check('R2-h non-addition in setup phase rejected', !checkDescendantSetupPhase(nameStatus([['M', SETUP.contract], ['A', SETUP.state], ['A', SETUP.prompt]]), RD).ok); }
+  // (i) setup file outside the result directory rejected
+  { check('R2-i setup file outside result dir rejected', !checkDescendantSetupPhase(nameStatus([['A', 'research-ops/factory-v1-1/other/VALIDATION_CONTRACT.md'], ['A', SETUP.state], ['A', SETUP.prompt]]), RD).ok); }
+  // (j) empty range (future task without owner setup record) -> no setup boundary
+  { const r = discoverFrozenSetupBoundary([cmt('w1', [['A', RES1], ['A', RES2]])], RD); check('R2-j future task without owner setup record rejected', !r.ok); }
 
   for (const r of roots) { try { rmSync(r, { recursive: true, force: true }); } catch { /* ignore */ } }
   console.log(`\nFIXTURES: ${pass} passed, ${fail} failed`);
