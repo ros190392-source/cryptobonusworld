@@ -117,4 +117,20 @@ BOOTSTRAP (exit 0), mismatch → REJECT (exit 1) · worker `check-boundary` (fro
 BOUNDARY OK. Final Acceptance 017 (whose base carries the V4 policy) uses the **DESCENDANT** protected-
 base path, proving the descendant trusted-base path works.
 
-**New successful workflow run:** _recorded below after the remediation push triggers it._
+**New successful workflow run: `30303261381`** (head `855dcf0`, `pull_request`, conclusion
+**success**). Every enforcement step **executed (not skipped)**: Checkout exact head SHA → Verify
+trusted event/checkout integrity → Resolve trusted enforcement root and worker diff → Enforce
+append-only boundary from the trusted enforcement root → Validate discovered task roots — all
+**success**. Runtime evidence from the run log:
+
+```text
+ENFORCEMENT BOOTSTRAP: one-time V4 bootstrap anchor matched; validate only this exact remediation range from the verified head policy
+RESULT: SETUP PHASE OK (exactly the governed owner setup files, additions only)
+BOUNDARY mode=FACTORY_GOVERNANCE taskRoots=[]
+RESULT: BOUNDARY OK
+```
+
+The prior failed run `30297251691` failed before these steps (they were skipped); the remediated run
+runs all of them to success. Final Acceptance 017's base carries the V4 policy, so it exercises the
+**DESCENDANT** protected-base path — independently proving the descendant trusted-base path works.
+Every one of the 18 authorizations remains false.

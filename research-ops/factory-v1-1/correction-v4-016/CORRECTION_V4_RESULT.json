@@ -91,8 +91,21 @@
     },
     "bootstrapAnchor": { "issue": 60, "pullRequest": 61, "headBranch": "correction/researchops-factory-v1-1-v4-016", "baseBranch": "validation/researchops-factory-v1-1-v3-015", "approvedBaseSha": "07d0e38a540355244b2bcab0258d3eb5463ed1af", "frozenSetupSha": "063078ac56423d3ab3544f17e69b09ed4bdc6d9e", "readOnly": true, "cannotAuthorizeOtherTaskOrFutureBranch": true, "validatesOnlyThisRemediationRange": true },
     "localEndToEndProof": { "checkSetupPhase": "OK (07d0e38->063078a = exactly 3 setup files)", "resolveEnforcementMatch": "BOOTSTRAP (exit 0)", "resolveEnforcementMismatch": "REJECT (exit 1)", "workerBoundary": "BOUNDARY OK (frozen-setup->head, correction role, govRecord from frozen setup, ancestry to approved base)" },
-    "newSuccessfulRunId": "PENDING_PUSH",
-    "trustedBaseBoundaryTaskValidationStepsExecuted": "PENDING_PUSH",
+    "newSuccessfulRunId": 30303261381,
+    "newSuccessfulRunHeadSha": "855dcf02cc2d8382552246e62c22e0822097b58a",
+    "newSuccessfulRunConclusion": "success",
+    "stepsExecutedNotSkipped": {
+      "checkoutExactHeadSha": "success",
+      "verifyTrustedEventAndCheckoutIntegrity": "success",
+      "resolveTrustedEnforcementRootAndWorkerDiff": "success",
+      "enforceAppendOnlyBoundaryFromTrustedRoot": "success",
+      "validateDiscoveredTaskRoots": "success"
+    },
+    "runtimeEvidence": {
+      "resolveEnforcement": "ENFORCEMENT BOOTSTRAP: one-time V4 bootstrap anchor matched; validate only this exact remediation range from the verified head policy",
+      "setupPhase": "RESULT: SETUP PHASE OK (exactly the governed owner setup files, additions only)",
+      "boundary": "BOUNDARY mode=FACTORY_GOVERNANCE taskRoots=[]  /  RESULT: BOUNDARY OK"
+    },
     "finalAcceptance017DescendantPathProvable": true,
     "regressionScenariosCovered": ["PR merge-commit vs exact head SHA", "checked-out HEAD mismatch", "old base validator + unsupported V4 flags (avoided via BOOTSTRAP)", "bootstrap anchor mismatch", "bootstrap used by unrelated branch/task", "setup files modified after frozen setup", "worker diff from wrong endpoint / setup-phase integrity", "final descendant trusted-base execution"]
   },
