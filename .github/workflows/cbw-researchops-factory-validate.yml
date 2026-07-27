@@ -22,9 +22,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Checkout (read-only)
+      - name: Checkout the exact trusted PR head SHA (read-only)
         uses: actions/checkout@v4
         with:
+          # R1 — check out the EXACT trusted PR head commit, not GitHub's synthetic
+          # refs/pull/N/merge commit. This makes `git rev-parse HEAD` == the trusted
+          # event head SHA so the V4-C7 checkout-integrity guard passes deliberately
+          # (and still fails closed on any real mismatch). Full history for ancestry.
+          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -45,62 +50,93 @@ jobs:
       - name: Run factory fixtures
         run: node research-ops/factory-v1-1/fixtures/run.mjs
 
-      - name: Discover changed files and trusted event metadata (fail-closed)
+      - name: Verify trusted event metadata and checkout integrity (fail-closed)
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
           BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           set -euo pipefail
-          # C3/V2-C3 — trusted base/head SHAs AND head/base branch refs come from the
-          # GitHub event context, never from repository files. Any missing/inconsistent
-          # value fails the job (fail-closed).
           [ -n "$BASE_SHA" ] || { echo "empty base sha"; exit 1; }
           [ -n "$HEAD_SHA" ] || { echo "empty head sha"; exit 1; }
           [ -n "$HEAD_BRANCH" ] || { echo "empty head branch"; exit 1; }
           [ -n "$BASE_BRANCH" ] || { echo "empty base branch"; exit 1; }
           git cat-file -e "${BASE_SHA}^{commit}"
           git cat-file -e "${HEAD_SHA}^{commit}"
-          # V4-C7 — checkout/event/workspace integrity, fail-closed.
+          # V4-C7 — checkout/event/workspace integrity, fail-closed. HEAD now equals the
+          # trusted head SHA because we deliberately checked out head.sha (not the merge).
           [ "$(git rev-parse --is-shallow-repository)" = "false" ] || { echo "shallow repository"; exit 1; }
           [ "$(git rev-parse HEAD)" = "$HEAD_SHA" ] || { echo "checked-out HEAD != trusted head sha"; exit 1; }
           [ "$(git rev-parse --show-toplevel)" = "$GITHUB_WORKSPACE" ] || { echo "workspace != resolved worktree root"; exit 1; }
           git merge-base --is-ancestor "$BASE_SHA" "$HEAD_SHA" || { echo "head does not descend approved base"; exit 1; }
-          # C3 — no `|| true`; a diff failure fails the job.
-          # V3-C10 — NUL-delimited, unquoted name-status: unambiguous for paths with
-          # tabs/newlines/quotes and immune to core.quotePath escaping.
-          git -c core.quotePath=false diff -z --name-status "$BASE_SHA" "$HEAD_SHA" > changed-status.z
+          # Does the APPROVED BASE already carry the V4 policy modules? Decides descendant
+          # vs one-time bootstrap enforcement below.
+          if git cat-file -e "${BASE_SHA}:research-ops/factory-v1-1/lib/bootstrap.mjs" 2>/dev/null; then
+            BASE_HAS_V4=true
+          else
+            BASE_HAS_V4=false
+          fi
           {
             echo "BASE_SHA=$BASE_SHA"; echo "HEAD_SHA=$HEAD_SHA"
             echo "HEAD_BRANCH=$HEAD_BRANCH"; echo "BASE_BRANCH=$BASE_BRANCH"
+            echo "PR_NUMBER=$PR_NUMBER"; echo "BASE_HAS_V4=$BASE_HAS_V4"
           } >> "$GITHUB_ENV"
-          echo "Changed (name-status, human view):"
-          git --no-pager diff --name-status "$BASE_SHA" "$HEAD_SHA" || true
 
-      - name: Prepare TRUSTED-BASE enforcement root (V4-C2)
+      - name: Resolve trusted enforcement root and worker diff (fail-closed)
         run: |
           set -euo pipefail
-          # V4-C2 — the enforcement validator is executed from the PROTECTED BASE copy of
-          # the factory code, NEVER the PR head. A PR that weakens boundary/lineage/roles
-          # or the workflow in its own head therefore cannot validate itself: the base
-          # (prior trusted policy) evaluates the head diff as data. Policy changes are thus
-          # gated by the prior policy and an implementation/correction-role governed record.
-          git worktree add --detach ../trusted-base "$BASE_SHA"
+          # R1 pinned V4 bootstrap anchor (immutable SHAs; used only for the exact V4
+          # transition range when the approved base predates the V4 policy).
+          ANCHOR_ISSUE=60
+          ANCHOR_APPROVED_BASE_SHA=07d0e38a540355244b2bcab0258d3eb5463ed1af
+          ANCHOR_FROZEN_SETUP_SHA=063078ac56423d3ab3544f17e69b09ed4bdc6d9e
+          if [ "$BASE_HAS_V4" = "true" ]; then
+            # DESCENDANT — normal path: run the validator from the PROTECTED BASE. Worker
+            # diff is the full base->head range; the approved base is the PR base.
+            echo "ENFORCEMENT: DESCENDANT (protected base policy)"
+            git worktree add --detach ../trusted-base "$BASE_SHA"
+            ENFORCE_BIN="../trusted-base/research-ops/factory-v1-1/bin/researchops.mjs"
+            DIFF_BASE="$BASE_SHA"; APPROVED_BASE_SHA="$BASE_SHA"
+          else
+            # BOOTSTRAP — one-time, pinned. The approved base predates V4; validate ONLY
+            # this exact remediation range from the VERIFIED head policy (HEAD==head.sha).
+            [ "$BASE_SHA" = "$ANCHOR_APPROVED_BASE_SHA" ] || { echo "base sha != anchored approved base"; exit 1; }
+            git cat-file -e "${ANCHOR_FROZEN_SETUP_SHA}^{commit}"
+            git merge-base --is-ancestor "$ANCHOR_FROZEN_SETUP_SHA" "$HEAD_SHA" || { echo "head does not descend frozen setup"; exit 1; }
+            # Fail closed unless the pinned anchor matches this exact issue/PR/branches.
+            node research-ops/factory-v1-1/bin/researchops.mjs resolve-enforcement \
+              --issue "$ANCHOR_ISSUE" --pull-request "$PR_NUMBER" \
+              --head-branch "$HEAD_BRANCH" --base-branch "$BASE_BRANCH" \
+              --approved-base-sha "$ANCHOR_APPROVED_BASE_SHA" \
+              --frozen-setup-sha "$ANCHOR_FROZEN_SETUP_SHA" \
+              --head-sha "$HEAD_SHA" --repo-root "$GITHUB_WORKSPACE"
+            # Owner setup phase must have introduced exactly the governed setup files.
+            node research-ops/factory-v1-1/bin/researchops.mjs check-setup-phase \
+              --approved-base-sha "$ANCHOR_APPROVED_BASE_SHA" \
+              --frozen-setup-sha "$ANCHOR_FROZEN_SETUP_SHA" --repo-root "$GITHUB_WORKSPACE"
+            ENFORCE_BIN="research-ops/factory-v1-1/bin/researchops.mjs"
+            DIFF_BASE="$ANCHOR_FROZEN_SETUP_SHA"; APPROVED_BASE_SHA="$ANCHOR_APPROVED_BASE_SHA"
+          fi
+          # V3-C10 — NUL-delimited unquoted worker diff from the (frozen-setup or base)
+          # boundary to the trusted head.
+          git -c core.quotePath=false diff -z --name-status "$DIFF_BASE" "$HEAD_SHA" > changed-status.z
+          echo "Worker changed (name-status, human view):"
+          git --no-pager diff --name-status "$DIFF_BASE" "$HEAD_SHA" || true
+          { echo "ENFORCE_BIN=$ENFORCE_BIN"; echo "DIFF_BASE=$DIFF_BASE"; echo "APPROVED_BASE_SHA=$APPROVED_BASE_SHA"; } >> "$GITHUB_ENV"
 
-      - name: Enforce append-only boundary from the trusted base (fail-closed)
+      - name: Enforce append-only boundary from the trusted enforcement root (fail-closed)
         run: |
           set -euo pipefail
-          # Run the BASE validator (../trusted-base) against the head diff + trusted event
-          # metadata and checkout facts. V4 adds role capability, owner governed-record
-          # authorization, commit ancestry and event/workspace integrity.
-          node ../trusted-base/research-ops/factory-v1-1/bin/researchops.mjs check-boundary \
+          node "$ENFORCE_BIN" check-boundary \
             --changed-status-z changed-status.z \
             --emit-task-roots task-roots.txt \
             --head-branch "$HEAD_BRANCH" \
             --base-branch "$BASE_BRANCH" \
-            --base-sha "$BASE_SHA" \
+            --base-sha "$DIFF_BASE" \
             --head-sha "$HEAD_SHA" \
+            --approved-base-sha "$APPROVED_BASE_SHA" \
             --checked-out-head "$(git rev-parse HEAD)" \
             --workspace "$GITHUB_WORKSPACE" \
             --repo-root "$GITHUB_WORKSPACE"

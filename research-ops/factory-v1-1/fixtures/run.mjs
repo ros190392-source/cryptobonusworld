@@ -21,6 +21,7 @@ import { validateGithubPlanShape, validateHistory } from '../lib/schema.mjs';
 import { roleForBranch, capabilityForRole } from '../lib/roles.mjs';
 import { validateGovernedRecord } from '../lib/govrecord.mjs';
 import { checkEventIntegrity, reconcileRecovery } from '../lib/eventintegrity.mjs';
+import { resolveEnforcement, checkSetupPhase, BOOTSTRAP_ANCHOR } from '../lib/bootstrap.mjs';
 import { verifyMergeRecord } from '../lib/mergeproof.mjs';
 import { validateSkeletonContent, canonicalizeText } from '../lib/skeleton.mjs';
 import { renderSkeleton } from '../lib/create.mjs';
@@ -407,6 +408,37 @@ function run() {
 
   // ---- authorization floor still intact ----
   { const t = mk(); writePkg(t, { json: { 'research-run.json': { schemaVersion: '1.0', overallFinding: { recommendation: 'CONFLICTING' }, authorizations: { deployAuthorized: true } } }, after: rebuildManifest }); check('V4 authorization floor still rejects forbidden true', !validateTask(t, {}).ok); }
+
+  // ================= R1 CI remediation =================
+  const A = BOOTSTRAP_ANCHOR;
+  const anchorCtx = (over = {}) => ({ baseHasV4Policy: false, issue: A.issue, pullRequest: A.pullRequest, headBranch: A.headBranch, baseBranch: A.baseBranch, approvedBaseSha: A.approvedBaseSha, frozenSetupSha: A.frozenSetupSha, headDescendsApprovedBase: true, headDescendsFrozenSetup: true, ...over });
+
+  // (1) checkout of a PR merge commit versus exact head SHA
+  { const merge = 'a80bb7c0000000000000000000000000000000000'; const head = '6b8c771f0418be6dba6d785fba14c540ed3d30a2';
+    check('R1-1 PR merge-commit checkout (HEAD=merge != head sha) rejected', !checkEventIntegrity({ checkedOutHead: merge, trustedHeadSha: head }).ok);
+    check('R1-1b exact head-sha checkout accepted', checkEventIntegrity({ checkedOutHead: head, trustedHeadSha: head, workspace: '/r', resolvedRoot: '/r', baseExists: true, headExists: true, headDescendsBase: true, shallow: false }).ok); }
+  // (2) checked-out HEAD mismatch
+  { check('R1-2 checked-out HEAD mismatch rejected', !checkEventIntegrity({ checkedOutHead: 'deadbeef', trustedHeadSha: 'cafe' }).ok); }
+  // (3) old base validator receiving unsupported V4 flags -> avoided by choosing BOOTSTRAP (not DESCENDANT) when base lacks V4 policy
+  { const r = resolveEnforcement(anchorCtx({ baseHasV4Policy: false })); check('R1-3 base without V4 policy -> BOOTSTRAP (never run old base with V4 flags)', r.mode === 'BOOTSTRAP'); }
+  // (4) bootstrap policy anchor mismatch
+  { check('R1-4 anchor issue mismatch -> REJECT', resolveEnforcement(anchorCtx({ issue: 999 })).mode === 'REJECT');
+    check('R1-4b anchor PR mismatch -> REJECT', resolveEnforcement(anchorCtx({ pullRequest: 12345 })).mode === 'REJECT');
+    check('R1-4c anchor approved-base mismatch -> REJECT', resolveEnforcement(anchorCtx({ approvedBaseSha: 'x'.repeat(40) })).mode === 'REJECT');
+    check('R1-4d non-descendant of frozen setup -> REJECT', resolveEnforcement(anchorCtx({ headDescendsFrozenSetup: false })).mode === 'REJECT'); }
+  // (5) bootstrap used by an unrelated branch/task
+  { check('R1-5 unrelated head branch -> REJECT', resolveEnforcement(anchorCtx({ headBranch: 'correction/researchops-factory-v1-1-evil' })).mode === 'REJECT');
+    check('R1-5b unrelated base branch -> REJECT', resolveEnforcement(anchorCtx({ baseBranch: 'main' })).mode === 'REJECT'); }
+  // (6) setup files modified after frozen setup (worker diff modifying a setup file)
+  { const r = checkChangedFileBoundary(nameStatus([['M', 'research-ops/factory-v1-1/correction-v4-016/CORRECTION_V4_STATE.json']]), FAC); check('R1-6 setup file modified in worker diff rejected', !r.ok); }
+  // (7) worker diff evaluated from the wrong endpoint / setup phase integrity
+  { check('R1-7 exact setup phase accepted', checkSetupPhase(nameStatus(A.setupFiles.map((f) => ['A', f]))).ok);
+    check('R1-7b extra file in setup phase rejected', !checkSetupPhase(nameStatus([...A.setupFiles.map((f) => ['A', f]), ['A', 'research-ops/factory-v1-1/lib/evil.mjs']])).ok);
+    check('R1-7c setup-phase non-addition rejected', !checkSetupPhase(nameStatus([['M', A.setupFiles[0]], ['A', A.setupFiles[1]], ['A', A.setupFiles[2]]])).ok);
+    check('R1-7d missing setup file rejected', !checkSetupPhase(nameStatus([['A', A.setupFiles[0]]])).ok); }
+  // (8) final descendant trusted-base execution
+  { const r = resolveEnforcement(anchorCtx({ baseHasV4Policy: true, headBranch: 'validation/researchops-factory-v1-1-final-acceptance-017', baseBranch: 'correction/researchops-factory-v1-1-v4-016', approvedBaseSha: 'z'.repeat(40) }));
+    check('R1-8 descendant (base carries V4 policy) -> DESCENDANT protected base', r.mode === 'DESCENDANT'); }
 
   for (const r of roots) { try { rmSync(r, { recursive: true, force: true }); } catch { /* ignore */ } }
   console.log(`\nFIXTURES: ${pass} passed, ${fail} failed`);

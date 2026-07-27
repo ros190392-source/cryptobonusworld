@@ -15,6 +15,7 @@ import { statusTask } from '../lib/status.mjs';
 import { parseNameStatus, parseNameStatusZ, checkChangedFileBoundary } from '../lib/boundary.mjs';
 import { roleForBranch } from '../lib/roles.mjs';
 import { checkEventIntegrity } from '../lib/eventintegrity.mjs';
+import { resolveEnforcement, checkSetupPhase } from '../lib/bootstrap.mjs';
 import { FROZEN_FACTORY_PREFIXES, FACTORY_IMPL_PREFIXES, FACTORY_IMPL_FILES } from '../lib/lineage.mjs';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
@@ -160,6 +161,7 @@ function cmdCheckBoundary(argv) {
       '--base-branch': { required: false, aliasKey: 'baseBranch' },
       '--base-sha': { required: false, aliasKey: 'baseSha' },
       '--head-sha': { required: false, aliasKey: 'headSha' },
+      '--approved-base-sha': { required: false, aliasKey: 'approvedBaseSha' },
       '--repo-root': { required: false, aliasKey: 'repoRoot' },
       '--checked-out-head': { required: false, aliasKey: 'checkedOutHead' },
       '--workspace': { required: false, aliasKey: 'workspace' },
@@ -182,6 +184,10 @@ function cmdCheckBoundary(argv) {
   if (a.headBranch) meta.headBranch = a.headBranch;
   if (a.baseBranch) meta.baseBranch = a.baseBranch;
   const repoRoot = a.repoRoot || process.cwd();
+  // R1 — `--base-sha` is the WORKER diff / governed-record base (the frozen owner-setup
+  // SHA in bootstrap runs); `--approved-base-sha` is the pinned approved base used for
+  // ancestry and the governed record's approved-base binding (falls back to base-sha).
+  const approvedBaseSha = a.approvedBaseSha || a.baseSha;
 
   // V4-C7 — checkout/event/workspace integrity + ancestry, before boundary evaluation.
   if (a.baseSha && a.headSha) {
@@ -189,7 +195,7 @@ function cmdCheckBoundary(argv) {
     const facts = {
       baseExists: gitFact(['cat-file', '-e', `${a.baseSha}^{commit}`], repoRoot) !== null || isAncestor(a.baseSha, a.headSha, repoRoot),
       headExists: gitFact(['rev-parse', '--verify', `${a.headSha}^{commit}`], repoRoot) !== null,
-      headDescendsBase: isAncestor(a.baseSha, a.headSha, repoRoot),
+      headDescendsBase: isAncestor(approvedBaseSha, a.headSha, repoRoot),
       shallow: gitFact(['rev-parse', '--is-shallow-repository'], repoRoot) === 'true',
     };
     if (a.checkedOutHead) { facts.checkedOutHead = a.checkedOutHead; facts.trustedHeadSha = a.headSha; }
@@ -217,16 +223,19 @@ function cmdCheckBoundary(argv) {
   }
 
   // V4-C1/C3/C4 — factory role + owner governed record + ancestry for governance PRs.
+  // R1 — the governed record is read from the FROZEN SETUP / base tree (a.baseSha), so
+  // the head cannot rewrite its own governing record; its approved-base binding is the
+  // pinned approved base SHA.
   if (a.headBranch && a.baseBranch && roleForBranch(a.headBranch)) {
     const role = roleForBranch(a.headBranch);
     const resultDir = deriveResultDirForCli(records);
-    const govRecord = (a.headSha && resultDir) ? govRecordAt(a.headSha, resultDir, repoRoot) : null;
+    const govRecord = (a.baseSha && resultDir) ? govRecordAt(a.baseSha, resultDir, repoRoot) : null;
     meta.factory = {
       role,
       govRecord,
-      approvedBaseSha: a.baseSha,
+      approvedBaseSha,
       currentResultDir: resultDir,
-      headDescendsBase: (a.baseSha && a.headSha) ? isAncestor(a.baseSha, a.headSha, repoRoot) : undefined,
+      headDescendsBase: (a.headSha) ? isAncestor(approvedBaseSha, a.headSha, repoRoot) : undefined,
     };
   }
 
@@ -247,10 +256,63 @@ function cmdCheckBoundary(argv) {
   process.exit(0);
 }
 
+// R1 — resolve the trusted enforcement source (DESCENDANT vs one-time BOOTSTRAP), fail
+// closed. The workflow calls this before running the boundary. `--base-has-v4-policy`
+// is passed by the workflow after testing the approved base tree for the V4 modules.
+function cmdResolveEnforcement(argv) {
+  const a = parseArgs(argv, {
+    flags: {
+      '--issue': { required: false, aliasKey: 'issue' },
+      '--pull-request': { required: false, aliasKey: 'pullRequest' },
+      '--head-branch': { required: true, aliasKey: 'headBranch' },
+      '--base-branch': { required: true, aliasKey: 'baseBranch' },
+      '--approved-base-sha': { required: true, aliasKey: 'approvedBaseSha' },
+      '--frozen-setup-sha': { required: false, aliasKey: 'frozenSetupSha' },
+      '--head-sha': { required: true, aliasKey: 'headSha' },
+      '--repo-root': { required: false, aliasKey: 'repoRoot' },
+    },
+    booleans: { '--base-has-v4-policy': { aliasKey: 'baseHasV4Policy' } },
+  });
+  const repoRoot = a.repoRoot || process.cwd();
+  const ctx = {
+    baseHasV4Policy: a.baseHasV4Policy === true,
+    issue: a.issue, pullRequest: a.pullRequest,
+    headBranch: a.headBranch, baseBranch: a.baseBranch,
+    approvedBaseSha: a.approvedBaseSha, frozenSetupSha: a.frozenSetupSha,
+    headDescendsApprovedBase: isAncestor(a.approvedBaseSha, a.headSha, repoRoot),
+    headDescendsFrozenSetup: a.frozenSetupSha ? isAncestor(a.frozenSetupSha, a.headSha, repoRoot) : undefined,
+  };
+  const r = resolveEnforcement(ctx);
+  console.log(`ENFORCEMENT ${r.mode}: ${r.reason}`);
+  if (r.mode === 'REJECT') process.exit(1);
+  process.exit(0);
+}
+
+// R1 — verify the owner setup phase introduced exactly the governed setup files.
+function cmdCheckSetupPhase(argv) {
+  const a = parseArgs(argv, {
+    flags: {
+      '--approved-base-sha': { required: true, aliasKey: 'approvedBaseSha' },
+      '--frozen-setup-sha': { required: true, aliasKey: 'frozenSetupSha' },
+      '--repo-root': { required: false, aliasKey: 'repoRoot' },
+    },
+  });
+  const repoRoot = a.repoRoot || process.cwd();
+  let out;
+  try {
+    out = execFileSync('git', ['-c', 'core.quotePath=false', 'diff', '-z', '--name-status', a.approvedBaseSha, a.frozenSetupSha], { cwd: repoRoot, stdio: ['ignore', 'pipe', 'ignore'], encoding: 'utf8', windowsHide: true });
+  } catch (e) { die(`setup-phase diff failed: ${e.message}`, 1); }
+  const records = parseNameStatusZ(out);
+  const r = checkSetupPhase(records);
+  if (!r.ok) { for (const v of r.violations) console.error(`  - setup: ${v}`); die('owner setup phase integrity failed', 1); }
+  console.log('RESULT: SETUP PHASE OK (exactly the governed owner setup files, additions only)');
+  process.exit(0);
+}
+
 function main() {
   const [cmd, ...rest] = process.argv.slice(2);
   if (!cmd || cmd === '--help' || cmd === '-h') {
-    console.log('usage: researchops <create|validate|status|check-boundary> [flags]');
+    console.log('usage: researchops <create|validate|status|check-boundary|resolve-enforcement|check-setup-phase> [flags]');
     process.exit(cmd ? 0 : 2);
   }
   try {
@@ -258,6 +320,8 @@ function main() {
     if (cmd === 'validate') return cmdValidate(rest);
     if (cmd === 'status') return cmdStatus(rest);
     if (cmd === 'check-boundary') return cmdCheckBoundary(rest);
+    if (cmd === 'resolve-enforcement') return cmdResolveEnforcement(rest);
+    if (cmd === 'check-setup-phase') return cmdCheckSetupPhase(rest);
     die(`unknown command: ${cmd}`, 2);
   } catch (e) {
     die(e.message, 2);

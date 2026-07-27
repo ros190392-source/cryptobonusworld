@@ -76,3 +76,45 @@ modified. The Correction V4 contract/state/prompt were left unchanged. Every mer
 canonical, production, activation and deploy authorization remains **false**.
 
 **Next task:** `CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-FINAL-ACCEPTANCE-VALIDATION-017`.
+
+## CI Remediation R1
+
+**Failed run `30297251691`** (conclusion: failure) failed at step **"Discover changed files and
+trusted event metadata (fail-closed)"**. Exact cause: `actions/checkout@v4` on the `pull_request`
+event checked out GitHub's synthetic merge commit `a80bb7c` ("Merge 6b8c771 into 07d0e38"), so
+`git rev-parse HEAD` (`a80bb7c`) ≠ the trusted event head SHA `6b8c771`. The V4-C7 guard correctly
+failed the step (`checked-out HEAD != trusted head sha`, exit 1); trusted-base and boundary steps
+were skipped. The integrity check worked as designed — the workflow's own checkout used the wrong
+ref.
+
+**Surgical remediation (no V5, no new branch/PR):**
+
+1. **Exact head checkout** — the workflow now checks out `ref: github.event.pull_request.head.sha`
+   so `HEAD` == the trusted head SHA. The V4-C7 integrity guard is **retained unchanged** and still
+   fails closed on any real mismatch.
+2. **Trusted-base bootstrap** (`lib/bootstrap.mjs`) — the approved base `07d0e38` predates the V4
+   policy modules, so the base validator cannot run V4 flags for the transition PR. `resolveEnforcement`
+   returns **DESCENDANT** whenever the approved base carries the V4 policy (every normal PR and Final
+   Acceptance 017 → run from the protected base), **BOOTSTRAP** only for the exact pinned anchor
+   (immutable `approvedBaseSha 07d0e38` + `frozenSetupSha 063078a`, bound to Issue #60 / PR #61 /
+   exact head+base branches, read-only, validates only this range, cannot authorize another task or
+   future branch), and **REJECT** otherwise (fail closed). The old base is never run with unsupported
+   V4 flags, and mutable PR-head policy is never silently used as trusted enforcement for a
+   non-anchored range.
+3. **Frozen setup boundary** — `check-setup-phase` verifies the owner setup phase `07d0e38→063078a`
+   introduced **exactly** the three governed setup files (additions only). The worker boundary is
+   evaluated from the frozen setup SHA → head; the governed record is read from the frozen setup tree
+   (the head cannot rewrite its own governing record); setup files are immutable afterward; no
+   arbitrary third file is allowed.
+
+**Regression coverage (16 new checks, 193/0 total):** PR merge-commit vs exact head SHA · checked-out
+HEAD mismatch · old base + unsupported V4 flags (avoided via BOOTSTRAP) · bootstrap anchor mismatch ·
+bootstrap used by unrelated branch/task · setup file modified after frozen setup · worker diff from
+the wrong endpoint / setup-phase integrity · final descendant trusted-base execution.
+
+**Local end-to-end proof (real commits):** `check-setup-phase` OK · `resolve-enforcement` match →
+BOOTSTRAP (exit 0), mismatch → REJECT (exit 1) · worker `check-boundary` (frozen-setup→head) →
+BOUNDARY OK. Final Acceptance 017 (whose base carries the V4 policy) uses the **DESCENDANT** protected-
+base path, proving the descendant trusted-base path works.
+
+**New successful workflow run:** _recorded below after the remediation push triggers it._

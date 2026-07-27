@@ -34,7 +34,7 @@
     "research-ops/factory-v1-1/correction-v4-016/CORRECTION_V4_RESULT.json",
     "research-ops/factory-v1-1/correction-v4-016/CORRECTION_V4_RESULT.md"
   ],
-  "newLibraryModules": ["lib/roles.mjs", "lib/govrecord.mjs", "lib/eventintegrity.mjs", "lib/mergeproof.mjs", "lib/skeleton.mjs"],
+  "newLibraryModules": ["lib/roles.mjs", "lib/govrecord.mjs", "lib/eventintegrity.mjs", "lib/mergeproof.mjs", "lib/skeleton.mjs", "lib/bootstrap.mjs"],
 
   "correctionMatrix": [
     { "id": "V4-C1", "finding": "A", "name": "task-role capability profiles", "change": "New lib/roles.mjs derives a role (implementation/correction/validation/closeout) from the branch and returns an exact capability. The boundary FACTORY_GOVERNANCE branch now enforces it: validation/closeout roles may create only their two result records and may not touch bin/lib/fixtures/schemas/templates/README/workflow/enforcement-root; implementation/correction roles may modify enumerated implementation paths plus exactly two result files; setup files are immutable; whole-directory prefix authorization removed.", "verdict": "APPLIED", "proof": "fixtures V4-C1..f; validation-role modifying lib/boundary.mjs and adding a 3rd result file both rejected; setup-file mutation rejected" },
@@ -51,7 +51,7 @@
   "ancestryGovernanceModel": "govrecord.mjs: owner *_STATE.json record binds taskId/role(from branch)/head/base/approvedBaseSha; boundary requires the record + head-descends-approvedBase; lineage.mjs no longer preauthorizes any task by branch name.",
 
   "syntaxCheck": "PASS (node --check on all factory .mjs)",
-  "fixtureResults": { "passed": 177, "failed": 0, "priorRetained": 145, "addedForV4": 32 },
+  "fixtureResults": { "passed": 193, "failed": 0, "priorRetained": 145, "addedForV4": 32, "addedForCiRemediationR1": 16 },
   "gitDiffCheck": "clean",
   "cliSmokeResults": {
     "createForeignWorktree": "exit 2 (fails closed)",
@@ -75,6 +75,26 @@
     "D": "Broader current-record lifecycle refinements beyond exact role inventory; the exact two-result-file + immutable-setup rule is enforced, deeper lifecycle states are backlog.",
     "H": "Marker-protocol enum compatibility extensions (e.g. additional governed outcome enums); the controlled enum set is enforced and can be extended without a security change.",
     "K": "Richer history event/timestamp semantics (ISO event schema); current history integrity + append-only is enforced, richer semantics are backlog."
+  },
+
+  "ciRemediationR1": {
+    "remediationTaskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CORRECTION-V4-016-CI-REMEDIATION-R1",
+    "failedRunId": 30297251691,
+    "failedRunConclusion": "failure",
+    "failedStep": "Discover changed files and trusted event metadata (fail-closed)",
+    "exactFailure": "actions/checkout@v4 on the pull_request event checked out GitHub's synthetic merge commit a80bb7c ('Merge 6b8c771 into 07d0e38'), so `git rev-parse HEAD` (a80bb7c) != trusted event head SHA 6b8c771. The V4-C7 guard `[ git rev-parse HEAD = HEAD_SHA ]` correctly failed the step ('checked-out HEAD != trusted head sha', exit 1); trusted-base and boundary steps were skipped. The integrity check worked as designed; the workflow's own checkout used the wrong ref.",
+    "reproduced": true,
+    "fixes": {
+      "checkoutHeadSha": "The workflow now checks out `ref: github.event.pull_request.head.sha` so HEAD == the trusted head SHA; the V4-C7 integrity guard is retained unchanged and still fails closed on any real mismatch.",
+      "trustedBaseBootstrap": "The approved base 07d0e38 predates the V4 policy modules, so running the base validator with V4 flags is impossible for the transition PR. lib/bootstrap.mjs adds a pinned one-time BOOTSTRAP anchor (immutable approvedBaseSha 07d0e38 + frozenSetupSha 063078a, bound to Issue #60/PR #61/exact head+base branches). resolveEnforcement returns DESCENDANT when the approved base carries V4 policy (every normal PR and Final Acceptance 017 -> run from the protected base), BOOTSTRAP only for this exact anchored range, and REJECT otherwise. The old base is never run with unsupported V4 flags, and mutable PR-head policy is never silently used as trusted enforcement for a non-anchored range.",
+      "frozenSetupBoundary": "The owner setup phase (approvedBase 07d0e38 -> frozenSetup 063078a) is verified to introduce EXACTLY the three governed setup files (additions only) via `check-setup-phase`. The worker boundary is evaluated from the frozen setup SHA -> head, the governed record is read from the frozen setup tree (the head cannot rewrite its own governing record), setup files are immutable afterward, and no arbitrary third setup/result file is allowed."
+    },
+    "bootstrapAnchor": { "issue": 60, "pullRequest": 61, "headBranch": "correction/researchops-factory-v1-1-v4-016", "baseBranch": "validation/researchops-factory-v1-1-v3-015", "approvedBaseSha": "07d0e38a540355244b2bcab0258d3eb5463ed1af", "frozenSetupSha": "063078ac56423d3ab3544f17e69b09ed4bdc6d9e", "readOnly": true, "cannotAuthorizeOtherTaskOrFutureBranch": true, "validatesOnlyThisRemediationRange": true },
+    "localEndToEndProof": { "checkSetupPhase": "OK (07d0e38->063078a = exactly 3 setup files)", "resolveEnforcementMatch": "BOOTSTRAP (exit 0)", "resolveEnforcementMismatch": "REJECT (exit 1)", "workerBoundary": "BOUNDARY OK (frozen-setup->head, correction role, govRecord from frozen setup, ancestry to approved base)" },
+    "newSuccessfulRunId": "PENDING_PUSH",
+    "trustedBaseBoundaryTaskValidationStepsExecuted": "PENDING_PUSH",
+    "finalAcceptance017DescendantPathProvable": true,
+    "regressionScenariosCovered": ["PR merge-commit vs exact head SHA", "checked-out HEAD mismatch", "old base validator + unsupported V4 flags (avoided via BOOTSTRAP)", "bootstrap anchor mismatch", "bootstrap used by unrelated branch/task", "setup files modified after frozen setup", "worker diff from wrong endpoint / setup-phase integrity", "final descendant trusted-base execution"]
   },
 
   "correctionOutcome": "CORRECTED_READY_FOR_FINAL_ACCEPTANCE_VALIDATION",

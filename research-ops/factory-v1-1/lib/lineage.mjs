@@ -41,6 +41,7 @@ export const ENFORCEMENT_ROOT_PATHS = [
   'research-ops/factory-v1-1/lib/roles.mjs',
   'research-ops/factory-v1-1/lib/govrecord.mjs',
   'research-ops/factory-v1-1/lib/eventintegrity.mjs',
+  'research-ops/factory-v1-1/lib/bootstrap.mjs',
   'research-ops/factory-v1-1/bin/researchops.mjs',
 ];
 export function isEnforcementRootPath(p) {
