@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CONTROLLED-STACK-MERGE-019",
+  "project": "CryptoBonusWorld",
+  "role": "closeout",
+  "issue": 66,
+  "branch": "closeout/researchops-factory-v1-1-controlled-stack-merge-019",
+  "baseBranch": "closeout/researchops-factory-v1-1-owner-closeout-018",
+  "approvedBaseSha": "3bc4b5e400cb292d73d5f1b77edd356ace02547d",
+  "expectedMainBefore": "04157b9dfb140918a8569a5026da747b429e5ed3",
+  "protectedMasterSha": "998fcedd7d9febbec5b130d4765dfeaafc40960b",
+  "state": "OWNER_AUTHORIZED_FOR_CONTROLLED_STACK_MERGE",
+  "ownerAuthorization": {
+    "command": "AUTHORIZE CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CONTROLLED-STACK-MERGE-019",
+    "authorizationType": "FACTORY_CONTROLLED_STACK_MERGE_TO_MAIN_ONCE",
+    "targetBranch": "main",
+    "authorizedStackHead": "3bc4b5e400cb292d73d5f1b77edd356ace02547d",
+    "fastForwardOnly": true,
+    "forceAllowed": false,
+    "authorizationConsumed": false
+  },
+  "publicationPlan": {
+    "mode": "TWO_STAGE_FAST_FORWARD_ONLY",
+    "stage1": {
+      "from": "04157b9dfb140918a8569a5026da747b429e5ed3",
+      "to": "3bc4b5e400cb292d73d5f1b77edd356ace02547d"
+    },
+    "stage2": {
+      "from": "3bc4b5e400cb292d73d5f1b77edd356ace02547d",
+      "to": "FINAL_MERGE_019_RESULT_COMMIT"
+    }
+  },
+  "orderedStack": [
+    { "pr": 44, "head": "02997bb63be39012015486ecf55da707a3738f6b" },
+    { "pr": 46, "head": "2f95f8a373e21204548e6c61433677d009943b26" },
+    { "pr": 49, "head": "2b9fecd8540070c92f1d1ba382ba05b64597a7e6" },
+    { "pr": 51, "head": "a958f0c7d7ce2d707e4d79e5eafdd984fc851d2d" },
+    { "pr": 53, "head": "d3ed1128497cf682863c438d47eb65d26ebb536b" },
+    { "pr": 55, "head": "acd83d1d4e854db26ec1054b03c6e9cfd42bd2da" },
+    { "pr": 57, "head": "9352e59e168c2b084491c829579bf3e4fb187480" },
+    { "pr": 59, "head": "07d0e38a540355244b2bcab0258d3eb5463ed1af" },
+    { "pr": 61, "head": "1e7c35526edc9e251d87cbd741ce1cc4acc09293" },
+    { "pr": 63, "head": "71ad9aecf772a0885e88e78e1f55bec82f376d8b" },
+    { "pr": 65, "head": "3bc4b5e400cb292d73d5f1b77edd356ace02547d" }
+  ],
+  "requiredResultFiles": [
+    "CONTROLLED_STACK_MERGE_RESULT.json",
+    "CONTROLLED_STACK_MERGE_RESULT.md"
+  ],
+  "authorizations": {
+    "factoryMergeToMainAuthorized": true,
+    "researchRecordMergeToMainAuthorized": false,
+    "binancePilotAuthorized": false,
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false,
+    "masterChangeAuthorized": false
+  },
+  "nextTaskOnSuccess": "CBW-KZ-BINANCE-P0-D-FACTORY-PILOT-020",
+  "createdAt": "2026-07-27"
+}
