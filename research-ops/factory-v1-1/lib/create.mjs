@@ -5,8 +5,9 @@ import { fileURLToPath } from 'node:url';
 import { readText, writeCanonical, writeJson, ensureDir, exists } from './util.mjs';
 import {
   FACTORY_VERSION, STAGE_DIRS, RESEARCH_FILES, RESEARCH_JSON_FILES,
-  freshAuthorizations, isValidTaskId,
+  freshAuthorizations, isValidTaskId, validateIdentityValues, deterministicBranch,
 } from './model.mjs';
+import { requireWorktreeRoot } from './worktree.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const TEMPLATE_DIR = join(HERE, '..', 'templates');
@@ -37,13 +38,20 @@ export function createTask(opts) {
   if (errors.length) throw new Error(`create failed: ${errors.join('; ')}`);
 
   if (!isValidTaskId(opts.taskId)) throw new Error(`invalid task id: ${opts.taskId}`);
-  if (!/^[A-Z]{2}$/.test(opts.countryCode)) throw new Error(`invalid country code: ${opts.countryCode}`);
-  if (!/^[a-z0-9-]+$/.test(opts.exchangeId)) throw new Error(`invalid exchange id: ${opts.exchangeId}`);
+  // V2-C7 — validate identity grammar/types (not merely presence) at create time.
+  const idErrors = validateIdentityValues(opts);
+  if (idErrors.length) throw new Error(`invalid identity: ${idErrors.join('; ')}`);
 
   // taskId is validated (no slashes, no `..`), so it is a safe single path segment.
+  // V2-C1 — canonical output root is ALWAYS the real Git worktree root; `testRoot`
+  // and `repoRoot` are LIBRARY-ONLY injections never wired to the CLI. Invoked
+  // outside a worktree (e.g. an external cwd), requireWorktreeRoot throws and nothing
+  // is created.
   const baseRoot = opts.testRoot !== undefined
     ? opts.testRoot                                        // library/test-only injected root
-    : join(opts.repoRoot || process.cwd(), 'research-ops', 'tasks');
+    : opts.repoRoot !== undefined
+      ? join(opts.repoRoot, 'research-ops', 'tasks')       // library-only injected repo root
+      : join(requireWorktreeRoot(process.cwd()), 'research-ops', 'tasks'); // canonical
   const taskDir = join(baseRoot, opts.taskId);
 
   // Create-only: fail closed if the task path already exists.
@@ -115,7 +123,8 @@ export function createTask(opts) {
   });
 
   // GITHUB_PLAN.json — one branch, one draft PR to main; never a merge.
-  const branchName = `research/${opts.countryCode.toLowerCase()}-${opts.exchangeId}-${opts.batchId.toLowerCase()}`;
+  // V2-C6/C7 — branch generated deterministically from validated safe identity values.
+  const branchName = deterministicBranch(opts);
   writeJson(join(contract, 'GITHUB_PLAN.json'), {
     schemaVersion: '1.0.0',
     taskId: opts.taskId,

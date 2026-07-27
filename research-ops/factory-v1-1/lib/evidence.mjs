@@ -5,23 +5,30 @@ import { join } from 'node:path';
 import { exists } from './util.mjs';
 import { STATES, isState } from './model.mjs';
 import { researchPackagePresent, isPackageValid } from './package.mjs';
+import {
+  REVIEW_MARKER, CORRECTION_MARKER, VALIDATION_MARKER, CLOSEOUT_MARKER, MERGE_MARKER,
+  validateMarkers,
+} from './markers.mjs';
 
 // Conservative artifact requirements per declared state.
 // requiresPackage: a complete, valid eleven-file package must exist.
-// stage: an append-only stage output file (any of) must exist.
+// markers: V2-C10 — a CUMULATIVE list of identity-bound stage markers, each of which
+//   must be a regular, canonical-UTF-8, parseable, task-ID-bound file carrying a
+//   recognized outcome/state (or a valid owner receipt). Later states retain earlier
+//   stage evidence.
 // requiresBlockedReason: TASK_STATE.blockedReason must be a non-empty string.
 export const STATE_REQUIREMENTS = {
-  PREPARED: { requiresPackage: false },
-  RESEARCH_CAPTURED: { requiresPackage: true },
-  PACKAGE_VALIDATED: { requiresPackage: true },
-  SOURCE_TRUTH_REVIEWED: { requiresPackage: true, stage: { dir: '50-source-truth-review', anyOf: ['SOURCE_TRUTH_REVIEW.json'] } },
-  CORRECTION_REQUIRED: { requiresPackage: true, stage: { dir: '50-source-truth-review', anyOf: ['SOURCE_TRUTH_REVIEW.json'] } },
-  CORRECTED: { requiresPackage: true, stage: { dir: '60-correction', anyOf: ['CORRECTION_STATE.json', 'CORRECTION_RESULT.json'] } },
-  VALIDATED: { requiresPackage: true, stage: { dir: '70-validation', anyOf: ['VALIDATION.json', 'FACTORY_VALIDATION.json', 'CORRECTION_V2_VALIDATION.json'] } },
-  OWNER_CLOSEOUT_REQUIRED: { requiresPackage: true, stage: { dir: '70-validation', anyOf: ['VALIDATION.json', 'FACTORY_VALIDATION.json', 'CORRECTION_V2_VALIDATION.json'] } },
-  RESEARCH_RECORD_MERGE_AUTHORIZED: { requiresPackage: true, stage: { dir: '80-closeout', anyOf: ['OWNER_CLOSEOUT_RECEIPT.json'] } },
-  RESEARCH_RECORD_MERGED_TO_MAIN: { requiresPackage: true, stage: { dir: '80-closeout', anyOf: ['OWNER_CLOSEOUT_RECEIPT.json'] } },
-  BLOCKED: { requiresBlockedReason: true },
+  PREPARED: { requiresPackage: false, markers: [] },
+  RESEARCH_CAPTURED: { requiresPackage: true, markers: [] },
+  PACKAGE_VALIDATED: { requiresPackage: true, markers: [] },
+  SOURCE_TRUTH_REVIEWED: { requiresPackage: true, markers: [REVIEW_MARKER] },
+  CORRECTION_REQUIRED: { requiresPackage: true, markers: [REVIEW_MARKER] },
+  CORRECTED: { requiresPackage: true, markers: [REVIEW_MARKER, CORRECTION_MARKER] },
+  VALIDATED: { requiresPackage: true, markers: [REVIEW_MARKER, VALIDATION_MARKER] },
+  OWNER_CLOSEOUT_REQUIRED: { requiresPackage: true, markers: [REVIEW_MARKER, VALIDATION_MARKER] },
+  RESEARCH_RECORD_MERGE_AUTHORIZED: { requiresPackage: true, markers: [REVIEW_MARKER, VALIDATION_MARKER, CLOSEOUT_MARKER] },
+  RESEARCH_RECORD_MERGED_TO_MAIN: { requiresPackage: true, markers: [REVIEW_MARKER, VALIDATION_MARKER, CLOSEOUT_MARKER, MERGE_MARKER] },
+  BLOCKED: { requiresBlockedReason: true, markers: [] },
 };
 
 export function deriveEvidence(taskDir) {
@@ -30,11 +37,6 @@ export function deriveEvidence(taskDir) {
   const pkg = packagePresent ? isPackageValid(outDir) : { ok: false, checks: [] };
   const packageValid = packagePresent && pkg.ok;
   return { taskDir, packagePresent, packageValid, packageChecks: pkg.checks };
-}
-
-function stageSatisfied(taskDir, stage) {
-  if (!stage) return true;
-  return stage.anyOf.some((f) => exists(join(taskDir, stage.dir, f)));
 }
 
 // Return { consistent, reason } for a declared state against on-disk evidence.
@@ -48,8 +50,12 @@ export function checkStateConsistency(declaredState, taskState, evidence, taskDi
   if (req.requiresPackage && !evidence.packageValid) {
     return { consistent: false, reason: evidence.packagePresent ? 'declared state requires a valid eleven-file package, but package validation failed' : 'declared state requires a research package, but 20-research-output/ is empty' };
   }
-  if (req.stage && !stageSatisfied(taskDir, req.stage)) {
-    return { consistent: false, reason: `declared state requires ${req.stage.dir}/{${req.stage.anyOf.join(' | ')}}` };
+  // V2-C10 — cumulative identity-bound stage markers.
+  if (req.markers && req.markers.length) {
+    const taskId = taskState && taskState.taskId;
+    if (!taskId) return { consistent: false, reason: 'declared state requires identity-bound markers but TASK_STATE.taskId is missing' };
+    const m = validateMarkers(taskDir, req.markers, taskId);
+    if (!m.ok) return { consistent: false, reason: m.reason };
   }
   return { consistent: true, reason: '' };
 }

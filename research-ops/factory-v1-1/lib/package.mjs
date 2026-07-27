@@ -3,7 +3,7 @@
 
 import { join } from 'node:path';
 import { readdirSync, lstatSync } from 'node:fs';
-import { exists, readBuf, readText, byteLength, hasBOM, hasCR } from './util.mjs';
+import { exists, readBuf, readText, byteLength, hasBOM, hasCR, isValidUtf8 } from './util.mjs';
 import {
   RESEARCH_FILES, RESEARCH_JSON_FILES, MANIFEST_HASHED_FILES,
   ID_COLLECTIONS, CROSSREF_RULES,
@@ -15,6 +15,35 @@ const REQUIRED_REF_FIELDS = {
   'claim-verdicts.json': ['supportedSourceIds'],
   'payment-rails.json': ['sourceIds'],
 };
+
+// V2-C8 — governed minimum top-level structure for EVERY research JSON file, not
+// only the five ID collections. Each requires an object top level with the named
+// key present and of the named kind ('array' or 'object'). Compatible with the
+// proven OKX package shape and the fixture package shape.
+const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
+const RESEARCH_JSON_SHAPES = {
+  'research-run.json': { overallFinding: 'object' },
+  'source-verification.json': { sources: 'array' },
+  'claim-verdicts.json': { claims: 'array' },
+  'conflict-resolution.json': { conflicts: 'array' },
+  'product-availability.json': { products: 'array' },
+  'payment-rails.json': { rails: 'array' },
+  'offer-eligibility-review.json': { review: 'object' },
+  'schema-normalization-notes.json': { notes: 'array' },
+  'import-readiness.json': { readiness: 'object' },
+};
+function checkResearchShape(file, obj) {
+  if (!isObj(obj)) return `${file}: top level must be a JSON object (got ${obj === null ? 'null' : Array.isArray(obj) ? 'array' : typeof obj})`;
+  const spec = RESEARCH_JSON_SHAPES[file];
+  if (!spec) return '';
+  for (const [key, kind] of Object.entries(spec)) {
+    const v = obj[key];
+    if (v === undefined) return `${file}: missing required '${key}'`;
+    if (kind === 'array' && !Array.isArray(v)) return `${file}.${key} must be an array`;
+    if (kind === 'object' && !isObj(v)) return `${file}.${key} must be an object`;
+  }
+  return '';
+}
 
 function tryJson(path) {
   try { return [JSON.parse(readText(path)), null]; }
@@ -65,15 +94,18 @@ export function validatePackageDir(outDir, R) {
   R.add('inventory: exactly 11 flat regular files, no other entries', inventoryOk,
     `count=${flat.length} unexpected=[${violations.join('; ')}] extra=[${flat.filter((f) => !RESEARCH_FILES.includes(f))}] missing=[${RESEARCH_FILES.filter((f) => !flat.includes(f))}]`);
 
-  // canonical encoding
+  // canonical encoding — V2-C9: strict UTF-8 validity (fatal decode) on ALL eleven
+  // files BEFORE any JSON/text parsing, plus BOM and CR/CRLF rejection. Invalid UTF-8
+  // is reported distinctly from malformed JSON.
   let encOk = true; const encBad = [];
   for (const f of RESEARCH_FILES) {
     const p = join(outDir, f); if (!exists(p)) continue;
     const buf = readBuf(p);
+    if (!isValidUtf8(buf)) { encOk = false; encBad.push(`${f}:INVALID_UTF8`); }
     if (hasBOM(buf)) { encOk = false; encBad.push(`${f}:BOM`); }
     if (hasCR(buf)) { encOk = false; encBad.push(`${f}:CRLF`); }
   }
-  R.add('canonical UTF-8 (no BOM) and LF line endings', encOk, encBad.join(', '));
+  R.add('canonical UTF-8 (valid bytes, no BOM) and LF line endings', encOk, encBad.join(', '));
 
   // JSON parse
   const parsed = {};
@@ -86,6 +118,15 @@ export function validatePackageDir(outDir, R) {
     parsed[f] = obj; parseOk += 1;
   }
   R.add('9/9 JSON files parse', parseOk === RESEARCH_JSON_FILES.length, `${parseOk}/${RESEARCH_JSON_FILES.length}`);
+
+  // V2-C8 — governed top-level structure for every one of the nine research JSON files.
+  let shapeOk = true; const shapeBad = [];
+  for (const f of RESEARCH_JSON_FILES) {
+    if (!(f in parsed)) continue; // parse failure already reported above
+    const msg = checkResearchShape(f, parsed[f]);
+    if (msg) { shapeOk = false; shapeBad.push(msg); }
+  }
+  R.add('all nine research JSON top-level structures valid (V2-C8)', shapeOk, shapeBad.slice(0, 9).join('; '));
 
   // MANIFEST
   const mres = verifyManifest(outDir, MANIFEST_HASHED_FILES);

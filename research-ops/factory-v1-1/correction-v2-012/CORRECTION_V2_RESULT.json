@@ -1,0 +1,127 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CORRECTION-V2-012",
+  "project": "CryptoBonusWorld",
+  "governingIssue": 52,
+  "correctionV2PullRequest": 53,
+  "sourceValidationTaskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CORRECTION-VALIDATION-011",
+  "sourceValidationCommitSha": "a958f0c7d7ce2d707e4d79e5eafdd984fc851d2d",
+  "sourceCorrectionCommitSha": "2b9fecd8540070c92f1d1ba382ba05b64597a7e6",
+  "branch": "correction/researchops-factory-v1-1-v2-012",
+  "baseBranch": "validation/researchops-factory-v1-1-correction-011",
+  "initialCorrectionHeadSha": "de5601c7083b33c1c885c7184d9f22d70a4d9e8f",
+  "protectedMainSha": "04157b9dfb140918a8569a5026da747b429e5ed3",
+  "protectedMasterSha": "998fcedd7d9febbec5b130d4765dfeaafc40960b",
+  "correctedAt": "2026-07-27",
+  "environment": { "nodeVersion": "v24 (Node 20-compatible ESM/built-ins)", "dependencyFree": true, "scmBinary": "git (fixed-argument execFileSync; no shell)" },
+
+  "changedFileInventory": [
+    ".github/workflows/cbw-researchops-factory-validate.yml",
+    "research-ops/factory-v1-1/README.md",
+    "research-ops/factory-v1-1/bin/researchops.mjs",
+    "research-ops/factory-v1-1/fixtures/run.mjs",
+    "research-ops/factory-v1-1/lib/boundary.mjs",
+    "research-ops/factory-v1-1/lib/create.mjs",
+    "research-ops/factory-v1-1/lib/evidence.mjs",
+    "research-ops/factory-v1-1/lib/markers.mjs",
+    "research-ops/factory-v1-1/lib/model.mjs",
+    "research-ops/factory-v1-1/lib/package.mjs",
+    "research-ops/factory-v1-1/lib/schema.mjs",
+    "research-ops/factory-v1-1/lib/stage.mjs",
+    "research-ops/factory-v1-1/lib/util.mjs",
+    "research-ops/factory-v1-1/lib/validate.mjs",
+    "research-ops/factory-v1-1/lib/worktree.mjs",
+    "research-ops/factory-v1-1/correction-v2-012/CORRECTION_V2_RESULT.json",
+    "research-ops/factory-v1-1/correction-v2-012/CORRECTION_V2_RESULT.md"
+  ],
+  "newLibraryModules": ["lib/worktree.mjs", "lib/stage.mjs", "lib/markers.mjs"],
+
+  "correctionMatrix": [
+    { "id": "V2-C1", "finding": "A", "name": "real Git worktree-root confinement", "change": "New lib/worktree.mjs resolves the worktree root via `git rev-parse --is-inside-work-tree`/`--show-toplevel` (fixed args, no shell) and confirms a valid `.git` dir or `gitdir:` pointer. create.mjs uses requireWorktreeRoot(process.cwd()); testRoot/repoRoot remain library-only. Outside a worktree, create throws and writes nothing.", "verdict": "APPLIED", "proof": "CLI: create from repo root and subdir both land at <root>/research-ops/tasks; external non-git cwd exits non-zero and creates nothing; fixtures V2-C1/b/c" },
+    { "id": "V2-C2", "finding": "B", "name": "strict source+destination name-status", "change": "parseNameStatus rewritten: only A/M/D/T and R<score>/C<score>; both src and dst retained in `paths`; malformed/empty/unknown-status/wrong-arity flagged. Boundary evaluates every src and dst; rename of a governed source counts as removal.", "verdict": "APPLIED", "proof": "fixtures V2-C2..V2-C2g; CLI rename-from-pilot and malformed rejected" },
+    { "id": "V2-C3", "finding": "C", "name": "trusted PR/change-mode identity", "change": "trustedModeFromMeta derives mode from PR head/base branch grammar only. checkChangedFileBoundary requires trusted metadata to grant FACTORY_GOVERNANCE and fails closed on missing/mismatched metadata; a research branch changing only a factory file is rejected. Workflow passes github.event.pull_request head/base ref + sha.", "verdict": "APPLIED", "proof": "fixtures V2-C3..V2-C3d; CLI mode-confusion and no-metadata cases exit non-zero" },
+    { "id": "V2-C4", "finding": "D", "name": "exact factory workflow allowlist", "change": "Only `.github/workflows/cbw-researchops-factory-validate.yml` is permitted; any other `.github/workflows/**` path is a violation in every mode. Research-task PRs may touch no factory/workflow file.", "verdict": "APPLIED", "proof": "fixtures V2-C4/b; CLI deploy-production.yml rejected, factory workflow accepted" },
+    { "id": "V2-C5", "finding": "E", "name": "stage-aware append-only from trusted base/head", "change": "New lib/stage.mjs checkStageTransition: requires a canonical transition or same-state append; 00-contract immutable after creation; captured 20-research-output immutable; closed stages' files immutable (no M/D/R/T); additions only into the head state's open stage; creation is create-only. CLI reads base/head TASK_STATE from Git blobs (git show <sha>:path).", "verdict": "APPLIED", "proof": "fixtures V2-C5..V2-C5h; end-to-end CLI git-blob probe rejects 00-contract mutation" },
+    { "id": "V2-C6", "finding": "F", "name": "full GITHUB_PLAN cross-binding", "change": "validateGithubPlanShape now enforces taskBranch==TASK_STATE.branch, pullRequest.head==taskBranch, baseBranch==pullRequest.base==main, task ID, model, draft, autoMerge, mergeAuthorized, and canonical branch grammar.", "verdict": "APPLIED", "proof": "fixtures V2-C6/b/c; retained C9d/C9e" },
+    { "id": "V2-C7", "finding": "G", "name": "identity grammar/type enforcement", "change": "model.mjs validateIdentityValues enforces countryCode /^[A-Z]{2}$/, exchangeId lowercase slug, batchId uppercase grammar, priority P0|P1|P2, bounded safe names, deterministic branch. Enforced in create, TASK_STATE and IDENTITY validation.", "verdict": "APPLIED", "proof": "fixtures V2-C7..V2-C7e; CLI malformed identity rejected at create and validate" },
+    { "id": "V2-C8", "finding": "H", "name": "all nine research JSON top-level structures", "change": "package.mjs checkResearchShape requires an object top level plus the governed collection/object for every one of the nine research JSON files (compatible with the proven OKX shape and the fixture shape). Arrays, null and primitives rejected.", "verdict": "APPLIED", "proof": "fixtures V2-C8/b/c; each of nine files with [] rejected" },
+    { "id": "V2-C9", "finding": "J", "name": "strict UTF-8 validity", "change": "util.mjs isValidUtf8 uses a fatal TextDecoder. package.mjs decodes all eleven files before parsing; invalid bytes are rejected (reported distinctly as INVALID_UTF8) even when MANIFEST bytes/hashes are recomputed; BOM/CR still rejected.", "verdict": "APPLIED", "proof": "fixtures V2-C9..V2-C9d; invalid bytes in md and JSON rejected with valid MANIFEST" },
+    { "id": "V2-C10", "finding": "K", "name": "identity-bound cumulative higher-stage markers", "change": "New lib/markers.mjs validateMarker requires a regular, non-symlink, non-executable, canonical-UTF-8, parseable, task-ID-bound JSON marker with a recognized outcome; owner-closeout uses validateOwnerReceipt; merged-to-main requires an identity-bound merge record. evidence.mjs STATE_REQUIREMENTS lists cumulative markers per state.", "verdict": "APPLIED", "proof": "fixtures V2-C10..V2-C10f; zero-byte/malformed/wrong-task/non-cumulative markers rejected" }
+  ],
+
+  "syntaxCheck": "PASS (node --check on all factory .mjs)",
+  "fixtureResults": { "passed": 108, "failed": 0, "priorRetained": 63, "addedForV2": 45 },
+  "gitDiffCheck": "clean",
+
+  "cliSmokeResults": {
+    "createRepoRoot": "PASS (writes <worktree-root>/research-ops/tasks/<ID>)",
+    "createSubdirectory": "PASS (lands at repo root, not the subdirectory)",
+    "createExternalCwd": "exit 2 — fails closed, creates nothing",
+    "validate": "PASS (PREPARED skeleton, human and JSON)",
+    "status": "PASS",
+    "requirePackageEmpty": "exit 1",
+    "tasksDirFlag": "rejected: unknown flag --tasks-dir",
+    "ownerReceiptValid": "ok=true",
+    "checkBoundaryDeployWorkflow": "exit 1 (rejected)",
+    "checkBoundaryFactoryWorkflow": "exit 0 (accepted, trusted factory branch)",
+    "checkBoundaryRenameFromPilot": "exit 1 (source evaluated)",
+    "checkBoundaryMalformedStatus": "exit 1",
+    "checkBoundaryResearchBranchTouchingFactory": "exit 1 (mode confusion)",
+    "checkBoundaryFactoryNoMetadata": "exit 1 (fail closed)",
+    "stageAwareEndToEnd": "exit 1 (00-contract mutation after creation rejected via Git blobs)"
+  },
+
+  "workflowResult": {
+    "onlyFactoryWorkflowChanged": true,
+    "permissions": "contents: read",
+    "persistCredentials": false,
+    "node": 20,
+    "timeBounded": true,
+    "passesTrustedMetadata": ["base.sha", "head.sha", "head.ref", "base.ref", "GITHUB_WORKSPACE"],
+    "failsOnMissingMetadata": true,
+    "noAiCall": true, "noMerge": true, "noDeploy": true, "noBranchOrPrCreation": true, "noMasterMutation": true
+  },
+
+  "pathWorktreeRootResult": { "resolvesRealWorktreeRoot": true, "confinedFromRootAndSubdir": true, "failsClosedOutsideWorktree": true, "rejectsBareGitFile": true, "noUserRepoRootFlag": true },
+  "renameCopyResult": { "strictStatusParsing": true, "sourceAndDestinationEvaluated": true, "malformedAndUnknownRejected": true, "renameHidingForbiddenSourceRejected": true },
+  "prModeResult": { "modeBoundToTrustedBranchMetadata": true, "researchBranchTouchingFactoryRejected": true, "factoryWithoutMetadataFailsClosed": true },
+  "workflowAllowlistResult": { "onlyFactoryValidationWorkflowAllowed": true, "unrelatedWorkflowsRejected": true },
+  "stageAwareAppendOnlyResult": { "trustedBaseHeadFromGitBlobs": true, "canonicalTransitionRequired": true, "contractImmutable": true, "capturedOutputImmutable": true, "closedStageMutationRejected": true, "additionsOnlyIntoOpenStage": true },
+  "planIdentityResult": { "planCrossBindingEnforced": true, "identityGrammarEnforced": true, "deterministicBranch": true },
+  "allNineJsonResult": { "objectTopLevelRequired": true, "governedCollectionsRequired": true, "arraysNullPrimitivesRejected": true },
+  "utf8Result": { "fatalDecode": true, "appliedToAllElevenFiles": true, "invalidBytesRejectedWithValidManifest": true, "distinctFromMalformedJson": true },
+  "higherStageEvidenceResult": { "regularNonSymlinkCanonical": true, "parseableAndIdentityBound": true, "recognizedOutcomeRequired": true, "cumulative": true, "ownerReceiptForCloseout": true, "identityBoundMergeRecord": true },
+
+  "authorizationFloorRetained": true,
+  "ownerReceiptEscalationStillRejected": true,
+
+  "remainingLimitations": [
+    "Worktree-root resolution and CLI stage-state derivation rely on the `git` binary (already required by the SCM/CI); if `git` is absent the create/stage-aware paths fail closed rather than degrade.",
+    "Stage-aware enforcement runs in CI where trusted base/head SHAs are provided by the GitHub event; the pure transition function is unit-tested, and the CLI derives states from Git blobs. Local `validate` without base/head SHAs still enforces single-root/forbidden/workflow rules but not cross-commit stage transitions.",
+    "Research-JSON structural validation enforces governed top-level collections/objects (compatible with the proven OKX shape); deep field-level semantics remain the responsibility of the source-truth review and validation stages."
+  ],
+
+  "correctionOutcome": "CORRECTED_READY_FOR_INDEPENDENT_VALIDATION",
+  "nextTask": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CORRECTION-V2-VALIDATION-013",
+
+  "authorizations": {
+    "factoryMergeToMainAuthorized": false,
+    "researchRecordMergeToMainAuthorized": false,
+    "binancePilotAuthorized": false,
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false,
+    "masterChangeAuthorized": false
+  }
+}

@@ -14,6 +14,7 @@ import { validateTask } from '../lib/validate.mjs';
 import { statusTask } from '../lib/status.mjs';
 import { parseNameStatus, checkChangedFileBoundary } from '../lib/boundary.mjs';
 import { join } from 'node:path';
+import { execFileSync } from 'node:child_process';
 
 function die(msg, code = 2) { console.error(`researchops: ${msg}`); process.exit(code); }
 
@@ -93,19 +94,56 @@ function cmdStatus(argv) {
   process.exit(s.consistent ? 0 : 1);
 }
 
-// C3/C4/C5 — CI-facing append-only boundary enforcement over a `git diff
-// --name-status` file. Fail-closed: any violation or read failure is non-zero.
+// Read a task's TASK_STATE.state from a trusted Git blob at <sha>. Returns
+// { state|null, existsAtBase }. Fixed-arg execFile — no shell, no injection.
+function taskStateAt(sha, root, repoRoot) {
+  try {
+    const out = execFileSync('git', ['show', `${sha}:${root}/TASK_STATE.json`], {
+      cwd: repoRoot, stdio: ['ignore', 'pipe', 'ignore'], encoding: 'utf8', windowsHide: true,
+    });
+    const obj = JSON.parse(out);
+    return { state: obj.state, existsAtBase: true };
+  } catch { return { state: null, existsAtBase: false }; }
+}
+
+// C3/C4/C5/V2 — CI-facing append-only boundary enforcement over a `git diff
+// --name-status` file plus TRUSTED GitHub event metadata (head/base branch and
+// base/head SHAs for stage-aware state derivation). Fail-closed.
 function cmdCheckBoundary(argv) {
   const a = parseArgs(argv, {
     flags: {
       '--changed-status': { required: true, aliasKey: 'changedStatusPath' },
       '--emit-task-roots': { required: false, aliasKey: 'emitTaskRoots' },
+      '--head-branch': { required: false, aliasKey: 'headBranch' },
+      '--base-branch': { required: false, aliasKey: 'baseBranch' },
+      '--base-sha': { required: false, aliasKey: 'baseSha' },
+      '--head-sha': { required: false, aliasKey: 'headSha' },
+      '--repo-root': { required: false, aliasKey: 'repoRoot' },
     },
   });
   if (!exists(a.changedStatusPath)) die(`changed-status file not found: ${a.changedStatusPath}`, 1);
   const records = parseNameStatus(readText(a.changedStatusPath));
   if (records.length === 0) die('empty changed set — refusing to pass on an unresolved diff', 1);
-  const res = checkChangedFileBoundary(records);
+
+  const meta = {};
+  if (a.headBranch) meta.headBranch = a.headBranch;
+  if (a.baseBranch) meta.baseBranch = a.baseBranch;
+  // V2-C5 — derive trusted per-root base/head states from Git blobs when SHAs given.
+  if (a.baseSha && a.headSha) {
+    const repoRoot = a.repoRoot || process.cwd();
+    const roots = [...new Set(records.flatMap((r) => (r.paths || [])).map((p) => {
+      const m = /^research-ops\/tasks\/([A-Z0-9][A-Z0-9-]*)\//.exec(String(p).replace(/\\/g, '/'));
+      return m ? `research-ops/tasks/${m[1]}` : null;
+    }).filter(Boolean))];
+    meta.taskStates = {};
+    for (const root of roots) {
+      const base = taskStateAt(a.baseSha, root, repoRoot);
+      const head = taskStateAt(a.headSha, root, repoRoot);
+      meta.taskStates[root] = { base: base.state, head: head.state, existsAtBase: base.existsAtBase };
+    }
+  }
+
+  const res = checkChangedFileBoundary(records, meta);
   console.log(`BOUNDARY mode=${res.mode} taskRoots=[${res.taskRoots.join(', ')}]`);
   if (a.emitTaskRoots) writeCanonical(a.emitTaskRoots, res.taskRoots.join('\n'));
   if (!res.ok) {

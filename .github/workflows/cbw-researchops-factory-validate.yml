@@ -45,29 +45,47 @@ jobs:
       - name: Run factory fixtures
         run: node research-ops/factory-v1-1/fixtures/run.mjs
 
-      - name: Discover changed files (fail-closed)
+      - name: Discover changed files and trusted event metadata (fail-closed)
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
+          BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
         run: |
           set -euo pipefail
-          BASE="${{ github.event.pull_request.base.sha }}"
-          HEAD="${{ github.event.pull_request.head.sha }}"
-          # C3 — an unresolved base/head must fail the job, not be swallowed.
-          [ -n "$BASE" ] || { echo "empty base sha"; exit 1; }
-          [ -n "$HEAD" ] || { echo "empty head sha"; exit 1; }
-          git cat-file -e "${BASE}^{commit}"
-          git cat-file -e "${HEAD}^{commit}"
+          # C3/V2-C3 — trusted base/head SHAs AND head/base branch refs come from the
+          # GitHub event context, never from repository files. Any missing/inconsistent
+          # value fails the job (fail-closed).
+          [ -n "$BASE_SHA" ] || { echo "empty base sha"; exit 1; }
+          [ -n "$HEAD_SHA" ] || { echo "empty head sha"; exit 1; }
+          [ -n "$HEAD_BRANCH" ] || { echo "empty head branch"; exit 1; }
+          [ -n "$BASE_BRANCH" ] || { echo "empty base branch"; exit 1; }
+          git cat-file -e "${BASE_SHA}^{commit}"
+          git cat-file -e "${HEAD_SHA}^{commit}"
           # C3 — no `|| true`; a diff failure fails the job.
-          git diff --name-status "$BASE" "$HEAD" > changed-status.txt
+          git diff --name-status "$BASE_SHA" "$HEAD_SHA" > changed-status.txt
+          {
+            echo "BASE_SHA=$BASE_SHA"; echo "HEAD_SHA=$HEAD_SHA"
+            echo "HEAD_BRANCH=$HEAD_BRANCH"; echo "BASE_BRANCH=$BASE_BRANCH"
+          } >> "$GITHUB_ENV"
           echo "Changed (name-status):"
           cat changed-status.txt
 
       - name: Enforce append-only boundary (fail-closed)
         run: |
           set -euo pipefail
-          # C5 — invoke the canonical validator with the changed-status file.
-          # C4 — check-boundary rejects task-root deletion and missing roots.
+          # V2-C3/C4/C5 — the validator receives trusted PR head/base branch metadata
+          # (to bind change mode) and trusted base/head SHAs (to derive per-root stage
+          # transitions from Git blobs). C4 rejects any non-factory workflow change;
+          # C4/C2 reject task-root deletion, malformed statuses and missing roots.
           node research-ops/factory-v1-1/bin/researchops.mjs check-boundary \
             --changed-status changed-status.txt \
-            --emit-task-roots task-roots.txt
+            --emit-task-roots task-roots.txt \
+            --head-branch "$HEAD_BRANCH" \
+            --base-branch "$BASE_BRANCH" \
+            --base-sha "$BASE_SHA" \
+            --head-sha "$HEAD_SHA" \
+            --repo-root "$GITHUB_WORKSPACE"
 
       - name: Validate discovered task roots (fail-closed)
         run: |

@@ -43,10 +43,42 @@ invalid task IDs and unsupported states.
 ### Path safety (create output confinement)
 
 The canonical CLI `create` never accepts an absolute path or `..` traversal — it exposes no
-output-path flag at all and always writes to `<cwd>/research-ops/tasks/<TASK_ID>`. Tests need OS
-temp roots, so the **library** `createTask()` accepts an explicit, clearly-named
-`testRoot` option that is **never** wired to CLI argument parsing. Production task creation
-therefore cannot escape `research-ops/tasks/`.
+output-path flag at all. **V2-C1:** it resolves the **real Git worktree root** (`lib/worktree.mjs`,
+via `git rev-parse` with fixed arguments — no shell, no injection) and always writes to
+`<worktree-root>/research-ops/tasks/<TASK_ID>`, whether invoked from the repository root or any
+subdirectory. Invoked outside a real worktree (e.g. an external `cwd`), it **fails closed and
+creates nothing**; a bare directory that merely contains a `.git`-named file is rejected unless Git
+confirms a valid worktree. Tests need OS temp roots, so the **library** `createTask()` accepts
+clearly-named `testRoot`/`repoRoot` options that are **never** wired to CLI argument parsing.
+
+### V2 boundary hardening (Correction V2 012)
+
+- **V2-C2 strict name-status:** `parseNameStatus` accepts only `A/M/D/T` and `R<score>/C<score>`,
+  retains **both** source and destination, and rejects malformed/empty/unknown-status records. A
+  rename/copy from a forbidden, pilot or different-task source cannot be hidden by a safe
+  destination.
+- **V2-C3 trusted PR mode:** `FACTORY_GOVERNANCE` is granted only from **trusted** PR head/base
+  branch metadata (never from changed paths alone). A research branch that changes only a factory
+  file, or any factory change without trusted metadata, fails closed.
+- **V2-C4 exact workflow allowlist:** the only workflow path this lineage may change is
+  `.github/workflows/cbw-researchops-factory-validate.yml`; unrelated deploy/alert/telegram
+  workflows are rejected.
+- **V2-C5 stage-aware append-only:** using trusted base/head `TASK_STATE` read from Git blobs, the
+  boundary requires a canonical state transition (or same-state append), makes `00-contract/**`
+  and captured `20-research-output/**` immutable, and rejects modification/deletion/rename of closed
+  earlier stages — a one-task-root rule alone is not sufficient.
+- **V2-C6 plan cross-binding:** `TASK_STATE.branch == GITHUB_PLAN.taskBranch ==
+  pullRequest.head`, `baseBranch == pullRequest.base == main`, exact task ID, canonical branch
+  grammar, `draft`/`autoMerge`/`mergeAuthorized` flags all enforced.
+- **V2-C7 identity grammar:** country/exchange/batch/priority/branch are validated for grammar and
+  type (not merely compared), rejecting malformed-but-equal values.
+- **V2-C8 nine JSON shapes:** every research JSON requires an object top level and its governed
+  collection/object; arrays, null and primitives are rejected — not only the five ID collections.
+- **V2-C9 strict UTF-8:** all eleven files are fatally UTF-8-decoded before parsing; invalid bytes
+  are rejected even when the MANIFEST is recomputed (distinct from BOM/CR and from malformed JSON).
+- **V2-C10 identity-bound markers:** higher-stage evidence must be regular, canonical-UTF-8,
+  parseable, task-ID-bound and carry a recognized outcome; evidence is cumulative and owner
+  closeout/merge states require an exact owner receipt / identity-bound merge record.
 
 ### State/evidence consistency
 
@@ -114,13 +146,15 @@ Deterministic, Node-built-in fixtures using OS temp directories. They never writ
 ## CI
 
 `.github/workflows/cbw-researchops-factory-validate.yml` runs on pull requests touching
-`research-ops/**`. It is **fail-closed**: it verifies the base/head SHAs, runs
-`git diff --name-status` with **no** `|| true`, and feeds the result to
-`researchops check-boundary` (append-only enforcement). A discovery failure, an empty changed
-set, a boundary violation, deletion of a governed task root, or a referenced-but-missing task
-root fails the job. A normal research-task PR may change exactly one `research-ops/tasks/<ID>/`
-root and nothing else; factory/workflow paths may change only in a factory-governance PR (never
-as an escape in a research-task PR). Each discovered task root is validated with
-`researchops validate`. The workflow is read-only (`contents: read`,
+`research-ops/**`. It is **fail-closed**: it verifies the base/head SHAs **and** the head/base
+branch refs from the trusted GitHub event context, runs `git diff --name-status` with **no**
+`|| true`, and feeds the result — together with the trusted `--head-branch`/`--base-branch` and
+`--base-sha`/`--head-sha` — to `researchops check-boundary`. The validator binds change mode to the
+trusted branch metadata (V2-C3) and derives per-root stage transitions from Git blobs at the
+trusted base/head commits (V2-C5). A discovery failure, missing/inconsistent event metadata, an
+empty changed set, a malformed status record, a boundary or stage violation, an unrelated workflow
+change (only the factory workflow is allowlisted, V2-C4), deletion/rename of a governed task
+record, or a referenced-but-missing task root fails the job. Each discovered task root is validated
+with `researchops validate`. The workflow is read-only (`contents: read`,
 `persist-credentials: false`), Node 20, time-bounded, and never merges, deploys, calls an AI
 provider, or touches `master`.

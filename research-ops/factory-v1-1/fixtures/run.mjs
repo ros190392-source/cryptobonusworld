@@ -10,11 +10,15 @@ import { join } from 'node:path';
 import { createTask } from '../lib/create.mjs';
 import { validateTask } from '../lib/validate.mjs';
 import { statusTask } from '../lib/status.mjs';
-import { canTransition, isValidTaskId } from '../lib/model.mjs';
+import { canTransition, isValidTaskId, validateIdentityValues } from '../lib/model.mjs';
 import { validateOwnerReceipt, enforceAuthFloor } from '../lib/authz.mjs';
 import { buildManifest } from '../lib/manifest.mjs';
-import { checkChangedFileBoundary, parseNameStatus } from '../lib/boundary.mjs';
-import { writeCanonical, writeJson } from '../lib/util.mjs';
+import { checkChangedFileBoundary, parseNameStatus, trustedModeFromMeta } from '../lib/boundary.mjs';
+import { checkStageTransition } from '../lib/stage.mjs';
+import { resolveWorktreeRoot } from '../lib/worktree.mjs';
+import { validateMarker, REVIEW_MARKER, VALIDATION_MARKER } from '../lib/markers.mjs';
+import { validateGithubPlanShape } from '../lib/schema.mjs';
+import { isValidUtf8, writeCanonical, writeJson } from '../lib/util.mjs';
 
 let pass = 0; let fail = 0; const failures = [];
 function check(name, cond, detail = '') {
@@ -61,7 +65,13 @@ function setState(taskDir, state, extra = {}) {
   const p = join(taskDir, 'TASK_STATE.json'); const o = JSON.parse(readFileSync(p, 'utf8'));
   o.state = state; Object.assign(o, extra); writeFileSync(p, JSON.stringify(o, null, 2) + '\n');
 }
-const nameStatus = (rows) => parseNameStatus(rows.map(([s, p]) => `${s}\t${p}`).join('\n'));
+const nameStatus = (rows) => parseNameStatus(rows.map((r) => r.join('\t')).join('\n'));
+// V2-C10 — write cumulative identity-bound stage markers for BASE.taskId.
+function writeMarkers(taskDir, upto = 'validation', taskId = BASE.taskId) {
+  writeJson(join(taskDir, '50-source-truth-review', 'SOURCE_TRUTH_REVIEW.json'), { taskId, outcome: 'SOURCE_TRUTH_REVIEWED' });
+  if (upto === 'review') return;
+  writeJson(join(taskDir, '70-validation', 'VALIDATION.json'), { taskId, validationOutcome: 'VALIDATED_FOR_OWNER_MERGE_REVIEW' });
+}
 
 function run() {
   console.log('ResearchOps Factory V1.1 — fixtures (Correction 010)');
@@ -87,8 +97,8 @@ function run() {
   }
   { const t = mk(); writePkg(t); setState(t, 'RESEARCH_CAPTURED'); check('C2b valid pkg + RESEARCH_CAPTURED consistent', validateTask(t, {}).ok && statusTask(t).consistent); }
   { const t = mk(); writePkg(t); setState(t, 'VALIDATED'); check('C2c valid pkg + VALIDATED but no artifact fails', !validateTask(t, {}).ok);
-    writeJson(join(t, '70-validation', 'VALIDATION.json'), { outcome: 'VALIDATED_FOR_OWNER_MERGE_REVIEW' });
-    check('C2d valid pkg + VALIDATED with 70-validation artifact consistent', validateTask(t, {}).ok); }
+    writeMarkers(t, 'validation');
+    check('C2d valid pkg + VALIDATED with cumulative identity-bound markers consistent', validateTask(t, {}).ok, validateTask(t, {}).checks.filter((c) => !c.ok).map((c) => `${c.name}:${c.detail}`).join(' | ')); }
 
   // ---- C3/C4/C5 boundary + discovery (library-tested) ----
   check('C3 empty diff yields no records', parseNameStatus('').length === 0);
@@ -100,7 +110,7 @@ function run() {
   { const r = checkChangedFileBoundary(nameStatus([['M', 'src/index.ts']])); check('C5e src mutation rejected', !r.ok); }
   { const r = checkChangedFileBoundary(nameStatus([['M', 'data/market-intelligence/x.json']])); check('C5f MI data rejected', !r.ok); }
   { const r = checkChangedFileBoundary(nameStatus([['M', 'README.md']])); check('C5g arbitrary top-level file rejected', !r.ok); }
-  { const r = checkChangedFileBoundary(nameStatus([['M', 'research-ops/factory-v1-1/lib/util.mjs'], ['M', '.github/workflows/cbw-researchops-factory-validate.yml']])); check('C5h factory-governance boundary ok', r.ok && r.mode === 'FACTORY_GOVERNANCE'); }
+  { const r = checkChangedFileBoundary(nameStatus([['M', 'research-ops/factory-v1-1/lib/util.mjs'], ['M', '.github/workflows/cbw-researchops-factory-validate.yml']]), { headBranch: 'correction/researchops-factory-v1-1-v2-012', baseBranch: 'validation/researchops-factory-v1-1-correction-011' }); check('C5h factory-governance boundary ok (trusted branch)', r.ok && r.mode === 'FACTORY_GOVERNANCE'); }
   { const r = checkChangedFileBoundary(nameStatus([['M', 'research-ops/tasks/CBW-A-001/../../src/x']])); check('C5i traversal rejected', !r.ok); }
 
   // ---- C6 tasks-dir confinement (CLI has no flag; library testRoot only) ----
@@ -146,6 +156,83 @@ function run() {
   // ---- status/validate agreement ----
   { const t = mk(); writePkg(t); check('S1 valid pkg: validate ok and status consistent', validateTask(t, {}).ok && statusTask(t).consistent); }
   { const t = mk(); setState(t, 'VALIDATED'); check('S2 inconsistent: validate fails and status inconsistent', !validateTask(t, {}).ok && !statusTask(t).consistent); }
+
+  // ================= V2 corrections =================
+
+  // ---- V2-C1 real worktree-root confinement ----
+  { const root = resolveWorktreeRoot(process.cwd()); check('V2-C1 resolves a real worktree root from cwd', typeof root === 'string' && root.length > 0); }
+  { const ext = mkdtempSync(join(tmpdir(), 'rops-nogit-')); roots.push(ext); check('V2-C1b external non-git temp dir -> null (fail closed)', resolveWorktreeRoot(ext) === null); }
+  // Canonical create (no injected root) resolves the real worktree root and would write
+  // under the tracked tree, so it is NOT exercised here (write-boundary safe). The
+  // external-cwd fail-closed create path is covered by the direct CLI probe.
+  { const ext2 = mkdtempSync(join(tmpdir(), 'rops-nogit2-')); roots.push(ext2); check('V2-C1c create is confined via worktree resolution (no external-cwd root)', resolveWorktreeRoot(ext2) === null); }
+
+  // ---- V2-C2 strict rename/copy name-status ----
+  { const recs = parseNameStatus('R100\tresearch-ops/tasks/CBW-A-001/x.json\tresearch-ops/tasks/CBW-A-001/y.json');
+    check('V2-C2 R100 keeps src+dst', recs.length === 1 && recs[0].src.endsWith('x.json') && recs[0].dst.endsWith('y.json')); }
+  { const recs = parseNameStatus('Z9\tresearch-ops/tasks/CBW-A-001/x.json'); check('V2-C2b unknown status flagged malformed', !!recs[0].malformed); }
+  { const recs = parseNameStatus('R100\tonly-one-path'); check('V2-C2c rename with missing dst malformed', !!recs[0].malformed); }
+  { const recs = parseNameStatus('A\t'); check('V2-C2d empty path malformed', recs.length === 0 || !!recs[0].malformed); }
+  { const r = checkChangedFileBoundary(parseNameStatus('R100\tresearch-ops-pilot/tasks/OKX/immutable.json\tresearch-ops/tasks/CBW-A-001/00-contract/x.json')); check('V2-C2e rename FROM pilot source rejected (src evaluated)', !r.ok); }
+  { const r = checkChangedFileBoundary(parseNameStatus('R100\tresearch-ops/tasks/CBW-A-001/x.json\tresearch-ops/factory-v1-1/lib/evil.mjs'), { headBranch: 'research/kz-binance-b', baseBranch: 'main' }); check('V2-C2f rename task->factory rejected', !r.ok); }
+  { const r = checkChangedFileBoundary(parseNameStatus('D\tresearch-ops/tasks/CBW-A-001/TASK_STATE.json'), { headBranch: 'research/kz-binance-b', baseBranch: 'main' }); check('V2-C2g rename/delete of governed record rejected', !r.ok && r.deletedTaskPaths.length === 1); }
+
+  // ---- V2-C3 trusted PR/change-mode identity ----
+  { check('V2-C3 factory branch -> FACTORY_GOVERNANCE', trustedModeFromMeta({ headBranch: 'correction/researchops-factory-v1-1-v2-012', baseBranch: 'main' }) === 'FACTORY_GOVERNANCE'); }
+  { check('V2-C3b research branch -> RESEARCH_TASK', trustedModeFromMeta({ headBranch: 'research/kz-binance-kz-p0-d', baseBranch: 'main' }) === 'RESEARCH_TASK'); }
+  { const r = checkChangedFileBoundary(nameStatus([['M', 'research-ops/factory-v1-1/lib/util.mjs']]), { headBranch: 'research/kz-binance-kz-p0-d', baseBranch: 'main' }); check('V2-C3c research branch changing only a factory file rejected (mode confusion)', !r.ok); }
+  { const r = checkChangedFileBoundary(nameStatus([['M', 'research-ops/factory-v1-1/lib/util.mjs']])); check('V2-C3d factory change with NO trusted metadata fails closed', !r.ok); }
+
+  // ---- V2-C4 exact workflow allowlist ----
+  { const r = checkChangedFileBoundary(nameStatus([['M', '.github/workflows/deploy-production.yml']]), { headBranch: 'correction/researchops-factory-v1-1-v2-012', baseBranch: 'main' }); check('V2-C4 unrelated deploy workflow rejected', !r.ok); }
+  { const r = checkChangedFileBoundary(nameStatus([['M', '.github/workflows/cbw-researchops-factory-validate.yml']]), { headBranch: 'correction/researchops-factory-v1-1-v2-012', baseBranch: 'main' }); check('V2-C4b exact factory workflow accepted', r.ok && r.mode === 'FACTORY_GOVERNANCE'); }
+
+  // ---- V2-C5 stage-aware append-only (pure) ----
+  { const r = checkStageTransition({ records: [{ status: 'M', rel: '00-contract/IDENTITY.json' }], baseState: 'VALIDATED', headState: 'VALIDATED', taskExistsAtBase: true }); check('V2-C5 00-contract modification after creation rejected', !r.ok); }
+  { const r = checkStageTransition({ records: [{ status: 'M', rel: '20-research-output/research-run.json' }], baseState: 'PACKAGE_VALIDATED', headState: 'SOURCE_TRUTH_REVIEWED', taskExistsAtBase: true }); check('V2-C5b re-manifested 20-research-output mutation after capture rejected', !r.ok); }
+  { const r = checkStageTransition({ records: [{ status: 'D', rel: '50-source-truth-review/SOURCE_TRUTH_REVIEW.json' }], baseState: 'CORRECTED', headState: 'VALIDATED', taskExistsAtBase: true }); check('V2-C5c deletion of closed 50-stage after validation rejected', !r.ok); }
+  { const r = checkStageTransition({ records: [{ status: 'R', rel: '60-correction/x.json', srcRel: '60-correction/y.json' }], baseState: 'CORRECTED', headState: 'VALIDATED', taskExistsAtBase: true }); check('V2-C5d rename within closed 60-stage rejected', !r.ok); }
+  { const r = checkStageTransition({ records: [{ status: 'A', rel: '70-validation/VALIDATION.json' }, { status: 'M', rel: 'TASK_STATE.json' }], baseState: 'SOURCE_TRUTH_REVIEWED', headState: 'VALIDATED', taskExistsAtBase: true }); check('V2-C5e legal add into open 70-stage on VALIDATED transition allowed', r.ok, r.violations.join('; ')); }
+  { const r = checkStageTransition({ records: [{ status: 'A', rel: '80-closeout/EXTRA.json' }], baseState: 'CORRECTED', headState: 'VALIDATED', taskExistsAtBase: true }); check('V2-C5f unrelated addition in a non-open stage rejected', !r.ok); }
+  { const r = checkStageTransition({ records: [{ status: 'A', rel: '00-contract/IDENTITY.json' }], baseState: null, headState: 'PREPARED', taskExistsAtBase: false }); check('V2-C5g creation admits additions at PREPARED', r.ok); }
+  { const r = checkStageTransition({ records: [{ status: 'M', rel: '20-research-output/x.json' }], baseState: 'PREPARED', headState: 'VALIDATED', taskExistsAtBase: true }); check('V2-C5h illegal transition PREPARED->VALIDATED rejected', !r.ok); }
+
+  // ---- V2-C6 full GITHUB_PLAN cross-binding ----
+  { const t = mk(); const p = join(t, '00-contract', 'GITHUB_PLAN.json'); const o = JSON.parse(readFileSync(p)); o.taskBranch = 'research/other-branch'; writeFileSync(p, JSON.stringify(o, null, 2) + '\n'); check('V2-C6 taskBranch != TASK_STATE.branch rejected', !validateTask(t, {}).ok); }
+  { const t = mk(); const p = join(t, '00-contract', 'GITHUB_PLAN.json'); const o = JSON.parse(readFileSync(p)); o.pullRequest.head = 'research/mismatch'; writeFileSync(p, JSON.stringify(o, null, 2) + '\n'); check('V2-C6b pullRequest.head != taskBranch rejected', !validateTask(t, {}).ok); }
+  { const t = mk(); check('V2-C6c generated plan cross-binds cleanly', validateTask(t, {}).ok); }
+
+  // ---- V2-C7 identity grammar/types ----
+  { check('V2-C7 malformed country rejected', validateIdentityValues({ countryCode: 'zz9', countryName: 'X', exchangeId: 'binance', exchangeName: 'B', batchId: 'B', priority: 'P0' }).length > 0); }
+  { check('V2-C7b traversal exchangeId rejected', validateIdentityValues({ countryCode: 'KZ', countryName: 'X', exchangeId: '../evil', exchangeName: 'B', batchId: 'B', priority: 'P0' }).length > 0); }
+  { check('V2-C7c bad priority rejected', validateIdentityValues({ countryCode: 'KZ', countryName: 'X', exchangeId: 'binance', exchangeName: 'B', batchId: 'B', priority: 'P9' }).length > 0); }
+  { let threw = false; try { createTask({ ...BASE, countryCode: 'zz9', testRoot: tmpRoot() }); } catch { threw = true; } check('V2-C7d create rejects malformed identity', threw); }
+  { const t = mk(); const p = join(t, 'TASK_STATE.json'); const o = JSON.parse(readFileSync(p)); o.countryCode = 'zz'; o.branch = 'research/zz-binance-kz-p0-d';
+    const ip = join(t, '00-contract', 'IDENTITY.json'); const io = JSON.parse(readFileSync(ip)); io.countryCode = 'zz';
+    writeFileSync(p, JSON.stringify(o, null, 2) + '\n'); writeFileSync(ip, JSON.stringify(io, null, 2) + '\n');
+    check('V2-C7e malformed-but-equal country in files rejected at validate', !validateTask(t, {}).ok); }
+
+  // ---- V2-C8 all nine research JSON top-level shapes ----
+  { const files = ['research-run.json', 'source-verification.json', 'claim-verdicts.json', 'conflict-resolution.json', 'product-availability.json', 'payment-rails.json', 'offer-eligibility-review.json', 'schema-normalization-notes.json', 'import-readiness.json'];
+    let allRejected = true; const bad = [];
+    for (const f of files) { const t = mk(); writePkg(t, { json: { [f]: [] } }); const ok = validateTask(t, {}).ok; if (ok) { allRejected = false; bad.push(f); } }
+    check('V2-C8 wrong top-level shape ([]) rejected for all nine research JSONs', allRejected, `accepted: ${bad.join(', ')}`); }
+  { const t = mk(); writePkg(t, { json: { 'import-readiness.json': { schemaVersion: '1.0' } } }); check('V2-C8b import-readiness missing readiness rejected', !validateTask(t, {}).ok); }
+  { const t = mk(); writePkg(t, { json: { 'research-run.json': { schemaVersion: '1.0' } } }); check('V2-C8c research-run missing overallFinding rejected', !validateTask(t, {}).ok); }
+
+  // ---- V2-C9 strict UTF-8 ----
+  { check('V2-C9 lone 0xFF byte invalid', !isValidUtf8(Buffer.from([0xff]))); }
+  { check('V2-C9b valid ascii ok', isValidUtf8(Buffer.from('hello', 'utf8'))); }
+  { const t = mk(); const out = writePkg(t); writeFileSync(join(out, 'source-truth-review-report.md'), Buffer.concat([Buffer.from('# R\n', 'utf8'), Buffer.from([0xff, 0xfe]), Buffer.from('\n', 'utf8')])); writeFileSync(join(out, 'MANIFEST.txt'), Buffer.from(buildManifest(out, HASHED, {}), 'utf8')); check('V2-C9c invalid UTF-8 in markdown rejected despite valid MANIFEST', !validateTask(t, {}).ok); }
+  { const t = mk(); const out = writePkg(t); writeFileSync(join(out, 'schema-normalization-notes.json'), Buffer.concat([Buffer.from('{"notes":[],"x":"', 'utf8'), Buffer.from([0xff]), Buffer.from('"}', 'utf8')])); writeFileSync(join(out, 'MANIFEST.txt'), Buffer.from(buildManifest(out, HASHED, {}), 'utf8')); check('V2-C9d invalid UTF-8 in JSON rejected despite valid MANIFEST', !validateTask(t, {}).ok); }
+
+  // ---- V2-C10 identity-bound cumulative markers ----
+  { const t = mk(); writePkg(t); setState(t, 'VALIDATED'); writeFileSync(join(t, '70-validation', 'VALIDATION.json'), ''); check('V2-C10 zero-byte marker rejected', !validateTask(t, {}).ok); }
+  { const t = mk(); writePkg(t); setState(t, 'VALIDATED'); writeFileSync(join(t, '70-validation', 'VALIDATION.json'), 'not json'); check('V2-C10b malformed-json marker rejected', !validateTask(t, {}).ok); }
+  { const t = mk(); writePkg(t); setState(t, 'VALIDATED'); writeMarkers(t, 'review'); writeJson(join(t, '70-validation', 'VALIDATION.json'), { taskId: 'CBW-WRONG-TASK-001', validationOutcome: 'X' }); check('V2-C10c wrong-task marker rejected', !validateTask(t, {}).ok); }
+  { const t = mk(); writePkg(t); setState(t, 'VALIDATED'); writeJson(join(t, '70-validation', 'VALIDATION.json'), { taskId: BASE.taskId, validationOutcome: 'X' }); check('V2-C10d cumulative: VALIDATED without 50-review marker rejected', !validateTask(t, {}).ok); }
+  { const t = mk(); writePkg(t); setState(t, 'VALIDATED'); writeMarkers(t, 'validation'); check('V2-C10e cumulative identity-bound markers accepted', validateTask(t, {}).ok); }
+  { const r = validateMarker(mk(), REVIEW_MARKER, BASE.taskId); check('V2-C10f missing marker reported', !r.ok); }
 
   for (const r of roots) { try { rmSync(r, { recursive: true, force: true }); } catch { /* ignore */ } }
   console.log(`\nFIXTURES: ${pass} passed, ${fail} failed`);

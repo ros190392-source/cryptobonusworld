@@ -130,3 +130,37 @@ export const TASK_ID_RE = /^[A-Z0-9]+(?:-[A-Z0-9]+)+$/;
 export function isValidTaskId(id) {
   return typeof id === 'string' && id.length >= 3 && id.length <= 120 && TASK_ID_RE.test(id);
 }
+
+// V2-C7 — identity field grammar/types. These fields feed deterministic branch and
+// path generation, so they are validated (not merely compared).
+export const COUNTRY_CODE_RE = /^[A-Z]{2}$/;                 // canonical uppercase ISO-like
+export const EXCHANGE_ID_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;  // lowercase safe slug
+export const BATCH_ID_RE = /^[A-Z0-9]+(?:-[A-Z0-9]+)*$/;     // uppercase governed grammar
+export const PRIORITY_RE = /^P[0-2]$/;                       // controlled enum P0|P1|P2
+export const BRANCH_RE = /^research\/[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+// Bounded human text: non-empty, <=64 chars, no control chars, no path separators.
+const CONTROL_RE = new RegExp('[\\x00-\\x1f\\x7f]');
+export function isSafeName(v) {
+  if (typeof v !== 'string') return false;
+  return v.trim().length > 0 && v.length <= 64 && !CONTROL_RE.test(v) && !/[\\/]/.test(v);
+}
+
+// Validate identity values from an object exposing the identity fields.
+// Returns an array of error strings (empty === valid).
+export function validateIdentityValues(o) {
+  const e = [];
+  if (!o || typeof o !== 'object') return ['identity source not an object'];
+  if (!COUNTRY_CODE_RE.test(String(o.countryCode))) e.push(`countryCode invalid: ${JSON.stringify(o.countryCode)}`);
+  if ('countryName' in o && !isSafeName(o.countryName)) e.push(`countryName invalid: ${JSON.stringify(o.countryName)}`);
+  if (!EXCHANGE_ID_RE.test(String(o.exchangeId))) e.push(`exchangeId invalid: ${JSON.stringify(o.exchangeId)}`);
+  if ('exchangeName' in o && !isSafeName(o.exchangeName)) e.push(`exchangeName invalid: ${JSON.stringify(o.exchangeName)}`);
+  if (!BATCH_ID_RE.test(String(o.batchId))) e.push(`batchId invalid: ${JSON.stringify(o.batchId)}`);
+  if (!PRIORITY_RE.test(String(o.priority))) e.push(`priority invalid (want P0|P1|P2): ${JSON.stringify(o.priority)}`);
+  return e;
+}
+
+// Deterministic task branch from validated safe values.
+export function deterministicBranch(o) {
+  return `research/${String(o.countryCode).toLowerCase()}-${String(o.exchangeId).toLowerCase()}-${String(o.batchId).toLowerCase()}`;
+}

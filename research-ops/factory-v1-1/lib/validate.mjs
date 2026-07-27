@@ -125,8 +125,11 @@ export function validateTask(taskDir, opts = {}) {
     if (!exists(p)) R.add('changed-files list exists', false, p);
     else {
       const text = readText(p);
-      const records = opts.changedStatusPath ? parseNameStatus(text) : text.split(/\r?\n/).map((s) => s.trim()).filter(Boolean).map((path) => ({ status: 'M', path }));
-      const bres = checkChangedFileBoundary(records);
+      const records = opts.changedStatusPath ? parseNameStatus(text) : text.split(/\r?\n/).map((s) => s.trim()).filter(Boolean).map((path) => ({ status: 'M', dst: path, paths: [path] }));
+      const bmeta = {};
+      if (opts.headBranch) bmeta.headBranch = opts.headBranch;
+      if (opts.baseBranch) bmeta.baseBranch = opts.baseBranch;
+      const bres = checkChangedFileBoundary(records, bmeta);
       R.add(`append-only changed-file boundary holds (mode=${bres.mode})`, bres.ok, bres.violations.slice(0, 10).join(', '));
     }
   }

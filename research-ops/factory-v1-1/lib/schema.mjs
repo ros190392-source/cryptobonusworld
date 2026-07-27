@@ -3,6 +3,7 @@
 
 import {
   isValidTaskId, isState, RESEARCH_FILES, OWNER_MERGE_KEY, FORBIDDEN_TRUE_AUTH_KEYS,
+  validateIdentityValues, BRANCH_RE, deterministicBranch,
 } from './model.mjs';
 
 export const CANONICAL_AUTH_KEYS = [OWNER_MERGE_KEY, ...FORBIDDEN_TRUE_AUTH_KEYS];
@@ -19,6 +20,12 @@ export function validateTaskStateShape(ts) {
   if ('taskId' in ts && !isValidTaskId(ts.taskId)) e.push(`TASK_STATE.taskId invalid: ${ts.taskId}`);
   if ('state' in ts && !isState(ts.state)) e.push(`TASK_STATE.state invalid: ${ts.state}`);
   if ('branch' in ts && !nonEmptyStr(ts.branch)) e.push('TASK_STATE.branch must be a non-empty string');
+  // V2-C7 — identity grammar/types (not merely presence) and deterministic branch.
+  for (const ge of validateIdentityValues(ts)) e.push(`TASK_STATE identity ${ge}`);
+  if ('branch' in ts && nonEmptyStr(ts.branch)) {
+    if (!BRANCH_RE.test(ts.branch)) e.push(`TASK_STATE.branch is not canonical grammar: ${ts.branch}`);
+    else if (ts.branch !== deterministicBranch(ts)) e.push(`TASK_STATE.branch (${ts.branch}) is not deterministic from identity (${deterministicBranch(ts)})`);
+  }
   if ('history' in ts && !Array.isArray(ts.history)) e.push('TASK_STATE.history must be an array');
   if (!isObj(ts.authorizations)) e.push('TASK_STATE.authorizations must be an object');
   else {
@@ -45,6 +52,8 @@ export function validateIdentityShape(identity, ts) {
       if (identity[k] !== ts[k]) e.push(`IDENTITY.${k} (${identity[k]}) != TASK_STATE.${k} (${ts[k]})`);
     }
   }
+  // V2-C7 — validate IDENTITY grammar/types too (reject malformed-but-equal values).
+  for (const ge of validateIdentityValues(identity)) e.push(`IDENTITY ${ge}`);
   const inv = identity.requiredResearchInventory;
   const invOk = Array.isArray(inv) && inv.length === RESEARCH_FILES.length && RESEARCH_FILES.every((f, i) => inv[i] === f);
   if (!invOk) e.push('IDENTITY.requiredResearchInventory does not equal the canonical eleven-file inventory');
@@ -59,12 +68,20 @@ export function validateGithubPlanShape(plan, ts) {
   if (plan.model !== 'ONE_BRANCH_ONE_DRAFT_PR') e.push(`GITHUB_PLAN.model must be ONE_BRANCH_ONE_DRAFT_PR, got ${plan.model}`);
   if (plan.baseBranch !== 'main') e.push(`GITHUB_PLAN.baseBranch must be main, got ${plan.baseBranch}`);
   if (!nonEmptyStr(plan.taskBranch)) e.push('GITHUB_PLAN.taskBranch must be a non-empty string');
+  else if (!BRANCH_RE.test(plan.taskBranch)) e.push(`GITHUB_PLAN.taskBranch is not canonical grammar: ${plan.taskBranch}`);
   if (!isObj(plan.pullRequest)) e.push('GITHUB_PLAN.pullRequest must be an object');
   else {
     if (plan.pullRequest.draft !== true) e.push('GITHUB_PLAN.pullRequest.draft must be true');
     if (plan.pullRequest.base !== 'main') e.push('GITHUB_PLAN.pullRequest.base must be main');
     if (plan.pullRequest.autoMerge !== false) e.push('GITHUB_PLAN.pullRequest.autoMerge must be false');
+    // V2-C6 — pullRequest.head must equal the task branch.
+    if (!nonEmptyStr(plan.pullRequest.head)) e.push('GITHUB_PLAN.pullRequest.head must be a non-empty string');
+    else if (plan.pullRequest.head !== plan.taskBranch) e.push(`GITHUB_PLAN.pullRequest.head (${plan.pullRequest.head}) != taskBranch (${plan.taskBranch})`);
   }
   if (plan.mergeAuthorized !== false) e.push('GITHUB_PLAN.mergeAuthorized must be false');
+  // V2-C6 — cross-bind TASK_STATE.branch == GITHUB_PLAN.taskBranch.
+  if (ts && nonEmptyStr(plan.taskBranch) && plan.taskBranch !== ts.branch) {
+    e.push(`GITHUB_PLAN.taskBranch (${plan.taskBranch}) != TASK_STATE.branch (${ts.branch})`);
+  }
   return e;
 }

@@ -21,6 +21,15 @@ export function hasCR(buf) {
   return buf.includes(0x0d);
 }
 
+// V2-C9 — strict, fatal UTF-8 validity. Returns true only if every byte is valid
+// UTF-8 (no replacement-character substitution). Rejects lone/invalid bytes that
+// `readFileSync(path,'utf8')` would silently decode to U+FFFD.
+const FATAL_UTF8 = new TextDecoder('utf-8', { fatal: true, ignoreBOM: false });
+export function isValidUtf8(buf) {
+  try { FATAL_UTF8.decode(buf); return true; }
+  catch { return false; }
+}
+
 // Read a file as a Buffer, failing closed.
 export function readBuf(path) {
   return readFileSync(path);
