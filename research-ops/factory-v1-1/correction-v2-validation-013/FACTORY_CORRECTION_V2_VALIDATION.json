@@ -1,0 +1,162 @@
+{
+  "schemaVersion": "1.0.0",
+  "validationTaskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CORRECTION-V2-VALIDATION-013",
+  "correctionTaskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CORRECTION-V2-012",
+  "project": "CryptoBonusWorld",
+  "governingIssue": 54,
+  "correctionV2PullRequest": 53,
+  "validationPullRequest": 55,
+  "validatedCorrectionCommitSha": "d3ed1128497cf682863c438d47eb65d26ebb536b",
+  "frozenInitialCorrectionHeadSha": "de5601c7083b33c1c885c7184d9f22d70a4d9e8f",
+  "sourceValidation011CommitSha": "a958f0c7d7ce2d707e4d79e5eafdd984fc851d2d",
+  "validationBranch": "validation/researchops-factory-v1-1-v2-013",
+  "initialValidationHeadSha": "b6198efd0a0f686a8324a117d768595e9af29d75",
+  "validatedAt": "2026-07-27",
+  "environment": {
+    "nodeVersion": "v24.14.0 (Node 20-compatible)",
+    "os": "Windows 11",
+    "worktree": "C:\\projects\\CryptoBonusWorld-v2-validation-013",
+    "method": "independent library import + real CLI invocation + isolated temp Git repos; not reliant on the 108 fixtures or the green advisory workflow"
+  },
+
+  "baselineVerification": {
+    "correctionDiffFileCount": 17,
+    "matchesReported17Files": true,
+    "immutableLayersUnchangedInRange": true,
+    "immutableLayersChecked": ["validation-009/**", "correction-010/**", "correction-validation-011/**", "governance/**", "research-ops-pilot/**", "research-ops/tasks/**", "correction-v2-012 CONTRACT/STATE/PROMPT"],
+    "originMain": "04157b9dfb140918a8569a5026da747b429e5ed3",
+    "originMainMatches": true,
+    "originMaster": "998fcedd7d9febbec5b130d4765dfeaafc40960b",
+    "originMasterMatches": true,
+    "pr53": { "state": "OPEN", "draft": true, "base": "validation/researchops-factory-v1-1-correction-011", "baseTip": "a958f0c7d7ce2d707e4d79e5eafdd984fc851d2d", "head": "d3ed1128497cf682863c438d47eb65d26ebb536b", "unmerged": true }
+  },
+
+  "syntaxAndFixtureReruns": {
+    "nodeCheck": "CLEAN (all factory .mjs)",
+    "fixtures": { "passed": 108, "failed": 0, "independentlyRerun": true },
+    "gitDiffCheck": "clean"
+  },
+
+  "cliSmokeResults": {
+    "createInWorktree": "exit 0",
+    "validate": "exit 0",
+    "status": "exit 0",
+    "requirePackageEmpty": "exit 1",
+    "tasksDirFlag": "rejected (unknown flag)",
+    "createExternalNonGitCwd": "exit 2 — fails closed, creates nothing",
+    "ownerReceiptEscalation": "ok=false (deploy escalation rejected — authorization floor intact)"
+  },
+
+  "correctionMatrixV2C1ToC10": [
+    { "id": "V2-C1", "name": "worktree-root confinement", "verdict": "PASS_WITH_NOTE", "evidence": "External non-git cwd fails closed (exit 2, nothing created). NOTE: create binds to the CURRENT worktree, not the worktree containing the factory script — a foreign valid Git worktree receives the write (see probe A)." },
+    { "id": "V2-C2", "name": "strict name-status source+destination", "verdict": "PASS_WITH_NOTE", "evidence": "A/M/D/T and R/C parsed with both paths; malformed/unknown/wrong-arity rejected. NOTE: similarity scores are not bounded to 0-100 (R101/C999 accepted — probe K)." },
+    { "id": "V2-C3", "name": "trusted PR/change-mode identity", "verdict": "PASS_WITH_NOTE", "evidence": "Mode requires trusted branch metadata; factory-without-metadata and research-branch-touching-factory rejected. NOTE: factory lineage is a broad prefix regex that admits spoof branches (probe B)." },
+    { "id": "V2-C4", "name": "exact factory workflow allowlist", "verdict": "PASS_WITH_NOTE", "evidence": "Unrelated workflow CHANGES rejected; exact factory workflow accepted. NOTE: deletion of the factory workflow and mutation of frozen factory records under factory-governance are accepted (probes D/N)." },
+    { "id": "V2-C5", "name": "stage-aware append-only", "verdict": "PASS_WITH_NOTE", "evidence": "Closed-stage M/D/R rejected; transitions validated from Git blobs. NOTE: initial creation admits arbitrary payload (not the exact skeleton) and per-stage additions are not inventory-exact (probes E/F)." },
+    { "id": "V2-C6", "name": "GITHUB_PLAN cross-binding", "verdict": "PASS_WITH_NOTE", "evidence": "TASK_STATE.branch==taskBranch==pullRequest.head and base=main enforced internally. NOTE: the trusted PR head branch is not bound to the task's declared branch (probe C)." },
+    { "id": "V2-C7", "name": "identity grammar/types", "verdict": "PASS", "evidence": "country/exchange/batch/priority/branch grammar enforced at create and validate; malformed-but-equal rejected (fixtures V2-C7..e)." },
+    { "id": "V2-C8", "name": "nine research JSON structures", "verdict": "PASS_WITH_NOTE", "evidence": "Object top level + governed collection/object required for all nine; arrays/null/primitives rejected. NOTE: vacuous empty {} objects for overallFinding/review/readiness and primitive entries in non-ID collections are accepted (probe L)." },
+    { "id": "V2-C9", "name": "strict UTF-8", "verdict": "PASS_WITH_NOTE", "evidence": "Fatal decode rejects overlong/lone-continuation/surrogate/truncated bytes on all eleven files; BOM/CR rejected. NOTE: NUL and other C0 control bytes (valid UTF-8) are not rejected as non-canonical text (probe M)." },
+    { "id": "V2-C10", "name": "identity-bound cumulative markers", "verdict": "PASS_WITH_NOTE", "evidence": "Markers must be regular, canonical, parseable, task-ID-bound; zero-byte/malformed/wrong-task/non-cumulative rejected. NOTE: outcome/state/mergeCommit fields accept ARBITRARY non-empty values (no enum, no 40-hex merge identity, no receipt linkage); cumulative correction history not enforced (probes G/H)." }
+  ],
+
+  "newProbeMatrixAtoN": [
+    { "id": "A", "name": "foreign valid Git worktree", "verdict": "CORRECTION_REQUIRED", "evidence": "CBW CLI invoked by absolute path with cwd inside a DIFFERENT valid Git repo created <foreign>/research-ops/tasks/CBW-KZ-BINANCE-P0-D-DEEP-RESEARCH-001 (exit 0). resolveWorktreeRoot resolves the CURRENT worktree, not the worktree containing the factory script — a reproducible foreign-worktree write." },
+    { "id": "B", "name": "exact trusted factory lineage", "verdict": "CORRECTION_REQUIRED", "evidence": "trustedModeFromMeta grants FACTORY_GOVERNANCE to feat/researchops-factory-v1-1-evil, correction/researchops-factory-v1-1-unrelated and validation/researchops-factory-v1-1-fake — a broad prefix regex, not an exact approved task/PR lineage." },
+    { "id": "C", "name": "research branch mismatch", "verdict": "CORRECTION_REQUIRED", "evidence": "Boundary accepts a research-task PR with trusted head 'research/zz-fake-b' regardless of the changed task's declared TASK_STATE.branch/GITHUB_PLAN.taskBranch/pullRequest.head; no head<->task-branch binding exists in the boundary." },
+    { "id": "D", "name": "factory governance record immutability", "verdict": "CORRECTION_REQUIRED", "evidence": "Under a trusted factory branch, M of validation-009/**, correction-010/**, correction-validation-011/**, governance/** and correction-v2-012 CONTRACT are all accepted (ok=true), and D of the factory workflow is accepted. The broad research-ops/factory-v1-1/** allowlist permits mutation/deletion of frozen governance/history layers." },
+    { "id": "E", "name": "initial task exact skeleton", "verdict": "CORRECTION_REQUIRED", "evidence": "checkStageTransition creation admits any all-addition set under one root (00-contract + 10-input/arbitrary.bin + 70-validation/EVIL.json + ROGUE.txt accepted). Creation is create-only, not verified equal to the deterministic factory skeleton." },
+    { "id": "F", "name": "exact per-stage inventory / conflicting markers", "verdict": "CORRECTION_REQUIRED", "evidence": "validateMarker returns on the FIRST existing anyOf candidate: a valid 70-validation/VALIDATION.json hides a conflicting wrong-task FACTORY_VALIDATION.json (markerOk=true). Per-stage additions are not inventory-exact." },
+    { "id": "G", "name": "marker outcome semantics", "verdict": "CORRECTION_REQUIRED", "evidence": "A validation marker with validationOutcome:'banana' is accepted; a merge marker with mergeCommit:'x' is accepted. No recognized-enum check, no 40-hex commit identity, no target-main, no preceding-receipt linkage for RESEARCH_RECORD_MERGED_TO_MAIN." },
+    { "id": "H", "name": "cumulative correction history", "verdict": "CORRECTION_REQUIRED", "evidence": "A task whose TASK_STATE.history shows CORRECTION_REQUIRED/CORRECTED reaches VALIDATED with NO 60-correction marker and still validates (ok=true); the correction marker is not retained/required." },
+    { "id": "I", "name": "TASK_STATE history integrity", "verdict": "CORRECTION_REQUIRED", "evidence": "TASK_STATE with state=VALIDATED but history=[{state:PREPARED}] validates (ok=true); validateTaskStateShape emits no history-integrity error. Head/last-entry agreement, canonical in-history transitions and no-rewrite are not enforced." },
+    { "id": "J", "name": "stage transition edge cases", "verdict": "PASS_WITH_NOTE", "evidence": "Root-level non-state additions rejected, root-deletion-via-rename rejected, missing-base-blob non-PREPARED rejected, copy-in-open-stage allowed. NOTE: 20-research-output remains writable on a PACKAGE_VALIDATED same-state append (arguably should be immutable after capture)." },
+    { "id": "K", "name": "strict Git name-status grammar", "verdict": "CORRECTION_REQUIRED", "evidence": "parseNameStatus score regex \\d{1,3} accepts out-of-range similarity scores R101 and C999 (Git range is 0-100); quoted/escaped path forms are not explicitly handled." },
+    { "id": "L", "name": "package structural minima", "verdict": "CORRECTION_REQUIRED", "evidence": "Empty {} objects for overallFinding/review/readiness are accepted (vacuous minima); primitive entries in the non-ID 'notes' collection (notes:[5,'x']) are accepted." },
+    { "id": "M", "name": "UTF-8 and canonical text edge cases", "verdict": "CORRECTION_REQUIRED", "evidence": "Fatal decode correctly rejects overlong/lone-continuation/surrogate/truncated sequences and BOM/CR, but NUL (0x00) and other C0 control bytes are valid UTF-8 and are NOT rejected as non-canonical package text." },
+    { "id": "N", "name": "workflow and metadata integrity", "verdict": "CORRECTION_REQUIRED", "evidence": "Actual PR #53 factory workflow run 30257622173 on d3ed112 succeeded read-only. Positive handling correct (empty diff->1, multi-root->1). But deletion of the factory workflow and mutation of a frozen factory record under a trusted factory PR are both accepted (ties to D)." }
+  ],
+
+  "workflowValidation": {
+    "factoryValidateRunId": 30257622173,
+    "conclusion": "success",
+    "event": "pull_request",
+    "headSha": "d3ed1128497cf682863c438d47eb65d26ebb536b",
+    "readOnly": true,
+    "passesTrustedMetadata": true,
+    "positiveHandling": { "emptyDiff": "reject", "multipleRoots": "reject" },
+    "gaps": ["factory-workflow deletion accepted", "frozen factory record mutation accepted (D)"],
+    "judgment": "The workflow is read-only and fail-closed at discovery and passes trusted metadata, but it delegates to a boundary whose factory-governance allowlist is too broad and whose stage/marker/history checks are incomplete; a green run is not sufficient evidence."
+  },
+
+  "authorizationValidation": {
+    "floorHolds": true,
+    "ownerReceiptEscalationRejected": true,
+    "noProbeBreachedAuthorizationFloor": true,
+    "note": "All corrections-required findings are confinement/boundary/validation-completeness gaps, not privilege escalations. No probe could authorize master/canonical/production/deploy/Binance/merge."
+  },
+
+  "blockingFindings": [],
+
+  "correctionRequiredFindings": [
+    { "id": "A", "severity": "HIGH", "summary": "Foreign-worktree write: create binds to the current worktree, not the factory script's worktree, and writes into a different valid Git repo." },
+    { "id": "D", "severity": "HIGH", "summary": "Frozen governance/history records (validation-009, correction-010, correction-validation-011, governance, correction-v2-012 contract) and the factory workflow are mutable/deletable under factory-governance." },
+    { "id": "B", "severity": "HIGH", "summary": "Broad factory-branch prefix regex grants FACTORY_GOVERNANCE to spoofed lineage branches." },
+    { "id": "I", "severity": "HIGH", "summary": "TASK_STATE.history integrity unenforced: head state may contradict history; no canonical-in-history or no-rewrite checks." },
+    { "id": "G", "severity": "HIGH", "summary": "Marker outcome/merge semantics accept arbitrary non-empty values; no recognized enum, 40-hex merge identity, target-main or receipt linkage." },
+    { "id": "C", "severity": "MEDIUM", "summary": "Trusted research head branch is not bound to the task's declared branch/plan." },
+    { "id": "E", "severity": "MEDIUM", "summary": "Initial creation admits arbitrary payload; not verified equal to the deterministic factory skeleton." },
+    { "id": "F", "severity": "MEDIUM", "summary": "Per-stage inventory not exact; a valid marker hides a conflicting invalid duplicate candidate." },
+    { "id": "H", "severity": "MEDIUM", "summary": "Cumulative correction history not enforced: VALIDATED after CORRECTED omits the correction marker." },
+    { "id": "L", "severity": "MEDIUM", "summary": "Vacuous empty {} top-level objects and primitive non-ID collection entries accepted." },
+    { "id": "K", "severity": "LOW", "summary": "Git similarity scores outside 0-100 (R101/C999) accepted; quoted-path forms unhandled." },
+    { "id": "M", "severity": "LOW", "summary": "NUL and C0 control bytes not rejected as non-canonical package text." }
+  ],
+
+  "nonblockingNotes": [
+    "Correction V2 genuinely closed the ten Validation-011 findings (A–K); the 108 fixtures and the read-only PR #53 workflow run are green. The A–N probes are deeper, mostly NEW adversarial surfaces.",
+    "J: 20-research-output remains writable on a PACKAGE_VALIDATED same-state append; consider making captured output immutable from RESEARCH_CAPTURED onward.",
+    "Authorization floor is intact: owner-receipt privilege escalation rejected, all authorization fixtures green.",
+    "Local main/master tracking branches are ahead of origin from unrelated local work; origin control-plane SHAs match the frozen lineage and were not modified by this task."
+  ],
+
+  "validationOutcome": "VALIDATED_WITH_CORRECTIONS_REQUIRED",
+
+  "requiredCorrections": [
+    "A: Bind create output to the worktree that contains the factory script (or fail closed when the script worktree and current worktree differ); resolve through symlinked script paths and linked worktrees.",
+    "B: Replace the factory-branch prefix regex with an exact approved task/PR lineage allowlist.",
+    "C: Bind the trusted PR head branch to the changed task's TASK_STATE.branch / GITHUB_PLAN.taskBranch / pullRequest.head.",
+    "D: Freeze governance/validation/correction/history layers and the factory workflow against mutation/deletion; restrict factory-governance to the current task's authorized implementation paths and new result files only; reject factory-file deletions.",
+    "E: Require an initial creation PR to equal the deterministic factory skeleton exactly (exact contract file set; no arbitrary payload).",
+    "F: Enforce exact per-stage inventories and reject conflicting duplicate marker candidates.",
+    "G: Require recognized outcome enums, exact identity/lineage, and for RESEARCH_RECORD_MERGED_TO_MAIN a real 40-hex main merge commit with preceding-receipt linkage.",
+    "H: Make higher-stage evidence retain the correction marker when history contains CORRECTION_REQUIRED/CORRECTED.",
+    "I: Enforce TASK_STATE.history integrity: head==last entry, canonical in-history transitions, well-typed identities/timestamps, no rewrite of prior history.",
+    "K: Bound Git similarity scores to 0-100 and handle/reject quoted/escaped name-status paths.",
+    "L: Reject vacuous empty {} top-level objects and primitive collection entries.",
+    "M: Reject NUL and C0 control bytes as non-canonical package text."
+  ],
+
+  "nextTask": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CORRECTION-V3-014",
+
+  "authorizations": {
+    "factoryMergeToMainAuthorized": false,
+    "researchRecordMergeToMainAuthorized": false,
+    "binancePilotAuthorized": false,
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false,
+    "masterChangeAuthorized": false
+  }
+}
