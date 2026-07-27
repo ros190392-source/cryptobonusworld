@@ -86,7 +86,22 @@ statuses are recorded below and in the Final Report after the workflow completes
 commit. A passing decision requires conclusion `success`, `ENFORCEMENT: DESCENDANT`, unique frozen
 setup boundary discovered, protected-base validator used, and boundary + task-root steps succeed.
 
-<!-- WORKFLOW_RUN_OBSERVED -->
+**Observed closeout verdict run:** `30308096386` on commit `939c891` — conclusion **`success`**.
+
+| Enforcement step | Status |
+| --- | --- |
+| Checkout the exact trusted PR head SHA (read-only) | success |
+| Syntax-check factory sources | success |
+| Run factory fixtures | success |
+| Verify trusted event metadata and checkout integrity (fail-closed) | success |
+| Resolve trusted enforcement root and worker diff (fail-closed) | success |
+| Enforce append-only boundary from the trusted enforcement root (fail-closed) | success |
+| Validate discovered task roots (fail-closed) | success |
+
+Runtime log evidence: `ENFORCEMENT: DESCENDANT (protected base policy)`, `BOUNDARY mode=FACTORY_GOVERNANCE`,
+`RESULT: BOUNDARY OK`, `Factory-governance PR: no research-task root to validate.` The recording
+commit that embeds this evidence triggers one further identical-policy run on the final branch tip;
+both result runs are `success`.
 
 ## Decision
 
