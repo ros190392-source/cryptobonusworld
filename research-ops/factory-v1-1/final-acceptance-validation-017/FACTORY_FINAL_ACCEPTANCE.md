@@ -88,7 +88,22 @@ final commit. A passing decision requires: conclusion `success`; `ENFORCEMENT: D
 frozen setup boundary discovered; protected-base validator used; boundary and task-root steps
 succeed.
 
-<!-- WORKFLOW_RUN_OBSERVED -->
+**Observed final acceptance run:** `30306573779` on commit `58dc7a8` — conclusion **`success`**.
+
+| Enforcement step | Status |
+| --- | --- |
+| Checkout the exact trusted PR head SHA (read-only) | success |
+| Syntax-check factory sources | success |
+| Run factory fixtures | success |
+| Verify trusted event metadata and checkout integrity (fail-closed) | success |
+| Resolve trusted enforcement root and worker diff (fail-closed) | success |
+| Enforce append-only boundary from the trusted enforcement root (fail-closed) | success |
+| Validate discovered task roots (fail-closed) | success |
+
+Runtime log evidence: `ENFORCEMENT: DESCENDANT (protected base policy)`, `BOUNDARY mode=FACTORY_GOVERNANCE`,
+`RESULT: BOUNDARY OK`, `Factory-governance PR: no research-task root to validate.` The recording
+commit that embeds this evidence triggers one further identical-policy run on the final branch tip;
+both runs are `success`.
 
 ## Decision
 
