@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-OWNER-CLOSEOUT-018",
+  "project": "CryptoBonusWorld",
+  "role": "closeout",
+  "state": "OWNER_CLOSEOUT_AUTHORIZED",
+  "governingIssue": 64,
+  "branch": "closeout/researchops-factory-v1-1-owner-closeout-018",
+  "baseBranch": "validation/researchops-factory-v1-1-final-acceptance-017",
+  "approvedBaseSha": "71ad9aecf772a0885e88e78e1f55bec82f376d8b",
+  "sourceFinalAcceptanceIssue": 62,
+  "sourceFinalAcceptancePullRequest": 63,
+  "sourceFinalAcceptanceCommitSha": "71ad9aecf772a0885e88e78e1f55bec82f376d8b",
+  "sourceFinalAcceptanceDecision": "VALIDATED_FOR_OWNER_CLOSEOUT",
+  "acceptedV4CommitSha": "1e7c35526edc9e251d87cbd741ce1cc4acc09293",
+  "controlPlaneBaselineSha": "04157b9dfb140918a8569a5026da747b429e5ed3",
+  "protectedProductionAuthoritySha": "998fcedd7d9febbec5b130d4765dfeaafc40960b",
+  "ownerAuthorizationReceipt": {
+    "authorizationCommand": "AUTHORIZE CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-OWNER-CLOSEOUT-018",
+    "authorizationType": "FACTORY_OWNER_CLOSEOUT_ONLY",
+    "authorizedTaskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-OWNER-CLOSEOUT-018",
+    "receivedAt": "2026-07-27",
+    "targetBranch": null,
+    "mergeAuthorized": false
+  },
+  "decisionPolicy": {
+    "allowed": [
+      "FACTORY_V1_1_CLOSED_READY_FOR_SEPARATE_MERGE_AUTHORIZATION",
+      "OWNER_CLOSEOUT_BLOCKED"
+    ],
+    "cleanCloseoutDoesNotAuthorizeMerge": true,
+    "v5Authorized": false
+  },
+  "requiredOutputs": [
+    "FACTORY_OWNER_CLOSEOUT.json",
+    "FACTORY_OWNER_CLOSEOUT.md"
+  ],
+  "acceptedBacklog": {
+    "D": "broader current-record lifecycle refinements",
+    "H": "additional marker outcome compatibility",
+    "K": "richer ISO history event and timestamp semantics"
+  },
+  "recommendedNextTaskOnCleanCloseout": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CONTROLLED-STACK-MERGE-019",
+  "authorizations": {
+    "factoryMergeToMainAuthorized": false,
+    "researchRecordMergeToMainAuthorized": false,
+    "binancePilotAuthorized": false,
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false,
+    "masterChangeAuthorized": false
+  }
+}
