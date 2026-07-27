@@ -168,5 +168,20 @@ in setup phase, arbitrary fourth setup file, result before setup freeze, multipl
 boundaries, worker diff from the wrong endpoint, and future task without an owner setup record.
 `node --check` clean; `git diff --check` clean; no frozen prior directory touched.
 
-**New successful workflow run:** _recorded below after the R2 push triggers it._ All 18 authorizations
-remain false.
+**New successful workflow run: `30304848697`** (head `096864b`, `pull_request`, conclusion
+**success**). Every enforcement step executed (not skipped): Checkout exact head SHA → Verify trusted
+event/checkout integrity → Resolve trusted enforcement root and worker diff → Enforce append-only
+boundary from the trusted enforcement root → Validate discovered task roots — all **success**. Runtime
+evidence:
+
+```text
+ENFORCEMENT BOOTSTRAP: one-time V4 bootstrap anchor matched; validate only this exact remediation range from the verified head policy
+RESULT: SETUP PHASE OK (exactly the governed owner setup files, additions only)
+BOUNDARY mode=FACTORY_GOVERNANCE taskRoots=[]
+RESULT: BOUNDARY OK
+```
+
+This PR is itself the bootstrap transition (its base `07d0e38` predates the V4 policy), so its own CI
+uses the BOOTSTRAP path; the generic R2 DESCENDANT path is exercised by any task whose base carries the
+V4 policy (Final Acceptance 017) and is proven end-to-end in the real temporary Git graph above. All
+18 authorizations remain false.

@@ -127,8 +127,22 @@
       "negativeWorkerDiffFromApprovedBaseRejected": "REJECTED (setup files immutable) — proves the worker diff must be evaluated frozen-setup -> head, not approvedBase -> head"
     },
     "negativeCasesCovered": ["governed record absent from setup boundary", "setup record only at worker head", "setup file rewritten after freeze", "implementation file in setup phase", "arbitrary fourth setup file", "result file before setup freeze", "multiple possible setup boundaries", "worker diff evaluated from approved base", "unrelated validation branch/task identity", "future task without owner setup record"],
-    "newSuccessfulRunId": "PENDING_PUSH",
-    "stepsExecutedNotSkipped": "PENDING_PUSH"
+    "newSuccessfulRunId": 30304848697,
+    "newSuccessfulRunHeadSha": "096864b4c4dad787b04d30835cf6d7b0296de4d4",
+    "newSuccessfulRunConclusion": "success",
+    "stepsExecutedNotSkipped": {
+      "checkoutExactHeadSha": "success",
+      "verifyTrustedEventAndCheckoutIntegrity": "success",
+      "resolveTrustedEnforcementRootAndWorkerDiff": "success",
+      "enforceAppendOnlyBoundaryFromTrustedRoot": "success",
+      "validateDiscoveredTaskRoots": "success"
+    },
+    "runtimeEvidence": {
+      "resolveEnforcement": "ENFORCEMENT BOOTSTRAP: one-time V4 bootstrap anchor matched (this transition PR's base predates V4)",
+      "setupPhase": "RESULT: SETUP PHASE OK (exactly the governed owner setup files, additions only)",
+      "boundary": "BOUNDARY mode=FACTORY_GOVERNANCE taskRoots=[]  /  RESULT: BOUNDARY OK"
+    },
+    "note": "This PR is itself the bootstrap transition (its base 07d0e38 predates the V4 policy), so its own CI uses the BOOTSTRAP path. The generic R2 DESCENDANT path is exercised by any task whose base carries the V4 policy (Final Acceptance 017) and is proven end-to-end in a real temporary Git graph (see realGitGraphEndToEndProof)."
   },
 
   "correctionOutcome": "CORRECTED_READY_FOR_FINAL_ACCEPTANCE_VALIDATION",
