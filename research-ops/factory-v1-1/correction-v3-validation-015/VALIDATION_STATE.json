@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CORRECTION-V3-VALIDATION-015",
+  "project": "CryptoBonusWorld",
+  "governingIssue": 58,
+  "sourceCorrectionPullRequest": 57,
+  "validationPullRequest": null,
+  "authoritativeImplementationCommitSha": "69d8d564ebe1b5f277fe771a3e7769020522bd60",
+  "sourceBranchRecoveryTipSha": "9352e59e168c2b084491c829579bf3e4fb187480",
+  "sourceBranch": "correction/researchops-factory-v1-1-v3-014",
+  "validationBranch": "validation/researchops-factory-v1-1-v3-015",
+  "targetBranch": "correction/researchops-factory-v1-1-v3-014",
+  "state": "READY_FOR_INDEPENDENT_VALIDATION",
+  "requiredOutputFiles": [
+    "FACTORY_CORRECTION_V3_VALIDATION.json",
+    "FACTORY_CORRECTION_V3_VALIDATION.md"
+  ],
+  "authorizations": {
+    "factoryMergeToMainAuthorized": false,
+    "researchRecordMergeToMainAuthorized": false,
+    "binancePilotAuthorized": false,
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false,
+    "masterChangeAuthorized": false
+  },
+  "nextTaskOnPass": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-OWNER-CLOSEOUT-016",
+  "nextTaskOnCorrections": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CORRECTION-V4-016"
+}
