@@ -1,0 +1,168 @@
+{
+  "schemaVersion": "1.0.0",
+  "validationTaskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CORRECTION-V3-VALIDATION-015",
+  "correctionTaskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CORRECTION-V3-014",
+  "project": "CryptoBonusWorld",
+  "governingIssue": 58,
+  "correctionV3PullRequest": 57,
+  "validationPullRequest": 59,
+  "authoritativeImplementationCommitSha": "69d8d564ebe1b5f277fe771a3e7769020522bd60",
+  "sourceBranchRecoveryTipSha": "9352e59e168c2b084491c829579bf3e4fb187480",
+  "frozenInitialCorrectionV3HeadSha": "78c56177ce569baa75c96613e0f74881078318cc",
+  "sourceValidation013CommitSha": "acd83d1d4e854db26ec1054b03c6e9cfd42bd2da",
+  "validationBranch": "validation/researchops-factory-v1-1-v3-015",
+  "initialValidationHeadSha": "1e6ab2cbe50cb6e8dfe8f39499878ba1aa471bf5",
+  "validatedAt": "2026-07-27",
+  "environment": { "nodeVersion": "v24.14.0 (Node 20-compatible)", "os": "Windows 11", "method": "independent library import + real CLI + real temporary Git repositories; not reliant on the 145 fixtures or the green advisory workflow" },
+
+  "recoveryLineageVerification": {
+    "range": "69d8d564..9352e59e",
+    "commitCount": 2,
+    "commits": ["2d82b87 noop", "9352e59 chore: remove accidental validation setup file"],
+    "changedFileCount": 0,
+    "treesIdentical": true,
+    "authoritativeTree": "11aedba177c10af427db89e9d157efe174ceccae",
+    "sourceTipTree": "11aedba177c10af427db89e9d157efe174ceccae"
+  },
+
+  "baselineVerification": {
+    "correctionDiff": "78c56177..69d8d564",
+    "correctionDiffFileCount": 17,
+    "matchesReported17Files": true,
+    "immutableLayersUnchanged": true,
+    "immutableLayersChecked": ["validation-009/**", "correction-010/**", "correction-validation-011/**", "correction-v2-012/**", "correction-v2-validation-013/**", "governance/**", "research-ops-pilot/**", "research-ops/tasks/**"],
+    "pr57": { "state": "OPEN", "draft": true, "base": "validation/researchops-factory-v1-1-v2-013", "currentTreeEqualsAuthoritative": true, "unmerged": true },
+    "originMain": "04157b9dfb140918a8569a5026da747b429e5ed3",
+    "originMainMatches": true,
+    "originMaster": "998fcedd7d9febbec5b130d4765dfeaafc40960b",
+    "originMasterMatches": true
+  },
+
+  "syntaxAndFixtureReruns": {
+    "nodeCheck": "CLEAN (all factory .mjs)",
+    "fixtures": { "passed": 145, "failed": 0, "independentlyRerun": true },
+    "gitDiffCheck": "clean"
+  },
+
+  "cliSmokeResults": {
+    "createForeignWorktree": "exit 2 (fails closed, creates nothing)",
+    "validate": "exit 0 (fresh PREPARED)",
+    "status": "exit 0",
+    "requirePackageEmpty": "exit 1",
+    "tasksDirFlag": "rejected (unknown flag)",
+    "ownerReceiptEscalation": "ok=false",
+    "checkBoundaryFrozenMutation": "exit 1",
+    "checkBoundaryWorkflowDeletion": "exit 1",
+    "checkBoundaryR101": "exit 1"
+  },
+
+  "correctionMatrixV3C1ToC12": [
+    { "id": "V3-C1", "name": "factory-script worktree confinement", "verdict": "PASS", "evidence": "CLI from a foreign valid Git repo -> exit 2, nothing created; create binds to the script's own worktree (fixtures V3-C1/b)." },
+    { "id": "V3-C2", "name": "exact factory lineage", "verdict": "PASS", "evidence": "Exact (head,base) pair required; spoofs and wrong-base rejected (fixtures V3-C2/b/c). NOTE: lineage is branch-name/prefix-free but not commit-ancestry-bound and pre-authorizes future tasks (probes C, E)." },
+    { "id": "V3-C3", "name": "research head <-> plan binding", "verdict": "PASS", "evidence": "Trusted head bound to TASK_STATE.branch and root task id from head blob (fixtures V3-C3/b)." },
+    { "id": "V3-C4", "name": "frozen layers + workflow protection", "verdict": "PASS", "evidence": "Prior layers immutable; workflow deletion/rename rejected (fixtures V3-C4..e). NOTE: all factory task roles share implementation-write privilege and the current result dir is prefix-authorized (probes A, D)." },
+    { "id": "V3-C5", "name": "exact initial skeleton", "verdict": "PASS", "evidence": "Exact skeleton filename set enforced (fixtures V3-C5/b). NOTE: filenames only, not canonical bytes/templates (probe F)." },
+    { "id": "V3-C6", "name": "per-stage inventory + duplicate markers", "verdict": "PASS", "evidence": "Exact per-stage additions; >1 marker candidate rejected (fixtures V3-C6/b)." },
+    { "id": "V3-C7", "name": "marker outcomes + merge lineage", "verdict": "PASS", "evidence": "Controlled enums; merge requires 40-hex/main/receipt fields (fixtures V3-C7..c). NOTE: enum set omits governed outcomes and merge SHA existence is unverified (probes H, I)." },
+    { "id": "V3-C8", "name": "cumulative correction path", "verdict": "PASS", "evidence": "Correction marker required when history used the correction path (fixtures V3-C8/b)." },
+    { "id": "V3-C9", "name": "history integrity + append-only", "verdict": "PASS", "evidence": "History shape + canonical transitions + base/head prefix append-only (fixtures V3-C9..d). NOTE: timestamps compared lexicographically; duplicate same-state allowed (probe K)." },
+    { "id": "V3-C10", "name": "strict NUL-delimited name-status", "verdict": "PASS", "evidence": "Verified against REAL `git -c core.quotePath=false diff -z --name-status`: A/M/D and R100 src+dst parsed, spaces preserved, R101/truncated rejected (probe L)." },
+    { "id": "V3-C11", "name": "non-vacuous package minima", "verdict": "PASS", "evidence": "overallFinding.recommendation / review.sourceIds / boolean readiness.*Ready enforced (fixtures V3-C11..c)." },
+    { "id": "V3-C12", "name": "control-byte rejection", "verdict": "PASS", "evidence": "NUL/C0/C1 rejected in canonical text with recomputed MANIFEST (fixtures V3-C12..d)." }
+  ],
+
+  "newProbeMatrixAtoN": [
+    { "id": "A", "name": "task-specific factory capability profiles", "verdict": "CORRECTION_REQUIRED", "evidence": "A validation-role branch (validation/researchops-factory-v1-1-v3-015 onto correction-v3-014) is granted the SAME implementation-write privilege as a correction task: modifying lib/boundary.mjs, lib/lineage.mjs and the workflow all pass the boundary (ok=true). Factory role does not constrain capability." },
+    { "id": "B", "name": "self-modifying validator / trusted-base enforcement", "verdict": "CORRECTION_REQUIRED", "evidence": "A PR head may modify lineage.mjs + boundary.mjs (ok=true) and, because GitHub `pull_request` runs the checked-out head code, be validated by its own weakened boundary. There is no trusted/base enforcement root that cannot be self-authorized by the PR under check." },
+    { "id": "C", "name": "exact commit/ancestry binding", "verdict": "CORRECTION_REQUIRED", "evidence": "trustedModeFromMeta decides factory governance from the (head,base) branch-name pair only (no SHA input; arity 0). Head-descendant/base-tip commit ancestry is not verified; force-moved/reused branch names with unrelated history would pass; recovery no-op commits are silently trusted." },
+    { "id": "D", "name": "current task record immutability", "verdict": "CORRECTION_REQUIRED", "evidence": "The current task's own setup files are mutable and arbitrary extras are allowed: modifying correction-v3-validation-015/VALIDATION_CONTRACT.md (ok=true) and adding ARBITRARY_EXTRA.json (ok=true) both pass. Authorization is prefix-only over the whole result directory." },
+    { "id": "E", "name": "future-task lineage preauthorization", "verdict": "CORRECTION_REQUIRED", "evidence": "FACTORY_LINEAGE already contains the future validation-015 branch, so a future task is pre-authorized without an owner-created governance record. Entries are branch strings + resultDir only — no task id, issue/PR identity, role or allowed-file inventory." },
+    { "id": "F", "name": "exact skeleton content, not filenames", "verdict": "CORRECTION_REQUIRED", "evidence": "checkStageTransition creation compares the changed FILENAME set only (ok=true for the exact names) with no canonical byte/template check. An unsafe content substitution (e.g. a DEEP_RESEARCH_PROMPT.md stripped of official-source/no-production constraints, or added production-authorization language) in a valid-named file would pass the boundary." },
+    { "id": "G", "name": "stage transition completeness", "verdict": "PASS_WITH_NOTE", "evidence": "A marker added to a non-open stage is rejected, and boundary+final validate jointly gate transitions (partial capture fails validate; wrong-stage adds fail boundary). NOTE: OWNER_CLOSEOUT_REQUIRED has no separate marker-add inventory (by design)." },
+    { "id": "H", "name": "marker protocol compatibility", "verdict": "CORRECTION_REQUIRED", "evidence": "The validation enum omits governed outcomes (VALIDATED_WITH_NONBLOCKING_NOTES is rejected), so a strict validator can reject the factory's own governed output; and marker identity is accepted via a validationTaskId/correctionTaskId fallback rather than being bound strictly to the root research task id. Conflicting/unknown outcome keys are not detected." },
+    { "id": "I", "name": "real merge record verification", "verdict": "CORRECTION_REQUIRED", "evidence": "A merge record with mergeCommit = 40 zeros (and valid target/state/receipt fields) is ACCEPTED. There is no check that the merge commit exists in the repository, is reachable from main, that the receipt is linked by hash/immutable identifier, that the receipt predates the merge, or that main contains the governed task tree." },
+    { "id": "J", "name": "owner receipt full lifecycle", "verdict": "PASS_WITH_NOTE", "evidence": "Only an exact research-record merge receipt passes; a factoryMergeToMainAuthorized escalation is rejected. NOTE: the validator does not require an explicit all-false non-merge authorization matrix to be present, and there is no post-merge receipt-immutability lifecycle check." },
+    { "id": "K", "name": "history semantics and timestamps", "verdict": "CORRECTION_REQUIRED", "evidence": "Timestamps are compared lexicographically, so non-ISO but lexicographically-ordered strings (aaa < bbb) pass; duplicate same-state entries pass; there is no governed history event-type/identity schema." },
+    { "id": "L", "name": "actual NUL-delimited Git diff parser", "verdict": "PASS", "evidence": "Against real `git -c core.quotePath=false diff -z --name-status` output: A d/added.txt, D 'd/na me.txt' (space preserved, unquoted), R100 d/oldname.txt->d/newname.txt (src+dst), M d/normal.txt — 4 records, none malformed; synthetic R101 and truncated R100 rejected." },
+    { "id": "M", "name": "task root / filesystem identity", "verdict": "PASS_WITH_NOTE", "evidence": "A lowercase task id is not matched as a governed root (task-id grammar is uppercase); symlink/executable/non-regular entries are caught by findUnsafeEntries and marker checks. NOTE: Unicode-normalization/confusable segments and Windows reserved-name/trailing-dot cases are not explicitly normalized." },
+    { "id": "N", "name": "workflow event and checkout integrity", "verdict": "CORRECTION_REQUIRED", "evidence": "Actual PR #57 factory runs on 69d8d56 and recovery tip 9352e59 succeeded read-only, but the intermediate no-op commit 2d82b87 produced a FAILED run (recovery not cleanly reconciled). The workflow trusts github.event SHAs and GITHUB_WORKSPACE without verifying checked-out HEAD == trusted head.sha or that the workspace is the resolved worktree root, and (per B) runs PR-head code that a validation branch may itself have modified." }
+  ],
+
+  "workflowValidation": {
+    "runs": [
+      { "sha": "69d8d564", "conclusion": "success" },
+      { "sha": "9352e59e", "conclusion": "success" },
+      { "sha": "2d82b879", "conclusion": "failure", "note": "intermediate no-op recovery commit" },
+      { "sha": "78c56177", "conclusion": "success" }
+    ],
+    "readOnly": true,
+    "gaps": ["runs PR-head code (self-modify, B)", "no HEAD==head.sha / workspace==resolved-root check (N)", "validation branch may perform impl mutation (A)", "no-op recovery produced an inconsistent run (C/N)"],
+    "judgment": "Read-only and fail-closed at discovery, but it delegates to a boundary the PR head can itself modify and does not verify checkout/metadata integrity; a green run is not sufficient evidence."
+  },
+
+  "authorizationValidation": { "floorHolds": true, "ownerReceiptEscalationRejected": true, "factoryVsResearchMergeDistinctionHeld": true, "noProbeBreachedAuthorizationFloor": true },
+
+  "blockingFindings": [],
+
+  "correctionRequiredFindings": [
+    { "id": "A", "severity": "HIGH", "summary": "No task-role capability profile: validation-role branches hold full implementation-write privilege (bin/lib/fixtures/workflow/lineage)." },
+    { "id": "B", "severity": "HIGH", "summary": "Self-authorizing validator: a PR head can weaken boundary/lineage/workflow and be checked by its own modified head code; no trusted enforcement root." },
+    { "id": "C", "severity": "HIGH", "summary": "Factory governance bound to branch names, not trusted commit ancestry; force-moved/reused branches and recovery no-ops silently trusted." },
+    { "id": "E", "severity": "HIGH", "summary": "Future tasks pre-authorized in FACTORY_LINEAGE; entries are branch strings only (no task id/issue/role/inventory) and self-addable." },
+    { "id": "F", "severity": "HIGH", "summary": "Exact skeleton is filename-only; unsafe content substitution (safety constraints removed / production language added) passes." },
+    { "id": "I", "severity": "HIGH", "summary": "Merge record accepts any/all-zero 40-hex SHA; no repository existence, main-reachability or receipt-hash linkage." },
+    { "id": "D", "severity": "MEDIUM", "summary": "Current task setup contract/state/prompt mutable and arbitrary extra result files allowed (prefix-only result-dir authorization)." },
+    { "id": "H", "severity": "MEDIUM", "summary": "Marker enum rejects governed outcomes (VALIDATED_WITH_NONBLOCKING_NOTES); identity accepted via validation/correction task id fallback; conflicting/unknown outcome keys undetected." },
+    { "id": "K", "severity": "MEDIUM", "summary": "History timestamps compared lexicographically (non-ISO accepted); duplicate same-state entries; no event-type/identity schema." },
+    { "id": "N", "severity": "MEDIUM", "summary": "Workflow runs PR-head code and does not verify checked-out HEAD == trusted head.sha or GITHUB_WORKSPACE == resolved root; recovery no-op produced an inconsistent run." }
+  ],
+
+  "nonblockingNotes": [
+    "Correction V3 genuinely closed the twelve Validation-013 findings; 145/0 fixtures and the read-only PR #57 runs on the authoritative and recovery tips are green. Probes A–N are deeper, mostly NEW architectural surfaces (task-role capability, self-authorization, commit ancestry, content integrity, merge-record reachability).",
+    "G: OWNER_CLOSEOUT_REQUIRED has no separate marker-add inventory (by design); boundary and final validate jointly gate transitions.",
+    "J: owner-receipt privilege floor holds and the factory-vs-research merge distinction is respected; only post-merge lifecycle immutability and explicit all-false-matrix presence are unenforced.",
+    "L: the NUL-delimited parser matches real Git output including spaces in filenames and rename src/dst; score-range and truncation rejected.",
+    "M: symlink/executable/non-regular entries are caught; only Unicode/reserved-name confusables are unnormalized (task-id grammar is uppercase-bounded).",
+    "Authorization floor is intact; every corrections-required finding is an authorization/governance-architecture or validation-completeness gap, not a privilege escalation."
+  ],
+
+  "validationOutcome": "VALIDATED_WITH_CORRECTIONS_REQUIRED",
+
+  "requiredCorrections": [
+    "A: Introduce task-role capability profiles so validation/closeout tasks may create only their exact result files and may not modify bin/lib/fixtures/schemas/templates/README/workflow/lineage.",
+    "B: Enforce the boundary from a trusted base/bootstrap version that the PR under check cannot self-modify; reject PRs that alter the validator/lineage/workflow they are validated by without separate governance.",
+    "C: Bind factory governance to trusted commit ancestry (head descends the governed base tip; base equals the approved stack commit) and explicitly reconcile recovery no-op commits.",
+    "D: Freeze the current task's contract/state/prompt after setup and enforce an exact result-file inventory instead of whole-directory prefix authorization.",
+    "E: Make FACTORY_LINEAGE entries owner-authorized governance records carrying task id, issue/PR identity, role and allowed-file inventory; forbid a future branch from authorizing itself.",
+    "F: Verify the initial skeleton against canonical template bytes (including safety text and no-production-authorization), and reject content substitution, executable mode and symlinks.",
+    "G: Jointly require, per transition, the exact stage artifact AND the matching TASK_STATE state/history append.",
+    "H: Align marker enums with the factory's own governed outcome protocol, bind marker identity strictly to the root research task id, and reject conflicting/unknown outcome keys.",
+    "I: Verify the merge record's commit exists, is reachable from main, targets main, links the exact owner receipt by hash, and that main contains the governed task tree; reject all-zero/fabricated SHAs.",
+    "J: Require the explicit all-false non-merge authorization matrix and enforce receipt immutability across the closeout lifecycle.",
+    "K: Require a deterministic ISO-8601 history event schema with typed identity/event fields and true chronological ordering; govern same-state entries.",
+    "N: Fail closed when checked-out HEAD != trusted head.sha or GITHUB_WORKSPACE != resolved worktree root; ensure the boundary step cannot be bypassed by a head-modified workflow."
+  ],
+
+  "nextTask": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CORRECTION-V4-016",
+
+  "authorizations": {
+    "factoryMergeToMainAuthorized": false,
+    "researchRecordMergeToMainAuthorized": false,
+    "binancePilotAuthorized": false,
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false,
+    "masterChangeAuthorized": false
+  }
+}
