@@ -89,9 +89,17 @@
   "stage2": {
     "method": "ordinary non-force fast-forward push",
     "from": "3bc4b5e400cb292d73d5f1b77edd356ace02547d",
-    "to": "FINAL_MERGE_019_RESULT_COMMIT",
-    "note": "Fast-forward origin/main from the Stage-1 head to the exact green Merge-019 result commit after the factory workflow passes. Recorded in the .md and Final Report after execution.",
-    "observed": null
+    "to": "a8ad198281a8a172871e2c2f5cd02e17b54736a7",
+    "command": "git push origin a8ad198281a8a172871e2c2f5cd02e17b54736a7:refs/heads/main",
+    "refUpdate": "3bc4b5e..a8ad198  a8ad198281a8a172871e2c2f5cd02e17b54736a7 -> main",
+    "originMainAfterStage2": "a8ad198281a8a172871e2c2f5cd02e17b54736a7",
+    "originMasterAfterStage2": "998fcedd7d9febbec5b130d4765dfeaafc40960b",
+    "forceUsed": false,
+    "adminBypassUsed": false,
+    "cumulativeDiffFromBaselineFileCount": 93,
+    "cumulativeDiffWithinAllowlist": true,
+    "result": "SUCCESS",
+    "finalAuditHeadNote": "This audit-recording commit records the Stage-2 evidence and is itself published as the final origin/main head by one further ordinary non-force fast-forward from a8ad198. Its exact SHA is stated in the Final Report."
   },
   "prohibitionsHonored": {
     "masterUnchanged": true,
@@ -104,8 +112,19 @@
     "noIndividualPrMergeOrRetarget": true
   },
   "workflowRun": {
-    "note": "The factory workflow runs on this result commit under DESCENDANT protected-base enforcement. Stage 2 proceeds only after it is green. Run id and step statuses recorded in the .md and Final Report.",
-    "observed": null
+    "note": "The factory workflow ran on the Stage-1 result commit a8ad198 under DESCENDANT protected-base enforcement and was green before Stage 2. The audit-recording commit triggers one further identical-policy run on the task branch tip.",
+    "observed": {
+      "runId": 30311272101,
+      "headSha": "a8ad198281a8a172871e2c2f5cd02e17b54736a7",
+      "conclusion": "success",
+      "enforcement": "DESCENDANT (protected base policy)",
+      "runtimeEvidence": [
+        "ENFORCEMENT: DESCENDANT (protected base policy)",
+        "BOUNDARY mode=FACTORY_GOVERNANCE taskRoots=[]",
+        "RESULT: BOUNDARY OK"
+      ],
+      "allStepsSucceeded": true
+    }
   },
   "authorizationsAfterConsumption": {
     "factoryMergeToMainAuthorized": false,

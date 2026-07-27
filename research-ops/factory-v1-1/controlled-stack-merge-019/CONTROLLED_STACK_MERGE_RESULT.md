@@ -61,7 +61,19 @@ enforcement, `origin/main` is fast-forwarded from `3bc4b5e` to the exact Merge-0
 then re-verified. Run id, step statuses, and the final `main` SHA are recorded below and in the Final
 Report.
 
-<!-- STAGE2_OBSERVED -->
+**Stage 2 executed (COMPLETE).**
+
+- Method: ordinary **non-force fast-forward** push. No force/reset/rebase/squash/cherry-pick/admin bypass.
+- Command: `git push origin a8ad198281a8a172871e2c2f5cd02e17b54736a7:refs/heads/main`
+- Ref update: `3bc4b5e..a8ad198  a8ad198281a8a172871e2c2f5cd02e17b54736a7 -> main`
+- After: `origin/main` = `a8ad198281a8a172871e2c2f5cd02e17b54736a7`; `origin/master` = `998fcedd7d9febbec5b130d4765dfeaafc40960b` (unchanged).
+- Factory workflow on the Stage-1 result commit `a8ad198`: run **`30311272101`** — conclusion **`success`**, all enforcement steps green, `ENFORCEMENT: DESCENDANT (protected base policy)`, `BOUNDARY mode=FACTORY_GOVERNANCE`, `RESULT: BOUNDARY OK`.
+- Final cumulative diff `04157b9…a8ad198` = **93 files**, all within `.github/workflows/cbw-researchops-factory-validate.yml` + `research-ops/factory-v1-1/**`.
+
+This audit-recording commit records the Stage-2 evidence and is itself published as the final
+`origin/main` head by one further ordinary non-force fast-forward from `a8ad198`. Its exact SHA and
+run id are stated in the Final Report. The one-time `factoryMergeToMainAuthorized` is **consumed**;
+all 18 active authorizations are `false`.
 
 ## Authorization consumption
 
