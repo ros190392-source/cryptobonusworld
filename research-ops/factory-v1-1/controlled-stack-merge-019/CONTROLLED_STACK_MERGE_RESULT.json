@@ -1,0 +1,130 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CONTROLLED-STACK-MERGE-019",
+  "project": "CryptoBonusWorld",
+  "role": "closeout",
+  "decision": "FACTORY_V1_1_STACK_PUBLISHED_TO_MAIN",
+  "generatedAt": "2026-07-28",
+  "ownerAuthorizationReceipt": {
+    "command": "AUTHORIZE CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CONTROLLED-STACK-MERGE-019",
+    "authorizationType": "FACTORY_CONTROLLED_STACK_MERGE_TO_MAIN_ONCE",
+    "targetBranch": "main",
+    "authorizedStackHead": "3bc4b5e400cb292d73d5f1b77edd356ace02547d",
+    "fastForwardOnly": true,
+    "forceAllowed": false,
+    "temporaryAuthorizationDuringExecution": "factoryMergeToMainAuthorized",
+    "oneTimeAuthorizationConsumedOnStage2": true
+  },
+  "governance": {
+    "governingIssue": 66,
+    "auditPullRequest": 67,
+    "sourceOwnerCloseoutIssue": 64,
+    "sourceOwnerCloseoutPullRequest": 65,
+    "ownerCloseout018Decision": "FACTORY_V1_1_CLOSED_READY_FOR_SEPARATE_MERGE_AUTHORIZATION",
+    "finalAcceptance017Decision": "VALIDATED_FOR_OWNER_CLOSEOUT",
+    "nextTaskOnSuccess": "CBW-KZ-BINANCE-P0-D-FACTORY-PILOT-020",
+    "nextTaskRequiresSeparateOwnerCommand": true
+  },
+  "setupIdentity": {
+    "branch": "closeout/researchops-factory-v1-1-controlled-stack-merge-019",
+    "baseBranch": "closeout/researchops-factory-v1-1-owner-closeout-018",
+    "approvedBaseSha": "3bc4b5e400cb292d73d5f1b77edd356ace02547d",
+    "frozenSetupHead": "a37c0a6c0ad51d7a1ea56b0304b2efbe5eb3e474",
+    "isolatedWorktree": "C:\\projects\\CryptoBonusWorld-stack-merge-019",
+    "setupCommits": [
+      "d4413a487b58884988144435da0254571d7ee516",
+      "1575db50ec3483d59de2d08316cb0ee3672850fa",
+      "a37c0a6c0ad51d7a1ea56b0304b2efbe5eb3e474"
+    ],
+    "canonicalSetupTriple": [
+      "research-ops/factory-v1-1/controlled-stack-merge-019/CONTROLLED_STACK_MERGE_CONTRACT.md",
+      "research-ops/factory-v1-1/controlled-stack-merge-019/CONTROLLED_STACK_MERGE_STATE.json",
+      "research-ops/factory-v1-1/controlled-stack-merge-019/CLAUDE_CONTROLLED_STACK_MERGE_PROMPT.md"
+    ],
+    "setupAdditionsOnly": true,
+    "singleTemporaryTrueAuthorization": "factoryMergeToMainAuthorized",
+    "otherAuthorizationsFalse": 17
+  },
+  "preflight": {
+    "originMainBaseline": "04157b9dfb140918a8569a5026da747b429e5ed3",
+    "originMasterProtected": "998fcedd7d9febbec5b130d4765dfeaafc40960b",
+    "closedStackHead": "3bc4b5e400cb292d73d5f1b77edd356ace02547d",
+    "stackHeadDescendsMainBaseline": true,
+    "orderedAncestryChainVerified": true,
+    "cumulativeDiffFileCount": 88,
+    "cumulativeDiffAreas": [
+      ".github/workflows/cbw-researchops-factory-validate.yml",
+      "research-ops/factory-v1-1/**"
+    ],
+    "forbiddenAreasTouched": [],
+    "nodeCheck": "clean",
+    "fixtures": { "passed": 206, "failed": 0 },
+    "gitDiffCheck": "clean",
+    "enforcementModePredicted": "DESCENDANT",
+    "uniqueFrozenSetupBoundary": "a37c0a6c0ad51d7a1ea56b0304b2efbe5eb3e474"
+  },
+  "orderedStack": [
+    { "pr": 44, "head": "02997bb63be39012015486ecf55da707a3738f6b", "headBranch": "feat/researchops-subscription-factory-v1-1" },
+    { "pr": 46, "head": "2f95f8a373e21204548e6c61433677d009943b26", "headBranch": "validation/researchops-subscription-factory-v1-1-009" },
+    { "pr": 49, "head": "2b9fecd8540070c92f1d1ba382ba05b64597a7e6", "headBranch": "correction/researchops-subscription-factory-v1-1-010" },
+    { "pr": 51, "head": "a958f0c7d7ce2d707e4d79e5eafdd984fc851d2d", "headBranch": "validation/researchops-factory-v1-1-correction-011" },
+    { "pr": 53, "head": "d3ed1128497cf682863c438d47eb65d26ebb536b", "headBranch": "correction/researchops-factory-v1-1-v2-012" },
+    { "pr": 55, "head": "acd83d1d4e854db26ec1054b03c6e9cfd42bd2da", "headBranch": "validation/researchops-factory-v1-1-v2-013" },
+    { "pr": 57, "head": "9352e59e168c2b084491c829579bf3e4fb187480", "headBranch": "correction/researchops-factory-v1-1-v3-014" },
+    { "pr": 59, "head": "07d0e38a540355244b2bcab0258d3eb5463ed1af", "headBranch": "validation/researchops-factory-v1-1-v3-015" },
+    { "pr": 61, "head": "1e7c35526edc9e251d87cbd741ce1cc4acc09293", "headBranch": "correction/researchops-factory-v1-1-v4-016" },
+    { "pr": 63, "head": "71ad9aecf772a0885e88e78e1f55bec82f376d8b", "headBranch": "validation/researchops-factory-v1-1-final-acceptance-017" },
+    { "pr": 65, "head": "3bc4b5e400cb292d73d5f1b77edd356ace02547d", "headBranch": "closeout/researchops-factory-v1-1-owner-closeout-018" }
+  ],
+  "stage1": {
+    "method": "ordinary non-force fast-forward push",
+    "command": "git push origin 3bc4b5e400cb292d73d5f1b77edd356ace02547d:refs/heads/main",
+    "refUpdate": "04157b9..3bc4b5e  3bc4b5e400cb292d73d5f1b77edd356ace02547d -> main",
+    "originMainAfter": "3bc4b5e400cb292d73d5f1b77edd356ace02547d",
+    "originMasterAfter": "998fcedd7d9febbec5b130d4765dfeaafc40960b",
+    "forceUsed": false,
+    "adminBypassUsed": false,
+    "result": "SUCCESS"
+  },
+  "stage2": {
+    "method": "ordinary non-force fast-forward push",
+    "from": "3bc4b5e400cb292d73d5f1b77edd356ace02547d",
+    "to": "FINAL_MERGE_019_RESULT_COMMIT",
+    "note": "Fast-forward origin/main from the Stage-1 head to the exact green Merge-019 result commit after the factory workflow passes. Recorded in the .md and Final Report after execution.",
+    "observed": null
+  },
+  "prohibitionsHonored": {
+    "masterUnchanged": true,
+    "noDeploy": true,
+    "noProductionOrPageOrDesignOrCanonicalChange": true,
+    "noBinancePilotCreatedOrRun": true,
+    "noForceNoRebaseNoSquashNoCherryPick": true,
+    "noBranchProtectionChange": true,
+    "noBranchDeletion": true,
+    "noIndividualPrMergeOrRetarget": true
+  },
+  "workflowRun": {
+    "note": "The factory workflow runs on this result commit under DESCENDANT protected-base enforcement. Stage 2 proceeds only after it is green. Run id and step statuses recorded in the .md and Final Report.",
+    "observed": null
+  },
+  "authorizationsAfterConsumption": {
+    "factoryMergeToMainAuthorized": false,
+    "researchRecordMergeToMainAuthorized": false,
+    "binancePilotAuthorized": false,
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false,
+    "masterChangeAuthorized": false
+  }
+}
