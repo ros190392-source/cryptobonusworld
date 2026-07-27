@@ -9,6 +9,7 @@ import { join } from 'node:path';
 import { lstatSync } from 'node:fs';
 import { exists, readBuf, isValidUtf8, hasBOM, hasCR, hasForbiddenControls } from './util.mjs';
 import { validateOwnerReceipt } from './authz.mjs';
+import { verifyMergeRecord } from './mergeproof.mjs';
 
 // Controlled outcome enums per stage marker (V3-C7).
 const REVIEW_OUTCOMES = new Set(['SOURCE_TRUTH_REVIEWED', 'CORRECTION_REQUIRED', 'NO_CORRECTION_REQUIRED', 'PROCEED_TO_VALIDATION']);
@@ -45,7 +46,8 @@ function readMarkerObject(p, label) {
 const markerId = (obj) => (obj && typeof obj === 'object' ? (obj.taskId ?? obj.validationTaskId ?? obj.correctionTaskId) : undefined);
 
 // Validate one stage marker. V3-C6: exactly one candidate must exist.
-export function validateMarker(taskDir, spec, taskId) {
+// opts.mergeFacts (V4-C6) supplies read-only repository facts for merge records.
+export function validateMarker(taskDir, spec, taskId, opts = {}) {
   const present = spec.anyOf.filter((f) => exists(join(taskDir, spec.dir, f)));
   if (present.length === 0) return { ok: false, reason: `missing ${spec.dir}/{${spec.anyOf.join(' | ')}}`, file: null };
   if (present.length > 1) return { ok: false, reason: `${spec.dir}: conflicting multiple marker candidates [${present.join(', ')}]`, file: null };
@@ -61,15 +63,9 @@ export function validateMarker(taskDir, spec, taskId) {
     return { ok: true, reason: '', file: chosen };
   }
   if (spec.kind === 'merge') {
-    // V3-C7 — identity-bound 40-hex merge record targeting main with receipt linkage.
-    const e = [];
-    if (markerId(obj) !== taskId) e.push(`taskId ${JSON.stringify(markerId(obj))} != ${taskId}`);
-    if (obj.targetBranch !== 'main') e.push(`targetBranch must be main, got ${JSON.stringify(obj.targetBranch)}`);
-    if (typeof obj.mergeCommit !== 'string' || !HEX40.test(obj.mergeCommit)) e.push(`mergeCommit must be a 40-hex SHA, got ${JSON.stringify(obj.mergeCommit)}`);
-    if (!MERGE_STATES.has(obj.mergedState)) e.push(`mergedState must be a recognized merged state, got ${JSON.stringify(obj.mergedState)}`);
-    const receiptId = obj.precedingReceiptTaskId ?? (obj.precedingReceipt && obj.precedingReceipt.taskId);
-    if (receiptId !== taskId) e.push(`preceding owner-receipt linkage missing/mismatched (${JSON.stringify(receiptId)})`);
-    if (e.length) return { ok: false, reason: `${label}: ${e.join('; ')}`, file: chosen };
+    // V4-C6 — real merge proof: structure + repository facts (when provided by the CLI).
+    const v = verifyMergeRecord(obj, taskId, opts.mergeFacts || {});
+    if (!v.ok) return { ok: false, reason: `${label}: ${v.errors.join('; ')}`, file: chosen };
     return { ok: true, reason: '', file: chosen };
   }
   // json marker: identity-bound + recognized outcome enum.
@@ -80,9 +76,9 @@ export function validateMarker(taskDir, spec, taskId) {
 }
 
 // Validate a cumulative list of markers. Returns { ok, reason }.
-export function validateMarkers(taskDir, specs, taskId) {
+export function validateMarkers(taskDir, specs, taskId, opts = {}) {
   for (const spec of specs || []) {
-    const r = validateMarker(taskDir, spec, taskId);
+    const r = validateMarker(taskDir, spec, taskId, opts);
     if (!r.ok) return { ok: false, reason: r.reason };
   }
   return { ok: true, reason: '' };

@@ -82,6 +82,38 @@ rejected unless Git confirms a valid worktree. Tests need OS temp roots, so the 
 - **V3-C12 control bytes:** NUL and forbidden C0/C1 control characters are rejected in canonical
   package text even with a recomputed MANIFEST (only LF and TAB whitespace are accepted).
 
+### V4 final critical hardening (Correction V4 016)
+
+- **V4-C1 role capability profiles** (`lib/roles.mjs`): each governed factory PR has a role derived
+  from its branch. A **validation** or **closeout** role may create only its exact two result
+  records and may **not** modify `bin/**`, `lib/**`, `fixtures/**`, `schemas/**`, templates, README,
+  the workflow or the enforcement root; an **implementation/correction** role may modify enumerated
+  implementation paths plus exactly two result files. Setup contract/state/prompt files are immutable
+  after setup, and whole-directory prefix authorization is gone.
+- **V4-C2 trusted enforcement root**: the CI workflow runs the boundary validator from the
+  **protected base** checkout (`git worktree add ../trusted-base <base-sha>`), never the PR head, so
+  a PR that weakens `boundary.mjs`/`lineage.mjs`/`roles.mjs` or the workflow in its own head cannot
+  validate itself — the prior trusted policy evaluates the head diff as data. Enforcement-root
+  changes are permitted only for an implementation/correction role.
+- **V4-C3/C4 governed records + ancestry** (`lib/govrecord.mjs`): authorization comes from an
+  owner-created governed record (the task's `*_STATE.json`) bound to the exact task id, head/base
+  branches and approved base SHA, not a mutable branch list. The head must descend the approved base
+  SHA. A future task (no record) or a spoof branch (no matching record) fails closed; the mutable
+  per-task lineage allowlist has been removed.
+- **V4-C5 canonical skeleton bytes** (`lib/skeleton.mjs`): initial creation is validated by per-file
+  SHA-256 over `renderSkeleton()` (after deterministic identity substitution), plus required safety
+  text and regular-file/mode/symlink checks — rejecting same-filename content substitution, removed
+  no-production/official-source language, and executable/symlink payloads.
+- **V4-C6 real merge proof** (`lib/mergeproof.mjs`): `RESEARCH_RECORD_MERGED_TO_MAIN` requires a
+  non-zero 40-hex commit that exists and is reachable from `main`, target `main`, the governed task
+  tree present, and an owner receipt linked by immutable hash/id that predates and scopes the merge.
+  All-zero, fabricated, unrelated and non-main-reachable SHAs fail.
+- **V4-C7 checkout/event integrity** (`lib/eventintegrity.mjs`): before evaluation the workflow
+  verifies checked-out `HEAD` == trusted head SHA, `GITHUB_WORKSPACE` == resolved worktree root,
+  base/head objects exist, head descends the approved base, the repo is not shallow, and the diff
+  endpoints equal the trusted SHAs; transparent no-op recovery commits require identical-tree
+  reconciliation.
+
 ### V2 boundary hardening (Correction V2 012)
 
 - **V2-C2 strict name-status:** `parseNameStatus` accepts only `A/M/D/T` and `R<score>/C<score>`,

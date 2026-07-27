@@ -18,7 +18,12 @@ import { checkStageTransition, checkHistoryAppendOnly } from '../lib/stage.mjs';
 import { resolveWorktreeRoot, requireScriptBoundWorktreeRoot } from '../lib/worktree.mjs';
 import { validateMarker, REVIEW_MARKER, VALIDATION_MARKER, MERGE_MARKER } from '../lib/markers.mjs';
 import { validateGithubPlanShape, validateHistory } from '../lib/schema.mjs';
-import { factoryLineageEntry } from '../lib/lineage.mjs';
+import { roleForBranch, capabilityForRole } from '../lib/roles.mjs';
+import { validateGovernedRecord } from '../lib/govrecord.mjs';
+import { checkEventIntegrity, reconcileRecovery } from '../lib/eventintegrity.mjs';
+import { verifyMergeRecord } from '../lib/mergeproof.mjs';
+import { validateSkeletonContent, canonicalizeText } from '../lib/skeleton.mjs';
+import { renderSkeleton } from '../lib/create.mjs';
 import { isValidUtf8, hasForbiddenControls, writeCanonical, writeJson } from '../lib/util.mjs';
 
 let pass = 0; let fail = 0; const failures = [];
@@ -129,7 +134,8 @@ function run() {
   { const r = checkChangedFileBoundary(nameStatus([['M', 'src/index.ts']])); check('C5e src mutation rejected', !r.ok); }
   { const r = checkChangedFileBoundary(nameStatus([['M', 'data/market-intelligence/x.json']])); check('C5f MI data rejected', !r.ok); }
   { const r = checkChangedFileBoundary(nameStatus([['M', 'README.md']])); check('C5g arbitrary top-level file rejected', !r.ok); }
-  { const r = checkChangedFileBoundary(nameStatus([['M', 'research-ops/factory-v1-1/lib/util.mjs'], ['M', '.github/workflows/cbw-researchops-factory-validate.yml']]), { headBranch: 'correction/researchops-factory-v1-1-v2-012', baseBranch: 'validation/researchops-factory-v1-1-correction-011' }); check('C5h factory-governance boundary ok (trusted branch)', r.ok && r.mode === 'FACTORY_GOVERNANCE'); }
+  { const m = { headBranch: 'correction/researchops-factory-v1-1-v4-016', baseBranch: 'validation/researchops-factory-v1-1-v3-015', factory: { govRecord: { taskId: 'CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CORRECTION-V4-016', branch: 'correction/researchops-factory-v1-1-v4-016', baseBranch: 'validation/researchops-factory-v1-1-v3-015', approvedBaseSha: 'a'.repeat(40) }, approvedBaseSha: 'a'.repeat(40), headDescendsBase: true } };
+    const r = checkChangedFileBoundary(nameStatus([['M', 'research-ops/factory-v1-1/lib/util.mjs'], ['M', '.github/workflows/cbw-researchops-factory-validate.yml']]), m); check('C5h factory-governance boundary ok (trusted branch)', r.ok && r.mode === 'FACTORY_GOVERNANCE'); }
   { const r = checkChangedFileBoundary(nameStatus([['M', 'research-ops/tasks/CBW-A-001/../../src/x']])); check('C5i traversal rejected', !r.ok); }
 
   // ---- C6 tasks-dir confinement (CLI has no flag; library testRoot only) ----
@@ -204,7 +210,8 @@ function run() {
 
   // ---- V2-C4 exact workflow allowlist ----
   { const r = checkChangedFileBoundary(nameStatus([['M', '.github/workflows/deploy-production.yml']]), { headBranch: 'correction/researchops-factory-v1-1-v3-014', baseBranch: 'validation/researchops-factory-v1-1-v2-013' }); check('V2-C4 unrelated deploy workflow rejected', !r.ok); }
-  { const r = checkChangedFileBoundary(nameStatus([['M', '.github/workflows/cbw-researchops-factory-validate.yml']]), { headBranch: 'correction/researchops-factory-v1-1-v3-014', baseBranch: 'validation/researchops-factory-v1-1-v2-013' }); check('V2-C4b exact factory workflow accepted', r.ok && r.mode === 'FACTORY_GOVERNANCE'); }
+  { const m = { headBranch: 'correction/researchops-factory-v1-1-v4-016', baseBranch: 'validation/researchops-factory-v1-1-v3-015', factory: { govRecord: { taskId: 'CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CORRECTION-V4-016', branch: 'correction/researchops-factory-v1-1-v4-016', baseBranch: 'validation/researchops-factory-v1-1-v3-015', approvedBaseSha: 'a'.repeat(40) }, approvedBaseSha: 'a'.repeat(40), headDescendsBase: true } };
+    const r = checkChangedFileBoundary(nameStatus([['M', '.github/workflows/cbw-researchops-factory-validate.yml']]), m); check('V2-C4b exact factory workflow accepted', r.ok && r.mode === 'FACTORY_GOVERNANCE'); }
 
   // ---- V2-C5 stage-aware append-only (pure) ----
   { const r = checkStageTransition({ records: [{ status: 'M', rel: '00-contract/IDENTITY.json' }], baseState: 'VALIDATED', headState: 'VALIDATED', taskExistsAtBase: true }); check('V2-C5 00-contract modification after creation rejected', !r.ok); }
@@ -254,7 +261,19 @@ function run() {
   { const r = validateMarker(mk(), REVIEW_MARKER, BASE.taskId); check('V2-C10f missing marker reported', !r.ok); }
 
   // ================= V3 corrections =================
-  const FAC = { headBranch: 'correction/researchops-factory-v1-1-v3-014', baseBranch: 'validation/researchops-factory-v1-1-v2-013' };
+  // V4 factory-governance meta: correction (implementation-class) role with a valid
+  // owner governed record, approved-base ancestry, and its own result directory.
+  const FAC_BASE_SHA = 'a'.repeat(40);
+  const V4_TASK = 'CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CORRECTION-V4-016';
+  const facMeta = (over = {}) => {
+    const headBranch = over.headBranch || 'correction/researchops-factory-v1-1-v4-016';
+    const baseBranch = over.baseBranch || 'validation/researchops-factory-v1-1-v3-015';
+    const gov = over.govRecord === undefined
+      ? { taskId: V4_TASK, branch: headBranch, baseBranch, approvedBaseSha: FAC_BASE_SHA }
+      : over.govRecord;
+    return { headBranch, baseBranch, factory: { role: over.role, govRecord: gov, approvedBaseSha: FAC_BASE_SHA, headDescendsBase: over.headDescendsBase ?? true, currentResultDir: over.currentResultDir || 'research-ops/factory-v1-1/correction-v4-016/' } };
+  };
+  const FAC = facMeta();
   const RES = (root, over = {}) => ({ headBranch: 'research/kz-binance-kz-p0-d', baseBranch: 'main', taskStates: { [root]: { base: 'PREPARED', head: 'RESEARCH_CAPTURED', existsAtBase: true, headBranch: 'research/kz-binance-kz-p0-d', headTaskId: root.split('/').pop(), baseHistory: [{ state: 'PREPARED' }], headHistory: [{ state: 'PREPARED' }, { state: 'RESEARCH_CAPTURED' }], ...over } } });
 
   // ---- V3-C1 script-worktree binding ----
@@ -264,24 +283,25 @@ function run() {
   { const scriptRoot = requireScriptBoundWorktreeRoot(join(process.cwd(), 'research-ops/factory-v1-1/bin/researchops.mjs'), process.cwd());
     check('V3-C1b same-worktree cwd resolves the script worktree', typeof scriptRoot === 'string' && scriptRoot.length > 0); }
 
-  // ---- V3-C2 exact factory lineage ----
-  { check('V3-C2 exact lineage pair accepted', !!factoryLineageEntry('correction/researchops-factory-v1-1-v3-014', 'validation/researchops-factory-v1-1-v2-013')); }
-  { const spoofs = ['feat/researchops-factory-v1-1-evil', 'correction/researchops-factory-v1-1-unrelated', 'validation/researchops-factory-v1-1-fake'];
-    check('V3-C2b spoof factory branches rejected', spoofs.every((b) => trustedModeFromMeta({ headBranch: b, baseBranch: 'main' }) === null)); }
-  { check('V3-C2c exact head with wrong base rejected', trustedModeFromMeta({ headBranch: 'correction/researchops-factory-v1-1-v3-014', baseBranch: 'main' }) === null); }
+  // ---- V3-C2/V4-C3 factory mode + governed-record anti-spoof ----
+  { check('V3-C2 correction role on factory base -> FACTORY_GOVERNANCE', trustedModeFromMeta({ headBranch: 'correction/researchops-factory-v1-1-v4-016', baseBranch: 'validation/researchops-factory-v1-1-v3-015' }) === 'FACTORY_GOVERNANCE'); }
+  { const r = checkChangedFileBoundary(nameStatus([['M', 'research-ops/factory-v1-1/lib/boundary.mjs']]), facMeta({ headBranch: 'correction/researchops-factory-v1-1-evil', govRecord: null }));
+    check('V3-C2b spoof factory branch without owner governed record rejected', !r.ok); }
+  { const r = checkChangedFileBoundary(nameStatus([['M', 'research-ops/factory-v1-1/lib/boundary.mjs']]), facMeta({ govRecord: { taskId: V4_TASK, branch: 'correction/researchops-factory-v1-1-v4-016', baseBranch: 'WRONG-BASE', approvedBaseSha: FAC_BASE_SHA } }));
+    check('V3-C2c governed record base mismatch rejected', !r.ok); }
 
   // ---- V3-C3 research head <-> task plan binding ----
   { const root = 'research-ops/tasks/CBW-A-001'; const r = checkChangedFileBoundary(nameStatus([['A', `${root}/20-research-output/research-run.json`]]), RES(root, { headBranch: 'research/zz-mismatch-b' })); check('V3-C3 research head != declared branch rejected', !r.ok); }
   { const root = 'research-ops/tasks/CBW-A-001'; const r = checkChangedFileBoundary(nameStatus([['A', `${root}/20-research-output/research-run.json`]]), RES(root)); check('V3-C3b matching research head accepted', r.ok, r.violations.join('; ')); }
 
   // ---- V3-C4 frozen governance/history + workflow protection ----
-  { const frozen = ['governance/POLICY.md', 'validation-009/x.json', 'correction-010/CORRECTION_RESULT.json', 'correction-validation-011/y.json', 'correction-v2-012/CORRECTION_V2_CONTRACT.md', 'correction-v2-validation-013/z.json'];
+  { const frozen = ['governance/POLICY.md', 'validation-009/x.json', 'correction-010/CORRECTION_RESULT.json', 'correction-validation-011/y.json', 'correction-v2-012/CORRECTION_V2_CONTRACT.md', 'correction-v2-validation-013/z.json', 'correction-v3-014/CORRECTION_V3_RESULT.json', 'correction-v3-validation-015/x.json'];
     const allRejected = frozen.every((f) => !checkChangedFileBoundary(nameStatus([['M', `research-ops/factory-v1-1/${f}`]]), FAC).ok);
     check('V3-C4 frozen prior layers immutable under factory-governance', allRejected); }
   { const r = checkChangedFileBoundary(nameStatus([['D', '.github/workflows/cbw-researchops-factory-validate.yml']]), FAC); check('V3-C4b factory workflow deletion rejected', !r.ok); }
   { const r = checkChangedFileBoundary(nameStatus([['R100', '.github/workflows/cbw-researchops-factory-validate.yml', '.github/workflows/renamed.yml']]), FAC); check('V3-C4c factory workflow rename rejected', !r.ok); }
-  { const r = checkChangedFileBoundary(nameStatus([['M', 'research-ops/factory-v1-1/correction-v3-014/CORRECTION_V3_RESULT.json'], ['M', 'research-ops/factory-v1-1/lib/boundary.mjs']]), FAC); check('V3-C4d current result dir + impl allowed', r.ok, r.violations.join('; ')); }
-  { const r = checkChangedFileBoundary(nameStatus([['M', 'research-ops/factory-v1-1/correction-v2-validation-013/FACTORY_CORRECTION_V2_VALIDATION.json']]), FAC); check('V3-C4e other-task result dir rejected', !r.ok); }
+  { const r = checkChangedFileBoundary(nameStatus([['M', 'research-ops/factory-v1-1/correction-v4-016/CORRECTION_V4_RESULT.json'], ['M', 'research-ops/factory-v1-1/lib/boundary.mjs']]), FAC); check('V3-C4d current result dir + impl allowed', r.ok, r.violations.join('; ')); }
+  { const r = checkChangedFileBoundary(nameStatus([['M', 'research-ops/factory-v1-1/correction-v2-validation-013/FACTORY_CORRECTION_V2_VALIDATION.json']]), FAC); check('V3-C4e other/frozen result dir rejected', !r.ok); }
 
   // ---- V3-C5 exact initial skeleton ----
   { const withExtra = [...canonicalSkeletonFiles(), 'ROGUE.txt'].map((f) => ({ status: 'A', rel: f }));
@@ -297,7 +317,7 @@ function run() {
   // ---- V3-C7 marker outcome enums + merge lineage ----
   { const t = mk(); writeJson(join(t, '70-validation', 'VALIDATION.json'), { taskId: BASE.taskId, validationOutcome: 'banana' }); check('V3-C7 arbitrary outcome rejected', !validateMarker(t, VALIDATION_MARKER, BASE.taskId).ok); }
   { const t = mk(); writeJson(join(t, '80-closeout', 'MERGE_RECORD.json'), { taskId: BASE.taskId, mergeCommit: 'x' }); check('V3-C7b fake merge commit rejected', !validateMarker(t, MERGE_MARKER, BASE.taskId).ok); }
-  { const t = mk(); writeJson(join(t, '80-closeout', 'MERGE_RECORD.json'), { taskId: BASE.taskId, targetBranch: 'main', mergeCommit: 'a'.repeat(40), mergedState: 'RESEARCH_RECORD_MERGED_TO_MAIN', precedingReceiptTaskId: BASE.taskId }); check('V3-C7c valid 40-hex merge record accepted', validateMarker(t, MERGE_MARKER, BASE.taskId).ok, validateMarker(t, MERGE_MARKER, BASE.taskId).reason); }
+  { const t = mk(); writeJson(join(t, '80-closeout', 'MERGE_RECORD.json'), { taskId: BASE.taskId, targetBranch: 'main', mergeCommit: 'a'.repeat(40), mergedState: 'RESEARCH_RECORD_MERGED_TO_MAIN', receiptHash: 'b'.repeat(64) }); check('V3-C7c valid 40-hex merge record (structure) accepted', validateMarker(t, MERGE_MARKER, BASE.taskId).ok, validateMarker(t, MERGE_MARKER, BASE.taskId).reason); }
 
   // ---- V3-C8 cumulative correction from history ----
   { const t = mk(); writePkg(t); writeMarkers(t, 'validation'); setState(t, 'VALIDATED', { history: buildHistory('CORRECTED').concat([{ state: 'VALIDATED', at: '2026-07-27T00:00:09Z' }]) }); check('V3-C8 VALIDATED via correction path without correction marker rejected', !validateTask(t, {}).ok); }
@@ -326,6 +346,67 @@ function run() {
   { check('V3-C12b BEL control flagged', hasForbiddenControls(Buffer.from([0x41, 0x07]))); }
   { check('V3-C12c tab/LF allowed', !hasForbiddenControls(Buffer.from('a\tb\nc', 'utf8'))); }
   { const t = mk(); const out = writePkg(t); writeFileSync(join(out, 'schema-normalization-notes.json'), Buffer.concat([Buffer.from('{"notes":[],"x":"a', 'utf8'), Buffer.from([0x00]), Buffer.from('b"}', 'utf8')])); writeFileSync(join(out, 'MANIFEST.txt'), Buffer.from(buildManifest(out, HASHED, {}), 'utf8')); check('V3-C12d NUL in JSON rejected with valid MANIFEST', !validateTask(t, {}).ok); }
+
+  // ================= V4 final critical corrections =================
+
+  // ---- V4-C1 task-role capability profiles ----
+  { check('V4-C1 role derivation', roleForBranch('correction/researchops-factory-v1-1-v4-016') === 'correction' && roleForBranch('validation/researchops-factory-v1-1-v3-015') === 'validation'); }
+  { const cap = capabilityForRole('validation'); check('V4-C1b validation role cannot modify implementation', cap.canModifyImplementation === false && cap.canModifyWorkflow === false); }
+  { const r = checkChangedFileBoundary(nameStatus([['M', 'research-ops/factory-v1-1/lib/boundary.mjs']]), facMeta({ headBranch: 'validation/researchops-factory-v1-1-v3-015', baseBranch: 'correction/researchops-factory-v1-1-v3-014', govRecord: { taskId: 'CBW-...-V3-VALIDATION-015', branch: 'validation/researchops-factory-v1-1-v3-015', baseBranch: 'correction/researchops-factory-v1-1-v3-014', approvedBaseSha: FAC_BASE_SHA } }));
+    check('V4-C1c validation role modifying lib/boundary.mjs rejected', !r.ok); }
+  { const r = checkChangedFileBoundary(nameStatus([['M', 'research-ops/factory-v1-1/correction-v4-016/CORRECTION_V4_RESULT.json'], ['M', 'research-ops/factory-v1-1/correction-v4-016/CORRECTION_V4_RESULT.md'], ['A', 'research-ops/factory-v1-1/correction-v4-016/THIRD.json']]), FAC);
+    check('V4-C1d arbitrary third result file rejected (>2)', !r.ok); }
+  { const r = checkChangedFileBoundary(nameStatus([['M', 'research-ops/factory-v1-1/correction-v4-016/CORRECTION_V4_STATE.json']]), FAC);
+    check('V4-C1e setup file mutation rejected', !r.ok); }
+  { const r = checkChangedFileBoundary(nameStatus([['M', 'research-ops/factory-v1-1/correction-v4-016/CORRECTION_V4_RESULT.json'], ['M', 'research-ops/factory-v1-1/correction-v4-016/CORRECTION_V4_RESULT.md']]), FAC);
+    check('V4-C1f exactly two result files accepted', r.ok, r.violations.join('; ')); }
+
+  // ---- V4-C2 trusted enforcement root ----
+  { const r = checkChangedFileBoundary(nameStatus([['M', 'research-ops/factory-v1-1/lib/lineage.mjs']]), facMeta({ headBranch: 'validation/researchops-factory-v1-1-v3-015', baseBranch: 'correction/researchops-factory-v1-1-v3-014', govRecord: { taskId: 'V', branch: 'validation/researchops-factory-v1-1-v3-015', baseBranch: 'correction/researchops-factory-v1-1-v3-014', approvedBaseSha: FAC_BASE_SHA } }));
+    check('V4-C2 validation self-modifying enforcement root (lineage) rejected', !r.ok); }
+  { const r = checkChangedFileBoundary(nameStatus([['M', 'research-ops/factory-v1-1/lib/boundary.mjs'], ['M', 'research-ops/factory-v1-1/lib/lineage.mjs']]), FAC);
+    check('V4-C2b implementation/correction role MAY change enforcement root (validated by trusted base run)', r.ok, r.violations.join('; ')); }
+
+  // ---- V4-C3/C4 governed record + ancestry + no future preauth ----
+  { check('V4-C3 governed record identity binding', validateGovernedRecord({ taskId: V4_TASK, branch: 'correction/researchops-factory-v1-1-v4-016', baseBranch: 'validation/researchops-factory-v1-1-v3-015', approvedBaseSha: FAC_BASE_SHA }, { headBranch: 'correction/researchops-factory-v1-1-v4-016', baseBranch: 'validation/researchops-factory-v1-1-v3-015', approvedBaseSha: FAC_BASE_SHA }).ok); }
+  { check('V4-C3b wrong approved base SHA rejected', !validateGovernedRecord({ taskId: V4_TASK, branch: 'correction/researchops-factory-v1-1-v4-016', baseBranch: 'validation/researchops-factory-v1-1-v3-015', approvedBaseSha: 'c'.repeat(40) }, { headBranch: 'correction/researchops-factory-v1-1-v4-016', baseBranch: 'validation/researchops-factory-v1-1-v3-015', approvedBaseSha: FAC_BASE_SHA }).ok); }
+  { const r = checkChangedFileBoundary(nameStatus([['M', 'research-ops/factory-v1-1/lib/boundary.mjs']]), facMeta({ headDescendsBase: false })); check('V4-C3c non-descendant head rejected', !r.ok); }
+  { const r = checkChangedFileBoundary(nameStatus([['M', 'research-ops/factory-v1-1/lib/boundary.mjs']]), facMeta({ govRecord: null })); check('V4-C4 future/absent governed record rejected', !r.ok); }
+  { const r = checkChangedFileBoundary(nameStatus([['M', 'research-ops/factory-v1-1/correction-v4-016/CORRECTION_V4_CONTRACT.md']]), FAC); check('V4-C4b task cannot modify its own governing setup record', !r.ok); }
+
+  // ---- V4-C5 canonical skeleton bytes ----
+  { const opts = { taskId: 'CBW-KZ-BINANCE-P0-D-DEEP-RESEARCH-001', countryCode: 'KZ', countryName: 'Kazakhstan', exchangeId: 'binance', exchangeName: 'Binance', batchId: 'KZ-P0-D', priority: 'P0', createdAt: '2026-07-27' };
+    const canon = renderSkeleton(opts); const files = {}; for (const [rel, c] of Object.entries(canon)) files[rel] = { bytes: Buffer.from(canonicalizeText(c), 'utf8') };
+    check('V4-C5 exact canonical skeleton accepted', validateSkeletonContent(files, opts).ok, validateSkeletonContent(files, opts).violations.join('; '));
+    const tampered = { ...files }; tampered['00-contract/DEEP_RESEARCH_PROMPT.md'] = { bytes: Buffer.from('# only a title\n', 'utf8') };
+    check('V4-C5b safety-text/content substitution rejected', !validateSkeletonContent(tampered, opts).ok);
+    const symlinked = { ...files }; symlinked['00-contract/IDENTITY.json'] = { bytes: files['00-contract/IDENTITY.json'].bytes, symlink: true };
+    check('V4-C5c symlink skeleton entry rejected', !validateSkeletonContent(symlinked, opts).ok);
+    const exec = { ...files }; exec['TASK_STATE.json'] = { bytes: files['TASK_STATE.json'].bytes, mode: 0o755 };
+    check('V4-C5d executable skeleton entry rejected', !validateSkeletonContent(exec, opts).ok); }
+
+  // ---- V4-C6 real merge proof ----
+  { const zero = { taskId: BASE.taskId, targetBranch: 'main', mergeCommit: '0'.repeat(40), mergedState: 'RESEARCH_RECORD_MERGED_TO_MAIN', receiptHash: 'b'.repeat(64) };
+    check('V4-C6 all-zero merge SHA rejected', !verifyMergeRecord(zero, BASE.taskId, { commitExists: true, reachableFromMain: true }).ok); }
+  { const rec = { taskId: BASE.taskId, targetBranch: 'main', mergeCommit: 'a'.repeat(40), mergedState: 'RESEARCH_RECORD_MERGED_TO_MAIN', receiptHash: 'b'.repeat(64) };
+    check('V4-C6b nonexistent commit rejected', !verifyMergeRecord(rec, BASE.taskId, { commitExists: false }).ok);
+    check('V4-C6c non-main-reachable commit rejected', !verifyMergeRecord(rec, BASE.taskId, { commitExists: true, reachableFromMain: false }).ok);
+    check('V4-C6d missing receipt linkage rejected', !verifyMergeRecord({ ...rec, receiptHash: undefined }, BASE.taskId, { commitExists: true, reachableFromMain: true }).ok);
+    check('V4-C6e receipt hash mismatch rejected', !verifyMergeRecord(rec, BASE.taskId, { commitExists: true, reachableFromMain: true, governedTreePresent: true, receiptHashMatch: false }).ok);
+    check('V4-C6f full valid merge proof accepted', verifyMergeRecord(rec, BASE.taskId, { commitExists: true, reachableFromMain: true, governedTreePresent: true, receiptHashMatch: true, receiptPredatesMerge: true, receiptAuthorizesThisTaskOnly: true }).ok); }
+
+  // ---- V4-C7 checkout/event/workspace integrity + recovery reconciliation ----
+  { check('V4-C7 HEAD != trusted head SHA rejected', !checkEventIntegrity({ checkedOutHead: 'x', trustedHeadSha: 'y' }).ok); }
+  { check('V4-C7b workspace != resolved root rejected', !checkEventIntegrity({ workspace: '/a', resolvedRoot: '/b' }).ok); }
+  { check('V4-C7c non-descendant head rejected', !checkEventIntegrity({ headDescendsBase: false }).ok); }
+  { check('V4-C7d shallow repo rejected', !checkEventIntegrity({ shallow: true }).ok); }
+  { check('V4-C7e missing base/head object rejected', !checkEventIntegrity({ baseExists: false }).ok && !checkEventIntegrity({ headExists: false }).ok); }
+  { check('V4-C7f diff endpoints must match trusted SHAs', !checkEventIntegrity({ diffBaseSha: '1', approvedBaseSha: '2' }).ok); }
+  { check('V4-C7g clean integrity passes', checkEventIntegrity({ checkedOutHead: 'h', trustedHeadSha: 'h', workspace: '/r', resolvedRoot: '/r/', baseExists: true, headExists: true, headDescendsBase: true, shallow: false }).ok); }
+  { check('V4-C7h V3 recovery reconciliation (2 commits, identical tree)', reconcileRecovery({ commitCount: 2, baseTree: 'T', headTree: 'T' }).ok && !reconcileRecovery({ commitCount: 2, baseTree: 'T', headTree: 'U' }).ok && !reconcileRecovery({ commitCount: 5, baseTree: 'T', headTree: 'T' }).ok); }
+
+  // ---- authorization floor still intact ----
+  { const t = mk(); writePkg(t, { json: { 'research-run.json': { schemaVersion: '1.0', overallFinding: { recommendation: 'CONFLICTING' }, authorizations: { deployAuthorized: true } } }, after: rebuildManifest }); check('V4 authorization floor still rejects forbidden true', !validateTask(t, {}).ok); }
 
   for (const r of roots) { try { rmSync(r, { recursive: true, force: true }); } catch { /* ignore */ } }
   console.log(`\nFIXTURES: ${pass} passed, ${fail} failed`);

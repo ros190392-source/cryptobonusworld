@@ -1,0 +1,109 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CORRECTION-V4-016",
+  "project": "CryptoBonusWorld",
+  "governingIssue": 60,
+  "correctionV4PullRequest": 61,
+  "sourceValidationIssue": 58,
+  "sourceValidationPullRequest": 59,
+  "sourceValidationCommitSha": "07d0e38a540355244b2bcab0258d3eb5463ed1af",
+  "authoritativeCorrectionV3CommitSha": "69d8d564ebe1b5f277fe771a3e7769020522bd60",
+  "branch": "correction/researchops-factory-v1-1-v4-016",
+  "baseBranch": "validation/researchops-factory-v1-1-v3-015",
+  "frozenInitialV4HeadSha": "063078ac56423d3ab3544f17e69b09ed4bdc6d9e",
+  "protectedMainSha": "04157b9dfb140918a8569a5026da747b429e5ed3",
+  "protectedMasterSha": "998fcedd7d9febbec5b130d4765dfeaafc40960b",
+  "correctedAt": "2026-07-27",
+  "finalCycle": true,
+  "environment": { "nodeVersion": "v24 (Node 20-compatible ESM/built-ins)", "dependencyFree": true, "scmBinary": "git (fixed-argument execFileSync; no shell, no Git writes during validation)" },
+
+  "changedFileInventory": [
+    ".github/workflows/cbw-researchops-factory-validate.yml",
+    "research-ops/factory-v1-1/README.md",
+    "research-ops/factory-v1-1/bin/researchops.mjs",
+    "research-ops/factory-v1-1/fixtures/run.mjs",
+    "research-ops/factory-v1-1/lib/boundary.mjs",
+    "research-ops/factory-v1-1/lib/create.mjs",
+    "research-ops/factory-v1-1/lib/eventintegrity.mjs",
+    "research-ops/factory-v1-1/lib/govrecord.mjs",
+    "research-ops/factory-v1-1/lib/lineage.mjs",
+    "research-ops/factory-v1-1/lib/markers.mjs",
+    "research-ops/factory-v1-1/lib/mergeproof.mjs",
+    "research-ops/factory-v1-1/lib/roles.mjs",
+    "research-ops/factory-v1-1/lib/skeleton.mjs",
+    "research-ops/factory-v1-1/correction-v4-016/CORRECTION_V4_RESULT.json",
+    "research-ops/factory-v1-1/correction-v4-016/CORRECTION_V4_RESULT.md"
+  ],
+  "newLibraryModules": ["lib/roles.mjs", "lib/govrecord.mjs", "lib/eventintegrity.mjs", "lib/mergeproof.mjs", "lib/skeleton.mjs"],
+
+  "correctionMatrix": [
+    { "id": "V4-C1", "finding": "A", "name": "task-role capability profiles", "change": "New lib/roles.mjs derives a role (implementation/correction/validation/closeout) from the branch and returns an exact capability. The boundary FACTORY_GOVERNANCE branch now enforces it: validation/closeout roles may create only their two result records and may not touch bin/lib/fixtures/schemas/templates/README/workflow/enforcement-root; implementation/correction roles may modify enumerated implementation paths plus exactly two result files; setup files are immutable; whole-directory prefix authorization removed.", "verdict": "APPLIED", "proof": "fixtures V4-C1..f; validation-role modifying lib/boundary.mjs and adding a 3rd result file both rejected; setup-file mutation rejected" },
+    { "id": "V4-C2", "finding": "B", "name": "trusted enforcement root", "change": "The workflow checks out the PROTECTED BASE copy (git worktree add ../trusted-base <base-sha>) and runs the boundary validator from there against the head diff as data; the PR head cannot validate itself. Enforcement-root paths (workflow/boundary/lineage/roles/govrecord/eventintegrity/bin) may change only under an implementation/correction role, validated by the prior trusted policy. Read-only, no untrusted head execution under privilege.", "verdict": "APPLIED", "proof": "workflow trusted-base step; fixtures V4-C2/b; validation role self-modifying lineage rejected" },
+    { "id": "V4-C3", "finding": "C", "name": "commit/ancestry-bound governed identity", "change": "New lib/govrecord.mjs binds an owner governed record (the task's *_STATE.json) to exact task id, head/base branch and approved base SHA; the CLI reads it and computes head-descends-approved-base via git merge-base --is-ancestor. Branch-name-only trust removed. The V3 two-commit zero-tree-diff recovery is reconciled explicitly (eventintegrity.reconcileRecovery).", "verdict": "APPLIED", "proof": "fixtures V4-C3..c; wrong approved base SHA and non-descendant head rejected; recovery reconciliation" },
+    { "id": "V4-C4", "finding": "E", "name": "no future-task preauthorization", "change": "The mutable FACTORY_LINEAGE branch list is removed from lineage.mjs. A task is governed only when an owner-created record exists on its approved base; a future/absent record fails closed, and the task may not modify its own governing setup record.", "verdict": "APPLIED", "proof": "fixtures V4-C4/b; absent governed record rejected; task cannot modify its own setup record" },
+    { "id": "V4-C5", "finding": "F", "name": "canonical skeleton bytes", "change": "create.mjs now writes from a single renderSkeleton() renderer; new lib/skeleton.mjs validates head skeleton files by per-file SHA-256 over the canonical render (after deterministic identity substitution) plus required safety-text presence and regular-file/mode/symlink checks. Same-filename content substitution, removed safety language and executable/symlink payloads are rejected.", "verdict": "APPLIED", "proof": "fixtures V4-C5..d; content substitution, symlink and executable skeleton entries rejected" },
+    { "id": "V4-C6", "finding": "I", "name": "real merge proof", "change": "New lib/mergeproof.mjs (wired into the merge marker) requires a non-zero 40-hex commit, target main, recognized merged state, and an immutable receipt hash/id; combined with read-only repository facts (commit exists, reachable from main, governed tree present, receipt hash match, receipt predates, scoped to this task) collected by the CLI. All-zero/fabricated/unreachable SHAs fail.", "verdict": "APPLIED", "proof": "fixtures V4-C6..f; all-zero, nonexistent, non-main-reachable and receipt-mismatch merges rejected; full valid proof accepted" },
+    { "id": "V4-C7", "finding": "N", "name": "checkout/event/workspace integrity", "change": "New lib/eventintegrity.mjs; the CLI and workflow verify checked-out HEAD == trusted head SHA, GITHUB_WORKSPACE == resolved worktree root, base/head objects exist, head descends the approved base, the repo is not shallow, and diff endpoints equal trusted SHAs. Fail closed on any mismatch.", "verdict": "APPLIED", "proof": "fixtures V4-C7..h; CLI rejects HEAD/workspace mismatch end-to-end in a temp Git repo" }
+  ],
+
+  "trustedEnforcementDesign": "GitHub `pull_request` runs are read-only (contents: read, persist-credentials: false). The workflow verifies checkout/event integrity, then checks out the PROTECTED BASE commit into ../trusted-base and executes the boundary validator FROM THE BASE against the head diff (name-status) plus trusted event metadata. The PR head is treated as data; a head that weakens the validator/lineage/roles/workflow cannot change the enforcement root used for its own run. Enforcement-root changes are permitted only for an implementation/correction-role governed record and are therefore gated by the prior trusted policy. No untrusted head code is executed under privileged context.",
+  "taskCapabilityModel": "roles.mjs: implementation/correction => modify enumerated implementation paths + exactly 2 result files; validation/closeout => exactly their 2 result records only; setup (*_CONTRACT.md/*_STATE.json/*_PROMPT.md/CLAUDE_*.md) immutable; no whole-directory prefix authorization.",
+  "ancestryGovernanceModel": "govrecord.mjs: owner *_STATE.json record binds taskId/role(from branch)/head/base/approvedBaseSha; boundary requires the record + head-descends-approvedBase; lineage.mjs no longer preauthorizes any task by branch name.",
+
+  "syntaxCheck": "PASS (node --check on all factory .mjs)",
+  "fixtureResults": { "passed": 177, "failed": 0, "priorRetained": 145, "addedForV4": 32 },
+  "gitDiffCheck": "clean",
+  "cliSmokeResults": {
+    "createForeignWorktree": "exit 2 (fails closed)",
+    "validate": "exit 0",
+    "status": "exit 0",
+    "requirePackageEmpty": "exit 1",
+    "tasksDirFlag": "rejected",
+    "checkBoundaryHeadShaMismatch": "exit 1 (V4-C7)",
+    "checkBoundaryWorkspaceMismatch": "exit 1 (V4-C7)"
+  },
+
+  "immutableLayerVerification": {
+    "priorGovernanceValidationCorrectionUntouched": true,
+    "checkedFrozenLayers": ["governance/**", "validation-009/**", "correction-010/**", "correction-validation-011/**", "correction-v2-012/**", "correction-v2-validation-013/**", "correction-v3-014/**", "correction-v3-validation-015/**"],
+    "researchOpsPilotUntouched": true,
+    "realResearchOpsTasksUntouched": true,
+    "v4ContractStatePromptUnchanged": true
+  },
+
+  "acceptedV11BacklogLimitations": {
+    "D": "Broader current-record lifecycle refinements beyond exact role inventory; the exact two-result-file + immutable-setup rule is enforced, deeper lifecycle states are backlog.",
+    "H": "Marker-protocol enum compatibility extensions (e.g. additional governed outcome enums); the controlled enum set is enforced and can be extended without a security change.",
+    "K": "Richer history event/timestamp semantics (ISO event schema); current history integrity + append-only is enforced, richer semantics are backlog."
+  },
+
+  "correctionOutcome": "CORRECTED_READY_FOR_FINAL_ACCEPTANCE_VALIDATION",
+  "nextTask": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-FINAL-ACCEPTANCE-VALIDATION-017",
+
+  "remainingLimitations": [
+    "The trusted-base enforcement and merge/ancestry/checkout facts are enforced in CI where Git and the base checkout are available; GitHub Actions cannot be executed locally, so those runtime steps are correct-by-construction and the deterministic policy cores are library-verified (177/0).",
+    "For a stacked PR the owner setup commits and executor work commits share the branch; the governed record is validated as identity-bound data with setup-file immutability and ancestry, rather than by per-commit authorship separation.",
+    "D/H/K remain accepted V1.1 backlog limitations and are not V5 triggers."
+  ],
+
+  "authorizations": {
+    "factoryMergeToMainAuthorized": false,
+    "researchRecordMergeToMainAuthorized": false,
+    "binancePilotAuthorized": false,
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false,
+    "masterChangeAuthorized": false
+  }
+}

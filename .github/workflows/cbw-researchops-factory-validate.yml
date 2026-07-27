@@ -62,6 +62,11 @@ jobs:
           [ -n "$BASE_BRANCH" ] || { echo "empty base branch"; exit 1; }
           git cat-file -e "${BASE_SHA}^{commit}"
           git cat-file -e "${HEAD_SHA}^{commit}"
+          # V4-C7 — checkout/event/workspace integrity, fail-closed.
+          [ "$(git rev-parse --is-shallow-repository)" = "false" ] || { echo "shallow repository"; exit 1; }
+          [ "$(git rev-parse HEAD)" = "$HEAD_SHA" ] || { echo "checked-out HEAD != trusted head sha"; exit 1; }
+          [ "$(git rev-parse --show-toplevel)" = "$GITHUB_WORKSPACE" ] || { echo "workspace != resolved worktree root"; exit 1; }
+          git merge-base --is-ancestor "$BASE_SHA" "$HEAD_SHA" || { echo "head does not descend approved base"; exit 1; }
           # C3 — no `|| true`; a diff failure fails the job.
           # V3-C10 — NUL-delimited, unquoted name-status: unambiguous for paths with
           # tabs/newlines/quotes and immune to core.quotePath escaping.
@@ -73,21 +78,31 @@ jobs:
           echo "Changed (name-status, human view):"
           git --no-pager diff --name-status "$BASE_SHA" "$HEAD_SHA" || true
 
-      - name: Enforce append-only boundary (fail-closed)
+      - name: Prepare TRUSTED-BASE enforcement root (V4-C2)
         run: |
           set -euo pipefail
-          # V2/V3 — the validator receives trusted PR head/base branch metadata (to bind
-          # change mode via the exact factory lineage), and trusted base/head SHAs (to
-          # derive per-root stage transitions, declared branch, task id and history from
-          # Git blobs). Rejects non-factory workflow changes, frozen-layer mutation,
-          # workflow deletion, task-root deletion, malformed statuses and missing roots.
-          node research-ops/factory-v1-1/bin/researchops.mjs check-boundary \
+          # V4-C2 — the enforcement validator is executed from the PROTECTED BASE copy of
+          # the factory code, NEVER the PR head. A PR that weakens boundary/lineage/roles
+          # or the workflow in its own head therefore cannot validate itself: the base
+          # (prior trusted policy) evaluates the head diff as data. Policy changes are thus
+          # gated by the prior policy and an implementation/correction-role governed record.
+          git worktree add --detach ../trusted-base "$BASE_SHA"
+
+      - name: Enforce append-only boundary from the trusted base (fail-closed)
+        run: |
+          set -euo pipefail
+          # Run the BASE validator (../trusted-base) against the head diff + trusted event
+          # metadata and checkout facts. V4 adds role capability, owner governed-record
+          # authorization, commit ancestry and event/workspace integrity.
+          node ../trusted-base/research-ops/factory-v1-1/bin/researchops.mjs check-boundary \
             --changed-status-z changed-status.z \
             --emit-task-roots task-roots.txt \
             --head-branch "$HEAD_BRANCH" \
             --base-branch "$BASE_BRANCH" \
             --base-sha "$BASE_SHA" \
             --head-sha "$HEAD_SHA" \
+            --checked-out-head "$(git rev-parse HEAD)" \
+            --workspace "$GITHUB_WORKSPACE" \
             --repo-root "$GITHUB_WORKSPACE"
 
       - name: Validate discovered task roots (fail-closed)

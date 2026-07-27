@@ -1,31 +1,13 @@
-// ResearchOps Factory V1.1 — exact governed factory lineage and frozen-layer policy.
-// V3-C2 replaces the broad factory branch-prefix regex with an EXACT allowlist of the
-// governed factory task stack (each entry pins head->base). V3-C4 freezes every prior
-// governance/history layer and maps the current authorized task branch to the single
-// result directory it may write.
+// ResearchOps Factory V1.1 — frozen-layer policy and factory path classes.
+// V4-C4 REMOVES the mutable branch-name preauthorization list. A factory task is no
+// longer authorized by appearing in this file; authorization now comes from an
+// owner-created governed record on the approved base (see govrecord.mjs) plus a
+// role/capability profile (roles.mjs) and verified commit ancestry (eventintegrity.mjs).
+// This module now only declares immutable frozen layers and the factory path classes.
 
-// Exact governed factory stack. Each factory PR head branch is paired with the exact
-// base it stacks onto, plus the single result directory that task may create/update.
-export const FACTORY_LINEAGE = [
-  { head: 'feat/researchops-subscription-factory-v1-1', base: 'main', resultDir: null },
-  { head: 'validation/researchops-subscription-factory-v1-1-009', base: 'feat/researchops-subscription-factory-v1-1', resultDir: 'research-ops/factory-v1-1/validation-009/' },
-  { head: 'correction/researchops-subscription-factory-v1-1-010', base: 'validation/researchops-subscription-factory-v1-1-009', resultDir: 'research-ops/factory-v1-1/correction-010/' },
-  { head: 'validation/researchops-factory-v1-1-correction-011', base: 'correction/researchops-subscription-factory-v1-1-010', resultDir: 'research-ops/factory-v1-1/correction-validation-011/' },
-  { head: 'correction/researchops-factory-v1-1-v2-012', base: 'validation/researchops-factory-v1-1-correction-011', resultDir: 'research-ops/factory-v1-1/correction-v2-012/' },
-  { head: 'validation/researchops-factory-v1-1-v2-013', base: 'correction/researchops-factory-v1-1-v2-012', resultDir: 'research-ops/factory-v1-1/correction-v2-validation-013/' },
-  { head: 'correction/researchops-factory-v1-1-v3-014', base: 'validation/researchops-factory-v1-1-v2-013', resultDir: 'research-ops/factory-v1-1/correction-v3-014/' },
-  { head: 'validation/researchops-factory-v1-1-v3-015', base: 'correction/researchops-factory-v1-1-v3-014', resultDir: 'research-ops/factory-v1-1/correction-v3-validation-015/' },
-];
-
-// Exactly matched (head, base) pair -> lineage entry, or null.
-export function factoryLineageEntry(headBranch, baseBranch) {
-  const h = String(headBranch || '').trim();
-  const b = String(baseBranch || '').trim();
-  return FACTORY_LINEAGE.find((e) => e.head === h && e.base === b) || null;
-}
-
-// Frozen prior governance/history layers — immutable in every factory PR. The CURRENT
-// task's own result directory is intentionally excluded by the caller.
+// Frozen prior governance/history layers — immutable in every factory PR regardless of
+// role. The CURRENT task's own result directory is handled by the role/capability layer,
+// which additionally keeps that task's setup files immutable.
 export const FROZEN_FACTORY_PREFIXES = [
   'research-ops/factory-v1-1/governance/',
   'research-ops/factory-v1-1/validation-009/',
@@ -33,9 +15,11 @@ export const FROZEN_FACTORY_PREFIXES = [
   'research-ops/factory-v1-1/correction-validation-011/',
   'research-ops/factory-v1-1/correction-v2-012/',
   'research-ops/factory-v1-1/correction-v2-validation-013/',
+  'research-ops/factory-v1-1/correction-v3-014/',
+  'research-ops/factory-v1-1/correction-v3-validation-015/',
 ];
 
-// Factory implementation paths a governed factory task MAY modify.
+// Factory implementation paths an implementation/correction-role task MAY modify.
 export const FACTORY_IMPL_PREFIXES = [
   'research-ops/factory-v1-1/bin/',
   'research-ops/factory-v1-1/lib/',
@@ -45,3 +29,21 @@ export const FACTORY_IMPL_PREFIXES = [
 ];
 export const FACTORY_IMPL_FILES = ['research-ops/factory-v1-1/README.md'];
 export const FACTORY_WORKFLOW_PATH = '.github/workflows/cbw-researchops-factory-validate.yml';
+
+// The enforcement root: the trusted policy/bootstrap files that decide a PR's authority.
+// V4-C2 — a PR that changes any of these can only do so under an implementation/correction
+// role governed record, and the run itself must be executed from the BASE copy of these
+// files, never the PR head. Used to flag enforcement-root changes for extra scrutiny.
+export const ENFORCEMENT_ROOT_PATHS = [
+  FACTORY_WORKFLOW_PATH,
+  'research-ops/factory-v1-1/lib/boundary.mjs',
+  'research-ops/factory-v1-1/lib/lineage.mjs',
+  'research-ops/factory-v1-1/lib/roles.mjs',
+  'research-ops/factory-v1-1/lib/govrecord.mjs',
+  'research-ops/factory-v1-1/lib/eventintegrity.mjs',
+  'research-ops/factory-v1-1/bin/researchops.mjs',
+];
+export function isEnforcementRootPath(p) {
+  const np = String(p).replace(/\\/g, '/');
+  return ENFORCEMENT_ROOT_PATHS.includes(np);
+}

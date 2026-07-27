@@ -6,14 +6,17 @@
 
 import { checkStageTransition, checkHistoryAppendOnly } from './stage.mjs';
 import {
-  factoryLineageEntry, FROZEN_FACTORY_PREFIXES, FACTORY_IMPL_PREFIXES,
-  FACTORY_IMPL_FILES, FACTORY_WORKFLOW_PATH,
+  FROZEN_FACTORY_PREFIXES, FACTORY_IMPL_PREFIXES,
+  FACTORY_IMPL_FILES, FACTORY_WORKFLOW_PATH, isEnforcementRootPath,
 } from './lineage.mjs';
+import { roleForBranch, capabilityForRole, isSetupResultFile } from './roles.mjs';
+import { validateGovernedRecord } from './govrecord.mjs';
 
 const TASK_ROOT_RE = /^research-ops\/tasks\/([A-Z0-9][A-Z0-9-]*)\//;
 const FORBIDDEN_PREFIXES = ['research-ops-pilot/tasks/', 'src/', 'public/', 'data/market-intelligence/'];
 const FACTORY_CODE_PREFIX = 'research-ops/factory-v1-1/';
 const RESEARCH_BRANCH_RE = /^research\/[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const FACTORY_BASE_RE = /^(feat|correction|validation|closeout)\/researchops-(subscription-)?factory-v1-1(?:$|[/-])/;
 
 function norm(p) { return String(p).replace(/\\/g, '/').trim(); }
 
@@ -91,15 +94,33 @@ export function classifyChangeMode(paths) {
   return 'AMBIGUOUS';
 }
 
-// V3-C2 — resolve mode from TRUSTED metadata via the EXACT factory lineage (head+base
-// must be an exact governed pair). Research mode requires research/<slug> onto main.
+// V4-C2/C3 — resolve mode from TRUSTED metadata. Factory governance is granted to a
+// recognized factory ROLE branch stacked on main or another factory branch; the actual
+// authority (and anti-spoof / anti-future protection) then depends on a valid
+// owner-created governed record and verified ancestry, enforced in checkChangedFileBoundary.
 export function trustedModeFromMeta(meta = {}) {
   const head = meta.headBranch ? norm(meta.headBranch) : '';
   const base = meta.baseBranch ? norm(meta.baseBranch) : '';
   if (!head || !base) return null;
-  if (factoryLineageEntry(head, base)) return 'FACTORY_GOVERNANCE';
+  const role = roleForBranch(head);
+  if (role && (base === 'main' || FACTORY_BASE_RE.test(base))) return 'FACTORY_GOVERNANCE';
   if (RESEARCH_BRANCH_RE.test(head) && base === 'main') return 'RESEARCH_TASK';
   return null;
+}
+
+// Derive the single factory result directory a governance PR targets (a directory under
+// research-ops/factory-v1-1/ that is neither an implementation path nor a frozen layer
+// nor the workflow). Returns the dir prefix (with trailing slash) or null.
+function deriveResultDir(paths) {
+  const dirs = new Set();
+  for (const p of paths) {
+    if (!p.startsWith(FACTORY_CODE_PREFIX)) continue;
+    if (FACTORY_IMPL_PREFIXES.some((fp) => p.startsWith(fp)) || FACTORY_IMPL_FILES.includes(p)) continue;
+    if (FROZEN_FACTORY_PREFIXES.some((fp) => p.startsWith(fp))) continue;
+    const m = /^(research-ops\/factory-v1-1\/[^/]+)\//.exec(p);
+    if (m) dirs.add(`${m[1]}/`);
+  }
+  return dirs.size === 1 ? [...dirs][0] : null;
 }
 
 // Enforce the append-only boundary. meta: { headBranch?, baseBranch?,
@@ -129,13 +150,11 @@ export function checkChangedFileBoundary(records, meta = {}) {
   const pathMode = classifyChangeMode(allPaths);
   let mode = pathMode;
   const hasMeta = !!(meta.headBranch || meta.baseBranch);
-  let lineage = null;
   if (hasMeta) {
     const tm = trustedModeFromMeta(meta);
     if (tm === null) violations.push(`untrusted or unrecognized PR branch metadata (head=${meta.headBranch}, base=${meta.baseBranch})`);
     else if (pathMode !== 'AMBIGUOUS' && pathMode !== tm) violations.push(`changed paths (${pathMode}) do not match trusted PR mode (${tm})`);
     mode = tm || pathMode;
-    if (tm === 'FACTORY_GOVERNANCE') lineage = factoryLineageEntry(norm(meta.headBranch), norm(meta.baseBranch));
   } else if (pathMode === 'FACTORY_GOVERNANCE') {
     violations.push('factory-governance requires trusted PR/branch metadata (head/base)');
   }
@@ -174,20 +193,45 @@ export function checkChangedFileBoundary(records, meta = {}) {
         for (const v of h.violations) violations.push(`history: ${v}`);
       }
     }
-  } else { // FACTORY_GOVERNANCE — V3-C4 exact task-specific write boundary.
-    const currentResultDir = lineage && lineage.resultDir;
-    for (const r of records) {
-      for (const p of (r.paths || [])) {
-        const np = norm(p);
-        if (taskRootOf(np)) { violations.push(`${np}: research task change not allowed in a factory-governance PR`); continue; }
-        if (FROZEN_FACTORY_PREFIXES.some((fp) => np.startsWith(fp))) { violations.push(`${np}: frozen prior governance/history layer is immutable`); continue; }
-        if (np === FACTORY_WORKFLOW_PATH) {
-          if (r.status === 'D' || r.status === 'R') violations.push(`${np}: factory workflow may not be deleted or renamed`);
-          continue;
+  } else if (mode === 'FACTORY_GOVERNANCE') {
+    // V4-C1 — role capability; V4-C3/C4 — owner governed record + ancestry; V4-C2 —
+    // enforcement-root changes require an implementation/correction role.
+    const fac = meta.factory || {};
+    const role = fac.role || roleForBranch(meta.headBranch);
+    const cap = capabilityForRole(role);
+    if (!cap) {
+      violations.push(`no recognized factory role for head branch ${meta.headBranch}`);
+    } else {
+      // Owner-created governed record (read from the trusted base tree by the CLI).
+      const gv = validateGovernedRecord(fac.govRecord, { headBranch: norm(meta.headBranch), baseBranch: norm(meta.baseBranch), approvedBaseSha: fac.approvedBaseSha });
+      for (const e of gv.errors) violations.push(`governance: ${e}`);
+      // Ancestry: head must descend the approved base SHA (V4-C3).
+      if (fac.headDescendsBase === false) violations.push('governance: head commit does not descend the approved base SHA');
+      const currentResultDir = fac.currentResultDir || deriveResultDir(allPaths);
+      let resultFileCount = 0;
+      for (const r of records) {
+        for (const p of (r.paths || [])) {
+          const np = norm(p);
+          if (taskRootOf(np)) { violations.push(`${np}: research task change not allowed in a factory-governance PR`); continue; }
+          if (FROZEN_FACTORY_PREFIXES.some((fp) => np.startsWith(fp))) { violations.push(`${np}: frozen prior governance/history layer is immutable`); continue; }
+          if (isEnforcementRootPath(np) && !cap.canModifyImplementation) { violations.push(`${np}: enforcement-root change requires an implementation/correction role (role=${role})`); continue; }
+          if (np === FACTORY_WORKFLOW_PATH) {
+            if (!cap.canModifyWorkflow) { violations.push(`${np}: ${role} role may not modify the factory workflow`); continue; }
+            if (r.status === 'D' || r.status === 'R') violations.push(`${np}: factory workflow may not be deleted or renamed`);
+            continue;
+          }
+          const isImpl = FACTORY_IMPL_PREFIXES.some((fp) => np.startsWith(fp)) || FACTORY_IMPL_FILES.includes(np);
+          if (isImpl) { if (!cap.canModifyImplementation) violations.push(`${np}: ${role} role may not modify factory implementation files`); continue; }
+          const isCurrentResult = currentResultDir && np.startsWith(currentResultDir);
+          if (!isCurrentResult) { violations.push(`${np}: outside the current task's authorized factory write boundary`); continue; }
+          // Inside the current result dir: setup files are immutable; count result files.
+          const base = np.slice(np.lastIndexOf('/') + 1);
+          if (isSetupResultFile(base)) { violations.push(`${np}: task setup file is immutable after setup`); continue; }
+          resultFileCount += 1;
         }
-        const isImpl = FACTORY_IMPL_PREFIXES.some((fp) => np.startsWith(fp)) || FACTORY_IMPL_FILES.includes(np);
-        const isCurrentResult = currentResultDir && np.startsWith(currentResultDir);
-        if (!isImpl && !isCurrentResult) violations.push(`${np}: outside the current task's authorized factory write boundary`);
+      }
+      if (cap.maxResultFiles !== null && resultFileCount > cap.maxResultFiles) {
+        violations.push(`${role} role may create at most ${cap.maxResultFiles} result files, found ${resultFileCount}`);
       }
     }
   }
