@@ -1,0 +1,156 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-OWNER-CLOSEOUT-018",
+  "project": "CryptoBonusWorld",
+  "role": "closeout",
+  "decision": "FACTORY_V1_1_CLOSED_READY_FOR_SEPARATE_MERGE_AUTHORIZATION",
+  "generatedAt": "2026-07-27",
+  "ownerAuthorizationReceipt": {
+    "authorizationCommand": "AUTHORIZE CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-OWNER-CLOSEOUT-018",
+    "authorizationType": "FACTORY_OWNER_CLOSEOUT_ONLY",
+    "authorizedTaskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-OWNER-CLOSEOUT-018",
+    "targetBranch": null,
+    "mergeAuthorized": false,
+    "note": "Authorizes execution of Owner Closeout 018 only. Grants no merge, ready-for-review, main, master, production, deployment, import, activation or Binance authority."
+  },
+  "governance": {
+    "governingIssue": 64,
+    "closeoutPullRequest": 65,
+    "sourceFinalAcceptanceIssue": 62,
+    "sourceFinalAcceptancePullRequest": 63,
+    "sourceFinalAcceptanceCommitSha": "71ad9aecf772a0885e88e78e1f55bec82f376d8b",
+    "sourceFinalAcceptanceDecision": "VALIDATED_FOR_OWNER_CLOSEOUT",
+    "acceptedV4CommitSha": "1e7c35526edc9e251d87cbd741ce1cc4acc09293",
+    "recommendedNextTask": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CONTROLLED-STACK-MERGE-019",
+    "nextTaskRequiresNewExplicitOwnerAuthorization": true
+  },
+  "setupIdentity": {
+    "branch": "closeout/researchops-factory-v1-1-owner-closeout-018",
+    "baseBranch": "validation/researchops-factory-v1-1-final-acceptance-017",
+    "approvedBaseSha": "71ad9aecf772a0885e88e78e1f55bec82f376d8b",
+    "frozenSetupHead": "5726bb46f1c1f4786f2689acfa4d6fbbf835b345",
+    "isolatedWorktree": "C:\\projects\\CryptoBonusWorld-owner-closeout-018",
+    "setupCommits": [
+      "0e53b7eab14ce716b5e89f9cfec292f5ee80ac69",
+      "47c08dec5771f5f6a657251ca000018b00fbb38b",
+      "5726bb46f1c1f4786f2689acfa4d6fbbf835b345"
+    ],
+    "canonicalSetupTriple": [
+      "research-ops/factory-v1-1/owner-closeout-018/OWNER_CLOSEOUT_CONTRACT.md",
+      "research-ops/factory-v1-1/owner-closeout-018/OWNER_CLOSEOUT_STATE.json",
+      "research-ops/factory-v1-1/owner-closeout-018/CLAUDE_OWNER_CLOSEOUT_PROMPT.md"
+    ],
+    "setupPhaseAdditionsOnly": true,
+    "governedStateBinds": {
+      "taskId": true,
+      "role": "closeout",
+      "branch": true,
+      "baseBranch": true,
+      "approvedBaseSha": true,
+      "allEighteenAuthorizationsFalse": true
+    },
+    "enforcementModePredicted": "DESCENDANT",
+    "uniqueFrozenSetupBoundaryDiscovered": "5726bb46f1c1f4786f2689acfa4d6fbbf835b345"
+  },
+  "verification": {
+    "finalAcceptance": {
+      "pr63State": "OPEN",
+      "pr63Draft": true,
+      "pr63Unmerged": true,
+      "pr63Head": "71ad9aecf772a0885e88e78e1f55bec82f376d8b",
+      "workerDiffAfterFrozenSetup": [
+        "research-ops/factory-v1-1/final-acceptance-validation-017/FACTORY_FINAL_ACCEPTANCE.json",
+        "research-ops/factory-v1-1/final-acceptance-validation-017/FACTORY_FINAL_ACCEPTANCE.md"
+      ],
+      "workerDiffFileCount": 2,
+      "decision": "VALIDATED_FOR_OWNER_CLOSEOUT",
+      "runs": [
+        { "runId": 30306573779, "headSha": "58dc7a89f280f557ff90a72ee2ca9dc50d6eb251", "conclusion": "success", "allStepsExecuted": true },
+        { "runId": 30306739465, "headSha": "71ad9aecf772a0885e88e78e1f55bec82f376d8b", "conclusion": "success", "allStepsExecuted": true }
+      ]
+    },
+    "v4Remediation": {
+      "pr61State": "OPEN",
+      "pr61Draft": true,
+      "pr61Unmerged": true,
+      "pr61Head": "1e7c35526edc9e251d87cbd741ce1cc4acc09293",
+      "r1RunId": 30303380262,
+      "r2RunId": 30304979987,
+      "r1r2EvidenceIntact": true
+    },
+    "immutability": {
+      "priorGovernanceValidationCorrectionResultRecordsImmutable": true,
+      "realResearchTasksUntouched": true,
+      "okxRecordsUntouched": true,
+      "researchOpsPilotUntouched": true,
+      "productionAndFrozenSurfacesUntouched": true,
+      "originMain": "04157b9dfb140918a8569a5026da747b429e5ed3",
+      "originMaster": "998fcedd7d9febbec5b130d4765dfeaafc40960b",
+      "originMainFrozen": true,
+      "originMasterFrozen": true
+    },
+    "reruns": {
+      "nodeCheckAllMjs": "clean",
+      "fixtures": { "passed": 206, "failed": 0 },
+      "gitDiffCheck": "clean"
+    }
+  },
+  "prStackInventory": [
+    { "pr": 65, "state": "OPEN", "draft": true, "merged": false, "head": "5726bb4", "headBranch": "closeout/researchops-factory-v1-1-owner-closeout-018", "baseBranch": "validation/researchops-factory-v1-1-final-acceptance-017" },
+    { "pr": 63, "state": "OPEN", "draft": true, "merged": false, "head": "71ad9ae", "headBranch": "validation/researchops-factory-v1-1-final-acceptance-017", "baseBranch": "correction/researchops-factory-v1-1-v4-016" },
+    { "pr": 61, "state": "OPEN", "draft": true, "merged": false, "head": "1e7c355", "headBranch": "correction/researchops-factory-v1-1-v4-016", "baseBranch": "validation/researchops-factory-v1-1-v3-015" },
+    { "pr": 59, "state": "OPEN", "draft": true, "merged": false, "head": "07d0e38", "headBranch": "validation/researchops-factory-v1-1-v3-015", "baseBranch": "correction/researchops-factory-v1-1-v3-014" },
+    { "pr": 57, "state": "OPEN", "draft": true, "merged": false, "head": "9352e59", "headBranch": "correction/researchops-factory-v1-1-v3-014", "baseBranch": "validation/researchops-factory-v1-1-v2-013" },
+    { "pr": 55, "state": "OPEN", "draft": true, "merged": false, "head": "acd83d1", "headBranch": "validation/researchops-factory-v1-1-v2-013", "baseBranch": "correction/researchops-factory-v1-1-v2-012" },
+    { "pr": 53, "state": "OPEN", "draft": true, "merged": false, "head": "d3ed112", "headBranch": "correction/researchops-factory-v1-1-v2-012", "baseBranch": "validation/researchops-factory-v1-1-correction-011" },
+    { "pr": 51, "state": "OPEN", "draft": true, "merged": false, "head": "a958f0c", "headBranch": "validation/researchops-factory-v1-1-correction-011", "baseBranch": "correction/researchops-subscription-factory-v1-1-010" },
+    { "pr": 49, "state": "OPEN", "draft": true, "merged": false, "head": "2b9fecd", "headBranch": "correction/researchops-subscription-factory-v1-1-010", "baseBranch": "validation/researchops-subscription-factory-v1-1-009" },
+    { "pr": 46, "state": "OPEN", "draft": true, "merged": false, "head": "2f95f8a", "headBranch": "validation/researchops-subscription-factory-v1-1-009", "baseBranch": "feat/researchops-subscription-factory-v1-1" },
+    { "pr": 44, "state": "OPEN", "draft": true, "merged": false, "head": "02997bb", "headBranch": "feat/researchops-subscription-factory-v1-1", "baseBranch": "main" }
+  ],
+  "prStackSummary": {
+    "totalOpenDraftPrs": 11,
+    "anyMerged": false,
+    "anyReadyForReview": false,
+    "baseOfStack": "main@04157b9dfb140918a8569a5026da747b429e5ed3"
+  },
+  "acceptedBacklog": {
+    "D": "broader current-record lifecycle refinements",
+    "H": "additional marker outcome compatibility",
+    "K": "richer ISO history event and timestamp semantics",
+    "note": "Accepted noncritical V1.1 backlog; none yields a critical write, authority, merge-proof or production escape; not blockers. No V5 created."
+  },
+  "blockingFindings": [],
+  "workflowRun": {
+    "note": "The factory workflow runs on each pushed commit of this closeout branch. The setup-only run before these result files existed is not the closeout verdict. The final closeout run id and per-step statuses are recorded in FACTORY_OWNER_CLOSEOUT.md and the Final Report after the workflow completes on the final result commit.",
+    "expected": {
+      "conclusion": "success",
+      "enforcement": "DESCENDANT",
+      "uniqueFrozenSetupBoundary": true,
+      "protectedBaseValidator": true,
+      "boundaryStep": "success",
+      "taskRootStep": "success"
+    },
+    "observed": null
+  },
+  "authorizations": {
+    "factoryMergeToMainAuthorized": false,
+    "researchRecordMergeToMainAuthorized": false,
+    "binancePilotAuthorized": false,
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false,
+    "masterChangeAuthorized": false
+  }
+}
