@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CORRECTION-V2-012",
+  "project": "CryptoBonusWorld",
+  "governingIssue": 52,
+  "sourceValidationTaskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CORRECTION-VALIDATION-011",
+  "sourceValidationCommitSha": "a958f0c7d7ce2d707e4d79e5eafdd984fc851d2d",
+  "sourceCorrectionCommitSha": "2b9fecd8540070c92f1d1ba382ba05b64597a7e6",
+  "branch": "correction/researchops-factory-v1-1-v2-012",
+  "baseBranch": "validation/researchops-factory-v1-1-correction-011",
+  "state": "READY_FOR_CORRECTION_V2",
+  "requiredCorrectionCount": 10,
+  "requiredCorrectionIds": [
+    "V2-C1",
+    "V2-C2",
+    "V2-C3",
+    "V2-C4",
+    "V2-C5",
+    "V2-C6",
+    "V2-C7",
+    "V2-C8",
+    "V2-C9",
+    "V2-C10"
+  ],
+  "resultFiles": [
+    "CORRECTION_V2_RESULT.json",
+    "CORRECTION_V2_RESULT.md"
+  ],
+  "nextTaskOnPass": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CORRECTION-V2-VALIDATION-013",
+  "authorizations": {
+    "factoryMergeToMainAuthorized": false,
+    "researchRecordMergeToMainAuthorized": false,
+    "binancePilotAuthorized": false,
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false,
+    "masterChangeAuthorized": false
+  }
+}
