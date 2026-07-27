@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-FINAL-ACCEPTANCE-VALIDATION-017",
+  "project": "CryptoBonusWorld",
+  "governingIssue": 62,
+  "sourceCorrectionIssue": 60,
+  "sourceCorrectionPullRequest": 61,
+  "role": "validation",
+  "branch": "validation/researchops-factory-v1-1-final-acceptance-017",
+  "baseBranch": "correction/researchops-factory-v1-1-v4-016",
+  "approvedBaseSha": "1e7c35526edc9e251d87cbd741ce1cc4acc09293",
+  "state": "READY_FOR_FINAL_ACCEPTANCE_VALIDATION",
+  "decisionPolicy": [
+    "VALIDATED_FOR_OWNER_CLOSEOUT",
+    "FINAL_ACCEPTANCE_BLOCKED"
+  ],
+  "requiredOutputFiles": [
+    "FACTORY_FINAL_ACCEPTANCE.json",
+    "FACTORY_FINAL_ACCEPTANCE.md"
+  ],
+  "acceptedV11Backlog": {
+    "D": "broader current-record lifecycle refinements",
+    "H": "additional marker outcome compatibility",
+    "K": "richer ISO history event/timestamp semantics"
+  },
+  "authorizations": {
+    "factoryMergeToMainAuthorized": false,
+    "researchRecordMergeToMainAuthorized": false,
+    "binancePilotAuthorized": false,
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false,
+    "masterChangeAuthorized": false
+  },
+  "nextTaskOnPass": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-OWNER-CLOSEOUT-018",
+  "nextActionOnBlock": "STOP_WITH_CRITICAL_DEFECT_NO_V5"
+}
