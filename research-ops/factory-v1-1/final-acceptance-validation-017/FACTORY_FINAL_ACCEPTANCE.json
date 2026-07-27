@@ -1,0 +1,186 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-FINAL-ACCEPTANCE-VALIDATION-017",
+  "project": "CryptoBonusWorld",
+  "role": "validation",
+  "decision": "VALIDATED_FOR_OWNER_CLOSEOUT",
+  "generatedAt": "2026-07-27",
+  "governance": {
+    "governingIssue": 62,
+    "sourceV4Issue": 60,
+    "sourceV4PullRequest": 61,
+    "finalAcceptancePullRequest": 63,
+    "nextTaskOnPass": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-OWNER-CLOSEOUT-018",
+    "nextActionOnBlock": "STOP_WITH_CRITICAL_DEFECT_NO_V5"
+  },
+  "setupIdentity": {
+    "branch": "validation/researchops-factory-v1-1-final-acceptance-017",
+    "baseBranch": "correction/researchops-factory-v1-1-v4-016",
+    "approvedBaseSha": "1e7c35526edc9e251d87cbd741ce1cc4acc09293",
+    "frozenSetupHead": "d9677c1e04d27749e1e6148396d53a9924c7b70f",
+    "isolatedWorktree": "C:\\projects\\CryptoBonusWorld-final-acceptance-017",
+    "setupCommits": [
+      "83d7d257e88d2a21bb992195b835396db6682d40",
+      "08b5baf31973c245743f518c5debcef83a998fba",
+      "d9677c1e04d27749e1e6148396d53a9924c7b70f"
+    ],
+    "canonicalSetupTriple": [
+      "research-ops/factory-v1-1/final-acceptance-validation-017/FINAL_ACCEPTANCE_CONTRACT.md",
+      "research-ops/factory-v1-1/final-acceptance-validation-017/FINAL_ACCEPTANCE_STATE.json",
+      "research-ops/factory-v1-1/final-acceptance-validation-017/CLAUDE_FINAL_ACCEPTANCE_PROMPT.md"
+    ],
+    "setupPhaseAdditionsOnly": true,
+    "governedStateBinds": {
+      "taskId": true,
+      "branch": true,
+      "baseBranch": true,
+      "approvedBaseSha": true,
+      "role": "validation"
+    }
+  },
+  "baselineImmutability": {
+    "sourceV4Head": "1e7c35526edc9e251d87cbd741ce1cc4acc09293",
+    "pr61DraftUnmerged": true,
+    "pr63DraftUnmerged": true,
+    "r2SourceDiffRange": "c3c6cd1ed9b42c70fd02fafa2eeca8dbd214833f..1e7c35526edc9e251d87cbd741ce1cc4acc09293",
+    "r2SourceDiffFileCount": 6,
+    "r2SourceDiffFiles": [
+      ".github/workflows/cbw-researchops-factory-validate.yml",
+      "research-ops/factory-v1-1/bin/researchops.mjs",
+      "research-ops/factory-v1-1/correction-v4-016/CORRECTION_V4_RESULT.json",
+      "research-ops/factory-v1-1/correction-v4-016/CORRECTION_V4_RESULT.md",
+      "research-ops/factory-v1-1/fixtures/run.mjs",
+      "research-ops/factory-v1-1/lib/bootstrap.mjs"
+    ],
+    "priorFrozenGovernanceUntouchedBySetup": true,
+    "originMain": "04157b9dfb140918a8569a5026da747b429e5ed3",
+    "originMaster": "998fcedd7d9febbec5b130d4765dfeaafc40960b",
+    "originMainFrozen": true,
+    "originMasterFrozen": true,
+    "allOpenPrsDraft": true
+  },
+  "r1r2Evidence": {
+    "r1RunId": 30303380262,
+    "r1HeadSha": "c3c6cd1ed9b42c70fd02fafa2eeca8dbd214833f",
+    "r1Conclusion": "success",
+    "r1AllStepsExecuted": true,
+    "r2RunId": 30304979987,
+    "r2HeadSha": "1e7c35526edc9e251d87cbd741ce1cc4acc09293",
+    "r2Conclusion": "success",
+    "r2AllStepsExecuted": true,
+    "enforcementStepsObserved": [
+      "Checkout the exact trusted PR head SHA (read-only)",
+      "Syntax-check factory sources",
+      "Run factory fixtures",
+      "Verify trusted event metadata and checkout integrity (fail-closed)",
+      "Resolve trusted enforcement root and worker diff (fail-closed)",
+      "Enforce append-only boundary from the trusted enforcement root (fail-closed)",
+      "Validate discovered task roots (fail-closed)"
+    ]
+  },
+  "independentReruns": {
+    "nodeCheckAllMjs": "clean",
+    "fixtures": { "passed": 206, "failed": 0 },
+    "gitDiffCheck": "clean",
+    "cliSmoke": {
+      "create": "CREATED 11-file PREPARED skeleton",
+      "status": "consistent",
+      "validate": "VALID 19/19",
+      "checkBoundaryResearchTask": "BOUNDARY OK"
+    }
+  },
+  "gateMatrix": {
+    "A_realDescendantSetupPath": {
+      "verdict": "PASS",
+      "baseCarriesV4Policy": true,
+      "enforcementMode": "DESCENDANT",
+      "uniqueFrozenSetupDiscovered": "d9677c1e04d27749e1e6148396d53a9924c7b70f",
+      "resultDir": "research-ops/factory-v1-1/final-acceptance-validation-017/",
+      "protectedBasePolicyExecuted": true,
+      "governedStateReadFromFrozenSetup": true,
+      "workerDiffFrozenSetupToHead": true,
+      "onlyTwoResultFilesAccepted": true,
+      "realTempGraphProof": "positive accept of exactly two result files; unique boundary resolved"
+    },
+    "B_noSelfAuthorization": {
+      "verdict": "PASS",
+      "validationCannotModifyImplementation": "rejected (enforcement-root change requires implementation/correction role)",
+      "validationCannotModifyWorkflow": "rejected",
+      "thirdResultFileRejected": "rejected (validation role max 2 result files)",
+      "setupFileMutationAfterFreezeRejected": "rejected (task setup file is immutable after setup)",
+      "headOnlyAuthorityFails": "rejected (no owner-created governed record on the approved base)",
+      "bootstrapAnchorDoesNotAuthorizeThisTask": true
+    },
+    "C_identityAncestryCheckout": {
+      "verdict": "PASS",
+      "exactHeadCheckout": "enforced (checked-out HEAD must equal trusted head sha)",
+      "checkoutMismatchRejected": "rejected (checked-out HEAD != trusted event head SHA)",
+      "nonDescendantHeadRejected": "rejected (head commit does not descend from the approved base SHA)",
+      "wrongDiffEndpointRejected": "rejected (worker diff from approved base surfaces setup files as immutable)",
+      "missingSetupBoundaryRejected": "rejected (implementation/result file before the frozen setup)",
+      "nonShallowRequired": true,
+      "workspaceRootEqualityRequired": true
+    },
+    "D_canonicalSkeleton": {
+      "verdict": "PASS",
+      "exactBytesAccepted": "V4-C5",
+      "safetyTextOrContentSubstitutionRejected": "V4-C5b",
+      "symlinkRejected": "V4-C5c",
+      "executableRejected": "V4-C5d"
+    },
+    "E_realMergeProof": {
+      "verdict": "PASS",
+      "allZeroShaRejected": "V4-C6",
+      "structuralAndRepositoryFactsRequired": "commitExists/reachableFromMain/receiptHash linkage",
+      "note": "only repository-backed, main-reachable, task-scoped proof passes"
+    },
+    "F_authorizationProductionIsolation": {
+      "verdict": "PASS",
+      "forbiddenAuthorizationTrueRejected": "A1",
+      "nestedForbiddenTrueCaught": "A2",
+      "ownerReceiptEscalatingProductionRejected": "A4",
+      "ownerReceiptTargetMasterRejected": "A6",
+      "noMergeDeployProductionBinanceMasterAuthority": true
+    }
+  },
+  "workflowRun": {
+    "note": "The Validation 017 factory workflow runs on each pushed commit of this branch. The final acceptance run id and per-step statuses are recorded in FACTORY_FINAL_ACCEPTANCE.md and the Final Report after the workflow completes on the final commit.",
+    "expected": {
+      "conclusion": "success",
+      "enforcement": "DESCENDANT",
+      "uniqueFrozenSetupBoundary": true,
+      "protectedBaseValidator": true,
+      "boundaryStep": "success",
+      "taskRootStep": "success"
+    },
+    "observed": null
+  },
+  "blockingFindings": [],
+  "acceptedBacklog": {
+    "D": "broader current-record lifecycle refinements beyond the exact setup/result inventory — non-blocking",
+    "H": "additional marker outcome compatibility extensions — non-blocking",
+    "K": "richer ISO history event/timestamp semantics — non-blocking",
+    "note": "None yield a critical write, authority, merge-proof or production escape; not blockers."
+  },
+  "ownerCloseoutReadiness": "READY",
+  "authorizations": {
+    "factoryMergeToMainAuthorized": false,
+    "researchRecordMergeToMainAuthorized": false,
+    "binancePilotAuthorized": false,
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false,
+    "masterChangeAuthorized": false
+  }
+}
