@@ -126,8 +126,22 @@
     "allowedWorkerFileInventoryRespected": true
   },
   "correctionPrOwnWorkflow": {
-    "note": "The Correction 022 PR is a factory-governance PR stacked on Correction 021 and validates under the existing DESCENDANT path. Its run id and per-step statuses are recorded in the .md after completion.",
-    "observed": null
+    "note": "The Correction 022 PR is a factory-governance PR stacked on Correction 021 and validates under the existing DESCENDANT path.",
+    "observed": {
+      "runId": 30346823563,
+      "headSha": "554d89a87da2663520b45da8ba41d4ec465edce6",
+      "conclusion": "success",
+      "enforcement": "DESCENDANT (protected base policy)",
+      "runtimeEvidence": [
+        "ENFORCEMENT: DESCENDANT (protected base policy)",
+        "BOUNDARY mode=FACTORY_GOVERNANCE taskRoots=[]",
+        "RESULT: BOUNDARY OK",
+        "Factory-governance PR: no research-task root to validate."
+      ],
+      "allStepsSucceeded": true,
+      "fixturesRanInCi": "235 passed, 0 failed",
+      "note": "A recording commit embedding this evidence triggers one further identical DESCENDANT run; both are success."
+    }
   },
   "blockingFindings": [],
   "recommendedNextOwnerCommand": "Merge Corrections 021 and 022 to main (in stack order), then re-run the Binance pilot CBW-KZ-BINANCE-P0-D-FACTORY-PILOT-020 so PR #69 (or its re-created head) carries both corrections and its GitHub workflow reaches ENFORCEMENT: RESEARCH_TASK -> BOUNDARY OK -> successful task-root validation end-to-end.",

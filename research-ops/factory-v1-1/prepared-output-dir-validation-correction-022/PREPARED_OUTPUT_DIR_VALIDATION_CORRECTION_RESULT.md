@@ -73,7 +73,7 @@ the Correction 022 PR itself validates under DESCENDANT.
 
 ## Correction PR own workflow
 
-<!-- CORRECTION_PR_RUN -->
+**Observed correction PR run:** `30346823563` on `554d89a` — conclusion **`success`**, all steps green (fixtures ran 235/0). `ENFORCEMENT: DESCENDANT (protected base policy)` → `BOUNDARY mode=FACTORY_GOVERNANCE` → `RESULT: BOUNDARY OK` → `Factory-governance PR: no research-task root to validate.` Confirms DESCENDANT and BOOTSTRAP are undisturbed. (The recording commit embedding this evidence triggers one further identical DESCENDANT run; both are success.)
 
 ## Decision
 
