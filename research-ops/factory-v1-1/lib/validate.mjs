@@ -27,11 +27,10 @@ export function validateTask(taskDir, opts = {}) {
   R.add('task directory exists', exists(taskDir), taskDir);
   if (!exists(taskDir)) return finalize(R, opts, null);
 
-  for (const d of STAGE_DIRS) R.add(`stage dir present: ${d}`, exists(join(taskDir, d)));
-
-  // TASK_STATE.json + C9 structural shape
+  // Correction 022 — parse and structurally validate TASK_STATE.json BEFORE deciding
+  // whether the physical 20-research-output/ directory is mandatory.
   const statePath = join(taskDir, 'TASK_STATE.json');
-  let state = null; let taskState = null;
+  let state = null; let taskState = null; let taskStateValid = false;
   if (!exists(statePath)) {
     R.add('TASK_STATE.json present', false);
   } else {
@@ -42,9 +41,36 @@ export function validateTask(taskDir, opts = {}) {
       taskState = obj; state = obj.state;
       R.add('TASK_STATE.json parses', true);
       const shapeErrors = validateTaskStateShape(obj);
-      R.add('TASK_STATE.json structural shape (C9)', shapeErrors.length === 0, shapeErrors.slice(0, 8).join('; '));
-      R.add('state is a canonical enum value', isState(state), String(state));
+      const shapeOk = shapeErrors.length === 0;
+      R.add('TASK_STATE.json structural shape (C9)', shapeOk, shapeErrors.slice(0, 8).join('; '));
+      const stateCanonical = isState(state);
+      R.add('state is a canonical enum value', stateCanonical, String(state));
+      // The Git-empty output-dir exception below is gated on a fully valid TASK_STATE.
+      taskStateValid = shapeOk && stateCanonical;
       if (opts.toState) R.add(`transition ${state} -> ${opts.toState} is allowed`, canTransition(state, opts.toState));
+    }
+  }
+
+  // Stage directories must all physically exist, EXCEPT that a Git-empty
+  // 20-research-output/ may be absent for a fresh PREPARED checkout (Correction 022):
+  // git cannot track an empty directory, so a committed PREPARED task legitimately lacks
+  // it. This exception is strictly STATE- and EVIDENCE-bound, never merely path-bound:
+  // TASK_STATE must be valid, state exactly PREPARED, its 20-research-output stage marker
+  // exactly EMPTY, --require-package inactive, and no research-package evidence present.
+  const OUTPUT_STAGE = '20-research-output';
+  const outputPresent = exists(join(taskDir, OUTPUT_STAGE));
+  const outputEvidencePresent = researchPackagePresent(join(taskDir, OUTPUT_STAGE));
+  const preparedGitEmptyOutputOk = !outputPresent
+    && taskStateValid
+    && state === 'PREPARED'
+    && !!taskState && !!taskState.stages && taskState.stages[OUTPUT_STAGE] === 'EMPTY'
+    && opts.requirePackage !== true
+    && !outputEvidencePresent;
+  for (const d of STAGE_DIRS) {
+    if (d === OUTPUT_STAGE && !outputPresent && preparedGitEmptyOutputOk) {
+      R.add(`stage dir present or Git-empty PREPARED output: ${d}`, true, 'absent 20-research-output permitted only for a PREPARED task with stages[20-research-output]=EMPTY and no package evidence');
+    } else {
+      R.add(`stage dir present: ${d}`, exists(join(taskDir, d)));
     }
   }
 

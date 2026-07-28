@@ -524,6 +524,40 @@ function run() {
     check('021-10b anchor mismatch -> REJECT', resolveEnforcement(anchorCtx({ issue: 999 })).mode === 'REJECT');
     check('021-10c base carries V4 -> DESCENDANT preserved', resolveEnforcement(anchorCtx({ baseHasV4Policy: true })).mode === 'DESCENDANT'); }
 
+  // ================= Correction 022 — Git-empty PREPARED output-dir validation =================
+  // On a fresh checkout git cannot restore an empty 20-research-output/ directory. A PREPARED
+  // task with stages[20-research-output]=EMPTY and no package evidence must validate; every
+  // other condition must fail closed. The exception is STATE- and EVIDENCE-bound, never merely
+  // path-bound.
+  const dropOut = (t) => { rmSync(join(t, '20-research-output'), { recursive: true, force: true }); return t; };
+  const editState = (t, fn) => { const p = join(t, 'TASK_STATE.json'); const o = JSON.parse(readFileSync(p, 'utf8')); fn(o); writeFileSync(p, JSON.stringify(o, null, 2) + '\n'); return t; };
+  // (1) canonical PREPARED fresh-checkout tree with only the output dir absent -> valid
+  { const t = dropOut(mk()); const v = validateTask(t, {}); check('022-1 PREPARED git-empty output dir absent -> valid', v.ok, v.checks.filter((c) => !c.ok).map((c) => `${c.name}:${c.detail}`).join(' | ')); }
+  // (2) same tree with --require-package -> invalid
+  { const t = dropOut(mk()); check('022-2 git-empty output + --require-package fails', !validateTask(t, { requirePackage: true }).ok); }
+  // (3) RESEARCH_CAPTURED with output dir absent -> invalid
+  { const t = mk(); setState(t, 'RESEARCH_CAPTURED'); dropOut(t); check('022-3 RESEARCH_CAPTURED missing output dir fails', !validateTask(t, {}).ok); }
+  // (4) a later lifecycle state with output dir absent -> invalid
+  { const t = mk(); setState(t, 'VALIDATED'); dropOut(t); check('022-4 later state missing output dir fails', !validateTask(t, {}).ok); }
+  // (5) PREPARED but the output stage marker is not exactly EMPTY -> invalid
+  { const t = editState(dropOut(mk()), (o) => { o.stages['20-research-output'] = 'PRESENT'; }); check('022-5 PREPARED wrong output stage marker fails', !validateTask(t, {}).ok); }
+  // (6) missing TASK_STATE with output dir absent -> invalid
+  { const t = dropOut(mk()); rmSync(join(t, 'TASK_STATE.json')); check('022-6 missing TASK_STATE + absent output fails', !validateTask(t, {}).ok); }
+  // (7) malformed TASK_STATE with output dir absent -> invalid
+  { const t = dropOut(mk()); writeFileSync(join(t, 'TASK_STATE.json'), '{ not json'); check('022-7 malformed TASK_STATE + absent output fails', !validateTask(t, {}).ok); }
+  // (8) structurally invalid TASK_STATE (missing required key) with output dir absent -> invalid
+  { const t = editState(dropOut(mk()), (o) => { delete o.authorizations; }); check('022-8 structurally invalid TASK_STATE + absent output fails', !validateTask(t, {}).ok); }
+  // (9) another stage directory also missing -> invalid
+  { const t = dropOut(mk()); rmSync(join(t, '10-input'), { recursive: true, force: true }); check('022-9 another missing stage dir fails', !validateTask(t, {}).ok); }
+  // (10) partial research-package evidence present -> invalid
+  { const t = mk(); dropOut(t); mkdirSync(join(t, '20-research-output')); writeFileSync(join(t, '20-research-output', 'research-run.json'), '{"schemaVersion":"1.0"}'); check('022-10 partial package evidence fails', !validateTask(t, {}).ok); }
+  // (11) complete exact eleven-file package remains valid
+  { const t = mk(); writePkg(t); check('022-11 complete 11-file package still valid', validateTask(t, {}).ok); }
+  // (12) canonical create output (output dir present) remains valid
+  { const t = mk(); check('022-12 canonical create output still valid', validateTask(t, {}).ok); }
+  // (13) exception is state-bound: a noncanonical state string with output dir absent -> invalid
+  { const t = editState(dropOut(mk()), (o) => { o.state = 'NOT_A_STATE'; }); check('022-13 noncanonical state + absent output fails', !validateTask(t, {}).ok); }
+
   for (const r of roots) { try { rmSync(r, { recursive: true, force: true }); } catch { /* ignore */ } }
   console.log(`\nFIXTURES: ${pass} passed, ${fail} failed`);
   if (fail > 0) { console.log('FAILURES:'); for (const f of failures) console.log(`  - ${f}`); process.exit(1); }
