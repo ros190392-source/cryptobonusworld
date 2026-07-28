@@ -1,0 +1,168 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-PREPARED-OUTPUT-DIR-VALIDATION-CORRECTION-022",
+  "project": "CryptoBonusWorld",
+  "role": "correction",
+  "decision": "PREPARED_OUTPUT_DIR_VALIDATION_CORRECTION_READY_FOR_OWNER_MERGE",
+  "generatedAt": "2026-07-28",
+  "ownerAuthorization": "AUTHORIZE CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-PREPARED-OUTPUT-DIR-VALIDATION-CORRECTION-022",
+  "governance": {
+    "governingIssue": 72,
+    "correctionPullRequest": 73,
+    "sourceRoutingCorrectionIssue": 70,
+    "sourceRoutingCorrectionPullRequest": 71,
+    "blockedPilotIssue": 68,
+    "blockedPilotPullRequest": 69,
+    "blockedPilotHead": "bf0a0932325be00aad08ec3db31aef1af9df2384"
+  },
+  "setupIdentity": {
+    "branch": "correction/researchops-factory-v1-1-prepared-output-dir-validation-022",
+    "baseBranch": "correction/researchops-factory-v1-1-research-task-ci-021",
+    "approvedBaseSha": "8f6b1e635cca28e7dce6ca160ae7b68d7f258f0f",
+    "protectedMasterSha": "998fcedd7d9febbec5b130d4765dfeaafc40960b",
+    "frozenSetupHead": "0605575c1e2037d241c2ad6b9cde28a5343649ad",
+    "isolatedWorktree": "C:\\projects\\CryptoBonusWorld-outdir-022",
+    "canonicalSetupTriple": [
+      "research-ops/factory-v1-1/prepared-output-dir-validation-correction-022/PREPARED_OUTPUT_DIR_VALIDATION_CORRECTION_CONTRACT.md",
+      "research-ops/factory-v1-1/prepared-output-dir-validation-correction-022/PREPARED_OUTPUT_DIR_VALIDATION_CORRECTION_STATE.json",
+      "research-ops/factory-v1-1/prepared-output-dir-validation-correction-022/CLAUDE_PREPARED_OUTPUT_DIR_VALIDATION_CORRECTION_PROMPT.md"
+    ],
+    "setupUntouched": true,
+    "stackedOnRoutingCorrection021": true
+  },
+  "changedFiles": [
+    "research-ops/factory-v1-1/lib/validate.mjs",
+    "research-ops/factory-v1-1/fixtures/run.mjs",
+    "research-ops/factory-v1-1/prepared-output-dir-validation-correction-022/PREPARED_OUTPUT_DIR_VALIDATION_CORRECTION_RESULT.json",
+    "research-ops/factory-v1-1/prepared-output-dir-validation-correction-022/PREPARED_OUTPUT_DIR_VALIDATION_CORRECTION_RESULT.md"
+  ],
+  "implementationSemantics": {
+    "summary": "validate.mjs now parses and structurally validates TASK_STATE.json BEFORE deciding whether the physical 20-research-output/ directory is mandatory. A Git-empty (absent) 20-research-output/ is accepted ONLY when every gate holds; otherwise the stage-dir presence check fails closed exactly as before.",
+    "outputDirAbsentPassGate": [
+      "task directory exists",
+      "TASK_STATE.json exists",
+      "TASK_STATE.json parses",
+      "TASK_STATE structural shape is valid (C9)",
+      "state is a canonical enum value",
+      "state === 'PREPARED'",
+      "taskState.stages['20-research-output'] === 'EMPTY'",
+      "opts.requirePackage !== true",
+      "no research-package evidence present (researchPackagePresent === false)",
+      "every other canonical stage directory physically exists"
+    ],
+    "failClosedWhen": [
+      "TASK_STATE missing / malformed / structurally invalid",
+      "noncanonical or non-PREPARED state",
+      "output stage marker not exactly EMPTY",
+      "--require-package active",
+      "partial or complete research-package evidence present in an absent-dir claim",
+      "RESEARCH_CAPTURED or any later state",
+      "any other stage directory absent"
+    ],
+    "distinctCheckName": "stage dir present or Git-empty PREPARED output: 20-research-output",
+    "notWeakened": [
+      "exact eleven-file package inventory / manifest / IDs / references / shapes",
+      "state/evidence consistency (C2)",
+      "authorization floor",
+      "append-only changed-file boundary",
+      "required presence of every OTHER stage directory"
+    ],
+    "didNotAddGitkeep": true,
+    "didNotCreateDirectoryInValidationOrCi": true,
+    "onlyFileTouchedInLib": "research-ops/factory-v1-1/lib/validate.mjs"
+  },
+  "tests": {
+    "fixtureTotalBefore": 222,
+    "fixtureTotalAfter": 235,
+    "fixtureFailures": 0,
+    "addedForCorrection022": 13,
+    "coverage": [
+      "022-1 PREPARED git-empty output dir absent -> valid",
+      "022-2 git-empty output + --require-package fails",
+      "022-3 RESEARCH_CAPTURED missing output dir fails",
+      "022-4 later state missing output dir fails",
+      "022-5 PREPARED wrong output stage marker fails",
+      "022-6 missing TASK_STATE + absent output fails",
+      "022-7 malformed TASK_STATE + absent output fails",
+      "022-8 structurally invalid TASK_STATE + absent output fails",
+      "022-9 another missing stage dir fails",
+      "022-10 partial package evidence fails",
+      "022-11 complete 11-file package still valid",
+      "022-12 canonical create output still valid",
+      "022-13 noncanonical state + absent output fails"
+    ],
+    "correction021RoutingStillGreen": true,
+    "governanceDescendantStillGreen": true,
+    "v4BootstrapStillGreen": true
+  },
+  "pilotReproduction": {
+    "baseSha": "f62c1fb3fc2a66e57e6b023b8eb5b91f2f34500a",
+    "headSha": "bf0a0932325be00aad08ec3db31aef1af9df2384",
+    "headBranch": "research/kz-binance-kz-p0-d",
+    "baseBranch": "main",
+    "outputDirPresentOnDisk": false,
+    "reached": {
+      "enforcementResearchTask": true,
+      "boundaryModeResearchTask": true,
+      "resultBoundaryOk": true,
+      "successfulTaskRootValidation": true
+    },
+    "evidence": [
+      "ENFORCEMENT: RESEARCH_TASK (protected base policy)",
+      "BOUNDARY mode=RESEARCH_TASK taskRoots=[research-ops/tasks/CBW-KZ-BINANCE-P0-D-DEEP-RESEARCH-001]",
+      "RESULT: BOUNDARY OK",
+      "validate research-ops/tasks/CBW-KZ-BINANCE-P0-D-DEEP-RESEARCH-001 => 19/19 checks passed, RESULT: VALID"
+    ],
+    "note": "Reproduced with the corrected factory (Correction 021 RESEARCH_TASK routing + Correction 022 validator) as the protected-base policy, against a fresh checkout of pilot head bf0a093 whose empty 20-research-output/ directory is absent. To green PR #69's own CI, the owner re-runs the Binance pilot on the corrected base (its head must carry both corrections); this task does not modify PR #69 in place."
+  },
+  "freshCheckoutProofs": {
+    "validate": "19/19 checks passed, RESULT: VALID (pilot task, output dir absent)",
+    "status": "declaredState=evidenceState=PREPARED, packagePresent=false, consistent=true"
+  },
+  "verification": {
+    "nodeCheckAllMjs": "clean",
+    "gitDiffCheck": "clean",
+    "frozenSetupUntouched": true,
+    "allowedWorkerFileInventoryRespected": true
+  },
+  "correctionPrOwnWorkflow": {
+    "note": "The Correction 022 PR is a factory-governance PR stacked on Correction 021 and validates under the existing DESCENDANT path.",
+    "observed": {
+      "runId": 30346823563,
+      "headSha": "554d89a87da2663520b45da8ba41d4ec465edce6",
+      "conclusion": "success",
+      "enforcement": "DESCENDANT (protected base policy)",
+      "runtimeEvidence": [
+        "ENFORCEMENT: DESCENDANT (protected base policy)",
+        "BOUNDARY mode=FACTORY_GOVERNANCE taskRoots=[]",
+        "RESULT: BOUNDARY OK",
+        "Factory-governance PR: no research-task root to validate."
+      ],
+      "allStepsSucceeded": true,
+      "fixturesRanInCi": "235 passed, 0 failed",
+      "note": "A recording commit embedding this evidence triggers one further identical DESCENDANT run; both are success."
+    }
+  },
+  "blockingFindings": [],
+  "recommendedNextOwnerCommand": "Merge Corrections 021 and 022 to main (in stack order), then re-run the Binance pilot CBW-KZ-BINANCE-P0-D-FACTORY-PILOT-020 so PR #69 (or its re-created head) carries both corrections and its GitHub workflow reaches ENFORCEMENT: RESEARCH_TASK -> BOUNDARY OK -> successful task-root validation end-to-end.",
+  "authorizations": {
+    "factoryMergeToMainAuthorized": false,
+    "researchRecordMergeToMainAuthorized": false,
+    "binancePilotAuthorized": false,
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false,
+    "masterChangeAuthorized": false
+  }
+}

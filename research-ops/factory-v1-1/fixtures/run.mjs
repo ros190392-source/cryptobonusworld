@@ -480,6 +480,84 @@ function run() {
   // (j) empty range (future task without owner setup record) -> no setup boundary
   { const r = discoverFrozenSetupBoundary([cmt('w1', [['A', RES1], ['A', RES2]])], RD); check('R2-j future task without owner setup record rejected', !r.ok); }
 
+  // ================= Correction 021 — research-task CI routing =================
+  // The published workflow must route a canonical research/** task PR through a
+  // RESEARCH_TASK path (protected-base check-boundary over the exact base->head diff, NO
+  // owner setup-boundary discovery) and fail closed on every escape. These assert the
+  // exact CLI-level invariants the workflow routing relies on, plus governance/bootstrap
+  // non-regression.
+  const RT_ROOT = 'research-ops/tasks/CBW-KZ-BINANCE-P0-D-DEEP-RESEARCH-001';
+  const RT_META = { headBranch: 'research/kz-binance-kz-p0-d', baseBranch: 'main' };
+  const rtSkeleton = canonicalSkeletonFiles().map((f) => ['A', `${RT_ROOT}/${f}`]);
+  // (1) canonical research branch selects the research-task mode
+  { check('021-1 canonical research/** on main -> RESEARCH_TASK', trustedModeFromMeta(RT_META) === 'RESEARCH_TASK'); }
+  // (2) the EXACT pilot PR #69 skeleton diff is accepted as RESEARCH_TASK with the task root emitted
+  { const r = checkChangedFileBoundary(nameStatus(rtSkeleton), RT_META);
+    check('021-2 exact pilot skeleton diff -> RESEARCH_TASK BOUNDARY OK', r.ok && r.mode === 'RESEARCH_TASK' && r.taskRoots.length === 1 && r.taskRoots[0] === RT_ROOT, r.violations.join('; ')); }
+  // (3) research routing needs no owner setup directory (a pure task diff passes)
+  { const r = checkChangedFileBoundary(nameStatus([['A', `${RT_ROOT}/20-research-output/research-run.json`]]), RT_META);
+    check('021-3 research routing independent of setup-boundary discovery', r.ok && r.mode === 'RESEARCH_TASK', r.violations.join('; ')); }
+  // (4) a research branch modifying the factory workflow fails closed
+  { const r = checkChangedFileBoundary(nameStatus([['A', `${RT_ROOT}/TASK_STATE.json`], ['M', '.github/workflows/cbw-researchops-factory-validate.yml']]), RT_META);
+    check('021-4 research branch touching factory workflow rejected', !r.ok); }
+  // (5) a research branch mixing factory-governance + task files fails closed
+  { const r = checkChangedFileBoundary(nameStatus([['A', `${RT_ROOT}/TASK_STATE.json`], ['M', 'research-ops/factory-v1-1/lib/boundary.mjs']]), RT_META);
+    check('021-5 research branch mixing factory + task files rejected', !r.ok); }
+  // (6) a research branch changing only a factory file (mode confusion) fails closed
+  { const r = checkChangedFileBoundary(nameStatus([['M', 'research-ops/factory-v1-1/lib/util.mjs']]), RT_META);
+    check('021-6 research branch changing only a factory file rejected', !r.ok); }
+  // (7) spoof / noncanonical research branch identities are not trusted as research-task
+  { check('021-7 uppercase research branch not RESEARCH_TASK', trustedModeFromMeta({ headBranch: 'research/Evil', baseBranch: 'main' }) === null);
+    check('021-7b nested research branch not RESEARCH_TASK', trustedModeFromMeta({ headBranch: 'research/a/b', baseBranch: 'main' }) === null);
+    check('021-7c research branch on non-main base not RESEARCH_TASK', trustedModeFromMeta({ headBranch: 'research/kz-binance-kz-p0-d', baseBranch: 'develop' }) === null); }
+  // (8) research head must bind to the task's declared branch identity
+  { const root = 'research-ops/tasks/CBW-A-001'; const okr = checkChangedFileBoundary(nameStatus([['A', `${root}/20-research-output/research-run.json`]]), RES(root));
+    const badr = checkChangedFileBoundary(nameStatus([['A', `${root}/20-research-output/research-run.json`]]), RES(root, { headBranch: 'research/spoof-x' }));
+    check('021-8 matching research identity accepted', okr.ok, okr.violations.join('; '));
+    check('021-8b spoof research head != declared branch rejected', !badr.ok); }
+  // (9) factory-governance branches still require a unique frozen setup boundary (non-regression)
+  { const commits = [cmt('s1', setupAdds), cmt('w1', [['A', RES1], ['A', RES2]])]; const r = discoverFrozenSetupBoundary(commits, RD);
+    check('021-9 governance descendant still needs unique frozen setup', r.ok && r.frozenSetupSha === 's1', r.violations.join('; '));
+    check('021-9b governance with no setup boundary still rejected', !discoverFrozenSetupBoundary([cmt('w1', [['A', RES1]])], RD).ok); }
+  // (10) the pinned one-time V4 bootstrap anchor behavior is unchanged (non-regression)
+  { check('021-10 exact V4 anchor -> BOOTSTRAP', resolveEnforcement(anchorCtx()).mode === 'BOOTSTRAP');
+    check('021-10b anchor mismatch -> REJECT', resolveEnforcement(anchorCtx({ issue: 999 })).mode === 'REJECT');
+    check('021-10c base carries V4 -> DESCENDANT preserved', resolveEnforcement(anchorCtx({ baseHasV4Policy: true })).mode === 'DESCENDANT'); }
+
+  // ================= Correction 022 — Git-empty PREPARED output-dir validation =================
+  // On a fresh checkout git cannot restore an empty 20-research-output/ directory. A PREPARED
+  // task with stages[20-research-output]=EMPTY and no package evidence must validate; every
+  // other condition must fail closed. The exception is STATE- and EVIDENCE-bound, never merely
+  // path-bound.
+  const dropOut = (t) => { rmSync(join(t, '20-research-output'), { recursive: true, force: true }); return t; };
+  const editState = (t, fn) => { const p = join(t, 'TASK_STATE.json'); const o = JSON.parse(readFileSync(p, 'utf8')); fn(o); writeFileSync(p, JSON.stringify(o, null, 2) + '\n'); return t; };
+  // (1) canonical PREPARED fresh-checkout tree with only the output dir absent -> valid
+  { const t = dropOut(mk()); const v = validateTask(t, {}); check('022-1 PREPARED git-empty output dir absent -> valid', v.ok, v.checks.filter((c) => !c.ok).map((c) => `${c.name}:${c.detail}`).join(' | ')); }
+  // (2) same tree with --require-package -> invalid
+  { const t = dropOut(mk()); check('022-2 git-empty output + --require-package fails', !validateTask(t, { requirePackage: true }).ok); }
+  // (3) RESEARCH_CAPTURED with output dir absent -> invalid
+  { const t = mk(); setState(t, 'RESEARCH_CAPTURED'); dropOut(t); check('022-3 RESEARCH_CAPTURED missing output dir fails', !validateTask(t, {}).ok); }
+  // (4) a later lifecycle state with output dir absent -> invalid
+  { const t = mk(); setState(t, 'VALIDATED'); dropOut(t); check('022-4 later state missing output dir fails', !validateTask(t, {}).ok); }
+  // (5) PREPARED but the output stage marker is not exactly EMPTY -> invalid
+  { const t = editState(dropOut(mk()), (o) => { o.stages['20-research-output'] = 'PRESENT'; }); check('022-5 PREPARED wrong output stage marker fails', !validateTask(t, {}).ok); }
+  // (6) missing TASK_STATE with output dir absent -> invalid
+  { const t = dropOut(mk()); rmSync(join(t, 'TASK_STATE.json')); check('022-6 missing TASK_STATE + absent output fails', !validateTask(t, {}).ok); }
+  // (7) malformed TASK_STATE with output dir absent -> invalid
+  { const t = dropOut(mk()); writeFileSync(join(t, 'TASK_STATE.json'), '{ not json'); check('022-7 malformed TASK_STATE + absent output fails', !validateTask(t, {}).ok); }
+  // (8) structurally invalid TASK_STATE (missing required key) with output dir absent -> invalid
+  { const t = editState(dropOut(mk()), (o) => { delete o.authorizations; }); check('022-8 structurally invalid TASK_STATE + absent output fails', !validateTask(t, {}).ok); }
+  // (9) another stage directory also missing -> invalid
+  { const t = dropOut(mk()); rmSync(join(t, '10-input'), { recursive: true, force: true }); check('022-9 another missing stage dir fails', !validateTask(t, {}).ok); }
+  // (10) partial research-package evidence present -> invalid
+  { const t = mk(); dropOut(t); mkdirSync(join(t, '20-research-output')); writeFileSync(join(t, '20-research-output', 'research-run.json'), '{"schemaVersion":"1.0"}'); check('022-10 partial package evidence fails', !validateTask(t, {}).ok); }
+  // (11) complete exact eleven-file package remains valid
+  { const t = mk(); writePkg(t); check('022-11 complete 11-file package still valid', validateTask(t, {}).ok); }
+  // (12) canonical create output (output dir present) remains valid
+  { const t = mk(); check('022-12 canonical create output still valid', validateTask(t, {}).ok); }
+  // (13) exception is state-bound: a noncanonical state string with output dir absent -> invalid
+  { const t = editState(dropOut(mk()), (o) => { o.state = 'NOT_A_STATE'; }); check('022-13 noncanonical state + absent output fails', !validateTask(t, {}).ok); }
+
   for (const r of roots) { try { rmSync(r, { recursive: true, force: true }); } catch { /* ignore */ } }
   console.log(`\nFIXTURES: ${pass} passed, ${fail} failed`);
   if (fail > 0) { console.log('FAILURES:'); for (const f of failures) console.log(`  - ${f}`); process.exit(1); }

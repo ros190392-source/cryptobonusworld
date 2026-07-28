@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-PREPARED-OUTPUT-DIR-VALIDATION-CORRECTION-022",
+  "project": "CryptoBonusWorld",
+  "role": "correction",
+  "state": "READY_FOR_CORRECTION",
+  "governingIssue": 72,
+  "ownerAuthorization": "AUTHORIZE CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-PREPARED-OUTPUT-DIR-VALIDATION-CORRECTION-022",
+  "branch": "correction/researchops-factory-v1-1-prepared-output-dir-validation-022",
+  "baseBranch": "correction/researchops-factory-v1-1-research-task-ci-021",
+  "approvedBaseSha": "8f6b1e635cca28e7dce6ca160ae7b68d7f258f0f",
+  "resultDirectory": "research-ops/factory-v1-1/prepared-output-dir-validation-correction-022",
+  "sourceCorrection": {
+    "issue": 70,
+    "pullRequest": 71,
+    "headSha": "8f6b1e635cca28e7dce6ca160ae7b68d7f258f0f"
+  },
+  "sourcePilot": {
+    "issue": 68,
+    "pullRequest": 69,
+    "headSha": "bf0a0932325be00aad08ec3db31aef1af9df2384"
+  },
+  "allowedImplementationFiles": [
+    "research-ops/factory-v1-1/lib/validate.mjs",
+    "research-ops/factory-v1-1/fixtures/run.mjs"
+  ],
+  "requiredResultFiles": [
+    "research-ops/factory-v1-1/prepared-output-dir-validation-correction-022/PREPARED_OUTPUT_DIR_VALIDATION_CORRECTION_RESULT.json",
+    "research-ops/factory-v1-1/prepared-output-dir-validation-correction-022/PREPARED_OUTPUT_DIR_VALIDATION_CORRECTION_RESULT.md"
+  ],
+  "allowedDecisions": [
+    "PREPARED_OUTPUT_DIR_VALIDATION_CORRECTION_READY_FOR_OWNER_MERGE",
+    "PREPARED_OUTPUT_DIR_VALIDATION_CORRECTION_BLOCKED"
+  ],
+  "authorizations": {
+    "factoryMergeToMainAuthorized": false,
+    "researchRecordMergeToMainAuthorized": false,
+    "binancePilotAuthorized": false,
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false,
+    "masterChangeAuthorized": false
+  }
+}

@@ -1,0 +1,132 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-RESEARCH-TASK-CI-CORRECTION-021",
+  "project": "CryptoBonusWorld",
+  "role": "correction",
+  "decision": "RESEARCH_TASK_CI_CORRECTION_BLOCKED",
+  "generatedAt": "2026-07-28",
+  "ownerAuthorization": "AUTHORIZE CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-RESEARCH-TASK-CI-CORRECTION-021",
+  "governance": {
+    "governingIssue": 70,
+    "correctionPullRequest": 71,
+    "blockedPilotIssue": 68,
+    "blockedPilotPullRequest": 69,
+    "blockedPilotHead": "bf0a0932325be00aad08ec3db31aef1af9df2384",
+    "failingPilotRunId": 30340518853
+  },
+  "setupIdentity": {
+    "branch": "correction/researchops-factory-v1-1-research-task-ci-021",
+    "baseBranch": "main",
+    "approvedBaseSha": "f62c1fb3fc2a66e57e6b023b8eb5b91f2f34500a",
+    "protectedMasterSha": "998fcedd7d9febbec5b130d4765dfeaafc40960b",
+    "frozenSetupHead": "ca0551eaa3dae795900065ffb33a0a8989071eaf",
+    "isolatedWorktree": "C:\\projects\\CryptoBonusWorld-rt-ci-021",
+    "canonicalSetupTriple": [
+      "research-ops/factory-v1-1/research-task-ci-correction-021/RESEARCH_TASK_CI_CORRECTION_CONTRACT.md",
+      "research-ops/factory-v1-1/research-task-ci-correction-021/RESEARCH_TASK_CI_CORRECTION_STATE.json",
+      "research-ops/factory-v1-1/research-task-ci-correction-021/CLAUDE_RESEARCH_TASK_CI_CORRECTION_PROMPT.md"
+    ],
+    "setupAdditionsOnly": true
+  },
+  "implementedCorrection": {
+    "summary": "Added an explicit RESEARCH_TASK routing branch to the workflow's enforcement-resolution step. A canonical research/** head on base main now prints 'ENFORCEMENT: RESEARCH_TASK (protected base policy)', executes the validator from a detached protected-base worktree, uses the exact trusted BASE_SHA as both DIFF_BASE and APPROVED_BASE_SHA, never calls discover-setup-boundary, runs the existing check-boundary, and validates every emitted task root. DESCENDANT and the pinned V4 BOOTSTRAP paths are unchanged.",
+    "changedFiles": [
+      ".github/workflows/cbw-researchops-factory-validate.yml",
+      "research-ops/factory-v1-1/fixtures/run.mjs",
+      "research-ops/factory-v1-1/research-task-ci-correction-021/RESEARCH_TASK_CI_CORRECTION_RESULT.json",
+      "research-ops/factory-v1-1/research-task-ci-correction-021/RESEARCH_TASK_CI_CORRECTION_RESULT.md"
+    ],
+    "routingDetectionRegex": "^research/[a-z0-9]+(-[a-z0-9]+)*$ with base branch main",
+    "descendantPreserved": true,
+    "bootstrapAnchorUnchanged": true
+  },
+  "tests": {
+    "fixtureTotalBefore": 206,
+    "fixtureTotalAfter": 222,
+    "fixtureFailures": 0,
+    "addedForCorrection021": 16,
+    "coverage": [
+      "021-1 canonical research/** on main -> RESEARCH_TASK",
+      "021-2 exact pilot skeleton diff -> RESEARCH_TASK BOUNDARY OK, task root emitted",
+      "021-3 research routing independent of setup-boundary discovery",
+      "021-4 research branch touching factory workflow rejected",
+      "021-5 research branch mixing factory + task files rejected",
+      "021-6 research branch changing only a factory file rejected",
+      "021-7/7b/7c spoof / noncanonical / non-main research branches not trusted",
+      "021-8/8b research head must bind to declared task branch identity",
+      "021-9/9b factory-governance descendant still needs a unique frozen setup boundary",
+      "021-10/10b/10c V4 bootstrap anchor BOOTSTRAP/REJECT/DESCENDANT preserved"
+    ]
+  },
+  "pilotReproduction": {
+    "baseSha": "f62c1fb3fc2a66e57e6b023b8eb5b91f2f34500a",
+    "headSha": "bf0a0932325be00aad08ec3db31aef1af9df2384",
+    "headBranch": "research/kz-binance-kz-p0-d",
+    "baseBranch": "main",
+    "method": "detached protected-base worktree + detached head checkout; exact corrected workflow research-task commands",
+    "reached": {
+      "enforcementResearchTask": true,
+      "boundaryModeResearchTask": true,
+      "resultBoundaryOk": true,
+      "successfulTaskRootValidation": false
+    },
+    "checkBoundaryResult": "BOUNDARY mode=RESEARCH_TASK taskRoots=[research-ops/tasks/CBW-KZ-BINANCE-P0-D-DEEP-RESEARCH-001] / RESULT: BOUNDARY OK (exit 0)"
+  },
+  "blockingFindings": [
+    {
+      "id": "SKELETON-20-RESEARCH-OUTPUT-NOT-PERSISTED",
+      "severity": "blocking-for-pilot",
+      "summary": "The canonical factory skeleton does not persist an empty 20-research-output/ directory. canonicalSkeletonFiles() (used by create) emits a .gitkeep for every other empty stage dir (10-input, 50-source-truth-review, 60-correction, 70-validation, 80-closeout) but NOT for 20-research-output. create() makes the empty directory on disk (so local validate passes 19/19), but git cannot track an empty directory, so on any fresh checkout — including real GitHub CI — the directory is absent and lib/validate.mjs fails the 'stage dir present: 20-research-output' check (18/19, RESULT: INVALID).",
+      "effect": "Even with the RESEARCH_TASK routing fix, the pilot PR #69 workflow would now fail at the 'Validate discovered task roots' step instead of the enforcement-resolution step. The required reproduction target 'successful validation of the Binance task root' cannot be reached.",
+      "requiredFixLocation": "lib/create.mjs / lib/model.mjs (emit 20-research-output/.gitkeep in the canonical skeleton) or lib/validate.mjs (do not require the empty output dir to be present for a committed PREPARED tree)",
+      "inAllowedWriteSet": false,
+      "notWeakenedInWorkflow": true
+    }
+  ],
+  "whyBlocked": "The narrow research-task CI routing correction is implemented and proven (ENFORCEMENT: RESEARCH_TASK, BOUNDARY mode=RESEARCH_TASK, RESULT: BOUNDARY OK; 222/0 fixtures). However the required reproduction also mandates successful validation of the Binance task root, which fails due to a SEPARATE skeleton-persistence defect whose fix lies in lib/ — outside the allowed write set (.github workflow + fixtures + the two result files). Fabricating the missing directory in CI or skipping task-root validation would weaken enforcement and is prohibited. Per the stored prompt, when the full correction is impossible within the allowed paths, stop with RESEARCH_TASK_CI_CORRECTION_BLOCKED and do not broaden scope.",
+  "correctionPrOwnWorkflow": {
+    "note": "The correction PR is a factory-governance PR on main and validates under the existing DESCENDANT path (no research-ops/tasks root in its diff).",
+    "observed": {
+      "runId": 30343255506,
+      "headSha": "3b6ca459dfb397d9e8a9a81d4dd39502a59f7a79",
+      "conclusion": "success",
+      "enforcement": "DESCENDANT (protected base policy)",
+      "runtimeEvidence": [
+        "ENFORCEMENT: DESCENDANT (protected base policy)",
+        "BOUNDARY mode=FACTORY_GOVERNANCE taskRoots=[]",
+        "RESULT: BOUNDARY OK",
+        "Factory-governance PR: no research-task root to validate."
+      ],
+      "allStepsSucceeded": true,
+      "note": "Confirms the RESEARCH_TASK routing addition did not disturb the DESCENDANT or BOOTSTRAP paths and that fixtures now run 222/0. A recording commit embedding this evidence triggers one further identical-policy DESCENDANT run; both are success."
+    }
+  },
+  "recommendedNextOwnerCommand": "Authorize a separate narrow correction limited to lib/create.mjs (and/or lib/model.mjs) to add a governed 20-research-output/.gitkeep to the canonical skeleton (and a regression fixture), then re-run the Binance pilot; after both corrections are on main, re-run PR #69 CI to confirm end-to-end research-task validation.",
+  "nonRegression": {
+    "factoryGovernanceDescendantIntact": true,
+    "v4BootstrapAnchorIntact": true,
+    "nodeCheck": "clean",
+    "gitDiffCheck": "clean",
+    "allowedFileInventoryRespected": true
+  },
+  "authorizations": {
+    "factoryMergeToMainAuthorized": false,
+    "researchRecordMergeToMainAuthorized": false,
+    "binancePilotAuthorized": false,
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false,
+    "masterChangeAuthorized": false
+  }
+}

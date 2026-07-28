@@ -1,0 +1,125 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CORRECTIONS-021-022-CONTROLLED-MERGE-023",
+  "project": "CryptoBonusWorld",
+  "role": "closeout",
+  "decision": "CORRECTIONS_021_022_PUBLISHED_TO_MAIN",
+  "generatedAt": "2026-07-28",
+  "ownerAuthorizationReceipt": {
+    "command": "AUTHORIZE CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CORRECTIONS-021-022-CONTROLLED-MERGE-023",
+    "authorizationType": "FACTORY_CONTROLLED_MERGE_TO_MAIN_ONCE",
+    "targetBranch": "main",
+    "fastForwardOnly": true,
+    "forceAllowed": false,
+    "temporaryAuthorizationDuringExecution": "factoryMergeToMainAuthorized",
+    "oneTimeAuthorizationConsumedAfterStage2": true
+  },
+  "governance": {
+    "governingIssue": 75,
+    "auditPullRequest": 76,
+    "sourceCorrections": [
+      { "issue": 70, "pullRequest": 71, "headSha": "8f6b1e635cca28e7dce6ca160ae7b68d7f258f0f" },
+      { "issue": 72, "pullRequest": 73, "headSha": "0ba2ff77acd1b107bde47609269184ab5d167fc5" }
+    ],
+    "blockedPilot": { "issue": 68, "pullRequest": 69, "headSha": "bf0a0932325be00aad08ec3db31aef1af9df2384", "mutationAuthorized": false },
+    "accidentalClosedPr": 74,
+    "nextTask": "CBW-KZ-BINANCE-P0-D-FACTORY-PILOT-RESUME-024"
+  },
+  "setupIdentity": {
+    "branch": "closeout/researchops-factory-v1-1-corrections-021-022-controlled-merge-023",
+    "baseBranch": "correction/researchops-factory-v1-1-prepared-output-dir-validation-022",
+    "approvedBaseSha": "0ba2ff77acd1b107bde47609269184ab5d167fc5",
+    "frozenSetupHead": "686e77765d49e07055264f9713f93b423eca0a9c",
+    "protectedMasterSha": "998fcedd7d9febbec5b130d4765dfeaafc40960b",
+    "canonicalSetupTriple": [
+      "research-ops/factory-v1-1/corrections-021-022-controlled-merge-023/CORRECTIONS_CONTROLLED_MERGE_CONTRACT.md",
+      "research-ops/factory-v1-1/corrections-021-022-controlled-merge-023/CORRECTIONS_CONTROLLED_MERGE_STATE.json",
+      "research-ops/factory-v1-1/corrections-021-022-controlled-merge-023/CLAUDE_CORRECTIONS_CONTROLLED_MERGE_PROMPT.md"
+    ],
+    "setupAdditionsOnly": true,
+    "singleTemporaryTrueAuthorization": "factoryMergeToMainAuthorized",
+    "otherAuthorizationsFalse": 17
+  },
+  "preflight": {
+    "originMainBaseline": "f62c1fb3fc2a66e57e6b023b8eb5b91f2f34500a",
+    "originMasterProtected": "998fcedd7d9febbec5b130d4765dfeaafc40960b",
+    "ancestry": "f62c1fb3fc2a66e57e6b023b8eb5b91f2f34500a -> 8f6b1e635cca28e7dce6ca160ae7b68d7f258f0f -> 0ba2ff77acd1b107bde47609269184ab5d167fc5",
+    "mergeBaseMainToCumulativeHead": "f62c1fb3fc2a66e57e6b023b8eb5b91f2f34500a",
+    "pr71": { "state": "OPEN", "draft": true, "unmerged": true, "head": "8f6b1e635cca28e7dce6ca160ae7b68d7f258f0f" },
+    "pr73": { "state": "OPEN", "draft": true, "unmerged": true, "head": "0ba2ff77acd1b107bde47609269184ab5d167fc5" },
+    "sourceRuns": { "correction021FinalRun": 30343390597, "correction021Conclusion": "success", "correction022FinalRun": 30346959530, "correction022Conclusion": "success" },
+    "nodeCheck": "clean",
+    "fixtures": { "passed": 235, "failed": 0 },
+    "gitDiffCheck": "clean",
+    "pilotReadOnlySmoke": {
+      "enforcement": "RESEARCH_TASK (protected base policy)",
+      "boundaryMode": "RESEARCH_TASK",
+      "boundaryResult": "RESULT: BOUNDARY OK",
+      "taskRootValidation": "RESULT: VALID (research-ops/tasks/CBW-KZ-BINANCE-P0-D-DEEP-RESEARCH-001)"
+    },
+    "cumulativeDiffFileCount": 13,
+    "cumulativeDiffAllowlist": [
+      ".github/workflows/cbw-researchops-factory-validate.yml",
+      "research-ops/factory-v1-1/fixtures/run.mjs",
+      "research-ops/factory-v1-1/lib/validate.mjs",
+      "research-ops/factory-v1-1/research-task-ci-correction-021/**",
+      "research-ops/factory-v1-1/prepared-output-dir-validation-correction-022/**"
+    ],
+    "forbiddenAreasTouched": []
+  },
+  "stage1": {
+    "method": "ordinary non-force fast-forward push",
+    "command": "git push origin 0ba2ff77acd1b107bde47609269184ab5d167fc5:refs/heads/main",
+    "refUpdate": "f62c1fb..0ba2ff7  0ba2ff77acd1b107bde47609269184ab5d167fc5 -> main",
+    "originMainAfter": "0ba2ff77acd1b107bde47609269184ab5d167fc5",
+    "originMasterAfter": "998fcedd7d9febbec5b130d4765dfeaafc40960b",
+    "forceUsed": false,
+    "prMergeUsed": false,
+    "adminBypassUsed": false,
+    "result": "SUCCESS"
+  },
+  "stage2": {
+    "method": "ordinary non-force fast-forward push",
+    "from": "0ba2ff77acd1b107bde47609269184ab5d167fc5",
+    "to": "AUDIT_RESULT_SHA",
+    "note": "Stage 2 is PENDING the green audit workflow on the exact result commit (only the two result records after the frozen setup). After it is green, origin/main is fast-forwarded once from 0ba2ff7 to that exact commit. No third audit-recording commit or third main push is created. The exact AUDIT_RESULT_SHA and post-Stage-2 refs are supplied in the external Final Report, not by amending these records.",
+    "required": {
+      "enforcement": "DESCENDANT (protected base policy)",
+      "boundaryMode": "FACTORY_GOVERNANCE",
+      "boundaryResult": "RESULT: BOUNDARY OK"
+    }
+  },
+  "authorizationsAfterConsumption": {
+    "factoryMergeToMainAuthorized": false,
+    "researchRecordMergeToMainAuthorized": false,
+    "binancePilotAuthorized": false,
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false,
+    "masterChangeAuthorized": false
+  },
+  "prohibitionsHonored": {
+    "masterUnchanged": true,
+    "noDeployNoImport": true,
+    "noProductionOrPageOrDesignOrCanonicalChange": true,
+    "noBinanceResearchNoOutputPopulation": true,
+    "noForceNoResetNoRebaseNoSquashNoCherryPick": true,
+    "noGithubPrMerge": true,
+    "noBranchProtectionChange": true,
+    "noBranchDeletion": true,
+    "pr69NotUpdatedOrRerun": true,
+    "noV5": true
+  },
+  "blockingFindings": []
+}
