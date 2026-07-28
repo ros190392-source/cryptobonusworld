@@ -3,75 +3,51 @@
   "modelId": "CBW_CHANGE_EVENT_AND_IMPACT_MODEL_V1",
   "title": "CBW Change Event and Impact Model V1",
   "status": "ARCHITECTURE_DRAFT_FOR_OWNER_APPROVAL",
-  "description": "Deterministic pipeline from a detected source change to impact analysis, patch proposal, policy lane, QA, publication, live verification and rollback. Architecture model only.",
-  "sharedEnums": {
+  "auditCorrection": "Owner Audit Correction 026 (finding C): pipeline stage (non-terminal process position) and task outcome (terminal result of one iteration) are modelled as SEPARATE vocabularies; the owner lifecycle and terminal outcomes are adopted exactly. No required state disappears.",
+  "description": "Deterministic pipeline from a detected source change to impact analysis, patch proposal, policy gate, QA, publication, live verification and rollback. Architecture model only.",
+  "canonicalEnums": {
+    "pipelineStage": ["DISCOVER", "CAPTURE", "EXTRACT", "VERIFY", "RESOLVE", "UPDATE_CLAIM", "ANALYZE_IMPACT", "PATCH", "QA", "POLICY_GATE", "PUBLISH", "LIVE_VERIFY", "ROLLBACK"],
+    "taskOutcome": ["PUBLISHED", "NO_MATERIAL_CHANGE", "OWNER_REVIEW_REQUIRED", "BLOCKED", "SOURCE_UNAVAILABLE", "CONFLICT_UNRESOLVED", "ROLLED_BACK"],
     "changeMateriality": ["NONE", "MINOR", "MODERATE", "MAJOR", "CRITICAL"],
     "policyLane": ["GREEN", "AMBER", "RED"],
-    "agentWorkflowState": ["DETECTED", "EVIDENCE_CAPTURED", "EXTRACTED", "VALIDATED", "CONFLICTED", "IMPACT_ASSESSED", "PATCH_PROPOSED", "QA_PASSED", "AWAITING_OWNER", "PUBLISH_APPROVED", "PUBLISHED", "LIVE_VERIFIED", "ROLLED_BACK", "REJECTED", "SUPPRESSED"],
-    "agentTerminalState": ["LIVE_VERIFIED", "ROLLED_BACK", "REJECTED", "SUPPRESSED"]
+    "claimVerificationState": ["SUPPORTED", "CONFLICTED", "UNDER_REVIEW", "UNSUPPORTED"],
+    "freshnessState": ["FRESH", "DUE_SOON", "STALE", "EXPIRED"]
+  },
+  "stateLayers": {
+    "pipelineStage": "Non-terminal position within one processing iteration.",
+    "taskOutcome": "The single terminal result of one iteration.",
+    "note": "pipelineStage and taskOutcome are distinct; an intermediate stage is NEVER a terminal outcome."
   },
   "entities": {
     "ChangeEvent": {
       "primaryKey": "changeEventId",
-      "fields": {"sourceId": "SourceRegistryEntry.sourceId", "snapshotChangeId": "SnapshotChange.snapshotChangeId", "workflowState": "one of sharedEnums.agentWorkflowState", "idempotencyKey": "string derived from snapshotChangeId", "createdAt": "timestamp"},
-      "invariants": ["duplicate ChangeEvents with the same idempotencyKey MUST be deduplicated"]
+      "fields": {"sourceId": "SourceRegistryEntry.sourceId", "snapshotChangeId": "SnapshotChange.snapshotChangeId", "pipelineStage": "one of canonicalEnums.pipelineStage", "taskOutcome": "one of canonicalEnums.taskOutcome or null (null until terminal)", "idempotencyKey": "string derived from snapshotChangeId", "createdAt": "timestamp"},
+      "invariants": ["duplicate ChangeEvents with the same idempotencyKey MUST be deduplicated", "taskOutcome is set exactly once when the iteration terminates"]
     },
-    "MaterialityAssessment": {
-      "primaryKey": "materialityAssessmentId",
-      "fields": {"changeEventId": "ChangeEvent.changeEventId", "materiality": "one of sharedEnums.changeMateriality", "rationale": "string", "assessedAt": "timestamp"}
-    },
-    "AffectedClaim": {
-      "primaryKey": "affectedClaimId",
-      "fields": {"changeEventId": "ChangeEvent.changeEventId", "claimId": "Claim.claimId", "effect": "one of [CONFIRM, UPDATE, CONTRADICT, EXPIRE]"}
-    },
-    "AffectedMarketProfile": {
-      "primaryKey": "affectedMarketProfileId",
-      "fields": {"changeEventId": "ChangeEvent.changeEventId", "marketProfileId": "marketProfileId"}
-    },
-    "AffectedPublicationBinding": {
-      "primaryKey": "affectedPublicationBindingId",
-      "fields": {"changeEventId": "ChangeEvent.changeEventId", "bindingId": "PublicationBinding.bindingId", "impactStatus": "one of [NO_IMPACT, IMPACTED_MINOR, IMPACTED_MAJOR, IMPACTED_CRITICAL]"}
-    },
-    "ContentPatchProposal": {
-      "primaryKey": "contentPatchProposalId",
-      "fields": {"changeEventId": "ChangeEvent.changeEventId", "bindingId": "PublicationBinding.bindingId", "changeType": "one of [SEMANTIC, FORMATTING]", "lane": "one of sharedEnums.policyLane", "diffSummary": "string"}
-    },
-    "PolicyLaneDecision": {
-      "primaryKey": "policyLaneDecisionId",
-      "fields": {"changeEventId": "ChangeEvent.changeEventId", "lane": "one of sharedEnums.policyLane", "autoPublishable": "boolean", "requiresTwoSources": "boolean", "requiresOwner": "boolean"},
-      "invariants": [
-        "lane GREEN MAY auto-publish formatting/non-critical updates with sufficient fresh evidence",
-        "lane AMBER requires two sources or a primary source and holds for QA",
-        "lane RED requires owner approval and MUST NOT auto-publish"
-      ]
-    },
-    "QAVerdict": {
-      "primaryKey": "qaVerdictId",
-      "fields": {"contentPatchProposalId": "ContentPatchProposal.contentPatchProposalId", "verdict": "one of [PASS, FAIL, NEEDS_OWNER]", "checks": "array of check ids", "verifiedAt": "timestamp"}
-    },
-    "PublicationAction": {
-      "primaryKey": "publicationActionId",
-      "fields": {"contentPatchProposalId": "ContentPatchProposal.contentPatchProposalId", "action": "one of [PUBLISH, HOLD, SUPPRESS]", "ownerApproved": "boolean", "actedAt": "timestamp"}
-    },
-    "LiveVerification": {
-      "primaryKey": "liveVerificationId",
-      "fields": {"publicationActionId": "PublicationAction.publicationActionId", "outcome": "one of [MATCH, MISMATCH, ERROR]", "verifiedAt": "timestamp"}
-    },
-    "RollbackAction": {
-      "primaryKey": "rollbackActionId",
-      "fields": {"publicationActionId": "PublicationAction.publicationActionId", "reason": "string", "rolledBackAt": "timestamp"}
-    }
+    "MaterialityAssessment": {"primaryKey": "materialityAssessmentId", "fields": {"changeEventId": "ChangeEvent.changeEventId", "materiality": "one of canonicalEnums.changeMateriality", "rationale": "string", "assessedAt": "timestamp"}},
+    "AffectedClaim": {"primaryKey": "affectedClaimId", "fields": {"changeEventId": "ChangeEvent.changeEventId", "claimId": "Claim.claimId", "effect": "one of [CONFIRM, UPDATE, CONTRADICT, EXPIRE]", "resultingVerificationState": "one of canonicalEnums.claimVerificationState"}},
+    "AffectedMarketProfile": {"primaryKey": "affectedMarketProfileId", "fields": {"changeEventId": "ChangeEvent.changeEventId", "marketProfileId": "marketProfileId"}},
+    "AffectedPublicationBinding": {"primaryKey": "affectedPublicationBindingId", "fields": {"changeEventId": "ChangeEvent.changeEventId", "bindingId": "PublicationBinding.bindingId", "impactStatus": "one of [NO_IMPACT, IMPACTED_MINOR, IMPACTED_MAJOR, IMPACTED_CRITICAL]"}},
+    "ContentPatchProposal": {"primaryKey": "contentPatchProposalId", "fields": {"changeEventId": "ChangeEvent.changeEventId", "bindingId": "PublicationBinding.bindingId", "changeType": "one of [SEMANTIC, FORMATTING]", "lane": "one of canonicalEnums.policyLane", "diffSummary": "string"}},
+    "PolicyGateDecision": {"primaryKey": "policyGateDecisionId", "fields": {"changeEventId": "ChangeEvent.changeEventId", "lane": "one of canonicalEnums.policyLane", "autoPublishable": "boolean", "requiresTwoSources": "boolean", "requiresOwner": "boolean"}, "invariants": ["GREEN MAY auto-publish formatting/non-critical with sufficient fresh evidence", "AMBER requires two sources or a primary authority and holds for QA", "RED requires owner approval and MUST NOT auto-publish"]},
+    "QAVerdict": {"primaryKey": "qaVerdictId", "fields": {"contentPatchProposalId": "ContentPatchProposal.contentPatchProposalId", "verdict": "one of [PASS, FAIL, NEEDS_OWNER]", "checks": "array of check ids", "verifiedAt": "timestamp"}},
+    "PublicationAction": {"primaryKey": "publicationActionId", "fields": {"contentPatchProposalId": "ContentPatchProposal.contentPatchProposalId", "action": "one of [PUBLISH, HOLD, SUPPRESS]", "ownerApproved": "boolean", "actedAt": "timestamp"}},
+    "LiveVerification": {"primaryKey": "liveVerificationId", "fields": {"publicationActionId": "PublicationAction.publicationActionId", "outcome": "one of [MATCH, MISMATCH, ERROR]", "verifiedAt": "timestamp"}},
+    "RollbackAction": {"primaryKey": "rollbackActionId", "fields": {"publicationActionId": "PublicationAction.publicationActionId", "reason": "string", "rolledBackAt": "timestamp"}}
   },
-  "statusTransitions": [
-    "DETECTED -> EVIDENCE_CAPTURED -> EXTRACTED -> VALIDATED",
-    "VALIDATED -> CONFLICTED (if disagreement) -> IMPACT_ASSESSED",
-    "VALIDATED -> IMPACT_ASSESSED -> PATCH_PROPOSED -> QA_PASSED",
-    "QA_PASSED -> AWAITING_OWNER (RED) -> PUBLISH_APPROVED -> PUBLISHED -> LIVE_VERIFIED",
-    "QA_PASSED -> PUBLISHED (GREEN auto) -> LIVE_VERIFIED",
-    "any -> REJECTED or SUPPRESSED",
-    "PUBLISHED/LIVE_VERIFIED -> ROLLED_BACK (on MISMATCH)"
+  "pipelineStageOrder": ["DISCOVER", "CAPTURE", "EXTRACT", "VERIFY", "RESOLVE", "UPDATE_CLAIM", "ANALYZE_IMPACT", "PATCH", "QA", "POLICY_GATE", "PUBLISH", "LIVE_VERIFY", "ROLLBACK"],
+  "outcomeExamples": [
+    {"situation": "no hash/material fact change", "taskOutcome": "NO_MATERIAL_CHANGE"},
+    {"situation": "critical ambiguity needing owner", "taskOutcome": "OWNER_REVIEW_REQUIRED"},
+    {"situation": "fetch source unavailable after bounded retries", "taskOutcome": "SOURCE_UNAVAILABLE"},
+    {"situation": "unresolved evidence conflict", "taskOutcome": "CONFLICT_UNRESOLVED"},
+    {"situation": "validation or policy failure", "taskOutcome": "BLOCKED"},
+    {"situation": "successful live-verified publication", "taskOutcome": "PUBLISHED"},
+    {"situation": "mismatch followed by rollback", "taskOutcome": "ROLLED_BACK"}
   ],
-  "terminalStates": ["LIVE_VERIFIED", "ROLLED_BACK", "REJECTED", "SUPPRESSED"],
+  "legacyMappings": {
+    "note": "Prior V1 combined process/terminal states (DETECTED, EVIDENCE_CAPTURED, ..., LIVE_VERIFIED, REJECTED, SUPPRESSED) are replaced. Mapping: LIVE_VERIFIED->outcome PUBLISHED; REJECTED->outcome BLOCKED; SUPPRESSED->outcome BLOCKED or OWNER_REVIEW_REQUIRED depending on cause; the DETECTED..PUBLISH process labels map to the pipelineStage sequence above."
+  },
   "crossReferences": [
     "../../templates/continuous-market-intelligence-v1/CBW_AUTONOMOUS_CONTENT_UPDATE_POLICY_V1.md",
     "../../templates/continuous-market-intelligence-v1/CBW_AGENT_ROLES_AND_STATE_MACHINE_V1.md",

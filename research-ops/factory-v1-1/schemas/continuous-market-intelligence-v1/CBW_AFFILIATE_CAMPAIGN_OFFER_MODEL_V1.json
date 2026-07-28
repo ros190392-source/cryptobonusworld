@@ -3,12 +3,20 @@
   "modelId": "CBW_AFFILIATE_CAMPAIGN_OFFER_MODEL_V1",
   "title": "CBW Affiliate Campaign and Offer Model V1",
   "status": "ARCHITECTURE_DRAFT_FOR_OWNER_APPROVAL",
-  "description": "Models affiliate campaigns, links, redirect observations, offers and public verification levels. Contains NO real affiliate URLs, referral codes, secrets or bonus amounts. All example values use the reserved example.invalid domain and clearly fake placeholders.",
-  "safetyNote": "Public verification is anonymous L0-L3 only. L4 (account-confirmed) is a separately authorized future capability and is never performed without an explicit owner authorization. No account creation, login, KYC, proxy, location spoofing or financial transaction is described or permitted.",
-  "sharedEnums": {
-    "affiliateVerificationLevel": ["L0_UNVERIFIED", "L1_LINK_RESOLVED", "L2_OFFER_CAPTURED", "L3_TERMS_CONFIRMED", "L4_ACCOUNT_CONFIRMED"],
-    "affiliateOfferStatus": ["ACTIVE", "CHANGED", "EXPIRED", "GEO_RESTRICTED", "BROKEN_LINK", "SUSPENDED", "UNKNOWN"],
-    "ctaState": ["ENABLED", "DISABLED", "UNDER_REVIEW", "SUPPRESSED_BROKEN", "SUPPRESSED_GEO"]
+  "auditCorrection": "Owner Audit Correction 026 (finding A): operational field names are now neutral (no *Placeholder suffix) so runtime records can hold actual observed PUBLIC affiliate URLs, codes, redirect hops and visible offer values as evidence. Example VALUES remain fake and use example.invalid. Secrets, tokens, cookies, private dashboard data and personal data are excluded and never committed to Git.",
+  "description": "Models affiliate campaigns, links, redirect observations, offers and public verification levels for continuous monitoring of the real owner-approved campaign.",
+  "canonicalEnums": {
+    "affiliateVerificationLevel": ["L0_UNVERIFIED", "L1_LINK_RESOLVES", "L2_OFFER_VISIBLE", "L3_TERMS_ELIGIBLE", "L4_ACCOUNT_CONFIRMED"],
+    "affiliateOfferStatus": ["ACTIVE_VERIFIED", "ACTIVE_LIMITED", "UNDER_REVIEW", "CODE_NOT_APPLIED", "GEO_NOT_ELIGIBLE", "LINK_BROKEN", "OFFER_ENDED", "SOURCE_UNAVAILABLE", "CONFLICTED"],
+    "ctaState": ["ENABLED", "DISABLED", "UNDER_REVIEW", "GEO_SUPPRESSED", "FAILSAFE_SUPPRESSED"],
+    "dataClassification": ["PUBLIC_OBSERVED", "INTERNAL_COMMERCIAL", "SENSITIVE_SECRET", "PERSONAL_DATA"],
+    "freshnessState": ["FRESH", "DUE_SOON", "STALE", "EXPIRED"]
+  },
+  "dataClassificationRules": {
+    "PUBLIC_OBSERVED": "Public landing URLs, public referral codes and visible offer values that anyone can observe without logging in. Allowed as evidence.",
+    "INTERNAL_COMMERCIAL": "Owner commercial terms not publicly visible; stored governed, not on public pages.",
+    "SENSITIVE_SECRET": "Private affiliate-dashboard links, credentials, cookies and access tokens. MUST NEVER be committed to Git and MUST NOT be collected by monitoring.",
+    "PERSONAL_DATA": "Any personal account data. MUST NOT be collected in L0-L3."
   },
   "entities": {
     "AffiliateCampaign": {
@@ -17,74 +25,114 @@
         "campaignId": "example id, e.g. camp_binance_kz_example",
         "exchangeId": "slug",
         "countryCode": "ISO-3166-1 alpha-2",
-        "internalRedirectSlug": "managed internal slug, e.g. go/binance-kz-example (identity only; no live route is created by this architecture)",
+        "internalRedirectRoute": "managed internal route identity, e.g. /go/binance-kz-example",
+        "campaignIdentifier": "public campaign id as observed, e.g. EXAMPLECAMPAIGN (fake example)",
         "campaignStatus": "one of [DRAFT, MONITORED, PAUSED, RETIRED]",
         "ownerApprovedRoute": "boolean default false"
       },
-      "invariants": ["affiliate route changes are owner-gated; ownerApprovedRoute defaults false", "no real destination URL or referral code is stored in this architecture model"]
+      "invariants": ["affiliate route and referral-code changes are owner-gated; ownerApprovedRoute defaults false"]
     },
     "AffiliateLink": {
       "primaryKey": "linkId",
       "foreignKeys": {"campaignId": "AffiliateCampaign.campaignId"},
-      "fields": {"sourceUrlPlaceholder": "https://go.example.invalid/binance-kz-example", "referralIdentifierPlaceholder": "REF_EXAMPLE_PLACEHOLDER", "lastObservedStatus": "one of sharedEnums.affiliateOfferStatus"},
-      "invariants": ["referralIdentifierPlaceholder MUST be an obvious placeholder, never a real code"]
+      "fields": {
+        "sourceAffiliateUrl": "the public affiliate URL as observed, e.g. https://go.example.invalid/binance-kz-example (real observed public URLs allowed at runtime)",
+        "referralCode": "the public referral code as observed, e.g. EXAMPLECODE (fake example; real public codes allowed at runtime)",
+        "dataClassification": "one of canonicalEnums.dataClassification; a public link/code is PUBLIC_OBSERVED",
+        "lastObservedStatus": "one of canonicalEnums.affiliateOfferStatus"
+      }
     },
     "RedirectObservation": {
       "primaryKey": "redirectObservationId",
       "foreignKeys": {"linkId": "AffiliateLink.linkId"},
       "fields": {
         "redirectObservationId": "example id",
-        "hopChain": "array of {hop: integer, urlPlaceholder: string, httpStatus: integer}",
-        "finalDestinationDomainPlaceholder": "exchange.example.invalid",
-        "capturedAt": "timestamp",
+        "redirectHopUrl": "array of per-hop URLs as observed, e.g. [https://go.example.invalid/1, https://exchange.example.invalid/ref]",
+        "redirectHopHttpStatus": "array of per-hop HTTP status integers, e.g. [302, 200]",
+        "finalDestinationUrl": "final resolved URL as observed, e.g. https://exchange.example.invalid/register",
+        "finalDestinationDomain": "final domain, e.g. exchange.example.invalid",
+        "observedAt": "timestamp",
         "contentHash": "sha256 hex placeholder",
-        "snapshotObjectKey": "object-store key for the captured chain and screenshot"
+        "evidenceSnapshotId": "EvidenceSnapshot id in the evidence store",
+        "screenshotEvidenceId": "screenshot object id in the evidence store",
+        "dataClassification": "PUBLIC_OBSERVED"
       },
-      "invariants": ["redirect chains are captured anonymously without cookies tied to a real identity"]
+      "invariants": ["redirect chains are captured anonymously; no cookies/credentials/tokens are stored (those are SENSITIVE_SECRET)"]
     },
     "OfferSnapshot": {
       "primaryKey": "offerSnapshotId",
       "foreignKeys": {"campaignId": "AffiliateCampaign.campaignId"},
-      "fields": {"offerStatus": "one of sharedEnums.affiliateOfferStatus", "offerHeadlinePlaceholder": "e.g. up to <PLACEHOLDER> reward (exact value only after L2 capture)", "rewardTypePlaceholder": "one of [TRADING_FEE_REBATE, VOUCHER, POINTS, UNKNOWN]", "capturedAt": "timestamp", "verificationLevel": "one of sharedEnums.affiliateVerificationLevel"},
-      "invariants": ["headline language MUST use 'up to' style, never a guaranteed reward claim", "no concrete bonus amount is stored in this architecture model"]
+      "fields": {
+        "offerStatus": "one of canonicalEnums.affiliateOfferStatus",
+        "offerHeadline": "the visible offer headline as observed, e.g. 'up to <observed maximum> reward' (fake example text)",
+        "advertisedMaximumValue": "numeric maximum as advertised (observed at L2), example fake value 100",
+        "advertisedCurrency": "ISO-4217 as advertised, e.g. USD",
+        "rewardType": "one of [TRADING_FEE_REBATE, VOUCHER, POINTS, UNKNOWN]",
+        "termsUrl": "public terms URL as observed, e.g. https://exchange.example.invalid/terms",
+        "termText": "public terms text as observed",
+        "observedAt": "timestamp",
+        "contentHash": "sha256 hex placeholder",
+        "evidenceSnapshotId": "EvidenceSnapshot id",
+        "screenshotEvidenceId": "screenshot object id",
+        "verificationLevel": "one of canonicalEnums.affiliateVerificationLevel",
+        "dataClassification": "PUBLIC_OBSERVED",
+        "redactionPolicy": "one of [NONE, REDACT_QUERY_TOKENS] applied before storage to strip any accidental session token from a URL"
+      },
+      "invariants": ["headline language uses 'up to' style, never a guaranteed reward", "advertisedMaximumValue is an OBSERVED public figure, not a promise", "example values are fake and use example.invalid"]
     },
     "OfferTerm": {
       "primaryKey": "offerTermId",
       "foreignKeys": {"offerSnapshotId": "OfferSnapshot.offerSnapshotId"},
-      "fields": {"termType": "one of [ELIGIBILITY, WAGERING, TIME_WINDOW, GEO, KYC_REQUIRED]", "termTextPlaceholder": "string as captured", "claimId": "Claim.claimId that evidences this term"}
-    },
-    "GeoEligibility": {
-      "primaryKey": "geoEligibilityId",
-      "foreignKeys": {"campaignId": "AffiliateCampaign.campaignId"},
-      "fields": {"countryCode": "ISO-3166-1 alpha-2", "newUserEligible": "one of [YES, NO, CONDITIONAL, UNKNOWN]", "note": "string"}
+      "fields": {
+        "termType": "one of [GEO_ELIGIBILITY, NEW_USER_ELIGIBILITY, KYC_REQUIRED, DEPOSIT_CONDITIONS, TRADING_CONDITIONS, TIME_WINDOW]",
+        "geoEligibility": "one of [YES, NO, CONDITIONAL, UNKNOWN]",
+        "newUserEligibility": "one of [YES, NO, CONDITIONAL, UNKNOWN]",
+        "kycRequired": "one of [YES, NO, UNKNOWN]",
+        "depositConditions": "observed public text",
+        "tradingConditions": "observed public text",
+        "timeWindow": "observed public text, e.g. within 30 days of registration",
+        "termText": "observed public text",
+        "claimId": "Claim.claimId that evidences this term"
+      }
     },
     "VerificationLevel": {
       "primaryKey": "verificationLevelId",
-      "fields": {
-        "level": "one of sharedEnums.affiliateVerificationLevel",
-        "definition": "string",
-        "requiresSeparateOwnerAuthorization": "boolean"
-      },
+      "fields": {"level": "one of canonicalEnums.affiliateVerificationLevel", "definition": "string", "requiresSeparateOwnerAuthorization": "boolean"},
       "catalog": [
         {"level": "L0_UNVERIFIED", "definition": "No evidence captured yet.", "requiresSeparateOwnerAuthorization": false},
-        {"level": "L1_LINK_RESOLVED", "definition": "Redirect chain resolved anonymously to a final destination domain.", "requiresSeparateOwnerAuthorization": false},
-        {"level": "L2_OFFER_CAPTURED", "definition": "Public offer page captured with snapshot and hash.", "requiresSeparateOwnerAuthorization": false},
-        {"level": "L3_TERMS_CONFIRMED", "definition": "Public terms and eligibility captured and cross-checked against official pages.", "requiresSeparateOwnerAuthorization": false},
-        {"level": "L4_ACCOUNT_CONFIRMED", "definition": "Reward confirmed via a real account. Not performed without explicit separate owner authorization; involves no automation, proxy or fake identity.", "requiresSeparateOwnerAuthorization": true}
+        {"level": "L1_LINK_RESOLVES", "definition": "The complete redirect chain resolves anonymously to a final destination.", "requiresSeparateOwnerAuthorization": false},
+        {"level": "L2_OFFER_VISIBLE", "definition": "The visible public offer is captured with snapshot and hash.", "requiresSeparateOwnerAuthorization": false},
+        {"level": "L3_TERMS_ELIGIBLE", "definition": "Public terms and GEO/new-user eligibility are captured and supported.", "requiresSeparateOwnerAuthorization": false},
+        {"level": "L4_ACCOUNT_CONFIRMED", "definition": "Reward confirmed via a real account. Separate owner authorization only; no automation, proxy, fake identity or prohibited financial actions.", "requiresSeparateOwnerAuthorization": true}
       ]
     },
     "VerificationEvent": {
       "primaryKey": "affiliateVerificationEventId",
-      "fields": {"campaignId": "AffiliateCampaign.campaignId", "level": "one of sharedEnums.affiliateVerificationLevel", "outcome": "one of [CONFIRMED, CHANGED, BROKEN, GEO_BLOCKED, INCONCLUSIVE]", "snapshotObjectKey": "string", "performedAt": "timestamp"}
+      "fields": {"campaignId": "AffiliateCampaign.campaignId", "level": "one of canonicalEnums.affiliateVerificationLevel", "outcome": "one of [CONFIRMED, CHANGED, BROKEN, GEO_BLOCKED, INCONCLUSIVE]", "evidenceSnapshotId": "string", "performedAt": "timestamp"}
     },
     "CTAState": {
       "primaryKey": "ctaStateId",
       "foreignKeys": {"campaignId": "AffiliateCampaign.campaignId"},
-      "fields": {"state": "one of sharedEnums.ctaState", "reason": "string", "changedAt": "timestamp"},
-      "invariants": ["a BROKEN_LINK or SUSPENDED offer MUST force ctaState SUPPRESSED_BROKEN", "a GEO_RESTRICTED offer for the market MUST force ctaState SUPPRESSED_GEO", "any ENABLED transition on a live CTA is owner-gated"]
+      "fields": {"state": "one of canonicalEnums.ctaState", "reason": "string", "changedAt": "timestamp"}
     }
   },
-  "requiredOfferStatuses": ["ACTIVE", "CHANGED", "EXPIRED", "GEO_RESTRICTED", "BROKEN_LINK", "SUSPENDED", "UNKNOWN"],
+  "offerStatusToCtaMapping": [
+    {"offerStatus": "ACTIVE_VERIFIED", "cta": "ENABLED", "note": "CTA may be enabled ONLY when existing owner route/code/CTA approvals are valid (owner-gated)."},
+    {"offerStatus": "ACTIVE_LIMITED", "cta": "ENABLED", "note": "cautious 'check conditions' presentation; enable is owner-gated."},
+    {"offerStatus": "UNDER_REVIEW", "cta": "UNDER_REVIEW", "note": "CTA disabled or shown in a review state."},
+    {"offerStatus": "CODE_NOT_APPLIED", "cta": "UNDER_REVIEW", "note": "CTA suppressed or corrected only after owner review."},
+    {"offerStatus": "GEO_NOT_ELIGIBLE", "cta": "GEO_SUPPRESSED", "note": "GEO suppression (automatic, fail-safe)."},
+    {"offerStatus": "LINK_BROKEN", "cta": "FAILSAFE_SUPPRESSED", "note": "emergency fail-safe suppression (automatic)."},
+    {"offerStatus": "OFFER_ENDED", "cta": "DISABLED", "note": "disabled."},
+    {"offerStatus": "SOURCE_UNAVAILABLE", "cta": "UNDER_REVIEW", "note": "under-review/disabled until source returns."},
+    {"offerStatus": "CONFLICTED", "cta": "DISABLED", "note": "disabled pending conflict resolution."}
+  ],
+  "ctaAuthorityRule": "Fail-safe suppression (GEO_SUPPRESSED, FAILSAFE_SUPPRESSED, UNDER_REVIEW) MAY be applied automatically. Any ENABLE/re-enable, affiliate route change or referral-code change is RED / owner-gated.",
+  "legacyMappings": {
+    "affiliateOfferStatus": {"ACTIVE": "ACTIVE_VERIFIED", "CHANGED": "UNDER_REVIEW", "EXPIRED": "OFFER_ENDED", "GEO_RESTRICTED": "GEO_NOT_ELIGIBLE", "BROKEN_LINK": "LINK_BROKEN", "SUSPENDED": "OFFER_ENDED", "UNKNOWN": "UNDER_REVIEW"},
+    "affiliateVerificationLevel": {"L1_LINK_RESOLVED": "L1_LINK_RESOLVES", "L2_OFFER_CAPTURED": "L2_OFFER_VISIBLE", "L3_TERMS_CONFIRMED": "L3_TERMS_ELIGIBLE"},
+    "note": "Prior V1 values are retained here only as migration mappings and are not current values."
+  },
   "crossReferences": [
     "../../templates/continuous-market-intelligence-v1/CBW_AFFILIATE_OFFER_VERIFICATION_STANDARD_V1.md",
     "./CBW_CLAIM_EVIDENCE_FRESHNESS_MODEL_V1.json",

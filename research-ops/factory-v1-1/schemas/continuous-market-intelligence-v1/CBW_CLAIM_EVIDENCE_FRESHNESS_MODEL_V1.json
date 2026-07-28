@@ -3,25 +3,40 @@
   "modelId": "CBW_CLAIM_EVIDENCE_FRESHNESS_MODEL_V1",
   "title": "CBW Claim, Evidence and Freshness Model V1",
   "status": "ARCHITECTURE_DRAFT_FOR_OWNER_APPROVAL",
-  "description": "Canonical claim/evidence graph and freshness governance for the continuous market-intelligence platform. Architecture model only; example ids and the example.invalid domain are placeholders, not live sources.",
-  "sharedEnums": {
+  "auditCorrection": "Owner Audit Correction 026: separated freshness, claim-verification and source-health vocabularies; replaced claim-type-agnostic tier authority with a predicate-specific authority matrix.",
+  "description": "Canonical claim/evidence graph and freshness governance. Architecture model only; example ids and the example.invalid domain are placeholders, not live sources.",
+  "canonicalEnums": {
     "claimConfidence": ["HIGH", "MEDIUM", "LOW", "UNVERIFIED"],
-    "freshnessState": ["FRESH", "AGING", "STALE", "EXPIRED"],
-    "sourceTier": ["TIER_0_OFFICIAL", "TIER_1_REGULATOR", "TIER_2_REPUTABLE", "TIER_3_COMMUNITY", "TIER_4_UNVERIFIED"],
-    "claimEdgeType": ["SUPPORTS", "CONTRADICTS", "CONTEXTUALIZES", "SUPERSEDES"]
+    "freshnessState": ["FRESH", "DUE_SOON", "STALE", "EXPIRED"],
+    "claimVerificationState": ["SUPPORTED", "CONFLICTED", "UNDER_REVIEW", "UNSUPPORTED"],
+    "sourceHealthState": ["HEALTHY", "DEGRADED", "UNAVAILABLE", "BLOCKED", "RETIRED"],
+    "claimEdgeType": ["SUPPORTS", "CONTRADICTS", "CONTEXTUALIZES", "SUPERSEDES"],
+    "taskOutcome": ["PUBLISHED", "NO_MATERIAL_CHANGE", "OWNER_REVIEW_REQUIRED", "BLOCKED", "SOURCE_UNAVAILABLE", "CONFLICT_UNRESOLVED", "ROLLED_BACK"]
   },
+  "sourceFamilies": ["OFFICIAL_PRIMARY", "REGULATOR_LEGAL", "OFFICIAL_PARTNER", "REPUTABLE_SECONDARY", "COMMUNITY_SIGNAL"],
+  "claimTypeAuthorityMatrix": [
+    {"claimType": "LAW_LICENSE_PROHIBITION_REGULATORY_STATUS", "primaryAuthority": ["REGULATOR_LEGAL"], "note": "regulator, legislation, court or official register governs; an exchange statement does not override a regulator."},
+    {"claimType": "EXCHANGE_TERMS_PRODUCT_KYC_FEE", "primaryAuthority": ["OFFICIAL_PRIMARY"], "note": "official exchange documents govern operational product/fee/KYC claims."},
+    {"claimType": "PAYMENT_RAIL", "primaryAuthority": ["OFFICIAL_PARTNER", "OFFICIAL_PRIMARY"], "note": "the bank/provider that supplies the rail governs, corroborated by exchange evidence."},
+    {"claimType": "SECURITY_INCIDENT", "primaryAuthority": ["OFFICIAL_PRIMARY", "REPUTABLE_SECONDARY"], "note": "official incident notice plus independent security reporting where available."},
+    {"claimType": "MARKET_CONTEXT", "primaryAuthority": ["REPUTABLE_SECONDARY"], "note": "reputable secondary sources."},
+    {"claimType": "COMMUNITY_REPORT", "primaryAuthority": ["COMMUNITY_SIGNAL"], "note": "leads/signals only until corroborated by a higher-authority family for that claim type."}
+  ],
+  "authorityRule": "There is NO universal 'higher tier always wins' rule. Conflict resolution selects the primary authority for the claim's predicate from claimTypeAuthorityMatrix. All evidence is retained; an unresolved critical conflict yields taskOutcome CONFLICT_UNRESOLVED and no agent silently drops contradictory evidence.",
   "entities": {
     "Claim": {
       "primaryKey": "claimId",
       "fields": {
         "claimId": "example id, e.g. clm_kz_binance_reg_0001",
+        "claimType": "one of claimTypeAuthorityMatrix.claimType",
         "subjectType": "one of [EXCHANGE_GLOBAL, MARKET_PROFILE]",
         "subjectId": "exchangeId or marketProfileId",
         "predicate": "one of [REGULATORY_STATUS, LICENSE, RESTRICTION, REGISTRATION, KYC, PRODUCT_AVAILABILITY, PAYMENT_RAIL, FEE, LIMIT, SECURITY, HISTORY, AFFILIATE_OFFER]",
         "statementText": "concise factual statement, not marketing prose",
-        "confidence": "one of sharedEnums.claimConfidence",
-        "freshnessState": "one of sharedEnums.freshnessState",
-        "limitations": "string describing scope/uncertainty, required for LOW or UNVERIFIED",
+        "confidence": "one of canonicalEnums.claimConfidence",
+        "verificationState": "one of canonicalEnums.claimVerificationState",
+        "freshnessState": "one of canonicalEnums.freshnessState",
+        "limitations": "string; required for confidence LOW/UNVERIFIED or verificationState UNDER_REVIEW/UNSUPPORTED",
         "effectiveFrom": "date",
         "effectiveTo": "date or null",
         "currentVersionId": "ClaimVersion.claimVersionId",
@@ -29,74 +44,56 @@
         "isCritical": "boolean; regulatory, security, sanction, restriction claims are critical"
       },
       "invariants": [
-        "a claim with confidence LOW or UNVERIFIED MUST record limitations",
-        "a claim with no non-contradicted supporting evidence MUST NOT hold confidence above LOW",
-        "a critical claim in freshnessState STALE or EXPIRED MUST trigger publication suppression per the publication binding model"
+        "verificationState and freshnessState are independent dimensions and MUST NOT be conflated",
+        "a claim with no non-contradicted supporting evidence has verificationState UNSUPPORTED and confidence at most LOW",
+        "a critical claim that is STALE or EXPIRED, or UNDER_REVIEW/UNSUPPORTED, MUST trigger publication suppression"
       ]
     },
     "EvidenceSource": {
       "primaryKey": "sourceId",
-      "fields": {
-        "sourceId": "example id",
-        "sourceTier": "one of sharedEnums.sourceTier",
-        "sourceType": "one of [OFFICIAL_SITE, HELP_CENTER, REGULATOR_REGISTER, RSS, API, NEWS, COMMUNITY]",
-        "canonicalUrl": "placeholder like https://regulator.example.invalid/register",
-        "publisher": "string"
-      }
+      "fields": {"sourceId": "example id", "sourceFamily": "one of sourceFamilies", "sourceType": "one of [OFFICIAL_SITE, HELP_CENTER, REGULATOR_REGISTER, RSS, API, NEWS, COMMUNITY]", "canonicalUrl": "https://regulator.example.invalid/register", "publisher": "string"}
     },
     "EvidenceSnapshot": {
       "primaryKey": "snapshotId",
       "foreignKeys": {"sourceId": "EvidenceSource.sourceId"},
-      "fields": {
-        "snapshotId": "example id",
-        "capturedAt": "timestamp",
-        "contentHash": "sha256 hex placeholder",
-        "storageObjectKey": "object-store key in the evidence bucket, not committed to Git",
-        "mimeType": "string",
-        "httpStatus": "integer",
-        "redirectChainRef": "optional RedirectObservation id in the affiliate model"
-      },
-      "invariants": ["snapshots are immutable and content-addressed by contentHash", "snapshot bytes live in object storage, never in the operational database or Git"]
+      "fields": {"snapshotId": "example id", "capturedAt": "timestamp", "contentHash": "sha256 hex placeholder", "storageObjectKey": "evidence-bucket object key (not in Git)", "mimeType": "string", "httpStatus": "integer", "redirectChainRef": "optional RedirectObservation id"},
+      "invariants": ["snapshots are immutable and content-addressed", "snapshot bytes live in object storage, never in the DB or Git"]
     },
     "ClaimEvidenceEdge": {
       "primaryKey": "edgeId",
       "foreignKeys": {"claimId": "Claim.claimId", "snapshotId": "EvidenceSnapshot.snapshotId"},
-      "fields": {"edgeType": "one of sharedEnums.claimEdgeType", "weight": "one of [PRIMARY, SECONDARY, WEAK]", "note": "string"},
-      "invariants": ["a SUPERSEDES edge requires a target ClaimVersion and creates a supersession record"]
+      "fields": {"edgeType": "one of canonicalEnums.claimEdgeType", "sourceFamily": "one of sourceFamilies", "weight": "one of [PRIMARY, SECONDARY, WEAK]", "note": "string"}
     },
     "Conflict": {
       "primaryKey": "conflictId",
-      "fields": {"claimId": "Claim.claimId", "conflictType": "one of [SOURCE_DISAGREEMENT, STALE_VS_FRESH, TIER_MISMATCH]", "status": "one of [OPEN, RESOLVED, UNRESOLVABLE]", "resolutionNote": "string", "resolvedByEvent": "VerificationEvent.verificationEventId or null"},
-      "invariants": ["an OPEN conflict on a critical claim MUST hold publication in AMBER or RED lane"]
+      "fields": {"claimId": "Claim.claimId", "conflictType": "one of [SOURCE_DISAGREEMENT, STALE_VS_FRESH, AUTHORITY_MISMATCH]", "resolutionState": "one of [OPEN, RESOLVED, UNRESOLVABLE]", "resolvedByAuthorityFamily": "one of sourceFamilies or null", "resolutionNote": "string", "yieldsTaskOutcome": "one of canonicalEnums.taskOutcome or null"},
+      "invariants": ["an OPEN conflict on a critical claim holds publication and, if unresolved, yields CONFLICT_UNRESOLVED"]
     },
     "ClaimVersion": {
       "primaryKey": "claimVersionId",
       "foreignKeys": {"claimId": "Claim.claimId"},
-      "fields": {"statementText": "string", "confidence": "one of sharedEnums.claimConfidence", "effectiveFrom": "date", "effectiveTo": "date or null", "supersedesVersionId": "claimVersionId or null", "createdAt": "timestamp"},
+      "fields": {"statementText": "string", "confidence": "one of canonicalEnums.claimConfidence", "verificationState": "one of canonicalEnums.claimVerificationState", "effectiveFrom": "date", "effectiveTo": "date or null", "supersedesVersionId": "claimVersionId or null", "createdAt": "timestamp"},
       "invariants": ["versions are append-only; superseded versions are retained, never deleted"]
     },
     "FreshnessPolicy": {
       "primaryKey": "freshnessPolicyId",
-      "fields": {
-        "predicate": "one of Claim.predicate",
-        "isCritical": "boolean",
-        "freshWindowDays": "integer",
-        "agingWindowDays": "integer",
-        "staleAfterDays": "integer",
-        "recheckIntervalDays": "integer",
-        "staleAction": "one of [FLAG, DOWNGRADE_CONFIDENCE, SUPPRESS_PUBLICATION]"
-      },
+      "fields": {"predicate": "one of Claim.predicate", "isCritical": "boolean", "freshWindow": "ISO-8601 duration, e.g. PT1H or P3D", "dueSoonWindow": "ISO-8601 duration", "staleAfter": "ISO-8601 duration", "recheckInterval": "ISO-8601 duration", "staleAction": "one of [FLAG, DOWNGRADE_CONFIDENCE, SUPPRESS_PUBLICATION]"},
+      "note": "Durations are ISO-8601 so sub-day intervals (minutes/hours) are supported, not integer days only.",
       "examples": [
-        {"predicate": "REGULATORY_STATUS", "isCritical": true, "freshWindowDays": 30, "agingWindowDays": 60, "staleAfterDays": 90, "recheckIntervalDays": 14, "staleAction": "SUPPRESS_PUBLICATION"},
-        {"predicate": "FEE", "isCritical": false, "freshWindowDays": 45, "agingWindowDays": 90, "staleAfterDays": 180, "recheckIntervalDays": 30, "staleAction": "DOWNGRADE_CONFIDENCE"}
+        {"predicate": "REGULATORY_STATUS", "isCritical": true, "freshWindow": "P1D", "dueSoonWindow": "P2D", "staleAfter": "P7D", "recheckInterval": "P1D", "staleAction": "SUPPRESS_PUBLICATION"},
+        {"predicate": "SECURITY", "isCritical": true, "freshWindow": "PT1H", "dueSoonWindow": "PT6H", "staleAfter": "P1D", "recheckInterval": "PT1H", "staleAction": "SUPPRESS_PUBLICATION"},
+        {"predicate": "FEE", "isCritical": false, "freshWindow": "P3D", "dueSoonWindow": "P7D", "staleAfter": "P14D", "recheckInterval": "P3D", "staleAction": "DOWNGRADE_CONFIDENCE"}
       ]
     },
     "VerificationEvent": {
       "primaryKey": "verificationEventId",
-      "fields": {"claimId": "Claim.claimId", "outcome": "one of [CONFIRMED, CHANGED, CONTRADICTED, UNAVAILABLE]", "snapshotId": "EvidenceSnapshot.snapshotId", "performedAt": "timestamp", "agent": "agent id from the agent roles standard"}
+      "fields": {"claimId": "Claim.claimId", "outcome": "one of [CONFIRMED, CHANGED, CONTRADICTED, UNAVAILABLE]", "resultingVerificationState": "one of canonicalEnums.claimVerificationState", "snapshotId": "EvidenceSnapshot.snapshotId", "performedAt": "timestamp", "agent": "agent id"}
     }
   },
-  "criticalClaimStaleBehavior": "When a critical claim reaches STALE it MUST downgrade to at most confidence LOW and schedule an immediate recheck; when it reaches EXPIRED its publication bindings MUST be suppressed until re-verified.",
+  "legacyMappings": {
+    "freshnessState": {"AGING": "DUE_SOON"},
+    "note": "Old value AGING is retained here only as a migration mapping and is not a current value."
+  },
   "crossReferences": [
     "./CBW_MARKET_INTELLIGENCE_DATA_SCHEMA_V1.json",
     "./CBW_PUBLICATION_BINDING_MODEL_V1.json",

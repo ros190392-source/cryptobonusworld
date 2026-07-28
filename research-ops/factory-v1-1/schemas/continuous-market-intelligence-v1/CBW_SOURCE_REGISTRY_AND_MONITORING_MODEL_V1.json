@@ -3,79 +3,62 @@
   "modelId": "CBW_SOURCE_REGISTRY_AND_MONITORING_MODEL_V1",
   "title": "CBW Source Registry and Monitoring Model V1",
   "status": "ARCHITECTURE_DRAFT_FOR_OWNER_APPROVAL",
-  "description": "Source registry, fetch/schedule policy, parser profiles, dependency graph and monitoring health for dependency-based (not full-daily-re-research) market intelligence. Architecture model only; example.invalid placeholders are used for all URLs.",
-  "sharedEnums": {
-    "sourceTier": ["TIER_0_OFFICIAL", "TIER_1_REGULATOR", "TIER_2_REPUTABLE", "TIER_3_COMMUNITY", "TIER_4_UNVERIFIED"],
-    "monitoringHealthState": ["HEALTHY", "DEGRADED", "UNAVAILABLE", "BLOCKED", "RETIRED"],
-    "changeMateriality": ["NONE", "MINOR", "MODERATE", "MAJOR", "CRITICAL"]
+  "auditCorrection": "Owner Audit Correction 026 (finding D): schedules support minute/hour/day (ISO-8601 durations), not integer days only; a complete SLA matrix covers all required source/claim categories; source health is a separate vocabulary; availability failures fan out to dependent claim freshness and may yield taskOutcome SOURCE_UNAVAILABLE.",
+  "description": "Source registry, fetch/schedule policy, parser profiles, dependency graph and monitoring health for dependency-based market intelligence. Architecture model only; example.invalid placeholders are used for all URLs.",
+  "canonicalEnums": {
+    "sourceHealthState": ["HEALTHY", "DEGRADED", "UNAVAILABLE", "BLOCKED", "RETIRED"],
+    "changeMateriality": ["NONE", "MINOR", "MODERATE", "MAJOR", "CRITICAL"],
+    "freshnessState": ["FRESH", "DUE_SOON", "STALE", "EXPIRED"],
+    "taskOutcome": ["PUBLISHED", "NO_MATERIAL_CHANGE", "OWNER_REVIEW_REQUIRED", "BLOCKED", "SOURCE_UNAVAILABLE", "CONFLICT_UNRESOLVED", "ROLLED_BACK"]
   },
+  "sourceFamilies": ["OFFICIAL_PRIMARY", "REGULATOR_LEGAL", "OFFICIAL_PARTNER", "REPUTABLE_SECONDARY", "COMMUNITY_SIGNAL"],
   "entities": {
     "SourceRegistryEntry": {
       "primaryKey": "sourceId",
-      "fields": {
-        "sourceId": "example id",
-        "sourceTier": "one of sharedEnums.sourceTier",
-        "fetchMode": "one of [HTML, PDF, RSS, API, REGULATOR_REGISTER]",
-        "canonicalUrlPlaceholder": "https://regulator.example.invalid/register",
-        "ownerExchangeId": "slug or null (null for cross-exchange sources like regulators)",
-        "scope": "one of [GLOBAL, MARKET]",
-        "robotsAllowed": "boolean",
-        "healthState": "one of sharedEnums.monitoringHealthState"
-      },
+      "fields": {"sourceId": "example id", "sourceFamily": "one of sourceFamilies", "fetchMode": "one of [HTML, PDF, RSS, API, REGULATOR_REGISTER]", "canonicalUrl": "https://regulator.example.invalid/register", "ownerExchangeId": "slug or null", "scope": "one of [GLOBAL, MARKET]", "robotsAllowed": "boolean", "healthState": "one of canonicalEnums.sourceHealthState"},
       "invariants": ["a source with robotsAllowed=false or healthState BLOCKED MUST NOT be fetched"]
     },
     "FetchPolicy": {
       "primaryKey": "fetchPolicyId",
       "foreignKeys": {"sourceId": "SourceRegistryEntry.sourceId"},
       "fields": {"userAgentIdentity": "honest identifiable bot UA string", "useConditionalRequests": "boolean (ETag/If-Modified-Since)", "maxRequestsPerMinute": "integer", "backoffStrategy": "one of [EXPONENTIAL, FIXED]", "maxRetries": "integer", "respectRetryAfter": "boolean"},
-      "invariants": ["fetching MUST respect robots, rate limits and Retry-After; it MUST NOT spoof identity or evade blocks"]
+      "invariants": ["fetching MUST respect robots, rate limits and Retry-After; it MUST NOT spoof identity, use a proxy to evade blocks, or submit credentials"]
     },
     "SchedulePolicy": {
       "primaryKey": "schedulePolicyId",
       "foreignKeys": {"sourceId": "SourceRegistryEntry.sourceId"},
-      "fields": {"baseIntervalDays": "integer", "criticalIntervalDays": "integer", "jitterMinutes": "integer"},
-      "examples": [
-        {"sourceType": "REGULATOR_REGISTER", "baseIntervalDays": 14, "criticalIntervalDays": 3},
-        {"sourceType": "AFFILIATE_LANDING", "baseIntervalDays": 3, "criticalIntervalDays": 1}
-      ]
+      "fields": {"defaultInterval": "ISO-8601 duration (supports minutes/hours/days, e.g. PT1H, PT6H, P3D)", "criticalInterval": "ISO-8601 duration", "jitter": "ISO-8601 duration", "eventDriven": "boolean"},
+      "note": "Durations are ISO-8601 so sub-day intervals are first-class."
     },
-    "ParserProfile": {
-      "primaryKey": "parserProfileId",
-      "foreignKeys": {"sourceId": "SourceRegistryEntry.sourceId"},
-      "fields": {"extractionTargets": "array of {field: string, selectorOrRule: string}", "normalizationRules": "array of strings", "predicate": "one of Claim.predicate"}
-    },
-    "SourceDependency": {
-      "primaryKey": "sourceDependencyId",
-      "fields": {"sourceId": "SourceRegistryEntry.sourceId", "dependentClaimId": "Claim.claimId", "dependentMarketProfileId": "marketProfileId or null", "dependentBindingId": "PublicationBinding.bindingId or null"},
-      "invariants": ["a single changed source fans out to every dependent claim, market profile and publication binding via these edges"]
-    },
-    "FetchRun": {
-      "primaryKey": "fetchRunId",
-      "foreignKeys": {"sourceId": "SourceRegistryEntry.sourceId"},
-      "fields": {"startedAt": "timestamp", "httpStatus": "integer", "contentHash": "sha256 hex placeholder", "snapshotObjectKey": "object-store key", "outcome": "one of [OK, NOT_MODIFIED, ERROR, BLOCKED, RATE_LIMITED]", "idempotencyKey": "string derived from sourceId + contentHash"}
-    },
-    "SnapshotChange": {
-      "primaryKey": "snapshotChangeId",
-      "fields": {"sourceId": "SourceRegistryEntry.sourceId", "previousHash": "string", "newHash": "string", "materiality": "one of sharedEnums.changeMateriality", "detectedAt": "timestamp", "emitsChangeEventId": "ChangeEvent.changeEventId or null"},
-      "invariants": ["a MAJOR or CRITICAL materiality change MUST emit a ChangeEvent"]
-    },
-    "SourceHealth": {
-      "primaryKey": "sourceHealthId",
-      "foreignKeys": {"sourceId": "SourceRegistryEntry.sourceId"},
-      "fields": {"healthState": "one of sharedEnums.monitoringHealthState", "consecutiveFailures": "integer", "lastSuccessAt": "timestamp", "note": "string"},
-      "invariants": ["a source UNAVAILABLE beyond its threshold MUST mark dependent claims for freshness review, not silently keep them fresh"]
-    },
-    "MonitorAlert": {
-      "primaryKey": "monitorAlertId",
-      "fields": {"sourceId": "SourceRegistryEntry.sourceId", "severity": "one of [INFO, WARNING, HIGH, CRITICAL]", "reason": "string", "raisedAt": "timestamp", "escalated": "boolean"}
-    }
+    "ParserProfile": {"primaryKey": "parserProfileId", "foreignKeys": {"sourceId": "SourceRegistryEntry.sourceId"}, "fields": {"extractionTargets": "array of {field, selectorOrRule}", "normalizationRules": "array of strings", "predicate": "one of Claim.predicate"}},
+    "SourceDependency": {"primaryKey": "sourceDependencyId", "fields": {"sourceId": "SourceRegistryEntry.sourceId", "dependentClaimId": "Claim.claimId", "dependentMarketProfileId": "marketProfileId or null", "dependentBindingId": "PublicationBinding.bindingId or null"}, "invariants": ["one changed source fans out to every dependent claim, market profile and binding"]},
+    "FetchRun": {"primaryKey": "fetchRunId", "foreignKeys": {"sourceId": "SourceRegistryEntry.sourceId"}, "fields": {"startedAt": "timestamp", "httpStatus": "integer", "contentHash": "sha256 hex placeholder", "snapshotObjectKey": "object-store key", "outcome": "one of [OK, NOT_MODIFIED, ERROR, BLOCKED, RATE_LIMITED]", "idempotencyKey": "string derived from sourceId + contentHash"}},
+    "SnapshotChange": {"primaryKey": "snapshotChangeId", "fields": {"sourceId": "SourceRegistryEntry.sourceId", "previousHash": "string", "newHash": "string", "materiality": "one of canonicalEnums.changeMateriality", "detectedAt": "timestamp", "emitsChangeEventId": "ChangeEvent.changeEventId or null"}, "invariants": ["a MAJOR or CRITICAL materiality change MUST emit a ChangeEvent"]},
+    "SourceHealth": {"primaryKey": "sourceHealthId", "foreignKeys": {"sourceId": "SourceRegistryEntry.sourceId"}, "fields": {"healthState": "one of canonicalEnums.sourceHealthState", "consecutiveFailures": "integer", "lastSuccessAt": "timestamp", "note": "string"}, "invariants": ["a source UNAVAILABLE beyond threshold MUST mark dependent claims for freshness review and MAY yield taskOutcome SOURCE_UNAVAILABLE; it MUST NOT keep a claim FRESH"]},
+    "MonitorAlert": {"primaryKey": "monitorAlertId", "fields": {"sourceId": "SourceRegistryEntry.sourceId", "severity": "one of [INFO, WARNING, HIGH, CRITICAL]", "reason": "string", "raisedAt": "timestamp", "escalated": "boolean"}}
   },
-  "worksExamples": [
-    {"case": "global restricted list", "sourceTier": "TIER_0_OFFICIAL", "materialityIfChanged": "CRITICAL"},
-    {"case": "Kazakhstan regulator register event", "sourceTier": "TIER_1_REGULATOR", "materialityIfChanged": "CRITICAL"},
-    {"case": "affiliate landing-page change", "sourceTier": "TIER_2_REPUTABLE", "materialityIfChanged": "MODERATE"}
+  "slaMatrix": [
+    {"category": "OUTAGE_SECURITY_INCIDENT_FEEDS", "defaultInterval": "PT1H", "criticalInterval": "PT1H", "eventDriven": true},
+    {"category": "RESTRICTED_COUNTRY_LISTS", "defaultInterval": "P1D", "criticalInterval": "PT6H", "eventDriven": true},
+    {"category": "AFFILIATE_REDIRECT", "defaultInterval": "PT12H", "criticalInterval": "PT6H", "eventDriven": true},
+    {"category": "AFFILIATE_LANDING_TERMS", "defaultInterval": "P1D", "criticalInterval": "PT6H", "eventDriven": true},
+    {"category": "P2P_PAYMENT_RAILS", "defaultInterval": "P1D", "criticalInterval": "PT6H", "eventDriven": true},
+    {"category": "PRODUCT_AVAILABILITY", "defaultInterval": "P3D", "criticalInterval": "P1D", "eventDriven": false},
+    {"category": "FEES_LIMITS", "defaultInterval": "P2D", "criticalInterval": "P1D", "eventDriven": false},
+    {"category": "KYC", "defaultInterval": "P7D", "criticalInterval": "P1D", "eventDriven": false},
+    {"category": "LICENSE_REGISTER", "defaultInterval": "P7D", "criticalInterval": "P1D", "eventDriven": true},
+    {"category": "REGULATOR_NEWS", "defaultInterval": "P1D", "criticalInterval": "PT6H", "eventDriven": true},
+    {"category": "HISTORICAL_FACTS", "defaultInterval": "P30D", "criticalInterval": "P7D", "eventDriven": true}
   ],
-  "duplicateSourceResolution": "When two registry entries resolve to the same canonical content, keep the higher tier and mark the other RETIRED with a pointer; never double-count evidence.",
+  "slaNote": "Intervals are ISO-8601 durations; PT1H/PT6H/PT12H are sub-day. Overrides per source are permitted. Architecture only; no real automation is scheduled here.",
+  "worksExamples": [
+    {"case": "global restricted list", "sourceFamily": "OFFICIAL_PRIMARY", "materialityIfChanged": "CRITICAL", "category": "RESTRICTED_COUNTRY_LISTS"},
+    {"case": "Kazakhstan regulator register event", "sourceFamily": "REGULATOR_LEGAL", "materialityIfChanged": "CRITICAL", "category": "LICENSE_REGISTER"},
+    {"case": "affiliate landing-page change", "sourceFamily": "REPUTABLE_SECONDARY", "materialityIfChanged": "MODERATE", "category": "AFFILIATE_LANDING_TERMS"},
+    {"case": "outage/security feed", "sourceFamily": "OFFICIAL_PRIMARY", "materialityIfChanged": "CRITICAL", "category": "OUTAGE_SECURITY_INCIDENT_FEEDS"},
+    {"case": "P2P/payment rail incident", "sourceFamily": "OFFICIAL_PARTNER", "materialityIfChanged": "MAJOR", "category": "P2P_PAYMENT_RAILS"}
+  ],
+  "duplicateSourceResolution": "When two entries resolve to identical canonical content, keep the entry with the correct claim-type authority family and mark the other RETIRED with a pointer; never double-count evidence.",
   "crossReferences": [
     "../../templates/continuous-market-intelligence-v1/CBW_SOURCE_MONITORING_STANDARD_V1.md",
     "./CBW_CLAIM_EVIDENCE_FRESHNESS_MODEL_V1.json",
