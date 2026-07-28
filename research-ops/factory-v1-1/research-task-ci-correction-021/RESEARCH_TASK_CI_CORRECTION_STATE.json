@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-RESEARCH-TASK-CI-CORRECTION-021",
+  "project": "CryptoBonusWorld",
+  "role": "correction",
+  "state": "READY_FOR_CORRECTION",
+  "governingIssue": 70,
+  "ownerAuthorization": "AUTHORIZE CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-RESEARCH-TASK-CI-CORRECTION-021",
+  "branch": "correction/researchops-factory-v1-1-research-task-ci-021",
+  "baseBranch": "main",
+  "approvedBaseSha": "f62c1fb3fc2a66e57e6b023b8eb5b91f2f34500a",
+  "resultDirectory": "research-ops/factory-v1-1/research-task-ci-correction-021",
+  "sourcePilot": {
+    "issue": 68,
+    "pullRequest": 69,
+    "headSha": "bf0a0932325be00aad08ec3db31aef1af9df2384",
+    "failingRunId": 30340518853
+  },
+  "allowedImplementationFiles": [
+    ".github/workflows/cbw-researchops-factory-validate.yml",
+    "research-ops/factory-v1-1/fixtures/run.mjs"
+  ],
+  "requiredResultFiles": [
+    "research-ops/factory-v1-1/research-task-ci-correction-021/RESEARCH_TASK_CI_CORRECTION_RESULT.json",
+    "research-ops/factory-v1-1/research-task-ci-correction-021/RESEARCH_TASK_CI_CORRECTION_RESULT.md"
+  ],
+  "allowedDecisions": [
+    "RESEARCH_TASK_CI_CORRECTION_READY_FOR_OWNER_MERGE",
+    "RESEARCH_TASK_CI_CORRECTION_BLOCKED"
+  ],
+  "authorizations": {
+    "factoryMergeToMainAuthorized": false,
+    "researchRecordMergeToMainAuthorized": false,
+    "binancePilotAuthorized": false,
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false,
+    "masterChangeAuthorized": false
+  }
+}
