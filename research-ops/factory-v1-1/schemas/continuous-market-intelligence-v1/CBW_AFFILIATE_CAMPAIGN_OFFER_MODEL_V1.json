@@ -1,0 +1,93 @@
+{
+  "schemaVersion": "1.0.0",
+  "modelId": "CBW_AFFILIATE_CAMPAIGN_OFFER_MODEL_V1",
+  "title": "CBW Affiliate Campaign and Offer Model V1",
+  "status": "ARCHITECTURE_DRAFT_FOR_OWNER_APPROVAL",
+  "description": "Models affiliate campaigns, links, redirect observations, offers and public verification levels. Contains NO real affiliate URLs, referral codes, secrets or bonus amounts. All example values use the reserved example.invalid domain and clearly fake placeholders.",
+  "safetyNote": "Public verification is anonymous L0-L3 only. L4 (account-confirmed) is a separately authorized future capability and is never performed without an explicit owner authorization. No account creation, login, KYC, proxy, location spoofing or financial transaction is described or permitted.",
+  "sharedEnums": {
+    "affiliateVerificationLevel": ["L0_UNVERIFIED", "L1_LINK_RESOLVED", "L2_OFFER_CAPTURED", "L3_TERMS_CONFIRMED", "L4_ACCOUNT_CONFIRMED"],
+    "affiliateOfferStatus": ["ACTIVE", "CHANGED", "EXPIRED", "GEO_RESTRICTED", "BROKEN_LINK", "SUSPENDED", "UNKNOWN"],
+    "ctaState": ["ENABLED", "DISABLED", "UNDER_REVIEW", "SUPPRESSED_BROKEN", "SUPPRESSED_GEO"]
+  },
+  "entities": {
+    "AffiliateCampaign": {
+      "primaryKey": "campaignId",
+      "fields": {
+        "campaignId": "example id, e.g. camp_binance_kz_example",
+        "exchangeId": "slug",
+        "countryCode": "ISO-3166-1 alpha-2",
+        "internalRedirectSlug": "managed internal slug, e.g. go/binance-kz-example (identity only; no live route is created by this architecture)",
+        "campaignStatus": "one of [DRAFT, MONITORED, PAUSED, RETIRED]",
+        "ownerApprovedRoute": "boolean default false"
+      },
+      "invariants": ["affiliate route changes are owner-gated; ownerApprovedRoute defaults false", "no real destination URL or referral code is stored in this architecture model"]
+    },
+    "AffiliateLink": {
+      "primaryKey": "linkId",
+      "foreignKeys": {"campaignId": "AffiliateCampaign.campaignId"},
+      "fields": {"sourceUrlPlaceholder": "https://go.example.invalid/binance-kz-example", "referralIdentifierPlaceholder": "REF_EXAMPLE_PLACEHOLDER", "lastObservedStatus": "one of sharedEnums.affiliateOfferStatus"},
+      "invariants": ["referralIdentifierPlaceholder MUST be an obvious placeholder, never a real code"]
+    },
+    "RedirectObservation": {
+      "primaryKey": "redirectObservationId",
+      "foreignKeys": {"linkId": "AffiliateLink.linkId"},
+      "fields": {
+        "redirectObservationId": "example id",
+        "hopChain": "array of {hop: integer, urlPlaceholder: string, httpStatus: integer}",
+        "finalDestinationDomainPlaceholder": "exchange.example.invalid",
+        "capturedAt": "timestamp",
+        "contentHash": "sha256 hex placeholder",
+        "snapshotObjectKey": "object-store key for the captured chain and screenshot"
+      },
+      "invariants": ["redirect chains are captured anonymously without cookies tied to a real identity"]
+    },
+    "OfferSnapshot": {
+      "primaryKey": "offerSnapshotId",
+      "foreignKeys": {"campaignId": "AffiliateCampaign.campaignId"},
+      "fields": {"offerStatus": "one of sharedEnums.affiliateOfferStatus", "offerHeadlinePlaceholder": "e.g. up to <PLACEHOLDER> reward (exact value only after L2 capture)", "rewardTypePlaceholder": "one of [TRADING_FEE_REBATE, VOUCHER, POINTS, UNKNOWN]", "capturedAt": "timestamp", "verificationLevel": "one of sharedEnums.affiliateVerificationLevel"},
+      "invariants": ["headline language MUST use 'up to' style, never a guaranteed reward claim", "no concrete bonus amount is stored in this architecture model"]
+    },
+    "OfferTerm": {
+      "primaryKey": "offerTermId",
+      "foreignKeys": {"offerSnapshotId": "OfferSnapshot.offerSnapshotId"},
+      "fields": {"termType": "one of [ELIGIBILITY, WAGERING, TIME_WINDOW, GEO, KYC_REQUIRED]", "termTextPlaceholder": "string as captured", "claimId": "Claim.claimId that evidences this term"}
+    },
+    "GeoEligibility": {
+      "primaryKey": "geoEligibilityId",
+      "foreignKeys": {"campaignId": "AffiliateCampaign.campaignId"},
+      "fields": {"countryCode": "ISO-3166-1 alpha-2", "newUserEligible": "one of [YES, NO, CONDITIONAL, UNKNOWN]", "note": "string"}
+    },
+    "VerificationLevel": {
+      "primaryKey": "verificationLevelId",
+      "fields": {
+        "level": "one of sharedEnums.affiliateVerificationLevel",
+        "definition": "string",
+        "requiresSeparateOwnerAuthorization": "boolean"
+      },
+      "catalog": [
+        {"level": "L0_UNVERIFIED", "definition": "No evidence captured yet.", "requiresSeparateOwnerAuthorization": false},
+        {"level": "L1_LINK_RESOLVED", "definition": "Redirect chain resolved anonymously to a final destination domain.", "requiresSeparateOwnerAuthorization": false},
+        {"level": "L2_OFFER_CAPTURED", "definition": "Public offer page captured with snapshot and hash.", "requiresSeparateOwnerAuthorization": false},
+        {"level": "L3_TERMS_CONFIRMED", "definition": "Public terms and eligibility captured and cross-checked against official pages.", "requiresSeparateOwnerAuthorization": false},
+        {"level": "L4_ACCOUNT_CONFIRMED", "definition": "Reward confirmed via a real account. Not performed without explicit separate owner authorization; involves no automation, proxy or fake identity.", "requiresSeparateOwnerAuthorization": true}
+      ]
+    },
+    "VerificationEvent": {
+      "primaryKey": "affiliateVerificationEventId",
+      "fields": {"campaignId": "AffiliateCampaign.campaignId", "level": "one of sharedEnums.affiliateVerificationLevel", "outcome": "one of [CONFIRMED, CHANGED, BROKEN, GEO_BLOCKED, INCONCLUSIVE]", "snapshotObjectKey": "string", "performedAt": "timestamp"}
+    },
+    "CTAState": {
+      "primaryKey": "ctaStateId",
+      "foreignKeys": {"campaignId": "AffiliateCampaign.campaignId"},
+      "fields": {"state": "one of sharedEnums.ctaState", "reason": "string", "changedAt": "timestamp"},
+      "invariants": ["a BROKEN_LINK or SUSPENDED offer MUST force ctaState SUPPRESSED_BROKEN", "a GEO_RESTRICTED offer for the market MUST force ctaState SUPPRESSED_GEO", "any ENABLED transition on a live CTA is owner-gated"]
+    }
+  },
+  "requiredOfferStatuses": ["ACTIVE", "CHANGED", "EXPIRED", "GEO_RESTRICTED", "BROKEN_LINK", "SUSPENDED", "UNKNOWN"],
+  "crossReferences": [
+    "../../templates/continuous-market-intelligence-v1/CBW_AFFILIATE_OFFER_VERIFICATION_STANDARD_V1.md",
+    "./CBW_CLAIM_EVIDENCE_FRESHNESS_MODEL_V1.json",
+    "./CBW_PUBLICATION_BINDING_MODEL_V1.json"
+  ]
+}

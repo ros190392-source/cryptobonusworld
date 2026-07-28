@@ -1,0 +1,84 @@
+{
+  "schemaVersion": "1.0.0",
+  "modelId": "CBW_SOURCE_REGISTRY_AND_MONITORING_MODEL_V1",
+  "title": "CBW Source Registry and Monitoring Model V1",
+  "status": "ARCHITECTURE_DRAFT_FOR_OWNER_APPROVAL",
+  "description": "Source registry, fetch/schedule policy, parser profiles, dependency graph and monitoring health for dependency-based (not full-daily-re-research) market intelligence. Architecture model only; example.invalid placeholders are used for all URLs.",
+  "sharedEnums": {
+    "sourceTier": ["TIER_0_OFFICIAL", "TIER_1_REGULATOR", "TIER_2_REPUTABLE", "TIER_3_COMMUNITY", "TIER_4_UNVERIFIED"],
+    "monitoringHealthState": ["HEALTHY", "DEGRADED", "UNAVAILABLE", "BLOCKED", "RETIRED"],
+    "changeMateriality": ["NONE", "MINOR", "MODERATE", "MAJOR", "CRITICAL"]
+  },
+  "entities": {
+    "SourceRegistryEntry": {
+      "primaryKey": "sourceId",
+      "fields": {
+        "sourceId": "example id",
+        "sourceTier": "one of sharedEnums.sourceTier",
+        "fetchMode": "one of [HTML, PDF, RSS, API, REGULATOR_REGISTER]",
+        "canonicalUrlPlaceholder": "https://regulator.example.invalid/register",
+        "ownerExchangeId": "slug or null (null for cross-exchange sources like regulators)",
+        "scope": "one of [GLOBAL, MARKET]",
+        "robotsAllowed": "boolean",
+        "healthState": "one of sharedEnums.monitoringHealthState"
+      },
+      "invariants": ["a source with robotsAllowed=false or healthState BLOCKED MUST NOT be fetched"]
+    },
+    "FetchPolicy": {
+      "primaryKey": "fetchPolicyId",
+      "foreignKeys": {"sourceId": "SourceRegistryEntry.sourceId"},
+      "fields": {"userAgentIdentity": "honest identifiable bot UA string", "useConditionalRequests": "boolean (ETag/If-Modified-Since)", "maxRequestsPerMinute": "integer", "backoffStrategy": "one of [EXPONENTIAL, FIXED]", "maxRetries": "integer", "respectRetryAfter": "boolean"},
+      "invariants": ["fetching MUST respect robots, rate limits and Retry-After; it MUST NOT spoof identity or evade blocks"]
+    },
+    "SchedulePolicy": {
+      "primaryKey": "schedulePolicyId",
+      "foreignKeys": {"sourceId": "SourceRegistryEntry.sourceId"},
+      "fields": {"baseIntervalDays": "integer", "criticalIntervalDays": "integer", "jitterMinutes": "integer"},
+      "examples": [
+        {"sourceType": "REGULATOR_REGISTER", "baseIntervalDays": 14, "criticalIntervalDays": 3},
+        {"sourceType": "AFFILIATE_LANDING", "baseIntervalDays": 3, "criticalIntervalDays": 1}
+      ]
+    },
+    "ParserProfile": {
+      "primaryKey": "parserProfileId",
+      "foreignKeys": {"sourceId": "SourceRegistryEntry.sourceId"},
+      "fields": {"extractionTargets": "array of {field: string, selectorOrRule: string}", "normalizationRules": "array of strings", "predicate": "one of Claim.predicate"}
+    },
+    "SourceDependency": {
+      "primaryKey": "sourceDependencyId",
+      "fields": {"sourceId": "SourceRegistryEntry.sourceId", "dependentClaimId": "Claim.claimId", "dependentMarketProfileId": "marketProfileId or null", "dependentBindingId": "PublicationBinding.bindingId or null"},
+      "invariants": ["a single changed source fans out to every dependent claim, market profile and publication binding via these edges"]
+    },
+    "FetchRun": {
+      "primaryKey": "fetchRunId",
+      "foreignKeys": {"sourceId": "SourceRegistryEntry.sourceId"},
+      "fields": {"startedAt": "timestamp", "httpStatus": "integer", "contentHash": "sha256 hex placeholder", "snapshotObjectKey": "object-store key", "outcome": "one of [OK, NOT_MODIFIED, ERROR, BLOCKED, RATE_LIMITED]", "idempotencyKey": "string derived from sourceId + contentHash"}
+    },
+    "SnapshotChange": {
+      "primaryKey": "snapshotChangeId",
+      "fields": {"sourceId": "SourceRegistryEntry.sourceId", "previousHash": "string", "newHash": "string", "materiality": "one of sharedEnums.changeMateriality", "detectedAt": "timestamp", "emitsChangeEventId": "ChangeEvent.changeEventId or null"},
+      "invariants": ["a MAJOR or CRITICAL materiality change MUST emit a ChangeEvent"]
+    },
+    "SourceHealth": {
+      "primaryKey": "sourceHealthId",
+      "foreignKeys": {"sourceId": "SourceRegistryEntry.sourceId"},
+      "fields": {"healthState": "one of sharedEnums.monitoringHealthState", "consecutiveFailures": "integer", "lastSuccessAt": "timestamp", "note": "string"},
+      "invariants": ["a source UNAVAILABLE beyond its threshold MUST mark dependent claims for freshness review, not silently keep them fresh"]
+    },
+    "MonitorAlert": {
+      "primaryKey": "monitorAlertId",
+      "fields": {"sourceId": "SourceRegistryEntry.sourceId", "severity": "one of [INFO, WARNING, HIGH, CRITICAL]", "reason": "string", "raisedAt": "timestamp", "escalated": "boolean"}
+    }
+  },
+  "worksExamples": [
+    {"case": "global restricted list", "sourceTier": "TIER_0_OFFICIAL", "materialityIfChanged": "CRITICAL"},
+    {"case": "Kazakhstan regulator register event", "sourceTier": "TIER_1_REGULATOR", "materialityIfChanged": "CRITICAL"},
+    {"case": "affiliate landing-page change", "sourceTier": "TIER_2_REPUTABLE", "materialityIfChanged": "MODERATE"}
+  ],
+  "duplicateSourceResolution": "When two registry entries resolve to the same canonical content, keep the higher tier and mark the other RETIRED with a pointer; never double-count evidence.",
+  "crossReferences": [
+    "../../templates/continuous-market-intelligence-v1/CBW_SOURCE_MONITORING_STANDARD_V1.md",
+    "./CBW_CLAIM_EVIDENCE_FRESHNESS_MODEL_V1.json",
+    "./CBW_CHANGE_EVENT_AND_IMPACT_MODEL_V1.json"
+  ]
+}

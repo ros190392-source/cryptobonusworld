@@ -1,0 +1,181 @@
+{
+  "schemaVersion": "1.0.0",
+  "modelId": "CBW_MARKET_INTELLIGENCE_DATA_SCHEMA_V1",
+  "title": "CBW Market Intelligence Data Schema V1",
+  "status": "ARCHITECTURE_DRAFT_FOR_OWNER_APPROVAL",
+  "description": "Canonical operational-store entity catalog for the CryptoBonusWorld continuous market-intelligence platform. This is an architecture model, not a deployed migration and not live data. Example identifiers use the reserved example.invalid domain and cannot be mistaken for active credentials or offers.",
+  "authorityNote": "This schema describes the PostgreSQL-style canonical operational store only. Evidence bytes live in object storage; governed decisions live in Git; the search index is a non-authoritative retrieval aid.",
+  "sharedEnums": {
+    "claimConfidence": ["HIGH", "MEDIUM", "LOW", "UNVERIFIED"],
+    "freshnessState": ["FRESH", "AGING", "STALE", "EXPIRED"],
+    "sourceTier": ["TIER_0_OFFICIAL", "TIER_1_REGULATOR", "TIER_2_REPUTABLE", "TIER_3_COMMUNITY", "TIER_4_UNVERIFIED"],
+    "availabilityStatus": ["AVAILABLE", "AVAILABLE_WITH_LIMITS", "RESTRICTED", "UNAVAILABLE", "UNKNOWN"]
+  },
+  "ownershipScopes": {
+    "GLOBAL": "Facts true for the exchange worldwide; stored once on ExchangeCore and never duplicated into market profiles.",
+    "MARKET": "Facts scoped to a single Exchange x Country market profile; never promoted into global records.",
+    "PAGE": "Rendered presentation state; owns no canonical fact and only binds to claims."
+  },
+  "temporalFieldConventions": {
+    "observedAt": "UTC timestamp a fact was observed at its source.",
+    "effectiveFrom": "UTC date/time the fact became true in the world.",
+    "effectiveTo": "UTC date/time the fact stopped being true, or null if current.",
+    "supersededByVersionId": "Pointer to the version that replaced this one, or null.",
+    "createdAt": "UTC row-creation timestamp; rows are append-only and never destructively overwritten."
+  },
+  "entities": {
+    "ExchangeCore": {
+      "ownership": "GLOBAL",
+      "primaryKey": "exchangeId",
+      "fields": {
+        "exchangeId": "slug, e.g. binance",
+        "displayName": "string",
+        "foundedYear": "integer or null",
+        "headquartersCountry": "ISO-3166-1 alpha-2 or null",
+        "websiteDomain": "string, e.g. exchange.example.invalid",
+        "globalStatus": "one of availabilityStatus",
+        "createdAt": "timestamp"
+      },
+      "invariants": ["exchangeId is globally unique", "no market-specific fact is stored here"]
+    },
+    "ExchangeLegalEntity": {
+      "ownership": "GLOBAL",
+      "primaryKey": "legalEntityId",
+      "foreignKeys": {"exchangeId": "ExchangeCore.exchangeId"},
+      "fields": {
+        "legalEntityId": "uuid-like example id",
+        "legalName": "string",
+        "registeredCountry": "ISO-3166-1 alpha-2",
+        "role": "one of [OPERATOR, PARENT, LOCAL_SUBSIDIARY, PAYMENT_PARTNER]",
+        "effectiveFrom": "date",
+        "effectiveTo": "date or null"
+      },
+      "invariants": ["an entity belongs to exactly one exchangeId"]
+    },
+    "ExchangeHistoryEvent": {
+      "ownership": "GLOBAL",
+      "primaryKey": "historyEventId",
+      "foreignKeys": {"exchangeId": "ExchangeCore.exchangeId"},
+      "fields": {
+        "historyEventId": "example id",
+        "eventType": "one of [FOUNDING, LEADERSHIP_CHANGE, SECURITY_INCIDENT, REGULATORY_ACTION, PRODUCT_LAUNCH, OUTAGE, REBRAND]",
+        "title": "string",
+        "occurredOn": "date",
+        "claimId": "Claim.claimId that evidences this event"
+      },
+      "invariants": ["every history event references a Claim for its evidence"]
+    },
+    "Country": {
+      "ownership": "GLOBAL",
+      "primaryKey": "countryCode",
+      "fields": {
+        "countryCode": "ISO-3166-1 alpha-2, e.g. KZ",
+        "countryName": "string",
+        "region": "string",
+        "primaryRegulators": "array of regulator names"
+      }
+    },
+    "ExchangeCountryMarketProfile": {
+      "ownership": "MARKET",
+      "primaryKey": "marketProfileId",
+      "foreignKeys": {"exchangeId": "ExchangeCore.exchangeId", "countryCode": "Country.countryCode"},
+      "fields": {
+        "marketProfileId": "composite example id, e.g. mp_binance_kz",
+        "exchangeId": "slug",
+        "countryCode": "ISO-3166-1 alpha-2",
+        "marketStatus": "one of availabilityStatus",
+        "overallConfidence": "one of sharedEnums.claimConfidence",
+        "freshnessState": "one of sharedEnums.freshnessState",
+        "lastReviewedAt": "timestamp",
+        "nextCheckDueAt": "timestamp"
+      },
+      "invariants": ["(exchangeId, countryCode) is unique", "market facts are never copied to ExchangeCore"]
+    },
+    "RegulatoryStatus": {
+      "ownership": "MARKET",
+      "primaryKey": "regulatoryStatusId",
+      "foreignKeys": {"marketProfileId": "ExchangeCountryMarketProfile.marketProfileId"},
+      "fields": {
+        "status": "one of [PERMITTED, PERMITTED_WITH_CONDITIONS, RESTRICTED, PROHIBITED, UNCLEAR]",
+        "regulator": "string",
+        "claimId": "Claim.claimId",
+        "effectiveFrom": "date",
+        "effectiveTo": "date or null"
+      }
+    },
+    "License": {
+      "ownership": "MARKET",
+      "primaryKey": "licenseId",
+      "foreignKeys": {"marketProfileId": "ExchangeCountryMarketProfile.marketProfileId"},
+      "fields": {"licenseType": "string", "issuingAuthority": "string", "licenseStatus": "one of [ACTIVE, PENDING, REVOKED, NONE]", "claimId": "Claim.claimId"}
+    },
+    "Restriction": {
+      "ownership": "MARKET",
+      "primaryKey": "restrictionId",
+      "foreignKeys": {"marketProfileId": "ExchangeCountryMarketProfile.marketProfileId"},
+      "fields": {"restrictionType": "one of [PRODUCT, PAYMENT, GEO_BLOCK, SANCTION, ONBOARDING]", "description": "string", "claimId": "Claim.claimId", "effectiveFrom": "date", "effectiveTo": "date or null"}
+    },
+    "RegistrationEligibility": {
+      "ownership": "MARKET",
+      "primaryKey": "registrationEligibilityId",
+      "foreignKeys": {"marketProfileId": "ExchangeCountryMarketProfile.marketProfileId"},
+      "fields": {"residentsCanRegister": "one of [YES, NO, CONDITIONAL, UNKNOWN]", "minimumAge": "integer or null", "claimId": "Claim.claimId"}
+    },
+    "KycRequirement": {
+      "ownership": "MARKET",
+      "primaryKey": "kycRequirementId",
+      "foreignKeys": {"marketProfileId": "ExchangeCountryMarketProfile.marketProfileId"},
+      "fields": {"kycLevel": "one of [NONE, BASIC, FULL, ENHANCED]", "documentsRequired": "array of strings", "claimId": "Claim.claimId"}
+    },
+    "ProductAvailability": {
+      "ownership": "MARKET",
+      "primaryKey": "productAvailabilityId",
+      "foreignKeys": {"marketProfileId": "ExchangeCountryMarketProfile.marketProfileId"},
+      "fields": {"product": "one of [SPOT, MARGIN, FUTURES, OPTIONS, EARN, P2P, CARD, CONVERT, STAKING]", "status": "one of sharedEnums.availabilityStatus", "claimId": "Claim.claimId"}
+    },
+    "PaymentRail": {
+      "ownership": "MARKET",
+      "primaryKey": "paymentRailId",
+      "foreignKeys": {"marketProfileId": "ExchangeCountryMarketProfile.marketProfileId"},
+      "fields": {"railType": "one of [BANK_TRANSFER, CARD, P2P, EWALLET, VOUCHER, CRYPTO_ONLY]", "direction": "one of [DEPOSIT, WITHDRAWAL, BOTH]", "currency": "ISO-4217", "status": "one of sharedEnums.availabilityStatus", "claimId": "Claim.claimId"}
+    },
+    "FeeSnapshot": {
+      "ownership": "MARKET",
+      "primaryKey": "feeSnapshotId",
+      "foreignKeys": {"marketProfileId": "ExchangeCountryMarketProfile.marketProfileId"},
+      "fields": {"feeType": "one of [SPOT_MAKER, SPOT_TAKER, DEPOSIT, WITHDRAWAL, P2P]", "valueText": "string (as observed, not computed)", "observedAt": "timestamp", "claimId": "Claim.claimId"},
+      "invariants": ["fees are stored as timestamped snapshots, never as a single mutable current value"]
+    },
+    "LimitSnapshot": {
+      "ownership": "MARKET",
+      "primaryKey": "limitSnapshotId",
+      "foreignKeys": {"marketProfileId": "ExchangeCountryMarketProfile.marketProfileId"},
+      "fields": {"limitType": "one of [DEPOSIT_MIN, DEPOSIT_MAX, WITHDRAWAL_DAILY, TRADE_MIN]", "valueText": "string", "observedAt": "timestamp", "claimId": "Claim.claimId"}
+    },
+    "SecurityIncident": {
+      "ownership": "GLOBAL",
+      "primaryKey": "securityIncidentId",
+      "foreignKeys": {"exchangeId": "ExchangeCore.exchangeId"},
+      "fields": {"severity": "one of [LOW, MEDIUM, HIGH, CRITICAL]", "occurredOn": "date", "summary": "string", "claimId": "Claim.claimId"}
+    },
+    "RankingSnapshot": {
+      "ownership": "MARKET",
+      "primaryKey": "rankingSnapshotId",
+      "foreignKeys": {"marketProfileId": "ExchangeCountryMarketProfile.marketProfileId"},
+      "fields": {"rankPosition": "integer or null", "methodologyVersion": "string", "computedAt": "timestamp", "ownerApprovedRankingChange": "boolean default false"},
+      "invariants": ["ranking or Top-10 membership changes are owner-gated and never auto-published"]
+    },
+    "PageVersion": {
+      "ownership": "PAGE",
+      "primaryKey": "pageVersionId",
+      "fields": {"route": "string", "pageId": "string", "publicationState": "one of [UNBOUND, BOUND, PREVIEW, QA, OWNER_REVIEW, PUBLISHED, SUPPRESSED, ROLLED_BACK]", "boundClaimIds": "array of Claim.claimId", "createdAt": "timestamp"},
+      "invariants": ["a PageVersion owns no canonical fact; it only binds to claims"]
+    }
+  },
+  "globalVersusMarketRule": "Global exchange facts (ExchangeCore, ExchangeLegalEntity, ExchangeHistoryEvent, SecurityIncident) are stored once. Market-specific facts (all MARKET-ownership entities) are never duplicated into global records, and global facts are never copied per market.",
+  "crossReferences": [
+    "../../templates/continuous-market-intelligence-v1/CBW_CONTINUOUS_EXCHANGE_MARKET_INTELLIGENCE_SYSTEM_V1.md",
+    "./CBW_CLAIM_EVIDENCE_FRESHNESS_MODEL_V1.json",
+    "./CBW_PUBLICATION_BINDING_MODEL_V1.json"
+  ]
+}

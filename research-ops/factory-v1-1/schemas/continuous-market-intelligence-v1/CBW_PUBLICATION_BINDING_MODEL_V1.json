@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "1.0.0",
+  "modelId": "CBW_PUBLICATION_BINDING_MODEL_V1",
+  "title": "CBW Publication Binding Model V1",
+  "status": "ARCHITECTURE_DRAFT_FOR_OWNER_APPROVAL",
+  "description": "Binds canonical claims to the presentation surfaces that depend on them, and governs the preview -> QA -> owner-review -> publish -> live-verify -> rollback lifecycle. Architecture model only; no real routes are published by this document.",
+  "sharedEnums": {
+    "publicationState": ["UNBOUND", "BOUND", "PREVIEW", "QA", "OWNER_REVIEW", "PUBLISHED", "SUPPRESSED", "ROLLED_BACK"],
+    "impactStatus": ["NO_IMPACT", "IMPACTED_MINOR", "IMPACTED_MAJOR", "IMPACTED_CRITICAL"],
+    "ctaState": ["ENABLED", "DISABLED", "UNDER_REVIEW", "SUPPRESSED_BROKEN", "SUPPRESSED_GEO"]
+  },
+  "entities": {
+    "PublicationBinding": {
+      "primaryKey": "bindingId",
+      "fields": {
+        "bindingId": "example id",
+        "claimId": "Claim.claimId from the claim/evidence model",
+        "surfaceType": "one of [ROUTE, PAGE, BLOCK, RANKING_CARD, ANSWER_BLOCK, COMPARISON_TABLE, FAQ, TITLE_META, STRUCTURED_DATA, AFFILIATE_CTA]",
+        "route": "placeholder route string, e.g. /kz/binance",
+        "pageId": "string",
+        "blockId": "string",
+        "rankingCardId": "string or null",
+        "answerBlockId": "string or null",
+        "comparisonTableId": "string or null",
+        "faqId": "string or null",
+        "titleMetaId": "string or null",
+        "structuredDataId": "string or null",
+        "affiliateCtaId": "AffiliateCampaign CTA reference or null",
+        "publicationState": "one of sharedEnums.publicationState",
+        "requiresOwnerGate": "boolean"
+      },
+      "invariants": [
+        "a binding to RANKING_CARD, AFFILIATE_CTA or STRUCTURED_DATA MUST set requiresOwnerGate = true",
+        "a binding whose claim is critical and STALE/EXPIRED MUST move to SUPPRESSED"
+      ]
+    },
+    "ImpactRecord": {
+      "primaryKey": "impactRecordId",
+      "fields": {"bindingId": "PublicationBinding.bindingId", "changeEventId": "ChangeEvent.changeEventId", "impactStatus": "one of sharedEnums.impactStatus", "assessedAt": "timestamp"}
+    },
+    "PatchProposal": {
+      "primaryKey": "patchProposalId",
+      "fields": {"bindingId": "PublicationBinding.bindingId", "changeType": "one of [SEMANTIC, FORMATTING]", "lane": "one of [GREEN, AMBER, RED]", "diffSummary": "string", "generatedAt": "timestamp", "generatedBy": "agent id"},
+      "invariants": ["a SEMANTIC change to a critical binding MUST be lane RED and owner-gated"]
+    },
+    "PreviewArtifact": {
+      "primaryKey": "previewId",
+      "fields": {"patchProposalId": "PatchProposal.patchProposalId", "previewObjectKey": "object-store key for a non-production preview render", "createdAt": "timestamp"}
+    },
+    "ValidationRecord": {
+      "primaryKey": "validationRecordId",
+      "fields": {"previewId": "PreviewArtifact.previewId", "qaVerdict": "one of [PASS, FAIL, NEEDS_OWNER]", "checks": "array of check ids", "validatedAt": "timestamp"}
+    },
+    "PublicationVersion": {
+      "primaryKey": "publicationVersionId",
+      "fields": {"bindingId": "PublicationBinding.bindingId", "sourcePatchProposalId": "PatchProposal.patchProposalId", "ownerApproved": "boolean", "publishedAt": "timestamp or null", "publicationState": "one of sharedEnums.publicationState"},
+      "invariants": ["publishedAt is non-null only after ownerApproved is true for owner-gated bindings"]
+    },
+    "LiveVerificationRef": {
+      "primaryKey": "liveVerificationId",
+      "fields": {"publicationVersionId": "PublicationVersion.publicationVersionId", "outcome": "one of [MATCH, MISMATCH, ERROR]", "verifiedAt": "timestamp"}
+    },
+    "RollbackRef": {
+      "primaryKey": "rollbackId",
+      "fields": {"publicationVersionId": "PublicationVersion.publicationVersionId", "toPublicationVersionId": "PublicationVersion.publicationVersionId", "reason": "string", "rolledBackAt": "timestamp"}
+    }
+  },
+  "lifecycle": ["UNBOUND", "BOUND", "PREVIEW", "QA", "OWNER_REVIEW", "PUBLISHED", "ROLLED_BACK or SUPPRESSED"],
+  "ownerGatedSurfaces": ["RANKING_CARD", "AFFILIATE_CTA", "STRUCTURED_DATA", "TITLE_META"],
+  "crossReferences": [
+    "./CBW_CLAIM_EVIDENCE_FRESHNESS_MODEL_V1.json",
+    "./CBW_CHANGE_EVENT_AND_IMPACT_MODEL_V1.json",
+    "../../templates/continuous-market-intelligence-v1/CBW_AUTONOMOUS_CONTENT_UPDATE_POLICY_V1.md",
+    "../../templates/continuous-market-intelligence-v1/CBW_SEO_QUICK_ANSWER_AND_SEARCH_INTENT_STANDARD_V1.md"
+  ]
+}

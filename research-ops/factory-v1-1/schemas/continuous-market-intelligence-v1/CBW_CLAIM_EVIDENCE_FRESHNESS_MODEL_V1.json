@@ -1,0 +1,106 @@
+{
+  "schemaVersion": "1.0.0",
+  "modelId": "CBW_CLAIM_EVIDENCE_FRESHNESS_MODEL_V1",
+  "title": "CBW Claim, Evidence and Freshness Model V1",
+  "status": "ARCHITECTURE_DRAFT_FOR_OWNER_APPROVAL",
+  "description": "Canonical claim/evidence graph and freshness governance for the continuous market-intelligence platform. Architecture model only; example ids and the example.invalid domain are placeholders, not live sources.",
+  "sharedEnums": {
+    "claimConfidence": ["HIGH", "MEDIUM", "LOW", "UNVERIFIED"],
+    "freshnessState": ["FRESH", "AGING", "STALE", "EXPIRED"],
+    "sourceTier": ["TIER_0_OFFICIAL", "TIER_1_REGULATOR", "TIER_2_REPUTABLE", "TIER_3_COMMUNITY", "TIER_4_UNVERIFIED"],
+    "claimEdgeType": ["SUPPORTS", "CONTRADICTS", "CONTEXTUALIZES", "SUPERSEDES"]
+  },
+  "entities": {
+    "Claim": {
+      "primaryKey": "claimId",
+      "fields": {
+        "claimId": "example id, e.g. clm_kz_binance_reg_0001",
+        "subjectType": "one of [EXCHANGE_GLOBAL, MARKET_PROFILE]",
+        "subjectId": "exchangeId or marketProfileId",
+        "predicate": "one of [REGULATORY_STATUS, LICENSE, RESTRICTION, REGISTRATION, KYC, PRODUCT_AVAILABILITY, PAYMENT_RAIL, FEE, LIMIT, SECURITY, HISTORY, AFFILIATE_OFFER]",
+        "statementText": "concise factual statement, not marketing prose",
+        "confidence": "one of sharedEnums.claimConfidence",
+        "freshnessState": "one of sharedEnums.freshnessState",
+        "limitations": "string describing scope/uncertainty, required for LOW or UNVERIFIED",
+        "effectiveFrom": "date",
+        "effectiveTo": "date or null",
+        "currentVersionId": "ClaimVersion.claimVersionId",
+        "nextCheckDueAt": "timestamp",
+        "isCritical": "boolean; regulatory, security, sanction, restriction claims are critical"
+      },
+      "invariants": [
+        "a claim with confidence LOW or UNVERIFIED MUST record limitations",
+        "a claim with no non-contradicted supporting evidence MUST NOT hold confidence above LOW",
+        "a critical claim in freshnessState STALE or EXPIRED MUST trigger publication suppression per the publication binding model"
+      ]
+    },
+    "EvidenceSource": {
+      "primaryKey": "sourceId",
+      "fields": {
+        "sourceId": "example id",
+        "sourceTier": "one of sharedEnums.sourceTier",
+        "sourceType": "one of [OFFICIAL_SITE, HELP_CENTER, REGULATOR_REGISTER, RSS, API, NEWS, COMMUNITY]",
+        "canonicalUrl": "placeholder like https://regulator.example.invalid/register",
+        "publisher": "string"
+      }
+    },
+    "EvidenceSnapshot": {
+      "primaryKey": "snapshotId",
+      "foreignKeys": {"sourceId": "EvidenceSource.sourceId"},
+      "fields": {
+        "snapshotId": "example id",
+        "capturedAt": "timestamp",
+        "contentHash": "sha256 hex placeholder",
+        "storageObjectKey": "object-store key in the evidence bucket, not committed to Git",
+        "mimeType": "string",
+        "httpStatus": "integer",
+        "redirectChainRef": "optional RedirectObservation id in the affiliate model"
+      },
+      "invariants": ["snapshots are immutable and content-addressed by contentHash", "snapshot bytes live in object storage, never in the operational database or Git"]
+    },
+    "ClaimEvidenceEdge": {
+      "primaryKey": "edgeId",
+      "foreignKeys": {"claimId": "Claim.claimId", "snapshotId": "EvidenceSnapshot.snapshotId"},
+      "fields": {"edgeType": "one of sharedEnums.claimEdgeType", "weight": "one of [PRIMARY, SECONDARY, WEAK]", "note": "string"},
+      "invariants": ["a SUPERSEDES edge requires a target ClaimVersion and creates a supersession record"]
+    },
+    "Conflict": {
+      "primaryKey": "conflictId",
+      "fields": {"claimId": "Claim.claimId", "conflictType": "one of [SOURCE_DISAGREEMENT, STALE_VS_FRESH, TIER_MISMATCH]", "status": "one of [OPEN, RESOLVED, UNRESOLVABLE]", "resolutionNote": "string", "resolvedByEvent": "VerificationEvent.verificationEventId or null"},
+      "invariants": ["an OPEN conflict on a critical claim MUST hold publication in AMBER or RED lane"]
+    },
+    "ClaimVersion": {
+      "primaryKey": "claimVersionId",
+      "foreignKeys": {"claimId": "Claim.claimId"},
+      "fields": {"statementText": "string", "confidence": "one of sharedEnums.claimConfidence", "effectiveFrom": "date", "effectiveTo": "date or null", "supersedesVersionId": "claimVersionId or null", "createdAt": "timestamp"},
+      "invariants": ["versions are append-only; superseded versions are retained, never deleted"]
+    },
+    "FreshnessPolicy": {
+      "primaryKey": "freshnessPolicyId",
+      "fields": {
+        "predicate": "one of Claim.predicate",
+        "isCritical": "boolean",
+        "freshWindowDays": "integer",
+        "agingWindowDays": "integer",
+        "staleAfterDays": "integer",
+        "recheckIntervalDays": "integer",
+        "staleAction": "one of [FLAG, DOWNGRADE_CONFIDENCE, SUPPRESS_PUBLICATION]"
+      },
+      "examples": [
+        {"predicate": "REGULATORY_STATUS", "isCritical": true, "freshWindowDays": 30, "agingWindowDays": 60, "staleAfterDays": 90, "recheckIntervalDays": 14, "staleAction": "SUPPRESS_PUBLICATION"},
+        {"predicate": "FEE", "isCritical": false, "freshWindowDays": 45, "agingWindowDays": 90, "staleAfterDays": 180, "recheckIntervalDays": 30, "staleAction": "DOWNGRADE_CONFIDENCE"}
+      ]
+    },
+    "VerificationEvent": {
+      "primaryKey": "verificationEventId",
+      "fields": {"claimId": "Claim.claimId", "outcome": "one of [CONFIRMED, CHANGED, CONTRADICTED, UNAVAILABLE]", "snapshotId": "EvidenceSnapshot.snapshotId", "performedAt": "timestamp", "agent": "agent id from the agent roles standard"}
+    }
+  },
+  "criticalClaimStaleBehavior": "When a critical claim reaches STALE it MUST downgrade to at most confidence LOW and schedule an immediate recheck; when it reaches EXPIRED its publication bindings MUST be suppressed until re-verified.",
+  "crossReferences": [
+    "./CBW_MARKET_INTELLIGENCE_DATA_SCHEMA_V1.json",
+    "./CBW_PUBLICATION_BINDING_MODEL_V1.json",
+    "./CBW_CHANGE_EVENT_AND_IMPACT_MODEL_V1.json",
+    "../../templates/continuous-market-intelligence-v1/CBW_SOURCE_MONITORING_STANDARD_V1.md"
+  ]
+}
