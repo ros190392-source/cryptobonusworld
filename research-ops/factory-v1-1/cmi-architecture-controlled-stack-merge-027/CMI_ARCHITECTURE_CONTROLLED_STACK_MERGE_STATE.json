@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-CONTINUOUS-EXCHANGE-MARKET-INTELLIGENCE-ARCHITECTURE-V1-CONTROLLED-STACK-MERGE-027",
+  "project": "CryptoBonusWorld",
+  "role": "closeout",
+  "state": "READY_FOR_CONTROLLED_STACK_MERGE",
+  "governingIssue": 82,
+  "ownerAuthorization": "AUTHORIZE CBW-CONTINUOUS-EXCHANGE-MARKET-INTELLIGENCE-ARCHITECTURE-V1-CONTROLLED-STACK-MERGE-027",
+  "branch": "closeout/researchops-factory-v1-1-cmi-architecture-controlled-stack-merge-027",
+  "baseBranch": "correction/researchops-factory-v1-1-continuous-market-intelligence-owner-audit-026",
+  "approvedBaseSha": "272ffa266647a899684954ed04a1eb09803d3b2b",
+  "expectedMainBeforeStage1": "babe80fe2bdcb7891dddf63aa8064532626a8fba",
+  "protectedMasterSha": "998fcedd7d9febbec5b130d4765dfeaafc40960b",
+  "sourceArchitecture": {
+    "issue": 78,
+    "pullRequest": 79,
+    "headSha": "6d5a06b3ec3992b2760a2ca352d62f66d49ca82e",
+    "workflowRunId": 30365356842
+  },
+  "sourceCorrection": {
+    "issue": 80,
+    "pullRequest": 81,
+    "headSha": "272ffa266647a899684954ed04a1eb09803d3b2b",
+    "workflowRunId": 30370715416
+  },
+  "protectedBinancePilot": {
+    "pullRequest": 69,
+    "headSha": "6ce489ff10655f65e62a76d1a5635aa80e73b44a",
+    "expectedChangedFiles": 14,
+    "mutationAuthorized": false
+  },
+  "expectedSourceCommitsAhead": 10,
+  "expectedSourcePathCount": 25,
+  "expectedFinalPathCount": 30,
+  "expectedFixtureResult": {
+    "passed": 235,
+    "failed": 0
+  },
+  "resultDirectory": "research-ops/factory-v1-1/cmi-architecture-controlled-stack-merge-027",
+  "allowedImplementationFiles": [],
+  "requiredResultFiles": [
+    "research-ops/factory-v1-1/cmi-architecture-controlled-stack-merge-027/CMI_ARCHITECTURE_CONTROLLED_STACK_MERGE_RESULT.json",
+    "research-ops/factory-v1-1/cmi-architecture-controlled-stack-merge-027/CMI_ARCHITECTURE_CONTROLLED_STACK_MERGE_RESULT.md"
+  ],
+  "allowedDecisions": [
+    "CONTINUOUS_MARKET_INTELLIGENCE_ARCHITECTURE_V1_PUBLISHED_TO_MAIN",
+    "CONTINUOUS_MARKET_INTELLIGENCE_ARCHITECTURE_V1_CONTROLLED_STACK_MERGE_BLOCKED"
+  ],
+  "acceptedImplementationNotes": [
+    "Runtime advertisedCurrency must support digital-asset codes such as USDT, not only ISO-4217 fiat.",
+    "Future research packages retain sourceTier for immutable-prompt compatibility while mapping to canonical sourceFamily; sourceTier is never a universal authority rule."
+  ],
+  "authorizations": {
+    "factoryMergeToMainAuthorized": true,
+    "researchRecordMergeToMainAuthorized": false,
+    "binancePilotAuthorized": false,
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false,
+    "masterChangeAuthorized": false
+  }
+}
