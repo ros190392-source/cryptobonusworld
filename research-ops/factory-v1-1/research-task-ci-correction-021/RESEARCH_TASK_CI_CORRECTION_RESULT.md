@@ -88,7 +88,9 @@ The correction PR is a factory-governance PR on `main` and validates under the e
 path (its diff contains no `research-ops/tasks/**` root). Its run id and per-step statuses are
 recorded here after completion.
 
-<!-- CORRECTION_PR_RUN -->
+**Observed correction PR run:** `30343255506` on `3b6ca45` — conclusion **`success`**, all steps green.
+
+`ENFORCEMENT: DESCENDANT (protected base policy)` → `BOUNDARY mode=FACTORY_GOVERNANCE` → `RESULT: BOUNDARY OK` → `Factory-governance PR: no research-task root to validate.` Fixtures ran 222/0. This confirms the RESEARCH_TASK routing addition did not disturb DESCENDANT or BOOTSTRAP. (The recording commit embedding this evidence triggers one further identical DESCENDANT run; both are success.)
 
 ## Decision
 
