@@ -77,7 +77,7 @@ base `main`, all 18 authorizations false.
 
 ## Correction PR workflow
 
-<!-- CORRECTION_PR_RUN -->
+**Observed governance workflow run:** `30365225890` on `d9a7c0d` — conclusion **`success`**, all steps green. `ENFORCEMENT: DESCENDANT (protected base policy)` → `BOUNDARY mode=FACTORY_GOVERNANCE` → `RESULT: BOUNDARY OK` → `Factory-governance PR: no research-task root to validate.` (The recording commit embedding this evidence triggers one further identical DESCENDANT run; both are success.)
 
 ## Decision & next step
 

@@ -102,7 +102,16 @@
     "Example identifiers and the example.invalid domain are placeholders, not live data.",
     "Publication, ranking, CTA, affiliate route, sitemap, indexability and MIGRATION_5 remain owner-gated future phases."
   ],
-  "correctionPrOwnWorkflow": { "note": "Recorded in the .md after the governance workflow completes.", "observed": null },
+  "governanceWorkflow": {
+    "runId": 30365225890,
+    "headSha": "d9a7c0d48a0d4e2d893bc3f793fb39ff5b6520f5",
+    "conclusion": "success",
+    "enforcement": "DESCENDANT (protected base policy)",
+    "boundaryMode": "FACTORY_GOVERNANCE",
+    "runtimeEvidence": ["ENFORCEMENT: DESCENDANT (protected base policy)", "BOUNDARY mode=FACTORY_GOVERNANCE taskRoots=[]", "RESULT: BOUNDARY OK", "Factory-governance PR: no research-task root to validate."],
+    "allStepsSucceeded": true,
+    "note": "A recording commit embedding this evidence triggers one further identical DESCENDANT run; both are success."
+  },
   "recommendedNextOwnerStep": "Review and approve this architecture package, then separately authorize Roadmap Phase 2 (Binance x Kazakhstan Deep Research) on pilot PR #69.",
   "authorizations": {
     "factoryMergeToMainAuthorized": false,
