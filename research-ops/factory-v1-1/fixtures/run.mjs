@@ -480,6 +480,50 @@ function run() {
   // (j) empty range (future task without owner setup record) -> no setup boundary
   { const r = discoverFrozenSetupBoundary([cmt('w1', [['A', RES1], ['A', RES2]])], RD); check('R2-j future task without owner setup record rejected', !r.ok); }
 
+  // ================= Correction 021 — research-task CI routing =================
+  // The published workflow must route a canonical research/** task PR through a
+  // RESEARCH_TASK path (protected-base check-boundary over the exact base->head diff, NO
+  // owner setup-boundary discovery) and fail closed on every escape. These assert the
+  // exact CLI-level invariants the workflow routing relies on, plus governance/bootstrap
+  // non-regression.
+  const RT_ROOT = 'research-ops/tasks/CBW-KZ-BINANCE-P0-D-DEEP-RESEARCH-001';
+  const RT_META = { headBranch: 'research/kz-binance-kz-p0-d', baseBranch: 'main' };
+  const rtSkeleton = canonicalSkeletonFiles().map((f) => ['A', `${RT_ROOT}/${f}`]);
+  // (1) canonical research branch selects the research-task mode
+  { check('021-1 canonical research/** on main -> RESEARCH_TASK', trustedModeFromMeta(RT_META) === 'RESEARCH_TASK'); }
+  // (2) the EXACT pilot PR #69 skeleton diff is accepted as RESEARCH_TASK with the task root emitted
+  { const r = checkChangedFileBoundary(nameStatus(rtSkeleton), RT_META);
+    check('021-2 exact pilot skeleton diff -> RESEARCH_TASK BOUNDARY OK', r.ok && r.mode === 'RESEARCH_TASK' && r.taskRoots.length === 1 && r.taskRoots[0] === RT_ROOT, r.violations.join('; ')); }
+  // (3) research routing needs no owner setup directory (a pure task diff passes)
+  { const r = checkChangedFileBoundary(nameStatus([['A', `${RT_ROOT}/20-research-output/research-run.json`]]), RT_META);
+    check('021-3 research routing independent of setup-boundary discovery', r.ok && r.mode === 'RESEARCH_TASK', r.violations.join('; ')); }
+  // (4) a research branch modifying the factory workflow fails closed
+  { const r = checkChangedFileBoundary(nameStatus([['A', `${RT_ROOT}/TASK_STATE.json`], ['M', '.github/workflows/cbw-researchops-factory-validate.yml']]), RT_META);
+    check('021-4 research branch touching factory workflow rejected', !r.ok); }
+  // (5) a research branch mixing factory-governance + task files fails closed
+  { const r = checkChangedFileBoundary(nameStatus([['A', `${RT_ROOT}/TASK_STATE.json`], ['M', 'research-ops/factory-v1-1/lib/boundary.mjs']]), RT_META);
+    check('021-5 research branch mixing factory + task files rejected', !r.ok); }
+  // (6) a research branch changing only a factory file (mode confusion) fails closed
+  { const r = checkChangedFileBoundary(nameStatus([['M', 'research-ops/factory-v1-1/lib/util.mjs']]), RT_META);
+    check('021-6 research branch changing only a factory file rejected', !r.ok); }
+  // (7) spoof / noncanonical research branch identities are not trusted as research-task
+  { check('021-7 uppercase research branch not RESEARCH_TASK', trustedModeFromMeta({ headBranch: 'research/Evil', baseBranch: 'main' }) === null);
+    check('021-7b nested research branch not RESEARCH_TASK', trustedModeFromMeta({ headBranch: 'research/a/b', baseBranch: 'main' }) === null);
+    check('021-7c research branch on non-main base not RESEARCH_TASK', trustedModeFromMeta({ headBranch: 'research/kz-binance-kz-p0-d', baseBranch: 'develop' }) === null); }
+  // (8) research head must bind to the task's declared branch identity
+  { const root = 'research-ops/tasks/CBW-A-001'; const okr = checkChangedFileBoundary(nameStatus([['A', `${root}/20-research-output/research-run.json`]]), RES(root));
+    const badr = checkChangedFileBoundary(nameStatus([['A', `${root}/20-research-output/research-run.json`]]), RES(root, { headBranch: 'research/spoof-x' }));
+    check('021-8 matching research identity accepted', okr.ok, okr.violations.join('; '));
+    check('021-8b spoof research head != declared branch rejected', !badr.ok); }
+  // (9) factory-governance branches still require a unique frozen setup boundary (non-regression)
+  { const commits = [cmt('s1', setupAdds), cmt('w1', [['A', RES1], ['A', RES2]])]; const r = discoverFrozenSetupBoundary(commits, RD);
+    check('021-9 governance descendant still needs unique frozen setup', r.ok && r.frozenSetupSha === 's1', r.violations.join('; '));
+    check('021-9b governance with no setup boundary still rejected', !discoverFrozenSetupBoundary([cmt('w1', [['A', RES1]])], RD).ok); }
+  // (10) the pinned one-time V4 bootstrap anchor behavior is unchanged (non-regression)
+  { check('021-10 exact V4 anchor -> BOOTSTRAP', resolveEnforcement(anchorCtx()).mode === 'BOOTSTRAP');
+    check('021-10b anchor mismatch -> REJECT', resolveEnforcement(anchorCtx({ issue: 999 })).mode === 'REJECT');
+    check('021-10c base carries V4 -> DESCENDANT preserved', resolveEnforcement(anchorCtx({ baseHasV4Policy: true })).mode === 'DESCENDANT'); }
+
   for (const r of roots) { try { rmSync(r, { recursive: true, force: true }); } catch { /* ignore */ } }
   console.log(`\nFIXTURES: ${pass} passed, ${fail} failed`);
   if (fail > 0) { console.log('FAILURES:'); for (const f of failures) console.log(`  - ${f}`); process.exit(1); }

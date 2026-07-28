@@ -92,7 +92,27 @@ jobs:
           ANCHOR_ISSUE=60
           ANCHOR_APPROVED_BASE_SHA=07d0e38a540355244b2bcab0258d3eb5463ed1af
           ANCHOR_FROZEN_SETUP_SHA=063078ac56423d3ab3544f17e69b09ed4bdc6d9e
-          if [ "$BASE_HAS_V4" = "true" ]; then
+          # Correction 021 — trusted routing. A canonical research/** task PR targets main
+          # and intentionally has NO factory result directory, so owner setup-boundary
+          # discovery must NOT run for it (that is a factory-governance-only step). Detect
+          # it from the exact trusted head/base branch metadata (the same canonical shape
+          # the CLI enforces), then run the existing protected-base check-boundary over the
+          # exact trusted base->head diff. Any factory/workflow/mixed escape is failed closed
+          # by check-boundary's research-task mode; a noncanonical/spoof/wrong-base branch
+          # falls through to the descendant path and still fails closed.
+          IS_RESEARCH_TASK=false
+          if printf '%s' "$HEAD_BRANCH" | grep -qE '^research/[a-z0-9]+(-[a-z0-9]+)*$' && [ "$BASE_BRANCH" = "main" ]; then
+            IS_RESEARCH_TASK=true
+          fi
+          if [ "$IS_RESEARCH_TASK" = "true" ]; then
+            # RESEARCH_TASK — protected-base policy over the trusted base->head diff. The
+            # exact trusted BASE_SHA is BOTH the diff base and the approved base; the owner
+            # setup boundary is never discovered for a research task.
+            echo "ENFORCEMENT: RESEARCH_TASK (protected base policy)"
+            git worktree add --detach ../trusted-base "$BASE_SHA"
+            ENFORCE_BIN="../trusted-base/research-ops/factory-v1-1/bin/researchops.mjs"
+            DIFF_BASE="$BASE_SHA"; APPROVED_BASE_SHA="$BASE_SHA"
+          elif [ "$BASE_HAS_V4" = "true" ]; then
             # DESCENDANT — normal path: policy is executed from the PROTECTED BASE. R2 —
             # the new task's owner setup phase adds exactly the three role-specific setup
             # records before any worker/result commit. Discover the UNIQUE frozen owner-
