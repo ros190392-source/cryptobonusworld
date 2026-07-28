@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "1.0.0",
+  "factoryVersion": "1.1",
+  "taskId": "CBW-KZ-BINANCE-P0-D-DEEP-RESEARCH-001",
+  "project": "CryptoBonusWorld",
+  "countryCode": "KZ",
+  "countryName": "Kazakhstan",
+  "exchangeId": "binance",
+  "exchangeName": "Binance",
+  "batchId": "KZ-P0-D",
+  "priority": "P0",
+  "createdAt": "2026-07-28",
+  "handoffProtocol": "CBW_HANDOFF_ENVELOPE_V1",
+  "deliveryMode": "ONE_BRANCH_ONE_DRAFT_PR",
+  "requiredResearchInventory": [
+    "research-run.json",
+    "source-verification.json",
+    "claim-verdicts.json",
+    "conflict-resolution.json",
+    "product-availability.json",
+    "payment-rails.json",
+    "offer-eligibility-review.json",
+    "schema-normalization-notes.json",
+    "import-readiness.json",
+    "source-truth-review-report.md",
+    "MANIFEST.txt"
+  ]
+}

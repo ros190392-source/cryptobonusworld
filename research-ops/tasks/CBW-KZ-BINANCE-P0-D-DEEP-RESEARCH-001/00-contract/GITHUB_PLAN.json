@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-KZ-BINANCE-P0-D-DEEP-RESEARCH-001",
+  "model": "ONE_BRANCH_ONE_DRAFT_PR",
+  "baseBranch": "main",
+  "taskBranch": "research/kz-binance-kz-p0-d",
+  "pullRequest": {
+    "draft": true,
+    "base": "main",
+    "head": "research/kz-binance-kz-p0-d",
+    "title": "research(kz-binance): Binance × Kazakhstan deep-research record",
+    "autoMerge": false
+  },
+  "appendOnly": true,
+  "mergeAuthorized": false,
+  "ownerGatedMerge": true
+}
