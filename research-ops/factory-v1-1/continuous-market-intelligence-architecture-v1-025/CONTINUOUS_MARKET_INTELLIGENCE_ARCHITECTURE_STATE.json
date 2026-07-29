@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-CONTINUOUS-EXCHANGE-MARKET-INTELLIGENCE-ARCHITECTURE-V1-025",
+  "project": "CryptoBonusWorld",
+  "role": "implementation",
+  "state": "READY_FOR_IMPLEMENTATION",
+  "governingIssue": 78,
+  "ownerAuthorization": "AUTHORIZE CBW-CONTINUOUS-EXCHANGE-MARKET-INTELLIGENCE-ARCHITECTURE-V1-025",
+  "branch": "feat/researchops-factory-v1-1-continuous-market-intelligence-architecture-v1-025",
+  "baseBranch": "main",
+  "approvedBaseSha": "babe80fe2bdcb7891dddf63aa8064532626a8fba",
+  "protectedMasterSha": "998fcedd7d9febbec5b130d4765dfeaafc40960b",
+  "resultDirectory": "research-ops/factory-v1-1/continuous-market-intelligence-architecture-v1-025",
+  "sourcePilot": {
+    "issue": 68,
+    "resumeIssue": 77,
+    "pullRequest": 69,
+    "headSha": "6ce489ff10655f65e62a76d1a5635aa80e73b44a",
+    "state": "PREPARED",
+    "mutationAuthorized": false
+  },
+  "allowedImplementationFiles": [
+    "research-ops/factory-v1-1/templates/continuous-market-intelligence-v1/CBW_CONTINUOUS_EXCHANGE_MARKET_INTELLIGENCE_SYSTEM_V1.md",
+    "research-ops/factory-v1-1/templates/continuous-market-intelligence-v1/CBW_EXCHANGE_COUNTRY_MARKET_PASSPORT_STANDARD_V1.md",
+    "research-ops/factory-v1-1/templates/continuous-market-intelligence-v1/CBW_AFFILIATE_OFFER_VERIFICATION_STANDARD_V1.md",
+    "research-ops/factory-v1-1/templates/continuous-market-intelligence-v1/CBW_SOURCE_MONITORING_STANDARD_V1.md",
+    "research-ops/factory-v1-1/templates/continuous-market-intelligence-v1/CBW_AUTONOMOUS_CONTENT_UPDATE_POLICY_V1.md",
+    "research-ops/factory-v1-1/templates/continuous-market-intelligence-v1/CBW_AGENT_ROLES_AND_STATE_MACHINE_V1.md",
+    "research-ops/factory-v1-1/templates/continuous-market-intelligence-v1/CBW_SEO_QUICK_ANSWER_AND_SEARCH_INTENT_STANDARD_V1.md",
+    "research-ops/factory-v1-1/templates/continuous-market-intelligence-v1/CBW_IMPLEMENTATION_ROADMAP_V1.md",
+    "research-ops/factory-v1-1/templates/continuous-market-intelligence-v1/CBW_DEEP_RESEARCH_MARKET_PASSPORT_COMPANION_V1.md",
+    "research-ops/factory-v1-1/schemas/continuous-market-intelligence-v1/CBW_MARKET_INTELLIGENCE_DATA_SCHEMA_V1.json",
+    "research-ops/factory-v1-1/schemas/continuous-market-intelligence-v1/CBW_CLAIM_EVIDENCE_FRESHNESS_MODEL_V1.json",
+    "research-ops/factory-v1-1/schemas/continuous-market-intelligence-v1/CBW_PUBLICATION_BINDING_MODEL_V1.json",
+    "research-ops/factory-v1-1/schemas/continuous-market-intelligence-v1/CBW_AFFILIATE_CAMPAIGN_OFFER_MODEL_V1.json",
+    "research-ops/factory-v1-1/schemas/continuous-market-intelligence-v1/CBW_SOURCE_REGISTRY_AND_MONITORING_MODEL_V1.json",
+    "research-ops/factory-v1-1/schemas/continuous-market-intelligence-v1/CBW_CHANGE_EVENT_AND_IMPACT_MODEL_V1.json"
+  ],
+  "requiredResultFiles": [
+    "research-ops/factory-v1-1/continuous-market-intelligence-architecture-v1-025/CONTINUOUS_MARKET_INTELLIGENCE_ARCHITECTURE_RESULT.json",
+    "research-ops/factory-v1-1/continuous-market-intelligence-architecture-v1-025/CONTINUOUS_MARKET_INTELLIGENCE_ARCHITECTURE_RESULT.md"
+  ],
+  "allowedDecisions": [
+    "CONTINUOUS_MARKET_INTELLIGENCE_ARCHITECTURE_V1_READY_FOR_OWNER_APPROVAL",
+    "CONTINUOUS_MARKET_INTELLIGENCE_ARCHITECTURE_V1_BLOCKED"
+  ],
+  "authorizations": {
+    "factoryMergeToMainAuthorized": false,
+    "researchRecordMergeToMainAuthorized": false,
+    "binancePilotAuthorized": false,
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false,
+    "masterChangeAuthorized": false
+  }
+}

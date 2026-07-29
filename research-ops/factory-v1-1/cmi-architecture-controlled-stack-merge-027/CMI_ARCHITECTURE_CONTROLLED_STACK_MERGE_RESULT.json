@@ -1,0 +1,149 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-CONTINUOUS-EXCHANGE-MARKET-INTELLIGENCE-ARCHITECTURE-V1-CONTROLLED-STACK-MERGE-027",
+  "role": "closeout",
+  "governingIssue": 82,
+  "decision": "CONTINUOUS_MARKET_INTELLIGENCE_ARCHITECTURE_V1_PUBLISHED_TO_MAIN",
+  "ownerAuthorization": {
+    "token": "AUTHORIZE CBW-CONTINUOUS-EXCHANGE-MARKET-INTELLIGENCE-ARCHITECTURE-V1-CONTROLLED-STACK-MERGE-027",
+    "scope": "One two-stage ordinary non-force fast-forward of the accepted Architecture 025 + Correction 026 stack to control-plane main.",
+    "consumedAfterStage2": true,
+    "onlyTemporarilyTrue": "factoryMergeToMainAuthorized"
+  },
+  "frozenSetup": {
+    "branch": "closeout/researchops-factory-v1-1-cmi-architecture-controlled-stack-merge-027",
+    "setupHeadSha": "5a3c98d1d6f72cfbfe7e1186d991d04f9465ed33",
+    "startedAtApprovedCumulativeHead": "272ffa266647a899684954ed04a1eb09803d3b2b",
+    "additionsOnly": [
+      "research-ops/factory-v1-1/cmi-architecture-controlled-stack-merge-027/CMI_ARCHITECTURE_CONTROLLED_STACK_MERGE_CONTRACT.md",
+      "research-ops/factory-v1-1/cmi-architecture-controlled-stack-merge-027/CMI_ARCHITECTURE_CONTROLLED_STACK_MERGE_STATE.json",
+      "research-ops/factory-v1-1/cmi-architecture-controlled-stack-merge-027/CLAUDE_CMI_ARCHITECTURE_CONTROLLED_STACK_MERGE_PROMPT.md"
+    ]
+  },
+  "sourceEvidence": {
+    "mainBaselineBeforeStage1": "babe80fe2bdcb7891dddf63aa8064532626a8fba",
+    "protectedMaster": "998fcedd7d9febbec5b130d4765dfeaafc40960b",
+    "architecture025": {
+      "issue": 78,
+      "pullRequest": 79,
+      "state": "OPEN/draft/unmerged",
+      "base": "main",
+      "headBranch": "feat/researchops-factory-v1-1-continuous-market-intelligence-architecture-v1-025",
+      "headSha": "6d5a06b3ec3992b2760a2ca352d62f66d49ca82e",
+      "finalWorkflowRun": 30365356842,
+      "finalWorkflowConclusion": "success"
+    },
+    "correction026": {
+      "issue": 80,
+      "pullRequest": 81,
+      "state": "OPEN/draft/unmerged",
+      "base": "feat/researchops-factory-v1-1-continuous-market-intelligence-architecture-v1-025",
+      "headBranch": "correction/researchops-factory-v1-1-continuous-market-intelligence-owner-audit-026",
+      "headSha": "272ffa266647a899684954ed04a1eb09803d3b2b",
+      "finalWorkflowRun": 30370715416,
+      "finalWorkflowConclusion": "success"
+    },
+    "protectedBinancePilot": {
+      "pullRequest": 69,
+      "state": "OPEN/draft/unmerged",
+      "headSha": "6ce489ff10655f65e62a76d1a5635aa80e73b44a",
+      "changedFiles": 14,
+      "autoMerge": null,
+      "mutationAuthorized": false
+    }
+  },
+  "preflight": {
+    "ancestry": "babe80f -> 6d5a06b -> 272ffa2 (verified)",
+    "mergeBase": "babe80fe2bdcb7891dddf63aa8064532626a8fba",
+    "aheadBy": 10,
+    "behindBy": 0,
+    "cumulativePathCount": 25,
+    "categoryCounts": {
+      "architecture025Records": 5,
+      "correction026Records": 5,
+      "markdownStandards": 9,
+      "jsonModels": 6
+    },
+    "validation": {
+      "nodeCheckMjs": "clean",
+      "fixtures": "235 passed / 0 failed",
+      "jsonModelsParse": 6,
+      "schemaVersion": "1.0.0 (all six)",
+      "canonicalVocabulariesConsistent": true,
+      "canonicalEnumsSharedKeysIdentical": true,
+      "correctedVocabulariesPresent": [
+        "freshnessState=FRESH/DUE_SOON/STALE/EXPIRED",
+        "claimVerificationState=SUPPORTED/CONFLICTED/UNDER_REVIEW/UNSUPPORTED",
+        "sourceHealthState=HEALTHY/DEGRADED/UNAVAILABLE/BLOCKED/RETIRED",
+        "affiliateVerificationLevel=L0..L4"
+      ],
+      "noOperationalPlaceholderFieldNames": true,
+      "noSecretsOrLiveCbwAffiliateValues": true,
+      "markdownRelativeLinksResolved": 54,
+      "roadmapPhasesWithNineFields": "1,2,2b,3,4,5,6,7,8,9,10,11 (12 phases)",
+      "deepResearchCompanionMatchesHandoffAndPackageShape": true,
+      "gitDiffCheck": {
+        "workerAuthoredArchitectureContent": "clean (9 templates + 6 schemas + 025/026 result records)",
+        "note": "The only `git diff --check` warnings across babe80f..272ffa2 are 21 intentional Markdown hard-break (two-trailing-space) lines in four OWNER-authored governance records (025 PROMPT/CONTRACT, 026 PROMPT/CONTRACT). These are frozen owner-setup boundary files from prior tasks, are not modifiable in this task, and already passed their own green governance workflows 30365356842 and 30370715416. No worker-authored architecture content has whitespace errors."
+      }
+    }
+  },
+  "stage1": {
+    "command": "git push origin 272ffa266647a899684954ed04a1eb09803d3b2b:refs/heads/main",
+    "type": "ordinary non-force fast-forward",
+    "refUpdate": "babe80f..272ffa2 -> main",
+    "resultingMainSha": "272ffa266647a899684954ed04a1eb09803d3b2b",
+    "masterAfterStage1": "998fcedd7d9febbec5b130d4765dfeaafc40960b",
+    "binancePilotAfterStage1": "6ce489ff10655f65e62a76d1a5635aa80e73b44a",
+    "prohibitedOperationsUsed": "none (no force, force-with-lease, reset, rebase, squash, cherry-pick, PR merge, admin bypass or branch-protection change)"
+  },
+  "stage2Intended": {
+    "status": "PENDING",
+    "preconditions": [
+      "This result commit's real Factory-governance workflow is green (ENFORCEMENT: DESCENDANT; BOUNDARY mode=FACTORY_GOVERNANCE; RESULT: BOUNDARY OK; Factory-governance PR: no research-task root to validate).",
+      "origin/main == 272ffa2 immediately before Stage 2"
+    ],
+    "command": "git push origin <AUDIT_RESULT_SHA>:refs/heads/main",
+    "type": "ordinary non-force fast-forward",
+    "finalCumulativeInventory": "30 paths (25 source stack + 3 Merge 027 setup records + 2 Merge 027 result records)",
+    "note": "Exactly two main pushes total. No third audit commit, no third main push. Post-Stage-2 evidence is supplied by the external final report; these records are not amended after Stage 2."
+  },
+  "acceptedImplementationNotes": [
+    "Runtime advertisedCurrency must support digital-asset codes such as USDT, not only ISO-4217 fiat.",
+    "The immutable Factory research prompt requires sourceTier; future research packages retain it for prompt compatibility while mapping to canonical sourceFamily. sourceTier never becomes a universal authority rule."
+  ],
+  "unchanged": {
+    "master": "998fcedd7d9febbec5b130d4765dfeaafc40960b",
+    "binancePilotPr69": "6ce489ff10655f65e62a76d1a5635aa80e73b44a",
+    "pr69ChangedFiles": 14
+  },
+  "prohibitionsHonored": [
+    "No GitHub PR merge / no admin bypass / no branch-protection change",
+    "No force / force-with-lease / reset / rebase / squash / cherry-pick",
+    "No modification of Architecture 025, Correction 026, Factory code/workflow/README or PR #69",
+    "No Binance Deep Research, no 20-research-output capture, no affiliate link/account browsing",
+    "No master/production/deploy/import/ranking/CTA/promo/affiliate-route/publication-binding/sitemap/indexability/MIGRATION_5 change",
+    "No branch deletion, no V5 creation"
+  ],
+  "blockers": [],
+  "authorizationsAfterConsumption": {
+    "factoryMergeToMainAuthorized": false,
+    "researchRecordMergeToMainAuthorized": false,
+    "binancePilotAuthorized": false,
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false,
+    "masterChangeAuthorized": false
+  }
+}

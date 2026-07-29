@@ -1,0 +1,136 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-CONTINUOUS-EXCHANGE-MARKET-INTELLIGENCE-ARCHITECTURE-V1-025",
+  "project": "CryptoBonusWorld",
+  "role": "implementation",
+  "decision": "CONTINUOUS_MARKET_INTELLIGENCE_ARCHITECTURE_V1_READY_FOR_OWNER_APPROVAL",
+  "generatedAt": "2026-07-28",
+  "governance": {
+    "governingIssue": 78,
+    "pullRequest": 79,
+    "ownerAuthorization": "AUTHORIZE CBW-CONTINUOUS-EXCHANGE-MARKET-INTELLIGENCE-ARCHITECTURE-V1-025"
+  },
+  "setupIdentity": {
+    "branch": "feat/researchops-factory-v1-1-continuous-market-intelligence-architecture-v1-025",
+    "baseBranch": "main",
+    "approvedBaseSha": "babe80fe2bdcb7891dddf63aa8064532626a8fba",
+    "protectedMasterSha": "998fcedd7d9febbec5b130d4765dfeaafc40960b",
+    "frozenSetupHead": "995688260d2d6a1bc18fad15c4b0b84b86ae9ea7",
+    "isolatedWorktree": "C:\\projects\\CryptoBonusWorld-cmi-025",
+    "setupUntouched": true,
+    "role": "implementation"
+  },
+  "sourcePilot": {
+    "issue": 68,
+    "resumeIssue": 77,
+    "pullRequest": 69,
+    "headSha": "6ce489ff10655f65e62a76d1a5635aa80e73b44a",
+    "state": "PREPARED",
+    "mutationAuthorized": false,
+    "unchanged": true
+  },
+  "inventory": {
+    "architectureArtifacts": 15,
+    "resultRecords": 2,
+    "workerDiffTotal": 17,
+    "templates": [
+      "research-ops/factory-v1-1/templates/continuous-market-intelligence-v1/CBW_CONTINUOUS_EXCHANGE_MARKET_INTELLIGENCE_SYSTEM_V1.md",
+      "research-ops/factory-v1-1/templates/continuous-market-intelligence-v1/CBW_EXCHANGE_COUNTRY_MARKET_PASSPORT_STANDARD_V1.md",
+      "research-ops/factory-v1-1/templates/continuous-market-intelligence-v1/CBW_AFFILIATE_OFFER_VERIFICATION_STANDARD_V1.md",
+      "research-ops/factory-v1-1/templates/continuous-market-intelligence-v1/CBW_SOURCE_MONITORING_STANDARD_V1.md",
+      "research-ops/factory-v1-1/templates/continuous-market-intelligence-v1/CBW_AUTONOMOUS_CONTENT_UPDATE_POLICY_V1.md",
+      "research-ops/factory-v1-1/templates/continuous-market-intelligence-v1/CBW_AGENT_ROLES_AND_STATE_MACHINE_V1.md",
+      "research-ops/factory-v1-1/templates/continuous-market-intelligence-v1/CBW_SEO_QUICK_ANSWER_AND_SEARCH_INTENT_STANDARD_V1.md",
+      "research-ops/factory-v1-1/templates/continuous-market-intelligence-v1/CBW_IMPLEMENTATION_ROADMAP_V1.md",
+      "research-ops/factory-v1-1/templates/continuous-market-intelligence-v1/CBW_DEEP_RESEARCH_MARKET_PASSPORT_COMPANION_V1.md"
+    ],
+    "schemas": [
+      "research-ops/factory-v1-1/schemas/continuous-market-intelligence-v1/CBW_MARKET_INTELLIGENCE_DATA_SCHEMA_V1.json",
+      "research-ops/factory-v1-1/schemas/continuous-market-intelligence-v1/CBW_CLAIM_EVIDENCE_FRESHNESS_MODEL_V1.json",
+      "research-ops/factory-v1-1/schemas/continuous-market-intelligence-v1/CBW_PUBLICATION_BINDING_MODEL_V1.json",
+      "research-ops/factory-v1-1/schemas/continuous-market-intelligence-v1/CBW_AFFILIATE_CAMPAIGN_OFFER_MODEL_V1.json",
+      "research-ops/factory-v1-1/schemas/continuous-market-intelligence-v1/CBW_SOURCE_REGISTRY_AND_MONITORING_MODEL_V1.json",
+      "research-ops/factory-v1-1/schemas/continuous-market-intelligence-v1/CBW_CHANGE_EVENT_AND_IMPACT_MODEL_V1.json"
+    ]
+  },
+  "architectureDecisions": [
+    "Exchange x Country is the primary market entity; Exchange x Country x Affiliate Campaign is the monitored affiliate-offer entity.",
+    "Global exchange facts are stored once on the exchange core and never duplicated into market profiles; market facts are never promoted to global.",
+    "Canonical claims are distinct from page prose; every material claim has evidence, confidence, limitations, effective dates, freshness, next-check scheduling and immutable history.",
+    "Evidence snapshots are immutable and content-addressed in an R2/S3-style object store; canonical entities live in a PostgreSQL-style store; governance lives in Git; the search index is non-authoritative.",
+    "Dependency-based monitoring fans a single changed source out to dependent claims, market profiles and publication bindings, avoiding full daily re-research.",
+    "Public affiliate verification is anonymous L0-L3; L4 account-confirmed requires a separate owner authorization and no automation/proxy/fake identity.",
+    "Green/Amber/Red lanes gate autonomous changes; regulatory, security, sanction, ranking, Top-10, affiliate URL/code, CTA, production binding and deploy are always owner-gated.",
+    "Publication follows preview -> QA -> owner gate -> publish -> live-verify -> rollback; agents propose and validate but never mutate production authority.",
+    "The immutable Factory V1.1 eleven-file package remains the governed research envelope; richer requirements are mapped into those files with no extra files or repo mutation during Deep Research."
+  ],
+  "crossModelEnumInventory": {
+    "claimConfidence": ["HIGH", "MEDIUM", "LOW", "UNVERIFIED"],
+    "freshnessState": ["FRESH", "AGING", "STALE", "EXPIRED"],
+    "sourceTier": ["TIER_0_OFFICIAL", "TIER_1_REGULATOR", "TIER_2_REPUTABLE", "TIER_3_COMMUNITY", "TIER_4_UNVERIFIED"],
+    "claimEdgeType": ["SUPPORTS", "CONTRADICTS", "CONTEXTUALIZES", "SUPERSEDES"],
+    "affiliateVerificationLevel": ["L0_UNVERIFIED", "L1_LINK_RESOLVED", "L2_OFFER_CAPTURED", "L3_TERMS_CONFIRMED", "L4_ACCOUNT_CONFIRMED"],
+    "affiliateOfferStatus": ["ACTIVE", "CHANGED", "EXPIRED", "GEO_RESTRICTED", "BROKEN_LINK", "SUSPENDED", "UNKNOWN"],
+    "ctaState": ["ENABLED", "DISABLED", "UNDER_REVIEW", "SUPPRESSED_BROKEN", "SUPPRESSED_GEO"],
+    "monitoringHealthState": ["HEALTHY", "DEGRADED", "UNAVAILABLE", "BLOCKED", "RETIRED"],
+    "changeMateriality": ["NONE", "MINOR", "MODERATE", "MAJOR", "CRITICAL"],
+    "policyLane": ["GREEN", "AMBER", "RED"],
+    "agentWorkflowState": ["DETECTED", "EVIDENCE_CAPTURED", "EXTRACTED", "VALIDATED", "CONFLICTED", "IMPACT_ASSESSED", "PATCH_PROPOSED", "QA_PASSED", "AWAITING_OWNER", "PUBLISH_APPROVED", "PUBLISHED", "LIVE_VERIFIED", "ROLLED_BACK", "REJECTED", "SUPPRESSED"],
+    "agentTerminalState": ["LIVE_VERIFIED", "ROLLED_BACK", "REJECTED", "SUPPRESSED"],
+    "publicationState": ["UNBOUND", "BOUND", "PREVIEW", "QA", "OWNER_REVIEW", "PUBLISHED", "SUPPRESSED", "ROLLED_BACK"]
+  },
+  "validationEvidence": {
+    "allSixJsonParse": true,
+    "allSchemaVersion_1_0_0": true,
+    "sharedEnumsConsistentAcrossModels": true,
+    "markdownRelativeLinksResolved": 63,
+    "brokenLinks": 0,
+    "secretsOrRealAffiliateValues": "none (only example.invalid placeholders; no concrete bonus amounts)",
+    "nodeCheckAllFactoryMjs": "clean",
+    "fixtures": { "passed": 235, "failed": 0 },
+    "gitDiffCheck": "clean",
+    "existingFilesModified": 0,
+    "workerInventory": "15 architecture artifacts + 2 result records",
+    "pr69Unchanged": true,
+    "mainUnchanged": "babe80fe2bdcb7891dddf63aa8064532626a8fba",
+    "masterUnchanged": "998fcedd7d9febbec5b130d4765dfeaafc40960b"
+  },
+  "limitationsAndNonGoals": [
+    "Architecture only: no runtime service, database, redirect, crawler, page or CTA is created.",
+    "No Deep Research executed and no 20-research-output populated.",
+    "No affiliate link browsed or tested; no real URLs, codes or bonus amounts included.",
+    "Example identifiers and the example.invalid domain are placeholders, not live data.",
+    "Publication, ranking, CTA, affiliate route, sitemap, indexability and MIGRATION_5 remain owner-gated future phases."
+  ],
+  "governanceWorkflow": {
+    "runId": 30365225890,
+    "headSha": "d9a7c0d48a0d4e2d893bc3f793fb39ff5b6520f5",
+    "conclusion": "success",
+    "enforcement": "DESCENDANT (protected base policy)",
+    "boundaryMode": "FACTORY_GOVERNANCE",
+    "runtimeEvidence": ["ENFORCEMENT: DESCENDANT (protected base policy)", "BOUNDARY mode=FACTORY_GOVERNANCE taskRoots=[]", "RESULT: BOUNDARY OK", "Factory-governance PR: no research-task root to validate."],
+    "allStepsSucceeded": true,
+    "note": "A recording commit embedding this evidence triggers one further identical DESCENDANT run; both are success."
+  },
+  "recommendedNextOwnerStep": "Review and approve this architecture package, then separately authorize Roadmap Phase 2 (Binance x Kazakhstan Deep Research) on pilot PR #69.",
+  "authorizations": {
+    "factoryMergeToMainAuthorized": false,
+    "researchRecordMergeToMainAuthorized": false,
+    "binancePilotAuthorized": false,
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false,
+    "masterChangeAuthorized": false
+  }
+}

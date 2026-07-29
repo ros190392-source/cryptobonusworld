@@ -13,12 +13,16 @@ import { createTask } from '../lib/create.mjs';
 import { validateTask } from '../lib/validate.mjs';
 import { statusTask } from '../lib/status.mjs';
 import { parseNameStatus, parseNameStatusZ, checkChangedFileBoundary } from '../lib/boundary.mjs';
+import { resolveMutationChain, gitAccessors, scopeSegmentDiff } from '../lib/taskhistory.mjs';
+import { validateHistoricalChain } from '../lib/taskhistoryvalidate.mjs';
 import { roleForBranch } from '../lib/roles.mjs';
 import { checkEventIntegrity } from '../lib/eventintegrity.mjs';
 import { resolveEnforcement, checkSetupPhase, discoverFrozenSetupBoundary } from '../lib/bootstrap.mjs';
 import { FROZEN_FACTORY_PREFIXES, FACTORY_IMPL_PREFIXES, FACTORY_IMPL_FILES } from '../lib/lineage.mjs';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 
 // Mirror of the boundary's result-dir derivation, for the CLI to locate the governed
 // record on the appropriate tree.
@@ -114,15 +118,16 @@ function cmdStatus(argv) {
 }
 
 // Read a task's TASK_STATE from a trusted Git blob at <sha>. Returns
-// { state, branch, taskId, history, existsAtBase }. Fixed-arg execFile — no shell.
+// { state, branch, taskId, history, existsAtBase, full }. `full` is the complete parsed
+// object (used for the immutable identity projection). Fixed-arg execFile — no shell.
 function taskStateAt(sha, root, repoRoot) {
   try {
     const out = execFileSync('git', ['show', `${sha}:${root}/TASK_STATE.json`], {
       cwd: repoRoot, stdio: ['ignore', 'pipe', 'ignore'], encoding: 'utf8', windowsHide: true,
     });
     const obj = JSON.parse(out);
-    return { state: obj.state, branch: obj.branch, taskId: obj.taskId, history: obj.history, existsAtBase: true };
-  } catch { return { state: null, existsAtBase: false }; }
+    return { state: obj.state, branch: obj.branch, taskId: obj.taskId, history: obj.history, existsAtBase: true, full: obj };
+  } catch { return { state: null, existsAtBase: false, full: null }; }
 }
 
 // Read an owner governed record (a `*_STATE.json`) from a Git tree at <sha> under
@@ -143,9 +148,89 @@ function gitFact(args, repoRoot) {
   try { return execFileSync('git', args, { cwd: repoRoot, stdio: ['ignore', 'pipe', 'ignore'], encoding: 'utf8', windowsHide: true }).trim(); }
   catch { return null; }
 }
+// R031-B — typed Git runner: { ok, out } with ok reflecting a zero exit code, so callers
+// can distinguish an empty successful result from a command failure (ACCESS_ERROR).
+function runGit(args, repoRoot) {
+  try {
+    const out = execFileSync('git', args, { cwd: repoRoot, stdio: ['ignore', 'pipe', 'ignore'], encoding: 'utf8', windowsHide: true });
+    return { ok: true, out };
+  } catch { return { ok: false, out: '' }; }
+}
 function isAncestor(anc, desc, repoRoot) {
   try { execFileSync('git', ['merge-base', '--is-ancestor', anc, desc], { cwd: repoRoot, stdio: 'ignore', windowsHide: true }); return true; }
   catch { return false; }
+}
+
+// R031-A — root-scoped NUL-delimited name-status between two commits as an EXPLICIT
+// result: a git failure or malformed stream fails closed and never becomes an empty
+// (valid) record set.
+function segmentRecords(baseSha, headSha, root, repoRoot) {
+  const rr = runGit(['-c', 'core.quotePath=false', 'diff', '-z', '--name-status', baseSha, headSha, '--', `${root}/`], repoRoot);
+  return scopeSegmentDiff(rr, root, parseNameStatusZ);
+}
+
+// R031-C — historical validation dependencies: a detached temporary worktree under an
+// OS-generated path (never from task content), the canonical validator, cleanup via
+// `git worktree remove`. Never persists credentials; no ref mutation.
+function historicalDeps(repoRoot) {
+  return {
+    mkdtemp: () => mkdtempSync(join(tmpdir(), 'rops-hist-')),
+    // Materialize with NO end-of-line conversion so the working tree matches the exact
+    // canonical LF committed blobs (otherwise autocrlf would corrupt the historical
+    // content and its manifest hashes on a CRLF platform).
+    worktreeAdd: (dir, sha) => { execFileSync('git', ['-c', 'core.autocrlf=false', '-c', 'core.eol=lf', 'worktree', 'add', '--detach', dir, sha], { cwd: repoRoot, stdio: ['ignore', 'ignore', 'pipe'], windowsHide: true }); },
+    worktreeRemove: (dir) => {
+      execFileSync('git', ['worktree', 'remove', '--force', dir], { cwd: repoRoot, stdio: ['ignore', 'ignore', 'pipe'], windowsHide: true });
+      try { rmSync(dir, { recursive: true, force: true }); } catch { /* best effort */ }
+    },
+    pathJoin: (a, b) => join(a, b),
+    existsFn: (p) => exists(p),
+    readStateFn: (taskDir) => JSON.parse(readText(join(taskDir, 'TASK_STATE.json'))).state,
+    validateTaskFn: (taskDir, opts) => validateTask(taskDir, opts),
+  };
+}
+
+// R030 Layer B + R031 — resolve the trusted task mutation chain from Git objects and
+// enrich each segment with a proven root-scoped diff, canonical HISTORICAL validation of
+// its head tree, and the immutable identity projection. Topology comes only from
+// first-parent history and tree identity; every fail-closed check surfaces as a
+// per-segment or chain violation for the pure boundary to fold.
+function resolveTaskChain(root, headSha, repoRoot) {
+  const acc = gitAccessors((args) => runGit(args, repoRoot), root);
+  const chain = resolveMutationChain({ headSha, ...acc });
+  if (!chain.ok) return { ok: false, violations: chain.violations, segments: [], headTreeMatchesFinal: chain.headTreeMatchesFinal };
+
+  const segments = chain.segments.map((s) => {
+    const head = taskStateAt(s.headSha, root, repoRoot);
+    const base = s.introduction ? { state: null, history: null, full: null } : taskStateAt(s.baseSha, root, repoRoot);
+    const seg = {
+      baseSha: s.baseSha, headSha: s.headSha, introduction: s.introduction,
+      baseState: base.state ?? null, headState: head.state ?? null,
+      baseHistory: base.history ?? null, headHistory: head.history ?? null,
+      fullHeadState: head.full ?? null,
+      segmentViolations: [],
+    };
+    // R031-A — proven, non-empty root-scoped diff for every mutation edge.
+    const sr = segmentRecords(s.baseSha, s.headSha, root, repoRoot);
+    if (!sr.ok) { seg.records = []; seg.segmentViolations.push(`segment diff ${sr.errorCode} (${s.baseSha || 'ABSENT'}->${s.headSha}): ${sr.detail || ''}`.trim()); }
+    else {
+      seg.records = sr.records;
+      if (sr.records.length === 0) seg.segmentViolations.push(`segment ${s.baseSha || 'ABSENT'}->${s.headSha} changed the task-root tree but produced an empty diff — fail closed`);
+    }
+    return seg;
+  });
+
+  // R031-C — canonical historical validation of every mutation-segment head + immutable
+  // identity projection from the introduction head.
+  const heads = segments.map((seg) => ({ sha: seg.headSha, introduction: seg.introduction, fullState: seg.fullHeadState }));
+  const hist = validateHistoricalChain({ heads, taskRoot: root, deps: historicalDeps(repoRoot) });
+  const histBySha = new Map((hist.results || []).map((r) => [r.sha, r]));
+  for (const seg of segments) {
+    const hr = histBySha.get(seg.headSha);
+    seg.historical = hr ? { ok: hr.ok, summary: hr.summary, cleanupError: hr.cleanupError } : null;
+  }
+
+  return { ok: chain.ok && hist.ok, violations: [...chain.violations, ...hist.violations], segments, headTreeMatchesFinal: chain.headTreeMatchesFinal };
 }
 
 // C3/C4/C5/V2/V4 — CI-facing append-only boundary enforcement over a `git diff`
@@ -214,11 +299,19 @@ function cmdCheckBoundary(argv) {
     for (const root of roots) {
       const base = taskStateAt(a.baseSha, root, repoRoot);
       const head = taskStateAt(a.headSha, root, repoRoot);
-      meta.taskStates[root] = {
+      const entry = {
         base: base.state, head: head.state, existsAtBase: base.existsAtBase,
         headBranch: head.branch, headTaskId: head.taskId,
         baseHistory: base.history, headHistory: head.history,
       };
+      // R030 Layer B — when the root is absent at the trusted PR base, the cumulative
+      // base->head diff misclassifies the progressed root as a fresh creation. Resolve
+      // the actual task mutation chain from trusted Git first-parent history so each
+      // real transition (ABSENT->PREPARED, then every later stage) is validated
+      // separately with the unweakened canonical rules. Cumulative PR path-scope
+      // enforcement (Layer A) is unchanged.
+      if (a.headSha && !base.existsAtBase) entry.mutationChain = resolveTaskChain(root, a.headSha, repoRoot);
+      meta.taskStates[root] = entry;
     }
   }
 
@@ -241,6 +334,28 @@ function cmdCheckBoundary(argv) {
 
   const res = checkChangedFileBoundary(records, meta);
   console.log(`BOUNDARY mode=${res.mode} taskRoots=[${res.taskRoots.join(', ')}]`);
+  // R030 — expose the deterministic, machine-readable task mutation chain for a
+  // progressed research task. Derived purely from trusted Git objects; never from
+  // commit messages, comments, mutable task fields or environment SHAs.
+  if (meta.taskStates) {
+    for (const [root, ts] of Object.entries(meta.taskStates)) {
+      if (!ts.mutationChain) continue;
+      console.log(`TASK_CHAIN root=${root}`);
+      for (const seg of ts.mutationChain.segments) {
+        const from = seg.introduction ? 'ABSENT' : seg.baseState;
+        console.log(`TRANSITION ${from} -> ${seg.headState} base=${seg.baseSha || 'ABSENT'} head=${seg.headSha}`);
+        if (seg.historical && seg.historical.summary) {
+          const s = seg.historical.summary;
+          console.log(`HISTORICAL_VALIDATION head=${seg.headSha} ok=${seg.historical.ok} passed=${s.passed}/${s.total} requirePackage=${s.requirePackage}`);
+        }
+      }
+      const last = ts.mutationChain.segments[ts.mutationChain.segments.length - 1];
+      if (last && !last.introduction) {
+        console.log(`TRANSITION_BASE_SHA=${last.baseSha}`);
+        console.log(`TRANSITION_HEAD_SHA=${last.headSha}`);
+      }
+    }
+  }
   if (a.emitTaskRoots) writeCanonical(a.emitTaskRoots, res.taskRoots.join('\n'));
   if (!res.ok) {
     for (const v of res.violations) console.error(`  - ${v}`);

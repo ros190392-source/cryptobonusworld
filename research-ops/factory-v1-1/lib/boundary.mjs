@@ -176,7 +176,32 @@ export function checkChangedFileBoundary(records, meta = {}) {
       if (ts.headTaskId && rootId && ts.headTaskId !== rootId) violations.push(`task root id (${rootId}) != declared TASK_STATE.taskId (${ts.headTaskId})`);
     }
     // V2/V3-C5 — stage-aware append-only.
-    if (root && ts) {
+    if (root && ts && ts.mutationChain) {
+      // R030 Layer B — the root is absent at the trusted PR base, so the cumulative
+      // base->head diff cannot be a single transition. Validate the task mutation chain
+      // the CLI resolved from trusted Git first-parent history: the introduction as
+      // ABSENT->PREPARED, then every later segment, each with the canonical (unweakened)
+      // checkStageTransition / checkHistoryAppendOnly rules. Layer A path scope above is
+      // unchanged.
+      const mc = ts.mutationChain;
+      for (const v of (mc.violations || [])) violations.push(`chain: ${v}`);
+      if (mc.headTreeMatchesFinal === false) violations.push('chain: head task-root tree does not equal the final mutation segment head tree');
+      if (mc.ok !== false && (!mc.segments || mc.segments.length === 0)) violations.push('chain: no resolved task mutation segment');
+      for (const seg of (mc.segments || [])) {
+        const tag = `${seg.introduction ? 'ABSENT' : (seg.baseState ?? '?')}->${seg.headState ?? '?'}`;
+        // R031 — fail-closed per-segment findings resolved by the CLI: explicit
+        // segment-diff error/empty, canonical HISTORICAL validation of the head tree, and
+        // the immutable identity projection.
+        for (const v of (seg.segmentViolations || [])) violations.push(`segment[${tag}]: ${v}`);
+        if (seg.historical && seg.historical.ok === false) violations.push(`historical[${tag}]: canonical validation did not pass at ${seg.headSha}`);
+        const st = checkStageTransition({ records: seg.records || [], baseState: seg.introduction ? null : (seg.baseState ?? null), headState: seg.headState, taskExistsAtBase: !seg.introduction });
+        for (const v of st.violations) violations.push(`stage[${tag}]: ${v}`);
+        if (!seg.introduction) {
+          const h = checkHistoryAppendOnly(seg.baseHistory, seg.headHistory);
+          for (const v of h.violations) violations.push(`history[${tag}]: ${v}`);
+        }
+      }
+    } else if (root && ts) {
       const relOf = (p) => norm(p).slice(root.length + 1);
       const scoped = [];
       for (const r of records) {
