@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-SOURCE-TRUTH-REVIEW-DUAL-OUTPUT-CORRECTION-035-CONTROLLED-MERGE-036",
+  "role": "closeout",
+  "governingIssue": 100,
+  "decision": "SOURCE_TRUTH_REVIEW_DUAL_OUTPUT_CORRECTION_035_PUBLISHED_TO_MAIN",
+  "ownerAuthorization": "AUTHORIZE CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-SOURCE-TRUTH-REVIEW-DUAL-OUTPUT-CORRECTION-035-CONTROLLED-MERGE-036",
+  "sourceCorrection": {
+    "issue": 96,
+    "pullRequest": 97,
+    "mainBaseline": "59cafe8179cde29e248025738c465a7c676cc8e5",
+    "headSha": "f07d55be6562a40aad15fa7f3a125f028efbf5fb",
+    "aheadBy": 5,
+    "behindBy": 0,
+    "mergeBase": "59cafe8179cde29e248025738c465a7c676cc8e5",
+    "workflowRun": 30479625911,
+    "workflowConclusion": "success",
+    "fixtures": "317 passed / 0 failed",
+    "cumulativeChangedFiles": 8,
+    "cumulativeDiffAllowlisted": true,
+    "ownerAuditAccepted": true
+  },
+  "stage1": {
+    "from": "59cafe8179cde29e248025738c465a7c676cc8e5",
+    "to": "f07d55be6562a40aad15fa7f3a125f028efbf5fb",
+    "method": "ordinary_non_force_fast_forward",
+    "completed": true,
+    "verified": true
+  },
+  "closeoutSetup": {
+    "pullRequest": 101,
+    "branch": "closeout/researchops-subscription-factory-v1-1-source-truth-review-dual-output-035-controlled-merge-036",
+    "baseBranch": "correction/researchops-subscription-factory-v1-1-source-truth-review-dual-output-035",
+    "baseSha": "f07d55be6562a40aad15fa7f3a125f028efbf5fb",
+    "frozenSetupHeadSha": "fb92d89ae13bd788321ddffe5eaffdfd4e3fa696",
+    "canonicalSetupFileCount": 3,
+    "canonicalPrompt": "CLAUDE_SOURCE_TRUTH_REVIEW_DUAL_OUTPUT_CONTROLLED_MERGE_PROMPT.md"
+  },
+  "protectedState": {
+    "master": "998fcedd7d9febbec5b130d4765dfeaafc40960b",
+    "pilotPr69Head": "bac9bb74956d44e12a4119edf4590844bc506e00",
+    "pilotMutationAuthorized": false,
+    "sourceTruthReviewExecuted": false,
+    "researchPackageModified": false,
+    "productionChanged": false,
+    "deployed": false
+  },
+  "stage2": {
+    "from": "f07d55be6562a40aad15fa7f3a125f028efbf5fb",
+    "to": "THIS_RECORDING_COMMIT",
+    "method": "ordinary_non_force_fast_forward",
+    "statusAtRecordCreation": "PENDING_GREEN_WORKFLOW_AND_FINAL_REF_UPDATE"
+  },
+  "authorizationsDuringExecution": {
+    "factoryMergeToMainAuthorized": true,
+    "allOtherAuthorizationsFalse": true
+  },
+  "postStage2Expected": {
+    "factoryMergeToMainAuthorizationConsumed": true,
+    "all18ActiveAuthorizationsFalse": true,
+    "masterUnchanged": true,
+    "pilotPr69Unchanged": true,
+    "sourceTruthReviewNotStarted": true
+  },
+  "resultFiles": [
+    "SOURCE_TRUTH_REVIEW_DUAL_OUTPUT_CONTROLLED_MERGE_RESULT.json",
+    "SOURCE_TRUTH_REVIEW_DUAL_OUTPUT_CONTROLLED_MERGE_RESULT.md"
+  ],
+  "limitations": "This immutable record is created after successful Stage 1 and before its own governance workflow and Stage 2. The exact recording commit, final workflow, final main SHA, closures and authorization consumption are recorded in GitHub comments and the external final report; this file is not amended afterward."
+}
