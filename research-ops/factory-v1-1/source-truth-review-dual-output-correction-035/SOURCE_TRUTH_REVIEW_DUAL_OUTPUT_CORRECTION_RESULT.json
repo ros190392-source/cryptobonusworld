@@ -1,0 +1,83 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-SOURCE-TRUTH-REVIEW-DUAL-OUTPUT-CORRECTION-035",
+  "role": "correction",
+  "governingIssue": 96,
+  "decision": "SOURCE_TRUTH_REVIEW_DUAL_OUTPUT_CORRECTION_READY_FOR_OWNER_APPROVAL",
+  "ownerAuthorization": "AUTHORIZE CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-SOURCE-TRUTH-REVIEW-DUAL-OUTPUT-CORRECTION-035",
+  "approvedBaseSha": "59cafe8179cde29e248025738c465a7c676cc8e5",
+  "frozenSetupHeadSha": "f8f5d8521a336cb1020007176b9510315f7c49de",
+  "implementationCommitSha": "51b227b42177b93ee48370731a8d9250c8412877",
+  "implementation": {
+    "files": [
+      "research-ops/factory-v1-1/lib/stage.mjs",
+      "research-ops/factory-v1-1/lib/markers.mjs",
+      "research-ops/factory-v1-1/fixtures/run.mjs"
+    ],
+    "stageBoundary": {
+      "reviewOutputs": [
+        "SOURCE_TRUTH_REVIEW.json",
+        "SOURCE_TRUTH_REVIEW.md"
+      ],
+      "exactPairRequiredOnSourceTruthReviewedEntry": true,
+      "jsonOnlyRejected": true,
+      "markdownOnlyRejected": true,
+      "extraReviewArtifactRejected": true,
+      "stateOnlyCorrectionRequiredTransitionPreserved": true,
+      "purePackageValidatedTransitionPreserved": true
+    },
+    "markerValidation": {
+      "markdownCompanionRequired": true,
+      "canonicalUtf8LfRequired": true,
+      "zeroByteRejected": true,
+      "bomRejected": true,
+      "crRejected": true,
+      "forbiddenControlsRejected": true,
+      "symlinkRejected": true,
+      "executableRejected": true,
+      "nonRegularRejected": true,
+      "exactReviewStageInventory": [
+        ".gitkeep",
+        "SOURCE_TRUTH_REVIEW.json",
+        "SOURCE_TRUTH_REVIEW.md"
+      ]
+    }
+  },
+  "fixtures": {
+    "new": { "passed": 16, "failed": 0 },
+    "existing": { "passed": 301, "failed": 0 },
+    "total": { "passed": 317, "failed": 0 },
+    "transportWorkflowRun": 30478927153,
+    "syntaxStep": "success",
+    "fixtureStep": "success",
+    "governanceStep": "expected_failure_before_result_files",
+    "governanceFailureReason": "implementation-only diff had no result directory from which protected-base policy could load the frozen governed record"
+  },
+  "transport": {
+    "implementationTransportPullRequest": 98,
+    "implementationTransportHead": "ee811a8827e1f7b3cd855beaf65ade613bdb3065",
+    "method": "exact-head-guarded squash into governed correction branch",
+    "governedImplementationCommitCount": 1
+  },
+  "protectedState": {
+    "main": "59cafe8179cde29e248025738c465a7c676cc8e5",
+    "master": "998fcedd7d9febbec5b130d4765dfeaafc40960b",
+    "pilotPr69Head": "bac9bb74956d44e12a4119edf4590844bc506e00",
+    "pilotMutationAuthorized": false,
+    "sourceTruthReviewExecuted": false,
+    "researchPackageModified": false
+  },
+  "authorizations": {
+    "all18ActiveAuthorizationsFalse": true,
+    "factoryMergeToMainAuthorized": false,
+    "researchRecordMergeToMainAuthorized": false,
+    "productionChangeAuthorized": false,
+    "deployAuthorized": false
+  },
+  "resultFiles": [
+    "SOURCE_TRUTH_REVIEW_DUAL_OUTPUT_CORRECTION_RESULT.json",
+    "SOURCE_TRUTH_REVIEW_DUAL_OUTPUT_CORRECTION_RESULT.md"
+  ],
+  "finalWorkflowStatusAtRecordCreation": "PENDING_EXACT_RECORDING_COMMIT",
+  "limitations": "This immutable result is created before its own final governance workflow. Final workflow identity, conclusion and owner-audit decision are recorded in GitHub comments and the external final report; this file is not amended afterward."
+}

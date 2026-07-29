@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-SOURCE-TRUTH-REVIEW-DUAL-OUTPUT-CORRECTION-035-CONTROLLED-MERGE-036",
+  "role": "closeout",
+  "governingIssue": 100,
+  "branch": "closeout/researchops-subscription-factory-v1-1-source-truth-review-dual-output-035-controlled-merge-036",
+  "baseBranch": "correction/researchops-subscription-factory-v1-1-source-truth-review-dual-output-035",
+  "approvedBaseSha": "f07d55be6562a40aad15fa7f3a125f028efbf5fb",
+  "source": {
+    "issue": 96,
+    "pullRequest": 97,
+    "headSha": "f07d55be6562a40aad15fa7f3a125f028efbf5fb",
+    "workflowRun": 30479625911,
+    "workflowConclusion": "success",
+    "fixtureTotal": "317 passed / 0 failed"
+  },
+  "publication": {
+    "mainBeforeStage1": "59cafe8179cde29e248025738c465a7c676cc8e5",
+    "stage1Target": "f07d55be6562a40aad15fa7f3a125f028efbf5fb",
+    "stage1Completed": true,
+    "stage2Status": "PENDING_RESULT_COMMIT_GREEN_WORKFLOW_AND_FINAL_FAST_FORWARD"
+  },
+  "protected": {
+    "master": "998fcedd7d9febbec5b130d4765dfeaafc40960b",
+    "pilotPr69Head": "bac9bb74956d44e12a4119edf4590844bc506e00",
+    "sourceTruthReviewExecuted": false
+  },
+  "authorizations": {
+    "factoryMergeToMainAuthorized": true,
+    "researchRecordMergeToMainAuthorized": false,
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false,
+    "masterChangeAuthorized": false,
+    "binancePilotAuthorized": false
+  }
+}
