@@ -189,6 +189,11 @@ export function checkChangedFileBoundary(records, meta = {}) {
       if (mc.ok !== false && (!mc.segments || mc.segments.length === 0)) violations.push('chain: no resolved task mutation segment');
       for (const seg of (mc.segments || [])) {
         const tag = `${seg.introduction ? 'ABSENT' : (seg.baseState ?? '?')}->${seg.headState ?? '?'}`;
+        // R031 — fail-closed per-segment findings resolved by the CLI: explicit
+        // segment-diff error/empty, canonical HISTORICAL validation of the head tree, and
+        // the immutable identity projection.
+        for (const v of (seg.segmentViolations || [])) violations.push(`segment[${tag}]: ${v}`);
+        if (seg.historical && seg.historical.ok === false) violations.push(`historical[${tag}]: canonical validation did not pass at ${seg.headSha}`);
         const st = checkStageTransition({ records: seg.records || [], baseState: seg.introduction ? null : (seg.baseState ?? null), headState: seg.headState, taskExistsAtBase: !seg.introduction });
         for (const v of st.violations) violations.push(`stage[${tag}]: ${v}`);
         if (!seg.introduction) {

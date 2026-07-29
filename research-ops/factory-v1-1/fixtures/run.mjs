@@ -4,14 +4,16 @@
 // option; never writes into tracked research-ops/tasks/.
 //   node research-ops/factory-v1-1/fixtures/run.mjs
 
-import { mkdtempSync, rmSync, writeFileSync, readFileSync, mkdirSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync, readFileSync, mkdirSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createTask } from '../lib/create.mjs';
 import { validateTask } from '../lib/validate.mjs';
 import { statusTask } from '../lib/status.mjs';
 import { canTransition, isValidTaskId, validateIdentityValues, canonicalSkeletonFiles, RESEARCH_FILES } from '../lib/model.mjs';
-import { resolveMutationChain } from '../lib/taskhistory.mjs';
+import { resolveMutationChain, scopeSegmentDiff, gitAccessors } from '../lib/taskhistory.mjs';
+import { materializeAndValidate, checkIdentityProjection, validateHistoricalChain, stateRequiresPackage } from '../lib/taskhistoryvalidate.mjs';
+import { execFileSync } from 'node:child_process';
 import { validateOwnerReceipt, enforceAuthFloor } from '../lib/authz.mjs';
 import { buildManifest } from '../lib/manifest.mjs';
 import { checkChangedFileBoundary, parseNameStatus, parseNameStatusZ, trustedModeFromMeta } from '../lib/boundary.mjs';
@@ -566,10 +568,10 @@ function run() {
   // task-root tree identity.
   // ===================================================================================
   {
+    // R031-B — typed accessors: commitParents / treeOid distinguish VALUE / ABSENCE / ERROR.
     const G = (nodes) => ({
-      firstParentOf: (s) => (nodes[s] && nodes[s].parents[0]) || null,
-      parentCountOf: (s) => (nodes[s] ? (nodes[s].parents.length || 1) : 1),
-      treeOidAt: (s) => (nodes[s] ? nodes[s].tree : null),
+      commitParents: (s) => (nodes[s] ? { ok: true, parents: nodes[s].parents } : { ok: false, error: `missing ${s}` }),
+      treeOid: (s) => { const n = nodes[s]; if (!n) return { ok: false, error: `missing ${s}` }; return n.tree === null ? { ok: true, present: false } : { ok: true, present: true, oid: n.tree }; },
     });
     { const g = { C0: { parents: [], tree: null }, C1: { parents: ['C0'], tree: 'T1' } };
       const r = resolveMutationChain({ headSha: 'C1', ...G(g) });
@@ -623,6 +625,101 @@ function run() {
     { const recs = nameStatus([...skel.map((f) => ['A', `${ROOT}/${f}`]), ['M', 'research-ops/factory-v1-1/lib/util.mjs']]); const r = checkChangedFileBoundary(recs, chainMeta([introSeg(), seg()])); check('030-23 mixed research/factory paths fail', !r.ok); }
     { const t = mk(); writePkg(t); rmSync(join(t, '20-research-output', 'payment-rails.json'), { force: true }); check('030-24 missing output file fails validation', !validateTask(t, {}).ok); }
     { check('030-25 authorization floor unchanged (forbidden true rejected, all-false ok)', !enforceAuthFloor({ authorizations: { deployAuthorized: true } }, {}).ok && enforceAuthFloor({ authorizations: { deployAuthorized: false } }, {}).ok); }
+  }
+
+  // ===================================================================================
+  // R031 — owner-audit remediation: explicit segment-diff result (A), typed Git access
+  // (B), full canonical historical validation of every mutation head + immutable identity
+  // projection (C). Pure synthetic coverage + one real temporary-Git integration fixture.
+  // ===================================================================================
+  {
+    const ROOT = 'research-ops/tasks/CBW-KZ-BINANCE-P0-D-DEEP-RESEARCH-001';
+    // ---- Remediation A: explicit segment-diff result ----
+    { const r = scopeSegmentDiff({ ok: false }, ROOT, parseNameStatusZ); check('031-A1 segment diff command failure blocks (DIFF_FAILED)', !r.ok && r.errorCode === 'DIFF_FAILED'); }
+    { const r = scopeSegmentDiff({ ok: true, out: 'X somepath ' }, ROOT, parseNameStatusZ); check('031-A2 malformed segment diff blocks (MALFORMED_DIFF)', !r.ok && r.errorCode === 'MALFORMED_DIFF'); }
+    { const r = scopeSegmentDiff({ ok: true, out: '' }, ROOT, parseNameStatusZ); check('031-A3 empty successful diff is ok and distinguishable', r.ok && Array.isArray(r.records) && r.records.length === 0); }
+    { const r = scopeSegmentDiff({ ok: true, out: `A ${ROOT}/TASK_STATE.json ` }, ROOT, parseNameStatusZ); check('031-A4 valid diff scopes root-relative records', r.ok && r.records.length === 1 && r.records[0].rel === 'TASK_STATE.json'); }
+
+    // ---- Remediation B: typed Git access (VALUE / ABSENCE / ACCESS_ERROR) ----
+    const nodes = { C0: { parents: [], tree: null }, C1: { parents: ['C0'], tree: 'T1' }, C2: { parents: ['C1'], tree: 'T2' } };
+    const good = () => ({
+      commitParents: (s) => (nodes[s] ? { ok: true, parents: nodes[s].parents } : { ok: false, error: 'x' }),
+      treeOid: (s) => { const n = nodes[s]; if (!n) return { ok: false, error: 'x' }; return n.tree === null ? { ok: true, present: false } : { ok: true, present: true, oid: n.tree }; },
+    });
+    { const acc = good(); acc.commitParents = (s) => (s === 'C1' ? { ok: false, error: 'boom' } : good().commitParents(s)); const r = resolveMutationChain({ headSha: 'C2', ...acc }); check('031-B1 first-parent access error fails closed', !r.ok && r.violations.some((v) => /access error reading parents/.test(v))); }
+    { const acc = good(); acc.treeOid = (s) => (s === 'C1' ? { ok: false, error: 'boom' } : good().treeOid(s)); const r = resolveMutationChain({ headSha: 'C2', ...acc }); check('031-B2 tree lookup access error fails closed', !r.ok && r.violations.some((v) => /access error reading task-root tree/.test(v))); }
+    { const acc = good(); acc.commitParents = () => ({ ok: true, parents: 'notarray' }); const r = resolveMutationChain({ headSha: 'C2', ...acc }); check('031-B3 malformed parent list fails closed', !r.ok && r.violations.some((v) => /malformed parent list/.test(v))); }
+    { const acc = good(); acc.commitParents = (s) => (s === 'C2' ? { ok: false } : good().commitParents(s)); const r = resolveMutationChain({ headSha: 'C2', ...acc }); check('031-B4 parent-count access error fails closed', !r.ok); }
+    { const acc = gitAccessors(() => ({ ok: false, out: '' }), ROOT); check('031-B5 gitAccessors runner failure -> access error', acc.commitParents('x').ok === false && acc.treeOid('x').ok === false); }
+    { const acc = gitAccessors(() => ({ ok: true, out: '' }), ROOT); const t = acc.treeOid('x'); check('031-B6 gitAccessors empty ls-tree -> legitimate absence', t.ok === true && t.present === false); }
+    { const acc = gitAccessors(() => ({ ok: true, out: `040000 tree ${'a'.repeat(40)}\t${ROOT}\n` }), ROOT); const t = acc.treeOid('x'); check('031-B7 gitAccessors tree line -> present oid', t.ok && t.present && t.oid === 'a'.repeat(40)); }
+    { const acc = gitAccessors(() => ({ ok: true, out: `100644 blob ${'a'.repeat(40)}\tfoo\n` }), ROOT); check('031-B8 gitAccessors non-tree at root -> access error', acc.treeOid('x').ok === false); }
+    { const acc = gitAccessors(() => ({ ok: true, out: 'deadbeef p1 p2\n' }), ROOT); const p = acc.commitParents('x'); check('031-B9 gitAccessors parents parsed (count=2)', p.ok && p.parents.length === 2); }
+
+    // ---- Remediation C: historical validation + identity projection (injected deps) ----
+    const goodState = { schemaVersion: '1.0.0', factoryVersion: '1.1', taskId: 'CBW-A-001', project: 'CryptoBonusWorld', countryCode: 'KZ', exchangeId: 'binance', batchId: 'KZ-P0-D', priority: 'P0', createdAt: '2026-07-28', branch: 'research/kz-binance-kz-p0-d', requiredResearchInventory: ['research-run.json'] };
+    const okReport = { ok: true, total: 30, passed: 30, failed: 0, checks: [] };
+    const failReport = (name) => ({ ok: false, total: 30, passed: 29, failed: 1, checks: [{ name, ok: false }] });
+    const baseDeps = (over = {}) => Object.assign({ mkdtemp: () => '/tmp/mat', worktreeAdd: () => {}, worktreeRemove: () => {}, pathJoin: (a, b) => `${a}/${b}`, existsFn: () => true, readStateFn: () => 'RESEARCH_CAPTURED', validateTaskFn: () => okReport }, over);
+    for (const fld of ['taskId', 'branch', 'countryCode', 'exchangeId', 'batchId', 'priority', 'project', 'createdAt', 'schemaVersion', 'requiredResearchInventory']) {
+      const head = { ...goodState, [fld]: fld === 'requiredResearchInventory' ? ['x'] : 'MUTATED' };
+      const r = checkIdentityProjection(goodState, head, 'shaX');
+      check(`031-C-id ${fld} transient mutation blocked`, !r.ok && r.violations.some((v) => v.includes(fld)));
+    }
+    { const r = checkIdentityProjection(goodState, { ...goodState }, 'shaX'); check('031-C-id0 identical identity projection ok', r.ok); }
+    { const r = materializeAndValidate({ sha: 's', taskRoot: ROOT, deps: baseDeps() }); check('031-C1 valid historical head ok', r.ok && r.violations.length === 0); }
+    { const r = materializeAndValidate({ sha: 's', taskRoot: ROOT, deps: baseDeps({ validateTaskFn: () => failReport('authorization floor holds (all false unless valid owner receipt)') }) }); check('031-C2 transient authorization violation caught before final head', !r.ok); }
+    { const r = materializeAndValidate({ sha: 's', taskRoot: ROOT, deps: baseDeps({ validateTaskFn: () => failReport('required package present (--require-package)') }) }); check('031-C3 RESEARCH_CAPTURED with missing files caught', !r.ok); }
+    { const r = materializeAndValidate({ sha: 's', taskRoot: ROOT, deps: baseDeps({ validateTaskFn: () => failReport('MANIFEST byte sizes and SHA-256 match (canonical LF)') }) }); check('031-C4 historical manifest/hash mismatch caught', !r.ok); }
+    { const r = materializeAndValidate({ sha: 's', taskRoot: ROOT, deps: baseDeps({ validateTaskFn: () => failReport('IDENTITY.json shape and taskId/identity consistency (C9)') }) }); check('031-C5 invalid historical IDENTITY binding caught', !r.ok); }
+    { const r = materializeAndValidate({ sha: 's', taskRoot: ROOT, deps: baseDeps({ validateTaskFn: () => failReport('GITHUB_PLAN.json shape (draft/base/autoMerge/mergeAuthorized) (C9)') }) }); check('031-C6 invalid historical GITHUB_PLAN binding caught', !r.ok); }
+    { const r = materializeAndValidate({ sha: 's', taskRoot: ROOT, deps: baseDeps({ validateTaskFn: () => failReport('TASK_STATE.json structural shape (C9)') }) }); check('031-C7 malformed historical TASK_STATE caught', !r.ok); }
+    { const r = materializeAndValidate({ sha: 's', taskRoot: ROOT, deps: baseDeps({ worktreeAdd: () => { throw new Error('add failed'); } }) }); check('031-C8 temporary materialization failure blocks', !r.ok && r.violations.some((v) => /materialization/.test(v))); }
+    { const r = materializeAndValidate({ sha: 's', taskRoot: ROOT, deps: baseDeps({ validateTaskFn: () => { throw new Error('boom'); } }) }); check('031-C9 historical validator exception blocks', !r.ok && r.violations.some((v) => /threw/.test(v))); }
+    { const r = materializeAndValidate({ sha: 's', taskRoot: ROOT, deps: baseDeps({ readStateFn: () => { throw new Error('bad'); } }) }); check('031-C10 unreadable historical TASK_STATE blocks', !r.ok && r.violations.some((v) => /unreadable/.test(v))); }
+    { const r = materializeAndValidate({ sha: 's', taskRoot: ROOT, deps: baseDeps({ existsFn: () => false }) }); check('031-C11 missing historical task root blocks', !r.ok); }
+    { const r = materializeAndValidate({ sha: 's', taskRoot: ROOT, deps: baseDeps({ worktreeRemove: () => { throw new Error('locked'); } }) }); check('031-C12 cleanup failure recorded and blocks', !r.ok && !!r.cleanupError); }
+    { const r = materializeAndValidate({ sha: 's', taskRoot: ROOT, deps: baseDeps({ validateTaskFn: () => failReport('C2'), worktreeRemove: () => { throw new Error('locked'); } }) }); check('031-C13 cleanup failure never turns a failed validation into success', !r.ok && !!r.cleanupError); }
+    { check('031-C14 stateRequiresPackage: PREPARED/BLOCKED no, RESEARCH_CAPTURED yes', !stateRequiresPackage('PREPARED') && !stateRequiresPackage('BLOCKED') && stateRequiresPackage('RESEARCH_CAPTURED')); }
+    { const heads = [{ sha: 'i', introduction: true, fullState: goodState }, { sha: 'a', introduction: false, fullState: goodState }, { sha: 'b', introduction: false, fullState: goodState }];
+      let call = 0; const deps = baseDeps(); deps.validateTaskFn = () => { call += 1; return call === 2 ? failReport('required package present (--require-package)') : okReport; };
+      const r = validateHistoricalChain({ heads, taskRoot: ROOT, deps });
+      check('031-C15 same-state repair: incomplete intermediate head blocks whole chain', !r.ok && r.violations.length > 0); }
+    { const heads = [{ sha: 'i', introduction: true, fullState: goodState }, { sha: 'm', introduction: false, fullState: { ...goodState, countryCode: 'RU' } }];
+      const r = validateHistoricalChain({ heads, taskRoot: ROOT, deps: baseDeps() });
+      check('031-C16 transient identity mutation blocked by historical chain', !r.ok && r.violations.some((v) => /countryCode/.test(v))); }
+
+    // ---- Real temporary Git repository integration: historical validation across commits ----
+    { let ok = false; let detail = '';
+      const tmp = mkdtempSync(join(tmpdir(), 'rops-gitint-')); roots.push(tmp);
+      try {
+        const g = (args) => execFileSync('git', args, { cwd: tmp, stdio: ['ignore', 'pipe', 'ignore'], encoding: 'utf8' });
+        g(['init', '-q']); g(['config', 'user.email', 't@t']); g(['config', 'user.name', 't']); g(['config', 'commit.gpgsign', 'false']); g(['config', 'core.autocrlf', 'false']);
+        const created = createTask({ ...BASE, testRoot: tmp });
+        const taskRootRel = created.taskDir.slice(tmp.length + 1).replace(/\\/g, '/');
+        g(['add', '-A']); g(['commit', '-q', '-m', 'prepared']);
+        const prepSha = g(['rev-parse', 'HEAD']).trim();
+        writePkg(created.taskDir);
+        const st = JSON.parse(readFileSync(join(created.taskDir, 'TASK_STATE.json')));
+        st.state = 'RESEARCH_CAPTURED'; st.stages['20-research-output'] = 'PRESENT'; st.history.push({ state: 'RESEARCH_CAPTURED', at: '2026-07-29' });
+        writeFileSync(join(created.taskDir, 'TASK_STATE.json'), `${JSON.stringify(st, null, 2)}\n`);
+        g(['add', '-A']); g(['commit', '-q', '-m', 'captured']);
+        const capSha = g(['rev-parse', 'HEAD']).trim();
+        const deps = {
+          mkdtemp: () => mkdtempSync(join(tmpdir(), 'rops-hist-')),
+          worktreeAdd: (dir, sha) => execFileSync('git', ['-c', 'core.autocrlf=false', 'worktree', 'add', '--detach', dir, sha], { cwd: tmp, stdio: ['ignore', 'ignore', 'pipe'] }),
+          worktreeRemove: (dir) => { execFileSync('git', ['worktree', 'remove', '--force', dir], { cwd: tmp, stdio: ['ignore', 'ignore', 'pipe'] }); },
+          pathJoin: (a, b) => join(a, b), existsFn: (p) => existsSync(p),
+          readStateFn: (taskDir) => JSON.parse(readFileSync(join(taskDir, 'TASK_STATE.json'))).state,
+          validateTaskFn: (taskDir, opts) => validateTask(taskDir, opts),
+        };
+        const rPrep = materializeAndValidate({ sha: prepSha, taskRoot: taskRootRel, deps });
+        const rCap = materializeAndValidate({ sha: capSha, taskRoot: taskRootRel, deps });
+        ok = rPrep.ok && rCap.ok;
+        detail = `prep=${JSON.stringify(rPrep.summary)}/${rPrep.violations.join('|')} cap=${JSON.stringify(rCap.summary)}/${rCap.violations.join('|')}`;
+        try { g(['worktree', 'prune']); } catch { /* ignore */ }
+      } catch (e) { detail = `exception: ${e.message}`; }
+      check('031-INT real git historical validation across PREPARED + RESEARCH_CAPTURED', ok, detail); }
   }
 
   for (const r of roots) { try { rmSync(r, { recursive: true, force: true }); } catch { /* ignore */ } }
