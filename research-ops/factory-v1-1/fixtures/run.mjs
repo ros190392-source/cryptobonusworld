@@ -10,7 +10,8 @@ import { join } from 'node:path';
 import { createTask } from '../lib/create.mjs';
 import { validateTask } from '../lib/validate.mjs';
 import { statusTask } from '../lib/status.mjs';
-import { canTransition, isValidTaskId, validateIdentityValues, canonicalSkeletonFiles } from '../lib/model.mjs';
+import { canTransition, isValidTaskId, validateIdentityValues, canonicalSkeletonFiles, RESEARCH_FILES } from '../lib/model.mjs';
+import { resolveMutationChain } from '../lib/taskhistory.mjs';
 import { validateOwnerReceipt, enforceAuthFloor } from '../lib/authz.mjs';
 import { buildManifest } from '../lib/manifest.mjs';
 import { checkChangedFileBoundary, parseNameStatus, parseNameStatusZ, trustedModeFromMeta } from '../lib/boundary.mjs';
@@ -557,6 +558,72 @@ function run() {
   { const t = mk(); check('022-12 canonical create output still valid', validateTask(t, {}).ok); }
   // (13) exception is state-bound: a noncanonical state string with output dir absent -> invalid
   { const t = editState(dropOut(mk()), (o) => { o.state = 'NOT_A_STATE'; }); check('022-13 noncanonical state + absent output fails', !validateTask(t, {}).ok); }
+
+  // ===================================================================================
+  // R030 — research-task stage-base CI correction: trusted task mutation-chain (Layer B).
+  // Pure topology on synthetic deterministic graphs + boundary integration. Never trusts
+  // commit messages, HEAD^, comments or environment SHAs — only first-parent topology and
+  // task-root tree identity.
+  // ===================================================================================
+  {
+    const G = (nodes) => ({
+      firstParentOf: (s) => (nodes[s] && nodes[s].parents[0]) || null,
+      parentCountOf: (s) => (nodes[s] ? (nodes[s].parents.length || 1) : 1),
+      treeOidAt: (s) => (nodes[s] ? nodes[s].tree : null),
+    });
+    { const g = { C0: { parents: [], tree: null }, C1: { parents: ['C0'], tree: 'T1' } };
+      const r = resolveMutationChain({ headSha: 'C1', ...G(g) });
+      check('030-1 initial creation resolves single ABSENT->intro segment', r.ok && r.segments.length === 1 && r.segments[0].introduction && r.segments[0].baseSha === 'C0', (r.violations || []).join('; ')); }
+    const cap = { C0: { parents: [], tree: null }, C1: { parents: ['C0'], tree: 'T1' }, C2: { parents: ['C1'], tree: 'T2' } };
+    { const r = resolveMutationChain({ headSha: 'C2', ...G(cap) });
+      check('030-2 capture resolves intro + capture (base=C1,head=C2)', r.ok && r.segments.length === 2 && !r.segments[1].introduction && r.segments[1].baseSha === 'C1' && r.segments[1].headSha === 'C2', (r.violations || []).join('; ')); }
+    { const g = { ...cap, M: { parents: [], tree: null }, C3: { parents: ['C2', 'M'], tree: 'T2' } };
+      const r = resolveMutationChain({ headSha: 'C3', ...G(g) });
+      check('030-3 unchanged main-sync merge creates no segment', r.ok && r.segments.length === 2 && r.segments[1].headSha === 'C2'); }
+    { const g = { ...cap, M: { parents: [], tree: null }, C4: { parents: ['C2', 'M'], tree: 'T9' } };
+      const r = resolveMutationChain({ headSha: 'C4', ...G(g) });
+      check('030-4 root-changing merge fails closed', !r.ok && r.violations.some((v) => /merge/.test(v))); }
+    { const g = { ...cap, C5: { parents: ['C2'], tree: 'T2' } };
+      const r = resolveMutationChain({ headSha: 'C5', ...G(g) });
+      check('030-5 arbitrary HEAD^ not trusted (base resolves to real predecessor C1)', r.ok && r.segments[r.segments.length - 1].baseSha === 'C1'); }
+    { const g = { C0: { parents: [], tree: null }, C1: { parents: ['C0'], tree: 'T1' }, C2: { parents: ['C1'], tree: null }, C3: { parents: ['C2'], tree: 'T3' } };
+      const r = resolveMutationChain({ headSha: 'C3', ...G(g) });
+      check('030-6 task-root re-introduction / parallel history fails closed', !r.ok); }
+    { const r = resolveMutationChain({ headSha: 'C0', ...G({ C0: { parents: [], tree: null } }) });
+      check('030-7 root absent at head fails closed', !r.ok); }
+    { const g = { C0: { parents: [], tree: null }, C1: { parents: ['C0'], tree: 'T1' }, U1: { parents: ['C1'], tree: 'T1' }, U2: { parents: ['U1'], tree: 'T1' }, C2: { parents: ['U2'], tree: 'T2' } };
+      const r = resolveMutationChain({ headSha: 'C2', ...G(g) });
+      check('030-8 unrelated commits between segments are skipped', r.ok && r.segments.length === 2 && r.segments[0].introduction && r.segments[1].baseSha === 'U2', (r.violations || []).join('; ')); }
+  }
+  {
+    const ROOT = 'research-ops/tasks/CBW-KZ-BINANCE-P0-D-DEEP-RESEARCH-001';
+    const RID = 'CBW-KZ-BINANCE-P0-D-DEEP-RESEARCH-001';
+    const HB = 'research/kz-binance-kz-p0-d';
+    const skel = canonicalSkeletonFiles();
+    const introRecs = skel.map((f) => ({ status: 'A', rel: f }));
+    const capRecs = () => [...RESEARCH_FILES.map((f) => ({ status: 'A', rel: `20-research-output/${f}` })), { status: 'M', rel: 'TASK_STATE.json' }];
+    const cumulative = () => nameStatus([...skel.map((f) => ['A', `${ROOT}/${f}`]), ...RESEARCH_FILES.map((f) => ['A', `${ROOT}/20-research-output/${f}`])]);
+    const seg = (o) => Object.assign({ baseSha: 'b', headSha: 'h', introduction: false, baseState: 'PREPARED', headState: 'RESEARCH_CAPTURED', baseHistory: [{ state: 'PREPARED' }], headHistory: [{ state: 'PREPARED' }, { state: 'RESEARCH_CAPTURED' }], records: capRecs() }, o);
+    const introSeg = (o) => Object.assign({ baseSha: null, headSha: 'i', introduction: true, baseState: null, headState: 'PREPARED', baseHistory: null, headHistory: [{ state: 'PREPARED' }], records: introRecs }, o);
+    const chainMeta = (segments, over = {}, headState = 'RESEARCH_CAPTURED') => ({ headBranch: HB, baseBranch: 'main', taskStates: { [ROOT]: Object.assign({ base: null, head: headState, existsAtBase: false, headBranch: HB, headTaskId: RID, mutationChain: { ok: true, segments, headTreeMatchesFinal: true } }, over) } });
+    { const r = checkChangedFileBoundary(cumulative(), chainMeta([introSeg(), seg()])); check('030-9 progressed capture chain passes boundary', r.ok, r.violations.join('; ')); }
+    { const r = checkChangedFileBoundary(nameStatus(skel.map((f) => ['A', `${ROOT}/${f}`])), chainMeta([introSeg()], {}, 'PREPARED')); check('030-10 initial PREPARED creation chain passes', r.ok, r.violations.join('; ')); }
+    { const r = checkChangedFileBoundary(cumulative(), chainMeta([introSeg(), seg({ headState: 'VALIDATED' })], {}, 'VALIDATED')); check('030-11 skipped state fails', !r.ok); }
+    { const r = checkChangedFileBoundary(cumulative(), chainMeta([introSeg(), seg({ baseHistory: [{ state: 'PREPARED' }], headHistory: [{ state: 'REWRITTEN' }, { state: 'RESEARCH_CAPTURED' }] })])); check('030-12 rewritten history fails', !r.ok); }
+    { const r = checkChangedFileBoundary(cumulative(), chainMeta([introSeg(), seg({ baseHistory: [{ state: 'PREPARED' }, { state: 'X' }], headHistory: [{ state: 'PREPARED' }] })])); check('030-13 truncated history fails', !r.ok); }
+    { const r = checkChangedFileBoundary(cumulative(), chainMeta([introSeg(), seg({ records: [...capRecs(), { status: 'M', rel: '00-contract/IDENTITY.json' }] })])); check('030-14 earlier-stage mutation fails', !r.ok); }
+    { const r = checkChangedFileBoundary(cumulative(), chainMeta([introSeg(), seg({ records: [...capRecs(), { status: 'A', rel: '20-research-output/EXTRA.json' }] })])); check('030-15 extra twelfth output file fails', !r.ok); }
+    { const r = checkChangedFileBoundary(cumulative(), chainMeta([introSeg({ headState: 'RESEARCH_CAPTURED' }), seg()])); check('030-16 introduction not at PREPARED fails', !r.ok); }
+    { const r = checkChangedFileBoundary(cumulative(), chainMeta([introSeg({ records: introRecs.slice(1) }), seg()])); check('030-17 incomplete skeleton at creation fails', !r.ok); }
+    { const r = checkChangedFileBoundary(cumulative(), chainMeta([introSeg(), seg()], { mutationChain: { ok: true, segments: [introSeg(), seg()], headTreeMatchesFinal: false } })); check('030-18 head tree mismatch fails', !r.ok); }
+    { const r = checkChangedFileBoundary(cumulative(), chainMeta([], { mutationChain: { ok: false, segments: [], violations: ['root-changing merge commit X: fail closed'], headTreeMatchesFinal: false } })); check('030-19 unresolved chain fails closed', !r.ok); }
+    { const r = checkChangedFileBoundary(cumulative(), chainMeta([introSeg(), seg()], { headBranch: 'research/zz-wrong-b' })); check('030-20 branch mismatch fails', !r.ok); }
+    { const r = checkChangedFileBoundary(cumulative(), chainMeta([introSeg(), seg()], { headTaskId: 'CBW-OTHER-999' })); check('030-21 task id/root mismatch fails', !r.ok); }
+    { const recs = nameStatus([...skel.map((f) => ['A', `${ROOT}/${f}`]), ['A', 'research-ops/tasks/CBW-OTHER-002/TASK_STATE.json']]); const r = checkChangedFileBoundary(recs, chainMeta([introSeg(), seg()])); check('030-22 two task roots fail', !r.ok); }
+    { const recs = nameStatus([...skel.map((f) => ['A', `${ROOT}/${f}`]), ['M', 'research-ops/factory-v1-1/lib/util.mjs']]); const r = checkChangedFileBoundary(recs, chainMeta([introSeg(), seg()])); check('030-23 mixed research/factory paths fail', !r.ok); }
+    { const t = mk(); writePkg(t); rmSync(join(t, '20-research-output', 'payment-rails.json'), { force: true }); check('030-24 missing output file fails validation', !validateTask(t, {}).ok); }
+    { check('030-25 authorization floor unchanged (forbidden true rejected, all-false ok)', !enforceAuthFloor({ authorizations: { deployAuthorized: true } }, {}).ok && enforceAuthFloor({ authorizations: { deployAuthorized: false } }, {}).ok); }
+  }
 
   for (const r of roots) { try { rmSync(r, { recursive: true, force: true }); } catch { /* ignore */ } }
   console.log(`\nFIXTURES: ${pass} passed, ${fail} failed`);

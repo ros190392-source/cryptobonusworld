@@ -13,6 +13,7 @@ import { createTask } from '../lib/create.mjs';
 import { validateTask } from '../lib/validate.mjs';
 import { statusTask } from '../lib/status.mjs';
 import { parseNameStatus, parseNameStatusZ, checkChangedFileBoundary } from '../lib/boundary.mjs';
+import { resolveMutationChain, gitAccessors } from '../lib/taskhistory.mjs';
 import { roleForBranch } from '../lib/roles.mjs';
 import { checkEventIntegrity } from '../lib/eventintegrity.mjs';
 import { resolveEnforcement, checkSetupPhase, discoverFrozenSetupBoundary } from '../lib/bootstrap.mjs';
@@ -148,6 +149,51 @@ function isAncestor(anc, desc, repoRoot) {
   catch { return false; }
 }
 
+// R030 — root-scoped NUL-delimited name-status between two commits, returned as
+// stage-transition records ({ status, rel, srcRel? }) relative to the task root. For an
+// introduction segment `base` is the first-parent where the root is absent, so the diff
+// yields the exact PREPARED skeleton additions.
+function rootScopedRecords(baseSha, headSha, root, repoRoot) {
+  let out;
+  try {
+    out = execFileSync('git', ['-c', 'core.quotePath=false', 'diff', '-z', '--name-status', baseSha, headSha, '--', `${root}/`],
+      { cwd: repoRoot, stdio: ['ignore', 'pipe', 'ignore'], encoding: 'utf8', windowsHide: true });
+  } catch { return []; }
+  const relOf = (p) => String(p).replace(/\\/g, '/').slice(root.length + 1);
+  const inRoot = (p) => String(p).replace(/\\/g, '/').startsWith(`${root}/`);
+  const scoped = [];
+  for (const r of parseNameStatusZ(out)) {
+    if (r.malformed) { scoped.push({ status: '?', rel: `MALFORMED:${r.malformed}` }); continue; }
+    if (r.status === 'R' || r.status === 'C') {
+      if (r.dst && inRoot(r.dst)) scoped.push({ status: r.status, rel: relOf(r.dst), srcRel: r.src ? relOf(r.src) : undefined });
+    } else if (r.dst && inRoot(r.dst)) {
+      scoped.push({ status: r.status, rel: relOf(r.dst) });
+    }
+  }
+  return scoped;
+}
+
+// R030 Layer B — resolve and enrich the trusted task mutation chain from Git objects.
+// Topology comes only from first-parent history and task-root tree identity; per-segment
+// state/history/records come from trusted blobs. Returns a plain object consumed by the
+// pure boundary (which applies the canonical stage/history rules per segment).
+function resolveTaskChain(root, headSha, repoRoot) {
+  const acc = gitAccessors((args) => gitFact(args, repoRoot), root);
+  const chain = resolveMutationChain({ headSha, ...acc });
+  if (!chain.ok) return { ok: false, violations: chain.violations, segments: [], headTreeMatchesFinal: chain.headTreeMatchesFinal };
+  const segments = chain.segments.map((s) => {
+    const head = taskStateAt(s.headSha, root, repoRoot);
+    const base = s.introduction ? { state: null, history: null } : taskStateAt(s.baseSha, root, repoRoot);
+    return {
+      baseSha: s.baseSha, headSha: s.headSha, introduction: s.introduction,
+      baseState: base.state ?? null, headState: head.state ?? null,
+      baseHistory: base.history ?? null, headHistory: head.history ?? null,
+      records: rootScopedRecords(s.baseSha, s.headSha, root, repoRoot),
+    };
+  });
+  return { ok: true, violations: [], segments, headTreeMatchesFinal: chain.headTreeMatchesFinal };
+}
+
 // C3/C4/C5/V2/V4 — CI-facing append-only boundary enforcement over a `git diff`
 // name-status stream plus TRUSTED GitHub event metadata. V4 adds role/governed-record
 // authorization, commit ancestry and checkout/event/workspace integrity. Fail-closed.
@@ -214,11 +260,19 @@ function cmdCheckBoundary(argv) {
     for (const root of roots) {
       const base = taskStateAt(a.baseSha, root, repoRoot);
       const head = taskStateAt(a.headSha, root, repoRoot);
-      meta.taskStates[root] = {
+      const entry = {
         base: base.state, head: head.state, existsAtBase: base.existsAtBase,
         headBranch: head.branch, headTaskId: head.taskId,
         baseHistory: base.history, headHistory: head.history,
       };
+      // R030 Layer B — when the root is absent at the trusted PR base, the cumulative
+      // base->head diff misclassifies the progressed root as a fresh creation. Resolve
+      // the actual task mutation chain from trusted Git first-parent history so each
+      // real transition (ABSENT->PREPARED, then every later stage) is validated
+      // separately with the unweakened canonical rules. Cumulative PR path-scope
+      // enforcement (Layer A) is unchanged.
+      if (a.headSha && !base.existsAtBase) entry.mutationChain = resolveTaskChain(root, a.headSha, repoRoot);
+      meta.taskStates[root] = entry;
     }
   }
 
@@ -241,6 +295,24 @@ function cmdCheckBoundary(argv) {
 
   const res = checkChangedFileBoundary(records, meta);
   console.log(`BOUNDARY mode=${res.mode} taskRoots=[${res.taskRoots.join(', ')}]`);
+  // R030 — expose the deterministic, machine-readable task mutation chain for a
+  // progressed research task. Derived purely from trusted Git objects; never from
+  // commit messages, comments, mutable task fields or environment SHAs.
+  if (meta.taskStates) {
+    for (const [root, ts] of Object.entries(meta.taskStates)) {
+      if (!ts.mutationChain) continue;
+      console.log(`TASK_CHAIN root=${root}`);
+      for (const seg of ts.mutationChain.segments) {
+        const from = seg.introduction ? 'ABSENT' : seg.baseState;
+        console.log(`TRANSITION ${from} -> ${seg.headState} base=${seg.baseSha || 'ABSENT'} head=${seg.headSha}`);
+      }
+      const last = ts.mutationChain.segments[ts.mutationChain.segments.length - 1];
+      if (last && !last.introduction) {
+        console.log(`TRANSITION_BASE_SHA=${last.baseSha}`);
+        console.log(`TRANSITION_HEAD_SHA=${last.headSha}`);
+      }
+    }
+  }
   if (a.emitTaskRoots) writeCanonical(a.emitTaskRoots, res.taskRoots.join('\n'));
   if (!res.ok) {
     for (const v of res.violations) console.error(`  - ${v}`);
