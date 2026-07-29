@@ -12,14 +12,33 @@ export const STAGE_ORDER = [
   '50-source-truth-review', '60-correction', '70-validation', '80-closeout',
 ];
 
+// Correction 035 — the immutable generated review contract requires this exact pair.
+export const REVIEW_OUTPUT_FILES = Object.freeze([
+  'SOURCE_TRUTH_REVIEW.json',
+  'SOURCE_TRUTH_REVIEW.md',
+]);
+const REVIEW_OUTPUT_SET = new Set(REVIEW_OUTPUT_FILES);
+
 // V3-C6 — the EXACT files a transition INTO a given head state may add. A state that
 // adds nothing (a pure validation gate) is omitted. 20-research-output is captured
 // only while entering RESEARCH_CAPTURED and is immutable thereafter.
 const RESEARCH_FILE_SET = new Set(RESEARCH_FILES);
 const STAGE_ADD_ALLOW = {
   RESEARCH_CAPTURED: { dir: '20-research-output', files: RESEARCH_FILE_SET },
-  SOURCE_TRUTH_REVIEWED: { dir: '50-source-truth-review', files: new Set(['SOURCE_TRUTH_REVIEW.json']) },
-  CORRECTION_REQUIRED: { dir: '50-source-truth-review', files: new Set(['SOURCE_TRUTH_REVIEW.json']) },
+  SOURCE_TRUTH_REVIEWED: {
+    dir: '50-source-truth-review',
+    files: REVIEW_OUTPUT_SET,
+    requiredOnEntry: REVIEW_OUTPUT_SET,
+    exactAdditionGroup: REVIEW_OUTPUT_SET,
+  },
+  // The review pair is normally created while entering SOURCE_TRUTH_REVIEWED. Keep
+  // the same allowlist for defensive compatibility, but a later transition to
+  // CORRECTION_REQUIRED remains state-only when the pair already exists.
+  CORRECTION_REQUIRED: {
+    dir: '50-source-truth-review',
+    files: REVIEW_OUTPUT_SET,
+    exactAdditionGroup: REVIEW_OUTPUT_SET,
+  },
   CORRECTED: { dir: '60-correction', files: new Set(['CORRECTION_STATE.json', 'CORRECTION_RESULT.json']) },
   VALIDATED: { dir: '70-validation', files: new Set(['VALIDATION.json', 'FACTORY_VALIDATION.json', 'CORRECTION_V2_VALIDATION.json', 'CORRECTION_V3_VALIDATION.json']) },
   RESEARCH_RECORD_MERGE_AUTHORIZED: { dir: '80-closeout', files: new Set(['OWNER_CLOSEOUT_RECEIPT.json']) },
@@ -38,6 +57,23 @@ function allowedAdd(headState, rel) {
   const r = String(rel).replace(/\\/g, '/');
   const parts = r.split('/');
   return parts.length === 2 && parts[0] === spec.dir && spec.files.has(parts[1]);
+}
+
+function addedNamesForSpec(records, spec) {
+  const out = new Set();
+  for (const r of records || []) {
+    if (r.status !== 'A' && r.status !== 'C') continue;
+    const rel = String(r.rel).replace(/\\/g, '/');
+    const parts = rel.split('/');
+    if (parts.length === 2 && parts[0] === spec.dir) out.add(parts[1]);
+  }
+  return out;
+}
+
+function enforceExactAdditionGroup(records, spec, required, violations) {
+  const got = addedNamesForSpec(records, spec);
+  for (const f of required) if (!got.has(f)) violations.push(`${spec.dir}/${f}: required review-stage companion missing from this transition`);
+  for (const f of got) if (!required.has(f)) violations.push(`${spec.dir}/${f}: unexpected file in exact review-stage addition group`);
 }
 
 // records: [{ status, rel, srcRel? }] scoped to ONE task root, root-relative.
@@ -77,6 +113,17 @@ export function checkStageTransition({ records, baseState, headState, taskExists
       continue;
     }
     violations.push(`${rel}: unsupported change status ${r.status}`);
+  }
+
+  // Correction 035 — a review mutation is atomic. Entry into SOURCE_TRUTH_REVIEWED
+  // always requires the complete pair; any later attempt to add/repair either review
+  // artifact must also present the exact pair and therefore cannot hide an invalid
+  // earlier historical head.
+  const spec = STAGE_ADD_ALLOW[headState];
+  if (spec?.exactAdditionGroup) {
+    const got = addedNamesForSpec(records, spec);
+    const enteringRequiredState = !!spec.requiredOnEntry && baseState !== headState;
+    if (enteringRequiredState || got.size > 0) enforceExactAdditionGroup(records, spec, spec.exactAdditionGroup, violations);
   }
 
   return { ok: violations.length === 0, violations };
