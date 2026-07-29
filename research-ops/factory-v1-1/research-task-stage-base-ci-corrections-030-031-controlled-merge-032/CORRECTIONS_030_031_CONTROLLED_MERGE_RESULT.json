@@ -1,0 +1,79 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-RESEARCH-TASK-STAGE-BASE-CI-CORRECTIONS-030-031-CONTROLLED-MERGE-032",
+  "role": "closeout",
+  "governingIssue": 90,
+  "decision": "CORRECTIONS_030_031_PUBLISHED_TO_MAIN",
+  "ownerAuthorization": "AUTHORIZE CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-RESEARCH-TASK-STAGE-BASE-CI-CORRECTIONS-030-031-CONTROLLED-MERGE-032",
+  "recoveryRevision": "R1_CANONICAL_SETUP",
+  "sourceStack": {
+    "mainBaseline": "dcc8069d0028bf1bf2b1cdc5d79f7e6b96897bd1",
+    "correction030Head": "15c3c65a0b7578a1c64ebda2ce6e924ed97df31c",
+    "remediation031Head": "70526b5c53266cfc9639ffe60962846f9701ce38",
+    "aheadBy": 10,
+    "behindBy": 0,
+    "mergeBase": "dcc8069d0028bf1bf2b1cdc5d79f7e6b96897bd1"
+  },
+  "sourceEvidence": {
+    "pr87": "OPEN_DRAFT_UNMERGED_EXACT_HEAD_BEFORE_PUBLICATION",
+    "pr89": "OPEN_DRAFT_UNMERGED_EXACT_HEAD_BEFORE_PUBLICATION",
+    "workflow030": { "runId": 30451912255, "conclusion": "success" },
+    "workflow031": { "runId": 30462993550, "conclusion": "success" },
+    "fixtures": "301 passed / 0 failed",
+    "sourceAuthorizationsAllFalse": true,
+    "cumulativeDiffAllowlisted": true
+  },
+  "stage1": {
+    "from": "dcc8069d0028bf1bf2b1cdc5d79f7e6b96897bd1",
+    "to": "70526b5c53266cfc9639ffe60962846f9701ce38",
+    "method": "ordinary_non_force_fast_forward",
+    "completed": true,
+    "verified": true
+  },
+  "invalidSetupEvidence": {
+    "pullRequest": 91,
+    "headSha": "20d94b926adac4000dd7945aad08408dfe9d9d17",
+    "workflowRun": 30472518061,
+    "failure": "NONCANONICAL_PROMPT_SETUP_FILENAME",
+    "closedWithoutMerge": true,
+    "branchLeftImmutable": true,
+    "includedInMain": false
+  },
+  "canonicalReplacementSetup": {
+    "pullRequest": 92,
+    "branch": "closeout/researchops-subscription-factory-v1-1-research-task-stage-base-ci-corrections-030-031-controlled-merge-032-r1",
+    "baseSha": "70526b5c53266cfc9639ffe60962846f9701ce38",
+    "frozenSetupHeadSha": "e7b7b9ab3e53de88d0996f7a222a1016ef1c60af",
+    "fileCount": 3,
+    "canonicalPrompt": "CLAUDE_CORRECTIONS_030_031_CONTROLLED_MERGE_PROMPT.md",
+    "immutable": true
+  },
+  "protectedState": {
+    "master": "998fcedd7d9febbec5b130d4765dfeaafc40960b",
+    "pilotPr69Head": "923c2b58406f84b4355094f2e71f20a1931f70ea",
+    "pilotMutationAuthorized": false,
+    "sourceTruthReviewStarted": false
+  },
+  "stage2": {
+    "from": "70526b5c53266cfc9639ffe60962846f9701ce38",
+    "to": "THIS_REPLACEMENT_AUDIT_RESULT_COMMIT",
+    "method": "ordinary_non_force_fast_forward",
+    "statusAtRecordCreation": "PENDING_GREEN_WORKFLOW_AND_FINAL_REF_UPDATE"
+  },
+  "resultFiles": [
+    "CORRECTIONS_030_031_CONTROLLED_MERGE_RESULT.json",
+    "CORRECTIONS_030_031_CONTROLLED_MERGE_RESULT.md"
+  ],
+  "authorizationsDuringExecution": {
+    "factoryMergeToMainAuthorized": true,
+    "allOtherAuthorizationsFalse": true
+  },
+  "postStage2Expected": {
+    "factoryMergeToMainAuthorizationConsumed": true,
+    "all18ActiveAuthorizationsFalse": true,
+    "masterUnchanged": true,
+    "pilotPr69Unchanged": true,
+    "sourceTruthReviewNotStarted": true
+  },
+  "limitations": "This immutable replacement record is created after successful Stage 1 and before its own governance workflow and Stage 2. Final workflow, final main SHA, closures and authorization consumption are recorded in GitHub comments and the final external report; this file is not amended afterward."
+}
