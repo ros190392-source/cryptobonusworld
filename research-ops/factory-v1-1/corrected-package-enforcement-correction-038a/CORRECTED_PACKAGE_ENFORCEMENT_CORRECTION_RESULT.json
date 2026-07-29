@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CORRECTED-PACKAGE-ENFORCEMENT-038A",
+  "role": "correction",
+  "governingIssue": 107,
+  "decision": "CORRECTED_PACKAGE_ENFORCEMENT_READY_FOR_OWNER_PUBLICATION",
+  "authorizationBasis": "OWNER PRE-AUTHORIZED BOUNDED SERIES 037-042 IN ISSUE 104",
+  "approvedBaseSha": "31bd0451c75d76f1da6c5e20818825f33b9d043d",
+  "frozenSetupHeadSha": "a062771788c7569bbb8c7791640c218d9f30db97",
+  "implementationCommitSha": "9b69891091ee9553b8920e4a3f885584d9c78dc2",
+  "modifiedImplementationFiles": [
+    "research-ops/factory-v1-1/lib/stage.mjs",
+    "research-ops/factory-v1-1/lib/markers.mjs",
+    "research-ops/factory-v1-1/lib/evidence.mjs",
+    "research-ops/factory-v1-1/lib/validate.mjs",
+    "research-ops/factory-v1-1/fixtures/run.mjs"
+  ],
+  "enforcement": {
+    "atomicCorrectionTransition": true,
+    "requiredCorrectionState": true,
+    "requiredCorrectedPackageFileCount": 11,
+    "nestedCorrectedOutputDirectory": "60-correction/20-corrected-output",
+    "samePackageValidatorReused": true,
+    "strictReviewHashBinding": true,
+    "strictManifestHashBinding": true,
+    "allFalseAuthorizationBinding": true,
+    "activeCorrectedPackageValidation": true,
+    "legacyCorrectionResultReadable": true,
+    "legacyCorrectionResultCreatableByNewTransition": false
+  },
+  "fixtures": {
+    "new": { "passed": 20, "failed": 0 },
+    "existing": { "passed": 317, "failed": 0 },
+    "total": { "passed": 337, "failed": 0 },
+    "transportWorkflowRun": 30491548656,
+    "syntaxStep": "success",
+    "fixtureStep": "success",
+    "governanceStep": "expected_failure_for_temporary_work_branch"
+  },
+  "protectedState": {
+    "main": "31bd0451c75d76f1da6c5e20818825f33b9d043d",
+    "master": "998fcedd7d9febbec5b130d4765dfeaafc40960b",
+    "pilotPr69Head": "ce870ae105853ce5121bf368b1087867d983c0e3",
+    "pilotState": "CORRECTION_REQUIRED",
+    "pilotMutationAuthorizedBeforePublication": false
+  },
+  "authorizations": {
+    "factoryMergeToMainAuthorized": false,
+    "researchRecordMergeToMainAuthorized": false,
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false,
+    "masterChangeAuthorized": false
+  },
+  "limitations": "This immutable result predates its own recording-commit workflow. Final workflow identity, publication refs and subsequent Binance correction execution are recorded in GitHub comments and later governed records."
+}
