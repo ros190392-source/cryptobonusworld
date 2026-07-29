@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CORRECTED-PACKAGE-ENFORCEMENT-CONTROLLED-MERGE-038B",
+  "project": "CryptoBonusWorld",
+  "role": "closeout",
+  "state": "READY_FOR_CLOSEOUT",
+  "governingIssue": 111,
+  "ownerAuthorization": "OWNER PRE-AUTHORIZED BOUNDED SERIES 037-042 IN ISSUE 104",
+  "branch": "closeout/researchops-subscription-factory-v1-1-corrected-package-enforcement-038a-controlled-merge-038b",
+  "baseBranch": "correction/researchops-subscription-factory-v1-1-corrected-package-enforcement-038a",
+  "approvedBaseSha": "05ebe0ed567e3fdda7b59cbafaa534d1a9bb6512",
+  "protectedMasterSha": "998fcedd7d9febbec5b130d4765dfeaafc40960b",
+  "resultDirectory": "research-ops/factory-v1-1/corrected-package-enforcement-controlled-merge-038b",
+  "requiredResultFiles": [
+    "research-ops/factory-v1-1/corrected-package-enforcement-controlled-merge-038b/CORRECTED_PACKAGE_ENFORCEMENT_CONTROLLED_MERGE_RESULT.json",
+    "research-ops/factory-v1-1/corrected-package-enforcement-controlled-merge-038b/CORRECTED_PACKAGE_ENFORCEMENT_CONTROLLED_MERGE_RESULT.md"
+  ],
+  "allowedDecisions": [
+    "CORRECTED_PACKAGE_ENFORCEMENT_PUBLISHED_TO_MAIN",
+    "CORRECTED_PACKAGE_ENFORCEMENT_CONTROLLED_MERGE_BLOCKED"
+  ],
+  "authorizations": {
+    "factoryMergeToMainAuthorized": true,
+    "researchRecordMergeToMainAuthorized": false,
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false,
+    "masterChangeAuthorized": false
+  }
+}

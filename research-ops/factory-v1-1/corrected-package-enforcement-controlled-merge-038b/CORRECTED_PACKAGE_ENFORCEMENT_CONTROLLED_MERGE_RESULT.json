@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-CORRECTED-PACKAGE-ENFORCEMENT-CONTROLLED-MERGE-038B",
+  "role": "closeout",
+  "governingIssue": 111,
+  "decision": "CORRECTED_PACKAGE_ENFORCEMENT_PUBLISHED_TO_MAIN",
+  "sourceHeadSha": "05ebe0ed567e3fdda7b59cbafaa534d1a9bb6512",
+  "sourceWorkflowRun": 30491932604,
+  "sourceFixtures": { "passed": 337, "failed": 0 },
+  "stage1": {
+    "from": "31bd0451c75d76f1da6c5e20818825f33b9d043d",
+    "to": "05ebe0ed567e3fdda7b59cbafaa534d1a9bb6512",
+    "method": "ordinary non-force fast-forward",
+    "completed": true
+  },
+  "stage2": {
+    "from": "05ebe0ed567e3fdda7b59cbafaa534d1a9bb6512",
+    "to": "PENDING_RECORDING_COMMIT",
+    "method": "ordinary non-force fast-forward",
+    "completedAtRecordCreation": false
+  },
+  "protected": {
+    "master": "998fcedd7d9febbec5b130d4765dfeaafc40960b",
+    "pilotPr69Head": "ce870ae105853ce5121bf368b1087867d983c0e3",
+    "productionChanged": false,
+    "importChanged": false
+  },
+  "authorizations": {
+    "factoryMergeToMainAuthorized": true,
+    "researchRecordMergeToMainAuthorized": false,
+    "productionChangeAuthorized": false,
+    "deployAuthorized": false,
+    "masterChangeAuthorized": false
+  },
+  "limitations": "Final Stage 2 SHA and workflow are recorded in GitHub comments because this result file is immutable before its own workflow. Temporary factory authority is consumed after Stage 2."
+}
