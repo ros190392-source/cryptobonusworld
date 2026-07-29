@@ -1,5 +1,5 @@
 // ResearchOps Factory V1.1 — canonical state/evidence derivation.
-// One source of truth shared by `validate` and `status`. Fail-closed.
+// One source of truth shared by validate and status. Fail-closed.
 
 import { join } from 'node:path';
 import { exists } from './util.mjs';
@@ -10,13 +10,6 @@ import {
   validateMarkers,
 } from './markers.mjs';
 
-// Conservative artifact requirements per declared state.
-// requiresPackage: a complete, valid eleven-file package must exist.
-// markers: V2-C10 — a CUMULATIVE list of identity-bound stage markers, each of which
-//   must be a regular, canonical-UTF-8, parseable, task-ID-bound file carrying a
-//   recognized outcome/state (or a valid owner receipt). Later states retain earlier
-//   stage evidence.
-// requiresBlockedReason: TASK_STATE.blockedReason must be a non-empty string.
 export const STATE_REQUIREMENTS = {
   PREPARED: { requiresPackage: false, markers: [] },
   RESEARCH_CAPTURED: { requiresPackage: true, markers: [] },
@@ -36,10 +29,25 @@ export function deriveEvidence(taskDir) {
   const packagePresent = researchPackagePresent(outDir);
   const pkg = packagePresent ? isPackageValid(outDir) : { ok: false, checks: [] };
   const packageValid = packagePresent && pkg.ok;
-  return { taskDir, packagePresent, packageValid, packageChecks: pkg.checks };
+
+  const correctedDir = join(taskDir, '60-correction', '20-corrected-output');
+  const correctedPackagePresent = researchPackagePresent(correctedDir);
+  const correctedPkg = correctedPackagePresent ? isPackageValid(correctedDir) : { ok: false, checks: [] };
+  const correctedPackageValid = correctedPackagePresent && correctedPkg.ok;
+  const strictCorrectionStatePresent = exists(join(taskDir, '60-correction', 'CORRECTION_STATE.json'));
+
+  return {
+    taskDir,
+    packagePresent,
+    packageValid,
+    packageChecks: pkg.checks,
+    correctedPackagePresent,
+    correctedPackageValid,
+    correctedPackageChecks: correctedPkg.checks,
+    strictCorrectionStatePresent,
+  };
 }
 
-// Return { consistent, reason } for a declared state against on-disk evidence.
 export function checkStateConsistency(declaredState, taskState, evidence, taskDir) {
   if (!isState(declaredState)) return { consistent: false, reason: `state ${JSON.stringify(declaredState)} is not canonical` };
   const req = STATE_REQUIREMENTS[declaredState];
@@ -50,12 +58,18 @@ export function checkStateConsistency(declaredState, taskState, evidence, taskDi
   if (req.requiresPackage && !evidence.packageValid) {
     return { consistent: false, reason: evidence.packagePresent ? 'declared state requires a valid eleven-file package, but package validation failed' : 'declared state requires a research package, but 20-research-output/ is empty' };
   }
-  // V2-C10 / V3-C8 — cumulative identity-bound stage markers, plus the correction
-  // marker whenever the governed history used the correction path.
-  let required = req.markers || [];
-  const VALIDATED_OR_HIGHER = ['VALIDATED', 'OWNER_CLOSEOUT_REQUIRED', 'RESEARCH_RECORD_MERGE_AUTHORIZED', 'RESEARCH_RECORD_MERGED_TO_MAIN'];
+
   const history = Array.isArray(taskState && taskState.history) ? taskState.history : [];
   const usedCorrection = history.some((h) => h && (h.state === 'CORRECTION_REQUIRED' || h.state === 'CORRECTED'));
+  const STRICT_CORRECTED_OR_HIGHER = ['CORRECTED', 'VALIDATED', 'OWNER_CLOSEOUT_REQUIRED', 'RESEARCH_RECORD_MERGE_AUTHORIZED', 'RESEARCH_RECORD_MERGED_TO_MAIN'];
+  // Correction 038A — strict correction records activate the corrected package as
+  // cumulative evidence. Legacy CORRECTION_RESULT-only histories remain readable.
+  if (evidence.strictCorrectionStatePresent && usedCorrection && STRICT_CORRECTED_OR_HIGHER.includes(declaredState) && !evidence.correctedPackageValid) {
+    return { consistent: false, reason: evidence.correctedPackagePresent ? 'strict correction path requires a valid corrected eleven-file package, but corrected package validation failed' : 'strict correction path requires 60-correction/20-corrected-output/, but it is missing' };
+  }
+
+  let required = req.markers || [];
+  const VALIDATED_OR_HIGHER = ['VALIDATED', 'OWNER_CLOSEOUT_REQUIRED', 'RESEARCH_RECORD_MERGE_AUTHORIZED', 'RESEARCH_RECORD_MERGED_TO_MAIN'];
   if (usedCorrection && VALIDATED_OR_HIGHER.includes(declaredState) && !required.includes(CORRECTION_MARKER)) {
     required = [...required, CORRECTION_MARKER];
   }
@@ -68,7 +82,6 @@ export function checkStateConsistency(declaredState, taskState, evidence, taskDi
   return { consistent: true, reason: '' };
 }
 
-// Highest state whose requirements are satisfied by current evidence (the ceiling).
 export function evidenceCeiling(taskState, evidence, taskDir) {
   let ceiling = 'PREPARED';
   for (const s of STATES) {

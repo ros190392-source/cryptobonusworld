@@ -19,10 +19,19 @@ export const REVIEW_OUTPUT_FILES = Object.freeze([
 ]);
 const REVIEW_OUTPUT_SET = new Set(REVIEW_OUTPUT_FILES);
 
+// Correction 038A — the immutable generated correction contract requires an exact
+// nested eleven-file corrected package plus one strict correction state marker.
+export const CORRECTED_OUTPUT_DIR = '20-corrected-output';
+export const CORRECTION_STATE_FILE = 'CORRECTION_STATE.json';
+const RESEARCH_FILE_SET = new Set(RESEARCH_FILES);
+const CORRECTED_REQUIRED_PATHS = new Set([
+  `60-correction/${CORRECTION_STATE_FILE}`,
+  ...RESEARCH_FILES.map((f) => `60-correction/${CORRECTED_OUTPUT_DIR}/${f}`),
+]);
+
 // V3-C6 — the EXACT files a transition INTO a given head state may add. A state that
 // adds nothing (a pure validation gate) is omitted. 20-research-output is captured
 // only while entering RESEARCH_CAPTURED and is immutable thereafter.
-const RESEARCH_FILE_SET = new Set(RESEARCH_FILES);
 const STAGE_ADD_ALLOW = {
   RESEARCH_CAPTURED: { dir: '20-research-output', files: RESEARCH_FILE_SET },
   SOURCE_TRUTH_REVIEWED: {
@@ -39,7 +48,14 @@ const STAGE_ADD_ALLOW = {
     files: REVIEW_OUTPUT_SET,
     exactAdditionGroup: REVIEW_OUTPUT_SET,
   },
-  CORRECTED: { dir: '60-correction', files: new Set(['CORRECTION_STATE.json', 'CORRECTION_RESULT.json']) },
+  CORRECTED: {
+    dir: '60-correction',
+    rootFiles: new Set([CORRECTION_STATE_FILE]),
+    nestedDir: CORRECTED_OUTPUT_DIR,
+    nestedFiles: RESEARCH_FILE_SET,
+    requiredPathsOnEntry: CORRECTED_REQUIRED_PATHS,
+    exactPathGroup: CORRECTED_REQUIRED_PATHS,
+  },
   VALIDATED: { dir: '70-validation', files: new Set(['VALIDATION.json', 'FACTORY_VALIDATION.json', 'CORRECTION_V2_VALIDATION.json', 'CORRECTION_V3_VALIDATION.json']) },
   RESEARCH_RECORD_MERGE_AUTHORIZED: { dir: '80-closeout', files: new Set(['OWNER_CLOSEOUT_RECEIPT.json']) },
   RESEARCH_RECORD_MERGED_TO_MAIN: { dir: '80-closeout', files: new Set(['RESEARCH_RECORD_MERGE.json', 'MERGE_RECORD.json']) },
@@ -56,7 +72,11 @@ function allowedAdd(headState, rel) {
   if (!spec) return false;
   const r = String(rel).replace(/\\/g, '/');
   const parts = r.split('/');
-  return parts.length === 2 && parts[0] === spec.dir && spec.files.has(parts[1]);
+  if (parts[0] !== spec.dir) return false;
+  if (spec.files) return parts.length === 2 && spec.files.has(parts[1]);
+  if (spec.rootFiles && parts.length === 2 && spec.rootFiles.has(parts[1])) return true;
+  if (spec.nestedFiles && parts.length === 3 && parts[1] === spec.nestedDir && spec.nestedFiles.has(parts[2])) return true;
+  return false;
 }
 
 function addedNamesForSpec(records, spec) {
@@ -70,10 +90,26 @@ function addedNamesForSpec(records, spec) {
   return out;
 }
 
+function addedPathsForSpec(records, spec) {
+  const out = new Set();
+  for (const r of records || []) {
+    if (r.status !== 'A' && r.status !== 'C') continue;
+    const rel = String(r.rel).replace(/\\/g, '/');
+    if (rel === spec.dir || rel.startsWith(`${spec.dir}/`)) out.add(rel);
+  }
+  return out;
+}
+
 function enforceExactAdditionGroup(records, spec, required, violations) {
   const got = addedNamesForSpec(records, spec);
   for (const f of required) if (!got.has(f)) violations.push(`${spec.dir}/${f}: required review-stage companion missing from this transition`);
   for (const f of got) if (!required.has(f)) violations.push(`${spec.dir}/${f}: unexpected file in exact review-stage addition group`);
+}
+
+function enforceExactPathGroup(records, spec, required, violations) {
+  const got = addedPathsForSpec(records, spec);
+  for (const p of required) if (!got.has(p)) violations.push(`${p}: required corrected-package path missing from this transition`);
+  for (const p of got) if (!required.has(p)) violations.push(`${p}: unexpected path in exact corrected-package addition group`);
 }
 
 // records: [{ status, rel, srcRel? }] scoped to ONE task root, root-relative.
@@ -107,7 +143,7 @@ export function checkStageTransition({ records, baseState, headState, taskExists
     if (r.status === 'R') { violations.push(`${r.srcRel} -> ${rel}: rename of governed content is not append-only`); continue; }
     if (r.status === 'D' || r.status === 'M' || r.status === 'T') { violations.push(`${rel}: modification/deletion of a closed/earlier stage is not permitted (${r.status})`); continue; }
     if (r.status === 'A' || r.status === 'C') {
-      // V3-C6 — additions/copies must be exactly the files this transition may add.
+      // V3-C6 / 038A — additions/copies must be exactly the files this transition may add.
       if (allowedAdd(headState, rel)) continue;
       violations.push(`${rel}: not an exact permitted ${r.status === 'C' ? 'copy' : 'addition'} for state ${headState}`);
       continue;
@@ -117,13 +153,20 @@ export function checkStageTransition({ records, baseState, headState, taskExists
 
   // Correction 035 — a review mutation is atomic. Entry into SOURCE_TRUTH_REVIEWED
   // always requires the complete pair; any later attempt to add/repair either review
-  // artifact must also present the exact pair and therefore cannot hide an invalid
-  // earlier historical head.
+  // artifact must also present the exact pair.
   const spec = STAGE_ADD_ALLOW[headState];
   if (spec?.exactAdditionGroup) {
     const got = addedNamesForSpec(records, spec);
     const enteringRequiredState = !!spec.requiredOnEntry && baseState !== headState;
     if (enteringRequiredState || got.size > 0) enforceExactAdditionGroup(records, spec, spec.exactAdditionGroup, violations);
+  }
+
+  // Correction 038A — a strict correction mutation is also atomic. A new correction
+  // must contain the state marker and all eleven corrected files in the same mutation.
+  if (spec?.exactPathGroup) {
+    const got = addedPathsForSpec(records, spec);
+    const enteringRequiredState = !!spec.requiredPathsOnEntry && baseState !== headState;
+    if (enteringRequiredState || got.size > 0) enforceExactPathGroup(records, spec, spec.exactPathGroup, violations);
   }
 
   return { ok: violations.length === 0, violations };
