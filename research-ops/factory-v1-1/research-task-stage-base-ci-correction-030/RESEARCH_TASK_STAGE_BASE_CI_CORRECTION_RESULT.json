@@ -1,0 +1,140 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-RESEARCH-TASK-STAGE-BASE-CI-CORRECTION-030",
+  "role": "correction",
+  "governingIssue": 86,
+  "decision": "RESEARCH_TASK_STAGE_BASE_CI_CORRECTION_READY_FOR_OWNER_APPROVAL",
+  "ownerAuthorization": "AUTHORIZE CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-RESEARCH-TASK-STAGE-BASE-CI-CORRECTION-030",
+  "approvedBaseSha": "dcc8069d0028bf1bf2b1cdc5d79f7e6b96897bd1",
+  "frozenSetupHeadSha": "c9962fa67b6d243223221eef729bedc44a6fa161",
+  "protectedMasterSha": "998fcedd7d9febbec5b130d4765dfeaafc40960b",
+  "implementationCommitSha": "4d8db189683e49cdde6e4d227d67d8206e76696f",
+  "recordingCommitSha": "PENDING_SEE_FINAL_REPORT",
+  "blockedCapture": {
+    "issue": 85,
+    "sourceResearchIssue": 84,
+    "pullRequest": 69,
+    "failingWorkflowRun": 30446016864,
+    "taskRoot": "research-ops/tasks/CBW-KZ-BINANCE-P0-D-DEEP-RESEARCH-001",
+    "transitionBaseSha": "6ce489ff10655f65e62a76d1a5635aa80e73b44a",
+    "transitionHeadSha": "923c2b58406f84b4355094f2e71f20a1931f70ea",
+    "transition": "PREPARED -> RESEARCH_CAPTURED"
+  },
+  "verifiedDefect": {
+    "workflowDiffBaseSha": "babe80fe2bdcb7891dddf63aa8064532626a8fba",
+    "rootCause": "The research-task boundary computed the stage transition from the trusted PR base (main). The Binance task root is absent at that base, so checkStageTransition treated the whole cumulative root as a fresh creation (isCreation=true) and required head state PREPARED, rejecting RESEARCH_CAPTURED and the populated 20-research-output as 'not part of the deterministic factory skeleton'.",
+    "codeSite": "lib/stage.mjs checkStageTransition: isCreation = !taskExistsAtBase"
+  },
+  "modifiedImplementationFiles": [
+    "research-ops/factory-v1-1/lib/taskhistory.mjs (new, pure dependency-free helper)",
+    "research-ops/factory-v1-1/lib/boundary.mjs",
+    "research-ops/factory-v1-1/bin/researchops.mjs",
+    "research-ops/factory-v1-1/fixtures/run.mjs"
+  ],
+  "unmodifiedByDesign": [
+    ".github/workflows/cbw-researchops-factory-validate.yml (no change needed; already passes trusted base/head with full non-shallow history)",
+    "research-ops/factory-v1-1/lib/stage.mjs (canonical transition/inventory/history rules unchanged and reused verbatim per segment)"
+  ],
+  "trustModel": {
+    "layerA": "Preserved unchanged: cumulative trusted PR base -> head path-scope enforcement (single governed task root, no factory/workflow/application/other-root escape, forbidden areas, deletion/rename guards, task identity and branch binding). No path-scope check was removed or narrowed to the last commit.",
+    "layerB": "When the task root is absent at the trusted PR base, the CLI resolves the task's real mutation chain from trusted Git objects only: it walks the trusted head's COMPLETE first-parent ancestry and records only commits whose task-root TREE object changes. Topology and tree identity are the sole authority.",
+    "neverTrusted": ["commit messages", "author identity", "timestamps", "PR body / comments", "mutable task fields", "environment-provided transition SHAs", "HEAD^ as a direct-parent shortcut"],
+    "failClosedOn": ["root-changing merge commit", "task-root deletion/removal in history", "more than one introduction (re-introduction / parallel history)", "earliest edge not an ABSENT introduction", "non-contiguous task-root tree", "head tree != final segment head tree", "skipped/disallowed state transition", "rewritten/reordered/truncated history", "earlier-stage mutation", "extra or missing skeleton/output file", "two task roots", "mixed research/factory paths", "task id/root or branch mismatch"],
+    "mainSyncMerge": "A merge whose task-root tree is byte-identical to its first parent produces no mutation segment and is ignored; a merge that changes the task-root tree is rejected (no non-deterministic predecessor guessing)."
+  },
+  "algorithm": {
+    "walk": "first-parent only, from trusted head to the root commit (bounded by maxDepth); task-root tree read at most once per commit via carry-forward",
+    "segment": "each first-parent edge whose task-root tree changes; introduction = edge with null base tree",
+    "perSegmentValidation": "canonical checkStageTransition (introduction: taskExistsAtBase=false -> exact PREPARED skeleton; later: base->head transition + exact stage additions) and checkHistoryAppendOnly on trusted base/head TASK_STATE blobs",
+    "outputEvidence": ["BOUNDARY mode=RESEARCH_TASK", "TASK_CHAIN root=<root>", "TRANSITION <from> -> <to> base=<sha> head=<sha> (per segment)", "TRANSITION_BASE_SHA / TRANSITION_HEAD_SHA (final capture segment)", "RESULT: BOUNDARY OK"]
+  },
+  "pilotReproduction": {
+    "trustedPrBaseForFailedEvent": "babe80fe2bdcb7891dddf63aa8064532626a8fba",
+    "trustedHead": "923c2b58406f84b4355094f2e71f20a1931f70ea",
+    "headBranch": "research/kz-binance-kz-p0-d",
+    "baseBranch": "main",
+    "resolvedChain": [
+      { "transition": "ABSENT -> PREPARED", "baseSha": "f62c1fb3fc2a66e57e6b023b8eb5b91f2f34500a", "headSha": "bf0a0932325be00aad08ec3db31aef1af9df2384" },
+      { "transition": "PREPARED -> RESEARCH_CAPTURED", "baseSha": "6ce489ff10655f65e62a76d1a5635aa80e73b44a", "headSha": "923c2b58406f84b4355094f2e71f20a1931f70ea" }
+    ],
+    "TRANSITION_BASE_SHA": "6ce489ff10655f65e62a76d1a5635aa80e73b44a",
+    "TRANSITION_HEAD_SHA": "923c2b58406f84b4355094f2e71f20a1931f70ea",
+    "result": "BOUNDARY OK",
+    "firstParentDepthWalked": 71,
+    "requirePackageAt923c2b5": "30/30 checks passed, RESULT: VALID"
+  },
+  "fixtures": {
+    "total": 260,
+    "previousTotal": 235,
+    "added": 25,
+    "failed": 0,
+    "topologyCases": [
+      "030-1 initial ABSENT->PREPARED creation",
+      "030-2 PREPARED->RESEARCH_CAPTURED capture (base/head resolved)",
+      "030-3 unchanged main-sync merge creates no segment",
+      "030-4 root-changing merge fails closed",
+      "030-5 arbitrary HEAD^ not trusted (real predecessor resolved)",
+      "030-6 re-introduction / parallel history fails closed",
+      "030-7 root absent at head fails closed",
+      "030-8 unrelated commits between segments skipped"
+    ],
+    "boundaryCases": [
+      "030-9 progressed capture chain passes",
+      "030-10 initial PREPARED creation chain passes",
+      "030-11 skipped state fails",
+      "030-12 rewritten history fails",
+      "030-13 truncated history fails",
+      "030-14 earlier-stage mutation fails",
+      "030-15 extra twelfth output file fails",
+      "030-16 introduction not at PREPARED fails",
+      "030-17 incomplete skeleton at creation fails",
+      "030-18 head tree mismatch fails",
+      "030-19 unresolved chain fails closed",
+      "030-20 branch mismatch fails",
+      "030-21 task id/root mismatch fails",
+      "030-22 two task roots fail",
+      "030-23 mixed research/factory paths fail",
+      "030-24 missing output file fails validation",
+      "030-25 authorization floor unchanged"
+    ]
+  },
+  "localValidation": {
+    "nodeCheckAllFactoryMjs": "clean",
+    "fixtures": "260 passed / 0 failed",
+    "pilotReproduction": "BOUNDARY OK (exit 0)",
+    "requirePackage": "30/30 VALID at 923c2b5",
+    "gitDiffCheck": "clean",
+    "changedFilesWithinAllowlist": true,
+    "changedFileCount": 4
+  },
+  "unchanged": {
+    "main": "dcc8069d0028bf1bf2b1cdc5d79f7e6b96897bd1",
+    "master": "998fcedd7d9febbec5b130d4765dfeaafc40960b",
+    "pilotPr69Head": "923c2b58406f84b4355094f2e71f20a1931f70ea",
+    "issue84": "OPEN",
+    "issue85": "OPEN",
+    "issue86": "OPEN"
+  },
+  "authorizations": {
+    "factoryMergeToMainAuthorized": false,
+    "researchRecordMergeToMainAuthorized": false,
+    "binancePilotAuthorized": false,
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false,
+    "masterChangeAuthorized": false
+  },
+  "limitations": "Correction is control-plane Factory CI logic only. It does not re-run, modify or merge PR #69, does not itself capture the Binance research, and does not begin Source Truth Review. READY does not authorize merge.",
+  "nextSeparatelyAuthorizedStep": "After independent owner audit and approval of this correction, a separate authorization merges it to main; the KZ-Binance inline-handoff capture (029) can then be re-run against the corrected workflow so PR #69 validates PREPARED -> RESEARCH_CAPTURED."
+}
