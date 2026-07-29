@@ -14,7 +14,9 @@ function mk() {
   const checks = [];
   return { checks, add(name, ok, detail = '') { checks.push({ name, ok: !!ok, detail }); return ok; } };
 }
-
+function prefixed(R, prefix) {
+  return { checks: R.checks, add(name, ok, detail = '') { return R.add(`${prefix}: ${name}`, ok, detail); } };
+}
 function tryJson(path) {
   try { return [JSON.parse(readText(path)), null]; }
   catch (e) { return [null, e.message]; }
@@ -27,8 +29,6 @@ export function validateTask(taskDir, opts = {}) {
   R.add('task directory exists', exists(taskDir), taskDir);
   if (!exists(taskDir)) return finalize(R, opts, null);
 
-  // Correction 022 — parse and structurally validate TASK_STATE.json BEFORE deciding
-  // whether the physical 20-research-output/ directory is mandatory.
   const statePath = join(taskDir, 'TASK_STATE.json');
   let state = null; let taskState = null; let taskStateValid = false;
   if (!exists(statePath)) {
@@ -45,18 +45,11 @@ export function validateTask(taskDir, opts = {}) {
       R.add('TASK_STATE.json structural shape (C9)', shapeOk, shapeErrors.slice(0, 8).join('; '));
       const stateCanonical = isState(state);
       R.add('state is a canonical enum value', stateCanonical, String(state));
-      // The Git-empty output-dir exception below is gated on a fully valid TASK_STATE.
       taskStateValid = shapeOk && stateCanonical;
       if (opts.toState) R.add(`transition ${state} -> ${opts.toState} is allowed`, canTransition(state, opts.toState));
     }
   }
 
-  // Stage directories must all physically exist, EXCEPT that a Git-empty
-  // 20-research-output/ may be absent for a fresh PREPARED checkout (Correction 022):
-  // git cannot track an empty directory, so a committed PREPARED task legitimately lacks
-  // it. This exception is strictly STATE- and EVIDENCE-bound, never merely path-bound:
-  // TASK_STATE must be valid, state exactly PREPARED, its 20-research-output stage marker
-  // exactly EMPTY, --require-package inactive, and no research-package evidence present.
   const OUTPUT_STAGE = '20-research-output';
   const outputPresent = exists(join(taskDir, OUTPUT_STAGE));
   const outputEvidencePresent = researchPackagePresent(join(taskDir, OUTPUT_STAGE));
@@ -74,7 +67,6 @@ export function validateTask(taskDir, opts = {}) {
     }
   }
 
-  // C9 — IDENTITY.json + GITHUB_PLAN.json
   const identPath = join(taskDir, '00-contract', 'IDENTITY.json');
   if (!exists(identPath)) R.add('00-contract/IDENTITY.json present', false);
   else {
@@ -87,7 +79,7 @@ export function validateTask(taskDir, opts = {}) {
     }
   }
   const planPath = join(taskDir, '00-contract', 'GITHUB_PLAN.json');
-  if (!exists(planPath)) R.add('00-contract/GITHUB_PLAN.json present', false);
+  if (!exists(planPath)) R.add('GITHUB_PLAN.json present', false);
   else {
     const [plan, err] = tryJson(planPath);
     if (err) R.add('GITHUB_PLAN.json parses', false, err);
@@ -98,11 +90,9 @@ export function validateTask(taskDir, opts = {}) {
     }
   }
 
-  // no unsafe entries anywhere in the task
   const unsafe = findUnsafeEntries(taskDir);
   R.add('task has no symlink/executable/non-regular entries', unsafe.length === 0, unsafe.map((u) => `${u.path}:${u.reason}`).join(', '));
 
-  // owner receipt (exception path)
   let ownerMergeAllowed = false;
   if (opts.ownerReceiptPath) {
     if (!exists(opts.ownerReceiptPath)) R.add('owner receipt file exists', false, opts.ownerReceiptPath);
@@ -117,7 +107,7 @@ export function validateTask(taskDir, opts = {}) {
     }
   }
 
-  // package (C1 forced or auto-detected). C1: --require-package forces the check even when empty.
+  // Original immutable package.
   const outDir = join(taskDir, '20-research-output');
   const packagePresent = researchPackagePresent(outDir);
   let pkg = null;
@@ -127,10 +117,35 @@ export function validateTask(taskDir, opts = {}) {
     pkg = validatePackageDir(outDir, R);
   }
 
-  // authorization floor
+  // Correction 038A — validate the strict corrected package with the exact same
+  // canonical package validator. It is active only when CORRECTION_STATE.json exists;
+  // legacy CORRECTION_RESULT-only histories remain readable.
+  const correctedDir = join(taskDir, '60-correction', '20-corrected-output');
+  const strictCorrectionStatePresent = exists(join(taskDir, '60-correction', 'CORRECTION_STATE.json'));
+  const correctedPresent = researchPackagePresent(correctedDir);
+  const history = Array.isArray(taskState?.history) ? taskState.history : [];
+  const usedCorrection = history.some((h) => h && (h.state === 'CORRECTION_REQUIRED' || h.state === 'CORRECTED'));
+  const STRICT_CORRECTED_OR_HIGHER = ['CORRECTED', 'VALIDATED', 'OWNER_CLOSEOUT_REQUIRED', 'RESEARCH_RECORD_MERGE_AUTHORIZED', 'RESEARCH_RECORD_MERGED_TO_MAIN'];
+  const correctedRequired = strictCorrectionStatePresent && usedCorrection && STRICT_CORRECTED_OR_HIGHER.includes(state);
+  if ((strictCorrectionStatePresent || correctedPresent) && !STRICT_CORRECTED_OR_HIGHER.includes(state)) {
+    R.add('strict corrected-package evidence appears only at CORRECTED or higher', false, `declared state=${state}`);
+  }
+  let correctedPkg = null;
+  if (correctedRequired && !correctedPresent) {
+    R.add('strict corrected package present', false, '60-correction/20-corrected-output/ has no corrected research files');
+  } else if (strictCorrectionStatePresent || correctedPresent) {
+    correctedPkg = validatePackageDir(correctedDir, prefixed(R, 'corrected package'));
+  }
+
   const authTargets = [];
   if (taskState) authTargets.push(['TASK_STATE.json', taskState]);
   if (pkg) for (const f of ['research-run.json', 'import-readiness.json', 'offer-eligibility-review.json']) if (pkg.parsed[f]) authTargets.push([f, pkg.parsed[f]]);
+  if (correctedPkg) for (const f of ['research-run.json', 'import-readiness.json', 'offer-eligibility-review.json']) if (correctedPkg.parsed[f]) authTargets.push([`corrected/${f}`, correctedPkg.parsed[f]]);
+  const correctionStatePath = join(taskDir, '60-correction', 'CORRECTION_STATE.json');
+  if (exists(correctionStatePath)) {
+    const [cs, err] = tryJson(correctionStatePath);
+    if (!err) authTargets.push(['CORRECTION_STATE.json', cs]);
+  }
   let authOk = true; const authBad = [];
   for (const [name, obj] of authTargets) {
     const res = enforceAuthFloor(obj, { ownerMergeAllowed });
@@ -138,14 +153,12 @@ export function validateTask(taskDir, opts = {}) {
   }
   R.add('authorization floor holds (all false unless valid owner receipt)', authOk, authBad.join(' | '));
 
-  // C2 — declared state must be consistent with on-disk evidence (fail-closed)
   if (taskState) {
     const evidence = deriveEvidence(taskDir);
     const cons = checkStateConsistency(state, taskState, evidence, taskDir);
     R.add('declared state is consistent with on-disk evidence (C2)', cons.consistent, cons.reason);
   }
 
-  // C5 — append-only changed-file boundary (name-status preferred)
   if (opts.changedStatusPath || opts.changedFilesPath) {
     const p = opts.changedStatusPath || opts.changedFilesPath;
     if (!exists(p)) R.add('changed-files list exists', false, p);
