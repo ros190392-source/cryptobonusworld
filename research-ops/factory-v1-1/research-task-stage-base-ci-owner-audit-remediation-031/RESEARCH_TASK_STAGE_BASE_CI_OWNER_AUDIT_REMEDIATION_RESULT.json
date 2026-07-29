@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-RESEARCH-TASK-STAGE-BASE-CI-OWNER-AUDIT-REMEDIATION-031",
+  "role": "correction",
+  "governingIssue": 88,
+  "decision": "RESEARCH_TASK_STAGE_BASE_CI_OWNER_AUDIT_REMEDIATION_READY_FOR_OWNER_APPROVAL",
+  "ownerAuthorization": "AUTHORIZE CBW-RESEARCHOPS-SUBSCRIPTION-FACTORY-V1-1-RESEARCH-TASK-STAGE-BASE-CI-OWNER-AUDIT-REMEDIATION-031",
+  "approvedStackedBaseSha": "15c3c65a0b7578a1c64ebda2ce6e924ed97df31c",
+  "frozenSetupHeadSha": "553de731340d21e8f09b6af15b042a8abd325782",
+  "sourceCorrection": { "issue": 86, "pullRequest": 87, "headSha": "15c3c65a0b7578a1c64ebda2ce6e924ed97df31c" },
+  "protectedPilotPr69Head": "923c2b58406f84b4355094f2e71f20a1931f70ea",
+  "protectedMainSha": "dcc8069d0028bf1bf2b1cdc5d79f7e6b96897bd1",
+  "protectedMasterSha": "998fcedd7d9febbec5b130d4765dfeaafc40960b",
+  "implementationCommitSha": "eba1d26a39e8bb180b9728f08a0698f3ed03bc65",
+  "recordingCommitSha": "PENDING_SEE_FINAL_REPORT",
+  "ownerAuditFindingsAddressed": {
+    "A_segmentDiffEmptyOnError": "scopeSegmentDiff() returns an explicit { ok:true, records } or { ok:false, errorCode ('DIFF_FAILED'|'MALFORMED_DIFF'), detail }. A git-diff command failure or a malformed NUL name-status stream blocks; a genuinely empty successful diff stays distinguishable; a mutation edge that yields an empty diff is rejected. Errors propagate into mutationChain per-segment violations and the boundary result. No credentials/raw env in diagnostics.",
+    "B_accessorErrorConflatedWithAbsence": "Typed accessors commitParents(sha) -> { ok:true, parents } | { ok:false, error } and treeOid(sha) -> { ok:true, present:true, oid } | { ok:true, present:false } | { ok:false, error }. A command failure (ACCESS_ERROR) can no longer masquerade as a true root commit (empty parents), an absent task root (present:false), or a non-merge. Any accessor error fails the chain closed. Root-changing-merge rejection and unchanged-task-merge behavior remain intact; no HEAD^ shortcut or environment transition SHA.",
+    "C_historicalHeadsNotFullyValidated": "Every mutation-segment head is validated with the canonical validateTask against the exact historical Git tree materialized in a detached temporary worktree (OS temp path, no-EOL conversion, cleanup in finally). Includes TASK_STATE parse/shape/history, IDENTITY + GITHUB_PLAN shape/cross-binding, authorization floor, declared-state/evidence consistency, state-required package presence and full inventory/JSON/manifest/ID/reference validity, stage-dir and unsafe-entry checks. Plus an immutable identity projection (schemaVersion, factoryVersion, taskId, project, countryCode, exchangeId, batchId, priority, createdAt, branch, requiredResearchInventory) frozen from the introduction head that every later head must match, and the same-state repair rule (a package-requiring state must have a complete valid package at that exact commit)."
+  },
+  "modifiedImplementationFiles": [
+    "research-ops/factory-v1-1/lib/taskhistory.mjs (typed accessors + explicit segment-diff scoper)",
+    "research-ops/factory-v1-1/lib/taskhistoryvalidate.mjs (new: historical validation + identity projection)",
+    "research-ops/factory-v1-1/bin/researchops.mjs (typed runGit, segmentRecords, historical deps, enrichment, evidence)",
+    "research-ops/factory-v1-1/lib/boundary.mjs (fold per-segment R031 findings)",
+    "research-ops/factory-v1-1/fixtures/run.mjs (41 regression fixtures)"
+  ],
+  "unmodifiedByDesign": ["workflow", "lib/stage.mjs", "lib/validate.mjs", "lib/package.mjs", "lib/schema.mjs", "lib/authz.mjs", "lib/model.mjs"],
+  "temporaryWorktreeSafety": [
+    "OS-generated temp path only (never from task content/user input)",
+    "detached exact SHA; no branch/ref mutation",
+    "materialized with core.autocrlf=false core.eol=lf so the working tree equals the canonical LF committed blobs",
+    "cleanup via git worktree remove in finally",
+    "materialization failure blocks; validation failure blocks; validator exception blocks",
+    "cleanup failure is recorded and (fail-closed) blocks, and can never turn an already-failed validation into success",
+    "no temporary files inside the repository"
+  ],
+  "pilotReproduction": {
+    "trustedPrBase": "babe80fe2bdcb7891dddf63aa8064532626a8fba",
+    "trustedHead": "923c2b58406f84b4355094f2e71f20a1931f70ea",
+    "headBranch": "research/kz-binance-kz-p0-d",
+    "chain": [
+      { "transition": "ABSENT -> PREPARED", "base": "f62c1fb3fc2a66e57e6b023b8eb5b91f2f34500a", "head": "bf0a0932325be00aad08ec3db31aef1af9df2384", "historical": "ok=true 19/19 requirePackage=false" },
+      { "transition": "PREPARED -> RESEARCH_CAPTURED", "base": "6ce489ff10655f65e62a76d1a5635aa80e73b44a", "head": "923c2b58406f84b4355094f2e71f20a1931f70ea", "historical": "ok=true 30/30 VALID requirePackage=true" }
+    ],
+    "TRANSITION_BASE_SHA": "6ce489ff10655f65e62a76d1a5635aa80e73b44a",
+    "TRANSITION_HEAD_SHA": "923c2b58406f84b4355094f2e71f20a1931f70ea",
+    "result": "BOUNDARY OK"
+  },
+  "fixtures": { "total": 301, "previousTotal": 260, "added": 41, "failed": 0, "includesRealTemporaryGitIntegration": true },
+  "localValidation": {
+    "nodeCheckAllFactoryMjs": "clean",
+    "fixtures": "301 passed / 0 failed",
+    "pilotReproduction": "BOUNDARY OK (exit 0), historical 19/19 and 30/30",
+    "gitDiffCheck": "clean",
+    "changedFilesWithinAllowlist": true,
+    "workerImplFileCount": 5
+  },
+  "unchanged": {
+    "main": "dcc8069d0028bf1bf2b1cdc5d79f7e6b96897bd1",
+    "master": "998fcedd7d9febbec5b130d4765dfeaafc40960b",
+    "pr87Head": "15c3c65a0b7578a1c64ebda2ce6e924ed97df31c",
+    "pilotPr69Head": "923c2b58406f84b4355094f2e71f20a1931f70ea",
+    "issue84": "OPEN", "issue85": "OPEN", "issue86": "OPEN", "issue88": "OPEN"
+  },
+  "authorizations": {
+    "factoryMergeToMainAuthorized": false, "researchRecordMergeToMainAuthorized": false, "binancePilotAuthorized": false,
+    "researchImportAuthorized": false, "stagingImportAuthorized": false, "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false, "productionBindingAuthorized": false, "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false, "promoChangeAuthorized": false, "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false, "sitemapAuthorized": false, "indexabilityAuthorized": false,
+    "migration5Authorized": false, "deployAuthorized": false, "masterChangeAuthorized": false
+  },
+  "limitations": "Control-plane Factory CI logic only. Did not re-run/modify/merge PR #69, capture Binance research, or begin Source Truth Review. READY does not authorize merge.",
+  "nextSeparatelyAuthorizedStep": "After independent owner audit and approval, a separate authorization merges Corrections 030+031 to main; the KZ-Binance inline-handoff capture (029) can then be re-run against the corrected, hardened workflow so PR #69 validates PREPARED -> RESEARCH_CAPTURED with full historical validation."
+}
