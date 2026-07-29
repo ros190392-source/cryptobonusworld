@@ -7,7 +7,7 @@
   "exchangeId": "binance",
   "batchId": "KZ-P0-D",
   "priority": "P0",
-  "state": "SOURCE_TRUTH_REVIEWED",
+  "state": "CORRECTION_REQUIRED",
   "createdAt": "2026-07-28",
   "stages": {
     "00-contract": "PRESENT",
@@ -67,6 +67,10 @@
     },
     {
       "state": "SOURCE_TRUTH_REVIEWED",
+      "at": "2026-07-29"
+    },
+    {
+      "state": "CORRECTION_REQUIRED",
       "at": "2026-07-29"
     }
   ]
