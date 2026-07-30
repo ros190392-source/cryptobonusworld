@@ -1,0 +1,166 @@
+name: CBW Homepage Top-10 043 browser QA
+
+on:
+  pull_request:
+    types: [opened]
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  browser-qa:
+    if: github.event.pull_request.head.ref == 'qa/homepage-top10-043-probe'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout exact QA branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 1
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Build production site
+        run: npm run build
+
+      - name: Start Astro preview
+        run: |
+          set -euo pipefail
+          npm run preview -- --host 127.0.0.1 --port 4321 > /tmp/cbw-preview.log 2>&1 &
+          echo $! > /tmp/cbw-preview.pid
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4321/ >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/cbw-preview.log
+          exit 1
+
+      - name: Validate Top-10 in Chromium
+        run: |
+          mkdir -p qa-artifacts
+          cat > /tmp/top10-qa.mjs <<'EOF'
+          import { chromium } from 'playwright';
+          import { writeFile } from 'node:fs/promises';
+
+          const viewports = [
+            { name: 'desktop-1440', width: 1440, height: 1000 },
+            { name: 'tablet-768', width: 768, height: 1024 },
+            { name: 'mobile-390', width: 390, height: 844 },
+          ];
+          const reviewOnly = ['Binance', 'Gate.io', 'HTX', 'Phemex'];
+          const expectedNames = ['Bybit', 'Binance', 'OKX', 'MEXC', 'Bitget', 'KuCoin', 'Gate.io', 'BingX', 'HTX', 'Phemex'];
+          const results = [];
+          let failed = false;
+
+          const browser = await chromium.launch({ headless: true });
+          try {
+            for (const viewport of viewports) {
+              const page = await browser.newPage({ viewport });
+              const consoleErrors = [];
+              const pageErrors = [];
+              page.on('console', message => {
+                if (message.type() === 'error') consoleErrors.push(message.text());
+              });
+              page.on('pageerror', error => pageErrors.push(error.message));
+
+              await page.goto('http://127.0.0.1:4321/', { waitUntil: 'networkidle' });
+              await page.locator('#top10-title').scrollIntoViewIfNeeded();
+
+              const rows = page.locator('.top10-row');
+              const rowCount = await rows.count();
+              const names = await rows.locator('.top10-exchange-copy strong').allTextContents();
+              const ranks = await rows.locator('.top10-rank span').allTextContents();
+              const primaryCount = await rows.locator('.top10-primary').count();
+              const bodyOverflow = await page.evaluate(() => ({
+                scrollWidth: document.documentElement.scrollWidth,
+                clientWidth: document.documentElement.clientWidth,
+              }));
+
+              const rowOverflow = await rows.evaluateAll((nodes, width) => nodes
+                .map((node, index) => ({ index: index + 1, rect: node.getBoundingClientRect() }))
+                .filter(item => item.rect.left < -1 || item.rect.right > width + 1)
+                .map(item => item.index), viewport.width);
+
+              const reviewOnlyViolations = [];
+              for (const name of reviewOnly) {
+                const row = rows.filter({ hasText: name });
+                if (await row.count() !== 1) {
+                  reviewOnlyViolations.push(`${name}: row count != 1`);
+                  continue;
+                }
+                if (await row.locator('.top10-primary').count() !== 0) {
+                  reviewOnlyViolations.push(`${name}: unexpected affiliate CTA`);
+                }
+                if (await row.locator('.pcc-row').count() !== 0) {
+                  reviewOnlyViolations.push(`${name}: unexpected promo code`);
+                }
+              }
+
+              const checks = {
+                rowCount: rowCount === 10,
+                names: JSON.stringify(names) === JSON.stringify(expectedNames),
+                ranks: JSON.stringify(ranks.map(value => value.trim())) === JSON.stringify(['1','2','3','4','5','6','7','8','9','10']),
+                livePrimaryActions: primaryCount === 6,
+                reviewOnlyBoundary: reviewOnlyViolations.length === 0,
+                bodyNoOverflow: bodyOverflow.scrollWidth <= bodyOverflow.clientWidth + 1,
+                rowsNoOverflow: rowOverflow.length === 0,
+                noConsoleErrors: consoleErrors.length === 0,
+                noPageErrors: pageErrors.length === 0,
+              };
+
+              const ok = Object.values(checks).every(Boolean);
+              if (!ok) failed = true;
+              const result = {
+                viewport,
+                ok,
+                checks,
+                rowCount,
+                names,
+                ranks,
+                primaryCount,
+                bodyOverflow,
+                rowOverflow,
+                reviewOnlyViolations,
+                consoleErrors,
+                pageErrors,
+              };
+              results.push(result);
+              console.log(JSON.stringify(result, null, 2));
+
+              await page.screenshot({
+                path: `qa-artifacts/homepage-top10-${viewport.name}.png`,
+                fullPage: true,
+              });
+              await page.close();
+            }
+          } finally {
+            await browser.close();
+          }
+
+          await writeFile('qa-artifacts/homepage-top10-qa.json', JSON.stringify({ failed, results }, null, 2));
+          if (failed) process.exit(1);
+          EOF
+          node /tmp/top10-qa.mjs
+
+      - name: Upload QA evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cbw-homepage-top10-043-browser-qa
+          path: qa-artifacts/
+          if-no-files-found: error
