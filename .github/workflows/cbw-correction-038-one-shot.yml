@@ -2,7 +2,7 @@ name: CBW Correction 038 one-shot
 
 on:
   pull_request:
-    types: [opened]
+    types: [opened, reopened]
     branches:
       - main
 
@@ -22,7 +22,14 @@ jobs:
           fetch-depth: 0
 
       - name: Generate corrected package
-        run: python .github/cbw-correction-038.py
+        run: |
+          set -euo pipefail
+          python .github/cbw-correction-038.py
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('research-ops/tasks/CBW-KZ-BINANCE-P0-D-DEEP-RESEARCH-001/60-correction/20-corrected-output/source-truth-review-report.md')
+          p.write_text(p.read_text(encoding='utf-8').rstrip('\n') + '\n', encoding='utf-8', newline='\n')
+          PY
 
       - name: Validate Factory state and package
         run: |
