@@ -1,21 +1,24 @@
 name: CBW Correction 038 one-shot
 
 on:
-  push:
+  pull_request:
+    types: [opened]
     branches:
-      - research/kz-binance-kz-p0-d-correction-worker-probe
+      - main
 
 permissions:
   contents: write
 
 jobs:
   correction-038:
+    if: github.event.pull_request.head.ref == 'research/kz-binance-kz-p0-d-correction-worker-probe'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - name: Checkout worker branch
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.head_ref }}
           fetch-depth: 0
 
       - name: Generate corrected package
@@ -37,4 +40,4 @@ jobs:
           git add "$TASK"
           git diff --cached --check
           git commit -m "research(kz-binance): apply correction 038"
-          git push origin "HEAD:${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_HEAD_REF}"
