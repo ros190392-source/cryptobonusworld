@@ -2,7 +2,7 @@ name: CBW Homepage Top-10 043 browser QA
 
 on:
   pull_request:
-    types: [opened]
+    types: [opened, reopened, synchronize]
     branches:
       - master
 
@@ -53,7 +53,7 @@ jobs:
       - name: Validate Top-10 in Chromium
         run: |
           mkdir -p qa-artifacts
-          cat > /tmp/top10-qa.mjs <<'EOF'
+          cat > .qa-top10-qa.mjs <<'EOF'
           import { chromium } from 'playwright';
           import { writeFile } from 'node:fs/promises';
 
@@ -155,7 +155,7 @@ jobs:
           await writeFile('qa-artifacts/homepage-top10-qa.json', JSON.stringify({ failed, results }, null, 2));
           if (failed) process.exit(1);
           EOF
-          node /tmp/top10-qa.mjs
+          node ./.qa-top10-qa.mjs
 
       - name: Upload QA evidence
         if: always()
