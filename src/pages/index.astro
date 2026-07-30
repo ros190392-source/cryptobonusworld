@@ -1,15 +1,7 @@
 ---
 import CleanLayout from '../layouts/CleanLayout.astro';
-import ExchangeCard from '../components/home/ExchangeCard.astro';
 import HomepageGeoBonusFinder from '../components/home/HomepageGeoBonusFinder.astro';
-import { getFeaturedExchanges } from '../data/exchanges';
-import { getOffer } from '../data/offers';
-
-const exchanges = getFeaturedExchanges();
-const exchangesWithOffers = exchanges.map(ex => ({
-  exchange: ex,
-  offer: getOffer(ex.slug),
-}));
+import HomepageTop10 from '../components/home/HomepageTop10.astro';
 
 const guideBlocks = [
   {
@@ -57,11 +49,11 @@ const faqs = [
   },
   {
     q: 'Are these affiliate links?',
-    a: 'Yes. Links marked "Claim Bonus" are affiliate referral links. If you register through one, CryptoBonusWorld may earn a commission from the exchange. This does not cost you anything extra and does not change your bonus. See our affiliate disclosure for details.',
+    a: 'Yes. Links marked "Check offer" are affiliate referral links. If you register through one, CryptoBonusWorld may earn a commission from the exchange. This does not cost you anything extra and does not change your bonus. See our affiliate disclosure for details.',
   },
   {
     q: 'Which exchange bonus is best?',
-    a: 'There is no single "best" bonus for everyone — it depends on your priorities, such as whether you want to avoid KYC, your region, and how much you plan to deposit. Compare the verified details on each exchange’s page before deciding.',
+    a: 'There is no single "best" bonus for everyone — it depends on your priorities, region, eligibility, and how much activity each reward requires. Compare the verification badge and current details on each exchange page before deciding.',
   },
   {
     q: 'How often are codes checked?',
@@ -85,8 +77,8 @@ const faqSchema = {
 ---
 
 <CleanLayout
-  title="Crypto Exchange Referral & Bonus Codes 2026 | CryptoBonusWorld"
-  description="Verified crypto exchange referral codes and bonus links for Bybit, MEXC, OKX, Bitget, KuCoin, and BingX. Bonus terms, KYC, region, and trading requirements may vary — checked directly against official exchange pages."
+  title="Top 10 Crypto Exchanges & Referral Codes 2026 | CryptoBonusWorld"
+  description="Compare 10 crypto exchanges by current offer-verification and research status. Six live referral-code pages plus Binance, Gate.io, HTX, and Phemex profiles under review. Country eligibility and terms may vary."
   ogImage="/og-default.png"
 >
 
@@ -96,11 +88,11 @@ const faqSchema = {
   <!-- 1. Compact intro (light — finder above stays the primary hero) -->
   <section class="hp-intro">
     <div class="hp-text-wrap">
-      <div class="hp-intro-label">Verified · Updated July 2026</div>
-      <h2 class="hp-intro-h1">Crypto Sign-Up Bonuses &amp; Referral Codes</h2>
+      <div class="hp-intro-label">Verified offers · research status visible</div>
+      <h1 class="hp-intro-h1">Crypto Exchange Bonuses, Codes &amp; Evidence</h1>
       <p class="hp-intro-sub">
-        CryptoBonusWorld tracks verified crypto exchange referral codes and bonus links,
-        checked directly against each exchange's official promotions page.
+        Compare ten exchanges in one ranked view. Verified offers stay separate from public previews,
+        country research, and profiles that are still being re-checked.
       </p>
       <p class="hp-intro-caveat">
         Bonus availability, KYC, region, deposit, and trading requirements may vary by exchange and account.
@@ -112,35 +104,17 @@ const faqSchema = {
   <div class="trust-bar">
     <div class="hp-text-wrap">
       <div class="trust-bar-inner">
-        <span class="tb-item">✓ Codes checked against official exchange pages</span>
+        <span class="tb-item">✓ Offer badges follow the clean verification record</span>
         <span class="tb-sep" aria-hidden="true">·</span>
-        <span class="tb-item">ⓘ Bonus terms may vary by country and account</span>
+        <span class="tb-item">ⓘ Research-only profiles never receive an affiliate CTA</span>
         <span class="tb-sep" aria-hidden="true">·</span>
         <span class="tb-item">Affiliate links — <a href="/affiliate-disclosure/" class="tb-link">we may earn a commission</a></span>
       </div>
     </div>
   </div>
 
-  <!-- 3. Featured exchange grid -->
-  <section class="section bg-white section-exchange" id="exchanges">
-    <div class="hp-directory-wrap">
-      <div class="section-label">Featured Exchanges</div>
-      <h2 class="section-title">Top Crypto Referral Codes</h2>
-      <p class="section-sub">
-        Each listing includes the verified promo code, realistic bonus estimate,
-        and a direct link to the official offer page.
-      </p>
-      <div class="exchange-grid">
-        {exchangesWithOffers.map(({ exchange, offer }) => (
-          <ExchangeCard exchange={exchange} offer={offer} />
-        ))}
-      </div>
-      <p class="grid-coming-soon">More verified exchange codes are being checked.</p>
-      <div class="grid-footer">
-        <a href="/exchanges/" class="btn-secondary">View All Exchanges →</a>
-      </div>
-    </div>
-  </section>
+  <!-- 3. Visible governed Top-10 -->
+  <HomepageTop10 />
 
   <!-- 4. Guide -->
   <section class="section bg-gray" id="guide">
@@ -192,12 +166,8 @@ const faqSchema = {
 </CleanLayout>
 
 <style>
-  /* ── Width utilities ─────────────────────────────────────────── */
-  .hp-text-wrap      { max-width: var(--cbw-prose-max, 800px); margin: 0 auto; padding: 0 20px; box-sizing: border-box; }
-  .hp-directory-wrap  { max-width: var(--cbw-wide-max, 1120px); margin: 0 auto; padding: 0 20px; box-sizing: border-box; }
-  @media (min-width: 820px) {
-    .hp-text-wrap, .hp-directory-wrap { padding: 0 32px; }
-  }
+  .hp-text-wrap { max-width: var(--cbw-prose-max, 800px); margin: 0 auto; padding: 0 20px; box-sizing: border-box; }
+  @media (min-width: 820px) { .hp-text-wrap { padding: 0 32px; } }
 
   .bg-white { background: #fff; }
   .bg-gray  { background: #F7F8F4; }
@@ -224,29 +194,13 @@ const faqSchema = {
     display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap;
     font-size: 12px; color: #374151; text-align: center;
   }
-  .tb-item { display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+  .tb-item { display: flex; align-items: center; gap: 4px; }
   .tb-sep { color: #9CA3AF; }
   .tb-link { color: #15803D; font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
   .tb-link:hover { color: #166534; }
 
-  /* ── 3. Featured exchange grid ───────────────────────────────── */
-  .section-exchange { padding: 32px 0 48px; }
-  .section-exchange .section-sub { max-width: none; margin-bottom: 20px; }
-
-  .exchange-grid {
-    display: grid; gap: 16px;
-    grid-template-columns: 1fr;
-    margin-bottom: 20px;
-  }
-  @media (min-width: 640px)  { .exchange-grid { grid-template-columns: repeat(2, 1fr); } }
-  @media (min-width: 960px)  { .exchange-grid { grid-template-columns: repeat(3, 1fr); } }
-
-  .grid-coming-soon { text-align: center; font-size: 13px; color: #9CA3AF; margin: 8px 0 20px; }
-  .grid-footer { text-align: center; }
-
   /* ── 4. Guide ─────────────────────────────────────────────────── */
   .guide-list { display: flex; flex-direction: column; gap: 26px; margin-top: 8px; }
-  .guide-block { }
   .guide-h3 { font-size: 17px; font-weight: 700; color: #111827; margin-bottom: 8px; letter-spacing: -.01em; }
   .guide-p  { font-size: 14.5px; line-height: 1.75; color: #4B5563; }
 
@@ -271,6 +225,5 @@ const faqSchema = {
   .disclaimer-text { font-size: 12px; color: #6B7280; line-height: 1.7; }
   .disclaimer-text strong { color: #374151; }
 
-  /* ── Shared section header sizing within text-width sections ──── */
   #guide .section-sub, #faq .section-sub { max-width: none; }
 </style>

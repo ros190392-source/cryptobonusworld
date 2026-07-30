@@ -1,0 +1,532 @@
+---
+import ExchangeLogo from '../ExchangeLogo.astro';
+import PromoCodeCopy from '../promo/PromoCodeCopy.astro';
+import { homepageTop10 } from '../../data/homepageTop10';
+---
+
+<section class="top10-section" id="exchanges" aria-labelledby="top10-title">
+  <div class="top10-wrap">
+    <div class="top10-heading">
+      <div>
+        <div class="top10-label">Editorial comparison · 10 exchanges</div>
+        <h2 id="top10-title">Top 10 Crypto Exchanges to Compare</h2>
+        <p>
+          Ranked from the current CryptoBonusWorld editorial inventory. Offer and research badges show
+          how far each listing has been verified — availability can still differ by country and account.
+        </p>
+      </div>
+      <a href="/exchanges/" class="top10-directory-link">View full exchange directory →</a>
+    </div>
+
+    <div class="top10-column-head" aria-hidden="true">
+      <span>Rank</span>
+      <span>Exchange</span>
+      <span>Best for</span>
+      <span>Offer or evidence status</span>
+      <span>Actions</span>
+    </div>
+
+    <ol class="top10-list">
+      {homepageTop10.map((entry) => (
+        <li class="top10-row" data-rank={entry.rank}>
+          <div class="top10-rank" aria-label={`Rank ${entry.rank}`}>
+            <span>{entry.rank}</span>
+          </div>
+
+          <div class="top10-exchange">
+            <ExchangeLogo
+              slug={entry.slug}
+              name={entry.name}
+              size={48}
+              variant="square"
+              lazy={entry.rank > 4}
+              class="top10-logo"
+            />
+            <div class="top10-exchange-copy">
+              <strong>{entry.name}</strong>
+              <span class:list={['top10-status', `top10-status--${entry.statusTone}`]}>
+                {entry.statusLabel}
+              </span>
+            </div>
+          </div>
+
+          <div class="top10-fit">
+            <span class="top10-mobile-label">Best for</span>
+            <p>{entry.bestFor}</p>
+          </div>
+
+          <div class="top10-evidence">
+            <span class="top10-mobile-label">Offer or evidence status</span>
+            <p class="top10-summary">{entry.summary}</p>
+            {entry.promoCode && (
+              <div class="top10-code">
+                <span class="top10-code-label">Promo code</span>
+                <PromoCodeCopy code={entry.promoCode} exchange={entry.name} />
+              </div>
+            )}
+            <span class="top10-checked">Last checked: {entry.lastChecked}</span>
+          </div>
+
+          <div class="top10-actions">
+            {entry.primaryAction && (
+              <a
+                href={entry.primaryAction.href}
+                class="top10-primary"
+                target={entry.primaryAction.external ? '_blank' : undefined}
+                rel={entry.primaryAction.external
+                  ? entry.primaryAction.sponsored
+                    ? 'noopener noreferrer sponsored'
+                    : 'noopener noreferrer'
+                  : undefined}
+              >
+                {entry.primaryAction.label} →
+              </a>
+            )}
+            <a href={entry.secondaryAction.href} class="top10-secondary">
+              {entry.secondaryAction.label}
+            </a>
+          </div>
+        </li>
+      ))}
+    </ol>
+
+    <div class="top10-method" id="top-10-methodology">
+      <strong>How to read this list:</strong>
+      rank reflects the current CryptoBonusWorld editorial inventory, not a personalized recommendation.
+      A green badge means the clean offer record is verified; amber means a public preview; blue means
+      completed country research with campaign eligibility still under review; gray means the profile is
+      being re-verified. Always confirm current regional terms on the exchange’s official website.
+    </div>
+  </div>
+</section>
+
+<style>
+  .top10-section {
+    background: #ffffff;
+    padding: 38px 0 54px;
+  }
+
+  .top10-wrap {
+    width: 100%;
+    max-width: var(--cbw-wide-max, 1120px);
+    margin: 0 auto;
+    padding: 0 20px;
+    box-sizing: border-box;
+  }
+
+  .top10-heading {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 28px;
+    margin-bottom: 24px;
+  }
+
+  .top10-label {
+    margin-bottom: 8px;
+    color: #f7931a;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+  }
+
+  .top10-heading h2 {
+    margin: 0 0 10px;
+    color: #111827;
+    font-size: clamp(25px, 3vw, 36px);
+    font-weight: 850;
+    letter-spacing: -.025em;
+    line-height: 1.15;
+  }
+
+  .top10-heading p {
+    max-width: 760px;
+    margin: 0;
+    color: #4b5563;
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  .top10-directory-link {
+    flex: 0 0 auto;
+    color: #166534;
+    font-size: 13px;
+    font-weight: 750;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .top10-directory-link:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .top10-column-head,
+  .top10-row {
+    display: grid;
+    grid-template-columns: 52px minmax(158px, .92fr) minmax(150px, .9fr) minmax(270px, 1.55fr) minmax(150px, .78fr);
+    gap: 16px;
+    align-items: center;
+  }
+
+  .top10-column-head {
+    padding: 0 16px 9px;
+    color: #6b7280;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+  }
+
+  .top10-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .top10-row {
+    min-width: 0;
+    padding: 15px 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(17, 24, 39, .04);
+    transition: border-color .18s, box-shadow .18s, transform .18s;
+  }
+
+  .top10-row:hover {
+    border-color: #d1d5db;
+    box-shadow: 0 7px 24px rgba(17, 24, 39, .08);
+    transform: translateY(-1px);
+  }
+
+  .top10-rank {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .top10-rank span {
+    display: inline-flex;
+    width: 34px;
+    height: 34px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: #111827;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 850;
+  }
+
+  .top10-row[data-rank='1'] .top10-rank span {
+    background: #f7931a;
+  }
+
+  .top10-row[data-rank='2'] .top10-rank span,
+  .top10-row[data-rank='3'] .top10-rank span {
+    background: #374151;
+  }
+
+  .top10-exchange {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 11px;
+  }
+
+  .top10-exchange-copy {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+
+  .top10-exchange-copy strong {
+    overflow: hidden;
+    max-width: 100%;
+    color: #111827;
+    font-size: 16px;
+    font-weight: 850;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .top10-status {
+    display: inline-flex;
+    max-width: 100%;
+    padding: 3px 8px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 800;
+    line-height: 1.25;
+  }
+
+  .top10-status--verified {
+    border-color: #bbf7d0;
+    background: #f0fdf4;
+    color: #166534;
+  }
+
+  .top10-status--preview {
+    border-color: #fde68a;
+    background: #fffbeb;
+    color: #92400e;
+  }
+
+  .top10-status--research {
+    border-color: #bfdbfe;
+    background: #eff6ff;
+    color: #1d4ed8;
+  }
+
+  .top10-status--review {
+    border-color: #e5e7eb;
+    background: #f9fafb;
+    color: #4b5563;
+  }
+
+  .top10-fit,
+  .top10-evidence,
+  .top10-actions {
+    min-width: 0;
+  }
+
+  .top10-fit p,
+  .top10-summary {
+    margin: 0;
+    color: #374151;
+    font-size: 12.5px;
+    line-height: 1.55;
+  }
+
+  .top10-summary {
+    color: #111827;
+    font-weight: 650;
+  }
+
+  .top10-code {
+    margin-top: 9px;
+  }
+
+  .top10-code-label {
+    display: block;
+    margin-bottom: 4px;
+    color: #92400e;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+  }
+
+  .top10-code :global(.pcc-row) {
+    max-width: 250px;
+    height: 42px;
+  }
+
+  .top10-code :global(.pcc-code) {
+    padding: 0 10px;
+    font-size: 14px;
+  }
+
+  .top10-code :global(.pcc-copy) {
+    width: 56px;
+    font-size: 10px;
+  }
+
+  .top10-checked {
+    display: block;
+    margin-top: 7px;
+    color: #9ca3af;
+    font-size: 10px;
+    line-height: 1.4;
+  }
+
+  .top10-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 7px;
+  }
+
+  .top10-primary,
+  .top10-secondary {
+    display: flex;
+    min-height: 38px;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    border-radius: 9px;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1.2;
+    text-align: center;
+    text-decoration: none;
+  }
+
+  .top10-primary {
+    background: #16a34a;
+    color: #ffffff;
+    box-shadow: 0 2px 7px rgba(22, 163, 74, .2);
+  }
+
+  .top10-primary:hover {
+    background: #15803d;
+  }
+
+  .top10-secondary {
+    border: 1px solid #d1d5db;
+    background: #ffffff;
+    color: #374151;
+  }
+
+  .top10-secondary:hover {
+    border-color: #9ca3af;
+    background: #f9fafb;
+  }
+
+  .top10-mobile-label {
+    display: none;
+  }
+
+  .top10-method {
+    margin-top: 18px;
+    padding: 14px 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #f9fafb;
+    color: #6b7280;
+    font-size: 11px;
+    line-height: 1.65;
+  }
+
+  .top10-method strong {
+    color: #374151;
+  }
+
+  @media (min-width: 820px) {
+    .top10-wrap {
+      padding: 0 32px;
+    }
+  }
+
+  @media (max-width: 959px) {
+    .top10-heading {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .top10-column-head {
+      display: none;
+    }
+
+    .top10-row {
+      grid-template-columns: 42px minmax(0, 1fr);
+      gap: 11px 13px;
+      align-items: start;
+      padding: 16px;
+    }
+
+    .top10-rank {
+      grid-column: 1;
+      grid-row: 1;
+      padding-top: 7px;
+    }
+
+    .top10-exchange {
+      grid-column: 2;
+      grid-row: 1;
+    }
+
+    .top10-fit,
+    .top10-evidence,
+    .top10-actions {
+      grid-column: 1 / -1;
+      padding-left: 55px;
+    }
+
+    .top10-mobile-label {
+      display: block;
+      margin-bottom: 4px;
+      color: #9ca3af;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+    }
+
+    .top10-actions {
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+
+    .top10-primary,
+    .top10-secondary {
+      min-width: 150px;
+      flex: 1 1 150px;
+      padding: 0 14px;
+    }
+  }
+
+  @media (max-width: 520px) {
+    .top10-section {
+      padding: 30px 0 42px;
+    }
+
+    .top10-wrap {
+      padding: 0 14px;
+    }
+
+    .top10-heading h2 {
+      font-size: 26px;
+    }
+
+    .top10-directory-link {
+      white-space: normal;
+    }
+
+    .top10-row {
+      grid-template-columns: 38px minmax(0, 1fr);
+      padding: 14px 12px;
+    }
+
+    .top10-rank span {
+      width: 31px;
+      height: 31px;
+      font-size: 13px;
+    }
+
+    .top10-exchange :global(.top10-logo) {
+      width: 43px !important;
+      height: 43px !important;
+    }
+
+    .top10-fit,
+    .top10-evidence,
+    .top10-actions {
+      padding-left: 51px;
+    }
+
+    .top10-actions {
+      flex-direction: column;
+    }
+
+    .top10-primary,
+    .top10-secondary {
+      width: 100%;
+      min-width: 0;
+      flex-basis: auto;
+    }
+
+    .top10-code :global(.pcc-row) {
+      max-width: 100%;
+    }
+  }
+</style>
