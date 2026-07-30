@@ -1,0 +1,40 @@
+name: CBW Correction 038 one-shot
+
+on:
+  push:
+    branches:
+      - research/kz-binance-kz-p0-d-correction-worker-probe
+
+permissions:
+  contents: write
+
+jobs:
+  correction-038:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout worker branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate corrected package
+        run: python .github/cbw-correction-038.py
+
+      - name: Validate Factory state and package
+        run: |
+          set -euo pipefail
+          TASK="research-ops/tasks/CBW-KZ-BINANCE-P0-D-DEEP-RESEARCH-001"
+          node research-ops/factory-v1-1/bin/researchops.mjs validate --task-dir "$TASK" --require-package
+          git diff --check
+
+      - name: Commit correction output
+        run: |
+          set -euo pipefail
+          TASK="research-ops/tasks/CBW-KZ-BINANCE-P0-D-DEEP-RESEARCH-001"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$TASK"
+          git diff --cached --check
+          git commit -m "research(kz-binance): apply correction 038"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
