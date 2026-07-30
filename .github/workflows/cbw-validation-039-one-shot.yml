@@ -1,0 +1,43 @@
+name: CBW Validation 039 one-shot
+
+on:
+  pull_request:
+    types: [opened]
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  validation-039:
+    if: github.event.pull_request.head.ref == 'validation/kz-binance-p0-d-039-worker-probe'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout validator branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Run independent validator
+        run: python .github/cbw-validation-039.py
+
+      - name: Validate resulting Factory state
+        run: |
+          set -euo pipefail
+          TASK="research-ops/tasks/CBW-KZ-BINANCE-P0-D-DEEP-RESEARCH-001"
+          node research-ops/factory-v1-1/bin/researchops.mjs validate --task-dir "$TASK" --require-package
+          git diff --check
+
+      - name: Commit validation output
+        run: |
+          set -euo pipefail
+          TASK="research-ops/tasks/CBW-KZ-BINANCE-P0-D-DEEP-RESEARCH-001"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$TASK"
+          git diff --cached --check
+          git commit -m "research(kz-binance): validate correction 039"
+          git push origin "HEAD:${GITHUB_HEAD_REF}"
