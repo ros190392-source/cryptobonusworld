@@ -1,0 +1,180 @@
+---
+import CleanLayout from '../../../../layouts/CleanLayout.astro';
+import ExchangeLogo from '../../../../components/ExchangeLogo.astro';
+import ReviewStatus from '../../../../components/portal-v2/ReviewStatus.astro';
+import { binanceKazakhstanPassport, portalReviewNotice } from '../../../../data/portalFactoryReview';
+
+const passport = binanceKazakhstanPassport;
+---
+
+<CleanLayout
+  title="CBW Portal Factory v2 — Market Passport Template"
+  description="Review-only Exchange × Country market passport template for CryptoBonusWorld."
+  noindex={true}
+  bodyClass="cbw-v2-passport-review"
+>
+  <main class="passport-page">
+    <section class="passport-hero">
+      <div class="shell">
+        <div class="review-nav">
+          <span>Review route · noindex</span>
+          <nav aria-label="Portal v2 review routes">
+            <a href="/__design/cbw-v2/homepage/">Homepage</a>
+            <a href="/__design/cbw-v2/country/">Country hub</a>
+            <a href="/__design/cbw-v2/country-ranking/">Ranking</a>
+          </nav>
+        </div>
+
+        <div class="crumbs">Countries <span>/</span> {passport.country} <span>/</span> Exchanges <span>/</span> {passport.exchange}</div>
+
+        <div class="identity-grid">
+          <div class="identity-copy">
+            <p class="eyebrow">Exchange × Country market passport</p>
+            <div class="identity-title">
+              <ExchangeLogo slug={passport.exchangeSlug} name={passport.exchange} size={58} variant="square" lazy={false} />
+              <div>
+                <h1>{passport.exchange} in {passport.country}</h1>
+                <p>{passport.countryFlag} Country-specific evidence layer</p>
+              </div>
+            </div>
+            <p class="lede">A market passport keeps global exchange identity separate from local availability, requirements, payments, products and offer eligibility.</p>
+          </div>
+
+          <aside class="state-card">
+            <p class="card-label">Current publication state</p>
+            <ReviewStatus {...passport.state} />
+            <div class="cta-disabled">
+              <strong>No affiliate CTA</strong>
+              <small>Offer activation requires a separately approved local binding.</small>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section class="passport-body">
+      <div class="shell body-grid">
+        <div class="main-column">
+          <div class="section-heading">
+            <p class="eyebrow">Structured market profile</p>
+            <h2>Every local claim has a gate</h2>
+            <p>These blocks demonstrate how the page handles pending, stale and approved states without using raw parser output during rendering.</p>
+          </div>
+
+          <div class="field-list">
+            {passport.fields.map((field, index) => (
+              <article class="field-row">
+                <div class="field-number">{String(index + 1).padStart(2, '0')}</div>
+                <div class="field-copy">
+                  <span>{field.label}</span>
+                  <strong>{field.value}</strong>
+                  <p>{field.note}</p>
+                </div>
+                <ReviewStatus label={field.value} tone={field.tone} compact={true} />
+              </article>
+            ))}
+          </div>
+
+          <article class="history-card">
+            <div>
+              <p class="eyebrow">Public change history</p>
+              <h2>Material changes become visible records</h2>
+              <p>A parser may flag an impact, but only an approved claim revision updates the market passport and publication record.</p>
+            </div>
+            <div class="history-row">
+              <span>Review fixture</span>
+              <strong>No approved material change published</strong>
+              <ReviewStatus label="Awaiting approved profile" tone="review" compact={true} />
+            </div>
+          </article>
+        </div>
+
+        <aside class="side-column">
+          <div class="source-card">
+            <p class="card-label">Required evidence classes</p>
+            <ul>
+              {passport.sources.map(source => <li>{source}</li>)}
+            </ul>
+          </div>
+
+          <div class="contract-card">
+            <p class="card-label">Entity contract</p>
+            <code>MarketProfile(exchangeId, countryId)</code>
+            <dl>
+              <div><dt>Exchange</dt><dd>{passport.exchangeSlug}</dd></div>
+              <div><dt>Country</dt><dd>KZ</dd></div>
+              <div><dt>Approval</dt><dd>Pending</dd></div>
+              <div><dt>Indexability</dt><dd>Off</dd></div>
+            </dl>
+          </div>
+
+          <div class="notice-card">
+            <strong>Design fixture only</strong>
+            <p>{portalReviewNotice}</p>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </main>
+</CleanLayout>
+
+<style>
+  :global(body.cbw-v2-passport-review) { background: #f7f8f4; }
+  .passport-page { min-height: 100vh; color: #13233e; background: #f7f8f4; }
+  .shell { width: min(1160px, calc(100% - 32px)); margin: 0 auto; }
+  .passport-hero { padding: 18px 0 62px; color: #fff; background: radial-gradient(circle at 82% 14%, rgba(247,147,26,.23), transparent 27%), linear-gradient(135deg,#0c1729,#173050); }
+  .review-nav { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; padding: 10px 13px; border: 1px solid rgba(255,255,255,.14); border-radius: 10px; color: #c7d2e1; font-size: 10px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+  .review-nav nav { display: flex; flex-wrap: wrap; gap: 12px; }
+  .review-nav a { color: #f7b75e; }
+  .crumbs { margin-top: 32px; color: #aebed2; font-size: 11px; }
+  .crumbs span { padding: 0 6px; color: #f7931a; }
+  .identity-grid { display: grid; gap: 26px; align-items: end; margin-top: 34px; }
+  .eyebrow, .card-label { margin: 0 0 10px; color: #f7931a; font-size: 10px; font-weight: 900; letter-spacing: .13em; text-transform: uppercase; }
+  .identity-title { display: flex; gap: 16px; align-items: flex-start; }
+  h1, h2 { font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: -.025em; }
+  h1 { margin: 0; font-size: clamp(44px,7vw,76px); line-height: .92; }
+  .identity-title p { margin: 8px 0 0; color: #b9c7d8; font-size: 12px; font-weight: 800; }
+  .lede { max-width: 760px; margin: 22px 0 0; color: #d2ddea; font-size: 16px; line-height: 1.7; }
+  .state-card { padding: 19px; border: 1px solid rgba(255,255,255,.15); border-radius: 16px; background: rgba(255,255,255,.08); }
+  .cta-disabled { margin-top: 14px; padding: 13px; border: 1px dashed rgba(255,255,255,.24); border-radius: 10px; color: #c5cfdb; }
+  .cta-disabled strong, .cta-disabled small { display: block; }
+  .cta-disabled small { margin-top: 4px; line-height: 1.5; }
+  .passport-body { padding: 70px 0 92px; }
+  .body-grid { display: grid; gap: 24px; }
+  .section-heading h2, .history-card h2 { margin: 0; font-size: clamp(38px,6vw,58px); line-height: .95; }
+  .section-heading > p:last-child, .history-card > div > p:last-child { max-width: 740px; color: #647080; line-height: 1.65; }
+  .field-list { overflow: hidden; margin-top: 28px; border: 1px solid #d9dfd9; border-radius: 16px; background: #fff; }
+  .field-row { display: grid; gap: 14px; align-items: center; padding: 18px; border-top: 1px solid #e5e9e4; }
+  .field-row:first-child { border-top: 0; }
+  .field-number { display: grid; width: 32px; height: 32px; place-items: center; border-radius: 9px; background: #13233e; color: #f7b75e; font-size: 10px; font-weight: 900; }
+  .field-copy > span { display: block; color: #7b8694; font-size: 9px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+  .field-copy strong { display: block; margin-top: 5px; font-size: 15px; }
+  .field-copy p { margin: 6px 0 0; color: #677382; font-size: 12px; line-height: 1.55; }
+  .history-card { margin-top: 24px; padding: 26px; border-radius: 16px; color: #fff; background: #13233e; }
+  .history-card .eyebrow { margin-top: 0; }
+  .history-card > div > p:last-child { color: #bdc9d8; }
+  .history-row { display: grid; gap: 10px; align-items: center; margin-top: 22px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.13); }
+  .history-row > span { color: #9fb0c4; font-size: 10px; font-weight: 900; text-transform: uppercase; }
+  .side-column { display: grid; align-content: start; gap: 14px; }
+  .source-card, .contract-card, .notice-card { padding: 18px; border: 1px solid #dce2dc; border-radius: 14px; background: #fff; }
+  .source-card ul { display: grid; gap: 9px; margin: 0; padding: 0; list-style: none; }
+  .source-card li { padding: 10px 11px; border-radius: 9px; background: #f4f6f3; color: #566373; font-size: 11px; font-weight: 800; }
+  .contract-card code { display: block; overflow-wrap: anywhere; padding: 11px; border-radius: 9px; background: #13233e; color: #f7b75e; font-size: 11px; }
+  .contract-card dl { display: grid; gap: 9px; margin: 15px 0 0; }
+  .contract-card dl div { display: flex; justify-content: space-between; gap: 10px; padding-top: 9px; border-top: 1px solid #e5e9e4; }
+  .contract-card dt { color: #74808e; font-size: 10px; }
+  .contract-card dd { margin: 0; font-size: 10px; font-weight: 900; }
+  .notice-card { border-color: #f0cc96; background: #fff8ec; }
+  .notice-card p { margin: 8px 0 0; color: #735d40; font-size: 12px; line-height: 1.6; }
+  @media (min-width: 720px) {
+    .field-row { grid-template-columns: auto minmax(0,1fr) auto; }
+    .history-row { grid-template-columns: 130px minmax(0,1fr) auto; }
+  }
+  @media (min-width: 960px) {
+    .identity-grid { grid-template-columns: minmax(0,1.6fr) minmax(280px,.65fr); }
+    .body-grid { grid-template-columns: minmax(0,1fr) 300px; }
+  }
+  @media (max-width: 560px) {
+    .identity-title { display: grid; }
+  }
+</style>
