@@ -92,6 +92,14 @@ const localizedFactCopy: Record<
       label: 'CryptoBonusWorld offer binding',
       summary: 'No owner-approved CBW Binance campaign URL or referral code is attached to this market profile.',
     },
+    'claim:kz:binance:freedom-bank-p2p-surface-visible': {
+      label: 'Freedom Bank P2P surface',
+      summary: 'A Kazakhstan-localized Freedom Bank P2P route is visible, but no active advertiser or executable order was confirmed.',
+    },
+    'claim:kz:binance:localized-p2p-sell-surface-visible': {
+      label: 'Localized P2P sell surface',
+      summary: 'A Kazakhstan-localized P2P sell route is visible; current KZT orders and payment-method support remain unconfirmed.',
+    },
   },
   ru: {
     'claim:kz:binance:local-entity-active': {
@@ -125,6 +133,14 @@ const localizedFactCopy: Record<
     'claim:kz:binance:cbw-offer-binding-absent': {
       label: 'Привязка предложения CryptoBonusWorld',
       summary: 'К этому профилю рынка не привязаны утверждённая владельцем ссылка кампании Binance или реферальный код CBW.',
+    },
+    'claim:kz:binance:freedom-bank-p2p-surface-visible': {
+      label: 'P2P-страница Freedom Bank',
+      summary: 'Доступен локализованный P2P-маршрут Freedom Bank, но активный рекламодатель или исполнимый ордер не подтверждены.',
+    },
+    'claim:kz:binance:localized-p2p-sell-surface-visible': {
+      label: 'Локализованная P2P-продажа',
+      summary: 'Доступен локализованный маршрут продажи P2P; текущие KZT-ордера и способы оплаты не подтверждены.',
     },
   },
 };
