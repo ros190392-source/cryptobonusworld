@@ -17,6 +17,10 @@ import {
   bybitKazakhstanReviewPass,
   bybitKazakhstanReviewResults,
 } from '../pilots/kz/bybitReview';
+import {
+  kazakhstanReadinessIssues,
+  kazakhstanReadinessPass,
+} from '../pilots/kz/readiness';
 
 const digest = `sha256:${'a'.repeat(64)}`;
 
@@ -126,6 +130,15 @@ const binanceKazakhstanFactParityResult = {
   })),
 };
 
+const kazakhstanReadinessResult = {
+  ok: kazakhstanReadinessPass,
+  issues: kazakhstanReadinessIssues.map(message => ({
+    path: 'pilot.kz.readiness',
+    code: 'READINESS_GATE_MISMATCH',
+    message,
+  })),
+};
+
 export const portalFactoryFixtureResults = [
   { name: 'Valid source packet', expected: 'PASS', result: validateSourcePacket(validSourcePacket) },
   { name: 'Valid normalized claim', expected: 'PASS', result: validateNormalizedClaim(validClaim) },
@@ -143,12 +156,18 @@ export const portalFactoryFixtureResults = [
     result: binanceKazakhstanFactParityResult,
   },
   ...bybitKazakhstanReviewResults,
+  {
+    name: 'Kazakhstan ranking readiness remains fail-closed',
+    expected: 'PASS',
+    result: kazakhstanReadinessResult,
+  },
 ] as const;
 
 export const portalFactoryFixturesPass =
   binanceKazakhstanReviewPass &&
   binanceKazakhstanFactParityPass &&
   bybitKazakhstanReviewPass &&
+  kazakhstanReadinessPass &&
   portalFactoryFixtureResults.every(item =>
     item.expected === 'PASS' ? item.result.ok : !item.result.ok,
   );
