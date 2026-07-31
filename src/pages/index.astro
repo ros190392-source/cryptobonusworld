@@ -2,6 +2,99 @@
 import CleanLayout from '../layouts/CleanLayout.astro';
 import HomepageTop10 from '../components/home/HomepageTop10.astro';
 
+const pathways = [
+  {
+    number: '01',
+    title: 'Choose a market',
+    text: 'Country controls availability, restrictions, KYC and local payment context.',
+  },
+  {
+    number: '02',
+    title: 'Compare evidence states',
+    text: 'Verified offers, research records and profiles under review remain visibly separate.',
+  },
+  {
+    number: '03',
+    title: 'Check the terms',
+    text: 'Open the exchange profile and confirm current regional terms before registering or depositing.',
+  },
+];
+
+const countryCards = [
+  {
+    flag: '🇰🇿',
+    name: 'Kazakhstan',
+    note: 'Three validated review profiles and a governed evidence matrix.',
+    status: 'Pilot · review only',
+    tone: 'pilot',
+  },
+  {
+    flag: '🇵🇱',
+    name: 'Poland',
+    note: 'European regulatory and country evidence is being normalized.',
+    status: 'Profiles in progress',
+    tone: 'progress',
+  },
+  {
+    flag: '🇩🇪',
+    name: 'Germany',
+    note: 'Existing GEO evidence is queued for the new profile contracts.',
+    status: 'Under review',
+    tone: 'review',
+  },
+  {
+    flag: '🇧🇷',
+    name: 'Brazil',
+    note: 'Planned market expansion after the first country factory pilot.',
+    status: 'Source mapping planned',
+    tone: 'planned',
+  },
+];
+
+const trustItems = [
+  {
+    number: '01',
+    title: 'Official-source-first',
+    text: 'Regulators and exchange-owned sources lead evidence collection.',
+  },
+  {
+    number: '02',
+    title: 'Country-specific truth',
+    text: 'Global exchange facts never silently override local restrictions.',
+  },
+  {
+    number: '03',
+    title: 'Freshness and limitations',
+    text: 'Checked dates, gaps and conflicts remain visible instead of being smoothed over.',
+  },
+  {
+    number: '04',
+    title: 'Affiliate separation',
+    text: 'Commercial status cannot create a ranking row or improve its position.',
+  },
+];
+
+const updates = [
+  {
+    date: 'July 2026',
+    label: 'Research record',
+    title: 'Binance Kazakhstan evidence lifecycle completed',
+    detail: 'Local entity, licence, KYC and public P2P surfaces mapped with explicit limitations.',
+  },
+  {
+    date: 'July 2026',
+    label: 'Product update',
+    title: 'One governed Homepage Top-10 published',
+    detail: 'Verified offers and neutral research rows now share one clearly labeled comparison surface.',
+  },
+  {
+    date: 'In progress',
+    label: 'Platform work',
+    title: 'Country and language foundations',
+    detail: 'Country facts and translated presentation are being built as separate controlled layers.',
+  },
+];
+
 const guideBlocks = [
   {
     h3: 'What is a crypto referral code?',
@@ -48,11 +141,11 @@ const faqs = [
   },
   {
     q: 'Are these affiliate links?',
-    a: 'Yes. Links marked "Check offer" are affiliate referral links. If you register through one, CryptoBonusWorld may earn a commission from the exchange. This does not cost you anything extra and does not change your bonus. See our affiliate disclosure for details.',
+    a: 'Yes. Links marked “Check offer” are affiliate referral links. If you register through one, CryptoBonusWorld may earn a commission from the exchange. This does not cost you anything extra and does not change your bonus. See our affiliate disclosure for details.',
   },
   {
     q: 'Which exchange bonus is best?',
-    a: 'There is no single "best" bonus for everyone — it depends on your priorities, region, eligibility, and how much activity each reward requires. Compare the verification badge and current details on each exchange page before deciding.',
+    a: 'There is no single “best” bonus for everyone — it depends on your priorities, region, eligibility, and how much activity each reward requires. Compare the verification badge and current details on each exchange page before deciding.',
   },
   {
     q: 'How often are codes checked?',
@@ -76,150 +169,265 @@ const faqSchema = {
 ---
 
 <CleanLayout
-  title="Top 10 Crypto Exchanges & Referral Codes 2026 | CryptoBonusWorld"
-  description="Compare 10 crypto exchanges by current offer-verification and research status. Six live referral-code pages plus Binance, Gate.io, HTX, and Phemex profiles under review. Country eligibility and terms may vary."
+  title="Compare Crypto Exchanges by Offer & Evidence | CryptoBonusWorld"
+  description="Compare 10 crypto exchanges in one governed view. See verified offers, research status, country context, limitations, and current evidence before choosing an exchange."
   ogImage="/og-default.png"
+  bodyClass="cbw-homepage-v2-public"
 >
-
-  <!-- 1. Compact homepage intro -->
-  <section class="hp-intro">
-    <div class="hp-text-wrap">
-      <div class="hp-intro-label">Verified offers · research status visible</div>
-      <h1 class="hp-intro-h1">Crypto Exchange Bonuses, Codes &amp; Evidence</h1>
-      <p class="hp-intro-sub">
-        Compare ten exchanges in one ranked view. Verified offers stay separate from public previews,
-        country research, and profiles that are still being re-checked.
-      </p>
-      <p class="hp-intro-caveat">
-        Bonus availability, KYC, region, deposit, and trading requirements may vary by exchange and account.
-      </p>
-    </div>
-  </section>
-
-  <!-- 2. Trust strip -->
-  <div class="trust-bar">
-    <div class="hp-text-wrap">
-      <div class="trust-bar-inner">
-        <span class="tb-item">✓ Offer badges follow the clean verification record</span>
-        <span class="tb-sep" aria-hidden="true">·</span>
-        <span class="tb-item">ⓘ Research-only profiles never receive an affiliate CTA</span>
-        <span class="tb-sep" aria-hidden="true">·</span>
-        <span class="tb-item">Affiliate links — <a href="/affiliate-disclosure/" class="tb-link">we may earn a commission</a></span>
-      </div>
-    </div>
-  </div>
-
-  <!-- 3. Single governed homepage Top-10 -->
-  <HomepageTop10 />
-
-  <!-- 4. Guide -->
-  <section class="section bg-gray" id="guide">
-    <div class="hp-text-wrap">
-      <div class="section-label">Guide</div>
-      <h2 class="section-title">Crypto Exchange Bonuses Guide</h2>
-      <div class="guide-list">
-        {guideBlocks.map(block => (
-          <div class="guide-block">
-            <h3 class="guide-h3">{block.h3}</h3>
-            <p class="guide-p">{block.p}</p>
+  <main class="homepage-v2">
+    <section class="hero">
+      <div class="shell">
+        <div class="hero-grid">
+          <div class="hero-copy">
+            <p class="eyebrow">Checked by country · backed by evidence</p>
+            <h1>Find the right crypto exchange for your market.</h1>
+            <p class="hero-lede">
+              Compare exchange offers and research status without mixing global claims with country-specific facts.
+              Verified, limited and under-review states stay clearly separated.
+            </p>
+            <div class="hero-actions">
+              <a class="button button-primary" href="#exchanges">Explore the Top 10</a>
+              <a class="button button-ghost" href="#markets">Explore markets</a>
+            </div>
+            <div class="hero-proof" aria-label="Homepage evidence summary">
+              <span><strong>10</strong> governed rows</span>
+              <span><strong>1</strong> canonical ranking</span>
+              <span><strong>0</strong> unsupported CTAs</span>
+            </div>
           </div>
+
+          <aside class="market-control" aria-label="Market and language context">
+            <p class="control-label">Your context</p>
+            <div class="control-value">
+              <span class="control-icon">🌍</span>
+              <div><strong>Global comparison</strong><small>Country pages are being added through evidence review</small></div>
+            </div>
+            <div class="control-divider"></div>
+            <div class="context-row"><span>Country</span><strong>Global</strong></div>
+            <div class="context-row"><span>Language</span><strong>English</strong></div>
+            <p class="control-note">Country controls market facts. Language controls presentation. They are reviewed separately.</p>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section class="path-section" aria-label="How CryptoBonusWorld works">
+      <div class="shell path-grid">
+        {pathways.map(path => (
+          <article class="path-card">
+            <span>{path.number}</span>
+            <h2>{path.title}</h2>
+            <p>{path.text}</p>
+          </article>
         ))}
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- 5. FAQ -->
-  <section class="section bg-white" id="faq">
-    <div class="hp-text-wrap">
-      <div class="section-label">Common Questions</div>
-      <h2 class="section-title">Frequently Asked Questions</h2>
-      <div class="faq-list">
-        {faqs.map(item => (
-          <details class="faq-item">
-            <summary class="faq-q">{item.q}</summary>
-            <p class="faq-a">{item.a}</p>
-          </details>
-        ))}
+    <HomepageTop10 />
+
+    <section class="markets" id="markets">
+      <div class="shell">
+        <header class="section-heading">
+          <div>
+            <p class="eyebrow">Country-first discovery</p>
+            <h2>Explore markets, not duplicate rankings.</h2>
+            <p>Country cards show research readiness only. They do not create a second exchange table on the homepage.</p>
+          </div>
+          <span class="section-state">Country pages in controlled preview</span>
+        </header>
+
+        <div class="country-grid">
+          {countryCards.map(country => (
+            <article class="country-card">
+              <div class="country-top"><span class="country-flag">{country.flag}</span><span class={`country-tone tone-${country.tone}`}></span></div>
+              <h3>{country.name}</h3>
+              <p>{country.note}</p>
+              <strong>{country.status}</strong>
+            </article>
+          ))}
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- 6. Disclaimer -->
-  <div class="disclaimer-bar">
-    <div class="hp-text-wrap">
-      <p class="disclaimer-text">
-        <strong>Disclosure:</strong> CryptoBonusWorld may earn a commission when you register via links on this site.
-        This does not affect our editorial assessments or the codes we list.
-        Bonus amounts shown are advertised maximums — individual results vary and depend on meeting all exchange requirements.
-        Bonus availability and terms can change at any time; verify current conditions on the official exchange website before registering or depositing.
-        Cryptocurrency trading carries significant risk. Nothing on this site constitutes financial or investment advice.
-      </p>
-    </div>
-  </div>
+    <section class="trust">
+      <div class="shell trust-grid">
+        <div class="trust-copy">
+          <p class="eyebrow">Why trust CryptoBonusWorld</p>
+          <h2>Evidence is a product feature, not a footnote.</h2>
+          <p>We show what was checked, what remains uncertain, and when a profile needs review. Missing evidence produces a visible limitation — not an invented answer.</p>
+          <a class="button button-light" href="#guide">Read the bonus guide</a>
+        </div>
+        <div class="trust-list">
+          {trustItems.map(item => (
+            <article><span>{item.number}</span><div><strong>{item.title}</strong><p>{item.text}</p></div></article>
+          ))}
+        </div>
+      </div>
+    </section>
 
-  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+    <section class="updates">
+      <div class="shell">
+        <header class="section-heading">
+          <div><p class="eyebrow">Research and product changes</p><h2>Latest governed updates</h2></div>
+        </header>
+        <div class="updates-list">
+          {updates.map(update => (
+            <article class="update-row">
+              <span class="update-date">{update.date}</span>
+              <div><strong>{update.title}</strong><p>{update.detail}</p></div>
+              <span class="update-label">{update.label}</span>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
 
+    <section class="guide" id="guide">
+      <div class="prose-shell">
+        <p class="eyebrow">Guide</p>
+        <h2>Crypto exchange bonuses guide</h2>
+        <div class="guide-list">
+          {guideBlocks.map(block => (
+            <article><h3>{block.h3}</h3><p>{block.p}</p></article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="faq" id="faq">
+      <div class="prose-shell">
+        <p class="eyebrow">Common questions</p>
+        <h2>Frequently asked questions</h2>
+        <div class="faq-list">
+          {faqs.map(item => (
+            <details><summary>{item.q}</summary><p>{item.a}</p></details>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="disclosure">
+      <div class="prose-shell">
+        <p>
+          <strong>Disclosure:</strong> CryptoBonusWorld may earn a commission when you register through approved links on this site.
+          This does not affect editorial status or ranking position. Advertised bonus amounts are maximums and depend on eligibility,
+          KYC, deposits, trading activity, deadlines, and local terms. Verify current conditions on the official exchange website before
+          registering or depositing. Cryptocurrency trading carries significant risk and nothing here is financial advice.
+          Read our <a href="/affiliate-disclosure/">affiliate disclosure</a>.
+        </p>
+      </div>
+    </section>
+
+    <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+  </main>
 </CleanLayout>
 
 <style>
-  .hp-text-wrap { max-width: var(--cbw-prose-max, 800px); margin: 0 auto; padding: 0 20px; box-sizing: border-box; }
-  @media (min-width: 820px) { .hp-text-wrap { padding: 0 32px; } }
+  :global(body.cbw-homepage-v2-public) { background: #f7f8f4; }
+  .homepage-v2 { color: #13233e; background: #f7f8f4; }
+  .shell { width: min(1160px, calc(100% - 32px)); margin: 0 auto; }
+  .prose-shell { width: min(800px, calc(100% - 40px)); margin: 0 auto; }
+  .eyebrow { margin: 0 0 10px; color: #f7931a; font-size: 10px; font-weight: 900; letter-spacing: .13em; text-transform: uppercase; }
+  h1, h2 { font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: -.025em; }
 
-  .bg-white { background: #fff; }
-  .bg-gray  { background: #F7F8F4; }
+  .hero { overflow: hidden; padding: 68px 0 86px; color: #fff; background: radial-gradient(circle at 76% 12%, rgba(247,147,26,.25), transparent 31%), linear-gradient(135deg,#0c1729,#13233e 65%,#1c355b); }
+  .hero-grid { display: grid; gap: 34px; }
+  h1 { max-width: 780px; margin: 0; font-size: clamp(48px,8vw,86px); line-height: .92; }
+  .hero-lede { max-width: 680px; margin: 23px 0 0; color: #d6e0ec; font-size: 17px; line-height: 1.7; }
+  .hero-actions { display: flex; flex-wrap: wrap; gap: 11px; margin-top: 29px; }
+  .button { display: inline-flex; min-height: 46px; align-items: center; justify-content: center; border: 1px solid transparent; border-radius: 10px; padding: 0 19px; font-size: 13px; font-weight: 900; text-decoration: none; }
+  .button-primary { background: #f7931a; color: #13233e; }
+  .button-ghost { border-color: rgba(255,255,255,.45); color: #fff; }
+  .button-light { margin-top: 23px; background: #fff; color: #13233e; }
+  .hero-proof { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; margin-top: 33px; }
+  .hero-proof span { display: flex; flex-direction: column; gap: 2px; padding: 11px; border-left: 2px solid #f7931a; color: #bac7d8; font-size: 9px; text-transform: uppercase; }
+  .hero-proof strong { color: #fff; font-size: 20px; }
+  .market-control { align-self: end; padding: 22px; border-radius: 18px; background: #fff; color: #13233e; box-shadow: 0 28px 60px rgba(0,0,0,.25); }
+  .control-label { margin: 0; color: #75808d; font-size: 9px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+  .control-value { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: center; margin-top: 13px; }
+  .control-icon { font-size: 34px; }
+  .control-value strong, .control-value small { display: block; }
+  .control-value small { margin-top: 3px; color: #748092; line-height: 1.45; }
+  .control-divider { height: 1px; margin: 18px 0; background: #e1e6e1; }
+  .context-row { display: flex; justify-content: space-between; gap: 14px; padding: 10px 0; border-top: 1px solid #eef1ed; }
+  .context-row:first-of-type { border-top: 0; }
+  .context-row span { color: #73808c; font-size: 11px; }
+  .context-row strong { font-size: 11px; }
+  .control-note { margin: 15px 0 0; color: #6e7986; font-size: 10px; line-height: 1.55; }
 
-  /* ── 1. Compact intro ────────────────────────────────────────── */
-  .hp-intro { background: #fff; padding: 40px 0 28px; text-align: center; }
-  @media (min-width: 820px) { .hp-intro { padding: 56px 0 36px; } }
-  .hp-intro-label {
-    display: inline-block; font-size: 11px; font-weight: 700;
-    text-transform: uppercase; letter-spacing: .1em; color: #F7931A;
-    background: rgba(247,147,26,.08); border: 1px solid rgba(247,147,26,.22);
-    padding: 4px 12px; border-radius: 20px; margin-bottom: 14px;
+  .path-section { position: relative; z-index: 1; margin-top: -28px; }
+  .path-grid { display: grid; gap: 12px; }
+  .path-card { padding: 20px; border: 1px solid #dce2da; border-radius: 15px; background: #fff; box-shadow: 0 14px 30px rgba(19,35,62,.08); }
+  .path-card > span { color: #f7931a; font-size: 10px; font-weight: 900; }
+  .path-card h2 { margin: 10px 0 5px; font-size: 24px; }
+  .path-card p { margin: 0; color: #647080; font-size: 12px; line-height: 1.6; }
+
+  .markets, .updates, .guide, .faq { padding: 78px 0; }
+  .markets, .guide { background: #eef2ec; }
+  .updates, .faq { background: #fff; }
+  .section-heading { display: grid; gap: 16px; align-items: end; margin-bottom: 28px; }
+  .section-heading h2, .guide h2, .faq h2 { margin: 0; font-size: clamp(38px,6vw,58px); line-height: .96; }
+  .section-heading p:last-child { max-width: 720px; margin: 10px 0 0; color: #647080; line-height: 1.6; }
+  .section-state { align-self: start; padding: 8px 10px; border-radius: 999px; background: #13233e; color: #fff; font-size: 9px; font-weight: 900; text-transform: uppercase; }
+  .country-grid { display: grid; gap: 12px; }
+  .country-card { padding: 19px; border: 1px solid #d9dfd9; border-radius: 15px; background: #fff; }
+  .country-top { display: flex; justify-content: space-between; align-items: center; }
+  .country-flag { font-size: 30px; }
+  .country-tone { width: 10px; height: 10px; border-radius: 999px; background: #9ca3af; }
+  .tone-pilot { background: #16834b; }
+  .tone-progress { background: #f7931a; }
+  .tone-review { background: #3b82f6; }
+  .country-card h3 { margin: 16px 0 7px; font-size: 20px; }
+  .country-card p { min-height: 42px; margin: 0; color: #667280; font-size: 12px; line-height: 1.55; }
+  .country-card strong { display: block; margin-top: 15px; color: #925204; font-size: 9px; text-transform: uppercase; }
+
+  .trust { padding: 82px 0; color: #fff; background: #13233e; }
+  .trust-grid { display: grid; gap: 32px; }
+  .trust-copy h2 { max-width: 600px; margin: 0; font-size: clamp(40px,6vw,62px); line-height: .95; }
+  .trust-copy > p:last-of-type { max-width: 620px; color: #bdc9d8; line-height: 1.65; }
+  .trust-list { display: grid; gap: 10px; }
+  .trust-list article { display: grid; grid-template-columns: auto 1fr; gap: 12px; padding: 16px; border: 1px solid rgba(255,255,255,.12); border-radius: 12px; background: rgba(255,255,255,.05); }
+  .trust-list article > span { color: #f7931a; font-size: 10px; font-weight: 900; }
+  .trust-list strong { display: block; }
+  .trust-list p { margin: 5px 0 0; color: #bdc9d8; font-size: 11px; line-height: 1.55; }
+
+  .updates-list { overflow: hidden; border: 1px solid #dce2dc; border-radius: 15px; }
+  .update-row { display: grid; gap: 10px; padding: 18px; border-top: 1px solid #e4e8e3; }
+  .update-row:first-child { border-top: 0; }
+  .update-date { color: #74808c; font-size: 9px; font-weight: 900; text-transform: uppercase; }
+  .update-row strong { display: block; }
+  .update-row p { margin: 5px 0 0; color: #667280; font-size: 11px; line-height: 1.55; }
+  .update-label { align-self: start; justify-self: start; padding: 6px 8px; border-radius: 999px; background: #fff0dc; color: #8a4d00; font-size: 8px; font-weight: 900; text-transform: uppercase; }
+
+  .guide-list { display: grid; gap: 22px; margin-top: 28px; }
+  .guide-list article { padding-top: 20px; border-top: 1px solid #d8ded8; }
+  .guide-list h3 { margin: 0; font-size: 17px; }
+  .guide-list p { margin: 8px 0 0; color: #4b5563; font-size: 14px; line-height: 1.75; }
+  .faq-list { display: grid; gap: 8px; margin-top: 28px; }
+  .faq details { overflow: hidden; border: 1px solid #e5e7eb; border-radius: 10px; background: #fff; }
+  .faq summary { display: flex; justify-content: space-between; gap: 15px; padding: 16px 19px; color: #111827; font-size: 14px; font-weight: 700; cursor: pointer; list-style: none; }
+  .faq summary::-webkit-details-marker { display: none; }
+  .faq summary::after { content: '+'; color: #9ca3af; font-size: 18px; }
+  .faq details[open] summary::after { content: '−'; }
+  .faq details p { margin: 0; padding: 0 19px 16px; color: #4b5563; font-size: 13px; line-height: 1.7; }
+  .disclosure { padding: 22px 0; border-top: 1px solid #e5e7eb; background: #f9fafb; }
+  .disclosure p { margin: 0; color: #6b7280; font-size: 11px; line-height: 1.7; }
+  .disclosure strong { color: #374151; }
+  .disclosure a { color: #166534; font-weight: 800; }
+
+  @media (min-width: 720px) {
+    .path-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
+    .section-heading { grid-template-columns: minmax(0,1fr) auto; }
+    .country-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .update-row { grid-template-columns: 110px minmax(0,1fr) auto; align-items: center; }
   }
-  .hp-intro-h1 {
-    font-size: clamp(26px, 4.2vw, 38px); font-weight: 800; line-height: 1.15;
-    letter-spacing: -.02em; color: #111827; margin-bottom: 12px;
+  @media (min-width: 920px) {
+    .hero-grid { grid-template-columns: minmax(0,1.5fr) minmax(300px,.65fr); align-items: end; }
+    .country-grid { grid-template-columns: repeat(4,minmax(0,1fr)); }
+    .trust-grid { grid-template-columns: 1.05fr .95fr; align-items: center; }
   }
-  .hp-intro-sub { font-size: 15px; line-height: 1.65; color: #4B5563; margin-bottom: 8px; }
-  .hp-intro-caveat { font-size: 13px; line-height: 1.6; color: #9CA3AF; }
-
-  /* ── 2. Trust strip ──────────────────────────────────────────── */
-  .trust-bar { background: #F0FDF4; border-top: 1px solid #D1FAE5; border-bottom: 1px solid #D1FAE5; padding: 10px 0; }
-  .trust-bar-inner {
-    display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap;
-    font-size: 12px; color: #374151; text-align: center;
+  @media (max-width: 480px) {
+    .hero-proof { grid-template-columns: 1fr; }
+    .hero-proof span { flex-direction: row; align-items: baseline; gap: 7px; }
   }
-  .tb-item { display: flex; align-items: center; gap: 4px; }
-  .tb-sep { color: #9CA3AF; }
-  .tb-link { color: #15803D; font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
-  .tb-link:hover { color: #166534; }
-
-  /* ── 4. Guide ─────────────────────────────────────────────────── */
-  .guide-list { display: flex; flex-direction: column; gap: 26px; margin-top: 8px; }
-  .guide-h3 { font-size: 17px; font-weight: 700; color: #111827; margin-bottom: 8px; letter-spacing: -.01em; }
-  .guide-p  { font-size: 14.5px; line-height: 1.75; color: #4B5563; }
-
-  /* ── 5. FAQ ───────────────────────────────────────────────────── */
-  .faq-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
-  .faq-item { background: #fff; border: 1px solid #E5E7EB; border-radius: 10px; overflow: hidden; }
-  .faq-q {
-    padding: 16px 20px; font-size: 15px; font-weight: 600; color: #111827;
-    cursor: pointer; list-style: none;
-    display: flex; align-items: center; justify-content: space-between; user-select: none;
-  }
-  .faq-q::-webkit-details-marker { display: none; }
-  .faq-q::after { content: '+'; font-size: 18px; color: #9CA3AF; }
-  details[open] .faq-q::after { content: '−'; }
-  .faq-a { padding: 0 20px 16px; font-size: 14px; color: #4B5563; line-height: 1.7; }
-
-  /* ── 6. Disclaimer ────────────────────────────────────────────── */
-  .disclaimer-bar {
-    background: #F9FAFB; border-top: 1px solid #E5E7EB; border-bottom: 1px solid #E5E7EB;
-    padding: 20px 0;
-  }
-  .disclaimer-text { font-size: 12px; color: #6B7280; line-height: 1.7; }
-  .disclaimer-text strong { color: #374151; }
-
-  #guide .section-sub, #faq .section-sub { max-width: none; }
 </style>
