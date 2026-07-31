@@ -1,5 +1,6 @@
 import { binanceKazakhstanMarketProfile } from './binanceReview';
 import { bybitKazakhstanMarketProfile } from './bybitReview';
+import { okxKazakhstanMarketProfile } from './okxReview';
 
 export type EvidenceGapStatus = 'required' | 'blocked' | 'mapped';
 export type EvidenceGapSeverity = 'P0' | 'P1' | 'P2';
@@ -84,15 +85,15 @@ export const kazakhstanEvidenceGaps: KazakhstanEvidenceGap[] = [
     publicationImpact: 'Blocks local offer CTA and bonus claim.',
   },
   {
-    gapId: 'gap:kz:okx:source-truth-lifecycle',
+    gapId: 'gap:kz:okx:retained-authorization-conflict',
     exchangeId: 'okx',
-    topic: 'Source-truth resolution',
+    topic: 'Platform reachability versus local authorization',
     status: 'blocked',
     severity: 'P0',
-    currentState: 'Existing OKX Kazakhstan research is CONFLICTING with MEDIUM confidence and import readiness BLOCKED.',
-    requiredEvidence: 'Completed source-truth review, correction if required and independent validation.',
-    nextAction: 'Do not create a validated OKX market profile from the current conflicting package.',
-    publicationImpact: 'Blocks the third required market profile and all ranking readiness.',
+    currentState: 'The independently validated corrected package retains CONFLICTING / MEDIUM: platform and KZT P2P surfaces are visible while AFSA names OKX among unlicensed platforms and regulated P2P requires a licensed DATF.',
+    requiredEvidence: 'A later dated official change that resolves local authorization, or an owner methodology decision that keeps OKX excluded/under review.',
+    nextAction: 'Keep the validated OKX profile availability unknown, offer under review and ranking eligibility false.',
+    publicationImpact: 'Does not block profile completeness, but blocks OKX ranking inclusion, recommendation and affiliate CTA.',
   },
   {
     gapId: 'gap:kz:country:ranking-methodology',
@@ -101,8 +102,8 @@ export const kazakhstanEvidenceGaps: KazakhstanEvidenceGap[] = [
     status: 'required',
     severity: 'P0',
     currentState: 'No Kazakhstan-specific methodology version is frozen for Portal Factory rankings.',
-    requiredEvidence: 'Approved methodology defining eligibility, exclusions, scoring/rationale and freshness thresholds.',
-    nextAction: 'Prepare methodology proposal only after at least three reviewable profiles exist.',
+    requiredEvidence: 'Approved methodology defining eligibility, conflict exclusions, scoring/rationale and freshness thresholds.',
+    nextAction: 'Prepare a methodology proposal now that three validated review profiles exist.',
     publicationImpact: 'Blocks any numbered Top-3 or Top-10 snapshot.',
   },
   {
@@ -112,7 +113,7 @@ export const kazakhstanEvidenceGaps: KazakhstanEvidenceGap[] = [
     status: 'blocked',
     severity: 'P0',
     currentState: 'No non-empty Kazakhstan RankingSnapshot has owner approval.',
-    requiredEvidence: 'Owner-approved snapshot referencing validated market profiles and rationale claims.',
+    requiredEvidence: 'Owner-approved snapshot referencing validated, methodology-eligible market profiles and rationale claims.',
     nextAction: 'Keep country ranking route in noindex fail-closed state.',
     publicationImpact: 'Blocks ranking rows, indexability and production publication.',
   },
@@ -121,10 +122,11 @@ export const kazakhstanEvidenceGaps: KazakhstanEvidenceGap[] = [
 export interface KazakhstanRankingReadiness {
   requiredProfileCount: number;
   validatedProfileIds: string[];
-  blockedCandidateIds: string[];
+  conflictBlockedProfileIds: string[];
   profileCountGate: boolean;
   profileValidationGate: boolean;
   evidenceFreshnessGate: boolean;
+  conflictResolutionGate: boolean;
   methodologyFrozenGate: boolean;
   affiliateIndependenceGate: boolean;
   ownerApprovalGate: boolean;
@@ -135,6 +137,7 @@ export interface KazakhstanRankingReadiness {
 const validatedProfiles = [
   binanceKazakhstanMarketProfile,
   bybitKazakhstanMarketProfile,
+  okxKazakhstanMarketProfile,
 ];
 
 const asOf = Date.parse('2026-07-31T12:25:00Z');
@@ -147,10 +150,11 @@ export const kazakhstanRankingReadiness: KazakhstanRankingReadiness = {
   validatedProfileIds: validatedProfiles
     .filter(profile => profile.approval === 'validated')
     .map(profile => profile.profileId),
-  blockedCandidateIds: ['market-profile:okx:kz'],
+  conflictBlockedProfileIds: [okxKazakhstanMarketProfile.profileId],
   profileCountGate: validatedProfiles.length >= 3,
   profileValidationGate: validatedProfiles.every(profile => profile.approval === 'validated'),
   evidenceFreshnessGate,
+  conflictResolutionGate: false,
   methodologyFrozenGate: false,
   affiliateIndependenceGate: true,
   ownerApprovalGate: false,
@@ -164,10 +168,19 @@ if (new Set(kazakhstanEvidenceGaps.map(gap => gap.gapId)).size !== kazakhstanEvi
   kazakhstanReadinessIssues.push('Duplicate Kazakhstan evidence gap IDs detected.');
 }
 
+if (kazakhstanRankingReadiness.validatedProfileIds.length !== 3) {
+  kazakhstanReadinessIssues.push('Exactly three validated Kazakhstan review profiles are expected at this stage.');
+}
+
+if (!kazakhstanRankingReadiness.conflictBlockedProfileIds.includes('market-profile:okx:kz')) {
+  kazakhstanReadinessIssues.push('The retained OKX authorization conflict must block ranking eligibility.');
+}
+
 const requiredReadyGates = [
   kazakhstanRankingReadiness.profileCountGate,
   kazakhstanRankingReadiness.profileValidationGate,
   kazakhstanRankingReadiness.evidenceFreshnessGate,
+  kazakhstanRankingReadiness.conflictResolutionGate,
   kazakhstanRankingReadiness.methodologyFrozenGate,
   kazakhstanRankingReadiness.affiliateIndependenceGate,
   kazakhstanRankingReadiness.ownerApprovalGate,
@@ -179,7 +192,7 @@ if (kazakhstanRankingReadiness.ready !== requiredReadyGates.every(Boolean)) {
 }
 
 if (kazakhstanRankingReadiness.ready) {
-  kazakhstanReadinessIssues.push('Kazakhstan ranking must remain blocked until methodology, owner and publication gates pass.');
+  kazakhstanReadinessIssues.push('Kazakhstan ranking must remain blocked until conflict, methodology, owner and publication gates pass.');
 }
 
 export const kazakhstanReadinessPass = kazakhstanReadinessIssues.length === 0;
