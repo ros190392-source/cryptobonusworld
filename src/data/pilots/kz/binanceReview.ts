@@ -16,6 +16,10 @@ const sourceVerificationDigest =
 const sourceWarning =
   'Corrected research package contains verified source metadata, but no standalone raw HTML capture digest was supplied for this source record.';
 
+const evidenceMapRef = 'src/data/pilots/kz/evidence/2026-07-31-source-map.json';
+const evidenceMapDigest =
+  'sha256:a0435ee2c1675b320d176eb94c4ce9875b9fe3454520f37dfcc5e5fcfa8b2265';
+
 function sourcePacket(
   packetId: string,
   sourceId: string,
@@ -105,6 +109,39 @@ export const binanceKazakhstanSourcePackets: SourcePacket[] = [
     'CryptoBonusWorld repository control plane',
     ['offer-boundary', 'owner-input'],
   ),
+  {
+    packetId: 'src:kz:binance:p2p-freedom-surface:2026-07-31',
+    sourceUrl: 'https://c2c.binance.com/en-KZ/trade/freedombank/id',
+    sourceClass: 'exchange_official',
+    publisher: 'Binance Kazakhstan',
+    accessedAt: '2026-07-31T15:50:00Z',
+    countryCode: 'KZ',
+    exchangeId: 'binance',
+    topics: ['p2p', 'payment-method-surface', 'technical-reachability'],
+    rawCaptureRef: `${evidenceMapRef}#src-binance-kz-p2p-buy-freedom-surface-20260731`,
+    rawCaptureDigest: evidenceMapDigest,
+    parserVersion: 'cbw-source-map/0.1.0',
+    extractionWarnings: [
+      'Route existence and table structure do not prove a currently active advertiser, executable order, both directions or resident eligibility.',
+    ],
+  },
+  {
+    packetId: 'src:kz:binance:p2p-sell-surface:2026-07-31',
+    sourceUrl: 'https://p2p.binance.com/en-KZ/trade/SELL/link',
+    sourceClass: 'exchange_official',
+    publisher: 'Binance Kazakhstan',
+    accessedAt: '2026-07-31T15:50:00Z',
+    countryCode: 'KZ',
+    exchangeId: 'binance',
+    topics: ['p2p', 'sell-surface', 'technical-reachability'],
+    rawCaptureRef: `${evidenceMapRef}#src-binance-kz-p2p-sell-surface-20260731`,
+    rawCaptureDigest: evidenceMapDigest,
+    parserVersion: 'cbw-source-map/0.1.0',
+    extractionWarnings: [
+      'The public route does not establish a currently active KZT order or a specific currently supported payment method.',
+      'No login, account, order, transaction, proxy or KYC test was performed.',
+    ],
+  },
 ];
 
 const packetIds = Object.fromEntries(
@@ -238,6 +275,42 @@ export const binanceKazakhstanClaims: NormalizedClaim[] = [
     limitations: ['Public Binance offer visibility cannot substitute for an owner-approved CBW campaign binding.'],
     approval: 'validated',
   },
+  {
+    claimId: 'claim:kz:binance:freedom-bank-p2p-surface-visible',
+    subjectId: 'market-profile:binance:kz',
+    predicate: 'freedom-bank-p2p-payment-method-route-visible',
+    value: true,
+    countryCode: 'KZ',
+    exchangeId: 'binance',
+    effectiveAt: '2026-07-31T15:50:00Z',
+    expiresAt: '2026-08-07T15:50:00Z',
+    supportingPacketIds: [packetIds['src:kz:binance:p2p-freedom-surface:2026-07-31']],
+    contradictingPacketIds: [],
+    confidence: 'medium',
+    limitations: [
+      'The route and advertiser-table structure do not prove an active advertiser or executable order.',
+      'Current payment availability, both trade directions and resident eligibility remain unconfirmed.',
+    ],
+    approval: 'validated',
+  },
+  {
+    claimId: 'claim:kz:binance:localized-p2p-sell-surface-visible',
+    subjectId: 'market-profile:binance:kz',
+    predicate: 'kazakhstan-localized-p2p-sell-route-visible',
+    value: true,
+    countryCode: 'KZ',
+    exchangeId: 'binance',
+    effectiveAt: '2026-07-31T15:50:00Z',
+    expiresAt: '2026-08-07T15:50:00Z',
+    supportingPacketIds: [packetIds['src:kz:binance:p2p-sell-surface:2026-07-31']],
+    contradictingPacketIds: [],
+    confidence: 'medium',
+    limitations: [
+      'The route does not prove a currently active KZT order or a specific supported payment method.',
+      'No login, account, order, transaction, proxy or KYC test was performed.',
+    ],
+    approval: 'validated',
+  },
 ];
 
 export const binanceKazakhstanMarketProfile: MarketProfile = {
@@ -249,12 +322,13 @@ export const binanceKazakhstanMarketProfile: MarketProfile = {
   claimIds: binanceKazakhstanClaims.map(claim => claim.claimId),
   limitations: [
     'Review-only profile; no public country route, ranking or affiliate activation is authorized.',
-    'No account creation, KYC approval, deposit, withdrawal or product-entitlement testing was performed.',
-    'KZT fiat rails, named P2P methods and dynamic referral terms remain outside this validated core until current operational evidence is mapped.',
-    'Public reachability and licence scope do not imply universal resident eligibility.',
+    'No account creation, KYC approval, deposit, withdrawal, P2P order or product-entitlement testing was performed.',
+    'Current direct KZT fiat-rail operation and active P2P advertisers remain unconfirmed.',
+    'Public route visibility does not prove active orders, universal resident eligibility or current payment-method support.',
+    'Dynamic referral terms remain outside the validated core.',
   ],
-  lastCheckedAt: '2026-07-29T00:00:00Z',
-  nextReviewAt: '2026-08-05T00:00:00Z',
+  lastCheckedAt: '2026-07-31T15:50:00Z',
+  nextReviewAt: '2026-08-07T15:50:00Z',
   approval: 'validated',
 };
 
