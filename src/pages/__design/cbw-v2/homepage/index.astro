@@ -1,0 +1,325 @@
+---
+import CleanLayout from '../../../../layouts/CleanLayout.astro';
+import ExchangeLogo from '../../../../components/ExchangeLogo.astro';
+import { homepageTop10 } from '../../../../data/homepageTop10';
+
+const countryCards = [
+  { flag: '🇰🇿', name: 'Kazakhstan', note: 'Deep research inventory available', status: 'Pilot candidate', href: '/countries/' },
+  { flag: '🇵🇱', name: 'Poland', note: 'Priority European market', status: 'Profiles in progress', href: '/countries/' },
+  { flag: '🇩🇪', name: 'Germany', note: 'Existing GEO evidence layer', status: 'Under review', href: '/countries/' },
+  { flag: '🇧🇷', name: 'Brazil', note: 'Planned market expansion', status: 'Source mapping needed', href: '/countries/' },
+];
+
+const pathways = [
+  { number: '01', title: 'Choose a country', text: 'Start with the market that controls availability, restrictions, KYC and local payment context.' },
+  { number: '02', title: 'Compare approved rows', text: 'Rankings appear only from approved snapshots with visible evidence and review state.' },
+  { number: '03', title: 'Open the market passport', text: 'See the exchange × country facts, limitations, freshness and alternatives before following an offer.' },
+];
+
+const updates = [
+  { date: 'July 2026', title: 'Binance Kazakhstan research completed', tag: 'Research record', href: '/exchanges/' },
+  { date: 'July 2026', title: 'Homepage governed Top-10 published', tag: 'Product update', href: '/methodology/' },
+  { date: 'In progress', title: 'Country page factory and locale foundation', tag: 'Platform work', href: '/countries/' },
+];
+---
+
+<CleanLayout
+  title="CBW Portal Factory v2 — Homepage Concept"
+  description="Review-only Homepage v2 concept for CryptoBonusWorld."
+  noindex={true}
+  bodyClass="cbw-v2-home-review"
+>
+  <main class="home-v2">
+    <section class="home-hero">
+      <div class="home-shell">
+        <div class="review-bar">
+          <span>Review route · noindex</span>
+          <a href="/__design/cbw-v2/foundation/">Open design foundation →</a>
+        </div>
+
+        <div class="hero-grid">
+          <div class="hero-copy">
+            <p class="eyebrow">Checked by country · backed by evidence</p>
+            <h1>Find the right crypto exchange for your market.</h1>
+            <p class="hero-lede">
+              Compare exchange availability, verified offers and research status without mixing global claims with country-specific facts.
+            </p>
+            <div class="hero-actions">
+              <a class="button button-primary" href="#ranking">Explore the Top 10</a>
+              <a class="button button-ghost" href="#countries">Choose a country</a>
+            </div>
+            <div class="hero-proof">
+              <span><strong>10</strong> governed ranking rows</span>
+              <span><strong>1</strong> canonical homepage ranking</span>
+              <span><strong>0</strong> unsupported affiliate CTAs</span>
+            </div>
+          </div>
+
+          <aside class="country-control" aria-label="Country discovery concept">
+            <div class="control-label">Your market context</div>
+            <div class="control-value"><span>🌍</span><div><strong>Global</strong><small>Choose a country for local evidence</small></div><span class="chevron">⌄</span></div>
+            <div class="control-divider"></div>
+            <p>Country controls availability and local evidence. Language is selected separately.</p>
+            <div class="control-actions">
+              <button type="button">Country · Global</button>
+              <button type="button">Language · English</button>
+            </div>
+            <small class="control-note">Runtime personalization never changes canonical server content.</small>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section class="path-section">
+      <div class="home-shell path-grid">
+        {pathways.map(path => (
+          <article class="path-card">
+            <span>{path.number}</span>
+            <h2>{path.title}</h2>
+            <p>{path.text}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="ranking-section" id="ranking">
+      <div class="home-shell">
+        <div class="section-heading ranking-heading">
+          <div>
+            <p class="eyebrow">Global approved view</p>
+            <h2>Top 10 crypto exchanges to compare</h2>
+            <p>One ranked surface. Verified offers, research-only rows and profiles under review remain visibly separate.</p>
+          </div>
+          <a href="/methodology/" class="text-link">How ranking works →</a>
+        </div>
+
+        <div class="ranking-table" role="table" aria-label="Homepage Top 10 concept">
+          <div class="ranking-table-head" role="row">
+            <span>Rank / exchange</span>
+            <span>Best for</span>
+            <span>Status</span>
+            <span>Action</span>
+          </div>
+
+          {homepageTop10.map(entry => (
+            <article class="ranking-row" role="row">
+              <div class="exchange-cell">
+                <span class="rank-number">{String(entry.rank).padStart(2, '0')}</span>
+                <ExchangeLogo slug={entry.slug} name={entry.name} size={42} variant="square" lazy={false} />
+                <div class="exchange-copy">
+                  <strong>{entry.name}</strong>
+                  <small>{entry.lastChecked}</small>
+                </div>
+              </div>
+
+              <div class="best-cell">
+                <strong>{entry.bestFor}</strong>
+                <p>{entry.summary}</p>
+              </div>
+
+              <div class="status-cell">
+                <span class={`status-pill status-${entry.statusTone}`}>{entry.statusLabel}</span>
+                {entry.promoCode && <small>Code available on approved offer row</small>}
+              </div>
+
+              <div class="action-cell">
+                {entry.primaryAction ? (
+                  <a
+                    class="row-primary"
+                    href={entry.primaryAction.href}
+                    target={entry.primaryAction.external ? '_blank' : undefined}
+                    rel={entry.primaryAction.sponsored ? 'noopener noreferrer sponsored' : undefined}
+                  >
+                    {entry.primaryAction.label}
+                  </a>
+                ) : (
+                  <span class="row-disabled">No affiliate CTA</span>
+                )}
+                <a class="row-secondary" href={entry.secondaryAction.href}>{entry.secondaryAction.label}</a>
+              </div>
+            </article>
+          ))}
+        </div>
+
+        <div class="ranking-disclosure">
+          <strong>Evidence and affiliate separation</strong>
+          <p>An offer can be monetized only when its clean binding is approved. Commercial status cannot create a ranking row or improve its position.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="countries-section" id="countries">
+      <div class="home-shell">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Country-first discovery</p>
+            <h2>Explore markets, not duplicate rankings</h2>
+            <p>Country cards open local context and readiness. They do not render another exchange table on the homepage.</p>
+          </div>
+          <a href="/countries/" class="text-link">All countries →</a>
+        </div>
+
+        <div class="country-grid">
+          {countryCards.map(country => (
+            <a class="country-card" href={country.href}>
+              <div class="country-card-top"><span class="country-flag">{country.flag}</span><span class="country-arrow">↗</span></div>
+              <h3>{country.name}</h3>
+              <p>{country.note}</p>
+              <div class="country-status"><span></span>{country.status}</div>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="trust-section">
+      <div class="home-shell trust-grid">
+        <div class="trust-copy">
+          <p class="eyebrow">Why trust CBW</p>
+          <h2>Evidence is a product feature, not a footnote.</h2>
+          <p>Every future page will expose what was checked, what remains uncertain and when the market profile needs review.</p>
+          <a class="button button-light" href="/methodology/">Read the methodology</a>
+        </div>
+        <div class="trust-cards">
+          <article><span>01</span><div><strong>Official-source-first</strong><p>Regulators and exchange-owned sources lead evidence collection.</p></div></article>
+          <article><span>02</span><div><strong>Country-specific truth</strong><p>Global exchange facts never silently override local restrictions.</p></div></article>
+          <article><span>03</span><div><strong>Freshness and history</strong><p>Material changes create re-review queues and public update records.</p></div></article>
+          <article><span>04</span><div><strong>Fail-closed publishing</strong><p>Missing evidence produces under-review states, not invented answers.</p></div></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="updates-section">
+      <div class="home-shell">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Research and platform changes</p>
+            <h2>Latest approved updates</h2>
+          </div>
+        </div>
+        <div class="updates-list">
+          {updates.map(update => (
+            <a href={update.href} class="update-row">
+              <span class="update-date">{update.date}</span>
+              <strong>{update.title}</strong>
+              <span class="update-tag">{update.tag}</span>
+              <span class="update-arrow">→</span>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  </main>
+</CleanLayout>
+
+<style>
+  :global(body.cbw-v2-home-review) { background: #f7f8f4; }
+  .home-v2 { color: #13233e; background: #f7f8f4; }
+  .home-shell { width: min(1160px, calc(100% - 32px)); margin: 0 auto; }
+  .home-hero { color: #fff; background: radial-gradient(circle at 72% 12%, rgba(247,147,26,.25), transparent 30%), linear-gradient(135deg, #0c1729 0%, #13233e 65%, #1c355b 100%); padding: 18px 0 72px; overflow: hidden; }
+  .review-bar { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin-bottom: 54px; padding: 10px 14px; border: 1px solid rgba(255,255,255,.14); border-radius: 10px; color: #cbd5e1; background: rgba(255,255,255,.04); font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+  .review-bar a { color: #f7b75e; }
+  .hero-grid { display: grid; gap: 34px; }
+  .eyebrow { margin: 0 0 10px; color: #f7931a; font-size: 11px; font-weight: 900; letter-spacing: .13em; text-transform: uppercase; }
+  h1, h2 { font-family: 'Barlow Condensed', sans-serif; letter-spacing: -.025em; text-transform: uppercase; }
+  h1 { max-width: 780px; margin: 0; font-size: clamp(50px, 8vw, 88px); line-height: .92; }
+  .hero-lede { max-width: 680px; margin: 24px 0 0; color: #d6e0ec; font-size: 17px; line-height: 1.7; }
+  .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+  .button { display: inline-flex; min-height: 48px; align-items: center; justify-content: center; border: 1px solid transparent; border-radius: 10px; padding: 0 20px; font-size: 14px; font-weight: 900; }
+  .button-primary { background: #f7931a; color: #13233e; }
+  .button-ghost { border-color: rgba(255,255,255,.5); color: #fff; }
+  .button-light { margin-top: 24px; background: #fff; color: #13233e; }
+  .hero-proof { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; margin-top: 34px; }
+  .hero-proof span { display: flex; flex-direction: column; gap: 2px; padding: 12px; border-left: 2px solid rgba(247,147,26,.75); color: #bac7d8; font-size: 10px; line-height: 1.35; }
+  .hero-proof strong { color: #fff; font-size: 20px; }
+  .country-control { align-self: end; background: #fff; color: #13233e; border-radius: 18px; padding: 22px; box-shadow: 0 28px 60px rgba(0,0,0,.25); }
+  .control-label { color: #738092; font-size: 10px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+  .control-value { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; margin-top: 12px; }
+  .control-value > span:first-child { font-size: 34px; }
+  .control-value strong, .control-value small { display: block; }
+  .control-value small { margin-top: 2px; color: #748092; }
+  .chevron { color: #f7931a; font-size: 20px; }
+  .control-divider { height: 1px; margin: 18px 0; background: #e2e7e1; }
+  .country-control > p { margin: 0; color: #5d6977; line-height: 1.65; }
+  .control-actions { display: grid; gap: 8px; margin-top: 18px; }
+  .control-actions button { min-height: 42px; border: 1px solid #dce2dc; border-radius: 9px; background: #f7f8f4; color: #13233e; text-align: left; padding: 0 13px; font-weight: 800; }
+  .control-note { display: block; margin-top: 14px; color: #7d8794; line-height: 1.5; }
+  .path-section { position: relative; margin-top: -26px; }
+  .path-grid { display: grid; gap: 12px; }
+  .path-card { background: #fff; border: 1px solid #dce2da; border-radius: 15px; padding: 20px; box-shadow: 0 14px 30px rgba(19,35,62,.08); }
+  .path-card > span { color: #f7931a; font-size: 11px; font-weight: 900; }
+  .path-card h2 { margin: 12px 0 6px; font-size: 25px; }
+  .path-card p { margin: 0; color: #647080; font-size: 13px; line-height: 1.6; }
+  .ranking-section, .countries-section, .updates-section { padding: 80px 0; }
+  .section-heading { display: flex; flex-direction: column; gap: 18px; margin-bottom: 30px; }
+  .section-heading h2 { margin: 0; font-size: clamp(40px, 6vw, 62px); line-height: .95; }
+  .section-heading p:last-child { max-width: 720px; margin: 12px 0 0; color: #5e6a78; line-height: 1.65; }
+  .text-link { align-self: flex-start; color: #13233e; border-bottom: 1px solid #f7931a; font-size: 13px; font-weight: 900; }
+  .ranking-table { overflow: hidden; border: 1px solid #d8dfd7; border-radius: 18px; background: #fff; box-shadow: 0 18px 44px rgba(19,35,62,.07); }
+  .ranking-table-head { display: none; }
+  .ranking-row { display: grid; gap: 15px; padding: 20px; border-bottom: 1px solid #e7ebe6; }
+  .ranking-row:last-child { border-bottom: 0; }
+  .exchange-cell { display: grid; grid-template-columns: auto auto 1fr; gap: 10px; align-items: center; }
+  .rank-number { width: 28px; color: #f7931a; font-family: 'Barlow Condensed',sans-serif; font-size: 20px; font-weight: 900; }
+  .exchange-copy strong, .exchange-copy small { display: block; }
+  .exchange-copy strong { font-size: 16px; }
+  .exchange-copy small { margin-top: 2px; color: #7b8794; font-size: 10px; }
+  .best-cell strong { font-size: 13px; }
+  .best-cell p { margin: 5px 0 0; color: #66717e; font-size: 12px; line-height: 1.55; }
+  .status-cell { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; }
+  .status-cell small { color: #76818e; font-size: 10px; }
+  .status-pill { display: inline-flex; min-height: 28px; align-items: center; border-radius: 999px; padding: 0 10px; font-size: 10px; font-weight: 900; }
+  .status-verified { background: #e4f5eb; color: #116a3e; }
+  .status-preview { background: #fff1df; color: #9a5b00; }
+  .status-research { background: #e7eef7; color: #3e5e88; }
+  .status-review { background: #edf0ed; color: #616b77; }
+  .action-cell { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  .row-primary, .row-disabled, .row-secondary { display: inline-flex; min-height: 38px; align-items: center; justify-content: center; border-radius: 8px; padding: 0 12px; font-size: 11px; font-weight: 900; text-align: center; }
+  .row-primary { background: #168a52; color: #fff; }
+  .row-disabled { background: #e9ede8; color: #6c7682; }
+  .row-secondary { border: 1px solid #d6ddd5; color: #13233e; }
+  .ranking-disclosure { margin-top: 16px; border-left: 4px solid #f7931a; background: #fff7eb; padding: 18px 20px; }
+  .ranking-disclosure p { margin: 5px 0 0; color: #5f6875; font-size: 12px; line-height: 1.6; }
+  .countries-section { background: #eef1ec; }
+  .country-grid { display: grid; gap: 14px; }
+  .country-card { display: block; background: #fff; border: 1px solid #d8dfd7; border-radius: 16px; padding: 20px; transition: transform .15s, box-shadow .15s; }
+  .country-card:hover { transform: translateY(-2px); box-shadow: 0 16px 30px rgba(19,35,62,.08); }
+  .country-card-top { display: flex; justify-content: space-between; align-items: center; }
+  .country-flag { font-size: 32px; }
+  .country-arrow { color: #f7931a; font-size: 19px; }
+  .country-card h3 { margin: 20px 0 7px; font-size: 21px; }
+  .country-card p { min-height: 42px; margin: 0; color: #687482; font-size: 12px; line-height: 1.55; }
+  .country-status { display: flex; gap: 8px; align-items: center; margin-top: 18px; padding-top: 13px; border-top: 1px solid #e7ebe6; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: .04em; }
+  .country-status span { width: 8px; height: 8px; border-radius: 50%; background: #f7931a; }
+  .trust-section { padding: 80px 0; background: #0d192b; color: #fff; }
+  .trust-grid { display: grid; gap: 36px; }
+  .trust-copy h2 { margin: 0; max-width: 650px; font-size: clamp(43px, 6vw, 68px); line-height: .95; }
+  .trust-copy > p:last-of-type { max-width: 620px; color: #bac7d7; line-height: 1.7; }
+  .trust-cards { display: grid; gap: 10px; }
+  .trust-cards article { display: grid; grid-template-columns: 38px 1fr; gap: 12px; padding: 17px; border: 1px solid rgba(255,255,255,.13); border-radius: 12px; background: rgba(255,255,255,.04); }
+  .trust-cards article > span { color: #f7931a; font-weight: 900; }
+  .trust-cards strong { font-size: 13px; }
+  .trust-cards p { margin: 4px 0 0; color: #aebdce; font-size: 11px; line-height: 1.55; }
+  .updates-list { border-top: 1px solid #d9dfd8; }
+  .update-row { display: grid; grid-template-columns: 1fr auto; gap: 8px 14px; align-items: center; padding: 18px 0; border-bottom: 1px solid #d9dfd8; }
+  .update-date, .update-tag { color: #74808e; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; }
+  .update-row strong { grid-column: 1 / -1; font-size: 15px; }
+  .update-tag { grid-row: 1; grid-column: 2; }
+  .update-arrow { grid-column: 2; grid-row: 2; color: #f7931a; }
+  @media (min-width: 700px) {
+    .path-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
+    .country-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .section-heading { flex-direction: row; justify-content: space-between; align-items: end; }
+    .text-link { align-self: auto; margin-bottom: 8px; }
+    .update-row { grid-template-columns: 120px 1fr 150px auto; }
+    .update-row strong, .update-tag, .update-arrow { grid-column: auto; grid-row: auto; }
+  }
+  @media (min-width: 920px) {
+    .hero-grid { grid-template-columns: minmax(0,1.45fr) minmax(330px,.65fr); align-items: end; }
+    .ranking-table-head { display: grid; grid-template-columns: 1.15fr 1.7fr .85fr .8fr; gap: 20px; padding: 13px 20px; background: #13233e; color: #c5d0de; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: .06em; }
+    .ranking-row { grid-template-columns: 1.15fr 1.7fr .85fr .8fr; gap: 20px; align-items: center; padding: 16px 20px; }
+    .action-cell { grid-template-columns: 1fr; }
+    .country-grid { grid-template-columns: repeat(4,minmax(0,1fr)); }
+    .trust-grid { grid-template-columns: 1.1fr .9fr; align-items: start; }
+  }
+</style>
