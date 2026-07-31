@@ -1,0 +1,155 @@
+name: CBW Portal v2 owner freeze 051J browser review
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  browser-review:
+    if: github.event.pull_request.head.ref == 'qa/cbw-v2-owner-freeze-051j'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout exact QA branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 1
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Build production site
+        run: npm run build
+
+      - name: Start Astro preview
+        run: |
+          set -euo pipefail
+          npm run preview -- --host 127.0.0.1 --port 4321 > /tmp/cbw-preview.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4321/__design/cbw-v2/freeze/ >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/cbw-preview.log
+          exit 1
+
+      - name: Validate owner freeze routes
+        run: |
+          mkdir -p qa-artifacts
+          cat > .qa-owner-freeze-051j.mjs <<'EOF'
+          import { chromium } from 'playwright';
+          import { writeFile } from 'node:fs/promises';
+
+          const routes = [
+            { name: 'freeze', path: '/__design/cbw-v2/freeze/' },
+            { name: 'content-packages', path: '/__design/cbw-v2/content-packages/' },
+            { name: 'contracts', path: '/__design/cbw-v2/contracts/' },
+          ];
+          const viewports = [
+            { name: 'desktop-1440', width: 1440, height: 1000 },
+            { name: 'tablet-768', width: 768, height: 1024 },
+            { name: 'mobile-390', width: 390, height: 844 },
+          ];
+
+          const browser = await chromium.launch({ headless: true });
+          const results = [];
+          let failed = false;
+
+          try {
+            for (const route of routes) {
+              for (const viewport of viewports) {
+                const page = await browser.newPage({ viewport });
+                const consoleErrors = [];
+                const pageErrors = [];
+                page.on('console', message => {
+                  if (message.type() === 'error') consoleErrors.push(message.text());
+                });
+                page.on('pageerror', error => pageErrors.push(error.message));
+
+                const response = await page.goto(`http://127.0.0.1:4321${route.path}`, { waitUntil: 'networkidle' });
+                const robots = await page.locator('meta[name="robots"]').getAttribute('content');
+                const dimensions = await page.evaluate(() => ({
+                  scrollWidth: document.documentElement.scrollWidth,
+                  clientWidth: document.documentElement.clientWidth,
+                  bodyScrollWidth: document.body.scrollWidth,
+                }));
+
+                const checks = {
+                  http200: response?.status() === 200,
+                  titlePresent: (await page.title()).trim().length > 0,
+                  noindex: typeof robots === 'string' && robots.toLowerCase().includes('noindex'),
+                  noOverflow:
+                    dimensions.scrollWidth <= dimensions.clientWidth + 1
+                    && dimensions.bodyScrollWidth <= dimensions.clientWidth + 1,
+                  noConsoleErrors: consoleErrors.length === 0,
+                  noPageErrors: pageErrors.length === 0,
+                };
+                const routeChecks = {};
+
+                if (route.name === 'freeze') {
+                  routeChecks.sevenRoutes = await page.locator('[data-route-id]').count() === 7;
+                  routeChecks.sixWorkstreams = await page.locator('[data-workstream-id]').count() === 6;
+                  routeChecks.publicAuthZero = await page.getByText('0', { exact: true }).count() >= 1;
+                  routeChecks.prDraftBoundary = await page.getByText('PR #139 stays draft', { exact: true }).count() === 1;
+                  routeChecks.currentDraftMergeFalse = await page.getByText('currentDraftMergeAuthorized = false', { exact: true }).count() === 1;
+                  routeChecks.publicImplementationFalse = await page.getByText('publicImplementationAuthorized = false', { exact: true }).count() === 1;
+                  routeChecks.rankingPublicationFalse = await page.getByText('rankingPublicationAuthorized = false', { exact: true }).count() === 1;
+                  routeChecks.affiliateActivationFalse = await page.getByText('affiliateActivationAuthorized = false', { exact: true }).count() === 1;
+                  routeChecks.deployFalse = await page.getByText('deployAuthorized = false', { exact: true }).count() === 1;
+                  routeChecks.noAffiliateRoute = await page.locator('a[href^="/go/"]').count() === 0;
+                }
+
+                if (route.name === 'content-packages') {
+                  routeChecks.fourPackages = await page.locator('[data-package-id]').count() === 4;
+                  routeChecks.approvedClaimsZero = await page.getByText('Approved claims', { exact: true }).count() >= 4;
+                  routeChecks.noAffiliateRoute = await page.locator('a[href^="/go/"]').count() === 0;
+                }
+
+                if (route.name === 'contracts') {
+                  routeChecks.contractSuitePass = await page.getByText('Contract fixture suite passed', { exact: true }).count() === 1;
+                  routeChecks.freezeFixtureVisible = await page.getByText('Portal Factory owner freeze keeps current draft and all public effects unauthorized', { exact: true }).count() === 1;
+                }
+
+                const ok = [...Object.values(checks), ...Object.values(routeChecks)].every(Boolean);
+                if (!ok) failed = true;
+                const result = { route, viewport, ok, checks, routeChecks, consoleErrors, pageErrors, dimensions };
+                results.push(result);
+                console.log(JSON.stringify(result, null, 2));
+
+                await page.screenshot({ path: `qa-artifacts/${route.name}-${viewport.name}.png`, fullPage: true });
+                await page.close();
+              }
+            }
+          } finally {
+            await browser.close();
+          }
+
+          await writeFile('qa-artifacts/cbw-v2-owner-freeze-051j-review.json', JSON.stringify({ failed, results }, null, 2));
+          if (failed) process.exit(1);
+          EOF
+          node ./.qa-owner-freeze-051j.mjs
+
+      - name: Upload review evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cbw-portal-v2-owner-freeze-051j-review
+          path: qa-artifacts/
+          if-no-files-found: error
