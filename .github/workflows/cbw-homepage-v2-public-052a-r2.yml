@@ -1,0 +1,140 @@
+name: CBW Homepage v2 public 052A browser review R2
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  browser-review:
+    if: github.event.pull_request.head.ref == 'qa/cbw-homepage-v2-public-052a-r2'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout exact QA branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 1
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Build production site
+        run: npm run build
+
+      - name: Start Astro preview
+        run: |
+          set -euo pipefail
+          npm run preview -- --host 127.0.0.1 --port 4321 > /tmp/cbw-preview.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4321/ >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/cbw-preview.log
+          exit 1
+
+      - name: Validate public Homepage v2
+        run: |
+          mkdir -p qa-artifacts
+          cat > .qa-homepage-v2-052a-r2.mjs <<'EOF'
+          import { chromium } from 'playwright';
+          import { writeFile } from 'node:fs/promises';
+
+          const viewports = [
+            { name: 'desktop-1440', width: 1440, height: 1000 },
+            { name: 'tablet-768', width: 768, height: 1024 },
+            { name: 'mobile-390', width: 390, height: 844 },
+          ];
+          const noCtaExchanges = ['Binance', 'Gate.io', 'HTX', 'Phemex'];
+          const results = [];
+          let failed = false;
+          const browser = await chromium.launch({ headless: true });
+
+          try {
+            for (const viewport of viewports) {
+              const page = await browser.newPage({ viewport });
+              const consoleErrors = [];
+              const pageErrors = [];
+              page.on('console', message => {
+                if (message.type() === 'error') consoleErrors.push(message.text());
+              });
+              page.on('pageerror', error => pageErrors.push(error.message));
+
+              const response = await page.goto('http://127.0.0.1:4321/', { waitUntil: 'networkidle' });
+              const dimensions = await page.evaluate(() => ({
+                scrollWidth: document.documentElement.scrollWidth,
+                clientWidth: document.documentElement.clientWidth,
+                bodyScrollWidth: document.body.scrollWidth,
+              }));
+
+              const checks = {
+                http200: response?.status() === 200,
+                titlePresent: (await page.title()).includes('CryptoBonusWorld'),
+                oneTop10Section: await page.locator('section.top10-section').count() === 1,
+                tenRows: await page.locator('.top10-row').count() === 10,
+                oneTop10Heading: await page.getByText('Top 10 Crypto Exchanges to Compare', { exact: true }).count() === 1,
+                sixApprovedCtas: await page.locator('.top10-primary').count() === 6,
+                fourCountryCards: await page.locator('#markets .country-card').count() === 4,
+                noCountryExchangeRows: await page.locator('#markets .top10-row').count() === 0,
+                noPublicCountryLinks: await page.locator('a[href^="/countries/"]').count() === 0,
+                globalContext: await page.getByText('Global comparison', { exact: true }).count() === 1,
+                englishContext: await page.locator('.context-row').filter({ hasText: 'Language' }).getByText('English', { exact: true }).count() === 1,
+                faqCount: await page.locator('#faq details').count() === 8,
+                faqSchemaPresent: await page.locator('script[type="application/ld+json"]').count() >= 1,
+                noOverflow:
+                  dimensions.scrollWidth <= dimensions.clientWidth + 1
+                  && dimensions.bodyScrollWidth <= dimensions.clientWidth + 1,
+                noConsoleErrors: consoleErrors.length === 0,
+                noPageErrors: pageErrors.length === 0,
+              };
+
+              for (const exchange of noCtaExchanges) {
+                const row = page.locator('.top10-row').filter({ has: page.locator('.top10-exchange-copy strong', { hasText: exchange }) });
+                checks[`noCta:${exchange}`] = await row.count() === 1 && await row.locator('.top10-primary').count() === 0;
+              }
+
+              const ok = Object.values(checks).every(Boolean);
+              if (!ok) failed = true;
+              const result = { viewport, ok, checks, consoleErrors, pageErrors, dimensions };
+              results.push(result);
+              console.log(JSON.stringify(result, null, 2));
+
+              await page.screenshot({
+                path: `qa-artifacts/homepage-${viewport.name}.png`,
+                fullPage: true,
+              });
+              await page.close();
+            }
+          } finally {
+            await browser.close();
+          }
+
+          await writeFile('qa-artifacts/cbw-homepage-v2-public-052a-r2-review.json', JSON.stringify({ failed, results }, null, 2));
+          if (failed) process.exit(1);
+          EOF
+          node ./.qa-homepage-v2-052a-r2.mjs
+
+      - name: Upload review evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cbw-homepage-v2-public-052a-r2-review
+          path: qa-artifacts/
+          if-no-files-found: error
