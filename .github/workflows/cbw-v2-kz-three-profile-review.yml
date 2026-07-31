@@ -1,0 +1,168 @@
+name: CBW Portal v2 KZ three-profile browser review
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  browser-review:
+    if: github.event.pull_request.head.ref == 'qa/cbw-v2-kz-three-profile-review-051'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout exact QA branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 1
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Build production site
+        run: npm run build
+
+      - name: Start Astro preview
+        run: |
+          set -euo pipefail
+          npm run preview -- --host 127.0.0.1 --port 4321 > /tmp/cbw-preview.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4321/__design/cbw-v2/country-ranking/ >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/cbw-preview.log
+          exit 1
+
+      - name: Validate updated Kazakhstan review routes
+        run: |
+          mkdir -p qa-artifacts
+          cat > .qa-kz-three-profile.mjs <<'EOF'
+          import { chromium } from 'playwright';
+          import { writeFile } from 'node:fs/promises';
+
+          const routes = [
+            { name: 'country-ranking', path: '/__design/cbw-v2/country-ranking/' },
+            { name: 'market-passport', path: '/__design/cbw-v2/market-passport/' },
+            { name: 'contracts', path: '/__design/cbw-v2/contracts/' },
+          ];
+          const viewports = [
+            { name: 'desktop-1440', width: 1440, height: 1000 },
+            { name: 'tablet-768', width: 768, height: 1024 },
+            { name: 'mobile-390', width: 390, height: 844 },
+          ];
+
+          const browser = await chromium.launch({ headless: true });
+          const results = [];
+          let failed = false;
+
+          try {
+            for (const route of routes) {
+              for (const viewport of viewports) {
+                const page = await browser.newPage({ viewport });
+                const consoleErrors = [];
+                const pageErrors = [];
+                page.on('console', message => {
+                  if (message.type() === 'error') consoleErrors.push(message.text());
+                });
+                page.on('pageerror', error => pageErrors.push(error.message));
+
+                const response = await page.goto(`http://127.0.0.1:4321${route.path}`, {
+                  waitUntil: 'networkidle',
+                });
+                const robots = await page.locator('meta[name="robots"]').getAttribute('content');
+                const dimensions = await page.evaluate(() => ({
+                  scrollWidth: document.documentElement.scrollWidth,
+                  clientWidth: document.documentElement.clientWidth,
+                  bodyScrollWidth: document.body.scrollWidth,
+                }));
+
+                const checks = {
+                  http200: response?.status() === 200,
+                  titlePresent: (await page.title()).trim().length > 0,
+                  noindex: typeof robots === 'string' && robots.toLowerCase().includes('noindex'),
+                  noOverflow:
+                    dimensions.scrollWidth <= dimensions.clientWidth + 1
+                    && dimensions.bodyScrollWidth <= dimensions.clientWidth + 1,
+                  noConsoleErrors: consoleErrors.length === 0,
+                  noPageErrors: pageErrors.length === 0,
+                };
+                const routeChecks = {};
+
+                if (route.name === 'country-ranking') {
+                  routeChecks.threeProfiles = await page.locator('.candidate-row').count() === 3;
+                  routeChecks.threeBlankPositions = await page.locator('.rank-placeholder').count() === 3;
+                  routeChecks.threeOfThreeVisible = await page.getByText('3/3', { exact: true }).count() >= 1;
+                  routeChecks.rankingBlocked = await page.getByText('BLOCKED', { exact: true }).count() >= 1;
+                  routeChecks.okxConflictVisible = await page.getByText('Validated · conflicting', { exact: true }).count() === 1;
+                  routeChecks.conflictGateBlocked = await page.locator('.gate').filter({ hasText: 'Conflict resolution' }).getByText('BLOCKED', { exact: true }).count() === 1;
+                  routeChecks.noAffiliateRoute = await page.locator('a[href^="/go/"]').count() === 0;
+                  routeChecks.noNumberedRank = await page.locator('.rank-placeholder').evaluateAll(nodes => nodes.every(node => node.textContent?.trim() === '—'));
+                }
+
+                if (route.name === 'market-passport') {
+                  routeChecks.eightEnglishFacts = await page.locator('[data-locale-panel="en"] .field-row').count() === 8;
+                  routeChecks.eightRussianFacts = await page.locator('[data-locale-panel="ru"] .field-row').count() === 8;
+                  routeChecks.parityPass = await page.getByText('EN/RU fact parity PASS', { exact: true }).count() === 1;
+                  routeChecks.noAffiliateCTA = await page.getByText('No affiliate CTA', { exact: true }).count() === 1;
+                  routeChecks.noAffiliateRoute = await page.locator('a[href^="/go/"]').count() === 0;
+                  const enIds = await page.locator('[data-locale-panel="en"] .fact-meta code').allTextContents();
+                  const ruIds = await page.locator('[data-locale-panel="ru"] .fact-meta code').allTextContents();
+                  routeChecks.claimIdsMatch = JSON.stringify(enIds) === JSON.stringify(ruIds);
+                  await page.locator('[data-locale-button="ru"]').click();
+                  routeChecks.russianPanelVisible = await page.locator('[data-locale-panel="ru"]').isVisible();
+                  routeChecks.russianHeadingVisible = await page.getByText('Binance в Казахстане', { exact: true }).isVisible();
+                }
+
+                if (route.name === 'contracts') {
+                  routeChecks.contractSuitePass = await page.getByText('Contract fixture suite passed', { exact: true }).count() === 1;
+                }
+
+                const ok = [...Object.values(checks), ...Object.values(routeChecks)].every(Boolean);
+                if (!ok) failed = true;
+                const result = { route, viewport, ok, checks, routeChecks, consoleErrors, pageErrors, dimensions };
+                results.push(result);
+                console.log(JSON.stringify(result, null, 2));
+
+                await page.screenshot({
+                  path: `qa-artifacts/${route.name}-${viewport.name}.png`,
+                  fullPage: true,
+                });
+                await page.close();
+              }
+            }
+          } finally {
+            await browser.close();
+          }
+
+          await writeFile(
+            'qa-artifacts/cbw-v2-kz-three-profile-review.json',
+            JSON.stringify({ failed, results }, null, 2),
+          );
+          if (failed) process.exit(1);
+          EOF
+          node ./.qa-kz-three-profile.mjs
+
+      - name: Upload review evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cbw-portal-v2-kz-three-profile-review
+          path: qa-artifacts/
+          if-no-files-found: error
