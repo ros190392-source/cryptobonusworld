@@ -24,21 +24,21 @@ export const kazakhstanEvidenceGaps: KazakhstanEvidenceGap[] = [
     topic: 'KZT fiat rails',
     status: 'required',
     severity: 'P0',
-    currentState: 'Official guides document historical Freedom Bank and Kazakhstan Mastercard flows; current operational status is not mapped into the validated profile.',
+    currentState: 'Official guides document historical Freedom Bank and Kazakhstan Mastercard flows; current direct deposit/withdrawal operational status remains unconfirmed.',
     requiredEvidence: 'Current official provider/exchange evidence with date, direction, eligibility and operational status.',
     nextAction: 'Run a source-only current-status review and map separate deposit/withdrawal claims.',
-    publicationImpact: 'Blocks public local-payment claims; does not invalidate the core licence/availability profile.',
+    publicationImpact: 'Blocks public direct-fiat deposit/withdrawal claims; does not invalidate the core licence/availability profile.',
   },
   {
     gapId: 'gap:kz:binance:p2p-active-market',
     exchangeId: 'binance',
-    topic: 'P2P methods and directions',
+    topic: 'Active P2P methods and directions',
     status: 'required',
     severity: 'P0',
-    currentState: 'Marketplace and named payment-method surfaces exist, but active offers, buy/sell directions and resident eligibility were not tested.',
-    requiredEvidence: 'Dated official/current marketplace evidence identifying KZT, payment methods, directions and limitations.',
-    nextAction: 'Map P2P surface claims separately from AFSA legal-route claims.',
-    publicationImpact: 'Blocks specific P2P-method statements and local guide publication.',
+    currentState: 'Freedom Bank and localized sell-route surfaces are mapped as visible, but no active advertiser, executable KZT order, complete buy/sell coverage or resident eligibility was confirmed.',
+    requiredEvidence: 'Dated current marketplace evidence identifying active advertisements, KZT, payment methods, direction and limitations without relying on route existence alone.',
+    nextAction: 'Keep the new surface claims while leaving active-market conclusions and guide-level method lists disabled.',
+    publicationImpact: 'Allows cautious surface-status copy; still blocks active-market, method-availability and transaction guidance claims.',
   },
   {
     gapId: 'gap:kz:binance:cbw-campaign-binding',
@@ -54,24 +54,24 @@ export const kazakhstanEvidenceGaps: KazakhstanEvidenceGap[] = [
   {
     gapId: 'gap:kz:bybit:p2p-source-separation',
     exchangeId: 'bybit',
-    topic: 'Regulated P2P launch and numeric limits',
-    status: 'required',
+    topic: 'Regulated P2P launch, fees and numeric limits',
+    status: 'mapped',
     severity: 'P0',
-    currentState: 'Legacy GEO summary mentions a 2025 P2P launch and numeric KZT limits, but the tracked row cites only the AFSA licence page.',
-    requiredEvidence: 'Separate official source packet for launch date, current status and any numeric limits.',
-    nextAction: 'Do not copy the composite legacy note into the validated market profile.',
-    publicationImpact: 'Blocks Bybit-specific P2P and limit claims.',
+    currentState: 'Dedicated official Bybit Kazakhstan packets now support a dated P2P launch signal, 0% platform transaction fee statement and published 900–22,000,000 KZT per-ad range.',
+    requiredEvidence: 'Mapped in `bybitReview.ts` with date-bound limitations and source-map digest.',
+    nextAction: 'Recheck before publication and never present the published range as proof of a currently active advertisement.',
+    publicationImpact: 'Review-only dated P2P facts may render; active-ad and universal-eligibility claims remain prohibited.',
   },
   {
     gapId: 'gap:kz:bybit:local-kyc-source',
     exchangeId: 'bybit',
     topic: 'KYC requirements',
-    status: 'required',
+    status: 'mapped',
     severity: 'P1',
-    currentState: 'The legacy row references tracked offer terms but no dedicated source packet is mapped into the Portal Factory profile.',
-    requiredEvidence: 'Current official Bybit/Bybit Kazakhstan KYC documentation with date and local applicability limitations.',
-    nextAction: 'Create a dedicated KYC source packet before rendering local KYC detail.',
-    publicationImpact: 'Blocks detailed KYC copy; does not block the licence-based availability verdict.',
+    currentState: 'A dedicated official Bybit Kazakhstan KYC packet now states that at least Standard verification is mandatory for all products and services.',
+    requiredEvidence: 'Mapped in `bybitReview.ts` with product/region and account-level limitations.',
+    nextAction: 'Recheck documentation freshness before public publication; do not infer approval for a specific user.',
+    publicationImpact: 'Review-only KYC requirement copy may render; account approval and document acceptance remain untested.',
   },
   {
     gapId: 'gap:kz:bybit:local-offer-eligibility',
@@ -101,9 +101,9 @@ export const kazakhstanEvidenceGaps: KazakhstanEvidenceGap[] = [
     topic: 'Ranking methodology',
     status: 'required',
     severity: 'P0',
-    currentState: 'No Kazakhstan-specific methodology version is frozen for Portal Factory rankings.',
-    requiredEvidence: 'Approved methodology defining eligibility, conflict exclusions, scoring/rationale and freshness thresholds.',
-    nextAction: 'Prepare a methodology proposal now that three validated review profiles exist.',
+    currentState: 'Methodology proposal v0.1 exists but has not been owner-frozen for a draft RankingSnapshot.',
+    requiredEvidence: 'Owner decision on eligibility, conflict exclusions, scoring/rationale and freshness thresholds in Issue #144.',
+    nextAction: 'Keep every position null until the methodology outcome is recorded.',
     publicationImpact: 'Blocks any numbered Top-3 or Top-10 snapshot.',
   },
   {
@@ -140,7 +140,7 @@ const validatedProfiles = [
   okxKazakhstanMarketProfile,
 ];
 
-const asOf = Date.parse('2026-07-31T12:25:00Z');
+const asOf = Date.parse('2026-07-31T16:10:00Z');
 const evidenceFreshnessGate = validatedProfiles.every(profile =>
   Date.parse(profile.nextReviewAt) > asOf,
 );
@@ -162,6 +162,13 @@ export const kazakhstanRankingReadiness: KazakhstanRankingReadiness = {
   ready: false,
 };
 
+export const kazakhstanOpenEvidenceGaps = kazakhstanEvidenceGaps.filter(
+  gap => gap.status !== 'mapped',
+);
+export const kazakhstanMappedEvidenceGaps = kazakhstanEvidenceGaps.filter(
+  gap => gap.status === 'mapped',
+);
+
 export const kazakhstanReadinessIssues: string[] = [];
 
 if (new Set(kazakhstanEvidenceGaps.map(gap => gap.gapId)).size !== kazakhstanEvidenceGaps.length) {
@@ -174,6 +181,18 @@ if (kazakhstanRankingReadiness.validatedProfileIds.length !== 3) {
 
 if (!kazakhstanRankingReadiness.conflictBlockedProfileIds.includes('market-profile:okx:kz')) {
   kazakhstanReadinessIssues.push('The retained OKX authorization conflict must block ranking eligibility.');
+}
+
+if (kazakhstanOpenEvidenceGaps.filter(gap => gap.severity === 'P0').length !== 7) {
+  kazakhstanReadinessIssues.push('Exactly seven open P0 Kazakhstan gaps are expected after evidence mapping 051F.');
+}
+
+if (kazakhstanOpenEvidenceGaps.filter(gap => gap.severity === 'P1').length !== 0) {
+  kazakhstanReadinessIssues.push('No open P1 Kazakhstan gap is expected after Bybit KYC mapping.');
+}
+
+if (kazakhstanMappedEvidenceGaps.length !== 2) {
+  kazakhstanReadinessIssues.push('Exactly two evidence gaps must be recorded as mapped after 051F.');
 }
 
 const requiredReadyGates = [
