@@ -9,6 +9,10 @@ import {
   binanceKazakhstanReviewPass,
   binanceKazakhstanReviewResults,
 } from '../pilots/kz/binanceReview';
+import {
+  binanceKazakhstanFactParityIssues,
+  binanceKazakhstanFactParityPass,
+} from '../pilots/kz/binanceLocaleParity';
 
 const digest = `sha256:${'a'.repeat(64)}`;
 
@@ -109,6 +113,15 @@ export const invalidApprovedPackage = {
   approval: 'approved',
 };
 
+const binanceKazakhstanFactParityResult = {
+  ok: binanceKazakhstanFactParityPass,
+  issues: binanceKazakhstanFactParityIssues.map(problem => ({
+    path: 'locales.en-ru',
+    code: problem.code,
+    message: problem.message,
+  })),
+};
+
 export const portalFactoryFixtureResults = [
   { name: 'Valid source packet', expected: 'PASS', result: validateSourcePacket(validSourcePacket) },
   { name: 'Valid normalized claim', expected: 'PASS', result: validateNormalizedClaim(validClaim) },
@@ -120,10 +133,16 @@ export const portalFactoryFixtureResults = [
   { name: 'Approved empty ranking', expected: 'REJECT', result: validateRankingSnapshot(invalidApprovedEmptyRanking) },
   { name: 'Approved package without sources/locales', expected: 'REJECT', result: validateContentPackage(invalidApprovedPackage) },
   ...binanceKazakhstanReviewResults,
+  {
+    name: 'Binance KZ EN/RU immutable fact parity',
+    expected: 'PASS',
+    result: binanceKazakhstanFactParityResult,
+  },
 ] as const;
 
 export const portalFactoryFixturesPass =
   binanceKazakhstanReviewPass &&
+  binanceKazakhstanFactParityPass &&
   portalFactoryFixtureResults.every(item =>
     item.expected === 'PASS' ? item.result.ok : !item.result.ok,
   );
