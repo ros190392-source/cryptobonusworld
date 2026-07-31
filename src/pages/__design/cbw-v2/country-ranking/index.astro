@@ -2,12 +2,103 @@
 import CleanLayout from '../../../../layouts/CleanLayout.astro';
 import ExchangeLogo from '../../../../components/ExchangeLogo.astro';
 import ReviewStatus from '../../../../components/portal-v2/ReviewStatus.astro';
-import { kazakhstanCandidates, portalReviewNotice } from '../../../../data/portalFactoryReview';
+import { binanceKazakhstanMarketProfile } from '../../../../data/pilots/kz/binanceReview';
+import { bybitKazakhstanMarketProfile } from '../../../../data/pilots/kz/bybitReview';
+import {
+  kazakhstanEvidenceGaps,
+  kazakhstanRankingReadiness,
+} from '../../../../data/pilots/kz/readiness';
+
+const candidates = [
+  {
+    slug: 'binance',
+    exchange: 'Binance',
+    profile: binanceKazakhstanMarketProfile,
+    state: {
+      label: 'Validated · limited',
+      detail: `${binanceKazakhstanMarketProfile.claimIds.length} normalized claims · offer under review`,
+      tone: 'partial' as const,
+    },
+    evidence: 'Corrected deep-research record mapped into official/regulator SourcePackets and build-validated claims.',
+    reviewHref: '/__design/cbw-v2/market-passport/',
+  },
+  {
+    slug: 'bybit',
+    exchange: 'Bybit',
+    profile: bybitKazakhstanMarketProfile,
+    state: {
+      label: 'Validated · available',
+      detail: `${bybitKazakhstanMarketProfile.claimIds.length} normalized claims · offer under review`,
+      tone: 'verified' as const,
+    },
+    evidence: 'AFSA licence and the governed KZ availability decision are mapped; P2P limits and local offer eligibility remain gaps.',
+    reviewHref: null,
+  },
+  {
+    slug: 'okx',
+    exchange: 'OKX',
+    profile: null,
+    state: {
+      label: 'Blocked',
+      detail: 'Source-truth lifecycle incomplete · current package remains conflicting',
+      tone: 'review' as const,
+    },
+    evidence: 'No validated Portal Factory market profile may be created until source-truth review and independent validation finish.',
+    reviewHref: null,
+  },
+];
+
+const readinessGates = [
+  {
+    label: 'Profile count',
+    pass: kazakhstanRankingReadiness.profileCountGate,
+    value: `${kazakhstanRankingReadiness.validatedProfileIds.length}/${kazakhstanRankingReadiness.requiredProfileCount}`,
+    detail: 'At least three validated market profiles are required.',
+  },
+  {
+    label: 'Profile validation',
+    pass: kazakhstanRankingReadiness.profileValidationGate,
+    value: kazakhstanRankingReadiness.profileValidationGate ? 'PASS' : 'FAIL',
+    detail: 'Every included profile must pass the shared runtime contracts.',
+  },
+  {
+    label: 'Evidence freshness',
+    pass: kazakhstanRankingReadiness.evidenceFreshnessGate,
+    value: kazakhstanRankingReadiness.evidenceFreshnessGate ? 'PASS' : 'FAIL',
+    detail: 'No validated profile may be beyond its next-review date.',
+  },
+  {
+    label: 'Methodology freeze',
+    pass: kazakhstanRankingReadiness.methodologyFrozenGate,
+    value: 'MISSING',
+    detail: 'Eligibility, exclusions and ordering rationale are not frozen.',
+  },
+  {
+    label: 'Affiliate independence',
+    pass: kazakhstanRankingReadiness.affiliateIndependenceGate,
+    value: 'PASS',
+    detail: 'Offer/CTA status is not used to create or improve a ranking position.',
+  },
+  {
+    label: 'Owner approval',
+    pass: kazakhstanRankingReadiness.ownerApprovalGate,
+    value: 'MISSING',
+    detail: 'No owner-approved non-empty RankingSnapshot exists.',
+  },
+  {
+    label: 'Public indexability',
+    pass: kazakhstanRankingReadiness.publicIndexabilityGate,
+    value: 'OFF',
+    detail: 'Country routes remain review-only and noindex.',
+  },
+];
+
+const p0Gaps = kazakhstanEvidenceGaps.filter(gap => gap.severity === 'P0');
 ---
 
 <CleanLayout
-  title="CBW Portal Factory v2 — Country Ranking Template"
-  description="Review-only fail-closed country ranking template for CryptoBonusWorld."
+  title="CBW Portal Factory v2 — Kazakhstan Ranking Readiness"
+  description="Review-only Kazakhstan ranking readiness matrix backed by validated market profiles and evidence gaps."
   noindex={true}
   bodyClass="cbw-v2-ranking-review"
 >
@@ -15,28 +106,28 @@ import { kazakhstanCandidates, portalReviewNotice } from '../../../../data/porta
     <section class="ranking-hero">
       <div class="shell">
         <div class="review-nav">
-          <span>Review route · noindex</span>
+          <span>Review route · noindex · real readiness data</span>
           <nav aria-label="Portal v2 review routes">
             <a href="/__design/cbw-v2/homepage/">Homepage</a>
             <a href="/__design/cbw-v2/country/">Country hub</a>
-            <a href="/__design/cbw-v2/market-passport/">Market passport</a>
+            <a href="/__design/cbw-v2/contracts/">Contracts</a>
           </nav>
         </div>
 
-        <p class="eyebrow">Country ranking template</p>
-        <h1>Best crypto exchanges for Kazakhstan</h1>
+        <p class="eyebrow">Kazakhstan ranking readiness</p>
+        <h1>No snapshot, no ranking.</h1>
         <p class="lede">
-          This review route demonstrates the required state before an approved ranking snapshot exists. Candidate research remains visible, but numbered positions and promotional actions stay disabled.
+          Two market profiles now pass the Portal Factory contracts. That is meaningful progress, but it is not enough to publish a numbered Top-3 or Top-10.
         </p>
 
         <div class="snapshot-card">
           <div>
-            <span>Ranking snapshot</span>
-            <strong>Not approved</strong>
+            <span>Ranking readiness</span>
+            <strong>{kazakhstanRankingReadiness.ready ? 'READY' : 'BLOCKED'}</strong>
           </div>
           <ReviewStatus
-            label="Fail-closed state"
-            detail="No ordered rows may be published without methodology version, evidence freshness and owner approval."
+            label={`${kazakhstanRankingReadiness.validatedProfileIds.length}/${kazakhstanRankingReadiness.requiredProfileCount} validated profiles`}
+            detail="Methodology, owner approval and public indexability remain closed."
             tone="review"
           />
         </div>
@@ -49,27 +140,27 @@ import { kazakhstanCandidates, portalReviewNotice } from '../../../../data/porta
           <div class="section-heading">
             <div>
               <p class="eyebrow">Candidate inventory</p>
-              <h2>Research candidates, not ranked winners</h2>
-              <p>These rows prove the template can show evidence readiness without implying a Top-3 or Top-10 decision.</p>
+              <h2>Profiles are visible. Positions are not.</h2>
+              <p>Each row shows contract readiness without implying a winner, score or recommendation.</p>
             </div>
-            <span class="count-pill">{kazakhstanCandidates.length} candidates</span>
+            <span class="count-pill">{candidates.length} candidates</span>
           </div>
 
           <div class="candidate-table" role="table" aria-label="Unranked Kazakhstan exchange candidate inventory">
             <div class="table-head" role="row">
               <span>Exchange</span>
               <span>Evidence state</span>
-              <span>Publication action</span>
+              <span>Review action</span>
             </div>
 
-            {kazakhstanCandidates.map(candidate => (
+            {candidates.map(candidate => (
               <article class="candidate-row" role="row">
                 <div class="exchange-cell">
                   <span class="rank-placeholder" aria-label="Not ranked">—</span>
                   <ExchangeLogo slug={candidate.slug} name={candidate.exchange} size={42} variant="square" lazy={false} />
                   <div>
                     <strong>{candidate.exchange}</strong>
-                    <small>No approved position</small>
+                    <small>{candidate.profile ? candidate.profile.profileId : 'No validated market profile'}</small>
                   </div>
                 </div>
 
@@ -79,20 +170,55 @@ import { kazakhstanCandidates, portalReviewNotice } from '../../../../data/porta
                 </div>
 
                 <div class="action-cell">
-                  <span class="disabled-action">{candidate.action}</span>
+                  {candidate.reviewHref ? (
+                    <a class="review-action" href={candidate.reviewHref}>Open review profile</a>
+                  ) : (
+                    <span class="disabled-action">No ranked action</span>
+                  )}
                   <small>Affiliate and ranking actions disabled</small>
                 </div>
               </article>
             ))}
           </div>
 
-          <article class="approval-gate">
-            <p class="eyebrow">Required before ranking</p>
+          <article class="gate-card">
+            <p class="eyebrow">Live gate matrix</p>
             <div class="gate-grid">
-              <div><span>01</span><strong>Approved market profiles</strong><p>Every ranked exchange must have current country evidence.</p></div>
-              <div><span>02</span><strong>Methodology version</strong><p>Scoring and exclusion rules are fixed before ordering rows.</p></div>
-              <div><span>03</span><strong>Freshness gate</strong><p>Expired or contradictory claims move back to review.</p></div>
-              <div><span>04</span><strong>Owner approval</strong><p>The final snapshot controls ranking and indexability.</p></div>
+              {readinessGates.map((gate, index) => (
+                <div class:list={['gate-item', { pass: gate.pass }]}>
+                  <span>{String(index + 1).padStart(2, '0')}</span>
+                  <div>
+                    <strong>{gate.label}</strong>
+                    <b>{gate.value}</b>
+                    <p>{gate.detail}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </article>
+
+          <article class="gap-card">
+            <div class="gap-heading">
+              <div>
+                <p class="eyebrow">P0 evidence gaps</p>
+                <h2>What blocks the next decision</h2>
+              </div>
+              <span>{p0Gaps.length} open P0 gaps</span>
+            </div>
+            <div class="gap-list">
+              {p0Gaps.map(gap => (
+                <div class="gap-row">
+                  <div><strong>{gap.exchangeId}</strong><span>{gap.topic}</span></div>
+                  <p>{gap.currentState}</p>
+                  <p><b>Next:</b> {gap.nextAction}</p>
+                  <ReviewStatus
+                    label={`${gap.severity} · ${gap.status}`}
+                    detail={gap.publicationImpact}
+                    tone={gap.status === 'blocked' ? 'review' : 'partial'}
+                    compact={true}
+                  />
+                </div>
+              ))}
             </div>
           </article>
         </div>
@@ -102,15 +228,19 @@ import { kazakhstanCandidates, portalReviewNotice } from '../../../../data/porta
             <p class="card-label">Snapshot contract</p>
             <dl>
               <div><dt>Country</dt><dd>KZ</dd></div>
-              <div><dt>Methodology</dt><dd>Missing</dd></div>
+              <div><dt>Profiles</dt><dd>{kazakhstanRankingReadiness.validatedProfileIds.length}/3</dd></div>
+              <div><dt>Methodology</dt><dd>missing</dd></div>
               <div><dt>Approved rows</dt><dd>0</dd></div>
-              <div><dt>Indexability</dt><dd>Off</dd></div>
+              <div><dt>Owner approval</dt><dd>no</dd></div>
+              <div><dt>Indexability</dt><dd>off</dd></div>
             </dl>
           </div>
 
           <div class="warning-card">
-            <strong>No snapshot, no ranking</strong>
-            <p>{portalReviewNotice}</p>
+            <strong>Ranking remains fail-closed</strong>
+            <p>
+              The system is required to show candidate readiness and gaps instead of inventing a Top-3 from two profiles or from affiliate availability.
+            </p>
           </div>
 
           <a class="side-link" href="/__design/cbw-v2/country/">← Back to country hub</a>
@@ -139,8 +269,8 @@ import { kazakhstanCandidates, portalReviewNotice } from '../../../../data/porta
   .ranking-content { padding: 70px 0 90px; }
   .layout-grid { display: grid; gap: 24px; }
   .section-heading { display: flex; flex-direction: column; gap: 16px; margin-bottom: 26px; }
-  .section-heading .eyebrow { margin-top: 0; }
-  .section-heading h2 { margin: 0; font-size: clamp(38px,6vw,58px); line-height: .95; }
+  .section-heading .eyebrow, .gate-card .eyebrow, .gap-card .eyebrow { margin-top: 0; }
+  .section-heading h2, .gap-card h2 { margin: 0; font-size: clamp(38px,6vw,58px); line-height: .95; }
   .section-heading p:last-child { max-width: 720px; margin: 12px 0 0; color: #647080; line-height: 1.65; }
   .count-pill { align-self: flex-start; border-radius: 999px; padding: 8px 11px; background: #13233e; color: #fff; font-size: 10px; font-weight: 900; text-transform: uppercase; }
   .candidate-table { overflow: hidden; border: 1px solid #d8dfd8; border-radius: 16px; background: #fff; }
@@ -150,17 +280,30 @@ import { kazakhstanCandidates, portalReviewNotice } from '../../../../data/porta
   .exchange-cell { display: grid; grid-template-columns: auto auto minmax(0,1fr); align-items: center; gap: 11px; }
   .rank-placeholder { display: grid; width: 30px; height: 30px; place-items: center; border: 1px dashed #bdc7d2; border-radius: 8px; color: #7a8795; font-weight: 900; }
   .exchange-cell strong, .exchange-cell small { display: block; }
-  .exchange-cell small { margin-top: 3px; color: #788492; }
+  .exchange-cell small { margin-top: 3px; color: #788492; font-size: 9px; overflow-wrap: anywhere; }
   .evidence-cell p { margin: 9px 0 0; color: #697482; font-size: 12px; line-height: 1.55; }
   .action-cell { align-self: center; }
-  .disabled-action { display: block; border: 1px solid #d8dde3; border-radius: 9px; padding: 10px 12px; background: #f1f3f5; color: #788492; font-size: 12px; font-weight: 900; text-align: center; }
+  .disabled-action, .review-action { display: block; border: 1px solid #d8dde3; border-radius: 9px; padding: 10px 12px; background: #f1f3f5; color: #788492; font-size: 12px; font-weight: 900; text-align: center; }
+  .review-action { border-color: #f0bc73; background: #fff3e2; color: #8a4d00; }
   .action-cell small { display: block; margin-top: 6px; color: #8a939e; font-size: 9px; text-align: center; }
-  .approval-gate { margin-top: 24px; padding: 26px; border-radius: 16px; color: #fff; background: #13233e; }
-  .approval-gate > .eyebrow { margin-top: 0; }
-  .gate-grid { display: grid; gap: 18px; }
-  .gate-grid span { color: #f7931a; font-size: 10px; font-weight: 900; }
-  .gate-grid strong { display: block; margin-top: 6px; }
-  .gate-grid p { margin: 6px 0 0; color: #becada; font-size: 12px; line-height: 1.55; }
+  .gate-card, .gap-card { margin-top: 24px; padding: 26px; border-radius: 16px; }
+  .gate-card { color: #fff; background: #13233e; }
+  .gate-grid { display: grid; gap: 12px; }
+  .gate-item { display: grid; grid-template-columns: auto minmax(0,1fr); gap: 10px; padding: 14px; border: 1px solid rgba(255,255,255,.12); border-radius: 11px; background: rgba(255,255,255,.05); }
+  .gate-item > span { display: grid; width: 28px; height: 28px; place-items: center; border-radius: 8px; background: #943b31; color: #fff; font-size: 9px; font-weight: 900; }
+  .gate-item.pass > span { background: #16834b; }
+  .gate-item strong, .gate-item b { display: block; }
+  .gate-item b { margin-top: 4px; color: #f7b75e; font-size: 10px; }
+  .gate-item p { margin: 6px 0 0; color: #bdc9d8; font-size: 11px; line-height: 1.5; }
+  .gap-card { border: 1px solid #d9dfd9; background: #fff; }
+  .gap-heading { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 14px; align-items: end; }
+  .gap-heading > span { padding: 8px 10px; border-radius: 999px; background: #fff0dc; color: #8a4d00; font-size: 10px; font-weight: 900; }
+  .gap-list { display: grid; gap: 10px; margin-top: 22px; }
+  .gap-row { display: grid; gap: 10px; padding: 15px; border: 1px solid #e2e6e1; border-radius: 11px; background: #f8faf7; }
+  .gap-row > div:first-child { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .gap-row > div:first-child strong { color: #925204; text-transform: uppercase; }
+  .gap-row > div:first-child span { color: #677482; font-size: 11px; font-weight: 800; }
+  .gap-row p { margin: 0; color: #667280; font-size: 11px; line-height: 1.55; }
   .side-column { display: grid; align-content: start; gap: 14px; }
   .side-card, .warning-card { padding: 18px; border: 1px solid #dce2dc; border-radius: 14px; background: #fff; }
   .side-card .card-label { margin-top: 0; }
@@ -177,9 +320,10 @@ import { kazakhstanCandidates, portalReviewNotice } from '../../../../data/porta
     .table-head { display: grid; grid-template-columns: 1.1fr 1.45fr .75fr; gap: 16px; }
     .candidate-row { grid-template-columns: 1.1fr 1.45fr .75fr; }
     .gate-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .gap-row { grid-template-columns: .75fr 1.3fr 1.1fr; align-items: start; }
+    .gap-row > :last-child { grid-column: 1 / -1; }
   }
   @media (min-width: 980px) {
     .layout-grid { grid-template-columns: minmax(0,1fr) 290px; }
-    .gate-grid { grid-template-columns: repeat(4,minmax(0,1fr)); }
   }
 </style>
