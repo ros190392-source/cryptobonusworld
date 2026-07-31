@@ -6,7 +6,8 @@ import { binanceKazakhstanMarketProfile } from '../../../../data/pilots/kz/binan
 import { bybitKazakhstanMarketProfile } from '../../../../data/pilots/kz/bybitReview';
 import { okxKazakhstanMarketProfile } from '../../../../data/pilots/kz/okxReview';
 import {
-  kazakhstanEvidenceGaps,
+  kazakhstanMappedEvidenceGaps,
+  kazakhstanOpenEvidenceGaps,
   kazakhstanRankingReadiness,
 } from '../../../../data/pilots/kz/readiness';
 
@@ -18,7 +19,7 @@ const candidates = [
     label: 'Validated · limited',
     detail: `${binanceKazakhstanMarketProfile.claimIds.length} claims · offer under review`,
     tone: 'partial' as const,
-    evidence: 'Corrected deep-research record mapped into official/regulator packets and validated claims.',
+    evidence: 'Licence, KYC and public P2P route surfaces are mapped; active orders and current direct KZT rails remain unconfirmed.',
     rankingState: 'Methodology review required',
     reviewHref: '/__design/cbw-v2/market-passport/',
   },
@@ -29,7 +30,7 @@ const candidates = [
     label: 'Validated · available',
     detail: `${bybitKazakhstanMarketProfile.claimIds.length} claims · offer under review`,
     tone: 'verified' as const,
-    evidence: 'AFSA licence and governed KZ availability are mapped; local offer and P2P details remain gaps.',
+    evidence: 'AFSA licence, mandatory Standard KYC, dated P2P launch, platform fee and per-ad KZT range are mapped; local offer eligibility remains open.',
     rankingState: 'Methodology review required',
     reviewHref: null,
   },
@@ -97,7 +98,7 @@ const gates = [
   },
 ];
 
-const p0Gaps = kazakhstanEvidenceGaps.filter(gap => gap.severity === 'P0');
+const p0Gaps = kazakhstanOpenEvidenceGaps.filter(gap => gap.severity === 'P0');
 ---
 
 <CleanLayout
@@ -185,8 +186,8 @@ const p0Gaps = kazakhstanEvidenceGaps.filter(gap => gap.severity === 'P0');
 
           <article class="gap-card">
             <header>
-              <div><p class="eyebrow">P0 evidence and decision gaps</p><h2>What still blocks publication</h2></div>
-              <span>{p0Gaps.length} P0 gaps</span>
+              <div><p class="eyebrow">Open P0 evidence and decision gaps</p><h2>What still blocks publication</h2></div>
+              <span>{p0Gaps.length} open P0 gaps</span>
             </header>
             <div class="gap-list">
               {p0Gaps.map(gap => (
@@ -212,6 +213,8 @@ const p0Gaps = kazakhstanEvidenceGaps.filter(gap => gap.severity === 'P0');
             <dl>
               <div><dt>Country</dt><dd>KZ</dd></div>
               <div><dt>Profiles</dt><dd>{kazakhstanRankingReadiness.validatedProfileIds.length}/3</dd></div>
+              <div><dt>Open P0 gaps</dt><dd>{p0Gaps.length}</dd></div>
+              <div><dt>Mapped gaps</dt><dd>{kazakhstanMappedEvidenceGaps.length}</dd></div>
               <div><dt>Conflict-blocked</dt><dd>{kazakhstanRankingReadiness.conflictBlockedProfileIds.length}</dd></div>
               <div><dt>Methodology</dt><dd>missing</dd></div>
               <div><dt>Approved rows</dt><dd>0</dd></div>
