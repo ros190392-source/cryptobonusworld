@@ -5,6 +5,10 @@ import {
   validateRankingSnapshot,
   validateSourcePacket,
 } from './portalFactory';
+import {
+  binanceKazakhstanReviewPass,
+  binanceKazakhstanReviewResults,
+} from '../pilots/kz/binanceReview';
 
 const digest = `sha256:${'a'.repeat(64)}`;
 
@@ -115,11 +119,14 @@ export const portalFactoryFixtureResults = [
   { name: 'Approved unknown market profile', expected: 'REJECT', result: validateMarketProfile(invalidApprovedUnknownProfile) },
   { name: 'Approved empty ranking', expected: 'REJECT', result: validateRankingSnapshot(invalidApprovedEmptyRanking) },
   { name: 'Approved package without sources/locales', expected: 'REJECT', result: validateContentPackage(invalidApprovedPackage) },
+  ...binanceKazakhstanReviewResults,
 ] as const;
 
-export const portalFactoryFixturesPass = portalFactoryFixtureResults.every(item =>
-  item.expected === 'PASS' ? item.result.ok : !item.result.ok,
-);
+export const portalFactoryFixturesPass =
+  binanceKazakhstanReviewPass &&
+  portalFactoryFixtureResults.every(item =>
+    item.expected === 'PASS' ? item.result.ok : !item.result.ok,
+  );
 
 if (!portalFactoryFixturesPass) {
   throw new Error('Portal Factory contract fixtures did not produce the expected validation states.');
