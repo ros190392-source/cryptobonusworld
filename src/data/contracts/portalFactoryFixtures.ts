@@ -29,6 +29,10 @@ import {
   kazakhstanMethodologyIssues,
   kazakhstanMethodologyPass,
 } from '../pilots/kz/methodologyProposal';
+import {
+  kazakhstanDraftRankingSnapshotPass,
+  kazakhstanDraftRankingSnapshotResult,
+} from '../pilots/kz/rankingSnapshotDraft';
 
 const digest = `sha256:${'a'.repeat(64)}`;
 
@@ -180,9 +184,14 @@ export const portalFactoryFixtureResults = [
     result: kazakhstanReadinessResult,
   },
   {
-    name: 'Kazakhstan methodology proposal creates no positions or affiliate influence',
+    name: 'Kazakhstan methodology freeze creates no positions or affiliate influence',
     expected: 'PASS',
     result: kazakhstanMethodologyResult,
+  },
+  {
+    name: 'Kazakhstan owner-review draft RankingSnapshot stays empty and non-approved',
+    expected: 'PASS',
+    result: kazakhstanDraftRankingSnapshotResult,
   },
 ] as const;
 
@@ -193,6 +202,7 @@ export const portalFactoryFixturesPass =
   okxKazakhstanReviewPass &&
   kazakhstanReadinessPass &&
   kazakhstanMethodologyPass &&
+  kazakhstanDraftRankingSnapshotPass &&
   portalFactoryFixtureResults.every(item =>
     item.expected === 'PASS' ? item.result.ok : !item.result.ok,
   );
