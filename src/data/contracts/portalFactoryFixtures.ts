@@ -13,6 +13,10 @@ import {
   binanceKazakhstanFactParityIssues,
   binanceKazakhstanFactParityPass,
 } from '../pilots/kz/binanceLocaleParity';
+import {
+  bybitKazakhstanReviewPass,
+  bybitKazakhstanReviewResults,
+} from '../pilots/kz/bybitReview';
 
 const digest = `sha256:${'a'.repeat(64)}`;
 
@@ -138,11 +142,13 @@ export const portalFactoryFixtureResults = [
     expected: 'PASS',
     result: binanceKazakhstanFactParityResult,
   },
+  ...bybitKazakhstanReviewResults,
 ] as const;
 
 export const portalFactoryFixturesPass =
   binanceKazakhstanReviewPass &&
   binanceKazakhstanFactParityPass &&
+  bybitKazakhstanReviewPass &&
   portalFactoryFixtureResults.every(item =>
     item.expected === 'PASS' ? item.result.ok : !item.result.ok,
   );
