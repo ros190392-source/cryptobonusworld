@@ -25,6 +25,10 @@ import {
   kazakhstanReadinessIssues,
   kazakhstanReadinessPass,
 } from '../pilots/kz/readiness';
+import {
+  kazakhstanMethodologyIssues,
+  kazakhstanMethodologyPass,
+} from '../pilots/kz/methodologyProposal';
 
 const digest = `sha256:${'a'.repeat(64)}`;
 
@@ -143,6 +147,15 @@ const kazakhstanReadinessResult = {
   })),
 };
 
+const kazakhstanMethodologyResult = {
+  ok: kazakhstanMethodologyPass,
+  issues: kazakhstanMethodologyIssues.map(message => ({
+    path: 'pilot.kz.methodology',
+    code: 'METHODOLOGY_BOUNDARY_VIOLATION',
+    message,
+  })),
+};
+
 export const portalFactoryFixtureResults = [
   { name: 'Valid source packet', expected: 'PASS', result: validateSourcePacket(validSourcePacket) },
   { name: 'Valid normalized claim', expected: 'PASS', result: validateNormalizedClaim(validClaim) },
@@ -166,6 +179,11 @@ export const portalFactoryFixtureResults = [
     expected: 'PASS',
     result: kazakhstanReadinessResult,
   },
+  {
+    name: 'Kazakhstan methodology proposal creates no positions or affiliate influence',
+    expected: 'PASS',
+    result: kazakhstanMethodologyResult,
+  },
 ] as const;
 
 export const portalFactoryFixturesPass =
@@ -174,6 +192,7 @@ export const portalFactoryFixturesPass =
   bybitKazakhstanReviewPass &&
   okxKazakhstanReviewPass &&
   kazakhstanReadinessPass &&
+  kazakhstanMethodologyPass &&
   portalFactoryFixtureResults.every(item =>
     item.expected === 'PASS' ? item.result.ok : !item.result.ok,
   );
