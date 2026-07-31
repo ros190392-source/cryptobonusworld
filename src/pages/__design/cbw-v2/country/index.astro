@@ -1,0 +1,178 @@
+---
+import CleanLayout from '../../../../layouts/CleanLayout.astro';
+import ReviewStatus from '../../../../components/portal-v2/ReviewStatus.astro';
+import { kazakhstanReview, portalReviewNotice } from '../../../../data/portalFactoryReview';
+---
+
+<CleanLayout
+  title="CBW Portal Factory v2 — Country Hub Template"
+  description="Review-only country hub template for the CryptoBonusWorld portal factory."
+  noindex={true}
+  bodyClass="cbw-v2-country-review"
+>
+  <main class="country-page">
+    <section class="country-hero">
+      <div class="shell">
+        <div class="review-nav">
+          <span>Review route · noindex</span>
+          <nav aria-label="Portal v2 review routes">
+            <a href="/__design/cbw-v2/homepage/">Homepage</a>
+            <a href="/__design/cbw-v2/country-ranking/">Ranking</a>
+            <a href="/__design/cbw-v2/market-passport/">Market passport</a>
+          </nav>
+        </div>
+
+        <div class="crumbs">Countries <span>/</span> {kazakhstanReview.name}</div>
+
+        <div class="hero-grid">
+          <div>
+            <p class="eyebrow">Country hub template</p>
+            <div class="country-title">
+              <span aria-hidden="true">{kazakhstanReview.flag}</span>
+              <h1>Crypto exchanges in {kazakhstanReview.name}</h1>
+            </div>
+            <p class="lede">{kazakhstanReview.summary}</p>
+            <div class="hero-actions">
+              <a class="button button-primary" href="/__design/cbw-v2/country-ranking/">Open ranking state</a>
+              <a class="button button-ghost" href="/__design/cbw-v2/market-passport/">Open market passport</a>
+            </div>
+          </div>
+
+          <aside class="readiness-card">
+            <p class="card-label">Publication readiness</p>
+            <ReviewStatus {...kazakhstanReview.readiness} />
+            <dl>
+              <div><dt>Country ID</dt><dd>{kazakhstanReview.countryId.toUpperCase()}</dd></div>
+              <div><dt>Presentation</dt><dd>{kazakhstanReview.locale}</dd></div>
+              <div><dt>Indexability</dt><dd>Disabled</dd></div>
+            </dl>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section class="metrics-section">
+      <div class="shell metrics-grid">
+        {kazakhstanReview.metrics.map(metric => (
+          <article class="metric-card">
+            <span>{metric.label}</span>
+            <strong>{metric.value}</strong>
+            <ReviewStatus label={metric.value} tone={metric.tone} compact={true} />
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="content-section">
+      <div class="shell content-grid">
+        <div class="main-column">
+          <div class="section-heading">
+            <p class="eyebrow">Market evidence</p>
+            <h2>What this country page may publish</h2>
+            <p>Each block is driven by approved structured data. Missing fields render a visible review state instead of generic filler.</p>
+          </div>
+
+          <div class="topic-grid">
+            {kazakhstanReview.topics.map(topic => (
+              <article class="topic-card">
+                <ReviewStatus label={topic.title} tone={topic.tone} compact={true} />
+                <h3>{topic.title}</h3>
+                <p>{topic.text}</p>
+              </article>
+            ))}
+          </div>
+
+          <article class="empty-ranking">
+            <div>
+              <p class="eyebrow">Ranking gate</p>
+              <h2>No approved country ranking snapshot</h2>
+              <p>Candidate exchanges may be researched, but numbered positions remain hidden until methodology, evidence freshness and owner approval are attached to a snapshot.</p>
+            </div>
+            <a href="/__design/cbw-v2/country-ranking/">Review the fail-closed ranking template →</a>
+          </article>
+        </div>
+
+        <aside class="side-column">
+          <div class="side-card">
+            <p class="card-label">Page family</p>
+            <a href="/__design/cbw-v2/country-ranking/"><strong>Country ranking</strong><small>Approved snapshot or controlled empty state</small></a>
+            <a href="/__design/cbw-v2/market-passport/"><strong>Exchange × country passport</strong><small>Availability, KYC, payments, products and offer binding</small></a>
+            <a href="/__design/cbw-v2/homepage/"><strong>Homepage entry</strong><small>Country discovery without a duplicate ranking</small></a>
+          </div>
+
+          <div class="notice-card">
+            <strong>Fixture boundary</strong>
+            <p>{portalReviewNotice}</p>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </main>
+</CleanLayout>
+
+<style>
+  :global(body.cbw-v2-country-review) { background: #f7f8f4; }
+  .country-page { min-height: 100vh; color: #13233e; background: #f7f8f4; }
+  .shell { width: min(1160px, calc(100% - 32px)); margin: 0 auto; }
+  .country-hero { padding: 18px 0 70px; color: #fff; background: radial-gradient(circle at 78% 18%, rgba(247,147,26,.22), transparent 28%), linear-gradient(135deg,#0c1729,#172d4c); }
+  .review-nav { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; padding: 10px 13px; border: 1px solid rgba(255,255,255,.14); border-radius: 10px; color: #c7d2e1; font-size: 10px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+  .review-nav nav { display: flex; flex-wrap: wrap; gap: 12px; }
+  .review-nav a { color: #f7b75e; }
+  .crumbs { margin-top: 34px; color: #aebed2; font-size: 12px; }
+  .crumbs span { padding: 0 7px; color: #f7931a; }
+  .hero-grid { display: grid; gap: 28px; align-items: end; margin-top: 34px; }
+  .eyebrow, .card-label { margin: 0 0 10px; color: #f7931a; font-size: 10px; font-weight: 900; letter-spacing: .13em; text-transform: uppercase; }
+  .country-title { display: flex; align-items: flex-start; gap: 16px; }
+  .country-title > span { font-size: 42px; line-height: 1; }
+  h1, h2 { font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: -.025em; }
+  h1 { max-width: 800px; margin: 0; font-size: clamp(48px,8vw,82px); line-height: .92; }
+  .lede { max-width: 760px; margin: 24px 0 0; color: #d2ddea; font-size: 16px; line-height: 1.75; }
+  .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
+  .button { display: inline-flex; min-height: 46px; align-items: center; border: 1px solid transparent; border-radius: 10px; padding: 0 18px; font-size: 13px; font-weight: 900; }
+  .button-primary { color: #13233e; background: #f7931a; }
+  .button-ghost { color: #fff; border-color: rgba(255,255,255,.42); }
+  .readiness-card { padding: 20px; border: 1px solid rgba(255,255,255,.15); border-radius: 16px; background: rgba(255,255,255,.08); backdrop-filter: blur(10px); }
+  .readiness-card dl { display: grid; gap: 10px; margin: 18px 0 0; }
+  .readiness-card dl div { display: flex; justify-content: space-between; gap: 14px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,.12); }
+  .readiness-card dt { color: #b8c5d4; font-size: 11px; }
+  .readiness-card dd { margin: 0; font-size: 11px; font-weight: 900; }
+  .metrics-section { position: relative; margin-top: -26px; }
+  .metrics-grid { display: grid; gap: 10px; }
+  .metric-card { min-width: 0; padding: 18px; border: 1px solid #dce2dc; border-radius: 14px; background: #fff; box-shadow: 0 12px 28px rgba(19,35,62,.08); }
+  .metric-card > span { display: block; color: #738092; font-size: 10px; font-weight: 900; letter-spacing: .07em; text-transform: uppercase; }
+  .metric-card > strong { display: block; margin: 9px 0 13px; font-size: 18px; }
+  .content-section { padding: 74px 0 90px; }
+  .content-grid { display: grid; gap: 26px; }
+  .section-heading h2, .empty-ranking h2 { margin: 0; font-size: clamp(38px,6vw,58px); line-height: .96; }
+  .section-heading > p:last-child, .empty-ranking p { max-width: 760px; color: #627080; line-height: 1.7; }
+  .topic-grid { display: grid; gap: 12px; margin-top: 28px; }
+  .topic-card { padding: 20px; border: 1px solid #dce2dc; border-radius: 14px; background: #fff; }
+  .topic-card h3 { margin: 18px 0 7px; font-size: 18px; }
+  .topic-card p { margin: 0; color: #657180; font-size: 13px; line-height: 1.65; }
+  .empty-ranking { display: grid; gap: 20px; margin-top: 24px; padding: 28px; border: 1px dashed #b8c3d0; border-radius: 16px; background: #eef3f8; }
+  .empty-ranking a { align-self: end; color: #925204; font-size: 13px; font-weight: 900; }
+  .side-column { display: grid; align-content: start; gap: 14px; }
+  .side-card, .notice-card { border: 1px solid #dce2dc; border-radius: 14px; padding: 19px; background: #fff; }
+  .side-card { display: grid; gap: 8px; }
+  .side-card a { display: block; padding: 13px; border-radius: 10px; background: #f5f7f4; }
+  .side-card strong, .side-card small { display: block; }
+  .side-card small { margin-top: 4px; color: #6d7885; line-height: 1.45; }
+  .notice-card { border-color: #f0cc96; background: #fff8ec; }
+  .notice-card p { margin: 8px 0 0; color: #745d3f; font-size: 12px; line-height: 1.6; }
+  @media (min-width: 720px) {
+    .metrics-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .topic-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
+    .empty-ranking { grid-template-columns: 1fr auto; }
+  }
+  @media (min-width: 960px) {
+    .hero-grid { grid-template-columns: minmax(0,1.65fr) minmax(280px,.65fr); }
+    .metrics-grid { grid-template-columns: repeat(4,minmax(0,1fr)); }
+    .content-grid { grid-template-columns: minmax(0,1fr) 310px; }
+  }
+  @media (max-width: 560px) {
+    .country-title { display: block; }
+    .country-title > span { display: block; margin-bottom: 16px; }
+    .country-hero { padding-bottom: 58px; }
+    .review-nav nav { gap: 8px; }
+  }
+</style>
