@@ -2,14 +2,35 @@
 import CleanLayout from '../../../../layouts/CleanLayout.astro';
 import ExchangeLogo from '../../../../components/ExchangeLogo.astro';
 import ReviewStatus from '../../../../components/portal-v2/ReviewStatus.astro';
-import { binanceKazakhstanPassport, portalReviewNotice } from '../../../../data/portalFactoryReview';
+import {
+  binanceKazakhstanMarketProfile,
+  binanceKazakhstanSourcePackets,
+} from '../../../../data/pilots/kz/binanceReview';
+import {
+  binanceKazakhstanFactParityPass,
+  binanceKazakhstanLocalizedViews,
+  type BinanceKazakhstanReviewLocale,
+} from '../../../../data/pilots/kz/binanceLocaleParity';
 
-const passport = binanceKazakhstanPassport;
+const locales: BinanceKazakhstanReviewLocale[] = ['en', 'ru'];
+const views = locales.map(locale => binanceKazakhstanLocalizedViews[locale]);
+const profile = binanceKazakhstanMarketProfile;
+
+function claimTone(confidence: string, approval: string) {
+  if (approval === 'validated' && confidence === 'high') return 'verified' as const;
+  if (approval === 'validated') return 'partial' as const;
+  return 'review' as const;
+}
+
+function formatValue(value: string | number | boolean): string {
+  if (typeof value === 'boolean') return value ? 'true' : 'false';
+  return String(value);
+}
 ---
 
 <CleanLayout
-  title="CBW Portal Factory v2 — Market Passport Template"
-  description="Review-only Exchange × Country market passport template for CryptoBonusWorld."
+  title="CBW Portal Factory v2 — Binance Kazakhstan Review Passport"
+  description="Review-only Binance × Kazakhstan market passport rendered from validated evidence contracts."
   noindex={true}
   bodyClass="cbw-v2-passport-review"
 >
@@ -17,35 +38,49 @@ const passport = binanceKazakhstanPassport;
     <section class="passport-hero">
       <div class="shell">
         <div class="review-nav">
-          <span>Review route · noindex</span>
+          <span>Review route · noindex · real normalized dataset</span>
           <nav aria-label="Portal v2 review routes">
             <a href="/__design/cbw-v2/homepage/">Homepage</a>
             <a href="/__design/cbw-v2/country/">Country hub</a>
-            <a href="/__design/cbw-v2/country-ranking/">Ranking</a>
+            <a href="/__design/cbw-v2/contracts/">Contracts</a>
           </nav>
         </div>
 
-        <div class="crumbs">Countries <span>/</span> {passport.country} <span>/</span> Exchanges <span>/</span> {passport.exchange}</div>
+        <div class="crumbs">Countries <span>/</span> Kazakhstan <span>/</span> Exchanges <span>/</span> Binance</div>
 
         <div class="identity-grid">
           <div class="identity-copy">
             <p class="eyebrow">Exchange × Country market passport</p>
             <div class="identity-title">
-              <ExchangeLogo slug={passport.exchangeSlug} name={passport.exchange} size={58} variant="square" lazy={false} />
+              <ExchangeLogo slug="binance" name="Binance" size={58} variant="square" lazy={false} />
               <div>
-                <h1>{passport.exchange} in {passport.country}</h1>
-                <p>{passport.countryFlag} Country-specific evidence layer</p>
+                <h1>Binance in Kazakhstan</h1>
+                <p>🇰🇿 Validated review profile · not authorized for publication</p>
               </div>
             </div>
-            <p class="lede">A market passport keeps global exchange identity separate from local availability, requirements, payments, products and offer eligibility.</p>
+            <p class="lede">
+              This page now renders the first real Portal Factory dataset mapped from the corrected Binance × Kazakhstan research record.
+              It is still noindex and cannot activate a ranking, local offer or public route.
+            </p>
           </div>
 
           <aside class="state-card">
-            <p class="card-label">Current publication state</p>
-            <ReviewStatus {...passport.state} />
+            <p class="card-label">Current contract state</p>
+            <ReviewStatus
+              label="Validated review profile"
+              detail={`${profile.availability} availability · offer ${profile.offerEligibility}`}
+              tone="partial"
+            />
+            <div class="parity-state">
+              <span class:list={['parity-dot', { pass: binanceKazakhstanFactParityPass }]}></span>
+              <div>
+                <strong>{binanceKazakhstanFactParityPass ? 'EN/RU fact parity PASS' : 'EN/RU fact parity FAIL'}</strong>
+                <small>Both locales reference the same immutable claims and profile object.</small>
+              </div>
+            </div>
             <div class="cta-disabled">
               <strong>No affiliate CTA</strong>
-              <small>Offer activation requires a separately approved local binding.</small>
+              <small>No owner-approved CBW Binance campaign binding exists for Kazakhstan.</small>
             </div>
           </aside>
         </div>
@@ -55,67 +90,141 @@ const passport = binanceKazakhstanPassport;
     <section class="passport-body">
       <div class="shell body-grid">
         <div class="main-column">
-          <div class="section-heading">
-            <p class="eyebrow">Structured market profile</p>
-            <h2>Every local claim has a gate</h2>
-            <p>These blocks demonstrate how the page handles pending, stale and approved states without using raw parser output during rendering.</p>
-          </div>
-
-          <div class="field-list">
-            {passport.fields.map((field, index) => (
-              <article class="field-row">
-                <div class="field-number">{String(index + 1).padStart(2, '0')}</div>
-                <div class="field-copy">
-                  <span>{field.label}</span>
-                  <strong>{field.value}</strong>
-                  <p>{field.note}</p>
-                </div>
-                <ReviewStatus label={field.value} tone={field.tone} compact={true} />
-              </article>
-            ))}
-          </div>
-
-          <article class="history-card">
+          <div class="locale-toolbar" role="group" aria-label="Review locale">
             <div>
-              <p class="eyebrow">Public change history</p>
-              <h2>Material changes become visible records</h2>
-              <p>A parser may flag an impact, but only an approved claim revision updates the market passport and publication record.</p>
+              <span>Presentation locale</span>
+              <strong>Facts stay immutable</strong>
             </div>
-            <div class="history-row">
-              <span>Review fixture</span>
-              <strong>No approved material change published</strong>
-              <ReviewStatus label="Awaiting approved profile" tone="review" compact={true} />
+            <div class="locale-buttons">
+              <button type="button" class="locale-button active" data-locale-button="en" aria-pressed="true">English</button>
+              <button type="button" class="locale-button" data-locale-button="ru" aria-pressed="false">Русский</button>
             </div>
-          </article>
+          </div>
+
+          {views.map(view => (
+            <section class="locale-panel" data-locale-panel={view.locale} hidden={view.locale !== 'en'}>
+              <div class="section-heading">
+                <p class="eyebrow">{view.profileCopy.statusLabel}</p>
+                <h2>{view.profileCopy.title}</h2>
+                <p>
+                  {view.locale === 'en'
+                    ? 'Localized copy may change wording only. Claim IDs, values, dates, confidence, evidence references and approval states come from the shared profile.'
+                    : 'Локализованный текст может менять только формулировки. ID фактов, значения, даты, confidence, ссылки на evidence и статусы approval берутся из общего профиля.'}
+                </p>
+              </div>
+
+              <div class="profile-strip">
+                <div><span>Availability</span><strong>{view.profileCopy.availabilityLabel}</strong></div>
+                <div><span>Offer</span><strong>{view.profileCopy.offerLabel}</strong></div>
+                <div><span>Last checked</span><strong>{profile.lastCheckedAt.slice(0, 10)}</strong></div>
+                <div><span>Next review</span><strong>{profile.nextReviewAt.slice(0, 10)}</strong></div>
+              </div>
+
+              <div class="field-list">
+                {view.facts.map((fact, index) => (
+                  <article class="field-row">
+                    <div class="field-number">{String(index + 1).padStart(2, '0')}</div>
+                    <div class="field-copy">
+                      <span>{fact.copy.label}</span>
+                      <strong>{fact.copy.summary}</strong>
+                      <div class="fact-meta">
+                        <code>{fact.claim.claimId}</code>
+                        <span>{fact.claim.predicate}</span>
+                        <span>value: {formatValue(fact.claim.value)}</span>
+                        <span>confidence: {fact.claim.confidence}</span>
+                      </div>
+                      {fact.claim.limitations.length > 0 && (
+                        <ul class="fact-limitations">
+                          {fact.claim.limitations.map(limitation => <li>{limitation}</li>)}
+                        </ul>
+                      )}
+                    </div>
+                    <ReviewStatus
+                      label={fact.claim.approval}
+                      detail={fact.claim.confidence}
+                      tone={claimTone(fact.claim.confidence, fact.claim.approval)}
+                      compact={true}
+                    />
+                  </article>
+                ))}
+              </div>
+
+              <article class="limitations-card">
+                <div>
+                  <p class="eyebrow">{view.profileCopy.limitationHeading}</p>
+                  <h2>{view.locale === 'en' ? 'Validated does not mean publishable' : 'Validated не означает готовность к публикации'}</h2>
+                </div>
+                <ul>
+                  {profile.limitations.map(limitation => <li>{limitation}</li>)}
+                </ul>
+              </article>
+            </section>
+          ))}
         </div>
 
         <aside class="side-column">
           <div class="source-card">
-            <p class="card-label">Required evidence classes</p>
+            <p class="card-label">Mapped source packets</p>
+            <p class="source-intro">{binanceKazakhstanSourcePackets.length} official/control records mapped into build-validated packets.</p>
             <ul>
-              {passport.sources.map(source => <li>{source}</li>)}
+              {binanceKazakhstanSourcePackets.map(source => (
+                <li>
+                  <strong>{source.publisher}</strong>
+                  <span>{source.sourceClass}</span>
+                  <small>{source.topics.join(' · ')}</small>
+                </li>
+              ))}
             </ul>
           </div>
 
           <div class="contract-card">
             <p class="card-label">Entity contract</p>
-            <code>MarketProfile(exchangeId, countryId)</code>
+            <code>{profile.profileId}</code>
             <dl>
-              <div><dt>Exchange</dt><dd>{passport.exchangeSlug}</dd></div>
-              <div><dt>Country</dt><dd>KZ</dd></div>
-              <div><dt>Approval</dt><dd>Pending</dd></div>
-              <div><dt>Indexability</dt><dd>Off</dd></div>
+              <div><dt>Exchange</dt><dd>{profile.exchangeId}</dd></div>
+              <div><dt>Country</dt><dd>{profile.countryCode}</dd></div>
+              <div><dt>Approval</dt><dd>{profile.approval}</dd></div>
+              <div><dt>Availability</dt><dd>{profile.availability}</dd></div>
+              <div><dt>Offer</dt><dd>{profile.offerEligibility}</dd></div>
+              <div><dt>Indexability</dt><dd>off</dd></div>
             </dl>
           </div>
 
           <div class="notice-card">
-            <strong>Design fixture only</strong>
-            <p>{portalReviewNotice}</p>
+            <strong>Research normalization boundary</strong>
+            <p>
+              Source metadata was mapped from the corrected research package. Standalone raw HTML digests were not supplied per source,
+              so each packet carries an explicit extraction warning and references the corrected source-verification file digest.
+            </p>
           </div>
         </aside>
       </div>
     </section>
   </main>
+
+  <script is:inline>
+    (function () {
+      var buttons = document.querySelectorAll('[data-locale-button]');
+      var panels = document.querySelectorAll('[data-locale-panel]');
+
+      function applyLocale(locale) {
+        for (var i = 0; i < panels.length; i += 1) {
+          panels[i].hidden = panels[i].getAttribute('data-locale-panel') !== locale;
+        }
+        for (var j = 0; j < buttons.length; j += 1) {
+          var active = buttons[j].getAttribute('data-locale-button') === locale;
+          buttons[j].classList.toggle('active', active);
+          buttons[j].setAttribute('aria-pressed', active ? 'true' : 'false');
+        }
+      }
+
+      for (var i = 0; i < buttons.length; i += 1) {
+        buttons[i].addEventListener('click', function () {
+          applyLocale(this.getAttribute('data-locale-button') || 'en');
+        });
+      }
+    })();
+  </script>
 </CleanLayout>
 
 <style>
@@ -134,31 +243,54 @@ const passport = binanceKazakhstanPassport;
   h1, h2 { font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: -.025em; }
   h1 { margin: 0; font-size: clamp(44px,7vw,76px); line-height: .92; }
   .identity-title p { margin: 8px 0 0; color: #b9c7d8; font-size: 12px; font-weight: 800; }
-  .lede { max-width: 760px; margin: 22px 0 0; color: #d2ddea; font-size: 16px; line-height: 1.7; }
+  .lede { max-width: 780px; margin: 22px 0 0; color: #d2ddea; font-size: 16px; line-height: 1.7; }
   .state-card { padding: 19px; border: 1px solid rgba(255,255,255,.15); border-radius: 16px; background: rgba(255,255,255,.08); }
+  .parity-state { display: flex; gap: 9px; margin-top: 14px; padding: 12px; border-radius: 10px; background: rgba(255,255,255,.07); }
+  .parity-dot { width: 9px; height: 9px; flex: 0 0 9px; margin-top: 4px; border-radius: 999px; background: #c33d3d; }
+  .parity-dot.pass { background: #49d17d; }
+  .parity-state strong, .parity-state small { display: block; }
+  .parity-state small { margin-top: 4px; color: #b9c7d8; line-height: 1.45; }
   .cta-disabled { margin-top: 14px; padding: 13px; border: 1px dashed rgba(255,255,255,.24); border-radius: 10px; color: #c5cfdb; }
   .cta-disabled strong, .cta-disabled small { display: block; }
   .cta-disabled small { margin-top: 4px; line-height: 1.5; }
   .passport-body { padding: 70px 0 92px; }
   .body-grid { display: grid; gap: 24px; }
-  .section-heading h2, .history-card h2 { margin: 0; font-size: clamp(38px,6vw,58px); line-height: .95; }
-  .section-heading > p:last-child, .history-card > div > p:last-child { max-width: 740px; color: #647080; line-height: 1.65; }
-  .field-list { overflow: hidden; margin-top: 28px; border: 1px solid #d9dfd9; border-radius: 16px; background: #fff; }
-  .field-row { display: grid; gap: 14px; align-items: center; padding: 18px; border-top: 1px solid #e5e9e4; }
+  .locale-toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 14px; align-items: center; margin-bottom: 28px; padding: 14px; border: 1px solid #d9dfd9; border-radius: 14px; background: #fff; }
+  .locale-toolbar span, .locale-toolbar strong { display: block; }
+  .locale-toolbar span { color: #778391; font-size: 9px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+  .locale-toolbar strong { margin-top: 3px; }
+  .locale-buttons { display: flex; gap: 8px; }
+  .locale-button { min-height: 38px; border: 1px solid #d8ded8; border-radius: 9px; padding: 0 13px; background: #f4f6f3; color: #13233e; font-weight: 900; cursor: pointer; }
+  .locale-button.active { border-color: #f7931a; background: #fff1dc; color: #7f4800; }
+  .section-heading h2, .limitations-card h2 { margin: 0; font-size: clamp(38px,6vw,58px); line-height: .95; }
+  .section-heading > p:last-child { max-width: 760px; color: #647080; line-height: 1.65; }
+  .profile-strip { display: grid; gap: 8px; margin-top: 22px; }
+  .profile-strip > div { padding: 12px; border: 1px solid #dce2dc; border-radius: 10px; background: #fff; }
+  .profile-strip span, .profile-strip strong { display: block; }
+  .profile-strip span { color: #788491; font-size: 9px; font-weight: 900; letter-spacing: .07em; text-transform: uppercase; }
+  .profile-strip strong { margin-top: 4px; font-size: 12px; }
+  .field-list { overflow: hidden; margin-top: 18px; border: 1px solid #d9dfd9; border-radius: 16px; background: #fff; }
+  .field-row { display: grid; gap: 14px; align-items: start; padding: 18px; border-top: 1px solid #e5e9e4; }
   .field-row:first-child { border-top: 0; }
   .field-number { display: grid; width: 32px; height: 32px; place-items: center; border-radius: 9px; background: #13233e; color: #f7b75e; font-size: 10px; font-weight: 900; }
   .field-copy > span { display: block; color: #7b8694; font-size: 9px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
-  .field-copy strong { display: block; margin-top: 5px; font-size: 15px; }
-  .field-copy p { margin: 6px 0 0; color: #677382; font-size: 12px; line-height: 1.55; }
-  .history-card { margin-top: 24px; padding: 26px; border-radius: 16px; color: #fff; background: #13233e; }
-  .history-card .eyebrow { margin-top: 0; }
-  .history-card > div > p:last-child { color: #bdc9d8; }
-  .history-row { display: grid; gap: 10px; align-items: center; margin-top: 22px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.13); }
-  .history-row > span { color: #9fb0c4; font-size: 10px; font-weight: 900; text-transform: uppercase; }
+  .field-copy > strong { display: block; margin-top: 5px; font-size: 14px; line-height: 1.5; }
+  .fact-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+  .fact-meta code, .fact-meta span { padding: 4px 6px; border-radius: 6px; background: #f2f5f1; color: #647080; font-size: 9px; overflow-wrap: anywhere; }
+  .fact-meta code { color: #925204; font-weight: 900; }
+  .fact-limitations { display: grid; gap: 4px; margin: 9px 0 0; padding-left: 17px; color: #6b7683; font-size: 10px; line-height: 1.5; }
+  .limitations-card { margin-top: 24px; padding: 26px; border-radius: 16px; color: #fff; background: #13233e; }
+  .limitations-card .eyebrow { margin-top: 0; }
+  .limitations-card ul { display: grid; gap: 9px; margin: 20px 0 0; padding-left: 18px; color: #c4d0dd; font-size: 12px; line-height: 1.6; }
   .side-column { display: grid; align-content: start; gap: 14px; }
   .source-card, .contract-card, .notice-card { padding: 18px; border: 1px solid #dce2dc; border-radius: 14px; background: #fff; }
+  .source-intro { margin: 0 0 12px; color: #647080; font-size: 11px; line-height: 1.55; }
   .source-card ul { display: grid; gap: 9px; margin: 0; padding: 0; list-style: none; }
-  .source-card li { padding: 10px 11px; border-radius: 9px; background: #f4f6f3; color: #566373; font-size: 11px; font-weight: 800; }
+  .source-card li { padding: 10px 11px; border-radius: 9px; background: #f4f6f3; }
+  .source-card li strong, .source-card li span, .source-card li small { display: block; }
+  .source-card li strong { font-size: 11px; }
+  .source-card li span { margin-top: 3px; color: #925204; font-size: 9px; font-weight: 900; text-transform: uppercase; }
+  .source-card li small { margin-top: 3px; color: #687584; line-height: 1.4; }
   .contract-card code { display: block; overflow-wrap: anywhere; padding: 11px; border-radius: 9px; background: #13233e; color: #f7b75e; font-size: 11px; }
   .contract-card dl { display: grid; gap: 9px; margin: 15px 0 0; }
   .contract-card dl div { display: flex; justify-content: space-between; gap: 10px; padding-top: 9px; border-top: 1px solid #e5e9e4; }
@@ -166,15 +298,19 @@ const passport = binanceKazakhstanPassport;
   .contract-card dd { margin: 0; font-size: 10px; font-weight: 900; }
   .notice-card { border-color: #f0cc96; background: #fff8ec; }
   .notice-card p { margin: 8px 0 0; color: #735d40; font-size: 12px; line-height: 1.6; }
-  @media (min-width: 720px) {
+  @media (min-width: 620px) {
+    .profile-strip { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  }
+  @media (min-width: 760px) {
     .field-row { grid-template-columns: auto minmax(0,1fr) auto; }
-    .history-row { grid-template-columns: 130px minmax(0,1fr) auto; }
   }
   @media (min-width: 960px) {
     .identity-grid { grid-template-columns: minmax(0,1.6fr) minmax(280px,.65fr); }
-    .body-grid { grid-template-columns: minmax(0,1fr) 300px; }
+    .body-grid { grid-template-columns: minmax(0,1fr) 310px; }
   }
   @media (max-width: 560px) {
     .identity-title { display: grid; }
+    .locale-buttons { width: 100%; }
+    .locale-button { flex: 1; }
   }
 </style>
