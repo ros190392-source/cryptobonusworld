@@ -41,6 +41,10 @@ import {
   kazakhstanReviewContentPackagesPass,
   kazakhstanReviewContentPackagesResult,
 } from '../pilots/kz/contentPackages';
+import {
+  portalFactoryOwnerFreezePass,
+  portalFactoryOwnerFreezeResult,
+} from '../portalFactoryFreeze';
 
 const digest = `sha256:${'a'.repeat(64)}`;
 
@@ -211,6 +215,11 @@ export const portalFactoryFixtureResults = [
     expected: 'PASS',
     result: kazakhstanReviewContentPackagesResult,
   },
+  {
+    name: 'Portal Factory owner freeze keeps current draft and all public effects unauthorized',
+    expected: 'PASS',
+    result: portalFactoryOwnerFreezeResult,
+  },
 ] as const;
 
 export const portalFactoryFixturesPass =
@@ -223,6 +232,7 @@ export const portalFactoryFixturesPass =
   kazakhstanDraftRankingSnapshotPass &&
   kazakhstanComparativeMatrixPass &&
   kazakhstanReviewContentPackagesPass &&
+  portalFactoryOwnerFreezePass &&
   portalFactoryFixtureResults.every(item =>
     item.expected === 'PASS' ? item.result.ok : !item.result.ok,
   );
