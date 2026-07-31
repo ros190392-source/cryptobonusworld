@@ -1,0 +1,258 @@
+---
+import CleanLayout from '../../../../layouts/CleanLayout.astro';
+import {
+  countryRegistry,
+  localeRegistry,
+  type CountryCode,
+  type LocaleCode,
+} from '../../../../i18n/portalRegistry';
+import { buildPortalRoute, getLocaleAlternates } from '../../../../i18n/portalRoutes';
+import {
+  portalFactoryFixtureResults,
+  portalFactoryFixturesPass,
+} from '../../../../data/contracts/portalFactoryFixtures';
+
+const locales = Object.values(localeRegistry);
+const countries = Object.values(countryRegistry);
+
+const routeSamples = [
+  {
+    label: 'English Kazakhstan country hub shape',
+    route: buildPortalRoute({ locale: 'en', country: 'KZ', page: 'country', mode: 'review' }),
+  },
+  {
+    label: 'Russian Kazakhstan ranking shape',
+    route: buildPortalRoute({ locale: 'ru', country: 'KZ', page: 'country-ranking', mode: 'review' }),
+  },
+  {
+    label: 'Polish Poland market passport shape',
+    route: buildPortalRoute({ locale: 'pl', country: 'PL', page: 'market-passport', exchangeSlug: 'bybit', mode: 'review' }),
+  },
+];
+
+const blockedPublicAttempts: Array<{ label: string; result: string }> = [];
+for (const [locale, country] of [['ru', 'KZ'], ['en', 'KZ']] as Array<[LocaleCode, CountryCode]>) {
+  try {
+    blockedPublicAttempts.push({
+      label: `${locale}/${country}`,
+      result: buildPortalRoute({ locale, country, page: 'country', mode: 'public' }),
+    });
+  } catch (error) {
+    blockedPublicAttempts.push({
+      label: `${locale}/${country}`,
+      result: error instanceof Error ? error.message : 'Publication blocked',
+    });
+  }
+}
+
+const kzAlternates = getLocaleAlternates('KZ', 'market-passport', 'binance');
+---
+
+<CleanLayout
+  title="CBW Portal Factory v2 — i18n and Content Contracts"
+  description="Review-only registry and validation contract specimen for CryptoBonusWorld."
+  noindex={true}
+  bodyClass="cbw-v2-contracts-review"
+>
+  <main class="contracts-page">
+    <section class="contracts-hero">
+      <div class="shell">
+        <div class="review-nav">
+          <span>Review route · noindex</span>
+          <nav aria-label="Portal v2 review routes">
+            <a href="/__design/cbw-v2/homepage/">Homepage</a>
+            <a href="/__design/cbw-v2/country/">Country hub</a>
+            <a href="/__design/cbw-v2/market-passport/">Market passport</a>
+          </nav>
+        </div>
+
+        <p class="eyebrow">i18n + parser-to-content foundation</p>
+        <h1>Routes and facts fail closed.</h1>
+        <p class="lede">
+          Country controls market truth. Locale controls presentation. Parser output becomes publishable only after evidence, contradiction, approval and locale gates pass.
+        </p>
+
+        <div class="hero-status">
+          <span class:list={['status-dot', { pass: portalFactoryFixturesPass }]}></span>
+          <div>
+            <strong>{portalFactoryFixturesPass ? 'Contract fixture suite passed' : 'Contract fixture suite failed'}</strong>
+            <small>Valid drafts are accepted; invalid approved records are rejected during build.</small>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="registry-section">
+      <div class="shell grid-two">
+        <article class="panel">
+          <div class="panel-heading">
+            <p class="eyebrow">Locale registry</p>
+            <h2>Presentation is independent</h2>
+          </div>
+          <div class="registry-list">
+            {locales.map(locale => (
+              <div class="registry-row">
+                <div><strong>{locale.nativeLabel}</strong><small>{locale.code} · {locale.label}</small></div>
+                <div class="registry-meta"><span>{locale.state}</span><small>UI {locale.uiCoverage} · content {locale.contentCoverage}</small></div>
+              </div>
+            ))}
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-heading">
+            <p class="eyebrow">Country registry</p>
+            <h2>Market truth is separate</h2>
+          </div>
+          <div class="registry-list">
+            {countries.map(country => (
+              <div class="registry-row">
+                <div><strong>{country.flag} {country.label}</strong><small>{country.code} · {country.primaryCurrencies.join(', ')}</small></div>
+                <div class="registry-meta"><span>{country.state}</span><small>{country.presentationLocales.join(' · ')}</small></div>
+              </div>
+            ))}
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="route-section">
+      <div class="shell">
+        <div class="section-heading">
+          <p class="eyebrow">Guarded route helpers</p>
+          <h2>URL shape can exist before publication</h2>
+          <p>Review mode can preview future paths. Public mode rejects locales or countries that are not fully approved.</p>
+        </div>
+
+        <div class="route-grid">
+          {routeSamples.map(sample => (
+            <article class="route-card">
+              <span>{sample.label}</span>
+              <code>{sample.route}</code>
+            </article>
+          ))}
+        </div>
+
+        <div class="blocked-grid">
+          {blockedPublicAttempts.map(attempt => (
+            <article class="blocked-card">
+              <strong>Public attempt {attempt.label}</strong>
+              <p>{attempt.result}</p>
+            </article>
+          ))}
+        </div>
+
+        <article class="alternate-card">
+          <div>
+            <p class="eyebrow">Kazakhstan Binance locale shapes</p>
+            <h3>Alternates are proposed, not published</h3>
+          </div>
+          <div class="alternate-list">
+            {kzAlternates.map(item => (
+              <div><span>{item.locale}</span><code>{item.href}</code><strong>{item.public ? 'public' : 'blocked'}</strong></div>
+            ))}
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="validation-section">
+      <div class="shell">
+        <div class="section-heading">
+          <p class="eyebrow">Runtime validation fixtures</p>
+          <h2>Invalid approval states are rejected</h2>
+          <p>The fixture suite runs while Astro builds this route. A validator regression stops the build instead of silently publishing weaker gates.</p>
+        </div>
+
+        <div class="validation-list">
+          {portalFactoryFixtureResults.map(item => {
+            const expectationMet = item.expected === 'PASS' ? item.result.ok : !item.result.ok;
+            return (
+              <article class:list={['validation-row', { good: expectationMet }]}> 
+                <div class="validation-title">
+                  <span>{expectationMet ? '✓' : '!'}</span>
+                  <div><strong>{item.name}</strong><small>Expected {item.expected}</small></div>
+                </div>
+                <div class="validation-result">
+                  <strong>{item.result.ok ? 'ACCEPTED' : 'REJECTED'}</strong>
+                  {item.result.issues.length > 0 ? (
+                    <ul>{item.result.issues.map(problem => <li><code>{problem.code}</code> {problem.message}</li>)}</ul>
+                  ) : (
+                    <p>No validation issues.</p>
+                  )}
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  </main>
+</CleanLayout>
+
+<style>
+  :global(body.cbw-v2-contracts-review) { background: #f7f8f4; }
+  .contracts-page { min-height: 100vh; color: #13233e; background: #f7f8f4; }
+  .shell { width: min(1160px, calc(100% - 32px)); margin: 0 auto; }
+  .contracts-hero { padding: 18px 0 66px; color: #fff; background: radial-gradient(circle at 82% 18%, rgba(247,147,26,.22), transparent 28%), linear-gradient(135deg,#0c1729,#183354); }
+  .review-nav { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; padding: 10px 13px; border: 1px solid rgba(255,255,255,.14); border-radius: 10px; color: #c7d2e1; font-size: 10px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+  .review-nav nav { display: flex; flex-wrap: wrap; gap: 12px; }
+  .review-nav a { color: #f7b75e; }
+  .eyebrow { margin: 34px 0 10px; color: #f7931a; font-size: 10px; font-weight: 900; letter-spacing: .13em; text-transform: uppercase; }
+  h1, h2 { font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: -.025em; }
+  h1 { max-width: 800px; margin: 0; font-size: clamp(48px,8vw,82px); line-height: .92; }
+  .lede { max-width: 780px; margin: 22px 0 0; color: #d2ddea; font-size: 16px; line-height: 1.7; }
+  .hero-status { display: inline-flex; align-items: flex-start; gap: 10px; margin-top: 26px; padding: 14px; border: 1px solid rgba(255,255,255,.16); border-radius: 12px; background: rgba(255,255,255,.07); }
+  .status-dot { width: 10px; height: 10px; margin-top: 4px; border-radius: 999px; background: #c33d3d; }
+  .status-dot.pass { background: #49d17d; }
+  .hero-status strong, .hero-status small { display: block; }
+  .hero-status small { margin-top: 4px; color: #b9c7d8; line-height: 1.45; }
+  .registry-section, .route-section, .validation-section { padding: 72px 0; }
+  .route-section { background: #eef2ec; }
+  .grid-two { display: grid; gap: 16px; }
+  .panel { padding: 22px; border: 1px solid #dbe1db; border-radius: 16px; background: #fff; }
+  .panel .eyebrow, .section-heading .eyebrow, .alternate-card .eyebrow { margin-top: 0; }
+  .panel h2, .section-heading h2 { margin: 0; font-size: clamp(34px,5vw,52px); line-height: .96; }
+  .registry-list { display: grid; gap: 9px; margin-top: 22px; }
+  .registry-row { display: flex; justify-content: space-between; gap: 16px; align-items: center; padding: 13px; border-radius: 10px; background: #f5f7f4; }
+  .registry-row strong, .registry-row small, .registry-meta span { display: block; }
+  .registry-row small { margin-top: 3px; color: #71808e; font-size: 10px; }
+  .registry-meta { text-align: right; }
+  .registry-meta span { color: #925204; font-size: 10px; font-weight: 900; text-transform: uppercase; }
+  .section-heading > p:last-child { max-width: 760px; color: #647080; line-height: 1.65; }
+  .route-grid, .blocked-grid { display: grid; gap: 12px; margin-top: 26px; }
+  .route-card, .blocked-card { padding: 18px; border: 1px solid #d8ded8; border-radius: 13px; background: #fff; }
+  .route-card > span { display: block; color: #6d7987; font-size: 10px; font-weight: 900; text-transform: uppercase; }
+  .route-card code, .alternate-list code { display: block; overflow-wrap: anywhere; margin-top: 9px; color: #925204; font-size: 11px; font-weight: 800; }
+  .blocked-card { border-color: #e8bd83; background: #fff7eb; }
+  .blocked-card p { margin: 8px 0 0; color: #725b3d; font-size: 12px; line-height: 1.55; }
+  .alternate-card { display: grid; gap: 22px; margin-top: 18px; padding: 22px; border-radius: 16px; color: #fff; background: #13233e; }
+  .alternate-card h3 { margin: 0; font-size: 22px; }
+  .alternate-list { display: grid; gap: 8px; }
+  .alternate-list > div { display: grid; grid-template-columns: 32px minmax(0,1fr) auto; gap: 10px; align-items: center; padding: 10px; border: 1px solid rgba(255,255,255,.12); border-radius: 9px; }
+  .alternate-list code { margin-top: 0; color: #f7b75e; }
+  .alternate-list strong { color: #c0cad6; font-size: 9px; text-transform: uppercase; }
+  .validation-list { overflow: hidden; margin-top: 26px; border: 1px solid #d8ded8; border-radius: 16px; background: #fff; }
+  .validation-row { display: grid; gap: 16px; padding: 18px; border-top: 1px solid #e4e8e3; }
+  .validation-row:first-child { border-top: 0; }
+  .validation-row.good .validation-title > span { background: #16834b; }
+  .validation-title { display: grid; grid-template-columns: auto minmax(0,1fr); gap: 10px; align-items: start; }
+  .validation-title > span { display: grid; width: 27px; height: 27px; place-items: center; border-radius: 8px; background: #c33d3d; color: #fff; font-weight: 900; }
+  .validation-title strong, .validation-title small { display: block; }
+  .validation-title small { margin-top: 3px; color: #73808d; font-size: 10px; }
+  .validation-result > strong { font-size: 11px; letter-spacing: .06em; }
+  .validation-result ul { display: grid; gap: 5px; margin: 8px 0 0; padding-left: 18px; color: #647080; font-size: 11px; line-height: 1.5; }
+  .validation-result p { margin: 8px 0 0; color: #647080; font-size: 11px; }
+  .validation-result code { color: #925204; font-weight: 900; }
+  @media (min-width: 760px) {
+    .grid-two, .blocked-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .route-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
+    .alternate-card { grid-template-columns: .7fr 1.3fr; align-items: center; }
+    .validation-row { grid-template-columns: .85fr 1.45fr; }
+  }
+  @media (max-width: 560px) {
+    .registry-row { align-items: flex-start; }
+    .alternate-list > div { grid-template-columns: 28px minmax(0,1fr); }
+    .alternate-list strong { grid-column: 2; }
+  }
+</style>
