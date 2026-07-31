@@ -18,6 +18,10 @@ import {
   bybitKazakhstanReviewResults,
 } from '../pilots/kz/bybitReview';
 import {
+  okxKazakhstanReviewPass,
+  okxKazakhstanReviewResults,
+} from '../pilots/kz/okxReview';
+import {
   kazakhstanReadinessIssues,
   kazakhstanReadinessPass,
 } from '../pilots/kz/readiness';
@@ -156,6 +160,7 @@ export const portalFactoryFixtureResults = [
     result: binanceKazakhstanFactParityResult,
   },
   ...bybitKazakhstanReviewResults,
+  ...okxKazakhstanReviewResults,
   {
     name: 'Kazakhstan ranking readiness remains fail-closed',
     expected: 'PASS',
@@ -167,6 +172,7 @@ export const portalFactoryFixturesPass =
   binanceKazakhstanReviewPass &&
   binanceKazakhstanFactParityPass &&
   bybitKazakhstanReviewPass &&
+  okxKazakhstanReviewPass &&
   kazakhstanReadinessPass &&
   portalFactoryFixtureResults.every(item =>
     item.expected === 'PASS' ? item.result.ok : !item.result.ok,
