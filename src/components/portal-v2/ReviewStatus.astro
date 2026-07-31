@@ -1,0 +1,90 @@
+---
+import type { ReviewTone } from '../../data/portalFactoryReview';
+
+interface Props {
+  label: string;
+  detail?: string;
+  tone: ReviewTone;
+  compact?: boolean;
+}
+
+const { label, detail, tone, compact = false } = Astro.props;
+---
+
+<span class:list={['review-status', `review-status-${tone}`, { 'review-status-compact': compact }]}>
+  <span class="review-status-dot" aria-hidden="true"></span>
+  <span class="review-status-copy">
+    <strong>{label}</strong>
+    {detail && <small>{detail}</small>}
+  </span>
+</span>
+
+<style>
+  .review-status {
+    display: inline-flex;
+    max-width: 100%;
+    align-items: flex-start;
+    gap: 9px;
+    border: 1px solid #dce2dc;
+    border-radius: 12px;
+    padding: 9px 11px;
+    background: #fff;
+    color: #13233e;
+  }
+
+  .review-status-dot {
+    width: 9px;
+    height: 9px;
+    flex: 0 0 9px;
+    margin-top: 4px;
+    border-radius: 999px;
+    background: #7a8795;
+  }
+
+  .review-status-copy {
+    min-width: 0;
+  }
+
+  .review-status strong,
+  .review-status small {
+    display: block;
+  }
+
+  .review-status strong {
+    font-size: 12px;
+    line-height: 1.25;
+  }
+
+  .review-status small {
+    margin-top: 3px;
+    color: #647080;
+    font-size: 10px;
+    line-height: 1.4;
+  }
+
+  .review-status-compact {
+    border-radius: 999px;
+    padding: 6px 10px;
+  }
+
+  .review-status-compact .review-status-dot {
+    margin-top: 2px;
+  }
+
+  .review-status-compact small {
+    display: none;
+  }
+
+  .review-status-verified { border-color: #b7dfc7; background: #f1fbf5; }
+  .review-status-verified .review-status-dot { background: #16834b; }
+  .review-status-partial { border-color: #f3d29e; background: #fff8ed; }
+  .review-status-partial .review-status-dot { background: #d97d0d; }
+  .review-status-review { border-color: #cfd9e8; background: #f3f6fb; }
+  .review-status-review .review-status-dot { background: #426a9e; }
+  .review-status-restricted { border-color: #efb5b5; background: #fff3f3; }
+  .review-status-restricted .review-status-dot { background: #c33d3d; }
+  .review-status-stale { border-color: #e6c7aa; background: #fff7f0; }
+  .review-status-stale .review-status-dot { background: #ad6328; }
+  .review-status-unknown { border-color: #d8dde3; background: #f6f7f8; }
+  .review-status-unknown .review-status-dot { background: #7a8795; }
+</style>
