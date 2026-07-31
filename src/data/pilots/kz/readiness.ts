@@ -99,12 +99,12 @@ export const kazakhstanEvidenceGaps: KazakhstanEvidenceGap[] = [
     gapId: 'gap:kz:country:ranking-methodology',
     exchangeId: 'country',
     topic: 'Ranking methodology',
-    status: 'required',
+    status: 'mapped',
     severity: 'P0',
-    currentState: 'Methodology proposal v0.1 exists but has not been owner-frozen for a draft RankingSnapshot.',
-    requiredEvidence: 'Owner decision on eligibility, conflict exclusions, scoring/rationale and freshness thresholds in Issue #144.',
-    nextAction: 'Keep every position null until the methodology outcome is recorded.',
-    publicationImpact: 'Blocks any numbered Top-3 or Top-10 snapshot.',
+    currentState: 'Issue #144 recorded `METHODOLOGY_FREEZE_APPROVED_FOR_DRAFT_SNAPSHOT` for methodology version cbw-kz-review-0.1.',
+    requiredEvidence: 'Mapped through the exact owner decision and build-validated frozen methodology.',
+    nextAction: 'Use the frozen rules only for a non-approved draft snapshot with empty rows.',
+    publicationImpact: 'Allows draft snapshot assembly; does not authorize ranking order, rows, indexability or publication.',
   },
   {
     gapId: 'gap:kz:country:owner-ranking-approval',
@@ -113,8 +113,8 @@ export const kazakhstanEvidenceGaps: KazakhstanEvidenceGap[] = [
     status: 'blocked',
     severity: 'P0',
     currentState: 'No non-empty Kazakhstan RankingSnapshot has owner approval.',
-    requiredEvidence: 'Owner-approved snapshot referencing validated, methodology-eligible market profiles and rationale claims.',
-    nextAction: 'Keep country ranking route in noindex fail-closed state.',
+    requiredEvidence: 'Owner-approved non-empty snapshot referencing validated, methodology-eligible market profiles and rationale claims.',
+    nextAction: 'Keep the draft snapshot rows empty and the country ranking route noindex.',
     publicationImpact: 'Blocks ranking rows, indexability and production publication.',
   },
 ];
@@ -140,7 +140,7 @@ const validatedProfiles = [
   okxKazakhstanMarketProfile,
 ];
 
-const asOf = Date.parse('2026-07-31T16:10:00Z');
+const asOf = Date.parse('2026-07-31T16:35:00Z');
 const evidenceFreshnessGate = validatedProfiles.every(profile =>
   Date.parse(profile.nextReviewAt) > asOf,
 );
@@ -155,7 +155,7 @@ export const kazakhstanRankingReadiness: KazakhstanRankingReadiness = {
   profileValidationGate: validatedProfiles.every(profile => profile.approval === 'validated'),
   evidenceFreshnessGate,
   conflictResolutionGate: false,
-  methodologyFrozenGate: false,
+  methodologyFrozenGate: true,
   affiliateIndependenceGate: true,
   ownerApprovalGate: false,
   publicIndexabilityGate: false,
@@ -183,16 +183,20 @@ if (!kazakhstanRankingReadiness.conflictBlockedProfileIds.includes('market-profi
   kazakhstanReadinessIssues.push('The retained OKX authorization conflict must block ranking eligibility.');
 }
 
-if (kazakhstanOpenEvidenceGaps.filter(gap => gap.severity === 'P0').length !== 7) {
-  kazakhstanReadinessIssues.push('Exactly seven open P0 Kazakhstan gaps are expected after evidence mapping 051F.');
+if (!kazakhstanRankingReadiness.methodologyFrozenGate) {
+  kazakhstanReadinessIssues.push('Methodology must be frozen for draft-snapshot use after owner decision #144.');
+}
+
+if (kazakhstanOpenEvidenceGaps.filter(gap => gap.severity === 'P0').length !== 6) {
+  kazakhstanReadinessIssues.push('Exactly six open P0 Kazakhstan gaps are expected after methodology freeze 051G.');
 }
 
 if (kazakhstanOpenEvidenceGaps.filter(gap => gap.severity === 'P1').length !== 0) {
   kazakhstanReadinessIssues.push('No open P1 Kazakhstan gap is expected after Bybit KYC mapping.');
 }
 
-if (kazakhstanMappedEvidenceGaps.length !== 2) {
-  kazakhstanReadinessIssues.push('Exactly two evidence gaps must be recorded as mapped after 051F.');
+if (kazakhstanMappedEvidenceGaps.length !== 3) {
+  kazakhstanReadinessIssues.push('Exactly three evidence gaps must be recorded as mapped after 051G.');
 }
 
 const requiredReadyGates = [
@@ -211,7 +215,7 @@ if (kazakhstanRankingReadiness.ready !== requiredReadyGates.every(Boolean)) {
 }
 
 if (kazakhstanRankingReadiness.ready) {
-  kazakhstanReadinessIssues.push('Kazakhstan ranking must remain blocked until conflict, methodology, owner and publication gates pass.');
+  kazakhstanReadinessIssues.push('Kazakhstan ranking must remain blocked until conflict, owner and publication gates pass.');
 }
 
 export const kazakhstanReadinessPass = kazakhstanReadinessIssues.length === 0;
