@@ -37,6 +37,10 @@ import {
   kazakhstanComparativeMatrixPass,
   kazakhstanComparativeMatrixResult,
 } from '../pilots/kz/comparativeMatrix';
+import {
+  kazakhstanReviewContentPackagesPass,
+  kazakhstanReviewContentPackagesResult,
+} from '../pilots/kz/contentPackages';
 
 const digest = `sha256:${'a'.repeat(64)}`;
 
@@ -202,6 +206,11 @@ export const portalFactoryFixtureResults = [
     expected: 'PASS',
     result: kazakhstanComparativeMatrixResult,
   },
+  {
+    name: 'Kazakhstan review ContentPackages keep claims unapproved and publication disabled',
+    expected: 'PASS',
+    result: kazakhstanReviewContentPackagesResult,
+  },
 ] as const;
 
 export const portalFactoryFixturesPass =
@@ -213,6 +222,7 @@ export const portalFactoryFixturesPass =
   kazakhstanMethodologyPass &&
   kazakhstanDraftRankingSnapshotPass &&
   kazakhstanComparativeMatrixPass &&
+  kazakhstanReviewContentPackagesPass &&
   portalFactoryFixtureResults.every(item =>
     item.expected === 'PASS' ? item.result.ok : !item.result.ok,
   );
