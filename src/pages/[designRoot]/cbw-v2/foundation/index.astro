@@ -1,0 +1,9 @@
+---
+import ReviewPage from '../../../__design/cbw-v2/foundation/index.astro';
+
+export function getStaticPaths() {
+  return [{ params: { designRoot: '__design' } }];
+}
+---
+
+<ReviewPage />
