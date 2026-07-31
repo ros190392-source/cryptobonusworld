@@ -1,6 +1,5 @@
 ---
 import CleanLayout from '../layouts/CleanLayout.astro';
-import HomepageGeoBonusFinder from '../components/home/HomepageGeoBonusFinder.astro';
 import HomepageTop10 from '../components/home/HomepageTop10.astro';
 
 const guideBlocks = [
@@ -82,10 +81,7 @@ const faqSchema = {
   ogImage="/og-default.png"
 >
 
-  <!-- 0. Homepage GEO Bonus Finder (above the fold) -->
-  <HomepageGeoBonusFinder />
-
-  <!-- 1. Compact intro (light — finder above stays the primary hero) -->
+  <!-- 1. Compact homepage intro -->
   <section class="hp-intro">
     <div class="hp-text-wrap">
       <div class="hp-intro-label">Verified offers · research status visible</div>
@@ -113,7 +109,7 @@ const faqSchema = {
     </div>
   </div>
 
-  <!-- 3. Visible governed Top-10 -->
+  <!-- 3. Single governed homepage Top-10 -->
   <HomepageTop10 />
 
   <!-- 4. Guide -->
