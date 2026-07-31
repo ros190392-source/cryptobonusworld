@@ -9,7 +9,10 @@ export type RankingEligibilityState = 'eligible_candidate' | 'excluded' | 'under
 export interface KazakhstanMethodologyProposal {
   methodologyId: string;
   version: string;
-  status: 'proposal';
+  status: 'frozen_for_draft_snapshot';
+  ownerDecision: 'METHODOLOGY_FREEZE_APPROVED_FOR_DRAFT_SNAPSHOT';
+  ownerDecisionIssue: 144;
+  frozenAt: string;
   countryCode: 'KZ';
   evidenceAsOf: string;
   rankingOrderAuthorized: false;
@@ -33,11 +36,14 @@ export interface KazakhstanEligibilityDecision {
 }
 
 export const kazakhstanMethodologyProposal: KazakhstanMethodologyProposal = {
-  methodologyId: 'methodology:kz:exchange-ranking:proposal-0.1',
+  methodologyId: 'methodology:kz:exchange-ranking:0.1',
   version: 'cbw-kz-review-0.1',
-  status: 'proposal',
+  status: 'frozen_for_draft_snapshot',
+  ownerDecision: 'METHODOLOGY_FREEZE_APPROVED_FOR_DRAFT_SNAPSHOT',
+  ownerDecisionIssue: 144,
+  frozenAt: '2026-07-31T16:30:00Z',
   countryCode: 'KZ',
-  evidenceAsOf: '2026-07-31T12:50:00Z',
+  evidenceAsOf: '2026-07-31T16:30:00Z',
   rankingOrderAuthorized: false,
   affiliateWeight: 0,
   eligibilityRules: [
@@ -49,7 +55,7 @@ export const kazakhstanMethodologyProposal: KazakhstanMethodologyProposal = {
   ],
   exclusionRules: [
     'Profiles with availability restricted, unavailable or unknown are excluded from ranking rows.',
-    'Profiles named in conflictBlockedProfileIds are excluded until the conflict gate passes.',
+    'Profiles named in conflictBlockedProfileIds are excluded until the conflict gate passes or an owner-approved methodology explicitly retains exclusion.',
     'Missing evidence cannot be replaced by global product visibility, affiliate terms or absence from a restricted list.',
     'Affiliate availability, promo code, commission, CTA state and commercial value have zero ranking weight.',
     'Expired evidence moves a profile back to under_review before ranking assembly.',
@@ -68,12 +74,12 @@ export const kazakhstanMethodologyProposal: KazakhstanMethodologyProposal = {
     {
       id: 'kyc-and-account-access',
       status: 'incomplete',
-      description: 'Country-specific KYC evidence and account-level limitations.',
+      description: 'Country-specific KYC is partly mapped, but no account-level approval testing exists and OKX remains generic-only.',
     },
     {
       id: 'local-fiat-and-p2p',
       status: 'incomplete',
-      description: 'Current KZT rails, P2P methods, directions and eligibility.',
+      description: 'Bybit dated P2P evidence and Binance route surfaces are mapped; active Binance orders and current direct KZT rails remain unconfirmed.',
     },
     {
       id: 'product-coverage',
@@ -83,7 +89,7 @@ export const kazakhstanMethodologyProposal: KazakhstanMethodologyProposal = {
     {
       id: 'fees-and-limits',
       status: 'incomplete',
-      description: 'Current comparable local fees and limits.',
+      description: 'Bybit P2P fees and limits are mapped, but comparable cross-exchange fees and limits are incomplete.',
     },
   ],
 };
@@ -146,16 +152,24 @@ export const kazakhstanEligibilityDecisions = profiles.map(
 
 export const kazakhstanMethodologyIssues: string[] = [];
 
+if (kazakhstanMethodologyProposal.status !== 'frozen_for_draft_snapshot') {
+  kazakhstanMethodologyIssues.push('Methodology must be frozen only for draft-snapshot use.');
+}
+
+if (kazakhstanMethodologyProposal.ownerDecision !== 'METHODOLOGY_FREEZE_APPROVED_FOR_DRAFT_SNAPSHOT') {
+  kazakhstanMethodologyIssues.push('Exact owner methodology decision is missing.');
+}
+
 if (kazakhstanMethodologyProposal.affiliateWeight !== 0) {
   kazakhstanMethodologyIssues.push('Affiliate weight must remain zero.');
 }
 
 if (kazakhstanMethodologyProposal.rankingOrderAuthorized !== false) {
-  kazakhstanMethodologyIssues.push('A proposal may not authorize ranking order.');
+  kazakhstanMethodologyIssues.push('Methodology freeze may not authorize ranking order.');
 }
 
 if (kazakhstanEligibilityDecisions.some(decision => decision.rankingPosition !== null)) {
-  kazakhstanMethodologyIssues.push('Methodology proposal must not create ranking positions.');
+  kazakhstanMethodologyIssues.push('Frozen methodology must not create ranking positions.');
 }
 
 const decisionByExchange = Object.fromEntries(
@@ -181,5 +195,5 @@ if (kazakhstanEligibilityDecisions.some(decision => decision.affiliateInfluence 
 export const kazakhstanMethodologyPass = kazakhstanMethodologyIssues.length === 0;
 
 if (!kazakhstanMethodologyPass) {
-  throw new Error(`Kazakhstan methodology proposal validation failed: ${kazakhstanMethodologyIssues.join('; ')}`);
+  throw new Error(`Kazakhstan methodology validation failed: ${kazakhstanMethodologyIssues.join('; ')}`);
 }
