@@ -5,6 +5,8 @@ import ReviewStatus from '../../../../components/portal-v2/ReviewStatus.astro';
 import { binanceKazakhstanMarketProfile } from '../../../../data/pilots/kz/binanceReview';
 import { bybitKazakhstanMarketProfile } from '../../../../data/pilots/kz/bybitReview';
 import { okxKazakhstanMarketProfile } from '../../../../data/pilots/kz/okxReview';
+import { kazakhstanMethodologyProposal } from '../../../../data/pilots/kz/methodologyProposal';
+import { kazakhstanDraftRankingSnapshot } from '../../../../data/pilots/kz/rankingSnapshotDraft';
 import {
   kazakhstanMappedEvidenceGaps,
   kazakhstanOpenEvidenceGaps,
@@ -20,7 +22,7 @@ const candidates = [
     detail: `${binanceKazakhstanMarketProfile.claimIds.length} claims · offer under review`,
     tone: 'partial' as const,
     evidence: 'Licence, KYC and public P2P route surfaces are mapped; active orders and current direct KZT rails remain unconfirmed.',
-    rankingState: 'Methodology review required',
+    rankingState: 'Draft snapshot · under review',
     reviewHref: '/__design/cbw-v2/market-passport/',
   },
   {
@@ -31,7 +33,7 @@ const candidates = [
     detail: `${bybitKazakhstanMarketProfile.claimIds.length} claims · offer under review`,
     tone: 'verified' as const,
     evidence: 'AFSA licence, mandatory Standard KYC, dated P2P launch, platform fee and per-ad KZT range are mapped; local offer eligibility remains open.',
-    rankingState: 'Methodology review required',
+    rankingState: 'Draft snapshot · under review',
     reviewHref: null,
   },
   {
@@ -42,7 +44,7 @@ const candidates = [
     detail: `${okxKazakhstanMarketProfile.claimIds.length} claims · availability unknown`,
     tone: 'review' as const,
     evidence: 'Platform/KZT surfaces are visible, while AFSA warning and regulated-P2P rules retain a local-authorization conflict.',
-    rankingState: 'Conflict-blocked',
+    rankingState: 'Draft snapshot · excluded',
     reviewHref: null,
   },
 ];
@@ -52,13 +54,13 @@ const gates = [
     label: 'Profile count',
     pass: kazakhstanRankingReadiness.profileCountGate,
     value: `${kazakhstanRankingReadiness.validatedProfileIds.length}/${kazakhstanRankingReadiness.requiredProfileCount}`,
-    detail: 'Three validated review profiles are now present.',
+    detail: 'Three validated review profiles are present.',
   },
   {
     label: 'Profile validation',
     pass: kazakhstanRankingReadiness.profileValidationGate,
     value: kazakhstanRankingReadiness.profileValidationGate ? 'PASS' : 'FAIL',
-    detail: 'All profiles pass the same runtime contracts.',
+    detail: 'All profiles pass the shared runtime contracts.',
   },
   {
     label: 'Evidence freshness',
@@ -70,25 +72,25 @@ const gates = [
     label: 'Conflict resolution',
     pass: kazakhstanRankingReadiness.conflictResolutionGate,
     value: 'BLOCKED',
-    detail: 'OKX remains validated but conflict-blocked and cannot enter a ranking.',
+    detail: 'OKX remains validated but excluded while the retained authorization conflict is open.',
   },
   {
     label: 'Methodology freeze',
     pass: kazakhstanRankingReadiness.methodologyFrozenGate,
-    value: 'MISSING',
-    detail: 'Eligibility, exclusions and ordering rationale are not frozen.',
+    value: 'FROZEN FOR DRAFT',
+    detail: `${kazakhstanMethodologyProposal.version} may assemble only a non-approved snapshot with empty rows.`,
   },
   {
     label: 'Affiliate independence',
     pass: kazakhstanRankingReadiness.affiliateIndependenceGate,
-    value: 'PASS',
-    detail: 'Affiliate status cannot create or improve a position.',
+    value: 'PASS · WEIGHT 0',
+    detail: 'Affiliate status, promo and CTA cannot create or improve a position.',
   },
   {
-    label: 'Owner approval',
+    label: 'Owner ranking approval',
     pass: kazakhstanRankingReadiness.ownerApprovalGate,
     value: 'MISSING',
-    detail: 'No non-empty RankingSnapshot has owner approval.',
+    detail: 'The current snapshot is draft and contains no approved rows or approver.',
   },
   {
     label: 'Public indexability',
@@ -102,8 +104,8 @@ const p0Gaps = kazakhstanOpenEvidenceGaps.filter(gap => gap.severity === 'P0');
 ---
 
 <CleanLayout
-  title="CBW Portal Factory v2 — Kazakhstan Ranking Readiness"
-  description="Review-only Kazakhstan ranking readiness matrix backed by three validated market profiles."
+  title="CBW Portal Factory v2 — Kazakhstan Draft Ranking Snapshot"
+  description="Review-only Kazakhstan methodology and empty draft RankingSnapshot backed by three validated market profiles."
   noindex={true}
   bodyClass="cbw-v2-ranking-review"
 >
@@ -111,7 +113,7 @@ const p0Gaps = kazakhstanOpenEvidenceGaps.filter(gap => gap.severity === 'P0');
     <section class="hero">
       <div class="shell">
         <div class="review-nav">
-          <span>Review route · noindex · real readiness data</span>
+          <span>Review route · noindex · non-approved snapshot</span>
           <nav aria-label="Portal v2 review routes">
             <a href="/__design/cbw-v2/homepage/">Homepage</a>
             <a href="/__design/cbw-v2/country/">Country hub</a>
@@ -119,17 +121,17 @@ const p0Gaps = kazakhstanOpenEvidenceGaps.filter(gap => gap.severity === 'P0');
           </nav>
         </div>
 
-        <p class="eyebrow">Kazakhstan ranking readiness</p>
-        <h1>Three profiles. Still no ranking.</h1>
+        <p class="eyebrow">Kazakhstan draft RankingSnapshot</p>
+        <h1>Methodology frozen. Positions still empty.</h1>
         <p class="lede">
-          Data completeness reached 3/3 validated review profiles. The result remains blocked because OKX retains a material authorization conflict and no methodology or owner-approved snapshot exists.
+          The owner-approved methodology boundary now permits one governed draft snapshot. It contains no ranked rows: Binance and Bybit remain under review, while OKX remains excluded by the retained authorization conflict.
         </p>
 
         <div class="snapshot">
-          <div><span>Ranking state</span><strong>{kazakhstanRankingReadiness.ready ? 'READY' : 'BLOCKED'}</strong></div>
+          <div><span>Overall ranking state</span><strong>{kazakhstanRankingReadiness.ready ? 'READY' : 'BLOCKED'}</strong></div>
           <ReviewStatus
-            label={`${kazakhstanRankingReadiness.validatedProfileIds.length}/${kazakhstanRankingReadiness.requiredProfileCount} validated profiles`}
-            detail="Conflict, methodology, owner approval and indexability gates remain closed."
+            label="Draft snapshot · 0 approved rows"
+            detail="Conflict resolution, non-empty owner approval and indexability gates remain closed."
             tone="review"
           />
         </div>
@@ -142,8 +144,8 @@ const p0Gaps = kazakhstanOpenEvidenceGaps.filter(gap => gap.severity === 'P0');
           <header class="section-heading">
             <div>
               <p class="eyebrow">Candidate inventory</p>
-              <h2>Validated profiles are not ranked winners</h2>
-              <p>Positions remain blank until every ranking gate is independently satisfied.</p>
+              <h2>Snapshot membership is not a ranking</h2>
+              <p>Every visible position remains blank. Candidate and exclusion states are controlled by the frozen methodology.</p>
             </div>
             <span class="count">{candidates.length} profiles</span>
           </header>
@@ -172,6 +174,25 @@ const p0Gaps = kazakhstanOpenEvidenceGaps.filter(gap => gap.severity === 'P0');
             ))}
           </div>
 
+          <article class="snapshot-card" data-ranking-snapshot>
+            <header>
+              <div>
+                <p class="eyebrow">Governed draft object</p>
+                <h2>RankingSnapshot contract</h2>
+              </div>
+              <ReviewStatus label="Draft · non-approved" detail="No approvedBy field and no publication authority." tone="review" compact={true} />
+            </header>
+            <dl>
+              <div><dt>Snapshot ID</dt><dd><code>{kazakhstanDraftRankingSnapshot.snapshotId}</code></dd></div>
+              <div><dt>Methodology</dt><dd>{kazakhstanDraftRankingSnapshot.methodologyVersion}</dd></div>
+              <div><dt>Approval</dt><dd>{kazakhstanDraftRankingSnapshot.approval}</dd></div>
+              <div><dt>Ranked rows</dt><dd>{kazakhstanDraftRankingSnapshot.rows.length}</dd></div>
+              <div><dt>Under review</dt><dd>{kazakhstanDraftRankingSnapshot.underReviewExchangeIds.join(', ')}</dd></div>
+              <div><dt>Excluded</dt><dd>{kazakhstanDraftRankingSnapshot.excludedExchangeIds.join(', ')}</dd></div>
+              <div><dt>Evidence checked</dt><dd>{kazakhstanDraftRankingSnapshot.evidenceCheckedAt}</dd></div>
+            </dl>
+          </article>
+
           <article class="gate-card">
             <p class="eyebrow">Executable gate matrix</p>
             <div class="gate-grid">
@@ -186,7 +207,7 @@ const p0Gaps = kazakhstanOpenEvidenceGaps.filter(gap => gap.severity === 'P0');
 
           <article class="gap-card">
             <header>
-              <div><p class="eyebrow">Open P0 evidence and decision gaps</p><h2>What still blocks publication</h2></div>
+              <div><p class="eyebrow">Open P0 evidence and decision gaps</p><h2>What still blocks ordered rows</h2></div>
               <span>{p0Gaps.length} open P0 gaps</span>
             </header>
             <div class="gap-list">
@@ -209,19 +230,20 @@ const p0Gaps = kazakhstanOpenEvidenceGaps.filter(gap => gap.severity === 'P0');
 
         <aside class="sidebar">
           <article>
-            <p class="card-label">Snapshot contract</p>
+            <p class="card-label">Snapshot summary</p>
             <dl>
               <div><dt>Country</dt><dd>KZ</dd></div>
               <div><dt>Profiles</dt><dd>{kazakhstanRankingReadiness.validatedProfileIds.length}/3</dd></div>
+              <div><dt>Methodology</dt><dd>frozen</dd></div>
+              <div><dt>Draft rows</dt><dd>{kazakhstanDraftRankingSnapshot.rows.length}</dd></div>
+              <div><dt>Under review</dt><dd>{kazakhstanDraftRankingSnapshot.underReviewExchangeIds.length}</dd></div>
+              <div><dt>Excluded</dt><dd>{kazakhstanDraftRankingSnapshot.excludedExchangeIds.length}</dd></div>
               <div><dt>Open P0 gaps</dt><dd>{p0Gaps.length}</dd></div>
               <div><dt>Mapped gaps</dt><dd>{kazakhstanMappedEvidenceGaps.length}</dd></div>
-              <div><dt>Conflict-blocked</dt><dd>{kazakhstanRankingReadiness.conflictBlockedProfileIds.length}</dd></div>
-              <div><dt>Methodology</dt><dd>missing</dd></div>
-              <div><dt>Approved rows</dt><dd>0</dd></div>
               <div><dt>Indexability</dt><dd>off</dd></div>
             </dl>
           </article>
-          <article class="warning"><strong>Fail-closed by design</strong><p>Profile completeness does not authorize positions. Conflicting profiles stay visible but excluded.</p></article>
+          <article class="warning"><strong>Fail-closed by design</strong><p>A frozen methodology can create a review object, but it cannot invent positions or authorize publication.</p></article>
         </aside>
       </div>
     </section>
@@ -238,8 +260,8 @@ const p0Gaps = kazakhstanOpenEvidenceGaps.filter(gap => gap.severity === 'P0');
   .review-nav a { color: #f7b75e; }
   .eyebrow, .card-label { margin: 32px 0 10px; color: #f7931a; font-size: 10px; font-weight: 900; letter-spacing: .13em; text-transform: uppercase; }
   h1, h2 { font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: -.025em; }
-  h1 { max-width: 880px; margin: 0; font-size: clamp(48px,8vw,82px); line-height: .92; }
-  .lede { max-width: 820px; margin: 22px 0 0; color: #d2ddea; font-size: 16px; line-height: 1.7; }
+  h1 { max-width: 900px; margin: 0; font-size: clamp(48px,8vw,82px); line-height: .92; }
+  .lede { max-width: 850px; margin: 22px 0 0; color: #d2ddea; font-size: 16px; line-height: 1.7; }
   .snapshot { display: grid; gap: 16px; align-items: center; margin-top: 28px; padding: 18px; border: 1px solid rgba(255,255,255,.16); border-radius: 14px; background: rgba(255,255,255,.07); }
   .snapshot span, .snapshot strong { display: block; }
   .snapshot span { color: #aebdd0; font-size: 10px; font-weight: 900; text-transform: uppercase; }
@@ -247,8 +269,8 @@ const p0Gaps = kazakhstanOpenEvidenceGaps.filter(gap => gap.severity === 'P0');
   .content { padding: 70px 0 90px; }
   .layout { display: grid; gap: 24px; }
   .section-heading { display: flex; flex-direction: column; gap: 16px; margin-bottom: 25px; }
-  .section-heading .eyebrow, .gate-card .eyebrow, .gap-card .eyebrow { margin-top: 0; }
-  .section-heading h2, .gap-card h2 { margin: 0; font-size: clamp(36px,6vw,56px); line-height: .96; }
+  .section-heading .eyebrow, .snapshot-card .eyebrow, .gate-card .eyebrow, .gap-card .eyebrow { margin-top: 0; }
+  .section-heading h2, .snapshot-card h2, .gap-card h2 { margin: 0; font-size: clamp(36px,6vw,56px); line-height: .96; }
   .section-heading p:last-child { margin: 10px 0 0; color: #647080; }
   .count { align-self: flex-start; padding: 8px 11px; border-radius: 999px; background: #13233e; color: #fff; font-size: 10px; font-weight: 900; }
   .candidate-table { overflow: hidden; border: 1px solid #d8dfd8; border-radius: 16px; background: #fff; }
@@ -262,7 +284,14 @@ const p0Gaps = kazakhstanOpenEvidenceGaps.filter(gap => gap.severity === 'P0');
   .action a, .action > span { display: block; padding: 10px 12px; border: 1px solid #d8dde3; border-radius: 9px; background: #f1f3f5; color: #788492; font-size: 12px; font-weight: 900; text-align: center; }
   .action a { border-color: #f0bc73; background: #fff3e2; color: #8a4d00; }
   .action small { display: block; margin-top: 6px; color: #8a939e; font-size: 9px; text-align: center; }
-  .gate-card, .gap-card { margin-top: 24px; padding: 25px; border-radius: 16px; }
+  .snapshot-card, .gate-card, .gap-card { margin-top: 24px; padding: 25px; border-radius: 16px; }
+  .snapshot-card, .gap-card { border: 1px solid #d9dfd9; background: #fff; }
+  .snapshot-card header, .gap-card header { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 14px; align-items: end; }
+  .snapshot-card dl { display: grid; gap: 10px; margin: 22px 0 0; }
+  .snapshot-card dl div { display: grid; gap: 5px; padding: 12px; border-radius: 10px; background: #f5f7f4; }
+  .snapshot-card dt { color: #74808e; font-size: 10px; text-transform: uppercase; font-weight: 900; }
+  .snapshot-card dd { margin: 0; color: #13233e; font-size: 12px; font-weight: 900; overflow-wrap: anywhere; }
+  .snapshot-card code { color: #925204; }
   .gate-card { color: #fff; background: #13233e; }
   .gate-grid { display: grid; gap: 12px; }
   .gate { display: grid; grid-template-columns: auto 1fr; gap: 10px; padding: 14px; border: 1px solid rgba(255,255,255,.12); border-radius: 11px; background: rgba(255,255,255,.05); }
@@ -271,8 +300,6 @@ const p0Gaps = kazakhstanOpenEvidenceGaps.filter(gap => gap.severity === 'P0');
   .gate strong, .gate b { display: block; }
   .gate b { margin-top: 4px; color: #f7b75e; font-size: 10px; }
   .gate p { margin: 6px 0 0; color: #bdc9d8; font-size: 11px; line-height: 1.5; }
-  .gap-card { border: 1px solid #d9dfd9; background: #fff; }
-  .gap-card header { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 14px; align-items: end; }
   .gap-card header > span { padding: 8px 10px; border-radius: 999px; background: #fff0dc; color: #8a4d00; font-size: 10px; font-weight: 900; }
   .gap-list { display: grid; gap: 10px; margin-top: 22px; }
   .gap-row { display: grid; gap: 10px; padding: 15px; border: 1px solid #e2e6e1; border-radius: 11px; background: #f8faf7; }
@@ -293,6 +320,7 @@ const p0Gaps = kazakhstanOpenEvidenceGaps.filter(gap => gap.severity === 'P0');
     .snapshot { grid-template-columns: 230px 1fr; }
     .section-heading { flex-direction: row; justify-content: space-between; align-items: end; }
     .candidate-row { grid-template-columns: 1.1fr 1.45fr .75fr; }
+    .snapshot-card dl { grid-template-columns: repeat(2,minmax(0,1fr)); }
     .gate-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
     .gap-row { grid-template-columns: .75fr 1.3fr 1.1fr; align-items: start; }
     .gap-row > :last-child { grid-column: 1 / -1; }
