@@ -106,17 +106,18 @@ jobs:
                 const routeChecks = {};
 
                 if (route.name === 'country-ranking') {
+                  const snapshot = page.locator('[data-ranking-snapshot]');
                   routeChecks.threeProfiles = await page.locator('.candidate-row').count() === 3;
                   routeChecks.threeBlankPositions = await page.locator('.rank-placeholder').count() === 3;
                   routeChecks.noNumberedRank = await page.locator('.rank-placeholder').evaluateAll(nodes => nodes.every(node => node.textContent?.trim() === '—'));
                   routeChecks.rankingBlocked = await page.getByText('BLOCKED', { exact: true }).count() >= 1;
                   routeChecks.methodologyFrozen = await page.getByText('FROZEN FOR DRAFT', { exact: true }).count() === 1;
-                  routeChecks.draftSnapshotPresent = await page.locator('[data-ranking-snapshot]').count() === 1;
-                  routeChecks.snapshotId = await page.getByText('ranking:kz:owner-review-draft:2026-07-31', { exact: true }).count() === 1;
-                  routeChecks.snapshotDraft = await page.locator('[data-ranking-snapshot]').getByText('draft', { exact: true }).count() === 1;
-                  routeChecks.zeroRows = await page.locator('[data-ranking-snapshot] dl div').filter({ hasText: 'Ranked rows' }).getByText('0', { exact: true }).count() === 1;
-                  routeChecks.underReviewSet = await page.getByText('binance, bybit', { exact: true }).count() === 1;
-                  routeChecks.excludedSet = await page.getByText('okx', { exact: true }).count() === 1;
+                  routeChecks.draftSnapshotPresent = await snapshot.count() === 1;
+                  routeChecks.snapshotId = await snapshot.getByText('ranking:kz:owner-review-draft:2026-07-31', { exact: true }).count() === 1;
+                  routeChecks.snapshotDraft = await snapshot.getByText('draft', { exact: true }).count() === 1;
+                  routeChecks.zeroRows = await snapshot.locator('dl div').filter({ hasText: 'Ranked rows' }).getByText('0', { exact: true }).count() === 1;
+                  routeChecks.underReviewSet = await snapshot.getByText('binance, bybit', { exact: true }).count() === 1;
+                  routeChecks.excludedSet = await snapshot.getByText('okx', { exact: true }).count() === 1;
                   routeChecks.sixOpenP0 = await page.getByText('6 open P0 gaps', { exact: true }).count() === 1;
                   routeChecks.threeMapped = await page.locator('.sidebar dl div').filter({ hasText: 'Mapped gaps' }).getByText('3', { exact: true }).count() === 1;
                   routeChecks.okxConflictVisible = await page.getByText('Validated · conflicting', { exact: true }).count() === 1;
