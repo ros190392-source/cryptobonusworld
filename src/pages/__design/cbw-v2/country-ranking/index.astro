@@ -1,0 +1,185 @@
+---
+import CleanLayout from '../../../../layouts/CleanLayout.astro';
+import ExchangeLogo from '../../../../components/ExchangeLogo.astro';
+import ReviewStatus from '../../../../components/portal-v2/ReviewStatus.astro';
+import { kazakhstanCandidates, portalReviewNotice } from '../../../../data/portalFactoryReview';
+---
+
+<CleanLayout
+  title="CBW Portal Factory v2 — Country Ranking Template"
+  description="Review-only fail-closed country ranking template for CryptoBonusWorld."
+  noindex={true}
+  bodyClass="cbw-v2-ranking-review"
+>
+  <main class="ranking-page">
+    <section class="ranking-hero">
+      <div class="shell">
+        <div class="review-nav">
+          <span>Review route · noindex</span>
+          <nav aria-label="Portal v2 review routes">
+            <a href="/__design/cbw-v2/homepage/">Homepage</a>
+            <a href="/__design/cbw-v2/country/">Country hub</a>
+            <a href="/__design/cbw-v2/market-passport/">Market passport</a>
+          </nav>
+        </div>
+
+        <p class="eyebrow">Country ranking template</p>
+        <h1>Best crypto exchanges for Kazakhstan</h1>
+        <p class="lede">
+          This review route demonstrates the required state before an approved ranking snapshot exists. Candidate research remains visible, but numbered positions and promotional actions stay disabled.
+        </p>
+
+        <div class="snapshot-card">
+          <div>
+            <span>Ranking snapshot</span>
+            <strong>Not approved</strong>
+          </div>
+          <ReviewStatus
+            label="Fail-closed state"
+            detail="No ordered rows may be published without methodology version, evidence freshness and owner approval."
+            tone="review"
+          />
+        </div>
+      </div>
+    </section>
+
+    <section class="ranking-content">
+      <div class="shell layout-grid">
+        <div class="main-column">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Candidate inventory</p>
+              <h2>Research candidates, not ranked winners</h2>
+              <p>These rows prove the template can show evidence readiness without implying a Top-3 or Top-10 decision.</p>
+            </div>
+            <span class="count-pill">{kazakhstanCandidates.length} candidates</span>
+          </div>
+
+          <div class="candidate-table" role="table" aria-label="Unranked Kazakhstan exchange candidate inventory">
+            <div class="table-head" role="row">
+              <span>Exchange</span>
+              <span>Evidence state</span>
+              <span>Publication action</span>
+            </div>
+
+            {kazakhstanCandidates.map(candidate => (
+              <article class="candidate-row" role="row">
+                <div class="exchange-cell">
+                  <span class="rank-placeholder" aria-label="Not ranked">—</span>
+                  <ExchangeLogo slug={candidate.slug} name={candidate.exchange} size={42} variant="square" lazy={false} />
+                  <div>
+                    <strong>{candidate.exchange}</strong>
+                    <small>No approved position</small>
+                  </div>
+                </div>
+
+                <div class="evidence-cell">
+                  <ReviewStatus {...candidate.state} />
+                  <p>{candidate.evidence}</p>
+                </div>
+
+                <div class="action-cell">
+                  <span class="disabled-action">{candidate.action}</span>
+                  <small>Affiliate and ranking actions disabled</small>
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <article class="approval-gate">
+            <p class="eyebrow">Required before ranking</p>
+            <div class="gate-grid">
+              <div><span>01</span><strong>Approved market profiles</strong><p>Every ranked exchange must have current country evidence.</p></div>
+              <div><span>02</span><strong>Methodology version</strong><p>Scoring and exclusion rules are fixed before ordering rows.</p></div>
+              <div><span>03</span><strong>Freshness gate</strong><p>Expired or contradictory claims move back to review.</p></div>
+              <div><span>04</span><strong>Owner approval</strong><p>The final snapshot controls ranking and indexability.</p></div>
+            </div>
+          </article>
+        </div>
+
+        <aside class="side-column">
+          <div class="side-card">
+            <p class="card-label">Snapshot contract</p>
+            <dl>
+              <div><dt>Country</dt><dd>KZ</dd></div>
+              <div><dt>Methodology</dt><dd>Missing</dd></div>
+              <div><dt>Approved rows</dt><dd>0</dd></div>
+              <div><dt>Indexability</dt><dd>Off</dd></div>
+            </dl>
+          </div>
+
+          <div class="warning-card">
+            <strong>No snapshot, no ranking</strong>
+            <p>{portalReviewNotice}</p>
+          </div>
+
+          <a class="side-link" href="/__design/cbw-v2/country/">← Back to country hub</a>
+        </aside>
+      </div>
+    </section>
+  </main>
+</CleanLayout>
+
+<style>
+  :global(body.cbw-v2-ranking-review) { background: #f7f8f4; }
+  .ranking-page { min-height: 100vh; color: #13233e; background: #f7f8f4; }
+  .shell { width: min(1160px, calc(100% - 32px)); margin: 0 auto; }
+  .ranking-hero { padding: 18px 0 58px; color: #fff; background: radial-gradient(circle at 80% 10%, rgba(247,147,26,.2), transparent 25%), #0e1b30; }
+  .review-nav { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; padding: 10px 13px; border: 1px solid rgba(255,255,255,.14); border-radius: 10px; color: #c7d2e1; font-size: 10px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+  .review-nav nav { display: flex; flex-wrap: wrap; gap: 12px; }
+  .review-nav a { color: #f7b75e; }
+  .eyebrow, .card-label { margin: 34px 0 10px; color: #f7931a; font-size: 10px; font-weight: 900; letter-spacing: .13em; text-transform: uppercase; }
+  h1, h2 { font-family: 'Barlow Condensed', sans-serif; letter-spacing: -.025em; text-transform: uppercase; }
+  h1 { max-width: 850px; margin: 0; font-size: clamp(48px,8vw,82px); line-height: .92; }
+  .lede { max-width: 780px; margin: 22px 0 0; color: #d2ddea; font-size: 16px; line-height: 1.7; }
+  .snapshot-card { display: grid; gap: 16px; align-items: center; margin-top: 28px; padding: 18px; border: 1px solid rgba(255,255,255,.16); border-radius: 14px; background: rgba(255,255,255,.07); }
+  .snapshot-card > div > span, .snapshot-card > div > strong { display: block; }
+  .snapshot-card > div > span { color: #aebdd0; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: .08em; }
+  .snapshot-card > div > strong { margin-top: 5px; font-size: 24px; }
+  .ranking-content { padding: 70px 0 90px; }
+  .layout-grid { display: grid; gap: 24px; }
+  .section-heading { display: flex; flex-direction: column; gap: 16px; margin-bottom: 26px; }
+  .section-heading .eyebrow { margin-top: 0; }
+  .section-heading h2 { margin: 0; font-size: clamp(38px,6vw,58px); line-height: .95; }
+  .section-heading p:last-child { max-width: 720px; margin: 12px 0 0; color: #647080; line-height: 1.65; }
+  .count-pill { align-self: flex-start; border-radius: 999px; padding: 8px 11px; background: #13233e; color: #fff; font-size: 10px; font-weight: 900; text-transform: uppercase; }
+  .candidate-table { overflow: hidden; border: 1px solid #d8dfd8; border-radius: 16px; background: #fff; }
+  .table-head { display: none; padding: 11px 18px; background: #13233e; color: #cbd4df; font-size: 10px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+  .candidate-row { display: grid; gap: 16px; padding: 18px; border-top: 1px solid #e4e8e3; }
+  .candidate-row:first-of-type { border-top: 0; }
+  .exchange-cell { display: grid; grid-template-columns: auto auto minmax(0,1fr); align-items: center; gap: 11px; }
+  .rank-placeholder { display: grid; width: 30px; height: 30px; place-items: center; border: 1px dashed #bdc7d2; border-radius: 8px; color: #7a8795; font-weight: 900; }
+  .exchange-cell strong, .exchange-cell small { display: block; }
+  .exchange-cell small { margin-top: 3px; color: #788492; }
+  .evidence-cell p { margin: 9px 0 0; color: #697482; font-size: 12px; line-height: 1.55; }
+  .action-cell { align-self: center; }
+  .disabled-action { display: block; border: 1px solid #d8dde3; border-radius: 9px; padding: 10px 12px; background: #f1f3f5; color: #788492; font-size: 12px; font-weight: 900; text-align: center; }
+  .action-cell small { display: block; margin-top: 6px; color: #8a939e; font-size: 9px; text-align: center; }
+  .approval-gate { margin-top: 24px; padding: 26px; border-radius: 16px; color: #fff; background: #13233e; }
+  .approval-gate > .eyebrow { margin-top: 0; }
+  .gate-grid { display: grid; gap: 18px; }
+  .gate-grid span { color: #f7931a; font-size: 10px; font-weight: 900; }
+  .gate-grid strong { display: block; margin-top: 6px; }
+  .gate-grid p { margin: 6px 0 0; color: #becada; font-size: 12px; line-height: 1.55; }
+  .side-column { display: grid; align-content: start; gap: 14px; }
+  .side-card, .warning-card { padding: 18px; border: 1px solid #dce2dc; border-radius: 14px; background: #fff; }
+  .side-card .card-label { margin-top: 0; }
+  .side-card dl { display: grid; gap: 10px; margin: 0; }
+  .side-card dl div { display: flex; justify-content: space-between; gap: 12px; padding-top: 10px; border-top: 1px solid #e6e9e5; }
+  .side-card dt { color: #74808e; font-size: 11px; }
+  .side-card dd { margin: 0; font-size: 11px; font-weight: 900; }
+  .warning-card { border-color: #f0cc96; background: #fff8ec; }
+  .warning-card p { margin: 8px 0 0; color: #735d40; font-size: 12px; line-height: 1.6; }
+  .side-link { color: #925204; font-size: 12px; font-weight: 900; }
+  @media (min-width: 720px) {
+    .snapshot-card { grid-template-columns: 230px 1fr; }
+    .section-heading { flex-direction: row; justify-content: space-between; align-items: end; }
+    .table-head { display: grid; grid-template-columns: 1.1fr 1.45fr .75fr; gap: 16px; }
+    .candidate-row { grid-template-columns: 1.1fr 1.45fr .75fr; }
+    .gate-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  }
+  @media (min-width: 980px) {
+    .layout-grid { grid-template-columns: minmax(0,1fr) 290px; }
+    .gate-grid { grid-template-columns: repeat(4,minmax(0,1fr)); }
+  }
+</style>
