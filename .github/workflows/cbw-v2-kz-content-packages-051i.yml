@@ -1,0 +1,181 @@
+name: CBW Portal v2 KZ ContentPackages 051I browser review
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  browser-review:
+    if: github.event.pull_request.head.ref == 'qa/cbw-v2-kz-content-packages-051i'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout exact QA branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 1
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Build production site
+        run: npm run build
+
+      - name: Start Astro preview
+        run: |
+          set -euo pipefail
+          npm run preview -- --host 127.0.0.1 --port 4321 > /tmp/cbw-preview.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4321/__design/cbw-v2/content-packages/ >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/cbw-preview.log
+          exit 1
+
+      - name: Validate Kazakhstan ContentPackage routes
+        run: |
+          mkdir -p qa-artifacts
+          cat > .qa-kz-content-packages-051i.mjs <<'EOF'
+          import { chromium } from 'playwright';
+          import { writeFile } from 'node:fs/promises';
+
+          const routes = [
+            { name: 'content-packages', path: '/__design/cbw-v2/content-packages/' },
+            { name: 'country-ranking', path: '/__design/cbw-v2/country-ranking/' },
+            { name: 'contracts', path: '/__design/cbw-v2/contracts/' },
+          ];
+          const viewports = [
+            { name: 'desktop-1440', width: 1440, height: 1000 },
+            { name: 'tablet-768', width: 768, height: 1024 },
+            { name: 'mobile-390', width: 390, height: 844 },
+          ];
+
+          const expected = {
+            'content:kz:country-hub:review-051i': { claims: 23, sources: 22, blocks: 9 },
+            'content:kz:binance:market-passport:review-051i': { claims: 10, sources: 10, blocks: 6 },
+            'content:kz:bybit:market-passport:review-051i': { claims: 7, sources: 5, blocks: 6 },
+            'content:kz:okx:market-passport:review-051i': { claims: 6, sources: 7, blocks: 8 },
+          };
+
+          const browser = await chromium.launch({ headless: true });
+          const results = [];
+          let failed = false;
+
+          try {
+            for (const route of routes) {
+              for (const viewport of viewports) {
+                const page = await browser.newPage({ viewport });
+                const consoleErrors = [];
+                const pageErrors = [];
+                page.on('console', message => {
+                  if (message.type() === 'error') consoleErrors.push(message.text());
+                });
+                page.on('pageerror', error => pageErrors.push(error.message));
+
+                const response = await page.goto(`http://127.0.0.1:4321${route.path}`, {
+                  waitUntil: 'networkidle',
+                });
+                const robots = await page.locator('meta[name="robots"]').getAttribute('content');
+                const dimensions = await page.evaluate(() => ({
+                  scrollWidth: document.documentElement.scrollWidth,
+                  clientWidth: document.documentElement.clientWidth,
+                  bodyScrollWidth: document.body.scrollWidth,
+                }));
+
+                const checks = {
+                  http200: response?.status() === 200,
+                  titlePresent: (await page.title()).trim().length > 0,
+                  noindex: typeof robots === 'string' && robots.toLowerCase().includes('noindex'),
+                  noOverflow:
+                    dimensions.scrollWidth <= dimensions.clientWidth + 1
+                    && dimensions.bodyScrollWidth <= dimensions.clientWidth + 1,
+                  noConsoleErrors: consoleErrors.length === 0,
+                  noPageErrors: pageErrors.length === 0,
+                };
+                const routeChecks = {};
+
+                if (route.name === 'content-packages') {
+                  routeChecks.fourPackages = await page.locator('[data-package-id]').count() === 4;
+                  routeChecks.twoConflictPreserving = await page.locator('.package-card.conflict').count() === 2;
+                  routeChecks.fourRecommendationOff = await page.getByText('Recommendation: off', { exact: true }).count() === 4;
+                  routeChecks.fourRankingOff = await page.getByText('Ranking rows: off', { exact: true }).count() === 4;
+                  routeChecks.fourCtaOff = await page.getByText('CTA: off', { exact: true }).count() === 4;
+                  routeChecks.fourIndexabilityOff = await page.getByText('Indexability: off', { exact: true }).count() === 4;
+                  routeChecks.noAffiliateRoute = await page.locator('a[href^="/go/"]').count() === 0;
+                  routeChecks.boundaryFlags =
+                    await page.getByText('publicationAuthorized = false', { exact: true }).count() === 1
+                    && await page.getByText('rankingRowsAuthorized = false', { exact: true }).count() === 1
+                    && await page.getByText('affiliateCtaAuthorized = false', { exact: true }).count() === 1
+                    && await page.getByText('indexabilityAuthorized = false', { exact: true }).count() === 1;
+
+                  for (const [packageId, counts] of Object.entries(expected)) {
+                    const card = page.locator(`[data-package-id="${packageId}"]`);
+                    routeChecks[`${packageId}:exists`] = await card.count() === 1;
+                    routeChecks[`${packageId}:claims`] = await card.locator('.counts div').filter({ hasText: 'Candidate claims' }).getByText(String(counts.claims), { exact: true }).count() === 1;
+                    routeChecks[`${packageId}:sources`] = await card.locator('.counts div').filter({ hasText: 'Source packets' }).getByText(String(counts.sources), { exact: true }).count() === 1;
+                    routeChecks[`${packageId}:blocks`] = await card.locator('.counts div').filter({ hasText: 'Editorial blocks' }).getByText(String(counts.blocks), { exact: true }).count() === 1;
+                    routeChecks[`${packageId}:approvedZero`] = await card.locator('.counts div').filter({ hasText: 'Approved claims' }).getByText('0', { exact: true }).count() === 1;
+                  }
+                }
+
+                if (route.name === 'country-ranking') {
+                  routeChecks.snapshotRowsZero = await page.locator('[data-ranking-snapshot] dl div').filter({ hasText: 'Ranked rows' }).getByText('0', { exact: true }).count() === 1;
+                  routeChecks.threeBlankPositions = await page.locator('.rank-placeholder').count() === 3;
+                  routeChecks.rankingBlocked = await page.getByText('BLOCKED', { exact: true }).count() >= 1;
+                }
+
+                if (route.name === 'contracts') {
+                  routeChecks.contractSuitePass = await page.getByText('Contract fixture suite passed', { exact: true }).count() === 1;
+                  routeChecks.contentPackageFixtureVisible = await page.getByText('Kazakhstan review ContentPackages keep claims unapproved and publication disabled', { exact: true }).count() === 1;
+                }
+
+                const ok = [...Object.values(checks), ...Object.values(routeChecks)].every(Boolean);
+                if (!ok) failed = true;
+                const result = { route, viewport, ok, checks, routeChecks, consoleErrors, pageErrors, dimensions };
+                results.push(result);
+                console.log(JSON.stringify(result, null, 2));
+
+                await page.screenshot({
+                  path: `qa-artifacts/${route.name}-${viewport.name}.png`,
+                  fullPage: true,
+                });
+                await page.close();
+              }
+            }
+          } finally {
+            await browser.close();
+          }
+
+          await writeFile(
+            'qa-artifacts/cbw-v2-kz-content-packages-051i-review.json',
+            JSON.stringify({ failed, results }, null, 2),
+          );
+          if (failed) process.exit(1);
+          EOF
+          node ./.qa-kz-content-packages-051i.mjs
+
+      - name: Upload review evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cbw-portal-v2-kz-content-packages-051i-review
+          path: qa-artifacts/
+          if-no-files-found: error
