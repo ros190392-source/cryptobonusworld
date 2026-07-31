@@ -1,0 +1,278 @@
+---
+import CleanLayout from '../../../../layouts/CleanLayout.astro';
+
+const statuses = [
+  { label: 'Verified', detail: 'Current approved evidence', tone: 'verified' },
+  { label: 'Partially checked', detail: 'Evidence exists with limitations', tone: 'partial' },
+  { label: 'Under review', detail: 'No public conclusion yet', tone: 'review' },
+  { label: 'Restricted', detail: 'Country restriction or regulator signal', tone: 'restricted' },
+  { label: 'Stale', detail: 'Recheck required before promotion', tone: 'stale' },
+  { label: 'Insufficient evidence', detail: 'Fail closed', tone: 'unknown' },
+];
+
+const countries = [
+  { flag: '🇰🇿', name: 'Kazakhstan', state: 'Research-rich pilot', meta: 'Ranking readiness under review' },
+  { flag: '🇵🇱', name: 'Poland', state: 'Priority European GEO', meta: 'Market profiles in progress' },
+  { flag: '🇧🇷', name: 'Brazil', state: 'Next-wave candidate', meta: 'Source registry not approved' },
+];
+
+const evidenceRows = [
+  { label: 'Availability', value: 'Available', state: 'verified' },
+  { label: 'KYC', value: 'Required', state: 'verified' },
+  { label: 'Local fiat', value: 'KZT', state: 'partial' },
+  { label: 'P2P', value: 'Evidence review', state: 'review' },
+];
+---
+
+<CleanLayout
+  title="CBW Portal Factory v2 — Design Foundation"
+  description="Review-only visual foundation for the CryptoBonusWorld international portal factory."
+  noindex={true}
+  bodyClass="cbw-v2-review"
+>
+  <main class="v2-page">
+    <section class="v2-hero">
+      <div class="v2-shell">
+        <div class="v2-kicker">Review route · noindex</div>
+        <div class="v2-hero-grid">
+          <div>
+            <p class="v2-eyebrow">CryptoBonusWorld Portal Factory v2</p>
+            <h1>Evidence-led exchange discovery, designed to scale by country.</h1>
+            <p class="v2-lede">
+              This foundation system turns existing CBW exchange-page strengths into one international portal language.
+              It separates facts, country context, ranking approval and localized presentation.
+            </p>
+            <div class="v2-actions">
+              <a class="v2-btn v2-btn-primary" href="/__design/cbw-v2/homepage/">Open homepage concept</a>
+              <a class="v2-btn v2-btn-secondary" href="/methodology/">Current methodology</a>
+            </div>
+          </div>
+          <aside class="v2-principles" aria-label="Design principles">
+            <div class="v2-principle"><span>01</span><strong>One approved fact layer</strong><small>Many locales, no duplicated facts.</small></div>
+            <div class="v2-principle"><span>02</span><strong>Country and language are separate</strong><small>GEO controls market truth; locale controls presentation.</small></div>
+            <div class="v2-principle"><span>03</span><strong>Fail closed</strong><small>No evidence, no claim. No snapshot, no ranking.</small></div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section class="v2-section">
+      <div class="v2-shell">
+        <div class="v2-section-head">
+          <p class="v2-eyebrow">Foundation</p>
+          <h2>Visual language</h2>
+          <p>Navy structure, warm amber emphasis, evidence green and calm neutral surfaces. Status is always readable without relying on color alone.</p>
+        </div>
+
+        <div class="v2-token-grid">
+          <article class="v2-token v2-token-navy"><span>Structure</span><strong>Navy</strong><code>#13233E</code></article>
+          <article class="v2-token v2-token-amber"><span>Editorial focus</span><strong>Amber</strong><code>#F7931A</code></article>
+          <article class="v2-token v2-token-green"><span>Approved evidence</span><strong>Green</strong><code>#168A52</code></article>
+          <article class="v2-token v2-token-surface"><span>Reading surface</span><strong>Warm light</strong><code>#F7F8F4</code></article>
+        </div>
+
+        <div class="v2-type-card">
+          <div>
+            <span class="v2-type-label">Display / Barlow Condensed</span>
+            <div class="v2-display-sample">COUNTRY-FIRST CRYPTO RESEARCH</div>
+          </div>
+          <div>
+            <span class="v2-type-label">UI and reading / Inter</span>
+            <p class="v2-body-sample">Clear status language, compact comparison rows and evidence summaries designed for long-form international content.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="v2-section v2-section-muted">
+      <div class="v2-shell">
+        <div class="v2-section-head">
+          <p class="v2-eyebrow">Semantic system</p>
+          <h2>Evidence and publication states</h2>
+          <p>These states repeat across rankings, market passports, guides, offers and change history.</p>
+        </div>
+
+        <div class="v2-status-grid">
+          {statuses.map(status => (
+            <article class={`v2-status v2-status-${status.tone}`}>
+              <span class="v2-status-dot" aria-hidden="true"></span>
+              <div><strong>{status.label}</strong><small>{status.detail}</small></div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="v2-section">
+      <div class="v2-shell">
+        <div class="v2-section-head">
+          <p class="v2-eyebrow">Reusable patterns</p>
+          <h2>Country discovery without a second ranking</h2>
+          <p>Country cards route users into market context. The homepage keeps one canonical Top-10.</p>
+        </div>
+
+        <div class="v2-country-grid">
+          {countries.map(country => (
+            <article class="v2-country-card">
+              <div class="v2-country-top"><span class="v2-flag">{country.flag}</span><span class="v2-country-arrow">↗</span></div>
+              <h3>{country.name}</h3>
+              <strong>{country.state}</strong>
+              <p>{country.meta}</p>
+              <div class="v2-country-foot"><span>View market</span><span>Country hub</span></div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="v2-section v2-section-dark">
+      <div class="v2-shell">
+        <div class="v2-section-head v2-section-head-light">
+          <p class="v2-eyebrow">Market passport pattern</p>
+          <h2>Exchange × Country evidence summary</h2>
+          <p>A reusable passport shows exactly what is known, limited, stale or still under review.</p>
+        </div>
+
+        <article class="v2-passport">
+          <div class="v2-passport-head">
+            <div class="v2-exchange-mark">B</div>
+            <div><span class="v2-passport-label">Market passport</span><h3>Exchange example in Kazakhstan</h3><p>Last checked · evidence package pending approval</p></div>
+            <span class="v2-chip v2-chip-review">Under review</span>
+          </div>
+          <div class="v2-evidence-grid">
+            {evidenceRows.map(row => (
+              <div class="v2-evidence-row">
+                <span>{row.label}</span>
+                <strong>{row.value}</strong>
+                <span class={`v2-mini-state v2-mini-${row.state}`}>{row.state}</span>
+              </div>
+            ))}
+          </div>
+          <div class="v2-passport-foot">
+            <p>No verified offer CTA is rendered until the market-specific binding is approved.</p>
+            <button type="button" disabled>Offer under review</button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="v2-section">
+      <div class="v2-shell">
+        <div class="v2-section-head">
+          <p class="v2-eyebrow">Component geometry</p>
+          <h2>Buttons, chips and disclosure patterns</h2>
+        </div>
+        <div class="v2-component-row">
+          <button class="v2-btn v2-btn-primary" type="button">Primary action</button>
+          <button class="v2-btn v2-btn-secondary" type="button">Secondary action</button>
+          <span class="v2-chip v2-chip-verified">Country evidence checked</span>
+          <span class="v2-chip v2-chip-review">Offer under review</span>
+          <span class="v2-chip v2-chip-restricted">Restricted</span>
+        </div>
+        <div class="v2-disclosure">
+          <strong>Editorial and affiliate separation</strong>
+          <p>Ranking status and evidence are approved independently from affiliate availability. A commercial CTA cannot create or improve a ranking position.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+</CleanLayout>
+
+<style>
+  :global(body.cbw-v2-review) { background: #f7f8f4; }
+  .v2-page { color: #13233e; background: #f7f8f4; }
+  .v2-shell { width: min(1160px, calc(100% - 32px)); margin: 0 auto; }
+  .v2-hero { background: radial-gradient(circle at 85% 15%, rgba(247,147,26,.2), transparent 30%), #13233e; color: #fff; padding: 72px 0; }
+  .v2-kicker { display: inline-flex; border: 1px solid rgba(255,255,255,.25); border-radius: 999px; padding: 6px 12px; font-size: 11px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; margin-bottom: 32px; }
+  .v2-hero-grid { display: grid; gap: 40px; }
+  .v2-eyebrow { margin: 0 0 10px; color: #f7931a; font-size: 12px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+  h1, h2, .v2-display-sample { font-family: 'Barlow Condensed', sans-serif; letter-spacing: -.02em; }
+  h1 { margin: 0; max-width: 820px; font-size: clamp(48px, 8vw, 84px); line-height: .95; text-transform: uppercase; }
+  .v2-lede { max-width: 690px; margin: 24px 0 0; color: #d9e2ee; font-size: 17px; line-height: 1.7; }
+  .v2-actions, .v2-component-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 28px; }
+  .v2-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 46px; border: 1px solid transparent; border-radius: 10px; padding: 0 18px; font: 800 14px/1 'Inter', sans-serif; text-decoration: none; }
+  .v2-btn-primary { background: #f7931a; color: #13233e; }
+  .v2-btn-secondary { background: transparent; color: inherit; border-color: currentColor; }
+  .v2-principles { display: grid; gap: 12px; align-self: end; }
+  .v2-principle { display: grid; grid-template-columns: 42px 1fr; gap: 4px 14px; padding: 18px; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.14); border-radius: 14px; }
+  .v2-principle span { grid-row: 1 / 3; color: #f7931a; font-weight: 900; }
+  .v2-principle strong { font-size: 14px; }
+  .v2-principle small { color: #b8c6d8; line-height: 1.5; }
+  .v2-section { padding: 72px 0; }
+  .v2-section-muted { background: #eef1ec; }
+  .v2-section-dark { background: #0c1729; color: #fff; }
+  .v2-section-head { max-width: 720px; margin-bottom: 32px; }
+  .v2-section-head h2 { margin: 0 0 12px; font-size: clamp(38px, 6vw, 58px); line-height: 1; text-transform: uppercase; }
+  .v2-section-head > p:last-child { margin: 0; color: #5c6877; line-height: 1.7; }
+  .v2-section-head-light > p:last-child { color: #b8c6d8; }
+  .v2-token-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; }
+  .v2-token { min-height: 150px; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; justify-content: end; box-shadow: inset 0 0 0 1px rgba(19,35,62,.1); }
+  .v2-token span { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; opacity: .72; }
+  .v2-token strong { font-size: 24px; }
+  .v2-token code { margin-top: 4px; font-size: 12px; }
+  .v2-token-navy { background: #13233e; color: #fff; }
+  .v2-token-amber { background: #f7931a; color: #13233e; }
+  .v2-token-green { background: #168a52; color: #fff; }
+  .v2-token-surface { background: #fff; color: #13233e; }
+  .v2-type-card { display: grid; gap: 28px; margin-top: 24px; background: #fff; border: 1px solid #dce2da; border-radius: 18px; padding: 26px; }
+  .v2-type-label { display: block; margin-bottom: 10px; color: #66717f; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
+  .v2-display-sample { font-size: clamp(34px, 6vw, 64px); line-height: .95; }
+  .v2-body-sample { max-width: 650px; margin: 0; color: #455160; line-height: 1.75; }
+  .v2-status-grid { display: grid; gap: 12px; }
+  .v2-status { display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid #d9dfd7; border-radius: 12px; padding: 16px; }
+  .v2-status-dot { width: 12px; height: 12px; border-radius: 50%; background: #8792a0; flex: 0 0 auto; }
+  .v2-status strong, .v2-status small { display: block; }
+  .v2-status small { margin-top: 3px; color: #657180; }
+  .v2-status-verified .v2-status-dot { background: #168a52; }
+  .v2-status-partial .v2-status-dot { background: #c18a18; }
+  .v2-status-review .v2-status-dot { background: #57749c; }
+  .v2-status-restricted .v2-status-dot { background: #b23a48; }
+  .v2-status-stale .v2-status-dot { background: #b8652a; }
+  .v2-country-grid { display: grid; gap: 16px; }
+  .v2-country-card { background: #fff; border: 1px solid #dce2da; border-radius: 18px; padding: 22px; box-shadow: 0 12px 28px rgba(19,35,62,.06); }
+  .v2-country-top { display: flex; align-items: center; justify-content: space-between; }
+  .v2-flag { font-size: 34px; }
+  .v2-country-arrow { color: #f7931a; font-size: 20px; }
+  .v2-country-card h3 { margin: 22px 0 8px; font-size: 25px; }
+  .v2-country-card > strong { color: #168a52; font-size: 13px; }
+  .v2-country-card > p { min-height: 48px; margin: 8px 0 20px; color: #647080; line-height: 1.55; }
+  .v2-country-foot { display: flex; justify-content: space-between; border-top: 1px solid #e4e8e2; padding-top: 14px; font-size: 12px; font-weight: 800; }
+  .v2-passport { background: #fff; color: #13233e; border-radius: 20px; overflow: hidden; }
+  .v2-passport-head { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: center; padding: 22px; border-bottom: 1px solid #e1e6e0; }
+  .v2-exchange-mark { width: 52px; height: 52px; display: grid; place-items: center; border-radius: 14px; background: #13233e; color: #f7931a; font-size: 26px; font-weight: 900; }
+  .v2-passport-label { color: #718092; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: .08em; }
+  .v2-passport-head h3 { margin: 3px 0; font-size: 21px; }
+  .v2-passport-head p { margin: 0; color: #687483; font-size: 12px; }
+  .v2-passport-head .v2-chip { grid-column: 1 / -1; justify-self: start; }
+  .v2-evidence-grid { display: grid; }
+  .v2-evidence-row { display: grid; grid-template-columns: 1fr auto; gap: 6px 14px; padding: 16px 22px; border-bottom: 1px solid #edf0ec; }
+  .v2-evidence-row > span:first-child { color: #6b7684; font-size: 12px; }
+  .v2-evidence-row strong { text-align: right; }
+  .v2-mini-state { grid-column: 1 / -1; justify-self: end; font-size: 10px; font-weight: 900; text-transform: uppercase; }
+  .v2-mini-verified { color: #168a52; }
+  .v2-mini-partial { color: #a66e00; }
+  .v2-mini-review { color: #57749c; }
+  .v2-passport-foot { padding: 20px 22px; background: #f7f8f4; }
+  .v2-passport-foot p { margin: 0 0 14px; color: #66717f; font-size: 13px; line-height: 1.6; }
+  .v2-passport-foot button { width: 100%; min-height: 44px; border: 0; border-radius: 10px; background: #dfe4df; color: #687483; font-weight: 800; }
+  .v2-chip { display: inline-flex; min-height: 30px; align-items: center; border-radius: 999px; padding: 0 12px; font-size: 11px; font-weight: 900; }
+  .v2-chip-verified { background: #e5f5ec; color: #11693e; }
+  .v2-chip-review { background: #e8eef6; color: #405d85; }
+  .v2-chip-restricted { background: #f8e7e9; color: #94313d; }
+  .v2-disclosure { margin-top: 28px; border-left: 4px solid #f7931a; background: #fff; padding: 20px; }
+  .v2-disclosure p { margin: 6px 0 0; color: #5d6978; line-height: 1.65; }
+  @media (min-width: 760px) {
+    .v2-hero-grid { grid-template-columns: minmax(0,1.5fr) minmax(290px,.7fr); align-items: end; }
+    .v2-token-grid { grid-template-columns: repeat(4, minmax(0,1fr)); }
+    .v2-type-card { grid-template-columns: 1fr 1fr; align-items: center; }
+    .v2-status-grid { grid-template-columns: repeat(3, minmax(0,1fr)); }
+    .v2-country-grid { grid-template-columns: repeat(3, minmax(0,1fr)); }
+    .v2-passport-head { grid-template-columns: auto 1fr auto; }
+    .v2-passport-head .v2-chip { grid-column: auto; justify-self: end; }
+    .v2-evidence-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .v2-evidence-row:nth-child(odd) { border-right: 1px solid #edf0ec; }
+    .v2-passport-foot { display: grid; grid-template-columns: 1fr auto; gap: 20px; align-items: center; }
+    .v2-passport-foot p { margin: 0; }
+    .v2-passport-foot button { width: auto; min-width: 190px; padding: 0 18px; }
+  }
+</style>
