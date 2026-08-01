@@ -1,0 +1,161 @@
+name: CBW Remaining Page Families v2 052I representative review
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  browser-review:
+    if: github.event.pull_request.head.ref == 'qa/cbw-remaining-page-families-v2-052i-representative'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - name: Start preview
+        run: |
+          npm run preview -- --host 127.0.0.1 --port 4321 > /tmp/cbw-preview.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:4321/ >/dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/cbw-preview.log
+          exit 1
+      - name: Validate representative page families
+        run: |
+          mkdir -p qa-artifacts
+          cat > .qa-remaining-families-representative.mjs <<'EOF'
+          import { chromium } from 'playwright';
+          import { writeFile } from 'node:fs/promises';
+
+          const routes = [
+            { name: 'exchanges', path: '/exchanges/', family: 'directory' },
+            { name: 'promo-codes', path: '/promo-codes/', family: 'promo' },
+            { name: 'methodology', path: '/methodology/', family: 'methodology' },
+            { name: 'affiliate-disclosure', path: '/affiliate-disclosure/', family: 'legal' },
+          ];
+          const viewports = [
+            { name: 'desktop-1440', width: 1440, height: 1000 },
+            { name: 'tablet-768', width: 768, height: 1024 },
+            { name: 'mobile-390', width: 390, height: 844 },
+          ];
+          const results = [];
+          let failed = false;
+          const browser = await chromium.launch({ headless: true });
+
+          try {
+            for (const route of routes) {
+              for (const viewport of viewports) {
+                const page = await browser.newPage({ viewport });
+                const consoleErrors = [];
+                const pageErrors = [];
+                const httpFailures = [];
+                page.on('console', m => { if (m.type() === 'error') consoleErrors.push(m.text()); });
+                page.on('pageerror', e => pageErrors.push(e.message));
+                page.on('response', r => { if (r.status() >= 400) httpFailures.push({ status: r.status(), url: r.url() }); });
+
+                const response = await page.goto(`http://127.0.0.1:4321${route.path}`, { waitUntil: 'networkidle' });
+                const dimensions = await page.evaluate(() => ({
+                  scrollWidth: document.documentElement.scrollWidth,
+                  clientWidth: document.documentElement.clientWidth,
+                  bodyScrollWidth: document.body.scrollWidth,
+                }));
+                const checks = {
+                  http200: response?.status() === 200,
+                  oneHeader: await page.locator('.site-header').count() === 1,
+                  oneFooter: await page.locator('.site-footer').count() === 1,
+                  noLegacyFinderLinks: await page.locator('a[href="/#finder"]').count() === 0,
+                  noOverflow: dimensions.scrollWidth <= dimensions.clientWidth + 1 && dimensions.bodyScrollWidth <= dimensions.clientWidth + 1,
+                  noConsoleErrors: consoleErrors.length === 0,
+                  noPageErrors: pageErrors.length === 0,
+                  noHttpFailures: httpFailures.length === 0,
+                };
+
+                if (route.family !== 'legal') {
+                  const heroTitle = page.locator('.page-hero .ph-title').first();
+                  const heroStyle = await heroTitle.evaluate(el => ({
+                    family: getComputedStyle(el).fontFamily,
+                    size: parseFloat(getComputedStyle(el).fontSize),
+                    color: getComputedStyle(el).color,
+                  }));
+                  checks.pageHeroPresent = await page.locator('.page-hero').count() === 1;
+                  checks.heroBarlow = heroStyle.family.includes('Barlow Condensed');
+                  checks.heroWhite = heroStyle.color === 'rgb(255, 255, 255)';
+                  checks.heroSize = heroStyle.size >= 38;
+                }
+
+                if (route.family === 'directory') {
+                  const cards = page.locator('.ec');
+                  checks.sixExchangeCards = await cards.count() === 6;
+                  checks.sixAffiliateCtas = await page.locator('.ec-cta[href^="/go/"]').count() === 6;
+                  checks.cardRadius = await cards.first().evaluate(el => parseFloat(getComputedStyle(el).borderRadius)) >= 16;
+                  checks.cardCtaAmber = await page.locator('.ec-cta').first().evaluate(el => getComputedStyle(el).backgroundColor) === 'rgb(247, 147, 26)';
+                  checks.directoryFaq = await page.locator('.exd-faq-item').count() === 6;
+                }
+
+                if (route.family === 'promo') {
+                  checks.sixPromoRows = await page.locator('[data-pc-row]').count() === 6;
+                  checks.sixClaimPaths = await page.locator('.pc-claim-btn[href^="/go/"]').count() === 6;
+                  checks.claimAmber = await page.locator('.pc-claim-btn').first().evaluate(el => getComputedStyle(el).backgroundColor) === 'rgb(247, 147, 26)';
+                  checks.tableRadius = await page.locator('.pc-table-scroll').evaluate(el => parseFloat(getComputedStyle(el).borderRadius)) >= (viewport.width <= 760 ? 0 : 15);
+                  checks.legacyTextNormalized = await page.getByText('Compare the Top 10 →', { exact: true }).count() === 1;
+                  checks.normalizedHref = await page.locator('.pc-country-link').getAttribute('href') === '/#exchanges';
+                  checks.promoFaq = await page.locator('.pc-faq-item').count() === 8;
+                }
+
+                if (route.family === 'methodology') {
+                  checks.sixSteps = await page.locator('.mth-step').count() === 6;
+                  checks.sixCriteria = await page.locator('.mth-criterion').count() === 6;
+                  checks.stepRadius = await page.locator('.mth-step').first().evaluate(el => parseFloat(getComputedStyle(el).borderRadius)) >= 14;
+                  const h2 = page.locator('.mth-section-head h2').first();
+                  checks.methodHeadingBarlow = await h2.evaluate(el => getComputedStyle(el).fontFamily.includes('Barlow Condensed'));
+                  checks.methodHeadingNavy = await h2.evaluate(el => getComputedStyle(el).color === 'rgb(19, 35, 62)');
+                }
+
+                if (route.family === 'legal') {
+                  const h1 = page.locator('.ad-h1');
+                  checks.proseSurface = await page.locator('.ad-prose').count() === 1;
+                  checks.proseRadius = await page.locator('.ad-prose').evaluate(el => parseFloat(getComputedStyle(el).borderRadius)) >= 15;
+                  checks.h1Barlow = await h1.evaluate(el => getComputedStyle(el).fontFamily.includes('Barlow Condensed'));
+                  checks.h1Navy = await h1.evaluate(el => getComputedStyle(el).color === 'rgb(19, 35, 62)');
+                  checks.twoCallouts = await page.locator('.ad-callout').count() === 2;
+                }
+
+                const ok = Object.values(checks).every(Boolean);
+                failed ||= !ok;
+                const result = { route, viewport, ok, checks, dimensions, consoleErrors, pageErrors, httpFailures };
+                results.push(result);
+                console.log(JSON.stringify(result, null, 2));
+                await page.screenshot({ path: `qa-artifacts/${route.name}-${viewport.name}.png`, fullPage: true });
+                await page.close();
+              }
+            }
+          } finally {
+            await browser.close();
+          }
+
+          await writeFile('qa-artifacts/cbw-remaining-page-families-v2-052i-representative.json', JSON.stringify({ failed, results }, null, 2));
+          if (failed) process.exit(1);
+          EOF
+          node .qa-remaining-families-representative.mjs
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cbw-remaining-page-families-v2-052i-representative
+          path: qa-artifacts/
+          if-no-files-found: error
