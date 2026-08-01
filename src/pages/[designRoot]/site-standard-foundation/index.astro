@@ -1,0 +1,202 @@
+---
+import CleanLayout from '../../../layouts/CleanLayout.astro';
+import PageFrame from '../../../components/site-standard/PageFrame.astro';
+import FirstViewport from '../../../components/site-standard/FirstViewport.astro';
+import Section from '../../../components/site-standard/Section.astro';
+import Container from '../../../components/site-standard/Container.astro';
+import {
+  CONTAINER_WIDTHS,
+  FIRST_SCREEN_CONTRACTS,
+  PAGE_FAMILY_STANDARDS,
+  RESPONSIVE_GUTTERS,
+  SITE_STANDARD_VERSION,
+  SITE_STANDARD_V1_VALID,
+} from '../../../data/siteStandard/siteStandardV1';
+import {
+  SITE_STANDARD_FIXTURE_RESULTS,
+  SITE_STANDARD_FIXTURES_PASS,
+} from '../../../data/siteStandard/siteStandardFixtures';
+
+export function getStaticPaths() {
+  return [{ params: { designRoot: '__design' } }];
+}
+
+const widthRoles = Object.entries(CONTAINER_WIDTHS);
+const contracts = Object.values(FIRST_SCREEN_CONTRACTS);
+const fixturePassCount = SITE_STANDARD_FIXTURE_RESULTS.filter(result => result.passed).length;
+---
+
+<CleanLayout
+  title="Site Standard v1 Foundation | CryptoBonusWorld"
+  description="Review-only surface for canonical containers, spacing and first-screen contracts."
+  noindex={true}
+>
+  <PageFrame family="utility">
+    <FirstViewport
+      family="directory"
+      container="wide"
+      eyebrow="Review only · no public migration"
+      title="Site Standard v1"
+      lede="One governed container system, one responsive gutter scale and explicit first-screen budgets for every public page family."
+    >
+      <div class:list={['foundation-state', { pass: SITE_STANDARD_V1_VALID && SITE_STANDARD_FIXTURES_PASS }]}> 
+        <strong>{SITE_STANDARD_V1_VALID && SITE_STANDARD_FIXTURES_PASS ? 'FOUNDATION PASS' : 'FOUNDATION BLOCKED'}</strong>
+        <span>{SITE_STANDARD_VERSION} · {fixturePassCount}/{SITE_STANDARD_FIXTURE_RESULTS.length} fixtures</span>
+      </div>
+    </FirstViewport>
+
+    <Section container="wide" spacing="compact" tone="page">
+      <div class="cbw-stack cbw-stack--loose">
+        <section class="cbw-panel">
+          <p class="cbw-eyebrow">Canonical geometry</p>
+          <h2 class="foundation-heading">Container roles</h2>
+          <div class="role-list">
+            {widthRoles.map(([role, width]) => (
+              <article class="role-row" data-role={role}>
+                <div><strong>{role}</strong><span>{width}px</span></div>
+                <div class="role-bar" style={`--role-width:${Math.max(24, Math.round((width / CONTAINER_WIDTHS.wide) * 100))}%`}></div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section class="cbw-panel">
+          <p class="cbw-eyebrow">Responsive contract</p>
+          <h2 class="foundation-heading">Gutters and surfaces</h2>
+          <div class="cbw-grid cbw-grid--3">
+            <article class="cbw-card token-card"><span>Mobile gutter</span><strong>{RESPONSIVE_GUTTERS.mobile}px</strong></article>
+            <article class="cbw-card token-card"><span>Tablet gutter</span><strong>{RESPONSIVE_GUTTERS.tablet}px</strong></article>
+            <article class="cbw-card token-card"><span>Desktop gutter</span><strong>{RESPONSIVE_GUTTERS.desktop}px</strong></article>
+          </div>
+          <div class="surface-row">
+            <article class="surface surface-page"><span>Page</span></article>
+            <article class="surface surface-primary"><span>Primary</span></article>
+            <article class="surface surface-secondary"><span>Secondary</span></article>
+            <article class="surface surface-action"><span>Action</span></article>
+            <article class="surface surface-evidence"><span>Evidence</span></article>
+          </div>
+        </section>
+
+        <section class="cbw-panel">
+          <p class="cbw-eyebrow">Fail-closed validation</p>
+          <h2 class="foundation-heading">Fixture outcomes</h2>
+          <div class="fixture-list">
+            {SITE_STANDARD_FIXTURE_RESULTS.map(result => (
+              <article class:list={['fixture-row', { pass: result.passed }]}> 
+                <div>
+                  <span>Expected {result.expected}</span>
+                  <strong>{result.id}</strong>
+                </div>
+                <div class="fixture-result">
+                  <b>{result.passed ? 'PASS' : 'FAIL'}</b>
+                  <small>{result.detail}</small>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section class="cbw-panel">
+          <p class="cbw-eyebrow">First-screen governance</p>
+          <h2 class="foundation-heading">Family budgets</h2>
+          <div class="contract-grid">
+            {contracts.map(contract => (
+              <article class="cbw-card contract-card" data-contract={contract.family}>
+                <h3>{contract.family}</h3>
+                <dl>
+                  <div><dt>Desktop useful by</dt><dd>{contract.desktop.firstUsefulMustBeginBy}px</dd></div>
+                  <div><dt>Tablet useful by</dt><dd>{contract.tablet.firstUsefulMustBeginBy}px</dd></div>
+                  <div><dt>Mobile useful by</dt><dd>{contract.mobile.firstUsefulMustBeginBy}px</dd></div>
+                </dl>
+                <ul>{contract.requirements.map(requirement => <li>{requirement}</li>)}</ul>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section class="cbw-panel">
+          <p class="cbw-eyebrow">Route architecture</p>
+          <h2 class="foundation-heading">Page-family assignments</h2>
+          <div class="family-table-wrap">
+            <table class="family-table">
+              <thead><tr><th>Family</th><th>First screen</th><th>Content</th><th>Intro</th><th>Exceptions</th></tr></thead>
+              <tbody>
+                {PAGE_FAMILY_STANDARDS.map(family => (
+                  <tr>
+                    <td>{family.id}</td>
+                    <td>{family.firstScreenFamily}</td>
+                    <td>{family.container}</td>
+                    <td>{family.introContainer}</td>
+                    <td>{family.localWidthExceptions.length}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <Container size="prose" as="aside" class="foundation-boundary">
+          <strong>Authorization boundary</strong>
+          <p>
+            These primitives are not connected to public routes. This review surface does not change ranking,
+            offers, promo codes, affiliate destinations, country facts, locales, indexability or deployment.
+          </p>
+        </Container>
+      </div>
+    </Section>
+  </PageFrame>
+</CleanLayout>
+
+<style>
+  .foundation-state { display: inline-flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 20px; padding: 10px 14px; border: 1px solid rgba(220,90,90,.34); border-radius: 11px; color: #ffd4d4; background: rgba(150,30,30,.14); }
+  .foundation-state.pass { color: #a8efc1; border-color: rgba(80,200,125,.34); background: rgba(32,130,72,.14); }
+  .foundation-state span { color: rgba(255,255,255,.64); font-size: 11px; }
+  .foundation-heading { margin: 0 0 20px; color: var(--cbw-text-primary); font-family: 'Barlow Condensed', 'Inter', sans-serif; font-size: clamp(30px, 5vw, 44px); line-height: 1; text-transform: uppercase; }
+  .role-list { display: grid; gap: 12px; }
+  .role-row { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 14px; align-items: center; }
+  .role-row > div:first-child { display: flex; justify-content: space-between; gap: 10px; color: var(--cbw-text-secondary); font-size: 11px; text-transform: capitalize; }
+  .role-row strong { color: var(--cbw-text-primary); }
+  .role-bar { width: var(--role-width); height: 16px; border-radius: var(--cbw-radius-pill); background: linear-gradient(90deg, var(--cbw-action), #ffc56e); }
+  .token-card span { color: var(--cbw-text-muted); font-size: 10px; font-weight: 900; letter-spacing: .07em; text-transform: uppercase; }
+  .token-card strong { display: block; margin-top: 5px; color: var(--cbw-text-primary); font-size: 24px; }
+  .surface-row { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin-top: 16px; }
+  .surface { min-height: 74px; display: flex; align-items: flex-end; padding: 11px; border: 1px solid var(--cbw-border-standard); border-radius: var(--cbw-radius-card); }
+  .surface span { font-size: 10px; font-weight: 900; text-transform: uppercase; }
+  .surface-page { background: var(--cbw-surface-page); }
+  .surface-primary { background: var(--cbw-surface-primary); }
+  .surface-secondary { background: var(--cbw-surface-secondary); }
+  .surface-action { color: var(--cbw-text-primary); background: var(--cbw-action); }
+  .surface-evidence { color: #fff; background: var(--cbw-evidence); }
+  .fixture-list { display: grid; gap: 8px; }
+  .fixture-row { display: flex; justify-content: space-between; gap: 16px; padding: 13px 15px; border: 1px solid #ebcdcd; border-left: 4px solid var(--cbw-danger); border-radius: 11px; background: #fff7f7; }
+  .fixture-row.pass { border-color: #d2e8d8; border-left-color: var(--cbw-evidence); background: #f7fcf8; }
+  .fixture-row span { color: var(--cbw-text-muted); font-size: 9px; font-weight: 900; letter-spacing: .07em; text-transform: uppercase; }
+  .fixture-row strong { display: block; margin-top: 2px; color: var(--cbw-text-primary); font-size: 12px; }
+  .fixture-result { max-width: 52%; text-align: right; }
+  .fixture-result b { color: var(--cbw-danger); font-size: 10px; }
+  .fixture-row.pass .fixture-result b { color: var(--cbw-evidence); }
+  .fixture-result small { display: block; margin-top: 3px; color: var(--cbw-text-muted); font-size: 9px; line-height: 1.4; }
+  .contract-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .contract-card h3 { margin: 0 0 12px; color: var(--cbw-text-primary); font-size: 14px; text-transform: capitalize; }
+  .contract-card dl { display: grid; gap: 5px; margin: 0; }
+  .contract-card dl div { display: flex; justify-content: space-between; gap: 12px; }
+  .contract-card dt { color: var(--cbw-text-muted); font-size: 10px; }
+  .contract-card dd { margin: 0; color: var(--cbw-text-primary); font-size: 10px; font-weight: 900; }
+  .contract-card ul { margin: 13px 0 0; padding-left: 17px; color: var(--cbw-text-secondary); font-size: 10px; line-height: 1.55; }
+  .family-table-wrap { overflow-x: auto; border: 1px solid var(--cbw-border-standard); border-radius: var(--cbw-radius-card); }
+  .family-table { width: 100%; min-width: 640px; border-collapse: collapse; }
+  .family-table th, .family-table td { padding: 10px 12px; border-bottom: 1px solid #edf0ec; text-align: left; }
+  .family-table th { color: var(--cbw-text-muted); background: var(--cbw-surface-secondary); font-size: 9px; letter-spacing: .07em; text-transform: uppercase; }
+  .family-table td { color: var(--cbw-text-secondary); font-size: 10px; }
+  .family-table td:first-child { color: var(--cbw-text-primary); font-weight: 900; }
+  .family-table tr:last-child td { border-bottom: 0; }
+  .foundation-boundary { padding: 18px; border: 1px solid #ead4b4; border-left: 5px solid var(--cbw-action); border-radius: var(--cbw-radius-card); background: #fff8ed; }
+  .foundation-boundary strong { color: var(--cbw-text-primary); }
+  .foundation-boundary p { margin: 5px 0 0; color: var(--cbw-text-secondary); font-size: 11px; line-height: 1.65; }
+  @media (max-width: 720px) {
+    .surface-row, .contract-grid { grid-template-columns: 1fr; }
+    .fixture-row { align-items: flex-start; flex-direction: column; }
+    .fixture-result { max-width: none; text-align: left; }
+    .role-row { grid-template-columns: 94px minmax(0, 1fr); }
+  }
+</style>
