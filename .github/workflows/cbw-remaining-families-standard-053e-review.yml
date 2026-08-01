@@ -1,0 +1,241 @@
+name: CBW Remaining Families Site Standard 053E Review
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  browser-review:
+    if: github.event.pull_request.head.ref == 'qa/cbw-remaining-families-standard-053e'
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - name: Start preview
+        run: |
+          npm run preview -- --host 127.0.0.1 --port 4321 > /tmp/cbw-preview.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:4321/ >/dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/cbw-preview.log
+          exit 1
+      - name: Validate remaining public families
+        run: |
+          mkdir -p qa-artifacts
+          cat > .qa-remaining-families-053e.mjs <<'EOF'
+          import { chromium } from 'playwright';
+          import { writeFile } from 'node:fs/promises';
+
+          const routes = [
+            { name: 'exchanges', path: '/exchanges/', family: 'directory', useful: '.directory-list-section', budget: [520,560,520] },
+            { name: 'promo-codes', path: '/promo-codes/', family: 'promo', useful: '.promo-ranking-section', budget: [520,560,520] },
+            { name: 'methodology', path: '/methodology/', family: 'methodology', useful: '.mth-section', budget: [540,580,540] },
+            { name: 'faq', path: '/faq/', family: 'faq', useful: '.faq-group', budget: [540,580,540] },
+            { name: 'about', path: '/about/', family: 'info', useful: '.prose', budget: [540,580,540] },
+            { name: 'affiliate-disclosure', path: '/affiliate-disclosure/', family: 'legal', useful: '.ad-prose', budget: [500,540,500] },
+            { name: 'contact', path: '/contact/', family: 'contact', useful: '.contact-grid', budget: [500,540,500] },
+            { name: 'reviewers', path: '/reviewers/', family: 'reviewers', useful: '.reviewer-grid', budget: [540,580,540] },
+          ];
+          const redirects = [
+            { path: '/categories/', target: '/promo-codes/', canonical: 'https://cryptobonusworld.com/promo-codes/' },
+            { path: '/countries/', target: '/', canonical: 'https://cryptobonusworld.com/' },
+            { path: '/guides/how-crypto-bonuses-work/', target: '/', canonical: 'https://cryptobonusworld.com/' },
+          ];
+          const viewports = [
+            { name: 'desktop-1440x900', width: 1440, height: 900, index: 0 },
+            { name: 'tablet-768x1024', width: 768, height: 1024, index: 1 },
+            { name: 'mobile-390x844', width: 390, height: 844, index: 2 },
+          ];
+          const expectedDirectoryHrefs = ['/go/bybit','/go/mexc','/go/okx','/go/bitget','/go/kucoin','/go/bingx'];
+          const normalize = value => (value || '').replace(/\/$/, '');
+          const results = [];
+          const redirectResults = [];
+          let failed = false;
+          const browser = await chromium.launch({ headless: true });
+
+          try {
+            for (const route of routes) {
+              for (const viewport of viewports) {
+                const context = await browser.newContext({ viewport });
+                const page = await context.newPage();
+                const consoleErrors = [];
+                const pageErrors = [];
+                const httpFailures = [];
+                page.on('console', message => { if (message.type() === 'error') consoleErrors.push(message.text()); });
+                page.on('pageerror', error => pageErrors.push(error.message));
+                page.on('response', response => { if (response.status() >= 400) httpFailures.push({ status: response.status(), url: response.url() }); });
+
+                const response = await page.goto(`http://127.0.0.1:4321${route.path}`, { waitUntil: 'networkidle' });
+                const dimensions = await page.evaluate(() => ({ sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth, bsw: document.body.scrollWidth }));
+                const useful = page.locator(route.useful).first();
+                const usefulBox = await useful.boundingBox();
+                const h1 = page.locator('h1');
+                const h1Box = await h1.first().boundingBox();
+                const checks = {
+                  http200: response?.status() === 200,
+                  oneHeader: await page.locator('.site-header').count() === 1,
+                  oneFooter: await page.locator('.site-footer').count() === 1,
+                  oneH1: await h1.count() === 1,
+                  h1Visible: Boolean(h1Box && h1Box.y < viewport.height && h1Box.y + h1Box.height <= viewport.height),
+                  usefulPresent: await useful.count() === 1,
+                  usefulWithinBudget: Boolean(usefulBox && usefulBox.y <= route.budget[viewport.index] + 1),
+                  noFinderLinks: await page.locator('a[href="/#finder"]').count() === 0,
+                  noOverflow: dimensions.sw <= dimensions.cw + 1 && dimensions.bsw <= dimensions.cw + 1,
+                  noConsoleErrors: consoleErrors.length === 0,
+                  noPageErrors: pageErrors.length === 0,
+                  noHttpFailures: httpFailures.length === 0,
+                };
+
+                if (route.family === 'directory') {
+                  const actionHrefs = (await page.locator('.exchange-directory-card__action').evaluateAll(nodes => nodes.map(node => node.getAttribute('href')))).map(normalize);
+                  const actionColors = await page.locator('.exchange-directory-card__action').evaluateAll(nodes => nodes.map(node => getComputedStyle(node).backgroundColor));
+                  const schema = await page.locator('script[type="application/ld+json"]').evaluateAll(nodes => nodes.map(node => { try { return JSON.parse(node.textContent || '{}'); } catch { return null; } }).filter(Boolean));
+                  const faq = schema.find(item => item['@type'] === 'FAQPage');
+                  Object.assign(checks, {
+                    sixCards: await page.locator('.exchange-directory-card').count() === 6,
+                    exactActions: JSON.stringify(actionHrefs) === JSON.stringify(expectedDirectoryHrefs),
+                    amberActions: actionColors.length === 6 && actionColors.every(color => color === 'rgb(247, 147, 26)'),
+                    sixFaqItems: await page.locator('.directory-faq details').count() === 6,
+                    faqSchemaParity: Array.isArray(faq?.mainEntity) && faq.mainEntity.length === 6,
+                    noLegacyDirectoryClasses: await page.locator('.exd-grid-wrap, .exd-text-wrap, .page-hero').count() === 0,
+                  });
+                }
+
+                if (route.family === 'promo') {
+                  const rowNames = (await page.locator('.promo-exchange').allTextContents()).map(value => value.trim());
+                  const actionHrefs = (await page.locator('.promo-action').evaluateAll(nodes => nodes.map(node => node.getAttribute('href')))).map(normalize);
+                  const actionColors = await page.locator('.promo-action').evaluateAll(nodes => nodes.map(node => getComputedStyle(node).backgroundColor));
+                  const ranks = await page.locator('.promo-row').evaluateAll(nodes => nodes.map(node => Number(node.getAttribute('data-rank'))));
+                  const codeRows = await page.locator('.promo-code-cell .pcc-row').count();
+                  const schema = await page.locator('script[type="application/ld+json"]').evaluateAll(nodes => nodes.map(node => { try { return JSON.parse(node.textContent || '{}'); } catch { return null; } }).filter(Boolean));
+                  const faq = schema.find(item => item['@type'] === 'FAQPage');
+                  Object.assign(checks, {
+                    sixRows: rowNames.length === 6,
+                    sixRanks: JSON.stringify(ranks) === JSON.stringify([1,2,3,4,5,6]),
+                    sixCodeRows: codeRows === 6,
+                    exactActions: JSON.stringify(actionHrefs) === JSON.stringify(expectedDirectoryHrefs),
+                    amberActions: actionColors.length === 6 && actionColors.every(color => color === 'rgb(247, 147, 26)'),
+                    eightFaqItems: await page.locator('.promo-faq details').count() === 8,
+                    faqSchemaParity: Array.isArray(faq?.mainEntity) && faq.mainEntity.length === 8,
+                    directTop10Link: await page.locator('a[href="/#exchanges"]').count() >= 1,
+                    noLegacyPromoClasses: await page.locator('.pc-table-wrap, .pc-text-wrap, .page-hero').count() === 0,
+                  });
+                }
+
+                if (route.family === 'methodology') {
+                  const wideWidths = await page.locator('.mth-wide').evaluateAll(nodes => nodes.map(node => Math.round(node.getBoundingClientRect().width * 100) / 100));
+                  const proseWidths = await page.locator('.mth-prose').evaluateAll(nodes => nodes.map(node => Math.round(node.getBoundingClientRect().width * 100) / 100));
+                  Object.assign(checks, {
+                    sixSteps: await page.locator('.mth-step').count() === 6,
+                    sixCriteria: await page.locator('.mth-criterion').count() === 6,
+                    standardWidths: wideWidths.length > 2 && wideWidths.every(value => value <= Math.min(viewport.width,960) + .5),
+                    proseWidths: proseWidths.length > 2 && proseWidths.every(value => value <= Math.min(viewport.width,760) + .5),
+                    onePageHero: await page.locator('.page-hero').count() === 1,
+                  });
+                }
+
+                if (route.family === 'faq') {
+                  const groupCount = await page.locator('.faq-group').count();
+                  const itemCount = await page.locator('.faq-item').count();
+                  const schema = await page.locator('script[type="application/ld+json"]').evaluateAll(nodes => nodes.map(node => { try { return JSON.parse(node.textContent || '{}'); } catch { return null; } }).filter(Boolean));
+                  const faq = schema.find(item => item['@type'] === 'FAQPage');
+                  const width = await page.locator('.faq-text-wrap').first().evaluate(node => Math.round(node.getBoundingClientRect().width * 100) / 100);
+                  Object.assign(checks, {
+                    fiveGroups: groupCount === 5,
+                    twentyItems: itemCount === 20,
+                    faqSchemaParity: Array.isArray(faq?.mainEntity) && faq.mainEntity.length === 20,
+                    proseWidth: width <= Math.min(viewport.width,760) + .5,
+                  });
+                }
+
+                if (route.family === 'info' || route.family === 'legal') {
+                  const width = await useful.evaluate(node => Math.round(node.getBoundingClientRect().width * 100) / 100);
+                  Object.assign(checks, {
+                    proseWidth: width <= Math.min(viewport.width,760) + .5,
+                    oneInfoFrame: await page.locator('.info-page-frame').count() === 1,
+                  });
+                }
+
+                if (route.family === 'contact') {
+                  const containerWidth = await page.locator('.info-page .container').first().evaluate(node => Math.round(node.getBoundingClientRect().width * 100) / 100);
+                  const submitColor = await page.locator('.form-submit').evaluate(node => getComputedStyle(node).backgroundColor);
+                  Object.assign(checks, {
+                    contactTwoColumnsDesktop: viewport.width < 769 || await page.locator('.contact-grid').evaluate(node => getComputedStyle(node).gridTemplateColumns.split(' ').length === 2),
+                    formFields: await page.locator('.contact-form input, .contact-form select, .contact-form textarea').count() >= 4,
+                    amberSubmit: submitColor === 'rgb(247, 147, 26)',
+                    standardWidth: containerWidth <= Math.min(viewport.width,960) + .5,
+                  });
+                }
+
+                if (route.family === 'reviewers') {
+                  const schema = await page.locator('script[type="application/ld+json"]').evaluateAll(nodes => nodes.map(node => { try { return JSON.parse(node.textContent || '{}'); } catch { return null; } }).filter(Boolean));
+                  const itemList = schema.find(item => item['@type'] === 'ItemList');
+                  Object.assign(checks, {
+                    twoReviewers: await page.locator('.reviewer-card').count() === 2,
+                    fourProcessSteps: await page.locator('.review-process li').count() === 4,
+                    schemaTwoPeople: Array.isArray(itemList?.itemListElement) && itemList.itemListElement.length === 2,
+                    reviewerGridStandard: await page.locator('.reviewer-grid').evaluate(node => node.getBoundingClientRect().width <= Math.min(viewport.width,960) + .5),
+                  });
+                }
+
+                const ok = Object.values(checks).every(Boolean);
+                failed ||= !ok;
+                const result = { route, viewport, ok, checks, geometry: { h1: h1Box, useful: usefulBox }, dimensions, consoleErrors, pageErrors, httpFailures };
+                results.push(result);
+                console.log(JSON.stringify(result, null, 2));
+                await page.screenshot({ path: `qa-artifacts/${route.name}-${viewport.name}-first.png`, fullPage: false });
+                await page.screenshot({ path: `qa-artifacts/${route.name}-${viewport.name}-full.png`, fullPage: true });
+                await context.close();
+              }
+            }
+
+            for (const redirect of redirects) {
+              const response = await fetch(`http://127.0.0.1:4321${redirect.path}`, { redirect: 'manual' });
+              const html = await response.text();
+              const checks = {
+                http200: response.status === 200,
+                robots: /<meta name="robots" content="noindex, follow"\s*\/>/.test(html),
+                canonical: html.includes(`<link rel="canonical" href="${redirect.canonical}"`),
+                refresh: html.includes(`content="0;url=${redirect.target}"`),
+                visibleTarget: html.includes(`href="${redirect.target}"`),
+                oneGovernedCard: (html.match(/class="redirect-card"/g) || []).length === 1,
+                noLegacyStyles: !html.includes('Redirect stub') && !html.includes('--bg:#070b12'),
+              };
+              const ok = Object.values(checks).every(Boolean);
+              failed ||= !ok;
+              const result = { redirect, ok, checks };
+              redirectResults.push(result);
+              console.log(JSON.stringify(result, null, 2));
+            }
+          } finally {
+            await browser.close();
+          }
+
+          await writeFile('qa-artifacts/CBW_REMAINING_FAMILIES_STANDARD_053E.json', JSON.stringify({ failed, results, redirectResults }, null, 2));
+          if (failed) process.exit(1);
+          EOF
+          node .qa-remaining-families-053e.mjs
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cbw-remaining-families-standard-053e-review
+          path: qa-artifacts/
+          if-no-files-found: error
+          retention-days: 90
