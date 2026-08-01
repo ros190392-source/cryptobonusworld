@@ -1,0 +1,127 @@
+/* CBW Site Shell v2 — global interaction and exchange CTA contract */
+
+:root {
+  --cbw-shell-navy: #0a1424;
+  --cbw-shell-navy-2: #13233e;
+  --cbw-shell-amber: #f7931a;
+  --cbw-shell-amber-hover: #ffad3d;
+  --cbw-shell-focus: #f7b65e;
+  --cbw-action-max: 360px;
+}
+
+body.cbw-menu-open {
+  overflow: hidden;
+}
+
+:where(a, button, summary):focus-visible {
+  outline: 3px solid rgba(247, 147, 26, .55);
+  outline-offset: 3px;
+}
+
+/*
+  Shared exchange conversion pattern.
+  Amber means action; green remains reserved for verified/evidence states.
+  These selectors intentionally normalize legacy exchange page CTA classes
+  without changing hrefs, labels, offer records or affiliate bindings.
+*/
+.p2-section.p2-cta-block {
+  padding-block: 18px 22px !important;
+  background: #fff !important;
+}
+
+.p2-cta-block .p2-inner {
+  width: min(100%, 720px) !important;
+  margin-inline: auto !important;
+  padding-inline: 20px !important;
+}
+
+.p2-cta-bar,
+.p2-cta-btn {
+  width: min(100%, var(--cbw-action-max)) !important;
+  min-height: 52px !important;
+  height: auto !important;
+  margin-inline: auto !important;
+  padding: 13px 20px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 1px solid rgba(19, 35, 62, .12) !important;
+  border-radius: 12px !important;
+  color: var(--cbw-shell-navy-2) !important;
+  -webkit-text-fill-color: var(--cbw-shell-navy-2) !important;
+  background: var(--cbw-shell-amber) !important;
+  box-shadow: 0 10px 24px rgba(247, 147, 26, .18) !important;
+  font-size: 15px !important;
+  font-weight: 900 !important;
+  line-height: 1.25 !important;
+  text-align: center !important;
+  text-decoration: none !important;
+  white-space: normal !important;
+  transform: none !important;
+  transition: background .15s, box-shadow .15s, transform .15s !important;
+}
+
+.p2-cta-bar:hover,
+.p2-cta-bar:focus-visible,
+.p2-cta-btn:hover,
+.p2-cta-btn:focus-visible {
+  color: var(--cbw-shell-navy-2) !important;
+  -webkit-text-fill-color: var(--cbw-shell-navy-2) !important;
+  background: var(--cbw-shell-amber-hover) !important;
+  box-shadow: 0 12px 28px rgba(247, 147, 26, .25) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Main exchange hero action follows the same role without changing layout. */
+.bh-cta-btn {
+  border: 1px solid rgba(19, 35, 62, .12) !important;
+  color: var(--cbw-shell-navy-2) !important;
+  -webkit-text-fill-color: var(--cbw-shell-navy-2) !important;
+  background: var(--cbw-shell-amber) !important;
+  box-shadow: 0 10px 26px rgba(247, 147, 26, .2) !important;
+}
+
+.bh-cta-btn:hover,
+.bh-cta-btn:focus-visible {
+  color: var(--cbw-shell-navy-2) !important;
+  -webkit-text-fill-color: var(--cbw-shell-navy-2) !important;
+  background: var(--cbw-shell-amber-hover) !important;
+}
+
+/* Keep disclosure and article image rhythm connected to the CTA below it. */
+.p2-article-banner-figure {
+  margin-bottom: 0 !important;
+}
+
+.p2-article-banner-caption {
+  margin-bottom: 0 !important;
+}
+
+@media (max-width: 639px) {
+  .p2-section.p2-cta-block {
+    padding-block: 14px 18px !important;
+  }
+
+  .p2-cta-block .p2-inner {
+    padding-inline: 20px !important;
+  }
+
+  .p2-cta-bar,
+  .p2-cta-btn {
+    width: 100% !important;
+    max-width: var(--cbw-action-max) !important;
+    min-height: 50px !important;
+    padding: 12px 16px !important;
+    border-radius: 11px !important;
+    font-size: 14px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
