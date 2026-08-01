@@ -1,0 +1,348 @@
+/* CBW Info, Trust and Legal Page Family v2 */
+
+.info-page {
+  --color-bg: #f7f8f4 !important;
+  --color-bg-secondary: #f1f4f0 !important;
+  --color-border: #dce3dc !important;
+  --color-border-subtle: #edf0ec !important;
+  --surface-base: #fff !important;
+  --surface-raised: #fff !important;
+  --surface-elevated: #fff !important;
+  --surface-overlay: #f5f7f4 !important;
+  --color-accent: #a65400 !important;
+  --color-accent-muted: rgba(247,147,26,.1) !important;
+  --color-text-primary: #13233e !important;
+  --color-text-secondary: #3f4f63 !important;
+  --color-text-muted: #6d7a89 !important;
+
+  padding: 0 0 72px !important;
+  background: #f7f8f4 !important;
+}
+
+.info-page .container {
+  max-width: 860px !important;
+}
+
+.info-page :where(.page-header, .ad-header) {
+  margin: 18px 0 28px !important;
+  padding: 28px !important;
+  border: 1px solid #dce3dc !important;
+  border-radius: 18px !important;
+  background:
+    radial-gradient(circle at 94% 8%, rgba(247,147,26,.1), transparent 25%),
+    #fff !important;
+  box-shadow: 0 12px 32px rgba(19,35,62,.065) !important;
+}
+
+.info-page :where(.page-header h1, .ad-h1) {
+  margin: 0 0 13px !important;
+  color: #13233e !important;
+  font-family: 'Barlow Condensed', 'Inter', sans-serif !important;
+  font-size: clamp(42px, 7vw, 64px) !important;
+  font-weight: 800 !important;
+  letter-spacing: -.025em !important;
+  line-height: .96 !important;
+  text-transform: uppercase !important;
+}
+
+.info-page :where(.page-header .lead, .ad-intro) {
+  max-width: 680px !important;
+  margin-bottom: 10px !important;
+  color: #506074 !important;
+  font-size: 16px !important;
+  line-height: 1.72 !important;
+}
+
+.info-page :where(.page-header .meta, .ad-meta) {
+  color: #7a8795 !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: .025em !important;
+}
+
+.info-page .header-badge {
+  width: fit-content !important;
+  margin-bottom: 13px !important;
+  padding: 5px 10px !important;
+  border: 1px solid rgba(247,147,26,.28) !important;
+  border-radius: 999px !important;
+  color: #a65400 !important;
+  background: #fff8ed !important;
+  font-size: 10px !important;
+  font-weight: 900 !important;
+  letter-spacing: .08em !important;
+  text-transform: uppercase !important;
+}
+
+/* Simple prose/legal pages become one readable governed surface. */
+.info-page :where(.prose, .ad-prose) {
+  max-width: 100% !important;
+  padding: 30px !important;
+  border: 1px solid #dce3dc !important;
+  border-radius: 18px !important;
+  background: #fff !important;
+  box-shadow: 0 10px 30px rgba(19,35,62,.055) !important;
+  color: #3f4f63 !important;
+  font-size: 15px !important;
+  line-height: 1.8 !important;
+}
+
+.info-page :where(.prose h2, .ad-prose h2) {
+  margin: 34px 0 13px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  color: #13233e !important;
+  font-family: 'Barlow Condensed', 'Inter', sans-serif !important;
+  font-size: clamp(27px, 4vw, 35px) !important;
+  font-weight: 800 !important;
+  letter-spacing: -.015em !important;
+  line-height: 1.05 !important;
+}
+
+.info-page :where(.prose h2, .ad-prose h2):first-child,
+.info-page .ad-prose h2:first-of-type { margin-top: 0 !important; }
+
+.info-page :where(.prose h3, .ad-prose h3) {
+  margin: 25px 0 8px !important;
+  color: #13233e !important;
+  font-size: 18px !important;
+  font-weight: 900 !important;
+}
+
+.info-page :where(.prose p, .ad-prose p) {
+  color: #3f4f63 !important;
+  line-height: 1.8 !important;
+}
+
+.info-page :where(.prose ul, .prose ol, .ad-prose ul, .ad-prose ol) {
+  margin-bottom: 18px !important;
+  color: #3f4f63 !important;
+}
+
+.info-page :where(.prose li, .ad-prose li) {
+  margin-bottom: 7px !important;
+  line-height: 1.7 !important;
+}
+
+.info-page :where(.prose li, .ad-prose li)::marker { color: #f7931a; }
+
+.info-page :where(.prose a, .ad-prose a, .ad-back) {
+  color: #a65400 !important;
+  text-decoration-color: rgba(166,84,0,.34) !important;
+}
+
+.info-page :where(.prose code, .ad-prose code) {
+  border-color: #d7ddd7 !important;
+  border-radius: 6px !important;
+  color: #13233e !important;
+  background: #f1f4f0 !important;
+}
+
+.info-page :where(.ad-callout, .contact-note) {
+  padding: 16px 18px !important;
+  border: 1px solid #ead5b5 !important;
+  border-left: 4px solid #f7931a !important;
+  border-radius: 12px !important;
+  color: #45556a !important;
+  background: #fff8ed !important;
+}
+
+.info-page .ad-callout--warn {
+  border-color: #efcaca !important;
+  border-left-color: #c84646 !important;
+  background: #fff4f4 !important;
+}
+
+/* Generic info tables and structured rows. */
+.info-page :where(table, .criteria-table) {
+  width: 100% !important;
+  overflow: hidden !important;
+  border: 1px solid #dce3dc !important;
+  border-radius: 14px !important;
+  background: #fff !important;
+  box-shadow: 0 7px 22px rgba(19,35,62,.045) !important;
+}
+
+.info-page .criteria-row {
+  padding: 12px 14px !important;
+  border-color: #edf0ec !important;
+  color: #45556a !important;
+  background: #fff !important;
+}
+
+.info-page .criteria-row.header {
+  color: #647386 !important;
+  background: #eef2ed !important;
+  font-size: 10px !important;
+  font-weight: 900 !important;
+  letter-spacing: .06em !important;
+  text-transform: uppercase !important;
+}
+
+/* Methodology rich composition. */
+.info-page .mth {
+  padding-bottom: 20px !important;
+  background: #f7f8f4 !important;
+}
+
+.info-page :where(.mth-prose, .mth-wide) {
+  width: min(100%, 900px) !important;
+  margin-inline: auto !important;
+  padding-inline: 20px !important;
+}
+
+.info-page .mth-crumbs { padding-top: 18px !important; }
+.info-page .mth-section { margin-top: 24px !important; }
+
+.info-page :where(.mth-tldr, .mth-step, .mth-col, .mth-criterion, .mth-def) {
+  border: 1px solid #dce3dc !important;
+  border-radius: 16px !important;
+  background: #fff !important;
+  box-shadow: 0 8px 26px rgba(19,35,62,.05) !important;
+}
+
+.info-page .mth-tldr { padding: 24px !important; }
+
+.info-page :where(.mth-section-head h2, .mth-tldr h2) {
+  color: #13233e !important;
+  font-family: 'Barlow Condensed', 'Inter', sans-serif !important;
+  font-size: clamp(30px, 5vw, 43px) !important;
+  font-weight: 800 !important;
+  letter-spacing: -.02em !important;
+  line-height: 1 !important;
+  text-transform: uppercase !important;
+}
+
+.info-page .mth-section-head p {
+  color: #5f6d7c !important;
+  line-height: 1.72 !important;
+}
+
+.info-page .mth-steps { gap: 12px !important; }
+.info-page .mth-step { padding: 20px !important; }
+.info-page .mth-step-n {
+  color: #13233e !important;
+  background: #f7931a !important;
+  box-shadow: 0 6px 16px rgba(247,147,26,.2) !important;
+}
+.info-page .mth-step-body h3 {
+  color: #13233e !important;
+  font-size: 18px !important;
+  font-weight: 900 !important;
+}
+.info-page .mth-step-body p { color: #4d5c70 !important; line-height: 1.72 !important; }
+
+.info-page .mth-col { padding: 22px !important; }
+.info-page .mth-col--yes { border-top: 4px solid #16834b !important; }
+.info-page .mth-col--no { border-top: 4px solid #c84646 !important; }
+.info-page .mth-col-title { color: #13233e !important; font-weight: 900 !important; }
+
+.info-page .mth-scale-item {
+  border-color: #dce3dc !important;
+  border-radius: 12px !important;
+  background: #fff !important;
+}
+
+.info-page .mth-criterion {
+  padding: 20px !important;
+}
+.info-page .mth-criterion-weight {
+  color: #13233e !important;
+  background: #f7931a !important;
+}
+.info-page .mth-criterion-name { color: #13233e !important; font-weight: 900 !important; }
+.info-page .mth-criterion p { color: #526176 !important; line-height: 1.7 !important; }
+
+.info-page .mth-def { padding: 20px !important; margin-bottom: 12px !important; }
+.info-page .mth-def h3 { color: #13233e !important; font-weight: 900 !important; }
+.info-page .mth-def p { color: #526176 !important; line-height: 1.72 !important; }
+
+/* Contact */
+.info-page .contact-grid {
+  gap: 24px !important;
+  margin-top: 24px !important;
+}
+
+.info-page :where(.contact-reasons, .contact-form-wrap) {
+  padding: 24px !important;
+  border: 1px solid #dce3dc !important;
+  border-radius: 17px !important;
+  background: #fff !important;
+  box-shadow: 0 9px 28px rgba(19,35,62,.05) !important;
+}
+
+.info-page .contact-reasons h2 {
+  color: #13233e !important;
+  font-family: 'Barlow Condensed', 'Inter', sans-serif !important;
+  font-size: 30px !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  text-transform: uppercase !important;
+}
+
+.info-page .contact-reasons li {
+  border-left-color: #f7931a !important;
+  color: #526176 !important;
+}
+
+.info-page :where(.form-group input, .form-group select, .form-group textarea) {
+  min-height: 46px !important;
+  border-color: #d5ddd5 !important;
+  border-radius: 10px !important;
+  color: #13233e !important;
+  background: #f6f8f5 !important;
+}
+
+.info-page :where(.form-group input, .form-group select, .form-group textarea):focus {
+  border-color: #f7931a !important;
+  box-shadow: 0 0 0 3px rgba(247,147,26,.13) !important;
+}
+
+.info-page .form-submit {
+  min-height: 48px !important;
+  padding: 0 22px !important;
+  border: 1px solid rgba(19,35,62,.12) !important;
+  border-radius: 11px !important;
+  color: #13233e !important;
+  background: #f7931a !important;
+  box-shadow: 0 9px 22px rgba(247,147,26,.2) !important;
+  font-weight: 900 !important;
+}
+.info-page .form-submit:hover,
+.info-page .form-submit:focus-visible { color: #13233e !important; background: #ffad3d !important; opacity: 1 !important; }
+
+/* Generic FAQ/details inside info pages. */
+.info-page details {
+  border: 1px solid #dce3dc !important;
+  border-radius: 13px !important;
+  background: #fff !important;
+  box-shadow: 0 4px 16px rgba(19,35,62,.035) !important;
+}
+
+@media (min-width: 640px) {
+  .info-page :where(.mth-prose, .mth-wide) { padding-inline: 24px !important; }
+}
+
+@media (min-width: 900px) {
+  .info-page :where(.mth-prose, .mth-wide) { padding-inline: 32px !important; }
+}
+
+@media (max-width: 639px) {
+  .info-page :where(.page-header, .ad-header) {
+    margin-top: 14px !important;
+    padding: 22px 20px !important;
+    border-radius: 15px !important;
+  }
+
+  .info-page :where(.prose, .ad-prose) {
+    padding: 22px 20px !important;
+    border-radius: 15px !important;
+  }
+
+  .info-page :where(.mth-tldr, .mth-step, .mth-col, .mth-criterion, .mth-def) {
+    border-radius: 14px !important;
+  }
+
+  .info-page .mth-step { padding: 17px !important; }
+  .info-page :where(.contact-reasons, .contact-form-wrap) { padding: 20px !important; }
+}
