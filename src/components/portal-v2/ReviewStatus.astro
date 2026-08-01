@@ -1,0 +1,38 @@
+---
+import {
+  assertReviewStatusModel,
+  reviewToneLabels,
+  type ReviewStatusModel,
+} from '../../data/contracts/portalUi';
+
+const status = assertReviewStatusModel(Astro.props as ReviewStatusModel);
+const { label, detail, tone, compact = false } = status;
+---
+
+<div class:list={['review-status', `tone-${tone}`, { compact }]} role="status">
+  <span class="review-status__marker" aria-hidden="true"></span>
+  <span class="review-status__copy">
+    <strong>{label}</strong>
+    {detail && <small>{detail}</small>}
+  </span>
+  <span class="sr-only">{reviewToneLabels[tone]}</span>
+</div>
+
+<style>
+  .review-status { display: inline-flex; max-width: 100%; align-items: flex-start; gap: 9px; color: #13233e; }
+  .review-status__marker { flex: 0 0 auto; width: 9px; height: 9px; margin-top: 4px; border: 2px solid currentColor; border-radius: 999px; background: currentColor; }
+  .review-status__copy { min-width: 0; }
+  .review-status strong, .review-status small { display: block; }
+  .review-status strong { font-size: 11px; line-height: 1.25; }
+  .review-status small { margin-top: 3px; color: #6d7987; font-size: 10px; line-height: 1.45; }
+  .review-status.compact { gap: 7px; }
+  .review-status.compact strong { font-size: 9px; letter-spacing: .04em; text-transform: uppercase; }
+  .review-status.compact small { font-size: 9px; }
+  .tone-verified { color: #16834b; }
+  .tone-partial { color: #9a5a08; }
+  .tone-review { color: #a3442e; }
+  .tone-restricted { color: #a12828; }
+  .tone-missing { color: #687482; }
+  .tone-stale { color: #7b4b9e; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+</style>
