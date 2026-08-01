@@ -36,7 +36,7 @@ export const targetContainers: readonly ContainerStandard[] = [
 
 export const currentWidthInventory = [
   { value: 1180, source: 'CleanLayout --cbw-page-max' },
-  { value: 1160, source: 'Homepage .shell' },
+  { value: 1160, source: 'Homepage and governed Kazakhstan preview .shell rules' },
   { value: 1120, source: 'CleanLayout --cbw-wide-max and HomepageTop10' },
   { value: 900, source: 'Methodology .mth-prose/.mth-wide' },
   { value: 860, source: 'Info/legal .container' },
@@ -57,8 +57,8 @@ export const layoutFindings: readonly LayoutFinding[] = [
     id: 'LAYOUT-P0-002',
     severity: 'P0',
     state: 'FAIL',
-    title: 'Seven independent public width values are active',
-    evidence: '1180, 1160, 1120, 900, 860, 800 and 760px are all used as page-family widths.',
+    title: 'Seven independent public and activation-candidate width values are active',
+    evidence: '1180, 1160, 1120, 900, 860, 800 and 760px are all used as route-family widths.',
     remediation: 'Replace raw widths with shell/wide/content/prose roles.',
   },
   {
@@ -92,6 +92,14 @@ export const layoutFindings: readonly LayoutFinding[] = [
     title: 'Generic PageHero can delay primary content',
     evidence: 'PageHero tall reaches 360px before directory/table content begins.',
     remediation: 'Introduce compact intro variants governed by page intent and first-viewport tests.',
+  },
+  {
+    id: 'LAYOUT-P1-002',
+    severity: 'P1',
+    state: 'FAIL',
+    title: 'Governed Kazakhstan previews use public-shaped paths and another local shell',
+    evidence: 'The country hub and three market passports are generated under /countries/kazakhstan/**, remain noindex and public-resolution-blocked, but use local 1160px geometry.',
+    remediation: 'Treat them as activation-candidate review families and migrate them to CountryHubTemplateV3 and MarketPassportTemplateV3 before any publication gate opens.',
   },
   {
     id: 'AFFILIATE-P1-001',
@@ -159,6 +167,24 @@ export const routeFamilies: readonly RouteFamilyAudit[] = [
     publicGeometryAuthority: true,
   },
   {
+    id: 'country-review-hub',
+    label: 'Kazakhstan country review hub',
+    routes: ['/countries/kazakhstan/'],
+    currentState: 'NOINDEX_PUBLIC_SHAPED_PREVIEW_ROUTE_GUARDED',
+    targetTemplate: 'CountryHubTemplateV3',
+    containerRoles: ['shell', 'wide', 'content'],
+    publicGeometryAuthority: false,
+  },
+  {
+    id: 'country-review-passport',
+    label: 'Kazakhstan market-passport reviews',
+    routes: ['/countries/kazakhstan/exchanges/binance/', '/countries/kazakhstan/exchanges/bybit/', '/countries/kazakhstan/exchanges/okx/'],
+    currentState: 'NOINDEX_PUBLIC_SHAPED_PREVIEW_ROUTES_GUARDED',
+    targetTemplate: 'MarketPassportTemplateV3',
+    containerRoles: ['shell', 'content', 'prose'],
+    publicGeometryAuthority: false,
+  },
+  {
     id: 'retired-route',
     label: 'Retired hubs and guides',
     routes: ['/bonus-codes/', '/bonuses/', '/categories/', '/coins/', '/compare/', '/countries/', '/use-cases/', '/reviewers/', '/guides/', '/guides/{slug}/'],
@@ -184,6 +210,7 @@ export const firstViewportContract = {
   exchange: ['identity', 'offerOrEvidenceState', 'primaryActionBoundary', 'firstFactsOrContentBlock'],
   directory: ['pagePurpose', 'firstLiveCardOrRow'],
   editorialLegal: ['pagePurpose', 'firstSubstantiveSection'],
+  countryReview: ['countryOrExchangeIdentity', 'reviewState', 'firstEvidenceOrReadinessBlock'],
 } as const;
 
 export const deletionTargets = [
@@ -209,6 +236,7 @@ export const sitewideLayoutAuditValidation = {
   hasHomepageFirstViewportFailure: layoutFindings.some(finding => finding.id === 'LAYOUT-P0-001' && finding.state === 'FAIL'),
   hasSourceHtmlSeoFailure: layoutFindings.some(finding => finding.id === 'SEO-P0-001' && finding.state === 'FAIL'),
   hasAffiliatePreservationGate: layoutFindings.some(finding => finding.id === 'AFFILIATE-P1-001' && finding.state === 'PASS'),
+  hasGovernedCountryPreviewFamilies: routeFamilies.some(family => family.id === 'country-review-hub') && routeFamilies.some(family => family.id === 'country-review-passport'),
   allPublicFamiliesHaveTargetTemplate: routeFamilies.filter(family => family.publicGeometryAuthority).every(family => family.targetTemplate.length > 0),
 } as const;
 
