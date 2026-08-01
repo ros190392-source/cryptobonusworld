@@ -150,5 +150,14 @@ const resolvedCanonical = canonical ?? `${siteBase}${Astro.url.pathname}`;
     <slot />
   </main>
   <SiteFooter />
+
+  <script is:inline>
+    document.querySelectorAll('a[href="/#finder"]').forEach(link => {
+      link.setAttribute('href', '/#exchanges');
+      if (link.classList.contains('pc-country-link')) {
+        link.textContent = 'Compare the Top 10 →';
+      }
+    });
+  </script>
 </body>
 </html>
