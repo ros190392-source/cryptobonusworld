@@ -1,0 +1,165 @@
+/* CBW central FAQ hub v2 */
+
+.faq-intro {
+  padding: 42px 0 30px !important;
+  color: #fff !important;
+  background:
+    radial-gradient(circle at 82% 12%, rgba(247,147,26,.16), transparent 28%),
+    linear-gradient(135deg, #0a1424 0%, #13233e 100%) !important;
+  border-bottom: 1px solid rgba(255,255,255,.08) !important;
+  text-align: left !important;
+}
+
+.faq-text-wrap {
+  width: min(100%, 840px) !important;
+  max-width: 840px !important;
+  margin-inline: auto !important;
+  padding-inline: 20px !important;
+}
+
+.faq-label {
+  display: inline-flex !important;
+  align-items: center !important;
+  min-height: 28px !important;
+  margin-bottom: 15px !important;
+  padding: 0 11px !important;
+  border: 1px solid rgba(247,147,26,.34) !important;
+  border-radius: 999px !important;
+  color: #f7b45a !important;
+  background: rgba(247,147,26,.1) !important;
+  font-size: 10px !important;
+  font-weight: 900 !important;
+  letter-spacing: .11em !important;
+  text-transform: uppercase !important;
+}
+
+.faq-h1 {
+  max-width: 730px !important;
+  margin-bottom: 14px !important;
+  color: #fff !important;
+  font-family: 'Barlow Condensed', 'Inter', sans-serif !important;
+  font-size: clamp(42px, 7vw, 64px) !important;
+  font-weight: 800 !important;
+  letter-spacing: -.025em !important;
+  line-height: .96 !important;
+  text-transform: uppercase !important;
+}
+
+.faq-sub {
+  max-width: 690px !important;
+  margin-bottom: 10px !important;
+  color: rgba(255,255,255,.78) !important;
+  font-size: 16px !important;
+  line-height: 1.7 !important;
+}
+
+.faq-caveat {
+  max-width: 680px !important;
+  color: rgba(255,255,255,.48) !important;
+  font-size: 12px !important;
+  line-height: 1.65 !important;
+}
+
+#faq.section {
+  padding-block: 48px 64px !important;
+  background: #f7f8f4 !important;
+}
+
+.faq-group {
+  margin-bottom: 30px !important;
+  padding: 24px !important;
+  border: 1px solid #dce3dc !important;
+  border-radius: 17px !important;
+  background: #fff !important;
+  box-shadow: 0 9px 28px rgba(19,35,62,.055) !important;
+}
+
+.faq-group-title {
+  margin: 0 0 15px !important;
+  color: #13233e !important;
+  font-family: 'Barlow Condensed', 'Inter', sans-serif !important;
+  font-size: clamp(27px, 4vw, 34px) !important;
+  font-weight: 800 !important;
+  letter-spacing: -.015em !important;
+  line-height: 1 !important;
+  text-transform: uppercase !important;
+}
+
+.faq-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 9px !important;
+}
+
+.faq-item {
+  overflow: hidden !important;
+  border: 1px solid #dce3dc !important;
+  border-radius: 13px !important;
+  background: #fff !important;
+  box-shadow: 0 4px 16px rgba(19,35,62,.035) !important;
+}
+
+.faq-q {
+  min-height: 54px !important;
+  padding: 15px 17px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  color: #13233e !important;
+  font-size: 14px !important;
+  font-weight: 800 !important;
+  line-height: 1.4 !important;
+  cursor: pointer !important;
+}
+
+.faq-q::after {
+  color: #d97d0d !important;
+}
+
+.faq-a {
+  padding: 0 17px 17px !important;
+  color: #5f6d7c !important;
+  font-size: 14px !important;
+  line-height: 1.74 !important;
+}
+
+.faq-a a,
+.faq-foot a {
+  color: #a65400 !important;
+  font-weight: 800 !important;
+  text-decoration-color: rgba(166,84,0,.34) !important;
+}
+
+.faq-foot {
+  margin: 8px 0 0 !important;
+  padding: 18px 20px !important;
+  border: 1px solid #ead5b5 !important;
+  border-left: 4px solid #f7931a !important;
+  border-radius: 12px !important;
+  color: #526176 !important;
+  background: #fff8ed !important;
+  font-size: 13px !important;
+  line-height: 1.7 !important;
+}
+
+@media (min-width: 640px) {
+  .faq-text-wrap { padding-inline: 24px !important; }
+  .faq-intro { padding-block: 54px 38px !important; }
+}
+
+@media (min-width: 900px) {
+  .faq-text-wrap { padding-inline: 32px !important; }
+}
+
+@media (max-width: 639px) {
+  .faq-intro { padding-block: 34px 26px !important; }
+  #faq.section { padding-block: 34px 48px !important; }
+  .faq-group {
+    margin-bottom: 20px !important;
+    padding: 18px !important;
+    border-radius: 15px !important;
+  }
+  .faq-item { border-radius: 12px !important; }
+  .faq-q { padding: 14px !important; font-size: 13px !important; }
+  .faq-a { padding: 0 14px 15px !important; font-size: 13px !important; }
+}
