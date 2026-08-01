@@ -1,0 +1,136 @@
+name: CBW Exchange Page Family v2 052H representative review
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  browser-review:
+    if: github.event.pull_request.head.ref == 'qa/cbw-exchange-page-family-v2-052h-representative'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - name: Start preview
+        run: |
+          npm run preview -- --host 127.0.0.1 --port 4321 > /tmp/cbw-preview.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:4321/ >/dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/cbw-preview.log
+          exit 1
+      - name: Validate representative exchange pages
+        run: |
+          mkdir -p qa-artifacts
+          cat > .qa-exchange-family-representative.mjs <<'EOF'
+          import { chromium } from 'playwright';
+          import { writeFile } from 'node:fs/promises';
+
+          const routes = [
+            { name: 'bybit', path: '/bybit/', affiliate: '/go/bybit/' },
+            { name: 'mexc', path: '/mexc/', affiliate: '/go/mexc/' },
+            { name: 'okx', path: '/okx/', affiliate: '/go/okx/' },
+          ];
+          const viewports = [
+            { name: 'desktop-1440', width: 1440, height: 1000 },
+            { name: 'tablet-768', width: 768, height: 1024 },
+            { name: 'mobile-390', width: 390, height: 844 },
+          ];
+          const results = [];
+          let failed = false;
+          const browser = await chromium.launch({ headless: true });
+
+          try {
+            for (const route of routes) {
+              for (const viewport of viewports) {
+                const page = await browser.newPage({ viewport });
+                await page.route('**/api/exchange-votes*', r => r.fulfill({
+                  status: 200,
+                  contentType: 'application/json',
+                  body: JSON.stringify({ averageRating: 0, ratingCount: 0, worksCount: 0, didntWorkCount: 0, userRating: null, userHelpfulVote: null }),
+                }));
+                const consoleErrors = [];
+                const pageErrors = [];
+                const httpFailures = [];
+                page.on('console', m => { if (m.type() === 'error') consoleErrors.push(m.text()); });
+                page.on('pageerror', e => pageErrors.push(e.message));
+                page.on('response', r => { if (r.status() >= 400) httpFailures.push({ status: r.status(), url: r.url() }); });
+
+                const response = await page.goto(`http://127.0.0.1:4321${route.path}`, { waitUntil: 'networkidle' });
+                const dimensions = await page.evaluate(() => ({
+                  scrollWidth: document.documentElement.scrollWidth,
+                  clientWidth: document.documentElement.clientWidth,
+                  bodyScrollWidth: document.body.scrollWidth,
+                }));
+
+                const firstH2 = page.locator('.p2-h2, .ep-section h2, .mexc-section h2').first();
+                const headingStyle = await firstH2.evaluate(el => ({
+                  family: getComputedStyle(el).fontFamily,
+                  size: parseFloat(getComputedStyle(el).fontSize),
+                  color: getComputedStyle(el).color,
+                }));
+                const tableWrap = page.locator('.p2-table-wrap').first();
+                const faqItem = page.locator('.p2-faq-item').first();
+                const checks = {
+                  http200: response?.status() === 200,
+                  oneHeader: await page.locator('.site-header').count() === 1,
+                  oneFooter: await page.locator('.site-footer').count() === 1,
+                  hasArticleSections: await page.locator('.p2-section, .ep-section, .mexc-section').count() >= 8,
+                  sharedHeadingFont: headingStyle.family.includes('Barlow Condensed'),
+                  sharedHeadingSize: headingStyle.size >= 26,
+                  headingNavy: headingStyle.color === 'rgb(19, 35, 62)',
+                  tableSurfacePresent: await tableWrap.count() >= 1,
+                  tableRadius: await tableWrap.evaluate(el => parseFloat(getComputedStyle(el).borderRadius)) >= 13,
+                  faqSurfacePresent: await faqItem.count() >= 1,
+                  faqRadius: await faqItem.evaluate(el => parseFloat(getComputedStyle(el).borderRadius)) >= 12,
+                  affiliatePathPresent: await page.locator(`a[href="${route.affiliate}"]`).count() >= 2,
+                  noOverflow: dimensions.scrollWidth <= dimensions.clientWidth + 1 && dimensions.bodyScrollWidth <= dimensions.clientWidth + 1,
+                  noConsoleErrors: consoleErrors.length === 0,
+                  noPageErrors: pageErrors.length === 0,
+                  noHttpFailures: httpFailures.length === 0,
+                };
+
+                const relatedButtons = page.locator('.p2-rel-btn');
+                if (await relatedButtons.count()) {
+                  checks.relatedActionsAmber = await relatedButtons.first().evaluate(el => getComputedStyle(el).backgroundColor) === 'rgb(247, 147, 26)';
+                }
+
+                const ok = Object.values(checks).every(Boolean);
+                failed ||= !ok;
+                const result = { route, viewport, ok, checks, headingStyle, dimensions, consoleErrors, pageErrors, httpFailures };
+                results.push(result);
+                console.log(JSON.stringify(result, null, 2));
+                await page.screenshot({ path: `qa-artifacts/${route.name}-${viewport.name}.png`, fullPage: true });
+                await page.close();
+              }
+            }
+          } finally {
+            await browser.close();
+          }
+
+          await writeFile('qa-artifacts/cbw-exchange-page-family-v2-052h-representative.json', JSON.stringify({ failed, results }, null, 2));
+          if (failed) process.exit(1);
+          EOF
+          node .qa-exchange-family-representative.mjs
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cbw-exchange-page-family-v2-052h-representative
+          path: qa-artifacts/
+          if-no-files-found: error
