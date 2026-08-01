@@ -1,0 +1,32 @@
+:root {
+  --cbw-layout-shell: 1200px;
+  --cbw-layout-wide: 1120px;
+  --cbw-layout-content: 960px;
+  --cbw-layout-prose: 760px;
+
+  --cbw-layout-gutter: 20px;
+  --cbw-layout-section-compact: 32px;
+  --cbw-layout-section-standard: 48px;
+  --cbw-layout-section-spacious: 72px;
+
+  --cbw-layout-gap-xs: 8px;
+  --cbw-layout-gap-sm: 12px;
+  --cbw-layout-gap-md: 20px;
+  --cbw-layout-gap-lg: 32px;
+  --cbw-layout-gap-xl: 48px;
+}
+
+@media (min-width: 640px) {
+  :root {
+    --cbw-layout-gutter: 24px;
+    --cbw-layout-section-compact: 36px;
+    --cbw-layout-section-standard: 56px;
+    --cbw-layout-section-spacious: 80px;
+  }
+}
+
+@media (min-width: 900px) {
+  :root {
+    --cbw-layout-gutter: 32px;
+  }
+}
