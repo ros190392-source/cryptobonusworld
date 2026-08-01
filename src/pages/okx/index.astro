@@ -1,6 +1,6 @@
 ---
 import CleanLayout from '../../layouts/CleanLayout.astro';
-import ExchangePromoPage from '../../components/exchange/ExchangePromoPage.astro';
+import ExchangePromoPageV2 from '../../components/exchange/ExchangePromoPageV2.astro';
 import { okxConfig } from '../../data/exchangePages/okx';
 ---
 
@@ -12,5 +12,5 @@ import { okxConfig } from '../../data/exchangePages/okx';
   ogTitle={okxConfig.ogTitle}
   ogDescription={okxConfig.ogDescription}
 >
-  <ExchangePromoPage config={okxConfig} />
+  <ExchangePromoPageV2 config={okxConfig} />
 </CleanLayout>
