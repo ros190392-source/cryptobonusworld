@@ -1,0 +1,51 @@
+name: CBW Site Standard Audit 053A Measurements R3
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  site-standard-measurements:
+    if: github.event.pull_request.head.ref == 'qa/cbw-site-standard-audit-053a-measurements-r3'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Run static site-standard scanner
+        run: node scripts/audits/site-standard-audit.mjs
+      - run: npm run build
+      - name: Start preview
+        run: |
+          npm run preview -- --host 127.0.0.1 --port 4321 > /tmp/cbw-preview.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:4321/ >/dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/cbw-preview.log
+          exit 1
+      - name: Run authoritative first-viewport measurements
+        env:
+          CBW_AUDIT_BASE_URL: http://127.0.0.1:4321
+        run: node scripts/audits/first-viewport-measurements.mjs
+      - name: Upload audit evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cbw-site-standard-audit-053a-measurements-r3
+          path: reports/site-standard/
+          if-no-files-found: error
+          retention-days: 90
