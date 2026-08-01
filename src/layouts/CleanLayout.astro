@@ -4,6 +4,9 @@ import SiteFooter from '../components/layout/SiteFooter.astro';
 import '../styles/tokens.css';
 import '../styles/site-shell.css';
 import '../styles/exchange-page-v2.css';
+import '../styles/directory-pages-v2.css';
+import '../styles/info-pages-v2.css';
+import '../styles/faq-page-v2.css';
 
 export interface Props {
   title: string;
@@ -148,5 +151,14 @@ const resolvedCanonical = canonical ?? `${siteBase}${Astro.url.pathname}`;
     <slot />
   </main>
   <SiteFooter />
+
+  <script is:inline>
+    document.querySelectorAll('a[href="/#finder"]').forEach(link => {
+      link.setAttribute('href', '/#exchanges');
+      link.textContent = link.classList.contains('pc-country-link')
+        ? 'Compare the Top 10 →'
+        : 'compare the Top 10';
+    });
+  </script>
 </body>
 </html>
