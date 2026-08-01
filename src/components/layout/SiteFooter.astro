@@ -3,94 +3,159 @@ const year = new Date().getFullYear();
 ---
 
 <footer class="site-footer">
-  <div class="sf-inner">
-    <div class="sf-brand">
-      <a href="/" class="sf-logo" aria-label="CryptoBonusWorld">
-        <span class="sf-logo-text"><span class="sf-ct">Crypto</span><span class="sf-bn">Bonus</span><span class="sf-wd">World</span></span>
+  <div class="footer-shell">
+    <section class="footer-brand" aria-label="CryptoBonusWorld information">
+      <a href="/" class="footer-logo" aria-label="CryptoBonusWorld home">
+        <img src="/brand/cbw-header-mark-final.png" alt="" aria-hidden="true" width="46" height="46" loading="lazy" />
+        <span>
+          <strong><i>Crypto</i><b>Bonus</b><i>World</i></strong>
+          <small>Country-aware exchange evidence</small>
+        </span>
       </a>
-      <p class="sf-tagline">Verified crypto promo codes &amp; referral bonuses</p>
-    </div>
+      <p>
+        Compare crypto exchange offers, research status and market limitations without mixing global claims with country-specific facts.
+      </p>
+      <div class="footer-context" aria-label="Current site context">
+        <span>Global market</span><i aria-hidden="true"></i><span>English</span><i aria-hidden="true"></i><span>Country pages in review</span>
+      </div>
+    </section>
 
-    <div class="sf-links">
-      <div class="sf-col">
-        <div class="sf-col-title">Exchanges</div>
-        <a href="/bybit/" class="sf-link">Bybit</a>
-        <a href="/mexc/" class="sf-link">MEXC</a>
-        <a href="/okx/" class="sf-link">OKX</a>
-        <a href="/bitget/" class="sf-link">Bitget</a>
-        <a href="/kucoin/" class="sf-link">KuCoin</a>
-        <a href="/bingx/" class="sf-link">BingX</a>
-        <a href="/exchanges/" class="sf-link">All Exchanges</a>
+    <nav class="footer-links" aria-label="Footer navigation">
+      <div class="footer-column">
+        <h2>Explore</h2>
+        <a href="/#exchanges">Top 10 Exchanges</a>
+        <a href="/exchanges/">All Exchanges</a>
+        <a href="/promo-codes/">Promo Codes</a>
+        <a href="/#guide">Bonus Guide</a>
+        <a href="/faq/">FAQ</a>
       </div>
-      <div class="sf-col">
-        <div class="sf-col-title">Resources</div>
-        <a href="/promo-codes/" class="sf-link">Promo Codes</a>
-        <a href="/#finder" class="sf-link">Find My Bonus</a>
-        <a href="/faq/" class="sf-link">FAQ</a>
-        <a href="/#guide" class="sf-link">Bonus Guide</a>
+
+      <div class="footer-column">
+        <h2>Research</h2>
+        <a href="/methodology/">How We Verify</a>
+        <a href="/editorial-policy/">Editorial Policy</a>
+        <a href="/update-policy/">Update Policy</a>
+        <a href="/about/">About CryptoBonusWorld</a>
       </div>
-      <div class="sf-col">
-        <div class="sf-col-title">Trust &amp; Verification</div>
-        <a href="/methodology/" class="sf-link">How We Verify</a>
-        <a href="/editorial-policy/" class="sf-link">Editorial Policy</a>
-        <a href="/update-policy/" class="sf-link">Update Policy</a>
-        <a href="/about/" class="sf-link">About</a>
+
+      <div class="footer-column">
+        <h2>Legal</h2>
+        <a href="/affiliate-disclosure/">Affiliate Disclosure</a>
+        <a href="/disclaimer/">Disclaimer</a>
+        <a href="/privacy-policy/">Privacy Policy</a>
+        <a href="/terms/">Terms</a>
+        <a href="/contact/">Contact</a>
       </div>
-      <div class="sf-col">
-        <div class="sf-col-title">Legal</div>
-        <a href="/affiliate-disclosure/" class="sf-link">Affiliate Disclosure</a>
-        <a href="/disclaimer/" class="sf-link">Disclaimer</a>
-        <a href="/privacy-policy/" class="sf-link">Privacy Policy</a>
-        <a href="/terms/" class="sf-link">Terms</a>
-        <a href="/contact/" class="sf-link">Contact</a>
-      </div>
-    </div>
+    </nav>
   </div>
 
-  <div class="sf-bottom">
-    <p class="sf-legal">
-      © {year} CryptoBonusWorld. We earn commissions when you use our referral links — at no extra cost to you.
-      Crypto trading involves significant risk. Always verify bonus terms on the official exchange website.
-      This site does not provide financial advice.
-    </p>
+  <div class="footer-bottom">
+    <p>© {year} CryptoBonusWorld. Affiliate relationships do not determine ranking position or editorial status.</p>
+    <p>Crypto trading involves significant risk. Verify current eligibility, restrictions and offer terms on the official exchange website. Nothing on this site is financial advice.</p>
   </div>
 </footer>
 
 <style>
   .site-footer {
-    background: #080F18;
-    border-top: 1px solid rgba(255,255,255,0.06);
-    color: rgba(255,255,255,0.55);
-    font-family: 'Inter', system-ui, sans-serif;
-    font-size: 14px;
     margin-top: auto;
+    color: rgba(255,255,255,.62);
+    background:
+      radial-gradient(circle at 12% 0%, rgba(247,147,26,.12), transparent 24%),
+      linear-gradient(145deg, #08111f 0%, #0d192b 58%, #13233e 100%);
+    border-top: 1px solid rgba(255,255,255,.08);
   }
-  .sf-inner {
-    max-width: 1180px; margin: 0 auto;
-    padding: 40px 24px 32px;
-    display: flex; flex-direction: column; gap: 32px;
+
+  .footer-shell {
+    width: min(var(--cbw-page-max, 1180px), 100%);
+    margin: 0 auto;
+    padding: 44px 20px 36px;
+    display: grid;
+    gap: 36px;
   }
-  @media (min-width: 640px) { .sf-inner { flex-direction: row; justify-content: space-between; align-items: flex-start; } }
-  @media (min-width: 820px) { .sf-inner { padding: 48px 32px 40px; } }
 
-  .sf-logo { text-decoration: none; display: inline-block; margin-bottom: 10px; }
-  .sf-logo-text { font-size: 18px; font-weight: 800; letter-spacing: -.02em; }
-  .sf-ct { color: rgba(255,255,255,.75); }
-  .sf-bn { color: #F7931A; }
-  .sf-wd { color: rgba(255,255,255,.75); }
-  .sf-tagline { font-size: 13px; color: rgba(255,255,255,0.35); line-height: 1.5; max-width: 240px; }
-
-  .sf-links { display: flex; gap: 40px; flex-wrap: wrap; }
-  .sf-col { display: flex; flex-direction: column; gap: 8px; }
-  .sf-col-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: rgba(255,255,255,0.35); margin-bottom: 4px; }
-  .sf-link { font-size: 13px; color: rgba(255,255,255,0.55); text-decoration: none; transition: color .15s; }
-  .sf-link:hover { color: rgba(255,255,255,0.85); }
-
-  .sf-bottom {
-    max-width: 1180px; margin: 0 auto;
-    padding: 16px 24px 24px;
-    border-top: 1px solid rgba(255,255,255,0.05);
+  .footer-brand { max-width: 390px; }
+  .footer-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    color: #fff;
+    text-decoration: none;
   }
-  @media (min-width: 820px) { .sf-bottom { padding: 16px 32px 24px; } }
-  .sf-legal { font-size: 12px; color: rgba(255,255,255,0.28); line-height: 1.7; }
+  .footer-logo img { width: 44px; height: 44px; object-fit: contain; }
+  .footer-logo span, .footer-logo strong, .footer-logo small { display: block; }
+  .footer-logo strong {
+    display: flex;
+    align-items: baseline;
+    font-size: 20px;
+    line-height: 1;
+    letter-spacing: -.035em;
+  }
+  .footer-logo strong i { color: rgba(255,255,255,.82); font-style: normal; font-weight: 800; }
+  .footer-logo strong b { color: #f7931a; font-weight: 900; }
+  .footer-logo small {
+    margin-top: 5px;
+    color: rgba(255,255,255,.4);
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+  .footer-brand > p { margin: 18px 0 0; color: rgba(255,255,255,.53); font-size: 13px; line-height: 1.75; }
+
+  .footer-context {
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    color: rgba(255,255,255,.46);
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: .065em;
+    text-transform: uppercase;
+  }
+  .footer-context i { width: 3px; height: 3px; border-radius: 50%; background: #f7931a; }
+
+  .footer-links { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 30px 24px; }
+  .footer-column { display: flex; flex-direction: column; gap: 9px; }
+  .footer-column h2 {
+    margin: 0 0 5px;
+    color: rgba(255,255,255,.37);
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+  }
+  .footer-column a {
+    width: fit-content;
+    color: rgba(255,255,255,.64);
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.45;
+    text-decoration: none;
+    transition: color .15s, transform .15s;
+  }
+  .footer-column a:hover, .footer-column a:focus-visible { color: #f7a83b; transform: translateX(2px); }
+
+  .footer-bottom {
+    width: min(var(--cbw-page-max, 1180px), 100%);
+    margin: 0 auto;
+    padding: 18px 20px 24px;
+    display: grid;
+    gap: 5px;
+    border-top: 1px solid rgba(255,255,255,.07);
+  }
+  .footer-bottom p { margin: 0; color: rgba(255,255,255,.3); font-size: 10px; line-height: 1.65; }
+
+  @media (min-width: 640px) {
+    .footer-shell { padding-inline: 24px; }
+    .footer-links { grid-template-columns: repeat(3, minmax(0,1fr)); }
+    .footer-bottom { padding-inline: 24px; }
+  }
+
+  @media (min-width: 900px) {
+    .footer-shell { grid-template-columns: minmax(280px, .85fr) minmax(520px, 1.15fr); gap: 80px; padding: 58px 32px 46px; }
+    .footer-bottom { grid-template-columns: 1fr 1.25fr; gap: 36px; padding: 18px 32px 26px; }
+    .footer-bottom p:last-child { text-align: right; }
+  }
 </style>
