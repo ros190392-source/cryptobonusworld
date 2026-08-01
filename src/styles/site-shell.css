@@ -1,5 +1,9 @@
 /* CBW Site Shell v2 — global interaction and exchange CTA contract */
 
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 :root {
   --cbw-shell-navy: #0a1424;
   --cbw-shell-navy-2: #13233e;
