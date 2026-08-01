@@ -1,0 +1,102 @@
+{
+  "schemaVersion": "1.0.0",
+  "task": "CBW-KZ-P0-EVIDENCE-MAPPING-051F",
+  "checkedAt": "2026-07-31T15:50:00Z",
+  "mode": "OFFICIAL_SOURCE_ONLY_NO_ACCOUNT_NO_PROXY_NO_TRANSACTION",
+  "sources": [
+    {
+      "sourceId": "src-bybit-kz-individual-kyc-20251125",
+      "url": "https://www.bybit.kz/ru-KAZ/help-center/article/Individual-KYC-FAQ",
+      "publisher": "Bybit Kazakhstan",
+      "title": "Верификация KYC для физических лиц — часто задаваемые вопросы",
+      "language": "ru",
+      "lastUpdatedAt": "2025-11-25T15:25:29Z",
+      "checkedAt": "2026-07-31T15:50:00Z",
+      "observations": [
+        "Identity Verification of at least Standard level is mandatory for all Bybit Kazakhstan products and services.",
+        "Higher verification levels may be required depending on region, product, or service.",
+        "The page describes accepted identity and proof-of-address documents, but no account-level verification was performed."
+      ],
+      "limitations": [
+        "Public help-center documentation does not prove approval for a specific user.",
+        "KYC requirements and accepted documents may change and require freshness checks before publication."
+      ]
+    },
+    {
+      "sourceId": "src-bybit-kz-p2p-advertiser-faq-20251125",
+      "url": "https://www.bybit.kz/en-KAZ/help-center/article/FAQ-P2P-Verified-Advertisers-on-Bybit?category=437948c5d2d8c4bb0c",
+      "publisher": "Bybit Kazakhstan",
+      "title": "FAQ — P2P Advertisers",
+      "language": "en",
+      "lastUpdatedAt": "2025-11-25T13:37:45Z",
+      "checkedAt": "2026-07-31T15:50:00Z",
+      "observations": [
+        "Bybit Kazakhstan states zero platform transaction fees for P2P buyers and sellers; payment-provider fees may still apply.",
+        "The published KZT/USDT per-ad order range is 900 KZT minimum and 22,000,000 KZT maximum.",
+        "The actual tradable amount depends on the range set by the advertiser."
+      ],
+      "limitations": [
+        "Published per-ad limits do not prove that an active advertisement exists at the current moment.",
+        "The values are date-bound and must be rechecked before public publication."
+      ]
+    },
+    {
+      "sourceId": "src-bybit-kz-announcements-p2p-20251110",
+      "url": "https://announcements.bybit.kz/ru-KAZ/",
+      "publisher": "Bybit Kazakhstan",
+      "title": "Анонсы",
+      "language": "ru",
+      "checkedAt": "2026-07-31T15:50:00Z",
+      "observations": [
+        "The official announcements index lists the launch of Bybit Kazakhstan's regulated P2P platform in November 2025.",
+        "The index shows a P2P launch entry dated 2025-11-10."
+      ],
+      "limitations": [
+        "The announcements index confirms a dated launch signal but does not prove current active advertisements or universal user eligibility.",
+        "The direct article URL was not independently captured in this mapping."
+      ]
+    },
+    {
+      "sourceId": "src-binance-kz-p2p-buy-freedom-surface-20260731",
+      "url": "https://c2c.binance.com/en-KZ/trade/freedombank/id",
+      "publisher": "Binance Kazakhstan",
+      "title": "Buy and Sell Tether (USDT) with Freedom Bank | Binance P2P",
+      "language": "en",
+      "checkedAt": "2026-07-31T15:50:00Z",
+      "observations": [
+        "A Kazakhstan-localized Binance P2P route exists for a Freedom Bank payment-method surface.",
+        "The public result exposes Buy and Sell controls and an advertiser-table structure."
+      ],
+      "limitations": [
+        "The public result did not provide evidence of a currently active advertiser or executable order.",
+        "Route existence and table structure do not prove active offers, both directions, resident eligibility, or current payment availability."
+      ]
+    },
+    {
+      "sourceId": "src-binance-kz-p2p-sell-surface-20260731",
+      "url": "https://p2p.binance.com/en-KZ/trade/SELL/link",
+      "publisher": "Binance Kazakhstan",
+      "title": "Binance P2P sell surface",
+      "language": "en",
+      "checkedAt": "2026-07-31T15:50:00Z",
+      "observations": [
+        "A Kazakhstan-localized public Binance P2P sell-route surface is discoverable.",
+        "The page exposes Buy and Sell controls and a payment-method filter."
+      ],
+      "limitations": [
+        "The route does not establish a currently active KZT order or a specific supported payment method.",
+        "No login, account, order, transaction, proxy, or KYC test was performed."
+      ]
+    }
+  ],
+  "authorizationBoundary": {
+    "ranking": false,
+    "cta": false,
+    "promo": false,
+    "affiliate": false,
+    "publication": false,
+    "indexability": false,
+    "merge": false,
+    "deploy": false
+  }
+}
