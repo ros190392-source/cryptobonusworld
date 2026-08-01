@@ -1,0 +1,36 @@
+---
+import Container from './Container.astro';
+import type { ContainerRole } from '../../data/siteStandard/siteStandardV1';
+
+export interface Props {
+  container?: ContainerRole;
+  spacing?: 'compact' | 'standard' | 'spacious';
+  tone?: 'page' | 'primary' | 'secondary';
+  as?: 'section' | 'div' | 'article' | 'aside';
+  class?: string;
+  id?: string;
+  ariaLabel?: string;
+}
+
+const {
+  container = 'standard',
+  spacing = 'standard',
+  tone = 'primary',
+  as: Tag = 'section',
+  class: className = '',
+  id,
+  ariaLabel,
+} = Astro.props;
+---
+
+<Tag
+  id={id}
+  aria-label={ariaLabel}
+  class:list={['cbw-section', `cbw-section--${spacing}`, `cbw-section--${tone}`, className]}
+  data-section-spacing={spacing}
+  data-section-tone={tone}
+>
+  <Container size={container}>
+    <slot />
+  </Container>
+</Tag>
