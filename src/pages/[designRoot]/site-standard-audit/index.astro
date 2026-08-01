@@ -1,0 +1,239 @@
+---
+import CleanLayout from '../../../layouts/CleanLayout.astro';
+import { runSiteStandardAudit } from '../../../../../scripts/audits/site-standard-audit.mjs';
+
+export function getStaticPaths() {
+  return [{ params: { designRoot: '__design' } }];
+}
+
+const audit = await runSiteStandardAudit();
+const widthCounts = Object.entries(audit.maxWidthValueCounts)
+  .sort((a, b) => b[1] - a[1])
+  .slice(0, 24);
+const familyCounts = Object.entries(audit.routeFamilyCounts)
+  .sort((a, b) => b[1] - a[1]);
+const localStylePages = audit.localStylePages
+  .sort((a, b) => b.blocks - a.blocks)
+  .slice(0, 30);
+const widthProposal = Object.entries(audit.canonicalProposal.widths);
+const isInventoryComplete = audit.summary.unclassifiedPublicPageSources === 0;
+---
+
+<CleanLayout
+  title="Site Standard Audit 053A | CryptoBonusWorld"
+  description="Review-only route inventory, width audit and first-screen standardization dashboard."
+  noindex={true}
+>
+  <section class="audit-hero">
+    <div class="audit-container">
+      <p class="audit-eyebrow">P0 review only · no production authority</p>
+      <h1>One site. One governed system.</h1>
+      <p class="audit-lead">
+        Static inventory of page families, layout imports, local style blocks and width declarations.
+        This audit blocks further GEO and locale expansion until the shared layout and first-screen contract is frozen.
+      </p>
+      <div class:list={['audit-state', { pass: isInventoryComplete }]}> 
+        <strong>{isInventoryComplete ? 'INVENTORY CLASSIFIED' : 'INVENTORY BLOCKED'}</strong>
+        <span>{audit.summary.pageSourceFiles} page sources · {audit.summary.routeFamilies} families · {audit.summary.unclassifiedPublicPageSources} unclassified public sources</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="audit-main">
+    <div class="audit-container audit-stack">
+      <section class="metric-grid" aria-label="Audit summary">
+        <article class="metric-card">
+          <span>Files scanned</span>
+          <strong>{audit.summary.sourceFilesScanned}</strong>
+          <small>Pages, layouts, components and styles</small>
+        </article>
+        <article class="metric-card">
+          <span>Width declarations</span>
+          <strong>{audit.summary.maxWidthDeclarations}</strong>
+          <small>{audit.summary.distinctMaxWidthValues} distinct values</small>
+        </article>
+        <article class="metric-card">
+          <span>Local-style pages</span>
+          <strong>{audit.summary.pagesWithLocalStyleBlocks}</strong>
+          <small>{audit.summary.totalLocalStyleBlocksInPages} embedded style blocks</small>
+        </article>
+        <article class="metric-card">
+          <span>Public sources</span>
+          <strong>{audit.summary.publicPageSourceFiles}</strong>
+          <small>Design/review routes excluded</small>
+        </article>
+      </section>
+
+      <section class="audit-panel">
+        <div class="panel-head">
+          <p>Proposed freeze</p>
+          <h2>Canonical width model</h2>
+        </div>
+        <div class="width-model">
+          {widthProposal.map(([name, value]) => (
+            <article class="width-card">
+              <span>{name}</span>
+              <strong>{value}</strong>
+            </article>
+          ))}
+        </div>
+        <p class="audit-note">{audit.canonicalProposal.rule}</p>
+      </section>
+
+      <section class="audit-panel">
+        <div class="panel-head">
+          <p>Current codebase</p>
+          <h2>Width declaration inventory</h2>
+        </div>
+        <div class="data-table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Value</th><th>Occurrences</th><th>Decision</th></tr></thead>
+            <tbody>
+              {widthCounts.map(([value, count]) => (
+                <tr>
+                  <td><code>{value}</code></td>
+                  <td>{count}</td>
+                  <td>{Object.values(audit.canonicalProposal.widths).includes(value) ? 'Canonical candidate' : 'Migrate or document exception'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="audit-panel">
+        <div class="panel-head">
+          <p>Route architecture</p>
+          <h2>Page-family assignment</h2>
+        </div>
+        <div class="family-grid">
+          {familyCounts.map(([family, count]) => (
+            <article class:list={['family-card', { blocked: family === 'unclassified' && count > 0 }]}> 
+              <strong>{family}</strong>
+              <span>{count} source routes</span>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section class="audit-panel">
+        <div class="panel-head">
+          <p>Migration pressure</p>
+          <h2>Pages with embedded style systems</h2>
+        </div>
+        <div class="route-list">
+          {localStylePages.map(page => (
+            <article class="route-row">
+              <div>
+                <strong>{page.route}</strong>
+                <small>{page.path}</small>
+              </div>
+              <div class="route-meta">
+                <span>{page.family}</span>
+                <b>{page.blocks} style block{page.blocks === 1 ? '' : 's'}</b>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section class="audit-panel first-screen-panel">
+        <div class="panel-head">
+          <p>Owner rule</p>
+          <h2>First-screen contracts</h2>
+        </div>
+        <div class="contract-grid">
+          <article>
+            <h3>Homepage · 1440×900</h3>
+            <p>Header, compact context/hero, ranking heading, freshness/methodology context and at least three complete real ranking rows. Target five.</p>
+          </article>
+          <article>
+            <h3>Homepage · 390×844</h3>
+            <p>Compact mobile header, country/language context, short hero, ranking heading and the beginning of the first real ranking card.</p>
+          </article>
+          <article>
+            <h3>Exchange pages</h3>
+            <p>Exchange identity, evidence/offer state, authorized action, material limitation and the beginning of useful factual content.</p>
+          </article>
+          <article>
+            <h3>Other families</h3>
+            <p>Page purpose, trust/context and first useful content without an oversized decorative hero or empty vertical stage.</p>
+          </article>
+        </div>
+      </section>
+
+      <aside class="audit-boundary">
+        <strong>Authorization boundary</strong>
+        <p>
+          This dashboard does not change public ranking, offers, promo codes, affiliate destinations,
+          country facts, locale activation, indexability, deployment or existing public routes.
+        </p>
+      </aside>
+    </div>
+  </section>
+</CleanLayout>
+
+<style>
+  .audit-container { width: min(100%, 1180px); margin-inline: auto; padding-inline: 20px; }
+  .audit-hero { padding: 54px 0 42px; color: #fff; background: radial-gradient(circle at 86% 12%, rgba(247,147,26,.18), transparent 30%), #0a1424; }
+  .audit-eyebrow, .panel-head p { margin: 0 0 9px; color: #f7a93f; font-size: 10px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+  .audit-hero h1 { max-width: 900px; margin: 0 0 14px; font-family: 'Barlow Condensed', 'Inter', sans-serif; font-size: clamp(48px, 7vw, 76px); line-height: .94; text-transform: uppercase; }
+  .audit-lead { max-width: 760px; margin: 0; color: rgba(255,255,255,.72); line-height: 1.68; }
+  .audit-state { display: inline-flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 22px; padding: 11px 15px; border: 1px solid rgba(220,90,90,.3); border-radius: 11px; color: #ffd2d2; background: rgba(150,30,30,.12); }
+  .audit-state.pass { color: #a8efc1; border-color: rgba(80,200,125,.32); background: rgba(32,130,72,.13); }
+  .audit-state span { color: rgba(255,255,255,.62); font-size: 12px; }
+  .audit-main { padding: 34px 0 70px; background: #f7f8f4; }
+  .audit-stack { display: grid; gap: 18px; }
+  .metric-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+  .metric-card, .audit-panel, .audit-boundary { border: 1px solid #dce3dc; border-radius: 17px; background: #fff; box-shadow: 0 9px 28px rgba(19,35,62,.05); }
+  .metric-card { padding: 19px; }
+  .metric-card span { color: #728093; font-size: 10px; font-weight: 900; letter-spacing: .07em; text-transform: uppercase; }
+  .metric-card strong { display: block; margin: 5px 0 2px; color: #13233e; font-family: 'Barlow Condensed', 'Inter', sans-serif; font-size: 36px; line-height: 1; }
+  .metric-card small { color: #7a8795; font-size: 10px; }
+  .audit-panel { padding: 25px; }
+  .panel-head h2 { margin: 0 0 19px; color: #13233e; font-family: 'Barlow Condensed', 'Inter', sans-serif; font-size: clamp(31px, 4vw, 43px); line-height: 1; text-transform: uppercase; }
+  .width-model { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+  .width-card { padding: 15px; border: 1px solid #e1e6e0; border-radius: 12px; background: #f8faf7; }
+  .width-card span { display: block; color: #758293; font-size: 9px; font-weight: 900; letter-spacing: .07em; text-transform: uppercase; }
+  .width-card strong { display: block; margin-top: 4px; color: #13233e; font-size: 17px; }
+  .audit-note { margin: 15px 0 0; color: #5a687b; font-size: 13px; line-height: 1.65; }
+  .data-table-wrap { overflow-x: auto; border: 1px solid #e0e5df; border-radius: 13px; }
+  .data-table { width: 100%; border-collapse: collapse; min-width: 620px; }
+  .data-table th, .data-table td { padding: 11px 13px; border-bottom: 1px solid #edf0ec; text-align: left; }
+  .data-table th { color: #6e7b8b; background: #eef2ed; font-size: 9px; font-weight: 900; letter-spacing: .07em; text-transform: uppercase; }
+  .data-table td { color: #46566a; font-size: 12px; }
+  .data-table tr:last-child td { border-bottom: 0; }
+  .data-table code { color: #13233e; font-weight: 800; }
+  .family-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+  .family-card { padding: 14px; border: 1px solid #dce7df; border-left: 4px solid #16834b; border-radius: 11px; background: #f8fcf9; }
+  .family-card.blocked { border-color: #ebcccc; border-left-color: #b53f3f; background: #fff7f7; }
+  .family-card strong { display: block; color: #13233e; font-size: 12px; }
+  .family-card span { color: #748192; font-size: 10px; }
+  .route-list { display: grid; gap: 7px; }
+  .route-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 14px; border: 1px solid #e5e9e4; border-radius: 10px; background: #fafbf9; }
+  .route-row strong { display: block; color: #13233e; font-size: 12px; }
+  .route-row small { display: block; margin-top: 2px; color: #8893a0; font-size: 9px; }
+  .route-meta { text-align: right; }
+  .route-meta span { display: block; color: #7c8896; font-size: 9px; }
+  .route-meta b { color: #a65400; font-size: 10px; }
+  .contract-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .contract-grid article { padding: 17px; border: 1px solid #e0e5df; border-radius: 12px; background: #f8faf7; }
+  .contract-grid h3 { margin: 0 0 7px; color: #13233e; font-size: 14px; }
+  .contract-grid p { margin: 0; color: #58677a; font-size: 12px; line-height: 1.65; }
+  .audit-boundary { padding: 20px; border-left: 5px solid #f7931a; }
+  .audit-boundary strong { color: #13233e; }
+  .audit-boundary p { margin: 5px 0 0; color: #5b697b; font-size: 12px; line-height: 1.65; }
+  @media (min-width: 760px) { .audit-container { padding-inline: 32px; } }
+  @media (max-width: 900px) {
+    .metric-grid, .family-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .width-model { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+  @media (max-width: 620px) {
+    .audit-hero { padding: 42px 0 34px; }
+    .audit-main { padding-top: 24px; }
+    .metric-grid, .family-grid, .width-model, .contract-grid { grid-template-columns: 1fr; }
+    .audit-panel { padding: 19px; border-radius: 14px; }
+    .route-row { align-items: flex-start; flex-direction: column; }
+    .route-meta { text-align: left; }
+  }
+</style>
