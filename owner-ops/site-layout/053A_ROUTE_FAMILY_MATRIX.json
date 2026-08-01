@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "cbw-sitewide-layout-route-matrix-v1",
+  "schemaVersion": "cbw-sitewide-layout-route-matrix-v2",
   "status": "AUDIT_ONLY",
   "governingIssue": 201,
   "containerStandard": {
@@ -18,51 +18,25 @@
     "homepage": {
       "desktop": {
         "viewport": "1440x900",
-        "required": [
-          "header",
-          "compactHero",
-          "rankingHeading",
-          "twoCompleteRankingRows"
-        ]
+        "required": ["header", "compactHero", "rankingHeading", "twoCompleteRankingRows"]
       },
       "mobile": {
         "viewport": "390x844",
-        "required": [
-          "header",
-          "compactHero",
-          "countryLanguageContext",
-          "rankingHeading",
-          "firstRankingRowVisible"
-        ]
+        "required": ["header", "compactHero", "countryLanguageContext", "rankingHeading", "firstRankingRowVisible"]
       },
-      "forbiddenBeforeRanking": [
-        "pathwayCards",
-        "countryDiscovery",
-        "trustBlocks",
-        "updates",
-        "guides",
-        "faq"
-      ]
+      "forbiddenBeforeRanking": ["pathwayCards", "countryDiscovery", "trustBlocks", "updates", "guides", "faq"]
     },
     "exchangeProfile": {
-      "required": [
-        "exchangeIdentity",
-        "offerOrEvidenceState",
-        "primaryActionBoundary",
-        "firstFactsOrContentBlock"
-      ]
+      "required": ["exchangeIdentity", "offerOrEvidenceState", "primaryActionBoundary", "firstFactsOrContentBlock"]
     },
     "directoryComparison": {
-      "required": [
-        "pagePurpose",
-        "firstLiveCardOrTableRow"
-      ]
+      "required": ["pagePurpose", "firstLiveCardOrTableRow"]
     },
     "editorialLegal": {
-      "required": [
-        "pagePurpose",
-        "firstSubstantiveSection"
-      ]
+      "required": ["pagePurpose", "firstSubstantiveSection"]
+    },
+    "countryReview": {
+      "required": ["countryOrExchangeIdentity", "reviewState", "firstEvidenceOrReadinessBlock"]
     }
   },
   "families": [
@@ -124,6 +98,31 @@
       "targetTemplate": "LegalTemplateV3"
     },
     {
+      "id": "country-review-hub",
+      "routes": ["/countries/kazakhstan/"],
+      "containerRoles": ["shell", "wide", "content"],
+      "currentState": "NOINDEX_PUBLIC_SHAPED_PREVIEW_ROUTE_GUARDED",
+      "targetTemplate": "CountryHubTemplateV3",
+      "indexabilityAuthorized": false,
+      "publicationAuthorized": false,
+      "publicGeometryAuthority": false
+    },
+    {
+      "id": "country-review-passport",
+      "routes": [
+        "/countries/kazakhstan/exchanges/binance/",
+        "/countries/kazakhstan/exchanges/bybit/",
+        "/countries/kazakhstan/exchanges/okx/"
+      ],
+      "containerRoles": ["shell", "content", "prose"],
+      "currentState": "NOINDEX_PUBLIC_SHAPED_PREVIEW_ROUTES_GUARDED",
+      "targetTemplate": "MarketPassportTemplateV3",
+      "indexabilityAuthorized": false,
+      "publicationAuthorized": false,
+      "affiliateCtaAuthorized": false,
+      "publicGeometryAuthority": false
+    },
+    {
       "id": "retired-public-hub",
       "routes": [
         "/bonus-codes/",
@@ -167,7 +166,7 @@
   ],
   "knownCurrentWidths": [
     {"value": 1180, "source": "CleanLayout --cbw-page-max"},
-    {"value": 1160, "source": "Homepage .shell"},
+    {"value": 1160, "source": "Homepage and governed Kazakhstan preview .shell rules"},
     {"value": 1120, "source": "CleanLayout --cbw-wide-max / HomepageTop10"},
     {"value": 900, "source": "Methodology .mth-prose/.mth-wide"},
     {"value": 860, "source": "Info/legal .container"},
@@ -175,7 +174,7 @@
     {"value": 760, "source": "Exchange .p2-inner/.bw-wrap/.seo-intro-inner"}
   ],
   "requiredBuildChecks": [
-    "everyPublicRouteHasFamily",
+    "everyPublicAndActivationCandidateRouteHasFamily",
     "noUnregisteredPublicMaxWidth",
     "noFinderHrefOrText",
     "oneH1PerPublicContentRoute",
@@ -184,6 +183,7 @@
     "affiliateBindingsPreserved",
     "noCtaBoundariesPreserved",
     "firstViewportRulesPass",
+    "countryPreviewAuthorizationRemainsClosed",
     "zeroOverflowAtRequiredViewports"
   ]
 }
