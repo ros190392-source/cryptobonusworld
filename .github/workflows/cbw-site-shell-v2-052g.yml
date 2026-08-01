@@ -1,0 +1,183 @@
+name: CBW Site Shell v2 052G browser review
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  browser-review:
+    if: github.event.pull_request.head.ref == 'qa/cbw-site-shell-v2-052g'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout exact QA branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 1
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Build production site
+        run: npm run build
+
+      - name: Start Astro preview
+        run: |
+          set -euo pipefail
+          npm run preview -- --host 127.0.0.1 --port 4321 > /tmp/cbw-preview.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4321/ >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/cbw-preview.log
+          exit 1
+
+      - name: Validate site shell and exchange CTA geometry
+        run: |
+          mkdir -p qa-artifacts
+          cat > .qa-site-shell-v2-052g.mjs <<'EOF'
+          import { chromium } from 'playwright';
+          import { writeFile } from 'node:fs/promises';
+
+          const routes = [
+            { name: 'homepage', path: '/' },
+            { name: 'bybit', path: '/bybit/' },
+            { name: 'exchanges', path: '/exchanges/' },
+            { name: 'methodology', path: '/methodology/' },
+          ];
+          const viewports = [
+            { name: 'desktop-1440', width: 1440, height: 1000 },
+            { name: 'tablet-768', width: 768, height: 1024 },
+            { name: 'mobile-390', width: 390, height: 844 },
+          ];
+
+          const results = [];
+          let failed = false;
+          const browser = await chromium.launch({ headless: true });
+
+          try {
+            for (const route of routes) {
+              for (const viewport of viewports) {
+                const page = await browser.newPage({ viewport });
+                const consoleErrors = [];
+                const pageErrors = [];
+                page.on('console', message => {
+                  if (message.type() === 'error') consoleErrors.push(message.text());
+                });
+                page.on('pageerror', error => pageErrors.push(error.message));
+
+                const response = await page.goto(`http://127.0.0.1:4321${route.path}`, { waitUntil: 'networkidle' });
+                const dimensions = await page.evaluate(() => ({
+                  scrollWidth: document.documentElement.scrollWidth,
+                  clientWidth: document.documentElement.clientWidth,
+                  bodyScrollWidth: document.body.scrollWidth,
+                }));
+
+                const checks = {
+                  http200: response?.status() === 200,
+                  oneHeader: await page.locator('.site-header').count() === 1,
+                  oneFooter: await page.locator('.site-footer').count() === 1,
+                  noFinderLinks: await page.locator('a[href*="#finder"]').count() === 0,
+                  top10HeaderLink: await page.locator('.header-cta[href="/#exchanges"]').count() === 1,
+                  globalContext: await page.getByText('Global', { exact: true }).count() >= 1,
+                  englishContext: await page.getByText('English', { exact: true }).count() >= 1,
+                  noOverflow:
+                    dimensions.scrollWidth <= dimensions.clientWidth + 1
+                    && dimensions.bodyScrollWidth <= dimensions.clientWidth + 1,
+                  noConsoleErrors: consoleErrors.length === 0,
+                  noPageErrors: pageErrors.length === 0,
+                };
+
+                if (viewport.width < 900) {
+                  const button = page.locator('[data-menu-button]');
+                  checks.mobileButtonVisible = await button.isVisible();
+                  checks.mobilePanelInitiallyHidden = await page.locator('[data-mobile-panel]').isHidden();
+                  await button.click();
+                  checks.mobilePanelOpens = await page.locator('[data-mobile-panel]').isVisible();
+                  checks.bodyScrollLock = await page.locator('body').evaluate(el => el.classList.contains('cbw-menu-open'));
+                  checks.ariaExpanded = await button.getAttribute('aria-expanded') === 'true';
+                  await page.keyboard.press('Escape');
+                  checks.escapeClosesMenu = await page.locator('[data-mobile-panel]').isHidden();
+                  checks.scrollLockCleared = await page.locator('body').evaluate(el => !el.classList.contains('cbw-menu-open'));
+                } else {
+                  checks.desktopNavVisible = await page.locator('.desktop-nav').isVisible();
+                  checks.desktopCtaVisible = await page.locator('.header-cta').isVisible();
+                  checks.mobileButtonHidden = await page.locator('[data-menu-button]').isHidden();
+                }
+
+                if (route.name === 'bybit') {
+                  const ctas = page.locator('.p2-cta-bar');
+                  const count = await ctas.count();
+                  checks.bybitHasMidArticleCtas = count >= 2;
+                  checks.bybitAffiliatePathsPreserved = true;
+                  checks.bybitCtaGeometry = true;
+                  checks.bybitCtaAmber = true;
+
+                  for (let index = 0; index < count; index += 1) {
+                    const cta = ctas.nth(index);
+                    const box = await cta.boundingBox();
+                    const href = await cta.getAttribute('href');
+                    const background = await cta.evaluate(el => getComputedStyle(el).backgroundColor);
+                    checks.bybitAffiliatePathsPreserved &&= href === '/go/bybit/';
+                    checks.bybitCtaGeometry &&= Boolean(
+                      box
+                      && box.x >= 19
+                      && viewport.width - (box.x + box.width) >= 19
+                      && box.width <= 361
+                      && box.height >= 48
+                      && box.height <= 64
+                    );
+                    checks.bybitCtaAmber &&= background === 'rgb(247, 147, 26)';
+                  }
+                }
+
+                const ok = Object.values(checks).every(Boolean);
+                if (!ok) failed = true;
+                const result = { route, viewport, ok, checks, consoleErrors, pageErrors, dimensions };
+                results.push(result);
+                console.log(JSON.stringify(result, null, 2));
+
+                await page.screenshot({
+                  path: `qa-artifacts/${route.name}-${viewport.name}.png`,
+                  fullPage: true,
+                });
+                await page.close();
+              }
+            }
+          } finally {
+            await browser.close();
+          }
+
+          await writeFile(
+            'qa-artifacts/cbw-site-shell-v2-052g-review.json',
+            JSON.stringify({ failed, results }, null, 2),
+          );
+          if (failed) process.exit(1);
+          EOF
+          node ./.qa-site-shell-v2-052g.mjs
+
+      - name: Upload review evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cbw-site-shell-v2-052g-review
+          path: qa-artifacts/
+          if-no-files-found: error
