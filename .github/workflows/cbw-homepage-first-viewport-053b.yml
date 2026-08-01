@@ -1,0 +1,171 @@
+name: CBW Homepage First Viewport 053B browser review
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  browser-review:
+    if: github.event.pull_request.head.ref == 'qa/cbw-homepage-first-viewport-053b'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - name: Start preview
+        run: |
+          npm run preview -- --host 127.0.0.1 --port 4321 > /tmp/cbw-preview.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:4321/ >/dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/cbw-preview.log
+          exit 1
+      - name: Validate Homepage first viewport
+        run: |
+          mkdir -p qa-artifacts
+          cat > .qa-homepage-first-viewport.mjs <<'EOF'
+          import { chromium } from 'playwright';
+          import { writeFile } from 'node:fs/promises';
+
+          const viewports = [
+            ['desktop-1440', 1440, 900],
+            ['desktop-1280', 1280, 800],
+            ['desktop-1024', 1024, 768],
+            ['tablet-768', 768, 1024],
+            ['mobile-390', 390, 844],
+            ['mobile-360', 360, 800],
+          ];
+          const expectedPrimaryHrefs = ['/go/bingx/', '/go/bitget/', '/go/bybit/', '/go/kucoin/', '/go/mexc/', '/go/okx/'];
+          const expectedNoPrimary = ['Binance', 'Gate.io', 'HTX', 'Phemex'];
+          const results = [];
+          let failed = false;
+          const browser = await chromium.launch({ headless: true });
+
+          const visiblePixels = (box, viewportHeight) => {
+            if (!box) return 0;
+            return Math.max(0, Math.min(viewportHeight, box.y + box.height) - Math.max(0, box.y));
+          };
+
+          try {
+            for (const [name, width, height] of viewports) {
+              const page = await browser.newPage({ viewport: { width, height } });
+              const consoleErrors = [];
+              const pageErrors = [];
+              const httpFailures = [];
+              page.on('console', message => { if (message.type() === 'error') consoleErrors.push(message.text()); });
+              page.on('pageerror', error => pageErrors.push(error.message));
+              page.on('response', response => { if (response.status() >= 400) httpFailures.push({ status: response.status(), url: response.url() }); });
+
+              const response = await page.goto('http://127.0.0.1:4321/', { waitUntil: 'networkidle' });
+              const dimensions = await page.evaluate(() => ({
+                scrollWidth: document.documentElement.scrollWidth,
+                clientWidth: document.documentElement.clientWidth,
+                bodyScrollWidth: document.body.scrollWidth,
+              }));
+
+              const headerBox = await page.locator('.site-header').boundingBox();
+              const heroBox = await page.locator('.home-hero').boundingBox();
+              const contextBox = await page.locator('[data-market-context]').boundingBox();
+              const headingBox = await page.locator('#top10-title').boundingBox();
+              const rowBoxes = await page.locator('.top10-row').evaluateAll(rows => rows.map(row => {
+                const rect = row.getBoundingClientRect();
+                return { x: rect.x, y: rect.y, width: rect.width, height: rect.height, bottom: rect.bottom };
+              }));
+              const firstRow = rowBoxes[0];
+              const secondRow = rowBoxes[1];
+
+              const primaryHrefs = (await page.locator('.top10-primary').evaluateAll(links => links.map(link => link.getAttribute('href')).filter(Boolean))).sort();
+              const noPrimaryNames = (await page.locator('.top10-row').evaluateAll(rows => rows
+                .filter(row => !row.querySelector('.top10-primary'))
+                .map(row => row.querySelector('.top10-exchange-copy strong')?.textContent?.trim())
+                .filter(Boolean))).sort();
+              const rankingBeforePathways = await page.evaluate(() => {
+                const ranking = document.querySelector('[data-first-ranking]');
+                const pathways = document.querySelector('.home-pathways');
+                return Boolean(ranking && pathways && (ranking.compareDocumentPosition(pathways) & Node.DOCUMENT_POSITION_FOLLOWING));
+              });
+              const faqSchemaCount = await page.locator('script[type="application/ld+json"]').evaluateAll(scripts => scripts.filter(script => {
+                try { return JSON.parse(script.textContent || '{}')['@type'] === 'FAQPage'; } catch { return false; }
+              }).length);
+
+              const firstVisible = visiblePixels(firstRow, height);
+              const secondVisible = visiblePixels(secondRow, height);
+              const desktopTwoRows = width >= 1280 ? secondRow.bottom <= height + 1 : true;
+              const compactDesktop1024 = width === 1024 ? firstRow.bottom <= height + 1 && secondVisible >= 48 : true;
+              const mobileOrTabletEntry = width < 1024 ? firstVisible >= 80 : true;
+
+              const checks = {
+                http200: response?.status() === 200,
+                oneMain: await page.locator('main').count() === 1,
+                oneH1: await page.locator('h1').count() === 1,
+                oneTop10: await page.locator('.top10-section').count() === 1,
+                tenRows: rowBoxes.length === 10,
+                sixPrimaryCtas: primaryHrefs.length === 6,
+                exactPrimaryHrefs: JSON.stringify(primaryHrefs) === JSON.stringify(expectedPrimaryHrefs),
+                fourNoPrimaryRows: JSON.stringify(noPrimaryNames) === JSON.stringify(expectedNoPrimary),
+                tenSecondaryActions: await page.locator('.top10-secondary').count() === 10,
+                sixPromoCodeFields: await page.locator('.top10-code .pcc-row').count() === 6,
+                rankingBeforePathways,
+                contextVisible: visiblePixels(contextBox, height) >= Math.min(48, contextBox?.height ?? 0),
+                rankingHeadingVisible: visiblePixels(headingBox, height) >= Math.min(28, headingBox?.height ?? 0),
+                headerVisible: visiblePixels(headerBox, height) >= Math.min(40, headerBox?.height ?? 0),
+                heroCompact: width >= 1024 ? (heroBox?.height ?? 9999) <= 320 : (heroBox?.height ?? 9999) <= 430,
+                desktopTwoRows,
+                compactDesktop1024,
+                mobileOrTabletEntry,
+                faqSchemaPreserved: faqSchemaCount === 1,
+                noOverflow: dimensions.scrollWidth <= dimensions.clientWidth + 1 && dimensions.bodyScrollWidth <= dimensions.clientWidth + 1,
+                noConsoleErrors: consoleErrors.length === 0,
+                noPageErrors: pageErrors.length === 0,
+                noHttpFailures: httpFailures.length === 0,
+              };
+
+              const ok = Object.values(checks).every(Boolean);
+              failed ||= !ok;
+              const geometry = {
+                header: headerBox,
+                hero: heroBox,
+                context: contextBox,
+                rankingHeading: headingBox,
+                firstRow,
+                secondRow,
+                firstVisible,
+                secondVisible,
+              };
+              const result = { name, width, height, ok, checks, geometry, dimensions, primaryHrefs, noPrimaryNames, consoleErrors, pageErrors, httpFailures };
+              results.push(result);
+              console.log(JSON.stringify(result, null, 2));
+              await page.screenshot({ path: `qa-artifacts/homepage-first-viewport-${name}.png`, fullPage: false });
+              await page.screenshot({ path: `qa-artifacts/homepage-full-${name}.png`, fullPage: true });
+              await page.close();
+            }
+          } finally {
+            await browser.close();
+          }
+
+          await writeFile('qa-artifacts/cbw-homepage-first-viewport-053b.json', JSON.stringify({ failed, results }, null, 2));
+          if (failed) process.exit(1);
+          EOF
+          node .qa-homepage-first-viewport.mjs
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cbw-homepage-first-viewport-053b
+          path: qa-artifacts/
+          if-no-files-found: error
