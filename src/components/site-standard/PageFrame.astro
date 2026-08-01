@@ -1,0 +1,15 @@
+---
+import '../../styles/site-standard-v1.css';
+import type { FirstScreenFamily } from '../../data/siteStandard/siteStandardV1';
+
+export interface Props {
+  family: FirstScreenFamily;
+  class?: string;
+}
+
+const { family, class: className = '' } = Astro.props;
+---
+
+<div class:list={['cbw-page-frame', className]} data-page-family={family}>
+  <slot />
+</div>
