@@ -1,0 +1,32 @@
+{
+  "auditId": "CBW-SITE-STANDARD-AUDIT-053A",
+  "status": "AUDIT_IN_PROGRESS",
+  "priority": "P0",
+  "governingIssue": 209,
+  "blockedWorkstreams": [
+    "public GEO activation",
+    "public locale activation",
+    "merge of PR 200"
+  ],
+  "requiredTeams": [
+    "Product/UX",
+    "Design System",
+    "Frontend Architecture",
+    "SEO",
+    "Affiliate Integrity",
+    "QA"
+  ],
+  "requiredArtifacts": [
+    "route inventory",
+    "width inventory",
+    "first-viewport report",
+    "SEO risk register",
+    "affiliate integrity register",
+    "legacy deletion register",
+    "noindex audit dashboard",
+    "controlled remediation sequence"
+  ],
+  "publicMutationAuthorized": false,
+  "mergeAuthorized": false,
+  "deployAuthorized": false
+}
