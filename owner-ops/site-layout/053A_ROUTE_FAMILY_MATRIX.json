@@ -1,0 +1,189 @@
+{
+  "schemaVersion": "cbw-sitewide-layout-route-matrix-v1",
+  "status": "AUDIT_ONLY",
+  "governingIssue": 201,
+  "containerStandard": {
+    "shell": 1200,
+    "wide": 1120,
+    "content": 960,
+    "prose": 760,
+    "gutters": {
+      "mobile": 20,
+      "tablet": 24,
+      "desktop": 32
+    },
+    "rawPublicMaxWidthAllowed": false
+  },
+  "firstViewportRules": {
+    "homepage": {
+      "desktop": {
+        "viewport": "1440x900",
+        "required": [
+          "header",
+          "compactHero",
+          "rankingHeading",
+          "twoCompleteRankingRows"
+        ]
+      },
+      "mobile": {
+        "viewport": "390x844",
+        "required": [
+          "header",
+          "compactHero",
+          "countryLanguageContext",
+          "rankingHeading",
+          "firstRankingRowVisible"
+        ]
+      },
+      "forbiddenBeforeRanking": [
+        "pathwayCards",
+        "countryDiscovery",
+        "trustBlocks",
+        "updates",
+        "guides",
+        "faq"
+      ]
+    },
+    "exchangeProfile": {
+      "required": [
+        "exchangeIdentity",
+        "offerOrEvidenceState",
+        "primaryActionBoundary",
+        "firstFactsOrContentBlock"
+      ]
+    },
+    "directoryComparison": {
+      "required": [
+        "pagePurpose",
+        "firstLiveCardOrTableRow"
+      ]
+    },
+    "editorialLegal": {
+      "required": [
+        "pagePurpose",
+        "firstSubstantiveSection"
+      ]
+    }
+  },
+  "families": [
+    {
+      "id": "homepage",
+      "routes": ["/"],
+      "containerRoles": ["shell", "wide", "prose"],
+      "currentState": "FAIL_FIRST_VIEWPORT",
+      "targetTemplate": "HomepageTemplateV3"
+    },
+    {
+      "id": "exchange-primary",
+      "routes": ["/bybit/", "/mexc/", "/okx/", "/bitget/", "/kucoin/", "/bingx/"],
+      "containerRoles": ["shell", "content", "prose"],
+      "currentState": "OVERRIDE_NORMALIZED_LEGACY_DOM",
+      "targetTemplate": "ExchangeProfileTemplateV3"
+    },
+    {
+      "id": "exchange-generic",
+      "routes": [
+        "/coinex/",
+        "/exchanges/bybit/",
+        "/exchanges/mexc/",
+        "/exchanges/okx/",
+        "/exchanges/bitget/",
+        "/exchanges/kucoin/",
+        "/exchanges/bingx/",
+        "/exchanges/coinex/",
+        "/exchanges/gate-io/",
+        "/exchanges/htx/",
+        "/exchanges/phemex/",
+        "/exchanges/bitunix/",
+        "/exchanges/binance/",
+        "/exchanges/coinbase/"
+      ],
+      "containerRoles": ["shell", "content", "prose"],
+      "currentState": "MIXED_COMPONENT_AND_STUB_CONTRACTS",
+      "targetTemplate": "ExchangeProfileTemplateV3"
+    },
+    {
+      "id": "directory-comparison",
+      "routes": ["/exchanges/", "/promo-codes/"],
+      "containerRoles": ["shell", "wide", "prose"],
+      "currentState": "PAGE_LOCAL_GRID_AND_TABLE_WIDTHS",
+      "targetTemplate": "DirectoryComparisonTemplateV3"
+    },
+    {
+      "id": "trust-editorial",
+      "routes": ["/methodology/", "/editorial-policy/", "/update-policy/", "/about/", "/faq/"],
+      "containerRoles": ["shell", "content", "prose"],
+      "currentState": "MIXED_860_900_AND_CUSTOM_FAQ",
+      "targetTemplate": "EditorialTemplateV3"
+    },
+    {
+      "id": "legal-contact",
+      "routes": ["/affiliate-disclosure/", "/disclaimer/", "/privacy-policy/", "/terms/", "/contact/"],
+      "containerRoles": ["shell", "prose"],
+      "currentState": "INFO_OVERRIDE_LAYER",
+      "targetTemplate": "LegalTemplateV3"
+    },
+    {
+      "id": "retired-public-hub",
+      "routes": [
+        "/bonus-codes/",
+        "/bonuses/",
+        "/categories/",
+        "/coins/",
+        "/compare/",
+        "/countries/",
+        "/use-cases/",
+        "/reviewers/",
+        "/guides/",
+        "/guides/{slug}/"
+      ],
+      "containerRoles": [],
+      "currentState": "STANDALONE_META_REFRESH_STUBS",
+      "targetTemplate": "RedirectRegistry"
+    },
+    {
+      "id": "affiliate-redirect",
+      "routes": ["/go/{exchange}/"],
+      "containerRoles": [],
+      "currentState": "FUNCTIONAL_REDIRECT",
+      "targetTemplate": "AffiliateRedirectContract",
+      "layoutAuditExcluded": true
+    },
+    {
+      "id": "preview-design",
+      "routes": ["/preview/**", "/__design/**"],
+      "containerRoles": ["shell", "wide", "content", "prose"],
+      "currentState": "NOINDEX_REVIEW_ONLY",
+      "targetTemplate": "ReviewTemplate",
+      "publicGeometryAuthority": false
+    },
+    {
+      "id": "system",
+      "routes": ["/404.html", "/sitemap.xml"],
+      "containerRoles": [],
+      "currentState": "SYSTEM_ROUTE",
+      "targetTemplate": "SystemContract"
+    }
+  ],
+  "knownCurrentWidths": [
+    {"value": 1180, "source": "CleanLayout --cbw-page-max"},
+    {"value": 1160, "source": "Homepage .shell"},
+    {"value": 1120, "source": "CleanLayout --cbw-wide-max / HomepageTop10"},
+    {"value": 900, "source": "Methodology .mth-prose/.mth-wide"},
+    {"value": 860, "source": "Info/legal .container"},
+    {"value": 800, "source": "CleanLayout --cbw-prose-max / Homepage .prose-shell"},
+    {"value": 760, "source": "Exchange .p2-inner/.bw-wrap/.seo-intro-inner"}
+  ],
+  "requiredBuildChecks": [
+    "everyPublicRouteHasFamily",
+    "noUnregisteredPublicMaxWidth",
+    "noFinderHrefOrText",
+    "oneH1PerPublicContentRoute",
+    "canonicalPreserved",
+    "schemaPreserved",
+    "affiliateBindingsPreserved",
+    "noCtaBoundariesPreserved",
+    "firstViewportRulesPass",
+    "zeroOverflowAtRequiredViewports"
+  ]
+}
