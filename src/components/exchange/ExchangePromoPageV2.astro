@@ -1,0 +1,561 @@
+---
+import type { ExchangePromoPageConfig, VerificationStatus } from '../../data/exchangePages/types';
+import PageFrame from '../site-standard/PageFrame.astro';
+import Container from '../site-standard/Container.astro';
+import Section from '../site-standard/Section.astro';
+import ExchangePromoLogoSlot from '../ExchangePromoLogoSlot.astro';
+import '../../styles/exchange-page-standard-v1.css';
+
+export interface Props {
+  config: ExchangePromoPageConfig;
+}
+
+const { config: c } = Astro.props;
+const bonusMaxFmt = c.bonusMax.toLocaleString('en-US');
+const heroPosition = c.heroBackgroundPosition ?? 'center';
+const heroStyle = [
+  `--exchange-hero-image:url('${c.heroBackgroundImg}')`,
+  `--exchange-hero-position:${heroPosition}`,
+  `--exchange-bg-from:${c.heroTokens.bgFrom}`,
+  `--exchange-bg-to:${c.heroTokens.bgTo}`,
+].join(';');
+
+const statusLabel = (status: VerificationStatus) => {
+  if (status === 'verified') return 'Verified';
+  if (status === 'public-preview') return 'Public preview';
+  return `Check in ${c.rewardsAreaName}`;
+};
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://cryptobonusworld.com/' },
+        { '@type': 'ListItem', position: 2, name: `${c.name} Referral Code`, item: c.canonicalUrl },
+      ],
+    },
+    {
+      '@type': 'FAQPage',
+      mainEntity: c.faqItems.map(item => ({
+        '@type': 'Question',
+        name: item.question,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: item.answer.replace(/<[^>]+>/g, ''),
+        },
+      })),
+    },
+  ],
+};
+---
+
+<PageFrame family="exchange" class="cbw-exchange-page">
+  <section class="cbw-exchange-hero" style={heroStyle} data-exchange={c.slug}>
+    <Container size="standard" class="cbw-exchange-hero__inner">
+      <div class="cbw-exchange-identity">
+        <div class="cbw-exchange-logo">
+          <ExchangePromoLogoSlot
+            src={c.wordmarkImg}
+            alt={c.name}
+            mode="clean"
+            visualScale={c.logoVisualScale ?? 1}
+            fetchpriority="high"
+          />
+        </div>
+        <p class="cbw-exchange-eyebrow">Offer, evidence and regional limitations</p>
+        <h1 class="cbw-exchange-title">{c.name} Referral Code 2026</h1>
+        <p class="cbw-exchange-lede">
+          Use code <strong>{c.promoCode}</strong> to open the current {c.name} welcome offer.
+          The advertised maximum is up to {bonusMaxFmt} {c.currency}; eligibility depends on your region,
+          KYC, deposit, trading activity and the exchange's current terms.
+        </p>
+        <div class="cbw-exchange-limit">
+          <span aria-hidden="true">ⓘ</span>
+          <span>
+            Public-page evidence does not guarantee post-signup eligibility. Check the exact tasks and
+            regional conditions inside {c.name} after registration and before depositing.
+          </span>
+        </div>
+      </div>
+
+      <aside class="cbw-exchange-offer" aria-label={`${c.name} offer summary`}>
+        <p class="cbw-exchange-offer__label">{c.heroPromoLabel}</p>
+        <p class="cbw-exchange-offer__headline">Up to {bonusMaxFmt} {c.currency}</p>
+        <div class="cbw-exchange-code" data-code-row>
+          <span class="cbw-exchange-code__value">{c.promoCode}</span>
+          <button class="cbw-exchange-copy" type="button" data-copy-code>Copy</button>
+        </div>
+        <a href={c.affiliateUrl} class="cbw-exchange-primary" target="_blank" rel="noopener noreferrer sponsored">
+          Check current {c.name} offer →
+        </a>
+        <p class="cbw-exchange-source">
+          Checked {c.lastChecked} · <a href={c.sourceUrl} target="_blank" rel="noopener noreferrer nofollow">official source</a>
+        </p>
+      </aside>
+    </Container>
+  </section>
+
+  <Section container="prose" spacing="compact" tone="primary" class="exchange-facts-section">
+    <div class="cbw-exchange-facts" aria-label={`${c.name} quick facts`}>
+      <article class="cbw-exchange-fact"><span>Exchange</span><strong>{c.name}</strong></article>
+      <article class="cbw-exchange-fact"><span>Referral code</span><strong>{c.promoCode}</strong></article>
+      <article class="cbw-exchange-fact"><span>Advertised maximum</span><strong>Up to {bonusMaxFmt} {c.currency}</strong></article>
+      <article class="cbw-exchange-fact"><span>Last checked</span><strong class="is-evidence">{c.lastChecked}</strong></article>
+      <article class="cbw-exchange-fact"><span>KYC</span><strong class={c.kycRequired ? 'is-warning' : 'is-evidence'}>{c.kycNote}</strong></article>
+      <article class="cbw-exchange-fact"><span>Spot fees</span><strong>{c.fees.spot.maker} maker / {c.fees.spot.taker} taker</strong></article>
+      <article class="cbw-exchange-fact"><span>Founded</span><strong>{c.founded}</strong></article>
+      <article class="cbw-exchange-fact"><span>Headquarters</span><strong>{c.headquarters}</strong></article>
+    </div>
+  </Section>
+
+  <Section container="prose" spacing="standard" tone="page" class="exchange-intro-section">
+    <p class="cbw-exchange-eyebrow">{c.seoPhraseLabel}</p>
+    <h2 class="cbw-exchange-section-heading">{c.name} offer overview</h2>
+    <div class="cbw-exchange-prose">
+      {c.introParagraphs.map(paragraph => <p set:html={paragraph} />)}
+    </div>
+    <div class="cbw-exchange-disclosure">
+      CryptoBonusWorld uses affiliate links and may earn a commission when you register through approved links on this page.
+      This does not change your bonus, the factual evidence shown, or the limitations we publish.
+    </div>
+  </Section>
+
+  <Section container="prose" spacing="compact" tone="primary">
+    <div class="cbw-exchange-action-band">
+      <div>
+        <strong>Ready to check the current {c.name} terms?</strong>
+        <span>Confirm the code, region and active tasks on the official exchange page before depositing.</span>
+      </div>
+      <a href={c.affiliateUrl} class="cbw-exchange-primary" target="_blank" rel="noopener noreferrer sponsored">
+        Check offer →
+      </a>
+    </div>
+  </Section>
+
+  <Section container="prose" spacing="standard" tone="primary">
+    <h2 class="cbw-exchange-section-heading">What is the {c.name} referral code?</h2>
+    <div class="cbw-exchange-prose">
+      <p>
+        A {c.name} referral code is entered during account registration to associate a new account with a partner offer.
+        The code <strong>{c.promoCode}</strong> connects the registration flow to the current {c.name} welcome program.
+      </p>
+      <p>
+        Referral codes are intended for new accounts and generally cannot be added after registration.
+        When an approved partner link is used, the code may be pre-filled, but you should still confirm it before completing sign-up.
+      </p>
+    </div>
+  </Section>
+
+  <Section container="prose" spacing="standard" tone="secondary">
+    <h2 class="cbw-exchange-section-heading">How to claim the {c.name} bonus code</h2>
+    <ol class="cbw-exchange-steps">
+      {c.howToClaimSteps.map(step => <li class="cbw-exchange-step" set:html={step} />)}
+    </ol>
+  </Section>
+
+  <Section container="prose" spacing="standard" tone="primary">
+    <figure class:list={['cbw-exchange-figure', c.evidenceRegistration.wide && 'cbw-exchange-figure--wide']}>
+      <img
+        src={c.evidenceRegistration.src}
+        alt={c.evidenceRegistration.alt}
+        width={c.evidenceRegistration.width}
+        height={c.evidenceRegistration.height}
+        loading="lazy"
+        decoding="async"
+      />
+      <figcaption set:html={c.evidenceRegistration.caption} />
+    </figure>
+  </Section>
+
+  <Section container="prose" spacing="compact" tone="page">
+    <div class="cbw-exchange-action-band">
+      <div>
+        <strong>Code shown in the public sign-up flow</strong>
+        <span>Final eligibility is still controlled by {c.name} and can vary by country and account.</span>
+      </div>
+      <a href={c.affiliateUrl} class="cbw-exchange-primary" target="_blank" rel="noopener noreferrer sponsored">
+        Open {c.name} →
+      </a>
+    </div>
+  </Section>
+
+  <Section container="prose" spacing="standard" tone="secondary">
+    <h2 class="cbw-exchange-section-heading">Bonus levels on {c.name}</h2>
+    <div class="cbw-exchange-prose">
+      <p>
+        The advertised maximum of {bonusMaxFmt} {c.currency} represents the combined value across multiple tasks and tiers.
+        It is not a guaranteed flat payment for every new account.
+      </p>
+      <p>
+        Task availability, thresholds and reward formats can differ by region, KYC level and promotion period.
+        Check the live {c.rewardsAreaName} after registration.
+      </p>
+    </div>
+    <div class="cbw-exchange-table-wrap">
+      <table class="cbw-exchange-table">
+        <thead><tr><th>Task</th><th>Requirement</th><th>Reward type</th><th>Notes</th></tr></thead>
+        <tbody>
+          {c.bonusLevelRows.map(row => (
+            <tr><td>{row.task}</td><td>{row.requirement}</td><td>{row.rewardType}</td><td>{row.notes}</td></tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    {(c.bonusExtraSections ?? []).map(section => (
+      <>
+        <h3 class="cbw-exchange-subheading">{section.h3}</h3>
+        <div class="cbw-exchange-prose"><p set:html={section.text} /></div>
+      </>
+    ))}
+  </Section>
+
+  {c.evidenceBonusPage && (
+    <Section container="prose" spacing="standard" tone="primary">
+      <figure class:list={['cbw-exchange-figure', c.evidenceBonusPage.wide && 'cbw-exchange-figure--wide']}>
+        <img
+          src={c.evidenceBonusPage.src}
+          alt={c.evidenceBonusPage.alt}
+          width={c.evidenceBonusPage.width}
+          height={c.evidenceBonusPage.height}
+          loading="lazy"
+          decoding="async"
+        />
+        <figcaption set:html={c.evidenceBonusPage.caption} />
+      </figure>
+    </Section>
+  )}
+
+  <Section container="prose" spacing="standard" tone="primary">
+    <h2 class="cbw-exchange-section-heading">Other {c.name} codes people search for</h2>
+    <div class="cbw-exchange-prose">
+      <p>
+        Codes found on forums or social channels may be expired, region-restricted or connected to a page with no active offer.
+        The code verified on this page is <strong>{c.promoCode}</strong>.
+      </p>
+      <p>
+        Confirm that any alternative code opens an active official {c.name} offer before registration.
+        A referral code generally cannot be replaced after the account has been created.
+      </p>
+    </div>
+  </Section>
+
+  <Section container="prose" spacing="standard" tone="secondary">
+    <h2 class="cbw-exchange-section-heading">About {c.name}</h2>
+    <div class="cbw-exchange-prose">
+      {c.aboutParagraphs.map(paragraph => <p set:html={paragraph} />)}
+    </div>
+    <h3 class="cbw-exchange-subheading">Support</h3>
+    <div class="cbw-exchange-prose"><p set:html={c.supportText} /></div>
+  </Section>
+
+  <Section container="prose" spacing="standard" tone="primary">
+    <h2 class="cbw-exchange-section-heading">{c.name} partner offer</h2>
+    <div class="cbw-exchange-prose"><p set:html={c.partnerOfferText} /></div>
+    <figure class="cbw-exchange-figure cbw-exchange-figure--wide" style="margin-top:24px;">
+      <a href={c.affiliateUrl} target="_blank" rel="noopener noreferrer sponsored" aria-label={`Check ${c.name} offer`}>
+        <img
+          src={c.articleImg}
+          alt={`${c.name} referral code bonus illustration`}
+          width="1200"
+          height="675"
+          loading="lazy"
+          decoding="async"
+        />
+      </a>
+      <figcaption>{c.name} referral code: {c.promoCode}</figcaption>
+    </figure>
+  </Section>
+
+  <Section container="prose" spacing="standard" tone="page">
+    <h2 class="cbw-exchange-section-heading">Code search variations</h2>
+    <p class="cbw-exchange-prose">
+      Users may describe the same {c.name} offer as a welcome code, promo code, bonus code, invite code or share code.
+      This page tracks <strong>{c.promoCode}</strong>.
+    </p>
+    <div class="cbw-exchange-search-grid">
+      {c.searchVariations.map(label => <div><span>{label}</span><code>{c.promoCode}</code></div>)}
+    </div>
+  </Section>
+
+  <Section container="prose" spacing="standard" tone="secondary">
+    <h2 class="cbw-exchange-section-heading">{c.name} trading fees</h2>
+    <div class="cbw-exchange-prose">
+      <p>
+        Fees vary by product, VIP level, account type and current schedule. The table uses published standard rates.
+        Always verify the <a href={c.feeUrl} target="_blank" rel="noopener noreferrer nofollow">official {c.name} fee page</a> before trading.
+      </p>
+    </div>
+    <div class="cbw-exchange-table-wrap">
+      <table class="cbw-exchange-table">
+        <thead><tr><th>Market</th><th>Maker fee</th><th>Taker fee</th><th>Source · status</th></tr></thead>
+        <tbody>
+          {c.feeTableRows.map(row => (
+            <tr>
+              <td set:html={row.market} />
+              <td>{row.maker}</td>
+              <td>{row.taker}</td>
+              <Fragment set:html={row.statusCellHtml} />
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    {(c.evidenceFeeScreenshots ?? []).map(evidence => (
+      <figure class:list={['cbw-exchange-figure', evidence.wide && 'cbw-exchange-figure--wide']} style="margin-top:20px;">
+        <img
+          src={evidence.src}
+          alt={evidence.alt}
+          width={evidence.width}
+          height={evidence.height}
+          loading="lazy"
+          decoding="async"
+        />
+        <figcaption set:html={evidence.caption} />
+      </figure>
+    ))}
+    {c.feeAfterNoteHtml && <div class="cbw-exchange-prose" style="margin-top:16px;"><Fragment set:html={c.feeAfterNoteHtml} /></div>}
+  </Section>
+
+  <Section container="prose" spacing="standard" tone="primary">
+    <h2 class="cbw-exchange-section-heading">KYC requirements and regional availability</h2>
+    <div class="cbw-exchange-prose">
+      {c.kycAvailabilityParagraphs.map(paragraph => <p set:html={paragraph} />)}
+    </div>
+  </Section>
+
+  <Section container="prose" spacing="standard" tone="secondary">
+    <h2 class="cbw-exchange-section-heading">{c.name} offer — what we have verified</h2>
+    <div class="cbw-exchange-prose"><p set:html={c.verificationIntroText} /></div>
+    {c.verificationEvidence && (
+      <figure class:list={['cbw-exchange-figure', c.verificationEvidence.wide && 'cbw-exchange-figure--wide']} style="margin-top:20px;">
+        <img
+          src={c.verificationEvidence.src}
+          alt={c.verificationEvidence.alt}
+          width={c.verificationEvidence.width}
+          height={c.verificationEvidence.height}
+          loading="lazy"
+          decoding="async"
+        />
+        <figcaption set:html={c.verificationEvidence.caption} />
+      </figure>
+    )}
+    <div class="cbw-exchange-table-wrap">
+      <table class="cbw-exchange-table">
+        <thead><tr><th>Reward area</th><th>What may be required</th><th>Reward type</th><th>Status</th></tr></thead>
+        <tbody>
+          {c.verificationRows.map(row => (
+            <tr>
+              <td>{row.area}</td>
+              <td>{row.requirement}</td>
+              <td>{row.rewardType}</td>
+              <td>
+                <span class:list={['cbw-exchange-status', `cbw-exchange-status--${row.status}`]}>{statusLabel(row.status)}</span>
+                <div class="cbw-exchange-status-note">{row.statusNote}</div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <div class="cbw-exchange-prose" style="margin-top:16px;"><p set:html={c.verificationAfterNote} /></div>
+  </Section>
+
+  <Section container="prose" spacing="standard" tone="primary">
+    <h2 class="cbw-exchange-section-heading">{c.name} referral code — FAQ</h2>
+    <div class="cbw-exchange-faq">
+      {c.faqItems.map(item => (
+        <details>
+          <summary>{item.question}</summary>
+          <div class="cbw-exchange-faq__answer" set:html={item.answer} />
+        </details>
+      ))}
+    </div>
+  </Section>
+
+  <Section container="prose" spacing="standard" tone="secondary">
+    <h2 class="cbw-exchange-section-heading">More crypto exchange offers to compare</h2>
+    <p class="cbw-exchange-prose">Check alternatives before choosing a registration offer.</p>
+    <div class="cbw-exchange-related" style="margin-top:16px;">
+      {c.relatedExchanges.map(exchange => (
+        <article class="cbw-exchange-related-card">
+          <div class="cbw-exchange-related-logo" style={`background:${exchange.tileBg};`}>
+            <img src={exchange.logo} alt={exchange.name} width="70" height="70" loading="lazy" />
+          </div>
+          <div class="cbw-exchange-related-copy">
+            <strong>{exchange.name}</strong>
+            <span>{exchange.bonus}</span>
+            <span>{exchange.tag}</span>
+          </div>
+          <div class="cbw-exchange-related-actions">
+            <a href={`/go/${exchange.slug}/`} class="cbw-exchange-related-primary" data-related-exchange={exchange.slug} target="_blank" rel="noopener noreferrer sponsored">Check offer</a>
+            <a href={exchange.pageUrl ?? `/exchanges/${exchange.slug}/`} class="cbw-exchange-related-detail">View details →</a>
+          </div>
+        </article>
+      ))}
+    </div>
+  </Section>
+
+  <Section container="prose" spacing="compact" tone="page">
+    <div class="cbw-exchange-action-band">
+      <div>
+        <strong>Final check before registration</strong>
+        <span>Confirm the code, country availability, KYC and current task terms on {c.officialDomain}.</span>
+      </div>
+      <a href={c.affiliateUrl} class="cbw-exchange-primary" target="_blank" rel="noopener noreferrer sponsored">
+        Check {c.name} offer →
+      </a>
+    </div>
+  </Section>
+
+  <Section container="prose" spacing="compact" tone="secondary">
+    <div class="cbw-exchange-rating">
+      <h3>Rate this {c.name} referral code</h3>
+      <div class="cbw-exchange-stars" role="radiogroup" aria-label={`Rate this ${c.name} referral code`}>
+        {[1,2,3,4,5].map(star => (
+          <button class="cbw-exchange-star" type="button" data-star={star} role="radio" aria-checked="false" aria-label={`${star} star${star === 1 ? '' : 's'}`}>★</button>
+        ))}
+      </div>
+      <p data-rating-summary>No ratings yet — be the first to rate this code.</p>
+    </div>
+  </Section>
+
+  <Section container="prose" spacing="compact" tone="primary">
+    <div class="cbw-exchange-vote" data-vote-widget data-exchange={c.slug} data-code={c.promoCode}>
+      <h3>Was this {c.name} referral code helpful?</h3>
+      <div class="cbw-exchange-vote-buttons">
+        <button class="cbw-exchange-vote-button" type="button" data-helpful="works">👍 Works for me</button>
+        <button class="cbw-exchange-vote-button" type="button" data-helpful="didnt_work">👎 Didn't work</button>
+      </div>
+      <p data-vote-summary>No votes yet — be the first to rate this code.</p>
+    </div>
+  </Section>
+
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+</PageFrame>
+
+<script define:vars={{ promoCode: c.promoCode, exchangeSlug: c.slug }}>
+  (function () {
+    document.querySelectorAll('[data-copy-code]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        var row = button.closest('[data-code-row]');
+        navigator.clipboard.writeText(promoCode).then(function () {
+          button.textContent = 'Copied ✓';
+          if (row) row.classList.add('is-copied');
+          setTimeout(function () {
+            button.textContent = 'Copy';
+            if (row) row.classList.remove('is-copied');
+          }, 1800);
+        });
+      });
+    });
+
+    var DEAL_PREFIX = 'cbw_deal_activated_';
+    document.querySelectorAll('[data-related-exchange]').forEach(function (button) {
+      var slug = button.getAttribute('data-related-exchange');
+      if (!slug) return;
+      try {
+        if (localStorage.getItem(DEAL_PREFIX + slug)) {
+          button.textContent = 'Deal activated';
+          button.classList.add('is-activated');
+        }
+      } catch (error) {}
+      button.addEventListener('click', function () {
+        try { localStorage.setItem(DEAL_PREFIX + slug, '1'); } catch (error) {}
+        button.textContent = 'Deal activated';
+        button.classList.add('is-activated');
+      });
+    });
+
+    var VOTES_API = '/api/exchange-votes';
+    var stars = Array.prototype.slice.call(document.querySelectorAll('.cbw-exchange-star'));
+    var ratingSummary = document.querySelector('[data-rating-summary]');
+    var voteWidget = document.querySelector('[data-vote-widget]');
+    var voteSummary = document.querySelector('[data-vote-summary]');
+    var helpfulButtons = Array.prototype.slice.call(document.querySelectorAll('[data-helpful]'));
+    var unavailable = 'Voting is temporarily unavailable. Please try again later.';
+
+    function makeUserKey() {
+      if (self.crypto && crypto.randomUUID) return crypto.randomUUID();
+      var value = '';
+      while (value.length < 32) value += Math.floor(Math.random() * 16).toString(16);
+      return value;
+    }
+
+    var userKey;
+    try {
+      userKey = localStorage.getItem('cbw_user_key');
+      if (!userKey) {
+        userKey = makeUserKey();
+        localStorage.setItem('cbw_user_key', userKey);
+      }
+    } catch (error) {
+      userKey = makeUserKey();
+    }
+
+    function votesApi(method, body) {
+      var headers = { 'X-CBW-User': userKey };
+      if (method === 'POST') headers['Content-Type'] = 'application/json';
+      return fetch(VOTES_API + (method === 'GET' ? '?exchange=' + encodeURIComponent(exchangeSlug) : ''), {
+        method: method,
+        headers: headers,
+        body: method === 'POST' ? JSON.stringify(body) : undefined,
+      }).then(function (response) {
+        if (!response.ok) throw new Error('http ' + response.status);
+        return response.json();
+      });
+    }
+
+    function renderVotes(aggregate) {
+      var fill = aggregate.userRating || Math.round(aggregate.averageRating || 0);
+      stars.forEach(function (button) {
+        var star = Number(button.getAttribute('data-star'));
+        button.classList.toggle('is-filled', star <= fill);
+        button.setAttribute('aria-checked', aggregate.userRating === star ? 'true' : 'false');
+      });
+      if (ratingSummary) {
+        ratingSummary.textContent = aggregate.ratingCount > 0
+          ? 'Rated ' + aggregate.averageRating + '/5 from ' + aggregate.ratingCount + ' user vote' + (aggregate.ratingCount === 1 ? '' : 's') + '.'
+          : 'No ratings yet — be the first to rate this code.';
+      }
+      helpfulButtons.forEach(function (button) {
+        var value = button.getAttribute('data-helpful');
+        button.classList.toggle('is-selected-up', value === 'works' && aggregate.userHelpfulVote === 'works');
+        button.classList.toggle('is-selected-down', value === 'didnt_work' && aggregate.userHelpfulVote === 'didnt_work');
+      });
+      if (voteSummary) {
+        var total = aggregate.worksCount + aggregate.didntWorkCount;
+        voteSummary.textContent = total > 0
+          ? Math.round(aggregate.worksCount / total * 100) + '% of ' + total + ' voter' + (total === 1 ? '' : 's') + ' said this code worked.'
+          : 'No votes yet — be the first to rate this code.';
+      }
+    }
+
+    votesApi('GET').then(renderVotes).catch(function () {});
+
+    stars.forEach(function (button) {
+      button.addEventListener('click', function () {
+        var rating = Number(button.getAttribute('data-star'));
+        votesApi('POST', { exchange: exchangeSlug, type: 'rating', rating: rating })
+          .then(function (aggregate) {
+            renderVotes(aggregate);
+            if (ratingSummary) ratingSummary.textContent += ' Thanks — your rating was recorded.';
+          })
+          .catch(function () { if (ratingSummary) ratingSummary.textContent = unavailable; });
+      });
+    });
+
+    helpfulButtons.forEach(function (button) {
+      button.addEventListener('click', function () {
+        var helpful = button.getAttribute('data-helpful');
+        votesApi('POST', { exchange: exchangeSlug, type: 'helpful', helpful: helpful })
+          .then(function (aggregate) {
+            renderVotes(aggregate);
+            if (voteSummary) voteSummary.textContent += ' Thanks — your vote was recorded.';
+          })
+          .catch(function () { if (voteSummary) voteSummary.textContent = unavailable; });
+      });
+    });
+  })();
+</script>

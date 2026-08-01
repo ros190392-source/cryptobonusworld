@@ -1,6 +1,7 @@
 ---
 import CleanLayout from '../../layouts/CleanLayout.astro';
-import ExchangePromoPage from '../../components/exchange/ExchangePromoPage.astro';
+import ExchangePromoPageV2 from '../../components/exchange/ExchangePromoPageV2.astro';
+import '../../styles/exchange-page-standard-v1-responsive.css';
 import { kucoinConfig } from '../../data/exchangePages/kucoin';
 ---
 
@@ -12,5 +13,5 @@ import { kucoinConfig } from '../../data/exchangePages/kucoin';
   ogTitle={kucoinConfig.ogTitle}
   ogDescription={kucoinConfig.ogDescription}
 >
-  <ExchangePromoPage config={kucoinConfig} />
+  <ExchangePromoPageV2 config={kucoinConfig} />
 </CleanLayout>

@@ -1,6 +1,7 @@
 ---
 import CleanLayout from '../../layouts/CleanLayout.astro';
-import ExchangePromoPage from '../../components/exchange/ExchangePromoPage.astro';
+import ExchangePromoPageV2 from '../../components/exchange/ExchangePromoPageV2.astro';
+import '../../styles/exchange-page-standard-v1-responsive.css';
 import { bitgetConfig } from '../../data/exchangePages/bitget';
 ---
 
@@ -12,5 +13,5 @@ import { bitgetConfig } from '../../data/exchangePages/bitget';
   ogTitle={bitgetConfig.ogTitle}
   ogDescription={bitgetConfig.ogDescription}
 >
-  <ExchangePromoPage config={bitgetConfig} />
+  <ExchangePromoPageV2 config={bitgetConfig} />
 </CleanLayout>
