@@ -1,0 +1,121 @@
+name: CBW Portal Contracts 052B browser review
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  browser-review:
+    if: github.event.pull_request.head.ref == 'qa/cbw-portal-contracts-052b'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - name: Start preview
+        run: |
+          npm run preview -- --host 127.0.0.1 --port 4321 > /tmp/cbw-preview.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:4321/ >/dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/cbw-preview.log
+          exit 1
+      - name: Validate portal contracts review route
+        run: |
+          mkdir -p qa-artifacts
+          cat > .qa-portal-contracts.mjs <<'EOF'
+          import { chromium } from 'playwright';
+          import { writeFile } from 'node:fs/promises';
+
+          const viewports = [
+            { name: 'desktop-1440', width: 1440, height: 1000 },
+            { name: 'tablet-768', width: 768, height: 1024 },
+            { name: 'mobile-390', width: 390, height: 844 },
+          ];
+          const results = [];
+          let failed = false;
+          const browser = await chromium.launch({ headless: true });
+
+          try {
+            for (const viewport of viewports) {
+              const page = await browser.newPage({ viewport });
+              const consoleErrors = [];
+              const pageErrors = [];
+              const httpFailures = [];
+              page.on('console', message => { if (message.type() === 'error') consoleErrors.push(message.text()); });
+              page.on('pageerror', error => pageErrors.push(error.message));
+              page.on('response', response => {
+                if (response.status() >= 400) httpFailures.push({ status: response.status(), url: response.url() });
+              });
+
+              const response = await page.goto('http://127.0.0.1:4321/__design/portal-contracts/', { waitUntil: 'networkidle' });
+              const dimensions = await page.evaluate(() => ({
+                scrollWidth: document.documentElement.scrollWidth,
+                clientWidth: document.documentElement.clientWidth,
+                bodyScrollWidth: document.body.scrollWidth,
+              }));
+              const heading = page.locator('.contracts-hero h1');
+              const headingStyle = await heading.evaluate(element => ({
+                family: getComputedStyle(element).fontFamily,
+                color: getComputedStyle(element).color,
+              }));
+              const robots = await page.locator('meta[name="robots"]').getAttribute('content');
+              const checks = {
+                http200: response?.status() === 200,
+                noindex: robots === 'noindex, nofollow',
+                oneHeader: await page.locator('.site-header').count() === 1,
+                oneFooter: await page.locator('.site-footer').count() === 1,
+                foundationPass: await page.getByText('FOUNDATION PASS', { exact: true }).count() === 1,
+                fixtureSummary: await page.getByText('9/9 contract fixtures · 6/6 behavior fixtures', { exact: true }).count() === 1,
+                fifteenFixtures: await page.locator('.fixture-row').count() === 15,
+                allFixturesPassed: await page.locator('.fixture-row.passed').count() === 15,
+                sixStatusModels: await page.locator('.status-grid .review-status').count() === 6,
+                unauthorizedRouteRejected: await page.getByText('Unauthorized public route', { exact: true }).count() === 1,
+                noCountryLinks: await page.locator('a[href^="/countries/"]').count() === 0,
+                noAffiliateLinks: await page.locator('a[href^="/go/"]').count() === 0,
+                headingBarlow: headingStyle.family.includes('Barlow Condensed'),
+                headingWhite: headingStyle.color === 'rgb(255, 255, 255)',
+                noOverflow: dimensions.scrollWidth <= dimensions.clientWidth + 1 && dimensions.bodyScrollWidth <= dimensions.clientWidth + 1,
+                noConsoleErrors: consoleErrors.length === 0,
+                noPageErrors: pageErrors.length === 0,
+                noHttpFailures: httpFailures.length === 0,
+              };
+
+              const ok = Object.values(checks).every(Boolean);
+              failed ||= !ok;
+              const result = { viewport, ok, checks, dimensions, consoleErrors, pageErrors, httpFailures };
+              results.push(result);
+              console.log(JSON.stringify(result, null, 2));
+              await page.screenshot({ path: `qa-artifacts/portal-contracts-${viewport.name}.png`, fullPage: true });
+              await page.close();
+            }
+          } finally {
+            await browser.close();
+          }
+
+          await writeFile('qa-artifacts/cbw-portal-contracts-052b.json', JSON.stringify({ failed, results }, null, 2));
+          if (failed) process.exit(1);
+          EOF
+          node .qa-portal-contracts.mjs
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cbw-portal-contracts-052b-review
+          path: qa-artifacts/
+          if-no-files-found: error
