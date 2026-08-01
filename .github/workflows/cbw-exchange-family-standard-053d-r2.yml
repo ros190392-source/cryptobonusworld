@@ -1,0 +1,201 @@
+name: CBW Exchange Family Site Standard 053D Review R2
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  browser-review:
+    if: github.event.pull_request.head.ref == 'qa/cbw-exchange-family-standard-053d-r2'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - name: Start preview
+        run: |
+          npm run preview -- --host 127.0.0.1 --port 4321 > /tmp/cbw-preview.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:4321/ >/dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/cbw-preview.log
+          exit 1
+      - name: Validate all six exchange pages
+        run: |
+          mkdir -p qa-artifacts
+          cat > .qa-exchange-family-standard-r2.mjs <<'EOF'
+          import { chromium } from 'playwright';
+          import { writeFile } from 'node:fs/promises';
+
+          const routes = [
+            { slug: 'bybit', name: 'Bybit' },
+            { slug: 'mexc', name: 'MEXC' },
+            { slug: 'okx', name: 'OKX' },
+            { slug: 'bitget', name: 'Bitget' },
+            { slug: 'kucoin', name: 'KuCoin' },
+            { slug: 'bingx', name: 'BingX' },
+          ];
+          const viewports = [
+            { name: 'desktop-1440x900', width: 1440, height: 900, factsBudget: 700 },
+            { name: 'tablet-768x1024', width: 768, height: 1024, factsBudget: 760 },
+            { name: 'mobile-390x844', width: 390, height: 844, factsBudget: 650 },
+          ];
+          const results = [];
+          let failed = false;
+          const normalize = value => (value || '').replace(/\/$/, '');
+          const browser = await chromium.launch({ headless: true });
+
+          try {
+            for (const route of routes) {
+              for (const viewport of viewports) {
+                const context = await browser.newContext({ viewport });
+                await context.addInitScript(() => {
+                  try { localStorage.clear(); sessionStorage.clear(); } catch (error) {}
+                });
+                const page = await context.newPage();
+                const consoleErrors = [];
+                const pageErrors = [];
+                const httpFailures = [];
+                await page.route('**/api/exchange-votes**', async handler => {
+                  const request = handler.request();
+                  if (request.method() === 'POST') {
+                    await handler.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ratingCount: 1, averageRating: 5, userRating: 5, worksCount: 1, didntWorkCount: 0, userHelpfulVote: 'works' }) });
+                  } else {
+                    await handler.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ratingCount: 0, averageRating: 0, userRating: null, worksCount: 0, didntWorkCount: 0, userHelpfulVote: null }) });
+                  }
+                });
+                page.on('console', message => { if (message.type() === 'error') consoleErrors.push(message.text()); });
+                page.on('pageerror', error => pageErrors.push(error.message));
+                page.on('response', response => {
+                  if (response.status() >= 400) httpFailures.push({ status: response.status(), url: response.url() });
+                });
+
+                const response = await page.goto(`http://127.0.0.1:4321/${route.slug}/`, { waitUntil: 'networkidle' });
+                const dimensions = await page.evaluate(() => ({
+                  scrollWidth: document.documentElement.scrollWidth,
+                  clientWidth: document.documentElement.clientWidth,
+                  bodyScrollWidth: document.body.scrollWidth,
+                }));
+                const headerBox = await page.locator('.site-header').boundingBox();
+                const heroBox = await page.locator('.cbw-exchange-hero').boundingBox();
+                const factsBox = await page.locator('.exchange-facts-section').boundingBox();
+                const h1 = page.locator('h1');
+                const ownPrimary = page.locator(`a[href^="/go/${route.slug}"]`);
+                const ownPrimaryHrefs = (await ownPrimary.evaluateAll(nodes => nodes.map(node => node.getAttribute('href')))).map(normalize);
+                const heroPrimary = page.locator('.cbw-exchange-offer .cbw-exchange-primary');
+                const limitation = page.locator('.cbw-exchange-limit');
+                const heroPrimaryBox = await heroPrimary.boundingBox();
+                const limitationBox = await limitation.boundingBox();
+                const proseContainers = await page.locator('.cbw-section > .cbw-container--prose').evaluateAll(nodes => nodes.map(node => Math.round(node.getBoundingClientRect().width * 100) / 100));
+                const primaryColors = await page.locator('.cbw-exchange-primary, .cbw-exchange-related-primary').evaluateAll(nodes => nodes.map(node => ({ color: getComputedStyle(node).backgroundColor, classes: node.className })));
+                const codeValue = (await page.locator('.cbw-exchange-code__value').textContent())?.trim() || '';
+                const schema = await page.locator('script[type="application/ld+json"]').evaluateAll(nodes => nodes.map(node => {
+                  try { return JSON.parse(node.textContent || '{}'); } catch { return null; }
+                }).filter(Boolean));
+                const graphSchema = schema.find(item => Array.isArray(item['@graph']));
+                const faqSchema = graphSchema?.['@graph']?.find(item => item['@type'] === 'FAQPage');
+                const breadcrumbSchema = graphSchema?.['@graph']?.find(item => item['@type'] === 'BreadcrumbList');
+                const faqCount = await page.locator('.cbw-exchange-faq details').count();
+                const canonical = await page.locator('link[rel="canonical"]').getAttribute('href');
+                const title = await page.title();
+                const relatedHrefs = (await page.locator('.cbw-exchange-related-primary').evaluateAll(nodes => nodes.map(node => node.getAttribute('href')))).map(normalize);
+                const uniqueRelatedHrefs = [...new Set(relatedHrefs)];
+
+                const checks = {
+                  http200: response?.status() === 200,
+                  oneHeader: await page.locator('.site-header').count() === 1,
+                  oneFooter: await page.locator('.site-footer').count() === 1,
+                  oneH1: await h1.count() === 1,
+                  exactH1: (await h1.textContent())?.trim() === `${route.name} Referral Code 2026`,
+                  canonical: canonical === `https://cryptobonusworld.com/${route.slug}/`,
+                  titleIntent: title.includes(route.name) && title.includes('Referral Code'),
+                  oneHero: await page.locator('.cbw-exchange-hero').count() === 1,
+                  heroExchangeIdentity: await page.locator(`.cbw-exchange-hero[data-exchange="${route.slug}"]`).count() === 1,
+                  codePresent: codeValue.length > 1,
+                  oneCodeControl: await page.locator('.cbw-exchange-code').count() === 1,
+                  heroPrimaryVisible: Boolean(heroPrimaryBox && heroPrimaryBox.y < viewport.height && heroPrimaryBox.y + heroPrimaryBox.height > 0),
+                  limitationVisible: Boolean(limitationBox && limitationBox.y < viewport.height && limitationBox.y + limitationBox.height > 0),
+                  factsWithinBudget: Boolean(factsBox && factsBox.y <= viewport.factsBudget + 1),
+                  eightFacts: await page.locator('.cbw-exchange-fact').count() === 8,
+                  ownAffiliatePathPresent: ownPrimaryHrefs.length >= 5 && ownPrimaryHrefs.every(href => href === `/go/${route.slug}`),
+                  relatedActionCount: relatedHrefs.length >= 3 && relatedHrefs.length <= 6,
+                  relatedActionsUnique: relatedHrefs.length === uniqueRelatedHrefs.length,
+                  relatedActionsExcludeSelf: relatedHrefs.every(href => href !== `/go/${route.slug}`),
+                  relatedActionsValid: relatedHrefs.every(href => /^\/go\/[a-z0-9-]+$/.test(href)),
+                  amberActions: primaryColors.length >= ownPrimaryHrefs.length + relatedHrefs.length && primaryColors.every(item => item.color === 'rgb(247, 147, 26)' && !String(item.classes).includes('is-activated')),
+                  contentSections: await page.locator('.cbw-exchange-section-heading').count() >= 10,
+                  tablesPresent: await page.locator('.cbw-exchange-table').count() >= 3,
+                  evidencePresent: await page.locator('.cbw-exchange-figure img').count() >= 2,
+                  faqVisible: faqCount >= 5,
+                  faqSchemaParity: Array.isArray(faqSchema?.mainEntity) && faqSchema.mainEntity.length === faqCount,
+                  breadcrumbSchema: Array.isArray(breadcrumbSchema?.itemListElement) && breadcrumbSchema.itemListElement.length === 2,
+                  ratingPresent: await page.locator('.cbw-exchange-rating').count() === 1,
+                  votePresent: await page.locator('[data-vote-widget]').count() === 1,
+                  noDuplicateClosingHero: await page.locator('.cbw-exchange-hero').count() === 1,
+                  noLegacyClasses: await page.locator('.brand-hero, .p2-section, .bw-wrap, .mexc-section, .ep-section').count() === 0,
+                  proseWidth: proseContainers.length > 5 && proseContainers.every(width => width <= 760.5 && width >= Math.min(viewport.width, 760) - 1),
+                  noOverflow: dimensions.scrollWidth <= dimensions.clientWidth + 1 && dimensions.bodyScrollWidth <= dimensions.clientWidth + 1,
+                  noConsoleErrors: consoleErrors.length === 0,
+                  noPageErrors: pageErrors.length === 0,
+                  noHttpFailures: httpFailures.length === 0,
+                };
+
+                const ok = Object.values(checks).every(Boolean);
+                failed ||= !ok;
+                const result = {
+                  route,
+                  viewport,
+                  ok,
+                  checks,
+                  geometry: { header: headerBox, hero: heroBox, facts: factsBox, heroPrimary: heroPrimaryBox, limitation: limitationBox },
+                  codeValue,
+                  ownPrimaryHrefs,
+                  relatedHrefs,
+                  primaryColors,
+                  proseContainers,
+                  faqCount,
+                  canonical,
+                  title,
+                  dimensions,
+                  consoleErrors,
+                  pageErrors,
+                  httpFailures,
+                };
+                results.push(result);
+                console.log(JSON.stringify(result, null, 2));
+                await page.screenshot({ path: `qa-artifacts/${route.slug}-${viewport.name}-first.png`, fullPage: false });
+                await page.screenshot({ path: `qa-artifacts/${route.slug}-${viewport.name}-full.png`, fullPage: true });
+                await context.close();
+              }
+            }
+          } finally {
+            await browser.close();
+          }
+
+          await writeFile('qa-artifacts/CBW_EXCHANGE_FAMILY_STANDARD_053D_R2.json', JSON.stringify({ failed, results }, null, 2));
+          if (failed) process.exit(1);
+          EOF
+          node .qa-exchange-family-standard-r2.mjs
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cbw-exchange-family-standard-053d-r2-review
+          path: qa-artifacts/
+          if-no-files-found: error
+          retention-days: 90
