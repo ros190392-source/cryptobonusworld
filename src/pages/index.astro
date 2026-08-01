@@ -1,220 +1,73 @@
 ---
 import CleanLayout from '../layouts/CleanLayout.astro';
 import HomepageTop10 from '../components/home/HomepageTop10.astro';
-
-const pathways = [
-  {
-    number: '01',
-    title: 'Choose a market',
-    text: 'Country controls availability, restrictions, KYC and local payment context.',
-  },
-  {
-    number: '02',
-    title: 'Compare evidence states',
-    text: 'Verified offers, research records and profiles under review remain visibly separate.',
-  },
-  {
-    number: '03',
-    title: 'Check the terms',
-    text: 'Open the exchange profile and confirm current regional terms before registering or depositing.',
-  },
-];
-
-const countryCards = [
-  {
-    flag: '🇰🇿',
-    name: 'Kazakhstan',
-    note: 'Three validated review profiles and a governed evidence matrix.',
-    status: 'Pilot · review only',
-    tone: 'pilot',
-  },
-  {
-    flag: '🇵🇱',
-    name: 'Poland',
-    note: 'European regulatory and country evidence is being normalized.',
-    status: 'Profiles in progress',
-    tone: 'progress',
-  },
-  {
-    flag: '🇩🇪',
-    name: 'Germany',
-    note: 'Existing GEO evidence is queued for the new profile contracts.',
-    status: 'Under review',
-    tone: 'review',
-  },
-  {
-    flag: '🇧🇷',
-    name: 'Brazil',
-    note: 'Planned market expansion after the first country factory pilot.',
-    status: 'Source mapping planned',
-    tone: 'planned',
-  },
-];
-
-const trustItems = [
-  {
-    number: '01',
-    title: 'Official-source-first',
-    text: 'Regulators and exchange-owned sources lead evidence collection.',
-  },
-  {
-    number: '02',
-    title: 'Country-specific truth',
-    text: 'Global exchange facts never silently override local restrictions.',
-  },
-  {
-    number: '03',
-    title: 'Freshness and limitations',
-    text: 'Checked dates, gaps and conflicts remain visible instead of being smoothed over.',
-  },
-  {
-    number: '04',
-    title: 'Affiliate separation',
-    text: 'Commercial status cannot create a ranking row or improve its position.',
-  },
-];
-
-const updates = [
-  {
-    date: 'July 2026',
-    label: 'Research record',
-    title: 'Binance Kazakhstan evidence lifecycle completed',
-    detail: 'Local entity, licence, KYC and public P2P surfaces mapped with explicit limitations.',
-  },
-  {
-    date: 'July 2026',
-    label: 'Product update',
-    title: 'One governed Homepage Top-10 published',
-    detail: 'Verified offers and neutral research rows now share one clearly labeled comparison surface.',
-  },
-  {
-    date: 'In progress',
-    label: 'Platform work',
-    title: 'Country and language foundations',
-    detail: 'Country facts and translated presentation are being built as separate controlled layers.',
-  },
-];
-
-const guideBlocks = [
-  {
-    h3: 'What is a crypto referral code?',
-    p: 'A crypto referral code (also called a promo code or invite code) is a short identifier you enter during sign-up at a crypto exchange. It links your new account to a partner, which can unlock a welcome bonus, fee discount, or other new-user reward that is not available to accounts created without a code.',
-  },
-  {
-    h3: 'How to claim a crypto sign-up bonus',
-    p: 'Open the exchange’s official offer page through a verified link, create a new account, and apply the code if it is not already pre-filled. Most exchanges also require identity verification (KYC) and a qualifying deposit before any reward becomes available — complete these steps before making further deposits so you do not miss a bonus tier.',
-  },
-  {
-    h3: 'Why bonus amounts are not guaranteed',
-    p: 'Advertised bonus figures are maximum amounts, not typical results. Reaching the full advertised amount usually requires completing several tasks — a deposit above a set threshold, a minimum trading volume, and finishing KYC — within a limited time window, often 30 days. Most users receive a partial reward rather than the headline figure.',
-  },
-  {
-    h3: 'Common bonus requirements',
-    p: 'Bonus programs vary by exchange, but frequently include identity verification (KYC), a minimum first deposit, a trading volume milestone, and a deadline to complete all tasks. Some rewards are issued as trading fee vouchers rather than withdrawable cash. Always read the current terms on the exchange’s official page before depositing.',
-  },
-  {
-    h3: 'Referral link vs promo code',
-    p: 'A referral link and a promo code often unlock the same offer, but work differently. A referral link usually applies the code automatically when you register through it. A promo code must be entered manually during sign-up, typically in a dedicated field. We list both where available — use the link where possible, and keep the code visible as a backup.',
-  },
-  {
-    h3: 'How CryptoBonusWorld checks exchange codes',
-    p: 'We check each listed code and bonus offer directly against the exchange’s own promotions page, not third-party forums or expired affiliate databases. Each exchange page on this site shows the date it was last verified. Promotions change frequently — if something looks outdated, check the individual exchange page for the latest information.',
-  },
-];
-
-const faqs = [
-  {
-    q: 'What is a crypto referral code?',
-    a: 'It’s a code entered at sign-up that links your account to a partner offer. Applying it can unlock a welcome bonus or fee discount that is not available otherwise. See the guide above for more detail on how these work.',
-  },
-  {
-    q: 'Do I need to enter the code manually?',
-    a: 'It depends on the exchange. Some auto-apply the code when you use our link — you just complete registration. Others require you to paste the code into a field during signup. Copy the code before clicking, just in case.',
-  },
-  {
-    q: 'Are crypto exchange bonuses guaranteed?',
-    a: 'No. Welcome bonuses are not guaranteed for every user. Advertised amounts are maximums — reaching them typically requires completing multiple tasks such as a deposit, a trading volume milestone, and KYC within a set window. Many users receive a partial bonus. Always read the full terms on the exchange’s official website before depositing.',
-  },
-  {
-    q: 'Why do offers differ by country?',
-    a: 'Bonus programs are subject to local regulations, exchange licensing, and KYC requirements. An offer available in one country may be restricted or unavailable in another. Always check the exchange’s terms for your region before signing up.',
-  },
-  {
-    q: 'Are these affiliate links?',
-    a: 'Yes. Links marked “Check offer” are affiliate referral links. If you register through one, CryptoBonusWorld may earn a commission from the exchange. This does not cost you anything extra and does not change your bonus. See our affiliate disclosure for details.',
-  },
-  {
-    q: 'Which exchange bonus is best?',
-    a: 'There is no single “best” bonus for everyone — it depends on your priorities, region, eligibility, and how much activity each reward requires. Compare the verification badge and current details on each exchange page before deciding.',
-  },
-  {
-    q: 'How often are codes checked?',
-    a: 'We check each exchange’s promo codes regularly, with the date of the last check shown on each exchange page. Promotions change frequently — if a code looks outdated, check the most recent version on the official exchange website.',
-  },
-  {
-    q: 'Can a code expire?',
-    a: 'Yes. Exchanges can change or discontinue a promo code or referral offer at any time, without notice. We recheck listed codes regularly and update or remove them if they stop working. If a code on this site appears expired, check the individual exchange page for the latest version.',
-  },
-];
-
-const faqSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: faqs.map(item => ({
-    '@type': 'Question',
-    name: item.q,
-    acceptedAnswer: { '@type': 'Answer', text: item.a },
-  })),
-};
+import '../styles/homepage-v3.css';
+import {
+  homepageCountryCards,
+  homepageFaqSchema,
+  homepageFaqs,
+  homepageGuideBlocks,
+  homepagePathways,
+  homepageTrustItems,
+  homepageUpdates,
+} from '../data/homepageV3';
 ---
 
 <CleanLayout
   title="Compare Crypto Exchanges by Offer & Evidence | CryptoBonusWorld"
   description="Compare 10 crypto exchanges in one governed view. See verified offers, research status, country context, limitations, and current evidence before choosing an exchange."
   ogImage="/og-default.png"
-  bodyClass="cbw-homepage-v2-public"
+  bodyClass="cbw-homepage-v2-public cbw-homepage-v3"
 >
-  <main class="homepage-v2">
-    <section class="hero">
-      <div class="shell">
-        <div class="hero-grid">
-          <div class="hero-copy">
+  <div class="homepage-v3" data-homepage-v3>
+    <section class="home-hero" data-first-intent="homepage">
+      <div class="cbw-container cbw-container--shell">
+        <div class="home-hero-grid">
+          <div class="home-hero-copy">
             <p class="eyebrow">Checked by country · backed by evidence</p>
             <h1>Find the right crypto exchange for your market.</h1>
-            <p class="hero-lede">
+            <p class="home-hero-lede">
               Compare exchange offers and research status without mixing global claims with country-specific facts.
               Verified, limited and under-review states stay clearly separated.
             </p>
-            <div class="hero-actions">
-              <a class="button button-primary" href="#exchanges">Explore the Top 10</a>
-              <a class="button button-ghost" href="#markets">Explore markets</a>
+            <div class="home-hero-actions">
+              <a class="home-button home-button--primary" href="#exchanges">Explore the Top 10</a>
+              <a class="home-button home-button--secondary" href="#markets">Explore markets</a>
             </div>
-            <div class="hero-proof" aria-label="Homepage evidence summary">
+            <div class="home-proof" aria-label="Homepage evidence summary">
               <span><strong>10</strong> governed rows</span>
               <span><strong>1</strong> canonical ranking</span>
               <span><strong>0</strong> unsupported CTAs</span>
             </div>
           </div>
 
-          <aside class="market-control" aria-label="Market and language context">
-            <p class="control-label">Your context</p>
-            <div class="control-value">
-              <span class="control-icon">🌍</span>
-              <div><strong>Global comparison</strong><small>Country pages are being added through evidence review</small></div>
+          <aside class="home-market-context" aria-label="Market and language context" data-market-context>
+            <div class="home-market-primary">
+              <span class="home-market-icon" aria-hidden="true">🌍</span>
+              <div>
+                <span>Current comparison context</span>
+                <strong>Global market view</strong>
+                <small>Country evidence remains a separate publication gate</small>
+              </div>
             </div>
-            <div class="control-divider"></div>
-            <div class="context-row"><span>Country</span><strong>Global</strong></div>
-            <div class="context-row"><span>Language</span><strong>English</strong></div>
-            <p class="control-note">Country controls market facts. Language controls presentation. They are reviewed separately.</p>
+            <dl>
+              <div><dt>Country</dt><dd>Global</dd></div>
+              <div><dt>Language</dt><dd>English</dd></div>
+            </dl>
+            <p class="home-market-note">Country controls market facts. Language controls presentation. They are reviewed separately.</p>
           </aside>
         </div>
       </div>
     </section>
 
-    <section class="path-section" aria-label="How CryptoBonusWorld works">
-      <div class="shell path-grid">
-        {pathways.map(path => (
-          <article class="path-card">
+    <div data-first-ranking>
+      <HomepageTop10 />
+    </div>
+
+    <section class="home-pathways" aria-label="How CryptoBonusWorld works">
+      <div class="cbw-container cbw-container--wide home-pathway-grid">
+        {homepagePathways.map(path => (
+          <article class="home-pathway-card">
             <span>{path.number}</span>
             <h2>{path.title}</h2>
             <p>{path.text}</p>
@@ -223,23 +76,24 @@ const faqSchema = {
       </div>
     </section>
 
-    <HomepageTop10 />
-
-    <section class="markets" id="markets">
-      <div class="shell">
-        <header class="section-heading">
+    <section class="home-markets" id="markets">
+      <div class="cbw-container cbw-container--wide">
+        <header class="home-section-heading">
           <div>
             <p class="eyebrow">Country-first discovery</p>
             <h2>Explore markets, not duplicate rankings.</h2>
             <p>Country cards show research readiness only. They do not create a second exchange table on the homepage.</p>
           </div>
-          <span class="section-state">Country pages in controlled preview</span>
+          <span class="home-section-state">Country pages in controlled preview</span>
         </header>
 
-        <div class="country-grid">
-          {countryCards.map(country => (
-            <article class="country-card">
-              <div class="country-top"><span class="country-flag">{country.flag}</span><span class={`country-tone tone-${country.tone}`}></span></div>
+        <div class="home-country-grid">
+          {homepageCountryCards.map(country => (
+            <article class="home-country-card">
+              <div class="home-country-top">
+                <span class="home-country-flag">{country.flag}</span>
+                <span class={`home-country-tone tone-${country.tone}`}></span>
+              </div>
               <h3>{country.name}</h3>
               <p>{country.note}</p>
               <strong>{country.status}</strong>
@@ -249,65 +103,68 @@ const faqSchema = {
       </div>
     </section>
 
-    <section class="trust">
-      <div class="shell trust-grid">
-        <div class="trust-copy">
+    <section class="home-trust">
+      <div class="cbw-container cbw-container--wide home-trust-grid">
+        <div class="home-trust-copy">
           <p class="eyebrow">Why trust CryptoBonusWorld</p>
           <h2>Evidence is a product feature, not a footnote.</h2>
           <p>We show what was checked, what remains uncertain, and when a profile needs review. Missing evidence produces a visible limitation — not an invented answer.</p>
-          <a class="button button-light" href="#guide">Read the bonus guide</a>
+          <a class="home-button home-button--secondary" href="#guide">Read the bonus guide</a>
         </div>
-        <div class="trust-list">
-          {trustItems.map(item => (
-            <article><span>{item.number}</span><div><strong>{item.title}</strong><p>{item.text}</p></div></article>
-          ))}
-        </div>
-      </div>
-    </section>
-
-    <section class="updates">
-      <div class="shell">
-        <header class="section-heading">
-          <div><p class="eyebrow">Research and product changes</p><h2>Latest governed updates</h2></div>
-        </header>
-        <div class="updates-list">
-          {updates.map(update => (
-            <article class="update-row">
-              <span class="update-date">{update.date}</span>
-              <div><strong>{update.title}</strong><p>{update.detail}</p></div>
-              <span class="update-label">{update.label}</span>
+        <div class="home-trust-list">
+          {homepageTrustItems.map(item => (
+            <article>
+              <span>{item.number}</span>
+              <div><strong>{item.title}</strong><p>{item.text}</p></div>
             </article>
           ))}
         </div>
       </div>
     </section>
 
-    <section class="guide" id="guide">
-      <div class="prose-shell">
+    <section class="home-updates">
+      <div class="cbw-container cbw-container--wide">
+        <header class="home-section-heading">
+          <div><p class="eyebrow">Research and product changes</p><h2>Latest governed updates</h2></div>
+        </header>
+        <div class="home-updates-list">
+          {homepageUpdates.map(update => (
+            <article class="home-update-row">
+              <span class="home-update-date">{update.date}</span>
+              <div><strong>{update.title}</strong><p>{update.detail}</p></div>
+              <span class="home-update-label">{update.label}</span>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="home-guide" id="guide">
+      <div class="cbw-container cbw-container--prose">
         <p class="eyebrow">Guide</p>
         <h2>Crypto exchange bonuses guide</h2>
-        <div class="guide-list">
-          {guideBlocks.map(block => (
+        <div class="home-guide-list">
+          {homepageGuideBlocks.map(block => (
             <article><h3>{block.h3}</h3><p>{block.p}</p></article>
           ))}
         </div>
       </div>
     </section>
 
-    <section class="faq" id="faq">
-      <div class="prose-shell">
+    <section class="home-faq" id="faq">
+      <div class="cbw-container cbw-container--prose">
         <p class="eyebrow">Common questions</p>
         <h2>Frequently asked questions</h2>
-        <div class="faq-list">
-          {faqs.map(item => (
+        <div class="home-faq-list">
+          {homepageFaqs.map(item => (
             <details><summary>{item.q}</summary><p>{item.a}</p></details>
           ))}
         </div>
       </div>
     </section>
 
-    <section class="disclosure">
-      <div class="prose-shell">
+    <section class="home-disclosure">
+      <div class="cbw-container cbw-container--prose">
         <p>
           <strong>Disclosure:</strong> CryptoBonusWorld may earn a commission when you register through approved links on this site.
           This does not affect editorial status or ranking position. Advertised bonus amounts are maximums and depend on eligibility,
@@ -317,117 +174,7 @@ const faqSchema = {
         </p>
       </div>
     </section>
+  </div>
 
-    <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
-  </main>
+  <script type="application/ld+json" set:html={JSON.stringify(homepageFaqSchema)} />
 </CleanLayout>
-
-<style>
-  :global(body.cbw-homepage-v2-public) { background: #f7f8f4; }
-  .homepage-v2 { color: #13233e; background: #f7f8f4; }
-  .shell { width: min(1160px, calc(100% - 32px)); margin: 0 auto; }
-  .prose-shell { width: min(800px, calc(100% - 40px)); margin: 0 auto; }
-  .eyebrow { margin: 0 0 10px; color: #f7931a; font-size: 10px; font-weight: 900; letter-spacing: .13em; text-transform: uppercase; }
-  h1, h2 { font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: -.025em; }
-
-  .hero { overflow: hidden; padding: 68px 0 86px; color: #fff; background: radial-gradient(circle at 76% 12%, rgba(247,147,26,.25), transparent 31%), linear-gradient(135deg,#0c1729,#13233e 65%,#1c355b); }
-  .hero-grid { display: grid; gap: 34px; }
-  h1 { max-width: 780px; margin: 0; font-size: clamp(48px,8vw,86px); line-height: .92; }
-  .hero-lede { max-width: 680px; margin: 23px 0 0; color: #d6e0ec; font-size: 17px; line-height: 1.7; }
-  .hero-actions { display: flex; flex-wrap: wrap; gap: 11px; margin-top: 29px; }
-  .button { display: inline-flex; min-height: 46px; align-items: center; justify-content: center; border: 1px solid transparent; border-radius: 10px; padding: 0 19px; font-size: 13px; font-weight: 900; text-decoration: none; }
-  .button-primary { background: #f7931a; color: #13233e; }
-  .button-ghost { border-color: rgba(255,255,255,.45); color: #fff; }
-  .button-light { margin-top: 23px; background: #fff; color: #13233e; }
-  .hero-proof { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; margin-top: 33px; }
-  .hero-proof span { display: flex; flex-direction: column; gap: 2px; padding: 11px; border-left: 2px solid #f7931a; color: #bac7d8; font-size: 9px; text-transform: uppercase; }
-  .hero-proof strong { color: #fff; font-size: 20px; }
-  .market-control { align-self: end; padding: 22px; border-radius: 18px; background: #fff; color: #13233e; box-shadow: 0 28px 60px rgba(0,0,0,.25); }
-  .control-label { margin: 0; color: #75808d; font-size: 9px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
-  .control-value { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: center; margin-top: 13px; }
-  .control-icon { font-size: 34px; }
-  .control-value strong, .control-value small { display: block; }
-  .control-value small { margin-top: 3px; color: #748092; line-height: 1.45; }
-  .control-divider { height: 1px; margin: 18px 0; background: #e1e6e1; }
-  .context-row { display: flex; justify-content: space-between; gap: 14px; padding: 10px 0; border-top: 1px solid #eef1ed; }
-  .context-row:first-of-type { border-top: 0; }
-  .context-row span { color: #73808c; font-size: 11px; }
-  .context-row strong { font-size: 11px; }
-  .control-note { margin: 15px 0 0; color: #6e7986; font-size: 10px; line-height: 1.55; }
-
-  .path-section { position: relative; z-index: 1; margin-top: -28px; }
-  .path-grid { display: grid; gap: 12px; }
-  .path-card { padding: 20px; border: 1px solid #dce2da; border-radius: 15px; background: #fff; box-shadow: 0 14px 30px rgba(19,35,62,.08); }
-  .path-card > span { color: #f7931a; font-size: 10px; font-weight: 900; }
-  .path-card h2 { margin: 10px 0 5px; font-size: 24px; }
-  .path-card p { margin: 0; color: #647080; font-size: 12px; line-height: 1.6; }
-
-  .markets, .updates, .guide, .faq { padding: 78px 0; }
-  .markets, .guide { background: #eef2ec; }
-  .updates, .faq { background: #fff; }
-  .section-heading { display: grid; gap: 16px; align-items: end; margin-bottom: 28px; }
-  .section-heading h2, .guide h2, .faq h2 { margin: 0; font-size: clamp(38px,6vw,58px); line-height: .96; }
-  .section-heading p:last-child { max-width: 720px; margin: 10px 0 0; color: #647080; line-height: 1.6; }
-  .section-state { align-self: start; padding: 8px 10px; border-radius: 999px; background: #13233e; color: #fff; font-size: 9px; font-weight: 900; text-transform: uppercase; }
-  .country-grid { display: grid; gap: 12px; }
-  .country-card { padding: 19px; border: 1px solid #d9dfd9; border-radius: 15px; background: #fff; }
-  .country-top { display: flex; justify-content: space-between; align-items: center; }
-  .country-flag { font-size: 30px; }
-  .country-tone { width: 10px; height: 10px; border-radius: 999px; background: #9ca3af; }
-  .tone-pilot { background: #16834b; }
-  .tone-progress { background: #f7931a; }
-  .tone-review { background: #3b82f6; }
-  .country-card h3 { margin: 16px 0 7px; font-size: 20px; }
-  .country-card p { min-height: 42px; margin: 0; color: #667280; font-size: 12px; line-height: 1.55; }
-  .country-card strong { display: block; margin-top: 15px; color: #925204; font-size: 9px; text-transform: uppercase; }
-
-  .trust { padding: 82px 0; color: #fff; background: #13233e; }
-  .trust-grid { display: grid; gap: 32px; }
-  .trust-copy h2 { max-width: 600px; margin: 0; font-size: clamp(40px,6vw,62px); line-height: .95; }
-  .trust-copy > p:last-of-type { max-width: 620px; color: #bdc9d8; line-height: 1.65; }
-  .trust-list { display: grid; gap: 10px; }
-  .trust-list article { display: grid; grid-template-columns: auto 1fr; gap: 12px; padding: 16px; border: 1px solid rgba(255,255,255,.12); border-radius: 12px; background: rgba(255,255,255,.05); }
-  .trust-list article > span { color: #f7931a; font-size: 10px; font-weight: 900; }
-  .trust-list strong { display: block; }
-  .trust-list p { margin: 5px 0 0; color: #bdc9d8; font-size: 11px; line-height: 1.55; }
-
-  .updates-list { overflow: hidden; border: 1px solid #dce2dc; border-radius: 15px; }
-  .update-row { display: grid; gap: 10px; padding: 18px; border-top: 1px solid #e4e8e3; }
-  .update-row:first-child { border-top: 0; }
-  .update-date { color: #74808c; font-size: 9px; font-weight: 900; text-transform: uppercase; }
-  .update-row strong { display: block; }
-  .update-row p { margin: 5px 0 0; color: #667280; font-size: 11px; line-height: 1.55; }
-  .update-label { align-self: start; justify-self: start; padding: 6px 8px; border-radius: 999px; background: #fff0dc; color: #8a4d00; font-size: 8px; font-weight: 900; text-transform: uppercase; }
-
-  .guide-list { display: grid; gap: 22px; margin-top: 28px; }
-  .guide-list article { padding-top: 20px; border-top: 1px solid #d8ded8; }
-  .guide-list h3 { margin: 0; font-size: 17px; }
-  .guide-list p { margin: 8px 0 0; color: #4b5563; font-size: 14px; line-height: 1.75; }
-  .faq-list { display: grid; gap: 8px; margin-top: 28px; }
-  .faq details { overflow: hidden; border: 1px solid #e5e7eb; border-radius: 10px; background: #fff; }
-  .faq summary { display: flex; justify-content: space-between; gap: 15px; padding: 16px 19px; color: #111827; font-size: 14px; font-weight: 700; cursor: pointer; list-style: none; }
-  .faq summary::-webkit-details-marker { display: none; }
-  .faq summary::after { content: '+'; color: #9ca3af; font-size: 18px; }
-  .faq details[open] summary::after { content: '−'; }
-  .faq details p { margin: 0; padding: 0 19px 16px; color: #4b5563; font-size: 13px; line-height: 1.7; }
-  .disclosure { padding: 22px 0; border-top: 1px solid #e5e7eb; background: #f9fafb; }
-  .disclosure p { margin: 0; color: #6b7280; font-size: 11px; line-height: 1.7; }
-  .disclosure strong { color: #374151; }
-  .disclosure a { color: #166534; font-weight: 800; }
-
-  @media (min-width: 720px) {
-    .path-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
-    .section-heading { grid-template-columns: minmax(0,1fr) auto; }
-    .country-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
-    .update-row { grid-template-columns: 110px minmax(0,1fr) auto; align-items: center; }
-  }
-  @media (min-width: 920px) {
-    .hero-grid { grid-template-columns: minmax(0,1.5fr) minmax(300px,.65fr); align-items: end; }
-    .country-grid { grid-template-columns: repeat(4,minmax(0,1fr)); }
-    .trust-grid { grid-template-columns: 1.05fr .95fr; align-items: center; }
-  }
-  @media (max-width: 480px) {
-    .hero-proof { grid-template-columns: 1fr; }
-    .hero-proof span { flex-direction: row; align-items: baseline; gap: 7px; }
-  }
-</style>
