@@ -53,6 +53,7 @@ jobs:
             src/data/contracts/portalFactory.ts \
             src/data/contracts/portalUi.ts \
             src/data/contracts/portalRouteGuards.ts \
+            src/data/contracts/portalPublication.ts \
             src/data/contracts/portalFoundationFixtures.ts \
             src/data/contracts/portalCta.ts \
             src/data/contracts/portalCtaI18n.ts \

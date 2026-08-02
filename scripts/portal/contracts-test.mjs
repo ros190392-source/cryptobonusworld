@@ -24,6 +24,8 @@ const cta = join(ROOT, 'src/data/contracts/portalCta.ts');
 const ctaI18n = join(ROOT, 'src/data/contracts/portalCtaI18n.ts');
 const homepageCta = join(ROOT, 'src/data/homepageTop10Cta.ts');
 const homepageData = join(ROOT, 'src/data/homepageTop10.ts');
+const routeGuards = join(ROOT, 'src/data/contracts/portalRouteGuards.ts');
+const publication = join(ROOT, 'src/data/contracts/portalPublication.ts');
 
 const tmp = mkdtempSync(join(tmpdir(), 'cbw-portal-test-'));
 const outfile = join(tmp, 'contracts.mjs');
@@ -44,7 +46,9 @@ try {
         `export * from ${JSON.stringify(cta)};\n` +
         `export { pickLocalized, gateReasonText, ctaGateReasonText, ctaMicrocopy } from ${JSON.stringify(ctaI18n)};\n` +
         `export { resolveHomepageTop10Cta, buildCtaProfile } from ${JSON.stringify(homepageCta)};\n` +
-        `export { homepageTop10 } from ${JSON.stringify(homepageData)};`,
+        `export { homepageTop10 } from ${JSON.stringify(homepageData)};\n` +
+        `export { assertPortalRouteRecord, resolvePortalRoute } from ${JSON.stringify(routeGuards)};\n` +
+        `export { emitPublicRankingRoutes } from ${JSON.stringify(publication)};`,
       resolveDir: ROOT,
       loader: 'ts',
     },
@@ -227,6 +231,75 @@ try {
   check('hp: profile facts derived from real records (bybit approved)', (() => {
     const p = m.buildCtaProfile(bybit);
     return p.approval === 'approved' && p.offerEligibility === 'approved' && p.availability === 'available';
+  })());
+
+  // --- Route guard + real public emission path ---
+  const throws = (fn) => { try { fn(); return false; } catch { return true; } };
+
+  const okRoute = { routeId: 'ex', reviewPath: '/__design/exchanges/ex/', publicPath: '/exchanges/ex/', publicationState: 'approved', indexabilityAuthorized: true };
+  check('route: review mode returns review path', m.resolvePortalRoute(okRoute, 'review') === '/__design/exchanges/ex/');
+  check('route: approved+indexable public path emitted', m.resolvePortalRoute(okRoute, 'public') === '/exchanges/ex/');
+  check('route: draft cannot resolve public (throws)', throws(() => m.resolvePortalRoute({ ...okRoute, publicationState: 'draft', indexabilityAuthorized: false }, 'public')));
+  check('route: approved but not indexable cannot resolve public', throws(() => m.resolvePortalRoute({ ...okRoute, indexabilityAuthorized: false }, 'public')));
+  check('route: blocked cannot resolve public', throws(() => m.resolvePortalRoute({ ...okRoute, publicationState: 'blocked', indexabilityAuthorized: false }, 'public')));
+  check('route: review path outside /__design/ rejected', throws(() => m.assertPortalRouteRecord({ ...okRoute, reviewPath: '/exchanges/ex/' })));
+  check('route: public path in review namespace rejected', throws(() => m.assertPortalRouteRecord({ ...okRoute, publicPath: '/__design/x/' })));
+  check('route: indexable without approval rejected', throws(() => m.assertPortalRouteRecord({ ...okRoute, publicationState: 'reviewed', indexabilityAuthorized: true })));
+  check('route: approved without public path rejected', throws(() => m.assertPortalRouteRecord({ ...okRoute, publicPath: undefined })));
+
+  // Composed emission fixtures.
+  const pubProfile = { profileId: 'mp:1', exchangeId: 'ex', countryCode: 'KZ', availability: 'available', offerEligibility: 'approved', claimIds: ['clm:1'], limitations: [], lastCheckedAt: daysAgo(5), nextReviewAt: '2026-09-30T00:00:00Z', approval: 'approved' };
+  const pubRow = { position: 1, exchangeId: 'ex', marketProfileId: 'mp:1', rationaleClaimIds: ['clm:1'] };
+  const pubSnap = { snapshotId: 'rk:pub', countryCode: 'KZ', methodologyVersion: 'v1', rows: [pubRow], excludedExchangeIds: [], underReviewExchangeIds: [], evidenceCheckedAt: daysAgo(5), approval: 'approved', approvedBy: 'owner' };
+  const baseInput = { snapshot: pubSnap, profiles: { 'mp:1': pubProfile }, routes: { ex: okRoute }, now: NOW };
+
+  const okRes = m.emitPublicRankingRoutes(baseInput);
+  check('emit: valid approved row is published', okRes.snapshotPublishable && okRes.published.length === 1 && okRes.published[0].publicPath === '/exchanges/ex/' && okRes.blocked.length === 0);
+
+  check('emit: unapproved snapshot emits zero public routes', (() => {
+    const r = m.emitPublicRankingRoutes({ ...baseInput, snapshot: { ...pubSnap, approval: 'draft', approvedBy: undefined } });
+    return !r.snapshotPublishable && r.published.length === 0 && r.blocked.every((b) => b.reasons.includes('SNAPSHOT_NOT_PUBLISHABLE'));
+  })());
+  check('emit: stale snapshot emits zero public routes', (() => {
+    const r = m.emitPublicRankingRoutes({ ...baseInput, snapshot: { ...pubSnap, evidenceCheckedAt: daysAgo(120) } });
+    return !r.snapshotPublishable && r.published.length === 0;
+  })());
+  check('emit: malformed country blocks the whole snapshot', (() => {
+    const r = m.emitPublicRankingRoutes({ ...baseInput, snapshot: { ...pubSnap, countryCode: 'kazakhstan' } });
+    return !r.snapshotPublishable && r.published.length === 0;
+  })());
+  check('emit: blocked route excluded from list (not published)', (() => {
+    const r = m.emitPublicRankingRoutes({ ...baseInput, routes: { ex: { ...okRoute, publicationState: 'blocked', indexabilityAuthorized: false } } });
+    return r.published.length === 0 && r.blocked.some((b) => b.exchangeId === 'ex' && b.reasons.includes('ROUTE_NOT_AUTHORIZED'));
+  })());
+  check('emit: non-indexable route excluded', (() => {
+    const r = m.emitPublicRankingRoutes({ ...baseInput, routes: { ex: { ...okRoute, indexabilityAuthorized: false } } });
+    return r.published.length === 0 && r.blocked.length === 1;
+  })());
+  check('emit: unapproved profile excludes row', (() => {
+    const r = m.emitPublicRankingRoutes({ ...baseInput, profiles: { 'mp:1': { ...pubProfile, approval: 'validated', offerEligibility: 'under_review' } } });
+    return r.published.length === 0 && r.blocked.some((b) => b.reasons.includes('PROFILE_NOT_APPROVED'));
+  })());
+  check('emit: unavailable profile excludes row', (() => {
+    const r = m.emitPublicRankingRoutes({ ...baseInput, profiles: { 'mp:1': { ...pubProfile, availability: 'unavailable', offerEligibility: 'not_eligible' } } });
+    return r.published.length === 0 && r.blocked.some((b) => b.reasons.includes('PROFILE_NOT_AVAILABLE'));
+  })());
+  check('emit: negative combination (missing profile + bad route) blocks with multiple reasons', (() => {
+    const r = m.emitPublicRankingRoutes({ ...baseInput, profiles: {}, routes: { ex: { ...okRoute, publicationState: 'blocked', indexabilityAuthorized: false } } });
+    const b = r.blocked.find((x) => x.exchangeId === 'ex');
+    return r.published.length === 0 && b && b.reasons.includes('PROFILE_MISSING') && b.reasons.includes('ROUTE_NOT_AUTHORIZED');
+  })());
+  check('emit: alternate locale yields identical published set (facts language-independent)', (() => {
+    const en = m.emitPublicRankingRoutes({ ...baseInput, locale: 'en' });
+    const ru = m.emitPublicRankingRoutes({ ...baseInput, locale: 'ru' });
+    return JSON.stringify(en.published) === JSON.stringify(ru.published) && JSON.stringify(en.blocked) === JSON.stringify(ru.blocked);
+  })());
+  check('emit: published never intersects blocked (invariant holds under mixed input)', (() => {
+    const twoRow = { ...pubSnap, rows: [pubRow, { position: 2, exchangeId: 'ex2', marketProfileId: 'mp:2', rationaleClaimIds: ['clm:2'] }] };
+    const r = m.emitPublicRankingRoutes({ snapshot: twoRow, profiles: { 'mp:1': pubProfile }, routes: { ex: okRoute }, now: NOW });
+    const pub = new Set(r.published.map((p) => p.exchangeId));
+    const blk = new Set(r.blocked.map((b) => b.exchangeId));
+    return r.published.length === 1 && pub.has('ex') && blk.has('ex2') && ![...pub].some((id) => blk.has(id));
   })());
 
   // --- Invariant: a non-commercial model may never point at /go/ ---
