@@ -122,6 +122,45 @@ try {
   check('cta: unavailable no /go/', !m.resolveCommercialCta('get_bonus', 'ru', 'production', { ...goProfile, availability: 'unavailable', offerEligibility: 'not_eligible' }).href.startsWith('/go/'));
   check('cta: localized ru label present', goModel.label === 'Получить бонус');
 
+  // --- Evidence freshness (deterministic, explicit clock) ---
+  const NOW = Date.parse('2026-08-02T00:00:00Z');
+  const daysAgo = (d) => new Date(NOW - d * 86400000).toISOString();
+  check('fresh: recent evidence is fresh', m.assessEvidenceFreshness(daysAgo(10), NOW).state === 'fresh');
+  check('fresh: missing timestamp is invalid (not coerced)', m.assessEvidenceFreshness(undefined, NOW).state === 'invalid');
+  check('fresh: malformed timestamp is invalid (not coerced to now)', m.assessEvidenceFreshness('not-a-date', NOW).state === 'invalid');
+  check('fresh: exactly at 45d boundary is fresh', m.assessEvidenceFreshness(daysAgo(45), NOW).state === 'fresh');
+  check('fresh: just beyond 45d boundary is stale', m.assessEvidenceFreshness(daysAgo(46), NOW).state === 'stale');
+  check('fresh: clearly old evidence is stale', m.assessEvidenceFreshness(daysAgo(400), NOW).state === 'stale');
+  check('fresh: far-future timestamp flagged future', m.assessEvidenceFreshness(daysAgo(-5), NOW).state === 'future');
+  check('fresh: within 60m skew tolerance is fresh', m.assessEvidenceFreshness(new Date(NOW + 30 * 60000).toISOString(), NOW).state === 'fresh');
+  check('fresh: timezone offset normalized to UTC (deterministic)', (() => {
+    const withOffset = '2026-07-25T05:00:00+05:00'; // == 2026-07-25T00:00Z
+    const asUtc = '2026-07-25T00:00:00Z';
+    const a = m.assessEvidenceFreshness(withOffset, NOW);
+    const b = m.assessEvidenceFreshness(asUtc, NOW);
+    return a.state === b.state && a.ageMs === b.ageMs;
+  })());
+
+  // Ranking-level fail-closed freshness for approved snapshots.
+  const approvedRank = {
+    snapshotId: 'rk:fresh', countryCode: 'KZ', methodologyVersion: 'v1',
+    rows: [{ position: 1, exchangeId: 'a', marketProfileId: 'mp', rationaleClaimIds: ['c'] }],
+    excludedExchangeIds: [], underReviewExchangeIds: [], evidenceCheckedAt: daysAgo(10),
+    approval: 'approved', approvedBy: 'owner',
+  };
+  check('ranking: approved+fresh accepted (with clock)', m.validateRankingSnapshot(approvedRank, { now: NOW }).ok);
+  check('ranking: approved+stale rejected (with clock)', !m.validateRankingSnapshot({ ...approvedRank, evidenceCheckedAt: daysAgo(120) }, { now: NOW }).ok);
+  check('ranking: approved+future rejected (with clock)', !m.validateRankingSnapshot({ ...approvedRank, evidenceCheckedAt: daysAgo(-30) }, { now: NOW }).ok);
+  check('ranking: stale but no clock stays deterministic (accepted)', m.validateRankingSnapshot({ ...approvedRank, evidenceCheckedAt: daysAgo(120) }).ok);
+
+  // CTA-level: a stale-evidence profile must not expose an affiliate action.
+  const freshProfile = { exchangeId: 'ex', slug: 'ex', availability: 'available', offerEligibility: 'approved', approval: 'approved', reviewHref: '/exchanges/ex/', evidenceCheckedAt: daysAgo(5) };
+  check('cta: fresh evidence still emits /go/ in production', m.resolveCommercialCta('get_bonus', 'ru', 'production', freshProfile, { now: NOW }).href.startsWith('/go/'));
+  check('cta: stale evidence blocks /go/ (EVIDENCE_STALE)', (() => {
+    const r = m.resolveCommercialCta('get_bonus', 'ru', 'production', { ...freshProfile, evidenceCheckedAt: daysAgo(200) }, { now: NOW });
+    return !r.href.startsWith('/go/') && !r.isAffiliate && r.gateReason === 'EVIDENCE_STALE';
+  })());
+
   // --- Homepage Top-10 gated CTA binding (real data → canonical gate) ---
   const bybit = m.homepageTop10.find((e) => e.slug === 'bybit');       // verified offer
   const mexc = m.homepageTop10.find((e) => e.slug === 'mexc');         // public-preview offer

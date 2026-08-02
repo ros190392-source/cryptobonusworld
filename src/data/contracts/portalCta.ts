@@ -14,6 +14,7 @@
  * unapproved profile can never yield a commercial affiliate action.
  */
 import type { AvailabilityState, OfferEligibility, ApprovalState } from './portalFactory';
+import { assessEvidenceFreshness } from './portalFactory';
 import type { CtaMode } from '../exchangePreview/cta-contract';
 
 export type CtaIntent = 'register' | 'get_bonus' | 'open_exchange' | 'view_review' | 'view_evidence';
@@ -41,6 +42,14 @@ export interface CtaProfileInput {
   approval: ApprovalState;
   /** Internal review/evidence route (must be a local path). Never an affiliate URL. */
   reviewHref: string;
+  /** ISO timestamp of the evidence backing this profile. When supplied together
+   *  with a clock, stale/future/invalid evidence fail-closes the commercial CTA. */
+  evidenceCheckedAt?: string;
+}
+
+export interface ResolveCommercialCtaOptions {
+  /** Explicit clock (epoch ms) enabling the evidence-freshness gate. */
+  now?: number;
 }
 
 export interface CommercialCtaModel {
@@ -80,6 +89,7 @@ export function resolveCommercialCta(
   locale: CtaLocale,
   mode: CtaMode,
   profile: CtaProfileInput,
+  options: ResolveCommercialCtaOptions = {},
 ): CommercialCtaModel {
   if (!LOCAL_PATH_PATTERN.test(profile.reviewHref)) {
     throw new Error('CTA review href must be a normalized local path ending with a slash.');
@@ -90,12 +100,21 @@ export function resolveCommercialCta(
   const availabilityAllows = profile.availability === 'available' || profile.availability === 'limited';
   const offerApproved = profile.offerEligibility === 'approved' && profile.approval === 'approved';
 
+  // Evidence-freshness gate (fail-closed): if a clock and an evidence timestamp
+  // are both supplied, only 'fresh' evidence may back a commercial affiliate CTA.
+  // Absent the timestamp/clock the gate is a no-op (backward compatible).
+  const evidenceFresh =
+    options.now === undefined || profile.evidenceCheckedAt === undefined
+      ? true
+      : assessEvidenceFreshness(profile.evidenceCheckedAt, options.now).state === 'fresh';
+
   // Fail-closed authorization for a live affiliate target.
   const affiliateAuthorized =
     mode === 'production'
     && isCommercialIntent
     && availabilityAllows
     && offerApproved
+    && evidenceFresh
     && SLUG_PATTERN.test(profile.slug);
 
   let visualState: CtaVisualState;
@@ -128,9 +147,14 @@ export function resolveCommercialCta(
     disabled = false;
     rel = 'noopener';
   } else {
-    // Under review / not offer-eligible / unknown availability → internal, non-commercial.
+    // Under review / not offer-eligible / stale evidence / unknown availability
+    // → internal, non-commercial.
     visualState = 'under_review';
-    gateReason = !offerApproved ? 'OFFER_NOT_APPROVED' : 'AVAILABILITY_UNCONFIRMED';
+    gateReason = !offerApproved
+      ? 'OFFER_NOT_APPROVED'
+      : !evidenceFresh
+        ? 'EVIDENCE_STALE'
+        : 'AVAILABILITY_UNCONFIRMED';
     href = profile.reviewHref;
     isAffiliate = false;
     disabled = false;

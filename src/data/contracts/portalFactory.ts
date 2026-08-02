@@ -4,6 +4,63 @@ export type ApprovalState = 'draft' | 'validated' | 'approved' | 'rejected' | 's
 export type AvailabilityState = 'available' | 'limited' | 'restricted' | 'unavailable' | 'unknown';
 export type OfferEligibility = 'approved' | 'not_eligible' | 'under_review' | 'unknown';
 
+/**
+ * Central evidence-freshness policy — the single source of truth for how stale
+ * ranking evidence may be before it can no longer back an approved (and hence
+ * commercial) ranking. Kept here so there is exactly one threshold, documented
+ * and free of duplicated magic numbers.
+ */
+export const EVIDENCE_FRESHNESS_POLICY = {
+  /** Evidence older than this many days is stale; an approved ranking is rejected. */
+  maxEvidenceAgeDays: 45,
+  /** Clock-skew tolerance: evidence timestamps up to this far in the future are
+   *  accepted; anything beyond is treated as an invalid future timestamp. */
+  futureSkewToleranceMinutes: 60,
+} as const;
+
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const MS_PER_MINUTE = 60 * 1000;
+
+export type FreshnessState = 'fresh' | 'stale' | 'future' | 'invalid';
+
+export interface FreshnessAssessment {
+  state: FreshnessState;
+  /** Age in milliseconds relative to `nowMs` (positive = past). Null when invalid. */
+  ageMs: number | null;
+  /** Machine-readable reason when not fresh; null when fresh. */
+  reason: string | null;
+}
+
+/**
+ * Deterministically assess evidence freshness against an explicit clock.
+ *
+ * Fail-closed and deterministic: a malformed timestamp is reported as `invalid`
+ * (never silently coerced to "now"); ISO strings carrying a timezone offset are
+ * normalized to a UTC epoch via Date.parse, so the assessment is timezone-safe.
+ * The caller supplies `nowMs` so the function has no hidden dependency on the
+ * wall clock.
+ */
+export function assessEvidenceFreshness(
+  value: unknown,
+  nowMs: number,
+  policy: { maxEvidenceAgeDays: number; futureSkewToleranceMinutes: number } = EVIDENCE_FRESHNESS_POLICY,
+): FreshnessAssessment {
+  if (!isIsoDate(value)) {
+    return { state: 'invalid', ageMs: null, reason: 'INVALID_DATE' };
+  }
+  const t = Date.parse(value);
+  const ageMs = nowMs - t;
+  const skewMs = policy.futureSkewToleranceMinutes * MS_PER_MINUTE;
+  if (ageMs < -skewMs) {
+    return { state: 'future', ageMs, reason: 'FUTURE_TIMESTAMP' };
+  }
+  const maxAgeMs = policy.maxEvidenceAgeDays * MS_PER_DAY;
+  if (ageMs > maxAgeMs) {
+    return { state: 'stale', ageMs, reason: 'STALE_EVIDENCE' };
+  }
+  return { state: 'fresh', ageMs, reason: null };
+}
+
 export interface SourcePacket {
   packetId: string;
   sourceUrl: string;
@@ -231,7 +288,20 @@ export function validateMarketProfile(input: unknown): ValidationResult<MarketPr
   return issues.length ? { ok: false, issues } : { ok: true, value: input as unknown as MarketProfile, issues };
 }
 
-export function validateRankingSnapshot(input: unknown): ValidationResult<RankingSnapshot> {
+export interface RankingValidationOptions {
+  /**
+   * Explicit clock (epoch ms) for the evidence-freshness check. When provided,
+   * an approved ranking whose evidence is stale / future-dated / invalid is
+   * rejected fail-closed. Omitted by default so structural validation stays
+   * deterministic and time-independent (build fixtures never rot).
+   */
+  now?: number;
+}
+
+export function validateRankingSnapshot(
+  input: unknown,
+  options: RankingValidationOptions = {},
+): ValidationResult<RankingSnapshot> {
   const issues: ValidationIssue[] = [];
   if (!isObject(input)) return { ok: false, issues: [issue('$', 'NOT_OBJECT', 'Ranking snapshot must be an object.')] };
 
@@ -268,6 +338,18 @@ export function validateRankingSnapshot(input: unknown): ValidationResult<Rankin
   }
   if (input.approval === 'approved' && !hasText(input.approvedBy)) {
     issues.push(issue('approvedBy', 'OWNER_APPROVAL_REQUIRED', 'Approved rankings require an approver.'));
+  }
+
+  // Evidence freshness (fail-closed) — only when an explicit clock is supplied.
+  // An approved ranking cannot ship on stale, future-dated or unusable evidence.
+  if (options.now !== undefined && input.approval === 'approved') {
+    const freshness = assessEvidenceFreshness(input.evidenceCheckedAt, options.now);
+    if (freshness.state === 'stale') {
+      issues.push(issue('evidenceCheckedAt', 'STALE_EVIDENCE', `Evidence is older than the ${EVIDENCE_FRESHNESS_POLICY.maxEvidenceAgeDays}-day freshness window.`));
+    } else if (freshness.state === 'future') {
+      issues.push(issue('evidenceCheckedAt', 'FUTURE_EVIDENCE', 'Evidence timestamp is implausibly in the future.'));
+    }
+    // 'invalid' is already reported by the structural INVALID_DATE check above.
   }
 
   return issues.length ? { ok: false, issues } : { ok: true, value: input as unknown as RankingSnapshot, issues };
