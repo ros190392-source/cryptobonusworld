@@ -42,6 +42,8 @@ jobs:
           done
           cat /tmp/cbw-preview.log
           exit 1
+      - name: Patch final route audit source handling
+        run: node qa/patch-final-site-standard-053g.mjs
       - name: Discover and validate every generated route
         run: node qa/final-site-standard-053g.mjs
       - name: Upload final evidence
