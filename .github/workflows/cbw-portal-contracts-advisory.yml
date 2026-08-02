@@ -1,0 +1,86 @@
+name: CBW Portal Contracts Advisory
+
+# Advisory-only, non-blocking gate for the Portal Factory contracts.
+# Read-only permissions; never deploys and never writes repository contents.
+# The job is marked continue-on-error so it surfaces contract regressions
+# without blocking merges — the authoritative enforcement is the build-time
+# fail-closed fixture throw (portalFoundationFixtures / portalStateFixtures),
+# which fails `astro build` if any malformed, stale, conflicting, unavailable
+# or unapproved fixture is ever accepted.
+
+on:
+  pull_request:
+    paths:
+      - 'src/data/contracts/**'
+      - 'src/data/exchangePreview/cta-contract.ts'
+      - 'src/pages/**/portal-contracts/**'
+      - 'src/components/portal-v2/**'
+      - '.github/workflows/cbw-portal-contracts-advisory.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cbw-portal-contracts-advisory-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  portal-contracts:
+    name: Portal contracts advisory (non-blocking)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck portal contracts
+        id: typecheck
+        run: |
+          set -euo pipefail
+          node_modules/.bin/tsc --noEmit --strict --skipLibCheck \
+            --moduleResolution bundler --module esnext --target es2022 \
+            src/data/contracts/portalFactory.ts \
+            src/data/contracts/portalUi.ts \
+            src/data/contracts/portalRouteGuards.ts \
+            src/data/contracts/portalFoundationFixtures.ts \
+            src/data/contracts/portalCta.ts \
+            src/data/contracts/portalStateFixtures.ts \
+            src/data/exchangePreview/cta-contract.ts
+
+      - name: AI-ops fail-closed fixtures
+        id: fixtures
+        run: npm run ai-ops:validate:fixtures
+
+      - name: Fail-closed build (enforces contract fixtures)
+        id: build
+        run: npm run build
+
+      - name: Advisory summary
+        if: always()
+        env:
+          TYPECHECK: ${{ steps.typecheck.outcome }}
+          FIXTURES: ${{ steps.fixtures.outcome }}
+          BUILD: ${{ steps.build.outcome }}
+        run: |
+          {
+            echo "### Portal Contracts Advisory (non-blocking)"
+            echo ""
+            echo "| Check | Result |"
+            echo "|---|---|"
+            echo "| Contracts typecheck | ${TYPECHECK} |"
+            echo "| Fail-closed fixtures | ${FIXTURES} |"
+            echo "| Fail-closed build | ${BUILD} |"
+            echo ""
+            echo "> Advisory only. Authoritative enforcement is the build-time fail-closed fixture throw."
+          } >> "$GITHUB_STEP_SUMMARY"
