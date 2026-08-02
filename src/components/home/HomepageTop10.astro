@@ -89,7 +89,8 @@ const disabledReason: Record<string, string> = {
               const stateClass = `top10-primary--${p.visualState}`;
 
               // A withheld commercial action is a genuinely non-actionable
-              // control (disabled <button>), never a JS-suppressed anchor.
+              // control (disabled <button>), never a JS-suppressed anchor. Its
+              // accessible name carries the reason so it is unambiguous.
               if (p.disabled) {
                 const reason = (p.gateReason && disabledReason[p.gateReason]) || 'Not available';
                 return (
@@ -97,16 +98,21 @@ const disabledReason: Record<string, string> = {
                     type="button"
                     class:list={['top10-primary', 'top10-primary--disabled', stateClass]}
                     disabled
-                    aria-describedby={`top10-why-${entry.rank}`}
+                    aria-label={`${p.label} at ${entry.name}: ${reason}`}
                   >
-                    {p.label}
-                    <span id={`top10-why-${entry.rank}`} class="top10-primary-why">{reason}</span>
+                    <span aria-hidden="true">{p.label}</span>
+                    <span class="top10-primary-why" aria-hidden="true">{reason}</span>
                   </button>
                 );
               }
 
               // Affiliate targets open externally with sponsored/nofollow rel;
-              // internal review targets stay in-tab and non-sponsored.
+              // internal review targets stay in-tab and non-sponsored. The
+              // accessible name is exchange-qualified so screen-reader users do
+              // not hear ten identical "Get bonus" links.
+              const accessibleName = p.isAffiliate
+                ? `${p.label} at ${entry.name} (opens in a new tab)`
+                : `${p.label} — ${entry.name}`;
               return (
                 <a
                   href={p.href}
@@ -114,8 +120,9 @@ const disabledReason: Record<string, string> = {
                   data-cta-affiliate={p.isAffiliate ? 'true' : undefined}
                   target={p.isAffiliate ? '_blank' : undefined}
                   rel={p.isAffiliate ? p.rel : 'noopener'}
+                  aria-label={accessibleName}
                 >
-                  <span class="top10-primary-label">{p.label} →</span>
+                  <span class="top10-primary-label" aria-hidden="true">{p.label} →</span>
                   <span class="top10-primary-spinner" aria-hidden="true"></span>
                 </a>
               );
@@ -423,16 +430,17 @@ const disabledReason: Record<string, string> = {
 
   .top10-primary {
     border: 1px solid transparent;
-    background: #16a34a;
+    /* #15803d on #fff text = 5.0:1 (WCAG AA for 12px bold). */
+    background: #15803d;
     color: #ffffff;
-    box-shadow: 0 2px 7px rgba(22, 163, 74, .2);
+    box-shadow: 0 2px 7px rgba(21, 128, 61, .22);
     cursor: pointer;
     font-family: inherit;
     transition: background-color .16s, box-shadow .16s, transform .12s;
   }
 
   .top10-primary:hover {
-    background: #15803d;
+    background: #166534;
   }
 
   .top10-primary:focus-visible,
@@ -460,6 +468,7 @@ const disabledReason: Record<string, string> = {
   }
 
   .top10-primary-why {
+    color: #6b7280;
     font-size: 9px;
     font-weight: 700;
     letter-spacing: .02em;
@@ -495,6 +504,8 @@ const disabledReason: Record<string, string> = {
   }
 
   @media (prefers-reduced-motion: reduce) {
+    .top10-row,
+    .top10-row:hover,
     .top10-primary,
     .top10-primary:active {
       transition: none;
