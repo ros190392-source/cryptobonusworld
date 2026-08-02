@@ -1,0 +1,56 @@
+name: CBW Site Standard Final Gate 053G
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  final-site-standard:
+    if: github.event.pull_request.head.ref == 'qa/cbw-site-standard-final-053g'
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Legacy deletion baseline
+        run: node scripts/audits/legacy-site-layer-audit.mjs
+      - name: Affiliate integrity
+        run: npm run validate:affiliate
+      - name: SEO integrity
+        run: npm run seo:check
+      - run: npm run build
+      - name: Start preview
+        run: |
+          npm run preview -- --host 127.0.0.1 --port 4321 > /tmp/cbw-preview.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:4321/ >/dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/cbw-preview.log
+          exit 1
+      - name: Discover and validate every generated route
+        run: node qa/final-site-standard-053g.mjs
+      - name: Upload final evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cbw-site-standard-final-053g
+          path: |
+            qa-artifacts/
+            reports/site-standard/CBW_LEGACY_LAYER_AUDIT_053F.json
+            reports/site-standard/CBW_LEGACY_LAYER_AUDIT_053F.md
+          if-no-files-found: error
+          retention-days: 90
