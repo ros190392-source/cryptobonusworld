@@ -1,0 +1,15 @@
+---
+import MarketPassportPage from '../../../../components/countries/kazakhstan/exchanges/MarketPassportPage.astro';
+
+export function getStaticPaths() {
+  const exchangeIds = ['binance', 'bybit', 'okx'] as const;
+  return exchangeIds.map(exchangeId => ({
+    params: { exchange: exchangeId },
+    props: { exchangeId },
+  }));
+}
+
+const { exchangeId } = Astro.props as { exchangeId: 'binance' | 'bybit' | 'okx' };
+---
+
+<MarketPassportPage exchangeId={exchangeId} />

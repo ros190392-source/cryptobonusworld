@@ -1,0 +1,39 @@
+---
+import Container from './Container.astro';
+import type { ContainerRole, FirstScreenFamily } from '../../data/siteStandard/siteStandardV1';
+
+export interface Props {
+  family?: FirstScreenFamily;
+  container?: ContainerRole;
+  eyebrow?: string;
+  title: string;
+  lede?: string;
+  class?: string;
+  id?: string;
+}
+
+const {
+  family = 'directory',
+  container = 'standard',
+  eyebrow,
+  title,
+  lede,
+  class: className = '',
+  id,
+} = Astro.props;
+
+const variant = family === 'homepage' ? 'homepage' : family === 'exchange' ? 'exchange' : 'standard';
+---
+
+<section
+  id={id}
+  class:list={['cbw-first-viewport', `cbw-first-viewport--${variant}`, className]}
+  data-first-screen-family={family}
+>
+  <Container size={container} class="cbw-first-viewport__inner">
+    {eyebrow && <p class="cbw-eyebrow">{eyebrow}</p>}
+    <h1 class="cbw-display-title">{title}</h1>
+    {lede && <p class="cbw-lede">{lede}</p>}
+    <slot />
+  </Container>
+</section>

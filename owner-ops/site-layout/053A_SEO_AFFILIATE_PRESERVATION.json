@@ -1,0 +1,97 @@
+{
+  "schemaVersion": "cbw-layout-seo-affiliate-preservation-v1",
+  "status": "AUDIT_ONLY",
+  "governingIssue": 201,
+  "seo": {
+    "mustPreserve": [
+      "publicCanonicalUrls",
+      "titleTags",
+      "metaDescriptions",
+      "indexabilityStates",
+      "jsonLdSchemas",
+      "sitemapPublicInventory",
+      "internalReviewAndMethodologyLinks",
+      "oneH1PerContentRoute"
+    ],
+    "mustRemove": [
+      "clientSideFinderHrefRewrite",
+      "sourceHtmlFinderReferences",
+      "duplicatePagePurposeBlocks",
+      "oversizedDecorativeBlocksBeforePrimaryIntent",
+      "unmanagedMetaRefreshStubsWhenServerRedirectExists"
+    ],
+    "redirectRequirements": {
+      "preferServerRedirect": true,
+      "fallbackDocumentAllowed": true,
+      "fallbackMustBeShared": true,
+      "fallbackStandaloneCssAllowed": false,
+      "redirectTargetMustMatchCanonical": true
+    },
+    "firstViewportIntent": {
+      "homepage": "ranking",
+      "exchangeProfile": "identity_offer_state_and_facts",
+      "directoryComparison": "first_live_card_or_row",
+      "editorialLegal": "first_substantive_section"
+    },
+    "failClosedChecks": [
+      "noCanonicalDiffWithoutAuthorization",
+      "noSchemaRemoval",
+      "noSitemapRouteLossWithoutRedirect",
+      "noFinderStringInPublicSource",
+      "noDuplicateH1",
+      "noHiddenDuplicatePrimaryContent"
+    ]
+  },
+  "affiliate": {
+    "mustPreserve": [
+      "approvedGoDestinations",
+      "promoCodes",
+      "offerRecords",
+      "sponsoredRelAttributes",
+      "inlineDisclosure",
+      "noPrimaryCtaBoundaries",
+      "affiliateIndependenceFromRanking"
+    ],
+    "knownNoPrimaryCta": [
+      "binance",
+      "gate-io",
+      "htx",
+      "phemex"
+    ],
+    "visualSemantics": {
+      "commercialAction": "amber",
+      "verifiedEvidenceState": "green",
+      "researchState": "blue_or_neutral",
+      "unavailableOrBlocked": "neutral_or_warning"
+    },
+    "failClosedChecks": [
+      "exactGoHrefInventoryUnchanged",
+      "exactPromoCodeInventoryUnchanged",
+      "noNewPrimaryCtaForNoCtaExchange",
+      "noAffiliateWeightInRanking",
+      "ctaInsideGovernedContainer",
+      "ctaDisclosureVisible"
+    ]
+  },
+  "accessibility": {
+    "required": [
+      "keyboardNavigation",
+      "focusVisible",
+      "mobileMenuEscapeClose",
+      "detailsSummaryOperable",
+      "formLabels",
+      "noHorizontalOverflow",
+      "minimumActionHeight44",
+      "readableLineLength",
+      "reducedMotionSafe"
+    ]
+  },
+  "requiredViewports": [
+    {"width": 1440, "height": 900},
+    {"width": 1280, "height": 800},
+    {"width": 1024, "height": 768},
+    {"width": 768, "height": 1024},
+    {"width": 390, "height": 844},
+    {"width": 360, "height": 800}
+  ]
+}

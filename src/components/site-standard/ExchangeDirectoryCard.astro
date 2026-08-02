@@ -1,0 +1,62 @@
+---
+import type { Exchange } from '../../data/exchanges';
+import type { Offer } from '../../data/offers';
+import PromoCodeCopy from '../promo/PromoCodeCopy.astro';
+import ExchangeLogo from '../ExchangeLogo.astro';
+import '../../styles/site-standard-v1.css';
+
+export interface Props {
+  exchange: Exchange;
+  offer?: Offer;
+}
+
+const { exchange: ex, offer } = Astro.props;
+const reviewUrl = ex.pageUrl ?? `/exchanges/${ex.slug}/`;
+---
+
+<article class="cbw-card exchange-directory-card">
+  <div class="exchange-directory-card__head">
+    <a href={reviewUrl} class="exchange-directory-card__logo" tabindex="-1" aria-label={`${ex.name} review`}>
+      <ExchangeLogo slug={ex.slug} name={ex.name} size={88} variant="square" lazy={false} class="exchange-directory-card__logo-image" />
+    </a>
+    <a href={reviewUrl} class="exchange-directory-card__name">{ex.name}</a>
+    {offer?.status === 'verified' && <span class="exchange-directory-card__verified">✓ Verified offer</span>}
+  </div>
+
+  {offer && <p class="exchange-directory-card__bonus">{offer.bonusHeadline}</p>}
+
+  {offer && (
+    <div class="exchange-directory-card__code">
+      <span>Promo code</span>
+      <PromoCodeCopy code={offer.promoCode} exchange={ex.name} />
+    </div>
+  )}
+
+  <a href={ex.affiliateUrl} class="cbw-action exchange-directory-card__action" target="_blank" rel="noopener noreferrer sponsored">
+    Check current offer →
+  </a>
+  <a href={reviewUrl} class="exchange-directory-card__review">Read {ex.name} review</a>
+</article>
+
+<style>
+  .exchange-directory-card { display: flex; min-height: 100%; flex-direction: column; align-items: center; text-align: center; transition: border-color .18s, box-shadow .18s, transform .18s; }
+  .exchange-directory-card:hover { border-color: rgba(247,147,26,.38); box-shadow: 0 16px 38px rgba(19,35,62,.1); transform: translateY(-2px); }
+  .exchange-directory-card__head { display: flex; width: 100%; flex-direction: column; align-items: center; gap: var(--cbw-space-2); }
+  .exchange-directory-card__logo { display: inline-flex; border-radius: var(--cbw-radius-panel); line-height: 0; }
+  .exchange-directory-card__logo:focus-visible { outline: 3px solid rgba(247,147,26,.5); outline-offset: 3px; }
+  .exchange-directory-card__logo :global(.exchange-directory-card__logo-image) { border: 1px solid rgba(19,35,62,.08); border-radius: var(--cbw-radius-panel); box-shadow: 0 5px 18px rgba(19,35,62,.08); }
+  .exchange-directory-card__name { color: var(--cbw-text-primary); font-family: 'Barlow Condensed', Inter, sans-serif; font-size: 25px; font-weight: 800; line-height: 1; text-decoration: none; text-transform: uppercase; }
+  .exchange-directory-card__name:hover { color: #a65400; }
+  .exchange-directory-card__verified { padding: 3px 9px; border: 1px solid #b7dfc7; border-radius: var(--cbw-radius-pill); color: var(--cbw-evidence); background: #f1fbf5; font-size: 9px; font-weight: 900; letter-spacing: .04em; text-transform: uppercase; }
+  .exchange-directory-card__bonus { display: flex; min-height: 42px; align-items: center; justify-content: center; margin: var(--cbw-space-4) 0 var(--cbw-space-3); color: var(--cbw-text-secondary); font-size: 12px; font-weight: 700; line-height: 1.5; }
+  .exchange-directory-card__code { display: flex; width: 100%; flex-direction: column; align-items: center; gap: 5px; margin-bottom: var(--cbw-space-4); }
+  .exchange-directory-card__code > span { color: var(--cbw-text-muted); font-size: 8px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+  .exchange-directory-card__action { width: 100%; margin-top: auto; font-size: 12px; }
+  .exchange-directory-card__review { display: block; padding: 9px 0 0; color: var(--cbw-text-secondary); font-size: 11px; font-weight: 800; text-decoration: none; }
+  .exchange-directory-card__review:hover { color: var(--cbw-text-primary); text-decoration: underline; text-underline-offset: 3px; }
+  @media (max-width: 480px) {
+    .exchange-directory-card { padding: var(--cbw-space-5); }
+    .exchange-directory-card__logo :global(.exlogo),
+    .exchange-directory-card__logo :global(.exlogo-img) { width: 72px !important; height: 72px !important; }
+  }
+</style>

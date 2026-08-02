@@ -1,0 +1,384 @@
+---
+import CleanLayout from '../../../layouts/CleanLayout.astro';
+import ReviewStatus from '../../../components/portal-v2/ReviewStatus.astro';
+import {
+  assertPortalRouteRecord,
+  resolvePortalRoute,
+} from '../../../data/contracts/portalRouteGuards';
+import {
+  kazakhstanCountryHubReviewPackage,
+  kazakhstanReviewContentPackagesPass,
+} from '../../../data/pilots/kz/contentPackages';
+import { binanceKazakhstanMarketProfile } from '../../../data/pilots/kz/binanceReview';
+import { bybitKazakhstanMarketProfile } from '../../../data/pilots/kz/bybitReview';
+import { okxKazakhstanMarketProfile } from '../../../data/pilots/kz/okxReview';
+import {
+  kazakhstanMappedEvidenceGaps,
+  kazakhstanOpenEvidenceGaps,
+  kazakhstanRankingReadiness,
+  kazakhstanReadinessPass,
+} from '../../../data/pilots/kz/readiness';
+import {
+  kazakhstanDraftRankingSnapshot,
+  kazakhstanDraftRankingSnapshotPass,
+} from '../../../data/pilots/kz/rankingSnapshotDraft';
+
+const routeRecord = assertPortalRouteRecord({
+  routeId: 'country:kz:noindex-preview',
+  reviewPath: '/__design/cbw-v2/country/',
+  publicPath: '/countries/kazakhstan/',
+  publicationState: 'draft',
+  indexabilityAuthorized: false,
+});
+
+let publicResolutionRejected = false;
+try {
+  resolvePortalRoute(routeRecord, 'public');
+} catch {
+  publicResolutionRejected = true;
+}
+
+const pkg = kazakhstanCountryHubReviewPackage;
+const profiles = [
+  { name: 'Binance', profile: binanceKazakhstanMarketProfile },
+  { name: 'Bybit', profile: bybitKazakhstanMarketProfile },
+  { name: 'OKX', profile: okxKazakhstanMarketProfile },
+];
+
+const authorizationFlags = [
+  ['Recommendations', pkg.recommendationAuthorized],
+  ['Publication', pkg.publicationAuthorized],
+  ['Ranking rows', pkg.rankingRowsAuthorized],
+  ['Affiliate CTA', pkg.affiliateCtaAuthorized],
+  ['Indexability', pkg.indexabilityAuthorized],
+] as const;
+
+const toneForAvailability = (value: string) => {
+  if (value === 'available') return 'verified' as const;
+  if (value === 'limited') return 'partial' as const;
+  if (value === 'restricted' || value === 'unavailable') return 'restricted' as const;
+  return 'review' as const;
+};
+
+const displayAvailability = (value: string) =>
+  value.replace(/_/g, ' ').replace(/\b\w/g, letter => letter.toUpperCase());
+
+const foundationPass =
+  kazakhstanReviewContentPackagesPass
+  && kazakhstanReadinessPass
+  && kazakhstanDraftRankingSnapshotPass
+  && pkg.approval === 'draft'
+  && pkg.approvedClaimIds.length === 0
+  && pkg.candidateClaimIds.length === 23
+  && pkg.sourcePacketIds.length === 22
+  && pkg.marketProfileIds.length === 3
+  && authorizationFlags.every(([, value]) => value === false)
+  && kazakhstanDraftRankingSnapshot.rows.length === 0
+  && kazakhstanDraftRankingSnapshot.approval === 'draft'
+  && kazakhstanRankingReadiness.ready === false
+  && publicResolutionRejected;
+
+if (!foundationPass) {
+  throw new Error('Kazakhstan country-hub preview failed the governed noindex boundary.');
+}
+---
+
+<CleanLayout
+  title="Crypto Exchanges in Kazakhstan — Review Preview | CryptoBonusWorld"
+  description="Noindex review preview of Kazakhstan crypto exchange evidence, profile readiness and open research gaps. No ranking or affiliate recommendation is published."
+  noindex={true}
+  bodyClass="country-kz-preview"
+>
+  <div class="country-page" data-country-preview="KZ" data-ranking-rows={kazakhstanDraftRankingSnapshot.rows.length}>
+    <section class="country-hero">
+      <div class="shell">
+        <div class="preview-strip">
+          <span>Noindex country preview</span>
+          <span>Draft ContentPackage · no public authorization</span>
+        </div>
+
+        <div class="crumbs">Countries <span>/</span> Kazakhstan</div>
+
+        <div class="hero-grid">
+          <div>
+            <p class="eyebrow">Kazakhstan · evidence-led market view</p>
+            <div class="country-title">
+              <span class="flag" aria-hidden="true">🇰🇿</span>
+              <h1>Crypto exchanges in Kazakhstan</h1>
+            </div>
+            <p class="lede">
+              This preview assembles validated Binance, Bybit and OKX market profiles from the
+              governed Kazakhstan research package. It shows what is known, what remains blocked,
+              and why no ranking or local offer recommendation is published yet.
+            </p>
+          </div>
+
+          <aside class="readiness-card">
+            <p class="card-label">Country publication state</p>
+            <ReviewStatus
+              label="Under review"
+              detail="Three profiles are validated, but conflict, owner approval and indexability gates remain closed."
+              tone="review"
+            />
+            <dl>
+              <div><dt>Package</dt><dd>{pkg.approval}</dd></div>
+              <div><dt>Profiles</dt><dd>{pkg.marketProfileIds.length}/3</dd></div>
+              <div><dt>Ranking rows</dt><dd>{kazakhstanDraftRankingSnapshot.rows.length}</dd></div>
+              <div><dt>Indexability</dt><dd>Disabled</dd></div>
+            </dl>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section class="metrics-section">
+      <div class="shell metrics-grid">
+        <article class="metric-card">
+          <span>Candidate claims</span>
+          <strong>{pkg.candidateClaimIds.length}</strong>
+          <small>Validated candidates · approved claims: {pkg.approvedClaimIds.length}</small>
+        </article>
+        <article class="metric-card">
+          <span>Source packets</span>
+          <strong>{pkg.sourcePacketIds.length}</strong>
+          <small>Official, regulator and governed source records</small>
+        </article>
+        <article class="metric-card">
+          <span>Open P0 gaps</span>
+          <strong>{kazakhstanOpenEvidenceGaps.filter(gap => gap.severity === 'P0').length}</strong>
+          <small>Required or blocked before broader publication</small>
+        </article>
+        <article class="metric-card">
+          <span>Mapped gaps</span>
+          <strong>{kazakhstanMappedEvidenceGaps.length}</strong>
+          <small>Evidence mapped with retained limitations</small>
+        </article>
+      </div>
+    </section>
+
+    <section class="content-section">
+      <div class="shell content-grid">
+        <div class="main-column">
+          <header class="section-heading">
+            <p class="eyebrow">Validated review profiles</p>
+            <h2>Evidence by exchange</h2>
+            <p>
+              Profile validation does not equal a recommendation. Availability and offer eligibility
+              remain separate, and each profile keeps its material limitations.
+            </p>
+          </header>
+
+          <div class="profile-grid">
+            {profiles.map(({ name, profile }) => (
+              <article class="profile-card" data-profile={profile.exchangeId}>
+                <div class="profile-head">
+                  <div>
+                    <span>{name}</span>
+                    <h3>{displayAvailability(profile.availability)}</h3>
+                  </div>
+                  <ReviewStatus
+                    label={`${profile.approval} · ${profile.availability}`}
+                    detail={`Local offer: ${profile.offerEligibility.replace(/_/g, ' ')}`}
+                    tone={toneForAvailability(profile.availability)}
+                  />
+                </div>
+                <dl>
+                  <div><dt>Candidate claims</dt><dd>{profile.claimIds.length}</dd></div>
+                  <div><dt>Last checked</dt><dd>{profile.lastCheckedAt.slice(0, 10)}</dd></div>
+                  <div><dt>Next review</dt><dd>{profile.nextReviewAt.slice(0, 10)}</dd></div>
+                  <div><dt>Ranking position</dt><dd>Not assigned</dd></div>
+                </dl>
+                <div class="limitations">
+                  <strong>Retained limitations</strong>
+                  <ul>
+                    {profile.limitations.slice(0, 3).map(item => <li>{item}</li>)}
+                  </ul>
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <article class="ranking-empty" data-ranking-empty>
+            <div>
+              <p class="eyebrow">Ranking boundary</p>
+              <h2>No approved Kazakhstan ranking</h2>
+              <p>
+                Binance and Bybit remain under review without positions. OKX remains excluded from
+                ranking rows because the validated package retains a material authorization conflict.
+              </p>
+            </div>
+            <div class="snapshot-state">
+              <span>Snapshot</span>
+              <strong>{kazakhstanDraftRankingSnapshot.approval}</strong>
+              <small>{kazakhstanDraftRankingSnapshot.methodologyVersion}</small>
+            </div>
+          </article>
+
+          <section class="gaps-section">
+            <header class="section-heading section-heading-small">
+              <p class="eyebrow">Open evidence register</p>
+              <h2>What still blocks publication</h2>
+            </header>
+            <div class="gap-list">
+              {kazakhstanOpenEvidenceGaps.map(gap => (
+                <article class="gap-card">
+                  <div class="gap-title">
+                    <span>{gap.severity} · {gap.exchangeId.toUpperCase()}</span>
+                    <h3>{gap.topic}</h3>
+                  </div>
+                  <p>{gap.currentState}</p>
+                  <div><strong>Publication impact</strong><small>{gap.publicationImpact}</small></div>
+                </article>
+              ))}
+            </div>
+          </section>
+        </div>
+
+        <aside class="side-column">
+          <section class="side-card package-card">
+            <p class="card-label">ContentPackage boundary</p>
+            <dl>
+              <div><dt>Package ID</dt><dd>{pkg.packageId}</dd></div>
+              <div><dt>Kind</dt><dd>{pkg.packageKind}</dd></div>
+              <div><dt>Ranking usage</dt><dd>{pkg.rankingUsage.replace(/_/g, ' ')}</dd></div>
+              <div><dt>Conflict preserving</dt><dd>{pkg.conflictPreserving ? 'Yes' : 'No'}</dd></div>
+            </dl>
+          </section>
+
+          <section class="side-card">
+            <p class="card-label">Authorization flags</p>
+            <div class="flag-list">
+              {authorizationFlags.map(([label, value]) => (
+                <div><span>{label}</span><strong>{value ? 'ON' : 'OFF'}</strong></div>
+              ))}
+            </div>
+          </section>
+
+          <section class="side-card gate-card">
+            <p class="card-label">Ranking readiness</p>
+            <div class="gate-list">
+              <div><span>Profile count</span><strong>{kazakhstanRankingReadiness.profileCountGate ? 'PASS' : 'FAIL'}</strong></div>
+              <div><span>Profile validation</span><strong>{kazakhstanRankingReadiness.profileValidationGate ? 'PASS' : 'FAIL'}</strong></div>
+              <div><span>Evidence freshness</span><strong>{kazakhstanRankingReadiness.evidenceFreshnessGate ? 'PASS' : 'FAIL'}</strong></div>
+              <div class="blocked"><span>Conflict resolution</span><strong>BLOCKED</strong></div>
+              <div class="blocked"><span>Owner approval</span><strong>MISSING</strong></div>
+              <div class="blocked"><span>Public indexability</span><strong>OFF</strong></div>
+            </div>
+          </section>
+
+          <section class="boundary-card">
+            <strong>Preview-only route</strong>
+            <p>
+              The route exists for owner and browser review, but the route guard rejects public
+              resolution. It is noindex, absent from the governed ranking, and contains no affiliate action.
+            </p>
+          </section>
+        </aside>
+      </div>
+    </section>
+  </div>
+</CleanLayout>
+
+<style>
+  :global(body.country-kz-preview) { background: #f7f8f4; }
+  .country-page { min-height: 100vh; color: #13233e; background: #f7f8f4; }
+  .shell { width: min(var(--cbw-width-wide, 1180px), calc(100% - 40px)); margin-inline: auto; }
+  .country-hero { padding: 18px 0 72px; color: #fff; background: radial-gradient(circle at 78% 18%, rgba(247,147,26,.23), transparent 29%), linear-gradient(135deg,#091426,#173250); }
+  .preview-strip { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 18px; padding: 10px 13px; border: 1px solid rgba(255,255,255,.14); border-radius: 10px; color: #c7d2e1; font-size: 9px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+  .crumbs { margin-top: 34px; color: #aebed2; font-size: 12px; }
+  .crumbs span { padding-inline: 7px; color: #f7931a; }
+  .hero-grid { display: grid; gap: 28px; align-items: end; margin-top: 34px; }
+  .eyebrow, .card-label { margin: 0 0 10px; color: #f7931a; font-size: 10px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+  .country-title { display: flex; align-items: flex-start; gap: 16px; }
+  .flag { font-size: 42px; line-height: 1; }
+  h1, h2 { font-family: 'Barlow Condensed', 'Inter', sans-serif; text-transform: uppercase; letter-spacing: -.025em; }
+  h1 { max-width: 820px; margin: 0; font-size: clamp(48px,8vw,82px); line-height: .92; }
+  .lede { max-width: 760px; margin: 24px 0 0; color: #d2ddea; font-size: 16px; line-height: 1.75; }
+  .readiness-card { padding: 21px; border: 1px solid rgba(255,255,255,.16); border-radius: 16px; background: rgba(255,255,255,.08); backdrop-filter: blur(10px); }
+  .readiness-card :global(.review-status) { color: #f2b183; }
+  .readiness-card :global(.review-status small) { color: #cad6e4; }
+  .readiness-card dl, .profile-card dl, .package-card dl { display: grid; gap: 10px; margin: 18px 0 0; }
+  .readiness-card dl div, .profile-card dl div, .package-card dl div { display: flex; justify-content: space-between; gap: 14px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,.12); }
+  .readiness-card dt { color: #b8c5d4; font-size: 10px; }
+  .readiness-card dd { margin: 0; font-size: 10px; font-weight: 900; text-transform: uppercase; }
+  .metrics-section { position: relative; margin-top: -27px; }
+  .metrics-grid { display: grid; gap: 10px; }
+  .metric-card { min-width: 0; padding: 18px; border: 1px solid #dce2dc; border-radius: 14px; background: #fff; box-shadow: 0 12px 28px rgba(19,35,62,.08); }
+  .metric-card > span { display: block; color: #738092; font-size: 9px; font-weight: 900; letter-spacing: .07em; text-transform: uppercase; }
+  .metric-card > strong { display: block; margin: 8px 0 4px; color: #13233e; font-family: 'Barlow Condensed', 'Inter', sans-serif; font-size: 34px; line-height: 1; }
+  .metric-card small { color: #718092; font-size: 10px; line-height: 1.45; }
+  .content-section { padding: 74px 0 90px; }
+  .content-grid { display: grid; gap: 26px; }
+  .section-heading h2, .ranking-empty h2 { margin: 0; font-size: clamp(38px,6vw,58px); line-height: .96; }
+  .section-heading > p:last-child, .ranking-empty p { max-width: 760px; color: #627080; line-height: 1.7; }
+  .section-heading-small { margin-top: 42px; }
+  .profile-grid { display: grid; gap: 13px; margin-top: 28px; }
+  .profile-card { min-width: 0; padding: 21px; border: 1px solid #dce2dc; border-radius: 15px; background: #fff; box-shadow: 0 8px 24px rgba(19,35,62,.04); }
+  .profile-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+  .profile-head > div > span { color: #788596; font-size: 9px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+  .profile-head h3 { margin: 3px 0 0; color: #13233e; font-family: 'Barlow Condensed', 'Inter', sans-serif; font-size: 28px; line-height: 1; text-transform: uppercase; }
+  .profile-card dl { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .profile-card dl div { display: block; border-color: #edf0ec; }
+  .profile-card dt { color: #778494; font-size: 9px; text-transform: uppercase; }
+  .profile-card dd { margin: 3px 0 0; color: #27384f; font-size: 11px; font-weight: 800; overflow-wrap: anywhere; }
+  .limitations { margin-top: 18px; padding: 15px; border-radius: 11px; background: #f5f7f4; }
+  .limitations strong { font-size: 10px; text-transform: uppercase; }
+  .limitations ul { margin: 8px 0 0; padding-left: 17px; color: #617083; font-size: 10px; line-height: 1.55; }
+  .ranking-empty { display: grid; gap: 20px; margin-top: 24px; padding: 28px; border: 1px dashed #aebcca; border-radius: 16px; background: #edf3f8; }
+  .snapshot-state { align-self: end; min-width: 155px; padding: 14px; border: 1px solid #d2dde7; border-radius: 11px; background: #fff; }
+  .snapshot-state span, .snapshot-state small { display: block; color: #7a8794; font-size: 9px; text-transform: uppercase; }
+  .snapshot-state strong { display: block; margin-block: 4px; color: #a3442e; font-size: 12px; text-transform: uppercase; }
+  .gap-list { display: grid; gap: 10px; }
+  .gap-card { padding: 19px; border: 1px solid #ead3bd; border-left: 4px solid #c46a25; border-radius: 13px; background: #fffaf4; }
+  .gap-title span { color: #9b5b24; font-size: 9px; font-weight: 900; letter-spacing: .07em; text-transform: uppercase; }
+  .gap-title h3 { margin: 3px 0 0; color: #13233e; font-size: 16px; }
+  .gap-card > p { color: #657180; font-size: 11px; line-height: 1.6; }
+  .gap-card > div:last-child { padding-top: 11px; border-top: 1px solid #eadfd3; }
+  .gap-card strong, .gap-card small { display: block; }
+  .gap-card strong { color: #70441f; font-size: 9px; text-transform: uppercase; }
+  .gap-card small { margin-top: 3px; color: #756451; font-size: 10px; line-height: 1.5; }
+  .side-column { display: grid; align-content: start; gap: 14px; }
+  .side-card, .boundary-card { padding: 19px; border: 1px solid #dce2dc; border-radius: 14px; background: #fff; }
+  .package-card dl div { border-color: #edf0ec; }
+  .package-card dt { color: #778494; font-size: 9px; }
+  .package-card dd { max-width: 62%; margin: 0; color: #25364d; font-size: 9px; font-weight: 800; text-align: right; overflow-wrap: anywhere; }
+  .flag-list, .gate-list { display: grid; gap: 7px; }
+  .flag-list div, .gate-list div { display: flex; justify-content: space-between; gap: 12px; padding: 10px 11px; border-radius: 9px; background: #f4f7f3; }
+  .flag-list span, .gate-list span { color: #667487; font-size: 10px; }
+  .flag-list strong { color: #a12828; font-size: 10px; }
+  .gate-list strong { color: #16834b; font-size: 9px; }
+  .gate-list .blocked { background: #fff3f1; }
+  .gate-list .blocked strong { color: #a3442e; }
+  .boundary-card { border-left: 5px solid #f7931a; }
+  .boundary-card strong { color: #13233e; }
+  .boundary-card p { margin: 7px 0 0; color: #627083; font-size: 11px; line-height: 1.6; }
+  @media (min-width: 720px) {
+    .metrics-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .profile-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
+    .ranking-empty { grid-template-columns: 1fr auto; }
+    .gap-list { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  }
+  @media (min-width: 960px) {
+    .hero-grid { grid-template-columns: minmax(0,1.65fr) minmax(280px,.65fr); }
+    .metrics-grid { grid-template-columns: repeat(4,minmax(0,1fr)); }
+    .content-grid { grid-template-columns: minmax(0,1fr) 310px; }
+  }
+  @media (max-width: 719px) {
+    .country-hero { padding: 12px 0 42px; }
+    .preview-strip { padding: 8px 10px; }
+    .crumbs { margin-top: 18px; }
+    .hero-grid { gap: 14px; margin-top: 18px; }
+    .country-title { display: flex; align-items: flex-start; gap: 8px; }
+    .flag { display: inline-block; margin: 2px 0 0; font-size: 30px; }
+    h1 { font-size: clamp(40px, 12vw, 48px); line-height: .94; }
+    .lede { margin-top: 14px; font-size: 14px; line-height: 1.55; }
+    .readiness-card { padding: 14px; }
+    .readiness-card :global(.review-status small) { display: none; }
+    .readiness-card dl { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 6px 12px; margin-top: 10px; }
+    .readiness-card dl div { display: block; padding-top: 6px; }
+    .readiness-card dd { margin-top: 2px; }
+    .profile-head { display: grid; }
+    .profile-card dl { grid-template-columns: 1fr; }
+    .shell { width: min(var(--cbw-width-wide, 1180px), calc(100% - 32px)); }
+  }
+</style>

@@ -1,0 +1,228 @@
+/*
+ * CryptoBonusWorld Site Standard v1
+ * Governed layout primitives. Do not add page-specific widths here.
+ */
+
+:root {
+  --cbw-width-shell: 1180px;
+  --cbw-width-wide: 1180px;
+  --cbw-width-standard: 960px;
+  --cbw-width-prose: 760px;
+  --cbw-width-narrow: 560px;
+
+  --cbw-gutter: 20px;
+
+  --cbw-space-0: 0;
+  --cbw-space-1: 4px;
+  --cbw-space-2: 8px;
+  --cbw-space-3: 12px;
+  --cbw-space-4: 16px;
+  --cbw-space-5: 20px;
+  --cbw-space-6: 24px;
+  --cbw-space-7: 32px;
+  --cbw-space-8: 40px;
+  --cbw-space-9: 48px;
+  --cbw-space-10: 64px;
+  --cbw-space-11: 80px;
+
+  --cbw-radius-control: 10px;
+  --cbw-radius-card: 14px;
+  --cbw-radius-panel: 18px;
+  --cbw-radius-pill: 999px;
+
+  --cbw-surface-page: #f7f8f4;
+  --cbw-surface-primary: #ffffff;
+  --cbw-surface-secondary: #f2f5f1;
+  --cbw-border-standard: #dce3dc;
+  --cbw-text-primary: #13233e;
+  --cbw-text-secondary: #536176;
+  --cbw-text-muted: #778391;
+  --cbw-action: #f7931a;
+  --cbw-action-hover: #ffad3d;
+  --cbw-evidence: #16834b;
+  --cbw-danger: #b53f3f;
+
+  --cbw-header-budget: 68px;
+  --cbw-intro-home-budget: 330px;
+  --cbw-intro-exchange-budget: 520px;
+  --cbw-intro-standard-budget: 280px;
+
+  --cbw-shadow-panel: 0 10px 30px rgba(19,35,62,.055);
+}
+
+@media (min-width: 640px) {
+  :root {
+    --cbw-gutter: 24px;
+    --cbw-intro-home-budget: 300px;
+    --cbw-intro-exchange-budget: 540px;
+    --cbw-intro-standard-budget: 300px;
+  }
+}
+
+@media (min-width: 900px) {
+  :root {
+    --cbw-gutter: 32px;
+    --cbw-header-budget: 76px;
+    --cbw-intro-home-budget: 230px;
+    --cbw-intro-exchange-budget: 520px;
+    --cbw-intro-standard-budget: 300px;
+  }
+}
+
+.cbw-page-frame {
+  min-width: 0;
+  color: var(--cbw-text-primary);
+  background: var(--cbw-surface-page);
+}
+
+.cbw-container {
+  width: 100%;
+  max-width: var(--cbw-container-max, var(--cbw-width-standard));
+  margin-inline: auto;
+  padding-inline: var(--cbw-gutter);
+  box-sizing: border-box;
+}
+
+.cbw-container--shell { --cbw-container-max: var(--cbw-width-shell); }
+.cbw-container--wide { --cbw-container-max: var(--cbw-width-wide); }
+.cbw-container--standard { --cbw-container-max: var(--cbw-width-standard); }
+.cbw-container--prose { --cbw-container-max: var(--cbw-width-prose); }
+.cbw-container--narrow { --cbw-container-max: var(--cbw-width-narrow); }
+
+.cbw-section {
+  position: relative;
+  min-width: 0;
+  padding-block: var(--cbw-section-space, var(--cbw-space-9));
+  background: var(--cbw-section-bg, var(--cbw-surface-primary));
+}
+
+.cbw-section--compact { --cbw-section-space: var(--cbw-space-7); }
+.cbw-section--standard { --cbw-section-space: var(--cbw-space-9); }
+.cbw-section--spacious { --cbw-section-space: var(--cbw-space-10); }
+.cbw-section--page { --cbw-section-bg: var(--cbw-surface-page); }
+.cbw-section--primary { --cbw-section-bg: var(--cbw-surface-primary); }
+.cbw-section--secondary { --cbw-section-bg: var(--cbw-surface-secondary); }
+
+.cbw-first-viewport {
+  display: flex;
+  align-items: center;
+  min-height: 0;
+  max-height: var(--cbw-first-viewport-budget, var(--cbw-intro-standard-budget));
+  overflow: hidden;
+  color: #fff;
+  background:
+    radial-gradient(circle at 88% 10%, rgba(247,147,26,.17), transparent 30%),
+    #0a1424;
+}
+
+.cbw-first-viewport--homepage { --cbw-first-viewport-budget: var(--cbw-intro-home-budget); }
+.cbw-first-viewport--exchange { --cbw-first-viewport-budget: var(--cbw-intro-exchange-budget); }
+.cbw-first-viewport--standard { --cbw-first-viewport-budget: var(--cbw-intro-standard-budget); }
+
+.cbw-first-viewport__inner {
+  width: 100%;
+  padding-block: var(--cbw-space-7);
+}
+
+.cbw-eyebrow {
+  margin: 0 0 var(--cbw-space-3);
+  color: #f7a93f;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.cbw-display-title {
+  margin: 0;
+  color: inherit;
+  font-family: 'Barlow Condensed', 'Inter', sans-serif;
+  font-size: clamp(40px, 6vw, 68px);
+  font-weight: 800;
+  letter-spacing: -.025em;
+  line-height: .96;
+  text-transform: uppercase;
+}
+
+.cbw-lede {
+  max-width: 680px;
+  margin: var(--cbw-space-4) 0 0;
+  color: rgba(255,255,255,.72);
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.cbw-panel {
+  min-width: 0;
+  padding: var(--cbw-space-6);
+  border: 1px solid var(--cbw-border-standard);
+  border-radius: var(--cbw-radius-panel);
+  background: var(--cbw-surface-primary);
+  box-shadow: var(--cbw-shadow-panel);
+}
+
+.cbw-card {
+  min-width: 0;
+  padding: var(--cbw-space-5);
+  border: 1px solid var(--cbw-border-standard);
+  border-radius: var(--cbw-radius-card);
+  background: var(--cbw-surface-primary);
+}
+
+.cbw-prose {
+  color: var(--cbw-text-secondary);
+  font-size: 15px;
+  line-height: 1.78;
+}
+
+.cbw-prose > * + * { margin-top: var(--cbw-space-4); }
+.cbw-prose :where(h2, h3) {
+  color: var(--cbw-text-primary);
+  font-family: 'Barlow Condensed', 'Inter', sans-serif;
+  font-weight: 800;
+  line-height: 1.05;
+}
+.cbw-prose h2 { font-size: clamp(28px, 4vw, 38px); }
+.cbw-prose h3 { font-size: clamp(20px, 3vw, 26px); }
+
+.cbw-action {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  padding-inline: var(--cbw-space-6);
+  border: 1px solid rgba(19,35,62,.12);
+  border-radius: var(--cbw-radius-control);
+  color: var(--cbw-text-primary);
+  background: var(--cbw-action);
+  font-weight: 900;
+  text-decoration: none;
+}
+.cbw-action:hover,
+.cbw-action:focus-visible { background: var(--cbw-action-hover); }
+
+.cbw-evidence-state { color: var(--cbw-evidence); }
+.cbw-action-state { color: var(--cbw-action); }
+
+.cbw-stack { display: grid; gap: var(--cbw-stack-gap, var(--cbw-space-5)); }
+.cbw-stack--tight { --cbw-stack-gap: var(--cbw-space-3); }
+.cbw-stack--loose { --cbw-stack-gap: var(--cbw-space-7); }
+
+.cbw-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cbw-grid-columns, 1), minmax(0, 1fr));
+  gap: var(--cbw-grid-gap, var(--cbw-space-4));
+}
+
+@media (min-width: 700px) {
+  .cbw-grid--2 { --cbw-grid-columns: 2; }
+  .cbw-grid--3 { --cbw-grid-columns: 3; }
+  .cbw-grid--4 { --cbw-grid-columns: 4; }
+}
+
+@media (max-width: 639px) {
+  .cbw-section--standard,
+  .cbw-section--spacious { --cbw-section-space: var(--cbw-space-8); }
+  .cbw-panel { padding: var(--cbw-space-5); border-radius: var(--cbw-radius-card); }
+  .cbw-display-title { font-size: clamp(36px, 13vw, 52px); }
+}

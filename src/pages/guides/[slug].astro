@@ -1,33 +1,15 @@
 ---
-// /guides/{slug}/ → redirect stubs. Legacy section retired 2026-07-14
-// (Homepage/Redesign Alignment v1) — portal-era guide articles are not part
-// of the rebuilt 6-exchange site. noindex + meta refresh (static-site
-// equivalent of 301). Recommended server-level 301: /.
+import RedirectPage from '../../components/site-standard/RedirectPage.astro';
 import guides from '../../data/guides.json';
 
 export function getStaticPaths() {
-  return guides.map(g => ({ params: { slug: g.slug } }));
+  return guides.map(guide => ({ params: { slug: guide.slug } }));
 }
 ---
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Redirecting…</title>
-  <meta name="robots" content="noindex, follow" />
-  <link rel="canonical" href="https://cryptobonusworld.com/" />
-  <meta http-equiv="refresh" content="0;url=/" />
-  <style>
-    body { margin:0; font-family:system-ui,sans-serif; background:#F7F8F4;
-           display:flex; align-items:center; justify-content:center; min-height:100vh; }
-    .msg { text-align:center; color:#6B7280; font-size:14px; }
-    a { color:#16A34A; }
-  </style>
-</head>
-<body>
-  <div class="msg">
-    <p>This guide has been retired. Redirecting to the <a href="/">homepage</a>…</p>
-  </div>
-</body>
-</html>
+
+<RedirectPage
+  target="/"
+  canonical="https://cryptobonusworld.com/"
+  message="This legacy guide has been retired. Current comparison and research context now lives in the governed homepage and exchange profiles."
+  targetLabel="the CryptoBonusWorld homepage"
+/>

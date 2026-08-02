@@ -1,6 +1,10 @@
 ---
 import CleanLayout from '../layouts/CleanLayout.astro';
 import HomepageTop10 from '../components/home/HomepageTop10.astro';
+import PageFrame from '../components/site-standard/PageFrame.astro';
+import FirstViewport from '../components/site-standard/FirstViewport.astro';
+import Section from '../components/site-standard/Section.astro';
+import Container from '../components/site-standard/Container.astro';
 
 const pathways = [
   {
@@ -172,61 +176,41 @@ const faqSchema = {
   title="Compare Crypto Exchanges by Offer & Evidence | CryptoBonusWorld"
   description="Compare 10 crypto exchanges in one governed view. See verified offers, research status, country context, limitations, and current evidence before choosing an exchange."
   ogImage="/og-default.png"
-  bodyClass="cbw-homepage-v2-public"
+  bodyClass="cbw-homepage-ranking-first"
 >
-  <main class="homepage-v2">
-    <section class="hero">
-      <div class="shell">
-        <div class="hero-grid">
-          <div class="hero-copy">
-            <p class="eyebrow">Checked by country · backed by evidence</p>
-            <h1>Find the right crypto exchange for your market.</h1>
-            <p class="hero-lede">
-              Compare exchange offers and research status without mixing global claims with country-specific facts.
-              Verified, limited and under-review states stay clearly separated.
-            </p>
-            <div class="hero-actions">
-              <a class="button button-primary" href="#exchanges">Explore the Top 10</a>
-              <a class="button button-ghost" href="#markets">Explore markets</a>
-            </div>
-            <div class="hero-proof" aria-label="Homepage evidence summary">
-              <span><strong>10</strong> governed rows</span>
-              <span><strong>1</strong> canonical ranking</span>
-              <span><strong>0</strong> unsupported CTAs</span>
-            </div>
-          </div>
-
-          <aside class="market-control" aria-label="Market and language context">
-            <p class="control-label">Your context</p>
-            <div class="control-value">
-              <span class="control-icon">🌍</span>
-              <div><strong>Global comparison</strong><small>Country pages are being added through evidence review</small></div>
-            </div>
-            <div class="control-divider"></div>
-            <div class="context-row"><span>Country</span><strong>Global</strong></div>
-            <div class="context-row"><span>Language</span><strong>English</strong></div>
-            <p class="control-note">Country controls market facts. Language controls presentation. They are reviewed separately.</p>
-          </aside>
+  <PageFrame family="homepage" class="homepage-v2">
+    <main>
+      <FirstViewport
+        family="homepage"
+        container="wide"
+        eyebrow="Checked by country · backed by evidence"
+        title="Find the right crypto exchange for your market."
+        lede="Compare 10 exchanges with offer, research and country-context states kept clearly separate."
+      >
+        <div class="hero-meta" aria-label="Market, language and ranking context">
+          <span><b>Country</b> Global</span>
+          <span><b>Language</b> English</span>
+          <span><b>Ranking</b> 10 governed rows</span>
+          <a href="#exchanges">Open Top 10 ↓</a>
+          <a href="#markets">Markets ↓</a>
         </div>
-      </div>
-    </section>
+      </FirstViewport>
 
-    <section class="path-section" aria-label="How CryptoBonusWorld works">
-      <div class="shell path-grid">
-        {pathways.map(path => (
-          <article class="path-card">
-            <span>{path.number}</span>
-            <h2>{path.title}</h2>
-            <p>{path.text}</p>
-          </article>
-        ))}
-      </div>
-    </section>
+      <HomepageTop10 />
 
-    <HomepageTop10 />
+      <Section container="wide" spacing="compact" tone="page" class="path-section" ariaLabel="How CryptoBonusWorld works">
+        <div class="path-grid">
+          {pathways.map(path => (
+            <article class="path-card">
+              <span>{path.number}</span>
+              <h2>{path.title}</h2>
+              <p>{path.text}</p>
+            </article>
+          ))}
+        </div>
+      </Section>
 
-    <section class="markets" id="markets">
-      <div class="shell">
+      <Section container="wide" spacing="standard" tone="secondary" id="markets" class="markets">
         <header class="section-heading">
           <div>
             <p class="eyebrow">Country-first discovery</p>
@@ -246,27 +230,25 @@ const faqSchema = {
             </article>
           ))}
         </div>
-      </div>
-    </section>
+      </Section>
 
-    <section class="trust">
-      <div class="shell trust-grid">
-        <div class="trust-copy">
-          <p class="eyebrow">Why trust CryptoBonusWorld</p>
-          <h2>Evidence is a product feature, not a footnote.</h2>
-          <p>We show what was checked, what remains uncertain, and when a profile needs review. Missing evidence produces a visible limitation — not an invented answer.</p>
-          <a class="button button-light" href="#guide">Read the bonus guide</a>
-        </div>
-        <div class="trust-list">
-          {trustItems.map(item => (
-            <article><span>{item.number}</span><div><strong>{item.title}</strong><p>{item.text}</p></div></article>
-          ))}
-        </div>
-      </div>
-    </section>
+      <section class="trust">
+        <Container size="wide" class="trust-grid">
+          <div class="trust-copy">
+            <p class="eyebrow">Why trust CryptoBonusWorld</p>
+            <h2>Evidence is a product feature, not a footnote.</h2>
+            <p>We show what was checked, what remains uncertain, and when a profile needs review. Missing evidence produces a visible limitation — not an invented answer.</p>
+            <a class="trust-link" href="#guide">Read the bonus guide</a>
+          </div>
+          <div class="trust-list">
+            {trustItems.map(item => (
+              <article><span>{item.number}</span><div><strong>{item.title}</strong><p>{item.text}</p></div></article>
+            ))}
+          </div>
+        </Container>
+      </section>
 
-    <section class="updates">
-      <div class="shell">
+      <Section container="wide" spacing="standard" tone="primary" class="updates">
         <header class="section-heading">
           <div><p class="eyebrow">Research and product changes</p><h2>Latest governed updates</h2></div>
         </header>
@@ -279,11 +261,9 @@ const faqSchema = {
             </article>
           ))}
         </div>
-      </div>
-    </section>
+      </Section>
 
-    <section class="guide" id="guide">
-      <div class="prose-shell">
+      <Section container="prose" spacing="standard" tone="secondary" id="guide" class="guide">
         <p class="eyebrow">Guide</p>
         <h2>Crypto exchange bonuses guide</h2>
         <div class="guide-list">
@@ -291,11 +271,9 @@ const faqSchema = {
             <article><h3>{block.h3}</h3><p>{block.p}</p></article>
           ))}
         </div>
-      </div>
-    </section>
+      </Section>
 
-    <section class="faq" id="faq">
-      <div class="prose-shell">
+      <Section container="prose" spacing="standard" tone="primary" id="faq" class="faq">
         <p class="eyebrow">Common questions</p>
         <h2>Frequently asked questions</h2>
         <div class="faq-list">
@@ -303,11 +281,9 @@ const faqSchema = {
             <details><summary>{item.q}</summary><p>{item.a}</p></details>
           ))}
         </div>
-      </div>
-    </section>
+      </Section>
 
-    <section class="disclosure">
-      <div class="prose-shell">
+      <Section container="prose" spacing="compact" tone="page" class="disclosure">
         <p>
           <strong>Disclosure:</strong> CryptoBonusWorld may earn a commission when you register through approved links on this site.
           This does not affect editorial status or ranking position. Advertised bonus amounts are maximums and depend on eligibility,
@@ -315,102 +291,81 @@ const faqSchema = {
           registering or depositing. Cryptocurrency trading carries significant risk and nothing here is financial advice.
           Read our <a href="/affiliate-disclosure/">affiliate disclosure</a>.
         </p>
-      </div>
-    </section>
+      </Section>
 
-    <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
-  </main>
+      <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+    </main>
+  </PageFrame>
 </CleanLayout>
 
 <style>
-  :global(body.cbw-homepage-v2-public) { background: #f7f8f4; }
-  .homepage-v2 { color: #13233e; background: #f7f8f4; }
-  .shell { width: min(1160px, calc(100% - 32px)); margin: 0 auto; }
-  .prose-shell { width: min(800px, calc(100% - 40px)); margin: 0 auto; }
-  .eyebrow { margin: 0 0 10px; color: #f7931a; font-size: 10px; font-weight: 900; letter-spacing: .13em; text-transform: uppercase; }
-  h1, h2 { font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: -.025em; }
+  :global(body.cbw-homepage-ranking-first) { background: var(--cbw-surface-page); }
+  .homepage-v2 { color: var(--cbw-text-primary); background: var(--cbw-surface-page); }
+  .eyebrow { margin: 0 0 var(--cbw-space-3); color: var(--cbw-action); font-size: 10px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+  h2 { margin: 0; color: var(--cbw-text-primary); font-family: 'Barlow Condensed', sans-serif; font-size: clamp(34px, 5vw, 54px); letter-spacing: -.025em; line-height: .98; text-transform: uppercase; }
 
-  .hero { overflow: hidden; padding: 68px 0 86px; color: #fff; background: radial-gradient(circle at 76% 12%, rgba(247,147,26,.25), transparent 31%), linear-gradient(135deg,#0c1729,#13233e 65%,#1c355b); }
-  .hero-grid { display: grid; gap: 34px; }
-  h1 { max-width: 780px; margin: 0; font-size: clamp(48px,8vw,86px); line-height: .92; }
-  .hero-lede { max-width: 680px; margin: 23px 0 0; color: #d6e0ec; font-size: 17px; line-height: 1.7; }
-  .hero-actions { display: flex; flex-wrap: wrap; gap: 11px; margin-top: 29px; }
-  .button { display: inline-flex; min-height: 46px; align-items: center; justify-content: center; border: 1px solid transparent; border-radius: 10px; padding: 0 19px; font-size: 13px; font-weight: 900; text-decoration: none; }
-  .button-primary { background: #f7931a; color: #13233e; }
-  .button-ghost { border-color: rgba(255,255,255,.45); color: #fff; }
-  .button-light { margin-top: 23px; background: #fff; color: #13233e; }
-  .hero-proof { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; margin-top: 33px; }
-  .hero-proof span { display: flex; flex-direction: column; gap: 2px; padding: 11px; border-left: 2px solid #f7931a; color: #bac7d8; font-size: 9px; text-transform: uppercase; }
-  .hero-proof strong { color: #fff; font-size: 20px; }
-  .market-control { align-self: end; padding: 22px; border-radius: 18px; background: #fff; color: #13233e; box-shadow: 0 28px 60px rgba(0,0,0,.25); }
-  .control-label { margin: 0; color: #75808d; font-size: 9px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
-  .control-value { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: center; margin-top: 13px; }
-  .control-icon { font-size: 34px; }
-  .control-value strong, .control-value small { display: block; }
-  .control-value small { margin-top: 3px; color: #748092; line-height: 1.45; }
-  .control-divider { height: 1px; margin: 18px 0; background: #e1e6e1; }
-  .context-row { display: flex; justify-content: space-between; gap: 14px; padding: 10px 0; border-top: 1px solid #eef1ed; }
-  .context-row:first-of-type { border-top: 0; }
-  .context-row span { color: #73808c; font-size: 11px; }
-  .context-row strong { font-size: 11px; }
-  .control-note { margin: 15px 0 0; color: #6e7986; font-size: 10px; line-height: 1.55; }
+  :global(.homepage-v2 .cbw-first-viewport) {
+    background: radial-gradient(circle at 82% 10%, rgba(247,147,26,.2), transparent 30%), linear-gradient(135deg,#0c1729,#13233e 68%,#1c355b);
+  }
+  :global(.homepage-v2 .cbw-first-viewport__inner) { padding-block: 16px; }
+  :global(.homepage-v2 .cbw-display-title) { max-width: var(--cbw-width-standard); font-size: clamp(40px, 4.6vw, 58px); }
+  :global(.homepage-v2 .cbw-lede) { max-width: var(--cbw-width-prose); margin-top: 8px; font-size: 14px; line-height: 1.5; }
+  .hero-meta { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 13px; }
+  .hero-meta span, .hero-meta a { display: inline-flex; min-height: 28px; align-items: center; gap: 5px; padding: 0 10px; border: 1px solid rgba(255,255,255,.15); border-radius: var(--cbw-radius-pill); color: rgba(255,255,255,.75); background: rgba(255,255,255,.05); font-size: 9px; text-decoration: none; }
+  .hero-meta b { color: #fff; }
+  .hero-meta a { color: #ffd291; border-color: rgba(247,147,26,.34); background: rgba(247,147,26,.1); font-weight: 900; }
 
-  .path-section { position: relative; z-index: 1; margin-top: -28px; }
-  .path-grid { display: grid; gap: 12px; }
-  .path-card { padding: 20px; border: 1px solid #dce2da; border-radius: 15px; background: #fff; box-shadow: 0 14px 30px rgba(19,35,62,.08); }
-  .path-card > span { color: #f7931a; font-size: 10px; font-weight: 900; }
-  .path-card h2 { margin: 10px 0 5px; font-size: 24px; }
-  .path-card p { margin: 0; color: #647080; font-size: 12px; line-height: 1.6; }
+  .path-grid { display: grid; gap: var(--cbw-space-3); }
+  .path-card { padding: var(--cbw-space-5); border: 1px solid var(--cbw-border-standard); border-radius: var(--cbw-radius-card); background: var(--cbw-surface-primary); box-shadow: var(--cbw-shadow-panel); }
+  .path-card > span { color: var(--cbw-action); font-size: 10px; font-weight: 900; }
+  .path-card h2 { margin-top: var(--cbw-space-3); font-size: 25px; }
+  .path-card p { margin: var(--cbw-space-2) 0 0; color: var(--cbw-text-secondary); font-size: 12px; line-height: 1.6; }
 
-  .markets, .updates, .guide, .faq { padding: 78px 0; }
-  .markets, .guide { background: #eef2ec; }
-  .updates, .faq { background: #fff; }
-  .section-heading { display: grid; gap: 16px; align-items: end; margin-bottom: 28px; }
-  .section-heading h2, .guide h2, .faq h2 { margin: 0; font-size: clamp(38px,6vw,58px); line-height: .96; }
-  .section-heading p:last-child { max-width: 720px; margin: 10px 0 0; color: #647080; line-height: 1.6; }
-  .section-state { align-self: start; padding: 8px 10px; border-radius: 999px; background: #13233e; color: #fff; font-size: 9px; font-weight: 900; text-transform: uppercase; }
-  .country-grid { display: grid; gap: 12px; }
-  .country-card { padding: 19px; border: 1px solid #d9dfd9; border-radius: 15px; background: #fff; }
+  .section-heading { display: grid; gap: var(--cbw-space-4); align-items: end; margin-bottom: var(--cbw-space-7); }
+  .section-heading p:last-child { max-width: var(--cbw-width-prose); margin: var(--cbw-space-3) 0 0; color: var(--cbw-text-secondary); line-height: 1.65; }
+  .section-state { align-self: start; padding: 7px 10px; border-radius: var(--cbw-radius-pill); color: #fff; background: var(--cbw-text-primary); font-size: 9px; font-weight: 900; text-transform: uppercase; }
+  .country-grid { display: grid; gap: var(--cbw-space-3); }
+  .country-card { padding: var(--cbw-space-5); border: 1px solid var(--cbw-border-standard); border-radius: var(--cbw-radius-card); background: var(--cbw-surface-primary); }
   .country-top { display: flex; justify-content: space-between; align-items: center; }
   .country-flag { font-size: 30px; }
-  .country-tone { width: 10px; height: 10px; border-radius: 999px; background: #9ca3af; }
-  .tone-pilot { background: #16834b; }
-  .tone-progress { background: #f7931a; }
+  .country-tone { width: 10px; height: 10px; border-radius: var(--cbw-radius-pill); background: #9ca3af; }
+  .tone-pilot { background: var(--cbw-evidence); }
+  .tone-progress { background: var(--cbw-action); }
   .tone-review { background: #3b82f6; }
-  .country-card h3 { margin: 16px 0 7px; font-size: 20px; }
-  .country-card p { min-height: 42px; margin: 0; color: #667280; font-size: 12px; line-height: 1.55; }
-  .country-card strong { display: block; margin-top: 15px; color: #925204; font-size: 9px; text-transform: uppercase; }
+  .country-card h3 { margin: var(--cbw-space-4) 0 var(--cbw-space-2); font-size: 20px; }
+  .country-card p { min-height: 42px; margin: 0; color: var(--cbw-text-secondary); font-size: 12px; line-height: 1.55; }
+  .country-card strong { display: block; margin-top: var(--cbw-space-4); color: #925204; font-size: 9px; text-transform: uppercase; }
 
-  .trust { padding: 82px 0; color: #fff; background: #13233e; }
-  .trust-grid { display: grid; gap: 32px; }
-  .trust-copy h2 { max-width: 600px; margin: 0; font-size: clamp(40px,6vw,62px); line-height: .95; }
-  .trust-copy > p:last-of-type { max-width: 620px; color: #bdc9d8; line-height: 1.65; }
-  .trust-list { display: grid; gap: 10px; }
-  .trust-list article { display: grid; grid-template-columns: auto 1fr; gap: 12px; padding: 16px; border: 1px solid rgba(255,255,255,.12); border-radius: 12px; background: rgba(255,255,255,.05); }
-  .trust-list article > span { color: #f7931a; font-size: 10px; font-weight: 900; }
+  .trust { padding-block: var(--cbw-space-10); color: #fff; background: #13233e; }
+  .trust-grid { display: grid; gap: var(--cbw-space-7); }
+  .trust-copy h2 { color: #fff; }
+  .trust-copy > p:last-of-type { color: #bdc9d8; line-height: 1.65; }
+  .trust-link { display: inline-flex; min-height: 44px; align-items: center; margin-top: var(--cbw-space-5); padding-inline: var(--cbw-space-5); border-radius: var(--cbw-radius-control); color: var(--cbw-text-primary); background: #fff; font-size: 12px; font-weight: 900; text-decoration: none; }
+  .trust-list { display: grid; gap: var(--cbw-space-3); }
+  .trust-list article { display: grid; grid-template-columns: auto 1fr; gap: var(--cbw-space-3); padding: var(--cbw-space-4); border: 1px solid rgba(255,255,255,.12); border-radius: var(--cbw-radius-card); background: rgba(255,255,255,.05); }
+  .trust-list article > span { color: var(--cbw-action); font-size: 10px; font-weight: 900; }
   .trust-list strong { display: block; }
-  .trust-list p { margin: 5px 0 0; color: #bdc9d8; font-size: 11px; line-height: 1.55; }
+  .trust-list p { margin: var(--cbw-space-2) 0 0; color: #bdc9d8; font-size: 11px; line-height: 1.55; }
 
-  .updates-list { overflow: hidden; border: 1px solid #dce2dc; border-radius: 15px; }
-  .update-row { display: grid; gap: 10px; padding: 18px; border-top: 1px solid #e4e8e3; }
+  .updates-list { overflow: hidden; border: 1px solid var(--cbw-border-standard); border-radius: var(--cbw-radius-card); }
+  .update-row { display: grid; gap: var(--cbw-space-3); padding: var(--cbw-space-5); border-top: 1px solid #e4e8e3; }
   .update-row:first-child { border-top: 0; }
-  .update-date { color: #74808c; font-size: 9px; font-weight: 900; text-transform: uppercase; }
+  .update-date { color: var(--cbw-text-muted); font-size: 9px; font-weight: 900; text-transform: uppercase; }
   .update-row strong { display: block; }
-  .update-row p { margin: 5px 0 0; color: #667280; font-size: 11px; line-height: 1.55; }
-  .update-label { align-self: start; justify-self: start; padding: 6px 8px; border-radius: 999px; background: #fff0dc; color: #8a4d00; font-size: 8px; font-weight: 900; text-transform: uppercase; }
+  .update-row p { margin: var(--cbw-space-2) 0 0; color: var(--cbw-text-secondary); font-size: 11px; line-height: 1.55; }
+  .update-label { align-self: start; justify-self: start; padding: 6px 8px; border-radius: var(--cbw-radius-pill); color: #8a4d00; background: #fff0dc; font-size: 8px; font-weight: 900; text-transform: uppercase; }
 
-  .guide-list { display: grid; gap: 22px; margin-top: 28px; }
-  .guide-list article { padding-top: 20px; border-top: 1px solid #d8ded8; }
+  .guide-list { display: grid; gap: var(--cbw-space-6); margin-top: var(--cbw-space-7); }
+  .guide-list article { padding-top: var(--cbw-space-5); border-top: 1px solid var(--cbw-border-standard); }
   .guide-list h3 { margin: 0; font-size: 17px; }
-  .guide-list p { margin: 8px 0 0; color: #4b5563; font-size: 14px; line-height: 1.75; }
-  .faq-list { display: grid; gap: 8px; margin-top: 28px; }
-  .faq details { overflow: hidden; border: 1px solid #e5e7eb; border-radius: 10px; background: #fff; }
-  .faq summary { display: flex; justify-content: space-between; gap: 15px; padding: 16px 19px; color: #111827; font-size: 14px; font-weight: 700; cursor: pointer; list-style: none; }
+  .guide-list p { margin: var(--cbw-space-2) 0 0; color: var(--cbw-text-secondary); font-size: 14px; line-height: 1.75; }
+  .faq-list { display: grid; gap: var(--cbw-space-2); margin-top: var(--cbw-space-7); }
+  .faq details { overflow: hidden; border: 1px solid var(--cbw-border-standard); border-radius: var(--cbw-radius-control); background: var(--cbw-surface-primary); }
+  .faq summary { display: flex; justify-content: space-between; gap: var(--cbw-space-4); padding: var(--cbw-space-4) var(--cbw-space-5); color: #111827; font-size: 14px; font-weight: 700; cursor: pointer; list-style: none; }
   .faq summary::-webkit-details-marker { display: none; }
   .faq summary::after { content: '+'; color: #9ca3af; font-size: 18px; }
   .faq details[open] summary::after { content: '−'; }
-  .faq details p { margin: 0; padding: 0 19px 16px; color: #4b5563; font-size: 13px; line-height: 1.7; }
-  .disclosure { padding: 22px 0; border-top: 1px solid #e5e7eb; background: #f9fafb; }
+  .faq details p { margin: 0; padding: 0 var(--cbw-space-5) var(--cbw-space-4); color: var(--cbw-text-secondary); font-size: 13px; line-height: 1.7; }
   .disclosure p { margin: 0; color: #6b7280; font-size: 11px; line-height: 1.7; }
   .disclosure strong { color: #374151; }
   .disclosure a { color: #166534; font-weight: 800; }
@@ -422,12 +377,15 @@ const faqSchema = {
     .update-row { grid-template-columns: 110px minmax(0,1fr) auto; align-items: center; }
   }
   @media (min-width: 920px) {
-    .hero-grid { grid-template-columns: minmax(0,1.5fr) minmax(300px,.65fr); align-items: end; }
     .country-grid { grid-template-columns: repeat(4,minmax(0,1fr)); }
     .trust-grid { grid-template-columns: 1.05fr .95fr; align-items: center; }
   }
-  @media (max-width: 480px) {
-    .hero-proof { grid-template-columns: 1fr; }
-    .hero-proof span { flex-direction: row; align-items: baseline; gap: 7px; }
+  @media (max-width: 639px) {
+    :global(.homepage-v2 .cbw-first-viewport__inner) { padding-block: 12px; }
+    :global(.homepage-v2 .cbw-display-title) { font-size: 42px; line-height: .92; }
+    :global(.homepage-v2 .cbw-lede) { font-size: 13px; line-height: 1.4; }
+    .hero-meta { margin-top: 9px; gap: 5px; }
+    .hero-meta span, .hero-meta a { min-height: 25px; padding-inline: 8px; font-size: 8px; }
+    .trust { padding-block: var(--cbw-space-9); }
   }
 </style>

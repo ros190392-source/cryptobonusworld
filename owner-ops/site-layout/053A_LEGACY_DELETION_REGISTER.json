@@ -1,0 +1,95 @@
+{
+  "schemaVersion": "cbw-layout-legacy-deletion-register-v1",
+  "status": "PLANNED_NOT_EXECUTED",
+  "governingIssue": 201,
+  "entries": [
+    {
+      "id": "LEGACY-001",
+      "target": "CleanLayout inline container/section/button implementation",
+      "replacement": "layout-tokens.css + layout-primitives.css + governed components",
+      "deleteWhen": "all public families consume named primitives",
+      "risk": "HIGH",
+      "seoGate": "metadata and canonical output unchanged"
+    },
+    {
+      "id": "LEGACY-002",
+      "target": "CleanLayout client-side #finder compatibility script",
+      "replacement": "source-level link correction + build-time zero-string gate",
+      "deleteWhen": "all source references corrected",
+      "risk": "MEDIUM",
+      "seoGate": "source HTML and final DOM hrefs identical"
+    },
+    {
+      "id": "LEGACY-003",
+      "target": "homepage page-local .shell and .prose-shell widths",
+      "replacement": "named shell/wide/prose primitives",
+      "deleteWhen": "HomepageTemplateV3 lands",
+      "risk": "MEDIUM",
+      "firstViewportGate": "Top-10 first two rows visible at 1440x900; first row enters 390x844"
+    },
+    {
+      "id": "LEGACY-004",
+      "target": "homepage path-section before Top-10",
+      "replacement": "move below ranking or compress into ranking preface",
+      "deleteWhen": "homepage first-viewport remediation lands",
+      "risk": "LOW",
+      "seoGate": "content retained below primary intent unless separately retired"
+    },
+    {
+      "id": "LEGACY-005",
+      "target": "exchange-page-v2.css broad !important override layer",
+      "replacement": "ExchangeProfileTemplateV3 and shared content components",
+      "deleteWhen": "all primary and generic exchange routes migrate",
+      "risk": "HIGH",
+      "affiliateGate": "all /go hrefs and no-CTA boundaries unchanged"
+    },
+    {
+      "id": "LEGACY-006",
+      "target": "directory-pages-v2.css broad page-family override layer",
+      "replacement": "DirectoryComparisonTemplateV3",
+      "deleteWhen": "Exchanges and Promo Codes migrate",
+      "risk": "MEDIUM",
+      "seoGate": "table/card crawlable content and FAQ schema preserved"
+    },
+    {
+      "id": "LEGACY-007",
+      "target": "info-pages-v2.css 860/900 width override layer",
+      "replacement": "EditorialTemplateV3 and LegalTemplateV3 using content/prose roles",
+      "deleteWhen": "all info/legal routes migrate",
+      "risk": "MEDIUM",
+      "seoGate": "legal/editorial body copy unchanged"
+    },
+    {
+      "id": "LEGACY-008",
+      "target": "faq-page-v2.css custom standalone family",
+      "replacement": "EditorialTemplateV3 FAQ variant",
+      "deleteWhen": "FAQ hub migrates",
+      "risk": "MEDIUM",
+      "seoGate": "5 groups, 20 items and FAQPage JSON-LD preserved"
+    },
+    {
+      "id": "LEGACY-009",
+      "target": "standalone retired guide and hub HTML/CSS stubs",
+      "replacement": "RedirectRegistry + shared fallback document",
+      "deleteWhen": "server redirect coverage validated",
+      "risk": "HIGH",
+      "seoGate": "canonical target, redirect coverage and sitemap behavior verified"
+    },
+    {
+      "id": "LEGACY-010",
+      "target": "raw page-local max-width declarations",
+      "replacement": "named container roles",
+      "deleteWhen": "route-family migration completes",
+      "risk": "HIGH",
+      "buildGate": "no unregistered public max-width values"
+    }
+  ],
+  "executionPolicy": {
+    "deleteBeforeReplacement": false,
+    "oneFamilyPerControlledPr": true,
+    "independentSeoReview": true,
+    "independentAffiliateReview": true,
+    "fullBrowserQaBeforeMerge": true,
+    "deploymentSeparate": true
+  }
+}

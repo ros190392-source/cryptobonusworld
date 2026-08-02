@@ -1,0 +1,103 @@
+---
+export interface Props {
+  target: string;
+  canonical: string;
+  message: string;
+  targetLabel: string;
+}
+
+const { target, canonical, message, targetLabel } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Redirecting… | CryptoBonusWorld</title>
+  <meta name="robots" content="noindex, follow" />
+  <link rel="canonical" href={canonical} />
+  <meta http-equiv="refresh" content={`0;url=${target}`} />
+  <meta name="theme-color" content="#0A1424" />
+</head>
+<body>
+  <main class="redirect-page">
+    <section class="redirect-card" aria-labelledby="redirect-title">
+      <p class="redirect-eyebrow">CryptoBonusWorld route update</p>
+      <h1 id="redirect-title">This page has moved.</h1>
+      <p>{message}</p>
+      <a href={target}>Continue to {targetLabel} →</a>
+    </section>
+  </main>
+</body>
+</html>
+
+<style>
+  :global(*) { box-sizing: border-box; }
+  :global(html) { color-scheme: light; background: #f7f8f4; }
+  :global(body) { margin: 0; font-family: Inter, system-ui, -apple-system, sans-serif; }
+  .redirect-page {
+    display: grid;
+    min-height: 100dvh;
+    place-items: center;
+    padding: 20px;
+    color: #13233e;
+    background:
+      radial-gradient(circle at 82% 12%, rgba(247,147,26,.14), transparent 32%),
+      #f7f8f4;
+  }
+  .redirect-card {
+    width: 100%;
+    max-width: 560px;
+    padding: 32px;
+    border: 1px solid #dce3dc;
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 12px 36px rgba(19,35,62,.08);
+    text-align: center;
+  }
+  .redirect-eyebrow {
+    margin: 0 0 10px;
+    color: #a65400;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+  }
+  h1 {
+    margin: 0;
+    color: #13233e;
+    font-family: 'Barlow Condensed', Inter, sans-serif;
+    font-size: clamp(38px, 10vw, 58px);
+    font-weight: 800;
+    letter-spacing: -.025em;
+    line-height: .96;
+    text-transform: uppercase;
+  }
+  p:not(.redirect-eyebrow) {
+    margin: 16px 0 0;
+    color: #536176;
+    font-size: 14px;
+    line-height: 1.65;
+  }
+  a {
+    display: inline-flex;
+    min-height: 48px;
+    align-items: center;
+    justify-content: center;
+    margin-top: 20px;
+    padding-inline: 22px;
+    border: 1px solid rgba(19,35,62,.12);
+    border-radius: 10px;
+    color: #13233e;
+    background: #f7931a;
+    font-size: 13px;
+    font-weight: 900;
+    text-decoration: none;
+  }
+  a:hover,
+  a:focus-visible { background: #ffad3d; }
+  @media (max-width: 520px) {
+    .redirect-card { padding: 24px 20px; border-radius: 14px; }
+  }
+</style>

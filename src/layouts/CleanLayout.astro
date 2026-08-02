@@ -2,9 +2,8 @@
 import SiteHeader from '../components/layout/SiteHeader.astro';
 import SiteFooter from '../components/layout/SiteFooter.astro';
 import '../styles/tokens.css';
+import '../styles/site-standard-v1.css';
 import '../styles/site-shell.css';
-import '../styles/exchange-page-v2.css';
-import '../styles/directory-pages-v2.css';
 import '../styles/info-pages-v2.css';
 import '../styles/faq-page-v2.css';
 
@@ -81,9 +80,9 @@ const resolvedCanonical = canonical ?? `${siteBase}${Astro.url.pathname}`;
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --cbw-page-max: 1180px;
-      --cbw-wide-max: 1120px;
-      --cbw-prose-max: 800px;
+      --cbw-page-max: var(--cbw-width-shell, 1180px);
+      --cbw-wide-max: var(--cbw-width-wide, 1180px);
+      --cbw-prose-max: var(--cbw-width-prose, 760px);
       --cbw-pad-mobile: 20px;
       --cbw-pad-tablet: 24px;
       --cbw-pad-desktop: 32px;
@@ -92,57 +91,83 @@ const resolvedCanonical = canonical ?? `${siteBase}${Astro.url.pathname}`;
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
       font-size: 16px;
       line-height: 1.6;
-      color: #111827;
-      background: #F7F8F4;
+      color: var(--cbw-text-primary, #13233e);
+      background: var(--cbw-surface-page, #f7f8f4);
       scroll-behavior: smooth;
     }
     body { min-height: 100dvh; display: flex; flex-direction: column; }
-    main { flex: 1; }
+    main { flex: 1; min-width: 0; }
     a { color: inherit; text-decoration: none; }
     img { max-width: 100%; height: auto; display: block; }
     button { font-family: inherit; cursor: pointer; }
 
-    .container { max-width: var(--cbw-page-max); margin: 0 auto; padding: 0 var(--cbw-pad-mobile); }
-    @media (min-width: 640px) { .container { padding: 0 var(--cbw-pad-tablet); } }
-    @media (min-width: 820px) { .container { padding: 0 var(--cbw-pad-desktop); } }
+    .container {
+      width: 100%;
+      max-width: var(--cbw-width-standard, 960px);
+      margin-inline: auto;
+      padding-inline: var(--cbw-gutter, 20px);
+    }
 
-    .section { padding: 56px 0; }
-    @media (min-width: 820px) { .section { padding: 72px 0; } }
-
+    .section { padding-block: var(--cbw-space-9, 48px); }
     .section-label {
-      font-size: 11px; font-weight: 700; text-transform: uppercase;
-      letter-spacing: .1em; color: #F7931A; margin-bottom: 10px;
+      margin-bottom: 10px;
+      color: var(--cbw-action, #f7931a);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
     }
     .section-title {
-      font-size: clamp(24px, 4vw, 36px); font-weight: 800;
-      line-height: 1.2; color: #111827; margin-bottom: 16px;
+      margin-bottom: 16px;
+      color: var(--cbw-text-primary, #13233e);
+      font-family: 'Barlow Condensed', 'Inter', sans-serif;
+      font-size: clamp(28px, 4vw, 40px);
+      font-weight: 800;
+      line-height: 1.05;
+      text-transform: uppercase;
     }
     .section-sub {
-      font-size: 16px; color: #4B5563; line-height: 1.7;
-      max-width: 580px; margin-bottom: 40px;
+      max-width: var(--cbw-width-narrow, 560px);
+      margin-bottom: 40px;
+      color: var(--cbw-text-secondary, #536176);
+      font-size: 16px;
+      line-height: 1.7;
     }
 
     .btn-primary {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 14px 28px; border-radius: 10px;
-      background: #F7931A; color: #13233E;
-      font-size: 15px; font-weight: 800;
-      text-decoration: none; white-space: nowrap;
+      display: inline-flex;
+      min-height: 48px;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding-inline: 28px;
+      border: 1px solid rgba(19,35,62,.12);
+      border-radius: var(--cbw-radius-control, 10px);
+      color: var(--cbw-text-primary, #13233e);
+      background: var(--cbw-action, #f7931a);
+      font-size: 15px;
+      font-weight: 900;
       transition: background .15s, transform .1s;
-      border: none; cursor: pointer;
     }
-    .btn-primary:hover { background: #FFAD3D; transform: translateY(-1px); }
+    .btn-primary:hover { background: var(--cbw-action-hover, #ffad3d); transform: translateY(-1px); }
     .btn-primary:active { transform: translateY(0); }
 
     .btn-secondary {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 12px 24px; border-radius: 10px;
-      border: 1.5px solid #D1D5DB; background: #fff; color: #374151;
-      font-size: 14px; font-weight: 600;
-      text-decoration: none; white-space: nowrap;
+      display: inline-flex;
+      min-height: 46px;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding-inline: 24px;
+      border: 1.5px solid var(--cbw-border-standard, #dce3dc);
+      border-radius: var(--cbw-radius-control, 10px);
+      color: var(--cbw-text-secondary, #536176);
+      background: var(--cbw-surface-primary, #fff);
+      font-size: 14px;
+      font-weight: 700;
       transition: border-color .15s, background .15s;
     }
-    .btn-secondary:hover { border-color: #9CA3AF; background: #F9FAFB; }
+    .btn-secondary:hover { border-color: #aeb8ae; background: var(--cbw-surface-secondary, #f2f5f1); }
   </style>
 </head>
 <body class={bodyClass}>
@@ -151,14 +176,5 @@ const resolvedCanonical = canonical ?? `${siteBase}${Astro.url.pathname}`;
     <slot />
   </main>
   <SiteFooter />
-
-  <script is:inline>
-    document.querySelectorAll('a[href="/#finder"]').forEach(link => {
-      link.setAttribute('href', '/#exchanges');
-      link.textContent = link.classList.contains('pc-country-link')
-        ? 'Compare the Top 10 →'
-        : 'compare the Top 10';
-    });
-  </script>
 </body>
 </html>
