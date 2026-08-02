@@ -61,6 +61,11 @@ const bottomImg = {
 
 const altCards = verifiedAlternatives.map(ex => ({ ...ex, ...resolveAlternativeCtas(ex, ctaMode) }));
 
+// Preview-safety invariant (fail-closed): no /go/* affiliate target may ever leak in preview mode.
+if (ctaMode === 'preview' && altCards.some(card => card.claimHref.startsWith('/go/'))) {
+  throw new Error('Preview mode must never emit a /go/ affiliate target.');
+}
+
 const bhStyle = [
   `--bh-bgFrom:${e.heroGradient.from}`,
   `--bh-bgTo:${e.heroGradient.to}`,
@@ -323,9 +328,10 @@ const faqItems = [
     width: 148px; height: 44px; border-radius: 10px;
     background: #15803D; color: #FFFFFF; font-size: 14px; font-weight: 800;
     letter-spacing: .02em; text-decoration: none; white-space: nowrap;
-    transition: background .15s;
+    transition: background .15s ease, transform .12s ease, box-shadow .12s ease;
   }
-  .p2-rel-cta:hover { background: #166534; }
+  .p2-rel-cta:hover { background: #166534; box-shadow: 0 6px 16px rgba(21,128,61,.28); transform: translateY(-1px); }
+  .p2-rel-cta:active { background: #14532d; transform: translateY(1px); box-shadow: 0 2px 6px rgba(21,128,61,.24); }
   /* 44px interaction area via padding; visible focus for both links */
   .p2-rel-link {
     font-size: 13px; font-weight: 600; color: #2563EB; text-decoration: none;
@@ -333,9 +339,11 @@ const faqItems = [
     min-height: 44px; padding: 0 10px;
   }
   .p2-rel-link:hover { text-decoration: underline; }
+  .p2-rel-link:active { color: #1d4ed8; }
   .p2-rel-cta:focus-visible, .p2-rel-link:focus-visible {
     outline: 3px solid #2563EB; outline-offset: 2px; border-radius: 10px;
   }
+  @media (prefers-reduced-motion: reduce) { .p2-rel-cta { transition: background .15s ease; } .p2-rel-cta:hover, .p2-rel-cta:active { transform: none; } }
   @media (max-width: 639px) {
     .p2-rel-card { flex-direction: column; align-items: flex-start; gap: 14px; min-height: 0; padding: 16px; }
     .p2-rel-logo-wrap { width: 148px; height: 50px; justify-content: center; }
@@ -534,8 +542,12 @@ const faqItems = [
           </div>
           <div class="p2-rel-actions">
             {/* hrefs come from the CTA contract resolver — markup never changes on promotion */}
-            <a href={ex.claimHref} class="p2-rel-cta">Claim Bonus</a>
-            <a href={ex.reviewHref} class="p2-rel-link">View review →</a>
+            <a
+              href={ex.claimHref}
+              class="p2-rel-cta"
+              rel={ex.claimHref.startsWith('/go/') ? 'sponsored nofollow noopener' : 'noopener'}
+            >Claim Bonus</a>
+            <a href={ex.reviewHref} class="p2-rel-link" rel="noopener">View review →</a>
           </div>
         </li>
       ))}
