@@ -2,6 +2,20 @@
 import ExchangeLogo from '../ExchangeLogo.astro';
 import PromoCodeCopy from '../promo/PromoCodeCopy.astro';
 import { homepageTop10 } from '../../data/homepageTop10';
+import { resolveHomepageTop10Ctas } from '../../data/homepageTop10Cta';
+
+// Gated commercial CTA bindings, derived from the canonical fail-closed
+// contract. In the default 'preview' mode every primary CTA resolves to an
+// internal review target; a live /go/ affiliate target appears only when the
+// owner enables production mode AND the row is verified + offer-eligible.
+const ctaBindings = new Map(
+  resolveHomepageTop10Ctas(homepageTop10).map((b) => [b.rank, b]),
+);
+
+const disabledReason: Record<string, string> = {
+  MARKET_RESTRICTED: 'Not available in restricted regions',
+  MARKET_UNAVAILABLE: 'Currently unavailable',
+};
 ---
 
 <section class="top10-section" id="exchanges" aria-labelledby="top10-title">
@@ -68,20 +82,44 @@ import { homepageTop10 } from '../../data/homepageTop10';
           </div>
 
           <div class="top10-actions">
-            {entry.primaryAction && (
-              <a
-                href={entry.primaryAction.href}
-                class="top10-primary"
-                target={entry.primaryAction.external ? '_blank' : undefined}
-                rel={entry.primaryAction.external
-                  ? entry.primaryAction.sponsored
-                    ? 'noopener noreferrer sponsored'
-                    : 'noopener noreferrer'
-                  : undefined}
-              >
-                {entry.primaryAction.label} →
-              </a>
-            )}
+            {(() => {
+              const cta = ctaBindings.get(entry.rank);
+              if (!cta) return null;
+              const p = cta.primary;
+              const stateClass = `top10-primary--${p.visualState}`;
+
+              // A withheld commercial action is a genuinely non-actionable
+              // control (disabled <button>), never a JS-suppressed anchor.
+              if (p.disabled) {
+                const reason = (p.gateReason && disabledReason[p.gateReason]) || 'Not available';
+                return (
+                  <button
+                    type="button"
+                    class:list={['top10-primary', 'top10-primary--disabled', stateClass]}
+                    disabled
+                    aria-describedby={`top10-why-${entry.rank}`}
+                  >
+                    {p.label}
+                    <span id={`top10-why-${entry.rank}`} class="top10-primary-why">{reason}</span>
+                  </button>
+                );
+              }
+
+              // Affiliate targets open externally with sponsored/nofollow rel;
+              // internal review targets stay in-tab and non-sponsored.
+              return (
+                <a
+                  href={p.href}
+                  class:list={['top10-primary', stateClass, { 'is-affiliate': p.isAffiliate }]}
+                  data-cta-affiliate={p.isAffiliate ? 'true' : undefined}
+                  target={p.isAffiliate ? '_blank' : undefined}
+                  rel={p.isAffiliate ? p.rel : 'noopener'}
+                >
+                  <span class="top10-primary-label">{p.label} →</span>
+                  <span class="top10-primary-spinner" aria-hidden="true"></span>
+                </a>
+              );
+            })()}
             <a href={entry.secondaryAction.href} class="top10-secondary">
               {entry.secondaryAction.label}
             </a>
@@ -99,6 +137,17 @@ import { homepageTop10 } from '../../data/homepageTop10';
     </div>
   </div>
 </section>
+
+<script is:inline>
+  // Progressive enhancement: give affiliate CTAs a visible loading state while
+  // the outbound redirect resolves. Works without JS (plain navigation).
+  document.querySelectorAll('.top10-primary[data-cta-affiliate="true"]').forEach((el) => {
+    el.addEventListener('click', () => {
+      el.classList.add('is-loading');
+      el.setAttribute('aria-busy', 'true');
+    });
+  });
+</script>
 
 <style>
   .top10-section {
@@ -357,10 +406,12 @@ import { homepageTop10 } from '../../data/homepageTop10';
 
   .top10-primary,
   .top10-secondary {
+    position: relative;
     display: flex;
     min-height: 38px;
     align-items: center;
     justify-content: center;
+    gap: 7px;
     box-sizing: border-box;
     border-radius: 9px;
     font-size: 12px;
@@ -371,13 +422,88 @@ import { homepageTop10 } from '../../data/homepageTop10';
   }
 
   .top10-primary {
+    border: 1px solid transparent;
     background: #16a34a;
     color: #ffffff;
     box-shadow: 0 2px 7px rgba(22, 163, 74, .2);
+    cursor: pointer;
+    font-family: inherit;
+    transition: background-color .16s, box-shadow .16s, transform .12s;
   }
 
   .top10-primary:hover {
     background: #15803d;
+  }
+
+  .top10-primary:focus-visible,
+  .top10-secondary:focus-visible {
+    outline: 2px solid #0f766e;
+    outline-offset: 2px;
+  }
+
+  .top10-primary:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 3px rgba(22, 163, 74, .22);
+  }
+
+  /* Withheld commercial action: a real disabled control, not a fake link. */
+  .top10-primary--disabled,
+  .top10-primary:disabled {
+    flex-direction: column;
+    gap: 2px;
+    background: #f3f4f6;
+    border-color: #e5e7eb;
+    color: #9ca3af;
+    box-shadow: none;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .top10-primary-why {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .02em;
+    line-height: 1.2;
+    text-transform: none;
+  }
+
+  /* Loading state (progressive enhancement on affiliate outbound). */
+  .top10-primary-spinner {
+    display: none;
+    width: 13px;
+    height: 13px;
+    border: 2px solid rgba(255, 255, 255, .5);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+  }
+
+  .top10-primary.is-loading {
+    pointer-events: none;
+  }
+
+  .top10-primary.is-loading .top10-primary-label {
+    opacity: .75;
+  }
+
+  .top10-primary.is-loading .top10-primary-spinner {
+    display: inline-block;
+    animation: top10-spin .6s linear infinite;
+  }
+
+  @keyframes top10-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .top10-primary,
+    .top10-primary:active {
+      transition: none;
+      transform: none;
+    }
+
+    .top10-primary.is-loading .top10-primary-spinner {
+      animation: none;
+    }
   }
 
   .top10-secondary {

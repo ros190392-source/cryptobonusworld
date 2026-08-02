@@ -21,6 +21,8 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '..', '..');
 const factory = join(ROOT, 'src/data/contracts/portalFactory.ts');
 const cta = join(ROOT, 'src/data/contracts/portalCta.ts');
+const homepageCta = join(ROOT, 'src/data/homepageTop10Cta.ts');
+const homepageData = join(ROOT, 'src/data/homepageTop10.ts');
 
 const tmp = mkdtempSync(join(tmpdir(), 'cbw-portal-test-'));
 const outfile = join(tmp, 'contracts.mjs');
@@ -36,7 +38,11 @@ function check(name, cond) {
 try {
   await build({
     stdin: {
-      contents: `export * from ${JSON.stringify(factory)};\nexport * from ${JSON.stringify(cta)};`,
+      contents:
+        `export * from ${JSON.stringify(factory)};\n` +
+        `export * from ${JSON.stringify(cta)};\n` +
+        `export { resolveHomepageTop10Cta, buildCtaProfile } from ${JSON.stringify(homepageCta)};\n` +
+        `export { homepageTop10 } from ${JSON.stringify(homepageData)};`,
       resolveDir: ROOT,
       loader: 'ts',
     },
@@ -115,6 +121,36 @@ try {
   check('cta: restricted no /go/ + disabled', !restricted.href.startsWith('/go/') && restricted.disabled === true && restricted.gateReason === 'MARKET_RESTRICTED');
   check('cta: unavailable no /go/', !m.resolveCommercialCta('get_bonus', 'ru', 'production', { ...goProfile, availability: 'unavailable', offerEligibility: 'not_eligible' }).href.startsWith('/go/'));
   check('cta: localized ru label present', goModel.label === 'Получить бонус');
+
+  // --- Homepage Top-10 gated CTA binding (real data → canonical gate) ---
+  const bybit = m.homepageTop10.find((e) => e.slug === 'bybit');       // verified offer
+  const mexc = m.homepageTop10.find((e) => e.slug === 'mexc');         // public-preview offer
+  const binance = m.homepageTop10.find((e) => e.slug === 'binance');   // research row, no offer
+  check('hp: verified+production emits /go/ affiliate', (() => {
+    const b = m.resolveHomepageTop10Cta(bybit, 'production', 'en');
+    return b.primary.isAffiliate && b.primary.href === '/go/bybit'
+      && b.primary.rel.includes('sponsored') && b.primary.rel.includes('nofollow');
+  })());
+  check('hp: verified+preview stays internal (no /go/)', (() => {
+    const b = m.resolveHomepageTop10Cta(bybit, 'preview', 'en');
+    return !b.primary.isAffiliate && !b.primary.href.startsWith('/go/') && b.primary.href.endsWith('/');
+  })());
+  check('hp: public-preview offer never affiliate in production', (() => {
+    const b = m.resolveHomepageTop10Cta(mexc, 'production', 'en');
+    return !b.primary.isAffiliate && !b.primary.href.startsWith('/go/');
+  })());
+  check('hp: research row (no offer) is non-commercial review', (() => {
+    const b = m.resolveHomepageTop10Cta(binance, 'production', 'en');
+    return !b.primary.isAffiliate && !b.primary.href.startsWith('/go/') && !b.primary.disabled;
+  })());
+  check('hp: localized ru bonus label on verified row', (() => {
+    const b = m.resolveHomepageTop10Cta(bybit, 'production', 'ru');
+    return b.primary.label === 'Получить бонус';
+  })());
+  check('hp: profile facts derived from real records (bybit approved)', (() => {
+    const p = m.buildCtaProfile(bybit);
+    return p.approval === 'approved' && p.offerEligibility === 'approved' && p.availability === 'available';
+  })());
 
   // --- Invariant: a non-commercial model may never point at /go/ ---
   let threw = false;
