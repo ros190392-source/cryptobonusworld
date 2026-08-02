@@ -37,6 +37,8 @@ jobs:
           done
           cat /tmp/cbw-preview.log
           exit 1
+      - name: Patch browser-context color assertions
+        run: node qa/patch-legacy-deletion-053f-r2.mjs
       - name: Run browser and redirect parity R2
         run: node qa/legacy-deletion-053f-r2.mjs
       - name: Upload deletion evidence
