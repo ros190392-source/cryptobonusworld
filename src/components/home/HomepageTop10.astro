@@ -3,19 +3,23 @@ import ExchangeLogo from '../ExchangeLogo.astro';
 import PromoCodeCopy from '../promo/PromoCodeCopy.astro';
 import { homepageTop10 } from '../../data/homepageTop10';
 import { resolveHomepageTop10Ctas } from '../../data/homepageTop10Cta';
+import { gateReasonText, ctaMicrocopy, pickLocalized } from '../../data/contracts/portalCtaI18n';
+import type { CtaLocale } from '../../data/contracts/portalCta';
+
+// Current published locale for the homepage. All CTA labels and microcopy are
+// sourced through the localization contract, so switching this constant
+// localizes labels + reasons + microcopy together (facts are unaffected).
+const ctaLocale: CtaLocale = 'en';
 
 // Gated commercial CTA bindings, derived from the canonical fail-closed
 // contract. In the default 'preview' mode every primary CTA resolves to an
 // internal review target; a live /go/ affiliate target appears only when the
 // owner enables production mode AND the row is verified + offer-eligible.
 const ctaBindings = new Map(
-  resolveHomepageTop10Ctas(homepageTop10).map((b) => [b.rank, b]),
+  resolveHomepageTop10Ctas(homepageTop10, ctaLocale).map((b) => [b.rank, b]),
 );
 
-const disabledReason: Record<string, string> = {
-  MARKET_RESTRICTED: 'Not available in restricted regions',
-  MARKET_UNAVAILABLE: 'Currently unavailable',
-};
+const opensNewTab = pickLocalized(ctaMicrocopy.opensNewTab, ctaLocale);
 ---
 
 <section class="top10-section" id="exchanges" aria-labelledby="top10-title">
@@ -92,7 +96,7 @@ const disabledReason: Record<string, string> = {
               // control (disabled <button>), never a JS-suppressed anchor. Its
               // accessible name carries the reason so it is unambiguous.
               if (p.disabled) {
-                const reason = (p.gateReason && disabledReason[p.gateReason]) || 'Not available';
+                const reason = gateReasonText(p.gateReason, ctaLocale);
                 return (
                   <button
                     type="button"
@@ -111,7 +115,7 @@ const disabledReason: Record<string, string> = {
               // accessible name is exchange-qualified so screen-reader users do
               // not hear ten identical "Get bonus" links.
               const accessibleName = p.isAffiliate
-                ? `${p.label} at ${entry.name} (opens in a new tab)`
+                ? `${p.label} at ${entry.name} (${opensNewTab})`
                 : `${p.label} — ${entry.name}`;
               return (
                 <a

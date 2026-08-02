@@ -21,6 +21,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '..', '..');
 const factory = join(ROOT, 'src/data/contracts/portalFactory.ts');
 const cta = join(ROOT, 'src/data/contracts/portalCta.ts');
+const ctaI18n = join(ROOT, 'src/data/contracts/portalCtaI18n.ts');
 const homepageCta = join(ROOT, 'src/data/homepageTop10Cta.ts');
 const homepageData = join(ROOT, 'src/data/homepageTop10.ts');
 
@@ -41,6 +42,7 @@ try {
       contents:
         `export * from ${JSON.stringify(factory)};\n` +
         `export * from ${JSON.stringify(cta)};\n` +
+        `export { pickLocalized, gateReasonText, ctaGateReasonText, ctaMicrocopy } from ${JSON.stringify(ctaI18n)};\n` +
         `export { resolveHomepageTop10Cta, buildCtaProfile } from ${JSON.stringify(homepageCta)};\n` +
         `export { homepageTop10 } from ${JSON.stringify(homepageData)};`,
       resolveDir: ROOT,
@@ -121,6 +123,42 @@ try {
   check('cta: restricted no /go/ + disabled', !restricted.href.startsWith('/go/') && restricted.disabled === true && restricted.gateReason === 'MARKET_RESTRICTED');
   check('cta: unavailable no /go/', !m.resolveCommercialCta('get_bonus', 'ru', 'production', { ...goProfile, availability: 'unavailable', offerEligibility: 'not_eligible' }).href.startsWith('/go/'));
   check('cta: localized ru label present', goModel.label === 'Получить бонус');
+
+  // --- Localization audit (en / ru / kk), deterministic fallback ---
+  const LOCALES = ['en', 'ru', 'kk'];
+  const INTENTS = ['register', 'get_bonus', 'open_exchange', 'view_review', 'view_evidence'];
+  check('i18n: every CTA label present & non-empty in all locales', INTENTS.every((i) => LOCALES.every((l) => {
+    const v = m.ctaLabels[i][l];
+    return typeof v === 'string' && v.trim().length > 0 && v !== i;
+  })));
+  check('i18n: pickLocalized returns requested locale', m.pickLocalized({ en: 'A', ru: 'Б', kk: 'В' }, 'ru') === 'Б');
+  check('i18n: missing locale falls back to en (not a raw key)', (() => {
+    const partial = { en: 'Only-EN' };
+    return m.pickLocalized(partial, 'kk') === 'Only-EN';
+  })());
+  check('i18n: missing en base throws (fail-closed, never blank)', (() => {
+    try { m.pickLocalized({ en: '' }, 'en'); return false; } catch { return true; }
+  })());
+  check('i18n: every gate reason localized in all locales (not raw key)', Object.keys(m.ctaGateReasonText).every((r) =>
+    LOCALES.every((l) => { const t = m.gateReasonText(r, l); return t && t.trim() && t !== r; })));
+  check('i18n: unknown gate reason falls back to localized "unavailable"', (() => {
+    const t = m.gateReasonText('SOME_UNKNOWN_REASON', 'ru');
+    return t === m.ctaMicrocopy.unavailable.ru;
+  })());
+  check('i18n: microcopy present in all locales', ['opensNewTab', 'loading', 'unavailable'].every((k) =>
+    LOCALES.every((l) => m.ctaMicrocopy[k][l] && m.ctaMicrocopy[k][l].trim())));
+  // Factual independence: locale changes label only, never the gate facts.
+  check('i18n: locale changes label only, facts unchanged', (() => {
+    const prof = { exchangeId: 'ex', slug: 'ex', availability: 'available', offerEligibility: 'approved', approval: 'approved', reviewHref: '/exchanges/ex/' };
+    const en = m.resolveCommercialCta('get_bonus', 'en', 'production', prof);
+    const ru = m.resolveCommercialCta('get_bonus', 'ru', 'production', prof);
+    const kk = m.resolveCommercialCta('get_bonus', 'kk', 'production', prof);
+    const factsEqual = en.href === ru.href && ru.href === kk.href
+      && en.isAffiliate === ru.isAffiliate && ru.isAffiliate === kk.isAffiliate
+      && en.visualState === ru.visualState && ru.visualState === kk.visualState;
+    const labelsDiffer = en.label !== ru.label && ru.label !== kk.label;
+    return factsEqual && labelsDiffer;
+  })());
 
   // --- Evidence freshness (deterministic, explicit clock) ---
   const NOW = Date.parse('2026-08-02T00:00:00Z');
