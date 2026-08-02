@@ -5,6 +5,9 @@ import { homepageTop10 } from '../../data/homepageTop10';
 import { resolveHomepageTop10Ctas } from '../../data/homepageTop10Cta';
 import { gateReasonText, ctaMicrocopy, pickLocalized } from '../../data/contracts/portalCtaI18n';
 import type { CtaLocale } from '../../data/contracts/portalCta';
+import Top10Disclosure from './Top10Disclosure.astro';
+import { resolveDisclosure } from '../../data/contracts/portalDisclosure';
+import { getOffer } from '../../data/offers';
 
 // Current published locale for the homepage. All CTA labels and microcopy are
 // sourced through the localization contract, so switching this constant
@@ -20,6 +23,23 @@ const ctaBindings = new Map(
 );
 
 const opensNewTab = pickLocalized(ctaMicrocopy.opensNewTab, ctaLocale);
+
+// Fail-closed evidence disclosure per row, derived from real records only.
+// A source link is carried only when a real HTTPS promo URL exists; research
+// rows without an offer resolve to a clear, non-fabricated disclosure state.
+const disclosures = new Map(
+  homepageTop10.map((entry) => {
+    const offer = getOffer(entry.slug);
+    const binding = ctaBindings.get(entry.rank);
+    return [entry.rank, resolveDisclosure({
+      tone: entry.statusTone,
+      lastChecked: entry.lastChecked,
+      sourceHref: offer?.sourceUrl,
+      isAffiliate: Boolean(binding?.primary.isAffiliate),
+      methodologyHref: '/methodology/',
+    }, ctaLocale)];
+  }),
+);
 ---
 
 <section class="top10-section" id="exchanges" aria-labelledby="top10-title">
@@ -82,7 +102,9 @@ const opensNewTab = pickLocalized(ctaMicrocopy.opensNewTab, ctaLocale);
                 <PromoCodeCopy code={entry.promoCode} exchange={entry.name} />
               </div>
             )}
-            <span class="top10-checked">Last checked: {entry.lastChecked}</span>
+            {disclosures.get(entry.rank) && (
+              <Top10Disclosure model={disclosures.get(entry.rank)!} />
+            )}
           </div>
 
           <div class="top10-actions">

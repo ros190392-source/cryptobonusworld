@@ -26,6 +26,7 @@ const homepageCta = join(ROOT, 'src/data/homepageTop10Cta.ts');
 const homepageData = join(ROOT, 'src/data/homepageTop10.ts');
 const routeGuards = join(ROOT, 'src/data/contracts/portalRouteGuards.ts');
 const publication = join(ROOT, 'src/data/contracts/portalPublication.ts');
+const disclosure = join(ROOT, 'src/data/contracts/portalDisclosure.ts');
 
 const tmp = mkdtempSync(join(tmpdir(), 'cbw-portal-test-'));
 const outfile = join(tmp, 'contracts.mjs');
@@ -48,7 +49,8 @@ try {
         `export { resolveHomepageTop10Cta, buildCtaProfile } from ${JSON.stringify(homepageCta)};\n` +
         `export { homepageTop10 } from ${JSON.stringify(homepageData)};\n` +
         `export { assertPortalRouteRecord, resolvePortalRoute } from ${JSON.stringify(routeGuards)};\n` +
-        `export { emitPublicRankingRoutes } from ${JSON.stringify(publication)};`,
+        `export { emitPublicRankingRoutes } from ${JSON.stringify(publication)};\n` +
+        `export { resolveDisclosure } from ${JSON.stringify(disclosure)};`,
       resolveDir: ROOT,
       loader: 'ts',
     },
@@ -300,6 +302,24 @@ try {
     const pub = new Set(r.published.map((p) => p.exchangeId));
     const blk = new Set(r.blocked.map((b) => b.exchangeId));
     return r.published.length === 1 && pub.has('ex') && blk.has('ex2') && ![...pub].some((id) => blk.has(id));
+  })());
+
+  // --- Evidence disclosure (fail-closed, localized) ---
+  const discBase = { tone: 'verified', lastChecked: 'June 2026', sourceHref: 'https://ex.com/promo', isAffiliate: true, methodologyHref: '/methodology/' };
+  const disc = m.resolveDisclosure(discBase, 'en');
+  check('disc: verified tone + https source + affiliate note', disc.tone === 'verified' && disc.sourceHref === 'https://ex.com/promo' && disc.affiliateNote && disc.lastChecked === 'June 2026');
+  check('disc: non-affiliate has no affiliate note', m.resolveDisclosure({ ...discBase, isAffiliate: false }, 'en').affiliateNote === null);
+  check('disc: non-https source is dropped (not shown)', m.resolveDisclosure({ ...discBase, sourceHref: 'http://ex.com/x' }, 'en').sourceHref === null);
+  check('disc: missing source not fabricated', m.resolveDisclosure({ ...discBase, sourceHref: undefined }, 'en').sourceHref === null);
+  check('disc: missing checked date -> null (not invented)', m.resolveDisclosure({ ...discBase, lastChecked: undefined }, 'en').lastChecked === null);
+  check('disc: unknown tone fails closed to missing', m.resolveDisclosure({ ...discBase, tone: 'totally-unknown' }, 'en').tone === 'missing');
+  check('disc: research tone preserved', m.resolveDisclosure({ ...discBase, tone: 'research', sourceHref: undefined }, 'en').tone === 'research');
+  check('disc: non-local methodology href throws', throws(() => m.resolveDisclosure({ ...discBase, methodologyHref: 'https://x.com/m' }, 'en')));
+  check('disc: localized tone label (ru) differs from en', m.resolveDisclosure(discBase, 'ru').toneLabel !== m.resolveDisclosure(discBase, 'en').toneLabel);
+  check('disc: locale changes labels only, source/facts unchanged', (() => {
+    const en = m.resolveDisclosure(discBase, 'en');
+    const ru = m.resolveDisclosure(discBase, 'ru');
+    return en.sourceHref === ru.sourceHref && en.tone === ru.tone && en.lastChecked === ru.lastChecked && en.affiliateNote !== ru.affiliateNote;
   })());
 
   // --- Invariant: a non-commercial model may never point at /go/ ---

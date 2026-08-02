@@ -1,0 +1,149 @@
+---
+import type { DisclosureModel } from '../../data/contracts/portalDisclosure';
+
+interface Props {
+  model: DisclosureModel;
+}
+
+const { model } = Astro.props;
+const hasDetails = Boolean(model.sourceHref || model.affiliateNote);
+---
+
+<div class:list={['top10-disc', `top10-disc--${model.tone}`]}>
+  <div class="top10-disc-head">
+    <span class="top10-disc-dot" aria-hidden="true"></span>
+    <span class="top10-disc-tone">{model.toneLabel}</span>
+    {model.lastChecked && (
+      <span class="top10-disc-checked">· {model.checkedLabel}: {model.lastChecked}</span>
+    )}
+  </div>
+
+  {hasDetails ? (
+    <details class="top10-disc-more">
+      <summary>{model.methodologyLabel}</summary>
+      <div class="top10-disc-body">
+        {model.affiliateNote && <p class="top10-disc-aff">{model.affiliateNote}</p>}
+        {model.sourceHref && (
+          <a class="top10-disc-src" href={model.sourceHref} target="_blank" rel="nofollow noopener noreferrer">
+            {model.sourceLabel} ↗
+          </a>
+        )}
+        <a class="top10-disc-method" href={model.methodologyHref}>{model.methodologyLabel} →</a>
+      </div>
+    </details>
+  ) : (
+    <a class="top10-disc-method top10-disc-method--inline" href={model.methodologyHref}>{model.methodologyLabel} →</a>
+  )}
+</div>
+
+<style>
+  .top10-disc {
+    margin-top: 8px;
+    font-size: 10.5px;
+    line-height: 1.45;
+  }
+
+  .top10-disc-head {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px 6px;
+  }
+
+  .top10-disc-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #9ca3af;
+    flex: 0 0 auto;
+  }
+
+  .top10-disc--verified .top10-disc-dot { background: #16a34a; }
+  .top10-disc--preview .top10-disc-dot { background: #d97706; }
+  .top10-disc--research .top10-disc-dot { background: #2563eb; }
+  .top10-disc--review .top10-disc-dot { background: #6b7280; }
+  .top10-disc--missing .top10-disc-dot { background: #9ca3af; }
+
+  .top10-disc-tone {
+    color: #374151;
+    font-weight: 750;
+  }
+
+  .top10-disc-checked {
+    color: #6b7280;
+  }
+
+  .top10-disc-more {
+    margin-top: 4px;
+  }
+
+  .top10-disc-more > summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #15803d;
+    font-weight: 700;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .top10-disc-more > summary::-webkit-details-marker { display: none; }
+
+  .top10-disc-more > summary::before {
+    content: '▸';
+    font-size: 9px;
+    transition: transform .15s;
+  }
+
+  .top10-disc-more[open] > summary::before {
+    transform: rotate(90deg);
+  }
+
+  .top10-disc-more > summary:focus-visible {
+    outline: 2px solid #0f766e;
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+
+  .top10-disc-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 6px;
+    padding-left: 2px;
+  }
+
+  .top10-disc-aff {
+    margin: 0;
+    color: #6b7280;
+  }
+
+  .top10-disc-src,
+  .top10-disc-method {
+    color: #15803d;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .top10-disc-src:hover,
+  .top10-disc-method:hover {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .top10-disc-src:focus-visible,
+  .top10-disc-method:focus-visible {
+    outline: 2px solid #0f766e;
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+
+  .top10-disc-method--inline {
+    display: inline-block;
+    margin-top: 4px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .top10-disc-more > summary::before { transition: none; }
+  }
+</style>
