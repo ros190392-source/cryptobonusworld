@@ -1,27 +1,10 @@
 ---
-// /use-cases/ → redirect stub. Legacy section retired 2026-07-14
-// (Legacy Sections Retirement v1) — content replaced by /promo-codes/
-// noindex + meta refresh (static-site equivalent of 301).
+import RedirectPage from '../../components/site-standard/RedirectPage.astro';
 ---
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Redirecting…</title>
-  <meta name="robots" content="noindex, follow" />
-  <link rel="canonical" href="https://cryptobonusworld.com/promo-codes/" />
-  <meta http-equiv="refresh" content="0;url=/promo-codes/" />
-  <style>
-    body { margin:0; font-family:system-ui,sans-serif; background:#F7F8F4;
-           display:flex; align-items:center; justify-content:center; min-height:100vh; }
-    .msg { text-align:center; color:#6B7280; font-size:14px; }
-    a { color:#16A34A; }
-  </style>
-</head>
-<body>
-  <div class="msg">
-    <p>This section has moved. Redirecting to <a href="/promo-codes/">the promo codes comparison</a>…</p>
-  </div>
-</body>
-</html>
+
+<RedirectPage
+  target="/promo-codes/"
+  canonical="https://cryptobonusworld.com/promo-codes/"
+  message="The legacy use-case section has been retired. Current commercial discovery is consolidated in the governed promo-code directory."
+  targetLabel="the promo-code comparison"
+/>

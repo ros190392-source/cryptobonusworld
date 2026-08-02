@@ -1,50 +1,40 @@
 ---
 import CleanLayout from '../../layouts/CleanLayout.astro';
+import PageFrame from '../../components/site-standard/PageFrame.astro';
+import FirstViewport from '../../components/site-standard/FirstViewport.astro';
+import Section from '../../components/site-standard/Section.astro';
 import PromoCodeCopy from '../../components/promo/PromoCodeCopy.astro';
-import PageHero from '../../components/PageHero.astro';
 import { getFeaturedExchanges } from '../../data/exchanges';
 import { getOffer } from '../../data/offers';
 
 const exchanges = getFeaturedExchanges();
 
-// Conservative "Best For" tags — derived directly from each exchange's existing
-// shortDescription in exchanges.ts, not invented.
 const BEST_FOR: Record<string, string> = {
-  bybit:  'Derivatives & spot trading',
-  mexc:   'No-KYC altcoin trading',
-  okx:    'Spot, futures & Web3',
+  bybit: 'Derivatives & spot trading',
+  mexc: 'No-KYC altcoin trading',
+  okx: 'Spot, futures & Web3',
   bitget: 'Copy trading',
   kucoin: 'No-KYC altcoin access',
-  bingx:  'Copy & social trading',
+  bingx: 'Copy & social trading',
 };
 
-// FUTURE (geo ranking engine, per master plan Phase 6): move BEST_FOR / COUNTRY_NOTE /
-// rank into offers.ts or a dedicated src/data/geoRankings.ts with per-country
-// availability tri-states (verified/unavailable/unverified), and generate
-// /promo-codes/{country}/ pages from it. Do NOT render country-specific rankings
-// until that verified data exists — v1 deliberately shows global rows + caveat only.
-
-// Country notes — grounded in each offer's existing kycRequired / restrictedCountries
-// fields, not invented per-country claims.
 const COUNTRY_NOTE: Record<string, string> = {
-  bybit:  'Restricted in several countries (incl. US, UK, CA) — check terms',
-  mexc:   'No KYC for base tier; restricted in several countries',
-  okx:    'Restricted in several countries — check terms',
+  bybit: 'Restricted in several countries (incl. US, UK, CA) — check terms',
+  mexc: 'No KYC for base tier; restricted in several countries',
+  okx: 'Restricted in several countries — check terms',
   bitget: 'Not available in US, UK, or CA — check terms',
   kucoin: 'No KYC for base tier; check regional terms',
-  bingx:  'Available in most regions except the US — check terms',
+  bingx: 'Available in most regions except the US — check terms',
 };
 
 const rows = exchanges
-  .map(ex => ({ exchange: ex, offer: getOffer(ex.slug)! }))
-  .filter(r => r.offer)
-  // Rank: verified status first, then existing catalog order — grounded in the
-  // offer.status field already tracked per exchange, not an invented score.
+  .map(exchange => ({ exchange, offer: getOffer(exchange.slug)! }))
+  .filter(row => row.offer)
   .sort((a, b) => {
-    const rank = (s: string) => (s === 'verified' ? 0 : 1);
+    const rank = (status: string) => (status === 'verified' ? 0 : 1);
     return rank(a.offer.status) - rank(b.offer.status);
   })
-  .map((r, i) => ({ ...r, rank: i + 1 }));
+  .map((row, index) => ({ ...row, rank: index + 1 }));
 
 const faqs = [
   {
@@ -57,23 +47,23 @@ const faqs = [
   },
   {
     q: 'Do I need to enter the code manually?',
-    a: 'It depends on the exchange. Some referral links prefill the code automatically when you click through — you just complete registration. Others require you to paste the code into a field during sign-up. Copy the code before clicking, just in case.',
+    a: 'It depends on the exchange. Some referral links prefill the code automatically when you click through; others require you to paste it into a field during sign-up. Copy the code before clicking, just in case.',
   },
   {
     q: 'Why do offers differ by country?',
-    a: 'Bonus programs are subject to local regulations, exchange licensing, and KYC requirements. An offer available in one country may be restricted or unavailable in another — always check the exchange\'s terms for your region.',
+    a: 'Bonus programs are subject to local regulations, exchange licensing, and KYC requirements. An offer available in one country may be restricted or unavailable in another — always check the exchange’s terms for your region.',
   },
   {
-    q: 'How do I check offers for my country?',
-    a: 'Use the bonus finder on the homepage — it shows tracked offers and availability notes for supported countries. Country-specific availability is still being verified, so always confirm eligibility against the exchange\'s own terms for your region.',
+    q: 'How do I check current country context?',
+    a: 'Use the country and language context on the homepage and review the country-specific limitations shown on each exchange profile. Country-specific availability is still being verified, so always confirm eligibility against the exchange’s own terms.',
   },
   {
     q: 'Are these affiliate links?',
-    a: 'Yes. Links marked "Claim" are affiliate referral links. If you register through one, CryptoBonusWorld may earn a commission from the exchange. This does not cost you anything extra and does not change your bonus.',
+    a: 'Yes. Links marked “Check offer” are affiliate referral links. If you register through one, CryptoBonusWorld may earn a commission from the exchange. This does not cost you anything extra and does not change your bonus.',
   },
   {
     q: 'How often are codes checked?',
-    a: 'We check each listed code and offer regularly against the exchange\'s own promotions page. The individual exchange review page for each listing shows the date it was last verified.',
+    a: 'We check each listed code and offer regularly against the exchange’s own promotions page. The individual exchange review page for each listing shows the date it was last verified.',
   },
   {
     q: 'Can a promo code expire?',
@@ -97,284 +87,191 @@ const faqSchema = {
   description="Compare verified crypto exchange promo codes, referral links, and sign-up bonus offers. Availability and bonus terms may vary by country and account."
   canonical="https://cryptobonusworld.com/promo-codes/"
 >
-
-  <!-- 1. Compact intro (hero band) -->
-  <PageHero img="/media/page-heroes/cbw-promo-codes-hero-v1.webp" variant="tall">
-    <div class="ph-content">
-      <div class="ph-eyebrow">Verified · Updated July 2026</div>
-      <h1 class="ph-title">Crypto Promo Codes by Exchange</h1>
-      <p class="ph-sub">
-        Compare tracked crypto exchange promo codes, referral links, and sign-up bonus
-        pages — checked directly against each exchange's official promotions page.
-      </p>
-      <p class="ph-caveat">
-        Bonus availability, KYC, deposit requirements, trading volume requirements, and
-        regional eligibility may vary by country and account.
-      </p>
-    </div>
-  </PageHero>
-
-  <!-- 2. Country availability pointer (replaces the former static selector) -->
-  <section class="pc-country">
-    <div class="pc-text-wrap">
-      <p class="pc-country-label">Country availability</p>
-      <p class="pc-country-note">
-        The table below shows globally tracked offers — availability and terms vary by
-        country. Need country-specific availability?
-        <a href="/#finder" class="pc-country-link">Use the bonus finder →</a>
-      </p>
-    </div>
-  </section>
-
-  <!-- 3. Ranking table -->
-  <section class="section bg-white pc-table-section" id="ranking">
-    <div class="pc-table-wrap">
-      <div class="section-label">Ranking</div>
-      <h2 class="section-title">Crypto Exchange Promo Code Ranking</h2>
-      <p class="pc-terms-vary">Terms vary by exchange and account — always confirm current conditions on the official exchange page before signing up.</p>
-
-      <div class="pc-table-scroll">
-      <table class="pc-table" data-pc-table>
-        <thead>
-          <tr>
-            <th class="pc-col-rank">Rank</th>
-            <th class="pc-col-exchange">Exchange</th>
-            <th class="pc-col-code">Promo Code</th>
-            <th class="pc-col-bonus">Bonus Snapshot</th>
-            <th class="pc-col-bestfor">Best For</th>
-            <th class="pc-col-note">Country Note</th>
-            <th class="pc-col-review">Review</th>
-            <th class="pc-col-claim">Claim</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map(({ exchange: ex, offer, rank }) => (
-            <tr class="pc-row" data-pc-row>
-              <td class="pc-cell-rank" data-label="Rank">
-                <span class="pc-rank-badge">#{rank}</span>
-              </td>
-              <td class="pc-cell-exchange" data-label="Exchange">
-                <a href={ex.pageUrl ?? `/${ex.slug}/`} class="pc-exchange-name">{ex.name}</a>
-                {offer.status === 'verified' && <span class="pc-verified">✓ verified</span>}
-              </td>
-              <td class="pc-cell-code" data-label="Promo Code">
-                <PromoCodeCopy code={offer.promoCode} exchange={ex.name} />
-              </td>
-              <td class="pc-cell-bonus" data-label="Bonus Snapshot">{offer.bonusHeadline}</td>
-              <td class="pc-cell-bestfor" data-label="Best For">{BEST_FOR[ex.slug]}</td>
-              <td class="pc-cell-note" data-label="Country Note">{COUNTRY_NOTE[ex.slug]}</td>
-              <td class="pc-cell-review" data-label="Review">
-                <a href={ex.pageUrl ?? `/${ex.slug}/`} class="pc-review-link">Read review →</a>
-              </td>
-              <td class="pc-cell-claim" data-label="Claim">
-                <a href={`/go/${ex.slug}/`} class="pc-claim-btn" target="_blank" rel="noopener noreferrer sponsored">Claim →</a>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+  <PageFrame family="directory" class="promo-directory-page">
+    <FirstViewport
+      family="directory"
+      container="wide"
+      eyebrow="Verified codes · country and account terms vary"
+      title="Crypto Promo Codes by Exchange"
+      lede="Compare six tracked exchange codes, current offer snapshots, evidence status and regional limitations in one governed table."
+    >
+      <div class="promo-context">
+        <span>6 tracked exchange rows</span>
+        <span>Official-source checks</span>
+        <a href="/#exchanges">Compare the homepage Top 10 →</a>
       </div>
-    </div>
-  </section>
+    </FirstViewport>
 
-  <!-- 4. Ranking explanation -->
-  <section class="section bg-gray">
-    <div class="pc-text-wrap">
-      <div class="section-label">Methodology</div>
-      <h2 class="section-title">How This Promo-Code Ranking Works</h2>
-      <p class="pc-p">
-        CryptoBonusWorld ranks the promo codes above using a combination of signals: whether the
-        code or referral link has been independently verified against the exchange's own
-        promotions page, how clearly the exchange discloses its bonus terms, known country
-        availability signals, the trust and source quality behind each offer, how accessible the
-        exchange is for beginners, and — where known — relevance to specific trading or payment
-        needs. Verified offers are ranked ahead of offers still in public-preview status.
+    <Section container="wide" spacing="compact" tone="primary" id="ranking" class="promo-ranking-section">
+      <header class="promo-heading">
+        <div>
+          <p class="promo-eyebrow">Current comparison</p>
+          <h2>Crypto exchange promo-code ranking</h2>
+          <p>Terms vary by exchange and account. Confirm current conditions on the official exchange page before signing up.</p>
+        </div>
+        <a href="/exchanges/">Browse exchange profiles →</a>
+      </header>
+
+      <div class="promo-table-wrap">
+        <table class="promo-table" data-promo-table>
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Exchange</th>
+              <th>Promo code</th>
+              <th>Bonus snapshot</th>
+              <th>Best for</th>
+              <th>Country note</th>
+              <th>Review</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map(({ exchange, offer, rank }) => (
+              <tr class="promo-row" data-promo-row data-rank={rank}>
+                <td data-label="Rank"><span class="promo-rank">#{rank}</span></td>
+                <td data-label="Exchange">
+                  <a href={exchange.pageUrl ?? `/${exchange.slug}/`} class="promo-exchange">{exchange.name}</a>
+                  {offer.status === 'verified' && <span class="promo-verified">✓ verified</span>}
+                </td>
+                <td data-label="Promo code" class="promo-code-cell">
+                  <PromoCodeCopy code={offer.promoCode} exchange={exchange.name} />
+                </td>
+                <td data-label="Bonus snapshot" class="promo-copy">{offer.bonusHeadline}</td>
+                <td data-label="Best for" class="promo-best">{BEST_FOR[exchange.slug]}</td>
+                <td data-label="Country note" class="promo-copy">{COUNTRY_NOTE[exchange.slug]}</td>
+                <td data-label="Review">
+                  <a href={exchange.pageUrl ?? `/${exchange.slug}/`} class="promo-review">Read review →</a>
+                </td>
+                <td data-label="Action">
+                  <a href={`/go/${exchange.slug}/`} class="cbw-action promo-action" target="_blank" rel="noopener noreferrer sponsored">Check offer →</a>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </Section>
+
+    <Section container="prose" spacing="standard" tone="secondary">
+      <p class="promo-eyebrow">Methodology</p>
+      <h2>How this promo-code list works</h2>
+      <p class="promo-prose">
+        Verified offers appear ahead of records still in public-preview status. The current order also preserves the
+        existing CryptoBonusWorld catalog sequence. Affiliate status does not create a verified record or improve its position.
       </p>
-    </div>
-  </section>
+    </Section>
 
-  <!-- 5. Country-specific warning -->
-  <section class="section bg-white">
-    <div class="pc-text-wrap">
-      <div class="section-label">Important</div>
-      <h2 class="section-title">Why Crypto Bonuses Differ by Country</h2>
-      <ul class="pc-list">
-        <li>Exchanges may restrict access for residents of certain countries, independent of any bonus offer.</li>
-        <li>Identity verification (KYC) rules and required documents can differ by region.</li>
-        <li>Bonus campaigns are run by each exchange and may change or end without notice.</li>
-        <li>Deposit minimums and trading-volume requirements for higher bonus tiers may differ by account and region.</li>
-        <li>Some referral links prefill the promo code automatically; others require you to enter it manually during sign-up.</li>
+    <Section container="prose" spacing="standard" tone="primary">
+      <p class="promo-eyebrow">Important</p>
+      <h2>Why crypto bonuses differ by country</h2>
+      <ul class="promo-list">
+        <li>Exchanges may restrict access for residents of certain countries independently of any bonus offer.</li>
+        <li>Identity verification rules and required documents can differ by region.</li>
+        <li>Bonus campaigns may change or end without notice.</li>
+        <li>Deposit minimums and trading-volume requirements can differ by account and reward tier.</li>
+        <li>Some referral links prefill the code; others require manual entry during sign-up.</li>
       </ul>
-    </div>
-  </section>
+    </Section>
 
-  <!-- 6. FAQ -->
-  <section class="section bg-gray" id="faq">
-    <div class="pc-text-wrap">
-      <div class="section-label">Common Questions</div>
-      <h2 class="section-title">Frequently Asked Questions</h2>
-      <div class="pc-faq-list">
+    <Section container="prose" spacing="standard" tone="secondary" id="faq">
+      <p class="promo-eyebrow">Common questions</p>
+      <h2>Frequently asked questions</h2>
+      <div class="promo-faq">
         {faqs.map(item => (
-          <details class="pc-faq-item">
-            <summary class="pc-faq-q">{item.q}</summary>
-            <p class="pc-faq-a">{item.a}</p>
+          <details>
+            <summary>{item.q}</summary>
+            <p>{item.a}</p>
           </details>
         ))}
       </div>
-    </div>
-  </section>
+    </Section>
 
-  <!-- 7. Disclaimer -->
-  <div class="pc-disclaimer-bar">
-    <div class="pc-text-wrap">
-      <p class="pc-disclaimer-text">
-        <strong>Disclosure:</strong> CryptoBonusWorld may earn a commission when you register via
-        links on this page. This does not affect our editorial assessments or the codes we list.
-        Bonus amounts shown are advertised maximums — individual results vary and depend on
-        meeting all exchange requirements. Bonus availability and terms can change at any time;
-        verify current conditions on the official exchange website before registering or
-        depositing. Cryptocurrency trading carries significant risk. Nothing on this page
-        constitutes financial or investment advice.
-        <a href="/affiliate-disclosure/" class="pc-disclaimer-link">Read our full affiliate disclosure →</a>
+    <Section container="prose" spacing="compact" tone="page" class="promo-disclosure">
+      <p>
+        <strong>Disclosure:</strong> CryptoBonusWorld may earn a commission when you register through approved links.
+        This does not affect editorial status or the codes listed. Advertised amounts are maximums and depend on meeting
+        all exchange requirements. Verify current official terms before registering or depositing. Read the
+        <a href="/affiliate-disclosure/">affiliate disclosure</a>.
       </p>
-    </div>
-  </div>
+    </Section>
 
-  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
-
+    <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+  </PageFrame>
 </CleanLayout>
 
 <style>
-  .bg-white { background: #fff; }
-  .bg-gray  { background: #F7F8F4; }
-
-  /* ── Width utilities (matches homepage v2 discipline) ──────────── */
-  .pc-text-wrap  { max-width: var(--cbw-prose-max, 800px);  margin: 0 auto; padding: 0 20px; box-sizing: border-box; }
-  .pc-table-wrap { max-width: var(--cbw-wide-max, 1120px); margin: 0 auto; padding: 0 20px; box-sizing: border-box; }
-  @media (min-width: 820px) {
-    .pc-text-wrap, .pc-table-wrap { padding: 0 32px; }
+  .promo-directory-page { background: var(--cbw-surface-page); }
+  :global(.promo-directory-page .cbw-first-viewport) {
+    background: radial-gradient(circle at 84% 14%, rgba(247,147,26,.19), transparent 31%), linear-gradient(135deg,#091321,#13233e 70%,#1c355b);
   }
-
-  /* ── 1. Intro ─────────────────────────────────────────────────── */
-  .pc-intro { background: #fff; padding: 40px 0 24px; text-align: center; }
-  @media (min-width: 820px) { .pc-intro { padding: 56px 0 32px; } }
-  .pc-label {
-    display: inline-block; font-size: 11px; font-weight: 700;
-    text-transform: uppercase; letter-spacing: .1em; color: #F7931A;
-    background: rgba(247,147,26,.08); border: 1px solid rgba(247,147,26,.22);
-    padding: 4px 12px; border-radius: 20px; margin-bottom: 14px;
-  }
-  .pc-h1 {
-    font-size: clamp(26px, 4.2vw, 38px); font-weight: 800; line-height: 1.15;
-    letter-spacing: -.02em; color: #111827; margin-bottom: 12px;
-  }
-  .pc-sub { font-size: 15px; line-height: 1.65; color: #4B5563; margin-bottom: 8px; }
-  .pc-caveat { font-size: 13px; line-height: 1.6; color: #9CA3AF; }
-
-  /* ── 2. Country availability pointer ─────────────────────────── */
-  .pc-country { background: #F0FDF4; border-top: 1px solid #D1FAE5; border-bottom: 1px solid #D1FAE5; padding: 18px 0; text-align: center; }
-  .pc-country-label { display: block; font-size: 12px; font-weight: 700; color: #15803D; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; }
-  .pc-country-note { font-size: 13px; color: #374151; line-height: 1.6; max-width: 620px; margin: 0 auto; }
-  .pc-country-link { color: #15803D; font-weight: 700; text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }
-  .pc-country-link:hover { color: #166534; }
-
-  /* ── 3. Ranking table ─────────────────────────────────────────── */
-  .pc-table-section { padding: 32px 0 48px; }
-  .pc-terms-vary { font-size: 13px; color: #9CA3AF; margin-bottom: 20px; }
-
-  /* Scrolls the table sideways within its own box on tablet widths where 8
-     columns don't fit — prevents the whole page from overflowing horizontally.
-     Irrelevant on mobile once the table becomes stacked cards below. */
-  .pc-table-scroll { overflow-x: auto; }
-
-  .pc-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
-  .pc-table thead th {
-    text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .05em;
-    color: #6B7280; font-weight: 700; padding: 10px 12px; border-bottom: 2px solid #E5E7EB;
-    white-space: nowrap;
-  }
-  .pc-table tbody tr { border-bottom: 1px solid #F3F4F6; }
-  .pc-table tbody tr:hover { background: #FAFAFA; }
-  .pc-table td { padding: 14px 12px; vertical-align: middle; }
-
-  .pc-rank-badge {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 26px; height: 26px; border-radius: 50%;
-    background: #F7931A; color: #fff; font-size: 12px; font-weight: 800;
-  }
-  .pc-exchange-name { font-weight: 800; color: #111827; text-decoration: none; display: block; }
-  .pc-exchange-name:hover { color: #1D4ED8; text-decoration: underline; }
-  .pc-verified { font-size: 10px; color: #16A34A; font-weight: 700; white-space: nowrap; }
-
-  /* Promo-code field is the shared canonical PromoCodeCopy component */
-  .pc-cell-code { min-width: 220px; }
-
-  .pc-cell-bonus, .pc-cell-note { color: #4B5563; max-width: 220px; }
-  .pc-cell-bestfor { color: #374151; font-weight: 600; white-space: nowrap; }
-
-  .pc-review-link { font-size: 13px; color: #374151; font-weight: 600; text-decoration: none; white-space: nowrap; }
-  .pc-review-link:hover { color: #111827; text-decoration: underline; }
-
-  .pc-claim-btn {
-    display: inline-block; text-decoration: none; text-align: center;
-    background: #16A34A; color: #fff; font-size: 13px; font-weight: 700;
-    padding: 8px 16px; border-radius: 8px; white-space: nowrap;
-    transition: background .15s;
-  }
-  .pc-claim-btn:hover { background: #15803D; }
-
-  /* Mobile: transform table into stacked cards */
+  :global(.promo-directory-page .cbw-first-viewport__inner) { padding-block: var(--cbw-space-6); }
+  :global(.promo-directory-page .cbw-display-title) { max-width: var(--cbw-width-standard); font-size: clamp(42px,5vw,64px); }
+  .promo-context { display: flex; flex-wrap: wrap; gap: 7px; margin-top: var(--cbw-space-4); }
+  .promo-context span,
+  .promo-context a { display: inline-flex; min-height: 28px; align-items: center; padding-inline: 10px; border: 1px solid rgba(255,255,255,.15); border-radius: var(--cbw-radius-pill); color: rgba(255,255,255,.75); background: rgba(255,255,255,.05); font-size: 9px; text-decoration: none; }
+  .promo-context a { color: #ffd291; border-color: rgba(247,147,26,.34); background: rgba(247,147,26,.1); font-weight: 900; }
+  .promo-heading { display: grid; gap: var(--cbw-space-4); align-items: end; margin-bottom: var(--cbw-space-5); }
+  .promo-eyebrow { margin: 0 0 var(--cbw-space-2); color: var(--cbw-action); font-size: 9px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+  .promo-heading h2,
+  .promo-directory-page :global(.cbw-section h2) { margin: 0; color: var(--cbw-text-primary); font-family: 'Barlow Condensed', Inter, sans-serif; font-size: clamp(30px,4.4vw,44px); font-weight: 800; line-height: 1; text-transform: uppercase; }
+  .promo-heading p:last-child { max-width: var(--cbw-width-prose); margin: var(--cbw-space-2) 0 0; color: var(--cbw-text-secondary); font-size: 12px; line-height: 1.55; }
+  .promo-heading > a { color: #925204; font-size: 11px; font-weight: 900; text-decoration: none; }
+  .promo-heading > a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .promo-table-wrap { overflow-x: auto; border: 1px solid var(--cbw-border-standard); border-radius: var(--cbw-radius-card); background: #fff; }
+  .promo-table { width: 100%; min-width: 1060px; border-collapse: collapse; }
+  .promo-table th,
+  .promo-table td { padding: 10px 11px; border-bottom: 1px solid #edf0ec; color: var(--cbw-text-secondary); font-size: 10.5px; line-height: 1.45; text-align: left; vertical-align: middle; }
+  .promo-table th { color: var(--cbw-text-muted); background: var(--cbw-surface-secondary); font-size: 8px; font-weight: 900; letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; }
+  .promo-table tr:last-child td { border-bottom: 0; }
+  .promo-table tbody tr:hover { background: #fbfcfa; }
+  .promo-rank { display: inline-flex; width: 30px; height: 30px; align-items: center; justify-content: center; border-radius: var(--cbw-radius-pill); color: var(--cbw-text-primary); background: var(--cbw-action); font-size: 10px; font-weight: 900; }
+  .promo-exchange { display: block; color: var(--cbw-text-primary); font-size: 12px; font-weight: 900; text-decoration: none; }
+  .promo-exchange:hover { color: #a65400; }
+  .promo-verified { color: var(--cbw-evidence); font-size: 8px; font-weight: 900; }
+  .promo-code-cell { min-width: 190px; }
+  .promo-code-cell :global(.pcc-row) { max-width: 210px; height: 38px; }
+  .promo-copy { max-width: 190px; }
+  .promo-best { min-width: 132px; color: var(--cbw-text-primary); font-weight: 800; }
+  .promo-review { color: var(--cbw-text-secondary); font-weight: 800; text-decoration: none; white-space: nowrap; }
+  .promo-review:hover { color: var(--cbw-text-primary); text-decoration: underline; text-underline-offset: 2px; }
+  .promo-action { min-height: 40px; padding-inline: 13px; font-size: 10px; white-space: nowrap; }
+  .promo-prose { margin: var(--cbw-space-5) 0 0; color: var(--cbw-text-secondary); font-size: 14px; line-height: 1.75; }
+  .promo-list { display: grid; gap: var(--cbw-space-3); margin: var(--cbw-space-5) 0 0; padding-left: 20px; color: var(--cbw-text-secondary); font-size: 14px; line-height: 1.65; }
+  .promo-list li::marker { color: var(--cbw-action); }
+  .promo-faq { display: grid; gap: var(--cbw-space-2); margin-top: var(--cbw-space-5); }
+  .promo-faq details { overflow: hidden; border: 1px solid var(--cbw-border-standard); border-radius: var(--cbw-radius-control); background: #fff; }
+  .promo-faq summary { display: flex; justify-content: space-between; gap: var(--cbw-space-4); padding: var(--cbw-space-4) var(--cbw-space-5); color: var(--cbw-text-primary); font-size: 13px; font-weight: 800; cursor: pointer; list-style: none; }
+  .promo-faq summary::-webkit-details-marker { display: none; }
+  .promo-faq summary::after { content: '+'; color: #9ca3af; font-size: 18px; }
+  .promo-faq details[open] summary::after { content: '−'; }
+  .promo-faq p { margin: 0; padding: 0 var(--cbw-space-5) var(--cbw-space-4); color: var(--cbw-text-secondary); font-size: 12px; line-height: 1.7; }
+  .promo-disclosure p { margin: 0; color: var(--cbw-text-secondary); font-size: 11px; line-height: 1.7; }
+  .promo-disclosure strong { color: var(--cbw-text-primary); }
+  .promo-disclosure a { color: #166534; font-weight: 800; }
+  @media (min-width: 760px) { .promo-heading { grid-template-columns: minmax(0,1fr) auto; } }
   @media (max-width: 760px) {
-    .pc-table thead { display: none; }
-    .pc-table, .pc-table tbody, .pc-table tr, .pc-table td { display: block; width: 100%; box-sizing: border-box; }
-    .pc-table tr {
-      border: 1px solid #E5E7EB; border-radius: 12px; margin-bottom: 14px;
-      padding: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-    }
-    .pc-table td {
-      display: flex; align-items: center; justify-content: space-between;
-      gap: 12px; padding: 6px 0; border: none;
-    }
-    .pc-table td::before {
-      content: attr(data-label); font-size: 11px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: .04em; color: #9CA3AF; flex-shrink: 0;
-    }
-    .pc-cell-exchange { justify-content: flex-start !important; gap: 8px; }
-    .pc-cell-exchange::before { display: none; }
-    .pc-exchange-name { font-size: 16px; }
-    /* Give the canonical promo-code field its full width on stacked rows —
-       side-by-side with the label it truncates long codes */
-    .pc-cell-code { flex-direction: column; align-items: stretch; gap: 4px; }
-    .pc-cell-code :global(.pcc-row) { max-width: none; }
-    .pc-cell-bonus, .pc-cell-note { text-align: right; max-width: 60%; }
-    .pc-cell-claim { padding-top: 10px !important; }
-    .pc-claim-btn { width: 100%; text-align: center; padding: 10px 16px; }
+    .promo-table { min-width: 0; }
+    .promo-table thead { display: none; }
+    .promo-table,
+    .promo-table tbody,
+    .promo-table tr,
+    .promo-table td { display: block; width: 100%; box-sizing: border-box; }
+    .promo-table-wrap { overflow: visible; border: 0; background: transparent; }
+    .promo-table tr { margin-bottom: var(--cbw-space-3); padding: var(--cbw-space-4); border: 1px solid var(--cbw-border-standard); border-radius: var(--cbw-radius-card); background: #fff; box-shadow: 0 5px 18px rgba(19,35,62,.05); }
+    .promo-table td { display: flex; justify-content: space-between; gap: var(--cbw-space-3); padding: 6px 0; border: 0; }
+    .promo-table td::before { content: attr(data-label); flex: 0 0 104px; color: var(--cbw-text-muted); font-size: 8px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; }
+    .promo-code-cell { flex-direction: column; align-items: stretch; }
+    .promo-code-cell::before { margin-bottom: 3px; }
+    .promo-code-cell :global(.pcc-row) { width: 100%; max-width: none; }
+    .promo-copy { max-width: 62%; text-align: right; }
+    .promo-action { width: 100%; }
   }
-
-  /* ── 4/5. Prose sections ──────────────────────────────────────── */
-  .pc-p { font-size: 14.5px; line-height: 1.75; color: #4B5563; }
-  .pc-list { display: flex; flex-direction: column; gap: 10px; font-size: 14.5px; line-height: 1.65; color: #4B5563; padding-left: 20px; }
-  .pc-list li { padding-left: 4px; }
-
-  /* ── 6. FAQ ───────────────────────────────────────────────────── */
-  .pc-faq-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
-  .pc-faq-item { background: #fff; border: 1px solid #E5E7EB; border-radius: 10px; overflow: hidden; }
-  .pc-faq-q {
-    padding: 16px 20px; font-size: 15px; font-weight: 600; color: #111827;
-    cursor: pointer; list-style: none;
-    display: flex; align-items: center; justify-content: space-between; user-select: none;
+  @media (max-width: 620px) {
+    :global(.promo-directory-page .cbw-first-viewport__inner) { padding-block: var(--cbw-space-5); }
+    :global(.promo-directory-page .cbw-display-title) { font-size: 42px; }
+    .promo-context { margin-top: var(--cbw-space-3); gap: 5px; }
+    .promo-context span,
+    .promo-context a { min-height: 25px; padding-inline: 8px; font-size: 8px; }
   }
-  .pc-faq-q::-webkit-details-marker { display: none; }
-  .pc-faq-q::after { content: '+'; font-size: 18px; color: #9CA3AF; }
-  details[open] .pc-faq-q::after { content: '−'; }
-  .pc-faq-a { padding: 0 20px 16px; font-size: 14px; color: #4B5563; line-height: 1.7; }
-
-  /* ── 7. Disclaimer ────────────────────────────────────────────── */
-  .pc-disclaimer-bar { background: #F9FAFB; border-top: 1px solid #E5E7EB; border-bottom: 1px solid #E5E7EB; padding: 20px 0; }
-  .pc-disclaimer-text { font-size: 12px; color: #6B7280; line-height: 1.7; }
-  .pc-disclaimer-text strong { color: #374151; }
-  .pc-disclaimer-link { color: #15803D; font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
-  .pc-disclaimer-link:hover { color: #166534; }
-
-  /* Reuse shared section-label / section-title from CleanLayout globals */
 </style>
