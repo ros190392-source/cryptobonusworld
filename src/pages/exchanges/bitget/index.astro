@@ -1,27 +1,10 @@
 ---
-// /exchanges/bitget/ → 301-equivalent redirect to /bitget/
-// This page is a canonical alias — all SEO credit lives at /bitget/
-// noindex + meta refresh (static site equivalent of 301)
+import RedirectPage from '../../../components/site-standard/RedirectPage.astro';
 ---
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bitget Referral Code — Redirecting…</title>
-  <meta name="robots" content="noindex, follow" />
-  <link rel="canonical" href="https://cryptobonusworld.com/bitget/" />
-  <meta http-equiv="refresh" content="0;url=/bitget/" />
-  <style>
-    body { margin:0; font-family:system-ui,sans-serif; background:#F7F8F4;
-           display:flex; align-items:center; justify-content:center; min-height:100vh; }
-    .msg { text-align:center; color:#6B7280; font-size:14px; }
-    a { color:#16A34A; }
-  </style>
-</head>
-<body>
-  <div class="msg">
-    <p>Redirecting to the <a href="/bitget/">Bitget referral code page</a>…</p>
-  </div>
-</body>
-</html>
+
+<RedirectPage
+  target="/bitget/"
+  canonical="https://cryptobonusworld.com/bitget/"
+  message="The canonical Bitget referral-code page now lives at the root exchange route."
+  targetLabel="the Bitget referral-code page"
+/>
