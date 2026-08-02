@@ -1,44 +1,21 @@
 ---
-// /exchanges/{slug}/ (legacy portal-era review pages) → redirect stubs.
-// Retired 2026-07-14 (Homepage/Redesign Alignment v1) — the previous-version
-// review template was removed; the six live exchanges have rich pages at
-// /{slug}/ (with their own /exchanges/{slug}/ alias stubs), and the slugs
-// below have no current review page. noindex + meta refresh
-// (static-site equivalent of 301). Recommended server-level 301: /exchanges/.
+import RedirectPage from '../../components/site-standard/RedirectPage.astro';
 import legacyExchanges from '../../data/exchanges.json';
 
 export function getStaticPaths() {
-  // Only the slugs WITHOUT a live promo page — the six live exchanges already
-  // have dedicated alias stubs at src/pages/exchanges/{slug}/index.astro.
   const LIVE_PROMO_SLUGS = new Set(['bybit', 'mexc', 'okx', 'bitget', 'kucoin', 'bingx']);
-  // Slugs that now have their own dedicated page at src/pages/exchanges/{slug}/
-  // must NOT also be generated here, or Astro sees two routes for the same path.
-  // coinex → neutral "Current Status" recovery page (legacy /exchanges/coinex traffic).
   const HAS_DEDICATED_PAGE = new Set(['coinex']);
   return legacyExchanges
-    .filter(ex => !LIVE_PROMO_SLUGS.has(ex.slug) && !HAS_DEDICATED_PAGE.has(ex.slug))
-    .map(ex => ({ params: { slug: ex.slug } }));
+    .filter(exchange => !LIVE_PROMO_SLUGS.has(exchange.slug) && !HAS_DEDICATED_PAGE.has(exchange.slug))
+    .map(exchange => ({ params: { slug: exchange.slug }, props: { exchangeName: exchange.name } }));
 }
+
+const { exchangeName } = Astro.props;
 ---
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Redirecting…</title>
-  <meta name="robots" content="noindex, follow" />
-  <link rel="canonical" href="https://cryptobonusworld.com/exchanges/" />
-  <meta http-equiv="refresh" content="0;url=/exchanges/" />
-  <style>
-    body { margin:0; font-family:system-ui,sans-serif; background:#F7F8F4;
-           display:flex; align-items:center; justify-content:center; min-height:100vh; }
-    .msg { text-align:center; color:#6B7280; font-size:14px; }
-    a { color:#16A34A; }
-  </style>
-</head>
-<body>
-  <div class="msg">
-    <p>This review has been retired. Redirecting to <a href="/exchanges/">all exchanges</a>…</p>
-  </div>
-</body>
-</html>
+
+<RedirectPage
+  target="/exchanges/"
+  canonical="https://cryptobonusworld.com/exchanges/"
+  message={`The retired ${exchangeName} review is no longer maintained as a standalone public page. Use the governed exchange directory for current profiles and evidence states.`}
+  targetLabel="the exchange directory"
+/>
