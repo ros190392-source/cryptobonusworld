@@ -1,35 +1,10 @@
 ---
-// /exchanges/coinex/ → redirect stub to the canonical /coinex/ route.
-//
-// The CoinEx status page moved to the root exchange URL pattern (/coinex/,
-// matching /bybit/, /mexc/, …). This legacy path preserves old organic traffic:
-// noindex + canonical /coinex/ + meta refresh (static-site equivalent of a 301).
-// Production nginx also 301s /exchanges/coinex(/) → /coinex/ (see
-// config/nginx/cbw-legacy-redirects.conf); this stub is the build-time fallback.
-//
-// coinex stays excluded from src/pages/exchanges/[slug].astro's stub generator
-// so this dedicated stub owns the route (no build collision). No bonus, code,
-// affiliate URL, or claim appears here.
+import RedirectPage from '../../../components/site-standard/RedirectPage.astro';
 ---
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Redirecting…</title>
-  <meta name="robots" content="noindex, follow" />
-  <link rel="canonical" href="https://cryptobonusworld.com/coinex/" />
-  <meta http-equiv="refresh" content="0;url=/coinex/" />
-  <style>
-    body { margin:0; font-family:system-ui,sans-serif; background:#F7F8F4;
-           display:flex; align-items:center; justify-content:center; min-height:100vh; }
-    .msg { text-align:center; color:#6B7280; font-size:14px; }
-    a { color:#16A34A; }
-  </style>
-</head>
-<body>
-  <div class="msg">
-    <p>This page has moved. Redirecting to <a href="/coinex/">CoinEx status</a>…</p>
-  </div>
-</body>
-</html>
+
+<RedirectPage
+  target="/coinex/"
+  canonical="https://cryptobonusworld.com/coinex/"
+  message="The canonical CoinEx status page now lives at the root exchange route."
+  targetLabel="the CoinEx status page"
+/>
