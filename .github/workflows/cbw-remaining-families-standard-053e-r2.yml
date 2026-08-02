@@ -35,6 +35,8 @@ jobs:
           done
           cat /tmp/cbw-preview.log
           exit 1
+      - name: Apply authoritative product-preserving expectations
+        run: node qa/patch-remaining-families-053e-r2.mjs
       - name: Validate remaining public families R2
         run: node qa/remaining-families-053e-r2.mjs
       - name: Upload evidence
