@@ -35,8 +35,9 @@ replaceExactly(
 
 replaceExactly(
   '        checks.exactPrimaryAction = await page.locator(`.cbw-exchange-primary[href="/go/${slug}/"]`).count() === 1;',
-  '        checks.exactPrimaryAction = await page.locator(`.cbw-exchange-primary[href="/go/${slug}/"], .cbw-exchange-primary[href="/go/${slug}"]`).count() === 1;',
-  'normalized exchange action path',
+  `        const primaryActionHrefs = await page.locator('.cbw-exchange-primary').evaluateAll(nodes => nodes.map(node => node.getAttribute('href')));
+        checks.exactPrimaryAction = primaryActionHrefs.length >= 1 && primaryActionHrefs.every(href => normalizeHref(href) === \`/go/\${slug}\`);`,
+  'all exchange primary actions use one governed route',
 );
 
 if (replacements !== 4) throw new Error(`Expected four final-audit patches, applied ${replacements}`);
