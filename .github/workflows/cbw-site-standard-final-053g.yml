@@ -29,9 +29,10 @@ jobs:
         run: node scripts/audits/legacy-site-layer-audit.mjs
       - name: Affiliate integrity
         run: npm run validate:affiliate
+      - name: Production build
+        run: npm run build
       - name: SEO integrity
         run: npm run seo:check
-      - run: npm run build
       - name: Start preview
         run: |
           npm run preview -- --host 127.0.0.1 --port 4321 > /tmp/cbw-preview.log 2>&1 &
