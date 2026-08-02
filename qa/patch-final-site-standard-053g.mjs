@@ -1,16 +1,44 @@
 import { readFile, writeFile } from 'node:fs/promises';
 
 const file = new URL('./final-site-standard-053g.mjs', import.meta.url);
-const source = await readFile(file, 'utf8');
-const oldLine = "    const relative = normalize(path.relative(repoRoot, file));";
-const newLine = "    const relative = normalize(path.relative(repoRoot, file.file));";
+let source = await readFile(file, 'utf8');
+let replacements = 0;
 
-if (!source.includes(oldLine)) {
-  throw new Error('Expected source-path line was not found in final audit script.');
+function replaceExactly(before, after, label) {
+  const count = source.split(before).length - 1;
+  if (count !== 1) throw new Error(`${label}: expected one occurrence, found ${count}`);
+  source = source.replace(before, after);
+  replacements += 1;
 }
 
-const next = source.replace(oldLine, newLine);
-if (next === source) throw new Error('Final audit source-path patch made no change.');
+replaceExactly(
+  '    const relative = normalize(path.relative(repoRoot, file));',
+  `    const relative = normalize(path.relative(repoRoot, file.file));
+    if (relative === 'src/data/layout/sitewideLayoutAudit.ts') continue;`,
+  'source path and governance snapshot exclusion',
+);
 
-await writeFile(file, next);
-console.log('Final route audit source path handling patched.');
+replaceExactly(
+`    for (const name of deletedNames) {
+      if (content.includes(name) && !relative.includes('sitewideLayoutAudit.ts')) blockers.push(\`DELETED_LAYER_REFERENCE:\${name}:\${relative}\`);
+    }
+`,
+  '',
+  'remove naive deleted-layer string matching',
+);
+
+replaceExactly(
+  "  if (record.finderReferences) staticBlockers.push(`FINDER_OUTPUT:${record.route}`);",
+  "  if (record.finderReferences && record.kind !== 'review') staticBlockers.push(`FINDER_OUTPUT:${record.route}`);",
+  'review-only finder snapshot exclusion',
+);
+
+replaceExactly(
+  '        checks.exactPrimaryAction = await page.locator(`.cbw-exchange-primary[href="/go/${slug}/"]`).count() === 1;',
+  '        checks.exactPrimaryAction = await page.locator(`.cbw-exchange-primary[href="/go/${slug}/"], .cbw-exchange-primary[href="/go/${slug}"]`).count() === 1;',
+  'normalized exchange action path',
+);
+
+if (replacements !== 4) throw new Error(`Expected four final-audit patches, applied ${replacements}`);
+await writeFile(file, source);
+console.log(`Final route audit patched with ${replacements} runtime-safe corrections.`);
