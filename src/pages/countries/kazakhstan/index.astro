@@ -282,7 +282,7 @@ if (!foundationPass) {
 <style>
   :global(body.country-kz-preview) { background: #f7f8f4; }
   .country-page { min-height: 100vh; color: #13233e; background: #f7f8f4; }
-  .shell { width: min(1160px, calc(100% - 40px)); margin-inline: auto; }
+  .shell { width: min(var(--cbw-width-wide, 1180px), calc(100% - 40px)); margin-inline: auto; }
   .country-hero { padding: 18px 0 72px; color: #fff; background: radial-gradient(circle at 78% 18%, rgba(247,147,26,.23), transparent 29%), linear-gradient(135deg,#091426,#173250); }
   .preview-strip { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 18px; padding: 10px 13px; border: 1px solid rgba(255,255,255,.14); border-radius: 10px; color: #c7d2e1; font-size: 9px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
   .crumbs { margin-top: 34px; color: #aebed2; font-size: 12px; }
@@ -364,10 +364,21 @@ if (!foundationPass) {
     .content-grid { grid-template-columns: minmax(0,1fr) 310px; }
   }
   @media (max-width: 719px) {
-    .country-title { display: block; }
-    .flag { display: block; margin-bottom: 15px; }
+    .country-hero { padding: 12px 0 42px; }
+    .preview-strip { padding: 8px 10px; }
+    .crumbs { margin-top: 18px; }
+    .hero-grid { gap: 14px; margin-top: 18px; }
+    .country-title { display: flex; align-items: flex-start; gap: 8px; }
+    .flag { display: inline-block; margin: 2px 0 0; font-size: 30px; }
+    h1 { font-size: clamp(40px, 12vw, 48px); line-height: .94; }
+    .lede { margin-top: 14px; font-size: 14px; line-height: 1.55; }
+    .readiness-card { padding: 14px; }
+    .readiness-card :global(.review-status small) { display: none; }
+    .readiness-card dl { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 6px 12px; margin-top: 10px; }
+    .readiness-card dl div { display: block; padding-top: 6px; }
+    .readiness-card dd { margin-top: 2px; }
     .profile-head { display: grid; }
     .profile-card dl { grid-template-columns: 1fr; }
-    .shell { width: min(100% - 32px, 1160px); }
+    .shell { width: min(var(--cbw-width-wide, 1180px), calc(100% - 32px)); }
   }
 </style>
