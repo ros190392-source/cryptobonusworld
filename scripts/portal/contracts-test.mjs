@@ -132,6 +132,41 @@ try {
   check('cta: unavailable no /go/', !m.resolveCommercialCta('get_bonus', 'ru', 'production', { ...goProfile, availability: 'unavailable', offerEligibility: 'not_eligible' }).href.startsWith('/go/'));
   check('cta: localized ru label present', goModel.label === 'Получить бонус');
 
+  // --- Honest fallback: label always matches the resolved destination ---
+  const throwsHelper = (fn) => { try { fn(); return false; } catch { return true; } };
+  check('honest: live affiliate keeps requested commercial intent + label', (() => {
+    const r = m.resolveCommercialCta('get_bonus', 'en', 'production', goProfile);
+    return r.requestedIntent === 'get_bonus' && r.resolvedIntent === 'get_bonus' && r.label === 'Get bonus' && r.href.startsWith('/go/');
+  })());
+  check('honest: preview downgrades get_bonus -> view_review label "Read review"', (() => {
+    const r = m.resolveCommercialCta('get_bonus', 'en', 'preview', goProfile);
+    return r.requestedIntent === 'get_bonus' && r.resolvedIntent === 'view_review' && r.label === 'Read review' && !r.href.startsWith('/go/') && !r.rel.includes('sponsored');
+  })());
+  check('honest: offer-not-approved -> view_review label (not "Get bonus")', (() => {
+    const r = m.resolveCommercialCta('get_bonus', 'en', 'production', { ...goProfile, offerEligibility: 'under_review', approval: 'validated' });
+    return r.resolvedIntent === 'view_review' && r.label === 'Read review' && r.gateReason === 'OFFER_NOT_APPROVED';
+  })());
+  check('honest: stale evidence -> view_review label matches internal dest', (() => {
+    const r = m.resolveCommercialCta('get_bonus', 'en', 'production', { ...goProfile, evidenceCheckedAt: '2020-01-01T00:00:00Z' }, { now: Date.parse('2026-08-02T00:00:00Z') });
+    return r.resolvedIntent === 'view_review' && r.label === 'Read review' && !r.href.startsWith('/go/');
+  })());
+  check('honest: restricted -> disabled commercial control, no href, localized', (() => {
+    const r = m.resolveCommercialCta('get_bonus', 'ru', 'production', { ...goProfile, availability: 'restricted', offerEligibility: 'not_eligible' });
+    return r.disabled === true && r.href === '' && r.resolvedIntent === 'get_bonus' && r.label === 'Получить бонус' && r.gateReason === 'MARKET_RESTRICTED';
+  })());
+  check('honest: requestedIntent preserved for analytics on downgrade', (() => {
+    const r = m.resolveCommercialCta('register', 'en', 'preview', goProfile);
+    return r.requestedIntent === 'register' && r.resolvedIntent === 'view_review';
+  })());
+  check('honest: label localized per resolved intent (ru preview => Читать обзор)', (() => {
+    const r = m.resolveCommercialCta('get_bonus', 'ru', 'preview', goProfile);
+    return r.label === 'Читать обзор';
+  })());
+  check('honest: assert rejects label that contradicts resolved intent', throwsHelper(() =>
+    m.assertCommercialCtaModel({ requestedIntent: 'get_bonus', resolvedIntent: 'view_review', locale: 'en', label: 'Get bonus', mode: 'preview', visualState: 'review', interactionState: 'default', href: '/exchanges/ex/', isAffiliate: false, disabled: false, rel: 'noopener', gateReason: 'PREVIEW_MODE' })));
+  check('honest: assert rejects navigable non-affiliate commercial intent', throwsHelper(() =>
+    m.assertCommercialCtaModel({ requestedIntent: 'get_bonus', resolvedIntent: 'get_bonus', locale: 'en', label: 'Get bonus', mode: 'preview', visualState: 'review', interactionState: 'default', href: '/exchanges/ex/', isAffiliate: false, disabled: false, rel: 'noopener', gateReason: 'PREVIEW_MODE' })));
+
   // --- Localization audit (en / ru / kk), deterministic fallback ---
   const LOCALES = ['en', 'ru', 'kk'];
   const INTENTS = ['register', 'get_bonus', 'open_exchange', 'view_review', 'view_evidence'];

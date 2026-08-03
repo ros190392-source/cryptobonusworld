@@ -54,8 +54,12 @@ export interface ResolveCommercialCtaOptions {
 }
 
 export interface CommercialCtaModel {
-  intent: CtaIntent;
+  /** The intent the caller asked for (kept for analytics). */
+  requestedIntent: CtaIntent;
+  /** The intent actually resolved — always matches the destination + label. */
+  resolvedIntent: CtaIntent;
   locale: CtaLocale;
+  /** Label for `resolvedIntent`; never contradicts the opened destination. */
   label: string;
   mode: CtaMode;
   visualState: CtaVisualState;
@@ -95,7 +99,6 @@ export function resolveCommercialCta(
     throw new Error('CTA review href must be a normalized internal path ending with a slash (never affiliate or protocol-relative).');
   }
 
-  const label = labelFor(intent, locale);
   const isCommercialIntent = COMMERCIAL_INTENTS.includes(intent);
   const availabilityAllows = profile.availability === 'available' || profile.availability === 'limited';
   const offerApproved = profile.offerEligibility === 'approved' && profile.approval === 'approved';
@@ -123,8 +126,13 @@ export function resolveCommercialCta(
   let isAffiliate: boolean;
   let disabled: boolean;
   let rel: string;
+  // resolvedIntent always describes the action the model actually performs, so
+  // the derived label can never contradict the opened destination.
+  let resolvedIntent: CtaIntent;
 
   if (affiliateAuthorized) {
+    // Live affiliate: resolved intent == requested commercial intent.
+    resolvedIntent = intent;
     visualState = 'commercial';
     gateReason = null;
     href = `${GO_PREFIX}${profile.slug}`;
@@ -132,23 +140,30 @@ export function resolveCommercialCta(
     disabled = false;
     rel = 'sponsored nofollow noopener';
   } else if (profile.availability === 'restricted' || profile.availability === 'unavailable') {
-    // No commercial action for restricted/unavailable markets — only review/evidence.
+    // Restricted/unavailable market. A commercial request becomes a genuine
+    // disabled control (no href, no navigation); a review/evidence request
+    // stays usable and points at the internal destination.
+    resolvedIntent = intent;
     visualState = profile.availability === 'restricted' ? 'restricted' : 'unavailable';
     gateReason = profile.availability === 'restricted' ? 'MARKET_RESTRICTED' : 'MARKET_UNAVAILABLE';
-    href = profile.reviewHref;
+    disabled = isCommercialIntent;
+    // A disabled control performs no navigation, so it carries no href.
+    href = disabled ? '' : profile.reviewHref;
     isAffiliate = false;
-    disabled = isCommercialIntent; // commercial buttons are visibly disabled; review/evidence stay usable
     rel = 'noopener';
   } else if (isCommercialIntent && mode === 'preview') {
+    // Preview: the button opens the internal review page, so it says so.
+    resolvedIntent = 'view_review';
     visualState = 'review';
     gateReason = 'PREVIEW_MODE';
     href = profile.reviewHref;
     isAffiliate = false;
     disabled = false;
     rel = 'noopener';
-  } else {
-    // Under review / not offer-eligible / stale evidence / unknown availability
-    // → internal, non-commercial.
+  } else if (isCommercialIntent) {
+    // Not offer-eligible / stale evidence / unknown availability → internal
+    // review navigation. Downgrade the resolved intent so the label matches.
+    resolvedIntent = 'view_review';
     visualState = 'under_review';
     gateReason = !offerApproved
       ? 'OFFER_NOT_APPROVED'
@@ -159,10 +174,23 @@ export function resolveCommercialCta(
     isAffiliate = false;
     disabled = false;
     rel = 'noopener';
+  } else {
+    // Already a non-commercial intent (view_review / view_evidence): honored as-is.
+    resolvedIntent = intent;
+    visualState = 'under_review';
+    gateReason = null;
+    href = profile.reviewHref;
+    isAffiliate = false;
+    disabled = false;
+    rel = 'noopener';
   }
 
+  // Label is ALWAYS derived from the resolved intent — never the requested one.
+  const label = labelFor(resolvedIntent, locale);
+
   const model: CommercialCtaModel = {
-    intent,
+    requestedIntent: intent,
+    resolvedIntent,
     locale,
     label,
     mode,
@@ -186,6 +214,15 @@ export function assertCommercialCtaModel(model: CommercialCtaModel): CommercialC
   const validStates: CtaInteractionState[] = ['default', 'hover', 'focus', 'active', 'disabled', 'loading'];
   if (!validStates.includes(model.interactionState)) {
     throw new Error(`Unknown CTA interaction state: ${String(model.interactionState)}`);
+  }
+  // Honesty: the label must describe the resolved intent, never the requested one.
+  if (model.label !== labelFor(model.resolvedIntent, model.locale)) {
+    throw new Error('CTA label must match its resolved intent.');
+  }
+  // A navigable, non-affiliate control must not present a commercial resolved
+  // intent (that is the exact "says Get bonus but opens a review page" defect).
+  if (!model.isAffiliate && !model.disabled && COMMERCIAL_INTENTS.includes(model.resolvedIntent)) {
+    throw new Error('A navigable non-affiliate CTA must not resolve to a commercial intent.');
   }
   if (model.isAffiliate) {
     if (!model.href.startsWith(GO_PREFIX)) {
