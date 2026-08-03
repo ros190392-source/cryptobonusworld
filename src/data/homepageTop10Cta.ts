@@ -22,6 +22,7 @@ import {
   type CtaProfileInput,
 } from './contracts/portalCta';
 import type { AvailabilityState, OfferEligibility, ApprovalState } from './contracts/portalFactory';
+import { isInternalPath } from './contracts/internalPath';
 
 export interface HomepageTop10CtaBinding {
   rank: number;
@@ -32,8 +33,6 @@ export interface HomepageTop10CtaBinding {
   secondaryLabel: string;
   secondaryHref: string;
 }
-
-const LOCAL_PATH_PATTERN = /^\/[a-z0-9/_-]*\/$/i;
 
 /**
  * Map a real offer status onto canonical gate facts. Only a `verified` offer is
@@ -60,8 +59,8 @@ function deriveGateFacts(offerStatus: string | undefined): {
 function reviewHrefFor(slug: string): string {
   const exchange = getExchange(slug);
   const href = exchange?.pageUrl ?? `/exchanges/${slug}/`;
-  if (!LOCAL_PATH_PATTERN.test(href)) {
-    throw new Error(`Homepage Top-10 review href for ${slug} must be a normalized local path: ${href}`);
+  if (!isInternalPath(href)) {
+    throw new Error(`Homepage Top-10 review href for ${slug} must be a normalized internal path: ${href}`);
   }
   return href;
 }

@@ -1,3 +1,5 @@
+import { isInternalPath } from './internalPath';
+
 export type SourceClass = 'exchange_official' | 'regulator' | 'government' | 'authoritative_media' | 'other';
 export type Confidence = 'high' | 'medium' | 'low' | 'unknown';
 export type ApprovalState = 'draft' | 'validated' | 'approved' | 'rejected' | 'stale';
@@ -155,7 +157,6 @@ export interface ValidationResult<T> {
 const ID_PATTERN = /^[a-z0-9][a-z0-9._:-]*$/i;
 const SHA256_PATTERN = /^sha256:[a-f0-9]{64}$/i;
 const COUNTRY_PATTERN = /^[A-Z]{2}$/;
-const URL_SLUG_PATH_PATTERN = /^\/[a-z0-9/_-]*\/$/;
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -368,7 +369,7 @@ export function validateContentPackage(input: unknown): ValidationResult<Content
   if (!isStringArray(input.editorialBlocks) || input.editorialBlocks.length === 0) issues.push(issue('editorialBlocks', 'NO_CONTENT', 'At least one editorial block is required.'));
   if (!isStringArray(input.sourcePacketIds) || input.sourcePacketIds.length === 0) issues.push(issue('sourcePacketIds', 'NO_SOURCES', 'Content packages require source packet references.'));
   if (!isObject(input.localeReadiness)) issues.push(issue('localeReadiness', 'INVALID_OBJECT', 'Locale readiness must be an object.'));
-  if (!hasText(input.previewRoute) || !URL_SLUG_PATH_PATTERN.test(input.previewRoute)) issues.push(issue('previewRoute', 'INVALID_PREVIEW_ROUTE', 'Preview route must be a normalized local path ending with a slash.'));
+  if (!isInternalPath(input.previewRoute)) issues.push(issue('previewRoute', 'INVALID_PREVIEW_ROUTE', 'Preview route must be a normalized internal path ending with a slash (never affiliate or protocol-relative).'));
   validateApproval(input.approval, 'approval', issues);
 
   if (input.approval === 'approved' && Array.isArray(input.approvedClaimIds) && input.approvedClaimIds.length === 0) {

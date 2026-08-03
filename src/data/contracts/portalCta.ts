@@ -15,6 +15,7 @@
  */
 import type { AvailabilityState, OfferEligibility, ApprovalState } from './portalFactory';
 import { assessEvidenceFreshness } from './portalFactory';
+import { isInternalPath } from './internalPath';
 import type { CtaMode } from '../exchangePreview/cta-contract';
 
 export type CtaIntent = 'register' | 'get_bonus' | 'open_exchange' | 'view_review' | 'view_evidence';
@@ -70,7 +71,6 @@ export interface CommercialCtaModel {
 
 const GO_PREFIX = '/go/';
 const SLUG_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
-const LOCAL_PATH_PATTERN = /^\/[a-z0-9/_-]*\/$/i;
 
 function labelFor(intent: CtaIntent, locale: CtaLocale): string {
   const byLocale = ctaLabels[intent];
@@ -91,8 +91,8 @@ export function resolveCommercialCta(
   profile: CtaProfileInput,
   options: ResolveCommercialCtaOptions = {},
 ): CommercialCtaModel {
-  if (!LOCAL_PATH_PATTERN.test(profile.reviewHref)) {
-    throw new Error('CTA review href must be a normalized local path ending with a slash.');
+  if (!isInternalPath(profile.reviewHref)) {
+    throw new Error('CTA review href must be a normalized internal path ending with a slash (never affiliate or protocol-relative).');
   }
 
   const label = labelFor(intent, locale);

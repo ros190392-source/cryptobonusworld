@@ -50,6 +50,7 @@ jobs:
           set -euo pipefail
           node_modules/.bin/tsc --noEmit --strict --skipLibCheck \
             --moduleResolution bundler --module esnext --target es2022 \
+            src/data/contracts/internalPath.ts \
             src/data/contracts/portalFactory.ts \
             src/data/contracts/portalUi.ts \
             src/data/contracts/portalRouteGuards.ts \

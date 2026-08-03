@@ -27,6 +27,7 @@ const homepageData = join(ROOT, 'src/data/homepageTop10.ts');
 const routeGuards = join(ROOT, 'src/data/contracts/portalRouteGuards.ts');
 const publication = join(ROOT, 'src/data/contracts/portalPublication.ts');
 const disclosure = join(ROOT, 'src/data/contracts/portalDisclosure.ts');
+const internalPath = join(ROOT, 'src/data/contracts/internalPath.ts');
 
 const tmp = mkdtempSync(join(tmpdir(), 'cbw-portal-test-'));
 const outfile = join(tmp, 'contracts.mjs');
@@ -50,7 +51,8 @@ try {
         `export { homepageTop10 } from ${JSON.stringify(homepageData)};\n` +
         `export { assertPortalRouteRecord, resolvePortalRoute } from ${JSON.stringify(routeGuards)};\n` +
         `export { emitPublicRankingRoutes } from ${JSON.stringify(publication)};\n` +
-        `export { resolveDisclosure } from ${JSON.stringify(disclosure)};`,
+        `export { resolveDisclosure } from ${JSON.stringify(disclosure)};\n` +
+        `export { isInternalPath, assertInternalPath } from ${JSON.stringify(internalPath)};`,
       resolveDir: ROOT,
       loader: 'ts',
     },
@@ -235,8 +237,43 @@ try {
     return p.approval === 'approved' && p.offerEligibility === 'approved' && p.availability === 'available';
   })());
 
-  // --- Route guard + real public emission path ---
+  // --- Canonical internal-path validator (adversarial) ---
   const throws = (fn) => { try { fn(); return false; } catch { return true; } };
+  const ACCEPT_PATHS = ['/', '/methodology/', '/exchanges/bybit/', '/__design/cbw-v2/contracts/', '/bybit/'];
+  const REJECT_PATHS = [
+    '//host/', '///host/', 'https://host/path/', 'http://host/path/', 'javascript:alert(1)',
+    '/\\evil/', '\\\\host\\', '/a//b/', '/../', '/foo/../bar/', '/foo?x=1/', '/foo#frag/',
+    '/foo%2e%2e/', '/exchanges/bybit', 'exchanges/bybit/', '', '/CONTROL/', '/go/bybit', '/go/bybit/',
+  ];
+  check('path: all canonical ACCEPT cases pass', ACCEPT_PATHS.every((p) => m.isInternalPath(p)));
+  check('path: all adversarial REJECT cases fail', REJECT_PATHS.every((p) => !m.isInternalPath(p)));
+  check('path: protocol-relative //host/ rejected', !m.isInternalPath('//host/'));
+  check('path: external absolute URL rejected', !m.isInternalPath('https://evil.example/x/'));
+  check('path: /go/* rejected for internal (default)', !m.isInternalPath('/go/bybit/'));
+  check('path: /go/* allowed only with allowGo', m.isInternalPath('/go/bybit/', { allowGo: true }));
+  check('path: non-string rejected', !m.isInternalPath(null) && !m.isInternalPath(undefined) && !m.isInternalPath(42));
+  check('path: assertInternalPath throws on protocol-relative', throws(() => m.assertInternalPath('//host/', 'x')));
+
+  // Downstream contracts must inherit the strict validator.
+  check('path: CTA review href rejects protocol-relative', throws(() =>
+    m.resolveCommercialCta('get_bonus', 'en', 'preview', { exchangeId: 'e', slug: 'e', availability: 'available', offerEligibility: 'approved', approval: 'approved', reviewHref: '//host/' })));
+  check('path: disclosure rejects protocol-relative methodology', throws(() =>
+    m.resolveDisclosure({ tone: 'verified', isAffiliate: false, methodologyHref: '//host/' }, 'en')));
+  check('path: ContentPackage rejects protocol-relative preview route', !m.validateContentPackage({ packageId: 'ct:1', countryCode: 'KZ', approvedClaimIds: [], editorialBlocks: ['b'], sourcePacketIds: ['src:1'], localeReadiness: { en: 'draft' }, previewRoute: '//host/', approval: 'draft' }).ok);
+  check('path: route guard rejects protocol-relative review path', throws(() =>
+    m.assertPortalRouteRecord({ routeId: 'x', reviewPath: '//host/', publicationState: 'draft', indexabilityAuthorized: false })));
+  check('path: public emission never returns protocol-relative output', (() => {
+    // A route whose publicPath is protocol-relative must fail the guard → excluded.
+    const prof = { profileId: 'mp:1', exchangeId: 'ex', countryCode: 'KZ', availability: 'available', offerEligibility: 'approved', claimIds: ['clm:1'], limitations: [], lastCheckedAt: daysAgo(5), nextReviewAt: '2026-09-30T00:00:00Z', approval: 'approved' };
+    const snap = { snapshotId: 'rk:x', countryCode: 'KZ', methodologyVersion: 'v1', rows: [{ position: 1, exchangeId: 'ex', marketProfileId: 'mp:1', rationaleClaimIds: ['clm:1'] }], excludedExchangeIds: [], underReviewExchangeIds: [], evidenceCheckedAt: daysAgo(5), approval: 'approved', approvedBy: 'owner' };
+    // A protocol-relative publicPath cannot even be constructed (assert throws), so emission has no valid route → row blocked.
+    let guardThrew = false;
+    try { m.assertPortalRouteRecord({ routeId: 'ex', reviewPath: '/__design/ex/', publicPath: '//host/', publicationState: 'approved', indexabilityAuthorized: true }); } catch { guardThrew = true; }
+    const r = m.emitPublicRankingRoutes({ snapshot: snap, profiles: { 'mp:1': prof }, routes: {}, now: NOW });
+    return guardThrew && r.published.length === 0 && !r.published.some((p) => String(p.publicPath).startsWith('//'));
+  })());
+
+  // --- Route guard + real public emission path ---
 
   const okRoute = { routeId: 'ex', reviewPath: '/__design/exchanges/ex/', publicPath: '/exchanges/ex/', publicationState: 'approved', indexabilityAuthorized: true };
   check('route: review mode returns review path', m.resolvePortalRoute(okRoute, 'review') === '/__design/exchanges/ex/');

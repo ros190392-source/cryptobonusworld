@@ -10,6 +10,7 @@
  */
 import type { CtaLocale } from './portalCta';
 import { pickLocalized, type LocalizedText } from './portalCtaI18n';
+import { isInternalPath } from './internalPath';
 
 export type DisclosureTone = 'verified' | 'preview' | 'research' | 'review' | 'missing';
 
@@ -43,7 +44,6 @@ export interface DisclosureModel {
 }
 
 const TONES: DisclosureTone[] = ['verified', 'preview', 'research', 'review', 'missing'];
-const LOCAL_PATH_PATTERN = /^\/[a-z0-9/_-]*\/$/i;
 const HTTPS_PATTERN = /^https:\/\/[^\s]+$/i;
 
 const toneLabels: Record<DisclosureTone, LocalizedText> = {
@@ -65,8 +65,8 @@ const affiliateText: LocalizedText = {
 
 /** Resolve a fail-closed, localized disclosure model. */
 export function resolveDisclosure(input: DisclosureInput, locale: CtaLocale = 'en'): DisclosureModel {
-  if (!LOCAL_PATH_PATTERN.test(input.methodologyHref)) {
-    throw new Error('Disclosure methodology href must be a normalized local path ending with a slash.');
+  if (!isInternalPath(input.methodologyHref)) {
+    throw new Error('Disclosure methodology href must be a normalized internal path ending with a slash (never affiliate or protocol-relative).');
   }
 
   // Unknown/absent tone fails closed to 'missing' (no confident claim).
