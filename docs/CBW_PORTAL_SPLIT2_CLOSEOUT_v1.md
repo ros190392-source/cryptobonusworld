@@ -1,7 +1,7 @@
 # CBW Portal Factory — Split 2 Closeout (v1)
 
 Branch: `feat/cbw-portal-components-contracts-052b`
-Status: complete, committed, **not pushed** (no PR / merge / deploy — owner action).
+Status: complete, committed and **pushed**; Draft PR #247 open; **not merged**; **not deployed**; production CTA **disabled and fail-closed to preview**.
 
 Split 2 delivers a conversion-oriented but fail-closed commercial layer on top of
 the Portal Factory contracts: gated CTAs, evidence freshness, accessibility,
