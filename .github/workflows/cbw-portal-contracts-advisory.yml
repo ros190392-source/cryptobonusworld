@@ -1,20 +1,44 @@
 name: CBW Portal Contracts Advisory
 
-# Advisory-only, non-blocking gate for the Portal Factory contracts.
+# Advisory-only, NON-BLOCKING gate for the Portal Factory contracts + their
+# Split-2 integration surfaces.
+#
+# IMPORTANT — this is NOT a required merge gate:
+#   * every step runs, but the job is `continue-on-error: true`, so the JOB
+#     conclusion is non-blocking. A reviewer MUST inspect the individual STEP
+#     outcomes in the advisory summary (typecheck / fixtures / contracts test /
+#     build) — a red step will not fail the job.
+#   * the authoritative local enforcement is the build-time fail-closed fixture
+#     throw (portalFoundationFixtures / portalStateFixtures), which fails
+#     `astro build` if any malformed / stale / conflicting / unavailable /
+#     unapproved fixture is ever accepted.
+#   * a BLOCKING production readiness gate is deferred to Split 3.
+#
 # Read-only permissions; never deploys and never writes repository contents.
-# The job is marked continue-on-error so it surfaces contract regressions
-# without blocking merges — the authoritative enforcement is the build-time
-# fail-closed fixture throw (portalFoundationFixtures / portalStateFixtures),
-# which fails `astro build` if any malformed, stale, conflicting, unavailable
-# or unapproved fixture is ever accepted.
+#
+# Path coverage is intentionally broad: it must trigger for any change to the
+# contracts OR their real integration surfaces (homepage Top-10, exchange
+# preview, the offer/exchange data the gate derives facts from, the runnable
+# test, and the lockfile). A PR touching only HomepageTop10.astro or
+# homepageTop10Cta.ts triggers this workflow.
 
 on:
   pull_request:
     paths:
       - 'src/data/contracts/**'
+      - 'src/data/homepageTop10.ts'
+      - 'src/data/homepageTop10Cta.ts'
+      - 'src/data/portalCtaMode.ts'
+      - 'src/data/offers.ts'
+      - 'src/data/exchanges.ts'
       - 'src/data/exchangePreview/cta-contract.ts'
-      - 'src/pages/**/portal-contracts/**'
+      - 'src/components/home/**'
+      - 'src/components/exchange-preview/**'
       - 'src/components/portal-v2/**'
+      - 'src/pages/**/portal-contracts/**'
+      - 'scripts/portal/**'
+      - 'package.json'
+      - 'package-lock.json'
       - '.github/workflows/cbw-portal-contracts-advisory.yml'
 
 permissions:
@@ -92,5 +116,8 @@ jobs:
             echo "| Contracts fail-closed test | ${CONTRACTS_TEST} |"
             echo "| Fail-closed build | ${BUILD} |"
             echo ""
-            echo "> Advisory only. Authoritative enforcement is the build-time fail-closed fixture throw."
+            echo "> **Advisory only — not a required merge gate.** This job is \`continue-on-error\`, so its"
+            echo "> conclusion is always non-blocking; inspect the individual step results in the table above."
+            echo "> Authoritative local enforcement is the build-time fail-closed fixture throw. A blocking"
+            echo "> production-readiness gate is deferred to Split 3."
           } >> "$GITHUB_STEP_SUMMARY"
