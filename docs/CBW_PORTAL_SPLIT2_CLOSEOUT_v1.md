@@ -92,18 +92,48 @@ paths or raw payloads are exposed.
   (non-blocking, read-only): typecheck contracts, ai-ops fixtures,
   `portal:contracts:test`, fail-closed build.
 
+## 8b. Owner-review remediation (R1–R6)
+
+Applied on the same branch during owner review, after integrating `master`
+(Site Standard v1):
+
+- **R1 — Strict internal-path contract:** one canonical `isInternalPath`
+  (internalPath.ts) replaces the drifting `/^\/[a-z0-9/_-]*\/$/` copies, which
+  wrongly accepted protocol-relative `//host/`. Rejects protocol-relative,
+  external URLs, `javascript:`, backslashes, control chars, query/fragment,
+  duplicate slashes, `..` traversal, `%`-escapes and (by default) `/go/*`.
+  Applied to CTA reviewHref, disclosure methodologyHref, ContentPackage
+  previewRoute, route review/public paths, homepage review href.
+- **R2 — Honest CTA fallback:** requestedIntent vs resolvedIntent; the label is
+  always derived from the resolved destination. Preview / offer-not-approved /
+  stale / availability-unconfirmed resolve to `view_review` ("Read review"),
+  never a "Get bonus" label over an internal link. Enforced in
+  assertCommercialCtaModel.
+- **R3 — Secondary-action contract:** validated with the canonical path
+  contract (internal-only, non-empty label); the component renders the
+  validated binding, not raw entry fields.
+- **R4 — Truthful loading state:** localized live-region announcement,
+  deterministic reset (timeout + pageshow/focus/visibility), duplicate-tab
+  guard, reduced-motion.
+- **R5 — CI path coverage:** advisory workflow now triggers on all Split-2
+  surfaces (components/home/**, homepageTop10*.ts, offers/exchanges, scripts/
+  portal/**, lockfile). Documented as non-blocking (continue-on-error) — inspect
+  step outcomes; a blocking gate is Split 3.
+
 ## 9. Local verification (exact commands)
 
 ```
-node scripts/portal/contracts-test.mjs          # 91 passed, 0 failed
+node scripts/portal/contracts-test.mjs          # 120 passed, 0 failed
 npm run ai-ops:validate:fixtures                # 43 passed, 0 failed
 node_modules/.bin/tsc --noEmit --strict --skipLibCheck \
   --moduleResolution bundler --module esnext --target es2022 \
-  src/data/contracts/portal*.ts src/data/portalCtaMode.ts \
-  src/data/homepageTop10Cta.ts src/data/exchangePreview/cta-contract.ts   # exit 0
-npm run build                                    # 103 pages, exit 0
-# Production preview of live affiliate posture (owner action):
-PUBLIC_CBW_CTA_MODE=production npm run build
+  src/data/contracts/portal*.ts src/data/contracts/internalPath.ts \
+  src/data/portalCtaMode.ts src/data/homepageTop10Cta.ts \
+  src/data/exchangePreview/cta-contract.ts               # exit 0
+npm run build                                    # 109 pages, exit 0
+# Preview posture (default) → homepage emits ZERO /go/ links.
+# Live affiliate posture is an explicit OWNER action, prohibited until Split 3:
+PUBLIC_CBW_CTA_MODE=production npm run build      # simulation only
 ```
 
 Lint: no lint script is configured in this repo; `tsc --noEmit` is the static gate.
@@ -120,11 +150,33 @@ Lint: no lint script is configured in this repo; `tsc --noEmit` is the static ga
 - Exchange detail / directory / promo pages carry their own pre-existing
   affiliate CTAs — outside Split-2 scope and unchanged here.
 
-## 11. Production / deployment exclusions
+## 11. Status & production exclusions
 
-No push, PR, merge or deploy was performed. Enabling live homepage affiliate
-links (`PUBLIC_CBW_CTA_MODE=production`) and any production deploy require owner
-credentials and owner action.
+**Status:** implemented; pushed to `feat/cbw-portal-components-contracts-052b`;
+**Draft PR #247 open**; **not merged**; **not deployed**; production CTA
+**disabled** (mode fail-closed to `preview`).
+
+Enabling live homepage affiliate links (`PUBLIC_CBW_CTA_MODE=production`) and any
+production deploy require owner credentials and owner action, and are prohibited
+until the Split-3 production-readiness blockers below are cleared.
+
+### Split-3 production blockers (must clear before production CTA)
+
+- **P0 (NEW) — Country-aware availability:** homepage CTA availability is
+  currently inferred from *offer status*, not from a canonical Exchange × Country
+  `MarketProfile`. Offer `restrictedCountries` and the resolved user country are
+  not yet wired into the commercial gate. Production CTA mode is therefore
+  prohibited until Split 3.
+- **P0 — Machine-readable freshness end-to-end:** homepage records need canonical
+  machine-readable `evidenceCheckedAt` wired end-to-end to the freshness CTA gate.
+- **P0 — Audit/migrate existing affiliate CTAs:** exchange/directory/promo
+  affiliate CTAs must be migrated to the centralized commercial contract or
+  explicitly proven safe.
+- **P1 — Localized homepage routing:** real ru/kk homepage routes/rendering not
+  implemented.
+- **P1 — Owner working-tree baseline:** pre-existing owner-authored working-tree
+  files require a recorded baseline and must stay outside the PR (baseline
+  recorded; none included).
 
 ## 12. Commits (Split 2, on `feat/cbw-portal-components-contracts-052b`)
 
@@ -138,5 +190,12 @@ credentials and owner action.
 a3690f5 localize CTA microcopy + gate reasons (en/ru/kk) + deterministic fallback
 8064c11 prove public route emission is fail-closed (route guards + publication)
 f1d0ee8 governed evidence-disclosure component on Top-10 rows
-(+ this closeout doc)
+e65fd9a Split-2 closeout doc
+a00d4ab merge origin/master (Site Standard v1) — re-apply gated CTA + disclosure
+2809115 canonical strict internal-path validator (reject protocol-relative)   [R1]
+7cf18d5 honest CTA fallback — label matches resolved destination              [R2]
+335c0bb validate secondary action + render validated binding                  [R3]
+da3dc0f truthful self-resetting accessible affiliate loading state            [R4]
+c2deb01 honest advisory CI path coverage + non-blocking disclosure            [R5]
+(+ this closeout update)                                                       [R6]
 ```
