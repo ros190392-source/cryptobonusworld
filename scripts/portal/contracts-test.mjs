@@ -272,6 +272,23 @@ try {
     return p.approval === 'approved' && p.offerEligibility === 'approved' && p.availability === 'available';
   })());
 
+  // Secondary-action contract (fail-closed, validated binding).
+  const thr = (fn) => { try { fn(); return false; } catch { return true; } };
+  const withSecondary = (href, label = 'Read more') => ({ ...bybit, secondaryAction: { href, label } });
+  check('hp/secondary: valid internal secondary passes + is echoed in binding', (() => {
+    const b = m.resolveHomepageTop10Cta(withSecondary('/exchanges/bybit/'), 'preview', 'en');
+    return b.secondaryHref === '/exchanges/bybit/' && b.secondaryLabel === 'Read more';
+  })());
+  check('hp/secondary: affiliate /go/ rejected', thr(() => m.resolveHomepageTop10Cta(withSecondary('/go/bybit'), 'preview', 'en')));
+  check('hp/secondary: external absolute URL rejected', thr(() => m.resolveHomepageTop10Cta(withSecondary('https://evil.example/x/'), 'preview', 'en')));
+  check('hp/secondary: protocol-relative rejected', thr(() => m.resolveHomepageTop10Cta(withSecondary('//host/'), 'preview', 'en')));
+  check('hp/secondary: malformed path rejected', thr(() => m.resolveHomepageTop10Cta(withSecondary('/exchanges/bybit'), 'preview', 'en')));
+  check('hp/secondary: empty label rejected', thr(() => m.resolveHomepageTop10Cta(withSecondary('/exchanges/bybit/', '   '), 'preview', 'en')));
+  check('hp/secondary: real data whole Top-10 all valid (build-time fail-closed)', (() => {
+    const all = m.homepageTop10.map((e) => m.resolveHomepageTop10Cta(e, 'preview', 'en'));
+    return all.every((b) => b.secondaryHref.startsWith('/') && !b.secondaryHref.startsWith('//') && !b.secondaryHref.startsWith('/go/') && b.secondaryLabel.trim().length > 0);
+  })());
+
   // --- Canonical internal-path validator (adversarial) ---
   const throws = (fn) => { try { fn(); return false; } catch { return true; } };
   const ACCEPT_PATHS = ['/', '/methodology/', '/exchanges/bybit/', '/__design/cbw-v2/contracts/', '/bybit/'];

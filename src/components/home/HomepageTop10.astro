@@ -154,9 +154,11 @@ const disclosures = new Map(
                 </a>
               );
             })()}
-            <a href={entry.secondaryAction.href} class="top10-secondary">
-              {entry.secondaryAction.label}
-            </a>
+            {ctaBindings.get(entry.rank) && (
+              <a href={ctaBindings.get(entry.rank)!.secondaryHref} class="top10-secondary" rel="noopener">
+                {ctaBindings.get(entry.rank)!.secondaryLabel}
+              </a>
+            )}
           </div>
         </li>
       ))}

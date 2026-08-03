@@ -101,16 +101,24 @@ export function resolveHomepageTop10Cta(
   const profile = buildCtaProfile(entry);
   const primary = resolveCommercialCta(primaryIntentFor(entry), locale, mode, profile);
 
+  // Fail-closed secondary-action contract: the destination must be a normalized
+  // internal path (never affiliate /go/*, external absolute, protocol-relative
+  // or otherwise malformed) and the label must be non-empty. The component
+  // renders THIS validated binding, never the raw entry fields.
   const secondaryHref = entry.secondaryAction.href;
-  if (secondaryHref.startsWith('/go/')) {
-    throw new Error(`Homepage Top-10 secondary action for ${entry.slug} must be internal, never affiliate.`);
+  if (!isInternalPath(secondaryHref)) {
+    throw new Error(`Homepage Top-10 secondary action for ${entry.slug} must be a normalized internal path (never affiliate/external/protocol-relative): ${secondaryHref}`);
+  }
+  const secondaryLabel = entry.secondaryAction.label;
+  if (typeof secondaryLabel !== 'string' || !secondaryLabel.trim()) {
+    throw new Error(`Homepage Top-10 secondary action label for ${entry.slug} must be a non-empty string.`);
   }
 
   return {
     rank: entry.rank,
     slug: entry.slug,
     primary,
-    secondaryLabel: entry.secondaryAction.label,
+    secondaryLabel,
     secondaryHref,
   };
 }
