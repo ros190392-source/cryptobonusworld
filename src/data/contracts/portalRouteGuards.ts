@@ -1,3 +1,5 @@
+import { isInternalPath } from './internalPath';
+
 export type PortalRouteMode = 'review' | 'public';
 export type PortalPublicationState = 'draft' | 'reviewed' | 'approved' | 'blocked';
 
@@ -10,11 +12,10 @@ export interface PortalRouteRecord {
 }
 
 const ROUTE_ID_PATTERN = /^[a-z0-9][a-z0-9._:-]*$/i;
-const LOCAL_PATH_PATTERN = /^\/[a-z0-9/_-]*\/$/;
 
 function validateLocalPath(path: string, label: string): void {
-  if (!LOCAL_PATH_PATTERN.test(path)) {
-    throw new Error(`${label} must be a normalized local path ending with a slash.`);
+  if (!isInternalPath(path)) {
+    throw new Error(`${label} must be a normalized internal path ending with a slash (never affiliate or protocol-relative).`);
   }
 }
 

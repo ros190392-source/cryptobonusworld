@@ -1,0 +1,123 @@
+name: CBW Portal Contracts Advisory
+
+# Advisory-only, NON-BLOCKING gate for the Portal Factory contracts + their
+# Split-2 integration surfaces.
+#
+# IMPORTANT — this is NOT a required merge gate:
+#   * every step runs, but the job is `continue-on-error: true`, so the JOB
+#     conclusion is non-blocking. A reviewer MUST inspect the individual STEP
+#     outcomes in the advisory summary (typecheck / fixtures / contracts test /
+#     build) — a red step will not fail the job.
+#   * the authoritative local enforcement is the build-time fail-closed fixture
+#     throw (portalFoundationFixtures / portalStateFixtures), which fails
+#     `astro build` if any malformed / stale / conflicting / unavailable /
+#     unapproved fixture is ever accepted.
+#   * a BLOCKING production readiness gate is deferred to Split 3.
+#
+# Read-only permissions; never deploys and never writes repository contents.
+#
+# Path coverage is intentionally broad: it must trigger for any change to the
+# contracts OR their real integration surfaces (homepage Top-10, exchange
+# preview, the offer/exchange data the gate derives facts from, the runnable
+# test, and the lockfile). A PR touching only HomepageTop10.astro or
+# homepageTop10Cta.ts triggers this workflow.
+
+on:
+  pull_request:
+    paths:
+      - 'src/data/contracts/**'
+      - 'src/data/homepageTop10.ts'
+      - 'src/data/homepageTop10Cta.ts'
+      - 'src/data/portalCtaMode.ts'
+      - 'src/data/offers.ts'
+      - 'src/data/exchanges.ts'
+      - 'src/data/exchangePreview/cta-contract.ts'
+      - 'src/components/home/**'
+      - 'src/components/exchange-preview/**'
+      - 'src/components/portal-v2/**'
+      - 'src/pages/**/portal-contracts/**'
+      - 'scripts/portal/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/cbw-portal-contracts-advisory.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cbw-portal-contracts-advisory-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  portal-contracts:
+    name: Portal contracts advisory (non-blocking)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck portal contracts
+        id: typecheck
+        run: |
+          set -euo pipefail
+          node_modules/.bin/tsc --noEmit --strict --skipLibCheck \
+            --moduleResolution bundler --module esnext --target es2022 \
+            src/data/contracts/internalPath.ts \
+            src/data/contracts/portalFactory.ts \
+            src/data/contracts/portalUi.ts \
+            src/data/contracts/portalRouteGuards.ts \
+            src/data/contracts/portalPublication.ts \
+            src/data/contracts/portalFoundationFixtures.ts \
+            src/data/contracts/portalCta.ts \
+            src/data/contracts/portalCtaI18n.ts \
+            src/data/contracts/portalDisclosure.ts \
+            src/data/contracts/portalStateFixtures.ts \
+            src/data/exchangePreview/cta-contract.ts
+
+      - name: AI-ops fail-closed fixtures
+        id: fixtures
+        run: npm run ai-ops:validate:fixtures
+
+      - name: Portal contracts fail-closed test
+        id: contracts_test
+        run: npm run portal:contracts:test
+
+      - name: Fail-closed build (enforces contract fixtures)
+        id: build
+        run: npm run build
+
+      - name: Advisory summary
+        if: always()
+        env:
+          TYPECHECK: ${{ steps.typecheck.outcome }}
+          FIXTURES: ${{ steps.fixtures.outcome }}
+          CONTRACTS_TEST: ${{ steps.contracts_test.outcome }}
+          BUILD: ${{ steps.build.outcome }}
+        run: |
+          {
+            echo "### Portal Contracts Advisory (non-blocking)"
+            echo ""
+            echo "| Check | Result |"
+            echo "|---|---|"
+            echo "| Contracts typecheck | ${TYPECHECK} |"
+            echo "| Fail-closed fixtures | ${FIXTURES} |"
+            echo "| Contracts fail-closed test | ${CONTRACTS_TEST} |"
+            echo "| Fail-closed build | ${BUILD} |"
+            echo ""
+            echo "> **Advisory only — not a required merge gate.** This job is \`continue-on-error\`, so its"
+            echo "> conclusion is always non-blocking; inspect the individual step results in the table above."
+            echo "> Authoritative local enforcement is the build-time fail-closed fixture throw. A blocking"
+            echo "> production-readiness gate is deferred to Split 3."
+          } >> "$GITHUB_STEP_SUMMARY"

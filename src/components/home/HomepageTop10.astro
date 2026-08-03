@@ -3,9 +3,48 @@ import ExchangeLogo from '../ExchangeLogo.astro';
 import PromoCodeCopy from '../promo/PromoCodeCopy.astro';
 import { homepageTop10 } from '../../data/homepageTop10';
 import '../../styles/site-standard-v1.css';
+import { resolveHomepageTop10Ctas } from '../../data/homepageTop10Cta';
+import { gateReasonText, ctaMicrocopy, pickLocalized } from '../../data/contracts/portalCtaI18n';
+import type { CtaLocale } from '../../data/contracts/portalCta';
+import Top10Disclosure from './Top10Disclosure.astro';
+import { resolveDisclosure } from '../../data/contracts/portalDisclosure';
+import { getOffer } from '../../data/offers';
+
+// Current published locale for the homepage. All CTA labels and microcopy are
+// sourced through the localization contract, so switching this constant
+// localizes labels + reasons + microcopy together (facts are unaffected).
+const ctaLocale: CtaLocale = 'en';
+
+// Gated commercial CTA bindings, derived from the canonical fail-closed
+// contract. In the default 'preview' mode every primary CTA resolves to an
+// internal review target; a live /go/ affiliate target appears only when the
+// owner enables production mode AND the row is verified + offer-eligible.
+const ctaBindings = new Map(
+  resolveHomepageTop10Ctas(homepageTop10, ctaLocale).map((b) => [b.rank, b]),
+);
+
+const opensNewTab = pickLocalized(ctaMicrocopy.opensNewTab, ctaLocale);
+const loadingText = pickLocalized(ctaMicrocopy.loading, ctaLocale);
+
+// Fail-closed evidence disclosure per row, derived from real records only.
+// A source link is carried only when a real HTTPS promo URL exists; research
+// rows without an offer resolve to a clear, non-fabricated disclosure state.
+const disclosures = new Map(
+  homepageTop10.map((entry) => {
+    const offer = getOffer(entry.slug);
+    const binding = ctaBindings.get(entry.rank);
+    return [entry.rank, resolveDisclosure({
+      tone: entry.statusTone,
+      lastChecked: entry.lastChecked,
+      sourceHref: offer?.sourceUrl,
+      isAffiliate: Boolean(binding?.primary.isAffiliate),
+      methodologyHref: '/methodology/',
+    }, ctaLocale)];
+  }),
+);
 ---
 
-<section class="top10-section" id="exchanges" aria-labelledby="top10-title">
+<section class="top10-section" id="exchanges" aria-labelledby="top10-title" data-cta-loading-text={loadingText}>
   <div class="top10-wrap">
     <div class="top10-heading">
       <div>
@@ -65,27 +104,62 @@ import '../../styles/site-standard-v1.css';
                 <PromoCodeCopy code={entry.promoCode} exchange={entry.name} />
               </div>
             )}
-            <span class="top10-checked">Last checked: {entry.lastChecked}</span>
+            {disclosures.get(entry.rank) && (
+              <Top10Disclosure model={disclosures.get(entry.rank)!} />
+            )}
           </div>
 
           <div class="top10-actions">
-            {entry.primaryAction && (
-              <a
-                href={entry.primaryAction.href}
-                class="top10-primary"
-                target={entry.primaryAction.external ? '_blank' : undefined}
-                rel={entry.primaryAction.external
-                  ? entry.primaryAction.sponsored
-                    ? 'noopener noreferrer sponsored'
-                    : 'noopener noreferrer'
-                  : undefined}
-              >
-                {entry.primaryAction.label} →
+            {(() => {
+              const cta = ctaBindings.get(entry.rank);
+              if (!cta) return null;
+              const p = cta.primary;
+              const stateClass = `top10-primary--${p.visualState}`;
+
+              // A withheld commercial action is a genuinely non-actionable
+              // control (disabled <button>), never a JS-suppressed anchor. Its
+              // accessible name carries the reason so it is unambiguous.
+              if (p.disabled) {
+                const reason = gateReasonText(p.gateReason, ctaLocale);
+                return (
+                  <button
+                    type="button"
+                    class:list={['top10-primary', 'top10-primary--disabled', stateClass]}
+                    disabled
+                    aria-label={`${p.label} at ${entry.name}: ${reason}`}
+                  >
+                    <span aria-hidden="true">{p.label}</span>
+                    <span class="top10-primary-why" aria-hidden="true">{reason}</span>
+                  </button>
+                );
+              }
+
+              // Affiliate targets open externally with sponsored/nofollow rel;
+              // internal review targets stay in-tab and non-sponsored. The
+              // accessible name is exchange-qualified so screen-reader users do
+              // not hear ten identical "Get bonus" links.
+              const accessibleName = p.isAffiliate
+                ? `${p.label} at ${entry.name} (${opensNewTab})`
+                : `${p.label} — ${entry.name}`;
+              return (
+                <a
+                  href={p.href}
+                  class:list={['top10-primary', stateClass, { 'is-affiliate': p.isAffiliate }]}
+                  data-cta-affiliate={p.isAffiliate ? 'true' : undefined}
+                  target={p.isAffiliate ? '_blank' : undefined}
+                  rel={p.isAffiliate ? p.rel : 'noopener'}
+                  aria-label={accessibleName}
+                >
+                  <span class="top10-primary-label" aria-hidden="true">{p.label} →</span>
+                  <span class="top10-primary-spinner" aria-hidden="true"></span>
+                </a>
+              );
+            })()}
+            {ctaBindings.get(entry.rank) && (
+              <a href={ctaBindings.get(entry.rank)!.secondaryHref} class="top10-secondary" rel="noopener">
+                {ctaBindings.get(entry.rank)!.secondaryLabel}
               </a>
             )}
-            <a href={entry.secondaryAction.href} class="top10-secondary">
-              {entry.secondaryAction.label}
-            </a>
           </div>
         </li>
       ))}
@@ -98,13 +172,71 @@ import '../../styles/site-standard-v1.css';
       completed country research with campaign eligibility still under review; gray means the profile is
       being re-verified. Always confirm current regional terms on the exchange’s official website.
     </div>
+
+    <span class="top10-sr-only" data-cta-live role="status" aria-live="polite"></span>
   </div>
 </section>
+
+<script is:inline>
+  // Progressive enhancement: a truthful, temporary, accessible "opening" state
+  // for affiliate CTAs (which open in a NEW tab, so this page stays visible).
+  // Works without JS (plain navigation). The state is always reset: on a short
+  // timeout and whenever the user returns to this tab, so it never sticks.
+  (function () {
+    var section = document.getElementById('exchanges');
+    if (!section) return;
+    var loadingText = section.getAttribute('data-cta-loading-text') || 'Opening…';
+    var live = section.querySelector('[data-cta-live]');
+    var RESET_MS = 1400;
+
+    function reset(el) {
+      el.classList.remove('is-loading');
+      el.removeAttribute('aria-busy');
+      if (live) live.textContent = '';
+    }
+    function resetAll() {
+      section.querySelectorAll('.top10-primary.is-loading').forEach(reset);
+    }
+
+    section.querySelectorAll('.top10-primary[data-cta-affiliate="true"]').forEach(function (el) {
+      var timer = null;
+      el.addEventListener('click', function (e) {
+        // Ignore repeat activations while already opening (avoid duplicate tabs).
+        if (el.classList.contains('is-loading')) { e.preventDefault(); return; }
+        el.classList.add('is-loading');
+        el.setAttribute('aria-busy', 'true');
+        if (live) live.textContent = loadingText;
+        clearTimeout(timer);
+        timer = setTimeout(function () { reset(el); }, RESET_MS);
+      });
+    });
+
+    // The affiliate link opens a new tab; clear the state as soon as the user
+    // returns here (or the page is restored from bfcache).
+    window.addEventListener('pageshow', resetAll);
+    window.addEventListener('focus', resetAll);
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState === 'visible') resetAll();
+    });
+  })();
+</script>
 
 <style>
   .top10-section {
     background: var(--cbw-surface-primary);
     padding: 18px 0 var(--cbw-space-9);
+  }
+
+  .top10-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
 
   .top10-wrap {
@@ -300,10 +432,12 @@ import '../../styles/site-standard-v1.css';
 
   .top10-primary,
   .top10-secondary {
+    position: relative;
     display: flex;
     min-height: 35px;
     align-items: center;
     justify-content: center;
+    gap: 7px;
     box-sizing: border-box;
     border-radius: var(--cbw-radius-control);
     font-size: 11px;
@@ -314,13 +448,88 @@ import '../../styles/site-standard-v1.css';
   }
 
   .top10-primary {
+    /* Site Standard v1 action styling (base) + Split-2 interaction states. */
     border: 1px solid rgba(19,35,62,.12);
     color: var(--cbw-text-primary);
     background: var(--cbw-action);
     box-shadow: 0 2px 7px rgba(247,147,26,.2);
+    cursor: pointer;
+    font-family: inherit;
+    transition: background-color .16s, box-shadow .16s, transform .12s;
   }
 
   .top10-primary:hover { background: var(--cbw-action-hover); }
+
+  .top10-primary:focus-visible,
+  .top10-secondary:focus-visible {
+    outline: 2px solid #0f766e;
+    outline-offset: 2px;
+  }
+
+  .top10-primary:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 3px rgba(19, 35, 62, .18);
+  }
+
+  /* Withheld commercial action: a real disabled control, not a fake link. */
+  .top10-primary--disabled,
+  .top10-primary:disabled {
+    flex-direction: column;
+    gap: 2px;
+    background: #f3f4f6;
+    border-color: #e5e7eb;
+    color: #6b7280;
+    box-shadow: none;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .top10-primary-why {
+    color: #6b7280;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .02em;
+    line-height: 1.2;
+    text-transform: none;
+  }
+
+  /* Loading state (progressive enhancement on affiliate outbound). Spinner
+     uses currentColor so it stays legible on the Site Standard action color. */
+  .top10-primary-spinner {
+    display: none;
+    width: 13px;
+    height: 13px;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    opacity: .85;
+  }
+
+  .top10-primary.is-loading { pointer-events: none; }
+  .top10-primary.is-loading .top10-primary-label { opacity: .75; }
+  .top10-primary.is-loading .top10-primary-spinner {
+    display: inline-block;
+    animation: top10-spin .6s linear infinite;
+  }
+
+  @keyframes top10-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .top10-row,
+    .top10-row:hover,
+    .top10-primary,
+    .top10-primary:active {
+      transition: none;
+      transform: none;
+    }
+
+    .top10-primary.is-loading .top10-primary-spinner {
+      animation: none;
+    }
+  }
+
   .top10-secondary { border: 1px solid #d1d5db; color: #374151; background: #fff; }
   .top10-secondary:hover { border-color: #9ca3af; background: #f9fafb; }
   .top10-mobile-label { display: none; }

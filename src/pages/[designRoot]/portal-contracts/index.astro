@@ -6,10 +6,50 @@ import {
   portalFoundationFixtureResults,
   portalFoundationFixturesPass,
 } from '../../../data/contracts/portalFoundationFixtures';
+import { reviewStateFixtures, reviewStatesPass } from '../../../data/contracts/portalStateFixtures';
+import { ctaLabels, resolveCommercialCta, type CtaIntent, type CtaLocale } from '../../../data/contracts/portalCta';
 
 export function getStaticPaths() {
   return [{ params: { designRoot: '__design' } }];
 }
+
+const reviewStatesPassCount = reviewStateFixtures.filter(f => f.ok).length;
+
+// Commercial CTA scenarios — demonstrate the fail-closed gate across market states.
+const ctaScenarios = [
+  {
+    name: 'Approved · offer-eligible · production',
+    model: resolveCommercialCta('get_bonus', 'ru', 'production', {
+      exchangeId: 'demo-exchange', slug: 'demo-exchange', availability: 'available',
+      offerEligibility: 'approved', approval: 'approved', reviewHref: '/exchanges/demo-exchange/',
+    }),
+  },
+  {
+    name: 'Available-with-limits · under review · production',
+    model: resolveCommercialCta('get_bonus', 'ru', 'production', {
+      exchangeId: 'demo-exchange', slug: 'demo-exchange', availability: 'limited',
+      offerEligibility: 'under_review', approval: 'validated', reviewHref: '/exchanges/demo-exchange/',
+    }),
+  },
+  {
+    name: 'Restricted market · production',
+    model: resolveCommercialCta('get_bonus', 'ru', 'production', {
+      exchangeId: 'demo-exchange', slug: 'demo-exchange', availability: 'restricted',
+      offerEligibility: 'not_eligible', approval: 'approved', reviewHref: '/exchanges/demo-exchange/',
+    }),
+  },
+  {
+    name: 'Approved · preview mode (no /go emitted)',
+    model: resolveCommercialCta('register', 'ru', 'preview', {
+      exchangeId: 'demo-exchange', slug: 'demo-exchange', availability: 'available',
+      offerEligibility: 'approved', approval: 'approved', reviewHref: '/exchanges/demo-exchange/',
+    }),
+  },
+];
+
+const ctaIntents: CtaIntent[] = ['register', 'get_bonus', 'open_exchange', 'view_review', 'view_evidence'];
+const ctaLocaleOrder: CtaLocale[] = ['ru', 'en', 'kk'];
+const interactionStates = ['default', 'hover', 'focus', 'active', 'disabled', 'loading'] as const;
 
 const statusModels = [
   { label: 'Verified', detail: 'Evidence and approval requirements passed.', tone: 'verified' as const },
@@ -41,9 +81,9 @@ const behaviorPassCount = portalFoundationBehaviorResults.filter(item =>
         Reusable evidence, claim, market-profile, ranking, content-package and route-guard contracts.
         Fixtures must fail closed before any country or locale route can be authorized.
       </p>
-      <div class:list={['contracts-outcome', { pass: portalFoundationFixturesPass }]}> 
-        <strong>{portalFoundationFixturesPass ? 'FOUNDATION PASS' : 'FOUNDATION BLOCKED'}</strong>
-        <span>{contractPassCount}/{portalFoundationFixtureResults.length} contract fixtures · {behaviorPassCount}/{portalFoundationBehaviorResults.length} behavior fixtures</span>
+      <div class:list={['contracts-outcome', { pass: portalFoundationFixturesPass && reviewStatesPass }]}>
+        <strong>{portalFoundationFixturesPass && reviewStatesPass ? 'FOUNDATION PASS' : 'FOUNDATION BLOCKED'}</strong>
+        <span>{contractPassCount}/{portalFoundationFixtureResults.length} contract fixtures · {behaviorPassCount}/{portalFoundationBehaviorResults.length} behavior fixtures · {reviewStatesPassCount}/{reviewStateFixtures.length} review states</span>
       </div>
     </div>
   </section>
@@ -108,6 +148,100 @@ const behaviorPassCount = portalFoundationBehaviorResults.filter(item =>
         </div>
       </section>
 
+      <section class="contracts-panel">
+        <div class="contracts-heading">
+          <p>Review states</p>
+          <h2>Six states, fail-closed</h2>
+        </div>
+        <div class="fixture-list">
+          {reviewStateFixtures.map(item => (
+            <article class:list={['fixture-row', 'state-row', `tone-${item.tone}`, { passed: item.ok }]}>
+              <div>
+                <span class="fixture-expect">{item.state.toUpperCase()} · expected {item.expected}</span>
+                <h3>{item.name}</h3>
+                <small class="state-detail">{item.detail}</small>
+              </div>
+              <div class="fixture-result">
+                <strong>{item.ok ? 'PASS' : 'FAIL'}</strong>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section class="contracts-panel">
+        <div class="contracts-heading">
+          <p>Commercial CTA states</p>
+          <h2>Conversion-oriented, still gated</h2>
+        </div>
+        <p class="panel-note">
+          Native registration and bonus buttons carry full interaction states and localized labels.
+          A commercial affiliate target (<code>/go/&#123;slug&#125;</code>) is emitted only for an approved,
+          offer-eligible, available market in production mode — every other state falls back to the
+          internal review surface and no affiliate action fires.
+        </p>
+
+        <div class="cta-scenarios">
+          {ctaScenarios.map(scenario => (
+            <div class:list={['cta-scenario', `visual-${scenario.model.visualState}`]}>
+              <div class="cta-scenario-head">
+                <span class="fixture-expect">{scenario.name}</span>
+                <div class="cta-tags">
+                  <span class="cta-tag">{scenario.model.visualState}</span>
+                  <span class:list={['cta-tag', { affiliate: scenario.model.isAffiliate }]}>
+                    {scenario.model.isAffiliate ? 'affiliate' : 'internal'}
+                  </span>
+                  {scenario.model.gateReason && <span class="cta-tag gate">{scenario.model.gateReason}</span>}
+                </div>
+              </div>
+              <div class="cta-scenario-body">
+                <button
+                  type="button"
+                  class:list={['cta-button', `is-${scenario.model.visualState}`]}
+                  disabled={scenario.model.disabled}
+                >
+                  {scenario.model.label}
+                </button>
+                <code class="cta-href">{scenario.model.href}</code>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div class="cta-substates">
+          <span class="fixture-expect">Interaction states</span>
+          <div class="cta-state-strip">
+            {interactionStates.map(state => (
+              <button
+                type="button"
+                class:list={['cta-button', 'cta-state-demo', `demo-${state}`]}
+                disabled={state === 'disabled'}
+              >
+                {ctaLabels.register.ru}
+                <span class="cta-state-name">{state}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div class="cta-labels">
+          <span class="fixture-expect">Localized labels</span>
+          <table class="cta-label-table">
+            <thead>
+              <tr><th>Intent</th>{ctaLocaleOrder.map(loc => <th>{loc.toUpperCase()}</th>)}</tr>
+            </thead>
+            <tbody>
+              {ctaIntents.map(intent => (
+                <tr>
+                  <td class="cta-intent">{intent}</td>
+                  {ctaLocaleOrder.map(loc => <td>{ctaLabels[intent][loc]}</td>)}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       <aside class="contracts-boundary">
         <strong>Authorization boundary</strong>
         <p>
@@ -146,6 +280,59 @@ const behaviorPassCount = portalFoundationBehaviorResults.filter(item =>
   .contracts-boundary { border-left: 5px solid #f7931a; }
   .contracts-boundary strong { color: #13233e; }
   .contracts-boundary p { margin: 6px 0 0; color: #536176; line-height: 1.7; }
+  .panel-note { margin: -6px 0 18px; color: #536176; font-size: 13px; line-height: 1.65; }
+  .panel-note code { padding: 1px 5px; border-radius: 5px; background: #eef1ec; color: #13233e; font-size: 12px; }
+  .state-detail { display: block; margin-top: 5px; color: #6d7987; font-size: 11px; line-height: 1.5; }
+  .state-row.tone-verified { border-left-color: #16834b; }
+  .state-row.tone-stale { border-left-color: #c9871f; }
+  .state-row.tone-review { border-left-color: #2b6cb0; }
+  .state-row.tone-restricted, .state-row.tone-missing { border-left-color: #b53f3f; }
+
+  /* Commercial CTA states */
+  .cta-scenarios { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .cta-scenario { padding: 15px; border: 1px solid #e0e5df; border-radius: 13px; background: #f9faf8; }
+  .cta-scenario.visual-commercial { border-color: #f2c98a; background: #fffaf2; }
+  .cta-scenario.visual-restricted, .cta-scenario.visual-unavailable { border-color: #ecd2d2; background: #fdf7f7; }
+  .cta-scenario-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+  .cta-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+  .cta-tag { padding: 2px 7px; border-radius: 999px; background: #e7ebe5; color: #4a5563; font-size: 9px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+  .cta-tag.affiliate { background: #f7931a; color: #fff; }
+  .cta-tag.gate { background: #fbe4e4; color: #9d3030; }
+  .cta-scenario-body { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .cta-href { padding: 4px 8px; border-radius: 7px; background: #eef1ec; color: #13233e; font-size: 11px; }
+
+  .cta-button {
+    position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 42px; padding: 0 20px; border: 2px solid transparent; border-radius: 11px;
+    font-family: 'Barlow Condensed', 'Inter', sans-serif; font-size: 16px; font-weight: 800; letter-spacing: .02em;
+    text-transform: uppercase; color: #fff; background: #f7931a; cursor: pointer;
+    transition: transform .12s ease, box-shadow .12s ease, background .12s ease, border-color .12s ease;
+  }
+  .cta-button:hover, .cta-button.demo-hover { background: #ffa733; box-shadow: 0 8px 20px rgba(247,147,26,.34); transform: translateY(-1px); }
+  .cta-button:focus-visible, .cta-button.demo-focus { outline: none; border-color: #13233e; box-shadow: 0 0 0 4px rgba(19,35,62,.22); }
+  .cta-button:active, .cta-button.demo-active { transform: translateY(1px); box-shadow: 0 3px 8px rgba(247,147,26,.28); background: #e07e08; }
+  .cta-button:disabled, .cta-button[disabled], .cta-button.demo-disabled { background: #d5d9d2; color: #7a8795; cursor: not-allowed; box-shadow: none; transform: none; border-color: transparent; }
+  .cta-button.is-review, .cta-button.is-under_review { background: transparent; color: #13233e; border-color: #13233e; }
+  .cta-button.is-review:hover, .cta-button.is-under_review:hover { background: rgba(19,35,62,.07); box-shadow: none; }
+  .cta-button.is-restricted, .cta-button.is-unavailable { background: #f0d9d9; color: #9d3030; }
+  .cta-button.demo-loading { color: transparent; pointer-events: none; }
+  .cta-button.demo-loading::after {
+    content: ''; position: absolute; width: 16px; height: 16px; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,.55); border-top-color: #fff; animation: cta-spin .7s linear infinite;
+  }
+  @keyframes cta-spin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .cta-button { transition: none; } .cta-button.demo-loading::after { animation: none; } }
+
+  .cta-substates { margin-top: 18px; }
+  .cta-state-strip { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+  .cta-state-demo { flex-direction: column; gap: 2px; min-width: 104px; padding: 10px 14px; }
+  .cta-state-name { font-size: 9px; font-weight: 700; letter-spacing: .08em; opacity: .85; }
+  .cta-labels { margin-top: 18px; }
+  .cta-label-table { width: 100%; margin-top: 8px; border-collapse: collapse; font-size: 13px; }
+  .cta-label-table th, .cta-label-table td { padding: 8px 10px; border-bottom: 1px solid #e6eae4; text-align: left; }
+  .cta-label-table th { color: #7a8795; font-size: 10px; letter-spacing: .06em; text-transform: uppercase; }
+  .cta-label-table .cta-intent { color: #13233e; font-weight: 700; }
+  @media (max-width: 759px) { .cta-scenarios { grid-template-columns: 1fr; } }
   @media (min-width: 760px) { .contracts-wrap { padding-inline: 32px; } }
   @media (max-width: 759px) {
     .contracts-hero { padding: 48px 0; }
