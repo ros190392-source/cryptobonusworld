@@ -87,9 +87,14 @@ export function resolveHomepageTop10Cta(
     exchangeId: entry.slug,
     slug: entry.slug,
     reviewHref: reviewHrefFor(entry.slug),
-    offer: offer ? { status: offer.status, restrictedCountries: offer.restrictedCountries } : null,
+    offer: offer
+      ? { exchangeSlug: offer.exchangeSlug, status: offer.status, restrictedCountries: offer.restrictedCountries }
+      : null,
     marketProfiles: options.marketProfiles ?? PUBLIC_MARKET_PROFILES,
-    now: options.now ?? Date.now(),
+    // No hidden Date.now() fallback (R4): a live decision needs an explicit
+    // finite clock. The public global/empty-registry context never reaches a
+    // live decision, so rendering without a clock is safe and stays fail-closed.
+    now: options.now,
   });
 
   // Fail-closed secondary-action contract: the destination must be a normalized

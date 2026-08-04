@@ -66,6 +66,30 @@ including offer-status-alone-cannot-authorize, restricted-country and malformed-
 restriction fail-closed, profile mismatch/conflict/stale, and en/ru/kk factual
 invariance.
 
+## Owner-review remediation (R1–R6)
+
+Production-integrity invariants added on the same branch (public behaviour
+unchanged — still zero `/go/*`):
+
+- **R1 exchange identity** — `exchangeId === slug === resolved profile.exchangeId`;
+  else `EXCHANGE_IDENTITY_MISMATCH`. A profile for exchange A can never authorize
+  `/go/{exchange-B}`.
+- **R2 offer identity** — `offer.exchangeSlug` must equal the target identity;
+  else `OFFER_IDENTITY_MISMATCH`. The homepage passes the real `offer.exchangeSlug`.
+- **R3 restriction completeness** — absent `restrictedCountries` is not proof of
+  “unrestricted”: `undefined/null → RESTRICTION_DATA_MISSING`, non-array/malformed
+  `→ RESTRICTION_DATA_INVALID`; only an explicit array (incl. `[]`) is proof.
+- **R4 finite clock** — `assessEvidenceFreshness` rejects non-finite `now`
+  (`INVALID_CLOCK`) and invalid policy numbers; the resolver requires a finite
+  explicit `now` for any live decision (`CLOCK_INVALID`). The homepage no longer
+  has a hidden `Date.now()` fallback.
+- **R5 review deadline** — a live decision requires `now < Date.parse(nextReviewAt)`;
+  else `PROFILE_REVIEW_OVERDUE` (independent of the `lastCheckedAt` freshness policy).
+- **R6 malformed registry** — `resolveMarketProfile` never throws; non-array
+  registry `→ PROFILE_REGISTRY_INVALID`, non-object entries ignored.
+
+All six reasons are localized en/ru/kk. Contracts total **205** cases.
+
 ## Remaining blockers (later tasks — not this PR)
 
 - Real evidence-backed approved **MarketProfile** population for target
