@@ -1,0 +1,146 @@
+---
+import CleanLayout from '../../../layouts/CleanLayout.astro';
+import {
+  countryCodes,
+  countryRegistry,
+  localeCodes,
+  localeRegistry,
+} from '../../../i18n/portalRegistry';
+import {
+  getLocaleAlternates,
+  resolveLocaleFallback,
+  resolvePortalSeo,
+} from '../../../i18n/portalRoutes';
+import {
+  portalI18nFixtureResults,
+  portalI18nFoundationPass,
+} from '../../../i18n/portalI18nFixtures';
+
+export function getStaticPaths() {
+  return [{ params: { designRoot: '__design' } }];
+}
+
+const kzAlternates = getLocaleAlternates('KZ', 'market-passport', 'binance');
+const kzSeo = resolvePortalSeo({ locale: 'en', country: 'KZ', page: 'country' });
+const unknownFallback = resolveLocaleFallback('fr', 'KZ');
+const incompatibleFallback = resolveLocaleFallback('ru', 'DE');
+---
+
+<CleanLayout
+  title="I18n Foundation Review | CryptoBonusWorld"
+  description="Noindex review dashboard for locale and country registries, route guards, SEO boundaries and immutable fact parity."
+  noindex={true}
+>
+  <div class="i18n-page" data-i18n-foundation data-fixture-count={portalI18nFixtureResults.length}>
+    <section class="i18n-hero">
+      <div class="shell">
+        <div class="preview-strip"><span>Noindex i18n foundation</span><span>No locale route activation</span></div>
+        <p class="eyebrow">Country and language remain independent</p>
+        <h1>Locale route guards</h1>
+        <p class="lede">
+          Registries, fallback rules and SEO contracts can model EN, PL, RU and UK presentation
+          without activating localized public URLs. English core routes remain unprefixed.
+        </p>
+        <div class:list={['foundation-outcome', { pass: portalI18nFoundationPass }]}> 
+          <strong>{portalI18nFoundationPass ? 'I18N FOUNDATION PASS' : 'I18N FOUNDATION BLOCKED'}</strong>
+          <span>{portalI18nFixtureResults.filter(result => result.passed).length}/{portalI18nFixtureResults.length} expected outcomes</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="content-section">
+      <div class="shell stack">
+        <section class="panel">
+          <header class="section-heading"><p class="eyebrow">Locale registry</p><h2>Registered does not mean active</h2></header>
+          <div class="locale-grid">
+            {localeCodes.map(code => {
+              const locale = localeRegistry[code];
+              return (
+                <article class="locale-card" data-locale={code} data-route-state={locale.localizedRouteState}>
+                  <div><span>{code.toUpperCase()}</span><h3>{locale.nativeLabel}</h3></div>
+                  <dl>
+                    <div><dt>Registry</dt><dd>{locale.registryState}</dd></div>
+                    <div><dt>Localized route</dt><dd>{locale.localizedRouteState}</dd></div>
+                    <div><dt>Prefix</dt><dd>{locale.routePrefix || 'none'}</dd></div>
+                    <div><dt>Coverage</dt><dd>{locale.uiCoverage} / {locale.contentCoverage}</dd></div>
+                  </dl>
+                  {locale.defaultLocale && <strong class="default-badge">Default · stable unprefixed URLs</strong>}
+                </article>
+              );
+            })}
+          </div>
+        </section>
+
+        <section class="panel">
+          <header class="section-heading"><p class="eyebrow">Country registry</p><h2>Publication is a separate gate</h2></header>
+          <div class="country-grid">
+            {countryCodes.map(code => {
+              const country = countryRegistry[code];
+              return (
+                <article class="country-card" data-country={code} data-public-authorized={String(country.publicRouteAuthorized)}>
+                  <div class="country-title"><span>{country.flag}</span><div><small>{code}</small><h3>{country.label}</h3></div></div>
+                  <dl>
+                    <div><dt>Registry</dt><dd>{country.registryState}</dd></div>
+                    <div><dt>Public route</dt><dd>{country.publicRouteAuthorized ? 'ON' : 'OFF'}</dd></div>
+                    <div><dt>Currency</dt><dd>{country.primaryCurrencies.join(', ')}</dd></div>
+                    <div><dt>Presentation</dt><dd>{country.presentationLocales.join(', ')}</dd></div>
+                  </dl>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+
+        <section class="panel seo-panel">
+          <header class="section-heading"><p class="eyebrow">SEO boundary</p><h2>No canonical, hreflang or sitemap activation</h2></header>
+          <div class="seo-grid">
+            <article><span>Robots</span><strong>{kzSeo.robots}</strong><small>Kazakhstan remains review-only.</small></article>
+            <article><span>Canonical</span><strong>{kzSeo.canonical ?? 'none'}</strong><small>No public canonical before authorization.</small></article>
+            <article><span>Hreflang eligible</span><strong>{kzSeo.alternates.length}</strong><small>Review shapes are not SEO alternates.</small></article>
+            <article><span>Sitemap eligible</span><strong>{kzSeo.sitemapEligible ? 'yes' : 'no'}</strong><small>Country/locale URLs stay excluded.</small></article>
+          </div>
+          <div class="alternate-list">
+            {kzAlternates.map(item => (
+              <div data-alternate={item.locale} data-hreflang-eligible={String(item.eligibleForHreflang)}>
+                <span>{item.locale.toUpperCase()}</span><code>{item.href}</code><strong>{item.eligibleForHreflang ? 'ELIGIBLE' : 'REVIEW ONLY'}</strong>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section class="panel">
+          <header class="section-heading"><p class="eyebrow">Fallback behavior</p><h2>Presentation fallback never activates a URL</h2></header>
+          <div class="fallback-grid">
+            <article data-fallback="unknown"><span>Requested FR for KZ</span><strong>{unknownFallback.effectiveLocale.toUpperCase()}</strong><small>{unknownFallback.reason} · route active: {String(unknownFallback.routeActivated)}</small></article>
+            <article data-fallback="country-incompatible"><span>Requested RU for DE</span><strong>{incompatibleFallback.effectiveLocale.toUpperCase()}</strong><small>{incompatibleFallback.reason} · route active: {String(incompatibleFallback.routeActivated)}</small></article>
+          </div>
+        </section>
+
+        <section class="panel">
+          <header class="section-heading"><p class="eyebrow">Build-blocking contract suite</p><h2>Expected pass and rejection outcomes</h2></header>
+          <div class="fixture-list">
+            {portalI18nFixtureResults.map(result => (
+              <article class:list={['fixture-row', { passed: result.passed }]} data-fixture={result.name}>
+                <div><span>Expected {result.expected}</span><h3>{result.name}</h3><p>{result.detail}</p></div>
+                <strong>{result.passed ? 'PASS' : 'FAIL'}</strong>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <aside class="boundary-card">
+          <strong>Activation boundary</strong>
+          <p>
+            This dashboard defines route shapes and presentation fallback only. It creates no `/pl/`,
+            `/ru/` or `/uk/` page, emits no hreflang, changes no canonical, adds no sitemap entry and
+            cannot modify values, dates, confidence, availability, offer or ranking state.
+          </p>
+        </aside>
+      </div>
+    </section>
+  </div>
+</CleanLayout>
+
+<style>
+  .i18n-page{min-height:100vh;color:#13233e;background:#f7f8f4}.shell{width:min(1100px,calc(100% - 40px));margin-inline:auto}.i18n-hero{padding:18px 0 68px;color:#fff;background:radial-gradient(circle at 82% 16%,rgba(247,147,26,.2),transparent 29%),linear-gradient(135deg,#091426,#173250)}.preview-strip{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;padding:10px 13px;border:1px solid rgba(255,255,255,.14);border-radius:10px;color:#c7d2e1;font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}.eyebrow{margin:34px 0 10px;color:#f7931a;font-size:10px;font-weight:900;letter-spacing:.11em;text-transform:uppercase}.i18n-hero h1,.section-heading h2{font-family:'Barlow Condensed','Inter',sans-serif;text-transform:uppercase;letter-spacing:-.025em}.i18n-hero h1{max-width:850px;margin:0;font-size:clamp(52px,8vw,84px);line-height:.92}.lede{max-width:760px;margin:22px 0 0;color:#d2ddea;font-size:16px;line-height:1.72}.foundation-outcome{display:inline-flex;flex-wrap:wrap;gap:8px 16px;margin-top:22px;padding:11px 14px;border:1px solid rgba(255,255,255,.15);border-radius:11px;color:#ffd1d1;background:rgba(255,255,255,.05)}.foundation-outcome.pass{color:#a8efc1;border-color:rgba(80,200,125,.32);background:rgba(32,130,72,.13)}.foundation-outcome span{color:#cbd6e3;font-size:11px}.content-section{padding:54px 0 84px}.stack{display:grid;gap:18px}.panel,.boundary-card{padding:24px;border:1px solid #dce2dc;border-radius:17px;background:#fff;box-shadow:0 9px 27px rgba(19,35,62,.05)}.section-heading .eyebrow{margin-top:0}.section-heading h2{margin:0 0 20px;font-size:clamp(34px,5vw,48px);line-height:.98}.locale-grid,.country-grid,.seo-grid,.fallback-grid{display:grid;gap:11px}.locale-card,.country-card,.seo-grid article,.fallback-grid article{min-width:0;padding:17px;border:1px solid #e0e5df;border-radius:13px;background:#f9faf8}.locale-card>div:first-child>span,.country-title small,.seo-grid span,.fallback-grid span{color:#8a5b1a;font-size:9px;font-weight:900;letter-spacing:.07em;text-transform:uppercase}.locale-card h3,.country-card h3{margin:3px 0 0;font-size:17px}.locale-card dl,.country-card dl{display:grid;gap:7px;margin:14px 0 0}.locale-card dl div,.country-card dl div{display:flex;justify-content:space-between;gap:10px;padding-top:7px;border-top:1px solid #e8ece7}.locale-card dt,.country-card dt{color:#7d8997;font-size:9px}.locale-card dd,.country-card dd{margin:0;font-size:9px;font-weight:800;text-align:right}.default-badge{display:block;margin-top:12px;color:#16834b;font-size:9px;text-transform:uppercase}.country-title{display:flex;align-items:center;gap:10px}.country-title>span{font-size:28px}.seo-grid strong,.fallback-grid strong{display:block;margin:7px 0 3px;font-family:'Barlow Condensed','Inter',sans-serif;font-size:24px;text-transform:uppercase}.seo-grid small,.fallback-grid small{color:#6d7a89;font-size:9px}.alternate-list{display:grid;gap:7px;margin-top:14px}.alternate-list div{display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px;border-radius:9px;background:#f3f6f2}.alternate-list span,.alternate-list strong{font-size:9px;font-weight:900}.alternate-list strong{color:#a12828}.alternate-list code{min-width:0;color:#526176;font-size:9px;overflow-wrap:anywhere}.fixture-list{display:grid;gap:8px}.fixture-row{display:flex;justify-content:space-between;gap:16px;padding:14px 16px;border:1px solid #edd0d0;border-left:4px solid #a12828;border-radius:11px;background:#fff6f6}.fixture-row.passed{border-color:#d6e8da;border-left-color:#16834b;background:#f7fcf8}.fixture-row span{color:#7a8795;font-size:8px;font-weight:900;text-transform:uppercase}.fixture-row h3{margin:3px 0;color:#13233e;font-size:13px}.fixture-row p{margin:0;color:#6b7888;font-size:9px;line-height:1.45}.fixture-row>strong{color:#a12828;font-size:10px}.fixture-row.passed>strong{color:#16834b}.boundary-card{border-left:5px solid #f7931a}.boundary-card p{margin:6px 0 0;color:#627083;font-size:11px;line-height:1.65}@media(min-width:700px){.locale-grid,.country-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.seo-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.fallback-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:699px){.shell{width:min(100% - 32px,1100px)}.panel,.boundary-card{padding:19px}.fixture-row{flex-direction:column}.alternate-list div{grid-template-columns:34px minmax(0,1fr)}.alternate-list strong{grid-column:2}}
+</style>
