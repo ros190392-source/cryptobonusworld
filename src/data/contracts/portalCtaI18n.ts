@@ -59,6 +59,52 @@ export const ctaGateReasonText: Record<string, LocalizedText> = {
     ru: 'Превью — смотрите обзор',
     kk: 'Алдын ала қарау — шолуды көріңіз',
   },
+  // ── Country-aware gate reasons (Split 3) ──
+  COUNTRY_MISSING: {
+    en: 'Select your country',
+    ru: 'Выберите вашу страну',
+    kk: 'Еліңізді таңдаңыз',
+  },
+  COUNTRY_GLOBAL: {
+    en: 'Country not set — see review',
+    ru: 'Страна не выбрана — смотрите обзор',
+    kk: 'Ел таңдалмаған — шолуды көріңіз',
+  },
+  COUNTRY_MALFORMED: {
+    en: 'Country not recognized',
+    ru: 'Страна не распознана',
+    kk: 'Ел танылмады',
+  },
+  COUNTRY_UNSUPPORTED: {
+    en: 'Not reviewed for your country yet',
+    ru: 'Пока не проверено для вашей страны',
+    kk: 'Еліңіз үшін әлі тексерілмеген',
+  },
+  PROFILE_MISSING: {
+    en: 'No country review yet',
+    ru: 'Обзора по стране пока нет',
+    kk: 'Ел бойынша шолу әлі жоқ',
+  },
+  PROFILE_CONFLICT: {
+    en: 'Conflicting country data',
+    ru: 'Противоречивые данные по стране',
+    kk: 'Ел деректері қайшы келеді',
+  },
+  PROFILE_INVALID: {
+    en: 'Country data invalid',
+    ru: 'Данные по стране недействительны',
+    kk: 'Ел деректері жарамсыз',
+  },
+  PROFILE_UNDER_REVIEW: {
+    en: 'Country review in progress',
+    ru: 'Идёт проверка по стране',
+    kk: 'Ел бойынша тексеру жүріп жатыр',
+  },
+  RESTRICTION_DATA_INVALID: {
+    en: 'Restriction data invalid',
+    ru: 'Данные об ограничениях недействительны',
+    kk: 'Шектеу деректері жарамсыз',
+  },
 };
 
 /** Short CTA microcopy fragments. */
