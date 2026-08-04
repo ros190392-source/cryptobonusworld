@@ -1,13 +1,18 @@
 /**
- * Homepage Top-10 — gated commercial CTA binding.
+ * Homepage Top-10 — country-aware commercial CTA binding (Split 3).
  *
- * Binds each Top-10 row to the canonical fail-closed commercial CTA contract
- * (resolveCommercialCta). Canonical gate inputs (availability / offer
- * eligibility / approval) are DERIVED from the real exchange + offer records —
- * never fabricated. A live `/go/{slug}` affiliate target is therefore possible
- * only for a verified, offer-eligible exchange while the public CTA mode is
- * 'production'; every other row falls back to an internal review target, and
- * restricted/unavailable markets render a genuinely non-actionable state.
+ * Each row is bound through resolveCountryAwareCommercialCta. Availability and
+ * profile approval are decided ONLY by an approved Exchange × Country
+ * MarketProfile — never by offer status. Offer status (via getOffer) is passed
+ * through solely so the resolver can authorize the OFFER itself and enforce
+ * offer.restrictedCountries; it can never create country availability.
+ *
+ * The static homepage has no country routing yet, so it uses an explicit,
+ * non-country review context (PUBLIC_HOMEPAGE_COUNTRY = 'global') and the empty
+ * PUBLIC_MARKET_PROFILES registry. Consequently the public homepage emits ZERO
+ * `/go/*` links in BOTH preview and production simulation — fully fail-closed —
+ * until real approved profiles + country routing land in a later task. There is
+ * no hidden default country that could authorize a production action.
  */
 import type { HomepageTop10Entry } from './homepageTop10';
 import { getExchange } from './exchanges';
@@ -15,45 +20,36 @@ import { getOffer } from './offers';
 import type { CtaMode } from './exchangePreview/cta-contract';
 import { resolvePublicCtaMode } from './portalCtaMode';
 import {
-  resolveCommercialCta,
   type CommercialCtaModel,
   type CtaIntent,
   type CtaLocale,
-  type CtaProfileInput,
 } from './contracts/portalCta';
-import type { AvailabilityState, OfferEligibility, ApprovalState } from './contracts/portalFactory';
 import { isInternalPath } from './contracts/internalPath';
+import {
+  resolveCountryAwareCommercialCta,
+  PUBLIC_HOMEPAGE_COUNTRY,
+} from './contracts/countryAwareCta';
+import { PUBLIC_MARKET_PROFILES } from './contracts/marketProfileRegistry';
+import type { MarketProfile } from './contracts/portalFactory';
 
 export interface HomepageTop10CtaBinding {
   rank: number;
   slug: string;
-  /** Gated primary CTA (commercial when authorized, internal review otherwise). */
+  /** Gated primary CTA (commercial only when a country-aware proof exists). */
   primary: CommercialCtaModel;
   /** Secondary internal transition (always a local review/status route). */
   secondaryLabel: string;
   secondaryHref: string;
 }
 
-/**
- * Map a real offer status onto canonical gate facts. Only a `verified` offer is
- * treated as approved + offer-eligible + available (the sole path to a live
- * affiliate CTA). A public preview is available but not yet offer-eligible; any
- * other/absent offer is unknown-availability and not eligible.
- */
-function deriveGateFacts(offerStatus: string | undefined): {
-  availability: AvailabilityState;
-  offerEligibility: OfferEligibility;
-  approval: ApprovalState;
-} {
-  switch (offerStatus) {
-    case 'verified':
-      return { availability: 'available', offerEligibility: 'approved', approval: 'approved' };
-    case 'public-preview':
-      return { availability: 'available', offerEligibility: 'under_review', approval: 'validated' };
-    default:
-      // unverified / expired / no offer (research or re-verification rows)
-      return { availability: 'unknown', offerEligibility: 'not_eligible', approval: 'validated' };
-  }
+/** Options for resolving a homepage binding (country context + registry injectable). */
+export interface HomepageCtaOptions {
+  /** Explicit country context; defaults to the non-country homepage context. */
+  countryCode?: string;
+  /** MarketProfile registry; defaults to the empty public registry. */
+  marketProfiles?: readonly MarketProfile[];
+  /** Explicit clock for evidence freshness. */
+  now?: number;
 }
 
 function reviewHrefFor(slug: string): string {
@@ -66,40 +62,35 @@ function reviewHrefFor(slug: string): string {
 }
 
 /**
- * Build the CTA profile input for one Top-10 entry from real records.
- * Exported for focused testing.
- */
-export function buildCtaProfile(entry: HomepageTop10Entry): CtaProfileInput {
-  const offer = getOffer(entry.slug);
-  const facts = deriveGateFacts(offer?.status);
-  return {
-    exchangeId: entry.slug,
-    slug: entry.slug,
-    availability: facts.availability,
-    offerEligibility: facts.offerEligibility,
-    approval: facts.approval,
-    reviewHref: reviewHrefFor(entry.slug),
-  };
-}
-
-/**
  * Choose the primary commercial intent for a row. Offer-bearing rows use a
- * commercial intent (the gate decides affiliate vs. internal); rows without an
- * offer use a non-commercial review intent so they never present a bonus label.
+ * commercial intent (the country-aware gate decides affiliate vs. internal);
+ * rows without an offer use a non-commercial review intent.
  */
 function primaryIntentFor(entry: HomepageTop10Entry): CtaIntent {
   const offer = getOffer(entry.slug);
   return offer ? 'get_bonus' : 'view_review';
 }
 
-/** Resolve the gated CTA binding for a single entry. */
+/** Resolve the country-aware CTA binding for a single entry. */
 export function resolveHomepageTop10Cta(
   entry: HomepageTop10Entry,
   mode: CtaMode,
   locale: CtaLocale = 'en',
+  options: HomepageCtaOptions = {},
 ): HomepageTop10CtaBinding {
-  const profile = buildCtaProfile(entry);
-  const primary = resolveCommercialCta(primaryIntentFor(entry), locale, mode, profile);
+  const offer = getOffer(entry.slug);
+  const primary = resolveCountryAwareCommercialCta({
+    intent: primaryIntentFor(entry),
+    locale,
+    mode,
+    countryCode: options.countryCode ?? PUBLIC_HOMEPAGE_COUNTRY,
+    exchangeId: entry.slug,
+    slug: entry.slug,
+    reviewHref: reviewHrefFor(entry.slug),
+    offer: offer ? { status: offer.status, restrictedCountries: offer.restrictedCountries } : null,
+    marketProfiles: options.marketProfiles ?? PUBLIC_MARKET_PROFILES,
+    now: options.now ?? Date.now(),
+  });
 
   // Fail-closed secondary-action contract: the destination must be a normalized
   // internal path (never affiliate /go/*, external absolute, protocol-relative
@@ -123,17 +114,21 @@ export function resolveHomepageTop10Cta(
   };
 }
 
-/** Resolve gated CTA bindings for the whole Top-10, using the central mode. */
+/** Resolve country-aware CTA bindings for the whole Top-10, using the central mode. */
 export function resolveHomepageTop10Ctas(
   entries: HomepageTop10Entry[],
   locale: CtaLocale = 'en',
+  options: HomepageCtaOptions = {},
 ): HomepageTop10CtaBinding[] {
   const mode = resolvePublicCtaMode();
-  const bindings = entries.map((entry) => resolveHomepageTop10Cta(entry, mode, locale));
+  const bindings = entries.map((entry) => resolveHomepageTop10Cta(entry, mode, locale, options));
 
-  // Fail-closed build guard: preview mode must never leak an affiliate target.
-  if (mode === 'preview' && bindings.some((b) => b.primary.href.startsWith('/go/'))) {
-    throw new Error('Homepage Top-10 preview mode must not emit any /go/ affiliate target.');
+  // Fail-closed build guard: with the public (empty) registry and the
+  // non-country homepage context, NO /go/ target may appear in EITHER preview
+  // or production simulation. A leak means a country-aware invariant regressed.
+  const usingPublicRegistry = (options.marketProfiles ?? PUBLIC_MARKET_PROFILES) === PUBLIC_MARKET_PROFILES;
+  if (usingPublicRegistry && bindings.some((b) => b.primary.href.startsWith('/go/'))) {
+    throw new Error('Homepage Top-10 public build must not emit any /go/ affiliate target (no approved MarketProfile registry).');
   }
   return bindings;
 }

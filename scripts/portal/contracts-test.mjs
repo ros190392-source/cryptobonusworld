@@ -50,7 +50,7 @@ try {
         `export * from ${JSON.stringify(factory)};\n` +
         `export * from ${JSON.stringify(cta)};\n` +
         `export { pickLocalized, gateReasonText, ctaGateReasonText, ctaMicrocopy } from ${JSON.stringify(ctaI18n)};\n` +
-        `export { resolveHomepageTop10Cta, buildCtaProfile } from ${JSON.stringify(homepageCta)};\n` +
+        `export { resolveHomepageTop10Cta, resolveHomepageTop10Ctas } from ${JSON.stringify(homepageCta)};\n` +
         `export { homepageTop10 } from ${JSON.stringify(homepageData)};\n` +
         `export { assertPortalRouteRecord, resolvePortalRoute } from ${JSON.stringify(routeGuards)};\n` +
         `export { emitPublicRankingRoutes } from ${JSON.stringify(publication)};\n` +
@@ -248,34 +248,54 @@ try {
     return !r.href.startsWith('/go/') && !r.isAffiliate && r.gateReason === 'EVIDENCE_STALE';
   })());
 
-  // --- Homepage Top-10 gated CTA binding (real data → canonical gate) ---
+  // --- Homepage Top-10 country-aware binding (Split 3, fail-closed public) ---
   const bybit = m.homepageTop10.find((e) => e.slug === 'bybit');       // verified offer
-  const mexc = m.homepageTop10.find((e) => e.slug === 'mexc');         // public-preview offer
   const binance = m.homepageTop10.find((e) => e.slug === 'binance');   // research row, no offer
-  check('hp: verified+production emits /go/ affiliate', (() => {
-    const b = m.resolveHomepageTop10Cta(bybit, 'production', 'en');
-    return b.primary.isAffiliate && b.primary.href === '/go/bybit'
-      && b.primary.rel.includes('sponsored') && b.primary.rel.includes('nofollow');
-  })());
-  check('hp: verified+preview stays internal (no /go/)', (() => {
+  // s3/19 + s3/20: public context (global) + empty registry → ZERO /go/ in BOTH modes.
+  check('hp/s3-19: public homepage PREVIEW emits zero /go/', (() => {
     const b = m.resolveHomepageTop10Cta(bybit, 'preview', 'en');
-    return !b.primary.isAffiliate && !b.primary.href.startsWith('/go/') && b.primary.href.endsWith('/');
+    return !b.primary.isAffiliate && !b.primary.href.startsWith('/go/') && b.primary.gateReason === 'COUNTRY_GLOBAL';
   })());
-  check('hp: public-preview offer never affiliate in production', (() => {
-    const b = m.resolveHomepageTop10Cta(mexc, 'production', 'en');
+  check('hp/s3-20: public homepage PRODUCTION simulation emits zero /go/ (no approved registry)', (() => {
+    const b = m.resolveHomepageTop10Cta(bybit, 'production', 'en');
+    return !b.primary.isAffiliate && !b.primary.href.startsWith('/go/') && b.primary.gateReason === 'COUNTRY_GLOBAL';
+  })());
+  check('hp/s3-20: whole public Top-10 production simulation → zero /go/', (() => {
+    const all = m.homepageTop10.map((e) => m.resolveHomepageTop10Cta(e, 'production', 'en'));
+    return all.every((b) => !b.primary.href.startsWith('/go/'));
+  })());
+  check('hp/s3-17: offer status alone cannot authorize an affiliate CTA (verified row, public context)', (() => {
+    const b = m.resolveHomepageTop10Cta(bybit, 'production', 'en'); // bybit offer is verified
     return !b.primary.isAffiliate && !b.primary.href.startsWith('/go/');
   })());
   check('hp: research row (no offer) is non-commercial review', (() => {
     const b = m.resolveHomepageTop10Cta(binance, 'production', 'en');
     return !b.primary.isAffiliate && !b.primary.href.startsWith('/go/') && !b.primary.disabled;
   })());
-  check('hp: localized ru bonus label on verified row', (() => {
+  check('hp: honest review label in public context (ru → Читать обзор, not a bonus label)', (() => {
     const b = m.resolveHomepageTop10Cta(bybit, 'production', 'ru');
-    return b.primary.label === 'Получить бонус';
+    return b.primary.label === 'Читать обзор';
   })());
-  check('hp: profile facts derived from real records (bybit approved)', (() => {
-    const p = m.buildCtaProfile(bybit);
-    return p.approval === 'approved' && p.offerEligibility === 'approved' && p.availability === 'available';
+  // s3/21: test-only injected approved profile for an exact supported pair → /go/.
+  const synthBybitUA = { profileId: 'mp:ua:bybit', exchangeId: 'bybit', countryCode: 'UA', availability: 'available', offerEligibility: 'approved', claimIds: ['clm:1'], limitations: [], lastCheckedAt: daysAgo(5), nextReviewAt: '2026-12-31T00:00:00Z', approval: 'approved' };
+  check('hp/s3-21: test-only injected approved profile (bybit×UA) + production → /go/bybit', (() => {
+    const b = m.resolveHomepageTop10Cta(bybit, 'production', 'en', { countryCode: 'UA', marketProfiles: [synthBybitUA], now: NOW });
+    return b.primary.isAffiliate && b.primary.href === '/go/bybit' && b.primary.rel.includes('sponsored');
+  })());
+  check('hp/s3-21: same injected fixture in preview → no /go/', (() => {
+    const b = m.resolveHomepageTop10Cta(bybit, 'preview', 'en', { countryCode: 'UA', marketProfiles: [synthBybitUA], now: NOW });
+    return !b.primary.isAffiliate && !b.primary.href.startsWith('/go/');
+  })());
+  check('hp/s3-22: no unsupported/unprofiled row gains a /go/ even with injected fixture for another pair', (() => {
+    // Inject bybit×UA only; a DIFFERENT exchange in the same country has no profile → no /go/.
+    const other = m.homepageTop10.find((e) => e.slug === 'okx');
+    const b = m.resolveHomepageTop10Cta(other, 'production', 'en', { countryCode: 'UA', marketProfiles: [synthBybitUA], now: NOW });
+    return !b.primary.isAffiliate && !b.primary.href.startsWith('/go/');
+  })());
+  check('hp/s3-18: en/ru/kk identical factual authorization on the injected live pair', (() => {
+    const mk = (l) => m.resolveHomepageTop10Cta(bybit, 'production', l, { countryCode: 'UA', marketProfiles: [synthBybitUA], now: NOW }).primary;
+    const en = mk('en'), ru = mk('ru'), kk = mk('kk');
+    return en.href === ru.href && ru.href === kk.href && en.isAffiliate === ru.isAffiliate && en.label !== ru.label && ru.label !== kk.label;
   })());
 
   // Secondary-action contract (fail-closed, validated binding).
