@@ -28,6 +28,9 @@ const routeGuards = join(ROOT, 'src/data/contracts/portalRouteGuards.ts');
 const publication = join(ROOT, 'src/data/contracts/portalPublication.ts');
 const disclosure = join(ROOT, 'src/data/contracts/portalDisclosure.ts');
 const internalPath = join(ROOT, 'src/data/contracts/internalPath.ts');
+const countryInput = join(ROOT, 'src/data/contracts/countryInput.ts');
+const marketProfileRegistry = join(ROOT, 'src/data/contracts/marketProfileRegistry.ts');
+const countryAwareCta = join(ROOT, 'src/data/contracts/countryAwareCta.ts');
 
 const tmp = mkdtempSync(join(tmpdir(), 'cbw-portal-test-'));
 const outfile = join(tmp, 'contracts.mjs');
@@ -47,12 +50,15 @@ try {
         `export * from ${JSON.stringify(factory)};\n` +
         `export * from ${JSON.stringify(cta)};\n` +
         `export { pickLocalized, gateReasonText, ctaGateReasonText, ctaMicrocopy } from ${JSON.stringify(ctaI18n)};\n` +
-        `export { resolveHomepageTop10Cta, buildCtaProfile } from ${JSON.stringify(homepageCta)};\n` +
+        `export { resolveHomepageTop10Cta, resolveHomepageTop10Ctas } from ${JSON.stringify(homepageCta)};\n` +
         `export { homepageTop10 } from ${JSON.stringify(homepageData)};\n` +
         `export { assertPortalRouteRecord, resolvePortalRoute } from ${JSON.stringify(routeGuards)};\n` +
         `export { emitPublicRankingRoutes } from ${JSON.stringify(publication)};\n` +
         `export { resolveDisclosure } from ${JSON.stringify(disclosure)};\n` +
-        `export { isInternalPath, assertInternalPath } from ${JSON.stringify(internalPath)};`,
+        `export { isInternalPath, assertInternalPath } from ${JSON.stringify(internalPath)};\n` +
+        `export { normalizeCountryInput, SUPPORTED_COUNTRY_CODES } from ${JSON.stringify(countryInput)};\n` +
+        `export { resolveMarketProfile, PUBLIC_MARKET_PROFILES } from ${JSON.stringify(marketProfileRegistry)};\n` +
+        `export { resolveCountryAwareCommercialCta, normalizeRestrictedCountries, PUBLIC_HOMEPAGE_COUNTRY } from ${JSON.stringify(countryAwareCta)};`,
       resolveDir: ROOT,
       loader: 'ts',
     },
@@ -242,34 +248,54 @@ try {
     return !r.href.startsWith('/go/') && !r.isAffiliate && r.gateReason === 'EVIDENCE_STALE';
   })());
 
-  // --- Homepage Top-10 gated CTA binding (real data → canonical gate) ---
+  // --- Homepage Top-10 country-aware binding (Split 3, fail-closed public) ---
   const bybit = m.homepageTop10.find((e) => e.slug === 'bybit');       // verified offer
-  const mexc = m.homepageTop10.find((e) => e.slug === 'mexc');         // public-preview offer
   const binance = m.homepageTop10.find((e) => e.slug === 'binance');   // research row, no offer
-  check('hp: verified+production emits /go/ affiliate', (() => {
-    const b = m.resolveHomepageTop10Cta(bybit, 'production', 'en');
-    return b.primary.isAffiliate && b.primary.href === '/go/bybit'
-      && b.primary.rel.includes('sponsored') && b.primary.rel.includes('nofollow');
-  })());
-  check('hp: verified+preview stays internal (no /go/)', (() => {
+  // s3/19 + s3/20: public context (global) + empty registry → ZERO /go/ in BOTH modes.
+  check('hp/s3-19: public homepage PREVIEW emits zero /go/', (() => {
     const b = m.resolveHomepageTop10Cta(bybit, 'preview', 'en');
-    return !b.primary.isAffiliate && !b.primary.href.startsWith('/go/') && b.primary.href.endsWith('/');
+    return !b.primary.isAffiliate && !b.primary.href.startsWith('/go/') && b.primary.gateReason === 'COUNTRY_GLOBAL';
   })());
-  check('hp: public-preview offer never affiliate in production', (() => {
-    const b = m.resolveHomepageTop10Cta(mexc, 'production', 'en');
+  check('hp/s3-20: public homepage PRODUCTION simulation emits zero /go/ (no approved registry)', (() => {
+    const b = m.resolveHomepageTop10Cta(bybit, 'production', 'en');
+    return !b.primary.isAffiliate && !b.primary.href.startsWith('/go/') && b.primary.gateReason === 'COUNTRY_GLOBAL';
+  })());
+  check('hp/s3-20: whole public Top-10 production simulation → zero /go/', (() => {
+    const all = m.homepageTop10.map((e) => m.resolveHomepageTop10Cta(e, 'production', 'en'));
+    return all.every((b) => !b.primary.href.startsWith('/go/'));
+  })());
+  check('hp/s3-17: offer status alone cannot authorize an affiliate CTA (verified row, public context)', (() => {
+    const b = m.resolveHomepageTop10Cta(bybit, 'production', 'en'); // bybit offer is verified
     return !b.primary.isAffiliate && !b.primary.href.startsWith('/go/');
   })());
   check('hp: research row (no offer) is non-commercial review', (() => {
     const b = m.resolveHomepageTop10Cta(binance, 'production', 'en');
     return !b.primary.isAffiliate && !b.primary.href.startsWith('/go/') && !b.primary.disabled;
   })());
-  check('hp: localized ru bonus label on verified row', (() => {
+  check('hp: honest review label in public context (ru → Читать обзор, not a bonus label)', (() => {
     const b = m.resolveHomepageTop10Cta(bybit, 'production', 'ru');
-    return b.primary.label === 'Получить бонус';
+    return b.primary.label === 'Читать обзор';
   })());
-  check('hp: profile facts derived from real records (bybit approved)', (() => {
-    const p = m.buildCtaProfile(bybit);
-    return p.approval === 'approved' && p.offerEligibility === 'approved' && p.availability === 'available';
+  // s3/21: test-only injected approved profile for an exact supported pair → /go/.
+  const synthBybitUA = { profileId: 'mp:ua:bybit', exchangeId: 'bybit', countryCode: 'UA', availability: 'available', offerEligibility: 'approved', claimIds: ['clm:1'], limitations: [], lastCheckedAt: daysAgo(5), nextReviewAt: '2026-12-31T00:00:00Z', approval: 'approved' };
+  check('hp/s3-21: test-only injected approved profile (bybit×UA) + production → /go/bybit', (() => {
+    const b = m.resolveHomepageTop10Cta(bybit, 'production', 'en', { countryCode: 'UA', marketProfiles: [synthBybitUA], now: NOW });
+    return b.primary.isAffiliate && b.primary.href === '/go/bybit' && b.primary.rel.includes('sponsored');
+  })());
+  check('hp/s3-21: same injected fixture in preview → no /go/', (() => {
+    const b = m.resolveHomepageTop10Cta(bybit, 'preview', 'en', { countryCode: 'UA', marketProfiles: [synthBybitUA], now: NOW });
+    return !b.primary.isAffiliate && !b.primary.href.startsWith('/go/');
+  })());
+  check('hp/s3-22: no unsupported/unprofiled row gains a /go/ even with injected fixture for another pair', (() => {
+    // Inject bybit×UA only; a DIFFERENT exchange in the same country has no profile → no /go/.
+    const other = m.homepageTop10.find((e) => e.slug === 'okx');
+    const b = m.resolveHomepageTop10Cta(other, 'production', 'en', { countryCode: 'UA', marketProfiles: [synthBybitUA], now: NOW });
+    return !b.primary.isAffiliate && !b.primary.href.startsWith('/go/');
+  })());
+  check('hp/s3-18: en/ru/kk identical factual authorization on the injected live pair', (() => {
+    const mk = (l) => m.resolveHomepageTop10Cta(bybit, 'production', l, { countryCode: 'UA', marketProfiles: [synthBybitUA], now: NOW }).primary;
+    const en = mk('en'), ru = mk('ru'), kk = mk('kk');
+    return en.href === ru.href && ru.href === kk.href && en.isAffiliate === ru.isAffiliate && en.label !== ru.label && ru.label !== kk.label;
   })());
 
   // Secondary-action contract (fail-closed, validated binding).
@@ -409,6 +435,197 @@ try {
     const en = m.resolveDisclosure(discBase, 'en');
     const ru = m.resolveDisclosure(discBase, 'ru');
     return en.sourceHref === ru.sourceHref && en.tone === ru.tone && en.lastChecked === ru.lastChecked && en.affiliateNote !== ru.affiliateNote;
+  })());
+
+  // ===== Split 3 — country-aware commercial gate =====
+  const s3throws = (fn) => { try { fn(); return false; } catch { return true; } };
+
+  // ── Country input contract ──
+  check('s3/country: valid supported (UA) → valid', (() => { const r = m.normalizeCountryInput('UA'); return r.state === 'valid' && r.code === 'UA'; })());
+  check('s3/country: lowercase not normalized → malformed', m.normalizeCountryInput('ua').state === 'malformed');
+  check('s3/country: full name → malformed', m.normalizeCountryInput('ukraine').state === 'malformed');
+  check('s3/country: empty/undefined → missing', m.normalizeCountryInput('').state === 'missing' && m.normalizeCountryInput(undefined).state === 'missing');
+  check('s3/country: global → global (not proof of eligibility)', m.normalizeCountryInput('global').state === 'global' && m.normalizeCountryInput('Global').state === 'global');
+  check('s3/country: well-formed but unknown → unsupported', m.normalizeCountryInput('ZZ').state === 'unsupported');
+  check('s3/country: non-string → malformed', m.normalizeCountryInput(42).state === 'malformed');
+  check('s3/country: supported set excludes global', !m.SUPPORTED_COUNTRY_CODES.includes('global') && m.SUPPORTED_COUNTRY_CODES.includes('UA'));
+
+  // ── MarketProfile resolver ──
+  const okProfile = { profileId: 'mp:ua:ex', exchangeId: 'ex', countryCode: 'UA', availability: 'available', offerEligibility: 'approved', claimIds: ['clm:1'], limitations: [], lastCheckedAt: daysAgo(5), nextReviewAt: '2026-12-31T00:00:00Z', approval: 'approved' };
+  check('s3/mp: public registry is empty (fail-closed)', Array.isArray(m.PUBLIC_MARKET_PROFILES) && m.PUBLIC_MARKET_PROFILES.length === 0);
+  check('s3/mp: exact approved pair → ok', m.resolveMarketProfile('ex', 'UA', [okProfile]).ok === true);
+  check('s3/mp: missing → PROFILE_MISSING', m.resolveMarketProfile('ex', 'UA', []).reason === 'PROFILE_MISSING');
+  check('s3/mp: duplicate pair → PROFILE_CONFLICT', m.resolveMarketProfile('ex', 'UA', [okProfile, { ...okProfile, profileId: 'mp:ua:ex2' }]).reason === 'PROFILE_CONFLICT');
+  check('s3/mp: malformed profile → PROFILE_REGISTRY_INVALID (atomic)', m.resolveMarketProfile('ex', 'UA', [{ ...okProfile, lastCheckedAt: 'not-a-date' }]).reason === 'PROFILE_REGISTRY_INVALID');
+  check('s3/mp: not approved → PROFILE_NOT_APPROVED', m.resolveMarketProfile('ex', 'UA', [{ ...okProfile, approval: 'validated', offerEligibility: 'under_review' }]).reason === 'PROFILE_NOT_APPROVED');
+  check('s3/mp: restricted availability → PROFILE_RESTRICTED', m.resolveMarketProfile('ex', 'UA', [{ ...okProfile, availability: 'restricted' }]).reason === 'PROFILE_RESTRICTED');
+  check('s3/mp: unavailable availability → PROFILE_UNAVAILABLE', m.resolveMarketProfile('ex', 'UA', [{ ...okProfile, availability: 'unavailable' }]).reason === 'PROFILE_UNAVAILABLE');
+  check('s3/mp: approved+unknown availability → PROFILE_REGISTRY_INVALID (atomic, fail closed)', m.resolveMarketProfile('ex', 'UA', [{ ...okProfile, approval: 'approved', availability: 'unknown', offerEligibility: 'under_review' }]).reason === 'PROFILE_REGISTRY_INVALID');
+  check('s3/mp: country mismatch → PROFILE_MISSING', m.resolveMarketProfile('ex', 'UA', [{ ...okProfile, countryCode: 'US', profileId: 'mp:us:ex' }]).reason === 'PROFILE_MISSING');
+  check('s3/mp: exchange mismatch → PROFILE_MISSING', m.resolveMarketProfile('ex', 'UA', [{ ...okProfile, exchangeId: 'other' }]).reason === 'PROFILE_MISSING');
+
+  // ── Restricted-country normalization (R3 completeness) ──
+  check('s3/restr: undefined → missing (fail closed, NOT proven empty)', (() => { const r = m.normalizeRestrictedCountries(undefined); return r.state === 'missing' && r.codes.length === 0; })());
+  check('s3/restr: null → missing (fail closed)', m.normalizeRestrictedCountries(null).state === 'missing');
+  check('s3/restr: explicit [] → ok (proof: no restrictions recorded)', (() => { const r = m.normalizeRestrictedCountries([]); return r.state === 'ok' && r.codes.length === 0; })());
+  check('s3/restr: valid codes accepted', (() => { const r = m.normalizeRestrictedCountries(['US', 'GB']); return r.state === 'ok' && r.codes.length === 2; })());
+  check('s3/restr: lowercase → invalid (fail closed)', m.normalizeRestrictedCountries(['us']).state === 'invalid');
+  check('s3/restr: non-array → invalid', m.normalizeRestrictedCountries('US').state === 'invalid');
+  check('s3/restr: non-string element → invalid', m.normalizeRestrictedCountries([123]).state === 'invalid');
+
+  // ── Composed country-aware CTA (the 22 required cases) ──
+  const baseOffer = { exchangeSlug: 'ex', status: 'verified', restrictedCountries: ['US'] };
+  const carBase = { intent: 'get_bonus', locale: 'en', mode: 'production', countryCode: 'UA', exchangeId: 'ex', slug: 'ex', reviewHref: '/exchanges/ex/', offer: baseOffer, marketProfiles: [okProfile], now: NOW };
+  const car = (o = {}) => m.resolveCountryAwareCommercialCta({ ...carBase, ...o });
+  const isGo = (mdl) => mdl.isAffiliate && typeof mdl.href === 'string' && mdl.href.startsWith('/go/');
+
+  check('s3/1: approved pair + eligible offer + fresh + production → live /go/', (() => { const r = car(); return isGo(r) && r.href === '/go/ex' && r.rel.includes('sponsored'); })());
+  check('s3/2: same input in preview → no /go/', !isGo(car({ mode: 'preview' })));
+  check('s3/3: verified offer but profile missing → no /go/', (() => { const r = car({ marketProfiles: [] }); return !isGo(r) && r.gateReason === 'PROFILE_MISSING'; })());
+  check('s3/4: verified offer but malformed country → no /go/', (() => { const r = car({ countryCode: 'ukraine' }); return !isGo(r) && r.gateReason === 'COUNTRY_MALFORMED'; })());
+  check('s3/5: unsupported country → no /go/', (() => { const r = car({ countryCode: 'ZZ' }); return !isGo(r) && r.gateReason === 'COUNTRY_UNSUPPORTED'; })());
+  check('s3/6: restrictedCountries match → disabled, no href', (() => { const r = car({ offer: { exchangeSlug: 'ex', status: 'verified', restrictedCountries: ['UA'] } }); return !isGo(r) && r.disabled === true && r.href === '' && r.gateReason === 'MARKET_RESTRICTED'; })());
+  check('s3/7: MarketProfile restricted → disabled, no href', (() => { const r = car({ marketProfiles: [{ ...okProfile, availability: 'restricted' }] }); return !isGo(r) && r.disabled === true && r.href === '' && r.gateReason === 'MARKET_RESTRICTED'; })());
+  check('s3/8: MarketProfile unavailable → disabled, no href', (() => { const r = car({ marketProfiles: [{ ...okProfile, availability: 'unavailable' }] }); return !isGo(r) && r.disabled === true && r.gateReason === 'MARKET_UNAVAILABLE'; })());
+  check('s3/9: MarketProfile under review → internal review', (() => { const r = car({ marketProfiles: [{ ...okProfile, approval: 'validated', offerEligibility: 'under_review' }] }); return !isGo(r) && r.disabled === false && r.gateReason === 'PROFILE_UNDER_REVIEW'; })());
+  check('s3/10: profile approval stale → no /go/', (() => { const r = car({ marketProfiles: [{ ...okProfile, approval: 'stale', offerEligibility: 'under_review' }] }); return !isGo(r) && r.gateReason === 'PROFILE_UNDER_REVIEW'; })());
+  check('s3/11: stale evidence (fresh review window) → no /go/', (() => { const r = car({ marketProfiles: [{ ...okProfile, lastCheckedAt: daysAgo(120), nextReviewAt: daysAgo(-30) }] }); return !isGo(r) && r.gateReason === 'EVIDENCE_STALE'; })());
+  check('s3/12: profile country mismatch → no /go/', (() => { const r = car({ marketProfiles: [{ ...okProfile, countryCode: 'US', profileId: 'mp:us:ex' }] }); return !isGo(r) && r.gateReason === 'PROFILE_MISSING'; })());
+  check('s3/13: profile exchange mismatch → no /go/', (() => { const r = car({ marketProfiles: [{ ...okProfile, exchangeId: 'other' }] }); return !isGo(r) && r.gateReason === 'PROFILE_MISSING'; })());
+  check('s3/14: duplicate/conflicting profiles → no /go/', (() => { const r = car({ marketProfiles: [okProfile, { ...okProfile, profileId: 'mp:ua:ex2' }] }); return !isGo(r) && r.gateReason === 'PROFILE_CONFLICT'; })());
+  check('s3/15: malformed restrictedCountries → no /go/ (fail closed)', (() => { const r = car({ offer: { exchangeSlug: 'ex', status: 'verified', restrictedCountries: ['us'] } }); return !isGo(r) && r.disabled === true && r.gateReason === 'RESTRICTION_DATA_INVALID'; })());
+  check('s3/16: global/missing country → no /go/', !isGo(car({ countryCode: 'global' })) && car({ countryCode: 'global' }).gateReason === 'COUNTRY_GLOBAL' && !isGo(car({ countryCode: undefined })) && car({ countryCode: undefined }).gateReason === 'COUNTRY_MISSING');
+  check('s3/17: offer status alone can never authorize availability', (() => {
+    // Verified offer + valid supported country, but NO approved profile → never /go/.
+    const r = car({ marketProfiles: [] });
+    // And a verified offer with an under-review profile is still not /go/.
+    const r2 = car({ marketProfiles: [{ ...okProfile, approval: 'validated', offerEligibility: 'under_review' }] });
+    return !isGo(r) && !isGo(r2);
+  })());
+  check('s3/18: en/ru/kk identical factual authorization, only labels differ', (() => {
+    const en = car({ locale: 'en' }), ru = car({ locale: 'ru' }), kk = car({ locale: 'kk' });
+    const factsEqual = en.href === ru.href && ru.href === kk.href && en.isAffiliate === ru.isAffiliate && ru.isAffiliate === kk.isAffiliate && en.disabled === ru.disabled && en.resolvedIntent === ru.resolvedIntent && ru.resolvedIntent === kk.resolvedIntent;
+    const labelsDiffer = en.label !== ru.label && ru.label !== kk.label;
+    return factsEqual && isGo(en) && labelsDiffer;
+  })());
+  check('s3/21: test-only fixture production simulation emits only approved exact pairs', (() => {
+    // Approved UA pair → /go/; the SAME exchange for a different supported country with no profile → no /go/.
+    const yes = car({ countryCode: 'UA' });
+    const no = car({ countryCode: 'BR' }); // no BR profile injected
+    return isGo(yes) && !isGo(no);
+  })());
+  check('s3: en/ru/kk gate reasons all localized for new country/profile reasons', (() => {
+    const reasons = ['COUNTRY_MISSING', 'COUNTRY_GLOBAL', 'COUNTRY_MALFORMED', 'COUNTRY_UNSUPPORTED', 'PROFILE_MISSING', 'PROFILE_CONFLICT', 'PROFILE_INVALID', 'PROFILE_UNDER_REVIEW', 'RESTRICTION_DATA_INVALID'];
+    return reasons.every((rk) => ['en', 'ru', 'kk'].every((l) => { const t = m.gateReasonText(rk, l); return t && t.trim() && t !== rk; }));
+  })());
+
+  // ===== Split 3 R1–R6 — production integrity invariants =====
+  // R1 exchange identity binding
+  check('R1/1: bybit profile + exchangeId=bybit + slug=okx → no /go/ (EXCHANGE_IDENTITY_MISMATCH)', (() => {
+    const r = car({ exchangeId: 'bybit', slug: 'okx', offer: { ...baseOffer, exchangeSlug: 'bybit' }, marketProfiles: [{ ...okProfile, exchangeId: 'bybit' }] });
+    return !isGo(r) && r.gateReason === 'EXCHANGE_IDENTITY_MISMATCH';
+  })());
+  check('R1/2: exchangeId=okx + slug=bybit → no /go/', (() => { const r = car({ exchangeId: 'okx', slug: 'bybit' }); return !isGo(r) && r.gateReason === 'EXCHANGE_IDENTITY_MISMATCH'; })());
+  check('R1/3: exact ex/ex identity → positive path remains possible', isGo(car()));
+  check('R1/4: blank/malformed identity → no /go/', !isGo(car({ exchangeId: '', slug: '' })) && !isGo(car({ exchangeId: 'Ex!', slug: 'Ex!' })) && car({ exchangeId: '', slug: '' }).gateReason === 'EXCHANGE_IDENTITY_MISMATCH');
+  check('R1/5: cross-exchange profile substitution (profile.exchangeId≠target) → no /go/', (() => {
+    // Identity ok (ex/ex) but the only profile is for a different exchange → no exact match → no /go/.
+    const r = car({ marketProfiles: [{ ...okProfile, exchangeId: 'other' }] });
+    return !isGo(r);
+  })());
+
+  // R2 offer identity binding
+  check('R2/1: verified bybit offer + bybit profile + okx target → no /go/', (() => {
+    const r = car({ exchangeId: 'okx', slug: 'okx', offer: { exchangeSlug: 'bybit', status: 'verified', restrictedCountries: [] }, marketProfiles: [{ ...okProfile, exchangeId: 'okx' }] });
+    return !isGo(r); // fails offer identity (bybit≠okx)
+  })());
+  check('R2/2: offer for a different exchange → no /go/ (OFFER_IDENTITY_MISMATCH)', (() => { const r = car({ offer: { exchangeSlug: 'other', status: 'verified', restrictedCountries: [] } }); return !isGo(r) && r.gateReason === 'OFFER_IDENTITY_MISMATCH'; })());
+  check('R2/3: verified offer with missing exchangeSlug → no /go/', (() => { const r = car({ offer: { status: 'verified', restrictedCountries: [] } }); return !isGo(r) && r.gateReason === 'OFFER_IDENTITY_MISMATCH'; })());
+  check('R2/3b: malformed offer exchangeSlug → no /go/', (() => { const r = car({ offer: { exchangeSlug: 'Ex!', status: 'verified', restrictedCountries: [] } }); return !isGo(r) && r.gateReason === 'OFFER_IDENTITY_MISMATCH'; })());
+  check('R2/4: exact offer/profile/target identity → positive fixture green', isGo(car({ offer: { exchangeSlug: 'ex', status: 'verified', restrictedCountries: [] } })));
+  check('R2/5: offer status alone still cannot authorize (verified but wrong identity)', !isGo(car({ offer: { exchangeSlug: 'other', status: 'verified', restrictedCountries: [] } })));
+
+  // R3 restriction completeness
+  check('R3/1: verified offer with MISSING restrictedCountries → no /go/ (RESTRICTION_DATA_MISSING)', (() => { const r = car({ offer: { exchangeSlug: 'ex', status: 'verified' } }); return !isGo(r) && r.gateReason === 'RESTRICTION_DATA_MISSING'; })());
+  check('R3/2: null restrictedCountries → no /go/', (() => { const r = car({ offer: { exchangeSlug: 'ex', status: 'verified', restrictedCountries: null } }); return !isGo(r) && r.gateReason === 'RESTRICTION_DATA_MISSING'; })());
+  check('R3/3: non-array restrictedCountries → disabled, no /go/', (() => { const r = car({ offer: { exchangeSlug: 'ex', status: 'verified', restrictedCountries: 'US' } }); return !isGo(r) && r.gateReason === 'RESTRICTION_DATA_INVALID'; })());
+  check('R3/4: explicit [] (no restrictions recorded) → /go/ eligible', isGo(car({ offer: { exchangeSlug: 'ex', status: 'verified', restrictedCountries: [] } })));
+  check('R3/5: country in explicit list → disabled restricted', (() => { const r = car({ offer: { exchangeSlug: 'ex', status: 'verified', restrictedCountries: ['UA'] } }); return !isGo(r) && r.disabled === true && r.gateReason === 'MARKET_RESTRICTED'; })());
+
+  // R4 finite explicit clock
+  check('R4/NaN: now=NaN → no /go/ (CLOCK_INVALID)', (() => { const r = car({ now: NaN }); return !isGo(r) && r.gateReason === 'CLOCK_INVALID'; })());
+  check('R4/Inf: now=Infinity → no /go/', (() => { const r = car({ now: Infinity }); return !isGo(r) && r.gateReason === 'CLOCK_INVALID'; })());
+  check('R4/-Inf: now=-Infinity → no /go/', (() => { const r = car({ now: -Infinity }); return !isGo(r) && r.gateReason === 'CLOCK_INVALID'; })());
+  check('R4/omitted: no now in an injectable live scenario → no /go/', (() => { const r = car({ now: undefined }); return !isGo(r) && r.gateReason === 'CLOCK_INVALID'; })());
+  check('R4/finite: finite NOW + exact approved fixture → positive path green', isGo(car({ now: NOW })));
+  check('R4/freshness: assessEvidenceFreshness rejects non-finite clock', m.assessEvidenceFreshness(daysAgo(5), NaN).state === 'invalid' && m.assessEvidenceFreshness(daysAgo(5), Infinity).state === 'invalid');
+  check('R4/policy: assessEvidenceFreshness rejects invalid policy numbers', m.assessEvidenceFreshness(daysAgo(5), NOW, { maxEvidenceAgeDays: NaN, futureSkewToleranceMinutes: 60 }).state === 'invalid' && m.assessEvidenceFreshness(daysAgo(5), NOW, { maxEvidenceAgeDays: -1, futureSkewToleranceMinutes: 60 }).state === 'invalid');
+
+  // R5 nextReviewAt deadline
+  check('R5/1: fresh lastChecked, nextReviewAt PAST → no /go/ (PROFILE_REVIEW_OVERDUE)', (() => { const r = car({ marketProfiles: [{ ...okProfile, lastCheckedAt: daysAgo(5), nextReviewAt: daysAgo(1) }] }); return !isGo(r) && r.gateReason === 'PROFILE_REVIEW_OVERDUE'; })());
+  check('R5/2: fresh lastChecked, nextReviewAt == now → no /go/', (() => { const r = car({ marketProfiles: [{ ...okProfile, lastCheckedAt: daysAgo(5), nextReviewAt: new Date(NOW).toISOString() }] }); return !isGo(r) && r.gateReason === 'PROFILE_REVIEW_OVERDUE'; })());
+  check('R5/3: fresh lastChecked, nextReviewAt FUTURE → eligible', isGo(car({ marketProfiles: [{ ...okProfile, lastCheckedAt: daysAgo(5), nextReviewAt: daysAgo(-30) }] })));
+  check('R5/3b: invalid nextReviewAt → no /go/ (but must be caught before validation)', (() => {
+    // An invalid nextReviewAt fails MarketProfile validation first → PROFILE_INVALID.
+    const r = car({ marketProfiles: [{ ...okProfile, nextReviewAt: 'not-a-date' }] });
+    return !isGo(r);
+  })());
+  check('R5/4: stale lastCheckedAt + future nextReviewAt → no /go/ (EVIDENCE_STALE)', (() => { const r = car({ marketProfiles: [{ ...okProfile, lastCheckedAt: daysAgo(200), nextReviewAt: daysAgo(-30) }] }); return !isGo(r) && r.gateReason === 'EVIDENCE_STALE'; })());
+  check('R5/5: overdue profile factually identical across en/ru/kk', (() => {
+    const mk = (l) => car({ locale: l, marketProfiles: [{ ...okProfile, nextReviewAt: daysAgo(1) }] });
+    const en = mk('en'), ru = mk('ru'), kk = mk('kk');
+    return en.gateReason === ru.gateReason && ru.gateReason === kk.gateReason && !isGo(en) && !isGo(ru) && !isGo(kk);
+  })());
+
+  // R6 malformed registry (no throw)
+  check('R6/undefined: marketProfiles undefined → no throw, no /go/ (PROFILE_REGISTRY_INVALID)', (() => { const r = car({ marketProfiles: undefined }); return !isGo(r) && r.gateReason === 'PROFILE_REGISTRY_INVALID'; })());
+  check('R6/null: marketProfiles null → no throw, no /go/', (() => { const r = car({ marketProfiles: null }); return !isGo(r) && r.gateReason === 'PROFILE_REGISTRY_INVALID'; })());
+  check('R6/non-array: marketProfiles = {} → no throw, no /go/', (() => { const r = car({ marketProfiles: {} }); return !isGo(r) && r.gateReason === 'PROFILE_REGISTRY_INVALID'; })());
+  check('R6/bad-entries: malformed array entries → no throw, no /go/ (atomic)', (() => { const r = car({ marketProfiles: [null, 42, 'x'] }); return !isGo(r) && r.gateReason === 'PROFILE_REGISTRY_INVALID'; })());
+  check('R6/resolver: resolveMarketProfile never throws on bad registry', (() => {
+    return m.resolveMarketProfile('ex', 'UA', undefined).reason === 'PROFILE_REGISTRY_INVALID'
+      && m.resolveMarketProfile('ex', 'UA', {}).reason === 'PROFILE_REGISTRY_INVALID'
+      && m.resolveMarketProfile('ex', 'UA', [null, 1]).reason === 'PROFILE_REGISTRY_INVALID';
+  })());
+
+  // ── R6 (R2 remediation): ATOMIC registry validity ──
+  const unrelatedOk = { profileId: 'mp:br:other', exchangeId: 'other', countryCode: 'BR', availability: 'available', offerEligibility: 'approved', claimIds: ['clm:2'], limitations: [], lastCheckedAt: daysAgo(5), nextReviewAt: '2026-12-31T00:00:00Z', approval: 'approved' };
+  check('atomic/1: [null] → PROFILE_REGISTRY_INVALID', m.resolveMarketProfile('ex', 'UA', [null]).reason === 'PROFILE_REGISTRY_INVALID');
+  check('atomic/2: [42, "x"] → PROFILE_REGISTRY_INVALID', m.resolveMarketProfile('ex', 'UA', [42, 'x']).reason === 'PROFILE_REGISTRY_INVALID');
+  check('atomic/3: [valid exact, null] → PROFILE_REGISTRY_INVALID and no /go/', (() => {
+    const rr = m.resolveMarketProfile('ex', 'UA', [okProfile, null]);
+    const cta = car({ marketProfiles: [okProfile, null] });
+    return rr.reason === 'PROFILE_REGISTRY_INVALID' && !isGo(cta) && cta.gateReason === 'PROFILE_REGISTRY_INVALID';
+  })());
+  check('atomic/4: [valid exact, malformed unrelated] → PROFILE_REGISTRY_INVALID and no /go/', (() => {
+    const bad = { ...unrelatedOk, lastCheckedAt: 'not-a-date' };
+    const rr = m.resolveMarketProfile('ex', 'UA', [okProfile, bad]);
+    const cta = car({ marketProfiles: [okProfile, bad] });
+    return rr.reason === 'PROFILE_REGISTRY_INVALID' && !isGo(cta);
+  })());
+  check('atomic/5: [valid exact, valid unrelated] → exact positive pair remains eligible', (() => {
+    const rr = m.resolveMarketProfile('ex', 'UA', [okProfile, unrelatedOk]);
+    const cta = car({ marketProfiles: [okProfile, unrelatedOk] });
+    return rr.ok === true && isGo(cta) && cta.href === '/go/ex';
+  })());
+  check('atomic/6: [] → PROFILE_MISSING', m.resolveMarketProfile('ex', 'UA', []).reason === 'PROFILE_MISSING');
+  check('atomic/7: [one valid non-matching] → PROFILE_MISSING', m.resolveMarketProfile('ex', 'UA', [unrelatedOk]).reason === 'PROFILE_MISSING');
+  check('atomic/8: duplicate valid exact → PROFILE_CONFLICT', m.resolveMarketProfile('ex', 'UA', [okProfile, { ...okProfile, profileId: 'mp:ua:ex2' }]).reason === 'PROFILE_CONFLICT');
+  check('atomic/9: public empty registry is valid → PROFILE_MISSING', m.resolveMarketProfile('ex', 'UA', m.PUBLIC_MARKET_PROFILES).reason === 'PROFILE_MISSING');
+  check('atomic/10: no malformed combination throws', (() => {
+    const combos = [undefined, null, {}, 0, 'x', [null], [1], ['x'], [okProfile, null], [okProfile, {}], [{}], [okProfile, { ...unrelatedOk, countryCode: 'zz' }]];
+    for (const c of combos) { try { m.resolveMarketProfile('ex', 'UA', c); } catch { return false; } }
+    return true;
+  })());
+  check('atomic/reason: registry-invalid maps to localized internal review, never /go/', (() => {
+    const cta = car({ marketProfiles: [okProfile, null] });
+    return !isGo(cta) && cta.disabled === false && m.gateReasonText('PROFILE_REGISTRY_INVALID', 'ru').trim().length > 0;
+  })());
+
+  // i18n completeness for all R1–R6 reasons
+  check('R1-R6: all new reasons localized en/ru/kk (no raw key)', (() => {
+    const reasons = ['EXCHANGE_IDENTITY_MISMATCH', 'OFFER_IDENTITY_MISMATCH', 'RESTRICTION_DATA_MISSING', 'CLOCK_INVALID', 'PROFILE_REVIEW_OVERDUE', 'PROFILE_REGISTRY_INVALID'];
+    return reasons.every((rk) => ['en', 'ru', 'kk'].every((l) => { const t = m.gateReasonText(rk, l); return t && t.trim() && t !== rk; }));
   })());
 
   // --- Invariant: a non-commercial model may never point at /go/ ---
