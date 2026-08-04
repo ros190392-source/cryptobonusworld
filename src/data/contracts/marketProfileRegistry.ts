@@ -42,25 +42,26 @@ export function resolveMarketProfile(
   countryCode: string,
   profiles: unknown,
 ): MarketProfileResolution {
-  // R6: a malformed registry must fail closed, never throw. Non-array input and
-  // non-object entries are ignored/rejected rather than crashing profiles.filter.
+  // R6: a malformed registry must fail closed, never throw — and it must be
+  // ATOMIC. The whole registry is proven structurally valid BEFORE resolving an
+  // exact pair, so a corrupted sibling entry can never be silently discarded to
+  // let a matching profile authorize a CTA. Non-array, or ANY null / primitive /
+  // structurally-invalid entry, invalidates the entire registry.
   if (!Array.isArray(profiles)) return { ok: false, reason: 'PROFILE_REGISTRY_INVALID' };
+  for (const entry of profiles) {
+    if (typeof entry !== 'object' || entry === null) return { ok: false, reason: 'PROFILE_REGISTRY_INVALID' };
+    if (!validateMarketProfile(entry).ok) return { ok: false, reason: 'PROFILE_REGISTRY_INVALID' };
+  }
+  const valid = profiles as MarketProfile[]; // every entry is a valid MarketProfile
 
-  // Exact exchange AND country match — no fuzzy/regional promotion.
-  const matches = (profiles as unknown[]).filter(
-    (p): p is MarketProfile =>
-      typeof p === 'object' && p !== null
-      && (p as MarketProfile).exchangeId === exchangeId
-      && (p as MarketProfile).countryCode === countryCode,
-  );
+  // Exact exchange AND country match — no fuzzy/regional promotion. Valid
+  // profiles for other pairs coexist without blocking resolution.
+  const matches = valid.filter((p) => p.exchangeId === exchangeId && p.countryCode === countryCode);
 
   if (matches.length === 0) return { ok: false, reason: 'PROFILE_MISSING' };
   if (matches.length > 1) return { ok: false, reason: 'PROFILE_CONFLICT' };
 
-  const profile = matches[0]!;
-
-  // Must pass the canonical MarketProfile contract.
-  if (!validateMarketProfile(profile).ok) return { ok: false, reason: 'PROFILE_INVALID' };
+  const profile = matches[0]!; // already structurally valid
 
   // Approval must be explicitly 'approved' (under-review / rejected / stale fail).
   if (profile.approval !== 'approved') return { ok: false, reason: 'PROFILE_NOT_APPROVED' };

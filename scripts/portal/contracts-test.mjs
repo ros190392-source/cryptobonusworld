@@ -456,11 +456,11 @@ try {
   check('s3/mp: exact approved pair → ok', m.resolveMarketProfile('ex', 'UA', [okProfile]).ok === true);
   check('s3/mp: missing → PROFILE_MISSING', m.resolveMarketProfile('ex', 'UA', []).reason === 'PROFILE_MISSING');
   check('s3/mp: duplicate pair → PROFILE_CONFLICT', m.resolveMarketProfile('ex', 'UA', [okProfile, { ...okProfile, profileId: 'mp:ua:ex2' }]).reason === 'PROFILE_CONFLICT');
-  check('s3/mp: malformed profile → PROFILE_INVALID', m.resolveMarketProfile('ex', 'UA', [{ ...okProfile, lastCheckedAt: 'not-a-date' }]).reason === 'PROFILE_INVALID');
+  check('s3/mp: malformed profile → PROFILE_REGISTRY_INVALID (atomic)', m.resolveMarketProfile('ex', 'UA', [{ ...okProfile, lastCheckedAt: 'not-a-date' }]).reason === 'PROFILE_REGISTRY_INVALID');
   check('s3/mp: not approved → PROFILE_NOT_APPROVED', m.resolveMarketProfile('ex', 'UA', [{ ...okProfile, approval: 'validated', offerEligibility: 'under_review' }]).reason === 'PROFILE_NOT_APPROVED');
   check('s3/mp: restricted availability → PROFILE_RESTRICTED', m.resolveMarketProfile('ex', 'UA', [{ ...okProfile, availability: 'restricted' }]).reason === 'PROFILE_RESTRICTED');
   check('s3/mp: unavailable availability → PROFILE_UNAVAILABLE', m.resolveMarketProfile('ex', 'UA', [{ ...okProfile, availability: 'unavailable' }]).reason === 'PROFILE_UNAVAILABLE');
-  check('s3/mp: approved+unknown availability → PROFILE_INVALID (fail closed)', m.resolveMarketProfile('ex', 'UA', [{ ...okProfile, approval: 'approved', availability: 'unknown', offerEligibility: 'under_review' }]).reason === 'PROFILE_INVALID');
+  check('s3/mp: approved+unknown availability → PROFILE_REGISTRY_INVALID (atomic, fail closed)', m.resolveMarketProfile('ex', 'UA', [{ ...okProfile, approval: 'approved', availability: 'unknown', offerEligibility: 'under_review' }]).reason === 'PROFILE_REGISTRY_INVALID');
   check('s3/mp: country mismatch → PROFILE_MISSING', m.resolveMarketProfile('ex', 'UA', [{ ...okProfile, countryCode: 'US', profileId: 'mp:us:ex' }]).reason === 'PROFILE_MISSING');
   check('s3/mp: exchange mismatch → PROFILE_MISSING', m.resolveMarketProfile('ex', 'UA', [{ ...okProfile, exchangeId: 'other' }]).reason === 'PROFILE_MISSING');
 
@@ -581,11 +581,45 @@ try {
   check('R6/undefined: marketProfiles undefined → no throw, no /go/ (PROFILE_REGISTRY_INVALID)', (() => { const r = car({ marketProfiles: undefined }); return !isGo(r) && r.gateReason === 'PROFILE_REGISTRY_INVALID'; })());
   check('R6/null: marketProfiles null → no throw, no /go/', (() => { const r = car({ marketProfiles: null }); return !isGo(r) && r.gateReason === 'PROFILE_REGISTRY_INVALID'; })());
   check('R6/non-array: marketProfiles = {} → no throw, no /go/', (() => { const r = car({ marketProfiles: {} }); return !isGo(r) && r.gateReason === 'PROFILE_REGISTRY_INVALID'; })());
-  check('R6/bad-entries: malformed array entries → no throw, no /go/', (() => { const r = car({ marketProfiles: [null, 42, 'x'] }); return !isGo(r) && r.gateReason === 'PROFILE_MISSING'; })());
+  check('R6/bad-entries: malformed array entries → no throw, no /go/ (atomic)', (() => { const r = car({ marketProfiles: [null, 42, 'x'] }); return !isGo(r) && r.gateReason === 'PROFILE_REGISTRY_INVALID'; })());
   check('R6/resolver: resolveMarketProfile never throws on bad registry', (() => {
     return m.resolveMarketProfile('ex', 'UA', undefined).reason === 'PROFILE_REGISTRY_INVALID'
       && m.resolveMarketProfile('ex', 'UA', {}).reason === 'PROFILE_REGISTRY_INVALID'
-      && m.resolveMarketProfile('ex', 'UA', [null, 1]).reason === 'PROFILE_MISSING';
+      && m.resolveMarketProfile('ex', 'UA', [null, 1]).reason === 'PROFILE_REGISTRY_INVALID';
+  })());
+
+  // ── R6 (R2 remediation): ATOMIC registry validity ──
+  const unrelatedOk = { profileId: 'mp:br:other', exchangeId: 'other', countryCode: 'BR', availability: 'available', offerEligibility: 'approved', claimIds: ['clm:2'], limitations: [], lastCheckedAt: daysAgo(5), nextReviewAt: '2026-12-31T00:00:00Z', approval: 'approved' };
+  check('atomic/1: [null] → PROFILE_REGISTRY_INVALID', m.resolveMarketProfile('ex', 'UA', [null]).reason === 'PROFILE_REGISTRY_INVALID');
+  check('atomic/2: [42, "x"] → PROFILE_REGISTRY_INVALID', m.resolveMarketProfile('ex', 'UA', [42, 'x']).reason === 'PROFILE_REGISTRY_INVALID');
+  check('atomic/3: [valid exact, null] → PROFILE_REGISTRY_INVALID and no /go/', (() => {
+    const rr = m.resolveMarketProfile('ex', 'UA', [okProfile, null]);
+    const cta = car({ marketProfiles: [okProfile, null] });
+    return rr.reason === 'PROFILE_REGISTRY_INVALID' && !isGo(cta) && cta.gateReason === 'PROFILE_REGISTRY_INVALID';
+  })());
+  check('atomic/4: [valid exact, malformed unrelated] → PROFILE_REGISTRY_INVALID and no /go/', (() => {
+    const bad = { ...unrelatedOk, lastCheckedAt: 'not-a-date' };
+    const rr = m.resolveMarketProfile('ex', 'UA', [okProfile, bad]);
+    const cta = car({ marketProfiles: [okProfile, bad] });
+    return rr.reason === 'PROFILE_REGISTRY_INVALID' && !isGo(cta);
+  })());
+  check('atomic/5: [valid exact, valid unrelated] → exact positive pair remains eligible', (() => {
+    const rr = m.resolveMarketProfile('ex', 'UA', [okProfile, unrelatedOk]);
+    const cta = car({ marketProfiles: [okProfile, unrelatedOk] });
+    return rr.ok === true && isGo(cta) && cta.href === '/go/ex';
+  })());
+  check('atomic/6: [] → PROFILE_MISSING', m.resolveMarketProfile('ex', 'UA', []).reason === 'PROFILE_MISSING');
+  check('atomic/7: [one valid non-matching] → PROFILE_MISSING', m.resolveMarketProfile('ex', 'UA', [unrelatedOk]).reason === 'PROFILE_MISSING');
+  check('atomic/8: duplicate valid exact → PROFILE_CONFLICT', m.resolveMarketProfile('ex', 'UA', [okProfile, { ...okProfile, profileId: 'mp:ua:ex2' }]).reason === 'PROFILE_CONFLICT');
+  check('atomic/9: public empty registry is valid → PROFILE_MISSING', m.resolveMarketProfile('ex', 'UA', m.PUBLIC_MARKET_PROFILES).reason === 'PROFILE_MISSING');
+  check('atomic/10: no malformed combination throws', (() => {
+    const combos = [undefined, null, {}, 0, 'x', [null], [1], ['x'], [okProfile, null], [okProfile, {}], [{}], [okProfile, { ...unrelatedOk, countryCode: 'zz' }]];
+    for (const c of combos) { try { m.resolveMarketProfile('ex', 'UA', c); } catch { return false; } }
+    return true;
+  })());
+  check('atomic/reason: registry-invalid maps to localized internal review, never /go/', (() => {
+    const cta = car({ marketProfiles: [okProfile, null] });
+    return !isGo(cta) && cta.disabled === false && m.gateReasonText('PROFILE_REGISTRY_INVALID', 'ru').trim().length > 0;
   })());
 
   // i18n completeness for all R1–R6 reasons
