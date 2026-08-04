@@ -47,6 +47,15 @@ export function assessEvidenceFreshness(
   nowMs: number,
   policy: { maxEvidenceAgeDays: number; futureSkewToleranceMinutes: number } = EVIDENCE_FRESHNESS_POLICY,
 ): FreshnessAssessment {
+  // A non-finite clock (NaN / ±Infinity) can never prove freshness — fail closed.
+  if (!Number.isFinite(nowMs)) {
+    return { state: 'invalid', ageMs: null, reason: 'INVALID_CLOCK' };
+  }
+  // Policy numbers must be finite and non-negative, else the window is unusable.
+  if (!Number.isFinite(policy.maxEvidenceAgeDays) || policy.maxEvidenceAgeDays < 0
+    || !Number.isFinite(policy.futureSkewToleranceMinutes) || policy.futureSkewToleranceMinutes < 0) {
+    return { state: 'invalid', ageMs: null, reason: 'INVALID_POLICY' };
+  }
   if (!isIsoDate(value)) {
     return { state: 'invalid', ageMs: null, reason: 'INVALID_DATE' };
   }

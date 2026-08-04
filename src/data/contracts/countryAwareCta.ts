@@ -34,8 +34,12 @@ import { resolveMarketProfile } from './marketProfileRegistry';
 export const PUBLIC_HOMEPAGE_COUNTRY = 'global';
 
 const ISO_ALPHA2 = /^[A-Z]{2}$/;
+/** Canonical exchange identity (CBW: MarketProfile.exchangeId === exchange slug). */
+const CANONICAL_SLUG = /^[a-z0-9][a-z0-9-]*$/;
 
 export interface CountryAwareOfferInput {
+  /** Canonical exchange slug this offer belongs to (must match the target). */
+  exchangeSlug?: unknown;
   /** Offer status; authorizes the OFFER only — never country availability. */
   status?: string;
   restrictedCountries?: unknown;
@@ -52,27 +56,43 @@ export interface CountryAwareCtaInput {
   /** Internal review destination (validated by the base gate). */
   reviewHref: string;
   offer: CountryAwareOfferInput | null | undefined;
-  marketProfiles: readonly MarketProfile[];
-  /** Explicit clock for freshness (required for a live decision). */
-  now: number;
+  marketProfiles: unknown;
+  /**
+   * Explicit finite clock (epoch ms) for freshness + review-deadline checks.
+   * A live decision REQUIRES a finite `now`; missing/non-finite → internal review.
+   */
+  now?: number;
   /** Supported country set (injected for purity/testability). */
   supportedCountries?: readonly string[];
 }
 
-/** Normalize + validate offer.restrictedCountries. Malformed → fail closed. */
+export type RestrictionState = 'ok' | 'missing' | 'invalid';
+
+/**
+ * Normalize + validate offer.restrictedCountries for a PRODUCTION country gate.
+ *
+ * Completeness is required (R3): absent restriction metadata is NOT proof of an
+ * empty restriction list — it is unproven and fails closed. Only an EXPLICIT
+ * array (possibly empty) counts as recorded proof.
+ *   - undefined / null            → 'missing' (fail closed)
+ *   - non-array                   → 'invalid' (fail closed)
+ *   - any malformed element       → 'invalid' (fail closed)
+ *   - []                          → 'ok' (proof: no restrictions recorded)
+ *   - valid uppercase alpha-2 list → 'ok'
+ */
 export function normalizeRestrictedCountries(
   list: unknown,
-): { codes: string[]; malformed: boolean } {
-  if (list === undefined || list === null) return { codes: [], malformed: false };
-  if (!Array.isArray(list)) return { codes: [], malformed: true };
+): { state: RestrictionState; codes: string[] } {
+  if (list === undefined || list === null) return { state: 'missing', codes: [] };
+  if (!Array.isArray(list)) return { state: 'invalid', codes: [] };
   const codes: string[] = [];
   for (const raw of list) {
-    if (typeof raw !== 'string') return { codes: [], malformed: true };
+    if (typeof raw !== 'string') return { state: 'invalid', codes: [] };
     const code = raw.trim();
-    if (!ISO_ALPHA2.test(code)) return { codes: [], malformed: true };
+    if (!ISO_ALPHA2.test(code)) return { state: 'invalid', codes: [] };
     codes.push(code);
   }
-  return { codes, malformed: false };
+  return { state: 'ok', codes };
 }
 
 /**
@@ -102,6 +122,15 @@ export function resolveCountryAwareCommercialCta(input: CountryAwareCtaInput): C
     gateReason: reason,
   });
 
+  // 0) Canonical exchange identity (R1). The affiliate destination is derived
+  //    only from a single, internally-consistent identity, so a profile for
+  //    exchange A can never authorize /go/{exchange-B}. No silent normalization.
+  if (typeof exchangeId !== 'string' || typeof slug !== 'string'
+    || !CANONICAL_SLUG.test(exchangeId) || !CANONICAL_SLUG.test(slug)
+    || exchangeId !== slug) {
+    return review('EXCHANGE_IDENTITY_MISMATCH');
+  }
+
   // 1) Explicit country input.
   const sel = normalizeCountryInput(countryCode, supportedCountries);
   if (sel.state === 'missing') return review('COUNTRY_MISSING');
@@ -110,8 +139,9 @@ export function resolveCountryAwareCommercialCta(input: CountryAwareCtaInput): C
   if (sel.state === 'unsupported') return review('COUNTRY_UNSUPPORTED');
   const code = sel.code!; // 'valid'
 
-  // 2) Canonical Exchange × Country MarketProfile.
-  const res = resolveMarketProfile(exchangeId, code, marketProfiles);
+  // 2) Canonical Exchange × Country MarketProfile. resolveMarketProfile never
+  //    throws on a malformed registry (R6) — it reports PROFILE_REGISTRY_INVALID.
+  const res = resolveMarketProfile(exchangeId, code, marketProfiles as never);
   if (!res.ok) {
     switch (res.reason) {
       case 'PROFILE_RESTRICTED': return disabled('restricted', 'MARKET_RESTRICTED');
@@ -119,22 +149,42 @@ export function resolveCountryAwareCommercialCta(input: CountryAwareCtaInput): C
       case 'PROFILE_CONFLICT': return review('PROFILE_CONFLICT');
       case 'PROFILE_INVALID': return review('PROFILE_INVALID');
       case 'PROFILE_NOT_APPROVED': return review('PROFILE_UNDER_REVIEW');
+      case 'PROFILE_REGISTRY_INVALID': return review('PROFILE_REGISTRY_INVALID');
       case 'PROFILE_MISSING':
       default: return review('PROFILE_MISSING');
     }
   }
   const profile = res.profile; // approved + available/limited + valid
 
+  // Defense in depth: the resolved profile must carry the same exchange identity.
+  if (profile.exchangeId !== exchangeId) return review('EXCHANGE_IDENTITY_MISMATCH');
+
   // 3) Offer must exist and be verified (authorizes the offer itself only).
   if (!offer || offer.status !== 'verified') return review('OFFER_NOT_APPROVED');
 
-  // 4) Independent restricted-country enforcement (malformed → fail closed).
+  // 3b) Offer identity (R2): the offer must belong to this exact exchange.
+  if (typeof offer.exchangeSlug !== 'string' || !CANONICAL_SLUG.test(offer.exchangeSlug)
+    || offer.exchangeSlug !== exchangeId) {
+    return review('OFFER_IDENTITY_MISMATCH');
+  }
+
+  // 4) Independent restricted-country enforcement (malformed/missing → fail closed).
   const restricted = normalizeRestrictedCountries(offer.restrictedCountries);
-  if (restricted.malformed) return disabled('restricted', 'RESTRICTION_DATA_INVALID');
+  if (restricted.state === 'missing') return review('RESTRICTION_DATA_MISSING');
+  if (restricted.state === 'invalid') return disabled('restricted', 'RESTRICTION_DATA_INVALID');
   if (restricted.codes.includes(code)) return disabled('restricted', 'MARKET_RESTRICTED');
 
   // 5) Profile-level offer eligibility must be approved (distinct from offer.status).
   if (profile.offerEligibility !== 'approved') return review('OFFER_NOT_APPROVED');
+
+  // 5b) Finite explicit clock (R4): a live decision requires a real, finite now.
+  if (!Number.isFinite(now)) return review('CLOCK_INVALID');
+  const nowMs = now as number;
+
+  // 5c) Scheduled review must not be overdue (R5), independent of the
+  //     lastCheckedAt freshness policy which the base gate also enforces.
+  const nextReview = Date.parse(profile.nextReviewAt);
+  if (!Number.isFinite(nextReview) || nowMs >= nextReview) return review('PROFILE_REVIEW_OVERDUE');
 
   // 6) All country conditions met — hand the REAL profile facts to the canonical
   //    gate, which enforces production mode + evidence freshness + slug/route
@@ -147,5 +197,5 @@ export function resolveCountryAwareCommercialCta(input: CountryAwareCtaInput): C
     approval: profile.approval,
     reviewHref,
     evidenceCheckedAt: profile.lastCheckedAt,
-  }, { now });
+  }, { now: nowMs });
 }

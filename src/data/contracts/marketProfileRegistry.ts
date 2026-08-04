@@ -21,9 +21,10 @@ export type MarketProfileFailReason =
   | 'PROFILE_MISSING'       // no profile for this exact pair
   | 'PROFILE_CONFLICT'      // more than one profile for this exact pair
   | 'PROFILE_INVALID'       // profile fails canonical validation
-  | 'PROFILE_NOT_APPROVED'  // approval is not 'approved' (draft/validated/rejected/stale)
-  | 'PROFILE_RESTRICTED'    // approved but availability restricted
-  | 'PROFILE_UNAVAILABLE';  // approved but availability unavailable/unknown
+  | 'PROFILE_NOT_APPROVED'    // approval is not 'approved' (draft/validated/rejected/stale)
+  | 'PROFILE_RESTRICTED'      // approved but availability restricted
+  | 'PROFILE_UNAVAILABLE'     // approved but availability unavailable/unknown
+  | 'PROFILE_REGISTRY_INVALID'; // the registry itself is not a usable array
 
 export type MarketProfileResolution =
   | { ok: true; profile: MarketProfile }
@@ -39,11 +40,18 @@ export const PUBLIC_MARKET_PROFILES: readonly MarketProfile[] = Object.freeze([]
 export function resolveMarketProfile(
   exchangeId: string,
   countryCode: string,
-  profiles: readonly MarketProfile[],
+  profiles: unknown,
 ): MarketProfileResolution {
+  // R6: a malformed registry must fail closed, never throw. Non-array input and
+  // non-object entries are ignored/rejected rather than crashing profiles.filter.
+  if (!Array.isArray(profiles)) return { ok: false, reason: 'PROFILE_REGISTRY_INVALID' };
+
   // Exact exchange AND country match — no fuzzy/regional promotion.
-  const matches = profiles.filter(
-    (p) => p && p.exchangeId === exchangeId && p.countryCode === countryCode,
+  const matches = (profiles as unknown[]).filter(
+    (p): p is MarketProfile =>
+      typeof p === 'object' && p !== null
+      && (p as MarketProfile).exchangeId === exchangeId
+      && (p as MarketProfile).countryCode === countryCode,
   );
 
   if (matches.length === 0) return { ok: false, reason: 'PROFILE_MISSING' };

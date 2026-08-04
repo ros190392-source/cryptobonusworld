@@ -105,6 +105,37 @@ export const ctaGateReasonText: Record<string, LocalizedText> = {
     ru: 'Данные об ограничениях недействительны',
     kk: 'Шектеу деректері жарамсыз',
   },
+  // ── Split 3 R1–R6 integrity reasons ──
+  EXCHANGE_IDENTITY_MISMATCH: {
+    en: 'Exchange identity mismatch',
+    ru: 'Несовпадение идентификатора биржи',
+    kk: 'Биржа сәйкестігі сәйкес емес',
+  },
+  OFFER_IDENTITY_MISMATCH: {
+    en: 'Offer identity mismatch',
+    ru: 'Несовпадение принадлежности предложения',
+    kk: 'Ұсыныс сәйкестігі сәйкес емес',
+  },
+  RESTRICTION_DATA_MISSING: {
+    en: 'Restriction data not confirmed',
+    ru: 'Данные об ограничениях не подтверждены',
+    kk: 'Шектеу деректері расталмаған',
+  },
+  CLOCK_INVALID: {
+    en: 'Freshness clock unavailable',
+    ru: 'Часы актуальности недоступны',
+    kk: 'Жаңалық сағаты қолжетімсіз',
+  },
+  PROFILE_REVIEW_OVERDUE: {
+    en: 'Country review overdue',
+    ru: 'Проверка по стране просрочена',
+    kk: 'Ел бойынша тексеру мерзімі өтті',
+  },
+  PROFILE_REGISTRY_INVALID: {
+    en: 'Country data source invalid',
+    ru: 'Источник данных по стране недействителен',
+    kk: 'Ел деректер көзі жарамсыз',
+  },
 };
 
 /** Short CTA microcopy fragments. */

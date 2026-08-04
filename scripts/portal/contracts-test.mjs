@@ -464,15 +464,17 @@ try {
   check('s3/mp: country mismatch → PROFILE_MISSING', m.resolveMarketProfile('ex', 'UA', [{ ...okProfile, countryCode: 'US', profileId: 'mp:us:ex' }]).reason === 'PROFILE_MISSING');
   check('s3/mp: exchange mismatch → PROFILE_MISSING', m.resolveMarketProfile('ex', 'UA', [{ ...okProfile, exchangeId: 'other' }]).reason === 'PROFILE_MISSING');
 
-  // ── Restricted-country normalization ──
-  check('s3/restr: undefined → no restriction, not malformed', (() => { const r = m.normalizeRestrictedCountries(undefined); return r.malformed === false && r.codes.length === 0; })());
-  check('s3/restr: valid codes accepted', (() => { const r = m.normalizeRestrictedCountries(['US', 'GB']); return !r.malformed && r.codes.length === 2; })());
-  check('s3/restr: lowercase → malformed (fail closed)', m.normalizeRestrictedCountries(['us']).malformed === true);
-  check('s3/restr: non-array → malformed', m.normalizeRestrictedCountries('US').malformed === true);
-  check('s3/restr: non-string element → malformed', m.normalizeRestrictedCountries([123]).malformed === true);
+  // ── Restricted-country normalization (R3 completeness) ──
+  check('s3/restr: undefined → missing (fail closed, NOT proven empty)', (() => { const r = m.normalizeRestrictedCountries(undefined); return r.state === 'missing' && r.codes.length === 0; })());
+  check('s3/restr: null → missing (fail closed)', m.normalizeRestrictedCountries(null).state === 'missing');
+  check('s3/restr: explicit [] → ok (proof: no restrictions recorded)', (() => { const r = m.normalizeRestrictedCountries([]); return r.state === 'ok' && r.codes.length === 0; })());
+  check('s3/restr: valid codes accepted', (() => { const r = m.normalizeRestrictedCountries(['US', 'GB']); return r.state === 'ok' && r.codes.length === 2; })());
+  check('s3/restr: lowercase → invalid (fail closed)', m.normalizeRestrictedCountries(['us']).state === 'invalid');
+  check('s3/restr: non-array → invalid', m.normalizeRestrictedCountries('US').state === 'invalid');
+  check('s3/restr: non-string element → invalid', m.normalizeRestrictedCountries([123]).state === 'invalid');
 
   // ── Composed country-aware CTA (the 22 required cases) ──
-  const baseOffer = { status: 'verified', restrictedCountries: ['US'] };
+  const baseOffer = { exchangeSlug: 'ex', status: 'verified', restrictedCountries: ['US'] };
   const carBase = { intent: 'get_bonus', locale: 'en', mode: 'production', countryCode: 'UA', exchangeId: 'ex', slug: 'ex', reviewHref: '/exchanges/ex/', offer: baseOffer, marketProfiles: [okProfile], now: NOW };
   const car = (o = {}) => m.resolveCountryAwareCommercialCta({ ...carBase, ...o });
   const isGo = (mdl) => mdl.isAffiliate && typeof mdl.href === 'string' && mdl.href.startsWith('/go/');
@@ -482,16 +484,16 @@ try {
   check('s3/3: verified offer but profile missing → no /go/', (() => { const r = car({ marketProfiles: [] }); return !isGo(r) && r.gateReason === 'PROFILE_MISSING'; })());
   check('s3/4: verified offer but malformed country → no /go/', (() => { const r = car({ countryCode: 'ukraine' }); return !isGo(r) && r.gateReason === 'COUNTRY_MALFORMED'; })());
   check('s3/5: unsupported country → no /go/', (() => { const r = car({ countryCode: 'ZZ' }); return !isGo(r) && r.gateReason === 'COUNTRY_UNSUPPORTED'; })());
-  check('s3/6: restrictedCountries match → disabled, no href', (() => { const r = car({ offer: { status: 'verified', restrictedCountries: ['UA'] } }); return !isGo(r) && r.disabled === true && r.href === '' && r.gateReason === 'MARKET_RESTRICTED'; })());
+  check('s3/6: restrictedCountries match → disabled, no href', (() => { const r = car({ offer: { exchangeSlug: 'ex', status: 'verified', restrictedCountries: ['UA'] } }); return !isGo(r) && r.disabled === true && r.href === '' && r.gateReason === 'MARKET_RESTRICTED'; })());
   check('s3/7: MarketProfile restricted → disabled, no href', (() => { const r = car({ marketProfiles: [{ ...okProfile, availability: 'restricted' }] }); return !isGo(r) && r.disabled === true && r.href === '' && r.gateReason === 'MARKET_RESTRICTED'; })());
   check('s3/8: MarketProfile unavailable → disabled, no href', (() => { const r = car({ marketProfiles: [{ ...okProfile, availability: 'unavailable' }] }); return !isGo(r) && r.disabled === true && r.gateReason === 'MARKET_UNAVAILABLE'; })());
   check('s3/9: MarketProfile under review → internal review', (() => { const r = car({ marketProfiles: [{ ...okProfile, approval: 'validated', offerEligibility: 'under_review' }] }); return !isGo(r) && r.disabled === false && r.gateReason === 'PROFILE_UNDER_REVIEW'; })());
   check('s3/10: profile approval stale → no /go/', (() => { const r = car({ marketProfiles: [{ ...okProfile, approval: 'stale', offerEligibility: 'under_review' }] }); return !isGo(r) && r.gateReason === 'PROFILE_UNDER_REVIEW'; })());
-  check('s3/11: stale evidence → no /go/', (() => { const r = car({ marketProfiles: [{ ...okProfile, lastCheckedAt: daysAgo(120), nextReviewAt: daysAgo(100) }] }); return !isGo(r) && r.gateReason === 'EVIDENCE_STALE'; })());
+  check('s3/11: stale evidence (fresh review window) → no /go/', (() => { const r = car({ marketProfiles: [{ ...okProfile, lastCheckedAt: daysAgo(120), nextReviewAt: daysAgo(-30) }] }); return !isGo(r) && r.gateReason === 'EVIDENCE_STALE'; })());
   check('s3/12: profile country mismatch → no /go/', (() => { const r = car({ marketProfiles: [{ ...okProfile, countryCode: 'US', profileId: 'mp:us:ex' }] }); return !isGo(r) && r.gateReason === 'PROFILE_MISSING'; })());
   check('s3/13: profile exchange mismatch → no /go/', (() => { const r = car({ marketProfiles: [{ ...okProfile, exchangeId: 'other' }] }); return !isGo(r) && r.gateReason === 'PROFILE_MISSING'; })());
   check('s3/14: duplicate/conflicting profiles → no /go/', (() => { const r = car({ marketProfiles: [okProfile, { ...okProfile, profileId: 'mp:ua:ex2' }] }); return !isGo(r) && r.gateReason === 'PROFILE_CONFLICT'; })());
-  check('s3/15: malformed restrictedCountries → no /go/ (fail closed)', (() => { const r = car({ offer: { status: 'verified', restrictedCountries: ['us'] } }); return !isGo(r) && r.disabled === true && r.gateReason === 'RESTRICTION_DATA_INVALID'; })());
+  check('s3/15: malformed restrictedCountries → no /go/ (fail closed)', (() => { const r = car({ offer: { exchangeSlug: 'ex', status: 'verified', restrictedCountries: ['us'] } }); return !isGo(r) && r.disabled === true && r.gateReason === 'RESTRICTION_DATA_INVALID'; })());
   check('s3/16: global/missing country → no /go/', !isGo(car({ countryCode: 'global' })) && car({ countryCode: 'global' }).gateReason === 'COUNTRY_GLOBAL' && !isGo(car({ countryCode: undefined })) && car({ countryCode: undefined }).gateReason === 'COUNTRY_MISSING');
   check('s3/17: offer status alone can never authorize availability', (() => {
     // Verified offer + valid supported country, but NO approved profile → never /go/.
@@ -514,6 +516,81 @@ try {
   })());
   check('s3: en/ru/kk gate reasons all localized for new country/profile reasons', (() => {
     const reasons = ['COUNTRY_MISSING', 'COUNTRY_GLOBAL', 'COUNTRY_MALFORMED', 'COUNTRY_UNSUPPORTED', 'PROFILE_MISSING', 'PROFILE_CONFLICT', 'PROFILE_INVALID', 'PROFILE_UNDER_REVIEW', 'RESTRICTION_DATA_INVALID'];
+    return reasons.every((rk) => ['en', 'ru', 'kk'].every((l) => { const t = m.gateReasonText(rk, l); return t && t.trim() && t !== rk; }));
+  })());
+
+  // ===== Split 3 R1–R6 — production integrity invariants =====
+  // R1 exchange identity binding
+  check('R1/1: bybit profile + exchangeId=bybit + slug=okx → no /go/ (EXCHANGE_IDENTITY_MISMATCH)', (() => {
+    const r = car({ exchangeId: 'bybit', slug: 'okx', offer: { ...baseOffer, exchangeSlug: 'bybit' }, marketProfiles: [{ ...okProfile, exchangeId: 'bybit' }] });
+    return !isGo(r) && r.gateReason === 'EXCHANGE_IDENTITY_MISMATCH';
+  })());
+  check('R1/2: exchangeId=okx + slug=bybit → no /go/', (() => { const r = car({ exchangeId: 'okx', slug: 'bybit' }); return !isGo(r) && r.gateReason === 'EXCHANGE_IDENTITY_MISMATCH'; })());
+  check('R1/3: exact ex/ex identity → positive path remains possible', isGo(car()));
+  check('R1/4: blank/malformed identity → no /go/', !isGo(car({ exchangeId: '', slug: '' })) && !isGo(car({ exchangeId: 'Ex!', slug: 'Ex!' })) && car({ exchangeId: '', slug: '' }).gateReason === 'EXCHANGE_IDENTITY_MISMATCH');
+  check('R1/5: cross-exchange profile substitution (profile.exchangeId≠target) → no /go/', (() => {
+    // Identity ok (ex/ex) but the only profile is for a different exchange → no exact match → no /go/.
+    const r = car({ marketProfiles: [{ ...okProfile, exchangeId: 'other' }] });
+    return !isGo(r);
+  })());
+
+  // R2 offer identity binding
+  check('R2/1: verified bybit offer + bybit profile + okx target → no /go/', (() => {
+    const r = car({ exchangeId: 'okx', slug: 'okx', offer: { exchangeSlug: 'bybit', status: 'verified', restrictedCountries: [] }, marketProfiles: [{ ...okProfile, exchangeId: 'okx' }] });
+    return !isGo(r); // fails offer identity (bybit≠okx)
+  })());
+  check('R2/2: offer for a different exchange → no /go/ (OFFER_IDENTITY_MISMATCH)', (() => { const r = car({ offer: { exchangeSlug: 'other', status: 'verified', restrictedCountries: [] } }); return !isGo(r) && r.gateReason === 'OFFER_IDENTITY_MISMATCH'; })());
+  check('R2/3: verified offer with missing exchangeSlug → no /go/', (() => { const r = car({ offer: { status: 'verified', restrictedCountries: [] } }); return !isGo(r) && r.gateReason === 'OFFER_IDENTITY_MISMATCH'; })());
+  check('R2/3b: malformed offer exchangeSlug → no /go/', (() => { const r = car({ offer: { exchangeSlug: 'Ex!', status: 'verified', restrictedCountries: [] } }); return !isGo(r) && r.gateReason === 'OFFER_IDENTITY_MISMATCH'; })());
+  check('R2/4: exact offer/profile/target identity → positive fixture green', isGo(car({ offer: { exchangeSlug: 'ex', status: 'verified', restrictedCountries: [] } })));
+  check('R2/5: offer status alone still cannot authorize (verified but wrong identity)', !isGo(car({ offer: { exchangeSlug: 'other', status: 'verified', restrictedCountries: [] } })));
+
+  // R3 restriction completeness
+  check('R3/1: verified offer with MISSING restrictedCountries → no /go/ (RESTRICTION_DATA_MISSING)', (() => { const r = car({ offer: { exchangeSlug: 'ex', status: 'verified' } }); return !isGo(r) && r.gateReason === 'RESTRICTION_DATA_MISSING'; })());
+  check('R3/2: null restrictedCountries → no /go/', (() => { const r = car({ offer: { exchangeSlug: 'ex', status: 'verified', restrictedCountries: null } }); return !isGo(r) && r.gateReason === 'RESTRICTION_DATA_MISSING'; })());
+  check('R3/3: non-array restrictedCountries → disabled, no /go/', (() => { const r = car({ offer: { exchangeSlug: 'ex', status: 'verified', restrictedCountries: 'US' } }); return !isGo(r) && r.gateReason === 'RESTRICTION_DATA_INVALID'; })());
+  check('R3/4: explicit [] (no restrictions recorded) → /go/ eligible', isGo(car({ offer: { exchangeSlug: 'ex', status: 'verified', restrictedCountries: [] } })));
+  check('R3/5: country in explicit list → disabled restricted', (() => { const r = car({ offer: { exchangeSlug: 'ex', status: 'verified', restrictedCountries: ['UA'] } }); return !isGo(r) && r.disabled === true && r.gateReason === 'MARKET_RESTRICTED'; })());
+
+  // R4 finite explicit clock
+  check('R4/NaN: now=NaN → no /go/ (CLOCK_INVALID)', (() => { const r = car({ now: NaN }); return !isGo(r) && r.gateReason === 'CLOCK_INVALID'; })());
+  check('R4/Inf: now=Infinity → no /go/', (() => { const r = car({ now: Infinity }); return !isGo(r) && r.gateReason === 'CLOCK_INVALID'; })());
+  check('R4/-Inf: now=-Infinity → no /go/', (() => { const r = car({ now: -Infinity }); return !isGo(r) && r.gateReason === 'CLOCK_INVALID'; })());
+  check('R4/omitted: no now in an injectable live scenario → no /go/', (() => { const r = car({ now: undefined }); return !isGo(r) && r.gateReason === 'CLOCK_INVALID'; })());
+  check('R4/finite: finite NOW + exact approved fixture → positive path green', isGo(car({ now: NOW })));
+  check('R4/freshness: assessEvidenceFreshness rejects non-finite clock', m.assessEvidenceFreshness(daysAgo(5), NaN).state === 'invalid' && m.assessEvidenceFreshness(daysAgo(5), Infinity).state === 'invalid');
+  check('R4/policy: assessEvidenceFreshness rejects invalid policy numbers', m.assessEvidenceFreshness(daysAgo(5), NOW, { maxEvidenceAgeDays: NaN, futureSkewToleranceMinutes: 60 }).state === 'invalid' && m.assessEvidenceFreshness(daysAgo(5), NOW, { maxEvidenceAgeDays: -1, futureSkewToleranceMinutes: 60 }).state === 'invalid');
+
+  // R5 nextReviewAt deadline
+  check('R5/1: fresh lastChecked, nextReviewAt PAST → no /go/ (PROFILE_REVIEW_OVERDUE)', (() => { const r = car({ marketProfiles: [{ ...okProfile, lastCheckedAt: daysAgo(5), nextReviewAt: daysAgo(1) }] }); return !isGo(r) && r.gateReason === 'PROFILE_REVIEW_OVERDUE'; })());
+  check('R5/2: fresh lastChecked, nextReviewAt == now → no /go/', (() => { const r = car({ marketProfiles: [{ ...okProfile, lastCheckedAt: daysAgo(5), nextReviewAt: new Date(NOW).toISOString() }] }); return !isGo(r) && r.gateReason === 'PROFILE_REVIEW_OVERDUE'; })());
+  check('R5/3: fresh lastChecked, nextReviewAt FUTURE → eligible', isGo(car({ marketProfiles: [{ ...okProfile, lastCheckedAt: daysAgo(5), nextReviewAt: daysAgo(-30) }] })));
+  check('R5/3b: invalid nextReviewAt → no /go/ (but must be caught before validation)', (() => {
+    // An invalid nextReviewAt fails MarketProfile validation first → PROFILE_INVALID.
+    const r = car({ marketProfiles: [{ ...okProfile, nextReviewAt: 'not-a-date' }] });
+    return !isGo(r);
+  })());
+  check('R5/4: stale lastCheckedAt + future nextReviewAt → no /go/ (EVIDENCE_STALE)', (() => { const r = car({ marketProfiles: [{ ...okProfile, lastCheckedAt: daysAgo(200), nextReviewAt: daysAgo(-30) }] }); return !isGo(r) && r.gateReason === 'EVIDENCE_STALE'; })());
+  check('R5/5: overdue profile factually identical across en/ru/kk', (() => {
+    const mk = (l) => car({ locale: l, marketProfiles: [{ ...okProfile, nextReviewAt: daysAgo(1) }] });
+    const en = mk('en'), ru = mk('ru'), kk = mk('kk');
+    return en.gateReason === ru.gateReason && ru.gateReason === kk.gateReason && !isGo(en) && !isGo(ru) && !isGo(kk);
+  })());
+
+  // R6 malformed registry (no throw)
+  check('R6/undefined: marketProfiles undefined → no throw, no /go/ (PROFILE_REGISTRY_INVALID)', (() => { const r = car({ marketProfiles: undefined }); return !isGo(r) && r.gateReason === 'PROFILE_REGISTRY_INVALID'; })());
+  check('R6/null: marketProfiles null → no throw, no /go/', (() => { const r = car({ marketProfiles: null }); return !isGo(r) && r.gateReason === 'PROFILE_REGISTRY_INVALID'; })());
+  check('R6/non-array: marketProfiles = {} → no throw, no /go/', (() => { const r = car({ marketProfiles: {} }); return !isGo(r) && r.gateReason === 'PROFILE_REGISTRY_INVALID'; })());
+  check('R6/bad-entries: malformed array entries → no throw, no /go/', (() => { const r = car({ marketProfiles: [null, 42, 'x'] }); return !isGo(r) && r.gateReason === 'PROFILE_MISSING'; })());
+  check('R6/resolver: resolveMarketProfile never throws on bad registry', (() => {
+    return m.resolveMarketProfile('ex', 'UA', undefined).reason === 'PROFILE_REGISTRY_INVALID'
+      && m.resolveMarketProfile('ex', 'UA', {}).reason === 'PROFILE_REGISTRY_INVALID'
+      && m.resolveMarketProfile('ex', 'UA', [null, 1]).reason === 'PROFILE_MISSING';
+  })());
+
+  // i18n completeness for all R1–R6 reasons
+  check('R1-R6: all new reasons localized en/ru/kk (no raw key)', (() => {
+    const reasons = ['EXCHANGE_IDENTITY_MISMATCH', 'OFFER_IDENTITY_MISMATCH', 'RESTRICTION_DATA_MISSING', 'CLOCK_INVALID', 'PROFILE_REVIEW_OVERDUE', 'PROFILE_REGISTRY_INVALID'];
     return reasons.every((rk) => ['en', 'ru', 'kk'].every((l) => { const t = m.gateReasonText(rk, l); return t && t.trim() && t !== rk; }));
   })());
 
