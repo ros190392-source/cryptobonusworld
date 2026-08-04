@@ -31,6 +31,8 @@ const internalPath = join(ROOT, 'src/data/contracts/internalPath.ts');
 const countryInput = join(ROOT, 'src/data/contracts/countryInput.ts');
 const marketProfileRegistry = join(ROOT, 'src/data/contracts/marketProfileRegistry.ts');
 const countryAwareCta = join(ROOT, 'src/data/contracts/countryAwareCta.ts');
+const evidenceMetadata = join(ROOT, 'src/data/contracts/evidenceMetadata.ts');
+const offersData = join(ROOT, 'src/data/offers.ts');
 
 const tmp = mkdtempSync(join(tmpdir(), 'cbw-portal-test-'));
 const outfile = join(tmp, 'contracts.mjs');
@@ -58,7 +60,9 @@ try {
         `export { isInternalPath, assertInternalPath } from ${JSON.stringify(internalPath)};\n` +
         `export { normalizeCountryInput, SUPPORTED_COUNTRY_CODES } from ${JSON.stringify(countryInput)};\n` +
         `export { resolveMarketProfile, PUBLIC_MARKET_PROFILES } from ${JSON.stringify(marketProfileRegistry)};\n` +
-        `export { resolveCountryAwareCommercialCta, normalizeRestrictedCountries, PUBLIC_HOMEPAGE_COUNTRY } from ${JSON.stringify(countryAwareCta)};`,
+        `export { resolveCountryAwareCommercialCta, normalizeRestrictedCountries, PUBLIC_HOMEPAGE_COUNTRY } from ${JSON.stringify(countryAwareCta)};\n` +
+        `export { isExactIsoDateTime, validateEvidenceMetadata, assessEvidenceAuthorization, formatEvidenceCheckedAt, deriveCheckedDisplay, toMarketProfileTimestamps } from ${JSON.stringify(evidenceMetadata)};\n` +
+        `export { offers, getOffer } from ${JSON.stringify(offersData)};`,
       resolveDir: ROOT,
       loader: 'ts',
     },
@@ -626,6 +630,65 @@ try {
   check('R1-R6: all new reasons localized en/ru/kk (no raw key)', (() => {
     const reasons = ['EXCHANGE_IDENTITY_MISMATCH', 'OFFER_IDENTITY_MISMATCH', 'RESTRICTION_DATA_MISSING', 'CLOCK_INVALID', 'PROFILE_REVIEW_OVERDUE', 'PROFILE_REGISTRY_INVALID'];
     return reasons.every((rk) => ['en', 'ru', 'kk'].every((l) => { const t = m.gateReasonText(rk, l); return t && t.trim() && t !== rk; }));
+  })());
+
+  // ===== Split 3 (#250) — machine-readable evidence freshness =====
+  // ONE factual freshness source: exact, timezone-qualified ISO metadata backed
+  // by an HTTPS source. Human strings can never authorize; display dates derive
+  // from the machine timestamp; locale changes formatting only.
+  const EVI_SRC = 'https://ex.com/evidence';
+  const validMeta = { evidenceCheckedAt: daysAgo(5), nextReviewAt: '2026-12-31T00:00:00Z', sourceUrl: EVI_SRC };
+
+  check('evi/1: exact UTC timestamp accepted', m.isExactIsoDateTime('2026-07-31T00:00:00Z') && m.validateEvidenceMetadata(validMeta).ok);
+  check('evi/2: exact offset accepted + normalized deterministically', m.isExactIsoDateTime('2026-07-31T09:30:00+05:00') && Date.parse('2026-07-31T09:30:00+05:00') === Date.parse('2026-07-31T04:30:00Z'));
+  check('evi/3: date-only rejected', !m.isExactIsoDateTime('2026-07-31') && !m.validateEvidenceMetadata({ ...validMeta, evidenceCheckedAt: '2026-07-31' }).ok);
+  check('evi/4: timezone-less datetime rejected', !m.isExactIsoDateTime('2026-07-31T00:00:00') && !m.validateEvidenceMetadata({ ...validMeta, evidenceCheckedAt: '2026-07-31T12:00:00' }).ok);
+  check('evi/5: malformed timestamp rejected', !m.isExactIsoDateTime('not-a-date') && !m.isExactIsoDateTime('2026-99-99T00:00:00Z'));
+  check('evi/6: missing timestamp rejected', (() => { const r = m.validateEvidenceMetadata({ nextReviewAt: '2026-12-31T00:00:00Z', sourceUrl: EVI_SRC }); return !r.ok && r.issues.some((i) => i.field === 'evidenceCheckedAt'); })());
+  check('evi/7: NaN/Infinity clock rejected', !m.assessEvidenceAuthorization(validMeta, NaN).authoritative && m.assessEvidenceAuthorization(validMeta, NaN).reason === 'INVALID_CLOCK' && !m.assessEvidenceAuthorization(validMeta, Infinity).authoritative && !m.assessEvidenceAuthorization(validMeta, -Infinity).authoritative);
+  check('evi/8: future beyond skew rejected', (() => { const a = m.assessEvidenceAuthorization({ ...validMeta, evidenceCheckedAt: new Date(NOW + 61 * 60000).toISOString() }, NOW); return !a.authoritative && a.freshness === 'future'; })());
+  check('evi/9: stale evidence rejected', (() => { const a = m.assessEvidenceAuthorization({ ...validMeta, evidenceCheckedAt: daysAgo(200) }, NOW); return !a.authoritative && a.freshness === 'stale'; })());
+  check('evi/10a: exactly 45d evidence fresh (central boundary)', m.assessEvidenceFreshness(daysAgo(45), NOW).state === 'fresh');
+  check('evi/10b: 45d+1ms evidence stale', m.assessEvidenceFreshness(new Date(NOW - 45 * 86400000 - 1).toISOString(), NOW).state === 'stale');
+  check('evi/10c: authorization fresh exactly at boundary with future review', m.assessEvidenceAuthorization({ ...validMeta, evidenceCheckedAt: daysAgo(45) }, NOW).authoritative === true);
+  check('evi/11: nextReviewAt <= evidenceCheckedAt rejected', !m.validateEvidenceMetadata({ evidenceCheckedAt: daysAgo(5), nextReviewAt: daysAgo(6), sourceUrl: EVI_SRC }).ok);
+  check('evi/12: nextReviewAt == now overdue', (() => { const a = m.assessEvidenceAuthorization({ evidenceCheckedAt: daysAgo(5), nextReviewAt: new Date(NOW).toISOString(), sourceUrl: EVI_SRC }, NOW); return !a.authoritative && a.reviewState === 'overdue' && a.reason === 'REVIEW_OVERDUE'; })());
+  check('evi/13: nextReviewAt < now overdue', (() => { const a = m.assessEvidenceAuthorization({ evidenceCheckedAt: daysAgo(5), nextReviewAt: daysAgo(1), sourceUrl: EVI_SRC }, NOW); return !a.authoritative && a.reviewState === 'overdue'; })());
+  check('evi/14: fresh checked + future review accepted', m.assessEvidenceAuthorization(validMeta, NOW).authoritative === true);
+  check('evi/15: "June 2026" cannot authorize freshness', !m.isExactIsoDateTime('June 2026') && !m.assessEvidenceAuthorization({ evidenceCheckedAt: 'June 2026', nextReviewAt: 'July 2026', sourceUrl: EVI_SRC }, NOW).authoritative);
+  check('evi/16: "Recheck in progress" cannot authorize freshness', !m.assessEvidenceAuthorization({ evidenceCheckedAt: 'Recheck in progress', nextReviewAt: 'Recheck in progress', sourceUrl: EVI_SRC }, NOW).authoritative);
+  check('evi/17: no real offer carries authorizing machine evidence (all under re-verification)', m.offers.every((o) => (o.evidence === null || o.evidence === undefined) && m.deriveCheckedDisplay(o.evidence ?? null, NOW).state === 'none'));
+  check('evi/17b: verified offer without machine evidence cannot authorize', (() => { const v = m.offers.find((o) => o.status === 'verified'); return v && (v.evidence === null || v.evidence === undefined) && !m.assessEvidenceAuthorization(v.evidence ?? null, NOW).authoritative; })());
+  check('evi/18: missing/non-https/malformed source URL fails closed', !m.validateEvidenceMetadata({ ...validMeta, sourceUrl: 'http://ex.com/x' }).ok && !m.validateEvidenceMetadata({ evidenceCheckedAt: validMeta.evidenceCheckedAt, nextReviewAt: validMeta.nextReviewAt }).ok && !m.validateEvidenceMetadata({ ...validMeta, sourceUrl: 'not a url' }).ok);
+  check('evi/19: visible date derived from machine timestamp (not a human string)', (() => {
+    const d = m.deriveCheckedDisplay(validMeta, NOW, 'en');
+    return !!d.display && d.iso === validMeta.evidenceCheckedAt && d.display === m.formatEvidenceCheckedAt(validMeta.evidenceCheckedAt, 'en') && d.display !== 'June 2026' && d.state === 'current';
+  })());
+  check('evi/20: en/ru/kk formatting differs while factual state identical', (() => {
+    const meta = { evidenceCheckedAt: '2026-07-31T00:00:00Z', nextReviewAt: '2026-12-31T00:00:00Z', sourceUrl: EVI_SRC };
+    const en = m.deriveCheckedDisplay(meta, NOW, 'en'), ru = m.deriveCheckedDisplay(meta, NOW, 'ru'), kk = m.deriveCheckedDisplay(meta, NOW, 'kk');
+    const factsEqual = en.iso === ru.iso && ru.iso === kk.iso && en.state === ru.state && ru.state === kk.state;
+    return factsEqual && !!en.display && !!ru.display && !!kk.display && en.display !== ru.display;
+  })());
+  check('evi/21: public homepage PREVIEW emits zero /go/', m.homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'preview', 'en').primary.href.startsWith('/go/')));
+  check('evi/22: public homepage PRODUCTION simulation emits zero /go/', m.homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'production', 'en').primary.href.startsWith('/go/')));
+  check('evi/23: exact evidence → adapter → approved profile can go live (all invariants)', (() => {
+    const adapted = m.toMarketProfileTimestamps(validMeta);
+    if (!adapted.ok) return false;
+    const prof = { ...okProfile, lastCheckedAt: adapted.value.lastCheckedAt, nextReviewAt: adapted.value.nextReviewAt };
+    const live = car({ marketProfiles: [prof] });
+    return isGo(live) && live.href === '/go/ex';
+  })());
+  check('evi/23b: adapter rejects display strings, date-only, and missing provenance', (() => (
+    !m.toMarketProfileTimestamps({ evidenceCheckedAt: 'June 2026', nextReviewAt: 'July 2026', sourceUrl: EVI_SRC }).ok
+    && !m.toMarketProfileTimestamps({ evidenceCheckedAt: '2026-07-31', nextReviewAt: '2026-12-31', sourceUrl: EVI_SRC }).ok
+    && !m.toMarketProfileTimestamps({ evidenceCheckedAt: daysAgo(5), nextReviewAt: '2026-12-31T00:00:00Z' }).ok
+  ))());
+  check('evi/24: PUBLIC_MARKET_PROFILES remains Object.freeze([])', Array.isArray(m.PUBLIC_MARKET_PROFILES) && m.PUBLIC_MARKET_PROFILES.length === 0 && Object.isFrozen(m.PUBLIC_MARKET_PROFILES));
+  check('evi/disc: disclosure carries semantic ISO only when machine-backed', (() => {
+    const withIso = m.resolveDisclosure({ tone: 'verified', lastChecked: m.formatEvidenceCheckedAt(validMeta.evidenceCheckedAt, 'en'), lastCheckedIso: validMeta.evidenceCheckedAt, isAffiliate: false, methodologyHref: '/methodology/' }, 'en');
+    const humanOnly = m.resolveDisclosure({ tone: 'verified', lastChecked: 'June 2026', lastCheckedIso: 'June 2026', isAffiliate: false, methodologyHref: '/methodology/' }, 'en');
+    return withIso.lastCheckedIso === validMeta.evidenceCheckedAt && humanOnly.lastCheckedIso === null;
   })());
 
   // --- Invariant: a non-commercial model may never point at /go/ ---

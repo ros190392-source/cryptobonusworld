@@ -8,6 +8,7 @@ import { gateReasonText, ctaMicrocopy, pickLocalized } from '../../data/contract
 import type { CtaLocale } from '../../data/contracts/portalCta';
 import Top10Disclosure from './Top10Disclosure.astro';
 import { resolveDisclosure } from '../../data/contracts/portalDisclosure';
+import { deriveCheckedDisplay } from '../../data/contracts/evidenceMetadata';
 import { getOffer } from '../../data/offers';
 
 // Current published locale for the homepage. All CTA labels and microcopy are
@@ -27,15 +28,21 @@ const opensNewTab = pickLocalized(ctaMicrocopy.opensNewTab, ctaLocale);
 const loadingText = pickLocalized(ctaMicrocopy.loading, ctaLocale);
 
 // Fail-closed evidence disclosure per row, derived from real records only.
-// A source link is carried only when a real HTTPS promo URL exists; research
-// rows without an offer resolve to a clear, non-fabricated disclosure state.
+// The visible "Checked" date is DERIVED from canonical machine evidence via
+// deriveCheckedDisplay — never from the human `lastChecked` editorial string.
+// Rows still under re-verification (evidence === null) carry no checked date;
+// their honest status is conveyed by the disclosure tone instead. A source link
+// is carried only when a real HTTPS promo URL exists.
+const nowMs = Date.now();
 const disclosures = new Map(
   homepageTop10.map((entry) => {
     const offer = getOffer(entry.slug);
     const binding = ctaBindings.get(entry.rank);
+    const checked = deriveCheckedDisplay(entry.evidence ?? null, nowMs, ctaLocale);
     return [entry.rank, resolveDisclosure({
       tone: entry.statusTone,
-      lastChecked: entry.lastChecked,
+      lastChecked: checked.display ?? undefined,
+      lastCheckedIso: checked.iso ?? undefined,
       sourceHref: offer?.sourceUrl,
       isAffiliate: Boolean(binding?.primary.isAffiliate),
       methodologyHref: '/methodology/',

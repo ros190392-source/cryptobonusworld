@@ -14,7 +14,11 @@ const hasDetails = Boolean(model.sourceHref || model.affiliateNote);
     <span class="top10-disc-dot" aria-hidden="true"></span>
     <span class="top10-disc-tone">{model.toneLabel}</span>
     {model.lastChecked && (
-      <span class="top10-disc-checked">· {model.checkedLabel}: {model.lastChecked}</span>
+      <span class="top10-disc-checked">· {model.checkedLabel}:{' '}
+        {model.lastCheckedIso
+          ? <time datetime={model.lastCheckedIso}>{model.lastChecked}</time>
+          : model.lastChecked}
+      </span>
     )}
   </div>
 

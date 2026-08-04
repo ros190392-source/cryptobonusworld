@@ -11,13 +11,24 @@
 import type { CtaLocale } from './portalCta';
 import { pickLocalized, type LocalizedText } from './portalCtaI18n';
 import { isInternalPath } from './internalPath';
+import { isExactIsoDateTime } from './evidenceMetadata';
 
 export type DisclosureTone = 'verified' | 'preview' | 'research' | 'review' | 'missing';
 
 export interface DisclosureInput {
   tone: DisclosureTone | string;
-  /** Human "last checked" label (e.g. "June 2026"); shown only when present. */
+  /**
+   * "Last checked" label to display. This must already be DERIVED from machine
+   * evidence by the caller (see contracts/evidenceMetadata.ts deriveCheckedDisplay);
+   * the disclosure never converts a human month-string into a factual date. Shown
+   * only when present; omitted for rows under re-verification.
+   */
   lastChecked?: string;
+  /**
+   * Exact ISO instant backing `lastChecked`, for semantic `<time datetime>`.
+   * Present only when a real machine timestamp exists; never fabricated.
+   */
+  lastCheckedIso?: string;
   /** Public source URL; shown only when it is a real HTTPS URL. */
   sourceHref?: string;
   /** Whether the row's primary CTA is a live affiliate action. */
@@ -32,6 +43,8 @@ export interface DisclosureModel {
   checkedLabel: string;
   /** Null when no real checked date is available (never fabricated). */
   lastChecked: string | null;
+  /** Exact ISO instant for semantic `<time datetime>`; null unless machine-backed. */
+  lastCheckedIso: string | null;
   sourceLabel: string;
   /** Null unless a real HTTPS source URL was supplied. */
   sourceHref: string | null;
@@ -82,6 +95,12 @@ export function resolveDisclosure(input: DisclosureInput, locale: CtaLocale = 'e
     ? input.lastChecked.trim()
     : null;
 
+  // Semantic ISO carried only when it is a real exact machine timestamp AND a
+  // display label exists — never fabricated, never a bare date-only string.
+  const lastCheckedIso = lastChecked && isExactIsoDateTime(input.lastCheckedIso)
+    ? input.lastCheckedIso
+    : null;
+
   const toneLabel = pickLocalized(toneLabels[tone], locale, `disclosure tone ${tone}`);
   const checkedLabel = pickLocalized(checkedText, locale, 'checked');
   const summary = lastChecked ? `${toneLabel} · ${checkedLabel}: ${lastChecked}` : toneLabel;
@@ -91,6 +110,7 @@ export function resolveDisclosure(input: DisclosureInput, locale: CtaLocale = 'e
     toneLabel,
     checkedLabel,
     lastChecked,
+    lastCheckedIso,
     sourceLabel: pickLocalized(sourceText, locale, 'source'),
     sourceHref,
     affiliateNote: input.isAffiliate ? pickLocalized(affiliateText, locale, 'affiliate') : null,
