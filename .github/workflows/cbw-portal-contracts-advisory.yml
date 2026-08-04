@@ -83,7 +83,11 @@ jobs:
             src/data/contracts/portalCta.ts \
             src/data/contracts/portalCtaI18n.ts \
             src/data/contracts/portalDisclosure.ts \
+            src/data/contracts/countryInput.ts \
+            src/data/contracts/marketProfileRegistry.ts \
+            src/data/contracts/countryAwareCta.ts \
             src/data/contracts/portalStateFixtures.ts \
+            src/data/homepageTop10Cta.ts \
             src/data/exchangePreview/cta-contract.ts
 
       - name: AI-ops fail-closed fixtures
