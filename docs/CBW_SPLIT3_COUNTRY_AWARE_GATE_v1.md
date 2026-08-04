@@ -49,16 +49,17 @@ non-country context (`PUBLIC_HOMEPAGE_COUNTRY = 'global'`) and the empty
   data). `countries.json` prose, `localNotes`, popularity, ranking position and
   offer status are never promoted into approved geo facts.
 
-## Verification (all green)
+## Verification (final, post-remediation — all green)
 
 ```
-npm run portal:contracts:test        # 168 passed, 0 failed
+npm run portal:contracts:test        # 216 passed, 0 failed   (initial: 168)
 npm run ai-ops:validate:fixtures     # 43 passed, 0 failed
 tsc --noEmit (contracts)             # exit 0
 npm run build                        # 109 pages
 npm run build (preview)              # homepage 0 /go/
 PUBLIC_CBW_CTA_MODE=production build  # homepage 0 /go/ (simulation only)
-Chromium homepage QA                 # 22/22 (desktop+mobile, keyboard, disclosure, both modes)
+Chromium homepage QA                 # final: 16/16 (desktop+mobile, keyboard, both modes)
+                                     #   (initial pre-remediation run: 22/22)
 ```
 
 The 22 spec scenarios are covered under the `s3/*` and `hp/s3-*` test names,
@@ -85,10 +86,15 @@ unchanged — still zero `/go/*`):
   has a hidden `Date.now()` fallback.
 - **R5 review deadline** — a live decision requires `now < Date.parse(nextReviewAt)`;
   else `PROFILE_REVIEW_OVERDUE` (independent of the `lastCheckedAt` freshness policy).
-- **R6 malformed registry** — `resolveMarketProfile` never throws; non-array
-  registry `→ PROFILE_REGISTRY_INVALID`, non-object entries ignored.
+- **R6 malformed registry (ATOMIC)** — the whole registry is proven
+  structurally valid BEFORE resolving an exact pair. A non-array registry, or
+  ANY null / primitive / structurally-invalid entry, invalidates the ENTIRE
+  registry `→ PROFILE_REGISTRY_INVALID`. Malformed entries are **not** silently
+  ignored — a corrupted sibling can never let a matching profile authorize a
+  CTA. `resolveMarketProfile` never throws on any malformed input. Valid
+  non-matching profiles for other pairs coexist without blocking resolution.
 
-All six reasons are localized en/ru/kk. Contracts total **205** cases.
+All six reasons are localized en/ru/kk. Final contracts total **216** cases.
 
 ## Remaining blockers (later tasks — not this PR)
 
