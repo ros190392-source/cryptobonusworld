@@ -136,6 +136,37 @@ export const ctaGateReasonText: Record<string, LocalizedText> = {
     ru: 'Источник данных по стране недействителен',
     kk: 'Ел деректер көзі жарамсыз',
   },
+  // ── Offer evidence authorization reasons (Split 3, #250 R1/R2) ──
+  OFFER_EVIDENCE_MISSING: {
+    en: 'Offer evidence pending',
+    ru: 'Данные по предложению готовятся',
+    kk: 'Ұсыныс дәлелдері дайындалуда',
+  },
+  OFFER_EVIDENCE_INVALID: {
+    en: 'Offer evidence invalid',
+    ru: 'Данные по предложению недействительны',
+    kk: 'Ұсыныс дәлелдері жарамсыз',
+  },
+  OFFER_EVIDENCE_IDENTITY_MISMATCH: {
+    en: 'Offer evidence identity mismatch',
+    ru: 'Несовпадение принадлежности данных предложения',
+    kk: 'Ұсыныс дәлелдерінің сәйкестігі сәйкес емес',
+  },
+  OFFER_EVIDENCE_FUTURE: {
+    en: 'Offer evidence date invalid',
+    ru: 'Дата данных предложения недействительна',
+    kk: 'Ұсыныс дәлелдерінің күні жарамсыз',
+  },
+  OFFER_EVIDENCE_STALE: {
+    en: 'Offer evidence is being re-checked',
+    ru: 'Данные по предложению перепроверяются',
+    kk: 'Ұсыныс дәлелдері қайта тексерілуде',
+  },
+  OFFER_EVIDENCE_REVIEW_OVERDUE: {
+    en: 'Offer review overdue',
+    ru: 'Проверка предложения просрочена',
+    kk: 'Ұсынысты тексеру мерзімі өтті',
+  },
 };
 
 /** Short CTA microcopy fragments. */

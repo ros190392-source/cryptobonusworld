@@ -50,6 +50,13 @@ export interface HomepageCtaOptions {
   marketProfiles?: readonly MarketProfile[];
   /** Explicit clock for evidence freshness. */
   now?: number;
+  /**
+   * TEST-ONLY override of authoritative offer evidence, keyed by slug. The
+   * public homepage NEVER passes this — real offer evidence (currently null)
+   * always flows through. It exists purely to prove the end-to-end positive
+   * path (approved profile + authoritative offer evidence) without public data.
+   */
+  offerEvidence?: Readonly<Record<string, unknown>>;
 }
 
 function reviewHrefFor(slug: string): string {
@@ -88,7 +95,17 @@ export function resolveHomepageTop10Cta(
     slug: entry.slug,
     reviewHref: reviewHrefFor(entry.slug),
     offer: offer
-      ? { exchangeSlug: offer.exchangeSlug, status: offer.status, restrictedCountries: offer.restrictedCountries }
+      ? {
+          exchangeSlug: offer.exchangeSlug,
+          status: offer.status,
+          restrictedCountries: offer.restrictedCountries,
+          // Real machine offer evidence (null while under re-verification). The
+          // gate requires this to be authoritative + identity-bound (R1/R2). The
+          // test-only override is never supplied on the public homepage.
+          evidence: options.offerEvidence && entry.slug in options.offerEvidence
+            ? options.offerEvidence[entry.slug]
+            : (offer.evidence ?? null),
+        }
       : null,
     marketProfiles: options.marketProfiles ?? PUBLIC_MARKET_PROFILES,
     // No hidden Date.now() fallback (R4): a live decision needs an explicit

@@ -1,5 +1,6 @@
 import { getExchange } from './exchanges';
 import { getOffer } from './offers';
+import type { EvidenceMetadata } from './contracts/evidenceMetadata';
 
 export type HomepageTop10StatusTone = 'verified' | 'preview' | 'research' | 'review';
 
@@ -19,7 +20,20 @@ export interface HomepageTop10Entry {
   statusTone: HomepageTop10StatusTone;
   summary: string;
   promoCode?: string;
+  /**
+   * Human editorial status text ONLY (e.g. "July 2026", "Recheck in progress").
+   * NOT a machine timestamp: it never authorizes freshness and the homepage
+   * never renders it as a factual "Checked:" date. Visible checked dates are
+   * derived from `evidence` via contracts/evidenceMetadata.ts.
+   */
   lastChecked: string;
+  /**
+   * Canonical machine-readable evidence for this row's freshness, or null when
+   * the row is under re-verification / research (no exact repository evidence).
+   * The one factual freshness source; display dates derive from it. Required
+   * (R3): every row must state evidence explicitly — a valid record or `null`.
+   */
+  evidence: EvidenceMetadata | null;
   primaryAction?: HomepageTop10Action;
   secondaryAction: HomepageTop10Action;
 }
@@ -46,6 +60,9 @@ function liveEntry(
     summary: offer.bonusHeadline,
     promoCode: offer.promoCode,
     lastChecked: offer.lastChecked,
+    // Factual freshness comes ONLY from the offer's machine evidence (null while
+    // under re-verification); the human lastChecked string never authorizes it.
+    evidence: offer.evidence ?? null,
     primaryAction: {
       label: 'Check offer',
       href: exchange.affiliateUrl,
@@ -70,6 +87,7 @@ export const homepageTop10: HomepageTop10Entry[] = [
     statusTone: 'research',
     summary: 'Kazakhstan entity and licence evidence reviewed; CBW campaign eligibility remains under review.',
     lastChecked: 'July 2026',
+    evidence: null, // research row: no exact machine evidence → honest under-review state
     secondaryAction: {
       label: 'View research status',
       href: '/exchanges/',
@@ -88,6 +106,7 @@ export const homepageTop10: HomepageTop10Entry[] = [
     statusTone: 'review',
     summary: 'Legacy profile retained; current clean offer and country evidence are being rechecked.',
     lastChecked: 'Recheck in progress',
+    evidence: null, // under re-verification: no exact machine evidence → honest recheck state
     secondaryAction: {
       label: 'View directory status',
       href: '/exchanges/',
@@ -103,6 +122,7 @@ export const homepageTop10: HomepageTop10Entry[] = [
     statusTone: 'review',
     summary: 'Legacy profile retained; current clean offer and country evidence are being rechecked.',
     lastChecked: 'Recheck in progress',
+    evidence: null, // under re-verification: no exact machine evidence → honest recheck state
     secondaryAction: {
       label: 'View directory status',
       href: '/exchanges/',
@@ -117,6 +137,7 @@ export const homepageTop10: HomepageTop10Entry[] = [
     statusTone: 'review',
     summary: 'Legacy profile retained; current clean offer and country evidence are being rechecked.',
     lastChecked: 'Recheck in progress',
+    evidence: null, // under re-verification: no exact machine evidence → honest recheck state
     secondaryAction: {
       label: 'View directory status',
       href: '/exchanges/',

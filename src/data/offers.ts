@@ -1,5 +1,6 @@
 // Clean MVP offers data
 // Volatile data (codes, amounts, dates) lives here — never inside images
+import type { EvidenceMetadata } from './contracts/evidenceMetadata';
 
 export interface Offer {
   exchangeSlug: string;
@@ -7,6 +8,13 @@ export interface Offer {
   bonusHeadline: string;
   realisticValue: string;
   feeDiscount?: string;
+  /**
+   * Human, editorial/presentation freshness text ONLY (e.g. "June 2026"). This
+   * is NOT a machine timestamp and MUST NEVER authorize freshness, publication,
+   * a MarketProfile, or a commercial CTA. The one factual freshness source is
+   * `evidence` below (see contracts/evidenceMetadata.ts). A live decision reads
+   * `evidence`, never this string.
+   */
   lastChecked: string;
   sourceUrl: string;
   kycRequired: boolean;
@@ -16,6 +24,18 @@ export interface Offer {
   restrictedCountries?: string[];
   status: 'verified' | 'public-preview' | 'unverified' | 'expired';
   termsSummary: string;
+  /**
+   * Canonical machine-readable evidence metadata — the SOLE factual freshness
+   * source for this offer. `null` means the offer is explicitly under
+   * re-verification and cannot authorize freshness (fail-closed). It is set to
+   * exact validated EvidenceMetadata only when the repository actually holds an
+   * exact, timezone-qualified ISO timestamp and HTTPS source for the offer;
+   * month-only strings like "June 2026" are NEVER converted into a timestamp.
+   *
+   * Required (R3): every non-expired offer must state its evidence explicitly —
+   * a valid record or `null`. Omission is never silently a reviewed null state.
+   */
+  evidence: EvidenceMetadata | null;
 }
 
 export const offers: Offer[] = [
@@ -34,6 +54,10 @@ export const offers: Offer[] = [
     restrictedCountries: ['US', 'UK', 'CA', 'SG', 'NL'],
     status:              'verified',
     termsSummary:        'New accounts only. KYC required to withdraw. Trading volume conditions apply to higher tiers. Vouchers expire 7–30 days after issuance. Full terms on Bybit official website.',
+    // Under re-verification: the repository holds only a month-only editorial
+    // 'lastChecked' (not an exact timezone-qualified ISO timestamp), so no machine
+    // evidence can be attached without fabrication. Fail-closed: cannot authorize.
+    evidence:            null,
   },
   {
     exchangeSlug:        'mexc',
@@ -49,6 +73,10 @@ export const offers: Offer[] = [
     restrictedCountries: ['US', 'UK', 'CA', 'SG', 'HK', 'CN', 'KP', 'CU', 'SD', 'IR'],
     status:              'public-preview',
     termsSummary:        'New accounts only. No KYC required for base tier. Higher tiers require trading volume. Bonus tasks expire within 30 days. Rewards depend on region, eligibility, deposit and trading activity. Full terms on MEXC official website.',
+    // Under re-verification: the repository holds only a month-only editorial
+    // 'lastChecked' (not an exact timezone-qualified ISO timestamp), so no machine
+    // evidence can be attached without fabrication. Fail-closed: cannot authorize.
+    evidence:            null,
   },
   {
     exchangeSlug:        'bitget',
@@ -64,6 +92,10 @@ export const offers: Offer[] = [
     restrictedCountries: ['US', 'UK', 'CA'],
     status:              'verified',
     termsSummary:        'New accounts only. KYC required for bonus eligibility and withdrawals. Rewards are trading fee vouchers — not withdrawable cash. Tasks expire 30 days after registration. Full terms on Bitget official website.',
+    // Under re-verification: the repository holds only a month-only editorial
+    // 'lastChecked' (not an exact timezone-qualified ISO timestamp), so no machine
+    // evidence can be attached without fabrication. Fail-closed: cannot authorize.
+    evidence:            null,
   },
   {
     exchangeSlug:        'okx',
@@ -79,6 +111,10 @@ export const offers: Offer[] = [
     restrictedCountries: ['US', 'HK', 'SG', 'MY', 'CA', 'GB'],
     status:              'verified',
     termsSummary:        'New accounts only. KYC required for higher tiers and withdrawals. Rewards are fee vouchers offsetting trading costs, not withdrawable cash. Tasks expire 30 days after account creation. Full terms on OKX official website.',
+    // Under re-verification: the repository holds only a month-only editorial
+    // 'lastChecked' (not an exact timezone-qualified ISO timestamp), so no machine
+    // evidence can be attached without fabrication. Fail-closed: cannot authorize.
+    evidence:            null,
   },
   {
     exchangeSlug:        'kucoin',
@@ -94,6 +130,10 @@ export const offers: Offer[] = [
     restrictedCountries: ['US'],
     status:              'public-preview',
     termsSummary:        'New accounts only. KYC optional for base tier (1 BTC/day withdrawal without KYC). Higher bonus tiers require deposit and trading volume. Bonus tasks expire within 30 days. Rewards depend on region, eligibility, and trading activity. Full terms on KuCoin official website.',
+    // Under re-verification: the repository holds only a month-only editorial
+    // 'lastChecked' (not an exact timezone-qualified ISO timestamp), so no machine
+    // evidence can be attached without fabrication. Fail-closed: cannot authorize.
+    evidence:            null,
   },
   // Owner-confirmed 2026-07-03: canonical code is CRYPTOBONUSWORLD, matching the
   // partner URL path (bingxdao.com/partner/CRYPTOBONUSWORLD/). Resolves the prior
@@ -112,6 +152,10 @@ export const offers: Offer[] = [
     restrictedCountries: ['US'],
     status:              'public-preview',
     termsSummary:        'New accounts only. KYC required to unlock full bonus. Deposit and trading volume required for higher tiers. Bonus tasks expire 30 days after registration. Rewards are mostly trading vouchers — not withdrawable cash. Full terms on BingX official website.',
+    // Under re-verification: the repository holds only a month-only editorial
+    // 'lastChecked' (not an exact timezone-qualified ISO timestamp), so no machine
+    // evidence can be attached without fabrication. Fail-closed: cannot authorize.
+    evidence:            null,
   },
 ];
 

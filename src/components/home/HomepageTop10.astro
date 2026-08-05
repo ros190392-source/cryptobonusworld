@@ -26,19 +26,28 @@ const ctaBindings = new Map(
 const opensNewTab = pickLocalized(ctaMicrocopy.opensNewTab, ctaLocale);
 const loadingText = pickLocalized(ctaMicrocopy.loading, ctaLocale);
 
-// Fail-closed evidence disclosure per row, derived from real records only.
-// A source link is carried only when a real HTTPS promo URL exists; research
-// rows without an offer resolve to a clear, non-fabricated disclosure state.
+// Fail-closed evidence disclosure per row, derived from ONE canonical evidence
+// record + an explicit clock. The checked date, semantic <time>, evidence state
+// and evidence Source link all derive from `entry.evidence` (null → honest
+// under-re-verification state, no fabricated date). The exchange's promo page is
+// carried ONLY as a separately-named non-evidence "Official offer page" link,
+// never as the source backing a checked timestamp. Evidence state overrides the
+// tone so a verified row can never look current without machine evidence.
+const nowMs = Date.now();
 const disclosures = new Map(
   homepageTop10.map((entry) => {
     const offer = getOffer(entry.slug);
     const binding = ctaBindings.get(entry.rank);
     return [entry.rank, resolveDisclosure({
       tone: entry.statusTone,
-      lastChecked: entry.lastChecked,
-      sourceHref: offer?.sourceUrl,
+      evidence: entry.evidence ?? null,
+      // Bind the disclosure to THIS row's exchange (R10): evidence for another
+      // exchange can never surface as this row's checked date or Source.
+      expectedExchangeId: entry.slug,
+      now: nowMs,
       isAffiliate: Boolean(binding?.primary.isAffiliate),
       methodologyHref: '/methodology/',
+      officialHref: offer?.sourceUrl,
     }, ctaLocale)];
   }),
 );

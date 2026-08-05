@@ -31,6 +31,8 @@ const internalPath = join(ROOT, 'src/data/contracts/internalPath.ts');
 const countryInput = join(ROOT, 'src/data/contracts/countryInput.ts');
 const marketProfileRegistry = join(ROOT, 'src/data/contracts/marketProfileRegistry.ts');
 const countryAwareCta = join(ROOT, 'src/data/contracts/countryAwareCta.ts');
+const evidenceMetadata = join(ROOT, 'src/data/contracts/evidenceMetadata.ts');
+const offersData = join(ROOT, 'src/data/offers.ts');
 
 const tmp = mkdtempSync(join(tmpdir(), 'cbw-portal-test-'));
 const outfile = join(tmp, 'contracts.mjs');
@@ -58,7 +60,9 @@ try {
         `export { isInternalPath, assertInternalPath } from ${JSON.stringify(internalPath)};\n` +
         `export { normalizeCountryInput, SUPPORTED_COUNTRY_CODES } from ${JSON.stringify(countryInput)};\n` +
         `export { resolveMarketProfile, PUBLIC_MARKET_PROFILES } from ${JSON.stringify(marketProfileRegistry)};\n` +
-        `export { resolveCountryAwareCommercialCta, normalizeRestrictedCountries, PUBLIC_HOMEPAGE_COUNTRY } from ${JSON.stringify(countryAwareCta)};`,
+        `export { resolveCountryAwareCommercialCta, normalizeRestrictedCountries, PUBLIC_HOMEPAGE_COUNTRY } from ${JSON.stringify(countryAwareCta)};\n` +
+        `export { isExactIsoDateTime, parseExactIsoDateTime, validateEvidenceMetadata, assessEvidenceAuthorization, resolveOfferEvidenceAuthorization, formatEvidenceCheckedAt, deriveCheckedDisplay, toMarketProfileTimestamps } from ${JSON.stringify(evidenceMetadata)};\n` +
+        `export { offers, getOffer } from ${JSON.stringify(offersData)};`,
       resolveDir: ROOT,
       loader: 'ts',
     },
@@ -277,23 +281,35 @@ try {
     return b.primary.label === 'Читать обзор';
   })());
   // s3/21: test-only injected approved profile for an exact supported pair → /go/.
+  // R1/R2 (#250): the homepage must ALSO carry authoritative, identity-bound
+  // OFFER evidence — an approved profile alone can no longer authorize.
   const synthBybitUA = { profileId: 'mp:ua:bybit', exchangeId: 'bybit', countryCode: 'UA', availability: 'available', offerEligibility: 'approved', claimIds: ['clm:1'], limitations: [], lastCheckedAt: daysAgo(5), nextReviewAt: '2026-12-31T00:00:00Z', approval: 'approved' };
-  check('hp/s3-21: test-only injected approved profile (bybit×UA) + production → /go/bybit', (() => {
+  const synthBybitEvidence = { evidenceCheckedAt: daysAgo(5), nextReviewAt: '2026-12-31T00:00:00Z', sourceUrl: 'https://www.bybit.com/evidence', exchangeId: 'bybit' };
+  const liveOpts = { countryCode: 'UA', marketProfiles: [synthBybitUA], now: NOW, offerEvidence: { bybit: synthBybitEvidence } };
+  check('hp/#250-R1: approved profile + real (null) offer evidence → no /go/ (OFFER_EVIDENCE_MISSING)', (() => {
     const b = m.resolveHomepageTop10Cta(bybit, 'production', 'en', { countryCode: 'UA', marketProfiles: [synthBybitUA], now: NOW });
+    return !b.primary.isAffiliate && !b.primary.href.startsWith('/go/') && b.primary.gateReason === 'OFFER_EVIDENCE_MISSING';
+  })());
+  check('hp/s3-21: injected approved profile + authoritative offer evidence + production → /go/bybit', (() => {
+    const b = m.resolveHomepageTop10Cta(bybit, 'production', 'en', liveOpts);
     return b.primary.isAffiliate && b.primary.href === '/go/bybit' && b.primary.rel.includes('sponsored');
   })());
-  check('hp/s3-21: same injected fixture in preview → no /go/', (() => {
-    const b = m.resolveHomepageTop10Cta(bybit, 'preview', 'en', { countryCode: 'UA', marketProfiles: [synthBybitUA], now: NOW });
+  check('hp/s3-21: same injected fixtures in preview → no /go/', (() => {
+    const b = m.resolveHomepageTop10Cta(bybit, 'preview', 'en', liveOpts);
     return !b.primary.isAffiliate && !b.primary.href.startsWith('/go/');
+  })());
+  check('hp/#250-R2: offer evidence for a DIFFERENT exchange → no /go/ (identity mismatch)', (() => {
+    const b = m.resolveHomepageTop10Cta(bybit, 'production', 'en', { ...liveOpts, offerEvidence: { bybit: { ...synthBybitEvidence, exchangeId: 'okx' } } });
+    return !b.primary.isAffiliate && !b.primary.href.startsWith('/go/') && b.primary.gateReason === 'OFFER_EVIDENCE_IDENTITY_MISMATCH';
   })());
   check('hp/s3-22: no unsupported/unprofiled row gains a /go/ even with injected fixture for another pair', (() => {
     // Inject bybit×UA only; a DIFFERENT exchange in the same country has no profile → no /go/.
     const other = m.homepageTop10.find((e) => e.slug === 'okx');
-    const b = m.resolveHomepageTop10Cta(other, 'production', 'en', { countryCode: 'UA', marketProfiles: [synthBybitUA], now: NOW });
+    const b = m.resolveHomepageTop10Cta(other, 'production', 'en', liveOpts);
     return !b.primary.isAffiliate && !b.primary.href.startsWith('/go/');
   })());
   check('hp/s3-18: en/ru/kk identical factual authorization on the injected live pair', (() => {
-    const mk = (l) => m.resolveHomepageTop10Cta(bybit, 'production', l, { countryCode: 'UA', marketProfiles: [synthBybitUA], now: NOW }).primary;
+    const mk = (l) => m.resolveHomepageTop10Cta(bybit, 'production', l, liveOpts).primary;
     const en = mk('en'), ru = mk('ru'), kk = mk('kk');
     return en.href === ru.href && ru.href === kk.href && en.isAffiliate === ru.isAffiliate && en.label !== ru.label && ru.label !== kk.label;
   })());
@@ -419,22 +435,45 @@ try {
     return r.published.length === 1 && pub.has('ex') && blk.has('ex2') && ![...pub].some((id) => blk.has(id));
   })());
 
-  // --- Evidence disclosure (fail-closed, localized) ---
-  const discBase = { tone: 'verified', lastChecked: 'June 2026', sourceHref: 'https://ex.com/promo', isAffiliate: true, methodologyHref: '/methodology/' };
+  // --- Evidence disclosure (single-record provenance, fail-closed, localized) ---
+  // #250 R4/R5: machine-backed disclosure consumes ONE EvidenceMetadata record +
+  // an explicit clock. Checked date, semantic time, evidence state and evidence
+  // Source ALL derive from that record; state overrides tone so a verified row
+  // never presents stale/overdue/invalid/missing evidence as current.
+  const discEv = { evidenceCheckedAt: daysAgo(5), nextReviewAt: '2026-12-31T00:00:00Z', sourceUrl: 'https://ex.com/promo', exchangeId: 'ex' };
+  const discBase = { tone: 'verified', evidence: discEv, now: NOW, isAffiliate: true, methodologyHref: '/methodology/', officialHref: 'https://ex.com/official' };
   const disc = m.resolveDisclosure(discBase, 'en');
-  check('disc: verified tone + https source + affiliate note', disc.tone === 'verified' && disc.sourceHref === 'https://ex.com/promo' && disc.affiliateNote && disc.lastChecked === 'June 2026');
+  check('disc: current evidence → derived date + same-record source + affiliate note', disc.tone === 'verified' && disc.evidenceState === 'current' && disc.lastChecked === m.formatEvidenceCheckedAt(discEv.evidenceCheckedAt, 'en') && disc.lastCheckedIso === discEv.evidenceCheckedAt && disc.sourceHref === 'https://ex.com/promo' && !!disc.affiliateNote);
+  check('disc/R6.13: display, time and source all come from the SAME record', disc.lastCheckedIso === discEv.evidenceCheckedAt && disc.sourceHref === discEv.sourceUrl && disc.statusLabel === disc.toneLabel);
+  check('disc/R6.12: official offer page is a SEPARATE non-evidence link (not the source)', disc.officialHref === 'https://ex.com/official' && disc.officialLabel !== disc.sourceLabel && disc.sourceHref !== disc.officialHref);
   check('disc: non-affiliate has no affiliate note', m.resolveDisclosure({ ...discBase, isAffiliate: false }, 'en').affiliateNote === null);
-  check('disc: non-https source is dropped (not shown)', m.resolveDisclosure({ ...discBase, sourceHref: 'http://ex.com/x' }, 'en').sourceHref === null);
-  check('disc: missing source not fabricated', m.resolveDisclosure({ ...discBase, sourceHref: undefined }, 'en').sourceHref === null);
-  check('disc: missing checked date -> null (not invented)', m.resolveDisclosure({ ...discBase, lastChecked: undefined }, 'en').lastChecked === null);
+  check('disc/R6.11: null evidence → no checked date, no evidence source, under re-verification', (() => {
+    const d = m.resolveDisclosure({ ...discBase, evidence: null, isAffiliate: false }, 'en');
+    return d.evidenceState === 'none' && d.lastChecked === null && d.lastCheckedIso === null && d.sourceHref === null && d.statusLabel !== d.toneLabel;
+  })());
+  check('disc/R6.11: human-only "June 2026" record → invalid, no date/time/source (R5)', (() => {
+    const d = m.resolveDisclosure({ ...discBase, evidence: { evidenceCheckedAt: 'June 2026', nextReviewAt: 'July 2026', sourceUrl: 'https://ex.com/x', exchangeId: 'ex' }, isAffiliate: false }, 'en');
+    return d.evidenceState === 'invalid' && d.lastChecked === null && d.lastCheckedIso === null && d.sourceHref === null && d.statusLabel !== d.toneLabel;
+  })());
+  check('disc/R6.14: STALE evidence visible but labelled stale, not current', (() => {
+    const d = m.resolveDisclosure({ ...discBase, evidence: { ...discEv, evidenceCheckedAt: daysAgo(200) }, isAffiliate: false }, 'en');
+    return d.evidenceState === 'stale' && !!d.lastChecked && d.statusLabel !== d.toneLabel && d.sourceHref === discEv.sourceUrl;
+  })());
+  check('disc/R6.14: OVERDUE review visible but labelled overdue, not current', (() => {
+    const d = m.resolveDisclosure({ ...discBase, evidence: { ...discEv, evidenceCheckedAt: daysAgo(5), nextReviewAt: daysAgo(1) }, isAffiliate: false }, 'en');
+    return d.evidenceState === 'overdue' && !!d.lastChecked && d.statusLabel !== d.toneLabel;
+  })());
+  check('disc/R5: verified tone + null evidence must NOT claim current', (() => {
+    const d = m.resolveDisclosure({ tone: 'verified', evidence: null, now: NOW, isAffiliate: false, methodologyHref: '/methodology/' }, 'en');
+    return d.tone === 'verified' && d.evidenceState === 'none' && d.statusLabel !== d.toneLabel;
+  })());
   check('disc: unknown tone fails closed to missing', m.resolveDisclosure({ ...discBase, tone: 'totally-unknown' }, 'en').tone === 'missing');
-  check('disc: research tone preserved', m.resolveDisclosure({ ...discBase, tone: 'research', sourceHref: undefined }, 'en').tone === 'research');
   check('disc: non-local methodology href throws', throws(() => m.resolveDisclosure({ ...discBase, methodologyHref: 'https://x.com/m' }, 'en')));
-  check('disc: localized tone label (ru) differs from en', m.resolveDisclosure(discBase, 'ru').toneLabel !== m.resolveDisclosure(discBase, 'en').toneLabel);
-  check('disc: locale changes labels only, source/facts unchanged', (() => {
-    const en = m.resolveDisclosure(discBase, 'en');
-    const ru = m.resolveDisclosure(discBase, 'ru');
-    return en.sourceHref === ru.sourceHref && en.tone === ru.tone && en.lastChecked === ru.lastChecked && en.affiliateNote !== ru.affiliateNote;
+  check('disc/R6.15: en/ru/kk formatting differs, ISO/source/state identical', (() => {
+    const en = m.resolveDisclosure(discBase, 'en'), ru = m.resolveDisclosure(discBase, 'ru'), kk = m.resolveDisclosure(discBase, 'kk');
+    const factsEqual = en.lastCheckedIso === ru.lastCheckedIso && ru.lastCheckedIso === kk.lastCheckedIso
+      && en.sourceHref === ru.sourceHref && en.evidenceState === ru.evidenceState && ru.evidenceState === kk.evidenceState;
+    return factsEqual && en.lastChecked !== ru.lastChecked && !!en.lastChecked && !!ru.lastChecked && !!kk.lastChecked;
   })());
 
   // ===== Split 3 — country-aware commercial gate =====
@@ -474,7 +513,10 @@ try {
   check('s3/restr: non-string element → invalid', m.normalizeRestrictedCountries([123]).state === 'invalid');
 
   // ── Composed country-aware CTA (the 22 required cases) ──
-  const baseOffer = { exchangeSlug: 'ex', status: 'verified', restrictedCountries: ['US'] };
+  // #250 R1/R2: a live CTA now ALSO requires authoritative, identity-bound offer
+  // evidence. The positive fixture carries it; negative cases omit/mismatch it.
+  const OFFER_EV = { evidenceCheckedAt: daysAgo(5), nextReviewAt: '2026-12-31T00:00:00Z', sourceUrl: 'https://ex.com/offer-evidence', exchangeId: 'ex' };
+  const baseOffer = { exchangeSlug: 'ex', status: 'verified', restrictedCountries: ['US'], evidence: OFFER_EV };
   const carBase = { intent: 'get_bonus', locale: 'en', mode: 'production', countryCode: 'UA', exchangeId: 'ex', slug: 'ex', reviewHref: '/exchanges/ex/', offer: baseOffer, marketProfiles: [okProfile], now: NOW };
   const car = (o = {}) => m.resolveCountryAwareCommercialCta({ ...carBase, ...o });
   const isGo = (mdl) => mdl.isAffiliate && typeof mdl.href === 'string' && mdl.href.startsWith('/go/');
@@ -542,14 +584,14 @@ try {
   check('R2/2: offer for a different exchange → no /go/ (OFFER_IDENTITY_MISMATCH)', (() => { const r = car({ offer: { exchangeSlug: 'other', status: 'verified', restrictedCountries: [] } }); return !isGo(r) && r.gateReason === 'OFFER_IDENTITY_MISMATCH'; })());
   check('R2/3: verified offer with missing exchangeSlug → no /go/', (() => { const r = car({ offer: { status: 'verified', restrictedCountries: [] } }); return !isGo(r) && r.gateReason === 'OFFER_IDENTITY_MISMATCH'; })());
   check('R2/3b: malformed offer exchangeSlug → no /go/', (() => { const r = car({ offer: { exchangeSlug: 'Ex!', status: 'verified', restrictedCountries: [] } }); return !isGo(r) && r.gateReason === 'OFFER_IDENTITY_MISMATCH'; })());
-  check('R2/4: exact offer/profile/target identity → positive fixture green', isGo(car({ offer: { exchangeSlug: 'ex', status: 'verified', restrictedCountries: [] } })));
+  check('R2/4: exact offer/profile/target identity → positive fixture green', isGo(car({ offer: { exchangeSlug: 'ex', status: 'verified', restrictedCountries: [], evidence: OFFER_EV } })));
   check('R2/5: offer status alone still cannot authorize (verified but wrong identity)', !isGo(car({ offer: { exchangeSlug: 'other', status: 'verified', restrictedCountries: [] } })));
 
   // R3 restriction completeness
   check('R3/1: verified offer with MISSING restrictedCountries → no /go/ (RESTRICTION_DATA_MISSING)', (() => { const r = car({ offer: { exchangeSlug: 'ex', status: 'verified' } }); return !isGo(r) && r.gateReason === 'RESTRICTION_DATA_MISSING'; })());
   check('R3/2: null restrictedCountries → no /go/', (() => { const r = car({ offer: { exchangeSlug: 'ex', status: 'verified', restrictedCountries: null } }); return !isGo(r) && r.gateReason === 'RESTRICTION_DATA_MISSING'; })());
   check('R3/3: non-array restrictedCountries → disabled, no /go/', (() => { const r = car({ offer: { exchangeSlug: 'ex', status: 'verified', restrictedCountries: 'US' } }); return !isGo(r) && r.gateReason === 'RESTRICTION_DATA_INVALID'; })());
-  check('R3/4: explicit [] (no restrictions recorded) → /go/ eligible', isGo(car({ offer: { exchangeSlug: 'ex', status: 'verified', restrictedCountries: [] } })));
+  check('R3/4: explicit [] (no restrictions recorded) → /go/ eligible', isGo(car({ offer: { exchangeSlug: 'ex', status: 'verified', restrictedCountries: [], evidence: OFFER_EV } })));
   check('R3/5: country in explicit list → disabled restricted', (() => { const r = car({ offer: { exchangeSlug: 'ex', status: 'verified', restrictedCountries: ['UA'] } }); return !isGo(r) && r.disabled === true && r.gateReason === 'MARKET_RESTRICTED'; })());
 
   // R4 finite explicit clock
@@ -626,6 +668,143 @@ try {
   check('R1-R6: all new reasons localized en/ru/kk (no raw key)', (() => {
     const reasons = ['EXCHANGE_IDENTITY_MISMATCH', 'OFFER_IDENTITY_MISMATCH', 'RESTRICTION_DATA_MISSING', 'CLOCK_INVALID', 'PROFILE_REVIEW_OVERDUE', 'PROFILE_REGISTRY_INVALID'];
     return reasons.every((rk) => ['en', 'ru', 'kk'].every((l) => { const t = m.gateReasonText(rk, l); return t && t.trim() && t !== rk; }));
+  })());
+
+  // ===== Split 3 (#250) — machine-readable evidence freshness =====
+  // ONE factual freshness source: exact, timezone-qualified ISO metadata backed
+  // by an HTTPS source. Human strings can never authorize; display dates derive
+  // from the machine timestamp; locale changes formatting only.
+  const EVI_SRC = 'https://ex.com/evidence';
+  const validMeta = { evidenceCheckedAt: daysAgo(5), nextReviewAt: '2026-12-31T00:00:00Z', sourceUrl: EVI_SRC, exchangeId: 'ex' };
+
+  // ── R9: strict calendar-valid ISO datetime (never Date.parse normalization) ──
+  const accept = ['2024-02-29T00:00:00Z', '2026-04-30T23:59:59Z', '2026-07-31T09:30:00+05:00', '2026-07-31T09:30:00.123Z', '2026-07-31T09:30:00-08:00'];
+  const reject = [
+    '2026-02-29T00:00:00Z', '2026-02-30T00:00:00Z', '2026-02-31T00:00:00Z', '2026-04-31T12:00:00Z',
+    '2026-06-31T00:00:00Z', '2026-07-31T24:00:00Z', '2026-07-31T23:60:00Z', '2026-07-31T23:59:60Z',
+    '2026-00-15T00:00:00Z', '2026-13-15T00:00:00Z', '2026-07-00T00:00:00Z', '2026-07-31T09:30:00+25:00',
+    '2026-07-31T09:30:00+05:99', '2026-07-31', '2026-07-31T00:00:00', '2026-07-31 00:00:00Z', '1900-02-29T00:00:00Z',
+  ];
+  check('R9/accept: all valid calendar datetimes accepted (incl. leap 2024-02-29, offsets, fractional)', accept.every((v) => m.isExactIsoDateTime(v) && m.parseExactIsoDateTime(v) !== null));
+  check('R9/reject: all impossible/date-only/tz-less/space-separated rejected', reject.every((v) => !m.isExactIsoDateTime(v) && m.parseExactIsoDateTime(v) === null));
+  check('R9/leap: 2024-02-29 accepted, 2026-02-29 & 1900-02-29 rejected (leap rules)', m.isExactIsoDateTime('2024-02-29T00:00:00Z') && !m.isExactIsoDateTime('2026-02-29T00:00:00Z') && !m.isExactIsoDateTime('1900-02-29T00:00:00Z') && m.isExactIsoDateTime('2000-02-29T00:00:00Z'));
+  check('R9/no-normalization: Date.parse would accept 2026-02-31 but strict parser rejects', Number.isFinite(Date.parse('2026-02-31T00:00:00Z')) && !m.isExactIsoDateTime('2026-02-31T00:00:00Z'));
+  check('R9/offset: deterministic epoch — +05:00 equals the same UTC instant', m.parseExactIsoDateTime('2026-07-31T09:30:00+05:00').epochMs === Date.parse('2026-07-31T04:30:00Z'));
+  check('R9/validator: evidence with impossible date fails validateEvidenceMetadata', !m.validateEvidenceMetadata({ ...validMeta, evidenceCheckedAt: '2026-02-31T00:00:00Z' }).ok && !m.validateEvidenceMetadata({ ...validMeta, nextReviewAt: '2026-04-31T00:00:00Z' }).ok);
+  check('R9/auth: impossible-date evidence can never authorize', !m.assessEvidenceAuthorization({ ...validMeta, evidenceCheckedAt: '2026-02-31T00:00:00Z' }, NOW).authoritative && m.resolveOfferEvidenceAuthorization({ ...validMeta, evidenceCheckedAt: '2026-02-31T00:00:00Z' }, 'ex', NOW).reason === 'OFFER_EVIDENCE_INVALID');
+
+  // ── R12: normalized/whitespace-rejecting validated values ──
+  check('R12/url-ws: sourceUrl with surrounding whitespace rejected', !m.validateEvidenceMetadata({ ...validMeta, sourceUrl: ' https://ex.com/e ' }).ok && !m.validateEvidenceMetadata({ ...validMeta, sourceUrl: 'https://ex.com/e\n' }).ok);
+  check('R12/id-ws: exchangeId with surrounding whitespace rejected', !m.validateEvidenceMetadata({ ...validMeta, exchangeId: ' ex ' }).ok);
+  check('R12/value: validator returns a normalized value used verbatim (no ws can reach href/identity)', (() => {
+    const v = m.validateEvidenceMetadata(validMeta);
+    return v.ok && v.value.sourceUrl === EVI_SRC && v.value.sourceUrl.trim() === v.value.sourceUrl && v.value.exchangeId === 'ex';
+  })());
+  check('R12/disc: whitespace source never reaches disclosure href (fails closed to invalid)', (() => {
+    const d = m.resolveDisclosure({ tone: 'verified', evidence: { ...validMeta, sourceUrl: ' https://ex.com/e ' }, expectedExchangeId: 'ex', now: NOW, isAffiliate: false, methodologyHref: '/methodology/' }, 'en');
+    return d.evidenceState === 'invalid' && d.sourceHref === null;
+  })());
+
+  // ── R10: disclosure subject-identity binding ──
+  const discBind = (evidence, expectedExchangeId) => m.resolveDisclosure({ tone: 'verified', evidence, expectedExchangeId, now: NOW, isAffiliate: false, methodologyHref: '/methodology/', officialHref: 'https://bybit.com/official' }, 'en');
+  const bybitEv = { evidenceCheckedAt: daysAgo(5), nextReviewAt: '2026-12-31T00:00:00Z', sourceUrl: 'https://bybit.com/e', exchangeId: 'bybit' };
+  check('R10/1: bybit row + bybit evidence → current display allowed', (() => { const d = discBind(bybitEv, 'bybit'); return d.evidenceState === 'current' && !!d.lastChecked && !!d.lastCheckedIso && d.sourceHref === 'https://bybit.com/e'; })());
+  check('R10/2: bybit row + OKX evidence → invalid, no date, no evidence Source', (() => { const d = discBind({ ...bybitEv, exchangeId: 'okx', sourceUrl: 'https://okx.com/e' }, 'bybit'); return d.evidenceState === 'invalid' && d.lastChecked === null && d.lastCheckedIso === null && d.sourceHref === null; })());
+  check('R10/3: bybit row + evidence without exchangeId → invalid', (() => { const d = discBind({ evidenceCheckedAt: daysAgo(5), nextReviewAt: '2026-12-31T00:00:00Z', sourceUrl: 'https://bybit.com/e' }, 'bybit'); return d.evidenceState === 'invalid' && d.sourceHref === null; })());
+  check('R10/4: blank/malformed expectedExchangeId → invalid', (() => { const a = discBind(bybitEv, ''); const b = discBind(bybitEv, 'BYBIT!'); return a.evidenceState === 'invalid' && a.sourceHref === null && b.evidenceState === 'invalid'; })());
+  check('R10/5: source URL and semantic datetime disappear TOGETHER on identity failure', (() => { const d = discBind({ ...bybitEv, exchangeId: 'okx' }, 'bybit'); return d.sourceHref === null && d.lastCheckedIso === null && d.lastChecked === null; })());
+  check('R10/6: en/ru/kk identity decisions identical (mismatch → invalid in all)', (() => {
+    const mk = (l) => m.resolveDisclosure({ tone: 'verified', evidence: { ...bybitEv, exchangeId: 'okx' }, expectedExchangeId: 'bybit', now: NOW, isAffiliate: false, methodologyHref: '/methodology/' }, l);
+    const en = mk('en'), ru = mk('ru'), kk = mk('kk');
+    return en.evidenceState === 'invalid' && en.evidenceState === ru.evidenceState && ru.evidenceState === kk.evidenceState && en.sourceHref === ru.sourceHref && ru.sourceHref === kk.sourceHref;
+  })());
+  check('R10/official: separately-labelled Official offer page survives identity failure (non-evidence nav)', (() => { const d = discBind({ ...bybitEv, exchangeId: 'okx' }, 'bybit'); return d.officialHref === 'https://bybit.com/official' && d.sourceHref === null; })());
+
+  check('evi/1: exact UTC timestamp accepted', m.isExactIsoDateTime('2026-07-31T00:00:00Z') && m.validateEvidenceMetadata(validMeta).ok);
+  check('evi/2: exact offset accepted + normalized deterministically', m.isExactIsoDateTime('2026-07-31T09:30:00+05:00') && Date.parse('2026-07-31T09:30:00+05:00') === Date.parse('2026-07-31T04:30:00Z'));
+  check('evi/3: date-only rejected', !m.isExactIsoDateTime('2026-07-31') && !m.validateEvidenceMetadata({ ...validMeta, evidenceCheckedAt: '2026-07-31' }).ok);
+  check('evi/4: timezone-less datetime rejected', !m.isExactIsoDateTime('2026-07-31T00:00:00') && !m.validateEvidenceMetadata({ ...validMeta, evidenceCheckedAt: '2026-07-31T12:00:00' }).ok);
+  check('evi/5: malformed timestamp rejected', !m.isExactIsoDateTime('not-a-date') && !m.isExactIsoDateTime('2026-99-99T00:00:00Z'));
+  check('evi/6: missing timestamp rejected', (() => { const r = m.validateEvidenceMetadata({ nextReviewAt: '2026-12-31T00:00:00Z', sourceUrl: EVI_SRC }); return !r.ok && r.issues.some((i) => i.field === 'evidenceCheckedAt'); })());
+  check('evi/7: NaN/Infinity clock rejected', !m.assessEvidenceAuthorization(validMeta, NaN).authoritative && m.assessEvidenceAuthorization(validMeta, NaN).reason === 'INVALID_CLOCK' && !m.assessEvidenceAuthorization(validMeta, Infinity).authoritative && !m.assessEvidenceAuthorization(validMeta, -Infinity).authoritative);
+  check('evi/8: future beyond skew rejected', (() => { const a = m.assessEvidenceAuthorization({ ...validMeta, evidenceCheckedAt: new Date(NOW + 61 * 60000).toISOString() }, NOW); return !a.authoritative && a.freshness === 'future'; })());
+  check('evi/9: stale evidence rejected', (() => { const a = m.assessEvidenceAuthorization({ ...validMeta, evidenceCheckedAt: daysAgo(200) }, NOW); return !a.authoritative && a.freshness === 'stale'; })());
+  check('evi/10a: exactly 45d evidence fresh (central boundary)', m.assessEvidenceFreshness(daysAgo(45), NOW).state === 'fresh');
+  check('evi/10b: 45d+1ms evidence stale', m.assessEvidenceFreshness(new Date(NOW - 45 * 86400000 - 1).toISOString(), NOW).state === 'stale');
+  check('evi/10c: authorization fresh exactly at boundary with future review', m.assessEvidenceAuthorization({ ...validMeta, evidenceCheckedAt: daysAgo(45) }, NOW).authoritative === true);
+  check('evi/11: nextReviewAt <= evidenceCheckedAt rejected', !m.validateEvidenceMetadata({ evidenceCheckedAt: daysAgo(5), nextReviewAt: daysAgo(6), sourceUrl: EVI_SRC }).ok);
+  check('evi/12: nextReviewAt == now overdue', (() => { const a = m.assessEvidenceAuthorization({ evidenceCheckedAt: daysAgo(5), nextReviewAt: new Date(NOW).toISOString(), sourceUrl: EVI_SRC }, NOW); return !a.authoritative && a.reviewState === 'overdue' && a.reason === 'REVIEW_OVERDUE'; })());
+  check('evi/13: nextReviewAt < now overdue', (() => { const a = m.assessEvidenceAuthorization({ evidenceCheckedAt: daysAgo(5), nextReviewAt: daysAgo(1), sourceUrl: EVI_SRC }, NOW); return !a.authoritative && a.reviewState === 'overdue'; })());
+  check('evi/14: fresh checked + future review accepted', m.assessEvidenceAuthorization(validMeta, NOW).authoritative === true);
+  check('evi/15: "June 2026" cannot authorize freshness', !m.isExactIsoDateTime('June 2026') && !m.assessEvidenceAuthorization({ evidenceCheckedAt: 'June 2026', nextReviewAt: 'July 2026', sourceUrl: EVI_SRC }, NOW).authoritative);
+  check('evi/16: "Recheck in progress" cannot authorize freshness', !m.assessEvidenceAuthorization({ evidenceCheckedAt: 'Recheck in progress', nextReviewAt: 'Recheck in progress', sourceUrl: EVI_SRC }, NOW).authoritative);
+  check('evi/17: no real offer carries authorizing machine evidence (all under re-verification)', m.offers.every((o) => (o.evidence === null || o.evidence === undefined) && m.deriveCheckedDisplay(o.evidence ?? null, NOW).state === 'none'));
+  check('evi/17b: verified offer without machine evidence cannot authorize', (() => { const v = m.offers.find((o) => o.status === 'verified'); return v && (v.evidence === null || v.evidence === undefined) && !m.assessEvidenceAuthorization(v.evidence ?? null, NOW).authoritative; })());
+  check('evi/18: missing/non-https/malformed source URL fails closed', !m.validateEvidenceMetadata({ ...validMeta, sourceUrl: 'http://ex.com/x' }).ok && !m.validateEvidenceMetadata({ evidenceCheckedAt: validMeta.evidenceCheckedAt, nextReviewAt: validMeta.nextReviewAt }).ok && !m.validateEvidenceMetadata({ ...validMeta, sourceUrl: 'not a url' }).ok);
+  check('evi/19: visible date derived from machine timestamp (not a human string)', (() => {
+    const d = m.deriveCheckedDisplay(validMeta, NOW, 'en');
+    return !!d.display && d.iso === validMeta.evidenceCheckedAt && d.display === m.formatEvidenceCheckedAt(validMeta.evidenceCheckedAt, 'en') && d.display !== 'June 2026' && d.state === 'current';
+  })());
+  check('evi/20: en/ru/kk formatting differs while factual state identical', (() => {
+    const meta = { evidenceCheckedAt: '2026-07-31T00:00:00Z', nextReviewAt: '2026-12-31T00:00:00Z', sourceUrl: EVI_SRC };
+    const en = m.deriveCheckedDisplay(meta, NOW, 'en'), ru = m.deriveCheckedDisplay(meta, NOW, 'ru'), kk = m.deriveCheckedDisplay(meta, NOW, 'kk');
+    const factsEqual = en.iso === ru.iso && ru.iso === kk.iso && en.state === ru.state && ru.state === kk.state;
+    return factsEqual && !!en.display && !!ru.display && !!kk.display && en.display !== ru.display;
+  })());
+  check('evi/21: public homepage PREVIEW emits zero /go/', m.homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'preview', 'en').primary.href.startsWith('/go/')));
+  check('evi/22: public homepage PRODUCTION simulation emits zero /go/', m.homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'production', 'en').primary.href.startsWith('/go/')));
+  check('evi/23: exact evidence → identity-bound adapter → approved profile + authoritative offer evidence → /go/ex', (() => {
+    const adapted = m.toMarketProfileTimestamps(validMeta, 'ex');
+    if (!adapted.ok) return false;
+    const prof = { ...okProfile, lastCheckedAt: adapted.value.lastCheckedAt, nextReviewAt: adapted.value.nextReviewAt };
+    const live = car({ marketProfiles: [prof], offer: { exchangeSlug: 'ex', status: 'verified', restrictedCountries: [], evidence: validMeta } });
+    return isGo(live) && live.href === '/go/ex';
+  })());
+  check('evi/23b: adapter (identity REQUIRED) rejects display/date-only/missing provenance + cross-exchange', (() => (
+    !m.toMarketProfileTimestamps({ evidenceCheckedAt: 'June 2026', nextReviewAt: 'July 2026', sourceUrl: EVI_SRC, exchangeId: 'ex' }, 'ex').ok
+    && !m.toMarketProfileTimestamps({ evidenceCheckedAt: '2026-07-31', nextReviewAt: '2026-12-31', sourceUrl: EVI_SRC, exchangeId: 'ex' }, 'ex').ok
+    && !m.toMarketProfileTimestamps({ evidenceCheckedAt: daysAgo(5), nextReviewAt: '2026-12-31T00:00:00Z', exchangeId: 'ex' }, 'ex').ok
+    && m.toMarketProfileTimestamps({ ...validMeta, exchangeId: 'okx' }, 'bybit').reason === 'EVIDENCE_IDENTITY_MISMATCH'
+    && m.toMarketProfileTimestamps(validMeta, 'ex').ok
+  ))());
+  check('evi/23c: adapter requires identity — missing evidence.exchangeId + malformed expected fail closed', (() => (
+    m.toMarketProfileTimestamps({ evidenceCheckedAt: daysAgo(5), nextReviewAt: '2026-12-31T00:00:00Z', sourceUrl: EVI_SRC }, 'ex').reason === 'EVIDENCE_IDENTITY_MISMATCH'
+    && m.toMarketProfileTimestamps(validMeta, '').reason === 'EVIDENCE_IDENTITY_MISMATCH'
+    && m.toMarketProfileTimestamps(validMeta, 'EX!').reason === 'EVIDENCE_IDENTITY_MISMATCH'
+  ))());
+  check('evi/24: PUBLIC_MARKET_PROFILES remains Object.freeze([])', Array.isArray(m.PUBLIC_MARKET_PROFILES) && m.PUBLIC_MARKET_PROFILES.length === 0 && Object.isFrozen(m.PUBLIC_MARKET_PROFILES));
+  check('evi/disc: disclosure derives semantic ISO + source ONLY from a valid machine record', (() => {
+    const machine = m.resolveDisclosure({ tone: 'verified', evidence: validMeta, now: NOW, isAffiliate: false, methodologyHref: '/methodology/' }, 'en');
+    const humanOnly = m.resolveDisclosure({ tone: 'verified', evidence: { evidenceCheckedAt: 'June 2026', nextReviewAt: 'July 2026', sourceUrl: EVI_SRC }, now: NOW, isAffiliate: false, methodologyHref: '/methodology/' }, 'en');
+    return machine.lastCheckedIso === validMeta.evidenceCheckedAt && machine.sourceHref === validMeta.sourceUrl && humanOnly.lastCheckedIso === null && humanOnly.sourceHref === null;
+  })());
+
+  // ── #250 R1/R2 — OFFER evidence end-to-end through the country-aware gate ──
+  const OEV = { evidenceCheckedAt: daysAgo(5), nextReviewAt: '2026-12-31T00:00:00Z', sourceUrl: 'https://ex.com/oe', exchangeId: 'ex' };
+  const offerWith = (ev) => ({ exchangeSlug: 'ex', status: 'verified', restrictedCountries: [], evidence: ev });
+  check('e2e/1: verified offer + approved fresh profile + MISSING offer evidence → no /go/ (OFFER_EVIDENCE_MISSING)', (() => { const r = car({ offer: { exchangeSlug: 'ex', status: 'verified', restrictedCountries: [] } }); return !isGo(r) && r.gateReason === 'OFFER_EVIDENCE_MISSING'; })());
+  check('e2e/2: offer evidence null → no /go/', (() => { const r = car({ offer: offerWith(null) }); return !isGo(r) && r.gateReason === 'OFFER_EVIDENCE_MISSING'; })());
+  check('e2e/3: date-only offer evidence → no /go/ (OFFER_EVIDENCE_INVALID)', (() => { const r = car({ offer: offerWith({ evidenceCheckedAt: '2026-07-05', nextReviewAt: '2026-12-31', sourceUrl: 'https://ex.com/oe', exchangeId: 'ex' }) }); return !isGo(r) && r.gateReason === 'OFFER_EVIDENCE_INVALID'; })());
+  check('e2e/4: stale offer evidence → no /go/ (OFFER_EVIDENCE_STALE)', (() => { const r = car({ offer: offerWith({ ...OEV, evidenceCheckedAt: daysAgo(200) }) }); return !isGo(r) && r.gateReason === 'OFFER_EVIDENCE_STALE'; })());
+  check('e2e/5: future offer evidence → no /go/ (OFFER_EVIDENCE_FUTURE)', (() => { const r = car({ offer: offerWith({ ...OEV, evidenceCheckedAt: new Date(NOW + 61 * 60000).toISOString() }) }); return !isGo(r) && r.gateReason === 'OFFER_EVIDENCE_FUTURE'; })());
+  check('e2e/6: overdue offer evidence → no /go/ (OFFER_EVIDENCE_REVIEW_OVERDUE)', (() => { const r = car({ offer: offerWith({ ...OEV, evidenceCheckedAt: daysAgo(5), nextReviewAt: daysAgo(1) }) }); return !isGo(r) && r.gateReason === 'OFFER_EVIDENCE_REVIEW_OVERDUE'; })());
+  check('e2e/7: exact current offer evidence + exact current profile + all invariants → /go/ex', (() => { const r = car({ offer: offerWith(OEV) }); return isGo(r) && r.href === '/go/ex' && r.rel.includes('sponsored'); })());
+  check('e2e/8: offer evidence for ANOTHER exchange → no /go/ (OFFER_EVIDENCE_IDENTITY_MISMATCH)', (() => { const r = car({ offer: offerWith({ ...OEV, exchangeId: 'other' }) }); return !isGo(r) && r.gateReason === 'OFFER_EVIDENCE_IDENTITY_MISMATCH'; })());
+  check('e2e/8b: offer evidence with missing exchangeId → no /go/ (identity mismatch)', (() => { const r = car({ offer: offerWith({ evidenceCheckedAt: daysAgo(5), nextReviewAt: '2026-12-31T00:00:00Z', sourceUrl: 'https://ex.com/oe' }) }); return !isGo(r) && r.gateReason === 'OFFER_EVIDENCE_IDENTITY_MISMATCH'; })());
+  check('e2e/9: profile current but offer STALE → no /go/', (() => { const r = car({ offer: offerWith({ ...OEV, evidenceCheckedAt: daysAgo(200) }) }); return !isGo(r) && r.gateReason === 'OFFER_EVIDENCE_STALE'; })());
+  check('e2e/10: offer current but PROFILE stale → no /go/ (EVIDENCE_STALE)', (() => { const r = car({ offer: offerWith(OEV), marketProfiles: [{ ...okProfile, lastCheckedAt: daysAgo(200), nextReviewAt: daysAgo(-30) }] }); return !isGo(r) && r.gateReason === 'EVIDENCE_STALE'; })());
+  check('e2e/clock: non-finite clock stays CLOCK_INVALID', (() => { const r = car({ offer: offerWith(OEV), now: NaN }); return !isGo(r) && r.gateReason === 'CLOCK_INVALID'; })());
+  check('e2e/status: offer.status=verified alone cannot substitute for evidence', (() => { const r = car({ offer: { exchangeSlug: 'ex', status: 'verified', restrictedCountries: [] } }); return !isGo(r); })());
+  check('e2e/i18n: all offer-evidence reasons localized en/ru/kk (no raw key)', (() => {
+    const reasons = ['OFFER_EVIDENCE_MISSING', 'OFFER_EVIDENCE_INVALID', 'OFFER_EVIDENCE_IDENTITY_MISMATCH', 'OFFER_EVIDENCE_FUTURE', 'OFFER_EVIDENCE_STALE', 'OFFER_EVIDENCE_REVIEW_OVERDUE'];
+    return reasons.every((rk) => ['en', 'ru', 'kk'].every((l) => { const t = m.gateReasonText(rk, l); return t && t.trim() && t !== rk; }));
+  })());
+  check('e2e/resolver: resolveOfferEvidenceAuthorization is pure fail-closed (no throw on junk)', (() => {
+    const junk = [undefined, null, {}, 42, 'x', { evidenceCheckedAt: 'x' }, OEV];
+    for (const j of junk) { try { m.resolveOfferEvidenceAuthorization(j, 'ex', NOW); } catch { return false; } }
+    return m.resolveOfferEvidenceAuthorization(OEV, 'ex', NaN).reason === 'CLOCK_INVALID'
+      && m.resolveOfferEvidenceAuthorization(null, 'ex', NOW).reason === 'OFFER_EVIDENCE_MISSING'
+      && m.resolveOfferEvidenceAuthorization(OEV, 'ex', NOW).ok === true;
   })());
 
   // --- Invariant: a non-commercial model may never point at /go/ ---
