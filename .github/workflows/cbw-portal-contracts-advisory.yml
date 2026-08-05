@@ -30,6 +30,7 @@ on:
       - 'src/data/homepageTop10Cta.ts'
       - 'src/data/portalCtaMode.ts'
       - 'src/data/offers.ts'
+      - 'src/data/evidence/offers/**'
       - 'src/data/exchanges.ts'
       - 'src/data/exchangePreview/cta-contract.ts'
       - 'src/components/home/**'
@@ -72,7 +73,7 @@ jobs:
         id: typecheck
         run: |
           set -euo pipefail
-          node_modules/.bin/tsc --noEmit --strict --skipLibCheck \
+          node_modules/.bin/tsc --noEmit --strict --skipLibCheck --resolveJsonModule \
             --moduleResolution bundler --module esnext --target es2022 \
             src/data/contracts/internalPath.ts \
             src/data/contracts/portalFactory.ts \
@@ -84,11 +85,13 @@ jobs:
             src/data/contracts/portalCtaI18n.ts \
             src/data/contracts/portalDisclosure.ts \
             src/data/contracts/evidenceMetadata.ts \
+            src/data/contracts/offerEvidencePacket.ts \
             src/data/contracts/countryInput.ts \
             src/data/contracts/marketProfileRegistry.ts \
             src/data/contracts/countryAwareCta.ts \
             src/data/contracts/portalStateFixtures.ts \
             src/data/homepageTop10Cta.ts \
+            src/data/evidence/offers/bybitOfferEvidence.ts \
             src/data/exchangePreview/cta-contract.ts
 
       - name: AI-ops fail-closed fixtures

@@ -33,6 +33,8 @@ const marketProfileRegistry = join(ROOT, 'src/data/contracts/marketProfileRegist
 const countryAwareCta = join(ROOT, 'src/data/contracts/countryAwareCta.ts');
 const evidenceMetadata = join(ROOT, 'src/data/contracts/evidenceMetadata.ts');
 const offersData = join(ROOT, 'src/data/offers.ts');
+const offerEvidencePacket = join(ROOT, 'src/data/contracts/offerEvidencePacket.ts');
+const bybitOfferEvidence = join(ROOT, 'src/data/evidence/offers/bybitOfferEvidence.ts');
 
 const tmp = mkdtempSync(join(tmpdir(), 'cbw-portal-test-'));
 const outfile = join(tmp, 'contracts.mjs');
@@ -62,7 +64,9 @@ try {
         `export { resolveMarketProfile, PUBLIC_MARKET_PROFILES } from ${JSON.stringify(marketProfileRegistry)};\n` +
         `export { resolveCountryAwareCommercialCta, normalizeRestrictedCountries, PUBLIC_HOMEPAGE_COUNTRY } from ${JSON.stringify(countryAwareCta)};\n` +
         `export { isExactIsoDateTime, parseExactIsoDateTime, validateEvidenceMetadata, assessEvidenceAuthorization, resolveOfferEvidenceAuthorization, formatEvidenceCheckedAt, deriveCheckedDisplay, toMarketProfileTimestamps } from ${JSON.stringify(evidenceMetadata)};\n` +
-        `export { offers, getOffer } from ${JSON.stringify(offersData)};`,
+        `export { offers, getOffer } from ${JSON.stringify(offersData)};\n` +
+        `export { validateOfferEvidencePacket, adaptApprovedPacketToEvidence, isOfficialBybitSource, deriveUnsupportedClaims, computeCaptureManifestDigest, canonicalCaptureManifest, BYBIT_OFFER_CLAIM_POLICY, BYBIT_OFFER_CLAIM_INVENTORY, BYBIT_OFFER_REQUIRED_CLAIMS, ALLOWED_OWNER_IDENTITIES } from ${JSON.stringify(offerEvidencePacket)};\n` +
+        `export { BYBIT_OFFER_EVIDENCE_PACKET, BYBIT_OFFER_EVIDENCE_DECISION, deriveBybitDecision, deriveBybitOfferEvidence, bybitOfferEvidence } from ${JSON.stringify(bybitOfferEvidence)};`,
       resolveDir: ROOT,
       loader: 'ts',
     },
@@ -806,6 +810,101 @@ try {
       && m.resolveOfferEvidenceAuthorization(null, 'ex', NOW).reason === 'OFFER_EVIDENCE_MISSING'
       && m.resolveOfferEvidenceAuthorization(OEV, 'ex', NOW).ok === true;
   })());
+
+  // ===== Split 3 (#252, hardened R1–R8) — Bybit OfferEvidencePacket =====
+  // Requirements, digest, source bindings and approval identity are CODE-OWNED;
+  // the packet cannot declare its own authorization policy. The real packet stays
+  // draft / under re-verification. A truly complete canonical fixture proves the
+  // Outcome-A path is possible only under every code-owned condition.
+  const PKT_NOW = Date.parse('2026-08-05T20:00:00Z');
+  const pdaysAgo = (d) => new Date(PKT_NOW - d * 86400000).toISOString();
+  const OFFICIAL = 'https://www.bybit.com/en/promo/new-user/';
+  const capA = { captureId: 'probe-a', sourceUrl: OFFICIAL, capturedAt: pdaysAgo(1), observedStatus: 200, redirectLocation: null, responseBytes: 2048, bodyDigest: 'sha256:' + 'b'.repeat(64), contentType: 'text/html', normalizedObservation: 'official new-user promo content observed' };
+  const REQ = new Set(m.BYBIT_OFFER_REQUIRED_CLAIMS);
+  const mkClaim = (id, result, refs) => ({ claimId: id, label: id, result, observed: 'obs', sourceRefs: refs, limitation: '' });
+  // Complete canonical claim set: every required claim supported + capture-cited;
+  // realistic_value editorial; other optional claims supported + capture-cited.
+  const completeClaims = () => m.BYBIT_OFFER_CLAIM_INVENTORY.map((id) =>
+    id === 'bybit.realistic_value' ? mkClaim(id, 'not_found', ['editorial:cbw'])
+      : mkClaim(id, 'supported', ['capture:probe-a']));
+  const APPROVER = { approvedBy: 'ros190392-source', approvedAt: pdaysAgo(1), approvalRef: 'https://github.com/ros190392-source/cryptobonusworld/pull/253#pullrequestreview-1' };
+  const buildPacket = (over = {}) => {
+    const captures = over.captures || [capA];
+    const base = {
+      packetId: 'bybit-test-approved', exchangeId: 'bybit',
+      capturedAt: pdaysAgo(1), nextReviewAt: '2026-12-31T00:00:00Z',
+      sourceUrl: OFFICIAL, primaryCaptureId: 'probe-a',
+      captureMethod: 'manual_official_review', captureTool: 'cbw-test/1.0',
+      captures, ownerConfirmations: [], claims: completeClaims(),
+      warnings: [], limitations: [], approval: 'approved', approver: { ...APPROVER },
+      ...over,
+    };
+    // Recompute digest for a legitimately-built packet unless the test overrides it.
+    if (!('captureManifestDigest' in over)) base.captureManifestDigest = m.computeCaptureManifestDigest(base.captures);
+    return base;
+  };
+  const approvedPacket = buildPacket();
+  const withoutClaim = (id) => buildPacket({ claims: completeClaims().filter((c) => c.claimId !== id) });
+  const withClaim = (id, patch) => buildPacket({ claims: completeClaims().map((c) => c.claimId === id ? { ...c, ...patch } : c) });
+
+  check('pkt/1: complete canonical inventory + valid manifest + trusted approval adapts', (() => {
+    const r = m.adaptApprovedPacketToEvidence(approvedPacket, PKT_NOW);
+    return r.ok && r.evidence.exchangeId === 'bybit' && r.evidence.evidenceCheckedAt === approvedPacket.capturedAt;
+  })());
+  check('pkt/2: missing KYC claim → inventory invalid', (() => { const p = withoutClaim('bybit.kyc_required'); return !m.validateOfferEvidencePacket(p).ok && m.validateOfferEvidencePacket(p).issues.some((i) => i.code === 'PACKET_CLAIM_INVENTORY_INVALID') && m.adaptApprovedPacketToEvidence(p, PKT_NOW).reason === 'PACKET_INVALID'; })());
+  check('pkt/3: missing restrictions claim → inventory invalid', !m.validateOfferEvidencePacket(withoutClaim('bybit.restricted_countries')).ok);
+  check('pkt/4: missing terms-summary claim → inventory invalid', !m.validateOfferEvidencePacket(withoutClaim('bybit.terms_summary')).ok);
+  check('pkt/5: setting a code-required claim to optional cannot bypass', (() => {
+    const p = withClaim('bybit.kyc_required', { result: 'inaccessible', requiredForAuthorization: false });
+    return !m.validateOfferEvidencePacket(p).ok && m.validateOfferEvidencePacket(p).issues.some((i) => i.code === 'PACKET_CANNOT_DECLARE_REQUIREMENT') && !m.adaptApprovedPacketToEvidence(p, PKT_NOW).ok;
+  })());
+  check('pkt/6: unknown claim rejected', (() => { const p = buildPacket({ claims: [...completeClaims(), mkClaim('bybit.unknown', 'supported', ['capture:probe-a'])] }); return !m.validateOfferEvidencePacket(p).ok; })());
+  check('pkt/7: duplicate claim rejected', (() => { const p = buildPacket({ claims: [...completeClaims(), mkClaim('bybit.kyc_required', 'supported', ['capture:probe-a'])] }); return !m.validateOfferEvidencePacket(p).ok && m.validateOfferEvidencePacket(p).issues.some((i) => i.code === 'PACKET_CLAIM_INVENTORY_INVALID'); })());
+  check('pkt/8: declared unsupportedClaims rejected (derived, atomic)', (() => { const p = buildPacket({ unsupportedClaims: [] }); return !m.validateOfferEvidencePacket(p).ok && m.validateOfferEvidencePacket(p).issues.some((i) => i.code === 'DERIVED_FIELD'); })());
+  check('pkt/9: required supported claim with unknown capture ref rejected', !m.validateOfferEvidencePacket(withClaim('bybit.kyc_required', { sourceRefs: ['capture:nope'] })).ok);
+  check('pkt/10: required supported claim citing editorial source rejected', (() => { const p = withClaim('bybit.kyc_required', { sourceRefs: ['editorial:cbw'] }); return !m.validateOfferEvidencePacket(p).ok && m.validateOfferEvidencePacket(p).issues.some((i) => i.code === 'INADMISSIBLE_SUPPORT'); })());
+  check('pkt/11: claim citing undeclared capture rejected', !m.validateOfferEvidencePacket(withClaim('bybit.bonus_headline', { sourceRefs: ['capture:ghost'] })).ok);
+  check('pkt/12: complete claim sources bound to declared official captures accepted', (() => { const p = approvedPacket; return m.validateOfferEvidencePacket(p).ok && m.BYBIT_OFFER_REQUIRED_CLAIMS.every((id) => p.claims.find((c) => c.claimId === id).sourceRefs.some((r) => r.startsWith('capture:'))); })());
+  check('pkt/13: arbitrary all-a packet digest rejected', (() => { const p = buildPacket({ captureManifestDigest: 'sha256:' + 'a'.repeat(64) }); return !m.validateOfferEvidencePacket(p).ok && m.validateOfferEvidencePacket(p).issues.some((i) => i.code === 'DIGEST_MISMATCH') && m.adaptApprovedPacketToEvidence(p, PKT_NOW).reason === 'PACKET_INVALID'; })());
+  check('pkt/14: manifest tampering after digest creation rejected', (() => { const p = buildPacket(); p.captures[0].normalizedObservation = 'TAMPERED'; return !m.validateOfferEvidencePacket(p).ok && m.validateOfferEvidencePacket(p).issues.some((i) => i.code === 'DIGEST_MISMATCH'); })());
+  check('pkt/15: changing response status invalidates digest', (() => { const p = buildPacket(); p.captures[0].observedStatus = 404; return m.validateOfferEvidencePacket(p).issues.some((i) => i.code === 'DIGEST_MISMATCH'); })());
+  check('pkt/16: changing bodyDigest invalidates digest', (() => { const p = buildPacket(); p.captures[0].bodyDigest = 'sha256:' + 'c'.repeat(64); return m.validateOfferEvidencePacket(p).issues.some((i) => i.code === 'DIGEST_MISMATCH'); })());
+  check('pkt/17: invalid HTTP status rejected', (() => { const p = buildPacket({ captures: [{ ...capA, observedStatus: 99 }] }); return !m.validateOfferEvidencePacket(p).ok && m.validateOfferEvidencePacket(p).issues.some((i) => i.code === 'INVALID_STATUS'); })());
+  check('pkt/18: URL credentials rejected', (() => { const p = buildPacket({ sourceUrl: 'https://user:pass@www.bybit.com/en/promo/new-user/', primaryCaptureId: 'probe-a', captures: [{ ...capA, sourceUrl: 'https://user:pass@www.bybit.com/en/promo/new-user/' }] }); return !m.validateOfferEvidencePacket(p).ok; })());
+  check('pkt/19: approvedBy="owner" rejected', (() => { const p = buildPacket({ approver: { ...APPROVER, approvedBy: 'owner' } }); return !m.validateOfferEvidencePacket(p).ok && m.validateOfferEvidencePacket(p).issues.some((i) => i.code === 'UNKNOWN_OWNER'); })());
+  check('pkt/20: unknown approver rejected', !m.validateOfferEvidencePacket(buildPacket({ approver: { ...APPROVER, approvedBy: 'someone-else' } })).ok);
+  check('pkt/21: approval before capture rejected', (() => { const p = buildPacket({ capturedAt: pdaysAgo(1), approver: { ...APPROVER, approvedAt: pdaysAgo(2) } }); return !m.validateOfferEvidencePacket(p).ok && m.validateOfferEvidencePacket(p).issues.some((i) => i.code === 'APPROVAL_BEFORE_CAPTURE'); })());
+  check('pkt/22: future approval rejected (adapter APPROVAL_UNTRUSTED)', (() => { const p = buildPacket({ approver: { ...APPROVER, approvedAt: new Date(PKT_NOW + 3600000).toISOString() } }); return m.validateOfferEvidencePacket(p).ok && m.adaptApprovedPacketToEvidence(p, PKT_NOW).reason === 'APPROVAL_UNTRUSTED'; })());
+  check('pkt/23: approval after nextReviewAt rejected', (() => { const p = buildPacket({ approver: { ...APPROVER, approvedAt: '2027-01-01T00:00:00Z' } }); return !m.validateOfferEvidencePacket(p).ok && m.validateOfferEvidencePacket(p).issues.some((i) => i.code === 'APPROVAL_AFTER_REVIEW'); })());
+  check('pkt/24: missing approvalRef rejected', (() => { const p = buildPacket(); delete p.approver.approvalRef; return !m.validateOfferEvidencePacket(p).ok && m.validateOfferEvidencePacket(p).issues.some((i) => i.code === 'INVALID_APPROVAL_REF'); })());
+  check('pkt/25: recursive unsafe approver/capture content rejected', (() => {
+    const p1 = buildPacket({ approver: { ...APPROVER, note: 'see C:\\\\secret\\\\notes.txt' } });
+    const p2 = buildPacket({ captures: [{ ...capA, normalizedObservation: 'token=abc123 leaked' }] });
+    return !m.validateOfferEvidencePacket(p1).ok && !m.validateOfferEvidencePacket(p2).ok;
+  })());
+  check('pkt/26: real draft packet remains structurally valid', m.validateOfferEvidencePacket(m.BYBIT_OFFER_EVIDENCE_PACKET).ok === true);
+  check('pkt/27: real draft packet remains under_re_verification', m.BYBIT_OFFER_EVIDENCE_DECISION === 'under_re_verification' && m.deriveBybitDecision(PKT_NOW) === 'under_re_verification');
+  check('pkt/28: real packet cannot adapt', m.deriveBybitOfferEvidence(PKT_NOW).ok === false);
+  check('pkt/29: offers.bybit.evidence remains null', m.bybitOfferEvidence === null && m.getOffer('bybit').evidence === null && m.getOffer('bybit').status === 'verified');
+  check('pkt/30: preview homepage /go/* = 0', m.homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'preview', 'en').primary.href.startsWith('/go/')));
+  check('pkt/31: public production simulation /go/* = 0', m.homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'production', 'en').primary.href.startsWith('/go/')));
+  check('pkt/32: PUBLIC_MARKET_PROFILES remains Object.freeze([])', Array.isArray(m.PUBLIC_MARKET_PROFILES) && m.PUBLIC_MARKET_PROFILES.length === 0 && Object.isFrozen(m.PUBLIC_MARKET_PROFILES));
+  check('pkt/33: locale cannot change packet facts / decision', (() => {
+    const results = m.BYBIT_OFFER_EVIDENCE_PACKET.claims.map((c) => c.claimId + '=' + c.result).join(',');
+    const disc = (l) => m.resolveDisclosure({ tone: 'verified', evidence: m.bybitOfferEvidence, expectedExchangeId: 'bybit', now: PKT_NOW, isAffiliate: false, methodologyHref: '/methodology/' }, l);
+    const en = disc('en'), ru = disc('ru'), kk = disc('kk');
+    return typeof results === 'string' && en.evidenceState === 'none' && en.evidenceState === ru.evidenceState && ru.evidenceState === kk.evidenceState && m.BYBIT_OFFER_EVIDENCE_DECISION === 'under_re_verification';
+  })());
+  // Integrity + policy sanity on the committed real packet.
+  check('pkt/integrity: committed real packet digest recomputes exactly', m.computeCaptureManifestDigest(m.BYBIT_OFFER_EVIDENCE_PACKET.captures) === m.BYBIT_OFFER_EVIDENCE_PACKET.captureManifestDigest);
+  check('pkt/policy: code-owned inventory has 13 unique claims + 9 required; real packet matches inventory', (() => {
+    const inv = m.BYBIT_OFFER_CLAIM_INVENTORY;
+    const invUnique = new Set(inv).size === inv.length && inv.length === 13 && m.BYBIT_OFFER_REQUIRED_CLAIMS.length === 9;
+    const packetIds = new Set(m.BYBIT_OFFER_EVIDENCE_PACKET.claims.map((c) => c.claimId));
+    return invUnique && inv.every((id) => packetIds.has(id)) && packetIds.size === inv.length;
+  })());
+  check('pkt/derived: real unsupportedClaims derived = 12 non-supported (only source_identity supported)', (() => { const u = m.deriveUnsupportedClaims(m.BYBIT_OFFER_EVIDENCE_PACKET); return u.length === 12 && !u.includes('bybit.source_identity'); })());
+  check('pkt/two-probes: real capture manifest has both official probes', (() => { const c = m.BYBIT_OFFER_EVIDENCE_PACKET.captures; return c.length === 2 && c.every((x) => m.isOfficialBybitSource(x.sourceUrl) && Number.isInteger(x.observedStatus)) && c.some((x) => x.captureId === 'probe-a') && c.some((x) => x.captureId === 'probe-b'); })());
 
   // --- Invariant: a non-commercial model may never point at /go/ ---
   let threw = false;
