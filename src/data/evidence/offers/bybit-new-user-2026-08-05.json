@@ -4,153 +4,149 @@
   "capturedAt": "2026-08-05T19:10:09Z",
   "nextReviewAt": "2026-08-19T00:00:00Z",
   "sourceUrl": "https://www.bybit.com/en/promo/new-user/",
-  "contentDigest": "sha256:7c16953b0fa9e501215bfdebfc2615c3aa59b6a79c91bc680f8678d77df95155",
+  "primaryCaptureId": "probe-a",
+  "captureManifestDigest": "sha256:c494fba6783f931680f2a611c0eeb82c906044cf44a8288d2f617343ddc24887",
   "captureMethod": "http_probe_no_auth_no_cookies",
   "captureTool": "node-undici-fetch Node24 redirect=manual timeout=20000ms",
-  "observedStatus": 302,
-  "approval": "draft",
+  "captures": [
+    {
+      "captureId": "probe-a",
+      "sourceUrl": "https://www.bybit.com/en/promo/new-user/",
+      "capturedAt": "2026-08-05T19:10:09Z",
+      "observedStatus": 302,
+      "redirectLocation": null,
+      "responseBytes": 0,
+      "bodyDigest": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "contentType": null,
+      "normalizedObservation": "Redirect (302) with empty body; no server-rendered offer content."
+    },
+    {
+      "captureId": "probe-b",
+      "sourceUrl": "https://www.bybit.com/en/promo/global/welcome-gifts/",
+      "capturedAt": "2026-08-05T19:10:09Z",
+      "observedStatus": 302,
+      "redirectLocation": null,
+      "responseBytes": 261,
+      "bodyDigest": "sha256:48e9c3fe6476447d3cc9adbca2d68cb05203ccdde0920be76f5b758717ce4247",
+      "contentType": "text/html",
+      "normalizedObservation": "Redirect (302) stub (261 bytes); no offer content."
+    }
+  ],
+  "ownerConfirmations": [],
   "claims": [
     {
       "claimId": "bybit.source_identity",
       "label": "Exchange / source identity",
       "result": "supported",
       "observed": "sourceUrl host is the canonical official Bybit domain www.bybit.com over HTTPS; a live response was received from the official host (HTTP 302).",
-      "sourceRef": "https://www.bybit.com/en/promo/new-user/",
-      "limitation": "Domain identity is confirmed; the specific promo path redirects and served no offer content.",
-      "requiredForAuthorization": true
+      "sourceRefs": ["capture:probe-a"],
+      "limitation": "Domain identity is confirmed; the specific promo path redirects and served no offer content."
     },
     {
       "claimId": "bybit.promo_code",
       "label": "Promo / referral code identity (CRYPTOBONUSW)",
       "result": "requires_owner_partner_confirmation",
       "observed": "CBW displays referral code 'CRYPTOBONUSW'. Referral/partner codes are partner-issued and were not present in the captured (redirecting) public promo response.",
-      "sourceRef": "https://www.bybit.com/en/promo/new-user/",
-      "limitation": "Referral identity requires owner/partner confirmation; it is not verifiable from an anonymous official-page capture.",
-      "requiredForAuthorization": true
+      "sourceRefs": ["capture:probe-a"],
+      "limitation": "Referral identity requires a separate owner/partner confirmation artifact; not verifiable from an anonymous official-page capture."
     },
     {
       "claimId": "bybit.bonus_headline",
       "label": "Maximum reward / bonus headline (Up to 30,000 USDT Welcome Package)",
       "result": "inaccessible",
       "observed": "Official promo pages returned HTTP 302 redirects with no server-rendered offer content; the maximum reward figure could not be observed.",
-      "sourceRef": "https://www.bybit.com/en/promo/new-user/",
-      "limitation": "Client-rendered and/or redirecting official page; the figure was not present in the captured response.",
-      "requiredForAuthorization": true
+      "sourceRefs": ["capture:probe-a", "capture:probe-b"],
+      "limitation": "Client-rendered and/or redirecting official page; the figure was not present in the captured response."
     },
     {
       "claimId": "bybit.realistic_value",
       "label": "Realistic-value wording",
       "result": "not_found",
       "observed": "This wording is CBW editorial synthesis; no matching official-source statement was captured.",
-      "sourceRef": "cbw-editorial",
-      "limitation": "Editorial estimate, not an official-source claim; excluded from authorization.",
-      "requiredForAuthorization": false
+      "sourceRefs": ["editorial:cbw-editorial"],
+      "limitation": "Editorial estimate, not an official-source claim; non-authorizing."
     },
     {
       "claimId": "bybit.fee_discount",
       "label": "Fee-discount wording (Up to 50% fee discount)",
       "result": "inaccessible",
       "observed": "Not present in the captured redirecting response; official fee-discount terms were not observable by this method.",
-      "sourceRef": "https://www.bybit.com/en/promo/new-user/",
-      "limitation": "Requires client-rendered/region-specific page access not available to an anonymous probe.",
-      "requiredForAuthorization": false
+      "sourceRefs": ["capture:probe-a"],
+      "limitation": "Requires client-rendered/region-specific page access not available to an anonymous probe."
     },
     {
       "claimId": "bybit.kyc_required",
       "label": "KYC requirement",
       "result": "inaccessible",
       "observed": "Not present in the captured redirecting response; KYC terms for this specific promo were not observable.",
-      "sourceRef": "https://www.bybit.com/en/promo/new-user/",
-      "limitation": "Promo-specific KYC terms are client-rendered/region-dependent and were not captured.",
-      "requiredForAuthorization": true
+      "sourceRefs": ["capture:probe-a"],
+      "limitation": "Promo-specific KYC terms are client-rendered/region-dependent and were not captured."
     },
     {
       "claimId": "bybit.deposit_required",
       "label": "Deposit requirement",
       "result": "inaccessible",
       "observed": "Not present in the captured redirecting response.",
-      "sourceRef": "https://www.bybit.com/en/promo/new-user/",
-      "limitation": "Promo-specific deposit terms were not observable by this method.",
-      "requiredForAuthorization": true
+      "sourceRefs": ["capture:probe-a"],
+      "limitation": "Promo-specific deposit terms were not observable by this method."
     },
     {
       "claimId": "bybit.min_deposit",
       "label": "Minimum-deposit wording",
       "result": "inaccessible",
       "observed": "Not present in the captured redirecting response; CBW wording is non-specific ('varies by bonus tier').",
-      "sourceRef": "https://www.bybit.com/en/promo/new-user/",
-      "limitation": "No official minimum-deposit figure was captured.",
-      "requiredForAuthorization": false
+      "sourceRefs": ["capture:probe-a"],
+      "limitation": "No official minimum-deposit figure was captured."
     },
     {
       "claimId": "bybit.availability",
       "label": "Offer availability wording (Global excluding restricted regions)",
       "result": "inaccessible",
       "observed": "Not present in the captured redirecting response; availability is region-dependent and client-rendered.",
-      "sourceRef": "https://www.bybit.com/en/promo/new-user/",
-      "limitation": "Region-dependent availability could not be observed by an anonymous probe.",
-      "requiredForAuthorization": true
+      "sourceRefs": ["capture:probe-a"],
+      "limitation": "Region-dependent availability could not be observed by an anonymous probe."
     },
     {
       "claimId": "bybit.restricted_countries",
       "label": "Restricted-country wording (US, UK, CA, SG, NL)",
       "result": "inaccessible",
       "observed": "Not present in the captured redirecting response; the specific restricted-country list was not observable.",
-      "sourceRef": "https://www.bybit.com/en/promo/new-user/",
-      "limitation": "Restriction lists are legal/region-specific and require official terms access not available here.",
-      "requiredForAuthorization": true
+      "sourceRefs": ["capture:probe-a"],
+      "limitation": "Restriction lists are legal/region-specific and require official terms access not available here."
     },
     {
       "claimId": "bybit.reward_type",
       "label": "Reward type and withdrawal limitations",
       "result": "inaccessible",
       "observed": "Not present in the captured redirecting response.",
-      "sourceRef": "https://www.bybit.com/en/promo/new-user/",
-      "limitation": "Voucher/withdrawal mechanics were not observable by this method.",
-      "requiredForAuthorization": true
+      "sourceRefs": ["capture:probe-a"],
+      "limitation": "Voucher/withdrawal mechanics were not observable by this method."
     },
     {
       "claimId": "bybit.expiry",
       "label": "Task / voucher expiry wording",
       "result": "inaccessible",
       "observed": "Not present in the captured redirecting response.",
-      "sourceRef": "https://www.bybit.com/en/promo/new-user/",
-      "limitation": "Expiry windows were not observable by this method.",
-      "requiredForAuthorization": false
+      "sourceRefs": ["capture:probe-a"],
+      "limitation": "Expiry windows were not observable by this method."
     },
     {
       "claimId": "bybit.terms_summary",
       "label": "Current terms-summary accuracy",
       "result": "inaccessible",
       "observed": "Not present in the captured redirecting response; the CBW terms summary could not be confirmed against official terms.",
-      "sourceRef": "https://www.bybit.com/en/promo/new-user/",
-      "limitation": "Full official terms were not accessible; the summary remains unconfirmed.",
-      "requiredForAuthorization": true
+      "sourceRefs": ["capture:probe-a"],
+      "limitation": "Full official terms were not accessible; the summary remains unconfirmed."
     }
-  ],
-  "unsupportedClaims": [
-    "bybit.promo_code",
-    "bybit.bonus_headline",
-    "bybit.realistic_value",
-    "bybit.fee_discount",
-    "bybit.kyc_required",
-    "bybit.deposit_required",
-    "bybit.min_deposit",
-    "bybit.availability",
-    "bybit.restricted_countries",
-    "bybit.reward_type",
-    "bybit.expiry",
-    "bybit.terms_summary"
   ],
   "warnings": [
     "Official promo pages redirected (HTTP 302) and returned no server-rendered offer content to an anonymous capture; offer claims are client-rendered and/or geo/region-dependent.",
-    "Probe A https://www.bybit.com/en/promo/new-user/ returned HTTP 302, 0 bytes, body sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.",
-    "Probe B https://www.bybit.com/en/promo/global/welcome-gifts/ returned HTTP 302, 261 bytes, body sha256:48e9c3fe6476447d3cc9adbca2d68cb05203ccdde0920be76f5b758717ce4247.",
-    "Referral code identity is partner-issued and requires owner/partner confirmation."
+    "Referral code identity is partner-issued and requires a separate owner/partner confirmation artifact."
   ],
   "limitations": [
     "OFFICIAL_SOURCE_ONLY: no account, no cookies, no proxy, no transaction, no authenticated session.",
     "No full page content is stored; only concise normalized observations and sha256 digests.",
     "Region-dependent wording may differ; this capture reflects a single anonymous request from one network vantage point."
-  ]
+  ],
+  "approval": "draft"
 }

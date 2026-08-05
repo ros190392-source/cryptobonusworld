@@ -30,9 +30,10 @@ filled from memory.
 
 Packet: `src/data/evidence/offers/bybit-new-user-2026-08-05.json`
 `packetId: bybit-new-user-20260805` · `capturedAt: 2026-08-05T19:10:09Z` ·
-`nextReviewAt: 2026-08-19T00:00:00Z` · `contentDigest:
-sha256:7c16953b0fa9e501215bfdebfc2615c3aa59b6a79c91bc680f8678d77df95155` ·
-`approval: draft`.
+`nextReviewAt: 2026-08-19T00:00:00Z` · `primaryCaptureId: probe-a` ·
+`captureManifestDigest:
+sha256:c494fba6783f931680f2a611c0eeb82c906044cf44a8288d2f617343ddc24887`
+(recomputable over the 2-probe manifest) · `approval: draft`.
 
 ## Bybit claim matrix (13 claims)
 
@@ -65,21 +66,52 @@ homepage still emits **zero `/go/*`** in both modes (no country profile exists
 either). When a future approved, complete packet exists, the same adapter derives
 authorizing `EvidenceMetadata` deterministically.
 
-## Contracts
+## Contracts (hardened, R1–R8)
 
-- `src/data/contracts/offerEvidencePacket.ts` — `OfferEvidencePacket` +
-  `validateOfferEvidencePacket` (strict calendar timestamps, canonical identity,
-  HTTPS, sha256 digest, per-claim structure, artifact-safety scan for
-  secrets/absolute paths, approver-metadata rules) + `isOfficialBybitSource` +
-  `adaptApprovedPacketToEvidence`. Reuses the strict timestamp, HTTPS, digest and
-  central freshness rules — no duplicated thresholds.
-- Adapter fails closed unless: packet valid · `exchangeId === bybit` · official
-  HTTPS source · capture fresh (central policy) · review future · **every required
-  claim `supported`** · no `contradicted` claim · `approval === approved` with
-  valid approver metadata. Draft/validated packets can never authorize.
-- `src/data/evidence/offers/bybitOfferEvidence.ts` — loads + validates the packet,
-  exposes `BYBIT_OFFER_EVIDENCE_DECISION = 'under_re_verification'` and
-  `bybitOfferEvidence = null`.
+`src/data/contracts/offerEvidencePacket.ts`. The packet is treated as untrusted
+input; all authorization policy is **code-owned**:
+
+- **R1 — code-owned claim policy.** `BYBIT_OFFER_CLAIM_POLICY` (immutable) defines
+  the canonical 13-claim inventory and the 9 required claims. The packet inventory
+  must match exactly (missing/duplicate/unknown → `PACKET_CLAIM_INVENTORY_INVALID`);
+  the packet cannot declare `requiredForAuthorization` (rejected) — the adapter
+  reads requirements only from the policy.
+- **R2 — derived unsupported claims.** `unsupportedClaims` is removed from the
+  packet and derived (`deriveUnsupportedClaims`); declaring it is rejected.
+- **R3 — structured capture manifest.** `captures[]` records both probes with only
+  observed facts (status, byte counts, body digests, `redirectLocation: null` since
+  none was captured). Each capture: unique id, official HTTPS Bybit URL (no
+  credentials), integer status 100–599, non-negative bytes, sha256 body digest,
+  exact ISO `capturedAt`. `primaryCaptureId` must exist and its URL equals the
+  packet `sourceUrl`.
+- **R4 — claim→source binding.** Free-form `sourceRef` replaced by structured
+  `sourceRefs` (`capture:<id>` / `owner-confirmation:<id>` / `editorial:<id>`);
+  `capture:`/`owner-confirmation:` refs must resolve to declared artifacts. A
+  **required supported** claim must cite a declared official capture or owner
+  confirmation — never editorial. Partner confirmation uses a typed
+  `ownerConfirmations[]` artifact.
+- **R5 — recomputable digest.** `captureManifestDigest = sha256(canonical
+  serialize(captures))`, recomputed and compared by validator/adapter; a look-alike
+  or tampered manifest (status/bytes/bodyDigest change, add/remove capture) →
+  `DIGEST_MISMATCH`. Node `crypto` is build/server-only (this module is not in the
+  client bundle; the Astro build stays valid).
+- **R6 — trusted approval.** Approved packets require `approvedBy` ∈
+  `ALLOWED_OWNER_IDENTITIES` (`ros190392-source`), exact `approvedAt` with
+  `capturedAt ≤ approvedAt < nextReviewAt` and `approvedAt ≤ now`, and a
+  GitHub-format `approvalRef`. `approvedBy: "owner"`, unknown approver, pre-capture,
+  future, post-deadline, or missing ref all fail closed. (Defense in depth — real
+  owner review still required.)
+- **R7 — recursive artifact safety.** Every string in the packet is scanned for
+  secrets/cookies/tokens/absolute paths/browser-profile paths; URL userinfo
+  credentials are rejected.
+- **R8 — single evaluation.** `BYBIT_OFFER_EVIDENCE_DECISION` routes through one
+  shared evaluator (`deriveBybitDecision`); the only path to `authoritative` is
+  `adaptApprovedPacketToEvidence` succeeding, so the decision can never diverge
+  from the adapter.
+
+`src/data/evidence/offers/bybitOfferEvidence.ts` loads + validates the packet and
+exposes `BYBIT_OFFER_EVIDENCE_DECISION = 'under_re_verification'` and
+`bybitOfferEvidence = null`.
 
 ## Artifact safety
 
@@ -91,7 +123,7 @@ absolute paths and secret markers in any packet field.
 ## Verification (all green)
 
 ```
-npm run portal:contracts:test        # 310 passed, 0 failed  (283 baseline + 27 pkt/*)
+npm run portal:contracts:test        # 320 passed, 0 failed  (283 baseline + 37 pkt/*)
 npm run ai-ops:validate:fixtures     # 43 passed, 0 failed
 tsc --noEmit (contracts scope, +resolveJsonModule) # exit 0
 npm run build                        # 109 pages
@@ -100,13 +132,16 @@ production-simulation homepage /go/   # 0
 Chromium homepage/disclosure QA      # 44/44 (preview + production-sim × desktop/mobile, keyboard)
 ```
 
-The 26 required cases are covered under `pkt/*` (draft/validated cannot authorize;
-approved-complete adapts; missing/invalid digest; inexact/stale/future/overdue;
-non-HTTPS/non-official; exchange mismatch; missing/partial/contradicted/
-inaccessible/partner-only required claim blocks; unsupported maximum not silently
-verified; offer.status alone cannot authorize; human month string rejected; bybit
-identity throughout; both `/go/`=0; registry empty; en/ru/kk facts invariant; no
-secrets/absolute paths).
+The 33 required cases are covered under `pkt/*` (complete-canonical adapts;
+missing KYC/restrictions/terms → inventory invalid; required→optional cannot
+bypass; unknown/duplicate claim; declared unsupportedClaims rejected; unknown/
+editorial/undeclared source refs rejected; complete official bindings accepted;
+arbitrary/tampered/status/bodyDigest digest rejected; invalid status; URL
+credentials; `approvedBy:"owner"`/unknown/pre-capture/future/post-deadline/
+missing-ref approval rejected; recursive unsafe content rejected; real packet valid
++ under-re-verification + cannot adapt; `offers.bybit.evidence` null; both `/go/`=0;
+registry empty; locale invariant) plus digest-recomputation, policy, derived-list
+and two-probe sanity checks.
 
 ## Not authorized / not performed
 

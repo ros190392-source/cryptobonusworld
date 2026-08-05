@@ -35,17 +35,21 @@ export const BYBIT_OFFER_EVIDENCE_PACKET: OfferEvidencePacket = validation.value
 export type BybitEvidenceDecision = 'authoritative' | 'under_re_verification';
 
 /**
- * The honest real-data decision for this capture. Derived STRUCTURALLY (no wall
- * clock): a packet that is not approved, or that has any unsupported required
- * claim, can never authorize — so the row stays under re-verification.
+ * The honest real-data decision, routed through the ONE canonical evaluation (R8)
+ * — there is no second, weaker algorithm. An unapproved packet can never be
+ * authoritative, so this is deterministic without a wall clock; the only path to
+ * `authoritative` is the adapter succeeding, so the decision can never claim
+ * authoritative while `adaptApprovedPacketToEvidence` would fail.
  */
-export const BYBIT_OFFER_EVIDENCE_DECISION: BybitEvidenceDecision = (() => {
-  const p = BYBIT_OFFER_EVIDENCE_PACKET;
-  const requiredAllSupported = p.claims
-    .filter((c) => c.requiredForAuthorization)
-    .every((c) => c.result === 'supported');
-  return p.approval === 'approved' && requiredAllSupported ? 'authoritative' : 'under_re_verification';
-})();
+export function deriveBybitDecision(nowMs?: number): BybitEvidenceDecision {
+  if (BYBIT_OFFER_EVIDENCE_PACKET.approval !== 'approved') return 'under_re_verification';
+  const clock = typeof nowMs === 'number' ? nowMs : NaN;
+  return adaptApprovedPacketToEvidence(BYBIT_OFFER_EVIDENCE_PACKET, clock, 'bybit').ok
+    ? 'authoritative'
+    : 'under_re_verification';
+}
+
+export const BYBIT_OFFER_EVIDENCE_DECISION: BybitEvidenceDecision = deriveBybitDecision();
 
 /**
  * Deterministic derivation of authorizing EvidenceMetadata from the packet, given

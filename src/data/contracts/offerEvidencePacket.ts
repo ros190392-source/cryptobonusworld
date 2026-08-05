@@ -1,32 +1,87 @@
 /**
- * OfferEvidencePacket — auditable capture of ONE official offer source (Split 3,
- * Issue #252).
+ * OfferEvidencePacket — auditable capture of official offer sources (Issue #252,
+ * hardened R1–R8).
  *
- * A URL plus an access time is NOT proof of the individual offer claims CBW
- * displays. This packet records exactly what was observed, when, where, by which
- * method, and — per claim — whether the observation supports the displayed fact.
- * It is the ONLY sanctioned route by which a real offer may later become
- * authorizing: an approved, complete packet adapts to EvidenceMetadata (which the
- * existing country-aware gate already requires), and nothing else can.
+ * A URL + access time is not proof of the offer claims CBW displays, and — after
+ * hardening — the PACKET is not trusted to declare its own authorization policy,
+ * digest, source bindings or approval identity. Those are code-owned:
  *
- * Fail-closed everywhere. A packet that is draft/validated, incomplete,
- * inaccessible, contradicted, non-official, stale, future-dated or unapproved can
- * never produce authorizing EvidenceMetadata. Strict calendar-valid timestamps,
- * canonical identity, HTTPS provenance and sha256 digests are reused from the
- * evidence-metadata contract and portal factory — no thresholds are duplicated.
+ *   R1  the immutable BYBIT_OFFER_CLAIM_POLICY (not the packet) decides the claim
+ *       inventory and which claims are required for authorization;
+ *   R2  the unsupported-claims list is DERIVED from claim results, never declared;
+ *   R3  captures are a structured manifest of recorded facts (no invented headers);
+ *   R4  each claim binds to structured sourceRefs that must resolve to declared
+ *       official captures / owner-confirmation artifacts (not arbitrary text);
+ *   R5  the packet-level digest is RECOMPUTED from the canonical capture manifest
+ *       and compared — a look-alike sha256 is not accepted;
+ *   R6  approval is validated against a code-owned owner-identity policy with time
+ *       and review-reference constraints (arbitrary approvedBy cannot authorize);
+ *   R7  artifact-safety (no secrets / absolute paths / URL credentials) is applied
+ *       recursively to every string in the packet;
+ *   R8  the real-data decision routes through ONE shared evaluation — there is no
+ *       second, weaker authorization algorithm.
  *
- * Artifact-safety: packets are public records, so validation rejects secrets,
- * cookies, tokens and internal absolute filesystem paths, and no full copyrighted
- * page content is stored — only concise normalized observations and a digest.
+ * Fail-closed everywhere. Draft/validated/incomplete/inaccessible/contradicted/
+ * non-official/stale/future/tampered/unapproved packets can never authorize.
+ * Node crypto is used only for build/server-side integrity; this module is not
+ * part of the client page bundle.
  */
+import { createHash } from 'node:crypto';
 import type { EvidenceMetadata } from './evidenceMetadata';
-import {
-  parseExactIsoDateTime,
-  validateEvidenceMetadata,
-} from './evidenceMetadata';
+import { parseExactIsoDateTime, validateEvidenceMetadata } from './evidenceMetadata';
 import { assessEvidenceFreshness } from './portalFactory';
 
-/** Per-claim verification result. No claim is upgraded merely because a page loaded. */
+/* ─────────────────────────── R1: code-owned claim policy ────────────────────── */
+
+/** The complete canonical Bybit offer-claim inventory (code-owned, immutable). */
+export const BYBIT_OFFER_CLAIM_INVENTORY = Object.freeze([
+  'bybit.source_identity',
+  'bybit.promo_code',
+  'bybit.bonus_headline',
+  'bybit.realistic_value',
+  'bybit.fee_discount',
+  'bybit.kyc_required',
+  'bybit.deposit_required',
+  'bybit.min_deposit',
+  'bybit.availability',
+  'bybit.restricted_countries',
+  'bybit.reward_type',
+  'bybit.expiry',
+  'bybit.terms_summary',
+] as const);
+
+/** Claims REQUIRED for commercial authorization (code-owned, not packet-owned). */
+export const BYBIT_OFFER_REQUIRED_CLAIMS = Object.freeze([
+  'bybit.source_identity',
+  'bybit.promo_code',
+  'bybit.bonus_headline',
+  'bybit.kyc_required',
+  'bybit.deposit_required',
+  'bybit.availability',
+  'bybit.restricted_countries',
+  'bybit.reward_type',
+  'bybit.terms_summary',
+] as const);
+
+/** Optional claim-ID extensions beyond the canonical inventory (none for the pilot). */
+export const BYBIT_OFFER_CLAIM_EXTENSIONS: readonly string[] = Object.freeze([]);
+
+export const BYBIT_OFFER_CLAIM_POLICY = Object.freeze({
+  exchangeId: 'bybit',
+  inventory: BYBIT_OFFER_CLAIM_INVENTORY,
+  required: BYBIT_OFFER_REQUIRED_CLAIMS,
+  extensions: BYBIT_OFFER_CLAIM_EXTENSIONS,
+});
+
+/* ─────────────────────────── R6: code-owned approval policy ─────────────────── */
+
+/** Permitted owner identities for a trusted approval (code-owned). */
+export const ALLOWED_OWNER_IDENTITIES: readonly string[] = Object.freeze(['ros190392-source']);
+/** Accepted GitHub owner-review reference format for approvalRef. */
+const APPROVAL_REF = /^https:\/\/github\.com\/ros190392-source\/cryptobonusworld\/(pull|issues)\/\d+(#[A-Za-z0-9_-]+)?$/;
+
+/* ─────────────────────────────────── types ─────────────────────────────────── */
+
 export type OfferClaimResult =
   | 'supported'
   | 'partially_supported'
@@ -37,122 +92,178 @@ export type OfferClaimResult =
 
 export type PacketApproval = 'draft' | 'validated' | 'approved' | 'rejected' | 'stale';
 
+export interface OfferCapture {
+  captureId: string;
+  sourceUrl: string;
+  capturedAt: string;
+  observedStatus: number;
+  redirectLocation: string | null;
+  responseBytes: number;
+  bodyDigest: string;
+  contentType: string | null;
+  normalizedObservation: string;
+}
+
+export interface OwnerConfirmationArtifact {
+  confirmationId: string;
+  confirmedBy: string;
+  confirmedAt: string;
+  ref: string;
+  note?: string;
+}
+
 export interface OfferClaimVerification {
-  /** Stable claim identifier (e.g. 'bybit.promo_code'). */
   claimId: string;
-  /** Short human label of what the claim asserts. */
   label: string;
-  /** Structured verification result. */
   result: OfferClaimResult;
-  /** Concise NORMALIZED observed fact (never a full page reproduction). */
   observed: string;
-  /** Source reference this result rests on (a sourceUrl or a sourceId). */
-  sourceRef: string;
-  /** Explicit limitation on this result. */
+  /** Structured references: `capture:<id>`, `owner-confirmation:<id>`, `editorial:<id>`. */
+  sourceRefs: string[];
   limitation: string;
-  /** Whether this claim must be `supported` for commercial authorization. */
-  requiredForAuthorization: boolean;
 }
 
 export interface PacketApprover {
   approvedBy: string;
-  /** Exact ISO approval timestamp. */
   approvedAt: string;
+  approvalRef: string;
   note?: string;
 }
 
 export interface OfferEvidencePacket {
   packetId: string;
-  /** Canonical exchange identity (this pilot: 'bybit'). */
   exchangeId: string;
-  /** Exact, timezone-qualified capture instant. */
   capturedAt: string;
-  /** Exact, timezone-qualified review deadline; strictly after capturedAt. */
   nextReviewAt: string;
-  /** Canonical official HTTPS source URL. */
+  /** Primary source URL; must equal the primary capture's sourceUrl. */
   sourceUrl: string;
-  /** sha256 digest of the capture/observation content. */
-  contentDigest: string;
-  /** How the source was captured (e.g. 'http_probe_no_auth_no_cookies'). */
+  /** Capture whose sourceUrl is the packet's primary source. */
+  primaryCaptureId: string;
+  /** Recomputable sha256 over the canonical capture manifest (R5). */
+  captureManifestDigest: string;
   captureMethod: string;
-  /** Capturing tool + version. */
   captureTool: string;
-  /** Observed HTTP/fetch status where available; null when not applicable. */
-  observedStatus: number | null;
-  /** Per-claim structured verification results. */
+  captures: OfferCapture[];
+  ownerConfirmations: OwnerConfirmationArtifact[];
   claims: OfferClaimVerification[];
-  /** Claim IDs explicitly NOT supported (redundant index for auditing). */
-  unsupportedClaims: string[];
   warnings: string[];
   limitations: string[];
   approval: PacketApproval;
-  /** Present only for an approved packet; owner approval metadata. */
   approver?: PacketApprover;
 }
 
 export interface PacketValidationIssue { field: string; code: string; message: string; }
-export interface PacketValidationResult {
-  ok: boolean;
-  value?: OfferEvidencePacket;
-  issues: PacketValidationIssue[];
-}
+export interface PacketValidationResult { ok: boolean; value?: OfferEvidencePacket; issues: PacketValidationIssue[]; }
 
 const CANONICAL_SLUG = /^[a-z0-9][a-z0-9-]*$/;
 const SHA256 = /^sha256:[a-f0-9]{64}$/;
 const CLAIM_RESULTS: OfferClaimResult[] = ['supported', 'partially_supported', 'not_found', 'contradicted', 'inaccessible', 'requires_owner_partner_confirmation'];
 const APPROVALS: PacketApproval[] = ['draft', 'validated', 'approved', 'rejected', 'stale'];
+const SOURCE_REF = /^(capture|owner-confirmation|editorial):[a-z0-9][a-z0-9._-]*$/;
 
-/**
- * Artifact-safety scan (R: no secrets / no internal absolute paths in a public
- * record). Rejects obvious secret markers and absolute filesystem paths.
- */
+/* ─────────────────────────── R7: recursive artifact safety ──────────────────── */
+
 const FORBIDDEN_CONTENT = [
-  /[a-zA-Z]:\\/,               // Windows absolute path (C:\...)
-  /(^|[\s"'])\/(?:Users|home|root|var|etc|tmp|mnt)\//, // Unix absolute path
+  /[a-zA-Z]:\\/,                                        // Windows absolute path
+  /(^|[\s"'(])\/(?:Users|home|root|var|etc|tmp|mnt|Library)\//, // Unix absolute path
   /\bcookie\s*[:=]/i,
-  /\bauthorization\s*[:=]/i,
   /\b(set-cookie|bearer)\b/i,
-  /\b(password|passwd|secret|api[_-]?key|access[_-]?token)\s*[:=]/i,
-  /\btoken=/i,
+  /\bauthorization\s*[:=]/i,
+  /\b(password|passwd|secret|api[_-]?key|access[_-]?token|session[_-]?token)\s*[:=]/i,
+  /\btoken\s*=/i,
+  /[?&](token|access_token|auth|sessionid|sid|cookie)=/i,
+  /\.mozilla\/|\/Chrome\/User Data|AppData\\/i,        // local browser profile paths
 ];
 
 function scanUnsafe(value: string): boolean {
   return FORBIDDEN_CONTENT.some((re) => re.test(value));
 }
 
+/** URL string carrying username/password credentials (userinfo) is forbidden. */
+function urlHasCredentials(value: string): boolean {
+  try {
+    const u = new URL(value);
+    return u.username !== '' || u.password !== '';
+  } catch { return false; }
+}
+
+/** Recursively collect unsafe findings from every string in a value. */
+function scanUnsafeDeep(value: unknown, path: string, issues: PacketValidationIssue[]): void {
+  if (typeof value === 'string') {
+    if (scanUnsafe(value)) issues.push({ field: path, code: 'UNSAFE_CONTENT', message: 'Secret / cookie / token / absolute path detected in a public record.' });
+    if (/^https?:\/\//i.test(value) && urlHasCredentials(value)) issues.push({ field: path, code: 'URL_CREDENTIALS', message: 'URL must not contain username/password credentials.' });
+    return;
+  }
+  if (Array.isArray(value)) { value.forEach((v, i) => scanUnsafeDeep(v, `${path}.${i}`, issues)); return; }
+  if (value && typeof value === 'object') { for (const [k, v] of Object.entries(value)) scanUnsafeDeep(v, `${path}.${k}`, issues); }
+}
+
+/* ─────────────────────────── helpers ─────────────────────────── */
+
+function hasText(v: unknown): v is string { return typeof v === 'string' && v.trim().length > 0; }
+
 function isHttpsUrl(value: unknown): value is string {
   if (typeof value !== 'string' || value !== value.trim() || !/^https:\/\/[^\s]+$/i.test(value)) return false;
   try { return new URL(value).protocol === 'https:'; } catch { return false; }
 }
 
-/** Official Bybit source host policy (primary evidence only from official domain). */
 export function isOfficialBybitSource(url: unknown): boolean {
   if (!isHttpsUrl(url)) return false;
   try {
-    const host = new URL(url).hostname.toLowerCase();
+    const u = new URL(url);
+    if (u.username || u.password) return false;
+    const host = u.hostname.toLowerCase();
     return host === 'bybit.com' || host === 'www.bybit.com' || host.endsWith('.bybit.com');
   } catch { return false; }
 }
 
-function hasText(v: unknown): v is string { return typeof v === 'string' && v.trim().length > 0; }
+/* ─────────────────────────── R5: recomputable manifest digest ───────────────── */
 
-function validateClaim(c: unknown, index: number, issues: PacketValidationIssue[]): void {
-  const path = `claims.${index}`;
-  if (typeof c !== 'object' || c === null) { issues.push({ field: path, code: 'NOT_OBJECT', message: 'Claim must be an object.' }); return; }
-  const rec = c as Record<string, unknown>;
-  if (!hasText(rec.claimId)) issues.push({ field: `${path}.claimId`, code: 'REQUIRED', message: 'claimId required.' });
-  if (!hasText(rec.label)) issues.push({ field: `${path}.label`, code: 'REQUIRED', message: 'label required.' });
-  if (!CLAIM_RESULTS.includes(rec.result as OfferClaimResult)) issues.push({ field: `${path}.result`, code: 'INVALID_RESULT', message: 'Unknown claim result.' });
-  if (typeof rec.observed !== 'string') issues.push({ field: `${path}.observed`, code: 'REQUIRED', message: 'observed fact required.' });
-  if (!hasText(rec.sourceRef)) issues.push({ field: `${path}.sourceRef`, code: 'REQUIRED', message: 'sourceRef required.' });
-  if (typeof rec.limitation !== 'string') issues.push({ field: `${path}.limitation`, code: 'REQUIRED', message: 'limitation required.' });
-  if (typeof rec.requiredForAuthorization !== 'boolean') issues.push({ field: `${path}.requiredForAuthorization`, code: 'INVALID', message: 'requiredForAuthorization must be boolean.' });
-  for (const [k, v] of Object.entries(rec)) {
-    if (typeof v === 'string' && scanUnsafe(v)) issues.push({ field: `${path}.${k}`, code: 'UNSAFE_CONTENT', message: 'Secret or absolute path detected in a public record.' });
-  }
+const CAPTURE_KEYS: (keyof OfferCapture)[] = ['captureId', 'sourceUrl', 'capturedAt', 'observedStatus', 'redirectLocation', 'responseBytes', 'bodyDigest', 'contentType', 'normalizedObservation'];
+
+/** Deterministic, order-independent canonical serialization of the capture manifest. */
+export function canonicalCaptureManifest(captures: OfferCapture[]): string {
+  const sorted = [...captures].sort((a, b) => (a.captureId < b.captureId ? -1 : a.captureId > b.captureId ? 1 : 0));
+  return JSON.stringify(sorted.map((c) => {
+    const o: Record<string, unknown> = {};
+    for (const k of CAPTURE_KEYS) o[k] = c[k];
+    return o;
+  }));
 }
 
-/** Validate an OfferEvidencePacket structurally, fail-closed. */
+/** Recompute the packet-level digest over the (digest-excluded) capture manifest. */
+export function computeCaptureManifestDigest(captures: OfferCapture[]): string {
+  return 'sha256:' + createHash('sha256').update(canonicalCaptureManifest(captures), 'utf8').digest('hex');
+}
+
+/* ─────────────────────────── per-capture validation ─────────────────────────── */
+
+function validateCapture(c: unknown, index: number, issues: PacketValidationIssue[]): void {
+  const path = `captures.${index}`;
+  if (typeof c !== 'object' || c === null) { issues.push({ field: path, code: 'NOT_OBJECT', message: 'Capture must be an object.' }); return; }
+  const r = c as Record<string, unknown>;
+  if (!hasText(r.captureId) || !CANONICAL_SLUG.test(r.captureId as string)) issues.push({ field: `${path}.captureId`, code: 'INVALID_ID', message: 'captureId must be a canonical slug.' });
+  if (!isOfficialBybitSource(r.sourceUrl)) issues.push({ field: `${path}.sourceUrl`, code: 'NON_OFFICIAL', message: 'Capture sourceUrl must be an official HTTPS Bybit URL without credentials.' });
+  if (!parseExactIsoDateTime(r.capturedAt)) issues.push({ field: `${path}.capturedAt`, code: 'INEXACT_TIMESTAMP', message: 'capturedAt must be an exact ISO datetime.' });
+  if (!(typeof r.observedStatus === 'number' && Number.isInteger(r.observedStatus) && r.observedStatus >= 100 && r.observedStatus <= 599)) issues.push({ field: `${path}.observedStatus`, code: 'INVALID_STATUS', message: 'observedStatus must be an integer HTTP status 100–599.' });
+  if (!(r.redirectLocation === null || hasText(r.redirectLocation))) issues.push({ field: `${path}.redirectLocation`, code: 'INVALID', message: 'redirectLocation must be a non-empty string or null.' });
+  if (!(typeof r.responseBytes === 'number' && Number.isInteger(r.responseBytes) && r.responseBytes >= 0)) issues.push({ field: `${path}.responseBytes`, code: 'INVALID_BYTES', message: 'responseBytes must be a non-negative integer.' });
+  if (!hasText(r.bodyDigest) || !SHA256.test(r.bodyDigest as string)) issues.push({ field: `${path}.bodyDigest`, code: 'INVALID_DIGEST', message: 'bodyDigest must be a sha256 digest.' });
+  if (!(r.contentType === null || hasText(r.contentType))) issues.push({ field: `${path}.contentType`, code: 'INVALID', message: 'contentType must be a non-empty string or null.' });
+  if (!hasText(r.normalizedObservation)) issues.push({ field: `${path}.normalizedObservation`, code: 'REQUIRED', message: 'normalizedObservation required.' });
+}
+
+function validateOwnerConfirmation(c: unknown, index: number, issues: PacketValidationIssue[]): void {
+  const path = `ownerConfirmations.${index}`;
+  if (typeof c !== 'object' || c === null) { issues.push({ field: path, code: 'NOT_OBJECT', message: 'Owner confirmation must be an object.' }); return; }
+  const r = c as Record<string, unknown>;
+  if (!hasText(r.confirmationId) || !CANONICAL_SLUG.test(r.confirmationId as string)) issues.push({ field: `${path}.confirmationId`, code: 'INVALID_ID', message: 'confirmationId must be a canonical slug.' });
+  if (!(hasText(r.confirmedBy) && ALLOWED_OWNER_IDENTITIES.includes(r.confirmedBy as string))) issues.push({ field: `${path}.confirmedBy`, code: 'UNKNOWN_OWNER', message: 'confirmedBy must be an allowed owner identity.' });
+  if (!parseExactIsoDateTime(r.confirmedAt)) issues.push({ field: `${path}.confirmedAt`, code: 'INEXACT_TIMESTAMP', message: 'confirmedAt must be an exact ISO datetime.' });
+  if (!APPROVAL_REF.test(String(r.ref))) issues.push({ field: `${path}.ref`, code: 'INVALID_REF', message: 'ref must be a GitHub owner-review reference.' });
+}
+
+/* ─────────────────────────── packet validation ─────────────────────────── */
+
 export function validateOfferEvidencePacket(input: unknown): PacketValidationResult {
   const issues: PacketValidationIssue[] = [];
   if (typeof input !== 'object' || input === null || Array.isArray(input)) {
@@ -160,60 +271,143 @@ export function validateOfferEvidencePacket(input: unknown): PacketValidationRes
   }
   const rec = input as Record<string, unknown>;
 
-  if (!hasText(rec.packetId) || !CANONICAL_SLUG.test((rec.packetId as string))) issues.push({ field: 'packetId', code: 'INVALID_ID', message: 'packetId must be a canonical slug.' });
-  if (!hasText(rec.exchangeId) || !CANONICAL_SLUG.test((rec.exchangeId as string))) issues.push({ field: 'exchangeId', code: 'INVALID_ID', message: 'exchangeId must be a canonical slug.' });
+  if (!hasText(rec.packetId) || !CANONICAL_SLUG.test(rec.packetId as string)) issues.push({ field: 'packetId', code: 'INVALID_ID', message: 'packetId must be a canonical slug.' });
+  if (rec.exchangeId !== BYBIT_OFFER_CLAIM_POLICY.exchangeId) issues.push({ field: 'exchangeId', code: 'EXCHANGE_NOT_BYBIT', message: 'exchangeId must be exactly bybit.' });
 
-  if (!parseExactIsoDateTime(rec.capturedAt)) issues.push({ field: 'capturedAt', code: 'INEXACT_TIMESTAMP', message: 'capturedAt must be an exact ISO datetime with timezone.' });
-  if (!parseExactIsoDateTime(rec.nextReviewAt)) issues.push({ field: 'nextReviewAt', code: 'INEXACT_TIMESTAMP', message: 'nextReviewAt must be an exact ISO datetime with timezone.' });
   const capAt = parseExactIsoDateTime(rec.capturedAt);
   const revAt = parseExactIsoDateTime(rec.nextReviewAt);
+  if (!capAt) issues.push({ field: 'capturedAt', code: 'INEXACT_TIMESTAMP', message: 'capturedAt must be an exact ISO datetime.' });
+  if (!revAt) issues.push({ field: 'nextReviewAt', code: 'INEXACT_TIMESTAMP', message: 'nextReviewAt must be an exact ISO datetime.' });
   if (capAt && revAt && revAt.epochMs <= capAt.epochMs) issues.push({ field: 'nextReviewAt', code: 'INVALID_REVIEW_WINDOW', message: 'nextReviewAt must be strictly after capturedAt.' });
 
-  if (!isHttpsUrl(rec.sourceUrl)) issues.push({ field: 'sourceUrl', code: 'INVALID_SOURCE_URL', message: 'sourceUrl must be a valid HTTPS URL with no surrounding whitespace.' });
-  if (!hasText(rec.contentDigest) || !SHA256.test((rec.contentDigest as string))) issues.push({ field: 'contentDigest', code: 'INVALID_DIGEST', message: 'contentDigest must be a sha256:<64-hex> digest.' });
   if (!hasText(rec.captureMethod)) issues.push({ field: 'captureMethod', code: 'REQUIRED', message: 'captureMethod required.' });
   if (!hasText(rec.captureTool)) issues.push({ field: 'captureTool', code: 'REQUIRED', message: 'captureTool required.' });
-  if (!(rec.observedStatus === null || (typeof rec.observedStatus === 'number' && Number.isFinite(rec.observedStatus)))) issues.push({ field: 'observedStatus', code: 'INVALID', message: 'observedStatus must be a finite number or null.' });
 
-  if (!Array.isArray(rec.claims) || rec.claims.length === 0) {
-    issues.push({ field: 'claims', code: 'NO_CLAIMS', message: 'At least one claim verification is required.' });
+  // Captures manifest (R3).
+  const captures = rec.captures;
+  const captureIds = new Set<string>();
+  if (!Array.isArray(captures) || captures.length === 0) {
+    issues.push({ field: 'captures', code: 'NO_CAPTURES', message: 'At least one capture is required.' });
   } else {
-    rec.claims.forEach((c, i) => validateClaim(c, i, issues));
-    const ids = rec.claims.map((c) => (typeof c === 'object' && c ? (c as Record<string, unknown>).claimId : undefined));
-    if (new Set(ids).size !== ids.length) issues.push({ field: 'claims', code: 'DUPLICATE_CLAIM', message: 'Claim IDs must be unique.' });
+    captures.forEach((c, i) => validateCapture(c, i, issues));
+    for (const c of captures) { const id = (c as Record<string, unknown>)?.captureId; if (typeof id === 'string') { if (captureIds.has(id)) issues.push({ field: 'captures', code: 'DUPLICATE_CAPTURE', message: 'captureId must be unique.' }); captureIds.add(id); } }
   }
 
-  if (!Array.isArray(rec.unsupportedClaims) || !rec.unsupportedClaims.every(hasText)) issues.push({ field: 'unsupportedClaims', code: 'INVALID_ARRAY', message: 'unsupportedClaims must be a string array.' });
+  // Primary capture + top-level sourceUrl consistency.
+  if (!hasText(rec.primaryCaptureId) || !captureIds.has(rec.primaryCaptureId as string)) {
+    issues.push({ field: 'primaryCaptureId', code: 'UNKNOWN_CAPTURE', message: 'primaryCaptureId must reference a declared capture.' });
+  } else if (Array.isArray(captures)) {
+    const primary = (captures as OfferCapture[]).find((c) => c.captureId === rec.primaryCaptureId);
+    if (!primary || primary.sourceUrl !== rec.sourceUrl) issues.push({ field: 'sourceUrl', code: 'PRIMARY_MISMATCH', message: 'sourceUrl must equal the primary capture sourceUrl.' });
+  }
+  if (!isOfficialBybitSource(rec.sourceUrl)) issues.push({ field: 'sourceUrl', code: 'NON_OFFICIAL', message: 'sourceUrl must be an official HTTPS Bybit URL.' });
+
+  // R5: capture-manifest digest must recompute exactly.
+  if (!hasText(rec.captureManifestDigest) || !SHA256.test(rec.captureManifestDigest as string)) {
+    issues.push({ field: 'captureManifestDigest', code: 'INVALID_DIGEST', message: 'captureManifestDigest must be a sha256 digest.' });
+  } else if (Array.isArray(captures) && captureIds.size === captures.length) {
+    // Only recompute when captures are structurally sane enough to serialize.
+    const structurallyOk = captures.every((c) => {
+      const r = c as Record<string, unknown>;
+      return hasText(r.captureId) && typeof r.sourceUrl === 'string' && typeof r.capturedAt === 'string'
+        && typeof r.observedStatus === 'number' && (r.redirectLocation === null || typeof r.redirectLocation === 'string')
+        && typeof r.responseBytes === 'number' && typeof r.bodyDigest === 'string'
+        && (r.contentType === null || typeof r.contentType === 'string') && typeof r.normalizedObservation === 'string';
+    });
+    if (structurallyOk) {
+      const recomputed = computeCaptureManifestDigest(captures as OfferCapture[]);
+      if (recomputed !== rec.captureManifestDigest) issues.push({ field: 'captureManifestDigest', code: 'DIGEST_MISMATCH', message: 'captureManifestDigest does not match the recomputed manifest (tampered).' });
+    }
+  }
+
+  // Owner confirmations (R4/R6 typed artifacts).
+  const confirmationIds = new Set<string>();
+  if (rec.ownerConfirmations !== undefined) {
+    if (!Array.isArray(rec.ownerConfirmations)) issues.push({ field: 'ownerConfirmations', code: 'INVALID_ARRAY', message: 'ownerConfirmations must be an array.' });
+    else rec.ownerConfirmations.forEach((c, i) => { validateOwnerConfirmation(c, i, issues); const id = (c as Record<string, unknown>)?.confirmationId; if (typeof id === 'string') confirmationIds.add(id); });
+  }
+
+  // Claims: inventory must EXACTLY match the code-owned policy (R1) + sourceRef binding (R4).
+  if (!Array.isArray(rec.claims) || rec.claims.length === 0) {
+    issues.push({ field: 'claims', code: 'NO_CLAIMS', message: 'Claims are required.' });
+  } else {
+    const seen = new Set<string>();
+    const allowedIds = new Set<string>([...BYBIT_OFFER_CLAIM_INVENTORY, ...BYBIT_OFFER_CLAIM_EXTENSIONS]);
+    rec.claims.forEach((c, i) => {
+      const path = `claims.${i}`;
+      if (typeof c !== 'object' || c === null) { issues.push({ field: path, code: 'NOT_OBJECT', message: 'Claim must be an object.' }); return; }
+      const r = c as Record<string, unknown>;
+      if (!hasText(r.claimId)) { issues.push({ field: `${path}.claimId`, code: 'REQUIRED', message: 'claimId required.' }); return; }
+      if (!allowedIds.has(r.claimId as string)) issues.push({ field: `${path}.claimId`, code: 'PACKET_CLAIM_INVENTORY_INVALID', message: 'Unknown claim id (not in code-owned policy or extensions).' });
+      if (seen.has(r.claimId as string)) issues.push({ field: `${path}.claimId`, code: 'PACKET_CLAIM_INVENTORY_INVALID', message: 'Duplicate claim id.' });
+      seen.add(r.claimId as string);
+      if (!hasText(r.label)) issues.push({ field: `${path}.label`, code: 'REQUIRED', message: 'label required.' });
+      if (!CLAIM_RESULTS.includes(r.result as OfferClaimResult)) issues.push({ field: `${path}.result`, code: 'INVALID_RESULT', message: 'Unknown claim result.' });
+      if (typeof r.observed !== 'string') issues.push({ field: `${path}.observed`, code: 'REQUIRED', message: 'observed required.' });
+      if (typeof r.limitation !== 'string') issues.push({ field: `${path}.limitation`, code: 'REQUIRED', message: 'limitation required.' });
+      // Reject a packet trying to declare its own requirement.
+      if ('requiredForAuthorization' in r) issues.push({ field: `${path}.requiredForAuthorization`, code: 'PACKET_CANNOT_DECLARE_REQUIREMENT', message: 'Requirement is code-owned; remove requiredForAuthorization from the packet.' });
+      // sourceRefs binding.
+      if (!Array.isArray(r.sourceRefs) || r.sourceRefs.length === 0 || !r.sourceRefs.every((s) => typeof s === 'string' && SOURCE_REF.test(s))) {
+        issues.push({ field: `${path}.sourceRefs`, code: 'INVALID_SOURCE_REFS', message: 'sourceRefs must be non-empty structured references (capture:/owner-confirmation:/editorial:).' });
+      } else {
+        for (const ref of r.sourceRefs as string[]) {
+          const [kind, id] = ref.split(':');
+          if (kind === 'capture' && !captureIds.has(id)) issues.push({ field: `${path}.sourceRefs`, code: 'UNKNOWN_CAPTURE_REF', message: `Unknown capture reference: ${ref}` });
+          if (kind === 'owner-confirmation' && !confirmationIds.has(id)) issues.push({ field: `${path}.sourceRefs`, code: 'UNKNOWN_CONFIRMATION_REF', message: `Unknown owner-confirmation reference: ${ref}` });
+        }
+        // A REQUIRED SUPPORTED claim must cite an admissible official capture or
+        // owner-confirmation source — never editorial-only.
+        const isRequired = (BYBIT_OFFER_REQUIRED_CLAIMS as readonly string[]).includes(r.claimId as string);
+        if (isRequired && r.result === 'supported') {
+          const admissible = (r.sourceRefs as string[]).some((ref) => ref.startsWith('capture:') || ref.startsWith('owner-confirmation:'));
+          if (!admissible) issues.push({ field: `${path}.sourceRefs`, code: 'INADMISSIBLE_SUPPORT', message: 'A required supported claim must cite a declared capture or owner-confirmation source.' });
+        }
+      }
+    });
+    // Inventory completeness: every canonical claim present exactly once.
+    for (const id of BYBIT_OFFER_CLAIM_INVENTORY) {
+      if (!seen.has(id)) issues.push({ field: 'claims', code: 'PACKET_CLAIM_INVENTORY_INVALID', message: `Missing canonical claim: ${id}` });
+    }
+  }
+
+  // unsupportedClaims must NOT be declared (R2: it is derived).
+  if ('unsupportedClaims' in rec) issues.push({ field: 'unsupportedClaims', code: 'DERIVED_FIELD', message: 'unsupportedClaims is derived and must not be declared in the packet.' });
+
   if (!Array.isArray(rec.warnings) || !rec.warnings.every((w) => typeof w === 'string')) issues.push({ field: 'warnings', code: 'INVALID_ARRAY', message: 'warnings must be a string array.' });
   if (!Array.isArray(rec.limitations) || !rec.limitations.every((l) => typeof l === 'string')) issues.push({ field: 'limitations', code: 'INVALID_ARRAY', message: 'limitations must be a string array.' });
   if (!APPROVALS.includes(rec.approval as PacketApproval)) issues.push({ field: 'approval', code: 'INVALID_APPROVAL', message: 'Unknown approval state.' });
 
-  // Approver metadata: required + valid ONLY when approved; forbidden otherwise
-  // (an approved packet must carry real approval; a non-approved packet must not
-  // masquerade as approved).
+  // R6: trusted approval metadata (static checks; time-vs-now enforced by adapter).
   if (rec.approval === 'approved') {
     const ap = rec.approver as Record<string, unknown> | undefined;
     if (!ap || typeof ap !== 'object') {
       issues.push({ field: 'approver', code: 'APPROVAL_REQUIRED', message: 'Approved packet requires approver metadata.' });
     } else {
-      if (!hasText(ap.approvedBy)) issues.push({ field: 'approver.approvedBy', code: 'REQUIRED', message: 'approvedBy required.' });
-      if (!parseExactIsoDateTime(ap.approvedAt)) issues.push({ field: 'approver.approvedAt', code: 'INEXACT_TIMESTAMP', message: 'approvedAt must be an exact ISO datetime.' });
+      if (!(hasText(ap.approvedBy) && ALLOWED_OWNER_IDENTITIES.includes(ap.approvedBy as string))) issues.push({ field: 'approver.approvedBy', code: 'UNKNOWN_OWNER', message: 'approvedBy must be an allowed owner identity.' });
+      const apAt = parseExactIsoDateTime(ap.approvedAt);
+      if (!apAt) issues.push({ field: 'approver.approvedAt', code: 'INEXACT_TIMESTAMP', message: 'approvedAt must be an exact ISO datetime.' });
+      if (apAt && capAt && apAt.epochMs < capAt.epochMs) issues.push({ field: 'approver.approvedAt', code: 'APPROVAL_BEFORE_CAPTURE', message: 'approvedAt must be at/after capturedAt.' });
+      if (apAt && revAt && apAt.epochMs >= revAt.epochMs) issues.push({ field: 'approver.approvedAt', code: 'APPROVAL_AFTER_REVIEW', message: 'approvedAt must be before nextReviewAt.' });
+      if (!APPROVAL_REF.test(String(ap.approvalRef))) issues.push({ field: 'approver.approvalRef', code: 'INVALID_APPROVAL_REF', message: 'approvalRef must be a GitHub owner-review reference.' });
     }
   } else if (rec.approver !== undefined) {
     issues.push({ field: 'approver', code: 'UNEXPECTED_APPROVER', message: 'approver metadata is only allowed on an approved packet.' });
   }
 
-  // Global artifact-safety scan of scalar string fields.
-  for (const k of ['packetId', 'exchangeId', 'sourceUrl', 'captureMethod', 'captureTool', 'contentDigest'] as const) {
-    if (typeof rec[k] === 'string' && scanUnsafe(rec[k] as string)) issues.push({ field: k, code: 'UNSAFE_CONTENT', message: 'Secret or absolute path detected in a public record.' });
-  }
-  for (const arr of ['warnings', 'limitations'] as const) {
-    if (Array.isArray(rec[arr])) (rec[arr] as unknown[]).forEach((v, i) => { if (typeof v === 'string' && scanUnsafe(v)) issues.push({ field: `${arr}.${i}`, code: 'UNSAFE_CONTENT', message: 'Secret or absolute path detected.' }); });
-  }
+  // R7: recursive artifact-safety over EVERY string in the packet.
+  scanUnsafeDeep(rec, '$', issues);
 
   if (issues.length) return { ok: false, issues };
   return { ok: true, value: input as OfferEvidencePacket, issues };
 }
+
+/** Derived unsupported-claims list (R2): sorted claim IDs whose result ≠ supported. */
+export function deriveUnsupportedClaims(packet: OfferEvidencePacket): string[] {
+  return packet.claims.filter((c) => c.result !== 'supported').map((c) => c.claimId).sort();
+}
+
+/* ─────────────────────────── adapter (R8: single evaluation) ─────────────────── */
 
 export type PacketAdaptFailReason =
   | 'PACKET_INVALID'
@@ -224,6 +418,7 @@ export type PacketAdaptFailReason =
   | 'REQUIRED_CLAIM_UNSUPPORTED'
   | 'UNRESOLVED_CONTRADICTION'
   | 'NOT_APPROVED'
+  | 'APPROVAL_UNTRUSTED'
   | 'CLOCK_INVALID';
 
 export type PacketAdaptResult =
@@ -231,13 +426,10 @@ export type PacketAdaptResult =
   | { ok: false; reason: PacketAdaptFailReason };
 
 /**
- * Deterministic adapter: an APPROVED, complete OfferEvidencePacket → authorizing
- * EvidenceMetadata. Fail-closed unless every condition holds. Draft/validated
- * packets, or packets with any unsupported required claim / contradiction / stale
- * or future capture / non-official source, can never authorize.
- *
- * `expectedExchangeId` (default 'bybit') binds the packet to the exchange it is
- * meant to authorize, mirroring the evidence-metadata identity rule.
+ * The ONE canonical evaluation of packet readiness → EvidenceMetadata. Every
+ * requirement is code-owned (policy + approval policy + recomputed digest); the
+ * packet cannot weaken any of it. Draft/validated/incomplete/non-official/stale/
+ * future/tampered/untrusted-approval packets fail closed.
  */
 export function adaptApprovedPacketToEvidence(
   input: unknown,
@@ -250,34 +442,29 @@ export function adaptApprovedPacketToEvidence(
   if (!validation.ok || !validation.value) return { ok: false, reason: 'PACKET_INVALID' };
   const packet = validation.value;
 
-  if (typeof expectedExchangeId !== 'string' || !CANONICAL_SLUG.test(expectedExchangeId)
-    || packet.exchangeId !== expectedExchangeId) {
+  if (typeof expectedExchangeId !== 'string' || !CANONICAL_SLUG.test(expectedExchangeId) || packet.exchangeId !== expectedExchangeId) {
     return { ok: false, reason: 'EXCHANGE_NOT_BYBIT' };
   }
   if (!isOfficialBybitSource(packet.sourceUrl)) return { ok: false, reason: 'SOURCE_NOT_OFFICIAL' };
 
-  // Freshness reuses the ONE central policy (via assessEvidenceFreshness).
   const freshness = assessEvidenceFreshness(packet.capturedAt, nowMs);
   if (freshness.state !== 'fresh') return { ok: false, reason: 'CAPTURE_NOT_FRESH' };
 
   const reviewAt = parseExactIsoDateTime(packet.nextReviewAt);
   if (!reviewAt || nowMs >= reviewAt.epochMs) return { ok: false, reason: 'REVIEW_OVERDUE' };
 
-  // No unresolved contradictions anywhere in the packet.
   if (packet.claims.some((c) => c.result === 'contradicted')) return { ok: false, reason: 'UNRESOLVED_CONTRADICTION' };
 
-  // EVERY required claim must be explicitly supported. Anything else fails closed.
-  const requiredOk = packet.claims
-    .filter((c) => c.requiredForAuthorization)
-    .every((c) => c.result === 'supported');
+  // Requirements come from the CODE-OWNED policy, never the packet.
+  const byId = new Map(packet.claims.map((c) => [c.claimId, c]));
+  const requiredOk = (BYBIT_OFFER_REQUIRED_CLAIMS as readonly string[]).every((id) => byId.get(id)?.result === 'supported');
   if (!requiredOk) return { ok: false, reason: 'REQUIRED_CLAIM_UNSUPPORTED' };
 
-  // Approval must be explicit + valid (validateOfferEvidencePacket already
-  // enforces approver metadata for the 'approved' state).
   if (packet.approval !== 'approved') return { ok: false, reason: 'NOT_APPROVED' };
+  // Trusted approval: identity/format/window are validated; enforce approvedAt<=now here.
+  const apAt = packet.approver ? parseExactIsoDateTime(packet.approver.approvedAt) : null;
+  if (!packet.approver || !apAt || apAt.epochMs > nowMs) return { ok: false, reason: 'APPROVAL_UNTRUSTED' };
 
-  // Build EvidenceMetadata and re-validate through the canonical contract so the
-  // adapter can never emit anything the gate would not itself accept.
   const evidence: EvidenceMetadata = {
     evidenceCheckedAt: packet.capturedAt,
     nextReviewAt: packet.nextReviewAt,
