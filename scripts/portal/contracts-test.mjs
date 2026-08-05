@@ -33,6 +33,8 @@ const marketProfileRegistry = join(ROOT, 'src/data/contracts/marketProfileRegist
 const countryAwareCta = join(ROOT, 'src/data/contracts/countryAwareCta.ts');
 const evidenceMetadata = join(ROOT, 'src/data/contracts/evidenceMetadata.ts');
 const offersData = join(ROOT, 'src/data/offers.ts');
+const offerEvidencePacket = join(ROOT, 'src/data/contracts/offerEvidencePacket.ts');
+const bybitOfferEvidence = join(ROOT, 'src/data/evidence/offers/bybitOfferEvidence.ts');
 
 const tmp = mkdtempSync(join(tmpdir(), 'cbw-portal-test-'));
 const outfile = join(tmp, 'contracts.mjs');
@@ -62,7 +64,9 @@ try {
         `export { resolveMarketProfile, PUBLIC_MARKET_PROFILES } from ${JSON.stringify(marketProfileRegistry)};\n` +
         `export { resolveCountryAwareCommercialCta, normalizeRestrictedCountries, PUBLIC_HOMEPAGE_COUNTRY } from ${JSON.stringify(countryAwareCta)};\n` +
         `export { isExactIsoDateTime, parseExactIsoDateTime, validateEvidenceMetadata, assessEvidenceAuthorization, resolveOfferEvidenceAuthorization, formatEvidenceCheckedAt, deriveCheckedDisplay, toMarketProfileTimestamps } from ${JSON.stringify(evidenceMetadata)};\n` +
-        `export { offers, getOffer } from ${JSON.stringify(offersData)};`,
+        `export { offers, getOffer } from ${JSON.stringify(offersData)};\n` +
+        `export { validateOfferEvidencePacket, adaptApprovedPacketToEvidence, isOfficialBybitSource } from ${JSON.stringify(offerEvidencePacket)};\n` +
+        `export { BYBIT_OFFER_EVIDENCE_PACKET, BYBIT_OFFER_EVIDENCE_DECISION, deriveBybitOfferEvidence, bybitOfferEvidence } from ${JSON.stringify(bybitOfferEvidence)};`,
       resolveDir: ROOT,
       loader: 'ts',
     },
@@ -806,6 +810,79 @@ try {
       && m.resolveOfferEvidenceAuthorization(null, 'ex', NOW).reason === 'OFFER_EVIDENCE_MISSING'
       && m.resolveOfferEvidenceAuthorization(OEV, 'ex', NOW).ok === true;
   })());
+
+  // ===== Split 3 (#252) — Bybit OfferEvidencePacket capture pilot =====
+  // A real capture packet exists but the official promo pages returned HTTP 302
+  // with no offer content, so required claims are inaccessible → Outcome B. These
+  // tests prove the packet contract + adapter are fail-closed and that only an
+  // approved, complete, official, fresh packet can adapt to EvidenceMetadata.
+  const PKT_NOW = Date.parse('2026-08-05T20:00:00Z');
+  const pdaysAgo = (d) => new Date(PKT_NOW - d * 86400000).toISOString();
+  const supClaim = (id, req = true) => ({ claimId: id, label: id, result: 'supported', observed: 'observed on official page', sourceRef: 'https://www.bybit.com/en/promo/new-user/', limitation: 'none', requiredForAuthorization: req });
+  const approvedPacket = {
+    packetId: 'bybit-test-approved', exchangeId: 'bybit',
+    capturedAt: pdaysAgo(1), nextReviewAt: '2026-12-31T00:00:00Z',
+    sourceUrl: 'https://www.bybit.com/en/promo/new-user/',
+    contentDigest: 'sha256:' + 'a'.repeat(64),
+    captureMethod: 'manual_official_review', captureTool: 'cbw-test/1.0', observedStatus: 200,
+    claims: [supClaim('bybit.source_identity'), supClaim('bybit.promo_code'), supClaim('bybit.bonus_headline'), supClaim('bybit.kyc_required', false)],
+    unsupportedClaims: [], warnings: [], limitations: [], approval: 'approved',
+    approver: { approvedBy: 'owner', approvedAt: pdaysAgo(1) },
+  };
+  const noApprover = (approval) => { const p = { ...approvedPacket, approval }; delete p.approver; return p; };
+  const withReq = (result) => ({ ...approvedPacket, claims: [supClaim('bybit.source_identity'), { ...supClaim('bybit.bonus_headline'), result }] });
+
+  check('pkt/1: valid DRAFT packet is structurally valid but cannot authorize (NOT_APPROVED)', (() => {
+    const d = noApprover('draft');
+    return m.validateOfferEvidencePacket(d).ok && m.adaptApprovedPacketToEvidence(d, PKT_NOW).ok === false && m.adaptApprovedPacketToEvidence(d, PKT_NOW).reason === 'NOT_APPROVED';
+  })());
+  check('pkt/2: VALIDATED packet cannot authorize', (() => { const v = noApprover('validated'); return m.validateOfferEvidencePacket(v).ok && m.adaptApprovedPacketToEvidence(v, PKT_NOW).reason === 'NOT_APPROVED'; })());
+  check('pkt/3: APPROVED complete packet adapts to EvidenceMetadata', (() => {
+    const r = m.adaptApprovedPacketToEvidence(approvedPacket, PKT_NOW);
+    return r.ok && r.evidence.exchangeId === 'bybit' && r.evidence.evidenceCheckedAt === approvedPacket.capturedAt && r.evidence.sourceUrl === approvedPacket.sourceUrl;
+  })());
+  check('pkt/4: missing digest rejected', !m.validateOfferEvidencePacket({ ...approvedPacket, contentDigest: undefined }).ok);
+  check('pkt/5: invalid digest rejected', !m.validateOfferEvidencePacket({ ...approvedPacket, contentDigest: 'nope' }).ok);
+  check('pkt/6: inexact capturedAt rejected (date-only / month string)', !m.validateOfferEvidencePacket({ ...approvedPacket, capturedAt: '2026-08-05' }).ok && !m.validateOfferEvidencePacket({ ...approvedPacket, capturedAt: 'August 2026' }).ok);
+  check('pkt/7: stale capture rejected (CAPTURE_NOT_FRESH)', m.adaptApprovedPacketToEvidence({ ...approvedPacket, capturedAt: pdaysAgo(100) }, PKT_NOW).reason === 'CAPTURE_NOT_FRESH');
+  check('pkt/8: future-invalid capture rejected (beyond skew)', m.adaptApprovedPacketToEvidence({ ...approvedPacket, capturedAt: new Date(PKT_NOW + 3 * 3600000).toISOString() }, PKT_NOW).reason === 'CAPTURE_NOT_FRESH');
+  check('pkt/9: overdue review rejected (REVIEW_OVERDUE)', m.adaptApprovedPacketToEvidence({ ...approvedPacket, capturedAt: pdaysAgo(3), nextReviewAt: pdaysAgo(1) }, PKT_NOW).reason === 'REVIEW_OVERDUE');
+  check('pkt/10: non-HTTPS source rejected', !m.validateOfferEvidencePacket({ ...approvedPacket, sourceUrl: 'http://www.bybit.com/en/promo/new-user/' }).ok && m.adaptApprovedPacketToEvidence({ ...approvedPacket, sourceUrl: 'http://www.bybit.com/x' }, PKT_NOW).reason === 'PACKET_INVALID');
+  check('pkt/11: non-official HTTPS source rejected for primary authorization (SOURCE_NOT_OFFICIAL)', (() => {
+    const p = { ...approvedPacket, sourceUrl: 'https://not-bybit.example/promo' };
+    return m.validateOfferEvidencePacket(p).ok && m.adaptApprovedPacketToEvidence(p, PKT_NOW).reason === 'SOURCE_NOT_OFFICIAL' && !m.isOfficialBybitSource('https://not-bybit.example/promo') && m.isOfficialBybitSource('https://www.bybit.com/en/promo/new-user/');
+  })());
+  check('pkt/12: exchange mismatch rejected (EXCHANGE_NOT_BYBIT)', m.adaptApprovedPacketToEvidence({ ...approvedPacket, exchangeId: 'okx' }, PKT_NOW).reason === 'EXCHANGE_NOT_BYBIT' && m.adaptApprovedPacketToEvidence(approvedPacket, PKT_NOW, 'okx').reason === 'EXCHANGE_NOT_BYBIT');
+  check('pkt/13: missing required claim blocks adaptation (REQUIRED_CLAIM_UNSUPPORTED)', m.adaptApprovedPacketToEvidence(withReq('not_found'), PKT_NOW).reason === 'REQUIRED_CLAIM_UNSUPPORTED');
+  check('pkt/14: partially_supported required claim blocks adaptation', m.adaptApprovedPacketToEvidence(withReq('partially_supported'), PKT_NOW).reason === 'REQUIRED_CLAIM_UNSUPPORTED');
+  check('pkt/15: contradicted required claim blocks adaptation (UNRESOLVED_CONTRADICTION)', m.adaptApprovedPacketToEvidence(withReq('contradicted'), PKT_NOW).reason === 'UNRESOLVED_CONTRADICTION');
+  check('pkt/16: inaccessible required claim blocks adaptation', m.adaptApprovedPacketToEvidence(withReq('inaccessible'), PKT_NOW).reason === 'REQUIRED_CLAIM_UNSUPPORTED');
+  check('pkt/17: partner-confirmation-required claim blocks adaptation', m.adaptApprovedPacketToEvidence(withReq('requires_owner_partner_confirmation'), PKT_NOW).reason === 'REQUIRED_CLAIM_UNSUPPORTED');
+  check('pkt/18: unsupported maximum reward cannot remain verified silently (real packet)', (() => {
+    const r = m.deriveBybitOfferEvidence(PKT_NOW);
+    const headline = m.BYBIT_OFFER_EVIDENCE_PACKET.claims.find((c) => c.claimId === 'bybit.bonus_headline');
+    return r.ok === false && headline.result === 'inaccessible' && headline.requiredForAuthorization === true && m.getOffer('bybit').status === 'verified' && m.bybitOfferEvidence === null;
+  })());
+  check('pkt/19: offer.status verified alone cannot authorize', m.getOffer('bybit').status === 'verified' && m.bybitOfferEvidence === null && m.resolveOfferEvidenceAuthorization(m.bybitOfferEvidence, 'bybit', NOW).reason === 'OFFER_EVIDENCE_MISSING');
+  check('pkt/20: human month string cannot substitute for capturedAt', !m.validateOfferEvidencePacket({ ...approvedPacket, capturedAt: 'August 2026' }).ok && m.adaptApprovedPacketToEvidence({ ...approvedPacket, capturedAt: 'August 2026' }, PKT_NOW).reason === 'PACKET_INVALID');
+  check('pkt/21: packet evidence identity is bybit throughout', m.BYBIT_OFFER_EVIDENCE_PACKET.exchangeId === 'bybit' && m.isOfficialBybitSource(m.BYBIT_OFFER_EVIDENCE_PACKET.sourceUrl) && m.adaptApprovedPacketToEvidence(approvedPacket, PKT_NOW, 'bybit').ok);
+  check('pkt/22: public preview homepage /go/* = 0', m.homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'preview', 'en').primary.href.startsWith('/go/')));
+  check('pkt/23: public production simulation homepage /go/* = 0', m.homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'production', 'en').primary.href.startsWith('/go/')));
+  check('pkt/24: PUBLIC_MARKET_PROFILES remains Object.freeze([])', Array.isArray(m.PUBLIC_MARKET_PROFILES) && m.PUBLIC_MARKET_PROFILES.length === 0 && Object.isFrozen(m.PUBLIC_MARKET_PROFILES));
+  check('pkt/25: en/ru/kk presentation cannot change claim facts / decision', (() => {
+    const dec = m.BYBIT_OFFER_EVIDENCE_DECISION;
+    const disc = (l) => m.resolveDisclosure({ tone: 'verified', evidence: m.bybitOfferEvidence, expectedExchangeId: 'bybit', now: PKT_NOW, isAffiliate: false, methodologyHref: '/methodology/' }, l);
+    const en = disc('en'), ru = disc('ru'), kk = disc('kk');
+    return dec === 'under_re_verification' && en.evidenceState === 'none' && en.evidenceState === ru.evidenceState && ru.evidenceState === kk.evidenceState;
+  })());
+  check('pkt/26: no packet artifact contains secrets or local absolute paths', (() => {
+    const serialized = JSON.stringify(m.BYBIT_OFFER_EVIDENCE_PACKET);
+    const clean = !/[a-zA-Z]:\\|\/Users\/|\/home\/|token=|cookie\s*[:=]|bearer|password/i.test(serialized);
+    const rejectsUnsafe = !m.validateOfferEvidencePacket({ ...approvedPacket, captureTool: 'C:\\\\secret\\\\tool.exe' }).ok
+      && !m.validateOfferEvidencePacket({ ...approvedPacket, warnings: ['authorization: Bearer abc'] }).ok;
+    return clean && rejectsUnsafe;
+  })());
+  check('pkt/decision: real Bybit posture is UNDER RE-VERIFICATION (Outcome B)', m.BYBIT_OFFER_EVIDENCE_DECISION === 'under_re_verification' && m.bybitOfferEvidence === null);
 
   // --- Invariant: a non-commercial model may never point at /go/ ---
   let threw = false;

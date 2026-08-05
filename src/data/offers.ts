@@ -54,9 +54,11 @@ export const offers: Offer[] = [
     restrictedCountries: ['US', 'UK', 'CA', 'SG', 'NL'],
     status:              'verified',
     termsSummary:        'New accounts only. KYC required to withdraw. Trading volume conditions apply to higher tiers. Vouchers expire 7–30 days after issuance. Full terms on Bybit official website.',
-    // Under re-verification: the repository holds only a month-only editorial
-    // 'lastChecked' (not an exact timezone-qualified ISO timestamp), so no machine
-    // evidence can be attached without fabrication. Fail-closed: cannot authorize.
+    // Under re-verification (Issue #252, Outcome B). An auditable capture packet
+    // exists — src/data/evidence/offers/bybit-new-user-2026-08-05.json — but the
+    // official promo pages returned HTTP 302 redirects with no offer content, so
+    // every required claim is inaccessible and the referral code is partner-only.
+    // The draft packet cannot authorize; evidence stays null. Fail-closed.
     evidence:            null,
   },
   {
