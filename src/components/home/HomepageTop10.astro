@@ -41,6 +41,9 @@ const disclosures = new Map(
     return [entry.rank, resolveDisclosure({
       tone: entry.statusTone,
       evidence: entry.evidence ?? null,
+      // Bind the disclosure to THIS row's exchange (R10): evidence for another
+      // exchange can never surface as this row's checked date or Source.
+      expectedExchangeId: entry.slug,
       now: nowMs,
       isAffiliate: Boolean(binding?.primary.isAffiliate),
       methodologyHref: '/methodology/',

@@ -54,31 +54,93 @@ export interface EvidenceValidationResult {
 }
 
 /**
- * Exact ISO-8601 datetime with an explicit timezone designator.
+ * Strict, calendar-valid exact ISO-8601 datetime parser (R9).
  *
- * Accepts:  2026-07-31T00:00:00Z · 2026-07-31T09:30:00+05:00 · with optional
- *           fractional seconds (…:00.123Z).
- * Rejects:  date-only (2026-07-31), timezone-less datetime (2026-07-31T00:00:00),
- *           space-separated, and anything else. Parseability is also required so
- *           the value maps deterministically to a single UTC epoch.
+ * A shape regex plus Date.parse is NOT sufficient — Date.parse silently
+ * normalizes impossible calendar values (e.g. 2026-02-31 → 2026-03-03) instead of
+ * rejecting them. This parser validates every component against the real
+ * calendar BEFORE producing an instant, so an impossible date can never become
+ * authoritative evidence.
+ *
+ * Accepts:  2024-02-29T00:00:00Z (leap) · 2026-04-30T23:59:59Z ·
+ *           2026-07-31T09:30:00+05:00 · 2026-07-31T09:30:00.123Z · valid negative
+ *           offset.
+ * Rejects:  non-leap Feb 29, day > days-in-month (2026-04-31, 2026-06-31), month
+ *           00/13, day 00, hour 24, minute/second 60, invalid tz offset, date-only,
+ *           timezone-less, space-separated, and any overflow-normalized value.
  */
-const EXACT_ISO_DATETIME =
-  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d{1,9})?)?(Z|[+-]\d{2}:\d{2})$/;
+const ISO_DATETIME_RE =
+  /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,9}))?)?(?:(Z)|([+-])(\d{2}):(\d{2}))$/;
+
+function isLeapYear(year: number): boolean {
+  return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+}
+
+function daysInMonth(year: number, month: number): number {
+  const table = [31, isLeapYear(year) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  return table[month - 1];
+}
+
+export interface ParsedIsoDateTime {
+  /** Deterministic UTC epoch (ms) computed only after all calendar checks pass. */
+  epochMs: number;
+}
+
+/**
+ * Parse and fully validate an exact ISO-8601 datetime. Returns a canonical epoch
+ * only when every calendar/time/offset field is individually valid; otherwise
+ * null. Never relies on Date.parse normalization as proof of validity.
+ */
+export function parseExactIsoDateTime(value: unknown): ParsedIsoDateTime | null {
+  if (typeof value !== 'string') return null;
+  const m = ISO_DATETIME_RE.exec(value);
+  if (!m) return null;
+
+  const year = Number(m[1]);
+  const month = Number(m[2]);
+  const day = Number(m[3]);
+  const hour = Number(m[4]);
+  const minute = Number(m[5]);
+  const second = m[6] === undefined ? 0 : Number(m[6]);
+  const fraction = m[7]; // syntax validated by the regex (1–9 digits)
+
+  // Calendar/time bounds — validated before any instant is built.
+  if (month < 1 || month > 12) return null;
+  if (day < 1 || day > daysInMonth(year, month)) return null;
+  if (hour > 23) return null;
+  if (minute > 59) return null;
+  if (second > 59) return null;
+
+  // Timezone: Z, or a numeric ±HH:MM offset with valid hour/minute fields.
+  let offsetMinutes = 0;
+  if (m[8] !== 'Z') {
+    const sign = m[9] === '-' ? -1 : 1;
+    const offsetHours = Number(m[10]);
+    const offsetMins = Number(m[11]);
+    if (offsetHours > 23 || offsetMins > 59) return null;
+    offsetMinutes = sign * (offsetHours * 60 + offsetMins);
+  }
+
+  const ms = fraction ? Math.round(Number(`0.${fraction}`) * 1000) : 0;
+  // All fields are in range, so Date.UTC performs no overflow normalization.
+  const epochMs = Date.UTC(year, month - 1, day, hour, minute, second, ms) - offsetMinutes * 60000;
+  if (!Number.isFinite(epochMs)) return null;
+  return { epochMs };
+}
 
 export function isExactIsoDateTime(value: unknown): value is string {
-  return typeof value === 'string'
-    && EXACT_ISO_DATETIME.test(value)
-    && Number.isFinite(Date.parse(value));
+  return parseExactIsoDateTime(value) !== null;
 }
 
 const HTTPS_URL = /^https:\/\/[^\s]+$/i;
 /** Canonical exchange identity (CBW: evidence.exchangeId === exchange slug). */
 const CANONICAL_SLUG = /^[a-z0-9][a-z0-9-]*$/;
 
+/** HTTPS URL with NO surrounding whitespace (R12): the exact value is used. */
 function isHttpsUrl(value: unknown): value is string {
-  if (typeof value !== 'string' || !HTTPS_URL.test(value.trim())) return false;
+  if (typeof value !== 'string' || value !== value.trim() || !HTTPS_URL.test(value)) return false;
   try {
-    return new URL(value.trim()).protocol === 'https:';
+    return new URL(value).protocol === 'https:';
   } catch {
     return false;
   }
@@ -112,23 +174,37 @@ export function validateEvidenceMetadata(input: unknown): EvidenceValidationResu
     issues.push({ field: 'sourceUrl', code: 'INVALID_SOURCE_URL', message: 'sourceUrl must be a valid HTTPS URL.' });
   }
 
-  // Review window: nextReviewAt strictly after evidenceCheckedAt (only when both
-  // are exact, so we compare real epochs, not fabricated ones).
-  if (isExactIsoDateTime(rec.evidenceCheckedAt) && isExactIsoDateTime(rec.nextReviewAt)
-    && Date.parse(rec.nextReviewAt) <= Date.parse(rec.evidenceCheckedAt)) {
+  // Review window: nextReviewAt strictly after evidenceCheckedAt, compared via
+  // the STRICT parser's canonical epochs (never Date.parse normalization).
+  const checkedAt = parseExactIsoDateTime(rec.evidenceCheckedAt);
+  const reviewAt = parseExactIsoDateTime(rec.nextReviewAt);
+  if (checkedAt && reviewAt && reviewAt.epochMs <= checkedAt.epochMs) {
     issues.push({ field: 'nextReviewAt', code: 'INVALID_REVIEW_WINDOW', message: 'nextReviewAt must be strictly later than evidenceCheckedAt.' });
   }
 
-  if (rec.sourceId !== undefined && (typeof rec.sourceId !== 'string' || !rec.sourceId.trim())) {
-    issues.push({ field: 'sourceId', code: 'INVALID_ID', message: 'sourceId, when present, must be a non-empty string.' });
+  // Identity/reference fields must be non-empty AND carry no surrounding
+  // whitespace (R12) so the validated value is safe to use verbatim.
+  if (rec.sourceId !== undefined && (typeof rec.sourceId !== 'string' || !rec.sourceId.trim() || rec.sourceId !== rec.sourceId.trim())) {
+    issues.push({ field: 'sourceId', code: 'INVALID_ID', message: 'sourceId, when present, must be a non-empty string without surrounding whitespace.' });
   }
-  if (rec.exchangeId !== undefined && (typeof rec.exchangeId !== 'string' || !rec.exchangeId.trim())) {
-    issues.push({ field: 'exchangeId', code: 'INVALID_ID', message: 'exchangeId, when present, must be a non-empty string.' });
+  if (rec.exchangeId !== undefined && (typeof rec.exchangeId !== 'string' || !rec.exchangeId.trim() || rec.exchangeId !== rec.exchangeId.trim())) {
+    issues.push({ field: 'exchangeId', code: 'INVALID_ID', message: 'exchangeId, when present, must be a non-empty string without surrounding whitespace.' });
   }
 
-  return issues.length
-    ? { ok: false, issues }
-    : { ok: true, value: input as EvidenceMetadata, issues };
+  if (issues.length) return { ok: false, issues };
+
+  // Return a NORMALIZED validated value (R12): consumers use THIS, never a cast
+  // of the raw input. Whitespace-bearing values are already rejected above, so
+  // the fields are clean; we still construct the object explicitly so callers
+  // cannot smuggle extra unvalidated properties into a "validated" record.
+  const normalized: EvidenceMetadata = {
+    evidenceCheckedAt: rec.evidenceCheckedAt as string,
+    nextReviewAt: rec.nextReviewAt as string,
+    sourceUrl: rec.sourceUrl as string,
+    ...(rec.sourceId !== undefined ? { sourceId: rec.sourceId as string } : {}),
+    ...(rec.exchangeId !== undefined ? { exchangeId: rec.exchangeId as string } : {}),
+  };
+  return { ok: true, value: normalized, issues };
 }
 
 export type EvidenceReviewState = 'ok' | 'overdue' | 'invalid';
@@ -331,25 +407,26 @@ export interface MarketProfileTimestampAdapterResult {
  * created later, their timestamps can only originate from exact validated
  * evidence — never from a human freshness string.
  *
- * When `expectedExchangeId` is supplied (R2), the evidence MUST carry a matching
- * canonical `exchangeId`; cross-exchange evidence is rejected so evidence for
- * OKX can never produce timestamps for a Bybit profile.
+ * `expectedExchangeId` is REQUIRED (R11): identity is not optional on the only
+ * sanctioned route into future MarketProfile timestamps. The evidence MUST carry
+ * a matching canonical `exchangeId`; cross-exchange evidence is rejected so
+ * evidence for OKX can never produce timestamps for a Bybit profile. A missing
+ * argument is a TypeScript compile error at typed call sites; a malformed runtime
+ * value fails closed with EVIDENCE_IDENTITY_MISMATCH.
  */
 export function toMarketProfileTimestamps(
   input: unknown,
-  expectedExchangeId?: string,
+  expectedExchangeId: string,
 ): MarketProfileTimestampAdapterResult {
   const validation = validateEvidenceMetadata(input);
   if (!validation.ok || !validation.value) {
     return { ok: false, reason: 'EVIDENCE_METADATA_INVALID' };
   }
   const meta = validation.value;
-  if (expectedExchangeId !== undefined) {
-    if (typeof expectedExchangeId !== 'string' || !CANONICAL_SLUG.test(expectedExchangeId)
-      || typeof meta.exchangeId !== 'string' || !CANONICAL_SLUG.test(meta.exchangeId)
-      || meta.exchangeId !== expectedExchangeId) {
-      return { ok: false, reason: 'EVIDENCE_IDENTITY_MISMATCH' };
-    }
+  if (typeof expectedExchangeId !== 'string' || !CANONICAL_SLUG.test(expectedExchangeId)
+    || typeof meta.exchangeId !== 'string' || !CANONICAL_SLUG.test(meta.exchangeId)
+    || meta.exchangeId !== expectedExchangeId) {
+    return { ok: false, reason: 'EVIDENCE_IDENTITY_MISMATCH' };
   }
   return {
     ok: true,

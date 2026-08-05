@@ -61,7 +61,7 @@ try {
         `export { normalizeCountryInput, SUPPORTED_COUNTRY_CODES } from ${JSON.stringify(countryInput)};\n` +
         `export { resolveMarketProfile, PUBLIC_MARKET_PROFILES } from ${JSON.stringify(marketProfileRegistry)};\n` +
         `export { resolveCountryAwareCommercialCta, normalizeRestrictedCountries, PUBLIC_HOMEPAGE_COUNTRY } from ${JSON.stringify(countryAwareCta)};\n` +
-        `export { isExactIsoDateTime, validateEvidenceMetadata, assessEvidenceAuthorization, resolveOfferEvidenceAuthorization, formatEvidenceCheckedAt, deriveCheckedDisplay, toMarketProfileTimestamps } from ${JSON.stringify(evidenceMetadata)};\n` +
+        `export { isExactIsoDateTime, parseExactIsoDateTime, validateEvidenceMetadata, assessEvidenceAuthorization, resolveOfferEvidenceAuthorization, formatEvidenceCheckedAt, deriveCheckedDisplay, toMarketProfileTimestamps } from ${JSON.stringify(evidenceMetadata)};\n` +
         `export { offers, getOffer } from ${JSON.stringify(offersData)};`,
       resolveDir: ROOT,
       loader: 'ts',
@@ -677,6 +677,49 @@ try {
   const EVI_SRC = 'https://ex.com/evidence';
   const validMeta = { evidenceCheckedAt: daysAgo(5), nextReviewAt: '2026-12-31T00:00:00Z', sourceUrl: EVI_SRC, exchangeId: 'ex' };
 
+  // ── R9: strict calendar-valid ISO datetime (never Date.parse normalization) ──
+  const accept = ['2024-02-29T00:00:00Z', '2026-04-30T23:59:59Z', '2026-07-31T09:30:00+05:00', '2026-07-31T09:30:00.123Z', '2026-07-31T09:30:00-08:00'];
+  const reject = [
+    '2026-02-29T00:00:00Z', '2026-02-30T00:00:00Z', '2026-02-31T00:00:00Z', '2026-04-31T12:00:00Z',
+    '2026-06-31T00:00:00Z', '2026-07-31T24:00:00Z', '2026-07-31T23:60:00Z', '2026-07-31T23:59:60Z',
+    '2026-00-15T00:00:00Z', '2026-13-15T00:00:00Z', '2026-07-00T00:00:00Z', '2026-07-31T09:30:00+25:00',
+    '2026-07-31T09:30:00+05:99', '2026-07-31', '2026-07-31T00:00:00', '2026-07-31 00:00:00Z', '1900-02-29T00:00:00Z',
+  ];
+  check('R9/accept: all valid calendar datetimes accepted (incl. leap 2024-02-29, offsets, fractional)', accept.every((v) => m.isExactIsoDateTime(v) && m.parseExactIsoDateTime(v) !== null));
+  check('R9/reject: all impossible/date-only/tz-less/space-separated rejected', reject.every((v) => !m.isExactIsoDateTime(v) && m.parseExactIsoDateTime(v) === null));
+  check('R9/leap: 2024-02-29 accepted, 2026-02-29 & 1900-02-29 rejected (leap rules)', m.isExactIsoDateTime('2024-02-29T00:00:00Z') && !m.isExactIsoDateTime('2026-02-29T00:00:00Z') && !m.isExactIsoDateTime('1900-02-29T00:00:00Z') && m.isExactIsoDateTime('2000-02-29T00:00:00Z'));
+  check('R9/no-normalization: Date.parse would accept 2026-02-31 but strict parser rejects', Number.isFinite(Date.parse('2026-02-31T00:00:00Z')) && !m.isExactIsoDateTime('2026-02-31T00:00:00Z'));
+  check('R9/offset: deterministic epoch — +05:00 equals the same UTC instant', m.parseExactIsoDateTime('2026-07-31T09:30:00+05:00').epochMs === Date.parse('2026-07-31T04:30:00Z'));
+  check('R9/validator: evidence with impossible date fails validateEvidenceMetadata', !m.validateEvidenceMetadata({ ...validMeta, evidenceCheckedAt: '2026-02-31T00:00:00Z' }).ok && !m.validateEvidenceMetadata({ ...validMeta, nextReviewAt: '2026-04-31T00:00:00Z' }).ok);
+  check('R9/auth: impossible-date evidence can never authorize', !m.assessEvidenceAuthorization({ ...validMeta, evidenceCheckedAt: '2026-02-31T00:00:00Z' }, NOW).authoritative && m.resolveOfferEvidenceAuthorization({ ...validMeta, evidenceCheckedAt: '2026-02-31T00:00:00Z' }, 'ex', NOW).reason === 'OFFER_EVIDENCE_INVALID');
+
+  // ── R12: normalized/whitespace-rejecting validated values ──
+  check('R12/url-ws: sourceUrl with surrounding whitespace rejected', !m.validateEvidenceMetadata({ ...validMeta, sourceUrl: ' https://ex.com/e ' }).ok && !m.validateEvidenceMetadata({ ...validMeta, sourceUrl: 'https://ex.com/e\n' }).ok);
+  check('R12/id-ws: exchangeId with surrounding whitespace rejected', !m.validateEvidenceMetadata({ ...validMeta, exchangeId: ' ex ' }).ok);
+  check('R12/value: validator returns a normalized value used verbatim (no ws can reach href/identity)', (() => {
+    const v = m.validateEvidenceMetadata(validMeta);
+    return v.ok && v.value.sourceUrl === EVI_SRC && v.value.sourceUrl.trim() === v.value.sourceUrl && v.value.exchangeId === 'ex';
+  })());
+  check('R12/disc: whitespace source never reaches disclosure href (fails closed to invalid)', (() => {
+    const d = m.resolveDisclosure({ tone: 'verified', evidence: { ...validMeta, sourceUrl: ' https://ex.com/e ' }, expectedExchangeId: 'ex', now: NOW, isAffiliate: false, methodologyHref: '/methodology/' }, 'en');
+    return d.evidenceState === 'invalid' && d.sourceHref === null;
+  })());
+
+  // ── R10: disclosure subject-identity binding ──
+  const discBind = (evidence, expectedExchangeId) => m.resolveDisclosure({ tone: 'verified', evidence, expectedExchangeId, now: NOW, isAffiliate: false, methodologyHref: '/methodology/', officialHref: 'https://bybit.com/official' }, 'en');
+  const bybitEv = { evidenceCheckedAt: daysAgo(5), nextReviewAt: '2026-12-31T00:00:00Z', sourceUrl: 'https://bybit.com/e', exchangeId: 'bybit' };
+  check('R10/1: bybit row + bybit evidence → current display allowed', (() => { const d = discBind(bybitEv, 'bybit'); return d.evidenceState === 'current' && !!d.lastChecked && !!d.lastCheckedIso && d.sourceHref === 'https://bybit.com/e'; })());
+  check('R10/2: bybit row + OKX evidence → invalid, no date, no evidence Source', (() => { const d = discBind({ ...bybitEv, exchangeId: 'okx', sourceUrl: 'https://okx.com/e' }, 'bybit'); return d.evidenceState === 'invalid' && d.lastChecked === null && d.lastCheckedIso === null && d.sourceHref === null; })());
+  check('R10/3: bybit row + evidence without exchangeId → invalid', (() => { const d = discBind({ evidenceCheckedAt: daysAgo(5), nextReviewAt: '2026-12-31T00:00:00Z', sourceUrl: 'https://bybit.com/e' }, 'bybit'); return d.evidenceState === 'invalid' && d.sourceHref === null; })());
+  check('R10/4: blank/malformed expectedExchangeId → invalid', (() => { const a = discBind(bybitEv, ''); const b = discBind(bybitEv, 'BYBIT!'); return a.evidenceState === 'invalid' && a.sourceHref === null && b.evidenceState === 'invalid'; })());
+  check('R10/5: source URL and semantic datetime disappear TOGETHER on identity failure', (() => { const d = discBind({ ...bybitEv, exchangeId: 'okx' }, 'bybit'); return d.sourceHref === null && d.lastCheckedIso === null && d.lastChecked === null; })());
+  check('R10/6: en/ru/kk identity decisions identical (mismatch → invalid in all)', (() => {
+    const mk = (l) => m.resolveDisclosure({ tone: 'verified', evidence: { ...bybitEv, exchangeId: 'okx' }, expectedExchangeId: 'bybit', now: NOW, isAffiliate: false, methodologyHref: '/methodology/' }, l);
+    const en = mk('en'), ru = mk('ru'), kk = mk('kk');
+    return en.evidenceState === 'invalid' && en.evidenceState === ru.evidenceState && ru.evidenceState === kk.evidenceState && en.sourceHref === ru.sourceHref && ru.sourceHref === kk.sourceHref;
+  })());
+  check('R10/official: separately-labelled Official offer page survives identity failure (non-evidence nav)', (() => { const d = discBind({ ...bybitEv, exchangeId: 'okx' }, 'bybit'); return d.officialHref === 'https://bybit.com/official' && d.sourceHref === null; })());
+
   check('evi/1: exact UTC timestamp accepted', m.isExactIsoDateTime('2026-07-31T00:00:00Z') && m.validateEvidenceMetadata(validMeta).ok);
   check('evi/2: exact offset accepted + normalized deterministically', m.isExactIsoDateTime('2026-07-31T09:30:00+05:00') && Date.parse('2026-07-31T09:30:00+05:00') === Date.parse('2026-07-31T04:30:00Z'));
   check('evi/3: date-only rejected', !m.isExactIsoDateTime('2026-07-31') && !m.validateEvidenceMetadata({ ...validMeta, evidenceCheckedAt: '2026-07-31' }).ok);
@@ -717,12 +760,17 @@ try {
     const live = car({ marketProfiles: [prof], offer: { exchangeSlug: 'ex', status: 'verified', restrictedCountries: [], evidence: validMeta } });
     return isGo(live) && live.href === '/go/ex';
   })());
-  check('evi/23b: adapter rejects display/date-only/missing provenance + cross-exchange identity', (() => (
-    !m.toMarketProfileTimestamps({ evidenceCheckedAt: 'June 2026', nextReviewAt: 'July 2026', sourceUrl: EVI_SRC }).ok
-    && !m.toMarketProfileTimestamps({ evidenceCheckedAt: '2026-07-31', nextReviewAt: '2026-12-31', sourceUrl: EVI_SRC }).ok
-    && !m.toMarketProfileTimestamps({ evidenceCheckedAt: daysAgo(5), nextReviewAt: '2026-12-31T00:00:00Z' }).ok
-    && !m.toMarketProfileTimestamps({ ...validMeta, exchangeId: 'okx' }, 'bybit').ok
+  check('evi/23b: adapter (identity REQUIRED) rejects display/date-only/missing provenance + cross-exchange', (() => (
+    !m.toMarketProfileTimestamps({ evidenceCheckedAt: 'June 2026', nextReviewAt: 'July 2026', sourceUrl: EVI_SRC, exchangeId: 'ex' }, 'ex').ok
+    && !m.toMarketProfileTimestamps({ evidenceCheckedAt: '2026-07-31', nextReviewAt: '2026-12-31', sourceUrl: EVI_SRC, exchangeId: 'ex' }, 'ex').ok
+    && !m.toMarketProfileTimestamps({ evidenceCheckedAt: daysAgo(5), nextReviewAt: '2026-12-31T00:00:00Z', exchangeId: 'ex' }, 'ex').ok
+    && m.toMarketProfileTimestamps({ ...validMeta, exchangeId: 'okx' }, 'bybit').reason === 'EVIDENCE_IDENTITY_MISMATCH'
     && m.toMarketProfileTimestamps(validMeta, 'ex').ok
+  ))());
+  check('evi/23c: adapter requires identity — missing evidence.exchangeId + malformed expected fail closed', (() => (
+    m.toMarketProfileTimestamps({ evidenceCheckedAt: daysAgo(5), nextReviewAt: '2026-12-31T00:00:00Z', sourceUrl: EVI_SRC }, 'ex').reason === 'EVIDENCE_IDENTITY_MISMATCH'
+    && m.toMarketProfileTimestamps(validMeta, '').reason === 'EVIDENCE_IDENTITY_MISMATCH'
+    && m.toMarketProfileTimestamps(validMeta, 'EX!').reason === 'EVIDENCE_IDENTITY_MISMATCH'
   ))());
   check('evi/24: PUBLIC_MARKET_PROFILES remains Object.freeze([])', Array.isArray(m.PUBLIC_MARKET_PROFILES) && m.PUBLIC_MARKET_PROFILES.length === 0 && Object.isFrozen(m.PUBLIC_MARKET_PROFILES));
   check('evi/disc: disclosure derives semantic ISO + source ONLY from a valid machine record', (() => {

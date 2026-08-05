@@ -28,6 +28,9 @@ import {
   validateEvidenceMetadata,
 } from './evidenceMetadata';
 
+/** Canonical exchange identity (CBW: evidence.exchangeId === exchange slug). */
+const CANONICAL_SLUG = /^[a-z0-9][a-z0-9-]*$/;
+
 export type DisclosureTone = 'verified' | 'preview' | 'research' | 'review' | 'missing';
 
 export interface DisclosureInput {
@@ -40,6 +43,14 @@ export interface DisclosureInput {
   evidence?: EvidenceMetadata | null;
   /** Explicit clock (epoch ms) for deriving the evidence state. */
   now?: number;
+  /**
+   * Expected canonical exchange slug for an exchange-specific disclosure (R10).
+   * When supplied, the evidence must belong to this exchange
+   * (`evidence.exchangeId === expectedExchangeId`) or it is treated as invalid —
+   * no checked date, no evidence Source. A malformed expected identity also fails
+   * closed. Omit for non-exchange (generic) disclosures.
+   */
+  expectedExchangeId?: string;
   /** Whether the row's primary CTA is a live affiliate action. */
   isAffiliate: boolean;
   /** Internal methodology/evidence route (must be a local path ending in '/'). */
@@ -126,13 +137,33 @@ export function resolveDisclosure(input: DisclosureInput, locale: CtaLocale = 'e
   // 'current' (deriveCheckedDisplay downgrades to 'stale').
   const nowMs = typeof input.now === 'number' ? input.now : NaN;
   const evidence = input.evidence ?? null;
-  const checked = deriveCheckedDisplay(evidence, nowMs, locale);
 
-  // Evidence Source link is exposed ONLY when the evidence record itself
-  // validates (states current/stale/overdue) — and it is the record's own
-  // sourceUrl, never an unrelated caller value.
-  const evidenceValid = evidence !== null && validateEvidenceMetadata(evidence).ok;
-  const sourceHref = evidenceValid ? (evidence as EvidenceMetadata).sourceUrl : null;
+  // Validate ONCE and use the NORMALIZED validated value everywhere (R12).
+  const validation = evidence !== null ? validateEvidenceMetadata(evidence) : null;
+  const meta: EvidenceMetadata | null = validation && validation.ok && validation.value ? validation.value : null;
+
+  // Subject-identity binding (R10): an exchange-specific disclosure requires the
+  // evidence to belong to the expected exchange. A malformed expected identity,
+  // a missing evidence.exchangeId, or a mismatch all fail closed (invalid) —
+  // OKX evidence can never back a Bybit row.
+  let identityFail = false;
+  if (input.expectedExchangeId !== undefined) {
+    const expected = input.expectedExchangeId;
+    identityFail = typeof expected !== 'string' || !CANONICAL_SLUG.test(expected)
+      || meta === null || meta.exchangeId !== expected;
+  }
+
+  // Checked display: null evidence → 'none'; invalid or identity-failed → 'invalid'
+  // (no date); otherwise derived from the exact machine timestamp.
+  const checked = evidence === null || evidence === undefined
+    ? { iso: null, display: null, state: 'none' as CheckedDisplayState }
+    : (meta === null || identityFail)
+      ? { iso: null, display: null, state: 'invalid' as CheckedDisplayState }
+      : deriveCheckedDisplay(meta, nowMs, locale);
+
+  // Evidence Source link: only when the record validates AND belongs to the row.
+  // It is the record's own (normalized) sourceUrl, never an unrelated value.
+  const sourceHref = meta !== null && !identityFail ? meta.sourceUrl : null;
 
   // Separate non-evidence official reference (never the checked-timestamp source).
   const officialHref = typeof input.officialHref === 'string' && HTTPS_PATTERN.test(input.officialHref.trim())

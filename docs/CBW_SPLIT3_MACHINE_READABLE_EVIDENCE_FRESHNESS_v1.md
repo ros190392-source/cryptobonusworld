@@ -140,6 +140,35 @@ invalid / missing never presents its evidence as current (verified+null →
 "Review overdue"; verified+current → normal). Because all real records are
 currently `null`, every public row honestly reads "Under re-verification".
 
+## Strict validity + identity hardening (R9–R12)
+
+- **R9 — strict calendar-valid timestamps.** `parseExactIsoDateTime` validates
+  every field against the real calendar (month range, exact days-in-month with
+  correct leap-year rules, hour 00–23, minute/second 00–59, fractional-second
+  syntax, timezone offset hours/minutes) and builds the epoch only after all
+  checks pass — never relying on `Date.parse` normalization. This closes a real
+  defect: `Date.parse` silently normalized `2026-02-31→Mar 3`, `2026-04-31→May 1`,
+  `2026-07-31T24:00:00Z→Aug 1` and non-leap `Feb 29`. `isExactIsoDateTime` and
+  every evidence validator now use the strict parser, so an impossible calendar
+  date can never become authoritative evidence.
+- **R10 — disclosure subject-identity binding.** `resolveDisclosure` accepts an
+  `expectedExchangeId`; an exchange-specific disclosure requires
+  `evidence.exchangeId === expectedExchangeId`. Missing/mismatched identity or a
+  malformed expected slug → `evidenceState: 'invalid'`, no checked date, no
+  semantic `<time>`, no evidence Source (they disappear together). OKX evidence
+  can never surface as a Bybit row's source. `HomepageTop10.astro` passes
+  `expectedExchangeId: entry.slug`. The separately-named "Official offer page"
+  link (non-evidence navigation) may remain.
+- **R11 — required adapter identity.** `toMarketProfileTimestamps(input,
+  expectedExchangeId)` — identity is no longer optional; a missing argument is a
+  TypeScript compile error at typed call sites, and a malformed/missing/cross-
+  exchange identity fails closed with `EVIDENCE_IDENTITY_MISMATCH`. There is no
+  identity-free overload.
+- **R12 — normalized validated values.** `validateEvidenceMetadata` rejects
+  `sourceUrl`/`exchangeId` carrying surrounding whitespace and returns a
+  normalized validated `value`; the disclosure and CTA layers use that value, so
+  no whitespace-bearing string can enter an href or an identity comparison.
+
 ## Public behaviour (unchanged — fail-closed)
 
 - Preview homepage: **0** `/go/*`.
@@ -151,7 +180,7 @@ currently `null`, every public row honestly reads "Under re-verification".
 ## Verification (all green)
 
 ```
-npm run portal:contracts:test        # 264 passed, 0 failed   (216 baseline + evidence + R1–R6 e2e)
+npm run portal:contracts:test        # 283 passed, 0 failed   (evidence + R1–R6 e2e + R9–R12)
 npm run ai-ops:validate:fixtures     # 43 passed, 0 failed
 tsc --noEmit (contracts scope)        # exit 0
 npm run build                        # 109 pages
