@@ -6,13 +6,18 @@ interface Props {
 }
 
 const { model } = Astro.props;
-const hasDetails = Boolean(model.sourceHref || model.affiliateNote);
+const hasDetails = Boolean(model.sourceHref || model.officialHref || model.affiliateNote);
+// The freshness dot reflects the EVIDENCE state (not the editorial tone) so a
+// verified row without current machine evidence never shows a "current" colour.
+const stateClass = model.evidenceState === 'current'
+  ? `top10-disc--${model.tone}`
+  : `top10-disc--state-${model.evidenceState}`;
 ---
 
-<div class:list={['top10-disc', `top10-disc--${model.tone}`]}>
+<div class:list={['top10-disc', stateClass]}>
   <div class="top10-disc-head">
     <span class="top10-disc-dot" aria-hidden="true"></span>
-    <span class="top10-disc-tone">{model.toneLabel}</span>
+    <span class="top10-disc-tone">{model.statusLabel}</span>
     {model.lastChecked && (
       <span class="top10-disc-checked">· {model.checkedLabel}:{' '}
         {model.lastCheckedIso
@@ -30,6 +35,11 @@ const hasDetails = Boolean(model.sourceHref || model.affiliateNote);
         {model.sourceHref && (
           <a class="top10-disc-src" href={model.sourceHref} target="_blank" rel="nofollow noopener noreferrer">
             {model.sourceLabel} ↗
+          </a>
+        )}
+        {model.officialHref && (
+          <a class="top10-disc-official" href={model.officialHref} target="_blank" rel="nofollow noopener noreferrer">
+            {model.officialLabel} ↗
           </a>
         )}
         <a class="top10-disc-method" href={model.methodologyHref}>{model.methodologyLabel} →</a>
@@ -67,6 +77,16 @@ const hasDetails = Boolean(model.sourceHref || model.affiliateNote);
   .top10-disc--research .top10-disc-dot { background: #2563eb; }
   .top10-disc--review .top10-disc-dot { background: #6b7280; }
   .top10-disc--missing .top10-disc-dot { background: #9ca3af; }
+
+  /* Evidence-state dots (override editorial tone when not current). */
+  .top10-disc--state-none .top10-disc-dot { background: #9ca3af; }
+  .top10-disc--state-invalid .top10-disc-dot { background: #9ca3af; }
+  .top10-disc--state-stale .top10-disc-dot { background: #d97706; }
+  .top10-disc--state-overdue .top10-disc-dot { background: #dc2626; }
+  .top10-disc--state-none .top10-disc-tone,
+  .top10-disc--state-invalid .top10-disc-tone,
+  .top10-disc--state-stale .top10-disc-tone,
+  .top10-disc--state-overdue .top10-disc-tone { color: #6b7280; }
 
   .top10-disc-tone {
     color: #374151;
@@ -123,19 +143,24 @@ const hasDetails = Boolean(model.sourceHref || model.affiliateNote);
   }
 
   .top10-disc-src,
+  .top10-disc-official,
   .top10-disc-method {
     color: #15803d;
     font-weight: 700;
     text-decoration: none;
   }
 
+  .top10-disc-official { color: #4b5563; }
+
   .top10-disc-src:hover,
+  .top10-disc-official:hover,
   .top10-disc-method:hover {
     text-decoration: underline;
     text-underline-offset: 2px;
   }
 
   .top10-disc-src:focus-visible,
+  .top10-disc-official:focus-visible,
   .top10-disc-method:focus-visible {
     outline: 2px solid #0f766e;
     outline-offset: 2px;

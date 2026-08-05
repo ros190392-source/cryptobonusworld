@@ -31,8 +31,11 @@ export interface Offer {
    * exact validated EvidenceMetadata only when the repository actually holds an
    * exact, timezone-qualified ISO timestamp and HTTPS source for the offer;
    * month-only strings like "June 2026" are NEVER converted into a timestamp.
+   *
+   * Required (R3): every non-expired offer must state its evidence explicitly —
+   * a valid record or `null`. Omission is never silently a reviewed null state.
    */
-  evidence?: EvidenceMetadata | null;
+  evidence: EvidenceMetadata | null;
 }
 
 export const offers: Offer[] = [

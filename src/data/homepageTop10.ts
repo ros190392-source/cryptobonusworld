@@ -30,9 +30,10 @@ export interface HomepageTop10Entry {
   /**
    * Canonical machine-readable evidence for this row's freshness, or null when
    * the row is under re-verification / research (no exact repository evidence).
-   * The one factual freshness source; display dates derive from it.
+   * The one factual freshness source; display dates derive from it. Required
+   * (R3): every row must state evidence explicitly — a valid record or `null`.
    */
-  evidence?: EvidenceMetadata | null;
+  evidence: EvidenceMetadata | null;
   primaryAction?: HomepageTop10Action;
   secondaryAction: HomepageTop10Action;
 }

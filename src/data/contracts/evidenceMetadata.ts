@@ -72,6 +72,8 @@ export function isExactIsoDateTime(value: unknown): value is string {
 }
 
 const HTTPS_URL = /^https:\/\/[^\s]+$/i;
+/** Canonical exchange identity (CBW: evidence.exchangeId === exchange slug). */
+const CANONICAL_SLUG = /^[a-z0-9][a-z0-9-]*$/;
 
 function isHttpsUrl(value: unknown): value is string {
   if (typeof value !== 'string' || !HTTPS_URL.test(value.trim())) return false;
@@ -180,6 +182,60 @@ export function assessEvidenceAuthorization(
   return { authoritative: true, freshness: 'fresh', reviewState: 'ok', reason: null };
 }
 
+export type OfferEvidenceFailReason =
+  | 'OFFER_EVIDENCE_MISSING'          // null/undefined evidence
+  | 'OFFER_EVIDENCE_INVALID'          // structurally invalid (date-only, no source, …)
+  | 'OFFER_EVIDENCE_IDENTITY_MISMATCH'// exchangeId missing/malformed/≠ expected
+  | 'OFFER_EVIDENCE_FUTURE'           // checkedAt beyond future-skew tolerance
+  | 'OFFER_EVIDENCE_STALE'            // checkedAt older than the central window
+  | 'OFFER_EVIDENCE_REVIEW_OVERDUE'   // now >= nextReviewAt
+  | 'CLOCK_INVALID';                  // non-finite explicit clock
+
+export type OfferEvidenceResolution =
+  | { ok: true; evidence: EvidenceMetadata }
+  | { ok: false; reason: OfferEvidenceFailReason };
+
+/**
+ * Offer-specific evidence authorization (R1/R2).
+ *
+ * A live commercial CTA requires authoritative OFFER evidence INDEPENDENTLY of
+ * the MarketProfile. `offer.status === 'verified'` can never substitute for it.
+ * The evidence must additionally be bound to the exact exchange being authorized
+ * (`evidence.exchangeId === expectedExchangeId`), so evidence for OKX can never
+ * authorize a Bybit CTA. Identity is required and explicit — never inferred from
+ * the parent offer. Fail-closed at every step; the central freshness policy is
+ * reused for evidence age (never re-implemented).
+ */
+export function resolveOfferEvidenceAuthorization(
+  evidence: unknown,
+  expectedExchangeId: string,
+  nowMs: number,
+): OfferEvidenceResolution {
+  // Finite explicit clock first — a non-finite clock proves nothing.
+  if (!Number.isFinite(nowMs)) return { ok: false, reason: 'CLOCK_INVALID' };
+  // Missing evidence is distinct from invalid evidence (both fail closed).
+  if (evidence === null || evidence === undefined) return { ok: false, reason: 'OFFER_EVIDENCE_MISSING' };
+
+  const validation = validateEvidenceMetadata(evidence);
+  if (!validation.ok || !validation.value) return { ok: false, reason: 'OFFER_EVIDENCE_INVALID' };
+  const meta = validation.value;
+
+  // Canonical exchange identity binding — explicit, never inferred.
+  if (typeof expectedExchangeId !== 'string' || !CANONICAL_SLUG.test(expectedExchangeId)
+    || typeof meta.exchangeId !== 'string' || !CANONICAL_SLUG.test(meta.exchangeId)
+    || meta.exchangeId !== expectedExchangeId) {
+    return { ok: false, reason: 'OFFER_EVIDENCE_IDENTITY_MISMATCH' };
+  }
+
+  // Freshness + review deadline via the central authorization assessment.
+  const auth = assessEvidenceAuthorization(meta, nowMs);
+  if (auth.authoritative) return { ok: true, evidence: meta };
+  if (auth.freshness === 'future') return { ok: false, reason: 'OFFER_EVIDENCE_FUTURE' };
+  if (auth.freshness === 'stale') return { ok: false, reason: 'OFFER_EVIDENCE_STALE' };
+  if (auth.reviewState === 'overdue') return { ok: false, reason: 'OFFER_EVIDENCE_REVIEW_OVERDUE' };
+  return { ok: false, reason: 'OFFER_EVIDENCE_INVALID' };
+}
+
 /** Map a CtaLocale to a BCP-47 tag for Intl formatting (formatting only). */
 const LOCALE_TAG: Record<CtaLocale, string> = { en: 'en-GB', ru: 'ru-RU', kk: 'kk-KZ' };
 
@@ -202,7 +258,7 @@ export function formatEvidenceCheckedAt(value: unknown, locale: CtaLocale = 'en'
   }
 }
 
-export type CheckedDisplayState = 'current' | 'stale' | 'overdue' | 'none';
+export type CheckedDisplayState = 'current' | 'stale' | 'overdue' | 'invalid' | 'none';
 
 export interface CheckedDisplay {
   /** Raw exact ISO instant for semantic `<time datetime>` markup; null when none. */
@@ -216,20 +272,24 @@ export interface CheckedDisplay {
 /**
  * Derive the visible "last checked" presentation from machine evidence ONLY.
  *
- * With no valid metadata (e.g. a record still under re-verification) this
- * returns a clear `none` state and no fabricated date — the caller shows an
- * honest under-review label instead. When metadata exists, the display is
- * derived from the exact timestamp and the state reflects the central policy so
- * stale / overdue evidence is never shown as if it were current.
+ * Absent evidence (null/undefined) → `none` (honest under-re-verification, no
+ * date). Present-but-structurally-invalid evidence → `invalid` (distinct from
+ * `none`: something was supplied but cannot be trusted), also no fabricated
+ * date. Valid metadata → the display is derived from the exact timestamp and the
+ * state reflects the central policy so stale / overdue evidence is never shown
+ * as if it were current.
  */
 export function deriveCheckedDisplay(
   input: unknown,
   nowMs: number,
   locale: CtaLocale = 'en',
 ): CheckedDisplay {
+  if (input === null || input === undefined) {
+    return { iso: null, display: null, state: 'none' };
+  }
   const validation = validateEvidenceMetadata(input);
   if (!validation.ok || !validation.value) {
-    return { iso: null, display: null, state: 'none' };
+    return { iso: null, display: null, state: 'invalid' };
   }
   const meta = validation.value;
   const iso = meta.evidenceCheckedAt;
@@ -270,13 +330,27 @@ export interface MarketProfileTimestampAdapterResult {
  * PUBLIC_MARKET_PROFILES; the adapter merely proves that when profiles ARE
  * created later, their timestamps can only originate from exact validated
  * evidence — never from a human freshness string.
+ *
+ * When `expectedExchangeId` is supplied (R2), the evidence MUST carry a matching
+ * canonical `exchangeId`; cross-exchange evidence is rejected so evidence for
+ * OKX can never produce timestamps for a Bybit profile.
  */
-export function toMarketProfileTimestamps(input: unknown): MarketProfileTimestampAdapterResult {
+export function toMarketProfileTimestamps(
+  input: unknown,
+  expectedExchangeId?: string,
+): MarketProfileTimestampAdapterResult {
   const validation = validateEvidenceMetadata(input);
   if (!validation.ok || !validation.value) {
     return { ok: false, reason: 'EVIDENCE_METADATA_INVALID' };
   }
   const meta = validation.value;
+  if (expectedExchangeId !== undefined) {
+    if (typeof expectedExchangeId !== 'string' || !CANONICAL_SLUG.test(expectedExchangeId)
+      || typeof meta.exchangeId !== 'string' || !CANONICAL_SLUG.test(meta.exchangeId)
+      || meta.exchangeId !== expectedExchangeId) {
+      return { ok: false, reason: 'EVIDENCE_IDENTITY_MISMATCH' };
+    }
+  }
   return {
     ok: true,
     value: { lastCheckedAt: meta.evidenceCheckedAt, nextReviewAt: meta.nextReviewAt },

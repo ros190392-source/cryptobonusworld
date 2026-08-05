@@ -29,6 +29,7 @@ import {
 import type { CtaMode } from '../exchangePreview/cta-contract';
 import { normalizeCountryInput, SUPPORTED_COUNTRY_CODES } from './countryInput';
 import { resolveMarketProfile } from './marketProfileRegistry';
+import { resolveOfferEvidenceAuthorization } from './evidenceMetadata';
 
 /** Explicit non-country homepage context until real country routing exists. */
 export const PUBLIC_HOMEPAGE_COUNTRY = 'global';
@@ -43,6 +44,13 @@ export interface CountryAwareOfferInput {
   /** Offer status; authorizes the OFFER only — never country availability. */
   status?: string;
   restrictedCountries?: unknown;
+  /**
+   * Canonical machine-readable offer evidence (EvidenceMetadata | null). A live
+   * CTA requires this to be authoritative AND identity-bound (R1/R2). It is a
+   * SEPARATE, independent proof from the MarketProfile evidence; offer.status
+   * can never substitute for it.
+   */
+  evidence?: unknown;
 }
 
 export interface CountryAwareCtaInput {
@@ -185,6 +193,12 @@ export function resolveCountryAwareCommercialCta(input: CountryAwareCtaInput): C
   //     lastCheckedAt freshness policy which the base gate also enforces.
   const nextReview = Date.parse(profile.nextReviewAt);
   if (!Number.isFinite(nextReview) || nowMs >= nextReview) return review('PROFILE_REVIEW_OVERDUE');
+
+  // 5d) Independent OFFER evidence (R1/R2): a live CTA requires authoritative,
+  //     identity-bound offer evidence in ADDITION to the approved/fresh profile.
+  //     offer.status === 'verified' can never substitute for machine evidence.
+  const offerEvidence = resolveOfferEvidenceAuthorization(offer.evidence, exchangeId, nowMs);
+  if (!offerEvidence.ok) return review(offerEvidence.reason);
 
   // 6) All country conditions met — hand the REAL profile facts to the canonical
   //    gate, which enforces production mode + evidence freshness + slug/route

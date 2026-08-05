@@ -94,6 +94,52 @@ nothing to `PUBLIC_MARKET_PROFILES`;** the adapter merely proves that when appro
 profiles are created later, their timestamps can only originate from exact validated
 evidence, never from a human freshness string.
 
+## End-to-end authorization rule (R1–R5)
+
+A live commercial `/go/*` CTA requires authoritative machine evidence at **both**
+layers, independently — neither can substitute for the other, and `offer.status`
+substitutes for neither:
+
+1. **Exchange × Country MarketProfile evidence** — an approved, available/limited
+   profile with fresh `lastCheckedAt` (central policy) and a non-overdue
+   `nextReviewAt` (enforced by the country-aware gate + the base commercial gate).
+2. **Offer evidence** — authoritative `EvidenceMetadata` on the offer, checked via
+   `resolveOfferEvidenceAuthorization` with the SAME explicit finite clock:
+   - `null` → `OFFER_EVIDENCE_MISSING`
+   - structurally invalid (date-only, timezone-less, no HTTPS source) → `OFFER_EVIDENCE_INVALID`
+   - `evidence.exchangeId` missing / malformed / ≠ the CTA identity → `OFFER_EVIDENCE_IDENTITY_MISMATCH`
+   - future-beyond-skew → `OFFER_EVIDENCE_FUTURE`
+   - stale → `OFFER_EVIDENCE_STALE`
+   - review reached/past → `OFFER_EVIDENCE_REVIEW_OVERDUE`
+   - non-finite clock → `CLOCK_INVALID`
+
+**Identity binding (R2):** for evidence that authorizes an offer,
+`evidence.exchangeId === offer.exchangeSlug === CTA.exchangeId === CTA.slug ===
+MarketProfile.exchangeId`. Evidence for OKX can never authorize a Bybit CTA, and
+the future-MarketProfile adapter (`toMarketProfileTimestamps(evidence,
+expectedExchangeId)`) rejects cross-exchange evidence the same way. Every failure
+resolves to an honest internal review state with no `/go/*`.
+
+**Required evidence fields (R3):** `Offer.evidence` and `HomepageTop10Entry.evidence`
+are **required** (`EvidenceMetadata | null`) — omission is never silently a
+reviewed-null state.
+
+**Single-record disclosure provenance (R4):** `resolveDisclosure` consumes ONE
+`EvidenceMetadata` record plus an explicit clock. The checked display, semantic
+`<time datetime>`, evidence state, and evidence Source link ALL derive from that
+one record — a caller can no longer pair a human "checked" label with an
+unrelated source URL. The exchange's promo page is carried only as a separately
+named, non-evidence **"Official offer page"** link, never as the checked-timestamp
+source.
+
+**Evidence state overrides tone (R5):** disclosure exposes an explicit evidence
+state — `current | stale | overdue | invalid | none` — localized en/ru/kk. A row
+whose editorial tone is `verified` but whose machine evidence is stale / overdue /
+invalid / missing never presents its evidence as current (verified+null →
+"Under re-verification"; verified+stale → "Evidence stale"; verified+overdue →
+"Review overdue"; verified+current → normal). Because all real records are
+currently `null`, every public row honestly reads "Under re-verification".
+
 ## Public behaviour (unchanged — fail-closed)
 
 - Preview homepage: **0** `/go/*`.
@@ -105,13 +151,13 @@ evidence, never from a human freshness string.
 ## Verification (all green)
 
 ```
-npm run portal:contracts:test        # 245 passed, 0 failed   (216 baseline + 29 evidence cases)
+npm run portal:contracts:test        # 264 passed, 0 failed   (216 baseline + evidence + R1–R6 e2e)
 npm run ai-ops:validate:fixtures     # 43 passed, 0 failed
 tsc --noEmit (contracts scope)        # exit 0
 npm run build                        # 109 pages
 npm run build (preview)              # homepage 0 /go/
 PUBLIC_CBW_CTA_MODE=production build  # homepage 0 /go/ (simulation only)
-Chromium homepage QA                 # 28/28 (preview + production-sim × desktop/mobile, keyboard)
+Chromium homepage QA                 # 44/44 (preview + production-sim × desktop/mobile, keyboard)
 ```
 
 The required 24-case matrix is covered under the `evi/*` test names (exact UTC / offset

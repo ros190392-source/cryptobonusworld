@@ -8,7 +8,6 @@ import { gateReasonText, ctaMicrocopy, pickLocalized } from '../../data/contract
 import type { CtaLocale } from '../../data/contracts/portalCta';
 import Top10Disclosure from './Top10Disclosure.astro';
 import { resolveDisclosure } from '../../data/contracts/portalDisclosure';
-import { deriveCheckedDisplay } from '../../data/contracts/evidenceMetadata';
 import { getOffer } from '../../data/offers';
 
 // Current published locale for the homepage. All CTA labels and microcopy are
@@ -27,25 +26,25 @@ const ctaBindings = new Map(
 const opensNewTab = pickLocalized(ctaMicrocopy.opensNewTab, ctaLocale);
 const loadingText = pickLocalized(ctaMicrocopy.loading, ctaLocale);
 
-// Fail-closed evidence disclosure per row, derived from real records only.
-// The visible "Checked" date is DERIVED from canonical machine evidence via
-// deriveCheckedDisplay — never from the human `lastChecked` editorial string.
-// Rows still under re-verification (evidence === null) carry no checked date;
-// their honest status is conveyed by the disclosure tone instead. A source link
-// is carried only when a real HTTPS promo URL exists.
+// Fail-closed evidence disclosure per row, derived from ONE canonical evidence
+// record + an explicit clock. The checked date, semantic <time>, evidence state
+// and evidence Source link all derive from `entry.evidence` (null → honest
+// under-re-verification state, no fabricated date). The exchange's promo page is
+// carried ONLY as a separately-named non-evidence "Official offer page" link,
+// never as the source backing a checked timestamp. Evidence state overrides the
+// tone so a verified row can never look current without machine evidence.
 const nowMs = Date.now();
 const disclosures = new Map(
   homepageTop10.map((entry) => {
     const offer = getOffer(entry.slug);
     const binding = ctaBindings.get(entry.rank);
-    const checked = deriveCheckedDisplay(entry.evidence ?? null, nowMs, ctaLocale);
     return [entry.rank, resolveDisclosure({
       tone: entry.statusTone,
-      lastChecked: checked.display ?? undefined,
-      lastCheckedIso: checked.iso ?? undefined,
-      sourceHref: offer?.sourceUrl,
+      evidence: entry.evidence ?? null,
+      now: nowMs,
       isAffiliate: Boolean(binding?.primary.isAffiliate),
       methodologyHref: '/methodology/',
+      officialHref: offer?.sourceUrl,
     }, ctaLocale)];
   }),
 );
