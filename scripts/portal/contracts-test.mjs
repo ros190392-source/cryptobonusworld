@@ -35,6 +35,7 @@ const evidenceMetadata = join(ROOT, 'src/data/contracts/evidenceMetadata.ts');
 const offersData = join(ROOT, 'src/data/offers.ts');
 const offerEvidencePacket = join(ROOT, 'src/data/contracts/offerEvidencePacket.ts');
 const bybitOfferEvidence = join(ROOT, 'src/data/evidence/offers/bybitOfferEvidence.ts');
+const publicRenderedCapture = join(ROOT, 'src/data/contracts/publicRenderedCapture.ts');
 
 const tmp = mkdtempSync(join(tmpdir(), 'cbw-portal-test-'));
 const outfile = join(tmp, 'contracts.mjs');
@@ -66,7 +67,8 @@ try {
         `export { isExactIsoDateTime, parseExactIsoDateTime, validateEvidenceMetadata, assessEvidenceAuthorization, resolveOfferEvidenceAuthorization, formatEvidenceCheckedAt, deriveCheckedDisplay, toMarketProfileTimestamps } from ${JSON.stringify(evidenceMetadata)};\n` +
         `export { offers, getOffer } from ${JSON.stringify(offersData)};\n` +
         `export { validateOfferEvidencePacket, adaptApprovedPacketToEvidence, isOfficialBybitSource, deriveUnsupportedClaims, computeCaptureManifestDigest, canonicalCaptureManifest, BYBIT_OFFER_CLAIM_POLICY, BYBIT_OFFER_CLAIM_INVENTORY, BYBIT_OFFER_REQUIRED_CLAIMS, ALLOWED_OWNER_IDENTITIES } from ${JSON.stringify(offerEvidencePacket)};\n` +
-        `export { BYBIT_OFFER_EVIDENCE_PACKET, BYBIT_OFFER_EVIDENCE_DECISION, deriveBybitDecision, deriveBybitOfferEvidence, bybitOfferEvidence } from ${JSON.stringify(bybitOfferEvidence)};`,
+        `export { BYBIT_OFFER_EVIDENCE_PACKET, BYBIT_OFFER_EVIDENCE_DECISION, deriveBybitDecision, deriveBybitOfferEvidence, bybitOfferEvidence } from ${JSON.stringify(bybitOfferEvidence)};\n` +
+        `export { validatePublicRenderedCapture, computeFragmentDigest, computeRenderedArtifactDigest, canonicalRenderedArtifact, isOfficialBybitUrl, captureMaySupportClaims, RENDER_OUTCOMES, MAX_FRAGMENT_TEXT_LENGTH, MAX_REDIRECTS } from ${JSON.stringify(publicRenderedCapture)};`,
       resolveDir: ROOT,
       loader: 'ts',
     },
@@ -905,6 +907,94 @@ try {
   })());
   check('pkt/derived: real unsupportedClaims derived = 12 non-supported (only source_identity supported)', (() => { const u = m.deriveUnsupportedClaims(m.BYBIT_OFFER_EVIDENCE_PACKET); return u.length === 12 && !u.includes('bybit.source_identity'); })());
   check('pkt/two-probes: real capture manifest has both official probes', (() => { const c = m.BYBIT_OFFER_EVIDENCE_PACKET.captures; return c.length === 2 && c.every((x) => m.isOfficialBybitSource(x.sourceUrl) && Number.isInteger(x.observedStatus)) && c.some((x) => x.captureId === 'probe-a') && c.some((x) => x.captureId === 'probe-b'); })());
+
+  // ===== Split 3 (#254) — public rendered-capture runner (offline replay) =====
+  const INV = m.BYBIT_OFFER_CLAIM_INVENTORY;
+  const R_URL = 'https://www.bybit.com/en/promo/new-user/';
+  const mkFrag = (over = {}) => { const f = { fragmentId: 'f1', captureId: 'rc1', extractionType: 'meta', locator: 'meta[name=description]', text: 'Welcome bonus up to 30,000 USDT', claimIds: [], limitations: '', ...over }; f.textLength = f.text.length; f.fragmentDigest = m.computeFragmentDigest(f); return f; };
+  const mkCap = (over = {}) => {
+    const base = {
+      captureId: 'rc1', exchangeId: 'bybit', requestedUrl: R_URL, finalUrl: R_URL, redirectChain: [],
+      capturedAt: '2026-08-05T21:00:00Z', browserName: 'chromium', browserVersion: '148.0.7778.96', runtimeVersion: 'v24.14.0',
+      ephemeralContext: { persistentProfileUsed: false, importedStorageState: false, proxyUsed: false, authenticationUsed: false, formSubmissionPerformed: false, downloadPerformed: false },
+      viewport: { width: 1280, height: 900 }, locale: 'en-US', mainDocumentStatus: 200, contentType: 'text/html', pageTitle: 'Bybit',
+      outcome: 'rendered', fragments: [mkFrag()], structuredMetadata: { pageTitle: 'Bybit', description: null, canonicalUrl: null, ogTitle: null, ogDescription: null, jsonLdType: null },
+      warnings: [], limitations: [], normalizedArtifactDigest: 'sha256:' + '0'.repeat(64), ...over,
+    };
+    if (!('normalizedArtifactDigest' in over)) base.normalizedArtifactDigest = m.computeRenderedArtifactDigest(base);
+    return base;
+  };
+  const vc = (cap) => m.validatePublicRenderedCapture(cap, INV);
+  const ec = (patch) => mkCap({ ephemeralContext: { persistentProfileUsed: false, importedStorageState: false, proxyUsed: false, authenticationUsed: false, formSubmissionPerformed: false, downloadPerformed: false, ...patch } });
+
+  check('render/1: valid ephemeral capture accepted', vc(mkCap()).ok === true);
+  check('render/2: persistent profile rejected', !vc(ec({ persistentProfileUsed: true })).ok && vc(ec({ persistentProfileUsed: true })).issues.some((i) => i.code === 'EPHEMERAL_VIOLATION'));
+  check('render/3: imported storage state rejected', !vc(ec({ importedStorageState: true })).ok);
+  check('render/4: proxy rejected', !vc(ec({ proxyUsed: true })).ok);
+  check('render/5: authentication rejected', !vc(ec({ authenticationUsed: true })).ok);
+  check('render/6: form submission rejected', !vc(ec({ formSubmissionPerformed: true })).ok);
+  check('render/7: download rejected', !vc(ec({ downloadPerformed: true })).ok);
+  check('render/8: cookies/tokens content rejected recursively', !vc(mkCap({ warnings: ['token=abc123'] })).ok && vc(mkCap({ warnings: ['token=abc123'] })).issues.some((i) => i.code === 'UNSAFE_CONTENT'));
+  check('render/9: non-official requested URL rejected', !vc(mkCap({ requestedUrl: 'https://evil.example/x' })).ok);
+  check('render/10: non-official final URL rejected', !vc(mkCap({ finalUrl: 'https://evil.example/x' })).ok);
+  check('render/11: external redirect rejected', !vc(mkCap({ redirectChain: ['https://evil.example/x'] })).ok && vc(mkCap({ redirectChain: ['https://evil.example/x'] })).issues.some((i) => i.code === 'NON_OFFICIAL_URL'));
+  check('render/12: URL credentials rejected', !vc(mkCap({ requestedUrl: 'https://u:p@www.bybit.com/en/promo/new-user/' })).ok);
+  check('render/13: too many redirects rejected', (() => { const chain = Array.from({ length: m.MAX_REDIRECTS + 1 }, (_, i) => `https://www.bybit.com/r${i}`); return !vc(mkCap({ redirectChain: chain })).ok && vc(mkCap({ redirectChain: chain })).issues.some((i) => i.code === 'TOO_MANY_REDIRECTS'); })());
+  check('render/14: invalid HTTP status rejected', !vc(mkCap({ mainDocumentStatus: 99 })).ok && vc(mkCap({ mainDocumentStatus: 99 })).issues.some((i) => i.code === 'INVALID_STATUS'));
+  check('render/15: invalid content type rejected (empty string)', !vc(mkCap({ contentType: '' })).ok);
+  check('render/16: strict timestamp required', !vc(mkCap({ capturedAt: '2026-08-05' })).ok && !vc(mkCap({ capturedAt: 'August 2026' })).ok);
+  check('render/17: unknown outcome rejected', !vc(mkCap({ outcome: 'weird', fragments: [] })).ok && vc(mkCap({ outcome: 'weird', fragments: [] })).issues.some((i) => i.code === 'INVALID_OUTCOME'));
+  check('render/18: login wall cannot support claims', m.captureMaySupportClaims(mkCap({ outcome: 'login_wall' })) === false);
+  check('render/19: captcha/bot wall cannot support claims', m.captureMaySupportClaims(mkCap({ outcome: 'captcha_or_bot_wall' })) === false);
+  check('render/20: geo-restricted cannot support claims', m.captureMaySupportClaims(mkCap({ outcome: 'geo_restricted' })) === false);
+  check('render/21: timeout/network_error cannot support claims', m.captureMaySupportClaims(mkCap({ outcome: 'timeout', fragments: [] })) === false && m.captureMaySupportClaims(mkCap({ outcome: 'network_error', fragments: [] })) === false);
+  check('render/22: fragment maximum length enforced', !vc(mkCap({ fragments: [mkFrag({ text: 'x'.repeat(m.MAX_FRAGMENT_TEXT_LENGTH + 1) })] })).ok);
+  check('render/23: full HTML/page-body fragment rejected', (() => { const c = mkCap({ fragments: [mkFrag({ text: '<html><body>page</body></html>' })] }); return !vc(c).ok && vc(c).issues.some((i) => i.code === 'RAW_PAYLOAD'); })());
+  check('render/24: selector/locator required', !vc(mkCap({ fragments: [mkFrag({ locator: '' })] })).ok);
+  check('render/25: fragment digest recomputation deterministic', (() => { const f = mkFrag(); return m.computeFragmentDigest(f) === f.fragmentDigest; })());
+  check('render/26: fragment tampering rejected', (() => { const c = mkCap(); c.fragments[0].text = 'Tampered bounded text'; c.fragments[0].textLength = c.fragments[0].text.length; return !vc(c).ok && vc(c).issues.some((i) => i.code === 'FRAGMENT_DIGEST_MISMATCH'); })());
+  check('render/27: artifact digest recomputation', (() => { const c = mkCap(); return m.computeRenderedArtifactDigest(c) === c.normalizedArtifactDigest; })());
+  check('render/28: artifact/manifest tampering rejected', (() => { const c = mkCap(); c.outcome = 'login_wall'; return !vc(c).ok && vc(c).issues.some((i) => i.code === 'ARTIFACT_DIGEST_MISMATCH'); })());
+  check('render/29: unknown rendered source reference rejected (packet)', (() => { const p = buildPacket({ renderedCaptures: [mkCap()], claims: completeClaims().map((c) => c.claimId === 'bybit.bonus_headline' ? { ...c, sourceRefs: ['rendered:ghost'] } : c) }); return !m.validateOfferEvidencePacket(p).ok && m.validateOfferEvidencePacket(p).issues.some((i) => i.code === 'UNKNOWN_RENDERED_REF'); })());
+  check('render/30: supported claim citing walled rendered capture is inadmissible; rendered-outcome is admissible', (() => {
+    const walled = buildPacket({ renderedCaptures: [mkCap({ outcome: 'login_wall' })], claims: completeClaims().map((c) => c.claimId === 'bybit.kyc_required' ? { ...c, sourceRefs: ['rendered:rc1'] } : c) });
+    const good = buildPacket({ renderedCaptures: [mkCap({ outcome: 'rendered' })], claims: completeClaims().map((c) => c.claimId === 'bybit.kyc_required' ? { ...c, sourceRefs: ['rendered:rc1'] } : c) });
+    return !m.validateOfferEvidencePacket(walled).ok && m.validateOfferEvidencePacket(walled).issues.some((i) => i.code === 'INADMISSIBLE_SUPPORT') && m.validateOfferEvidencePacket(good).ok;
+  })());
+  check('render/31: page load alone cannot support claims (real packet renderedCaptures present, offer claims still inaccessible)', (() => {
+    const rc = m.BYBIT_OFFER_EVIDENCE_PACKET.renderedCaptures || [];
+    const headline = m.BYBIT_OFFER_EVIDENCE_PACKET.claims.find((c) => c.claimId === 'bybit.bonus_headline');
+    return rc.length === 2 && headline.result === 'inaccessible';
+  })());
+  check('render/32: offline replay validates the committed rendered artifacts + digests recompute', (() => {
+    const rc = m.BYBIT_OFFER_EVIDENCE_PACKET.renderedCaptures || [];
+    return rc.length === 2 && rc.every((c) => vc(c).ok && m.computeRenderedArtifactDigest(c) === c.normalizedArtifactDigest);
+  })());
+  check('render/33: existing HTTP probes remain unchanged', (() => {
+    const c = m.BYBIT_OFFER_EVIDENCE_PACKET.captures;
+    return c.length === 2 && c[0].captureId === 'probe-a' && c[1].captureId === 'probe-b' && m.computeCaptureManifestDigest(c) === m.BYBIT_OFFER_EVIDENCE_PACKET.captureManifestDigest;
+  })());
+  check('render/34: real packet remains draft', m.BYBIT_OFFER_EVIDENCE_PACKET.approval === 'draft');
+  check('render/35: referral code remains partner-confirmation-required', m.BYBIT_OFFER_EVIDENCE_PACKET.claims.find((c) => c.claimId === 'bybit.promo_code').result === 'requires_owner_partner_confirmation');
+  check('render/36: offers.bybit.evidence remains null', m.bybitOfferEvidence === null && m.getOffer('bybit').evidence === null);
+  check('render/37: preview homepage /go/* = 0', m.homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'preview', 'en').primary.href.startsWith('/go/')));
+  check('render/38: public production simulation /go/* = 0', m.homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'production', 'en').primary.href.startsWith('/go/')));
+  check('render/39: PUBLIC_MARKET_PROFILES remains frozen and empty', Array.isArray(m.PUBLIC_MARKET_PROFILES) && m.PUBLIC_MARKET_PROFILES.length === 0 && Object.isFrozen(m.PUBLIC_MARKET_PROFILES));
+  check('render/40: locale cannot change capture/claim facts', (() => {
+    const rc = m.BYBIT_OFFER_EVIDENCE_PACKET.renderedCaptures || [];
+    const disc = (l) => m.resolveDisclosure({ tone: 'verified', evidence: m.bybitOfferEvidence, expectedExchangeId: 'bybit', now: Date.parse('2026-08-05T21:00:00Z'), isAffiliate: false, methodologyHref: '/methodology/' }, l);
+    return rc.every((c) => c.outcome === 'network_error') && disc('en').evidenceState === 'none' && disc('ru').evidenceState === disc('en').evidenceState && disc('kk').evidenceState === disc('en').evidenceState && m.BYBIT_OFFER_EVIDENCE_DECISION === 'under_re_verification';
+  })());
+  check('render/41: no full HTML / cache / secrets / personal data / absolute paths committed', (() => {
+    const serialized = JSON.stringify(m.BYBIT_OFFER_EVIDENCE_PACKET.renderedCaptures || []);
+    const clean = !/<html|<body|<!doctype|[A-Za-z]:\\|\/Users\/|\/home\/|token=|cookie\s*[:=]|bearer|password/i.test(serialized);
+    const rejectsBody = !vc(mkCap({ fragments: [mkFrag({ text: '<body>whole page</body>' })] })).ok;
+    return clean && rejectsBody;
+  })());
+  check('render/live: both real rendered captures are network_error with zero fragments', (() => {
+    const rc = m.BYBIT_OFFER_EVIDENCE_PACKET.renderedCaptures || [];
+    return rc.length === 2 && rc.every((c) => c.outcome === 'network_error' && c.fragments.length === 0 && c.mainDocumentStatus === null);
+  })());
 
   // --- Invariant: a non-commercial model may never point at /go/ ---
   let threw = false;

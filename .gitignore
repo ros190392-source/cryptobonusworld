@@ -56,3 +56,6 @@ public/_visual-review/
 # are NOT ignored and will continue to be tracked normally.
 public/media/walkthroughs/**/*_files/
 public/media/walkthroughs/**/*.html
+
+# Issue #254 transient rendered-capture runner output (never committed; real captures live in the packet)
+scripts/evidence/out-bybit-rendered.json

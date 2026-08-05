@@ -39,7 +39,11 @@
       "label": "Exchange / source identity",
       "result": "supported",
       "observed": "sourceUrl host is the canonical official Bybit domain www.bybit.com over HTTPS; a live response was received from the official host (HTTP 302).",
-      "sourceRefs": ["capture:probe-a"],
+      "sourceRefs": [
+        "capture:probe-a",
+        "rendered:rendered-new-user",
+        "rendered:rendered-welcome-gifts"
+      ],
       "limitation": "Domain identity is confirmed; the specific promo path redirects and served no offer content."
     },
     {
@@ -47,7 +51,11 @@
       "label": "Promo / referral code identity (CRYPTOBONUSW)",
       "result": "requires_owner_partner_confirmation",
       "observed": "CBW displays referral code 'CRYPTOBONUSW'. Referral/partner codes are partner-issued and were not present in the captured (redirecting) public promo response.",
-      "sourceRefs": ["capture:probe-a"],
+      "sourceRefs": [
+        "capture:probe-a",
+        "rendered:rendered-new-user",
+        "rendered:rendered-welcome-gifts"
+      ],
       "limitation": "Referral identity requires a separate owner/partner confirmation artifact; not verifiable from an anonymous official-page capture."
     },
     {
@@ -55,7 +63,12 @@
       "label": "Maximum reward / bonus headline (Up to 30,000 USDT Welcome Package)",
       "result": "inaccessible",
       "observed": "Official promo pages returned HTTP 302 redirects with no server-rendered offer content; the maximum reward figure could not be observed.",
-      "sourceRefs": ["capture:probe-a", "capture:probe-b"],
+      "sourceRefs": [
+        "capture:probe-a",
+        "capture:probe-b",
+        "rendered:rendered-new-user",
+        "rendered:rendered-welcome-gifts"
+      ],
       "limitation": "Client-rendered and/or redirecting official page; the figure was not present in the captured response."
     },
     {
@@ -63,7 +76,9 @@
       "label": "Realistic-value wording",
       "result": "not_found",
       "observed": "This wording is CBW editorial synthesis; no matching official-source statement was captured.",
-      "sourceRefs": ["editorial:cbw-editorial"],
+      "sourceRefs": [
+        "editorial:cbw-editorial"
+      ],
       "limitation": "Editorial estimate, not an official-source claim; non-authorizing."
     },
     {
@@ -71,7 +86,11 @@
       "label": "Fee-discount wording (Up to 50% fee discount)",
       "result": "inaccessible",
       "observed": "Not present in the captured redirecting response; official fee-discount terms were not observable by this method.",
-      "sourceRefs": ["capture:probe-a"],
+      "sourceRefs": [
+        "capture:probe-a",
+        "rendered:rendered-new-user",
+        "rendered:rendered-welcome-gifts"
+      ],
       "limitation": "Requires client-rendered/region-specific page access not available to an anonymous probe."
     },
     {
@@ -79,7 +98,11 @@
       "label": "KYC requirement",
       "result": "inaccessible",
       "observed": "Not present in the captured redirecting response; KYC terms for this specific promo were not observable.",
-      "sourceRefs": ["capture:probe-a"],
+      "sourceRefs": [
+        "capture:probe-a",
+        "rendered:rendered-new-user",
+        "rendered:rendered-welcome-gifts"
+      ],
       "limitation": "Promo-specific KYC terms are client-rendered/region-dependent and were not captured."
     },
     {
@@ -87,7 +110,11 @@
       "label": "Deposit requirement",
       "result": "inaccessible",
       "observed": "Not present in the captured redirecting response.",
-      "sourceRefs": ["capture:probe-a"],
+      "sourceRefs": [
+        "capture:probe-a",
+        "rendered:rendered-new-user",
+        "rendered:rendered-welcome-gifts"
+      ],
       "limitation": "Promo-specific deposit terms were not observable by this method."
     },
     {
@@ -95,7 +122,11 @@
       "label": "Minimum-deposit wording",
       "result": "inaccessible",
       "observed": "Not present in the captured redirecting response; CBW wording is non-specific ('varies by bonus tier').",
-      "sourceRefs": ["capture:probe-a"],
+      "sourceRefs": [
+        "capture:probe-a",
+        "rendered:rendered-new-user",
+        "rendered:rendered-welcome-gifts"
+      ],
       "limitation": "No official minimum-deposit figure was captured."
     },
     {
@@ -103,7 +134,11 @@
       "label": "Offer availability wording (Global excluding restricted regions)",
       "result": "inaccessible",
       "observed": "Not present in the captured redirecting response; availability is region-dependent and client-rendered.",
-      "sourceRefs": ["capture:probe-a"],
+      "sourceRefs": [
+        "capture:probe-a",
+        "rendered:rendered-new-user",
+        "rendered:rendered-welcome-gifts"
+      ],
       "limitation": "Region-dependent availability could not be observed by an anonymous probe."
     },
     {
@@ -111,7 +146,11 @@
       "label": "Restricted-country wording (US, UK, CA, SG, NL)",
       "result": "inaccessible",
       "observed": "Not present in the captured redirecting response; the specific restricted-country list was not observable.",
-      "sourceRefs": ["capture:probe-a"],
+      "sourceRefs": [
+        "capture:probe-a",
+        "rendered:rendered-new-user",
+        "rendered:rendered-welcome-gifts"
+      ],
       "limitation": "Restriction lists are legal/region-specific and require official terms access not available here."
     },
     {
@@ -119,7 +158,11 @@
       "label": "Reward type and withdrawal limitations",
       "result": "inaccessible",
       "observed": "Not present in the captured redirecting response.",
-      "sourceRefs": ["capture:probe-a"],
+      "sourceRefs": [
+        "capture:probe-a",
+        "rendered:rendered-new-user",
+        "rendered:rendered-welcome-gifts"
+      ],
       "limitation": "Voucher/withdrawal mechanics were not observable by this method."
     },
     {
@@ -127,7 +170,11 @@
       "label": "Task / voucher expiry wording",
       "result": "inaccessible",
       "observed": "Not present in the captured redirecting response.",
-      "sourceRefs": ["capture:probe-a"],
+      "sourceRefs": [
+        "capture:probe-a",
+        "rendered:rendered-new-user",
+        "rendered:rendered-welcome-gifts"
+      ],
       "limitation": "Expiry windows were not observable by this method."
     },
     {
@@ -135,18 +182,115 @@
       "label": "Current terms-summary accuracy",
       "result": "inaccessible",
       "observed": "Not present in the captured redirecting response; the CBW terms summary could not be confirmed against official terms.",
-      "sourceRefs": ["capture:probe-a"],
+      "sourceRefs": [
+        "capture:probe-a",
+        "rendered:rendered-new-user",
+        "rendered:rendered-welcome-gifts"
+      ],
       "limitation": "Full official terms were not accessible; the summary remains unconfirmed."
     }
   ],
   "warnings": [
     "Official promo pages redirected (HTTP 302) and returned no server-rendered offer content to an anonymous capture; offer claims are client-rendered and/or geo/region-dependent.",
-    "Referral code identity is partner-issued and requires a separate owner/partner confirmation artifact."
+    "Referral code identity is partner-issued and requires a separate owner/partner confirmation artifact.",
+    "Rendered retry (Issue #254): ephemeral anonymous Chromium navigation returned network_error for both official promo URLs; no offer content rendered, no fragments, no claim upgraded."
   ],
   "limitations": [
     "OFFICIAL_SOURCE_ONLY: no account, no cookies, no proxy, no transaction, no authenticated session.",
     "No full page content is stored; only concise normalized observations and sha256 digests.",
     "Region-dependent wording may differ; this capture reflects a single anonymous request from one network vantage point."
   ],
-  "approval": "draft"
+  "approval": "draft",
+  "renderedCaptures": [
+    {
+      "captureId": "rendered-new-user",
+      "exchangeId": "bybit",
+      "requestedUrl": "https://www.bybit.com/en/promo/new-user/",
+      "finalUrl": "https://www.bybit.com/en/promo/new-user/",
+      "redirectChain": [],
+      "capturedAt": "2026-08-05T21:19:10Z",
+      "browserName": "chromium",
+      "browserVersion": "148.0.7778.96",
+      "runtimeVersion": "v24.14.0",
+      "ephemeralContext": {
+        "persistentProfileUsed": false,
+        "importedStorageState": false,
+        "proxyUsed": false,
+        "authenticationUsed": false,
+        "formSubmissionPerformed": false,
+        "downloadPerformed": false
+      },
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "locale": "en-US",
+      "mainDocumentStatus": null,
+      "contentType": null,
+      "pageTitle": null,
+      "outcome": "network_error",
+      "fragments": [],
+      "structuredMetadata": {
+        "pageTitle": null,
+        "description": null,
+        "canonicalUrl": null,
+        "ogTitle": null,
+        "ogDescription": null,
+        "jsonLdType": null
+      },
+      "warnings": [
+        "navigation network_error: Error"
+      ],
+      "limitations": [
+        "OFFICIAL_SOURCE_ONLY anonymous ephemeral render: no account, cookies, proxy, storage or forms.",
+        "Only bounded normalized fragments and metadata are recorded; no full page content."
+      ],
+      "normalizedArtifactDigest": "sha256:e251691d1b9a77d86dc518b95faf70f1f9ea6f972ed470fffe5be5f4cfc44d2d"
+    },
+    {
+      "captureId": "rendered-welcome-gifts",
+      "exchangeId": "bybit",
+      "requestedUrl": "https://www.bybit.com/en/promo/global/welcome-gifts/",
+      "finalUrl": "https://www.bybit.com/en/promo/global/welcome-gifts/",
+      "redirectChain": [],
+      "capturedAt": "2026-08-05T21:19:11Z",
+      "browserName": "chromium",
+      "browserVersion": "148.0.7778.96",
+      "runtimeVersion": "v24.14.0",
+      "ephemeralContext": {
+        "persistentProfileUsed": false,
+        "importedStorageState": false,
+        "proxyUsed": false,
+        "authenticationUsed": false,
+        "formSubmissionPerformed": false,
+        "downloadPerformed": false
+      },
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "locale": "en-US",
+      "mainDocumentStatus": null,
+      "contentType": null,
+      "pageTitle": null,
+      "outcome": "network_error",
+      "fragments": [],
+      "structuredMetadata": {
+        "pageTitle": null,
+        "description": null,
+        "canonicalUrl": null,
+        "ogTitle": null,
+        "ogDescription": null,
+        "jsonLdType": null
+      },
+      "warnings": [
+        "navigation network_error: Error"
+      ],
+      "limitations": [
+        "OFFICIAL_SOURCE_ONLY anonymous ephemeral render: no account, cookies, proxy, storage or forms.",
+        "Only bounded normalized fragments and metadata are recorded; no full page content."
+      ],
+      "normalizedArtifactDigest": "sha256:439e9cd36166f8266a18a9241e8d57e5a7019f6e2363609f34405cc71fb4ae5d"
+    }
+  ]
 }

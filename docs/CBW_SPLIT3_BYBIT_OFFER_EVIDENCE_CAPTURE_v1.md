@@ -150,6 +150,38 @@ No merge, no deploy, no Cloudflare publication, no environment/secret change,
 destinations modified, no evidence capture for the other five exchanges, no
 MarketProfile population, no owner-authored files touched.
 
+## Public rendered-capture runner (Issue #254)
+
+A reusable, fail-closed **public anonymous rendered-capture runner** was added and
+run once against both official Bybit promo URLs.
+
+- **Contract** `src/data/contracts/publicRenderedCapture.ts` — `PublicRenderedCapture`
+  with identity, requested/final URLs + redirect chain (all official HTTPS Bybit,
+  no credentials/unsafe params), strict `capturedAt`, browser/runtime versions,
+  six ephemeral-context assertions (each must be literally `false`), viewport,
+  locale, status/content-type, `outcome` (one of nine allowed; unknown rejected),
+  **bounded** copyright-safe fragments (max 300 chars, no full HTML / script /
+  JSON dump, recomputable `fragmentDigest`), allowlisted scalar `structuredMetadata`,
+  and a recomputable `normalizedArtifactDigest`. Recursive artifact-safety rejects
+  secrets/cookies/tokens/absolute paths.
+- **Runner** `scripts/evidence/capture-bybit-rendered.mjs` (`npm run
+  evidence:capture:bybit:rendered -- --live --confirm-live`) — fresh ephemeral
+  Chromium: no persistent profile, storage import, proxy, credentials, extensions,
+  downloads, form submission, or non-official navigation; blocks downloads / file
+  choosers / non-official popups; classifies walls/errors honestly without bypass.
+  Manual only — never run in build/CI, transient output gitignored.
+- **Offline CI** — CI validates the committed normalized artifacts and recomputes
+  digests (`validatePublicRenderedCapture`); no browser/network in GitHub Actions.
+
+**Live render outcome (2026-08-05):** both official URLs → `outcome:
+network_error` (headless ephemeral navigation received no response; status `null`,
+0 fragments, no redirect chain captured). No offer content rendered, so **no claim
+changed**. The two rendered captures are added to `renderedCaptures[]` (each with
+its own `normalizedArtifactDigest`); the two HTTP probes and the
+`captureManifestDigest` are unchanged. `promo_code` remains
+`requires_owner_partner_confirmation`; the packet remains `draft`;
+`offers.bybit.evidence` remains `null`.
+
 ## Remaining blockers
 
 - Owner/partner confirmation of the referral-code identity (`CRYPTOBONUSW`).
