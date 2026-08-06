@@ -206,7 +206,7 @@
       "captureId": "rendered-new-user",
       "exchangeId": "bybit",
       "requestedUrl": "https://www.bybit.com/en/promo/new-user/",
-      "finalUrl": "https://www.bybit.com/en/promo/new-user/",
+      "finalUrl": null,
       "redirectChain": [],
       "capturedAt": "2026-08-05T21:19:10Z",
       "browserName": "chromium",
@@ -220,6 +220,20 @@
         "formSubmissionPerformed": false,
         "downloadPerformed": false
       },
+      "runtimeReceipt": {
+        "persistentContextUsed": false,
+        "storageStateImported": false,
+        "proxyConfigured": false,
+        "httpCredentialsConfigured": false,
+        "initialCookieCount": 0,
+        "initialLocalStorageEntryCount": 0,
+        "initialSessionStorageEntryCount": 0,
+        "formSubmissionsObserved": 0,
+        "downloadsObserved": 0,
+        "fileChoosersObserved": 0,
+        "externalMainFrameNavigationsBlocked": 0,
+        "artifactContainsCookieValues": false
+      },
       "viewport": {
         "width": 1280,
         "height": 900
@@ -245,13 +259,13 @@
         "OFFICIAL_SOURCE_ONLY anonymous ephemeral render: no account, cookies, proxy, storage or forms.",
         "Only bounded normalized fragments and metadata are recorded; no full page content."
       ],
-      "normalizedArtifactDigest": "sha256:e251691d1b9a77d86dc518b95faf70f1f9ea6f972ed470fffe5be5f4cfc44d2d"
+      "normalizedArtifactDigest": "sha256:6a365aff9fd196a2bb777240517355d11b4477169f6f34ee6f35b6d870eb6d6b"
     },
     {
       "captureId": "rendered-welcome-gifts",
       "exchangeId": "bybit",
       "requestedUrl": "https://www.bybit.com/en/promo/global/welcome-gifts/",
-      "finalUrl": "https://www.bybit.com/en/promo/global/welcome-gifts/",
+      "finalUrl": null,
       "redirectChain": [],
       "capturedAt": "2026-08-05T21:19:11Z",
       "browserName": "chromium",
@@ -265,6 +279,20 @@
         "formSubmissionPerformed": false,
         "downloadPerformed": false
       },
+      "runtimeReceipt": {
+        "persistentContextUsed": false,
+        "storageStateImported": false,
+        "proxyConfigured": false,
+        "httpCredentialsConfigured": false,
+        "initialCookieCount": 0,
+        "initialLocalStorageEntryCount": 0,
+        "initialSessionStorageEntryCount": 0,
+        "formSubmissionsObserved": 0,
+        "downloadsObserved": 0,
+        "fileChoosersObserved": 0,
+        "externalMainFrameNavigationsBlocked": 0,
+        "artifactContainsCookieValues": false
+      },
       "viewport": {
         "width": 1280,
         "height": 900
@@ -290,7 +318,7 @@
         "OFFICIAL_SOURCE_ONLY anonymous ephemeral render: no account, cookies, proxy, storage or forms.",
         "Only bounded normalized fragments and metadata are recorded; no full page content."
       ],
-      "normalizedArtifactDigest": "sha256:439e9cd36166f8266a18a9241e8d57e5a7019f6e2363609f34405cc71fb4ae5d"
+      "normalizedArtifactDigest": "sha256:bf19e774b7b7d31ab4a3a31bd075fa563308e1d4654f5969851c4ee4dafefe79"
     }
   ]
 }

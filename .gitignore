@@ -59,3 +59,4 @@ public/media/walkthroughs/**/*.html
 
 # Issue #254 transient rendered-capture runner output (never committed; real captures live in the packet)
 scripts/evidence/out-bybit-rendered.json
+scripts/evidence/out-bybit-rendered.rejected.json
