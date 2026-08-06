@@ -34,6 +34,12 @@ import {
   captureMaySupportClaims,
   fragmentSupportsClaim,
 } from './publicRenderedCapture';
+import {
+  type OfficialSourceCapture,
+  validateOfficialSourceCapture,
+  sourceMaySupportClaims,
+  officialFragmentAddressesClaim,
+} from './officialSourceCapture';
 
 /* ─────────────────────────── R1: code-owned claim policy ────────────────────── */
 
@@ -69,6 +75,19 @@ export const BYBIT_OFFER_REQUIRED_CLAIMS = Object.freeze([
 
 /** Optional claim-ID extensions beyond the canonical inventory (none for the pilot). */
 export const BYBIT_OFFER_CLAIM_EXTENSIONS: readonly string[] = Object.freeze([]);
+
+/**
+ * Claims whose authorization is owned by the code-owned SOURCE PLAN (Issue #260, R9),
+ * not the raw packet. A raw packet may NEVER hand-set one of these to `supported`; its
+ * supported status is derived only by the resolution bridge from the canonical
+ * source-plan assessment over the complete evidence run. This mirrors how
+ * `bybit.promo_code` is owned by the confirmation evaluator. Kept as a code-owned set
+ * here (not imported from the plan) to avoid a circular import. `bybit.source_identity`
+ * stays on the existing identity-bound capture path; `bybit.realistic_value` is editorial.
+ */
+export const SOURCE_PLAN_TARGET_CLAIM_SET: ReadonlySet<string> = new Set(
+  BYBIT_OFFER_CLAIM_INVENTORY.filter((c) => c !== 'bybit.source_identity' && c !== 'bybit.promo_code' && c !== 'bybit.realistic_value'),
+);
 
 export const BYBIT_OFFER_CLAIM_POLICY = Object.freeze({
   exchangeId: 'bybit',
@@ -154,6 +173,15 @@ export interface OfferEvidencePacket {
    * audit/context only and never supplies support (R4).
    */
   renderedCaptures?: PublicRenderedCapture[];
+  /**
+   * Structured official-source capture records (Issue #260). Additive: bounded anonymous
+   * captures of official Bybit sources classified by SCOPE + CURRENCY. A claim may cite
+   * one for support only via a FRAGMENT-LEVEL reference (`source-fragment:<src>/<frag>`)
+   * on an official `content` capture whose fragment binds the exact claim; a bare
+   * `source:<src>` reference is audit/context only and never supplies support. Scope
+   * sufficiency itself is decided by the code-owned source plan, not the packet.
+   */
+  officialSourceCaptures?: OfficialSourceCapture[];
   claims: OfferClaimVerification[];
   warnings: string[];
   limitations: string[];
@@ -168,7 +196,7 @@ const CANONICAL_SLUG = /^[a-z0-9][a-z0-9-]*$/;
 const SHA256 = /^sha256:[a-f0-9]{64}$/;
 const CLAIM_RESULTS: OfferClaimResult[] = ['supported', 'partially_supported', 'not_found', 'contradicted', 'inaccessible', 'requires_owner_partner_confirmation'];
 const APPROVALS: PacketApproval[] = ['draft', 'validated', 'approved', 'rejected', 'stale'];
-const SOURCE_REF = /^(?:(?:capture|rendered|editorial):[a-z0-9][a-z0-9._-]*|rendered-fragment:[a-z0-9][a-z0-9._-]*\/[a-z0-9][a-z0-9._-]*)$/;
+const SOURCE_REF = /^(?:(?:capture|rendered|editorial|source):[a-z0-9][a-z0-9._-]*|(?:rendered-fragment|source-fragment):[a-z0-9][a-z0-9._-]*\/[a-z0-9][a-z0-9._-]*)$/;
 
 /* ─────────────────────────── R7: recursive artifact safety ──────────────────── */
 
@@ -358,6 +386,38 @@ export function validateOfferEvidencePacket(input: unknown): PacketValidationRes
     return { capId, fragId, capture, fragmentExists };
   };
 
+  // Official-source captures (#260): additive, each with its own integrity. A source
+  // may back a supported claim only when it is official + its outcome permits content
+  // (`content`) and the cited fragment binds the exact claim.
+  const officialIds = new Set<string>();
+  const officialSupportIds = new Set<string>();
+  const officialById = new Map<string, OfficialSourceCapture>();
+  if (rec.officialSourceCaptures !== undefined) {
+    if (!Array.isArray(rec.officialSourceCaptures)) issues.push({ field: 'officialSourceCaptures', code: 'INVALID_ARRAY', message: 'officialSourceCaptures must be an array.' });
+    else rec.officialSourceCaptures.forEach((c, i) => {
+      const v = validateOfficialSourceCapture(c, BYBIT_OFFER_CLAIM_INVENTORY);
+      if (!v.ok) v.issues.forEach((iss) => issues.push({ field: `officialSourceCaptures.${i}.${iss.field}`, code: iss.code, message: iss.message }));
+      const id = (c as Record<string, unknown>)?.sourceId;
+      if (typeof id === 'string') {
+        if (officialIds.has(id)) issues.push({ field: 'officialSourceCaptures', code: 'DUPLICATE_SOURCE', message: 'official sourceId must be unique.' });
+        officialIds.add(id);
+        if (v.ok && v.value) {
+          officialById.set(id, v.value);
+          if (sourceMaySupportClaims(v.value)) officialSupportIds.add(id);
+        }
+      }
+    });
+  }
+  const resolveOfficialFragment = (ref: string): { srcId: string; fragId: string; capture?: OfficialSourceCapture; fragmentExists: boolean } => {
+    const body = ref.slice('source-fragment:'.length);
+    const slash = body.indexOf('/');
+    const srcId = body.slice(0, slash);
+    const fragId = body.slice(slash + 1);
+    const capture = officialById.get(srcId);
+    const fragmentExists = !!capture && capture.fragments.some((f) => f.fragmentId === fragId);
+    return { srcId, fragId, capture, fragmentExists };
+  };
+
   // Claims: inventory must EXACTLY match the code-owned policy (R1) + sourceRef binding (R4).
   if (!Array.isArray(rec.claims) || rec.claims.length === 0) {
     issues.push({ field: 'claims', code: 'NO_CLAIMS', message: 'Claims are required.' });
@@ -378,6 +438,10 @@ export function validateOfferEvidencePacket(input: unknown): PacketValidationRes
       // Promo authority is derived only by the confirmation-evaluator bridge into the
       // separate resolved view; the committed record stays a raw observation.
       if (r.claimId === 'bybit.promo_code' && r.result === 'supported') issues.push({ field: `${path}.result`, code: 'PROMO_RAW_SUPPORT_FORBIDDEN', message: 'bybit.promo_code cannot be supported in the raw packet; support comes only from the confirmation bridge.' });
+      // Issue #260 (R9): a source-plan target claim may never be raw-supported; its
+      // supported status is derived only by the resolution bridge from the canonical
+      // source-plan assessment over the complete evidence run.
+      if (SOURCE_PLAN_TARGET_CLAIM_SET.has(r.claimId as string) && r.result === 'supported') issues.push({ field: `${path}.result`, code: 'SOURCE_PLAN_RAW_SUPPORT_FORBIDDEN', message: 'Source-plan target claim cannot be supported in the raw packet; support comes only from the source-plan assessment via the resolution bridge.' });
       if (typeof r.observed !== 'string') issues.push({ field: `${path}.observed`, code: 'REQUIRED', message: 'observed required.' });
       if (typeof r.limitation !== 'string') issues.push({ field: `${path}.limitation`, code: 'REQUIRED', message: 'limitation required.' });
       // Reject a packet trying to declare its own requirement.
@@ -393,9 +457,16 @@ export function validateOfferEvidencePacket(input: unknown): PacketValidationRes
             else if (!fragmentExists) issues.push({ field: `${path}.sourceRefs`, code: 'UNKNOWN_RENDERED_FRAGMENT_REF', message: `Unknown rendered fragment reference: ${ref}` });
             continue;
           }
+          if (ref.startsWith('source-fragment:')) {
+            const { srcId, fragmentExists } = resolveOfficialFragment(ref);
+            if (!officialIds.has(srcId)) issues.push({ field: `${path}.sourceRefs`, code: 'UNKNOWN_SOURCE_REF', message: `Unknown official-source reference: ${ref}` });
+            else if (!fragmentExists) issues.push({ field: `${path}.sourceRefs`, code: 'UNKNOWN_SOURCE_FRAGMENT_REF', message: `Unknown official-source fragment reference: ${ref}` });
+            continue;
+          }
           const [kind, id] = ref.split(':');
           if (kind === 'capture' && !captureIds.has(id)) issues.push({ field: `${path}.sourceRefs`, code: 'UNKNOWN_CAPTURE_REF', message: `Unknown capture reference: ${ref}` });
           if (kind === 'rendered' && !renderedIds.has(id)) issues.push({ field: `${path}.sourceRefs`, code: 'UNKNOWN_RENDERED_REF', message: `Unknown rendered-capture reference: ${ref}` });
+          if (kind === 'source' && !officialIds.has(id)) issues.push({ field: `${path}.sourceRefs`, code: 'UNKNOWN_SOURCE_REF', message: `Unknown official-source reference: ${ref}` });
         }
         // A REQUIRED SUPPORTED claim must cite an admissible source: a declared HTTP
         // capture or a FRAGMENT-LEVEL rendered reference (`rendered-fragment:<cap>/
@@ -404,12 +475,18 @@ export function validateOfferEvidencePacket(input: unknown): PacketValidationRes
         // supply support. Editorial and walled/errored rendered captures are never
         // admissible for support. (Promo authority never flows through the packet.)
         const isRequired = (BYBIT_OFFER_REQUIRED_CLAIMS as readonly string[]).includes(r.claimId as string);
-        if (isRequired && r.result === 'supported') {
+        // Source-plan target claims are handled by SOURCE_PLAN_RAW_SUPPORT_FORBIDDEN above
+        // (they can never be raw-supported); only the identity-bound path reaches here.
+        if (isRequired && r.result === 'supported' && !SOURCE_PLAN_TARGET_CLAIM_SET.has(r.claimId as string)) {
           const admissible = (r.sourceRefs as string[]).some((ref) => {
             if (ref.startsWith('capture:')) return true;
             if (ref.startsWith('rendered-fragment:')) {
               const { capId, fragId, capture } = resolveRenderedFragment(ref);
               return renderedSupportIds.has(capId) && !!capture && fragmentSupportsClaim(capture, fragId, r.claimId as string);
+            }
+            if (ref.startsWith('source-fragment:')) {
+              const { srcId, fragId, capture } = resolveOfficialFragment(ref);
+              return officialSupportIds.has(srcId) && !!capture && officialFragmentAddressesClaim(capture, fragId, r.claimId as string, 'supports');
             }
             return false;
           });

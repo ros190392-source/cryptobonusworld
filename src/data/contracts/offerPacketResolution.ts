@@ -43,6 +43,14 @@ import {
   BYBIT_PROMO_CODE_CONFIRMATION_POLICY,
 } from './claimConfirmation';
 import { getOffer } from '../offers';
+import {
+  type ClaimAssessmentResult,
+  buildOfficialSourceEvidenceRun,
+  assessOfferClaimEvidence,
+  SOURCE_PLAN_TARGET_CLAIMS,
+  BYBIT_SOURCE_PLAN_ID,
+  BYBIT_SOURCE_PLAN_DIGEST,
+} from './bybitOfferClaimSourcePlan';
 
 const PROMO_CLAIM_ID = 'bybit.promo_code';
 export const RESOLUTION_SCHEMA_ID = 'cbw:offer-packet-resolution:v1';
@@ -106,6 +114,7 @@ export function computeRawPacketDigest(packet: OfferEvidencePacket): string {
     captureTool: packet.captureTool,
     captures: JSON.parse(canonicalCaptureManifest(packet.captures)),
     renderedCaptures: (packet.renderedCaptures ?? []).map((c) => c.normalizedArtifactDigest),
+    officialSourceCaptures: (packet.officialSourceCaptures ?? []).map((c) => c.sourceDigest),
     claims: [...packet.claims].sort((a, b) => (a.claimId < b.claimId ? -1 : a.claimId > b.claimId ? 1 : 0)).map((c) => ({ claimId: c.claimId, label: c.label, result: c.result, observed: c.observed, sourceRefs: [...c.sourceRefs].sort(), limitation: c.limitation })),
     warnings: packet.warnings,
     limitations: packet.limitations,
@@ -126,7 +135,7 @@ export function computeConfirmationSetDigest(set: readonly ClaimConfirmationArti
 
 /* ─────────────────────────── resolved model (audit-only) ─────────────────────── */
 
-export type ClaimProvenanceKind = 'raw_capture' | 'confirmation_evaluator';
+export type ClaimProvenanceKind = 'raw_capture' | 'confirmation_evaluator' | 'source_plan_assessment';
 
 export interface ResolvedClaimProvenance {
   kind: ClaimProvenanceKind;
@@ -154,7 +163,17 @@ export type ResolutionFailReason =
   | 'OFFER_CODE_INVALID'
   | 'CONFIRMATION_INVALID'
   | 'CONFIRMATION_CONFLICT'
-  | 'CONFIRMED_VALUE_MISMATCH';
+  | 'CONFIRMED_VALUE_MISMATCH'
+  | 'EVIDENCE_RUN_INVALID'
+  | 'RAW_MORE_POSITIVE_THAN_ASSESSMENT';
+
+/** Support level for the "raw must never be more positive than assessment" invariant (R9). */
+function supportLevel(r: OfferClaimResult): number {
+  return r === 'supported' ? 3 : r === 'partially_supported' ? 2 : 0;
+}
+function assessmentToClaimResult(a: ClaimAssessmentResult): OfferClaimResult {
+  return a === 'incomplete' || a === 'invalid' ? 'inaccessible' : a;
+}
 
 export interface ResolvedOfferPacket {
   ok: true;
@@ -172,6 +191,10 @@ export interface ResolvedOfferPacket {
   confirmationEvaluation: ConfirmationEvaluationRecord;
   rawClaims: RawClaimRecord[];
   renderedArtifactDigests: string[];
+  officialSourceDigests: string[];
+  sourcePlanId: string;
+  sourcePlanDigest: string;
+  evidenceRunDigest: string;
   resolvedClaims: ResolvedClaim[];
   blockingRequiredClaims: string[];
   resolutionDigest: string;
@@ -201,6 +224,10 @@ export function canonicalResolution(r: ResolutionCore): string {
     confirmationEvaluation: { state: r.confirmationEvaluation.state, value: r.confirmationEvaluation.value, confirmationId: r.confirmationEvaluation.confirmationId },
     rawClaims: r.rawClaims.map((c) => ({ claimId: c.claimId, result: c.result, sourceRefs: [...c.sourceRefs].sort() })),
     renderedArtifactDigests: [...r.renderedArtifactDigests].sort(),
+    officialSourceDigests: [...r.officialSourceDigests].sort(),
+    sourcePlanId: r.sourcePlanId,
+    sourcePlanDigest: r.sourcePlanDigest,
+    evidenceRunDigest: r.evidenceRunDigest,
     resolvedClaims: r.resolvedClaims.map((c) => ({ claimId: c.claimId, rawResult: c.rawResult, resolvedResult: c.resolvedResult, provenance: canonicalProvenance(c.provenance) })),
     blockingRequiredClaims: [...r.blockingRequiredClaims].sort(),
   });
@@ -249,12 +276,32 @@ function resolveInternal(
     promoProvenance = { kind: 'confirmation_evaluator', detail: `promo unresolved (evaluator ${evalRes.state}); no supported authority`, evaluatorState: evalRes.state, evaluatorValue: evalRes.value ?? null, confirmationId: evalRes.confirmationId ?? null };
   }
 
+  // R9 — the SOURCE PLAN controls authorization for its target claims. Build + validate
+  // the complete evidence run over the committed official-source captures; an INVALID run
+  // fails the whole resolution (never a cherry-picked subset). Each target claim's
+  // resolvedResult is the canonical source-plan assessment, never the raw packet value.
+  const evidenceRun = buildOfficialSourceEvidenceRun(packet.officialSourceCaptures ?? [], nowMs, packet.packetId);
+  if (!evidenceRun.ok) return { ok: false, reason: 'EVIDENCE_RUN_INVALID' };
+  const targetSet = new Set<string>(SOURCE_PLAN_TARGET_CLAIMS);
+
   const resolvedClaims: ResolvedClaim[] = BYBIT_OFFER_CLAIM_INVENTORY.map((claimId) => {
     const raw = byId.get(claimId);
     const rawResult = raw?.result ?? 'inaccessible';
     if (claimId === PROMO_CLAIM_ID) return { claimId, rawResult, resolvedResult: promoResolved, provenance: promoProvenance };
+    if (targetSet.has(claimId)) {
+      const a = assessOfferClaimEvidence(claimId, evidenceRun, nowMs);
+      const resolvedResult = assessmentToClaimResult(a.result);
+      return { claimId, rawResult, resolvedResult, provenance: { kind: 'source_plan_assessment', detail: `source-plan assessment=${a.result} (${a.reason})` } };
+    }
     return { claimId, rawResult, resolvedResult: rawResult, provenance: { kind: 'raw_capture', detail: 'bound to raw capture evidence; confirmation data cannot influence this claim' } };
   });
+
+  // R9 invariant — a raw target claim must never be MORE positive than its assessment.
+  for (const c of resolvedClaims) {
+    if (targetSet.has(c.claimId) && supportLevel(c.rawResult) > supportLevel(c.resolvedResult)) {
+      return { ok: false, reason: 'RAW_MORE_POSITIVE_THAN_ASSESSMENT' };
+    }
+  }
   const rawClaims: RawClaimRecord[] = BYBIT_OFFER_CLAIM_INVENTORY.map((claimId) => {
     const raw = byId.get(claimId);
     return { claimId, result: raw?.result ?? 'inaccessible', sourceRefs: raw ? [...raw.sourceRefs] : [] };
@@ -283,6 +330,10 @@ function resolveInternal(
     confirmationEvaluation: { state: evalRes.state, value: evalRes.value ?? null, confirmationId: evalRes.confirmationId ?? null },
     rawClaims,
     renderedArtifactDigests: (packet.renderedCaptures ?? []).map((c) => c.normalizedArtifactDigest),
+    officialSourceDigests: (packet.officialSourceCaptures ?? []).map((c) => c.sourceDigest),
+    sourcePlanId: BYBIT_SOURCE_PLAN_ID,
+    sourcePlanDigest: BYBIT_SOURCE_PLAN_DIGEST,
+    evidenceRunDigest: evidenceRun.runDigest,
     resolvedClaims,
     blockingRequiredClaims,
   };
@@ -322,7 +373,19 @@ export function validateResolvedOfferPacket(resolved: unknown): { ok: boolean; i
   for (const id of BYBIT_OFFER_CLAIM_INVENTORY) if (!seen.has(id)) issues.push({ field: 'resolvedClaims', code: 'MISSING_CLAIM', message: `Missing resolved claim: ${id}` });
   for (const c of r.resolvedClaims) if (!(BYBIT_OFFER_CLAIM_INVENTORY as readonly string[]).includes(c.claimId)) issues.push({ field: 'resolvedClaims', code: 'UNKNOWN_CLAIM', message: `Unknown resolved claim: ${c.claimId}` });
   // Only promo may diverge from its raw result.
-  for (const c of r.resolvedClaims) if (c.claimId !== PROMO_CLAIM_ID && c.resolvedResult !== c.rawResult) issues.push({ field: `resolvedClaims.${c.claimId}`, code: 'NONPROMO_DIVERGED', message: 'Only bybit.promo_code may differ from its raw result.' });
+  // Only bybit.promo_code (confirmation evaluator) and source-plan target claims
+  // (source-plan assessment) may diverge from raw. A target claim's raw result must
+  // never be MORE positive than its resolved (assessment) result (R9).
+  const targetSet = new Set<string>(SOURCE_PLAN_TARGET_CLAIMS);
+  for (const c of r.resolvedClaims) {
+    if (c.claimId === PROMO_CLAIM_ID) continue;
+    if (targetSet.has(c.claimId)) {
+      if (c.provenance.kind !== 'source_plan_assessment') issues.push({ field: `resolvedClaims.${c.claimId}`, code: 'TARGET_PROVENANCE_INVALID', message: 'A source-plan target claim must carry source_plan_assessment provenance.' });
+      if (supportLevel(c.rawResult) > supportLevel(c.resolvedResult)) issues.push({ field: `resolvedClaims.${c.claimId}`, code: 'RAW_MORE_POSITIVE_THAN_ASSESSMENT', message: 'Raw target claim must never be more positive than its assessment.' });
+      continue;
+    }
+    if (c.resolvedResult !== c.rawResult) issues.push({ field: `resolvedClaims.${c.claimId}`, code: 'NONPROMO_DIVERGED', message: 'Only promo + source-plan target claims may differ from raw.' });
+  }
   // Promo support invariants.
   const promo = r.resolvedClaims.find((c) => c.claimId === PROMO_CLAIM_ID);
   if (promo) {

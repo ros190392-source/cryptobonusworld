@@ -63,3 +63,7 @@ scripts/evidence/out-bybit-rendered.rejected.json
 
 # Issue #256 transient confirmation intake template (never committed; real set stays empty)
 scripts/evidence/out-bybit-promo-code-confirmation.json
+
+# Issue #260 transient official-source capture output (never committed; validated captures fold into the packet under review)
+scripts/evidence/out-bybit-official-sources.json
+scripts/evidence/out-bybit-official-sources.rejected.json

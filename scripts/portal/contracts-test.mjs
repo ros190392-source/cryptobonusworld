@@ -40,6 +40,8 @@ const publicRenderedCapture = join(ROOT, 'src/data/contracts/publicRenderedCaptu
 const claimConfirmation = join(ROOT, 'src/data/contracts/claimConfirmation.ts');
 const bybitPromoCodeConfirmation = join(ROOT, 'src/data/evidence/offers/bybitPromoCodeConfirmation.ts');
 const offerPacketResolution = join(ROOT, 'src/data/contracts/offerPacketResolution.ts');
+const officialSourceCapture = join(ROOT, 'src/data/contracts/officialSourceCapture.ts');
+const bybitOfferClaimSourcePlan = join(ROOT, 'src/data/contracts/bybitOfferClaimSourcePlan.ts');
 
 const tmp = mkdtempSync(join(tmpdir(), 'cbw-portal-test-'));
 const outfile = join(tmp, 'contracts.mjs');
@@ -77,7 +79,10 @@ try {
         `export { BYBIT_OFFER_EVIDENCE_PACKET, BYBIT_OFFER_EVIDENCE_DECISION, deriveBybitDecision, deriveBybitOfferEvidence, bybitOfferEvidence } from ${JSON.stringify(bybitOfferEvidence)};\n` +
         `export { validatePublicRenderedCapture, computeFragmentDigest, computeRenderedArtifactDigest, canonicalRenderedArtifact, isOfficialBybitUrl, captureMaySupportClaims, fragmentSupportsClaim, RENDER_OUTCOMES, MAX_FRAGMENT_TEXT_LENGTH, MAX_REDIRECTS, MAX_LOCATOR_LENGTH, MAX_WARNINGS, MAX_WARNING_LENGTH, MAX_PAGE_TITLE_LENGTH } from ${JSON.stringify(publicRenderedCapture)};\n` +
         `export { validateClaimConfirmation, normalizeReferralCode, normalizeStatement, computeAssertedValueDigest, computeSourceStatementDigest, computeReceiptDigest, canonicalSourceAssertion, computeConfirmationArtifactDigest, canonicalConfirmationArtifact, promoAdmissibilityIssues, evaluatePromoCodeConfirmations, evaluateBybitPromoCodeConfirmations, promoCodeSetConfirmsValue, BYBIT_PROMO_CODE_CONFIRMATION_POLICY, TEST_ONLY_PROMO_CODE_POLICY, CONFIRMATION_SOURCE_KINDS, CONFIRMATION_LIFECYCLE_STATES, ARTIFACT_INTENTS, ASSIGNMENT_STATES, MAX_STATEMENT_LENGTH } from ${JSON.stringify(claimConfirmation)};\n` +
-        `export { BYBIT_PROMO_CODE_CONFIRMATIONS, BYBIT_PROMO_CODE_CONFIRMATION_STATE, BYBIT_PROMO_CODE_CANDIDATE, BYBIT_PROMO_CODE_CANDIDATE_CONFIRMED } from ${JSON.stringify(bybitPromoCodeConfirmation)};`,
+        `export { BYBIT_PROMO_CODE_CONFIRMATIONS, BYBIT_PROMO_CODE_CONFIRMATION_STATE, BYBIT_PROMO_CODE_CANDIDATE, BYBIT_PROMO_CODE_CANDIDATE_CONFIRMED } from ${JSON.stringify(bybitPromoCodeConfirmation)};\n` +
+        `export { validateOfficialSourceCapture, computeOfficialSourceDigest, computeOfficialFragmentDigest, canonicalOfficialSource, sourceMaySupportClaims, sourceWasReachable, officialFragmentAddressesClaim, OFFICIAL_SOURCE_SCOPES, OFFICIAL_SOURCE_OUTCOMES, MAX_SOURCE_FRAGMENT_TEXT } from ${JSON.stringify(officialSourceCapture)};\n` +
+        `export * as OSC from ${JSON.stringify(officialSourceCapture)};\n` +
+        `export { BYBIT_OFFER_CLAIM_SOURCE_PLAN, BYBIT_OFFICIAL_SOURCE_CANDIDATES, BYBIT_OFFER_EXTRACTION_PLAN, SOURCE_PLAN_TARGET_CLAIMS, SOURCE_PLAN_EXCLUDED_CLAIMS, BYBIT_SOURCE_PLAN_ID, BYBIT_SOURCE_PLAN_DIGEST, getSourcePlanEntry, getCandidate, computeCandidateDigest, assessOfferClaimEvidence, assessAllOfferClaims, buildOfficialSourceEvidenceRun, documentIdentity, validateSourcePlanCoverage, validateExtractionCoverage } from ${JSON.stringify(bybitOfferClaimSourcePlan)};`,
       resolveDir: ROOT,
       loader: 'ts',
     },
@@ -837,10 +842,15 @@ try {
   // cited EXCEPT bybit.promo_code, which may never be raw-supported — its authority
   // comes only from the confirmation bridge, so it stays partner-confirmation-required
   // in the raw packet. realistic_value editorial; other optionals supported + cited.
+  // Issue #260 (R9): source-plan target claims may NEVER be raw-supported; their support
+  // is derived by the resolver from the source-plan assessment. Only source_identity is
+  // raw-supported (identity-bound capture path). Target claims stay inaccessible in the raw
+  // packet fixture; promo stays confirmation-required; realistic_value is editorial.
   const completeClaims = () => m.BYBIT_OFFER_CLAIM_INVENTORY.map((id) =>
     id === 'bybit.realistic_value' ? mkClaim(id, 'not_found', ['editorial:cbw'])
       : id === 'bybit.promo_code' ? mkClaim(id, 'requires_owner_partner_confirmation', ['capture:probe-a'])
-        : mkClaim(id, 'supported', ['capture:probe-a']));
+        : id === 'bybit.source_identity' ? mkClaim(id, 'supported', ['capture:probe-a'])
+          : mkClaim(id, 'inaccessible', ['capture:probe-a']));
   const APPROVER = { approvedBy: 'ros190392-source', approvedAt: pdaysAgo(1), approvalRef: 'https://github.com/ros190392-source/cryptobonusworld/pull/253#pullrequestreview-1' };
   const buildPacket = (over = {}) => {
     const captures = over.captures || [capA];
@@ -889,7 +899,7 @@ try {
   check('pkt/7: duplicate claim rejected', (() => { const p = buildPacket({ claims: [...completeClaims(), mkClaim('bybit.kyc_required', 'supported', ['capture:probe-a'])] }); return !m.validateOfferEvidencePacket(p).ok && m.validateOfferEvidencePacket(p).issues.some((i) => i.code === 'PACKET_CLAIM_INVENTORY_INVALID'); })());
   check('pkt/8: declared unsupportedClaims rejected (derived, atomic)', (() => { const p = buildPacket({ unsupportedClaims: [] }); return !m.validateOfferEvidencePacket(p).ok && m.validateOfferEvidencePacket(p).issues.some((i) => i.code === 'DERIVED_FIELD'); })());
   check('pkt/9: required supported claim with unknown capture ref rejected', !m.validateOfferEvidencePacket(withClaim('bybit.kyc_required', { sourceRefs: ['capture:nope'] })).ok);
-  check('pkt/10: required supported claim citing editorial source rejected', (() => { const p = withClaim('bybit.kyc_required', { sourceRefs: ['editorial:cbw'] }); return !m.validateOfferEvidencePacket(p).ok && m.validateOfferEvidencePacket(p).issues.some((i) => i.code === 'INADMISSIBLE_SUPPORT'); })());
+  check('pkt/10: required supported claim citing editorial source rejected', (() => { const p = withClaim('bybit.source_identity', { result: 'supported', sourceRefs: ['editorial:cbw'] }); return !m.validateOfferEvidencePacket(p).ok && m.validateOfferEvidencePacket(p).issues.some((i) => i.code === 'INADMISSIBLE_SUPPORT'); })());
   check('pkt/11: claim citing undeclared capture rejected', !m.validateOfferEvidencePacket(withClaim('bybit.bonus_headline', { sourceRefs: ['capture:ghost'] })).ok);
   check('pkt/12: complete claim sources bound to declared official captures accepted', (() => { const p = approvedPacket; return m.validateOfferEvidencePacket(p).ok && m.BYBIT_OFFER_REQUIRED_CLAIMS.every((id) => p.claims.find((c) => c.claimId === id).sourceRefs.some((r) => r.startsWith('capture:'))); })());
   check('pkt/13: arbitrary all-a packet digest rejected', (() => { const p = buildPacket({ captureManifestDigest: 'sha256:' + 'a'.repeat(64) }); return !m.validateOfferEvidencePacket(p).ok && m.validateOfferEvidencePacket(p).issues.some((i) => i.code === 'DIGEST_MISMATCH') && m.adaptBybitOfferToEvidence(p, [], PKT_NOW).reason === 'RESOLUTION_INVALID'; })());
@@ -1044,12 +1054,18 @@ try {
   // -- R4 fragment-level claim provenance (packet layer) --
   const posCap = mkCap({ fragments: [mkClaimFrag()] });
   const posRefs = (over = {}) => buildPacket({ renderedCaptures: [posCap], claims: completeClaims().map((c) => c.claimId === 'bybit.bonus_headline' ? { ...c, ...over } : c) });
-  check('render/56: exact matching rendered-fragment reference supports a required claim', m.validateOfferEvidencePacket(posRefs({ sourceRefs: ['rendered-fragment:rc1/f-bonus'] })).ok === true);
-  check('render/57: bare rendered: capture reference cannot supply support', (() => { const p = posRefs({ sourceRefs: ['rendered:rc1'] }); return !m.validateOfferEvidencePacket(p).ok && m.validateOfferEvidencePacket(p).issues.some((i) => i.code === 'INADMISSIBLE_SUPPORT'); })());
+  // Packet-layer rendered-fragment admissibility is tested via bybit.source_identity — the
+  // only required claim still authorized at the packet layer (#260 R9: source-plan target
+  // claims are never raw-supported; their support comes from the resolver's assessment).
+  const siFrag = mkFrag({ fragmentId: 'f-sid', extractionType: 'visible_text', locator: 'h1', text: 'official bybit domain identity', claimIds: ['bybit.source_identity'] });
+  const siCap = mkCap({ fragments: [siFrag] });
+  const siRefs = (over = {}) => buildPacket({ renderedCaptures: [siCap], claims: completeClaims().map((c) => c.claimId === 'bybit.source_identity' ? { ...c, result: 'supported', ...over } : c) });
+  check('render/56: exact matching rendered-fragment reference supports a required claim', m.validateOfferEvidencePacket(siRefs({ sourceRefs: ['rendered-fragment:rc1/f-sid'] })).ok === true);
+  check('render/57: bare rendered: capture reference cannot supply support', (() => { const p = siRefs({ sourceRefs: ['rendered:rc1'] }); return !m.validateOfferEvidencePacket(p).ok && m.validateOfferEvidencePacket(p).issues.some((i) => i.code === 'INADMISSIBLE_SUPPORT'); })());
   check('render/58: unknown rendered-fragment reference rejected', (() => { const p = posRefs({ sourceRefs: ['rendered-fragment:rc1/ghost'] }); return m.validateOfferEvidencePacket(p).issues.some((i) => i.code === 'UNKNOWN_RENDERED_FRAGMENT_REF'); })());
   check('render/59: unknown rendered capture reference rejected', (() => { const p = posRefs({ sourceRefs: ['rendered:ghost'] }); return m.validateOfferEvidencePacket(p).issues.some((i) => i.code === 'UNKNOWN_RENDERED_REF'); })());
-  check('render/60: fragment whose claimIds omit the claim is inadmissible', (() => { const cap = mkCap({ fragments: [mkFrag({ fragmentId: 'f-other', claimIds: ['bybit.kyc_required'], locator: 'h2', text: 'kyc required text' })] }); const p = buildPacket({ renderedCaptures: [cap], claims: completeClaims().map((c) => c.claimId === 'bybit.bonus_headline' ? { ...c, sourceRefs: ['rendered-fragment:rc1/f-other'] } : c) }); return m.validateOfferEvidencePacket(p).issues.some((i) => i.code === 'INADMISSIBLE_SUPPORT'); })());
-  check('render/61: empty-claimIds fragment cannot be used as proof', (() => { const cap = mkCap({ fragments: [mkFrag()] }); const p = buildPacket({ renderedCaptures: [cap], claims: completeClaims().map((c) => c.claimId === 'bybit.bonus_headline' ? { ...c, sourceRefs: ['rendered-fragment:rc1/f1'] } : c) }); return m.validateOfferEvidencePacket(p).issues.some((i) => i.code === 'INADMISSIBLE_SUPPORT'); })());
+  check('render/60: fragment whose claimIds omit the claim is inadmissible', (() => { const cap = mkCap({ fragments: [mkFrag({ fragmentId: 'f-other', claimIds: ['bybit.kyc_required'], locator: 'h2', text: 'kyc required text' })] }); const p = buildPacket({ renderedCaptures: [cap], claims: completeClaims().map((c) => c.claimId === 'bybit.source_identity' ? { ...c, result: 'supported', sourceRefs: ['rendered-fragment:rc1/f-other'] } : c) }); return m.validateOfferEvidencePacket(p).issues.some((i) => i.code === 'INADMISSIBLE_SUPPORT'); })());
+  check('render/61: empty-claimIds fragment cannot be used as proof', (() => { const cap = mkCap({ fragments: [mkFrag()] }); const p = buildPacket({ renderedCaptures: [cap], claims: completeClaims().map((c) => c.claimId === 'bybit.source_identity' ? { ...c, result: 'supported', sourceRefs: ['rendered-fragment:rc1/f1'] } : c) }); return m.validateOfferEvidencePacket(p).issues.some((i) => i.code === 'INADMISSIBLE_SUPPORT'); })());
   check('render/62: fragment on a walled capture cannot support (capture itself rejected)', (() => { const cap = mkCap({ outcome: 'login_wall', fragments: [mkClaimFrag()] }); const p = buildPacket({ renderedCaptures: [cap], claims: completeClaims().map((c) => c.claimId === 'bybit.bonus_headline' ? { ...c, sourceRefs: ['rendered-fragment:rc1/f-bonus'] } : c) }); const r = m.validateOfferEvidencePacket(p); return !r.ok; })());
   check('render/63: fragmentSupportsClaim binds exact capture+fragment+claim', m.fragmentSupportsClaim(posCap, 'f-bonus', 'bybit.bonus_headline') === true && m.fragmentSupportsClaim(posCap, 'f-bonus', 'bybit.kyc_required') === false && m.fragmentSupportsClaim(mkNoDoc('network_error'), 'f-bonus', 'bybit.bonus_headline') === false);
 
@@ -1289,7 +1305,7 @@ try {
       (p) => { p.capturedAt = '2026-08-03T00:00:00Z'; },
       (p) => { p.nextReviewAt = '2026-11-30T00:00:00Z'; },
       (p) => { p.sourceUrl = 'https://www.bybit.com/en/promo/other/'; },
-      (p) => { p.claims.find((c) => c.claimId === 'bybit.kyc_required').result = 'inaccessible'; },
+      (p) => { p.claims.find((c) => c.claimId === 'bybit.kyc_required').result = 'not_found'; },
       (p) => { p.warnings = ['x']; },
       (p) => { p.limitations = ['y']; },
       (p) => { p.captureTool = 'other'; },
@@ -1324,7 +1340,7 @@ try {
   check('bridge/24: blockingRequiredClaims mismatch fails', (() => { const r = clone(resP(realPkt, [])); r.blockingRequiredClaims = []; return rIssues(r).includes('BLOCKING_MISMATCH'); })());
   check('bridge/25: supported promo with non-confirmed evaluator fails', (() => { const r = clone(resP(realPkt, [])); rc(r, 'bybit.promo_code').resolvedResult = 'supported'; return rIssues(r).includes('SUPPORT_WITHOUT_CONFIRMED'); })());
   check('bridge/26: confirmed promo without a confirmationId fails', (() => { const r = clone(resT(buildPacket(), [mkP()])); rc(r, 'bybit.promo_code').provenance.confirmationId = null; return rIssues(r).includes('MISSING_CONFIRMATION_ID'); })());
-  check('bridge/27: resolved-result / provenance tampering fails', (() => { const r = clone(resT(buildPacket(), [mkP()])); rc(r, 'bybit.kyc_required').resolvedResult = 'inaccessible'; return rIssues(r).length > 0; })());
+  check('bridge/27: resolved-result / provenance tampering fails', (() => { const r = clone(resT(buildPacket(), [mkP()])); rc(r, 'bybit.kyc_required').resolvedResult = 'supported'; return rIssues(r).length > 0; })());
   check('bridge/28: missing / duplicate resolved claim fails closed', (() => { const r = resP(realPkt, []); const miss = clone(r); miss.resolvedClaims = miss.resolvedClaims.filter((c) => c.claimId !== 'bybit.kyc_required'); const dup = clone(r); dup.resolvedClaims = [...dup.resolvedClaims, dup.resolvedClaims[0]]; return rIssues(miss).includes('MISSING_CLAIM') && rIssues(dup).includes('DUPLICATE_CLAIM'); })());
 
   // -- promo-only bridge behavior --
@@ -1341,7 +1357,7 @@ try {
     const revoked = rc(resT(realPkt, [c1, c3]), 'bybit.promo_code').provenance.evaluatorState === 'revoked';
     return conflict && invalid && expired && revoked;
   })());
-  check('bridge/34: confirmation cannot change any non-promo claim', (() => { const r = resT(realPkt, [mkP()]); return ['bybit.bonus_headline', 'bybit.kyc_required', 'bybit.deposit_required', 'bybit.availability', 'bybit.restricted_countries', 'bybit.reward_type', 'bybit.terms_summary'].every((id) => rc(r, id).resolvedResult === rc(r, id).rawResult && rc(r, id).provenance.kind === 'raw_capture'); })());
+  check('bridge/34: confirmation cannot change any non-promo claim', (() => { const r = resT(realPkt, [mkP()]); return ['bybit.bonus_headline', 'bybit.kyc_required', 'bybit.deposit_required', 'bybit.availability', 'bybit.restricted_countries', 'bybit.reward_type', 'bybit.terms_summary'].every((id) => rc(r, id).resolvedResult === rc(r, id).rawResult && rc(r, id).provenance.kind === 'source_plan_assessment'); })());
   check('bridge/35: raw packet + confirmation set are not mutated by resolution', (() => { const set = [mkP()]; const p0 = JSON.stringify(realPkt); const s0 = JSON.stringify(set); resT(realPkt, set); return JSON.stringify(realPkt) === p0 && JSON.stringify(set) === s0; })());
 
   // -- adapter proofs --
@@ -1364,6 +1380,174 @@ try {
     const disc = (l) => m.resolveDisclosure({ tone: 'verified', evidence: m.bybitOfferEvidence, expectedExchangeId: 'bybit', now: BNOW, isAffiliate: false, methodologyHref: '/methodology/' }, l);
     return a.resolutionDigest === b.resolutionDigest && ['en', 'ru', 'kk'].every((l) => disc(l).evidenceState === 'none');
   })());
+
+  // ===== Split 3 (#260, hardened R1–R12) — Bybit official multi-source claim evidence =====
+  // Code-owned source plan + candidate inventory + evidence-run manifest + deterministic,
+  // fail-closed assessment. The SOURCE PLAN (not the raw packet) controls authorization for
+  // its target claims; invalid runs fail closed; general evidence can never prove a
+  // promotion-specific assertion; promo/editorial are excluded.
+  const SNOW = Date.parse('2026-08-06T12:00:00Z');
+  const PLAN_ID = m.BYBIT_SOURCE_PLAN_ID, PLAN_DIGEST = m.BYBIT_SOURCE_PLAN_DIGEST;
+  const NULL_SMD = { pageTitle: null, description: null, canonicalUrl: null, ogTitle: null, ogDescription: null, jsonLdType: null };
+  const SREC = { authenticationUsed: false, cookiesSent: false, cookiesStored: false, proxyConfigured: false, bodyPersisted: false, redirectsObserved: 0, externalRedirectsBlocked: 0 };
+  const cand = (id) => m.BYBIT_OFFICIAL_SOURCE_CANDIDATES.find((c) => c.candidateId === id);
+  const realPkt260 = m.BYBIT_OFFER_EVIDENCE_PACKET;
+
+  // A content source bound to a real candidate, proving the given claim components.
+  const mkContent = (candidateId, observedScope, fragSpecs, over = {}, body = 'sha256:' + 'b'.repeat(64)) => {
+    const c = cand(candidateId);
+    const fragments = fragSpecs.map((fs, i) => { const f = { fragmentId: `${candidateId}-f${i}`, sourceId: candidateId, extractionType: 'visible_text', locator: 'h1', text: fs.text || `official bounded evidence ${i}`, claimIds: fs.claimIds, assertionComponentIds: fs.componentIds || [], stance: fs.stance || 'supports', limitation: 'bounded' }; f.textLength = f.text.length; f.fragmentDigest = m.computeOfficialFragmentDigest(f); return f; });
+    const fragIds = fragments.map((f) => f.fragmentId);
+    const base = {
+      sourceId: candidateId, exchangeId: 'bybit', candidateId, planId: PLAN_ID, planDigest: PLAN_DIGEST,
+      requestedUrl: c.url, finalUrl: c.url, redirectChain: [], capturedAt: '2026-08-06T10:00:00Z',
+      captureMethod: 'http_probe_no_auth_no_cookies', captureTool: 'cbw-test/1.0', runtimeVersion: 'v24', captureMethodUsed: 'http',
+      httpStatus: 200, contentType: 'text/html', declaredScope: c.declaredScope, observedScope, currency: 'current',
+      scopeAssessment: { classifiedScope: observedScope, classificationRuleId: 'content-observed', evidenceRefs: fragIds, confidence: 'high', limitations: 'ok' },
+      currencyAssessment: { currency: 'current', ruleId: 'observed-current-campaign', evidenceRefs: fragIds, observedTime: null, limitations: 'ok' },
+      outcome: 'content', responseBytes: 2048, bodyDigest: body,
+      fragments, structuredMetadata: { ...NULL_SMD }, runtimeReceipt: { ...SREC }, warnings: [], limitations: [], sourceDigest: 'sha256:' + '0'.repeat(64), ...over,
+    };
+    if (!('sourceDigest' in over)) base.sourceDigest = m.computeOfficialSourceDigest(base);
+    return base;
+  };
+  // A non-content source (shell / wall / terminal) bound to a real candidate.
+  const mkShell = (candidateId, outcome, observedScope, over = {}) => {
+    const c = cand(candidateId);
+    const noDoc = ['timeout', 'network_error', 'external_redirect', 'response_too_large'].includes(outcome);
+    const base = {
+      sourceId: candidateId, exchangeId: 'bybit', candidateId, planId: PLAN_ID, planDigest: PLAN_DIGEST,
+      requestedUrl: c.url, finalUrl: noDoc ? null : c.url, redirectChain: [], capturedAt: '2026-08-06T10:00:00Z',
+      captureMethod: 'http_probe_no_auth_no_cookies', captureTool: 'cbw-test/1.0', runtimeVersion: 'v24', captureMethodUsed: 'http',
+      httpStatus: noDoc ? null : 200, contentType: noDoc ? null : 'text/html', declaredScope: c.declaredScope, observedScope, currency: 'ambiguous',
+      scopeAssessment: { classifiedScope: observedScope, classificationRuleId: 'declared-unconfirmed', evidenceRefs: [], confidence: 'none', limitations: 'shell' },
+      currencyAssessment: { currency: 'ambiguous', ruleId: 'insufficient-currentness-evidence', evidenceRefs: [], observedTime: null, limitations: 'ambiguous' },
+      outcome, responseBytes: noDoc ? 0 : 512, bodyDigest: 'sha256:' + 'd'.repeat(64),
+      fragments: [], structuredMetadata: { ...NULL_SMD }, runtimeReceipt: { ...SREC }, warnings: [], limitations: [], sourceDigest: 'sha256:' + '0'.repeat(64), ...over,
+    };
+    if (!('sourceDigest' in over)) base.sourceDigest = m.computeOfficialSourceDigest(base);
+    return base;
+  };
+  const vs = (s) => m.validateOfficialSourceCapture(s, m.BYBIT_OFFER_CLAIM_INVENTORY);
+  const shas = (s, code) => vs(s).issues.some((i) => i.code === code);
+  const assess = (claimId, sources) => m.assessOfferClaimEvidence(claimId, sources, SNOW);
+
+  // 1 — candidate coverage for every target claim and component.
+  check('src/1: plan+candidate coverage complete (all target claims + components)', m.validateSourcePlanCoverage().ok === true && m.BYBIT_OFFER_CLAIM_SOURCE_PLAN.length === 10);
+  // 2 — restricted_countries has an official legal/jurisdiction candidate.
+  check('src/2: restricted_countries has a legal/jurisdiction candidate', m.BYBIT_OFFICIAL_SOURCE_CANDIDATES.some((c) => c.targetClaimIds.includes('bybit.restricted_countries') && (c.declaredScope === 'legal_restrictions' || c.declaredScope === 'jurisdiction_specific')));
+  // 3 — KYC has both general and promotion-specific candidate coverage.
+  check('src/3: kyc has general + promotion-specific candidate coverage', (() => { const k = m.BYBIT_OFFICIAL_SOURCE_CANDIDATES.filter((c) => c.targetClaimIds.includes('bybit.kyc_required')); return k.some((c) => c.declaredScope === 'identity_verification_general') && k.some((c) => c.declaredScope === 'promotion_specific'); })());
+  // 4 — extraction strategy covers every material component.
+  check('src/4: extraction plan covers every material component', m.validateExtractionCoverage().ok === true);
+  // 5 — readable KYC/legal/reward pages classify as content (candidate-aware).
+  check('src/5: KYC/legal/reward content sources validate + may support', (() => {
+    const k = mkContent('help-kyc-identity', 'identity_verification_general', [{ claimIds: ['bybit.kyc_required'], componentIds: ['identity-verification-exists'] }]);
+    const l = mkContent('help-restricted-jurisdictions', 'legal_restrictions', [{ claimIds: ['bybit.restricted_countries'], componentIds: ['restricted-list-matches'] }]);
+    const r = mkContent('help-what-is-bonus', 'reward_mechanics', [{ claimIds: ['bybit.reward_type'], componentIds: ['reward-instrument-form'] }]);
+    return vs(k).ok && vs(l).ok && vs(r).ok && m.sourceMaySupportClaims(k);
+  })());
+  // 6 — currency ambiguous cannot support.
+  check('src/6: ambiguous currency cannot support a requiresCurrent claim', (() => { const s = mkContent('help-restricted-jurisdictions', 'legal_restrictions', [{ claimIds: ['bybit.restricted_countries'], componentIds: ['restricted-list-matches'] }], { currency: 'ambiguous', currencyAssessment: { currency: 'ambiguous', ruleId: 'insufficient-currentness-evidence', evidenceRefs: [], observedTime: null, limitations: 'x' } }); return assess('bybit.restricted_countries', [s]).result !== 'supported'; })());
+  // 7 — `current` classification needs evidence (caller-declared current rejected).
+  check('src/7: current currency without evidence rejected', shas(mkContent('help-what-is-bonus', 'reward_mechanics', [{ claimIds: ['bybit.reward_type'], componentIds: ['reward-instrument-form'] }], { currencyAssessment: { currency: 'current', ruleId: 'none', evidenceRefs: [], observedTime: null, limitations: 'x' } }), 'CURRENT_NEEDS_EVIDENCE'));
+  // 8 — observed scope cannot be caller-self-declared (must match scopeAssessment).
+  check('src/8: observedScope must equal scopeAssessment.classifiedScope', shas(mkContent('promo-new-user', 'promotion_specific', [{ claimIds: ['bybit.bonus_headline'], componentIds: ['max-reward-figure', 'reward-is-welcome-package'] }], { observedScope: 'campaign_terms' }), 'SCOPE_ASSESSMENT_MISMATCH'));
+  // 9 — runner honors rendered fallback (candidate config present).
+  check('src/9: candidates carry a capture-method preference (rendered fallback)', m.BYBIT_OFFICIAL_SOURCE_CANDIDATES.every((c) => c.captureMethod === 'http_only' || c.captureMethod === 'http_then_rendered') && m.BYBIT_OFFICIAL_SOURCE_CANDIDATES.some((c) => c.captureMethod === 'http_then_rendered'));
+  // 10 — runner remains no-network by default (asserted structurally: candidates are official-only).
+  check('src/10: every candidate URL is official Bybit (no third-party discovery in product)', m.BYBIT_OFFICIAL_SOURCE_CANDIDATES.every((c) => /^https:\/\/(?:www\.|announcements\.|learn\.)?bybit\.com\//.test(c.url)));
+  // 11 — invalid source set returns invalid (never silently dropped).
+  check('src/11: an invalid artifact makes the run + assessment invalid', (() => { const good = mkContent('promo-new-user', 'promotion_specific', [{ claimIds: ['bybit.bonus_headline'], componentIds: ['max-reward-figure', 'reward-is-welcome-package'] }]); const bad = { ...mkShell('help-what-is-bonus', 'spa_shell', 'reward_mechanics'), bodyDigest: 'not-a-digest' }; const run = m.buildOfficialSourceEvidenceRun([good, bad], SNOW); return run.ok === false && assess('bybit.bonus_headline', [good, bad]).result === 'invalid'; })());
+  // 12 — tampered contradiction cannot be dropped.
+  check('src/12: tampered contradicting source cannot be dropped → invalid', (() => { const good = mkContent('help-what-is-bonus', 'reward_mechanics', [{ claimIds: ['bybit.reward_type'], componentIds: ['reward-instrument-form', 'withdrawal-conversion-limits'] }]); const contra = mkContent('help-use-bonus', 'reward_mechanics', [{ claimIds: ['bybit.reward_type'], componentIds: [], stance: 'contradicts' }]); contra.observedScope = 'ambiguous'; /* tamper without recompute */ return assess('bybit.reward_type', [good, contra]).result === 'invalid'; })());
+  // 13 — incomplete evidence run cannot support.
+  check('src/13: missing a mandatory candidate → not supported (incomplete when 0 proven)', (() => { const only = mkShell('promo-welcome-gifts', 'spa_shell', 'promotion_specific'); const a = assess('bybit.bonus_headline', [only]); return a.result !== 'supported'; })());
+  // 14 — wrong-scope fragment cannot support (resolution + packet level).
+  check('src/14: wrong-scope content cannot prove a promotion-specific claim', (() => { const s = mkContent('promo-new-user', 'account_wide_general', [{ claimIds: ['bybit.bonus_headline'], componentIds: ['max-reward-figure', 'reward-is-welcome-package'] }], { scopeAssessment: { classifiedScope: 'account_wide_general', classificationRuleId: 'redirected-to-generic-homepage', evidenceRefs: [], confidence: 'medium', limitations: 'x' } }); return assess('bybit.bonus_headline', [s]).result !== 'supported'; })());
+  // 15 — partial-component fragment cannot support.
+  check('src/15: partial component coverage → partially_supported (not supported)', (() => { const s = mkContent('promo-new-user', 'promotion_specific', [{ claimIds: ['bybit.bonus_headline'], componentIds: ['max-reward-figure'] }]); return assess('bybit.bonus_headline', [s]).result === 'partially_supported'; })());
+  // 16 — stale/ambiguous source cannot support.
+  check('src/16: historical currency cannot prove current availability', (() => { const s = mkContent('help-restricted-jurisdictions', 'legal_restrictions', [{ claimIds: ['bybit.availability'], componentIds: ['global-with-exclusions'] }], { currency: 'historical', currencyAssessment: { currency: 'historical', ruleId: 'historical-marker', evidenceRefs: [], observedTime: null, limitations: 'x' } }); return assess('bybit.availability', [s]).result !== 'supported'; })());
+  // 17 — contradicted source cannot support.
+  check('src/17: contradiction → contradicted (never supported)', (() => { const s = mkContent('help-restricted-jurisdictions', 'legal_restrictions', [{ claimIds: ['bybit.restricted_countries'], componentIds: [], stance: 'contradicts' }]); return assess('bybit.restricted_countries', [s]).result === 'contradicted'; })());
+  // 18 — duplicate source documents do not satisfy multi-source rules (independence R10).
+  check('src/18: two captures of the same document count once for multi-source', (() => {
+    const body = 'sha256:' + 'e'.repeat(64);
+    const a = mkContent('help-what-is-bonus', 'reward_mechanics', [{ claimIds: ['bybit.terms_summary'], componentIds: ['new-accounts-only', 'kyc-to-withdraw', 'volume-conditions-higher-tiers', 'voucher-expiry-window'] }], { finalUrl: 'https://www.bybit.com/en/help-center/article/Same', requestedUrl: cand('help-what-is-bonus').url }, body);
+    const b = mkContent('help-use-bonus', 'reward_mechanics', [{ claimIds: ['bybit.terms_summary'], componentIds: ['new-accounts-only', 'kyc-to-withdraw', 'volume-conditions-higher-tiers', 'voucher-expiry-window'] }], { finalUrl: 'https://www.bybit.com/en/help-center/article/Same', requestedUrl: cand('help-use-bonus').url }, body);
+    return assess('bybit.terms_summary', [a, b]).result === 'partially_supported';
+  })());
+  // 18b — two INDEPENDENT documents satisfy the multi-source rule.
+  check('src/18b: terms_summary supported by two independent documents', (() => {
+    const a = mkContent('help-what-is-bonus', 'reward_mechanics', [{ claimIds: ['bybit.terms_summary'], componentIds: ['volume-conditions-higher-tiers', 'voucher-expiry-window'] }], {}, 'sha256:' + '1'.repeat(64));
+    const b = mkContent('promo-new-user', 'promotion_specific', [{ claimIds: ['bybit.terms_summary'], componentIds: ['new-accounts-only', 'kyc-to-withdraw'] }], {}, 'sha256:' + '2'.repeat(64));
+    return assess('bybit.terms_summary', [a, b]).result === 'supported';
+  })());
+  // 19 — generic capture cannot support a source-plan claim (packet layer).
+  check('src/19: raw supported target claim forbidden at packet layer', (() => { const p = buildPacket({ claims: completeClaims().map((c) => c.claimId === 'bybit.bonus_headline' ? { ...c, result: 'supported', sourceRefs: ['capture:probe-a'] } : c) }); return !m.validateOfferEvidencePacket(p).ok && m.validateOfferEvidencePacket(p).issues.some((i) => i.code === 'SOURCE_PLAN_RAW_SUPPORT_FORBIDDEN'); })());
+  // 20 — generic rendered fragment cannot bypass the source plan.
+  check('src/20: source-fragment ref cannot raw-support a target claim', (() => { const src = mkContent('promo-new-user', 'promotion_specific', [{ claimIds: ['bybit.bonus_headline'], componentIds: ['max-reward-figure', 'reward-is-welcome-package'] }]); const p = buildPacket({ officialSourceCaptures: [src], claims: completeClaims().map((c) => c.claimId === 'bybit.bonus_headline' ? { ...c, result: 'supported', sourceRefs: ['source-fragment:promo-new-user/promo-new-user-f0'] } : c) }); return !m.validateOfferEvidencePacket(p).ok && m.validateOfferEvidencePacket(p).issues.some((i) => i.code === 'SOURCE_PLAN_RAW_SUPPORT_FORBIDDEN'); })());
+  // 21 — canonical assessment controls non-promo resolved claims (resolver).
+  check('src/21: resolver derives target resolvedResult from the source-plan assessment', (() => {
+    const src = mkContent('promo-new-user', 'promotion_specific', [{ claimIds: ['bybit.deposit_required'], componentIds: ['deposit-task-in-this-promo'] }]);
+    const p = buildPacket({ officialSourceCaptures: [src] });
+    const r = m.resolveBybitOfferPacketClaims(p, [], SNOW);
+    if (!r.ok) return false;
+    const dep = r.resolvedClaims.find((c) => c.claimId === 'bybit.deposit_required');
+    return dep.provenance.kind === 'source_plan_assessment' && dep.resolvedResult === 'supported' && dep.rawResult === 'inaccessible';
+  })());
+  // 22 — source plan id/digest enters raw + resolution integrity.
+  check('src/22: source plan id + digest + evidence-run digest bound into the resolution', (() => { const r = m.resolveBybitOfferPacketClaims(realPkt260, [], SNOW); return r.ok && r.sourcePlanId === PLAN_ID && r.sourcePlanDigest === PLAN_DIGEST && typeof r.evidenceRunDigest === 'string' && r.evidenceRunDigest.startsWith('sha256:'); })());
+  // 22b — plan/candidate digests recompute; changing a candidate changes the digest.
+  check('src/22b: candidate + plan digests recompute', m.BYBIT_OFFICIAL_SOURCE_CANDIDATES.every((c) => m.computeCandidateDigest(c) === c.candidateDigest) && typeof PLAN_DIGEST === 'string' && PLAN_DIGEST.startsWith('sha256:'));
+  // 23 — production adapter rejects any source-plan mismatch (bad planDigest → invalid run).
+  check('src/23: production adapter rejects a plan-digest-mismatched source (evidence run invalid)', (() => { const bad = mkContent('promo-new-user', 'promotion_specific', [{ claimIds: ['bybit.bonus_headline'], componentIds: ['max-reward-figure', 'reward-is-welcome-package'] }], { planDigest: 'sha256:' + 'f'.repeat(64) }); const p = buildPacket({ officialSourceCaptures: [bad] }); const r = m.resolveBybitOfferPacketClaims(p, [], SNOW); return r.ok === false && r.reason === 'EVIDENCE_RUN_INVALID' && m.adaptBybitOfferToEvidence(p, [], SNOW).ok === false; })());
+  // 23b — unknown-candidate source → invalid run.
+  check('src/23b: unknown-candidate source → evidence run invalid', (() => { const bad = mkContent('promo-new-user', 'promotion_specific', [{ claimIds: ['bybit.bonus_headline'], componentIds: ['max-reward-figure'] }], { candidateId: 'ghost-candidate', sourceId: 'ghost-candidate' }); return m.buildOfficialSourceEvidenceRun([bad], SNOW).ok === false; })());
+  // 24 — real promo unchanged.
+  check('src/24: real promo remains requires_owner_partner_confirmation', realPkt260.claims.find((c) => c.claimId === 'bybit.promo_code').result === 'requires_owner_partner_confirmation');
+  // 25 — real packet remains draft.
+  check('src/25: real packet remains draft + valid', realPkt260.approval === 'draft' && m.validateOfferEvidencePacket(realPkt260).ok === true);
+  // 26 — offers.bybit.evidence null.
+  check('src/26: offers.bybit.evidence remains null', m.bybitOfferEvidence === null && m.getOffer('bybit').evidence === null);
+  // 27 — real confirmation set frozen empty.
+  check('src/27: real confirmation set stays frozen empty', Array.isArray(m.BYBIT_PROMO_CODE_CONFIRMATIONS) && m.BYBIT_PROMO_CODE_CONFIRMATIONS.length === 0 && Object.isFrozen(m.BYBIT_PROMO_CODE_CONFIRMATIONS));
+  // 28 — preview /go/* = 0.
+  check('src/28: preview homepage /go/* = 0', m.homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'preview', 'en').primary.href.startsWith('/go/')));
+  // 29 — public production simulation /go/* = 0.
+  check('src/29: public production simulation /go/* = 0', m.homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'production', 'en').primary.href.startsWith('/go/')));
+  // 30 — PUBLIC_MARKET_PROFILES frozen empty.
+  check('src/30: PUBLIC_MARKET_PROFILES remains frozen empty', Array.isArray(m.PUBLIC_MARKET_PROFILES) && m.PUBLIC_MARKET_PROFILES.length === 0 && Object.isFrozen(m.PUBLIC_MARKET_PROFILES));
+  // 31 — no third-party/synthetic evidence in product data.
+  check('src/31: real official-source captures all official + candidate-bound + no supporting fragments', (() => {
+    const caps = realPkt260.officialSourceCaptures || [];
+    const run = m.buildOfficialSourceEvidenceRun(caps, SNOW, realPkt260.packetId);
+    const allOfficial = caps.length === 8 && caps.every((c) => c.exchangeId === 'bybit' && (c.finalUrl === null || /^https:\/\/(?:www\.|announcements\.|learn\.)?bybit\.com\//.test(c.finalUrl)) && c.fragments.length === 0 && !!cand(c.candidateId));
+    return allOfficial && run.ok === true && run.attemptedCandidateIds.length === 8;
+  })());
+  // 32 — real target claims all inaccessible; production adapter non-authorizing; decision under re-verification.
+  check('src/32: real target claims inaccessible; production adapter non-authorizing', (() => {
+    const targets = m.SOURCE_PLAN_TARGET_CLAIMS;
+    const noUpgrade = targets.every((id) => realPkt260.claims.find((c) => c.claimId === id).result === 'inaccessible');
+    return noUpgrade && m.deriveBybitOfferEvidence(SNOW).ok === false && m.adaptBybitOfferToEvidence(realPkt260, [], SNOW).ok === false && m.BYBIT_OFFER_EVIDENCE_DECISION === 'under_re_verification';
+  })());
+  // 33 — unknown source-plan claim rejected; promo excluded from source-based support.
+  check('src/33: unknown claim throws; promo/realistic excluded', (() => { let threw = false; try { assess('bybit.not_a_real_claim', []); } catch { threw = true; } return threw && assess('bybit.promo_code', []).reason === 'EXCLUDED_FROM_SOURCE_SUPPORT' && !m.SOURCE_PLAN_TARGET_CLAIMS.includes('bybit.promo_code'); })());
+  // 34 — full supported assessment flows into an approved packet resolving supported (positive path).
+  check('src/34: complete official content resolves a target claim supported via the resolver', (() => {
+    const src = mkContent('help-restricted-jurisdictions', 'legal_restrictions', [{ claimIds: ['bybit.restricted_countries'], componentIds: ['restricted-list-matches'] }]);
+    const r = m.resolveBybitOfferPacketClaims(buildPacket({ officialSourceCaptures: [src] }), [], SNOW);
+    if (!r.ok) return false;
+    const rc = r.resolvedClaims.find((c) => c.claimId === 'bybit.restricted_countries');
+    return rc.resolvedResult === 'supported' && rc.provenance.kind === 'source_plan_assessment';
+  })());
+  // 35 — digest tamper on an official source is rejected.
+  check('src/35: source digest tamper rejected', (() => { const s = mkContent('promo-new-user', 'promotion_specific', [{ claimIds: ['bybit.bonus_headline'], componentIds: ['max-reward-figure', 'reward-is-welcome-package'] }]); s.observedScope = 'campaign_terms'; s.scopeAssessment.classifiedScope = 'campaign_terms'; return shas(s, 'SOURCE_DIGEST_MISMATCH'); })());
+  // 36 — response_too_large / oversized body outcome is a terminal no-document.
+  check('src/36: response_too_large is a terminal no-document outcome (never supported)', vs(mkShell('promo-new-user', 'response_too_large', 'promotion_specific')).ok === true && ['inaccessible', 'incomplete'].includes(assess('bybit.bonus_headline', [mkShell('promo-new-user', 'response_too_large', 'promotion_specific')]).result));
+  // 37 — real committed captures validate + digests recompute.
+  check('src/37: real committed official-source captures validate + digests recompute', (realPkt260.officialSourceCaptures || []).every((c) => m.validateOfficialSourceCapture(c, m.BYBIT_OFFER_CLAIM_INVENTORY).ok && m.computeOfficialSourceDigest(c) === c.sourceDigest));
 
   // --- Invariant: a non-commercial model may never point at /go/ ---
   let threw = false;
