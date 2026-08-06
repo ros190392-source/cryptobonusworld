@@ -88,12 +88,14 @@ jobs:
             src/data/contracts/evidenceMetadata.ts \
             src/data/contracts/offerEvidencePacket.ts \
             src/data/contracts/publicRenderedCapture.ts \
+            src/data/contracts/claimConfirmation.ts \
             src/data/contracts/countryInput.ts \
             src/data/contracts/marketProfileRegistry.ts \
             src/data/contracts/countryAwareCta.ts \
             src/data/contracts/portalStateFixtures.ts \
             src/data/homepageTop10Cta.ts \
             src/data/evidence/offers/bybitOfferEvidence.ts \
+            src/data/evidence/offers/bybitPromoCodeConfirmation.ts \
             src/data/exchangePreview/cta-contract.ts
 
       - name: AI-ops fail-closed fixtures

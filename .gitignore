@@ -60,3 +60,6 @@ public/media/walkthroughs/**/*.html
 # Issue #254 transient rendered-capture runner output (never committed; real captures live in the packet)
 scripts/evidence/out-bybit-rendered.json
 scripts/evidence/out-bybit-rendered.rejected.json
+
+# Issue #256 transient confirmation intake template (never committed; real set stays empty)
+scripts/evidence/out-bybit-promo-code-confirmation.json

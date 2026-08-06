@@ -36,6 +36,8 @@ const offersData = join(ROOT, 'src/data/offers.ts');
 const offerEvidencePacket = join(ROOT, 'src/data/contracts/offerEvidencePacket.ts');
 const bybitOfferEvidence = join(ROOT, 'src/data/evidence/offers/bybitOfferEvidence.ts');
 const publicRenderedCapture = join(ROOT, 'src/data/contracts/publicRenderedCapture.ts');
+const claimConfirmation = join(ROOT, 'src/data/contracts/claimConfirmation.ts');
+const bybitPromoCodeConfirmation = join(ROOT, 'src/data/evidence/offers/bybitPromoCodeConfirmation.ts');
 
 const tmp = mkdtempSync(join(tmpdir(), 'cbw-portal-test-'));
 const outfile = join(tmp, 'contracts.mjs');
@@ -68,7 +70,9 @@ try {
         `export { offers, getOffer } from ${JSON.stringify(offersData)};\n` +
         `export { validateOfferEvidencePacket, adaptApprovedPacketToEvidence, isOfficialBybitSource, deriveUnsupportedClaims, computeCaptureManifestDigest, canonicalCaptureManifest, BYBIT_OFFER_CLAIM_POLICY, BYBIT_OFFER_CLAIM_INVENTORY, BYBIT_OFFER_REQUIRED_CLAIMS, ALLOWED_OWNER_IDENTITIES } from ${JSON.stringify(offerEvidencePacket)};\n` +
         `export { BYBIT_OFFER_EVIDENCE_PACKET, BYBIT_OFFER_EVIDENCE_DECISION, deriveBybitDecision, deriveBybitOfferEvidence, bybitOfferEvidence } from ${JSON.stringify(bybitOfferEvidence)};\n` +
-        `export { validatePublicRenderedCapture, computeFragmentDigest, computeRenderedArtifactDigest, canonicalRenderedArtifact, isOfficialBybitUrl, captureMaySupportClaims, fragmentSupportsClaim, RENDER_OUTCOMES, MAX_FRAGMENT_TEXT_LENGTH, MAX_REDIRECTS, MAX_LOCATOR_LENGTH, MAX_WARNINGS, MAX_WARNING_LENGTH, MAX_PAGE_TITLE_LENGTH } from ${JSON.stringify(publicRenderedCapture)};`,
+        `export { validatePublicRenderedCapture, computeFragmentDigest, computeRenderedArtifactDigest, canonicalRenderedArtifact, isOfficialBybitUrl, captureMaySupportClaims, fragmentSupportsClaim, RENDER_OUTCOMES, MAX_FRAGMENT_TEXT_LENGTH, MAX_REDIRECTS, MAX_LOCATOR_LENGTH, MAX_WARNINGS, MAX_WARNING_LENGTH, MAX_PAGE_TITLE_LENGTH } from ${JSON.stringify(publicRenderedCapture)};\n` +
+        `export { validateClaimConfirmation, normalizeReferralCode, computeAssertedValueDigest, computeSourceStatementDigest, computeConfirmationArtifactDigest, canonicalConfirmationArtifact, trustedSourceIssues, bybitPromoAdmissibilityIssues, evaluateBybitPromoCodeConfirmations, confirmationSupportsTarget, BYBIT_PROMO_CODE_CONFIRMATION_POLICY, CONFIRMATION_SOURCE_KINDS, CONFIRMATION_LIFECYCLE_STATES, MAX_STATEMENT_LENGTH } from ${JSON.stringify(claimConfirmation)};\n` +
+        `export { BYBIT_PROMO_CODE_CONFIRMATIONS, BYBIT_PROMO_CODE_CONFIRMATION_STATE, BYBIT_PROMO_CODE_CANDIDATE, BYBIT_PROMO_CODE_CANDIDATE_CONFIRMED } from ${JSON.stringify(bybitPromoCodeConfirmation)};`,
       resolveDir: ROOT,
       loader: 'ts',
     },
@@ -1056,6 +1060,99 @@ try {
     const rc = m.BYBIT_OFFER_EVIDENCE_PACKET.renderedCaptures || [];
     return rc.length === 2 && rc.every((c) => c.outcome === 'network_error' && c.finalUrl === null && c.fragments.length === 0 && c.mainDocumentStatus === null);
   })());
+
+  // ===== Split 3 (#256) — trusted owner/partner claim-confirmation intake =====
+  const CNOW = Date.parse('2026-08-06T12:00:00Z');
+  const CAND = m.BYBIT_PROMO_CODE_CONFIRMATION_POLICY.candidateValue;
+  const target = (value) => ({ exchangeId: 'bybit', claimId: 'bybit.promo_code', assertionType: 'exact_referral_code_assignment', value });
+  const mkConf = (over = {}) => {
+    const a = {
+      confirmationId: 'c1', exchangeId: 'bybit', claimId: 'bybit.promo_code', assertionType: 'exact_referral_code_assignment',
+      assertedValue: CAND, assertedValueDigest: '', confirmedBy: 'bybit-partner-official', confirmationRole: 'partner',
+      confirmedAt: '2026-08-05T00:00:00Z', validUntil: '2026-10-01T00:00:00Z', sourceEventAt: '2026-08-04T00:00:00Z',
+      sourceKind: 'partner_dashboard_receipt', sourceUrl: null, sourceId: 'receipt-2026-08-04-001',
+      sourceStatement: 'Bybit partner dashboard: active referral code CRYPTOBONUSW assigned to this account.',
+      sourceStatementDigest: '', status: 'confirmed', replacesConfirmationId: null, revokesConfirmationId: null,
+      limitations: 'Redacted partner receipt.', note: null, artifactDigest: '',
+      ...over,
+    };
+    if (!('assertedValueDigest' in over)) a.assertedValueDigest = m.computeAssertedValueDigest(a);
+    if (!('sourceStatementDigest' in over)) a.sourceStatementDigest = m.computeSourceStatementDigest(a.sourceStatement);
+    if (!('artifactDigest' in over)) a.artifactDigest = m.computeConfirmationArtifactDigest(a);
+    return a;
+  };
+  const mkOwner = (over = {}) => mkConf({
+    confirmationId: 'c-owner', confirmedBy: 'ros190392-source', confirmationRole: 'owner',
+    sourceKind: 'github_issue_comment', sourceUrl: 'https://github.com/ros190392-source/cryptobonusworld/issues/256#issuecomment-100200300', sourceId: '100200300',
+    sourceStatement: 'Owner: Bybit referral code CRYPTOBONUSW is the code CBW displays; partner receipt pending.',
+    ...over,
+  });
+  const vconf = (a) => m.validateClaimConfirmation(a);
+  const iss = (a) => vconf(a).issues.map((i) => i.code);
+  const adm = (a) => m.bybitPromoAdmissibilityIssues(a).map((i) => i.code);
+  const trs = (a) => m.trustedSourceIssues(a).map((i) => i.code);
+  const ev = (arr) => m.evaluateBybitPromoCodeConfirmations(arr, CNOW);
+  const supports = (a, v) => m.confirmationSupportsTarget(a, target(v), CNOW);
+
+  check('conf/1: claim/value-bound draft is structurally valid but non-authorizing', (() => { const d = mkOwner({ confirmationId: 'c-draft', status: 'draft', sourceUrl: null, sourceId: 'UNCONFIRMED-TEMPLATE' }); return vconf(d).ok === true && ev([d]).state !== 'confirmed'; })());
+  check('conf/2: owner attestation alone → pending_partner_confirmation', ev([mkOwner()]).state === 'pending_partner_confirmation');
+  check('conf/3: synthetic trusted partner exact-value fixture → confirmed', ev([mkConf()]).state === 'confirmed');
+  check('conf/4: generic "approved" statement rejected', adm(mkConf({ sourceStatement: 'approved' })).includes('STATEMENT_NOT_BOUND') && ev([mkConf({ sourceStatement: 'approved' })]).state !== 'confirmed');
+  check('conf/5: wrong exchange cannot support', adm(mkConf({ exchangeId: 'binance' })).includes('WRONG_EXCHANGE') && supports(mkConf({ exchangeId: 'binance' }), CAND) === false);
+  check('conf/6: wrong claim cannot support', adm(mkConf({ claimId: 'bybit.bonus_headline' })).includes('WRONG_CLAIM') && supports(mkConf({ claimId: 'bybit.bonus_headline' }), CAND) === false);
+  check('conf/7: wrong value fails (supports only its own bound value)', (() => { const w = mkConf({ assertedValue: 'OTHERCODE9', sourceStatement: 'Bybit partner dashboard: active referral code OTHERCODE9 assigned.' }); return supports(w, CAND) === false && supports(w, 'OTHERCODE9') === true; })());
+  check('conf/8: case/whitespace normalization deterministic + idempotent', (() => { const n = m.normalizeReferralCode('  cryptobonusw '); return n.ok && n.value === 'CRYPTOBONUSW' && m.normalizeReferralCode('CRYPTOBONUSW').value === 'CRYPTOBONUSW' && m.normalizeReferralCode('crypto bonusw').ok === false && m.normalizeReferralCode(n.value).value === n.value; })());
+  check('conf/9: unsafe value characters rejected', m.normalizeReferralCode('CRYPTO$BONUS').ok === false && m.normalizeReferralCode('CRYPTO-BONUS').ok === false && iss(mkConf({ assertedValue: 'CRYPTO$BONUS' })).includes('INVALID_VALUE'));
+  check('conf/10: asserted-value digest recomputation', m.computeAssertedValueDigest(mkConf()) === mkConf().assertedValueDigest);
+  check('conf/11: value-digest tampering (value/exchange/claim/assertion)', (() => {
+    const t1 = mkConf(); t1.assertedValue = 'DIFFERENT9';
+    const t2 = mkConf(); t2.exchangeId = 'binance';
+    const t3 = mkConf(); t3.claimId = 'bybit.bonus_headline';
+    return iss(t1).includes('VALUE_DIGEST_MISMATCH') && iss(t2).includes('VALUE_DIGEST_MISMATCH') && iss(t3).includes('VALUE_DIGEST_MISMATCH');
+  })());
+  check('conf/12: source URL outside policy rejected', trs(mkOwner({ sourceUrl: 'https://github.com/evil/repo/issues/1#issuecomment-1', sourceId: '1' })).includes('SOURCE_URL_OUT_OF_POLICY'));
+  check('conf/13: GitHub source without immutable ID rejected', trs(mkOwner({ sourceUrl: 'https://github.com/ros190392-source/cryptobonusworld/issues/256', sourceId: '256' })).includes('SOURCE_URL_OUT_OF_POLICY'));
+  check('conf/14: untrusted actor rejected', adm(mkConf({ confirmedBy: 'random-person' })).includes('UNTRUSTED_ACTOR') && adm(mkOwner({ confirmedBy: 'random-person' })).includes('UNTRUSTED_ACTOR'));
+  check('conf/15: source-statement digest mismatch', (() => { const t = mkConf(); t.sourceStatement = 'Bybit partner dashboard: active referral code CRYPTOBONUSW assigned NOW.'; return iss(t).includes('STATEMENT_DIGEST_MISMATCH'); })());
+  check('conf/16: confirmation before source event rejected', iss(mkConf({ confirmedAt: '2026-08-03T00:00:00Z', sourceEventAt: '2026-08-04T00:00:00Z' })).includes('BEFORE_SOURCE_EVENT'));
+  check('conf/17: future confirmation cannot support', (() => { const f = mkConf({ confirmedAt: '2026-09-01T00:00:00Z', validUntil: '2026-12-01T00:00:00Z', sourceEventAt: '2026-09-01T00:00:00Z' }); return supports(f, CAND) === false && ev([f]).state !== 'confirmed'; })());
+  check('conf/18: invalid window rejected; expired set → expired', iss(mkConf({ validUntil: '2026-08-04T00:00:00Z' })).includes('INVALID_WINDOW') && ev([mkConf({ confirmedAt: '2026-01-01T00:00:00Z', validUntil: '2026-02-01T00:00:00Z', sourceEventAt: '2025-12-31T00:00:00Z' })]).state === 'expired');
+  check('conf/19: draft/validated/rejected/revoked cannot support', ['draft', 'validated', 'rejected', 'revoked'].every((s) => supports(mkConf({ confirmationId: `c-${s}`, status: s }), CAND) === false));
+  check('conf/20: exact artifact supports only its bound claim/value/exchange', (() => { const p = mkConf(); return supports(p, CAND) === true && m.confirmationSupportsTarget(p, { exchangeId: 'bybit', claimId: 'bybit.bonus_headline', assertionType: 'exact_referral_code_assignment', value: CAND }, CNOW) === false && m.confirmationSupportsTarget(p, { exchangeId: 'binance', claimId: 'bybit.promo_code', assertionType: 'exact_referral_code_assignment', value: CAND }, CNOW) === false; })());
+  check('conf/21: conflicting active values → conflict', ev([mkConf({ confirmationId: 'ca' }), mkConf({ confirmationId: 'cb', assertedValue: 'RIVALCODE9', sourceStatement: 'Bybit partner dashboard: active referral code RIVALCODE9 assigned.' })]).state === 'conflict');
+  check('conf/22: duplicate confirmation id fails closed', ev([mkConf({ confirmationId: 'dup' }), mkConf({ confirmationId: 'dup', sourceId: 'receipt-x' })]).state === 'invalid');
+  check('conf/23: unknown replacement/revocation target rejected', ev([mkConf({ replacesConfirmationId: 'ghost' })]).state === 'invalid' && ev([mkConf({ revokesConfirmationId: 'ghost' })]).state === 'invalid');
+  check('conf/24: replacement/revocation cycle rejected', ev([mkConf({ confirmationId: 'cx', replacesConfirmationId: 'cy' }), mkConf({ confirmationId: 'cy', replacesConfirmationId: 'cx', sourceId: 'receipt-y' })]).state === 'invalid');
+  check('conf/25: recursive unsafe source/note content rejected', iss(mkConf({ note: 'session_token=abc123' })).includes('UNSAFE_CONTENT') && iss(mkConf({ limitations: 'cookie: sid=xyz' })).includes('UNSAFE_CONTENT'));
+  check('conf/26: full email/dashboard dump rejected', iss(mkConf({ sourceStatement: 'From: partner@bybit.com\nSubject: code\nBybit CRYPTOBONUSW referral' })).includes('INVALID_STATEMENT') && iss(mkConf({ sourceStatement: '<table><tr><td>Bybit CRYPTOBONUSW referral code</td></tr></table>' })).includes('INVALID_STATEMENT'));
+  check('conf/27: draft template with no trusted source is non-authorizing (evaluator missing)', ev([mkOwner({ confirmationId: 'c-tmpl', status: 'draft', sourceUrl: null, sourceId: 'UNCONFIRMED-TEMPLATE' })]).state === 'missing');
+  check('conf/28: real confirmation set + packet ownerConfirmations are empty', m.BYBIT_PROMO_CODE_CONFIRMATIONS.length === 0 && m.BYBIT_OFFER_EVIDENCE_PACKET.ownerConfirmations.length === 0);
+  check('conf/29: real promo claim remains partner-confirmation-required', m.BYBIT_OFFER_EVIDENCE_PACKET.claims.find((c) => c.claimId === 'bybit.promo_code').result === 'requires_owner_partner_confirmation');
+  check('conf/30: real packet remains draft', m.BYBIT_OFFER_EVIDENCE_PACKET.approval === 'draft');
+  check('conf/31: offers.bybit.evidence remains null', m.bybitOfferEvidence === null && m.getOffer('bybit').evidence === null);
+  check('conf/32: preview homepage /go/* = 0', m.homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'preview', 'en').primary.href.startsWith('/go/')));
+  check('conf/33: public production simulation /go/* = 0', m.homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'production', 'en').primary.href.startsWith('/go/')));
+  check('conf/34: PUBLIC_MARKET_PROFILES remains frozen and empty', Array.isArray(m.PUBLIC_MARKET_PROFILES) && m.PUBLIC_MARKET_PROFILES.length === 0 && Object.isFrozen(m.PUBLIC_MARKET_PROFILES));
+  check('conf/35: locale cannot change confirmation facts', (() => {
+    const disc = (l) => m.resolveDisclosure({ tone: 'verified', evidence: m.bybitOfferEvidence, expectedExchangeId: 'bybit', now: CNOW, isAffiliate: false, methodologyHref: '/methodology/' }, l);
+    const stable = ['en', 'ru', 'kk'].every((l) => disc(l).evidenceState === 'none');
+    return stable && m.BYBIT_PROMO_CODE_CONFIRMATION_STATE === 'missing' && m.BYBIT_PROMO_CODE_CANDIDATE === 'CRYPTOBONUSW' && m.BYBIT_PROMO_CODE_CANDIDATE_CONFIRMED === false;
+  })());
+  check('conf/36: real derived confirmation-set state is missing (candidate unconfirmed)', m.BYBIT_PROMO_CODE_CONFIRMATION_STATE === 'missing' && m.evaluateBybitPromoCodeConfirmations(m.BYBIT_PROMO_CODE_CONFIRMATIONS, CNOW).state === 'missing');
+  check('conf/37: full artifact digest covers every provenance/lifecycle/safety field', (() => {
+    const mutate = [
+      (c) => { c.confirmedAt = '2026-08-05T06:00:00Z'; },
+      (c) => { c.validUntil = '2026-09-15T00:00:00Z'; },
+      (c) => { c.confirmationRole = 'owner'; },
+      (c) => { c.status = 'validated'; },
+      (c) => { c.sourceId = 'receipt-y'; },
+      (c) => { c.replacesConfirmationId = 'other'; },
+      (c) => { c.limitations = 'silently changed'; },
+      (c) => { c.note = 'silently added note'; },
+    ];
+    return mutate.every((fn) => { const c = mkConf(); fn(c); return iss(c).includes('ARTIFACT_DIGEST_MISMATCH'); });
+  })());
+  check('conf/38: sourceKind/lifecycle enums are code-owned and closed', m.CONFIRMATION_SOURCE_KINDS.length === 5 && !m.CONFIRMATION_SOURCE_KINDS.includes('arbitrary') && iss(mkConf({ sourceKind: 'arbitrary_source' })).includes('INVALID_SOURCE_KIND') && iss(mkConf({ status: 'weird' })).includes('INVALID_STATUS'));
 
   // --- Invariant: a non-commercial model may never point at /go/ ---
   let threw = false;
