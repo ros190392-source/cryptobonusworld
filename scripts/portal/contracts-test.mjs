@@ -17,6 +17,8 @@ import { tmpdir } from 'node:os';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { runResolutionHarness } from './test-support/offer-packet-resolution-harness.mjs';
+import { makeSyntheticPromoPolicy, makeSyntheticPartnerConfirmation } from './test-support/synthetic-confirmation-fixtures.mjs';
+import { runTestAuthorityGuard } from './test-authority-guard.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '..', '..');
@@ -74,11 +76,12 @@ try {
         `export { offers, getOffer } from ${JSON.stringify(offersData)};\n` +
         `export { validateOfferEvidencePacket, isOfficialBybitSource, deriveUnsupportedClaims, computeCaptureManifestDigest, canonicalCaptureManifest, BYBIT_OFFER_CLAIM_POLICY, BYBIT_OFFER_CLAIM_INVENTORY, BYBIT_OFFER_REQUIRED_CLAIMS, ALLOWED_OWNER_IDENTITIES } from ${JSON.stringify(offerEvidencePacket)};\n` +
         `export * as OEP from ${JSON.stringify(offerEvidencePacket)};\n` +
-        `export { getBybitOfferCommercialIdentity, resolveBybitOfferPacketClaims, resolveOfferPacketClaimsForTest, computeResolutionDigest, canonicalResolution, computeRawPacketDigest, computeConfirmationSetDigest, computeConfirmationPolicyDigest, validateResolvedOfferPacket, adaptBybitOfferToEvidence, adaptOfferToEvidenceForTest, PRODUCTION_CONFIRMATION_POLICY_ID, PRODUCTION_CONFIRMATION_POLICY_DIGEST, RESOLUTION_SCHEMA_ID } from ${JSON.stringify(offerPacketResolution)};\n` +
+        `export { getBybitOfferCommercialIdentity, resolveBybitOfferPacketClaims, computeResolutionDigest, canonicalResolution, computeRawPacketDigest, computeConfirmationSetDigest, computeConfirmationPolicyDigest, validateResolvedOfferPacket, adaptBybitOfferToEvidence, PRODUCTION_CONFIRMATION_POLICY_ID, PRODUCTION_CONFIRMATION_POLICY_DIGEST, RESOLUTION_SCHEMA_ID } from ${JSON.stringify(offerPacketResolution)};\n` +
         `export * as OPR from ${JSON.stringify(offerPacketResolution)};\n` +
         `export { BYBIT_OFFER_EVIDENCE_PACKET, BYBIT_OFFER_EVIDENCE_DECISION, deriveBybitDecision, deriveBybitOfferEvidence, bybitOfferEvidence } from ${JSON.stringify(bybitOfferEvidence)};\n` +
         `export { validatePublicRenderedCapture, computeFragmentDigest, computeRenderedArtifactDigest, canonicalRenderedArtifact, isOfficialBybitUrl, captureMaySupportClaims, fragmentSupportsClaim, RENDER_OUTCOMES, MAX_FRAGMENT_TEXT_LENGTH, MAX_REDIRECTS, MAX_LOCATOR_LENGTH, MAX_WARNINGS, MAX_WARNING_LENGTH, MAX_PAGE_TITLE_LENGTH } from ${JSON.stringify(publicRenderedCapture)};\n` +
-        `export { validateClaimConfirmation, normalizeReferralCode, normalizeStatement, computeAssertedValueDigest, computeSourceStatementDigest, computeReceiptDigest, canonicalSourceAssertion, computeConfirmationArtifactDigest, canonicalConfirmationArtifact, promoAdmissibilityIssues, evaluatePromoCodeConfirmations, evaluateBybitPromoCodeConfirmations, promoCodeSetConfirmsValue, BYBIT_PROMO_CODE_CONFIRMATION_POLICY, TEST_ONLY_PROMO_CODE_POLICY, CONFIRMATION_SOURCE_KINDS, CONFIRMATION_LIFECYCLE_STATES, ARTIFACT_INTENTS, ASSIGNMENT_STATES, MAX_STATEMENT_LENGTH } from ${JSON.stringify(claimConfirmation)};\n` +
+        `export { validateClaimConfirmation, normalizeReferralCode, normalizeStatement, computeAssertedValueDigest, computeSourceStatementDigest, computeReceiptDigest, canonicalSourceAssertion, computeConfirmationArtifactDigest, canonicalConfirmationArtifact, promoAdmissibilityIssues, evaluatePromoCodeConfirmations, evaluateBybitPromoCodeConfirmations, promoCodeSetConfirmsValue, BYBIT_PROMO_CODE_CONFIRMATION_POLICY, CONFIRMATION_SOURCE_KINDS, CONFIRMATION_LIFECYCLE_STATES, ARTIFACT_INTENTS, ASSIGNMENT_STATES, MAX_STATEMENT_LENGTH } from ${JSON.stringify(claimConfirmation)};\n` +
+        `export * as CC from ${JSON.stringify(claimConfirmation)};\n` +
         `export { BYBIT_PROMO_CODE_CONFIRMATIONS, BYBIT_PROMO_CODE_CONFIRMATION_STATE, BYBIT_PROMO_CODE_CANDIDATE, BYBIT_PROMO_CODE_CANDIDATE_CONFIRMED } from ${JSON.stringify(bybitPromoCodeConfirmation)};\n` +
         `export { validateOfficialSourceCapture, computeOfficialSourceDigest, computeOfficialFragmentDigest, canonicalOfficialSource, sourceMaySupportClaims, sourceWasReachable, officialFragmentAddressesClaim, OFFICIAL_SOURCE_SCOPES, OFFICIAL_SOURCE_OUTCOMES, MAX_SOURCE_FRAGMENT_TEXT } from ${JSON.stringify(officialSourceCapture)};\n` +
         `export * as OSC from ${JSON.stringify(officialSourceCapture)};\n` +
@@ -1101,7 +1104,9 @@ try {
   // ===== Split 3 (#256) — trusted owner/partner claim-confirmation intake (R1–R9) =====
   const CNOW = Date.parse('2026-08-06T12:00:00Z');
   const PPOL = m.BYBIT_PROMO_CODE_CONFIRMATION_POLICY;
-  const TPOL = m.TEST_ONLY_PROMO_CODE_POLICY;
+  // Issue #262: the synthetic test policy is built HERE (test code) from the test-support
+  // fixtures — it is no longer a production `src/**` export.
+  const TPOL = makeSyntheticPromoPolicy(m);
   const CAND = PPOL.candidateValue;
   const csa = (over = {}) => ({ exchangeId: 'bybit', claimId: 'bybit.promo_code', assertionType: 'exact_referral_code_assignment', assignmentState: 'active', assertedValue: CAND, ...over });
   const fin = (a) => {
@@ -1249,8 +1254,12 @@ try {
   const OID = m.getBybitOfferCommercialIdentity();
   const TID = { exchangeSlug: 'bybit', promoCode: 'CRYPTOBONUSW' };
   const resP = (pkt, set) => m.resolveBybitOfferPacketClaims(pkt, set, BNOW);
-  const resT = (pkt, set, id) => m.resolveOfferPacketClaimsForTest(pkt, set, BNOW, id || TID, TPOL);
   const adP = (pkt, set) => m.adaptBybitOfferToEvidence(pkt, set, BNOW);
+  // Issue #262: no test resolver/adapter exists in production. The positive promo-confirmed
+  // resolution path is proven only by the isolated component-level harness (bridge/38);
+  // evaluator states are proven at conf/* with the local synthetic policy. Here we assert
+  // the production resolver over the PRODUCTION policy cannot confirm synthetic partners.
+  const evT = (arr) => m.evaluatePromoCodeConfirmations(arr, BNOW, TPOL);
   const rc = (res, id) => res.resolvedClaims.find((c) => c.claimId === id);
   const rIssues = (res) => (m.validateResolvedOfferPacket(res).issues || []).map((i) => i.code);
   const clone = (o) => JSON.parse(JSON.stringify(o));
@@ -1260,7 +1269,7 @@ try {
   check('bridge/2: packetToEvidenceMetadata is not publicly exported', m.OEP.packetToEvidenceMetadata === undefined && m.packetToEvidenceMetadata === undefined);
   check('bridge/3: adaptResolvedApprovedPacketToEvidence is not publicly exported', m.OPR.adaptResolvedApprovedPacketToEvidence === undefined && m.adaptResolvedApprovedPacketToEvidence === undefined);
   check('bridge/4: raw-packet-only EvidenceMetadata adapter is removed', m.OEP.adaptApprovedPacketToEvidence === undefined && m.adaptApprovedPacketToEvidence === undefined);
-  check('bridge/5: only adaptBybitOfferToEvidence is the product evidence entry point', typeof m.adaptBybitOfferToEvidence === 'function' && Object.keys(m.OPR).filter((k) => /adapt/i.test(k)).sort().join(',') === 'adaptBybitOfferToEvidence,adaptOfferToEvidenceForTest');
+  check('bridge/5: only adaptBybitOfferToEvidence is the product evidence entry point', typeof m.adaptBybitOfferToEvidence === 'function' && Object.keys(m.OPR).filter((k) => /adapt/i.test(k)).sort().join(',') === 'adaptBybitOfferToEvidence' && m.OPR.adaptOfferToEvidenceForTest === undefined && m.OPR.resolveOfferPacketClaimsForTest === undefined);
   check('bridge/6: no public resolved-view→evidence adapter exists', Object.keys(m.OPR).every((k) => !/adaptResolved/i.test(k)));
 
   // -- R2: caller-supplied resolved view cannot authorize --
@@ -1281,18 +1290,16 @@ try {
   // -- R3: canonical product offer identity; no promo-code argument --
   check('bridge/9: product adapter reads the real offer promo code internally', OID.exchangeSlug === 'bybit' && OID.promoCode === m.getOffer('bybit').promoCode);
   check('bridge/10: product APIs accept no promo-code argument', m.adaptBybitOfferToEvidence.length === 3 && m.resolveBybitOfferPacketClaims.length === 3);
-  check('bridge/11: real offer-code change changes the resolution + blocks stale reuse', (() => {
-    const good = resT(buildPacket(), [mkP()], { exchangeSlug: 'bybit', promoCode: 'CRYPTOBONUSW' });
-    const mism = resT(buildPacket(), [mkP()], { exchangeSlug: 'bybit', promoCode: 'NEWCODE9' });
-    const dA = m.resolveOfferPacketClaimsForTest(realPkt, [], BNOW, { exchangeSlug: 'bybit', promoCode: 'CRYPTOBONUSW' }, TPOL);
-    const dB = m.resolveOfferPacketClaimsForTest(realPkt, [], BNOW, { exchangeSlug: 'bybit', promoCode: 'DIFFERENT9' }, TPOL);
-    return good.ok && rc(good, 'bybit.promo_code').resolvedResult === 'supported' && mism.reason === 'CONFIRMED_VALUE_MISMATCH' && dA.ok && dB.ok && dA.resolutionDigest !== dB.resolutionDigest;
+  check('bridge/11: product resolution binds the real canonical offer code (no injectable identity)', (() => {
+    // No production function accepts a caller identity; the resolver reads the real code.
+    const r = resP(realPkt, []);
+    return r.ok && r.normalizedOfferPromoCode === m.getOffer('bybit').promoCode && OID.promoCode === m.getOffer('bybit').promoCode && typeof r.offerIdentityDigest === 'string' && r.offerIdentityDigest.startsWith('sha256:') && m.resolveBybitOfferPacketClaims.length === 3;
   })());
 
   // -- R4: production policy fingerprint --
   check('bridge/12: production-policy resolution carries the production fingerprint', (() => { const r = resP(realPkt, []); return r.policyMode === 'production' && r.policyId === m.PRODUCTION_CONFIRMATION_POLICY_ID && r.policyDigest === m.PRODUCTION_CONFIRMATION_POLICY_DIGEST; })());
-  check('bridge/13: test-policy resolution is marked test; product adapter is production-only', (() => { const r = resT(buildPacket(), [mkP()]); return r.policyMode === 'test' && m.adaptOfferToEvidenceForTest(buildPacket(), [mkP()], BNOW, TID, PPOL).reason === 'USE_PRODUCT_ADAPTER'; })());
-  check('bridge/14: policy-digest tampering / different policy changes the resolution digest', (() => { const a = resP(realPkt, []); const b = resT(realPkt, []); return a.resolutionDigest !== b.resolutionDigest && m.computeConfirmationPolicyDigest(PPOL) !== m.computeConfirmationPolicyDigest(TPOL); })());
+  check('bridge/13: production resolution is production-mode; no test adapter/resolver exists', (() => { const r = resP(realPkt, []); return r.policyMode === 'production' && m.OPR.adaptOfferToEvidenceForTest === undefined && m.OPR.resolveOfferPacketClaimsForTest === undefined; })());
+  check('bridge/14: production vs synthetic policy fingerprints differ; production carries the production digest', (() => { const a = resP(realPkt, []); return a.policyDigest === m.PRODUCTION_CONFIRMATION_POLICY_DIGEST && m.computeConfirmationPolicyDigest(PPOL) !== m.computeConfirmationPolicyDigest(TPOL); })());
 
   // -- R5: full raw-packet digest --
   check('bridge/15: raw-packet digest covers every committed field (tamper detection)', (() => {
@@ -1331,7 +1338,7 @@ try {
     const a2 = mkP({ confirmationId: 'cn', sourceId: 'rn', note: 'changed note' });
     return m.computeConfirmationSetDigest([a]) !== m.computeConfirmationSetDigest([a2]);
   })());
-  check('bridge/20: confirmation artifact with invalid digest fails resolution', (() => { const bad = mkP(); bad.artifactDigest = 'sha256:' + '0'.repeat(64); return resT(buildPacket(), [bad]).reason === 'CONFIRMATION_INVALID'; })());
+  check('bridge/20: confirmation artifact with invalid digest fails resolution', (() => { const bad = mkP(); bad.artifactDigest = 'sha256:' + '0'.repeat(64); return resP(buildPacket(), [bad]).reason === 'CONFIRMATION_INVALID'; })());
   check('bridge/21: empty set has a deterministic non-empty digest', m.computeConfirmationSetDigest([]) === m.computeConfirmationSetDigest([]) && m.computeConfirmationSetDigest([]).length > 8);
 
   // -- R7: resolution digest + snapshot invariants --
@@ -1339,30 +1346,36 @@ try {
   check('bridge/23: resolved audit snapshot is deeply frozen', (() => { const r = resP(realPkt, []); return Object.isFrozen(r) && Object.isFrozen(r.resolvedClaims) && Object.isFrozen(r.resolvedClaims[0]) && Object.isFrozen(r.confirmationEvaluation); })());
   check('bridge/24: blockingRequiredClaims mismatch fails', (() => { const r = clone(resP(realPkt, [])); r.blockingRequiredClaims = []; return rIssues(r).includes('BLOCKING_MISMATCH'); })());
   check('bridge/25: supported promo with non-confirmed evaluator fails', (() => { const r = clone(resP(realPkt, [])); rc(r, 'bybit.promo_code').resolvedResult = 'supported'; return rIssues(r).includes('SUPPORT_WITHOUT_CONFIRMED'); })());
-  check('bridge/26: confirmed promo without a confirmationId fails', (() => { const r = clone(resT(buildPacket(), [mkP()])); rc(r, 'bybit.promo_code').provenance.confirmationId = null; return rIssues(r).includes('MISSING_CONFIRMATION_ID'); })());
-  check('bridge/27: resolved-result / provenance tampering fails', (() => { const r = clone(resT(buildPacket(), [mkP()])); rc(r, 'bybit.kyc_required').resolvedResult = 'supported'; return rIssues(r).length > 0; })());
+  check('bridge/26: a forged confirmed-promo snapshot without a confirmationId fails validation', (() => { const r = clone(resP(realPkt, [])); const p = rc(r, 'bybit.promo_code'); p.resolvedResult = 'supported'; p.provenance = { kind: 'confirmation_evaluator', detail: 'forged', evaluatorState: 'confirmed', evaluatorValue: 'CRYPTOBONUSW', confirmationId: null }; return rIssues(r).includes('MISSING_CONFIRMATION_ID'); })());
+  check('bridge/27: resolved-result tampering fails (target claim raw≤assessment invariant / blocking)', (() => { const r = clone(resP(realPkt, [])); rc(r, 'bybit.kyc_required').resolvedResult = 'supported'; return rIssues(r).length > 0; })());
   check('bridge/28: missing / duplicate resolved claim fails closed', (() => { const r = resP(realPkt, []); const miss = clone(r); miss.resolvedClaims = miss.resolvedClaims.filter((c) => c.claimId !== 'bybit.kyc_required'); const dup = clone(r); dup.resolvedClaims = [...dup.resolvedClaims, dup.resolvedClaims[0]]; return rIssues(miss).includes('MISSING_CLAIM') && rIssues(dup).includes('DUPLICATE_CLAIM'); })());
 
   // -- promo-only bridge behavior --
   check('bridge/29: empty real set → promo pending; adapter non-authorizing', (() => { const r = resP(realPkt, []); return r.confirmationEvaluation.state === 'missing' && rc(r, 'bybit.promo_code').resolvedResult === 'requires_owner_partner_confirmation' && adP(realPkt, []).ok === false; })());
   check('bridge/30: owner-only set → promo pending', (() => { const r = resP(realPkt, [mkO()]); return r.confirmationEvaluation.state === 'pending_partner_confirmation' && rc(r, 'bybit.promo_code').resolvedResult !== 'supported'; })());
-  check('bridge/31: exact test partner confirmation resolves ONLY promo supported', (() => { const r = resT(realPkt, [mkP()]); return r.ok && rc(r, 'bybit.promo_code').resolvedResult === 'supported' && r.blockingRequiredClaims.includes('bybit.kyc_required') && !r.blockingRequiredClaims.includes('bybit.promo_code'); })());
-  check('bridge/32: wrong / prefix value → no support', resT(realPkt, [mkP({ assertedValue: 'OTHERCODE9', sourceAssertion: csa({ assertedValue: 'OTHERCODE9' }) })]).ok === false && resT(realPkt, [mkP({ assertedValue: 'CRYPTOBONUSWXY', sourceAssertion: csa({ assertedValue: 'CRYPTOBONUSWXY' }) })]).ok === false);
-  check('bridge/33: conflict / invalid / expired / revoked → no support', (() => {
-    const conflict = resT(realPkt, [mkP({ confirmationId: 'p1', sourceId: 'r1' }), mkP({ confirmationId: 'p2', sourceId: 'r2', assertedValue: 'RIVALCODE9', sourceAssertion: csa({ assertedValue: 'RIVALCODE9' }) })]).reason === 'CONFIRMATION_CONFLICT';
+  check('bridge/31: synthetic partner cannot confirm under the production policy; positive path only in the isolated harness', (() => {
+    // Production resolver over the production policy rejects the untrusted synthetic partner.
+    const prod = resP(realPkt, [mkP()]);
+    // The positive promo-confirmed evaluation is proven only via the local synthetic policy.
+    const synth = evT([mkP()]);
+    return prod.reason === 'CONFIRMATION_INVALID' && synth.state === 'confirmed' && synth.value === CAND;
+  })());
+  check('bridge/32: wrong / prefix value → not confirmed (evaluator, synthetic policy)', evT([mkP({ assertedValue: 'OTHERCODE9', sourceAssertion: csa({ assertedValue: 'OTHERCODE9' }) })]).state !== 'confirmed' && evT([mkP({ assertedValue: 'CRYPTOBONUSWXY', sourceAssertion: csa({ assertedValue: 'CRYPTOBONUSWXY' }) })]).state !== 'confirmed');
+  check('bridge/33: conflict / invalid / expired / revoked → not confirmed', (() => {
+    const conflict = evT([mkP({ confirmationId: 'p1', sourceId: 'r1' }), mkP({ confirmationId: 'p2', sourceId: 'r2', assertedValue: 'RIVALCODE9', sourceAssertion: csa({ assertedValue: 'RIVALCODE9' }) })]).state === 'conflict';
     const invalid = resP(realPkt, [mkP()]).reason === 'CONFIRMATION_INVALID';
-    const expired = rc(resT(realPkt, [mkP({ confirmedAt: '2026-01-01T00:00:00Z', validUntil: '2026-02-01T00:00:00Z', sourceEventAt: '2025-12-31T00:00:00Z' })]), 'bybit.promo_code').provenance.evaluatorState === 'expired';
+    const expired = evT([mkP({ confirmedAt: '2026-01-01T00:00:00Z', validUntil: '2026-02-01T00:00:00Z', sourceEventAt: '2025-12-31T00:00:00Z' })]).state === 'expired';
     const c1 = mkP({ confirmationId: 'c1', sourceId: 'receipt-1' });
     const c3 = mkO({ confirmationId: 'c3', confirmedAt: '2026-08-05T12:00:00Z', sourceEventAt: '2026-08-05T06:00:00Z', sourceId: '100200301', sourceUrl: 'https://github.com/ros190392-source/cryptobonusworld/issues/256#issuecomment-100200301', artifactIntent: 'revocation', revokesConfirmationId: 'c1' });
-    const revoked = rc(resT(realPkt, [c1, c3]), 'bybit.promo_code').provenance.evaluatorState === 'revoked';
+    const revoked = evT([c1, c3]).state === 'revoked';
     return conflict && invalid && expired && revoked;
   })());
-  check('bridge/34: confirmation cannot change any non-promo claim', (() => { const r = resT(realPkt, [mkP()]); return ['bybit.bonus_headline', 'bybit.kyc_required', 'bybit.deposit_required', 'bybit.availability', 'bybit.restricted_countries', 'bybit.reward_type', 'bybit.terms_summary'].every((id) => rc(r, id).resolvedResult === rc(r, id).rawResult && rc(r, id).provenance.kind === 'source_plan_assessment'); })());
-  check('bridge/35: raw packet + confirmation set are not mutated by resolution', (() => { const set = [mkP()]; const p0 = JSON.stringify(realPkt); const s0 = JSON.stringify(set); resT(realPkt, set); return JSON.stringify(realPkt) === p0 && JSON.stringify(set) === s0; })());
+  check('bridge/34: non-promo claims are source-plan-derived, unaffected by confirmations', (() => { const r = resP(realPkt, []); return ['bybit.bonus_headline', 'bybit.kyc_required', 'bybit.deposit_required', 'bybit.availability', 'bybit.restricted_countries', 'bybit.reward_type', 'bybit.terms_summary'].every((id) => rc(r, id).resolvedResult === rc(r, id).rawResult && rc(r, id).provenance.kind === 'source_plan_assessment'); })());
+  check('bridge/35: raw packet + confirmation set are not mutated by resolution', (() => { const set = [mkP()]; const p0 = JSON.stringify(realPkt); const s0 = JSON.stringify(set); resP(realPkt, set); return JSON.stringify(realPkt) === p0 && JSON.stringify(set) === s0; })());
 
   // -- adapter proofs --
   check('bridge/36: adapter rejects unresolved promo', adP(buildPacket(), []).reason === 'REQUIRED_CLAIM_UNSUPPORTED');
-  check('bridge/37: adapter rejects another unresolved required claim', (() => { const pkt = buildPacket({ claims: completeClaims().map((c) => c.claimId === 'bybit.kyc_required' ? { ...c, result: 'inaccessible' } : c) }); return m.adaptOfferToEvidenceForTest(pkt, [mkP()], BNOW, TID, TPOL).reason === 'REQUIRED_CLAIM_UNSUPPORTED'; })());
+  check('bridge/37: adapter rejects another unresolved required claim', (() => { const pkt = buildPacket({ claims: completeClaims().map((c) => c.claimId === 'bybit.kyc_required' ? { ...c, result: 'inaccessible' } : c) }); return adP(pkt, []).reason === 'REQUIRED_CLAIM_UNSUPPORTED'; })());
   check('bridge/38: synthetic complete positive path adapts (isolated test harness)', (() => { const H = runResolutionHarness(m, BNOW); if (H.fail !== 0) console.log(H.results.join('\n')); return H.fail === 0 && H.pass >= 5; })());
   check('bridge/39: production adapter rejects the synthetic partner set (empty production trust)', adP(buildPacket(), [mkP()]).ok === false);
 
@@ -1548,6 +1561,65 @@ try {
   check('src/36: response_too_large is a terminal no-document outcome (never supported)', vs(mkShell('promo-new-user', 'response_too_large', 'promotion_specific')).ok === true && ['inaccessible', 'incomplete'].includes(assess('bybit.bonus_headline', [mkShell('promo-new-user', 'response_too_large', 'promotion_specific')]).result));
   // 37 — real committed captures validate + digests recompute.
   check('src/37: real committed official-source captures validate + digests recompute', (realPkt260.officialSourceCaptures || []).every((c) => m.validateOfficialSourceCapture(c, m.BYBIT_OFFER_CLAIM_INVENTORY).ok && m.computeOfficialSourceDigest(c) === c.sourceDigest));
+
+  // ===== Split 3 (#262) — post-merge test-authority surface removal =====
+  // No synthetic/test authorization policy, resolver or EvidenceMetadata adapter may be
+  // exported from production `src/**`. adaptBybitOfferToEvidence is the sole production
+  // EvidenceMetadata producer. The synthetic positive proof lives only in test-support.
+  const GUARD = runTestAuthorityGuard();
+  const realPkt262 = m.BYBIT_OFFER_EVIDENCE_PACKET;
+  // 1 — TEST_ONLY policy absent from claimConfirmation exports.
+  check('guard/1: TEST_ONLY_PROMO_CODE_POLICY absent from claimConfirmation exports', m.CC.TEST_ONLY_PROMO_CODE_POLICY === undefined && m.TEST_ONLY_PROMO_CODE_POLICY === undefined);
+  // 2 — TEST_ONLY policy absent from all src/** text (AST/text guard).
+  check('guard/2: no TEST_ONLY_PROMO_CODE_POLICY token in src/**', GUARD.violations.every((v) => v.code !== 'TEST_ONLY_POLICY_IN_SRC'));
+  // 3 — synthetic partner identity absent from src/**.
+  check('guard/3: no test-partner-fixture identity in src/**', GUARD.violations.every((v) => v.code !== 'SYNTHETIC_PARTNER_IDENTITY_IN_SRC'));
+  // 4 — synthetic partner domain absent from src/**.
+  check('guard/4: no partner.test domain in src/**', GUARD.violations.every((v) => v.code !== 'SYNTHETIC_PARTNER_DOMAIN_IN_SRC'));
+  // 5 — test resolver absent from production exports.
+  check('guard/5: resolveOfferPacketClaimsForTest absent from production exports', m.OPR.resolveOfferPacketClaimsForTest === undefined && m.resolveOfferPacketClaimsForTest === undefined);
+  // 6 — test adapter absent from production exports.
+  check('guard/6: adaptOfferToEvidenceForTest absent from production exports', m.OPR.adaptOfferToEvidenceForTest === undefined && m.adaptOfferToEvidenceForTest === undefined);
+  // 7 — no exported __test / forbidden authorization hook name.
+  check('guard/7: no forbidden test-authority export names in src/**', GUARD.violations.every((v) => v.code !== 'FORBIDDEN_EXPORT_NAME') && Object.keys(m.OPR).every((k) => !/__test|ForTest|testAdapter|syntheticPolicy/.test(k)) && Object.keys(m.CC).every((k) => !/__test|ForTest|TEST_ONLY/.test(k)));
+  // 8 — only adaptBybitOfferToEvidence is a production EvidenceMetadata producer.
+  check('guard/8: only adaptBybitOfferToEvidence produces EvidenceMetadata (AST + namespace)', GUARD.violations.every((v) => v.code !== 'EXTRA_EVIDENCE_PRODUCER') && Object.keys(m.OPR).filter((k) => /^adapt/.test(k)).join(',') === 'adaptBybitOfferToEvidence');
+  // 9 — product source cannot import test-support.
+  check('guard/9: no production import of test-support / scripts', GUARD.violations.every((v) => v.code !== 'PRODUCTION_IMPORTS_TEST_SUPPORT'));
+  // 10 — test-support not re-exported by a product barrel.
+  check('guard/10: test-support not re-exported by a production module', GUARD.violations.every((v) => v.code !== 'TEST_SUPPORT_REEXPORTED'));
+  // 10b — the guard as a whole passes (fail-closed AST + boundary).
+  check('guard/10b: test-authority guard passes with zero violations', GUARD.ok === true);
+  // 11 — synthetic harness remains ≥5/5.
+  check('guard/11: synthetic harness remains at least 5/5', (() => { const H = runResolutionHarness(m, BNOW); if (H.fail !== 0) console.log(H.results.join('\n')); return H.fail === 0 && H.pass >= 5; })());
+  // 12 — production adapter rejects the real empty confirmation set.
+  check('guard/12: production adapter rejects the real empty confirmation set', m.adaptBybitOfferToEvidence(realPkt262, [], BNOW).ok === false);
+  // 13 — production trusted partner identities/domains empty.
+  check('guard/13: production trusted partner identities/domains remain empty', PPOL.trustedPartnerIdentities.length === 0 && PPOL.trustedPartnerDomains.length === 0);
+  // 14 — real confirmation set frozen empty.
+  check('guard/14: BYBIT_PROMO_CODE_CONFIRMATIONS remains Object.freeze([])', Array.isArray(m.BYBIT_PROMO_CODE_CONFIRMATIONS) && m.BYBIT_PROMO_CODE_CONFIRMATIONS.length === 0 && Object.isFrozen(m.BYBIT_PROMO_CODE_CONFIRMATIONS));
+  // 15 — CRYPTOBONUSW unconfirmed.
+  check('guard/15: CRYPTOBONUSW remains unconfirmed', m.BYBIT_PROMO_CODE_CANDIDATE_CONFIRMED === false && PPOL.candidateConfirmed === false && m.BYBIT_PROMO_CODE_CONFIRMATION_STATE === 'missing');
+  // 16 — raw promo remains requires_owner_partner_confirmation.
+  check('guard/16: raw promo remains requires_owner_partner_confirmation', realPkt262.claims.find((c) => c.claimId === 'bybit.promo_code').result === 'requires_owner_partner_confirmation');
+  // 17 — all ten source-plan claims remain inaccessible.
+  check('guard/17: all ten source-plan target claims remain inaccessible', m.SOURCE_PLAN_TARGET_CLAIMS.every((id) => realPkt262.claims.find((c) => c.claimId === id).result === 'inaccessible') && m.SOURCE_PLAN_TARGET_CLAIMS.length === 10);
+  // 18 — packet remains draft.
+  check('guard/18: packet remains draft', realPkt262.approval === 'draft' && m.validateOfferEvidencePacket(realPkt262).ok === true);
+  // 19 — offers.bybit.evidence remains null.
+  check('guard/19: offers.bybit.evidence remains null', m.bybitOfferEvidence === null && m.getOffer('bybit').evidence === null);
+  // 20 — PUBLIC_MARKET_PROFILES frozen empty.
+  check('guard/20: PUBLIC_MARKET_PROFILES remains frozen empty', Array.isArray(m.PUBLIC_MARKET_PROFILES) && m.PUBLIC_MARKET_PROFILES.length === 0 && Object.isFrozen(m.PUBLIC_MARKET_PROFILES));
+  // 21 — PUBLIC_CBW_CTA_MODE untouched (public posture mode-independent: no /go in either mode).
+  check('guard/21: public CTA posture mode-independent (no /go/* in preview or production)', m.homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'preview', 'en').primary.href.startsWith('/go/') && !m.resolveHomepageTop10Cta(e, 'production', 'en').primary.href.startsWith('/go/')));
+  // 22 — preview /go/* = 0.
+  check('guard/22: preview homepage /go/* = 0', m.homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'preview', 'en').primary.href.startsWith('/go/')));
+  // 23 — public production simulation /go/* = 0.
+  check('guard/23: public production simulation /go/* = 0', m.homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'production', 'en').primary.href.startsWith('/go/')));
+  // 24 — the eight official-source artifacts + digests remain unchanged (valid + recompute).
+  check('guard/24: eight official-source artifacts remain valid; digests recompute', (() => { const caps = realPkt262.officialSourceCaptures || []; return caps.length === 8 && caps.every((c) => m.validateOfficialSourceCapture(c, m.BYBIT_OFFER_CLAIM_INVENTORY).ok && m.computeOfficialSourceDigest(c) === c.sourceDigest); })());
+  // 25 — source-plan + candidate fingerprints remain intact.
+  check('guard/25: source-plan + candidate fingerprints intact', m.validateSourcePlanCoverage().ok === true && m.validateExtractionCoverage().ok === true && typeof m.BYBIT_SOURCE_PLAN_DIGEST === 'string' && m.BYBIT_SOURCE_PLAN_DIGEST.startsWith('sha256:') && m.BYBIT_OFFICIAL_SOURCE_CANDIDATES.every((c) => m.computeCandidateDigest(c) === c.candidateDigest));
 
   // --- Invariant: a non-commercial model may never point at /go/ ---
   let threw = false;

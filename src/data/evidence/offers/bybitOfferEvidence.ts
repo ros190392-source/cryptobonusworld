@@ -17,10 +17,7 @@ import {
   type OfferEvidencePacket,
   validateOfferEvidencePacket,
 } from '../../contracts/offerEvidencePacket';
-import {
-  type EvidenceAdaptResult,
-  adaptBybitOfferToEvidence,
-} from '../../contracts/offerPacketResolution';
+import { adaptBybitOfferToEvidence } from '../../contracts/offerPacketResolution';
 import { BYBIT_PROMO_CODE_CONFIRMATIONS } from './bybitPromoCodeConfirmation';
 import type { EvidenceMetadata } from '../../contracts/evidenceMetadata';
 import rawPacket from './bybit-new-user-2026-08-05.json';
@@ -54,11 +51,14 @@ export function deriveBybitDecision(nowMs?: number): BybitEvidenceDecision {
 export const BYBIT_OFFER_EVIDENCE_DECISION: BybitEvidenceDecision = deriveBybitDecision();
 
 /**
- * Deterministic derivation of authorizing EvidenceMetadata from the packet + real
- * confirmation set, given an explicit clock. Fail-closed for the current draft packet.
+ * Deterministic authorization DECISION for the packet + real confirmation set, given an
+ * explicit clock. Fail-closed for the current draft packet. Issue #262: this returns only
+ * a boolean outcome + reason — it does NOT expose an EvidenceMetadata-producing surface;
+ * `adaptBybitOfferToEvidence` remains the single production EvidenceMetadata producer.
  */
-export function deriveBybitOfferEvidence(nowMs: number): EvidenceAdaptResult {
-  return adaptBybitOfferToEvidence(BYBIT_OFFER_EVIDENCE_PACKET, BYBIT_PROMO_CODE_CONFIRMATIONS, nowMs);
+export function deriveBybitOfferEvidence(nowMs: number): { ok: boolean; reason: string | null } {
+  const r = adaptBybitOfferToEvidence(BYBIT_OFFER_EVIDENCE_PACKET, BYBIT_PROMO_CODE_CONFIRMATIONS, nowMs);
+  return r.ok ? { ok: true, reason: null } : { ok: false, reason: r.reason };
 }
 
 /**

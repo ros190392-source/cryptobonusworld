@@ -349,11 +349,14 @@ export function resolveBybitOfferPacketClaims(rawPacket: unknown, confirmationSe
   return r.ok ? r.snapshot : { ok: false, reason: r.reason };
 }
 
-/** Generic audit resolver for the isolated test harness (explicit identity + policy). */
-export function resolveOfferPacketClaimsForTest(rawPacket: unknown, confirmationSet: readonly ClaimConfirmationArtifact[], nowMs: number, identity: OfferCommercialIdentity, policy: PromoCodeConfirmationPolicy): ResolveResult {
-  const r = resolveInternal(rawPacket, confirmationSet, nowMs, identity, policy);
-  return r.ok ? r.snapshot : { ok: false, reason: r.reason };
-}
+/*
+ * NOTE (Issue #262): the former generic test resolver — which accepted a caller-supplied
+ * identity + policy — has been REMOVED. No exported product function may take an arbitrary
+ * policy/identity/confirmation set and drive the internal resolution. `resolveInternal`
+ * stays PRIVATE. The isolated harness proves the positive path at COMPONENT level
+ * (evaluator + source-plan assessment + readiness + EvidenceMetadata validation) under
+ * `scripts/portal/test-support/**`, never via a production test resolver.
+ */
 
 /* ─────────────────────────── resolved-view integrity (R7) ─────────────────────── */
 
@@ -464,13 +467,10 @@ export function adaptBybitOfferToEvidence(rawPacket: unknown, confirmationSet: r
   return adaptInternal(rawPacket, confirmationSet, nowMs, getBybitOfferCommercialIdentity(), BYBIT_PROMO_CODE_CONFIRMATION_POLICY, true);
 }
 
-/**
- * Isolated TEST-ONLY adapter for the synthetic-positive harness. It REFUSES the
- * production policy (`USE_PRODUCT_ADAPTER`), so it can never be a production
- * authorizing path, and product data (empty set + no partner trust) can never reach a
- * supported state through it.
+/*
+ * NOTE (Issue #262): the former test adapter — which could return `EvidenceMetadata` under
+ * a caller-supplied non-production policy — has been REMOVED. `adaptBybitOfferToEvidence`
+ * above is now the ONLY exported `src/**` function capable of producing `EvidenceMetadata`.
+ * `adaptInternal` stays PRIVATE. The synthetic-positive proof lives entirely under
+ * `scripts/portal/test-support/**` and never calls a production test adapter.
  */
-export function adaptOfferToEvidenceForTest(rawPacket: unknown, confirmationSet: readonly ClaimConfirmationArtifact[], nowMs: number, identity: OfferCommercialIdentity, policy: PromoCodeConfirmationPolicy): EvidenceAdaptResult {
-  if (computeConfirmationPolicyDigest(policy) === PRODUCTION_CONFIRMATION_POLICY_DIGEST) return { ok: false, reason: 'USE_PRODUCT_ADAPTER' };
-  return adaptInternal(rawPacket, confirmationSet, nowMs, identity, policy, false);
-}
