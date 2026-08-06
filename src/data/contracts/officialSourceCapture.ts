@@ -76,12 +76,18 @@ export type OfficialSourceOutcome =
   | 'timeout'
   | 'network_error'
   | 'external_redirect'
+  | 'response_too_large'
   | 'unsupported';
 
 export const OFFICIAL_SOURCE_OUTCOMES: readonly OfficialSourceOutcome[] = Object.freeze([
   'content', 'redirect_only', 'spa_shell', 'not_found', 'login_wall', 'captcha_or_bot_wall',
-  'geo_restricted', 'empty', 'timeout', 'network_error', 'external_redirect', 'unsupported',
+  'geo_restricted', 'empty', 'timeout', 'network_error', 'external_redirect', 'response_too_large', 'unsupported',
 ]);
+
+export type CaptureMethodUsed = 'http' | 'http_then_rendered' | 'rendered';
+export const CAPTURE_METHODS_USED: readonly CaptureMethodUsed[] = Object.freeze(['http', 'http_then_rendered', 'rendered']);
+export type ClassificationConfidence = 'high' | 'medium' | 'low' | 'none';
+const CONFIDENCES: readonly ClassificationConfidence[] = Object.freeze(['high', 'medium', 'low', 'none']);
 
 /** Only outcomes under which a claim may be supported at all. */
 export const CONTENT_OUTCOMES: readonly OfficialSourceOutcome[] = Object.freeze(['content']);
@@ -117,6 +123,31 @@ export interface HttpSafetyReceipt {
   externalRedirectsBlocked: number;
 }
 
+/**
+ * Structured, code-owned scope classification (R5). A caller-declared scope is NOT
+ * authority — a scope decision must cite a classification rule and (for a positive
+ * classification) fragment evidence. `evidenceRefs` are fragmentIds on this capture.
+ */
+export interface ScopeAssessment {
+  classifiedScope: OfficialSourceScope;
+  classificationRuleId: string;
+  evidenceRefs: string[];
+  confidence: ClassificationConfidence;
+  limitations: string;
+}
+
+/**
+ * Structured, code-owned currency classification (R5). `current` requires an admissible
+ * currentness rule and (bounded) evidence; insufficient currentness stays `ambiguous`.
+ */
+export interface CurrencyAssessment {
+  currency: SourceCurrency;
+  ruleId: string;
+  evidenceRefs: string[];
+  observedTime: string | null;
+  limitations: string;
+}
+
 export interface OfficialSourceFragment {
   fragmentId: string;
   sourceId: string;
@@ -148,6 +179,11 @@ export interface OfficialStructuredMetadata {
 export interface OfficialSourceCapture {
   sourceId: string;
   exchangeId: string;
+  /** The code-owned candidate this capture is bound to (R2). */
+  candidateId: string;
+  /** Code-owned source-plan identity + digest this capture was taken under (R2). */
+  planId: string;
+  planDigest: string;
   requestedUrl: string;
   /** Null when no official final document was resolved (terminal/external states). */
   finalUrl: string | null;
@@ -156,16 +192,21 @@ export interface OfficialSourceCapture {
   captureMethod: string;
   captureTool: string;
   runtimeVersion: string;
+  /** Which method actually produced this capture (http / http_then_rendered / rendered). */
+  captureMethodUsed: CaptureMethodUsed;
   httpStatus: number | null;
   contentType: string | null;
-  /** Scope the source plan EXPECTED for this candidate. */
+  /** Scope the candidate DECLARED (must equal the bound candidate's declaredScope). */
   declaredScope: OfficialSourceScope;
-  /** Scope actually classified from the served document. */
+  /** Scope actually classified; must equal scopeAssessment.classifiedScope. */
   observedScope: OfficialSourceScope;
+  /** Currency; must equal currencyAssessment.currency. */
   currency: SourceCurrency;
+  scopeAssessment: ScopeAssessment;
+  currencyAssessment: CurrencyAssessment;
   outcome: OfficialSourceOutcome;
   responseBytes: number;
-  /** sha256 of the raw response body (the body itself is NEVER committed). */
+  /** sha256 of the raw response body actually accepted under policy (never committed). */
   bodyDigest: string;
   fragments: OfficialSourceFragment[];
   structuredMetadata: OfficialStructuredMetadata;
@@ -283,9 +324,14 @@ export function canonicalOfficialSource(c: OfficialSourceCapture): string {
   for (const k of ALLOWED_METADATA_KEYS) md[k] = (c.structuredMetadata as Record<string, unknown>)?.[k] ?? null;
   const receipt: Record<string, unknown> = {};
   for (const k of RECEIPT_KEYS) receipt[k] = (c.runtimeReceipt as unknown as Record<string, unknown>)?.[k];
+  const scope = c.scopeAssessment;
+  const cur = c.currencyAssessment;
   return JSON.stringify({
     sourceId: c.sourceId,
     exchangeId: c.exchangeId,
+    candidateId: c.candidateId,
+    planId: c.planId,
+    planDigest: c.planDigest,
     requestedUrl: c.requestedUrl,
     finalUrl: c.finalUrl ?? null,
     redirectChain: c.redirectChain,
@@ -293,11 +339,14 @@ export function canonicalOfficialSource(c: OfficialSourceCapture): string {
     captureMethod: c.captureMethod,
     captureTool: c.captureTool,
     runtimeVersion: c.runtimeVersion,
+    captureMethodUsed: c.captureMethodUsed,
     httpStatus: c.httpStatus,
     contentType: c.contentType,
     declaredScope: c.declaredScope,
     observedScope: c.observedScope,
     currency: c.currency,
+    scopeAssessment: { classifiedScope: scope?.classifiedScope, classificationRuleId: scope?.classificationRuleId, evidenceRefs: [...(scope?.evidenceRefs ?? [])].sort(), confidence: scope?.confidence, limitations: scope?.limitations },
+    currencyAssessment: { currency: cur?.currency, ruleId: cur?.ruleId, evidenceRefs: [...(cur?.evidenceRefs ?? [])].sort(), observedTime: cur?.observedTime ?? null, limitations: cur?.limitations },
     outcome: c.outcome,
     responseBytes: c.responseBytes,
     bodyDigest: c.bodyDigest,
@@ -383,7 +432,8 @@ function validateOutcomeMatrix(r: Record<string, unknown>, issues: SourceValidat
       break;
     case 'timeout':
     case 'network_error':
-    case 'external_redirect': {
+    case 'external_redirect':
+    case 'response_too_large': {
       if (r.finalUrl !== null) issues.push({ field: 'finalUrl', code: 'MATRIX_NO_DOCUMENT', message: `${outcome} must not present a finalUrl (must be null).` });
       if (status !== null) issues.push({ field: 'httpStatus', code: 'MATRIX_NO_DOCUMENT', message: `${outcome} requires a null httpStatus.` });
       if (r.contentType !== null) issues.push({ field: 'contentType', code: 'MATRIX_NO_DOCUMENT', message: `${outcome} requires a null contentType.` });
@@ -411,6 +461,10 @@ export function validateOfficialSourceCapture(input: unknown, allowedClaimIds: r
 
   if (!hasText(r.sourceId) || !CANONICAL_SLUG.test(r.sourceId as string)) issues.push({ field: 'sourceId', code: 'INVALID_ID', message: 'sourceId must be a canonical slug.' });
   if (r.exchangeId !== 'bybit') issues.push({ field: 'exchangeId', code: 'EXCHANGE_NOT_BYBIT', message: 'exchangeId must be bybit.' });
+  if (!hasText(r.candidateId) || !CANONICAL_SLUG.test(r.candidateId as string)) issues.push({ field: 'candidateId', code: 'INVALID_ID', message: 'candidateId must be a canonical slug (bind to a code-owned candidate).' });
+  if (!hasText(r.planId) || !/^[a-z0-9][a-z0-9:._-]*$/.test(r.planId as string)) issues.push({ field: 'planId', code: 'INVALID_ID', message: 'planId must be a namespaced id.' });
+  if (!hasText(r.planDigest) || !SHA256.test(r.planDigest as string)) issues.push({ field: 'planDigest', code: 'INVALID_DIGEST', message: 'planDigest must be sha256.' });
+  if (!CAPTURE_METHODS_USED.includes(r.captureMethodUsed as CaptureMethodUsed)) issues.push({ field: 'captureMethodUsed', code: 'INVALID', message: 'captureMethodUsed must be http / http_then_rendered / rendered.' });
 
   if (!isOfficialBybitUrl(r.requestedUrl)) issues.push({ field: 'requestedUrl', code: 'NON_OFFICIAL_URL', message: 'requestedUrl must be an official HTTPS Bybit URL with no credentials/unsafe params.' });
   if (!(r.finalUrl === null || isOfficialBybitUrl(r.finalUrl))) issues.push({ field: 'finalUrl', code: 'NON_OFFICIAL_URL', message: 'finalUrl must be an official HTTPS Bybit URL or null.' });
@@ -433,6 +487,35 @@ export function validateOfficialSourceCapture(input: unknown, allowedClaimIds: r
   if (!OFFICIAL_SOURCE_SCOPES.includes(r.observedScope as OfficialSourceScope)) issues.push({ field: 'observedScope', code: 'INVALID_SCOPE', message: 'Unknown observedScope.' });
   if (!SOURCE_CURRENCIES.includes(r.currency as SourceCurrency)) issues.push({ field: 'currency', code: 'INVALID_CURRENCY', message: 'Unknown currency.' });
   if (!OFFICIAL_SOURCE_OUTCOMES.includes(r.outcome as OfficialSourceOutcome)) issues.push({ field: 'outcome', code: 'INVALID_OUTCOME', message: 'Unknown outcome.' });
+
+  // R5 — structured scope assessment; a caller-declared scope is never authority.
+  const fragIds = new Set<string>(Array.isArray(r.fragments) ? (r.fragments as Record<string, unknown>[]).map((f) => f && typeof f.fragmentId === 'string' ? (f.fragmentId as string) : '').filter(Boolean) : []);
+  const sa = r.scopeAssessment as Record<string, unknown> | undefined;
+  if (!sa || typeof sa !== 'object' || Array.isArray(sa)) issues.push({ field: 'scopeAssessment', code: 'REQUIRED', message: 'scopeAssessment required.' });
+  else {
+    if (!OFFICIAL_SOURCE_SCOPES.includes(sa.classifiedScope as OfficialSourceScope)) issues.push({ field: 'scopeAssessment.classifiedScope', code: 'INVALID_SCOPE', message: 'Unknown classifiedScope.' });
+    if (!hasText(sa.classificationRuleId) || (sa.classificationRuleId as string).length > MAX_SOURCE_STRING) issues.push({ field: 'scopeAssessment.classificationRuleId', code: 'REQUIRED', message: 'classificationRuleId required.' });
+    if (!CONFIDENCES.includes(sa.confidence as ClassificationConfidence)) issues.push({ field: 'scopeAssessment.confidence', code: 'INVALID', message: 'confidence must be high/medium/low/none.' });
+    if (!Array.isArray(sa.evidenceRefs) || !sa.evidenceRefs.every((e) => typeof e === 'string' && fragIds.has(e))) issues.push({ field: 'scopeAssessment.evidenceRefs', code: 'INVALID', message: 'scope evidenceRefs must be fragmentIds on this capture.' });
+    if (typeof sa.limitations !== 'string' || sa.limitations.length > MAX_SOURCE_STRING || resemblesRawPayload(sa.limitations)) issues.push({ field: 'scopeAssessment.limitations', code: 'INVALID', message: 'limitations required, bounded, not raw markup.' });
+    if (sa.classifiedScope !== r.observedScope) issues.push({ field: 'observedScope', code: 'SCOPE_ASSESSMENT_MISMATCH', message: 'observedScope must equal scopeAssessment.classifiedScope.' });
+    // A positive promotion/legal classification requires evidence (fragments) unless confidence is none.
+    if ((sa.classifiedScope === 'promotion_specific' || sa.classifiedScope === 'campaign_terms' || sa.classifiedScope === 'legal_restrictions') && sa.confidence !== 'none' && (!Array.isArray(sa.evidenceRefs) || sa.evidenceRefs.length === 0)) issues.push({ field: 'scopeAssessment.evidenceRefs', code: 'SCOPE_NEEDS_EVIDENCE', message: 'A positive promotion/legal scope classification requires fragment evidence.' });
+  }
+
+  // R5 — structured currency assessment; `current` requires an admissible rule.
+  const ca = r.currencyAssessment as Record<string, unknown> | undefined;
+  if (!ca || typeof ca !== 'object' || Array.isArray(ca)) issues.push({ field: 'currencyAssessment', code: 'REQUIRED', message: 'currencyAssessment required.' });
+  else {
+    if (!SOURCE_CURRENCIES.includes(ca.currency as SourceCurrency)) issues.push({ field: 'currencyAssessment.currency', code: 'INVALID_CURRENCY', message: 'Unknown currency.' });
+    if (!hasText(ca.ruleId) || (ca.ruleId as string).length > MAX_SOURCE_STRING) issues.push({ field: 'currencyAssessment.ruleId', code: 'REQUIRED', message: 'currency ruleId required.' });
+    if (!Array.isArray(ca.evidenceRefs) || !ca.evidenceRefs.every((e) => typeof e === 'string' && fragIds.has(e))) issues.push({ field: 'currencyAssessment.evidenceRefs', code: 'INVALID', message: 'currency evidenceRefs must be fragmentIds on this capture.' });
+    if (!(ca.observedTime === null || (typeof ca.observedTime === 'string' && !!parseExactIsoDateTime(ca.observedTime)))) issues.push({ field: 'currencyAssessment.observedTime', code: 'INVALID', message: 'observedTime must be an exact ISO datetime or null.' });
+    if (typeof ca.limitations !== 'string' || ca.limitations.length > MAX_SOURCE_STRING || resemblesRawPayload(ca.limitations)) issues.push({ field: 'currencyAssessment.limitations', code: 'INVALID', message: 'limitations required, bounded, not raw markup.' });
+    if (ca.currency !== r.currency) issues.push({ field: 'currency', code: 'CURRENCY_ASSESSMENT_MISMATCH', message: 'currency must equal currencyAssessment.currency.' });
+    // `current` requires a real rule + evidence (fragment or observed time). Caller-declared current is insufficient.
+    if (ca.currency === 'current' && (ca.ruleId === 'none' || ca.confidence === 'none' || (!(Array.isArray(ca.evidenceRefs) && ca.evidenceRefs.length > 0) && !ca.observedTime))) issues.push({ field: 'currencyAssessment', code: 'CURRENT_NEEDS_EVIDENCE', message: 'A `current` classification requires an admissible rule + fragment/time evidence.' });
+  }
 
   if (!(typeof r.responseBytes === 'number' && Number.isInteger(r.responseBytes) && (r.responseBytes as number) >= 0)) issues.push({ field: 'responseBytes', code: 'INVALID_BYTES', message: 'responseBytes must be a non-negative integer.' });
   if (!hasText(r.bodyDigest) || !SHA256.test(r.bodyDigest as string)) issues.push({ field: 'bodyDigest', code: 'INVALID_DIGEST', message: 'bodyDigest must be sha256.' });

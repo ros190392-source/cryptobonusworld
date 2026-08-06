@@ -16,6 +16,53 @@ a claim to `supported` ONLY when official evidence proves the exact current CBW 
 at the required scope — otherwise `partially_supported` / `not_found` / `contradicted` /
 `inaccessible`, fail-closed.
 
+## Owner-review remediation (R1–R12)
+
+- **R1 complete candidate coverage** — `BYBIT_OFFICIAL_SOURCE_CANDIDATES` expanded to **8**
+  official URLs (promo ×2, identity-verification, restricted-jurisdictions, restricted-
+  countries, platform legal terms, what-is-bonus, how-to-use-bonus).
+  `validateSourcePlanCoverage` now fails unless every target claim + every material
+  component has a declared-scope-intersecting candidate, multi-source claims have ≥2
+  independent candidates, legal claims have legal/jurisdiction candidates and KYC has both
+  general and promotion-specific coverage. No discovery blockers were needed.
+- **R2 plan + candidate identity** — `BYBIT_SOURCE_PLAN_ID` / `BYBIT_SOURCE_PLAN_DIGEST`,
+  per-candidate `candidateId` / `candidateDigest`; every capture binds
+  `candidateId` + `planId` + `planDigest` + exact URL + declared scope; the resolution
+  digest covers the plan id/digest + evidence-run digest, so any plan/candidate change
+  invalidates the resolution.
+- **R3 complete extraction coverage** — `BYBIT_OFFER_EXTRACTION_PLAN` has a code-owned
+  strategy for every material component (with `manualReviewRequired` where judgment is
+  needed); `validateExtractionCoverage` proves it.
+- **R4 candidate-aware classification** — content detection is per source class (KYC /
+  legal / reward / promo), not generic offer keywords.
+- **R5 structured scope + currency** — every capture carries a `scopeAssessment` and
+  `currencyAssessment` (rule id + evidence refs + confidence); a caller-declared
+  `promotion_specific` / `current` is not authority; ambiguous currency cannot satisfy a
+  `requiresCurrent` claim.
+- **R6 HTTP + ephemeral rendered fallback** — the runner honors `captureMethod`, falls
+  back to a fresh ephemeral Chromium context on a shell/empty HTTP result, and records the
+  method actually used.
+- **R7 evidence-run manifest** — `buildOfficialSourceEvidenceRun` records expected /
+  attempted / missing / failed candidates + a run digest; a claim missing a mandatory
+  candidate is `incomplete`, never supported.
+- **R8 invalid fails closed** — an invalid / tampered / candidate-mismatched /
+  plan-mismatched / duplicate / unknown artifact makes the run and every claim assessment
+  `invalid`; damaged artifacts are never silently dropped.
+- **R9 source plan controls authorization** — a source-plan target claim can never be
+  raw-`supported` (`SOURCE_PLAN_RAW_SUPPORT_FORBIDDEN`); the resolver recomputes each
+  target claim's `resolvedResult` from the canonical assessment over the complete evidence
+  run (provenance `source_plan_assessment`); raw may never be more positive than the
+  assessment; an invalid run fails the whole resolution; the production adapter consumes
+  these recomputed results.
+- **R10 multi-source independence** — independence is by canonical document identity
+  (final URL + body digest), not just distinct source ids; duplicate documents/aliases
+  count once.
+- **R11 capture resource limits** — bounded streaming read (3 MB cap → `response_too_large`),
+  max redirects, total deadline, content-type allowlist (`unsupported`); the raw body is
+  never written.
+- **R12 fresh capture** — one fresh anonymous run over all 8 candidates; artifacts migrated
+  to the hardened schema and folded into the packet.
+
 ## What was added
 
 1. **`src/data/contracts/officialSourceCapture.ts`** — a fail-closed, offline-replayable
@@ -56,20 +103,25 @@ are per-component: a general identity-verification page may prove only
 require `promotion_specific`/`campaign_terms`, so the claim can reach at most
 `partially_supported`, never `supported`, from general evidence.
 
-## Capture outcome (this run)
+## Capture outcome (fresh run, 8 sources)
 
-Anonymous capture, 2026-08-06:
+Fresh anonymous capture, 2026-08-06 (HTTP + ephemeral-render fallback):
 
-| source | declared → observed scope | outcome |
+| candidate | declared → observed scope | outcome |
 |---|---|---|
 | `promo-new-user` | promotion_specific → account_wide_general | `redirect_only` (→ homepage) |
 | `promo-welcome-gifts` | promotion_specific → account_wide_general | `redirect_only` (→ homepage) |
 | `help-kyc-identity` | identity_verification_general | `spa_shell` (client-rendered) |
+| `help-restricted-jurisdictions` | legal_restrictions | `spa_shell` |
+| `help-restricted-countries` | jurisdiction_specific | `spa_shell` |
+| `legal-platform-terms` | legal_restrictions | `spa_shell` |
+| `help-what-is-bonus` | reward_mechanics | `spa_shell` |
+| `help-use-bonus` | reward_mechanics | `spa_shell` |
 
-Both official promotion URLs redirect to the generic Bybit homepage (scope degrades to
-`account_wide_general`, insufficient for promotion-specific claims); the identity help
-article is a client-rendered shell. No promotion-specific or general offer-claim content
-was server-observable to an anonymous capture.
+Both promotion URLs redirect to the generic Bybit homepage; every help/legal article is a
+client-rendered shell and the ephemeral-render fallback hit a `network_error` (anti-bot).
+No promotion-specific, legal or reward-mechanics offer-claim content was server-observable
+to an anonymous capture, so currency stays `ambiguous` for all sources.
 
 ## Claim-by-claim (before → after)
 
@@ -87,12 +139,12 @@ zero `/go/*`; the production adapter remains non-authorizing.
 ## Verification
 
 ```
-npm run portal:contracts:test        # 531 passed, 0 failed (491 baseline + 40 src/*)
+npm run portal:contracts:test        # 531 passed, 0 failed (443 baseline + ~88 bridge/render/src)
 npm run ai-ops:validate:fixtures     # 43 passed, 0 failed
 tsc --noEmit (full CI-scoped incl. the 2 new contracts) # exit 0
 npm run build                        # 109 pages
-npm run portal:harness:resolution    # 5 passed, 0 failed
-offline replay (--replay)            # 3/3 artifacts valid, digests recompute
+npm run portal:harness:resolution    # 5 passed, 0 failed (Outcome A via source-plan assessment)
+offline replay (--replay)            # 8/8 artifacts valid, coverage complete, digests recompute
 homepage Chromium QA (separate)      # 32/32 (preview + production × desktop/mobile + keyboard)
 preview homepage /go/*               # 0
 production-simulation homepage /go/* # 0

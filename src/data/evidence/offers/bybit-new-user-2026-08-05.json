@@ -143,13 +143,16 @@
       "claimId": "bybit.availability",
       "label": "Offer availability wording (Global excluding restricted regions)",
       "result": "inaccessible",
-      "observed": "Multi-source official capture (Issue #260): source:promo-new-user, source:promo-welcome-gifts. Deterministic source-plan assessment = inaccessible (NO_ACCEPTED_SCOPE_SOURCE_OBSERVABLE; 0/2 material components proven). Promotion-specific offer content was not server-observable to an anonymous capture — official promo URLs redirect to the generic Bybit homepage (scope promotion_specific→account_wide_general) and the identity-verification help article is a client-rendered shell.",
+      "observed": "Multi-source official capture (Issue #260): source:promo-new-user, source:promo-welcome-gifts, source:help-restricted-jurisdictions, source:help-restricted-countries, source:legal-platform-terms. Deterministic source-plan assessment = inaccessible (ACCEPTED_SCOPE_SOURCE_NOT_SERVED_TO_ANONYMOUS_CAPTURE; 0/2 material components proven). Promotion-specific offer content was not server-observable to an anonymous capture — official promo URLs redirect to the generic Bybit homepage (scope promotion_specific→account_wide_general) and the identity-verification help article is a client-rendered shell.",
       "sourceRefs": [
         "capture:probe-a",
         "rendered:rendered-new-user",
         "rendered:rendered-welcome-gifts",
         "source:promo-new-user",
-        "source:promo-welcome-gifts"
+        "source:promo-welcome-gifts",
+        "source:help-restricted-jurisdictions",
+        "source:help-restricted-countries",
+        "source:legal-platform-terms"
       ],
       "limitation": "Required claim under the code-owned source plan; accepted scopes: promotion_specific, campaign_terms, jurisdiction_specific, legal_restrictions. A general account-wide page cannot prove this promotion-specific assertion (fail closed on scope mismatch). Not upgraded."
     },
@@ -157,13 +160,16 @@
       "claimId": "bybit.restricted_countries",
       "label": "Restricted-country wording (US, UK, CA, SG, NL)",
       "result": "inaccessible",
-      "observed": "Multi-source official capture (Issue #260): source:promo-new-user, source:promo-welcome-gifts. Deterministic source-plan assessment = inaccessible (NO_ACCEPTED_SCOPE_SOURCE_OBSERVABLE; 0/1 material components proven). Promotion-specific offer content was not server-observable to an anonymous capture — official promo URLs redirect to the generic Bybit homepage (scope promotion_specific→account_wide_general) and the identity-verification help article is a client-rendered shell.",
+      "observed": "Multi-source official capture (Issue #260): source:promo-new-user, source:promo-welcome-gifts, source:help-restricted-jurisdictions, source:help-restricted-countries, source:legal-platform-terms. Deterministic source-plan assessment = inaccessible (ACCEPTED_SCOPE_SOURCE_NOT_SERVED_TO_ANONYMOUS_CAPTURE; 0/1 material components proven). Promotion-specific offer content was not server-observable to an anonymous capture — official promo URLs redirect to the generic Bybit homepage (scope promotion_specific→account_wide_general) and the identity-verification help article is a client-rendered shell.",
       "sourceRefs": [
         "capture:probe-a",
         "rendered:rendered-new-user",
         "rendered:rendered-welcome-gifts",
         "source:promo-new-user",
-        "source:promo-welcome-gifts"
+        "source:promo-welcome-gifts",
+        "source:help-restricted-jurisdictions",
+        "source:help-restricted-countries",
+        "source:legal-platform-terms"
       ],
       "limitation": "Required claim under the code-owned source plan; accepted scopes: promotion_specific, campaign_terms, jurisdiction_specific, legal_restrictions. A general account-wide page cannot prove this promotion-specific assertion (fail closed on scope mismatch). Not upgraded."
     },
@@ -171,13 +177,15 @@
       "claimId": "bybit.reward_type",
       "label": "Reward type and withdrawal limitations",
       "result": "inaccessible",
-      "observed": "Multi-source official capture (Issue #260): source:promo-new-user, source:promo-welcome-gifts. Deterministic source-plan assessment = inaccessible (NO_ACCEPTED_SCOPE_SOURCE_OBSERVABLE; 0/2 material components proven). Promotion-specific offer content was not server-observable to an anonymous capture — official promo URLs redirect to the generic Bybit homepage (scope promotion_specific→account_wide_general) and the identity-verification help article is a client-rendered shell.",
+      "observed": "Multi-source official capture (Issue #260): source:promo-new-user, source:promo-welcome-gifts, source:help-what-is-bonus, source:help-use-bonus. Deterministic source-plan assessment = inaccessible (ACCEPTED_SCOPE_SOURCE_NOT_SERVED_TO_ANONYMOUS_CAPTURE; 0/2 material components proven). Promotion-specific offer content was not server-observable to an anonymous capture — official promo URLs redirect to the generic Bybit homepage (scope promotion_specific→account_wide_general) and the identity-verification help article is a client-rendered shell.",
       "sourceRefs": [
         "capture:probe-a",
         "rendered:rendered-new-user",
         "rendered:rendered-welcome-gifts",
         "source:promo-new-user",
-        "source:promo-welcome-gifts"
+        "source:promo-welcome-gifts",
+        "source:help-what-is-bonus",
+        "source:help-use-bonus"
       ],
       "limitation": "Required claim under the code-owned source plan; accepted scopes: promotion_specific, campaign_terms, reward_mechanics. A general account-wide page cannot prove this promotion-specific assertion (fail closed on scope mismatch). Not upgraded."
     },
@@ -185,13 +193,15 @@
       "claimId": "bybit.expiry",
       "label": "Task / voucher expiry wording",
       "result": "inaccessible",
-      "observed": "Multi-source official capture (Issue #260): source:promo-new-user, source:promo-welcome-gifts. Deterministic source-plan assessment = inaccessible (NO_ACCEPTED_SCOPE_SOURCE_OBSERVABLE; 0/1 material components proven). Promotion-specific offer content was not server-observable to an anonymous capture — official promo URLs redirect to the generic Bybit homepage (scope promotion_specific→account_wide_general) and the identity-verification help article is a client-rendered shell.",
+      "observed": "Multi-source official capture (Issue #260): source:promo-new-user, source:promo-welcome-gifts, source:help-what-is-bonus, source:help-use-bonus. Deterministic source-plan assessment = inaccessible (ACCEPTED_SCOPE_SOURCE_NOT_SERVED_TO_ANONYMOUS_CAPTURE; 0/1 material components proven). Promotion-specific offer content was not server-observable to an anonymous capture — official promo URLs redirect to the generic Bybit homepage (scope promotion_specific→account_wide_general) and the identity-verification help article is a client-rendered shell.",
       "sourceRefs": [
         "capture:probe-a",
         "rendered:rendered-new-user",
         "rendered:rendered-welcome-gifts",
         "source:promo-new-user",
-        "source:promo-welcome-gifts"
+        "source:promo-welcome-gifts",
+        "source:help-what-is-bonus",
+        "source:help-use-bonus"
       ],
       "limitation": "Optional claim under the code-owned source plan; accepted scopes: promotion_specific, campaign_terms, reward_mechanics. A general account-wide page cannot prove this assertion (fail closed on scope mismatch). Not upgraded."
     },
@@ -199,13 +209,15 @@
       "claimId": "bybit.terms_summary",
       "label": "Current terms-summary accuracy",
       "result": "inaccessible",
-      "observed": "Multi-source official capture (Issue #260): source:promo-new-user, source:promo-welcome-gifts. Deterministic source-plan assessment = inaccessible (NO_ACCEPTED_SCOPE_SOURCE_OBSERVABLE; 0/4 material components proven). Promotion-specific offer content was not server-observable to an anonymous capture — official promo URLs redirect to the generic Bybit homepage (scope promotion_specific→account_wide_general) and the identity-verification help article is a client-rendered shell.",
+      "observed": "Multi-source official capture (Issue #260): source:promo-new-user, source:promo-welcome-gifts, source:help-what-is-bonus, source:help-use-bonus. Deterministic source-plan assessment = inaccessible (ACCEPTED_SCOPE_SOURCE_NOT_SERVED_TO_ANONYMOUS_CAPTURE; 0/4 material components proven). Promotion-specific offer content was not server-observable to an anonymous capture — official promo URLs redirect to the generic Bybit homepage (scope promotion_specific→account_wide_general) and the identity-verification help article is a client-rendered shell.",
       "sourceRefs": [
         "capture:probe-a",
         "rendered:rendered-new-user",
         "rendered:rendered-welcome-gifts",
         "source:promo-new-user",
-        "source:promo-welcome-gifts"
+        "source:promo-welcome-gifts",
+        "source:help-what-is-bonus",
+        "source:help-use-bonus"
       ],
       "limitation": "Required claim under the code-owned source plan; accepted scopes: promotion_specific, campaign_terms, reward_mechanics. A general account-wide page cannot prove this promotion-specific assertion (fail closed on scope mismatch). Not upgraded."
     }
@@ -346,24 +358,42 @@
     {
       "sourceId": "promo-new-user",
       "exchangeId": "bybit",
+      "candidateId": "promo-new-user",
+      "planId": "cbw:bybit:offer-claim-source-plan:v1",
+      "planDigest": "sha256:69e50a282c484dda7d93398199645ff4c0c55603ce7930e52b2c9d99dd0de56a",
       "requestedUrl": "https://www.bybit.com/en/promo/new-user/",
       "finalUrl": "https://www.bybit.com/",
       "redirectChain": [
         "https://www.bybit.com/promo/new-user/",
         "https://www.bybit.com/"
       ],
-      "capturedAt": "2026-08-06T15:23:28Z",
+      "capturedAt": "2026-08-06T16:11:53Z",
       "captureMethod": "http_probe_no_auth_no_cookies",
-      "captureTool": "node-fetch anonymous redirect=manual timeout=20000ms",
+      "captureTool": "node-fetch anonymous redirect=manual + ephemeral chromium fallback",
       "runtimeVersion": "v24.14.0",
+      "captureMethodUsed": "http",
       "httpStatus": 200,
       "contentType": "text/html",
       "declaredScope": "promotion_specific",
       "observedScope": "account_wide_general",
       "currency": "ambiguous",
+      "scopeAssessment": {
+        "classifiedScope": "account_wide_general",
+        "classificationRuleId": "redirected-to-generic-homepage",
+        "evidenceRefs": [],
+        "confidence": "medium",
+        "limitations": "Scope not confirmed from server-observable content (client-rendered or redirected)."
+      },
+      "currencyAssessment": {
+        "currency": "ambiguous",
+        "ruleId": "insufficient-currentness-evidence",
+        "evidenceRefs": [],
+        "observedTime": null,
+        "limitations": "No admissible currentness evidence observed; ambiguous cannot satisfy a requiresCurrent claim."
+      },
       "outcome": "redirect_only",
       "responseBytes": 90204,
-      "bodyDigest": "sha256:7e7f2a5543924c6f75076591b7f8eb69395f2ee23af7a6d54b4c003d3df1affa",
+      "bodyDigest": "sha256:5216e1386fd628b54872daf535af377918ac22395a607ffec31983960786464c",
       "fragments": [],
       "structuredMetadata": {
         "pageTitle": "Buy &amp; Sell Bitcoin, Ether | Cryptocurrency Exchange | Bybit",
@@ -384,32 +414,50 @@
       },
       "warnings": [],
       "limitations": [
-        "OFFICIAL_SOURCE_ONLY anonymous HTTPS probe: no account, cookies, proxy, storage, forms or transactions.",
+        "OFFICIAL_SOURCE_ONLY anonymous probe: no account, cookies, proxy, storage, forms or transactions.",
         "Only bounded normalized fragments + allowlisted scalar metadata + sha256 digests are recorded; no full page content."
       ],
-      "sourceDigest": "sha256:cd99c759b3cab486d26f9294c786951f4064a30ce29f7f92fb554ce908d87926"
+      "sourceDigest": "sha256:efc7c581f177bab8dfd9b2620da6bbba5d98d148f00e1717bc9fa8da6fc0ed2d"
     },
     {
       "sourceId": "promo-welcome-gifts",
       "exchangeId": "bybit",
+      "candidateId": "promo-welcome-gifts",
+      "planId": "cbw:bybit:offer-claim-source-plan:v1",
+      "planDigest": "sha256:69e50a282c484dda7d93398199645ff4c0c55603ce7930e52b2c9d99dd0de56a",
       "requestedUrl": "https://www.bybit.com/en/promo/global/welcome-gifts/",
       "finalUrl": "https://www.bybit.com/",
       "redirectChain": [
         "https://www.bybit.com/promo/global/welcome-gifts/",
         "https://www.bybit.com/"
       ],
-      "capturedAt": "2026-08-06T15:23:30Z",
+      "capturedAt": "2026-08-06T16:11:54Z",
       "captureMethod": "http_probe_no_auth_no_cookies",
-      "captureTool": "node-fetch anonymous redirect=manual timeout=20000ms",
+      "captureTool": "node-fetch anonymous redirect=manual + ephemeral chromium fallback",
       "runtimeVersion": "v24.14.0",
+      "captureMethodUsed": "http",
       "httpStatus": 200,
       "contentType": "text/html",
       "declaredScope": "promotion_specific",
       "observedScope": "account_wide_general",
       "currency": "ambiguous",
+      "scopeAssessment": {
+        "classifiedScope": "account_wide_general",
+        "classificationRuleId": "redirected-to-generic-homepage",
+        "evidenceRefs": [],
+        "confidence": "medium",
+        "limitations": "Scope not confirmed from server-observable content (client-rendered or redirected)."
+      },
+      "currencyAssessment": {
+        "currency": "ambiguous",
+        "ruleId": "insufficient-currentness-evidence",
+        "evidenceRefs": [],
+        "observedTime": null,
+        "limitations": "No admissible currentness evidence observed; ambiguous cannot satisfy a requiresCurrent claim."
+      },
       "outcome": "redirect_only",
       "responseBytes": 90204,
-      "bodyDigest": "sha256:7e7f2a5543924c6f75076591b7f8eb69395f2ee23af7a6d54b4c003d3df1affa",
+      "bodyDigest": "sha256:5216e1386fd628b54872daf535af377918ac22395a607ffec31983960786464c",
       "fragments": [],
       "structuredMetadata": {
         "pageTitle": "Buy &amp; Sell Bitcoin, Ether | Cryptocurrency Exchange | Bybit",
@@ -430,35 +478,53 @@
       },
       "warnings": [],
       "limitations": [
-        "OFFICIAL_SOURCE_ONLY anonymous HTTPS probe: no account, cookies, proxy, storage, forms or transactions.",
+        "OFFICIAL_SOURCE_ONLY anonymous probe: no account, cookies, proxy, storage, forms or transactions.",
         "Only bounded normalized fragments + allowlisted scalar metadata + sha256 digests are recorded; no full page content."
       ],
-      "sourceDigest": "sha256:1ab03e12481233af91d7e30f654d818f76db9a93556ea3493fd62c7347dfc62f"
+      "sourceDigest": "sha256:45cd5345d7d5d1474e0e0967fc71c1adc2ee6c5092b2749a1019c91c9e104c2f"
     },
     {
       "sourceId": "help-kyc-identity",
       "exchangeId": "bybit",
+      "candidateId": "help-kyc-identity",
+      "planId": "cbw:bybit:offer-claim-source-plan:v1",
+      "planDigest": "sha256:69e50a282c484dda7d93398199645ff4c0c55603ce7930e52b2c9d99dd0de56a",
       "requestedUrl": "https://www.bybit.com/en/help-center/article/How-to-Complete-Identity-Verification-KYC",
       "finalUrl": "https://www.bybit.com/en/help-center/article/How-to-Complete-Identity-Verification-KYC",
       "redirectChain": [],
-      "capturedAt": "2026-08-06T15:23:31Z",
+      "capturedAt": "2026-08-06T16:11:55Z",
       "captureMethod": "http_probe_no_auth_no_cookies",
-      "captureTool": "node-fetch anonymous redirect=manual timeout=20000ms",
+      "captureTool": "node-fetch anonymous redirect=manual + ephemeral chromium fallback",
       "runtimeVersion": "v24.14.0",
+      "captureMethodUsed": "http_then_rendered",
       "httpStatus": 200,
       "contentType": "text/html",
       "declaredScope": "identity_verification_general",
       "observedScope": "identity_verification_general",
       "currency": "ambiguous",
+      "scopeAssessment": {
+        "classifiedScope": "identity_verification_general",
+        "classificationRuleId": "declared-scope-unconfirmed-client-render",
+        "evidenceRefs": [],
+        "confidence": "none",
+        "limitations": "Scope not confirmed from server-observable content (client-rendered or redirected)."
+      },
+      "currencyAssessment": {
+        "currency": "ambiguous",
+        "ruleId": "insufficient-currentness-evidence",
+        "evidenceRefs": [],
+        "observedTime": null,
+        "limitations": "No admissible currentness evidence observed; ambiguous cannot satisfy a requiresCurrent claim."
+      },
       "outcome": "spa_shell",
       "responseBytes": 98886,
-      "bodyDigest": "sha256:dc20b4e2cf2ca28fd425830a91e3db4dad75a10b84c930c921b50c23b94c476c",
+      "bodyDigest": "sha256:bb2dc5271a345f0b93da6c921f59a2ac82fd9f1ed33aeac37e62e95bea6c7df0",
       "fragments": [],
       "structuredMetadata": {
-        "pageTitle": "- Help Center",
-        "description": "Level up your crypto trading experience. Buy, sell, trade BTC, altcoins &amp; NFTs. Get access to the spot and futures market or stake your coins securely.",
+        "pageTitle": null,
+        "description": null,
         "canonicalUrl": null,
-        "ogTitle": "- Help Center",
+        "ogTitle": null,
         "ogDescription": null,
         "jsonLdType": null
       },
@@ -471,12 +537,329 @@
         "redirectsObserved": 0,
         "externalRedirectsBlocked": 0
       },
-      "warnings": [],
+      "warnings": [
+        "rendered fallback network_error"
+      ],
       "limitations": [
-        "OFFICIAL_SOURCE_ONLY anonymous HTTPS probe: no account, cookies, proxy, storage, forms or transactions.",
+        "OFFICIAL_SOURCE_ONLY anonymous probe: no account, cookies, proxy, storage, forms or transactions.",
         "Only bounded normalized fragments + allowlisted scalar metadata + sha256 digests are recorded; no full page content."
       ],
-      "sourceDigest": "sha256:e116211daeb1f735d289a102c152fc37e8e5017a39701c25935511de769ddc58"
+      "sourceDigest": "sha256:19342b163fbee386781b7f7bba015d38a3fbf4bcef6e3902e138a6067d4782c8"
+    },
+    {
+      "sourceId": "help-restricted-jurisdictions",
+      "exchangeId": "bybit",
+      "candidateId": "help-restricted-jurisdictions",
+      "planId": "cbw:bybit:offer-claim-source-plan:v1",
+      "planDigest": "sha256:69e50a282c484dda7d93398199645ff4c0c55603ce7930e52b2c9d99dd0de56a",
+      "requestedUrl": "https://www.bybit.com/en/help-center/article/Restricted-Jurisdictions",
+      "finalUrl": "https://www.bybit.com/en/help-center/article/Restricted-Jurisdictions",
+      "redirectChain": [],
+      "capturedAt": "2026-08-06T16:11:56Z",
+      "captureMethod": "http_probe_no_auth_no_cookies",
+      "captureTool": "node-fetch anonymous redirect=manual + ephemeral chromium fallback",
+      "runtimeVersion": "v24.14.0",
+      "captureMethodUsed": "http_then_rendered",
+      "httpStatus": 200,
+      "contentType": "text/html",
+      "declaredScope": "legal_restrictions",
+      "observedScope": "legal_restrictions",
+      "currency": "ambiguous",
+      "scopeAssessment": {
+        "classifiedScope": "legal_restrictions",
+        "classificationRuleId": "declared-scope-unconfirmed-client-render",
+        "evidenceRefs": [],
+        "confidence": "none",
+        "limitations": "Scope not confirmed from server-observable content (client-rendered or redirected)."
+      },
+      "currencyAssessment": {
+        "currency": "ambiguous",
+        "ruleId": "insufficient-currentness-evidence",
+        "evidenceRefs": [],
+        "observedTime": null,
+        "limitations": "No admissible currentness evidence observed; ambiguous cannot satisfy a requiresCurrent claim."
+      },
+      "outcome": "spa_shell",
+      "responseBytes": 98835,
+      "bodyDigest": "sha256:c6707f0cb8c6ce1fd336314ca44a4e4bf1c9def2a4ef5dc24cd7d928d2039f47",
+      "fragments": [],
+      "structuredMetadata": {
+        "pageTitle": null,
+        "description": null,
+        "canonicalUrl": null,
+        "ogTitle": null,
+        "ogDescription": null,
+        "jsonLdType": null
+      },
+      "runtimeReceipt": {
+        "authenticationUsed": false,
+        "cookiesSent": false,
+        "cookiesStored": false,
+        "proxyConfigured": false,
+        "bodyPersisted": false,
+        "redirectsObserved": 0,
+        "externalRedirectsBlocked": 0
+      },
+      "warnings": [
+        "rendered fallback network_error"
+      ],
+      "limitations": [
+        "OFFICIAL_SOURCE_ONLY anonymous probe: no account, cookies, proxy, storage, forms or transactions.",
+        "Only bounded normalized fragments + allowlisted scalar metadata + sha256 digests are recorded; no full page content."
+      ],
+      "sourceDigest": "sha256:46faecb257890f637e3c5d03ffdde3d8c0cd0f85271975ee91272c0dee0fe7d7"
+    },
+    {
+      "sourceId": "help-restricted-countries",
+      "exchangeId": "bybit",
+      "candidateId": "help-restricted-countries",
+      "planId": "cbw:bybit:offer-claim-source-plan:v1",
+      "planDigest": "sha256:69e50a282c484dda7d93398199645ff4c0c55603ce7930e52b2c9d99dd0de56a",
+      "requestedUrl": "https://www.bybit.com/en/help-center/article/Bybit-Restricted-Countries-and-Regions",
+      "finalUrl": "https://www.bybit.com/en/help-center/article/Bybit-Restricted-Countries-and-Regions",
+      "redirectChain": [],
+      "capturedAt": "2026-08-06T16:11:57Z",
+      "captureMethod": "http_probe_no_auth_no_cookies",
+      "captureTool": "node-fetch anonymous redirect=manual + ephemeral chromium fallback",
+      "runtimeVersion": "v24.14.0",
+      "captureMethodUsed": "http_then_rendered",
+      "httpStatus": 200,
+      "contentType": "text/html",
+      "declaredScope": "jurisdiction_specific",
+      "observedScope": "jurisdiction_specific",
+      "currency": "ambiguous",
+      "scopeAssessment": {
+        "classifiedScope": "jurisdiction_specific",
+        "classificationRuleId": "declared-scope-unconfirmed-client-render",
+        "evidenceRefs": [],
+        "confidence": "none",
+        "limitations": "Scope not confirmed from server-observable content (client-rendered or redirected)."
+      },
+      "currencyAssessment": {
+        "currency": "ambiguous",
+        "ruleId": "insufficient-currentness-evidence",
+        "evidenceRefs": [],
+        "observedTime": null,
+        "limitations": "No admissible currentness evidence observed; ambiguous cannot satisfy a requiresCurrent claim."
+      },
+      "outcome": "spa_shell",
+      "responseBytes": 98877,
+      "bodyDigest": "sha256:8a873ab2925d882f47e009ea5bc66fc0a5a717b360ab0befa963e79ae3f80bae",
+      "fragments": [],
+      "structuredMetadata": {
+        "pageTitle": null,
+        "description": null,
+        "canonicalUrl": null,
+        "ogTitle": null,
+        "ogDescription": null,
+        "jsonLdType": null
+      },
+      "runtimeReceipt": {
+        "authenticationUsed": false,
+        "cookiesSent": false,
+        "cookiesStored": false,
+        "proxyConfigured": false,
+        "bodyPersisted": false,
+        "redirectsObserved": 0,
+        "externalRedirectsBlocked": 0
+      },
+      "warnings": [
+        "rendered fallback network_error"
+      ],
+      "limitations": [
+        "OFFICIAL_SOURCE_ONLY anonymous probe: no account, cookies, proxy, storage, forms or transactions.",
+        "Only bounded normalized fragments + allowlisted scalar metadata + sha256 digests are recorded; no full page content."
+      ],
+      "sourceDigest": "sha256:23ebcd3c1198a14a774139260c0e8a82916c4d74caef7a66f0dacc54dd2f8153"
+    },
+    {
+      "sourceId": "legal-platform-terms",
+      "exchangeId": "bybit",
+      "candidateId": "legal-platform-terms",
+      "planId": "cbw:bybit:offer-claim-source-plan:v1",
+      "planDigest": "sha256:69e50a282c484dda7d93398199645ff4c0c55603ce7930e52b2c9d99dd0de56a",
+      "requestedUrl": "https://www.bybit.com/en/legal/terms-of-service/Bybit-Platform-Terms-and-Conditions",
+      "finalUrl": "https://www.bybit.com/en/legal/terms-of-service/Bybit-Platform-Terms-and-Conditions",
+      "redirectChain": [],
+      "capturedAt": "2026-08-06T16:11:57Z",
+      "captureMethod": "http_probe_no_auth_no_cookies",
+      "captureTool": "node-fetch anonymous redirect=manual + ephemeral chromium fallback",
+      "runtimeVersion": "v24.14.0",
+      "captureMethodUsed": "http_then_rendered",
+      "httpStatus": 200,
+      "contentType": "text/html",
+      "declaredScope": "legal_restrictions",
+      "observedScope": "legal_restrictions",
+      "currency": "ambiguous",
+      "scopeAssessment": {
+        "classifiedScope": "legal_restrictions",
+        "classificationRuleId": "declared-scope-unconfirmed-client-render",
+        "evidenceRefs": [],
+        "confidence": "none",
+        "limitations": "Scope not confirmed from server-observable content (client-rendered or redirected)."
+      },
+      "currencyAssessment": {
+        "currency": "ambiguous",
+        "ruleId": "insufficient-currentness-evidence",
+        "evidenceRefs": [],
+        "observedTime": null,
+        "limitations": "No admissible currentness evidence observed; ambiguous cannot satisfy a requiresCurrent claim."
+      },
+      "outcome": "spa_shell",
+      "responseBytes": 27842,
+      "bodyDigest": "sha256:d888e6dcce90e5387719dea7788fe4fcdbcacb1a6676d568d4000d47f7e17549",
+      "fragments": [],
+      "structuredMetadata": {
+        "pageTitle": null,
+        "description": null,
+        "canonicalUrl": null,
+        "ogTitle": null,
+        "ogDescription": null,
+        "jsonLdType": null
+      },
+      "runtimeReceipt": {
+        "authenticationUsed": false,
+        "cookiesSent": false,
+        "cookiesStored": false,
+        "proxyConfigured": false,
+        "bodyPersisted": false,
+        "redirectsObserved": 0,
+        "externalRedirectsBlocked": 0
+      },
+      "warnings": [
+        "rendered fallback network_error"
+      ],
+      "limitations": [
+        "OFFICIAL_SOURCE_ONLY anonymous probe: no account, cookies, proxy, storage, forms or transactions.",
+        "Only bounded normalized fragments + allowlisted scalar metadata + sha256 digests are recorded; no full page content."
+      ],
+      "sourceDigest": "sha256:1ee891bed8b89d35f42d845731a6d03c78b476e8ef0d9c08f05bf499869916a0"
+    },
+    {
+      "sourceId": "help-what-is-bonus",
+      "exchangeId": "bybit",
+      "candidateId": "help-what-is-bonus",
+      "planId": "cbw:bybit:offer-claim-source-plan:v1",
+      "planDigest": "sha256:69e50a282c484dda7d93398199645ff4c0c55603ce7930e52b2c9d99dd0de56a",
+      "requestedUrl": "https://www.bybit.com/en/help-center/article/What-is-Bonus",
+      "finalUrl": "https://www.bybit.com/en/help-center/article/What-is-Bonus",
+      "redirectChain": [],
+      "capturedAt": "2026-08-06T16:11:58Z",
+      "captureMethod": "http_probe_no_auth_no_cookies",
+      "captureTool": "node-fetch anonymous redirect=manual + ephemeral chromium fallback",
+      "runtimeVersion": "v24.14.0",
+      "captureMethodUsed": "http_then_rendered",
+      "httpStatus": 200,
+      "contentType": "text/html",
+      "declaredScope": "reward_mechanics",
+      "observedScope": "reward_mechanics",
+      "currency": "ambiguous",
+      "scopeAssessment": {
+        "classifiedScope": "reward_mechanics",
+        "classificationRuleId": "declared-scope-unconfirmed-client-render",
+        "evidenceRefs": [],
+        "confidence": "none",
+        "limitations": "Scope not confirmed from server-observable content (client-rendered or redirected)."
+      },
+      "currencyAssessment": {
+        "currency": "ambiguous",
+        "ruleId": "insufficient-currentness-evidence",
+        "evidenceRefs": [],
+        "observedTime": null,
+        "limitations": "No admissible currentness evidence observed; ambiguous cannot satisfy a requiresCurrent claim."
+      },
+      "outcome": "spa_shell",
+      "responseBytes": 98802,
+      "bodyDigest": "sha256:a5f530696031291c6cfa18d564a2cd7ef5fa6b9a45216e8255b133ebcaa2364d",
+      "fragments": [],
+      "structuredMetadata": {
+        "pageTitle": null,
+        "description": null,
+        "canonicalUrl": null,
+        "ogTitle": null,
+        "ogDescription": null,
+        "jsonLdType": null
+      },
+      "runtimeReceipt": {
+        "authenticationUsed": false,
+        "cookiesSent": false,
+        "cookiesStored": false,
+        "proxyConfigured": false,
+        "bodyPersisted": false,
+        "redirectsObserved": 0,
+        "externalRedirectsBlocked": 0
+      },
+      "warnings": [
+        "rendered fallback network_error"
+      ],
+      "limitations": [
+        "OFFICIAL_SOURCE_ONLY anonymous probe: no account, cookies, proxy, storage, forms or transactions.",
+        "Only bounded normalized fragments + allowlisted scalar metadata + sha256 digests are recorded; no full page content."
+      ],
+      "sourceDigest": "sha256:fbb4b0aaf21f13dc380c8a076bb38352351a3d34d407abdeaf1dcc62e6ab69b1"
+    },
+    {
+      "sourceId": "help-use-bonus",
+      "exchangeId": "bybit",
+      "candidateId": "help-use-bonus",
+      "planId": "cbw:bybit:offer-claim-source-plan:v1",
+      "planDigest": "sha256:69e50a282c484dda7d93398199645ff4c0c55603ce7930e52b2c9d99dd0de56a",
+      "requestedUrl": "https://www.bybit.com/en/help-center/article/How-to-Use-Bonus",
+      "finalUrl": "https://www.bybit.com/en/help-center/article/How-to-Use-Bonus",
+      "redirectChain": [],
+      "capturedAt": "2026-08-06T16:11:59Z",
+      "captureMethod": "http_probe_no_auth_no_cookies",
+      "captureTool": "node-fetch anonymous redirect=manual + ephemeral chromium fallback",
+      "runtimeVersion": "v24.14.0",
+      "captureMethodUsed": "http_then_rendered",
+      "httpStatus": 200,
+      "contentType": "text/html",
+      "declaredScope": "reward_mechanics",
+      "observedScope": "reward_mechanics",
+      "currency": "ambiguous",
+      "scopeAssessment": {
+        "classifiedScope": "reward_mechanics",
+        "classificationRuleId": "declared-scope-unconfirmed-client-render",
+        "evidenceRefs": [],
+        "confidence": "none",
+        "limitations": "Scope not confirmed from server-observable content (client-rendered or redirected)."
+      },
+      "currencyAssessment": {
+        "currency": "ambiguous",
+        "ruleId": "insufficient-currentness-evidence",
+        "evidenceRefs": [],
+        "observedTime": null,
+        "limitations": "No admissible currentness evidence observed; ambiguous cannot satisfy a requiresCurrent claim."
+      },
+      "outcome": "spa_shell",
+      "responseBytes": 98811,
+      "bodyDigest": "sha256:a3f4205e02625235a9df6d33f79df83a17ae8eac8e5d266e63c23e8db9e3c835",
+      "fragments": [],
+      "structuredMetadata": {
+        "pageTitle": null,
+        "description": null,
+        "canonicalUrl": null,
+        "ogTitle": null,
+        "ogDescription": null,
+        "jsonLdType": null
+      },
+      "runtimeReceipt": {
+        "authenticationUsed": false,
+        "cookiesSent": false,
+        "cookiesStored": false,
+        "proxyConfigured": false,
+        "bodyPersisted": false,
+        "redirectsObserved": 0,
+        "externalRedirectsBlocked": 0
+      },
+      "warnings": [
+        "rendered fallback network_error"
+      ],
+      "limitations": [
+        "OFFICIAL_SOURCE_ONLY anonymous probe: no account, cookies, proxy, storage, forms or transactions.",
+        "Only bounded normalized fragments + allowlisted scalar metadata + sha256 digests are recorded; no full page content."
+      ],
+      "sourceDigest": "sha256:f83463af0f784d92542085d0062360a0643813daaa09e47f221ea1173dc3d6fb"
     }
   ]
 }

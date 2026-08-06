@@ -41,18 +41,72 @@ function syntheticPartnerConfirmation(m) {
   });
 }
 
+// A synthetic official-source CONTENT capture bound to a real candidate, proving the
+// listed claim components (Issue #260, R9: source-plan target claims are authorized only
+// by the assessment over official content, never raw-supported).
+function contentSource(m, candidateId, observedScope, fragSpecs, bodyDigest) {
+  const c = m.BYBIT_OFFICIAL_SOURCE_CANDIDATES.find((x) => x.candidateId === candidateId);
+  const fragments = fragSpecs.map((fs, i) => {
+    const f = { fragmentId: `${candidateId}-f${i}`, sourceId: candidateId, extractionType: 'visible_text', locator: 'h1', text: fs.text || `synthetic official evidence ${i}`, claimIds: fs.claimIds, assertionComponentIds: fs.componentIds, stance: 'supports', limitation: 'synthetic test fixture' };
+    f.textLength = f.text.length; f.fragmentDigest = m.computeOfficialFragmentDigest(f); return f;
+  });
+  const fragIds = fragments.map((f) => f.fragmentId);
+  const s = {
+    sourceId: candidateId, exchangeId: 'bybit', candidateId, planId: m.BYBIT_SOURCE_PLAN_ID, planDigest: m.BYBIT_SOURCE_PLAN_DIGEST,
+    requestedUrl: c.url, finalUrl: c.url, redirectChain: [], capturedAt: '2026-08-05T00:00:00Z',
+    captureMethod: 'synthetic', captureTool: 'harness/1.0', runtimeVersion: 'v24', captureMethodUsed: 'http',
+    httpStatus: 200, contentType: 'text/html', declaredScope: c.declaredScope, observedScope, currency: 'current',
+    scopeAssessment: { classifiedScope: observedScope, classificationRuleId: 'content-observed', evidenceRefs: fragIds, confidence: 'high', limitations: 'synthetic' },
+    currencyAssessment: { currency: 'current', ruleId: 'observed-current-campaign', evidenceRefs: fragIds, observedTime: null, limitations: 'synthetic' },
+    outcome: 'content', responseBytes: 2048, bodyDigest: bodyDigest || ('sha256:' + 'b'.repeat(64)),
+    fragments, structuredMetadata: { pageTitle: null, description: null, canonicalUrl: null, ogTitle: null, ogDescription: null, jsonLdType: null },
+    runtimeReceipt: { authenticationUsed: false, cookiesSent: false, cookiesStored: false, proxyConfigured: false, bodyPersisted: false, redirectsObserved: 0, externalRedirectsBlocked: 0 },
+    warnings: [], limitations: [], sourceDigest: 'sha256:' + '0'.repeat(64),
+  };
+  s.sourceDigest = m.computeOfficialSourceDigest(s);
+  return s;
+}
+
 function syntheticCompletePacket(m, nowMs) {
   const OFFICIAL = 'https://www.bybit.com/en/promo/new-user/';
   const capturedAt = new Date(nowMs - 86400000).toISOString();
   const cap = { captureId: 'probe-a', sourceUrl: OFFICIAL, capturedAt, observedStatus: 200, redirectLocation: null, responseBytes: 2048, bodyDigest: 'sha256:' + 'b'.repeat(64), contentType: 'text/html', normalizedObservation: 'synthetic official capture' };
+  // Source-plan target claims stay inaccessible in the RAW packet; the resolver upgrades
+  // them from the official-source content below. Only source_identity is raw-supported.
   const claims = m.BYBIT_OFFER_CLAIM_INVENTORY.map((id) =>
     id === 'bybit.realistic_value' ? { claimId: id, label: id, result: 'not_found', observed: 'obs', sourceRefs: ['editorial:cbw'], limitation: '' }
       : id === 'bybit.promo_code' ? { claimId: id, label: id, result: 'requires_owner_partner_confirmation', observed: 'obs', sourceRefs: ['capture:probe-a'], limitation: '' }
-        : { claimId: id, label: id, result: 'supported', observed: 'obs', sourceRefs: ['capture:probe-a'], limitation: '' });
+        : id === 'bybit.source_identity' ? { claimId: id, label: id, result: 'supported', observed: 'obs', sourceRefs: ['capture:probe-a'], limitation: '' }
+          : { claimId: id, label: id, result: 'inaccessible', observed: 'obs', sourceRefs: ['capture:probe-a'], limitation: '' });
+  // Official content proving every target claim's material components (independent docs
+  // for the multiple_required terms_summary).
+  const officialSourceCaptures = [
+    contentSource(m, 'promo-new-user', 'promotion_specific', [
+      { claimIds: ['bybit.bonus_headline'], componentIds: ['max-reward-figure', 'reward-is-welcome-package'] },
+      { claimIds: ['bybit.kyc_required'], componentIds: ['kyc-required-for-this-promo', 'kyc-required-to-withdraw-reward'] },
+      { claimIds: ['bybit.deposit_required'], componentIds: ['deposit-task-in-this-promo'] },
+      { claimIds: ['bybit.availability'], componentIds: ['offer-active'] },
+      { claimIds: ['bybit.terms_summary'], componentIds: ['new-accounts-only', 'kyc-to-withdraw'] },
+      { claimIds: ['bybit.fee_discount'], componentIds: ['fee-discount-figure'] },
+      { claimIds: ['bybit.min_deposit'], componentIds: ['min-deposit-tiered'] },
+    ], 'sha256:' + '1'.repeat(64)),
+    contentSource(m, 'help-kyc-identity', 'identity_verification_general', [
+      { claimIds: ['bybit.kyc_required'], componentIds: ['identity-verification-exists'] },
+    ], 'sha256:' + '2'.repeat(64)),
+    contentSource(m, 'help-restricted-jurisdictions', 'legal_restrictions', [
+      { claimIds: ['bybit.restricted_countries'], componentIds: ['restricted-list-matches'] },
+      { claimIds: ['bybit.availability'], componentIds: ['global-with-exclusions'] },
+    ], 'sha256:' + '3'.repeat(64)),
+    contentSource(m, 'help-what-is-bonus', 'reward_mechanics', [
+      { claimIds: ['bybit.reward_type'], componentIds: ['reward-instrument-form', 'withdrawal-conversion-limits'] },
+      { claimIds: ['bybit.terms_summary'], componentIds: ['volume-conditions-higher-tiers', 'voucher-expiry-window'] },
+      { claimIds: ['bybit.expiry'], componentIds: ['voucher-expiry-window'] },
+    ], 'sha256:' + '4'.repeat(64)),
+  ];
   const packet = {
     packetId: 'bybit-harness-approved', exchangeId: 'bybit', capturedAt, nextReviewAt: '2026-12-31T00:00:00Z',
     sourceUrl: OFFICIAL, primaryCaptureId: 'probe-a', captureMethod: 'synthetic', captureTool: 'harness/1.0',
-    captures: [cap], claims, warnings: [], limitations: [], approval: 'approved',
+    captures: [cap], officialSourceCaptures, claims, warnings: [], limitations: [], approval: 'approved',
     approver: { approvedBy: 'ros190392-source', approvedAt: capturedAt, approvalRef: 'https://github.com/ros190392-source/cryptobonusworld/pull/259#pullrequestreview-1' },
   };
   packet.captureManifestDigest = m.computeCaptureManifestDigest(packet.captures);
@@ -105,6 +159,8 @@ if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
       contents:
         `export * from ${JSON.stringify(join(ROOT, 'src/data/contracts/claimConfirmation.ts'))};\n` +
         `export * from ${JSON.stringify(join(ROOT, 'src/data/contracts/offerPacketResolution.ts'))};\n` +
+        `export { computeOfficialFragmentDigest, computeOfficialSourceDigest } from ${JSON.stringify(join(ROOT, 'src/data/contracts/officialSourceCapture.ts'))};\n` +
+        `export { BYBIT_OFFICIAL_SOURCE_CANDIDATES, BYBIT_SOURCE_PLAN_ID, BYBIT_SOURCE_PLAN_DIGEST } from ${JSON.stringify(join(ROOT, 'src/data/contracts/bybitOfferClaimSourcePlan.ts'))};\n` +
         `export { BYBIT_OFFER_CLAIM_INVENTORY, computeCaptureManifestDigest } from ${JSON.stringify(join(ROOT, 'src/data/contracts/offerEvidencePacket.ts'))};`,
       resolveDir: ROOT, loader: 'ts',
     },

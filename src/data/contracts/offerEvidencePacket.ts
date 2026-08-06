@@ -76,6 +76,19 @@ export const BYBIT_OFFER_REQUIRED_CLAIMS = Object.freeze([
 /** Optional claim-ID extensions beyond the canonical inventory (none for the pilot). */
 export const BYBIT_OFFER_CLAIM_EXTENSIONS: readonly string[] = Object.freeze([]);
 
+/**
+ * Claims whose authorization is owned by the code-owned SOURCE PLAN (Issue #260, R9),
+ * not the raw packet. A raw packet may NEVER hand-set one of these to `supported`; its
+ * supported status is derived only by the resolution bridge from the canonical
+ * source-plan assessment over the complete evidence run. This mirrors how
+ * `bybit.promo_code` is owned by the confirmation evaluator. Kept as a code-owned set
+ * here (not imported from the plan) to avoid a circular import. `bybit.source_identity`
+ * stays on the existing identity-bound capture path; `bybit.realistic_value` is editorial.
+ */
+export const SOURCE_PLAN_TARGET_CLAIM_SET: ReadonlySet<string> = new Set(
+  BYBIT_OFFER_CLAIM_INVENTORY.filter((c) => c !== 'bybit.source_identity' && c !== 'bybit.promo_code' && c !== 'bybit.realistic_value'),
+);
+
 export const BYBIT_OFFER_CLAIM_POLICY = Object.freeze({
   exchangeId: 'bybit',
   inventory: BYBIT_OFFER_CLAIM_INVENTORY,
@@ -425,6 +438,10 @@ export function validateOfferEvidencePacket(input: unknown): PacketValidationRes
       // Promo authority is derived only by the confirmation-evaluator bridge into the
       // separate resolved view; the committed record stays a raw observation.
       if (r.claimId === 'bybit.promo_code' && r.result === 'supported') issues.push({ field: `${path}.result`, code: 'PROMO_RAW_SUPPORT_FORBIDDEN', message: 'bybit.promo_code cannot be supported in the raw packet; support comes only from the confirmation bridge.' });
+      // Issue #260 (R9): a source-plan target claim may never be raw-supported; its
+      // supported status is derived only by the resolution bridge from the canonical
+      // source-plan assessment over the complete evidence run.
+      if (SOURCE_PLAN_TARGET_CLAIM_SET.has(r.claimId as string) && r.result === 'supported') issues.push({ field: `${path}.result`, code: 'SOURCE_PLAN_RAW_SUPPORT_FORBIDDEN', message: 'Source-plan target claim cannot be supported in the raw packet; support comes only from the source-plan assessment via the resolution bridge.' });
       if (typeof r.observed !== 'string') issues.push({ field: `${path}.observed`, code: 'REQUIRED', message: 'observed required.' });
       if (typeof r.limitation !== 'string') issues.push({ field: `${path}.limitation`, code: 'REQUIRED', message: 'limitation required.' });
       // Reject a packet trying to declare its own requirement.
@@ -458,7 +475,9 @@ export function validateOfferEvidencePacket(input: unknown): PacketValidationRes
         // supply support. Editorial and walled/errored rendered captures are never
         // admissible for support. (Promo authority never flows through the packet.)
         const isRequired = (BYBIT_OFFER_REQUIRED_CLAIMS as readonly string[]).includes(r.claimId as string);
-        if (isRequired && r.result === 'supported') {
+        // Source-plan target claims are handled by SOURCE_PLAN_RAW_SUPPORT_FORBIDDEN above
+        // (they can never be raw-supported); only the identity-bound path reaches here.
+        if (isRequired && r.result === 'supported' && !SOURCE_PLAN_TARGET_CLAIM_SET.has(r.claimId as string)) {
           const admissible = (r.sourceRefs as string[]).some((ref) => {
             if (ref.startsWith('capture:')) return true;
             if (ref.startsWith('rendered-fragment:')) {
