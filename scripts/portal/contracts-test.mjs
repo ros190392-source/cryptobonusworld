@@ -18,7 +18,7 @@ import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { runResolutionHarness } from './test-support/offer-packet-resolution-harness.mjs';
 import { makeSyntheticPromoPolicy, makeSyntheticPartnerConfirmation } from './test-support/synthetic-confirmation-fixtures.mjs';
-import { runTestAuthorityGuard } from './test-authority-guard.mjs';
+import { runTestAuthorityGuard, runGuardSelfTests } from './test-authority-guard.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '..', '..');
@@ -1588,8 +1588,16 @@ try {
   check('guard/9: no production import of test-support / scripts', GUARD.violations.every((v) => v.code !== 'PRODUCTION_IMPORTS_TEST_SUPPORT'));
   // 10 — test-support not re-exported by a product barrel.
   check('guard/10: test-support not re-exported by a production module', GUARD.violations.every((v) => v.code !== 'TEST_SUPPORT_REEXPORTED'));
-  // 10b — the guard as a whole passes (fail-closed AST + boundary).
+  // 10b — the guard as a whole passes (fail-closed TypeChecker producer + boundary).
   check('guard/10b: test-authority guard passes with zero violations', GUARD.ok === true);
+  // guard/self/* — the hardened detector is proven against transient fixture trees so an
+  // inferred / re-exported / aliased / object-method / class-method producer, a dynamic or
+  // require() test-support import, or a forbidden name cannot silently bypass it (R7). A
+  // legitimate domain accessor whose record merely holds an `evidence` field is accepted.
+  const GUARD_SELF = runGuardSelfTests();
+  if (!GUARD_SELF.ok) for (const r of GUARD_SELF.results) if (!r.pass) console.log(`  guard/self/${r.id} FAILED [codes: ${r.codes.join(',') || 'none'}]`);
+  for (const r of GUARD_SELF.results) check(`guard/self/${r.id}: ${r.desc}`, r.pass === true);
+  check('guard/self: hardened detector self-test suite passes as a whole', GUARD_SELF.ok === true && GUARD_SELF.results.length >= 20);
   // 11 — synthetic harness remains ≥5/5.
   check('guard/11: synthetic harness remains at least 5/5', (() => { const H = runResolutionHarness(m, BNOW); if (H.fail !== 0) console.log(H.results.join('\n')); return H.fail === 0 && H.pass >= 5; })());
   // 12 — production adapter rejects the real empty confirmation set.
