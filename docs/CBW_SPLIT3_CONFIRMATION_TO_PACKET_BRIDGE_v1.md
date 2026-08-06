@@ -2,124 +2,122 @@
 
 Branch: `feat/cbw-split3-confirmation-to-packet-bridge-006`
 Governing issue: #258 · Base: `master` @ `8d1eb05` (PR #257 merged)
-Status: implemented; Draft PR; **not merged**; **not deployed**. **Real posture: promo
-stays partner-confirmation-required; the confirmation set is empty; no real evidence.**
+Status: implemented + owner-review remediation R1–R9; Draft; **not merged until
+conditions pass**; **not deployed**. **Real posture: promo stays partner-confirmation-
+required; the confirmation set is empty; production partner trust is unconfigured.**
 
 ## Objective
 
 One canonical, fail-closed bridge from the trusted ClaimConfirmation evaluator → a
-NON-MUTATING resolved Bybit `OfferEvidencePacket` claim view → the authorizing
-EvidenceMetadata adapter. The committed packet remains the immutable historical raw
-evidence record; `bybit.promo_code` is never hand-edited to `supported`.
+deep-frozen, AUDIT-ONLY resolved Bybit `OfferEvidencePacket` view → the single
+authorizing `EvidenceMetadata` entry point. The committed packet is the immutable raw
+record; `bybit.promo_code` is never hand-edited to `supported`.
 
-## Legacy generic confirmation path — retired
+## Legacy generic confirmation path — removed
 
-The weak generic `OwnerConfirmationArtifact` / `ownerConfirmations` path is removed
-entirely: no `OwnerConfirmationArtifact` type, no `ownerConfirmations` field (declaring
-it now fails `LEGACY_FIELD_FORBIDDEN`), no `owner-confirmation:` source-reference
-grammar, and the field is deleted from the real packet JSON. No generic owner string
-can support any claim. The ClaimConfirmation evaluator is the only confirmation source.
+No `OwnerConfirmationArtifact` type; no `ownerConfirmations` field (deleted from the
+real packet JSON; declaring it fails `LEGACY_FIELD_FORBIDDEN`); no `owner-confirmation:`
+grammar. The raw packet also rejects `bybit.promo_code = supported`
+(`PROMO_RAW_SUPPORT_FORBIDDEN`).
 
-## Raw packet stays raw
+## Exactly one public product EvidenceMetadata entry point (R1/R2)
 
-`validateOfferEvidencePacket` now additionally rejects `bybit.promo_code` with result
-`supported` (`PROMO_RAW_SUPPORT_FORBIDDEN`) — promo authority can never flow through
-the raw packet. The committed `bybit.promo_code` result stays
-`requires_owner_partner_confirmation`.
-
-## Resolver (`src/data/contracts/offerPacketResolution.ts`)
+The ONLY public product function that can produce `EvidenceMetadata` is:
 
 ```ts
-resolveOfferPacketClaims(rawPacket, confirmationSet, nowMs, offerPromoCode, policy)
-resolveBybitOfferPacketClaims(rawPacket, confirmationSet, nowMs, offerPromoCode) // production policy
+adaptBybitOfferToEvidence(rawPacket, confirmationSet, nowMs)
 ```
 
-Produces a resolved view WITHOUT mutating the packet, confirmation set, offer record or
-policy: packet identity + `captureManifestDigest` + rendered-artifact digests, validated
-raw claims, the confirmation evaluator result, one resolved entry per canonical claim
-(raw result + resolved result + provenance), blocking required claim IDs, the normalized
-offer promo code, the explicit evaluation clock, and a deterministic `resolutionDigest`
-— or a structured failure reason.
+It performs, internally and in order: raw packet validation → canonical offer-identity
+lookup → production confirmation evaluation → claim resolution → full resolution-
+integrity construction → packet approval/freshness/source checks → required-claim
+checks → EvidenceMetadata construction. Packet readiness, EvidenceMetadata construction
+and the resolved→evidence step are PRIVATE. `evaluatePacketReadiness`,
+`packetToEvidenceMetadata`, `adaptResolvedApprovedPacketToEvidence` and the raw-packet-
+only adapter are **no longer exported** — a caller cannot recreate the readiness +
+metadata steps without confirmation evaluation. There is **no** public function that
+converts a caller-supplied resolved view into evidence: the adapter always takes the raw
+authoritative inputs and recomputes the resolution internally.
 
-## Promo-code-only bridge
+## Canonical product offer identity (R3)
 
-Only `bybit.promo_code` is influenced by confirmation data; every other claim copies its
-raw result (`raw_capture` provenance). Bridge states:
+`getBybitOfferCommercialIdentity()` returns the immutable `{exchangeSlug:'bybit',
+promoCode: getOffer('bybit').promoCode}`. The product resolver/adapter read it
+internally — no caller may pass an offer-code argument
+(`adaptBybitOfferToEvidence.length === 3`). The exchange slug must be `bybit`, the code
+must normalize, and it must match the evaluator-confirmed value exactly. Changing the
+real `offers.bybit.promoCode` changes the resolution and blocks stale confirmation reuse.
 
-| Evaluator state | Resolved promo |
-|---|---|
-| `confirmed` + value === normalized offer code | **supported** (provenance: evaluator + confirmationId) |
-| `confirmed` + value ≠ offer code | fail closed `CONFIRMED_VALUE_MISMATCH` |
-| `missing` / `pending_partner_confirmation` | unresolved (pending) |
-| `expired` | unresolved (expired provenance) |
-| `revoked` | unresolved (revoked provenance) |
-| `invalid` | fail closed `CONFIRMATION_INVALID` |
-| `conflict` | fail closed `CONFIRMATION_CONFLICT` |
+## Production policy fingerprint (R4)
 
-No substring/prefix matching — exact normalized equality only.
+Each resolution is bound to a policy fingerprint — `policyId`
+(`cbw:bybit:promo-code-confirmation:v1`), `policyDigest` = sha256(canonical policy), and
+`policyMode` (`production` when the digest equals the production policy digest, else
+`test`). The product adapter is production-only; the isolated TEST adapter REFUSES the
+production policy (`USE_PRODUCT_ADAPTER`). A test-policy resolution can never authorize
+the product path.
 
-## Canonical value source
+## Full raw-packet + confirmation-set digests (R5/R6)
 
-The bridge candidate comes from ONE product-data source — the Bybit `Offer.promoCode`
-(`getOffer('bybit').promoCode` = `CRYPTOBONUSW`) — normalized via the code-owned
-`normalizeReferralCode`. It is never derived from labels, prose, warnings, statements or
-docs. Changing `offers.bybit.promoCode` changes the resolution digest and blocks stale
-reuse (a confirmation of the old value → `CONFIRMED_VALUE_MISMATCH`).
+- `computeRawPacketDigest(packet)` covers every committed packet field (id, exchange,
+  capturedAt, nextReviewAt, sourceUrl, primaryCaptureId, captureManifestDigest, method,
+  tool, full captures, rendered-capture artifact digests, full raw claims, warnings,
+  limitations, approval, approver). Tampering any field changes it. The resolution
+  carries `rawPacketDigest` and holds **no mutable raw packet reference**.
+- `computeConfirmationSetDigest(set)` covers the complete ordered set
+  (confirmationId, artifactDigest, status, artifactIntent, replacement/revocation
+  links), canonicalized by id. Adding/removing/replacing/revoking/modifying any
+  artifact changes it (empty set → deterministic non-empty digest); reordering is
+  canonicalized; an artifact with an invalid digest fails resolution.
 
-## One adapter path
+## Resolution digest + audit snapshot (R7)
 
-```ts
-adaptResolvedApprovedPacketToEvidence(resolvedPacket, nowMs)   // the authorizing adapter
-adaptBybitOfferToEvidence(rawPacket, confirmationSet, nowMs, offerPromoCode) // product wrapper
-```
+The `resolutionDigest` covers the schema id, policy id/digest/mode, `rawPacketDigest`,
+`confirmationSetDigest`, offer-identity digest, evaluation clock, evaluator
+state/value/confirmationId, ordered confirmation ids, every resolved claim + provenance,
+and the exact blocking-required list. The resolved view is a **deep-frozen** audit
+snapshot. `validateResolvedOfferPacket` recomputes the digest and enforces invariants:
+blocking list equals the recomputed list; non-promo resolved == raw; supported promo
+requires evaluator `confirmed` + value == offer code + a real confirmationId; unresolved
+promo cannot carry confirmed provenance; every inventory item appears once.
 
-The resolved adapter re-checks packet readiness (approval, trusted approver, freshness,
-official source, identity, review window) via the shared `evaluatePacketReadiness`,
-requires the resolution digest intact and computed at the same clock, and requires every
-code-owned required claim to resolve `supported`. The legacy raw-only
-`adaptApprovedPacketToEvidence` is retained but structurally NON-AUTHORIZING: promo can
-never be raw-supported, so it always blocks (`REQUIRED_CLAIM_UNSUPPORTED`). No exported
-helper can force a claim to supported.
+## Isolated synthetic harness (R8)
 
-## Resolution digest
-
-`resolutionDigest` covers packet ID, exchange ID, capture-manifest digest, rendered
-artifact digests, raw claim inventory/results/sourceRefs, normalized offer promo code,
-confirmation-set evaluation (state/value/confirmationId), the evaluation clock, every
-resolved claim result + provenance, and blocking required claim IDs — everything except
-the digest itself, with deterministic ordering. Tampering the packet, offer code,
-confirmation set, clock, a resolved result or a provenance record all break it; a missing
-or duplicated resolved claim fails closed.
-
-## Synthetic positive proofs (test-only)
-
-- **CASE A** — real packet + a synthetic exact TEST-policy partner confirmation → only
-  `bybit.promo_code` resolves `supported`; the inaccessible required claims stay
-  unchanged and keep blocking; the adapter still rejects.
-- **CASE B** — a synthetic complete raw packet (all non-promo required supported, promo
-  raw = partner-confirmation-required) + a synthetic exact promo confirmation, approved
-  under a test fixture → all required claims resolve supported → the resolved adapter
-  produces test-only `EvidenceMetadata`.
-
-No synthetic policy, trusted partner, receipt, resolved packet or `EvidenceMetadata`
-enters product data. Product uses the production policy (empty partner trust), so the
-real path is non-authorizing.
+`scripts/portal/test-support/offer-packet-resolution-harness.mjs` proves the algorithmic
+positive path with a synthetic complete packet + a TEST-policy partner confirmation via
+the TEST adapter. It is NOT imported by product code and is NOT in production exports;
+the production adapter rejects its synthetic partner set (empty production trust), and
+the TEST adapter refuses the production policy. Run with
+`npm run portal:harness:resolution`.
 
 ## Real posture (unchanged)
 
-`BYBIT_PROMO_CODE_CONFIRMATIONS` frozen empty; production partner trust empty;
-confirmation state `missing`; `CRYPTOBONUSW` unconfirmed; raw `bybit.promo_code`
-`requires_owner_partner_confirmation`; resolved real promo unresolved; raw packet `draft`;
-`offers.bybit.evidence` `null`; `PUBLIC_MARKET_PROFILES` frozen empty; `PUBLIC_CBW_CTA_MODE`
-untouched; preview and public production-simulation homepages emit zero `/go/*`.
+`BYBIT_PROMO_CODE_CONFIRMATIONS` frozen empty; production `trustedPartnerIdentities`/
+`trustedPartnerDomains` empty; state `missing`; `CRYPTOBONUSW` unconfirmed; raw
+`bybit.promo_code` `requires_owner_partner_confirmation`; resolved real promo unresolved;
+packet `draft`; `offers.bybit.evidence` `null`; `PUBLIC_MARKET_PROFILES` frozen empty;
+`PUBLIC_CBW_CTA_MODE` untouched; preview and public production-simulation homepages emit
+zero `/go/*`.
+
+## Public API inventory
+
+`offerPacketResolution` public exports: `getBybitOfferCommercialIdentity`,
+`resolveBybitOfferPacketClaims` (audit), `resolveOfferPacketClaimsForTest` (harness),
+`validateResolvedOfferPacket`, `computeRawPacketDigest`, `computeConfirmationSetDigest`,
+`computeConfirmationPolicyDigest`, `computeResolutionDigest`, `canonicalResolution`,
+`adaptBybitOfferToEvidence` (**the one product evidence producer**),
+`adaptOfferToEvidenceForTest` (refuses the production policy), policy/schema id + digest
+constants, and types. `offerEvidencePacket` no longer exports any EvidenceMetadata
+adapter, readiness, or metadata helper.
 
 ## Verification (all green)
 
 ```
-npm run portal:contracts:test        # 478 passed, 0 failed  (441 baseline + 2 pkt + 39 bridge, minus none)
+npm run portal:contracts:test        # 491 passed, 0 failed  (443 baseline + 48 bridge/*)
 npm run ai-ops:validate:fixtures     # 43 passed, 0 failed
 tsc --noEmit (contracts scope + offerPacketResolution) # exit 0
 npm run build                        # 109 pages
+npm run portal:harness:resolution    # 5 passed, 0 failed (isolated synthetic proof)
 homepage Chromium QA (separate)      # 32/32 (preview + production-sim × desktop/mobile, keyboard)
 preview homepage /go/                # 0
 production-simulation homepage /go/   # 0
@@ -127,17 +125,15 @@ production-simulation homepage /go/   # 0
 
 ## Not authorized / not performed
 
-No merge, no deploy, no Cloudflare publication, no environment/secret change,
-`PUBLIC_CBW_CTA_MODE` untouched, `PUBLIC_MARKET_PROFILES` empty, no real confirmation or
-trusted-partner configuration, no packet approval, no change to the real promo claim or
-offer evidence, no other-exchange work, no owner-authored files touched.
+No merge without owner review, no deploy, no Cloudflare publication, no environment/
+secret change, `PUBLIC_CBW_CTA_MODE` untouched, `PUBLIC_MARKET_PROFILES` empty, no real
+confirmation or trusted-partner configuration, no packet approval, no change to the real
+promo claim or offer evidence, no other-exchange work, no owner-authored files touched.
 
 ## Remaining blockers
 
-- A factual, owner-authorized trusted-partner policy + a genuine partner receipt for
-  `CRYPTOBONUSW` (the only things that let the bridge resolve promo supported in
-  production).
-- A complete, approved raw packet whose non-promo required claims are genuinely
-  supported by capture evidence; evidence-backed MarketProfile population; the other
-  exchange offer packets; legacy CTA migration; localized per-country routes; production
-  activation.
+- A factual owner-authorized trusted-partner policy + a genuine partner receipt for
+  `CRYPTOBONUSW` (the only things that let the product bridge resolve promo supported).
+- A complete, approved raw packet whose non-promo required claims are genuinely capture-
+  supported; evidence-backed MarketProfile population; the other exchange offer packets;
+  legacy CTA migration; localized per-country routes; production activation.

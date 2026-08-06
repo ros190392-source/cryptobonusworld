@@ -27,9 +27,7 @@
  * part of the client page bundle.
  */
 import { createHash } from 'node:crypto';
-import type { EvidenceMetadata } from './evidenceMetadata';
-import { parseExactIsoDateTime, validateEvidenceMetadata } from './evidenceMetadata';
-import { assessEvidenceFreshness } from './portalFactory';
+import { parseExactIsoDateTime } from './evidenceMetadata';
 import {
   type PublicRenderedCapture,
   validatePublicRenderedCapture,
@@ -461,8 +459,14 @@ export function deriveUnsupportedClaims(packet: OfferEvidencePacket): string[] {
   return packet.claims.filter((c) => c.result !== 'supported').map((c) => c.claimId).sort();
 }
 
-/* ─────────────────────────── adapter (R8: single evaluation) ─────────────────── */
+/* ─────────────────────────── adapter fail reasons ─────────────────── */
 
+/**
+ * Fail reasons shared with the resolution bridge. Issue #258: this contract no
+ * longer exposes ANY EvidenceMetadata-producing adapter — packet readiness, metadata
+ * construction and the authorizing adapter live privately in `offerPacketResolution`,
+ * behind the single public product entry point `adaptBybitOfferToEvidence`.
+ */
 export type PacketAdaptFailReason =
   | 'PACKET_INVALID'
   | 'EXCHANGE_NOT_BYBIT'
@@ -474,87 +478,3 @@ export type PacketAdaptFailReason =
   | 'NOT_APPROVED'
   | 'APPROVAL_UNTRUSTED'
   | 'CLOCK_INVALID';
-
-export type PacketAdaptResult =
-  | { ok: true; evidence: EvidenceMetadata }
-  | { ok: false; reason: PacketAdaptFailReason };
-
-export type PacketReadinessResult =
-  | { ok: true; packet: OfferEvidencePacket }
-  | { ok: false; reason: PacketAdaptFailReason };
-
-/**
- * Packet-level readiness (Issue #258): every code-owned requirement EXCEPT the
- * required-claim-supported check — validity, exchange identity, official source,
- * freshness, review window, no contradiction, approval + trusted approver. The
- * claim-support decision is deferred to the RESOLVED view so that `bybit.promo_code`
- * support can come only from the confirmation-evaluator bridge. Fail-closed.
- */
-export function evaluatePacketReadiness(
-  input: unknown,
-  nowMs: number,
-  expectedExchangeId = 'bybit',
-): PacketReadinessResult {
-  if (!Number.isFinite(nowMs)) return { ok: false, reason: 'CLOCK_INVALID' };
-
-  const validation = validateOfferEvidencePacket(input);
-  if (!validation.ok || !validation.value) return { ok: false, reason: 'PACKET_INVALID' };
-  const packet = validation.value;
-
-  if (typeof expectedExchangeId !== 'string' || !CANONICAL_SLUG.test(expectedExchangeId) || packet.exchangeId !== expectedExchangeId) {
-    return { ok: false, reason: 'EXCHANGE_NOT_BYBIT' };
-  }
-  if (!isOfficialBybitSource(packet.sourceUrl)) return { ok: false, reason: 'SOURCE_NOT_OFFICIAL' };
-
-  const freshness = assessEvidenceFreshness(packet.capturedAt, nowMs);
-  if (freshness.state !== 'fresh') return { ok: false, reason: 'CAPTURE_NOT_FRESH' };
-
-  const reviewAt = parseExactIsoDateTime(packet.nextReviewAt);
-  if (!reviewAt || nowMs >= reviewAt.epochMs) return { ok: false, reason: 'REVIEW_OVERDUE' };
-
-  if (packet.claims.some((c) => c.result === 'contradicted')) return { ok: false, reason: 'UNRESOLVED_CONTRADICTION' };
-
-  if (packet.approval !== 'approved') return { ok: false, reason: 'NOT_APPROVED' };
-  const apAt = packet.approver ? parseExactIsoDateTime(packet.approver.approvedAt) : null;
-  if (!packet.approver || !apAt || apAt.epochMs > nowMs) return { ok: false, reason: 'APPROVAL_UNTRUSTED' };
-
-  return { ok: true, packet };
-}
-
-/** Build validated EvidenceMetadata from a ready packet (shared by both adapters). */
-export function packetToEvidenceMetadata(packet: OfferEvidencePacket): EvidenceMetadata | null {
-  const evidence: EvidenceMetadata = {
-    evidenceCheckedAt: packet.capturedAt,
-    nextReviewAt: packet.nextReviewAt,
-    sourceUrl: packet.sourceUrl,
-    sourceId: packet.packetId,
-    exchangeId: packet.exchangeId,
-  };
-  const evValidation = validateEvidenceMetadata(evidence);
-  return evValidation.ok && evValidation.value ? evValidation.value : null;
-}
-
-/**
- * RAW-packet-only adapter — retained but NON-AUTHORIZING for any real/complete offer:
- * because `bybit.promo_code` can never be `supported` in the raw packet (Issue #258),
- * the required-claim check here always blocks on promo. The authorizing path is
- * `adaptResolvedApprovedPacketToEvidence` (offerPacketResolution), which consumes the
- * resolved claim view where promo support comes only from the confirmation bridge.
- */
-export function adaptApprovedPacketToEvidence(
-  input: unknown,
-  nowMs: number,
-  expectedExchangeId = 'bybit',
-): PacketAdaptResult {
-  const readiness = evaluatePacketReadiness(input, nowMs, expectedExchangeId);
-  if (!readiness.ok) return { ok: false, reason: readiness.reason };
-  const packet = readiness.packet;
-
-  const byId = new Map(packet.claims.map((c) => [c.claimId, c]));
-  const requiredOk = (BYBIT_OFFER_REQUIRED_CLAIMS as readonly string[]).every((id) => byId.get(id)?.result === 'supported');
-  if (!requiredOk) return { ok: false, reason: 'REQUIRED_CLAIM_UNSUPPORTED' };
-
-  const evidence = packetToEvidenceMetadata(packet);
-  if (!evidence) return { ok: false, reason: 'PACKET_INVALID' };
-  return { ok: true, evidence };
-}
