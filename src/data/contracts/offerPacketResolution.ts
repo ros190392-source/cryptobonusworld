@@ -106,6 +106,7 @@ export function computeRawPacketDigest(packet: OfferEvidencePacket): string {
     captureTool: packet.captureTool,
     captures: JSON.parse(canonicalCaptureManifest(packet.captures)),
     renderedCaptures: (packet.renderedCaptures ?? []).map((c) => c.normalizedArtifactDigest),
+    officialSourceCaptures: (packet.officialSourceCaptures ?? []).map((c) => c.sourceDigest),
     claims: [...packet.claims].sort((a, b) => (a.claimId < b.claimId ? -1 : a.claimId > b.claimId ? 1 : 0)).map((c) => ({ claimId: c.claimId, label: c.label, result: c.result, observed: c.observed, sourceRefs: [...c.sourceRefs].sort(), limitation: c.limitation })),
     warnings: packet.warnings,
     limitations: packet.limitations,
@@ -172,6 +173,7 @@ export interface ResolvedOfferPacket {
   confirmationEvaluation: ConfirmationEvaluationRecord;
   rawClaims: RawClaimRecord[];
   renderedArtifactDigests: string[];
+  officialSourceDigests: string[];
   resolvedClaims: ResolvedClaim[];
   blockingRequiredClaims: string[];
   resolutionDigest: string;
@@ -201,6 +203,7 @@ export function canonicalResolution(r: ResolutionCore): string {
     confirmationEvaluation: { state: r.confirmationEvaluation.state, value: r.confirmationEvaluation.value, confirmationId: r.confirmationEvaluation.confirmationId },
     rawClaims: r.rawClaims.map((c) => ({ claimId: c.claimId, result: c.result, sourceRefs: [...c.sourceRefs].sort() })),
     renderedArtifactDigests: [...r.renderedArtifactDigests].sort(),
+    officialSourceDigests: [...r.officialSourceDigests].sort(),
     resolvedClaims: r.resolvedClaims.map((c) => ({ claimId: c.claimId, rawResult: c.rawResult, resolvedResult: c.resolvedResult, provenance: canonicalProvenance(c.provenance) })),
     blockingRequiredClaims: [...r.blockingRequiredClaims].sort(),
   });
@@ -283,6 +286,7 @@ function resolveInternal(
     confirmationEvaluation: { state: evalRes.state, value: evalRes.value ?? null, confirmationId: evalRes.confirmationId ?? null },
     rawClaims,
     renderedArtifactDigests: (packet.renderedCaptures ?? []).map((c) => c.normalizedArtifactDigest),
+    officialSourceDigests: (packet.officialSourceCaptures ?? []).map((c) => c.sourceDigest),
     resolvedClaims,
     blockingRequiredClaims,
   };

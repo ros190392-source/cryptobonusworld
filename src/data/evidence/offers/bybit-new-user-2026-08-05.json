@@ -61,14 +61,16 @@
       "claimId": "bybit.bonus_headline",
       "label": "Maximum reward / bonus headline (Up to 30,000 USDT Welcome Package)",
       "result": "inaccessible",
-      "observed": "Official promo pages returned HTTP 302 redirects with no server-rendered offer content; the maximum reward figure could not be observed.",
+      "observed": "Multi-source official capture (Issue #260): source:promo-new-user, source:promo-welcome-gifts. Deterministic source-plan assessment = inaccessible (NO_ACCEPTED_SCOPE_SOURCE_OBSERVABLE; 0/2 material components proven). Promotion-specific offer content was not server-observable to an anonymous capture — official promo URLs redirect to the generic Bybit homepage (scope promotion_specific→account_wide_general) and the identity-verification help article is a client-rendered shell.",
       "sourceRefs": [
         "capture:probe-a",
         "capture:probe-b",
         "rendered:rendered-new-user",
-        "rendered:rendered-welcome-gifts"
+        "rendered:rendered-welcome-gifts",
+        "source:promo-new-user",
+        "source:promo-welcome-gifts"
       ],
-      "limitation": "Client-rendered and/or redirecting official page; the figure was not present in the captured response."
+      "limitation": "Required claim under the code-owned source plan; accepted scopes: promotion_specific, campaign_terms. A general account-wide page cannot prove this promotion-specific assertion (fail closed on scope mismatch). Not upgraded."
     },
     {
       "claimId": "bybit.realistic_value",
@@ -84,115 +86,135 @@
       "claimId": "bybit.fee_discount",
       "label": "Fee-discount wording (Up to 50% fee discount)",
       "result": "inaccessible",
-      "observed": "Not present in the captured redirecting response; official fee-discount terms were not observable by this method.",
+      "observed": "Multi-source official capture (Issue #260): source:promo-new-user, source:promo-welcome-gifts. Deterministic source-plan assessment = inaccessible (NO_ACCEPTED_SCOPE_SOURCE_OBSERVABLE; 0/1 material components proven). Promotion-specific offer content was not server-observable to an anonymous capture — official promo URLs redirect to the generic Bybit homepage (scope promotion_specific→account_wide_general) and the identity-verification help article is a client-rendered shell.",
       "sourceRefs": [
         "capture:probe-a",
         "rendered:rendered-new-user",
-        "rendered:rendered-welcome-gifts"
+        "rendered:rendered-welcome-gifts",
+        "source:promo-new-user",
+        "source:promo-welcome-gifts"
       ],
-      "limitation": "Requires client-rendered/region-specific page access not available to an anonymous probe."
+      "limitation": "Optional claim under the code-owned source plan; accepted scopes: promotion_specific, campaign_terms. A general account-wide page cannot prove this assertion (fail closed on scope mismatch). Not upgraded."
     },
     {
       "claimId": "bybit.kyc_required",
       "label": "KYC requirement",
       "result": "inaccessible",
-      "observed": "Not present in the captured redirecting response; KYC terms for this specific promo were not observable.",
+      "observed": "Multi-source official capture (Issue #260): source:promo-new-user, source:promo-welcome-gifts, source:help-kyc-identity. Deterministic source-plan assessment = inaccessible (ACCEPTED_SCOPE_SOURCE_NOT_SERVED_TO_ANONYMOUS_CAPTURE; 0/3 material components proven). Promotion-specific offer content was not server-observable to an anonymous capture — official promo URLs redirect to the generic Bybit homepage (scope promotion_specific→account_wide_general) and the identity-verification help article is a client-rendered shell.",
       "sourceRefs": [
         "capture:probe-a",
         "rendered:rendered-new-user",
-        "rendered:rendered-welcome-gifts"
+        "rendered:rendered-welcome-gifts",
+        "source:promo-new-user",
+        "source:promo-welcome-gifts",
+        "source:help-kyc-identity"
       ],
-      "limitation": "Promo-specific KYC terms are client-rendered/region-dependent and were not captured."
+      "limitation": "Required claim under the code-owned source plan; accepted scopes: promotion_specific, campaign_terms, identity_verification_general, account_wide_general. A general account-wide page cannot prove this promotion-specific assertion (fail closed on scope mismatch). Not upgraded."
     },
     {
       "claimId": "bybit.deposit_required",
       "label": "Deposit requirement",
       "result": "inaccessible",
-      "observed": "Not present in the captured redirecting response.",
+      "observed": "Multi-source official capture (Issue #260): source:promo-new-user, source:promo-welcome-gifts. Deterministic source-plan assessment = inaccessible (NO_ACCEPTED_SCOPE_SOURCE_OBSERVABLE; 0/1 material components proven). Promotion-specific offer content was not server-observable to an anonymous capture — official promo URLs redirect to the generic Bybit homepage (scope promotion_specific→account_wide_general) and the identity-verification help article is a client-rendered shell.",
       "sourceRefs": [
         "capture:probe-a",
         "rendered:rendered-new-user",
-        "rendered:rendered-welcome-gifts"
+        "rendered:rendered-welcome-gifts",
+        "source:promo-new-user",
+        "source:promo-welcome-gifts"
       ],
-      "limitation": "Promo-specific deposit terms were not observable by this method."
+      "limitation": "Required claim under the code-owned source plan; accepted scopes: promotion_specific, campaign_terms. A general account-wide page cannot prove this promotion-specific assertion (fail closed on scope mismatch). Not upgraded."
     },
     {
       "claimId": "bybit.min_deposit",
       "label": "Minimum-deposit wording",
       "result": "inaccessible",
-      "observed": "Not present in the captured redirecting response; CBW wording is non-specific ('varies by bonus tier').",
+      "observed": "Multi-source official capture (Issue #260): source:promo-new-user, source:promo-welcome-gifts. Deterministic source-plan assessment = inaccessible (NO_ACCEPTED_SCOPE_SOURCE_OBSERVABLE; 0/1 material components proven). Promotion-specific offer content was not server-observable to an anonymous capture — official promo URLs redirect to the generic Bybit homepage (scope promotion_specific→account_wide_general) and the identity-verification help article is a client-rendered shell.",
       "sourceRefs": [
         "capture:probe-a",
         "rendered:rendered-new-user",
-        "rendered:rendered-welcome-gifts"
+        "rendered:rendered-welcome-gifts",
+        "source:promo-new-user",
+        "source:promo-welcome-gifts"
       ],
-      "limitation": "No official minimum-deposit figure was captured."
+      "limitation": "Optional claim under the code-owned source plan; accepted scopes: promotion_specific, campaign_terms. A general account-wide page cannot prove this assertion (fail closed on scope mismatch). Not upgraded."
     },
     {
       "claimId": "bybit.availability",
       "label": "Offer availability wording (Global excluding restricted regions)",
       "result": "inaccessible",
-      "observed": "Not present in the captured redirecting response; availability is region-dependent and client-rendered.",
+      "observed": "Multi-source official capture (Issue #260): source:promo-new-user, source:promo-welcome-gifts. Deterministic source-plan assessment = inaccessible (NO_ACCEPTED_SCOPE_SOURCE_OBSERVABLE; 0/2 material components proven). Promotion-specific offer content was not server-observable to an anonymous capture — official promo URLs redirect to the generic Bybit homepage (scope promotion_specific→account_wide_general) and the identity-verification help article is a client-rendered shell.",
       "sourceRefs": [
         "capture:probe-a",
         "rendered:rendered-new-user",
-        "rendered:rendered-welcome-gifts"
+        "rendered:rendered-welcome-gifts",
+        "source:promo-new-user",
+        "source:promo-welcome-gifts"
       ],
-      "limitation": "Region-dependent availability could not be observed by an anonymous probe."
+      "limitation": "Required claim under the code-owned source plan; accepted scopes: promotion_specific, campaign_terms, jurisdiction_specific, legal_restrictions. A general account-wide page cannot prove this promotion-specific assertion (fail closed on scope mismatch). Not upgraded."
     },
     {
       "claimId": "bybit.restricted_countries",
       "label": "Restricted-country wording (US, UK, CA, SG, NL)",
       "result": "inaccessible",
-      "observed": "Not present in the captured redirecting response; the specific restricted-country list was not observable.",
+      "observed": "Multi-source official capture (Issue #260): source:promo-new-user, source:promo-welcome-gifts. Deterministic source-plan assessment = inaccessible (NO_ACCEPTED_SCOPE_SOURCE_OBSERVABLE; 0/1 material components proven). Promotion-specific offer content was not server-observable to an anonymous capture — official promo URLs redirect to the generic Bybit homepage (scope promotion_specific→account_wide_general) and the identity-verification help article is a client-rendered shell.",
       "sourceRefs": [
         "capture:probe-a",
         "rendered:rendered-new-user",
-        "rendered:rendered-welcome-gifts"
+        "rendered:rendered-welcome-gifts",
+        "source:promo-new-user",
+        "source:promo-welcome-gifts"
       ],
-      "limitation": "Restriction lists are legal/region-specific and require official terms access not available here."
+      "limitation": "Required claim under the code-owned source plan; accepted scopes: promotion_specific, campaign_terms, jurisdiction_specific, legal_restrictions. A general account-wide page cannot prove this promotion-specific assertion (fail closed on scope mismatch). Not upgraded."
     },
     {
       "claimId": "bybit.reward_type",
       "label": "Reward type and withdrawal limitations",
       "result": "inaccessible",
-      "observed": "Not present in the captured redirecting response.",
+      "observed": "Multi-source official capture (Issue #260): source:promo-new-user, source:promo-welcome-gifts. Deterministic source-plan assessment = inaccessible (NO_ACCEPTED_SCOPE_SOURCE_OBSERVABLE; 0/2 material components proven). Promotion-specific offer content was not server-observable to an anonymous capture — official promo URLs redirect to the generic Bybit homepage (scope promotion_specific→account_wide_general) and the identity-verification help article is a client-rendered shell.",
       "sourceRefs": [
         "capture:probe-a",
         "rendered:rendered-new-user",
-        "rendered:rendered-welcome-gifts"
+        "rendered:rendered-welcome-gifts",
+        "source:promo-new-user",
+        "source:promo-welcome-gifts"
       ],
-      "limitation": "Voucher/withdrawal mechanics were not observable by this method."
+      "limitation": "Required claim under the code-owned source plan; accepted scopes: promotion_specific, campaign_terms, reward_mechanics. A general account-wide page cannot prove this promotion-specific assertion (fail closed on scope mismatch). Not upgraded."
     },
     {
       "claimId": "bybit.expiry",
       "label": "Task / voucher expiry wording",
       "result": "inaccessible",
-      "observed": "Not present in the captured redirecting response.",
+      "observed": "Multi-source official capture (Issue #260): source:promo-new-user, source:promo-welcome-gifts. Deterministic source-plan assessment = inaccessible (NO_ACCEPTED_SCOPE_SOURCE_OBSERVABLE; 0/1 material components proven). Promotion-specific offer content was not server-observable to an anonymous capture — official promo URLs redirect to the generic Bybit homepage (scope promotion_specific→account_wide_general) and the identity-verification help article is a client-rendered shell.",
       "sourceRefs": [
         "capture:probe-a",
         "rendered:rendered-new-user",
-        "rendered:rendered-welcome-gifts"
+        "rendered:rendered-welcome-gifts",
+        "source:promo-new-user",
+        "source:promo-welcome-gifts"
       ],
-      "limitation": "Expiry windows were not observable by this method."
+      "limitation": "Optional claim under the code-owned source plan; accepted scopes: promotion_specific, campaign_terms, reward_mechanics. A general account-wide page cannot prove this assertion (fail closed on scope mismatch). Not upgraded."
     },
     {
       "claimId": "bybit.terms_summary",
       "label": "Current terms-summary accuracy",
       "result": "inaccessible",
-      "observed": "Not present in the captured redirecting response; the CBW terms summary could not be confirmed against official terms.",
+      "observed": "Multi-source official capture (Issue #260): source:promo-new-user, source:promo-welcome-gifts. Deterministic source-plan assessment = inaccessible (NO_ACCEPTED_SCOPE_SOURCE_OBSERVABLE; 0/4 material components proven). Promotion-specific offer content was not server-observable to an anonymous capture — official promo URLs redirect to the generic Bybit homepage (scope promotion_specific→account_wide_general) and the identity-verification help article is a client-rendered shell.",
       "sourceRefs": [
         "capture:probe-a",
         "rendered:rendered-new-user",
-        "rendered:rendered-welcome-gifts"
+        "rendered:rendered-welcome-gifts",
+        "source:promo-new-user",
+        "source:promo-welcome-gifts"
       ],
-      "limitation": "Full official terms were not accessible; the summary remains unconfirmed."
+      "limitation": "Required claim under the code-owned source plan; accepted scopes: promotion_specific, campaign_terms, reward_mechanics. A general account-wide page cannot prove this promotion-specific assertion (fail closed on scope mismatch). Not upgraded."
     }
   ],
   "warnings": [
     "Official promo pages redirected (HTTP 302) and returned no server-rendered offer content to an anonymous capture; offer claims are client-rendered and/or geo/region-dependent.",
     "Referral code identity is partner-issued and requires a separate owner/partner confirmation artifact.",
-    "Rendered retry (Issue #254): ephemeral anonymous Chromium navigation returned network_error for both official promo URLs; no offer content rendered, no fragments, no claim upgraded."
+    "Rendered retry (Issue #254): ephemeral anonymous Chromium navigation returned network_error for both official promo URLs; no offer content rendered, no fragments, no claim upgraded.",
+    "Multi-source official capture (Issue #260): the two official promotion URLs redirect to the generic Bybit homepage and the identity-verification help article is a client-rendered shell; no promotion-specific or general offer-claim content was server-observable to an anonymous capture. Every target claim assessed inaccessible; none upgraded to supported."
   ],
   "limitations": [
     "OFFICIAL_SOURCE_ONLY: no account, no cookies, no proxy, no transaction, no authenticated session.",
@@ -318,6 +340,143 @@
         "Only bounded normalized fragments and metadata are recorded; no full page content."
       ],
       "normalizedArtifactDigest": "sha256:bf19e774b7b7d31ab4a3a31bd075fa563308e1d4654f5969851c4ee4dafefe79"
+    }
+  ],
+  "officialSourceCaptures": [
+    {
+      "sourceId": "promo-new-user",
+      "exchangeId": "bybit",
+      "requestedUrl": "https://www.bybit.com/en/promo/new-user/",
+      "finalUrl": "https://www.bybit.com/",
+      "redirectChain": [
+        "https://www.bybit.com/promo/new-user/",
+        "https://www.bybit.com/"
+      ],
+      "capturedAt": "2026-08-06T15:23:28Z",
+      "captureMethod": "http_probe_no_auth_no_cookies",
+      "captureTool": "node-fetch anonymous redirect=manual timeout=20000ms",
+      "runtimeVersion": "v24.14.0",
+      "httpStatus": 200,
+      "contentType": "text/html",
+      "declaredScope": "promotion_specific",
+      "observedScope": "account_wide_general",
+      "currency": "ambiguous",
+      "outcome": "redirect_only",
+      "responseBytes": 90204,
+      "bodyDigest": "sha256:7e7f2a5543924c6f75076591b7f8eb69395f2ee23af7a6d54b4c003d3df1affa",
+      "fragments": [],
+      "structuredMetadata": {
+        "pageTitle": "Buy &amp; Sell Bitcoin, Ether | Cryptocurrency Exchange | Bybit",
+        "description": "Crypto trading experience elevated. Buy, sell, trade BTC, altcoins &amp; NFTs. Get access to the spot and futures market or stake your coins securely.",
+        "canonicalUrl": "https://www.bybit.com/en/",
+        "ogTitle": null,
+        "ogDescription": null,
+        "jsonLdType": null
+      },
+      "runtimeReceipt": {
+        "authenticationUsed": false,
+        "cookiesSent": false,
+        "cookiesStored": false,
+        "proxyConfigured": false,
+        "bodyPersisted": false,
+        "redirectsObserved": 2,
+        "externalRedirectsBlocked": 0
+      },
+      "warnings": [],
+      "limitations": [
+        "OFFICIAL_SOURCE_ONLY anonymous HTTPS probe: no account, cookies, proxy, storage, forms or transactions.",
+        "Only bounded normalized fragments + allowlisted scalar metadata + sha256 digests are recorded; no full page content."
+      ],
+      "sourceDigest": "sha256:cd99c759b3cab486d26f9294c786951f4064a30ce29f7f92fb554ce908d87926"
+    },
+    {
+      "sourceId": "promo-welcome-gifts",
+      "exchangeId": "bybit",
+      "requestedUrl": "https://www.bybit.com/en/promo/global/welcome-gifts/",
+      "finalUrl": "https://www.bybit.com/",
+      "redirectChain": [
+        "https://www.bybit.com/promo/global/welcome-gifts/",
+        "https://www.bybit.com/"
+      ],
+      "capturedAt": "2026-08-06T15:23:30Z",
+      "captureMethod": "http_probe_no_auth_no_cookies",
+      "captureTool": "node-fetch anonymous redirect=manual timeout=20000ms",
+      "runtimeVersion": "v24.14.0",
+      "httpStatus": 200,
+      "contentType": "text/html",
+      "declaredScope": "promotion_specific",
+      "observedScope": "account_wide_general",
+      "currency": "ambiguous",
+      "outcome": "redirect_only",
+      "responseBytes": 90204,
+      "bodyDigest": "sha256:7e7f2a5543924c6f75076591b7f8eb69395f2ee23af7a6d54b4c003d3df1affa",
+      "fragments": [],
+      "structuredMetadata": {
+        "pageTitle": "Buy &amp; Sell Bitcoin, Ether | Cryptocurrency Exchange | Bybit",
+        "description": "Crypto trading experience elevated. Buy, sell, trade BTC, altcoins &amp; NFTs. Get access to the spot and futures market or stake your coins securely.",
+        "canonicalUrl": "https://www.bybit.com/en/",
+        "ogTitle": null,
+        "ogDescription": null,
+        "jsonLdType": null
+      },
+      "runtimeReceipt": {
+        "authenticationUsed": false,
+        "cookiesSent": false,
+        "cookiesStored": false,
+        "proxyConfigured": false,
+        "bodyPersisted": false,
+        "redirectsObserved": 2,
+        "externalRedirectsBlocked": 0
+      },
+      "warnings": [],
+      "limitations": [
+        "OFFICIAL_SOURCE_ONLY anonymous HTTPS probe: no account, cookies, proxy, storage, forms or transactions.",
+        "Only bounded normalized fragments + allowlisted scalar metadata + sha256 digests are recorded; no full page content."
+      ],
+      "sourceDigest": "sha256:1ab03e12481233af91d7e30f654d818f76db9a93556ea3493fd62c7347dfc62f"
+    },
+    {
+      "sourceId": "help-kyc-identity",
+      "exchangeId": "bybit",
+      "requestedUrl": "https://www.bybit.com/en/help-center/article/How-to-Complete-Identity-Verification-KYC",
+      "finalUrl": "https://www.bybit.com/en/help-center/article/How-to-Complete-Identity-Verification-KYC",
+      "redirectChain": [],
+      "capturedAt": "2026-08-06T15:23:31Z",
+      "captureMethod": "http_probe_no_auth_no_cookies",
+      "captureTool": "node-fetch anonymous redirect=manual timeout=20000ms",
+      "runtimeVersion": "v24.14.0",
+      "httpStatus": 200,
+      "contentType": "text/html",
+      "declaredScope": "identity_verification_general",
+      "observedScope": "identity_verification_general",
+      "currency": "ambiguous",
+      "outcome": "spa_shell",
+      "responseBytes": 98886,
+      "bodyDigest": "sha256:dc20b4e2cf2ca28fd425830a91e3db4dad75a10b84c930c921b50c23b94c476c",
+      "fragments": [],
+      "structuredMetadata": {
+        "pageTitle": "- Help Center",
+        "description": "Level up your crypto trading experience. Buy, sell, trade BTC, altcoins &amp; NFTs. Get access to the spot and futures market or stake your coins securely.",
+        "canonicalUrl": null,
+        "ogTitle": "- Help Center",
+        "ogDescription": null,
+        "jsonLdType": null
+      },
+      "runtimeReceipt": {
+        "authenticationUsed": false,
+        "cookiesSent": false,
+        "cookiesStored": false,
+        "proxyConfigured": false,
+        "bodyPersisted": false,
+        "redirectsObserved": 0,
+        "externalRedirectsBlocked": 0
+      },
+      "warnings": [],
+      "limitations": [
+        "OFFICIAL_SOURCE_ONLY anonymous HTTPS probe: no account, cookies, proxy, storage, forms or transactions.",
+        "Only bounded normalized fragments + allowlisted scalar metadata + sha256 digests are recorded; no full page content."
+      ],
+      "sourceDigest": "sha256:e116211daeb1f735d289a102c152fc37e8e5017a39701c25935511de769ddc58"
     }
   ]
 }

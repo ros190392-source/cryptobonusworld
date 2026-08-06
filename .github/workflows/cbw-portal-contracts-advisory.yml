@@ -90,6 +90,8 @@ jobs:
             src/data/contracts/publicRenderedCapture.ts \
             src/data/contracts/claimConfirmation.ts \
             src/data/contracts/offerPacketResolution.ts \
+            src/data/contracts/officialSourceCapture.ts \
+            src/data/contracts/bybitOfferClaimSourcePlan.ts \
             src/data/contracts/countryInput.ts \
             src/data/contracts/marketProfileRegistry.ts \
             src/data/contracts/countryAwareCta.ts \

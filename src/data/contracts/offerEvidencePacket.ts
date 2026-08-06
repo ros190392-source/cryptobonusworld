@@ -34,6 +34,12 @@ import {
   captureMaySupportClaims,
   fragmentSupportsClaim,
 } from './publicRenderedCapture';
+import {
+  type OfficialSourceCapture,
+  validateOfficialSourceCapture,
+  sourceMaySupportClaims,
+  officialFragmentAddressesClaim,
+} from './officialSourceCapture';
 
 /* ─────────────────────────── R1: code-owned claim policy ────────────────────── */
 
@@ -154,6 +160,15 @@ export interface OfferEvidencePacket {
    * audit/context only and never supplies support (R4).
    */
   renderedCaptures?: PublicRenderedCapture[];
+  /**
+   * Structured official-source capture records (Issue #260). Additive: bounded anonymous
+   * captures of official Bybit sources classified by SCOPE + CURRENCY. A claim may cite
+   * one for support only via a FRAGMENT-LEVEL reference (`source-fragment:<src>/<frag>`)
+   * on an official `content` capture whose fragment binds the exact claim; a bare
+   * `source:<src>` reference is audit/context only and never supplies support. Scope
+   * sufficiency itself is decided by the code-owned source plan, not the packet.
+   */
+  officialSourceCaptures?: OfficialSourceCapture[];
   claims: OfferClaimVerification[];
   warnings: string[];
   limitations: string[];
@@ -168,7 +183,7 @@ const CANONICAL_SLUG = /^[a-z0-9][a-z0-9-]*$/;
 const SHA256 = /^sha256:[a-f0-9]{64}$/;
 const CLAIM_RESULTS: OfferClaimResult[] = ['supported', 'partially_supported', 'not_found', 'contradicted', 'inaccessible', 'requires_owner_partner_confirmation'];
 const APPROVALS: PacketApproval[] = ['draft', 'validated', 'approved', 'rejected', 'stale'];
-const SOURCE_REF = /^(?:(?:capture|rendered|editorial):[a-z0-9][a-z0-9._-]*|rendered-fragment:[a-z0-9][a-z0-9._-]*\/[a-z0-9][a-z0-9._-]*)$/;
+const SOURCE_REF = /^(?:(?:capture|rendered|editorial|source):[a-z0-9][a-z0-9._-]*|(?:rendered-fragment|source-fragment):[a-z0-9][a-z0-9._-]*\/[a-z0-9][a-z0-9._-]*)$/;
 
 /* ─────────────────────────── R7: recursive artifact safety ──────────────────── */
 
@@ -358,6 +373,38 @@ export function validateOfferEvidencePacket(input: unknown): PacketValidationRes
     return { capId, fragId, capture, fragmentExists };
   };
 
+  // Official-source captures (#260): additive, each with its own integrity. A source
+  // may back a supported claim only when it is official + its outcome permits content
+  // (`content`) and the cited fragment binds the exact claim.
+  const officialIds = new Set<string>();
+  const officialSupportIds = new Set<string>();
+  const officialById = new Map<string, OfficialSourceCapture>();
+  if (rec.officialSourceCaptures !== undefined) {
+    if (!Array.isArray(rec.officialSourceCaptures)) issues.push({ field: 'officialSourceCaptures', code: 'INVALID_ARRAY', message: 'officialSourceCaptures must be an array.' });
+    else rec.officialSourceCaptures.forEach((c, i) => {
+      const v = validateOfficialSourceCapture(c, BYBIT_OFFER_CLAIM_INVENTORY);
+      if (!v.ok) v.issues.forEach((iss) => issues.push({ field: `officialSourceCaptures.${i}.${iss.field}`, code: iss.code, message: iss.message }));
+      const id = (c as Record<string, unknown>)?.sourceId;
+      if (typeof id === 'string') {
+        if (officialIds.has(id)) issues.push({ field: 'officialSourceCaptures', code: 'DUPLICATE_SOURCE', message: 'official sourceId must be unique.' });
+        officialIds.add(id);
+        if (v.ok && v.value) {
+          officialById.set(id, v.value);
+          if (sourceMaySupportClaims(v.value)) officialSupportIds.add(id);
+        }
+      }
+    });
+  }
+  const resolveOfficialFragment = (ref: string): { srcId: string; fragId: string; capture?: OfficialSourceCapture; fragmentExists: boolean } => {
+    const body = ref.slice('source-fragment:'.length);
+    const slash = body.indexOf('/');
+    const srcId = body.slice(0, slash);
+    const fragId = body.slice(slash + 1);
+    const capture = officialById.get(srcId);
+    const fragmentExists = !!capture && capture.fragments.some((f) => f.fragmentId === fragId);
+    return { srcId, fragId, capture, fragmentExists };
+  };
+
   // Claims: inventory must EXACTLY match the code-owned policy (R1) + sourceRef binding (R4).
   if (!Array.isArray(rec.claims) || rec.claims.length === 0) {
     issues.push({ field: 'claims', code: 'NO_CLAIMS', message: 'Claims are required.' });
@@ -393,9 +440,16 @@ export function validateOfferEvidencePacket(input: unknown): PacketValidationRes
             else if (!fragmentExists) issues.push({ field: `${path}.sourceRefs`, code: 'UNKNOWN_RENDERED_FRAGMENT_REF', message: `Unknown rendered fragment reference: ${ref}` });
             continue;
           }
+          if (ref.startsWith('source-fragment:')) {
+            const { srcId, fragmentExists } = resolveOfficialFragment(ref);
+            if (!officialIds.has(srcId)) issues.push({ field: `${path}.sourceRefs`, code: 'UNKNOWN_SOURCE_REF', message: `Unknown official-source reference: ${ref}` });
+            else if (!fragmentExists) issues.push({ field: `${path}.sourceRefs`, code: 'UNKNOWN_SOURCE_FRAGMENT_REF', message: `Unknown official-source fragment reference: ${ref}` });
+            continue;
+          }
           const [kind, id] = ref.split(':');
           if (kind === 'capture' && !captureIds.has(id)) issues.push({ field: `${path}.sourceRefs`, code: 'UNKNOWN_CAPTURE_REF', message: `Unknown capture reference: ${ref}` });
           if (kind === 'rendered' && !renderedIds.has(id)) issues.push({ field: `${path}.sourceRefs`, code: 'UNKNOWN_RENDERED_REF', message: `Unknown rendered-capture reference: ${ref}` });
+          if (kind === 'source' && !officialIds.has(id)) issues.push({ field: `${path}.sourceRefs`, code: 'UNKNOWN_SOURCE_REF', message: `Unknown official-source reference: ${ref}` });
         }
         // A REQUIRED SUPPORTED claim must cite an admissible source: a declared HTTP
         // capture or a FRAGMENT-LEVEL rendered reference (`rendered-fragment:<cap>/
@@ -410,6 +464,10 @@ export function validateOfferEvidencePacket(input: unknown): PacketValidationRes
             if (ref.startsWith('rendered-fragment:')) {
               const { capId, fragId, capture } = resolveRenderedFragment(ref);
               return renderedSupportIds.has(capId) && !!capture && fragmentSupportsClaim(capture, fragId, r.claimId as string);
+            }
+            if (ref.startsWith('source-fragment:')) {
+              const { srcId, fragId, capture } = resolveOfficialFragment(ref);
+              return officialSupportIds.has(srcId) && !!capture && officialFragmentAddressesClaim(capture, fragId, r.claimId as string, 'supports');
             }
             return false;
           });

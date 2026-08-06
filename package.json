@@ -177,6 +177,7 @@
     "watch:availability:verbose": "node scripts/watch-exchange-availability.mjs --verbose",
     "watch:availability:dry": "node scripts/watch-exchange-availability.mjs --dry-run",
     "evidence:capture:bybit:rendered": "node scripts/evidence/capture-bybit-rendered.mjs",
+    "evidence:capture:bybit:official-sources": "node scripts/evidence/capture-bybit-official-sources.mjs",
     "evidence:confirmation:bybit:promo-code": "node scripts/evidence/confirmation-bybit-promo-code.mjs"
   },
   "dependencies": {
