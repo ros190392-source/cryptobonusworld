@@ -110,20 +110,18 @@ export interface OfferCapture {
   normalizedObservation: string;
 }
 
-export interface OwnerConfirmationArtifact {
-  confirmationId: string;
-  confirmedBy: string;
-  confirmedAt: string;
-  ref: string;
-  note?: string;
-}
-
 export interface OfferClaimVerification {
   claimId: string;
   label: string;
   result: OfferClaimResult;
   observed: string;
-  /** Structured references: `capture:<id>`, `owner-confirmation:<id>`, `editorial:<id>`. */
+  /**
+   * Structured references: `capture:<id>`, `rendered:<id>`,
+   * `rendered-fragment:<cap>/<frag>`, `editorial:<id>`. The legacy
+   * `owner-confirmation:` grammar is retired (Issue #258): generic owner strings
+   * can no longer support a claim, and `bybit.promo_code` authority now comes ONLY
+   * from the trusted ClaimConfirmation evaluator via the resolution bridge.
+   */
   sourceRefs: string[];
   limitation: string;
 }
@@ -158,7 +156,6 @@ export interface OfferEvidencePacket {
    * audit/context only and never supplies support (R4).
    */
   renderedCaptures?: PublicRenderedCapture[];
-  ownerConfirmations: OwnerConfirmationArtifact[];
   claims: OfferClaimVerification[];
   warnings: string[];
   limitations: string[];
@@ -173,7 +170,7 @@ const CANONICAL_SLUG = /^[a-z0-9][a-z0-9-]*$/;
 const SHA256 = /^sha256:[a-f0-9]{64}$/;
 const CLAIM_RESULTS: OfferClaimResult[] = ['supported', 'partially_supported', 'not_found', 'contradicted', 'inaccessible', 'requires_owner_partner_confirmation'];
 const APPROVALS: PacketApproval[] = ['draft', 'validated', 'approved', 'rejected', 'stale'];
-const SOURCE_REF = /^(?:(?:capture|rendered|owner-confirmation|editorial):[a-z0-9][a-z0-9._-]*|rendered-fragment:[a-z0-9][a-z0-9._-]*\/[a-z0-9][a-z0-9._-]*)$/;
+const SOURCE_REF = /^(?:(?:capture|rendered|editorial):[a-z0-9][a-z0-9._-]*|rendered-fragment:[a-z0-9][a-z0-9._-]*\/[a-z0-9][a-z0-9._-]*)$/;
 
 /* ─────────────────────────── R7: recursive artifact safety ──────────────────── */
 
@@ -267,16 +264,6 @@ function validateCapture(c: unknown, index: number, issues: PacketValidationIssu
   if (!hasText(r.normalizedObservation)) issues.push({ field: `${path}.normalizedObservation`, code: 'REQUIRED', message: 'normalizedObservation required.' });
 }
 
-function validateOwnerConfirmation(c: unknown, index: number, issues: PacketValidationIssue[]): void {
-  const path = `ownerConfirmations.${index}`;
-  if (typeof c !== 'object' || c === null) { issues.push({ field: path, code: 'NOT_OBJECT', message: 'Owner confirmation must be an object.' }); return; }
-  const r = c as Record<string, unknown>;
-  if (!hasText(r.confirmationId) || !CANONICAL_SLUG.test(r.confirmationId as string)) issues.push({ field: `${path}.confirmationId`, code: 'INVALID_ID', message: 'confirmationId must be a canonical slug.' });
-  if (!(hasText(r.confirmedBy) && ALLOWED_OWNER_IDENTITIES.includes(r.confirmedBy as string))) issues.push({ field: `${path}.confirmedBy`, code: 'UNKNOWN_OWNER', message: 'confirmedBy must be an allowed owner identity.' });
-  if (!parseExactIsoDateTime(r.confirmedAt)) issues.push({ field: `${path}.confirmedAt`, code: 'INEXACT_TIMESTAMP', message: 'confirmedAt must be an exact ISO datetime.' });
-  if (!APPROVAL_REF.test(String(r.ref))) issues.push({ field: `${path}.ref`, code: 'INVALID_REF', message: 'ref must be a GitHub owner-review reference.' });
-}
-
 /* ─────────────────────────── packet validation ─────────────────────────── */
 
 export function validateOfferEvidencePacket(input: unknown): PacketValidationResult {
@@ -335,12 +322,10 @@ export function validateOfferEvidencePacket(input: unknown): PacketValidationRes
     }
   }
 
-  // Owner confirmations (R4/R6 typed artifacts).
-  const confirmationIds = new Set<string>();
-  if (rec.ownerConfirmations !== undefined) {
-    if (!Array.isArray(rec.ownerConfirmations)) issues.push({ field: 'ownerConfirmations', code: 'INVALID_ARRAY', message: 'ownerConfirmations must be an array.' });
-    else rec.ownerConfirmations.forEach((c, i) => { validateOwnerConfirmation(c, i, issues); const id = (c as Record<string, unknown>)?.confirmationId; if (typeof id === 'string') confirmationIds.add(id); });
-  }
+  // Legacy generic owner-confirmation path is RETIRED (Issue #258). Declaring it is
+  // a hard error — a generic owner string can no longer support any claim; promo
+  // authority comes only from the trusted ClaimConfirmation evaluator (bridge).
+  if ('ownerConfirmations' in rec) issues.push({ field: 'ownerConfirmations', code: 'LEGACY_FIELD_FORBIDDEN', message: 'ownerConfirmations is retired; remove it. Use the ClaimConfirmation evaluator bridge.' });
 
   // Public rendered captures (#254): additive, each with its own integrity. A
   // rendered capture may back a supported claim only when it is official + its
@@ -391,13 +376,17 @@ export function validateOfferEvidencePacket(input: unknown): PacketValidationRes
       seen.add(r.claimId as string);
       if (!hasText(r.label)) issues.push({ field: `${path}.label`, code: 'REQUIRED', message: 'label required.' });
       if (!CLAIM_RESULTS.includes(r.result as OfferClaimResult)) issues.push({ field: `${path}.result`, code: 'INVALID_RESULT', message: 'Unknown claim result.' });
+      // Issue #258: the RAW packet may never hand-set bybit.promo_code to supported.
+      // Promo authority is derived only by the confirmation-evaluator bridge into the
+      // separate resolved view; the committed record stays a raw observation.
+      if (r.claimId === 'bybit.promo_code' && r.result === 'supported') issues.push({ field: `${path}.result`, code: 'PROMO_RAW_SUPPORT_FORBIDDEN', message: 'bybit.promo_code cannot be supported in the raw packet; support comes only from the confirmation bridge.' });
       if (typeof r.observed !== 'string') issues.push({ field: `${path}.observed`, code: 'REQUIRED', message: 'observed required.' });
       if (typeof r.limitation !== 'string') issues.push({ field: `${path}.limitation`, code: 'REQUIRED', message: 'limitation required.' });
       // Reject a packet trying to declare its own requirement.
       if ('requiredForAuthorization' in r) issues.push({ field: `${path}.requiredForAuthorization`, code: 'PACKET_CANNOT_DECLARE_REQUIREMENT', message: 'Requirement is code-owned; remove requiredForAuthorization from the packet.' });
       // sourceRefs binding.
       if (!Array.isArray(r.sourceRefs) || r.sourceRefs.length === 0 || !r.sourceRefs.every((s) => typeof s === 'string' && SOURCE_REF.test(s))) {
-        issues.push({ field: `${path}.sourceRefs`, code: 'INVALID_SOURCE_REFS', message: 'sourceRefs must be non-empty structured references (capture:/rendered:/owner-confirmation:/editorial:).' });
+        issues.push({ field: `${path}.sourceRefs`, code: 'INVALID_SOURCE_REFS', message: 'sourceRefs must be non-empty structured references (capture:/rendered:/rendered-fragment:/editorial:).' });
       } else {
         for (const ref of r.sourceRefs as string[]) {
           if (ref.startsWith('rendered-fragment:')) {
@@ -409,18 +398,17 @@ export function validateOfferEvidencePacket(input: unknown): PacketValidationRes
           const [kind, id] = ref.split(':');
           if (kind === 'capture' && !captureIds.has(id)) issues.push({ field: `${path}.sourceRefs`, code: 'UNKNOWN_CAPTURE_REF', message: `Unknown capture reference: ${ref}` });
           if (kind === 'rendered' && !renderedIds.has(id)) issues.push({ field: `${path}.sourceRefs`, code: 'UNKNOWN_RENDERED_REF', message: `Unknown rendered-capture reference: ${ref}` });
-          if (kind === 'owner-confirmation' && !confirmationIds.has(id)) issues.push({ field: `${path}.sourceRefs`, code: 'UNKNOWN_CONFIRMATION_REF', message: `Unknown owner-confirmation reference: ${ref}` });
         }
         // A REQUIRED SUPPORTED claim must cite an admissible source: a declared HTTP
-        // capture, an owner-confirmation artifact, or a FRAGMENT-LEVEL rendered
-        // reference (`rendered-fragment:<cap>/<frag>`) on a claim-permitting capture
-        // whose fragment binds this exact claim. A bare `rendered:<cap>` reference is
-        // audit/context only and can NEVER supply support (R4). Editorial and
-        // walled/errored rendered captures are never admissible for support.
+        // capture or a FRAGMENT-LEVEL rendered reference (`rendered-fragment:<cap>/
+        // <frag>`) on a claim-permitting capture whose fragment binds this exact
+        // claim. A bare `rendered:<cap>` reference is audit/context only and can NEVER
+        // supply support. Editorial and walled/errored rendered captures are never
+        // admissible for support. (Promo authority never flows through the packet.)
         const isRequired = (BYBIT_OFFER_REQUIRED_CLAIMS as readonly string[]).includes(r.claimId as string);
         if (isRequired && r.result === 'supported') {
           const admissible = (r.sourceRefs as string[]).some((ref) => {
-            if (ref.startsWith('capture:') || ref.startsWith('owner-confirmation:')) return true;
+            if (ref.startsWith('capture:')) return true;
             if (ref.startsWith('rendered-fragment:')) {
               const { capId, fragId, capture } = resolveRenderedFragment(ref);
               return renderedSupportIds.has(capId) && !!capture && fragmentSupportsClaim(capture, fragId, r.claimId as string);
@@ -491,17 +479,22 @@ export type PacketAdaptResult =
   | { ok: true; evidence: EvidenceMetadata }
   | { ok: false; reason: PacketAdaptFailReason };
 
+export type PacketReadinessResult =
+  | { ok: true; packet: OfferEvidencePacket }
+  | { ok: false; reason: PacketAdaptFailReason };
+
 /**
- * The ONE canonical evaluation of packet readiness → EvidenceMetadata. Every
- * requirement is code-owned (policy + approval policy + recomputed digest); the
- * packet cannot weaken any of it. Draft/validated/incomplete/non-official/stale/
- * future/tampered/untrusted-approval packets fail closed.
+ * Packet-level readiness (Issue #258): every code-owned requirement EXCEPT the
+ * required-claim-supported check — validity, exchange identity, official source,
+ * freshness, review window, no contradiction, approval + trusted approver. The
+ * claim-support decision is deferred to the RESOLVED view so that `bybit.promo_code`
+ * support can come only from the confirmation-evaluator bridge. Fail-closed.
  */
-export function adaptApprovedPacketToEvidence(
+export function evaluatePacketReadiness(
   input: unknown,
   nowMs: number,
   expectedExchangeId = 'bybit',
-): PacketAdaptResult {
+): PacketReadinessResult {
   if (!Number.isFinite(nowMs)) return { ok: false, reason: 'CLOCK_INVALID' };
 
   const validation = validateOfferEvidencePacket(input);
@@ -521,16 +514,15 @@ export function adaptApprovedPacketToEvidence(
 
   if (packet.claims.some((c) => c.result === 'contradicted')) return { ok: false, reason: 'UNRESOLVED_CONTRADICTION' };
 
-  // Requirements come from the CODE-OWNED policy, never the packet.
-  const byId = new Map(packet.claims.map((c) => [c.claimId, c]));
-  const requiredOk = (BYBIT_OFFER_REQUIRED_CLAIMS as readonly string[]).every((id) => byId.get(id)?.result === 'supported');
-  if (!requiredOk) return { ok: false, reason: 'REQUIRED_CLAIM_UNSUPPORTED' };
-
   if (packet.approval !== 'approved') return { ok: false, reason: 'NOT_APPROVED' };
-  // Trusted approval: identity/format/window are validated; enforce approvedAt<=now here.
   const apAt = packet.approver ? parseExactIsoDateTime(packet.approver.approvedAt) : null;
   if (!packet.approver || !apAt || apAt.epochMs > nowMs) return { ok: false, reason: 'APPROVAL_UNTRUSTED' };
 
+  return { ok: true, packet };
+}
+
+/** Build validated EvidenceMetadata from a ready packet (shared by both adapters). */
+export function packetToEvidenceMetadata(packet: OfferEvidencePacket): EvidenceMetadata | null {
   const evidence: EvidenceMetadata = {
     evidenceCheckedAt: packet.capturedAt,
     nextReviewAt: packet.nextReviewAt,
@@ -539,6 +531,30 @@ export function adaptApprovedPacketToEvidence(
     exchangeId: packet.exchangeId,
   };
   const evValidation = validateEvidenceMetadata(evidence);
-  if (!evValidation.ok || !evValidation.value) return { ok: false, reason: 'PACKET_INVALID' };
-  return { ok: true, evidence: evValidation.value };
+  return evValidation.ok && evValidation.value ? evValidation.value : null;
+}
+
+/**
+ * RAW-packet-only adapter — retained but NON-AUTHORIZING for any real/complete offer:
+ * because `bybit.promo_code` can never be `supported` in the raw packet (Issue #258),
+ * the required-claim check here always blocks on promo. The authorizing path is
+ * `adaptResolvedApprovedPacketToEvidence` (offerPacketResolution), which consumes the
+ * resolved claim view where promo support comes only from the confirmation bridge.
+ */
+export function adaptApprovedPacketToEvidence(
+  input: unknown,
+  nowMs: number,
+  expectedExchangeId = 'bybit',
+): PacketAdaptResult {
+  const readiness = evaluatePacketReadiness(input, nowMs, expectedExchangeId);
+  if (!readiness.ok) return { ok: false, reason: readiness.reason };
+  const packet = readiness.packet;
+
+  const byId = new Map(packet.claims.map((c) => [c.claimId, c]));
+  const requiredOk = (BYBIT_OFFER_REQUIRED_CLAIMS as readonly string[]).every((id) => byId.get(id)?.result === 'supported');
+  if (!requiredOk) return { ok: false, reason: 'REQUIRED_CLAIM_UNSUPPORTED' };
+
+  const evidence = packetToEvidenceMetadata(packet);
+  if (!evidence) return { ok: false, reason: 'PACKET_INVALID' };
+  return { ok: true, evidence };
 }

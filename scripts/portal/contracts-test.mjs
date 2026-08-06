@@ -38,6 +38,7 @@ const bybitOfferEvidence = join(ROOT, 'src/data/evidence/offers/bybitOfferEviden
 const publicRenderedCapture = join(ROOT, 'src/data/contracts/publicRenderedCapture.ts');
 const claimConfirmation = join(ROOT, 'src/data/contracts/claimConfirmation.ts');
 const bybitPromoCodeConfirmation = join(ROOT, 'src/data/evidence/offers/bybitPromoCodeConfirmation.ts');
+const offerPacketResolution = join(ROOT, 'src/data/contracts/offerPacketResolution.ts');
 
 const tmp = mkdtempSync(join(tmpdir(), 'cbw-portal-test-'));
 const outfile = join(tmp, 'contracts.mjs');
@@ -68,7 +69,8 @@ try {
         `export { resolveCountryAwareCommercialCta, normalizeRestrictedCountries, PUBLIC_HOMEPAGE_COUNTRY } from ${JSON.stringify(countryAwareCta)};\n` +
         `export { isExactIsoDateTime, parseExactIsoDateTime, validateEvidenceMetadata, assessEvidenceAuthorization, resolveOfferEvidenceAuthorization, formatEvidenceCheckedAt, deriveCheckedDisplay, toMarketProfileTimestamps } from ${JSON.stringify(evidenceMetadata)};\n` +
         `export { offers, getOffer } from ${JSON.stringify(offersData)};\n` +
-        `export { validateOfferEvidencePacket, adaptApprovedPacketToEvidence, isOfficialBybitSource, deriveUnsupportedClaims, computeCaptureManifestDigest, canonicalCaptureManifest, BYBIT_OFFER_CLAIM_POLICY, BYBIT_OFFER_CLAIM_INVENTORY, BYBIT_OFFER_REQUIRED_CLAIMS, ALLOWED_OWNER_IDENTITIES } from ${JSON.stringify(offerEvidencePacket)};\n` +
+        `export { validateOfferEvidencePacket, adaptApprovedPacketToEvidence, evaluatePacketReadiness, packetToEvidenceMetadata, isOfficialBybitSource, deriveUnsupportedClaims, computeCaptureManifestDigest, canonicalCaptureManifest, BYBIT_OFFER_CLAIM_POLICY, BYBIT_OFFER_CLAIM_INVENTORY, BYBIT_OFFER_REQUIRED_CLAIMS, ALLOWED_OWNER_IDENTITIES } from ${JSON.stringify(offerEvidencePacket)};\n` +
+        `export { resolveOfferPacketClaims, resolveBybitOfferPacketClaims, computeResolutionDigest, canonicalResolution, validateResolvedOfferPacket, adaptResolvedApprovedPacketToEvidence, adaptBybitOfferToEvidence } from ${JSON.stringify(offerPacketResolution)};\n` +
         `export { BYBIT_OFFER_EVIDENCE_PACKET, BYBIT_OFFER_EVIDENCE_DECISION, deriveBybitDecision, deriveBybitOfferEvidence, bybitOfferEvidence } from ${JSON.stringify(bybitOfferEvidence)};\n` +
         `export { validatePublicRenderedCapture, computeFragmentDigest, computeRenderedArtifactDigest, canonicalRenderedArtifact, isOfficialBybitUrl, captureMaySupportClaims, fragmentSupportsClaim, RENDER_OUTCOMES, MAX_FRAGMENT_TEXT_LENGTH, MAX_REDIRECTS, MAX_LOCATOR_LENGTH, MAX_WARNINGS, MAX_WARNING_LENGTH, MAX_PAGE_TITLE_LENGTH } from ${JSON.stringify(publicRenderedCapture)};\n` +
         `export { validateClaimConfirmation, normalizeReferralCode, normalizeStatement, computeAssertedValueDigest, computeSourceStatementDigest, computeReceiptDigest, canonicalSourceAssertion, computeConfirmationArtifactDigest, canonicalConfirmationArtifact, promoAdmissibilityIssues, evaluatePromoCodeConfirmations, evaluateBybitPromoCodeConfirmations, promoCodeSetConfirmsValue, BYBIT_PROMO_CODE_CONFIRMATION_POLICY, TEST_ONLY_PROMO_CODE_POLICY, CONFIRMATION_SOURCE_KINDS, CONFIRMATION_LIFECYCLE_STATES, ARTIFACT_INTENTS, ASSIGNMENT_STATES, MAX_STATEMENT_LENGTH } from ${JSON.stringify(claimConfirmation)};\n` +
@@ -828,11 +830,14 @@ try {
   const capA = { captureId: 'probe-a', sourceUrl: OFFICIAL, capturedAt: pdaysAgo(1), observedStatus: 200, redirectLocation: null, responseBytes: 2048, bodyDigest: 'sha256:' + 'b'.repeat(64), contentType: 'text/html', normalizedObservation: 'official new-user promo content observed' };
   const REQ = new Set(m.BYBIT_OFFER_REQUIRED_CLAIMS);
   const mkClaim = (id, result, refs) => ({ claimId: id, label: id, result, observed: 'obs', sourceRefs: refs, limitation: '' });
-  // Complete canonical claim set: every required claim supported + capture-cited;
-  // realistic_value editorial; other optional claims supported + capture-cited.
+  // Complete canonical claim set (#258): every required claim supported + capture-
+  // cited EXCEPT bybit.promo_code, which may never be raw-supported — its authority
+  // comes only from the confirmation bridge, so it stays partner-confirmation-required
+  // in the raw packet. realistic_value editorial; other optionals supported + cited.
   const completeClaims = () => m.BYBIT_OFFER_CLAIM_INVENTORY.map((id) =>
     id === 'bybit.realistic_value' ? mkClaim(id, 'not_found', ['editorial:cbw'])
-      : mkClaim(id, 'supported', ['capture:probe-a']));
+      : id === 'bybit.promo_code' ? mkClaim(id, 'requires_owner_partner_confirmation', ['capture:probe-a'])
+        : mkClaim(id, 'supported', ['capture:probe-a']));
   const APPROVER = { approvedBy: 'ros190392-source', approvedAt: pdaysAgo(1), approvalRef: 'https://github.com/ros190392-source/cryptobonusworld/pull/253#pullrequestreview-1' };
   const buildPacket = (over = {}) => {
     const captures = over.captures || [capA];
@@ -841,7 +846,7 @@ try {
       capturedAt: pdaysAgo(1), nextReviewAt: '2026-12-31T00:00:00Z',
       sourceUrl: OFFICIAL, primaryCaptureId: 'probe-a',
       captureMethod: 'manual_official_review', captureTool: 'cbw-test/1.0',
-      captures, ownerConfirmations: [], claims: completeClaims(),
+      captures, claims: completeClaims(),
       warnings: [], limitations: [], approval: 'approved', approver: { ...APPROVER },
       ...over,
     };
@@ -853,9 +858,22 @@ try {
   const withoutClaim = (id) => buildPacket({ claims: completeClaims().filter((c) => c.claimId !== id) });
   const withClaim = (id, patch) => buildPacket({ claims: completeClaims().map((c) => c.claimId === id ? { ...c, ...patch } : c) });
 
-  check('pkt/1: complete canonical inventory + valid manifest + trusted approval adapts', (() => {
+  check('pkt/1: complete raw packet is valid but the RAW adapter blocks on promo (never raw-supported)', (() => {
+    const valid = m.validateOfferEvidencePacket(approvedPacket).ok;
     const r = m.adaptApprovedPacketToEvidence(approvedPacket, PKT_NOW);
-    return r.ok && r.evidence.exchangeId === 'bybit' && r.evidence.evidenceCheckedAt === approvedPacket.capturedAt;
+    // Promo authority can never flow through the raw packet (#258): the raw adapter
+    // is non-authorizing because promo is never raw-supported.
+    return valid && r.ok === false && r.reason === 'REQUIRED_CLAIM_UNSUPPORTED';
+  })());
+  check('pkt/1b: raw packet forbids hand-setting promo to supported', (() => {
+    const p = withClaim('bybit.promo_code', { result: 'supported' });
+    const v = m.validateOfferEvidencePacket(p);
+    return !v.ok && v.issues.some((i) => i.code === 'PROMO_RAW_SUPPORT_FORBIDDEN');
+  })());
+  check('pkt/1c: legacy ownerConfirmations field is rejected', (() => {
+    const p = buildPacket({ ownerConfirmations: [] });
+    const v = m.validateOfferEvidencePacket(p);
+    return !v.ok && v.issues.some((i) => i.code === 'LEGACY_FIELD_FORBIDDEN');
   })());
   check('pkt/2: missing KYC claim → inventory invalid', (() => { const p = withoutClaim('bybit.kyc_required'); return !m.validateOfferEvidencePacket(p).ok && m.validateOfferEvidencePacket(p).issues.some((i) => i.code === 'PACKET_CLAIM_INVENTORY_INVALID') && m.adaptApprovedPacketToEvidence(p, PKT_NOW).reason === 'PACKET_INVALID'; })());
   check('pkt/3: missing restrictions claim → inventory invalid', !m.validateOfferEvidencePacket(withoutClaim('bybit.restricted_countries')).ok);
@@ -1194,7 +1212,7 @@ try {
   check('conf/35: candidateConfirmed remains false; real derived state missing', PPOL.candidateConfirmed === false && m.BYBIT_PROMO_CODE_CANDIDATE_CONFIRMED === false && m.BYBIT_PROMO_CODE_CONFIRMATION_STATE === 'missing');
   check('conf/36: no synthetic policy/receipt entered product data', m.BYBIT_PROMO_CODE_CONFIRMATIONS.length === 0 && PPOL.trustedPartnerIdentities.length === 0 && TPOL.trustedPartnerIdentities.length > 0);
   check('conf/37: promo-code claim remains partner-confirmation-required', m.BYBIT_OFFER_EVIDENCE_PACKET.claims.find((c) => c.claimId === 'bybit.promo_code').result === 'requires_owner_partner_confirmation');
-  check('conf/38: real packet remains draft + ownerConfirmations empty', m.BYBIT_OFFER_EVIDENCE_PACKET.approval === 'draft' && m.BYBIT_OFFER_EVIDENCE_PACKET.ownerConfirmations.length === 0);
+  check('conf/38: real packet remains draft + legacy ownerConfirmations field removed', m.BYBIT_OFFER_EVIDENCE_PACKET.approval === 'draft' && m.BYBIT_OFFER_EVIDENCE_PACKET.ownerConfirmations === undefined);
   check('conf/39: offers.bybit.evidence remains null', m.bybitOfferEvidence === null && m.getOffer('bybit').evidence === null);
   check('conf/40: preview homepage /go/* = 0', m.homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'preview', 'en').primary.href.startsWith('/go/')));
   check('conf/41: public production simulation /go/* = 0', m.homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'production', 'en').primary.href.startsWith('/go/')));
@@ -1205,6 +1223,93 @@ try {
   })());
   check('conf/44: draft template is structurally valid but non-authorizing', (() => { const d = mkO({ confirmationId: 'c-draft', status: 'draft', sourceUrl: null, sourceId: 'UNCONFIRMED-TEMPLATE' }); return vconf(d).ok === true && evProd([d]).state === 'missing'; })());
   check('conf/45: normalizeReferralCode deterministic + unsafe rejected', m.normalizeReferralCode('  cryptobonusw ').value === 'CRYPTOBONUSW' && m.normalizeReferralCode('crypto bonusw').ok === false && m.normalizeReferralCode('CRYPTO$BONUS').ok === false);
+
+  // ===== Split 3 (#258) — confirmation-to-packet resolution bridge =====
+  const BNOW = Date.parse('2026-08-06T00:00:00Z');
+  const OFFER_CODE = m.getOffer('bybit').promoCode;
+  const realPkt = m.BYBIT_OFFER_EVIDENCE_PACKET;
+  const rIssues = (res) => (m.validateResolvedOfferPacket(res).issues || []).map((i) => i.code);
+  const resB = (pkt, set, code, pol) => m.resolveOfferPacketClaims(pkt, set, BNOW, code, pol || TPOL);
+  const rc = (res, id) => res.resolvedClaims.find((c) => c.claimId === id);
+  // A partner confirmation issued/valid across BNOW under the TEST policy.
+  const bP = (over = {}) => mkP(over);
+  const bO = (over = {}) => mkO(over);
+
+  check('bridge/1: legacy ownerConfirmations path removed/rejected', realPkt.ownerConfirmations === undefined && !m.validateOfferEvidencePacket(buildPacket({ ownerConfirmations: [] })).ok);
+  check('bridge/2: raw packet is not mutated by resolution', (() => { const before = JSON.stringify(realPkt); resB(realPkt, [bP()], OFFER_CODE); return JSON.stringify(realPkt) === before; })());
+  check('bridge/3: confirmation set is not mutated by resolution', (() => { const set = [bP()]; const before = JSON.stringify(set); resB(realPkt, set, OFFER_CODE); return JSON.stringify(set) === before; })());
+  check('bridge/4: empty real set → promo pending/unresolved (missing)', (() => { const r = m.resolveBybitOfferPacketClaims(realPkt, [], BNOW, OFFER_CODE); return r.ok && r.confirmationEvaluation.state === 'missing' && rc(r, 'bybit.promo_code').resolvedResult === 'requires_owner_partner_confirmation'; })());
+  check('bridge/5: owner-only set → promo pending (production)', (() => { const r = m.resolveBybitOfferPacketClaims(realPkt, [bO()], BNOW, OFFER_CODE); return r.ok && r.confirmationEvaluation.state === 'pending_partner_confirmation' && rc(r, 'bybit.promo_code').resolvedResult !== 'supported'; })());
+  check('bridge/6: exact test partner confirmation resolves ONLY promo supported', (() => {
+    const r = resB(realPkt, [bP()], OFFER_CODE);
+    const promo = rc(r, 'bybit.promo_code');
+    return r.ok && promo.resolvedResult === 'supported' && promo.provenance.kind === 'confirmation_evaluator' && promo.provenance.evaluatorState === 'confirmed'
+      && r.blockingRequiredClaims.includes('bybit.kyc_required') && !r.blockingRequiredClaims.includes('bybit.promo_code');
+  })());
+  check('bridge/7: wrong confirmed value → no support (fail closed)', resB(realPkt, [bP({ assertedValue: 'OTHERCODE9', sourceAssertion: csa({ assertedValue: 'OTHERCODE9' }) })], OFFER_CODE).ok === false);
+  check('bridge/8: prefix/substring value → no support', (() => { const r = resB(realPkt, [bP({ assertedValue: 'CRYPTOBONUSWXY', sourceAssertion: csa({ assertedValue: 'CRYPTOBONUSWXY' }) })], OFFER_CODE); return r.ok === false; })());
+  check('bridge/9: conflict → no support (fail closed)', resB(realPkt, [bP({ confirmationId: 'p1', sourceId: 'r1' }), bP({ confirmationId: 'p2', sourceId: 'r2', assertedValue: 'RIVALCODE9', sourceAssertion: csa({ assertedValue: 'RIVALCODE9' }) })], OFFER_CODE).reason === 'CONFIRMATION_CONFLICT');
+  check('bridge/10: expired → no support (unresolved, expired provenance)', (() => { const r = resB(realPkt, [bP({ confirmedAt: '2026-01-01T00:00:00Z', validUntil: '2026-02-01T00:00:00Z', sourceEventAt: '2025-12-31T00:00:00Z' })], OFFER_CODE); return r.ok && rc(r, 'bybit.promo_code').resolvedResult !== 'supported' && rc(r, 'bybit.promo_code').provenance.evaluatorState === 'expired'; })());
+  check('bridge/11: revoked → no support (unresolved, revoked provenance)', (() => {
+    const c1 = bP({ confirmationId: 'c1', sourceId: 'receipt-1' });
+    const c3 = bO({ confirmationId: 'c3', confirmedAt: '2026-08-05T12:00:00Z', sourceEventAt: '2026-08-05T06:00:00Z', sourceId: '100200301', sourceUrl: 'https://github.com/ros190392-source/cryptobonusworld/issues/256#issuecomment-100200301', artifactIntent: 'revocation', revokesConfirmationId: 'c1' });
+    const r = resB(realPkt, [c1, c3], OFFER_CODE);
+    return r.ok && rc(r, 'bybit.promo_code').resolvedResult !== 'supported' && rc(r, 'bybit.promo_code').provenance.evaluatorState === 'revoked';
+  })());
+  check('bridge/12: invalid confirmation → fail closed', m.resolveBybitOfferPacketClaims(realPkt, [bP()], BNOW, OFFER_CODE).reason === 'CONFIRMATION_INVALID');
+  check('bridge/13-17: confirmation cannot change any non-promo claim', (() => {
+    const r = resB(realPkt, [bP()], OFFER_CODE);
+    return ['bybit.bonus_headline', 'bybit.kyc_required', 'bybit.deposit_required', 'bybit.availability', 'bybit.restricted_countries', 'bybit.reward_type', 'bybit.terms_summary'].every((id) => rc(r, id).resolvedResult === rc(r, id).rawResult && rc(r, id).provenance.kind === 'raw_capture');
+  })());
+  check('bridge/18: offer promoCode is the canonical bridge candidate', (() => { const r = resB(realPkt, [bP()], OFFER_CODE); return OFFER_CODE === 'CRYPTOBONUSW' && r.ok && r.normalizedOfferPromoCode === 'CRYPTOBONUSW'; })());
+  check('bridge/19: changing offer promoCode invalidates the resolution (stale reuse blocked + digest changes)', (() => {
+    const r1 = resB(realPkt, [bP()], OFFER_CODE);
+    const mism = resB(realPkt, [bP()], 'NEWCODE9');
+    const r2 = m.resolveBybitOfferPacketClaims(realPkt, [], BNOW, OFFER_CODE);
+    const r3 = m.resolveBybitOfferPacketClaims(realPkt, [], BNOW, 'DIFFERENT9');
+    return mism.reason === 'CONFIRMED_VALUE_MISMATCH' && r2.ok && r3.ok && r2.resolutionDigest !== r3.resolutionDigest && r1.ok;
+  })());
+  check('bridge/20: resolved inventory exactly matches code-owned policy', (() => { const r = resB(realPkt, [bP()], OFFER_CODE); return r.resolvedClaims.length === m.BYBIT_OFFER_CLAIM_INVENTORY.length && m.BYBIT_OFFER_CLAIM_INVENTORY.every((id) => rc(r, id)); })());
+  check('bridge/21: missing resolved claim fails closed', (() => { const r = resB(realPkt, [bP()], OFFER_CODE); const t = { ...r, resolvedClaims: r.resolvedClaims.filter((c) => c.claimId !== 'bybit.kyc_required') }; return rIssues(t).includes('MISSING_CLAIM'); })());
+  check('bridge/22: duplicate resolved claim fails closed', (() => { const r = resB(realPkt, [bP()], OFFER_CODE); const t = { ...r, resolvedClaims: [...r.resolvedClaims, r.resolvedClaims[0]] }; return rIssues(t).includes('DUPLICATE_CLAIM'); })());
+  check('bridge/23: resolution digest recomputes', (() => { const r = resB(realPkt, [bP()], OFFER_CODE); return m.validateResolvedOfferPacket(r).ok === true; })());
+  check('bridge/24: packet tampering changes/fails digest', (() => {
+    const r = resB(realPkt, [bP()], OFFER_CODE);
+    const t = JSON.parse(JSON.stringify(r)); t.rawClaims.find((c) => c.claimId === 'bybit.kyc_required').result = 'supported';
+    return rIssues(t).includes('RESOLUTION_DIGEST_MISMATCH');
+  })());
+  check('bridge/25: confirmation-set change changes digest', (() => { const a = resB(realPkt, [], OFFER_CODE, PPOL); const b = resB(realPkt, [bO()], OFFER_CODE, PPOL); return a.ok && b.ok && a.resolutionDigest !== b.resolutionDigest; })());
+  check('bridge/26: evaluation-clock change changes digest', (() => { const a = m.resolveOfferPacketClaims(realPkt, [], BNOW, OFFER_CODE, PPOL); const b = m.resolveOfferPacketClaims(realPkt, [], BNOW + 1000, OFFER_CODE, PPOL); return a.ok && b.ok && a.resolutionDigest !== b.resolutionDigest; })());
+  check('bridge/27: resolved-result tampering fails', (() => { const r = resB(realPkt, [bP()], OFFER_CODE); const t = JSON.parse(JSON.stringify(r)); rc(t, 'bybit.kyc_required').resolvedResult = 'supported'; const codes = rIssues(t); return codes.includes('NONPROMO_DIVERGED') || codes.includes('RESOLUTION_DIGEST_MISMATCH'); })());
+  check('bridge/28: adapter rejects unresolved promo', (() => { const r = m.resolveBybitOfferPacketClaims(buildPacket(), [], BNOW, OFFER_CODE); return r.ok && m.adaptResolvedApprovedPacketToEvidence(r, BNOW).reason === 'REQUIRED_CLAIM_UNSUPPORTED'; })());
+  check('bridge/29: adapter rejects another unresolved required claim (kyc inaccessible)', (() => {
+    const pkt = buildPacket({ claims: completeClaims().map((c) => c.claimId === 'bybit.kyc_required' ? { ...c, result: 'inaccessible' } : c) });
+    const r = resB(pkt, [bP()], OFFER_CODE);
+    return r.ok && r.blockingRequiredClaims.includes('bybit.kyc_required') && m.adaptResolvedApprovedPacketToEvidence(r, BNOW).reason === 'REQUIRED_CLAIM_UNSUPPORTED';
+  })());
+  check('bridge/30: synthetic complete positive path adapts (test-only)', (() => {
+    const r = resB(buildPacket(), [bP()], OFFER_CODE);
+    if (!r.ok || r.blockingRequiredClaims.length !== 0) return false;
+    const a = m.adaptResolvedApprovedPacketToEvidence(r, BNOW);
+    return a.ok === true && a.evidence.exchangeId === 'bybit' && rc(r, 'bybit.promo_code').resolvedResult === 'supported' && rc(r, 'bybit.promo_code').provenance.confirmationId === 'c-partner';
+  })());
+  check('bridge/31: real confirmation set stays frozen empty', Array.isArray(m.BYBIT_PROMO_CODE_CONFIRMATIONS) && m.BYBIT_PROMO_CODE_CONFIRMATIONS.length === 0 && Object.isFrozen(m.BYBIT_PROMO_CODE_CONFIRMATIONS));
+  check('bridge/32: real raw promo claim unchanged', realPkt.claims.find((c) => c.claimId === 'bybit.promo_code').result === 'requires_owner_partner_confirmation');
+  check('bridge/33: real packet remains draft', realPkt.approval === 'draft');
+  check('bridge/34: offers.bybit.evidence remains null', m.bybitOfferEvidence === null && m.getOffer('bybit').evidence === null);
+  check('bridge/35: preview homepage /go/* = 0', m.homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'preview', 'en').primary.href.startsWith('/go/')));
+  check('bridge/36: public production simulation /go/* = 0', m.homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'production', 'en').primary.href.startsWith('/go/')));
+  check('bridge/37: PUBLIC_MARKET_PROFILES remains frozen and empty', Array.isArray(m.PUBLIC_MARKET_PROFILES) && m.PUBLIC_MARKET_PROFILES.length === 0 && Object.isFrozen(m.PUBLIC_MARKET_PROFILES));
+  check('bridge/38: locale cannot change resolved facts', (() => {
+    const a = m.resolveBybitOfferPacketClaims(realPkt, [], BNOW, OFFER_CODE);
+    const b = m.resolveBybitOfferPacketClaims(realPkt, [], BNOW, OFFER_CODE);
+    const disc = (l) => m.resolveDisclosure({ tone: 'verified', evidence: m.bybitOfferEvidence, expectedExchangeId: 'bybit', now: BNOW, isAffiliate: false, methodologyHref: '/methodology/' }, l);
+    return a.resolutionDigest === b.resolutionDigest && ['en', 'ru', 'kk'].every((l) => disc(l).evidenceState === 'none');
+  })());
+  check('bridge/39: production real path is non-authorizing + no synthetic data in product', (() => {
+    const prod = m.adaptBybitOfferToEvidence(realPkt, m.BYBIT_PROMO_CODE_CONFIRMATIONS, BNOW, OFFER_CODE);
+    return prod.ok === false && PPOL.trustedPartnerIdentities.length === 0 && m.BYBIT_PROMO_CODE_CONFIRMATIONS.length === 0 && m.BYBIT_PROMO_CODE_CONFIRMATION_STATE === 'missing';
+  })());
 
   // --- Invariant: a non-commercial model may never point at /go/ ---
   let threw = false;
