@@ -38,6 +38,7 @@ on:
       - 'src/components/portal-v2/**'
       - 'src/pages/**/portal-contracts/**'
       - 'scripts/portal/**'
+      - 'scripts/evidence/**'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/cbw-portal-contracts-advisory.yml'
@@ -86,6 +87,7 @@ jobs:
             src/data/contracts/portalDisclosure.ts \
             src/data/contracts/evidenceMetadata.ts \
             src/data/contracts/offerEvidencePacket.ts \
+            src/data/contracts/publicRenderedCapture.ts \
             src/data/contracts/countryInput.ts \
             src/data/contracts/marketProfileRegistry.ts \
             src/data/contracts/countryAwareCta.ts \

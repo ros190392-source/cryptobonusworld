@@ -30,6 +30,12 @@ import { createHash } from 'node:crypto';
 import type { EvidenceMetadata } from './evidenceMetadata';
 import { parseExactIsoDateTime, validateEvidenceMetadata } from './evidenceMetadata';
 import { assessEvidenceFreshness } from './portalFactory';
+import {
+  type PublicRenderedCapture,
+  validatePublicRenderedCapture,
+  captureMaySupportClaims,
+  fragmentSupportsClaim,
+} from './publicRenderedCapture';
 
 /* ─────────────────────────── R1: code-owned claim policy ────────────────────── */
 
@@ -143,6 +149,15 @@ export interface OfferEvidencePacket {
   captureMethod: string;
   captureTool: string;
   captures: OfferCapture[];
+  /**
+   * Structured public rendered-capture records (Issue #254). Additive: the HTTP
+   * `captures[]` manifest and its digest are unchanged; rendered captures carry
+   * their own recomputable integrity and may back a claim only via a FRAGMENT-LEVEL
+   * reference (`rendered-fragment:<cap>/<frag>`) on an official + `rendered` capture
+   * whose fragment binds the exact claim. A bare `rendered:<cap>` reference is
+   * audit/context only and never supplies support (R4).
+   */
+  renderedCaptures?: PublicRenderedCapture[];
   ownerConfirmations: OwnerConfirmationArtifact[];
   claims: OfferClaimVerification[];
   warnings: string[];
@@ -158,7 +173,7 @@ const CANONICAL_SLUG = /^[a-z0-9][a-z0-9-]*$/;
 const SHA256 = /^sha256:[a-f0-9]{64}$/;
 const CLAIM_RESULTS: OfferClaimResult[] = ['supported', 'partially_supported', 'not_found', 'contradicted', 'inaccessible', 'requires_owner_partner_confirmation'];
 const APPROVALS: PacketApproval[] = ['draft', 'validated', 'approved', 'rejected', 'stale'];
-const SOURCE_REF = /^(capture|owner-confirmation|editorial):[a-z0-9][a-z0-9._-]*$/;
+const SOURCE_REF = /^(?:(?:capture|rendered|owner-confirmation|editorial):[a-z0-9][a-z0-9._-]*|rendered-fragment:[a-z0-9][a-z0-9._-]*\/[a-z0-9][a-z0-9._-]*)$/;
 
 /* ─────────────────────────── R7: recursive artifact safety ──────────────────── */
 
@@ -327,6 +342,39 @@ export function validateOfferEvidencePacket(input: unknown): PacketValidationRes
     else rec.ownerConfirmations.forEach((c, i) => { validateOwnerConfirmation(c, i, issues); const id = (c as Record<string, unknown>)?.confirmationId; if (typeof id === 'string') confirmationIds.add(id); });
   }
 
+  // Public rendered captures (#254): additive, each with its own integrity. A
+  // rendered capture may back a supported claim only when it is official + its
+  // outcome is claim-permitting (`rendered`).
+  const renderedIds = new Set<string>();
+  const renderedSupportIds = new Set<string>();
+  const renderedById = new Map<string, PublicRenderedCapture>();
+  if (rec.renderedCaptures !== undefined) {
+    if (!Array.isArray(rec.renderedCaptures)) issues.push({ field: 'renderedCaptures', code: 'INVALID_ARRAY', message: 'renderedCaptures must be an array.' });
+    else rec.renderedCaptures.forEach((c, i) => {
+      const v = validatePublicRenderedCapture(c, BYBIT_OFFER_CLAIM_INVENTORY);
+      if (!v.ok) v.issues.forEach((iss) => issues.push({ field: `renderedCaptures.${i}.${iss.field}`, code: iss.code, message: iss.message }));
+      const id = (c as Record<string, unknown>)?.captureId;
+      if (typeof id === 'string') {
+        if (renderedIds.has(id)) issues.push({ field: 'renderedCaptures', code: 'DUPLICATE_CAPTURE', message: 'rendered captureId must be unique.' });
+        renderedIds.add(id);
+        if (v.ok && v.value) {
+          renderedById.set(id, v.value);
+          if (captureMaySupportClaims(v.value)) renderedSupportIds.add(id);
+        }
+      }
+    });
+  }
+  // Resolve a `rendered-fragment:<capId>/<fragId>` ref to its validated fragment.
+  const resolveRenderedFragment = (ref: string): { capId: string; fragId: string; capture?: PublicRenderedCapture; fragmentExists: boolean } => {
+    const body = ref.slice('rendered-fragment:'.length);
+    const slash = body.indexOf('/');
+    const capId = body.slice(0, slash);
+    const fragId = body.slice(slash + 1);
+    const capture = renderedById.get(capId);
+    const fragmentExists = !!capture && capture.fragments.some((f) => f.fragmentId === fragId);
+    return { capId, fragId, capture, fragmentExists };
+  };
+
   // Claims: inventory must EXACTLY match the code-owned policy (R1) + sourceRef binding (R4).
   if (!Array.isArray(rec.claims) || rec.claims.length === 0) {
     issues.push({ field: 'claims', code: 'NO_CLAIMS', message: 'Claims are required.' });
@@ -349,19 +397,37 @@ export function validateOfferEvidencePacket(input: unknown): PacketValidationRes
       if ('requiredForAuthorization' in r) issues.push({ field: `${path}.requiredForAuthorization`, code: 'PACKET_CANNOT_DECLARE_REQUIREMENT', message: 'Requirement is code-owned; remove requiredForAuthorization from the packet.' });
       // sourceRefs binding.
       if (!Array.isArray(r.sourceRefs) || r.sourceRefs.length === 0 || !r.sourceRefs.every((s) => typeof s === 'string' && SOURCE_REF.test(s))) {
-        issues.push({ field: `${path}.sourceRefs`, code: 'INVALID_SOURCE_REFS', message: 'sourceRefs must be non-empty structured references (capture:/owner-confirmation:/editorial:).' });
+        issues.push({ field: `${path}.sourceRefs`, code: 'INVALID_SOURCE_REFS', message: 'sourceRefs must be non-empty structured references (capture:/rendered:/owner-confirmation:/editorial:).' });
       } else {
         for (const ref of r.sourceRefs as string[]) {
+          if (ref.startsWith('rendered-fragment:')) {
+            const { capId, fragmentExists } = resolveRenderedFragment(ref);
+            if (!renderedIds.has(capId)) issues.push({ field: `${path}.sourceRefs`, code: 'UNKNOWN_RENDERED_REF', message: `Unknown rendered-capture reference: ${ref}` });
+            else if (!fragmentExists) issues.push({ field: `${path}.sourceRefs`, code: 'UNKNOWN_RENDERED_FRAGMENT_REF', message: `Unknown rendered fragment reference: ${ref}` });
+            continue;
+          }
           const [kind, id] = ref.split(':');
           if (kind === 'capture' && !captureIds.has(id)) issues.push({ field: `${path}.sourceRefs`, code: 'UNKNOWN_CAPTURE_REF', message: `Unknown capture reference: ${ref}` });
+          if (kind === 'rendered' && !renderedIds.has(id)) issues.push({ field: `${path}.sourceRefs`, code: 'UNKNOWN_RENDERED_REF', message: `Unknown rendered-capture reference: ${ref}` });
           if (kind === 'owner-confirmation' && !confirmationIds.has(id)) issues.push({ field: `${path}.sourceRefs`, code: 'UNKNOWN_CONFIRMATION_REF', message: `Unknown owner-confirmation reference: ${ref}` });
         }
-        // A REQUIRED SUPPORTED claim must cite an admissible official capture or
-        // owner-confirmation source — never editorial-only.
+        // A REQUIRED SUPPORTED claim must cite an admissible source: a declared HTTP
+        // capture, an owner-confirmation artifact, or a FRAGMENT-LEVEL rendered
+        // reference (`rendered-fragment:<cap>/<frag>`) on a claim-permitting capture
+        // whose fragment binds this exact claim. A bare `rendered:<cap>` reference is
+        // audit/context only and can NEVER supply support (R4). Editorial and
+        // walled/errored rendered captures are never admissible for support.
         const isRequired = (BYBIT_OFFER_REQUIRED_CLAIMS as readonly string[]).includes(r.claimId as string);
         if (isRequired && r.result === 'supported') {
-          const admissible = (r.sourceRefs as string[]).some((ref) => ref.startsWith('capture:') || ref.startsWith('owner-confirmation:'));
-          if (!admissible) issues.push({ field: `${path}.sourceRefs`, code: 'INADMISSIBLE_SUPPORT', message: 'A required supported claim must cite a declared capture or owner-confirmation source.' });
+          const admissible = (r.sourceRefs as string[]).some((ref) => {
+            if (ref.startsWith('capture:') || ref.startsWith('owner-confirmation:')) return true;
+            if (ref.startsWith('rendered-fragment:')) {
+              const { capId, fragId, capture } = resolveRenderedFragment(ref);
+              return renderedSupportIds.has(capId) && !!capture && fragmentSupportsClaim(capture, fragId, r.claimId as string);
+            }
+            return false;
+          });
+          if (!admissible) issues.push({ field: `${path}.sourceRefs`, code: 'INADMISSIBLE_SUPPORT', message: 'A required supported claim must cite a declared capture, owner-confirmation, or a claim-bound rendered-fragment reference.' });
         }
       }
     });

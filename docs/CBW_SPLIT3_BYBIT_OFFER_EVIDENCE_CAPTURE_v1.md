@@ -150,6 +150,90 @@ No merge, no deploy, no Cloudflare publication, no environment/secret change,
 destinations modified, no evidence capture for the other five exchanges, no
 MarketProfile population, no owner-authored files touched.
 
+## Public rendered-capture runner (Issue #254, hardened R1–R9)
+
+A reusable, fail-closed **public anonymous rendered-capture runner** was added and
+run once against both official Bybit promo URLs. After owner review it was hardened
+against external-navigation, claim-binding, outcome-consistency and artifact-
+integrity bypasses.
+
+- **Contract** `src/data/contracts/publicRenderedCapture.ts` — `PublicRenderedCapture`
+  with identity, requested URL + **nullable** `finalUrl` + redirect chain (all
+  official HTTPS Bybit, no credentials/unsafe params), strict `capturedAt`,
+  browser/runtime versions, six ephemeral-context assertions (each literally
+  `false`), a **runtime safety receipt** (R8), viewport, locale, status/content-
+  type, `outcome` (one of ten allowed; unknown rejected), **bounded** copyright-safe
+  fragments (max 300 chars, no full HTML / script / JSON dump, recomputable
+  `fragmentDigest`), allowlisted scalar `structuredMetadata`, and a recomputable
+  `normalizedArtifactDigest`. Recursive artifact-safety rejects secrets / cookies /
+  tokens / absolute paths across **every** public string.
+  - **R1 — external-navigation blocked.** New non-claim-permitting outcome
+    `external_redirect`. The runner intercepts every main-document navigation and
+    **aborts** it before any content is read when the URL is not HTTPS, carries
+    credentials, leaves the code-owned official Bybit host, or carries unsafe query
+    params. No title/body/metadata/fragment is read from an external document, and a
+    capture that left the official host can never be rewritten to look like a Bybit
+    final URL.
+  - **R2 — honest final-URL semantics.** `finalUrl: string | null`. A terminal /
+    external state (`network_error` / `timeout` / `external_redirect`) records
+    `finalUrl: null` — the requested URL is never asserted as the final URL when no
+    official document was obtained.
+  - **R3 — outcome matrix.** A centralized validator rejects internally inconsistent
+    artifacts: `rendered` requires an official `finalUrl`, a 2xx status, an
+    allowlisted (HTML) content type and ≥1 fragment; `redirect_only` requires real
+    redirect evidence; walls/`empty` may keep only bounded context with **empty**
+    `claimIds`; no-document states forbid finalUrl/status/title/metadata/fragments.
+    Only `rendered` may ever carry a claim-supporting fragment.
+  - **R6 — complete artifact digest.** `canonicalRenderedArtifact` now covers EVERY
+    committed provenance/safety field (URLs, redirect chain, capturedAt, browser /
+    runtime versions, ephemeral assertions, runtime receipt, viewport, locale,
+    status, content-type, title, outcome, ordered fragment records, metadata,
+    warnings, limitations) — only the digest itself is excluded. Reordering
+    fragments or redirects breaks the digest.
+  - **R7 — bounded public surface.** Versions, locale, page title, warnings /
+    limitations (count + length), locator, fragment limitations and claimIds count
+    are all bounded and raw-payload-scanned; `structuredMetadata.canonicalUrl` must
+    itself be an official Bybit URL; `pageTitle` is the single canonical title field.
+  - **R8 — runtime safety receipt.** Safe aggregate assertions only — no cookie
+    names/values: `persistentContextUsed/storageStateImported/proxyConfigured/
+    httpCredentialsConfigured=false`, `initial{Cookie,LocalStorage,SessionStorage}` =
+    0, `formSubmissionsObserved=0`, `downloadsObserved` / `fileChoosersObserved` /
+    `externalMainFrameNavigationsBlocked` counters, `artifactContainsCookieValues=
+    false`. Site-created ephemeral cookies live only in memory and die with
+    `context.close()`; they are never imported or committed. Bound into the digest.
+- **Fragment-level claim binding (R4)** `src/data/contracts/offerEvidencePacket.ts`
+  — a claim may draw rendered support only through a **fragment-level** reference
+  `rendered-fragment:<captureId>/<fragmentId>` on a claim-permitting (`rendered`,
+  official) capture whose fragment binds the exact claim, with a locator and a
+  recomputable digest. A bare `rendered:<captureId>` reference is audit/context only
+  and can never supply support.
+- **Claim-oriented extraction (R5)** the runner associates a fragment with a claim
+  only via a code-owned per-claim extraction plan (narrow locator + expected pattern
+  + limitation) for the immutable Bybit claim inventory. No broad `document.body`
+  text ever becomes claim evidence; matching text never auto-marks a claim.
+- **Runner** `scripts/evidence/capture-bybit-rendered.mjs` (`npm run
+  evidence:capture:bybit:rendered -- --live --confirm-live`) — fresh ephemeral
+  Chromium: no persistent profile, storage import, proxy, credentials, extensions,
+  downloads, form submission, or non-official main-document navigation; blocks
+  downloads / file choosers / non-official popups; classifies walls/errors honestly
+  without bypass. If a generated capture fails contract validation the runner writes
+  **no** committed artifact, dumps a clearly-named transient rejected file for local
+  debugging, and exits non-zero. Manual only — never run in build/CI, transient
+  output gitignored.
+- **Offline CI** — CI validates the committed normalized artifacts and recomputes
+  digests (`validatePublicRenderedCapture`); no browser/network in GitHub Actions.
+
+**Live render outcome (2026-08-05, unchanged in meaning):** both official URLs →
+`outcome: network_error` (headless ephemeral navigation received no response). Under
+the hardened schema each committed capture now records `finalUrl: null`, `status
+null`, `contentType null`, `pageTitle null`, empty metadata, 0 fragments, and a
+runtime receipt with all-safe zeros. No offer content rendered, so **no claim
+changed**. Recomputed rendered artifact digests: rendered-new-user
+`sha256:6a365aff…6d6b`, rendered-welcome-gifts `sha256:bf19e774…fe79`. The two HTTP
+probes and the `captureManifestDigest` are unchanged. `promo_code` remains
+`requires_owner_partner_confirmation`; the packet remains `draft`;
+`offers.bybit.evidence` remains `null`.
+
 ## Remaining blockers
 
 - Owner/partner confirmation of the referral-code identity (`CRYPTOBONUSW`).
