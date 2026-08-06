@@ -36,6 +36,8 @@ const offersData = join(ROOT, 'src/data/offers.ts');
 const offerEvidencePacket = join(ROOT, 'src/data/contracts/offerEvidencePacket.ts');
 const bybitOfferEvidence = join(ROOT, 'src/data/evidence/offers/bybitOfferEvidence.ts');
 const publicRenderedCapture = join(ROOT, 'src/data/contracts/publicRenderedCapture.ts');
+const claimConfirmation = join(ROOT, 'src/data/contracts/claimConfirmation.ts');
+const bybitPromoCodeConfirmation = join(ROOT, 'src/data/evidence/offers/bybitPromoCodeConfirmation.ts');
 
 const tmp = mkdtempSync(join(tmpdir(), 'cbw-portal-test-'));
 const outfile = join(tmp, 'contracts.mjs');
@@ -68,7 +70,9 @@ try {
         `export { offers, getOffer } from ${JSON.stringify(offersData)};\n` +
         `export { validateOfferEvidencePacket, adaptApprovedPacketToEvidence, isOfficialBybitSource, deriveUnsupportedClaims, computeCaptureManifestDigest, canonicalCaptureManifest, BYBIT_OFFER_CLAIM_POLICY, BYBIT_OFFER_CLAIM_INVENTORY, BYBIT_OFFER_REQUIRED_CLAIMS, ALLOWED_OWNER_IDENTITIES } from ${JSON.stringify(offerEvidencePacket)};\n` +
         `export { BYBIT_OFFER_EVIDENCE_PACKET, BYBIT_OFFER_EVIDENCE_DECISION, deriveBybitDecision, deriveBybitOfferEvidence, bybitOfferEvidence } from ${JSON.stringify(bybitOfferEvidence)};\n` +
-        `export { validatePublicRenderedCapture, computeFragmentDigest, computeRenderedArtifactDigest, canonicalRenderedArtifact, isOfficialBybitUrl, captureMaySupportClaims, fragmentSupportsClaim, RENDER_OUTCOMES, MAX_FRAGMENT_TEXT_LENGTH, MAX_REDIRECTS, MAX_LOCATOR_LENGTH, MAX_WARNINGS, MAX_WARNING_LENGTH, MAX_PAGE_TITLE_LENGTH } from ${JSON.stringify(publicRenderedCapture)};`,
+        `export { validatePublicRenderedCapture, computeFragmentDigest, computeRenderedArtifactDigest, canonicalRenderedArtifact, isOfficialBybitUrl, captureMaySupportClaims, fragmentSupportsClaim, RENDER_OUTCOMES, MAX_FRAGMENT_TEXT_LENGTH, MAX_REDIRECTS, MAX_LOCATOR_LENGTH, MAX_WARNINGS, MAX_WARNING_LENGTH, MAX_PAGE_TITLE_LENGTH } from ${JSON.stringify(publicRenderedCapture)};\n` +
+        `export { validateClaimConfirmation, normalizeReferralCode, normalizeStatement, computeAssertedValueDigest, computeSourceStatementDigest, computeReceiptDigest, canonicalSourceAssertion, computeConfirmationArtifactDigest, canonicalConfirmationArtifact, promoAdmissibilityIssues, evaluatePromoCodeConfirmations, evaluateBybitPromoCodeConfirmations, promoCodeSetConfirmsValue, BYBIT_PROMO_CODE_CONFIRMATION_POLICY, TEST_ONLY_PROMO_CODE_POLICY, CONFIRMATION_SOURCE_KINDS, CONFIRMATION_LIFECYCLE_STATES, ARTIFACT_INTENTS, ASSIGNMENT_STATES, MAX_STATEMENT_LENGTH } from ${JSON.stringify(claimConfirmation)};\n` +
+        `export { BYBIT_PROMO_CODE_CONFIRMATIONS, BYBIT_PROMO_CODE_CONFIRMATION_STATE, BYBIT_PROMO_CODE_CANDIDATE, BYBIT_PROMO_CODE_CANDIDATE_CONFIRMED } from ${JSON.stringify(bybitPromoCodeConfirmation)};`,
       resolveDir: ROOT,
       loader: 'ts',
     },
@@ -1056,6 +1060,151 @@ try {
     const rc = m.BYBIT_OFFER_EVIDENCE_PACKET.renderedCaptures || [];
     return rc.length === 2 && rc.every((c) => c.outcome === 'network_error' && c.finalUrl === null && c.fragments.length === 0 && c.mainDocumentStatus === null);
   })());
+
+  // ===== Split 3 (#256) — trusted owner/partner claim-confirmation intake (R1–R9) =====
+  const CNOW = Date.parse('2026-08-06T12:00:00Z');
+  const PPOL = m.BYBIT_PROMO_CODE_CONFIRMATION_POLICY;
+  const TPOL = m.TEST_ONLY_PROMO_CODE_POLICY;
+  const CAND = PPOL.candidateValue;
+  const csa = (over = {}) => ({ exchangeId: 'bybit', claimId: 'bybit.promo_code', assertionType: 'exact_referral_code_assignment', assignmentState: 'active', assertedValue: CAND, ...over });
+  const fin = (a) => {
+    a.assertedValueDigest = m.computeAssertedValueDigest(a);
+    a.sourceStatementDigest = m.computeSourceStatementDigest(a.sourceStatement);
+    if (a.partnerReceipt) { a.partnerReceipt.normalizedAssertion = m.canonicalSourceAssertion(a.sourceAssertion); a.partnerReceipt.normalizedReceiptDigest = m.computeReceiptDigest(a.partnerReceipt); }
+    a.artifactDigest = m.computeConfirmationArtifactDigest(a);
+    return a;
+  };
+  const mkO = (over = {}) => fin({
+    confirmationId: 'c-owner', exchangeId: 'bybit', claimId: 'bybit.promo_code', assertionType: 'exact_referral_code_assignment',
+    assertedValue: CAND, assertedValueDigest: '', confirmedBy: 'ros190392-source', confirmationRole: 'owner',
+    confirmedAt: '2026-08-05T00:00:00Z', validUntil: '2026-10-01T00:00:00Z', sourceEventAt: '2026-08-04T00:00:00Z',
+    artifactIntent: 'attestation', sourceAssertion: csa(), sourceKind: 'github_issue_comment',
+    sourceUrl: 'https://github.com/ros190392-source/cryptobonusworld/issues/256#issuecomment-100200300', sourceId: '100200300', partnerReceipt: null,
+    sourceStatement: 'Owner attests bybit promo referral code assignment.', sourceStatementDigest: '', status: 'confirmed',
+    replacesConfirmationId: null, revokesConfirmationId: null, limitations: 'Owner attestation.', note: null, artifactDigest: '', ...over,
+  });
+  const mkP = (over = {}) => {
+    const base = {
+      confirmationId: 'c-partner', exchangeId: 'bybit', claimId: 'bybit.promo_code', assertionType: 'exact_referral_code_assignment',
+      assertedValue: CAND, assertedValueDigest: '', confirmedBy: 'test-partner-fixture', confirmationRole: 'partner',
+      confirmedAt: '2026-08-05T00:00:00Z', validUntil: '2026-10-01T00:00:00Z', sourceEventAt: '2026-08-04T00:00:00Z',
+      artifactIntent: 'attestation', sourceAssertion: csa(), sourceKind: 'partner_dashboard_receipt', sourceUrl: null, sourceId: 'receipt-x',
+      partnerReceipt: { issuerId: 'test-partner-fixture', issuerDomain: 'partner.test', receiptKind: 'partner_dashboard_receipt', receiptId: 'receipt-x', issuedAt: '2026-08-04T00:00:00Z', normalizedAssertion: '', normalizedReceiptDigest: '', redactionVersion: 'v1' },
+      sourceStatement: 'Partner receipt attests active referral code assignment.', sourceStatementDigest: '', status: 'confirmed',
+      replacesConfirmationId: null, revokesConfirmationId: null, limitations: 'Redacted partner receipt.', note: null, artifactDigest: '',
+    };
+    const a = { ...base, ...over };
+    if (!('partnerReceipt' in over) && a.partnerReceipt) { a.partnerReceipt = { ...a.partnerReceipt, receiptId: a.sourceId, issuedAt: a.sourceEventAt }; }
+    return fin(a);
+  };
+  const vconf = (a) => m.validateClaimConfirmation(a);
+  const iss = (a) => vconf(a).issues.map((i) => i.code);
+  const admP = (a, pol) => m.promoAdmissibilityIssues(a, pol).map((i) => i.code);
+  const evP = (arr, pol) => m.evaluatePromoCodeConfirmations(arr, CNOW, pol);
+  const evProd = (arr) => m.evaluateBybitPromoCodeConfirmations(arr, CNOW);
+
+  // -- R1: one authorizing path --
+  check('conf/1: owner-only helper bypass impossible (evaluator pending; helper false)', evProd([mkO()]).state === 'pending_partner_confirmation' && m.promoCodeSetConfirmsValue([mkO()], CNOW, PPOL, CAND) === false && m.promoCodeSetConfirmsValue([mkO()], CNOW, TPOL, CAND) === false);
+  check('conf/2: no confirmationSupportsTarget/isActiveConfirmed exported', m.confirmationSupportsTarget === undefined && m.isActiveConfirmed === undefined && m.isActiveAdmissibleConfirmed === undefined);
+  check('conf/3: delegated helper true only when evaluator confirmed (test policy)', m.promoCodeSetConfirmsValue([mkP()], CNOW, TPOL, CAND) === true && evP([mkP()], TPOL).state === 'confirmed');
+  check('conf/4: helper false for expired/wrong-value confirmed sets', m.promoCodeSetConfirmsValue([mkP({ confirmedAt: '2026-01-01T00:00:00Z', validUntil: '2026-02-01T00:00:00Z', sourceEventAt: '2025-12-31T00:00:00Z' })], CNOW, TPOL, CAND) === false && m.promoCodeSetConfirmsValue([mkP({ assertedValue: 'OTHERCODE9', sourceAssertion: csa({ assertedValue: 'OTHERCODE9' }) })], CNOW, TPOL, CAND) === false);
+
+  // -- R2: no invented production partner trust; test-only policy proves positive --
+  check('conf/5: production policy has NO trusted partner identity or domain', PPOL.trustedPartnerIdentities.length === 0 && PPOL.trustedPartnerDomains.length === 0);
+  check('conf/6: self-declared partner cannot confirm in production (→ invalid)', (() => {
+    const p = mkP({ confirmedBy: 'bybit-partner-official', partnerReceipt: { issuerId: 'bybit-partner-official', issuerDomain: 'partner.bybit.com', receiptKind: 'partner_dashboard_receipt', receiptId: 'receipt-x', issuedAt: '2026-08-04T00:00:00Z', normalizedAssertion: '', normalizedReceiptDigest: '', redactionVersion: 'v1' } });
+    return evProd([p]).state === 'invalid' && m.promoCodeSetConfirmsValue([p], CNOW, PPOL, CAND) === false;
+  })());
+  check('conf/7: synthetic TEST-ONLY policy proves the positive algorithmic path', evP([mkP()], TPOL).state === 'confirmed' && TPOL.trustedPartnerIdentities.length > 0 && TPOL.trustedPartnerDomains.length > 0);
+  check('conf/8: product wrapper always uses production policy', evProd([mkP()]).state === 'invalid');
+
+  // -- R3: structured partner receipt provenance --
+  check('conf/9: partner source requires structured receipt; github source forbids it', iss(mkP({ partnerReceipt: null })).includes('REQUIRED') && iss(mkO({ partnerReceipt: { issuerId: 'x', issuerDomain: 'partner.test', receiptKind: 'partner_dashboard_receipt', receiptId: 'r', issuedAt: '2026-08-04T00:00:00Z', normalizedAssertion: '', normalizedReceiptDigest: 'sha256:' + '0'.repeat(64), redactionVersion: 'v1' } })).includes('RECEIPT_FORBIDDEN'));
+  check('conf/10: receipt digest recomputes; issuer/domain/receiptId/issuedAt/assertion tamper breaks it', (() => {
+    const mut = [
+      (a) => { a.partnerReceipt.issuerId = 'evil'; },
+      (a) => { a.partnerReceipt.issuerDomain = 'evil.test'; },
+      (a) => { a.partnerReceipt.receiptId = 'receipt-z'; },
+      (a) => { a.partnerReceipt.issuedAt = '2026-08-03T00:00:00Z'; },
+      (a) => { a.partnerReceipt.normalizedAssertion = '{"x":1}'; },
+    ];
+    return mut.every((fn) => { const a = mkP(); fn(a); return iss(a).includes('RECEIPT_DIGEST_MISMATCH') || iss(a).includes('ASSERTION_MISMATCH') || iss(a).includes('ISSUED_AT_MISMATCH') || iss(a).includes('ARTIFACT_DIGEST_MISMATCH'); });
+  })());
+  check('conf/11: receipt issuedAt must bind to sourceEventAt', (() => { const a = mkP(); a.partnerReceipt.issuedAt = '2026-08-03T00:00:00Z'; a.partnerReceipt.normalizedReceiptDigest = m.computeReceiptDigest(a.partnerReceipt); a.artifactDigest = m.computeConfirmationArtifactDigest(a); return iss(a).includes('ISSUED_AT_MISMATCH'); })());
+  check('conf/12: full dashboard/email dump in statement rejected; no credentials/tokens', iss(mkP({ sourceStatement: 'From: partner@bybit.com Subject: code' })).includes('INVALID_STATEMENT') && iss(mkP({ note: 'session_token=abc' })).includes('UNSAFE_CONTENT'));
+
+  // -- R4: structured positive assertion (no substring auth) --
+  check('conf/13: authorization uses structured assertion, not statement text', evP([mkP({ sourceStatement: 'approved' })], TPOL).state === 'confirmed');
+  check('conf/14: non-positive assignment states rejected (inactive/revoked/historical/not_assigned)', ['inactive', 'revoked', 'historical', 'not_assigned'].every((st) => evP([mkP({ sourceAssertion: csa({ assignmentState: st }) })], TPOL).state === 'invalid'));
+  check('conf/15: sourceAssertion must mirror subject exactly (exchange/claim/value)', iss(mkP({ sourceAssertion: csa({ exchangeId: 'binance' }) })).includes('SOURCE_ASSERTION_MISMATCH') && iss(mkP({ sourceAssertion: csa({ assertedValue: 'OTHERCODE9' }) })).includes('SOURCE_ASSERTION_MISMATCH'));
+  check('conf/16: prefix value cannot confirm the candidate', (() => { const p = mkP({ assertedValue: 'CRYPTOBONUSWXY', sourceAssertion: csa({ assertedValue: 'CRYPTOBONUSWXY' }) }); return m.promoCodeSetConfirmsValue([p], CNOW, TPOL, CAND) === false && evP([p], TPOL).state !== 'confirmed'; })());
+  check('conf/17: wrong exchange/claim confirmed → invalid (fail closed)', evP([mkP({ exchangeId: 'binance', sourceAssertion: csa({ exchangeId: 'binance' }) })], TPOL).state === 'invalid' && evP([mkP({ claimId: 'bybit.bonus_headline', sourceAssertion: csa({ claimId: 'bybit.bonus_headline' }) })], TPOL).state === 'invalid');
+  check('conf/18: structured assertion tampering breaks the artifact digest', (() => { const a = mkO(); a.sourceAssertion = csa({ assignmentState: 'inactive' }); return iss(a).includes('ARTIFACT_DIGEST_MISMATCH'); })());
+
+  // -- R5: fail closed on policy-invalid active artifacts --
+  check('conf/19: untrusted confirmed partner → invalid (not silently discarded)', evP([mkP()], PPOL).state === 'invalid');
+  check('conf/20: untrusted owner actor confirmed → invalid', evP([mkO({ confirmedBy: 'random-person' })], PPOL).state === 'invalid' && evP([mkO({ confirmedBy: 'random-person' })], TPOL).state === 'invalid');
+  check('conf/21: wrong-claim / wrong-exchange confirmed → invalid', evP([mkO({ claimId: 'bybit.bonus_headline', sourceAssertion: csa({ claimId: 'bybit.bonus_headline' }) })], TPOL).state === 'invalid');
+  check('conf/22: malformed partner receipt (untrusted domain) confirmed → invalid', evP([mkP({ partnerReceipt: { issuerId: 'test-partner-fixture', issuerDomain: 'evil.test', receiptKind: 'partner_dashboard_receipt', receiptId: 'receipt-x', issuedAt: '2026-08-04T00:00:00Z', normalizedAssertion: '', normalizedReceiptDigest: '', redactionVersion: 'v1' } })], TPOL).state === 'invalid');
+  check('conf/23: clean empty set → missing; clean owner-only → pending', evProd([]).state === 'missing' && evP([mkO()], PPOL).state === 'pending_partner_confirmation');
+  check('conf/24: structurally invalid artifact → invalid', evP([{ confirmationId: 'bad' }], TPOL).state === 'invalid');
+
+  // -- R6: replacement / revocation semantics --
+  check('conf/25: active replacement suppresses replaced confirmation (no conflict)', (() => {
+    const c1 = mkP({ confirmationId: 'c1', sourceId: 'receipt-1' });
+    const c2 = mkP({ confirmationId: 'c2', confirmedAt: '2026-08-06T00:00:00Z', sourceEventAt: '2026-08-05T12:00:00Z', sourceId: 'receipt-2', artifactIntent: 'replacement', replacesConfirmationId: 'c1' });
+    return evP([c1, c2], TPOL).state === 'confirmed';
+  })());
+  check('conf/26: replacement with a new value does not create old+new conflict', (() => {
+    const c1 = mkP({ confirmationId: 'c1', sourceId: 'receipt-1' });
+    const c2 = mkP({ confirmationId: 'c2', assertedValue: 'NEWCODE9', sourceAssertion: csa({ assertedValue: 'NEWCODE9' }), confirmedAt: '2026-08-06T00:00:00Z', sourceEventAt: '2026-08-05T12:00:00Z', sourceId: 'receipt-2', artifactIntent: 'replacement', replacesConfirmationId: 'c1' });
+    const r = evP([c1, c2], TPOL);
+    // old CAND suppressed → only NEWCODE9 active (single-value), never a two-value conflict.
+    const twoAtt = evP([mkP({ confirmationId: 'a1', sourceId: 'r1' }), mkP({ confirmationId: 'a2', sourceId: 'r2', assertedValue: 'NEWCODE9', sourceAssertion: csa({ assertedValue: 'NEWCODE9' }) })], TPOL);
+    return r.value === 'NEWCODE9' && twoAtt.state === 'conflict' && twoAtt.value === null;
+  })());
+  check('conf/27: revocation removes target from active quorum → revoked, not confirmed', (() => {
+    const c1 = mkP({ confirmationId: 'c1', sourceId: 'receipt-1' });
+    const c3 = mkO({ confirmationId: 'c3', confirmedAt: '2026-08-06T00:00:00Z', sourceEventAt: '2026-08-05T12:00:00Z', sourceId: '100200301', sourceUrl: 'https://github.com/ros190392-source/cryptobonusworld/issues/256#issuecomment-100200301', artifactIntent: 'revocation', revokesConfirmationId: 'c1' });
+    return evP([c1, c3], TPOL).state === 'revoked';
+  })());
+  check('conf/28: invalid lifecycle links → invalid (double/self/cross-subject/not-after/unknown/cycle)', (() => {
+    const dbl = iss(mkO({ artifactIntent: 'replacement', replacesConfirmationId: 'x', revokesConfirmationId: 'y' })).includes('DOUBLE_LIFECYCLE_LINK');
+    const self = iss(mkO({ confirmationId: 'cs', artifactIntent: 'replacement', replacesConfirmationId: 'cs' })).includes('SELF_REFERENCE');
+    const unknown = evP([mkO({ artifactIntent: 'replacement', replacesConfirmationId: 'ghost' })], TPOL).state === 'invalid';
+    const cross = (() => { const t = mkO({ confirmationId: 't1', claimId: 'bybit.bonus_headline', sourceAssertion: csa({ claimId: 'bybit.bonus_headline' }), status: 'validated' }); const r = mkO({ confirmationId: 't2', confirmedAt: '2026-08-06T00:00:00Z', sourceEventAt: '2026-08-05T12:00:00Z', sourceId: '100200302', sourceUrl: 'https://github.com/ros190392-source/cryptobonusworld/issues/256#issuecomment-100200302', artifactIntent: 'revocation', revokesConfirmationId: 't1' }); return evP([t, r], TPOL).state === 'invalid'; })();
+    const notAfter = (() => { const c1 = mkP({ confirmationId: 'c1', sourceId: 'receipt-1' }); const c2 = mkP({ confirmationId: 'c2', sourceId: 'receipt-2', artifactIntent: 'replacement', replacesConfirmationId: 'c1' }); return evP([c1, c2], TPOL).state === 'invalid'; })();
+    return dbl && self && unknown && cross && notAfter;
+  })());
+  check('conf/29: attestation must not carry lifecycle links', iss(mkO({ artifactIntent: 'attestation', replacesConfirmationId: 'x' })).includes('INTENT_LINK_MISMATCH'));
+
+  // -- R7: deterministic statement normalization --
+  check('conf/30: statement normalization deterministic + idempotent + required', (() => {
+    const n = m.normalizeStatement('  Bybit   partner\n receipt.  ');
+    return n.ok && n.value === 'Bybit partner receipt.' && m.normalizeStatement(n.value).value === n.value && iss(mkP({ sourceStatement: '  spaced   out  ' })).includes('STATEMENT_NOT_NORMALIZED');
+  })());
+
+  // -- R8 / clock --
+  check('conf/31: evaluator requires a finite clock (no Date.now fallback)', m.evaluatePromoCodeConfirmations([mkP()], Number.NaN, TPOL).state === 'invalid' && m.evaluatePromoCodeConfirmations([mkP()], Infinity, TPOL).state === 'invalid');
+  check('conf/32: future confirmed artifact cannot confirm', m.promoCodeSetConfirmsValue([mkP({ confirmedAt: '2026-09-01T00:00:00Z', validUntil: '2026-12-01T00:00:00Z', sourceEventAt: '2026-09-01T00:00:00Z' })], CNOW, TPOL, CAND) === false);
+  check('conf/33: value/statement/artifact digests recompute + tamper', (() => { const a = mkP(); const okAll = m.computeAssertedValueDigest(a) === a.assertedValueDigest; const t = mkP(); t.assertedValue = 'DIFFERENT9'; const t2 = mkP(); t2.confirmedAt = '2026-08-05T06:00:00Z'; return okAll && iss(t).includes('VALUE_DIGEST_MISMATCH') && iss(t2).includes('ARTIFACT_DIGEST_MISMATCH'); })());
+
+  // -- R2/real posture invariants --
+  check('conf/34: real confirmation set remains Object.freeze([])', Array.isArray(m.BYBIT_PROMO_CODE_CONFIRMATIONS) && m.BYBIT_PROMO_CODE_CONFIRMATIONS.length === 0 && Object.isFrozen(m.BYBIT_PROMO_CODE_CONFIRMATIONS));
+  check('conf/35: candidateConfirmed remains false; real derived state missing', PPOL.candidateConfirmed === false && m.BYBIT_PROMO_CODE_CANDIDATE_CONFIRMED === false && m.BYBIT_PROMO_CODE_CONFIRMATION_STATE === 'missing');
+  check('conf/36: no synthetic policy/receipt entered product data', m.BYBIT_PROMO_CODE_CONFIRMATIONS.length === 0 && PPOL.trustedPartnerIdentities.length === 0 && TPOL.trustedPartnerIdentities.length > 0);
+  check('conf/37: promo-code claim remains partner-confirmation-required', m.BYBIT_OFFER_EVIDENCE_PACKET.claims.find((c) => c.claimId === 'bybit.promo_code').result === 'requires_owner_partner_confirmation');
+  check('conf/38: real packet remains draft + ownerConfirmations empty', m.BYBIT_OFFER_EVIDENCE_PACKET.approval === 'draft' && m.BYBIT_OFFER_EVIDENCE_PACKET.ownerConfirmations.length === 0);
+  check('conf/39: offers.bybit.evidence remains null', m.bybitOfferEvidence === null && m.getOffer('bybit').evidence === null);
+  check('conf/40: preview homepage /go/* = 0', m.homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'preview', 'en').primary.href.startsWith('/go/')));
+  check('conf/41: public production simulation /go/* = 0', m.homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'production', 'en').primary.href.startsWith('/go/')));
+  check('conf/42: PUBLIC_MARKET_PROFILES remains frozen and empty', Array.isArray(m.PUBLIC_MARKET_PROFILES) && m.PUBLIC_MARKET_PROFILES.length === 0 && Object.isFrozen(m.PUBLIC_MARKET_PROFILES));
+  check('conf/43: locale cannot change confirmation facts', (() => {
+    const disc = (l) => m.resolveDisclosure({ tone: 'verified', evidence: m.bybitOfferEvidence, expectedExchangeId: 'bybit', now: CNOW, isAffiliate: false, methodologyHref: '/methodology/' }, l);
+    return ['en', 'ru', 'kk'].every((l) => disc(l).evidenceState === 'none') && m.BYBIT_PROMO_CODE_CONFIRMATION_STATE === 'missing';
+  })());
+  check('conf/44: draft template is structurally valid but non-authorizing', (() => { const d = mkO({ confirmationId: 'c-draft', status: 'draft', sourceUrl: null, sourceId: 'UNCONFIRMED-TEMPLATE' }); return vconf(d).ok === true && evProd([d]).state === 'missing'; })());
+  check('conf/45: normalizeReferralCode deterministic + unsafe rejected', m.normalizeReferralCode('  cryptobonusw ').value === 'CRYPTOBONUSW' && m.normalizeReferralCode('crypto bonusw').ok === false && m.normalizeReferralCode('CRYPTO$BONUS').ok === false);
 
   // --- Invariant: a non-commercial model may never point at /go/ ---
   let threw = false;
