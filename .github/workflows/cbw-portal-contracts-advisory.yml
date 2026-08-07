@@ -105,6 +105,10 @@ jobs:
         id: fixtures
         run: npm run ai-ops:validate:fixtures
 
+      - name: Production test-authority guard (AST export-surface + import boundary)
+        id: test_authority_guard
+        run: npm run portal:guard:test-authority
+
       - name: Portal contracts fail-closed test
         id: contracts_test
         run: npm run portal:contracts:test
@@ -118,6 +122,7 @@ jobs:
         env:
           TYPECHECK: ${{ steps.typecheck.outcome }}
           FIXTURES: ${{ steps.fixtures.outcome }}
+          GUARD: ${{ steps.test_authority_guard.outcome }}
           CONTRACTS_TEST: ${{ steps.contracts_test.outcome }}
           BUILD: ${{ steps.build.outcome }}
         run: |
@@ -128,6 +133,7 @@ jobs:
             echo "|---|---|"
             echo "| Contracts typecheck | ${TYPECHECK} |"
             echo "| Fail-closed fixtures | ${FIXTURES} |"
+            echo "| Test-authority guard | ${GUARD} |"
             echo "| Contracts fail-closed test | ${CONTRACTS_TEST} |"
             echo "| Fail-closed build | ${BUILD} |"
             echo ""

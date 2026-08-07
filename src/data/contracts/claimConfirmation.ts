@@ -186,16 +186,15 @@ export const BYBIT_PROMO_CODE_CONFIRMATION_POLICY: PromoCodeConfirmationPolicy =
   maxValidityDays: 180,
 });
 
-/**
- * TEST-ONLY policy fixture — proves the positive algorithmic path WITHOUT inventing
- * production trust. Never used by the product wrapper and never allowed into real
- * artifacts or product exports.
+/*
+ * NOTE (Issue #262): the former synthetic test-only promo policy fixture — which added a
+ * synthetic trusted partner identity/domain — has been REMOVED from this production
+ * contract. Synthetic trust must never be reachable from `src/**`. The synthetic policy
+ * used to prove the positive algorithmic path now lives only under
+ * `scripts/portal/test-support/**` and is built from the production policy above via the
+ * generic, non-EvidenceMetadata `evaluatePromoCodeConfirmations(artifacts, nowMs, policy)`
+ * evaluator. Production code and product data contain no synthetic partner trust.
  */
-export const TEST_ONLY_PROMO_CODE_POLICY: PromoCodeConfirmationPolicy = Object.freeze({
-  ...BYBIT_PROMO_CODE_CONFIRMATION_POLICY,
-  trustedPartnerIdentities: Object.freeze(['test-partner-fixture']) as readonly string[],
-  trustedPartnerDomains: Object.freeze(['partner.test']) as readonly string[],
-});
 
 /* ─────────────────────────── recursive artifact safety ──────────────────────── */
 const FORBIDDEN_CONTENT = [
