@@ -12,7 +12,9 @@ import { deriveBybitPublicOfferPresentation } from '../../data/evidence/offers/b
 // unconfirmed code, bonus amount, terms and a /go/ affiliate CTA) is NOT rendered — a
 // neutral re-verification notice is shown instead. The rich commercial config remains as
 // internal candidate data and re-renders automatically only when the state is `verified`.
-const presentation = deriveBybitPublicOfferPresentation();
+// ONE explicit build/render clock (R5) — no no-clock snapshot.
+const nowMs = Date.now();
+const presentation = deriveBybitPublicOfferPresentation(nowMs);
 const isVerified = presentation.publicState === 'verified';
 
 // Neutral, non-claiming metadata for the unverified state (no promo code, bonus amount or

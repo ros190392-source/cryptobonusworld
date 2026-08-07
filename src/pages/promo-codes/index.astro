@@ -28,15 +28,17 @@ const COUNTRY_NOTE: Record<string, string> = {
   bingx: 'Available in most regions except the US — check terms',
 };
 
-// Public presentation is evidence-driven (Issue #264): Bybit renders neutralized while
-// under re-verification (no code, neutral bonus text, no verified badge, non-commercial
-// action); other exchanges pass through unchanged.
+// Public presentation is evidence-driven (Issue #264) against ONE explicit render clock
+// (R5): Bybit renders neutralized while under re-verification (no code, neutral bonus
+// text, no verified badge, non-commercial action); other exchanges pass through unchanged.
+// Ordering uses the PUBLIC view state, never raw Offer.status (R7).
+const nowMs = Date.now();
 const rows = exchanges
-  .map(exchange => ({ exchange, offer: getOffer(exchange.slug)!, view: resolvePublicOfferView(exchange.slug)! }))
+  .map(exchange => ({ exchange, offer: getOffer(exchange.slug)!, view: resolvePublicOfferView(exchange.slug, nowMs)! }))
   .filter(row => row.offer && row.view)
   .sort((a, b) => {
-    const rank = (status: string) => (status === 'verified' ? 0 : 1);
-    return rank(a.offer.status) - rank(b.offer.status);
+    const bucket = (v: { publicState: string }) => (v.publicState === 'verified' ? 0 : 1);
+    return bucket(a.view) - bucket(b.view);
   })
   .map((row, index) => ({ ...row, rank: index + 1 }));
 
@@ -67,7 +69,7 @@ const faqs = [
   },
   {
     q: 'How often are codes checked?',
-    a: 'We check each listed code and offer regularly against the exchange’s own promotions page. The individual exchange review page for each listing shows the date it was last verified.',
+    a: 'We track each listed code and offer against the exchange’s own promotions page. Verified offers and listings under re-verification are shown separately, and where a code is currently shown its verification state is displayed. Listings under re-verification may temporarily hide the code and offer terms until they are re-checked.',
   },
   {
     q: 'Can a promo code expire?',
@@ -88,14 +90,14 @@ const faqSchema = {
 
 <CleanLayout
   title="Crypto Promo Codes & Referral Codes by Country | CryptoBonusWorld"
-  description="Compare verified crypto exchange promo codes, referral links, and sign-up bonus offers. Availability and bonus terms may vary by country and account."
+  description="Compare tracked crypto exchange promo codes and their verification states, referral links, and sign-up bonus offers. Verified offers and listings under re-verification are shown separately; availability and terms may vary by country and account."
   canonical="https://cryptobonusworld.com/promo-codes/"
 >
   <PageFrame family="directory" class="promo-directory-page">
     <FirstViewport
       family="directory"
       container="wide"
-      eyebrow="Verified codes · country and account terms vary"
+      eyebrow="Tracked codes & verification states · country and account terms vary"
       title="Crypto Promo Codes by Exchange"
       lede="Compare six tracked exchange codes, current offer snapshots, evidence status and regional limitations in one governed table."
     >
@@ -132,7 +134,7 @@ const faqSchema = {
           </thead>
           <tbody>
             {rows.map(({ exchange, view, rank }) => (
-              <tr class="promo-row" data-promo-row data-rank={rank}>
+              <tr class="promo-row" data-promo-row data-rank={rank} data-exchange-slug={exchange.slug}>
                 <td data-label="Rank"><span class="promo-rank">#{rank}</span></td>
                 <td data-label="Exchange">
                   <a href={exchange.pageUrl ?? `/${exchange.slug}/`} class="promo-exchange">{exchange.name}</a>

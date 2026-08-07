@@ -25,6 +25,7 @@
  */
 
 import exchanges from '../../data/exchanges.json';
+import { resolvePublicOfferView } from '../../data/publicOfferView';
 
 export function getStaticPaths() {
   return exchanges.map(ex => ({
@@ -35,27 +36,36 @@ export function getStaticPaths() {
 
 const { exchange: ex } = Astro.props;
 
-// Fallback redirect target (exchange detail page) — used when:
-//  - JS is disabled
-//  - All affiliate URLs are placeholders
-//  - 0-second redirect before JS fires
-// bybit has a dedicated /bybit/ route; all others fall back to /exchanges/[slug]/
+// Issue #264 (R1): the /go route is gated by the SAME evidence-driven public commercial
+// state as every other Bybit surface, against ONE explicit render clock (R5). While an
+// exchange's public view is non-commercial (Bybit under re-verification), this route must
+// NOT serialize the affiliate destination / promo code / geo links, must NOT fire the
+// affiliate-click analytics, must NOT auto-redirect externally, and presents a neutral
+// internal hop to the exchange's local page. Exchanges without an offer keep the existing
+// affiliate behavior. The raw exchanges.json affiliate data is never mutated.
+const nowMs = Date.now();
+const view = resolvePublicOfferView(ex.slug, nowMs);
+const commercial = view ? view.isCommercial : true;
+
+// Fallback redirect target. bybit has a dedicated /bybit/ route; others → /exchanges/[slug]/
 const fallbackUrl = ex.slug === 'bybit' ? '/bybit/' : `/exchanges/${ex.slug}/`;
 
-// Server-rendered href for the visible "Continue" fallback button (works even
-// with JS disabled). Uses the default affiliate URL when it's a real https
-// link; placeholder/retired exchanges fall back to the safe internal page.
-// The client script upgrades this to the fully resolved GEO/tracked URL.
+// Visible "Continue" href. Commercial: the default affiliate URL when a real https link
+// (the client script upgrades it to the GEO/tracked URL). Non-commercial: the safe
+// internal page — no affiliate destination is ever rendered.
 const rawDefault = ex.affiliateLinks?.default ?? ex.affiliateUrl ?? '#';
-const continueHref = /^https?:\/\//.test(rawDefault) ? rawDefault : fallbackUrl;
+const continueHref = commercial && /^https?:\/\//.test(rawDefault) ? rawDefault : fallbackUrl;
 
-// Serialise affiliate link data for client-side resolution
-const linkData = {
-  slug:    ex.slug,
-  name:    ex.name,
-  default: ex.affiliateLinks?.default ?? ex.affiliateUrl ?? '#',
-  geo:     ex.affiliateLinks?.geo ?? {},
-};
+// Serialise affiliate link data ONLY in the commercial branch. Non-commercial → null, so
+// no affiliate destination / code reaches the HTML or inline JS.
+const linkData = commercial
+  ? {
+      slug:    ex.slug,
+      name:    ex.name,
+      default: ex.affiliateLinks?.default ?? ex.affiliateUrl ?? '#',
+      geo:     ex.affiliateLinks?.geo ?? {},
+    }
+  : null;
 ---
 
 <!doctype html>
@@ -74,7 +84,7 @@ const linkData = {
     We redirect to the detail page (not affiliate URL) so the fallback is
     always safe regardless of URL placeholder state.
   -->
-  <meta http-equiv="refresh" content={`8;url=${fallbackUrl}`} />
+  <meta http-equiv="refresh" content={commercial ? `8;url=${fallbackUrl}` : `0;url=${fallbackUrl}`} />
 
   <style>
     *, *::before, *::after { box-sizing: border-box; }
@@ -174,33 +184,48 @@ const linkData = {
       alt={`${ex.name} logo`}
       onerror="this.style.display='none'"
     />
-    <h1>Opening {ex.name}</h1>
-    <p>You’re being redirected to the official {ex.name} registration page.</p>
-    <p>Your referral code and available bonus will be applied where supported.</p>
-    <div class="progress">
-      <span class="spinner" aria-hidden="true"></span>
-      <span>Redirecting securely…</span>
-    </div>
+    {commercial ? (
+      <Fragment>
+        <h1>Opening {ex.name}</h1>
+        <p>You’re being redirected to the official {ex.name} registration page.</p>
+        <p>Your referral code and available bonus will be applied where supported.</p>
+        <div class="progress">
+          <span class="spinner" aria-hidden="true"></span>
+          <span>Redirecting securely…</span>
+        </div>
+      </Fragment>
+    ) : (
+      <Fragment>
+        <h1>{ex.name} — under re-verification</h1>
+        <p>This offer is being re-verified. Current promotion terms are not verified yet.</p>
+        <p>You’re being taken to the {ex.name} status page. Check the exchange directly for current terms.</p>
+      </Fragment>
+    )}
     <a
       id="cbw-continue"
       href={continueHref}
       class="continue-btn"
-      rel="noopener noreferrer sponsored"
+      rel={commercial ? 'noopener noreferrer sponsored' : 'noopener'}
     >
-      Continue to {ex.name}
+      {commercial ? `Continue to ${ex.name}` : `View ${ex.name} status`}
     </a>
     <p class="disclaimer">
-      Conditions apply. Always verify bonus terms on the official exchange website before registering.
+      {commercial
+        ? 'Conditions apply. Always verify bonus terms on the official exchange website before registering.'
+        : 'This listing is under re-verification. No current bonus or referral code is published for it.'}
     </p>
   </div>
 
   <!--
-    Affiliate redirect script.
+    Affiliate redirect script (COMMERCIAL branch only).
     Runs immediately — define:vars inlines the link data so no fetch needed.
     Reads localStorage cbw_geo (set by Analytics.astro) for GEO-aware routing.
-    Fires cbw_affiliate_click before redirect.
+    Fires the affiliate-click analytics event before redirect.
     Uses window.location.replace() — equivalent to HTTP 302 (no history entry).
+    Issue #264: NOT rendered while the exchange's public view is non-commercial — a
+    neutral internal hop (below) is used instead, with no affiliate data or analytics.
   -->
+  {commercial && (
   <script define:vars={{ __linkData: linkData, __exchangeSlug: ex.slug, __fallbackUrl: fallbackUrl }} is:inline>
   (function () {
     'use strict';
@@ -366,5 +391,12 @@ const linkData = {
 
   })();
   </script>
+  )}
+  {!commercial && (
+  <script define:vars={{ __internalUrl: fallbackUrl }} is:inline>
+    /* Issue #264: neutral internal hop — no affiliate destination, no analytics. */
+    try { window.location.replace(__internalUrl); } catch (_) {}
+  </script>
+  )}
 </body>
 </html>

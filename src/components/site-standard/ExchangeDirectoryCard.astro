@@ -13,12 +13,14 @@ export interface Props {
 
 const { exchange: ex, offer } = Astro.props;
 const reviewUrl = ex.pageUrl ?? `/exchanges/${ex.slug}/`;
-// Evidence-driven public view (Issue #264): Bybit is neutralized while under
-// re-verification; other exchanges pass through unchanged. Never render raw offer fields.
-const view = offer ? resolvePublicOfferView(offer.exchangeSlug) : null;
+// Evidence-driven public view (Issue #264) against ONE explicit render clock (R5): Bybit
+// is neutralized while under re-verification; other exchanges pass through unchanged.
+// Never render raw offer fields.
+const nowMs = Date.now();
+const view = offer ? resolvePublicOfferView(offer.exchangeSlug, nowMs) : null;
 ---
 
-<article class="cbw-card exchange-directory-card">
+<article class="cbw-card exchange-directory-card" data-exchange-slug={ex.slug}>
   <div class="exchange-directory-card__head">
     <a href={reviewUrl} class="exchange-directory-card__logo" tabindex="-1" aria-label={`${ex.name} review`}>
       <ExchangeLogo slug={ex.slug} name={ex.name} size={88} variant="square" lazy={false} class="exchange-directory-card__logo-image" />

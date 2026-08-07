@@ -17,12 +17,15 @@ const bonusMaxFmt = c.bonusMax.toLocaleString('en-US');
 // Issue #264: a related-exchange tile must not present another exchange's unverified
 // commercial claim. For any related exchange whose public state is not verified (Bybit
 // today), the tile's bonus label is neutralized and its CTA becomes non-commercial.
+const nowMs = Date.now();
 const relatedTiles = c.relatedExchanges.map((exchange) => {
-  const view = resolvePublicOfferView(exchange.slug);
+  const view = resolvePublicOfferView(exchange.slug, nowMs);
   const neutralize = view ? !view.isCommercial : false;
   return {
     ...exchange,
     bonus: neutralize ? 'Offer under re-verification' : exchange.bonus,
+    // The tag may itself carry an unverified claim / promo code (e.g. "Code: …").
+    tag: neutralize ? 'Status pending' : exchange.tag,
     commercial: !neutralize,
   };
 });
@@ -393,7 +396,7 @@ const faqSchema = {
     <p class="cbw-exchange-prose">Check alternatives before choosing a registration offer.</p>
     <div class="cbw-exchange-related" style="margin-top:16px;">
       {relatedTiles.map(exchange => (
-        <article class="cbw-exchange-related-card">
+        <article class="cbw-exchange-related-card" data-exchange-slug={exchange.slug}>
           <div class="cbw-exchange-related-logo" style={`background:${exchange.tileBg};`}>
             <img src={exchange.logo} alt={exchange.name} width="70" height="70" loading="lazy" />
           </div>

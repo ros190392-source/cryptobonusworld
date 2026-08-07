@@ -11,7 +11,7 @@
  * amount, verified badge, commercial CTA) can never leak from a single raw call site.
  */
 import { getOffer } from './offers';
-import { BYBIT_PUBLIC_PRESENTATION } from './evidence/offers/bybitPublicPresentation';
+import { deriveBybitPublicOfferPresentation } from './evidence/offers/bybitPublicPresentation';
 
 export interface PublicOfferView {
   slug: string;
@@ -32,10 +32,15 @@ export interface PublicOfferView {
   isCommercial: boolean;
 }
 
-/** Resolve the public, render-safe view for an exchange's offer. */
-export function resolvePublicOfferView(slug: string): PublicOfferView | null {
+/**
+ * Resolve the public, render-safe view for an exchange's offer against an EXPLICIT finite
+ * clock (R5). Every static render surface passes ONE build/render clock (e.g. `Date.now()`)
+ * so that authoritative fresh evidence can restore copy without a code change; a
+ * non-finite clock fails closed.
+ */
+export function resolvePublicOfferView(slug: string, nowMs: number): PublicOfferView | null {
   if (slug === 'bybit') {
-    const p = BYBIT_PUBLIC_PRESENTATION;
+    const p = deriveBybitPublicOfferPresentation(nowMs);
     return {
       slug: 'bybit',
       publicState: p.publicState,

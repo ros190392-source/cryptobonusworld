@@ -64,9 +64,10 @@ const bottomImg = {
 // unverified commercial claim. For any alternative whose public state is not verified
 // (Bybit today), suppress its promo code + bonus label, drop the "Verified listing" tag,
 // and keep the CTA non-commercial (never /go/*).
+const nowMsAlt = Date.now();
 const altCards = verifiedAlternatives.map(ex => {
   const ctas = resolveAlternativeCtas(ex, ctaMode);
-  const view = resolvePublicOfferView(ex.slug);
+  const view = resolvePublicOfferView(ex.slug, nowMsAlt);
   const commercial = view ? view.isCommercial : true;
   return {
     ...ex,
@@ -546,7 +547,7 @@ const faqItems = [
     <p class="p2-related-intro">While {e.displayName} is under review, these exchanges already have verified CryptoBonusWorld listings.</p>
     <ul class="p2-related-grid">
       {altCards.map(ex => (
-        <li class="p2-rel-card">
+        <li class="p2-rel-card" data-exchange-slug={ex.slug}>
           <div class="p2-rel-logo-wrap">
             <img src={ex.logo} alt={ex.name} class="p2-rel-logo" loading="lazy" width="152" height="48" />
           </div>
