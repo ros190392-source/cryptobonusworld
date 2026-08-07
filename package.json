@@ -10,6 +10,7 @@
     "portal:harness:resolution": "node scripts/portal/test-support/offer-packet-resolution-harness.mjs",
     "portal:guard:test-authority": "node scripts/portal/test-authority-guard.mjs",
     "portal:audit:bybit-public": "node scripts/portal/bybit-public-output-audit.mjs",
+    "portal:audit:public-offers": "node scripts/portal/public-offer-output-audit.mjs",
     "ai-ops:validate:scope": "node scripts/ai-ops/validate-scope.mjs",
     "ai-ops:validate:branch": "node scripts/ai-ops/validate-branch-authority.mjs",
     "dev": "astro dev",

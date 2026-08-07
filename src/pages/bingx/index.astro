@@ -1,17 +1,5 @@
 ---
-import CleanLayout from '../../layouts/CleanLayout.astro';
-import ExchangePromoPageV2 from '../../components/exchange/ExchangePromoPageV2.astro';
-import '../../styles/exchange-page-standard-v1-responsive.css';
+import GovernedExchangePage from '../../components/exchange/GovernedExchangePage.astro';
 import { bingxConfig } from '../../data/exchangePages/bingx';
 ---
-
-<CleanLayout
-  title={bingxConfig.pageTitle}
-  description={bingxConfig.pageDescription}
-  canonical={bingxConfig.canonicalUrl}
-  ogImage={bingxConfig.ogImage}
-  ogTitle={bingxConfig.ogTitle}
-  ogDescription={bingxConfig.ogDescription}
->
-  <ExchangePromoPageV2 config={bingxConfig} />
-</CleanLayout>
+<GovernedExchangePage config={bingxConfig} />

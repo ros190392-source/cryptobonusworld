@@ -1,17 +1,5 @@
 ---
-import CleanLayout from '../../layouts/CleanLayout.astro';
-import ExchangePromoPageV2 from '../../components/exchange/ExchangePromoPageV2.astro';
-import '../../styles/exchange-page-standard-v1-responsive.css';
+import GovernedExchangePage from '../../components/exchange/GovernedExchangePage.astro';
 import { bitgetConfig } from '../../data/exchangePages/bitget';
 ---
-
-<CleanLayout
-  title={bitgetConfig.pageTitle}
-  description={bitgetConfig.pageDescription}
-  canonical={bitgetConfig.canonicalUrl}
-  ogImage={bitgetConfig.ogImage}
-  ogTitle={bitgetConfig.ogTitle}
-  ogDescription={bitgetConfig.ogDescription}
->
-  <ExchangePromoPageV2 config={bitgetConfig} />
-</CleanLayout>
+<GovernedExchangePage config={bitgetConfig} />
