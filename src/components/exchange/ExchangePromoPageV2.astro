@@ -4,6 +4,7 @@ import PageFrame from '../site-standard/PageFrame.astro';
 import Container from '../site-standard/Container.astro';
 import Section from '../site-standard/Section.astro';
 import ExchangePromoLogoSlot from '../ExchangePromoLogoSlot.astro';
+import { resolvePublicOfferView } from '../../data/publicOfferView';
 import '../../styles/exchange-page-standard-v1.css';
 
 export interface Props {
@@ -12,6 +13,22 @@ export interface Props {
 
 const { config: c } = Astro.props;
 const bonusMaxFmt = c.bonusMax.toLocaleString('en-US');
+
+// Issue #264: a related-exchange tile must not present another exchange's unverified
+// commercial claim. For any related exchange whose public state is not verified (Bybit
+// today), the tile's bonus label is neutralized and its CTA becomes non-commercial.
+const nowMs = Date.now();
+const relatedTiles = c.relatedExchanges.map((exchange) => {
+  const view = resolvePublicOfferView(exchange.slug, nowMs);
+  const neutralize = view ? !view.isCommercial : false;
+  return {
+    ...exchange,
+    bonus: neutralize ? 'Offer under re-verification' : exchange.bonus,
+    // The tag may itself carry an unverified claim / promo code (e.g. "Code: …").
+    tag: neutralize ? 'Status pending' : exchange.tag,
+    commercial: !neutralize,
+  };
+});
 const heroPosition = c.heroBackgroundPosition ?? 'center';
 const heroStyle = [
   `--exchange-hero-image:url('${c.heroBackgroundImg}')`,
@@ -378,8 +395,8 @@ const faqSchema = {
     <h2 class="cbw-exchange-section-heading">More crypto exchange offers to compare</h2>
     <p class="cbw-exchange-prose">Check alternatives before choosing a registration offer.</p>
     <div class="cbw-exchange-related" style="margin-top:16px;">
-      {c.relatedExchanges.map(exchange => (
-        <article class="cbw-exchange-related-card">
+      {relatedTiles.map(exchange => (
+        <article class="cbw-exchange-related-card" data-exchange-slug={exchange.slug}>
           <div class="cbw-exchange-related-logo" style={`background:${exchange.tileBg};`}>
             <img src={exchange.logo} alt={exchange.name} width="70" height="70" loading="lazy" />
           </div>
@@ -389,7 +406,11 @@ const faqSchema = {
             <span>{exchange.tag}</span>
           </div>
           <div class="cbw-exchange-related-actions">
-            <a href={`/go/${exchange.slug}/`} class="cbw-exchange-related-primary" data-related-exchange={exchange.slug} target="_blank" rel="noopener noreferrer sponsored">Check offer</a>
+            {exchange.commercial ? (
+              <a href={`/go/${exchange.slug}/`} class="cbw-exchange-related-primary" data-related-exchange={exchange.slug} target="_blank" rel="noopener noreferrer sponsored">Check offer</a>
+            ) : (
+              <a href={exchange.pageUrl ?? `/exchanges/${exchange.slug}/`} class="cbw-exchange-related-primary" data-related-exchange={exchange.slug}>View status</a>
+            )}
             <a href={exchange.pageUrl ?? `/exchanges/${exchange.slug}/`} class="cbw-exchange-related-detail">View details →</a>
           </div>
         </article>

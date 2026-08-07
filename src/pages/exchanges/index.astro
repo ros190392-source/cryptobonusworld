@@ -33,7 +33,7 @@ const faqs = [
   },
   {
     q: 'How are exchanges added to this directory?',
-    a: 'Each exchange listed here has a dedicated review page with its promo code, fees, KYC requirements, and evidence checked directly against official exchange sources before publishing.',
+    a: 'Each exchange has a dedicated review page. We publish a promo code and offer terms only after checking them against official exchange sources; listings still under re-verification are shown without a current code or offer terms until that check is complete.',
   },
 ];
 
@@ -50,7 +50,7 @@ const faqSchema = {
 
 <CleanLayout
   title="Crypto Exchange Promo Codes & Referral Links | CryptoBonusWorld"
-  description="Browse verified crypto exchange referral codes, bonus links, and review pages. Bonus availability and terms may vary by country and account."
+  description="Browse tracked crypto exchange referral codes and their verification states, bonus links, and review pages. Verified offers and listings under re-verification are shown separately; availability and terms may vary by country and account."
   canonical="https://cryptobonusworld.com/exchanges/"
 >
   <PageFrame family="directory" class="exchange-directory-page">
@@ -62,7 +62,7 @@ const faqSchema = {
       lede="Browse current exchange profiles, referral codes and evidence states. Availability and terms can vary by country and account."
     >
       <div class="directory-context" aria-label="Directory trust context">
-        <span>✓ Codes checked against official exchange pages</span>
+        <span>✓ Codes and offer states tracked against official exchange pages</span>
         <span>ⓘ Country and account restrictions may apply</span>
         <a href="/affiliate-disclosure/">Affiliate disclosure</a>
       </div>

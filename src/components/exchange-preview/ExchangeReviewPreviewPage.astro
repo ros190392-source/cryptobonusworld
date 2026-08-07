@@ -18,6 +18,7 @@ import type { ExchangePreviewEntry } from '../../data/exchangePreview/batch-01';
 import { verifiedAlternatives } from '../../data/exchangePreview/batch-01';
 import type { CtaMode } from '../../data/exchangePreview/cta-contract';
 import { resolveAlternativeCtas } from '../../data/exchangePreview/cta-contract';
+import { resolvePublicOfferView } from '../../data/publicOfferView';
 import ExchangePromoLogoSlot from '../ExchangePromoLogoSlot.astro';
 import { heroBrandZone as hb } from '../../data/exchangePreview/hero-brand-tokens';
 
@@ -59,7 +60,24 @@ const bottomImg = {
   mW: Math.round(hb.logoBudget.mobile.w * bottomVS), mH: Math.round(hb.logoBudget.mobile.h * bottomVS),
 };
 
-const altCards = verifiedAlternatives.map(ex => ({ ...ex, ...resolveAlternativeCtas(ex, ctaMode) }));
+// Issue #264: a "verified alternatives" tile must not present another exchange's
+// unverified commercial claim. For any alternative whose public state is not verified
+// (Bybit today), suppress its promo code + bonus label, drop the "Verified listing" tag,
+// and keep the CTA non-commercial (never /go/*).
+const nowMsAlt = Date.now();
+const altCards = verifiedAlternatives.map(ex => {
+  const ctas = resolveAlternativeCtas(ex, ctaMode);
+  const view = resolvePublicOfferView(ex.slug, nowMsAlt);
+  const commercial = view ? view.isCommercial : true;
+  return {
+    ...ex,
+    ...ctas,
+    commercial,
+    promoCode: commercial ? ex.promoCode : null,
+    bonus: commercial ? ex.bonus : 'Offer under re-verification',
+    claimHref: commercial ? ctas.claimHref : ctas.reviewHref,
+  };
+});
 
 // Preview-safety invariant (fail-closed): no /go/* affiliate target may ever leak in preview mode.
 if (ctaMode === 'preview' && altCards.some(card => card.claimHref.startsWith('/go/'))) {
@@ -529,16 +547,16 @@ const faqItems = [
     <p class="p2-related-intro">While {e.displayName} is under review, these exchanges already have verified CryptoBonusWorld listings.</p>
     <ul class="p2-related-grid">
       {altCards.map(ex => (
-        <li class="p2-rel-card">
+        <li class="p2-rel-card" data-exchange-slug={ex.slug}>
           <div class="p2-rel-logo-wrap">
             <img src={ex.logo} alt={ex.name} class="p2-rel-logo" loading="lazy" width="152" height="48" />
           </div>
           <div class="p2-rel-info">
             <div class="p2-rel-name">{ex.name}</div>
-            <div class="p2-rel-code">Promo code: <b>{ex.promoCode}</b></div>
+            {ex.promoCode && <div class="p2-rel-code">Promo code: <b>{ex.promoCode}</b></div>}
             <div class="p2-rel-bonus">{ex.bonus}</div>
             <div class="p2-rel-desc">{ex.descriptor}</div>
-            <div class="p2-rel-tag">Verified listing</div>
+            <div class="p2-rel-tag">{ex.commercial ? 'Verified listing' : 'Under re-verification'}</div>
           </div>
           <div class="p2-rel-actions">
             {/* hrefs come from the CTA contract resolver — markup never changes on promotion */}
@@ -546,7 +564,7 @@ const faqItems = [
               href={ex.claimHref}
               class="p2-rel-cta"
               rel={ex.claimHref.startsWith('/go/') ? 'sponsored nofollow noopener' : 'noopener'}
-            >Claim Bonus</a>
+            >{ex.commercial ? 'Claim Bonus' : 'View status'}</a>
             <a href={ex.reviewHref} class="p2-rel-link" rel="noopener">View review →</a>
           </div>
         </li>

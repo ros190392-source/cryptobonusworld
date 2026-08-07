@@ -19,6 +19,8 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { runResolutionHarness } from './test-support/offer-packet-resolution-harness.mjs';
 import { makeSyntheticPromoPolicy, makeSyntheticPartnerConfirmation } from './test-support/synthetic-confirmation-fixtures.mjs';
 import { runTestAuthorityGuard, runGuardSelfTests } from './test-authority-guard.mjs';
+import { runBybitPublicOutputAudit, BYBIT_UNIQUE_FORBIDDEN, BYBIT_PROMO_CODE } from './bybit-public-output-audit.mjs';
+import { existsSync } from 'node:fs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '..', '..');
@@ -44,6 +46,8 @@ const bybitPromoCodeConfirmation = join(ROOT, 'src/data/evidence/offers/bybitPro
 const offerPacketResolution = join(ROOT, 'src/data/contracts/offerPacketResolution.ts');
 const officialSourceCapture = join(ROOT, 'src/data/contracts/officialSourceCapture.ts');
 const bybitOfferClaimSourcePlan = join(ROOT, 'src/data/contracts/bybitOfferClaimSourcePlan.ts');
+const bybitPublicPresentation = join(ROOT, 'src/data/evidence/offers/bybitPublicPresentation.ts');
+const publicOfferView = join(ROOT, 'src/data/publicOfferView.ts');
 
 const tmp = mkdtempSync(join(tmpdir(), 'cbw-portal-test-'));
 const outfile = join(tmp, 'contracts.mjs');
@@ -64,7 +68,7 @@ try {
         `export * from ${JSON.stringify(cta)};\n` +
         `export { pickLocalized, gateReasonText, ctaGateReasonText, ctaMicrocopy } from ${JSON.stringify(ctaI18n)};\n` +
         `export { resolveHomepageTop10Cta, resolveHomepageTop10Ctas } from ${JSON.stringify(homepageCta)};\n` +
-        `export { homepageTop10 } from ${JSON.stringify(homepageData)};\n` +
+        `export { buildHomepageTop10 } from ${JSON.stringify(homepageData)};\n` +
         `export { assertPortalRouteRecord, resolvePortalRoute } from ${JSON.stringify(routeGuards)};\n` +
         `export { emitPublicRankingRoutes } from ${JSON.stringify(publication)};\n` +
         `export { resolveDisclosure } from ${JSON.stringify(disclosure)};\n` +
@@ -85,7 +89,9 @@ try {
         `export { BYBIT_PROMO_CODE_CONFIRMATIONS, BYBIT_PROMO_CODE_CONFIRMATION_STATE, BYBIT_PROMO_CODE_CANDIDATE, BYBIT_PROMO_CODE_CANDIDATE_CONFIRMED } from ${JSON.stringify(bybitPromoCodeConfirmation)};\n` +
         `export { validateOfficialSourceCapture, computeOfficialSourceDigest, computeOfficialFragmentDigest, canonicalOfficialSource, sourceMaySupportClaims, sourceWasReachable, officialFragmentAddressesClaim, OFFICIAL_SOURCE_SCOPES, OFFICIAL_SOURCE_OUTCOMES, MAX_SOURCE_FRAGMENT_TEXT } from ${JSON.stringify(officialSourceCapture)};\n` +
         `export * as OSC from ${JSON.stringify(officialSourceCapture)};\n` +
-        `export { BYBIT_OFFER_CLAIM_SOURCE_PLAN, BYBIT_OFFICIAL_SOURCE_CANDIDATES, BYBIT_OFFER_EXTRACTION_PLAN, SOURCE_PLAN_TARGET_CLAIMS, SOURCE_PLAN_EXCLUDED_CLAIMS, BYBIT_SOURCE_PLAN_ID, BYBIT_SOURCE_PLAN_DIGEST, getSourcePlanEntry, getCandidate, computeCandidateDigest, assessOfferClaimEvidence, assessAllOfferClaims, buildOfficialSourceEvidenceRun, documentIdentity, validateSourcePlanCoverage, validateExtractionCoverage } from ${JSON.stringify(bybitOfferClaimSourcePlan)};`,
+        `export { BYBIT_OFFER_CLAIM_SOURCE_PLAN, BYBIT_OFFICIAL_SOURCE_CANDIDATES, BYBIT_OFFER_EXTRACTION_PLAN, SOURCE_PLAN_TARGET_CLAIMS, SOURCE_PLAN_EXCLUDED_CLAIMS, BYBIT_SOURCE_PLAN_ID, BYBIT_SOURCE_PLAN_DIGEST, getSourcePlanEntry, getCandidate, computeCandidateDigest, assessOfferClaimEvidence, assessAllOfferClaims, buildOfficialSourceEvidenceRun, documentIdentity, validateSourcePlanCoverage, validateExtractionCoverage } from ${JSON.stringify(bybitOfferClaimSourcePlan)};\n` +
+        `export { deriveBybitPublicOfferPresentation, BYBIT_PUBLIC_CLAIM_BINDINGS, resolvePublicClaimValue, resolvePublicPromoCode, BYBIT_NEUTRAL_HEADLINE, BYBIT_NEUTRAL_DETAIL, BYBIT_NEUTRAL_STATUS_LABEL, BYBIT_NEUTRAL_SUMMARY } from ${JSON.stringify(bybitPublicPresentation)};\n` +
+        `export { resolvePublicOfferView } from ${JSON.stringify(publicOfferView)};`,
       resolveDir: ROOT,
       loader: 'ts',
     },
@@ -96,6 +102,11 @@ try {
     logLevel: 'silent',
   });
   const m = await import(pathToFileURL(outfile).href);
+
+  // Issue #264 (R5): the homepage model is built from an EXPLICIT clock (no no-clock
+  // module snapshot). Tests build it once with a fixed clock.
+  const HP_NOW = Date.parse('2026-08-06T00:00:00Z');
+  const homepageTop10 = m.buildHomepageTop10(HP_NOW);
 
   const digest = `sha256:${'a'.repeat(64)}`;
   const baseSource = {
@@ -276,8 +287,8 @@ try {
   })());
 
   // --- Homepage Top-10 country-aware binding (Split 3, fail-closed public) ---
-  const bybit = m.homepageTop10.find((e) => e.slug === 'bybit');       // verified offer
-  const binance = m.homepageTop10.find((e) => e.slug === 'binance');   // research row, no offer
+  const bybit = homepageTop10.find((e) => e.slug === 'bybit');       // verified offer
+  const binance = homepageTop10.find((e) => e.slug === 'binance');   // research row, no offer
   // s3/19 + s3/20: public context (global) + empty registry → ZERO /go/ in BOTH modes.
   check('hp/s3-19: public homepage PREVIEW emits zero /go/', (() => {
     const b = m.resolveHomepageTop10Cta(bybit, 'preview', 'en');
@@ -288,7 +299,7 @@ try {
     return !b.primary.isAffiliate && !b.primary.href.startsWith('/go/') && b.primary.gateReason === 'COUNTRY_GLOBAL';
   })());
   check('hp/s3-20: whole public Top-10 production simulation → zero /go/', (() => {
-    const all = m.homepageTop10.map((e) => m.resolveHomepageTop10Cta(e, 'production', 'en'));
+    const all = homepageTop10.map((e) => m.resolveHomepageTop10Cta(e, 'production', 'en'));
     return all.every((b) => !b.primary.href.startsWith('/go/'));
   })());
   check('hp/s3-17: offer status alone cannot authorize an affiliate CTA (verified row, public context)', (() => {
@@ -327,7 +338,7 @@ try {
   })());
   check('hp/s3-22: no unsupported/unprofiled row gains a /go/ even with injected fixture for another pair', (() => {
     // Inject bybit×UA only; a DIFFERENT exchange in the same country has no profile → no /go/.
-    const other = m.homepageTop10.find((e) => e.slug === 'okx');
+    const other = homepageTop10.find((e) => e.slug === 'okx');
     const b = m.resolveHomepageTop10Cta(other, 'production', 'en', liveOpts);
     return !b.primary.isAffiliate && !b.primary.href.startsWith('/go/');
   })());
@@ -350,7 +361,7 @@ try {
   check('hp/secondary: malformed path rejected', thr(() => m.resolveHomepageTop10Cta(withSecondary('/exchanges/bybit'), 'preview', 'en')));
   check('hp/secondary: empty label rejected', thr(() => m.resolveHomepageTop10Cta(withSecondary('/exchanges/bybit/', '   '), 'preview', 'en')));
   check('hp/secondary: real data whole Top-10 all valid (build-time fail-closed)', (() => {
-    const all = m.homepageTop10.map((e) => m.resolveHomepageTop10Cta(e, 'preview', 'en'));
+    const all = homepageTop10.map((e) => m.resolveHomepageTop10Cta(e, 'preview', 'en'));
     return all.every((b) => b.secondaryHref.startsWith('/') && !b.secondaryHref.startsWith('//') && !b.secondaryHref.startsWith('/go/') && b.secondaryLabel.trim().length > 0);
   })());
 
@@ -774,8 +785,8 @@ try {
     const factsEqual = en.iso === ru.iso && ru.iso === kk.iso && en.state === ru.state && ru.state === kk.state;
     return factsEqual && !!en.display && !!ru.display && !!kk.display && en.display !== ru.display;
   })());
-  check('evi/21: public homepage PREVIEW emits zero /go/', m.homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'preview', 'en').primary.href.startsWith('/go/')));
-  check('evi/22: public homepage PRODUCTION simulation emits zero /go/', m.homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'production', 'en').primary.href.startsWith('/go/')));
+  check('evi/21: public homepage PREVIEW emits zero /go/', homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'preview', 'en').primary.href.startsWith('/go/')));
+  check('evi/22: public homepage PRODUCTION simulation emits zero /go/', homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'production', 'en').primary.href.startsWith('/go/')));
   check('evi/23: exact evidence → identity-bound adapter → approved profile + authoritative offer evidence → /go/ex', (() => {
     const adapted = m.toMarketProfileTimestamps(validMeta, 'ex');
     if (!adapted.ok) return false;
@@ -926,8 +937,8 @@ try {
   check('pkt/27: real draft packet remains under_re_verification', m.BYBIT_OFFER_EVIDENCE_DECISION === 'under_re_verification' && m.deriveBybitDecision(PKT_NOW) === 'under_re_verification');
   check('pkt/28: real packet cannot adapt', m.deriveBybitOfferEvidence(PKT_NOW).ok === false);
   check('pkt/29: offers.bybit.evidence remains null', m.bybitOfferEvidence === null && m.getOffer('bybit').evidence === null && m.getOffer('bybit').status === 'verified');
-  check('pkt/30: preview homepage /go/* = 0', m.homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'preview', 'en').primary.href.startsWith('/go/')));
-  check('pkt/31: public production simulation /go/* = 0', m.homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'production', 'en').primary.href.startsWith('/go/')));
+  check('pkt/30: preview homepage /go/* = 0', homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'preview', 'en').primary.href.startsWith('/go/')));
+  check('pkt/31: public production simulation /go/* = 0', homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'production', 'en').primary.href.startsWith('/go/')));
   check('pkt/32: PUBLIC_MARKET_PROFILES remains Object.freeze([])', Array.isArray(m.PUBLIC_MARKET_PROFILES) && m.PUBLIC_MARKET_PROFILES.length === 0 && Object.isFrozen(m.PUBLIC_MARKET_PROFILES));
   check('pkt/33: locale cannot change packet facts / decision', (() => {
     const results = m.BYBIT_OFFER_EVIDENCE_PACKET.claims.map((c) => c.claimId + '=' + c.result).join(',');
@@ -1084,8 +1095,8 @@ try {
   })());
   check('render/69: referral code remains partner-confirmation-required', m.BYBIT_OFFER_EVIDENCE_PACKET.claims.find((c) => c.claimId === 'bybit.promo_code').result === 'requires_owner_partner_confirmation');
   check('render/70: offers.bybit.evidence remains null', m.bybitOfferEvidence === null && m.getOffer('bybit').evidence === null);
-  check('render/71: preview homepage /go/* = 0', m.homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'preview', 'en').primary.href.startsWith('/go/')));
-  check('render/72: public production simulation /go/* = 0', m.homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'production', 'en').primary.href.startsWith('/go/')));
+  check('render/71: preview homepage /go/* = 0', homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'preview', 'en').primary.href.startsWith('/go/')));
+  check('render/72: public production simulation /go/* = 0', homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'production', 'en').primary.href.startsWith('/go/')));
   check('render/73: PUBLIC_MARKET_PROFILES remains frozen and empty', Array.isArray(m.PUBLIC_MARKET_PROFILES) && m.PUBLIC_MARKET_PROFILES.length === 0 && Object.isFrozen(m.PUBLIC_MARKET_PROFILES));
   check('render/74: locale cannot change capture/claim facts', (() => {
     const rc = m.BYBIT_OFFER_EVIDENCE_PACKET.renderedCaptures || [];
@@ -1238,8 +1249,8 @@ try {
   check('conf/37: promo-code claim remains partner-confirmation-required', m.BYBIT_OFFER_EVIDENCE_PACKET.claims.find((c) => c.claimId === 'bybit.promo_code').result === 'requires_owner_partner_confirmation');
   check('conf/38: real packet remains draft + legacy ownerConfirmations field removed', m.BYBIT_OFFER_EVIDENCE_PACKET.approval === 'draft' && m.BYBIT_OFFER_EVIDENCE_PACKET.ownerConfirmations === undefined);
   check('conf/39: offers.bybit.evidence remains null', m.bybitOfferEvidence === null && m.getOffer('bybit').evidence === null);
-  check('conf/40: preview homepage /go/* = 0', m.homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'preview', 'en').primary.href.startsWith('/go/')));
-  check('conf/41: public production simulation /go/* = 0', m.homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'production', 'en').primary.href.startsWith('/go/')));
+  check('conf/40: preview homepage /go/* = 0', homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'preview', 'en').primary.href.startsWith('/go/')));
+  check('conf/41: public production simulation /go/* = 0', homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'production', 'en').primary.href.startsWith('/go/')));
   check('conf/42: PUBLIC_MARKET_PROFILES remains frozen and empty', Array.isArray(m.PUBLIC_MARKET_PROFILES) && m.PUBLIC_MARKET_PROFILES.length === 0 && Object.isFrozen(m.PUBLIC_MARKET_PROFILES));
   check('conf/43: locale cannot change confirmation facts', (() => {
     const disc = (l) => m.resolveDisclosure({ tone: 'verified', evidence: m.bybitOfferEvidence, expectedExchangeId: 'bybit', now: CNOW, isAffiliate: false, methodologyHref: '/methodology/' }, l);
@@ -1385,8 +1396,8 @@ try {
   check('bridge/42: real raw promo claim remains requires_owner_partner_confirmation', realPkt.claims.find((c) => c.claimId === 'bybit.promo_code').result === 'requires_owner_partner_confirmation');
   check('bridge/43: real packet remains draft + no ownerConfirmations field', realPkt.approval === 'draft' && realPkt.ownerConfirmations === undefined);
   check('bridge/44: offers.bybit.evidence remains null; real decision under re-verification', m.bybitOfferEvidence === null && m.getOffer('bybit').evidence === null && m.BYBIT_OFFER_EVIDENCE_DECISION === 'under_re_verification');
-  check('bridge/45: preview homepage /go/* = 0', m.homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'preview', 'en').primary.href.startsWith('/go/')));
-  check('bridge/46: public production simulation /go/* = 0', m.homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'production', 'en').primary.href.startsWith('/go/')));
+  check('bridge/45: preview homepage /go/* = 0', homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'preview', 'en').primary.href.startsWith('/go/')));
+  check('bridge/46: public production simulation /go/* = 0', homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'production', 'en').primary.href.startsWith('/go/')));
   check('bridge/47: PUBLIC_MARKET_PROFILES remains frozen and empty', Array.isArray(m.PUBLIC_MARKET_PROFILES) && m.PUBLIC_MARKET_PROFILES.length === 0 && Object.isFrozen(m.PUBLIC_MARKET_PROFILES));
   check('bridge/48: locale cannot change resolved facts', (() => {
     const a = resP(realPkt, []); const b = resP(realPkt, []);
@@ -1527,9 +1538,9 @@ try {
   // 27 — real confirmation set frozen empty.
   check('src/27: real confirmation set stays frozen empty', Array.isArray(m.BYBIT_PROMO_CODE_CONFIRMATIONS) && m.BYBIT_PROMO_CODE_CONFIRMATIONS.length === 0 && Object.isFrozen(m.BYBIT_PROMO_CODE_CONFIRMATIONS));
   // 28 — preview /go/* = 0.
-  check('src/28: preview homepage /go/* = 0', m.homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'preview', 'en').primary.href.startsWith('/go/')));
+  check('src/28: preview homepage /go/* = 0', homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'preview', 'en').primary.href.startsWith('/go/')));
   // 29 — public production simulation /go/* = 0.
-  check('src/29: public production simulation /go/* = 0', m.homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'production', 'en').primary.href.startsWith('/go/')));
+  check('src/29: public production simulation /go/* = 0', homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'production', 'en').primary.href.startsWith('/go/')));
   // 30 — PUBLIC_MARKET_PROFILES frozen empty.
   check('src/30: PUBLIC_MARKET_PROFILES remains frozen empty', Array.isArray(m.PUBLIC_MARKET_PROFILES) && m.PUBLIC_MARKET_PROFILES.length === 0 && Object.isFrozen(m.PUBLIC_MARKET_PROFILES));
   // 31 — no third-party/synthetic evidence in product data.
@@ -1619,15 +1630,104 @@ try {
   // 20 — PUBLIC_MARKET_PROFILES frozen empty.
   check('guard/20: PUBLIC_MARKET_PROFILES remains frozen empty', Array.isArray(m.PUBLIC_MARKET_PROFILES) && m.PUBLIC_MARKET_PROFILES.length === 0 && Object.isFrozen(m.PUBLIC_MARKET_PROFILES));
   // 21 — PUBLIC_CBW_CTA_MODE untouched (public posture mode-independent: no /go in either mode).
-  check('guard/21: public CTA posture mode-independent (no /go/* in preview or production)', m.homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'preview', 'en').primary.href.startsWith('/go/') && !m.resolveHomepageTop10Cta(e, 'production', 'en').primary.href.startsWith('/go/')));
+  check('guard/21: public CTA posture mode-independent (no /go/* in preview or production)', homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'preview', 'en').primary.href.startsWith('/go/') && !m.resolveHomepageTop10Cta(e, 'production', 'en').primary.href.startsWith('/go/')));
   // 22 — preview /go/* = 0.
-  check('guard/22: preview homepage /go/* = 0', m.homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'preview', 'en').primary.href.startsWith('/go/')));
+  check('guard/22: preview homepage /go/* = 0', homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'preview', 'en').primary.href.startsWith('/go/')));
   // 23 — public production simulation /go/* = 0.
-  check('guard/23: public production simulation /go/* = 0', m.homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'production', 'en').primary.href.startsWith('/go/')));
+  check('guard/23: public production simulation /go/* = 0', homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'production', 'en').primary.href.startsWith('/go/')));
   // 24 — the eight official-source artifacts + digests remain unchanged (valid + recompute).
   check('guard/24: eight official-source artifacts remain valid; digests recompute', (() => { const caps = realPkt262.officialSourceCaptures || []; return caps.length === 8 && caps.every((c) => m.validateOfficialSourceCapture(c, m.BYBIT_OFFER_CLAIM_INVENTORY).ok && m.computeOfficialSourceDigest(c) === c.sourceDigest); })());
   // 25 — source-plan + candidate fingerprints remain intact.
   check('guard/25: source-plan + candidate fingerprints intact', m.validateSourcePlanCoverage().ok === true && m.validateExtractionCoverage().ok === true && typeof m.BYBIT_SOURCE_PLAN_DIGEST === 'string' && m.BYBIT_SOURCE_PLAN_DIGEST.startsWith('sha256:') && m.BYBIT_OFFICIAL_SOURCE_CANDIDATES.every((c) => m.computeCandidateDigest(c) === c.candidateDigest));
+
+  // ===== Split 3 (#264) — Bybit unverified public-copy neutralization =====
+  // The public Bybit presentation is derived from authoritative evidence/confirmation
+  // state, never raw Offer fields. Real state is under_re_verification; every commercial
+  // claim + the unconfirmed code is suppressed. Rendered-output assertions (4–7, 17–21,
+  // 25, 41) are authoritatively enforced by the post-build public-output audit gate
+  // (scripts/portal/bybit-public-output-audit.mjs); here they also verify the projection
+  // carries none of those strings, and re-verify a present dist if one exists.
+  const PNOW = Date.parse('2026-08-06T00:00:00Z');
+  const PRES = m.deriveBybitPublicOfferPresentation(PNOW);
+  const RAW_BYBIT = m.getOffer('bybit');
+  const presStrings = JSON.stringify(PRES);
+  const distIndex = join(ROOT, 'dist', 'index.html');
+  const AUD = existsSync(distIndex) ? runBybitPublicOutputAudit(join(ROOT, 'dist')) : null;
+  const auditClean = AUD === null || AUD.ok === true;
+  const eqPres = (p) => JSON.stringify(p) === presStrings;
+  const noForbidden = BYBIT_UNIQUE_FORBIDDEN.every((s) => !presStrings.includes(s)) && !presStrings.includes(BYBIT_PROMO_CODE);
+  const bind = (id) => m.BYBIT_PUBLIC_CLAIM_BINDINGS.find((b) => b.fieldId === id);
+  const mut = (over) => ({ ...RAW_BYBIT, ...over });
+  const confirmedEval = (value, confirmationId = 'cbw-bybit-partner-001') => ({ state: 'confirmed', value, confirmationId });
+
+  check('pub/1: real Bybit public state = under_re_verification', PRES.publicState === 'under_re_verification' && m.resolvePublicOfferView('bybit', PNOW).publicState === 'under_re_verification');
+  check('pub/2: raw candidate promo code remains available internally', RAW_BYBIT.promoCode === 'CRYPTOBONUSW');
+  check('pub/3: public projection contains no CRYPTOBONUSW', PRES.promoCode === null && !presStrings.includes(BYBIT_PROMO_CODE));
+  check('pub/4: rendered public HTML contains no CRYPTOBONUSW (Bybit-scoped audit)', auditClean);
+  check('pub/5: rendered public output contains no 30,000 USDT', auditClean && !presStrings.includes('30,000'));
+  check('pub/6: rendered output contains no raw $30–$200 estimate', PRES.realisticValue === null && !presStrings.includes('$30'));
+  check('pub/7: rendered output contains no 50% fee-discount claim', PRES.feeDiscount === null && !presStrings.includes('50%'));
+  check('pub/8: public projection does not assert KYC required', PRES.kycRequired === null);
+  check('pub/9: public projection does not assert deposit required', PRES.depositRequired === null);
+  check('pub/10: public projection does not expose raw min-deposit wording', PRES.minDeposit === null);
+  check('pub/11: public projection does not expose raw restricted-country offer list', PRES.restrictedCountries === null);
+  check('pub/12: public projection does not expose raw reward/withdrawal wording', PRES.rewardType === null);
+  check('pub/13: public projection does not expose raw expiry wording', PRES.expiry === null);
+  check('pub/14: public projection does not expose raw terms summary', PRES.termsSummary === null);
+  check('pub/15: public status does not say verified/confirmed', PRES.statusLabel === m.BYBIT_NEUTRAL_STATUS_LABEL && PRES.statusTone !== 'verified' && !/verified|confirmed/i.test(PRES.statusLabel));
+  check('pub/16: neutral re-verification text is present', PRES.headline === m.BYBIT_NEUTRAL_HEADLINE && PRES.detailText === m.BYBIT_NEUTRAL_DETAIL);
+  check('pub/17: no suppressed value in data-* attributes (rendered audit)', auditClean);
+  check('pub/18: no suppressed value in aria/title attributes (rendered audit)', auditClean);
+  check('pub/19: no suppressed value in JSON-LD (rendered audit)', auditClean);
+  check('pub/20: no suppressed value in embedded client JSON (rendered audit)', auditClean);
+  check('pub/21: no suppressed value in metadata (rendered audit)', auditClean);
+  check('pub/22: locale EN cannot restore a suppressed fact', noForbidden && PRES.promoCode === null && PRES.bonusHeadline === null && PRES.termsSummary === null);
+  check('pub/23: locale RU cannot restore a suppressed fact (projection is locale-independent)', eqPres(m.deriveBybitPublicOfferPresentation(PNOW)));
+  check('pub/24: locale KK / any clock cannot restore a suppressed fact', eqPres(m.deriveBybitPublicOfferPresentation(Date.parse('2026-08-07T00:00:00Z'))));
+  check('pub/25: desktop factual posture equals mobile factual posture (single evidence-driven projection)', auditClean && eqPres(m.deriveBybitPublicOfferPresentation(PNOW)));
+  check('pub/26: preview homepage /go/* = 0', homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'preview', 'en').primary.href.startsWith('/go/')));
+  check('pub/27: production simulation homepage /go/* = 0', homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'production', 'en').primary.href.startsWith('/go/')));
+  check('pub/28: non-commercial CTA remains non-affiliate', PRES.isCommercialCtaAllowed === false && m.resolvePublicOfferView('bybit', PNOW).isCommercial === false);
+  check('pub/29: raw packet unchanged (draft + promo claim requires owner-partner confirmation)', realPkt262.approval === 'draft' && realPkt262.claims.find((c) => c.claimId === 'bybit.promo_code').result === 'requires_owner_partner_confirmation');
+  check('pub/30: all 8 source artifacts unchanged (digests recompute)', (realPkt262.officialSourceCaptures || []).length === 8 && (realPkt262.officialSourceCaptures || []).every((c) => m.computeOfficialSourceDigest(c) === c.sourceDigest));
+  check('pub/31: source-plan/candidate fingerprints unchanged', m.validateSourcePlanCoverage().ok === true && m.BYBIT_SOURCE_PLAN_DIGEST.startsWith('sha256:') && m.BYBIT_OFFICIAL_SOURCE_CANDIDATES.every((c) => m.computeCandidateDigest(c) === c.candidateDigest));
+  check('pub/32: confirmation real set frozen empty', Array.isArray(m.BYBIT_PROMO_CODE_CONFIRMATIONS) && m.BYBIT_PROMO_CODE_CONFIRMATIONS.length === 0 && Object.isFrozen(m.BYBIT_PROMO_CODE_CONFIRMATIONS));
+  check('pub/33: production partner trust empty', PPOL.trustedPartnerIdentities.length === 0 && PPOL.trustedPartnerDomains.length === 0);
+  check('pub/34: raw promo remains requires_owner_partner_confirmation (candidate unconfirmed)', m.BYBIT_PROMO_CODE_CONFIRMATION_STATE === 'missing' && m.BYBIT_PROMO_CODE_CANDIDATE_CONFIRMED === false);
+  check('pub/35: all ten source-plan claims remain inaccessible', m.SOURCE_PLAN_TARGET_CLAIMS.length === 10 && m.SOURCE_PLAN_TARGET_CLAIMS.every((id) => realPkt262.claims.find((c) => c.claimId === id).result === 'inaccessible'));
+  check('pub/36: packet remains draft', realPkt262.approval === 'draft' && m.validateOfferEvidencePacket(realPkt262).ok === true);
+  check('pub/37: offers.bybit.evidence remains null', m.bybitOfferEvidence === null && m.getOffer('bybit').evidence === null);
+  check('pub/38: PUBLIC_MARKET_PROFILES remains frozen empty', Array.isArray(m.PUBLIC_MARKET_PROFILES) && m.PUBLIC_MARKET_PROFILES.length === 0 && Object.isFrozen(m.PUBLIC_MARKET_PROFILES));
+  check('pub/39: test-authority guard PASS', GUARD.ok === true);
+  check('pub/40: adaptBybitOfferToEvidence remains the sole product evidence adapter', Object.keys(m.OPR).filter((k) => /^adapt/.test(k)).join(',') === 'adaptBybitOfferToEvidence');
+  check('pub/41: synthetic test values never enter public output', auditClean && !presStrings.includes('test-partner-fixture') && !presStrings.includes('partner.test'));
+  check('pub/42: other exchange presentation has no factual regression', (() => { const okx = m.resolvePublicOfferView('okx', PNOW); const raw = m.getOffer('okx'); return !!okx && okx.promoCode === raw.promoCode && okx.bonusHeadline === raw.bonusHeadline && okx.showVerifiedBadge === (raw.status === 'verified') && okx.isCommercial === true; })());
+
+  // pub/mut/* — R10 future-reactivation regression matrix. Exercises the PURE binding
+  // resolvers with synthetic supported/confirmed inputs + mutated raw candidates to prove
+  // exact identity binding: a supported OLD assertion never authorizes a CHANGED candidate,
+  // one supported claim never unlocks another, and only the projection's verified state
+  // (not raw Offer.status) can turn the public presentation commercial.
+  check('pub/mut/1: exact supported headline + exact candidate → may restore', m.resolvePublicClaimValue(bind('bonusHeadline'), RAW_BYBIT, true) === bind('bonusHeadline').assertedValue);
+  check('pub/mut/2: supported headline + CHANGED raw headline → hidden', m.resolvePublicClaimValue(bind('bonusHeadline'), mut({ bonusHeadline: 'Up to 99,999 USDT Welcome Package' }), true) === null);
+  check('pub/mut/3: supported fee claim + CHANGED raw fee → hidden', m.resolvePublicClaimValue(bind('feeDiscount'), mut({ feeDiscount: 'Up to 80% fee discount' }), true) === null);
+  check('pub/mut/4: supported restrictions + CHANGED country list → hidden', m.resolvePublicClaimValue(bind('restrictedCountries'), mut({ restrictedCountries: ['US', 'UK'] }), true) === null);
+  check('pub/mut/5: confirmed promo + exact real code → may restore', m.resolvePublicPromoCode('CRYPTOBONUSW', confirmedEval('CRYPTOBONUSW')) === 'CRYPTOBONUSW');
+  check('pub/mut/6: confirmed promo + CHANGED raw code → hidden', m.resolvePublicPromoCode('NEWCODE9', confirmedEval('CRYPTOBONUSW')) === null);
+  check('pub/mut/7: one supported claim cannot unlock another (per-field gating)', m.resolvePublicClaimValue(bind('termsSummary'), RAW_BYBIT, false) === null && m.resolvePublicClaimValue(bind('availability'), RAW_BYBIT, true) !== null);
+  check('pub/mut/8: verified overall cannot restore an UNsupported optional field', m.resolvePublicClaimValue(bind('feeDiscount'), RAW_BYBIT, false) === null && m.resolvePublicClaimValue(bind('minDeposit'), RAW_BYBIT, false) === null);
+  check('pub/mut/9: realisticValue has no authority (no binding; stays null)', PRES.realisticValue === null && m.BYBIT_PUBLIC_CLAIM_BINDINGS.every((b) => b.fieldId !== 'realisticValue'));
+  check('pub/mut/10: exact supported boolean/string/set candidates → restore their code-owned value', m.resolvePublicClaimValue(bind('kycRequired'), RAW_BYBIT, true) === true && m.resolvePublicClaimValue(bind('availability'), RAW_BYBIT, true) === bind('availability').assertedValue && Array.isArray(m.resolvePublicClaimValue(bind('restrictedCountries'), RAW_BYBIT, true)));
+  check('pub/mut/11: NOT supported (e.g. stale/inaccessible) → hidden for every field', m.BYBIT_PUBLIC_CLAIM_BINDINGS.every((b) => m.resolvePublicClaimValue(b, RAW_BYBIT, false) === null));
+  check('pub/mut/12: invalid / no clock stays neutral (fail-closed audit case)', (() => { const p = m.deriveBybitPublicOfferPresentation(NaN); return p.publicState === 'under_re_verification' && p.promoCode === null && p.bonusHeadline === null && p.termsSummary === null && p.isCommercialCtaAllowed === false; })());
+  check('pub/mut/13: current /go/bybit public view is non-commercial', m.resolvePublicOfferView('bybit', PNOW).isCommercial === false && (AUD === null || AUD.violations.every((v) => !/^GO_BYBIT_/.test(v.code))));
+  check('pub/mut/14: commercial state is gated ONLY by the projection verified state', PRES.isCommercialCtaAllowed === (PRES.publicState === 'verified'));
+  check('pub/mut/15: raw Offer.status=verified alone cannot make the public state verified', RAW_BYBIT.status === 'verified' && PRES.publicState === 'under_re_verification');
+  check('pub/mut/16: homepage public Bybit model carries no latent affiliate URL/code/action', (() => { const e = homepageTop10.find((x) => x.slug === 'bybit'); const s = JSON.stringify(e); return !!e && e.primaryAction === undefined && !s.includes('CRYPTOBONUSW') && !s.includes('partner.bybit.com') && !s.includes('/go/'); })());
+  check('pub/mut/17: promo-codes trust ordering uses the public view state (bybit not verified)', m.resolvePublicOfferView('bybit', PNOW).publicState !== 'verified' && m.resolvePublicOfferView('bybit', PNOW).showVerifiedBadge === false);
+  check('pub/mut/18: mixed-state — Bybit public view exposes no verified/confirmed label', !/verified|confirmed/i.test(m.resolvePublicOfferView('bybit', PNOW).statusLabel) && auditClean);
+  check('pub/mut/19: public-output audit includes /go/bybit in scope', (() => { const r = existsSync(distIndex) ? runBybitPublicOutputAudit(join(ROOT, 'dist')) : null; return r === null || r.violations.every((v) => v.code !== 'GO_BYBIT_MISSING'); })());
+  check('pub/mut/20: current real output remains fully neutral', PRES.promoCode === null && PRES.bonusHeadline === null && PRES.feeDiscount === null && PRES.kycRequired === null && PRES.depositRequired === null && PRES.minDeposit === null && PRES.availability === null && PRES.restrictedCountries === null && PRES.rewardType === null && PRES.expiry === null && PRES.termsSummary === null && auditClean);
 
   // --- Invariant: a non-commercial model may never point at /go/ ---
   let threw = false;

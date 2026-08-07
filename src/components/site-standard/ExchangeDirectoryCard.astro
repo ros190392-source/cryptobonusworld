@@ -1,6 +1,7 @@
 ---
 import type { Exchange } from '../../data/exchanges';
 import type { Offer } from '../../data/offers';
+import { resolvePublicOfferView } from '../../data/publicOfferView';
 import PromoCodeCopy from '../promo/PromoCodeCopy.astro';
 import ExchangeLogo from '../ExchangeLogo.astro';
 import '../../styles/site-standard-v1.css';
@@ -12,29 +13,40 @@ export interface Props {
 
 const { exchange: ex, offer } = Astro.props;
 const reviewUrl = ex.pageUrl ?? `/exchanges/${ex.slug}/`;
+// Evidence-driven public view (Issue #264) against ONE explicit render clock (R5): Bybit
+// is neutralized while under re-verification; other exchanges pass through unchanged.
+// Never render raw offer fields.
+const nowMs = Date.now();
+const view = offer ? resolvePublicOfferView(offer.exchangeSlug, nowMs) : null;
 ---
 
-<article class="cbw-card exchange-directory-card">
+<article class="cbw-card exchange-directory-card" data-exchange-slug={ex.slug}>
   <div class="exchange-directory-card__head">
     <a href={reviewUrl} class="exchange-directory-card__logo" tabindex="-1" aria-label={`${ex.name} review`}>
       <ExchangeLogo slug={ex.slug} name={ex.name} size={88} variant="square" lazy={false} class="exchange-directory-card__logo-image" />
     </a>
     <a href={reviewUrl} class="exchange-directory-card__name">{ex.name}</a>
-    {offer?.status === 'verified' && <span class="exchange-directory-card__verified">✓ Verified offer</span>}
+    {view?.showVerifiedBadge && <span class="exchange-directory-card__verified">✓ Verified offer</span>}
   </div>
 
-  {offer && <p class="exchange-directory-card__bonus">{offer.bonusHeadline}</p>}
+  {view && <p class="exchange-directory-card__bonus">{view.bonusHeadline}</p>}
 
-  {offer && (
+  {view?.promoCode && (
     <div class="exchange-directory-card__code">
       <span>Promo code</span>
-      <PromoCodeCopy code={offer.promoCode} exchange={ex.name} />
+      <PromoCodeCopy code={view.promoCode} exchange={ex.name} />
     </div>
   )}
 
-  <a href={ex.affiliateUrl} class="cbw-action exchange-directory-card__action" target="_blank" rel="noopener noreferrer sponsored">
-    Check current offer →
-  </a>
+  {view && view.isCommercial ? (
+    <a href={ex.affiliateUrl} class="cbw-action exchange-directory-card__action" target="_blank" rel="noopener noreferrer sponsored">
+      Check current offer →
+    </a>
+  ) : (
+    <a href={reviewUrl} class="cbw-action exchange-directory-card__action">
+      View {ex.name} status →
+    </a>
+  )}
   <a href={reviewUrl} class="exchange-directory-card__review">Read {ex.name} review</a>
 </article>
 

@@ -1,7 +1,7 @@
 ---
 import ExchangeLogo from '../ExchangeLogo.astro';
 import PromoCodeCopy from '../promo/PromoCodeCopy.astro';
-import { homepageTop10 } from '../../data/homepageTop10';
+import { buildHomepageTop10 } from '../../data/homepageTop10';
 import '../../styles/site-standard-v1.css';
 import { resolveHomepageTop10Ctas } from '../../data/homepageTop10Cta';
 import { gateReasonText, ctaMicrocopy, pickLocalized } from '../../data/contracts/portalCtaI18n';
@@ -15,25 +15,30 @@ import { getOffer } from '../../data/offers';
 // localizes labels + reasons + microcopy together (facts are unaffected).
 const ctaLocale: CtaLocale = 'en';
 
+// ONE explicit build/render clock (R5) for this page: it drives the evidence-driven
+// public offer projection, the country-aware CTA resolution and the evidence disclosure —
+// no hidden Date.now() inside authorization helpers, no permanent no-clock snapshot.
+const nowMs = Date.now();
+const homepageTop10 = buildHomepageTop10(nowMs);
+
 // Gated commercial CTA bindings, derived from the canonical fail-closed
 // contract. In the default 'preview' mode every primary CTA resolves to an
 // internal review target; a live /go/ affiliate target appears only when the
 // owner enables production mode AND the row is verified + offer-eligible.
 const ctaBindings = new Map(
-  resolveHomepageTop10Ctas(homepageTop10, ctaLocale).map((b) => [b.rank, b]),
+  resolveHomepageTop10Ctas(homepageTop10, ctaLocale, { now: nowMs }).map((b) => [b.rank, b]),
 );
 
 const opensNewTab = pickLocalized(ctaMicrocopy.opensNewTab, ctaLocale);
 const loadingText = pickLocalized(ctaMicrocopy.loading, ctaLocale);
 
 // Fail-closed evidence disclosure per row, derived from ONE canonical evidence
-// record + an explicit clock. The checked date, semantic <time>, evidence state
+// record + the SAME explicit clock. The checked date, semantic <time>, evidence state
 // and evidence Source link all derive from `entry.evidence` (null → honest
 // under-re-verification state, no fabricated date). The exchange's promo page is
 // carried ONLY as a separately-named non-evidence "Official offer page" link,
 // never as the source backing a checked timestamp. Evidence state overrides the
 // tone so a verified row can never look current without machine evidence.
-const nowMs = Date.now();
 const disclosures = new Map(
   homepageTop10.map((entry) => {
     const offer = getOffer(entry.slug);
@@ -77,7 +82,7 @@ const disclosures = new Map(
 
     <ol class="top10-list">
       {homepageTop10.map((entry) => (
-        <li class="top10-row" data-rank={entry.rank}>
+        <li class="top10-row" data-rank={entry.rank} data-exchange-slug={entry.slug}>
           <div class="top10-rank" aria-label={`Rank ${entry.rank}`}>
             <span>{entry.rank}</span>
           </div>
