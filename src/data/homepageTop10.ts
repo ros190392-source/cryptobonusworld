@@ -1,5 +1,6 @@
 import { getExchange } from './exchanges';
 import { getOffer } from './offers';
+import { resolvePublicOfferView } from './publicOfferView';
 import type { EvidenceMetadata } from './contracts/evidenceMetadata';
 
 export type HomepageTop10StatusTone = 'verified' | 'preview' | 'research' | 'review';
@@ -50,15 +51,23 @@ function liveEntry(
     throw new Error(`Homepage Top-10 requires a clean exchange and offer record for ${slug}`);
   }
 
+  // Public presentation is evidence-driven, never raw Offer fields. For Bybit this is the
+  // neutralized under-re-verification projection (Issue #264); other exchanges pass
+  // through unchanged. The raw promo code / bonus headline are never read for display.
+  const view = resolvePublicOfferView(slug);
+  if (!view) {
+    throw new Error(`Homepage Top-10 requires a public offer view for ${slug}`);
+  }
+
   return {
     rank,
     slug: exchange.slug,
     name: exchange.name,
     bestFor,
-    statusLabel: offer.status === 'verified' ? 'Verified offer' : 'Public offer preview',
-    statusTone: offer.status === 'verified' ? 'verified' : 'preview',
-    summary: offer.bonusHeadline,
-    promoCode: offer.promoCode,
+    statusLabel: view.statusLabel,
+    statusTone: view.statusTone,
+    summary: view.summary,
+    promoCode: view.promoCode ?? undefined,
     lastChecked: offer.lastChecked,
     // Factual freshness comes ONLY from the offer's machine evidence (null while
     // under re-verification); the human lastChecked string never authorizes it.

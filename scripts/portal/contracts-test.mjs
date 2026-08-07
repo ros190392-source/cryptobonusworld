@@ -19,6 +19,8 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { runResolutionHarness } from './test-support/offer-packet-resolution-harness.mjs';
 import { makeSyntheticPromoPolicy, makeSyntheticPartnerConfirmation } from './test-support/synthetic-confirmation-fixtures.mjs';
 import { runTestAuthorityGuard, runGuardSelfTests } from './test-authority-guard.mjs';
+import { runBybitPublicOutputAudit, BYBIT_UNIQUE_FORBIDDEN, BYBIT_PROMO_CODE } from './bybit-public-output-audit.mjs';
+import { existsSync } from 'node:fs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '..', '..');
@@ -44,6 +46,8 @@ const bybitPromoCodeConfirmation = join(ROOT, 'src/data/evidence/offers/bybitPro
 const offerPacketResolution = join(ROOT, 'src/data/contracts/offerPacketResolution.ts');
 const officialSourceCapture = join(ROOT, 'src/data/contracts/officialSourceCapture.ts');
 const bybitOfferClaimSourcePlan = join(ROOT, 'src/data/contracts/bybitOfferClaimSourcePlan.ts');
+const bybitPublicPresentation = join(ROOT, 'src/data/evidence/offers/bybitPublicPresentation.ts');
+const publicOfferView = join(ROOT, 'src/data/publicOfferView.ts');
 
 const tmp = mkdtempSync(join(tmpdir(), 'cbw-portal-test-'));
 const outfile = join(tmp, 'contracts.mjs');
@@ -85,7 +89,9 @@ try {
         `export { BYBIT_PROMO_CODE_CONFIRMATIONS, BYBIT_PROMO_CODE_CONFIRMATION_STATE, BYBIT_PROMO_CODE_CANDIDATE, BYBIT_PROMO_CODE_CANDIDATE_CONFIRMED } from ${JSON.stringify(bybitPromoCodeConfirmation)};\n` +
         `export { validateOfficialSourceCapture, computeOfficialSourceDigest, computeOfficialFragmentDigest, canonicalOfficialSource, sourceMaySupportClaims, sourceWasReachable, officialFragmentAddressesClaim, OFFICIAL_SOURCE_SCOPES, OFFICIAL_SOURCE_OUTCOMES, MAX_SOURCE_FRAGMENT_TEXT } from ${JSON.stringify(officialSourceCapture)};\n` +
         `export * as OSC from ${JSON.stringify(officialSourceCapture)};\n` +
-        `export { BYBIT_OFFER_CLAIM_SOURCE_PLAN, BYBIT_OFFICIAL_SOURCE_CANDIDATES, BYBIT_OFFER_EXTRACTION_PLAN, SOURCE_PLAN_TARGET_CLAIMS, SOURCE_PLAN_EXCLUDED_CLAIMS, BYBIT_SOURCE_PLAN_ID, BYBIT_SOURCE_PLAN_DIGEST, getSourcePlanEntry, getCandidate, computeCandidateDigest, assessOfferClaimEvidence, assessAllOfferClaims, buildOfficialSourceEvidenceRun, documentIdentity, validateSourcePlanCoverage, validateExtractionCoverage } from ${JSON.stringify(bybitOfferClaimSourcePlan)};`,
+        `export { BYBIT_OFFER_CLAIM_SOURCE_PLAN, BYBIT_OFFICIAL_SOURCE_CANDIDATES, BYBIT_OFFER_EXTRACTION_PLAN, SOURCE_PLAN_TARGET_CLAIMS, SOURCE_PLAN_EXCLUDED_CLAIMS, BYBIT_SOURCE_PLAN_ID, BYBIT_SOURCE_PLAN_DIGEST, getSourcePlanEntry, getCandidate, computeCandidateDigest, assessOfferClaimEvidence, assessAllOfferClaims, buildOfficialSourceEvidenceRun, documentIdentity, validateSourcePlanCoverage, validateExtractionCoverage } from ${JSON.stringify(bybitOfferClaimSourcePlan)};\n` +
+        `export { deriveBybitPublicOfferPresentation, BYBIT_PUBLIC_PRESENTATION, BYBIT_NEUTRAL_HEADLINE, BYBIT_NEUTRAL_DETAIL, BYBIT_NEUTRAL_STATUS_LABEL, BYBIT_NEUTRAL_SUMMARY } from ${JSON.stringify(bybitPublicPresentation)};\n` +
+        `export { resolvePublicOfferView } from ${JSON.stringify(publicOfferView)};`,
       resolveDir: ROOT,
       loader: 'ts',
     },
@@ -1628,6 +1634,65 @@ try {
   check('guard/24: eight official-source artifacts remain valid; digests recompute', (() => { const caps = realPkt262.officialSourceCaptures || []; return caps.length === 8 && caps.every((c) => m.validateOfficialSourceCapture(c, m.BYBIT_OFFER_CLAIM_INVENTORY).ok && m.computeOfficialSourceDigest(c) === c.sourceDigest); })());
   // 25 — source-plan + candidate fingerprints remain intact.
   check('guard/25: source-plan + candidate fingerprints intact', m.validateSourcePlanCoverage().ok === true && m.validateExtractionCoverage().ok === true && typeof m.BYBIT_SOURCE_PLAN_DIGEST === 'string' && m.BYBIT_SOURCE_PLAN_DIGEST.startsWith('sha256:') && m.BYBIT_OFFICIAL_SOURCE_CANDIDATES.every((c) => m.computeCandidateDigest(c) === c.candidateDigest));
+
+  // ===== Split 3 (#264) — Bybit unverified public-copy neutralization =====
+  // The public Bybit presentation is derived from authoritative evidence/confirmation
+  // state, never raw Offer fields. Real state is under_re_verification; every commercial
+  // claim + the unconfirmed code is suppressed. Rendered-output assertions (4–7, 17–21,
+  // 25, 41) are authoritatively enforced by the post-build public-output audit gate
+  // (scripts/portal/bybit-public-output-audit.mjs); here they also verify the projection
+  // carries none of those strings, and re-verify a present dist if one exists.
+  const PRES = m.deriveBybitPublicOfferPresentation();
+  const RAW_BYBIT = m.getOffer('bybit');
+  const presStrings = JSON.stringify(PRES);
+  const distIndex = join(ROOT, 'dist', 'index.html');
+  const AUD = existsSync(distIndex) ? runBybitPublicOutputAudit(join(ROOT, 'dist')) : null;
+  const auditClean = AUD === null || AUD.ok === true;
+  const eqPres = (p) => JSON.stringify(p) === presStrings;
+  const noForbidden = BYBIT_UNIQUE_FORBIDDEN.every((s) => !presStrings.includes(s)) && !presStrings.includes(BYBIT_PROMO_CODE);
+
+  check('pub/1: real Bybit public state = under_re_verification', PRES.publicState === 'under_re_verification' && m.BYBIT_PUBLIC_PRESENTATION.publicState === 'under_re_verification');
+  check('pub/2: raw candidate promo code remains available internally', RAW_BYBIT.promoCode === 'CRYPTOBONUSW');
+  check('pub/3: public projection contains no CRYPTOBONUSW', PRES.promoCode === null && !presStrings.includes(BYBIT_PROMO_CODE));
+  check('pub/4: rendered public HTML contains no CRYPTOBONUSW (Bybit-scoped audit)', auditClean);
+  check('pub/5: rendered public output contains no 30,000 USDT', auditClean && !presStrings.includes('30,000'));
+  check('pub/6: rendered output contains no raw $30–$200 estimate', PRES.realisticValue === null && !presStrings.includes('$30'));
+  check('pub/7: rendered output contains no 50% fee-discount claim', PRES.feeDiscount === null && !presStrings.includes('50%'));
+  check('pub/8: public projection does not assert KYC required', PRES.kycRequired === null);
+  check('pub/9: public projection does not assert deposit required', PRES.depositRequired === null);
+  check('pub/10: public projection does not expose raw min-deposit wording', PRES.minDeposit === null);
+  check('pub/11: public projection does not expose raw restricted-country offer list', PRES.restrictedCountries === null);
+  check('pub/12: public projection does not expose raw reward/withdrawal wording', PRES.rewardType === null);
+  check('pub/13: public projection does not expose raw expiry wording', PRES.expiry === null);
+  check('pub/14: public projection does not expose raw terms summary', PRES.termsSummary === null);
+  check('pub/15: public status does not say verified/confirmed', PRES.statusLabel === m.BYBIT_NEUTRAL_STATUS_LABEL && PRES.statusTone !== 'verified' && !/verified|confirmed/i.test(PRES.statusLabel));
+  check('pub/16: neutral re-verification text is present', PRES.headline === m.BYBIT_NEUTRAL_HEADLINE && PRES.detailText === m.BYBIT_NEUTRAL_DETAIL);
+  check('pub/17: no suppressed value in data-* attributes (rendered audit)', auditClean);
+  check('pub/18: no suppressed value in aria/title attributes (rendered audit)', auditClean);
+  check('pub/19: no suppressed value in JSON-LD (rendered audit)', auditClean);
+  check('pub/20: no suppressed value in embedded client JSON (rendered audit)', auditClean);
+  check('pub/21: no suppressed value in metadata (rendered audit)', auditClean);
+  check('pub/22: locale EN cannot restore a suppressed fact', noForbidden && PRES.promoCode === null && PRES.bonusHeadline === null && PRES.termsSummary === null);
+  check('pub/23: locale RU cannot restore a suppressed fact (projection is locale-independent)', eqPres(m.deriveBybitPublicOfferPresentation()));
+  check('pub/24: locale KK / any clock cannot restore a suppressed fact', eqPres(m.deriveBybitPublicOfferPresentation(Date.parse('2026-08-07T00:00:00Z'))));
+  check('pub/25: desktop factual posture equals mobile factual posture (single evidence-driven projection)', auditClean && eqPres(m.BYBIT_PUBLIC_PRESENTATION));
+  check('pub/26: preview homepage /go/* = 0', m.homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'preview', 'en').primary.href.startsWith('/go/')));
+  check('pub/27: production simulation homepage /go/* = 0', m.homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'production', 'en').primary.href.startsWith('/go/')));
+  check('pub/28: non-commercial CTA remains non-affiliate', PRES.isCommercialCtaAllowed === false && m.resolvePublicOfferView('bybit').isCommercial === false);
+  check('pub/29: raw packet unchanged (draft + promo claim requires owner-partner confirmation)', realPkt262.approval === 'draft' && realPkt262.claims.find((c) => c.claimId === 'bybit.promo_code').result === 'requires_owner_partner_confirmation');
+  check('pub/30: all 8 source artifacts unchanged (digests recompute)', (realPkt262.officialSourceCaptures || []).length === 8 && (realPkt262.officialSourceCaptures || []).every((c) => m.computeOfficialSourceDigest(c) === c.sourceDigest));
+  check('pub/31: source-plan/candidate fingerprints unchanged', m.validateSourcePlanCoverage().ok === true && m.BYBIT_SOURCE_PLAN_DIGEST.startsWith('sha256:') && m.BYBIT_OFFICIAL_SOURCE_CANDIDATES.every((c) => m.computeCandidateDigest(c) === c.candidateDigest));
+  check('pub/32: confirmation real set frozen empty', Array.isArray(m.BYBIT_PROMO_CODE_CONFIRMATIONS) && m.BYBIT_PROMO_CODE_CONFIRMATIONS.length === 0 && Object.isFrozen(m.BYBIT_PROMO_CODE_CONFIRMATIONS));
+  check('pub/33: production partner trust empty', PPOL.trustedPartnerIdentities.length === 0 && PPOL.trustedPartnerDomains.length === 0);
+  check('pub/34: raw promo remains requires_owner_partner_confirmation (candidate unconfirmed)', m.BYBIT_PROMO_CODE_CONFIRMATION_STATE === 'missing' && m.BYBIT_PROMO_CODE_CANDIDATE_CONFIRMED === false);
+  check('pub/35: all ten source-plan claims remain inaccessible', m.SOURCE_PLAN_TARGET_CLAIMS.length === 10 && m.SOURCE_PLAN_TARGET_CLAIMS.every((id) => realPkt262.claims.find((c) => c.claimId === id).result === 'inaccessible'));
+  check('pub/36: packet remains draft', realPkt262.approval === 'draft' && m.validateOfferEvidencePacket(realPkt262).ok === true);
+  check('pub/37: offers.bybit.evidence remains null', m.bybitOfferEvidence === null && m.getOffer('bybit').evidence === null);
+  check('pub/38: PUBLIC_MARKET_PROFILES remains frozen empty', Array.isArray(m.PUBLIC_MARKET_PROFILES) && m.PUBLIC_MARKET_PROFILES.length === 0 && Object.isFrozen(m.PUBLIC_MARKET_PROFILES));
+  check('pub/39: test-authority guard PASS', GUARD.ok === true);
+  check('pub/40: adaptBybitOfferToEvidence remains the sole product evidence adapter', Object.keys(m.OPR).filter((k) => /^adapt/.test(k)).join(',') === 'adaptBybitOfferToEvidence');
+  check('pub/41: synthetic test values never enter public output', auditClean && !presStrings.includes('test-partner-fixture') && !presStrings.includes('partner.test'));
+  check('pub/42: other exchange presentation has no factual regression', (() => { const okx = m.resolvePublicOfferView('okx'); const raw = m.getOffer('okx'); return !!okx && okx.promoCode === raw.promoCode && okx.bonusHeadline === raw.bonusHeadline && okx.showVerifiedBadge === (raw.status === 'verified') && okx.isCommercial === true; })());
 
   // --- Invariant: a non-commercial model may never point at /go/ ---
   let threw = false;

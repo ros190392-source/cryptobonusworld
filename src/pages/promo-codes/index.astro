@@ -6,6 +6,7 @@ import Section from '../../components/site-standard/Section.astro';
 import PromoCodeCopy from '../../components/promo/PromoCodeCopy.astro';
 import { getFeaturedExchanges } from '../../data/exchanges';
 import { getOffer } from '../../data/offers';
+import { resolvePublicOfferView } from '../../data/publicOfferView';
 
 const exchanges = getFeaturedExchanges();
 
@@ -27,9 +28,12 @@ const COUNTRY_NOTE: Record<string, string> = {
   bingx: 'Available in most regions except the US — check terms',
 };
 
+// Public presentation is evidence-driven (Issue #264): Bybit renders neutralized while
+// under re-verification (no code, neutral bonus text, no verified badge, non-commercial
+// action); other exchanges pass through unchanged.
 const rows = exchanges
-  .map(exchange => ({ exchange, offer: getOffer(exchange.slug)! }))
-  .filter(row => row.offer)
+  .map(exchange => ({ exchange, offer: getOffer(exchange.slug)!, view: resolvePublicOfferView(exchange.slug)! }))
+  .filter(row => row.offer && row.view)
   .sort((a, b) => {
     const rank = (status: string) => (status === 'verified' ? 0 : 1);
     return rank(a.offer.status) - rank(b.offer.status);
@@ -127,24 +131,28 @@ const faqSchema = {
             </tr>
           </thead>
           <tbody>
-            {rows.map(({ exchange, offer, rank }) => (
+            {rows.map(({ exchange, view, rank }) => (
               <tr class="promo-row" data-promo-row data-rank={rank}>
                 <td data-label="Rank"><span class="promo-rank">#{rank}</span></td>
                 <td data-label="Exchange">
                   <a href={exchange.pageUrl ?? `/${exchange.slug}/`} class="promo-exchange">{exchange.name}</a>
-                  {offer.status === 'verified' && <span class="promo-verified">✓ verified</span>}
+                  {view.showVerifiedBadge && <span class="promo-verified">✓ verified</span>}
                 </td>
                 <td data-label="Promo code" class="promo-code-cell">
-                  <PromoCodeCopy code={offer.promoCode} exchange={exchange.name} />
+                  {view.promoCode
+                    ? <PromoCodeCopy code={view.promoCode} exchange={exchange.name} />
+                    : <span class="promo-code-none">Not verified yet</span>}
                 </td>
-                <td data-label="Bonus snapshot" class="promo-copy">{offer.bonusHeadline}</td>
+                <td data-label="Bonus snapshot" class="promo-copy">{view.bonusHeadline}</td>
                 <td data-label="Best for" class="promo-best">{BEST_FOR[exchange.slug]}</td>
-                <td data-label="Country note" class="promo-copy">{COUNTRY_NOTE[exchange.slug]}</td>
+                <td data-label="Country note" class="promo-copy">{view.isCommercial ? COUNTRY_NOTE[exchange.slug] : 'Under re-verification — check the exchange directly'}</td>
                 <td data-label="Review">
                   <a href={exchange.pageUrl ?? `/${exchange.slug}/`} class="promo-review">Read review →</a>
                 </td>
                 <td data-label="Action">
-                  <a href={`/go/${exchange.slug}/`} class="cbw-action promo-action" target="_blank" rel="noopener noreferrer sponsored">Check offer →</a>
+                  {view.isCommercial
+                    ? <a href={`/go/${exchange.slug}/`} class="cbw-action promo-action" target="_blank" rel="noopener noreferrer sponsored">Check offer →</a>
+                    : <a href={exchange.pageUrl ?? `/${exchange.slug}/`} class="cbw-action promo-action">View status →</a>}
                 </td>
               </tr>
             ))}

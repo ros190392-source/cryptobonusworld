@@ -1,0 +1,68 @@
+---
+/**
+ * Neutral exchange notice (Issue #264).
+ *
+ * Rendered instead of the commercial promo page whenever an exchange's PUBLIC factual
+ * state is not `verified`. It presents ONLY the exchange identity and a concise,
+ * non-claiming re-verification notice — no promo code, bonus amount, value estimate,
+ * fee discount, KYC/deposit/availability/restricted-country/reward/expiry/terms claims,
+ * and no commercial (affiliate) CTA. The CTA is a plain, non-affiliate link to the
+ * exchange's official site and to the local directory.
+ */
+import ExchangeLogo from '../ExchangeLogo.astro';
+
+export interface Props {
+  slug: string;
+  name: string;
+  /** Neutral status label, e.g. "Under re-verification". */
+  statusLabel: string;
+  /** Neutral headline, e.g. "Offer details are being re-verified". */
+  headline: string;
+  /** Neutral supporting sentence. */
+  detailText: string;
+  /** Exchange official site (non-affiliate, nofollow) for "check directly". */
+  officialUrl: string;
+}
+
+const { slug, name, statusLabel, headline, detailText, officialUrl } = Astro.props;
+---
+
+<section class="cbw-unverified" aria-labelledby="cbw-unverified-title">
+  <div class="cbw-unverified__inner">
+    <div class="cbw-unverified__logo">
+      <ExchangeLogo slug={slug} name={name} size={96} variant="square" lazy={false} />
+    </div>
+    <span class="cbw-unverified__status">{statusLabel}</span>
+    <h1 id="cbw-unverified-title" class="cbw-unverified__title">{name}: {headline}</h1>
+    <p class="cbw-unverified__detail">{detailText}</p>
+    <p class="cbw-unverified__note">
+      We are re-checking this exchange's current promotion against its official source.
+      Bonus details are unavailable while re-verification is in progress. Check the exchange
+      directly for current terms.
+    </p>
+    <div class="cbw-unverified__actions">
+      <a class="cbw-action cbw-unverified__primary" href={officialUrl} target="_blank" rel="noopener noreferrer nofollow">
+        Visit {name} official site →
+      </a>
+      <a class="cbw-unverified__secondary" href="/exchanges/">Browse the exchange directory</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .cbw-unverified { display: flex; justify-content: center; padding: clamp(2.5rem, 6vw, 5rem) 1.25rem; }
+  .cbw-unverified__inner { display: flex; max-width: 640px; flex-direction: column; align-items: center; gap: 1rem; text-align: center; }
+  .cbw-unverified__logo { line-height: 0; }
+  .cbw-unverified__status {
+    padding: 4px 12px; border: 1px solid #d9c48a; border-radius: 999px;
+    background: #fdf6e3; color: #8a6d1a; font-size: 11px; font-weight: 900;
+    letter-spacing: .06em; text-transform: uppercase;
+  }
+  .cbw-unverified__title { margin: 0; font-family: 'Barlow Condensed', Inter, sans-serif; font-size: clamp(1.6rem, 4vw, 2.4rem); font-weight: 800; line-height: 1.1; text-wrap: balance; }
+  .cbw-unverified__detail { margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--cbw-text-secondary, #47506a); }
+  .cbw-unverified__note { margin: 0; max-width: 52ch; font-size: .95rem; line-height: 1.6; color: var(--cbw-text-muted, #5c6479); }
+  .cbw-unverified__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: .75rem; margin-top: .5rem; }
+  .cbw-unverified__primary { font-size: 14px; }
+  .cbw-unverified__secondary { align-self: center; color: var(--cbw-text-secondary, #47506a); font-size: 13px; font-weight: 800; text-decoration: none; }
+  .cbw-unverified__secondary:hover { text-decoration: underline; text-underline-offset: 3px; }
+</style>
