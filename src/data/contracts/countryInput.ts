@@ -27,10 +27,12 @@ const ISO_ALPHA2 = /^[A-Z]{2}$/;
 const GLOBAL_TOKEN = 'global';
 
 /**
- * ISO alpha-2 identity for each recognized country slug in countries.json.
- * Identity only — never an availability/eligibility claim.
+ * ISO alpha-2 identity for each recognized country slug in countries.json / the
+ * controlled country foundation. Identity only — never an availability claim.
  */
-export const COUNTRY_SLUG_TO_ISO: Readonly<Record<string, string>> = {
+export const COUNTRY_SLUG_TO_ISO: Readonly<Record<string, string>> = Object.freeze({
+  poland: 'PL',
+  kazakhstan: 'KZ',
   turkey: 'TR',
   india: 'IN',
   indonesia: 'ID',
@@ -45,7 +47,7 @@ export const COUNTRY_SLUG_TO_ISO: Readonly<Record<string, string>> = {
   mexico: 'MX',
   argentina: 'AR',
   'united-states': 'US',
-};
+});
 
 /** Recognized country codes (excludes the non-country `global` context). */
 export const SUPPORTED_COUNTRY_CODES: readonly string[] = Object.freeze(
