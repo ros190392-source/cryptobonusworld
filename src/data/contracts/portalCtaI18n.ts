@@ -95,6 +95,11 @@ export const ctaGateReasonText: Record<string, LocalizedText> = {
     ru: 'Данные по стране недействительны',
     kk: 'Ел деректері жарамсыз',
   },
+  PROFILE_FOUNDATION_INVALID: {
+    en: 'Country profile needs structured evidence review',
+    ru: 'Профиль страны требует структурированной проверки данных',
+    kk: 'Ел профилі құрылымдалған дәлел тексеруін қажет етеді',
+  },
   PROFILE_UNDER_REVIEW: {
     en: 'Country review in progress',
     ru: 'Идёт проверка по стране',
