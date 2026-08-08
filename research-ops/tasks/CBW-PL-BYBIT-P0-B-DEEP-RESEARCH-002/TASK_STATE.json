@@ -7,7 +7,7 @@
   "exchangeId": "bybit",
   "batchId": "PL-P0-B",
   "priority": "P0",
-  "state": "SOURCE_TRUTH_REVIEWED",
+  "state": "CORRECTION_REQUIRED",
   "createdAt": "2026-08-08",
   "stages": {
     "00-contract": "PRESENT",
@@ -67,6 +67,10 @@
     },
     {
       "state": "SOURCE_TRUTH_REVIEWED",
+      "at": "2026-08-08"
+    },
+    {
+      "state": "CORRECTION_REQUIRED",
       "at": "2026-08-08"
     }
   ]
