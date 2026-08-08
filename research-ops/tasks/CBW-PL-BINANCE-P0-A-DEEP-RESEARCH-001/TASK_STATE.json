@@ -7,12 +7,12 @@
   "exchangeId": "binance",
   "batchId": "PL-P0-A",
   "priority": "P0",
-  "state": "PREPARED",
+  "state": "RESEARCH_CAPTURED",
   "createdAt": "2026-08-08",
   "stages": {
     "00-contract": "PRESENT",
     "10-input": "EMPTY",
-    "20-research-output": "EMPTY",
+    "20-research-output": "PRESENT",
     "50-source-truth-review": "EMPTY",
     "60-correction": "EMPTY",
     "70-validation": "EMPTY",
@@ -55,6 +55,10 @@
   "history": [
     {
       "state": "PREPARED",
+      "at": "2026-08-08"
+    },
+    {
+      "state": "RESEARCH_CAPTURED",
       "at": "2026-08-08"
     }
   ]
