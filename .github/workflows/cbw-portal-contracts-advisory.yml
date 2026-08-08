@@ -123,6 +123,26 @@ jobs:
         id: resolution_harness
         run: npm run portal:harness:resolution
 
+      - name: Bybit official-source offline replay (canonical packet captures)
+        id: bybit_offline_replay
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import { readFileSync, writeFileSync } from 'node:fs';
+          const packetPath = 'src/data/evidence/offers/bybit-new-user-2026-08-05.json';
+          const packet = JSON.parse(readFileSync(packetPath, 'utf8'));
+          if (!Array.isArray(packet.officialSourceCaptures)) {
+            throw new Error('Canonical Bybit packet has no officialSourceCaptures array.');
+          }
+          if (packet.officialSourceCaptures.length !== 8) {
+            throw new Error(`Expected 8 canonical Bybit official-source captures, got ${packet.officialSourceCaptures.length}.`);
+          }
+          const out = '/tmp/bybit-official-source-captures.json';
+          writeFileSync(out, JSON.stringify(packet.officialSourceCaptures, null, 2));
+          console.log(`Prepared ${packet.officialSourceCaptures.length} canonical captures for offline replay.`);
+          NODE
+          npm run evidence:capture:bybit:official-sources -- --replay /tmp/bybit-official-source-captures.json
+
       - name: Preview build (default fail-closed CTA mode)
         id: preview_build
         run: npm run build
@@ -166,6 +186,7 @@ jobs:
           GUARD: ${{ steps.test_authority_guard.outcome }}
           CONTRACTS_TEST: ${{ steps.contracts_test.outcome }}
           RESOLUTION_HARNESS: ${{ steps.resolution_harness.outcome }}
+          BYBIT_OFFLINE_REPLAY: ${{ steps.bybit_offline_replay.outcome }}
           PREVIEW_BUILD: ${{ steps.preview_build.outcome }}
           PREVIEW_BYBIT_AUDIT: ${{ steps.preview_bybit_audit.outcome }}
           PREVIEW_PUBLIC_OFFERS_AUDIT: ${{ steps.preview_public_offers_audit.outcome }}
@@ -186,6 +207,7 @@ jobs:
             echo "| Test-authority guard | ${GUARD} |"
             echo "| Contracts fail-closed test | ${CONTRACTS_TEST} |"
             echo "| Offer-packet resolution harness | ${RESOLUTION_HARNESS} |"
+            echo "| Bybit official-source offline replay | ${BYBIT_OFFLINE_REPLAY} |"
             echo "| Preview build | ${PREVIEW_BUILD} |"
             echo "| Preview Bybit public-output audit | ${PREVIEW_BYBIT_AUDIT} |"
             echo "| Preview global public-offer audit | ${PREVIEW_PUBLIC_OFFERS_AUDIT} |"
