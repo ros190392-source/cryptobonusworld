@@ -1,8 +1,10 @@
 /**
  * Public offer view (Issue #264, generalized in #266, authority split in #269).
  *
- * Offer claims remain evidence-driven. Affiliate-link and promo-code authority are
- * independent and exact-value bound to the owner's 2026-08-08 confirmation.
+ * This projection is CLAIM/EVIDENCE SAFE. Owner-confirmed registration links and
+ * promo/referral codes are governed independently and must be consumed through
+ * `resolvePublicCommercialRoute()` (or the underlying owner authority contract),
+ * not smuggled into the factual offer model.
  */
 import { deriveBybitPublicOfferPresentation } from './evidence/offers/bybitPublicPresentation';
 import {
@@ -24,11 +26,11 @@ export interface PublicOfferView {
   publicState: 'verified' | 'under_re_verification' | 'unavailable' | 'expired';
   /** The claim-evidence strategy governing factual offer presentation. */
   strategy: PublicOfferAuthorityStrategyId;
-  /** Exact owner-confirmed promo/referral code, or null. */
+  /** Claim-authorized promo code only. Owner-confirmed commercial code stays outside this view. */
   promoCode: string | null;
-  /** Independent link authority state. */
+  /** Independent link authority state; the actual destination stays outside this view. */
   linkAuthority: 'owner_confirmed' | 'unconfirmed';
-  /** Independent promo-code authority state. */
+  /** Independent owner promo-code authority state; the actual owner code stays outside this view. */
   promoCodeAuthority: 'owner_confirmed' | 'unconfirmed';
   /** Bonus/headline display text — neutral copy when unsupported. */
   bonusHeadline: string;
@@ -51,7 +53,7 @@ function commercialAuthority(slug: string): OwnerConfirmedCommercialAuthority | 
   return resolveOwnerConfirmedCommercialAuthority(slug);
 }
 
-/** Apply independent link/code authority without changing any factual claim state/copy. */
+/** Overlay authority FLAGS only; never copy owner commercial values into the claim view. */
 function applyOwnerCommercialAuthority(
   view: Omit<PublicOfferView, 'linkAuthority' | 'promoCodeAuthority'>,
   authority: OwnerConfirmedCommercialAuthority | null,
@@ -60,7 +62,8 @@ function applyOwnerCommercialAuthority(
   const promoConfirmed = authority?.promoCodeConfirmed === true;
   return {
     ...view,
-    promoCode: promoConfirmed ? authority?.confirmedPromoCode ?? null : null,
+    // Keep claim-view value exactly as produced by claim evidence. Current real state is null.
+    promoCode: view.promoCode,
     linkAuthority: linkConfirmed ? 'owner_confirmed' : 'unconfirmed',
     promoCodeAuthority: promoConfirmed ? 'owner_confirmed' : 'unconfirmed',
     // Do NOT overload `isCommercial` with link authority. This protects every legacy
@@ -69,7 +72,7 @@ function applyOwnerCommercialAuthority(
   };
 }
 
-/** Fail-closed factual view. Owner-confirmed link/code can remain usable alongside it. */
+/** Fail-closed factual view. Owner-confirmed link/code remain separate from it. */
 function neutralView(
   slug: string,
   strategy: PublicOfferAuthorityStrategyId,
@@ -91,7 +94,7 @@ function neutralView(
 
 /**
  * Claim-evidence authorizer dispatchers. They decide factual offer presentation only.
- * Link/code authority is applied independently afterwards by #269.
+ * Link/code authority flags are applied independently afterwards by #269.
  */
 type ClaimView = Omit<PublicOfferView, 'linkAuthority' | 'promoCodeAuthority'>;
 type ClaimDispatcher = (slug: string, nowMs: number) => ClaimView | null;
@@ -104,7 +107,7 @@ const AUTHORIZING_DISPATCHERS: Readonly<Record<string, ClaimDispatcher>> = Objec
       slug: 'bybit',
       publicState: p.publicState,
       strategy: 'bybit_claim_packet_v1',
-      // Promo code authority is overlaid independently from the owner-confirmation manifest.
+      // Current evidence path does not authorize a public claim-layer promo code.
       promoCode: null,
       bonusHeadline: p.headline,
       summary: p.summary,
@@ -125,8 +128,8 @@ export function getAuthorizingDispatcher(strategy: string): ClaimDispatcher | nu
 }
 
 /**
- * Resolve the public render-safe offer view. Factual claims are evidence-gated;
- * current owner-confirmed links/codes are exact-value gated independently.
+ * Resolve the public render-safe CLAIM view. Factual claims are evidence-gated;
+ * owner-confirmed commercial values stay in the separate commercial-route projection.
  */
 export function resolvePublicOfferView(slug: string, nowMs: number): PublicOfferView | null {
   const claimAuthority = getPublicOfferAuthority(slug);
