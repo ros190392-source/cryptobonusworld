@@ -107,7 +107,10 @@ export function resolvePublicCommercialRoute(
       ? exactConfirmedDestination(ownerAuthority, countryCode)
       : null;
 
-  if (!exact) {
+  // Explicitly fail closed on either missing projection. Besides being safer to read,
+  // this gives strict TypeScript a real control-flow proof that `view` is non-null in
+  // the external branch below.
+  if (!exact || !view) {
     return Object.freeze({
       slug,
       name,
