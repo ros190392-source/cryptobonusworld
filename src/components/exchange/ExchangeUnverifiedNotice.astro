@@ -7,6 +7,7 @@
  * and an internal /go/<slug>/ commercial hop to remain usable independently.
  */
 import ExchangeLogo from '../ExchangeLogo.astro';
+import PromoCodeCopy from '../promo/PromoCodeCopy.astro';
 
 export interface Props {
   slug: string;
@@ -50,10 +51,10 @@ const showConfirmedPromoCode = promoCodeAuthority === 'owner_confirmed' && Boole
     <h1 id="cbw-unverified-title" class="cbw-unverified__title">{name}: {headline}</h1>
     <p class="cbw-unverified__detail">{detailText}</p>
 
-    {showConfirmedPromoCode && (
+    {showConfirmedPromoCode && promoCode && (
       <div class="cbw-unverified__code" aria-label={`${name} promo or referral code`}>
         <span class="cbw-unverified__code-label">Promo/referral code</span>
-        <code>{promoCode}</code>
+        <PromoCodeCopy code={promoCode} exchange={name} />
         <span class="cbw-unverified__code-state">Owner confirmed</span>
       </div>
     )}
@@ -118,7 +119,7 @@ const showConfirmedPromoCode = promoCodeAuthority === 'owner_confirmed' && Boole
     background: var(--cbw-surface-soft, #f7f8fb);
   }
   .cbw-unverified__code-label { font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--cbw-text-muted, #5c6479); }
-  .cbw-unverified__code code { font-size: 1rem; font-weight: 900; color: var(--cbw-text-primary, #141824); overflow-wrap: anywhere; }
+  .cbw-unverified__code :global(.pcc-row) { width: min(100%, 300px); }
   .cbw-unverified__code-state { font-size: 11px; font-weight: 800; color: #35684d; }
   .cbw-unverified__note { margin: 0; max-width: 58ch; font-size: .95rem; line-height: 1.6; color: var(--cbw-text-muted, #5c6479); }
   .cbw-unverified__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: .75rem; margin-top: .5rem; }
