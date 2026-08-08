@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 /** Browser smoke for Issue #269. Localhost-only; never contacts exchanges. */
-import { spawn } from 'node:child_process';
-import { once } from 'node:events';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { createServer } from 'node:http';
+import { createReadStream, existsSync, mkdtempSync, rmSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, extname, join, resolve, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { build } from 'esbuild';
 import { chromium } from 'playwright';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '..', '..');
+const DIST = resolve(ROOT, 'dist');
 const mode = process.argv[2] ?? 'preview';
 if (!['preview', 'production'].includes(mode)) {
   console.error('Usage: owner-confirmed-browser-smoke.mjs <preview|production>');
@@ -19,17 +19,33 @@ if (!['preview', 'production'].includes(mode)) {
 
 const PORT = mode === 'production' ? 4471 : 4470;
 const BASE = `http://127.0.0.1:${PORT}`;
-const NPM = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const TMP = mkdtempSync(join(tmpdir(), 'cbw-owner-browser-smoke-'));
 const BUNDLE = join(TMP, 'owner-manifest.mjs');
 
 let checks = 0;
 const failures = [];
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 function check(label, ok, detail = '') {
   checks += 1;
   if (!ok) failures.push(detail ? `${label}: ${detail}` : label);
 }
+
+const CONTENT_TYPES = Object.freeze({
+  '.html': 'text/html; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8',
+  '.mjs': 'text/javascript; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.svg': 'image/svg+xml',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.webp': 'image/webp',
+  '.ico': 'image/x-icon',
+  '.woff': 'font/woff',
+  '.woff2': 'font/woff2',
+  '.xml': 'application/xml; charset=utf-8',
+  '.txt': 'text/plain; charset=utf-8',
+});
 
 async function loadManifest() {
   const contract = join(ROOT, 'src/data/contracts/ownerConfirmedCommercialAuthority.ts');
@@ -50,40 +66,61 @@ async function loadManifest() {
   return (await import(`${pathToFileURL(BUNDLE).href}?v=${Date.now()}`)).OWNER_CONFIRMED_COMMERCIAL_MANIFEST;
 }
 
-function startServer() {
-  const logs = [];
-  const child = spawn(NPM, ['run', 'preview', '--', '--host', '127.0.0.1', '--port', String(PORT)], {
-    cwd: ROOT,
-    env: process.env,
-    stdio: ['ignore', 'pipe', 'pipe'],
-  });
-  const capture = (chunk) => {
-    logs.push(String(chunk));
-    while (logs.join('').length > 12000) logs.shift();
-  };
-  child.stdout?.on('data', capture);
-  child.stderr?.on('data', capture);
-  return { child, logs };
-}
-
-async function waitForServer(server) {
-  const deadline = Date.now() + 30000;
-  while (Date.now() < deadline) {
-    if (server.child.exitCode !== null) throw new Error(`preview exited ${server.child.exitCode}\n${server.logs.join('')}`);
-    try {
-      const r = await fetch(`${BASE}/`, { redirect: 'manual' });
-      if (r.status >= 200 && r.status < 500) return;
-    } catch (_) {}
-    await sleep(200);
+function staticFileFor(requestUrl) {
+  let pathname;
+  try {
+    pathname = decodeURIComponent(new URL(requestUrl, BASE).pathname);
+  } catch {
+    return null;
   }
-  throw new Error(`preview timeout at ${BASE}\n${server.logs.join('')}`);
+  if (pathname.includes('\0')) return null;
+
+  const rel = pathname.replace(/^\/+/, '');
+  let candidate = resolve(DIST, rel);
+  if (pathname.endsWith('/')) candidate = resolve(candidate, 'index.html');
+  else if (!extname(candidate)) {
+    const directIsFile = existsSync(candidate) && statSync(candidate).isFile();
+    if (!directIsFile) candidate = resolve(candidate, 'index.html');
+  }
+
+  if (candidate !== DIST && !candidate.startsWith(`${DIST}${sep}`)) return null;
+  if (!existsSync(candidate) || !statSync(candidate).isFile()) return null;
+  return candidate;
 }
 
-async function stopServer(server) {
-  if (!server || server.child.exitCode !== null) return;
-  server.child.kill('SIGTERM');
-  await Promise.race([once(server.child, 'exit'), sleep(1200)]).catch(() => {});
-  if (server.child.exitCode === null) server.child.kill('SIGKILL');
+async function startStaticServer() {
+  if (!existsSync(DIST)) throw new Error('dist not found — build before browser smoke.');
+  const server = createServer((req, res) => {
+    const file = staticFileFor(req.url ?? '/');
+    if (!file) {
+      res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' });
+      res.end('Not found');
+      return;
+    }
+    const type = CONTENT_TYPES[extname(file).toLowerCase()] ?? 'application/octet-stream';
+    res.writeHead(200, { 'content-type': type, 'cache-control': 'no-store' });
+    if (req.method === 'HEAD') {
+      res.end();
+      return;
+    }
+    createReadStream(file).on('error', () => {
+      if (!res.headersSent) res.writeHead(500);
+      res.end();
+    }).pipe(res);
+  });
+  await new Promise((resolveListen, rejectListen) => {
+    server.once('error', rejectListen);
+    server.listen(PORT, '127.0.0.1', resolveListen);
+  });
+  const probe = await fetch(`${BASE}/`, { redirect: 'manual' });
+  if (probe.status !== 200) throw new Error(`Static smoke server probe failed: HTTP ${probe.status}`);
+  return server;
+}
+
+async function stopStaticServer(server) {
+  if (!server) return;
+  server.closeAllConnections?.();
+  await new Promise((resolveClose) => server.close(() => resolveClose())).catch(() => {});
 }
 
 async function launchBrowser() {
@@ -106,7 +143,7 @@ async function sandbox(context) {
         await route.continue();
         return;
       }
-    } catch (_) {}
+    } catch {}
     await route.abort('blockedbyclient');
   });
 }
@@ -248,8 +285,7 @@ try {
   const manifestBySlug = new Map(manifest.map((e) => [e.slug, e]));
   check('manifest: 13 candidates', manifest.length === 13, `count=${manifest.length}`);
 
-  server = startServer();
-  await waitForServer(server);
+  server = await startStaticServer();
   browser = await launchBrowser();
 
   const desktop = await browser.newContext({ viewport: { width: 1440, height: 900 } });
@@ -283,6 +319,6 @@ try {
   process.exitCode = 1;
 } finally {
   if (browser) await browser.close().catch(() => {});
-  await stopServer(server).catch(() => {});
+  await stopStaticServer(server).catch(() => {});
   rmSync(TMP, { recursive: true, force: true });
 }
