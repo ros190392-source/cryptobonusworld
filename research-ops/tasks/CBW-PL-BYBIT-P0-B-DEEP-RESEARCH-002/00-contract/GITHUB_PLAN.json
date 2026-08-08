@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-PL-BYBIT-P0-B-DEEP-RESEARCH-002",
+  "model": "ONE_BRANCH_ONE_DRAFT_PR",
+  "baseBranch": "main",
+  "taskBranch": "research/pl-bybit-pl-p0-b",
+  "pullRequest": {
+    "draft": true,
+    "base": "main",
+    "head": "research/pl-bybit-pl-p0-b",
+    "title": "research(pl-bybit): Bybit × Poland deep-research record",
+    "autoMerge": false
+  },
+  "appendOnly": true,
+  "mergeAuthorized": false,
+  "ownerGatedMerge": true
+}
