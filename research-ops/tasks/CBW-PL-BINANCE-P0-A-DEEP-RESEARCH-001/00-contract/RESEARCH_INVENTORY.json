@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-PL-BINANCE-P0-A-DEEP-RESEARCH-001",
+  "outputDirectory": "20-research-output",
+  "exactFileCount": 11,
+  "jsonFileCount": 9,
+  "files": [
+    "research-run.json",
+    "source-verification.json",
+    "claim-verdicts.json",
+    "conflict-resolution.json",
+    "product-availability.json",
+    "payment-rails.json",
+    "offer-eligibility-review.json",
+    "schema-normalization-notes.json",
+    "import-readiness.json",
+    "source-truth-review-report.md",
+    "MANIFEST.txt"
+  ],
+  "jsonFiles": [
+    "research-run.json",
+    "source-verification.json",
+    "claim-verdicts.json",
+    "conflict-resolution.json",
+    "product-availability.json",
+    "payment-rails.json",
+    "offer-eligibility-review.json",
+    "schema-normalization-notes.json",
+    "import-readiness.json"
+  ],
+  "manifestFile": "MANIFEST.txt",
+  "reportFile": "source-truth-review-report.md"
+}
