@@ -126,8 +126,8 @@ try {
     check(`${entry.slug}: explicit country stays MarketProfile-gated`, !productionPoland.primary.href.startsWith('/go/') && productionPoland.primary.isAffiliate === false);
   }
 
-  // Source-level guard for the UI boundary that originally created the hidden regression:
-  // a link-confirmed state may not unlock claim-bearing ExchangePromoPageV2.
+  // Source-level guards for the UI boundaries that previously conflated public-commercial
+  // claim state with registration-link authority.
   const governedSource = readFileSync(join(ROOT, 'src/components/exchange/GovernedExchangePage.astro'), 'utf8');
   check('governed page gates rich promo on verified factual state', /claimsVerified\s*=\s*view\?\.publicState\s*===\s*['"]verified['"]/.test(governedSource));
   check('governed page also requires independently safe commercial route', /richPromoAllowed\s*=\s*claimsVerified\s*&&\s*commercialRoute\.externalAllowed\s*===\s*true/.test(governedSource));
@@ -140,6 +140,17 @@ try {
 
   const homepageSource = readFileSync(join(ROOT, 'src/components/home/HomepageTop10.astro'), 'utf8');
   check('homepage disclosure still treats isCommercial as claim/evidence authority, not link authority', homepageSource.includes('const officialHref = view?.isCommercial ? offer?.sourceUrl : undefined'));
+
+  const directorySource = readFileSync(join(ROOT, 'src/components/site-standard/ExchangeDirectoryCard.astro'), 'utf8');
+  check('directory card resolves commercial route independently', directorySource.includes('resolvePublicCommercialRoute') && directorySource.includes('commercialRoute.externalAllowed'));
+  check('directory card uses internal go hop instead of raw affiliate URL', directorySource.includes('href={`/go/${ex.slug}/`}') && !directorySource.includes('href={ex.affiliateUrl}'));
+  check('directory card keeps verified badge evidence-gated', directorySource.includes('view?.showVerifiedBadge'));
+
+  const promoSource = readFileSync(join(ROOT, 'src/pages/promo-codes/index.astro'), 'utf8');
+  check('promo directory resolves exact commercial route separately', promoSource.includes('resolvePublicCommercialRoute') && promoSource.includes('route.externalAllowed'));
+  check('promo directory labels confirmed code independently', promoSource.includes("view.promoCodeAuthority === 'owner_confirmed'") && promoSource.includes('Owner confirmed'));
+  check('promo directory uses internal go hop and neutral Register CTA', promoSource.includes('href={`/go/${exchange.slug}/`}') && promoSource.includes('>Register →</a>'));
+  check('promo directory keeps country claim neutral while claim-commercial state is false', promoSource.includes("view.isCommercial ? COUNTRY_NOTE[exchange.slug] : 'Under re-verification — check the exchange directly'"));
 
   if (failures.length > 0) {
     console.error(`OWNER-CONFIRMED AUTHORITY SPLIT: FAIL (${failures.length}/${checks})`);
