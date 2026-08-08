@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-PL-OKX-P0-C-DEEP-RESEARCH-003",
+  "model": "ONE_BRANCH_ONE_DRAFT_PR",
+  "baseBranch": "main",
+  "taskBranch": "research/pl-okx-pl-p0-c",
+  "pullRequest": {
+    "draft": true,
+    "base": "main",
+    "head": "research/pl-okx-pl-p0-c",
+    "title": "research(pl-okx): OKX × Poland deep-research record",
+    "autoMerge": false
+  },
+  "appendOnly": true,
+  "mergeAuthorized": false,
+  "ownerGatedMerge": true
+}
