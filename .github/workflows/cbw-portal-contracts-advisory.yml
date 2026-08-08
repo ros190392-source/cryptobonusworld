@@ -119,24 +119,43 @@ jobs:
         id: contracts_test
         run: npm run portal:contracts:test
 
-      - name: Fail-closed build (enforces contract fixtures)
-        id: build
+      - name: Offer-packet resolution harness
+        id: resolution_harness
+        run: npm run portal:harness:resolution
+
+      - name: Preview build (default fail-closed CTA mode)
+        id: preview_build
         run: npm run build
 
-      - name: Bybit public-output forbidden-value audit (rendered dist)
-        id: bybit_public_audit
+      - name: Preview Bybit public-output audit
+        id: preview_bybit_audit
         run: npm run portal:audit:bybit-public
 
-      - name: Global public-offer output audit (all offer-bearing exchanges)
-        id: public_offers_audit
+      - name: Preview global public-offer audit
+        id: preview_public_offers_audit
         run: npm run portal:audit:public-offers
 
-      - name: Install Chromium for owner browser matrix
-        run: npx playwright install --with-deps chromium
+      - name: Preview Chromium owner-authority smoke
+        id: preview_browser
+        run: node scripts/portal/owner-confirmed-browser-smoke.mjs preview
 
-      - name: Owner-confirmed Chromium desktop/mobile/keyboard matrix
-        id: owner_browser_matrix
-        run: node scripts/portal/owner-confirmed-browser-matrix.mjs
+      - name: Production-simulation build
+        id: production_build
+        env:
+          PUBLIC_CBW_CTA_MODE: production
+        run: npm run build
+
+      - name: Production-simulation Bybit public-output audit
+        id: production_bybit_audit
+        run: npm run portal:audit:bybit-public
+
+      - name: Production-simulation global public-offer audit
+        id: production_public_offers_audit
+        run: npm run portal:audit:public-offers
+
+      - name: Production Chromium owner-authority smoke
+        id: production_browser
+        run: node scripts/portal/owner-confirmed-browser-smoke.mjs production
 
       - name: Advisory summary
         if: always()
@@ -146,10 +165,15 @@ jobs:
           FIXTURES: ${{ steps.fixtures.outcome }}
           GUARD: ${{ steps.test_authority_guard.outcome }}
           CONTRACTS_TEST: ${{ steps.contracts_test.outcome }}
-          BUILD: ${{ steps.build.outcome }}
-          BYBIT_PUBLIC_AUDIT: ${{ steps.bybit_public_audit.outcome }}
-          PUBLIC_OFFERS_AUDIT: ${{ steps.public_offers_audit.outcome }}
-          OWNER_BROWSER_MATRIX: ${{ steps.owner_browser_matrix.outcome }}
+          RESOLUTION_HARNESS: ${{ steps.resolution_harness.outcome }}
+          PREVIEW_BUILD: ${{ steps.preview_build.outcome }}
+          PREVIEW_BYBIT_AUDIT: ${{ steps.preview_bybit_audit.outcome }}
+          PREVIEW_PUBLIC_OFFERS_AUDIT: ${{ steps.preview_public_offers_audit.outcome }}
+          PREVIEW_BROWSER: ${{ steps.preview_browser.outcome }}
+          PRODUCTION_BUILD: ${{ steps.production_build.outcome }}
+          PRODUCTION_BYBIT_AUDIT: ${{ steps.production_bybit_audit.outcome }}
+          PRODUCTION_PUBLIC_OFFERS_AUDIT: ${{ steps.production_public_offers_audit.outcome }}
+          PRODUCTION_BROWSER: ${{ steps.production_browser.outcome }}
         run: |
           {
             echo "### Portal Contracts Advisory (non-blocking)"
@@ -161,10 +185,15 @@ jobs:
             echo "| Fail-closed fixtures | ${FIXTURES} |"
             echo "| Test-authority guard | ${GUARD} |"
             echo "| Contracts fail-closed test | ${CONTRACTS_TEST} |"
-            echo "| Fail-closed build | ${BUILD} |"
-            echo "| Bybit public-output audit | ${BYBIT_PUBLIC_AUDIT} |"
-            echo "| Global public-offer audit | ${PUBLIC_OFFERS_AUDIT} |"
-            echo "| Chromium desktop/mobile/keyboard matrix | ${OWNER_BROWSER_MATRIX} |"
+            echo "| Offer-packet resolution harness | ${RESOLUTION_HARNESS} |"
+            echo "| Preview build | ${PREVIEW_BUILD} |"
+            echo "| Preview Bybit public-output audit | ${PREVIEW_BYBIT_AUDIT} |"
+            echo "| Preview global public-offer audit | ${PREVIEW_PUBLIC_OFFERS_AUDIT} |"
+            echo "| Preview Chromium smoke | ${PREVIEW_BROWSER} |"
+            echo "| Production-simulation build | ${PRODUCTION_BUILD} |"
+            echo "| Production Bybit public-output audit | ${PRODUCTION_BYBIT_AUDIT} |"
+            echo "| Production global public-offer audit | ${PRODUCTION_PUBLIC_OFFERS_AUDIT} |"
+            echo "| Production Chromium smoke | ${PRODUCTION_BROWSER} |"
             echo ""
             echo "> **Advisory only — not a required merge gate.** This job is \`continue-on-error\`, so its"
             echo "> conclusion is non-blocking; inspect every individual step result before owner merge."
