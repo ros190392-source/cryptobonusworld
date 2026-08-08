@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "1.0.0",
+  "factoryVersion": "1.1",
+  "taskId": "CBW-PL-BYBIT-P0-B-DEEP-RESEARCH-002",
+  "project": "CryptoBonusWorld",
+  "countryCode": "PL",
+  "countryName": "Poland",
+  "exchangeId": "bybit",
+  "exchangeName": "Bybit",
+  "batchId": "PL-P0-B",
+  "priority": "P0",
+  "createdAt": "2026-08-08",
+  "handoffProtocol": "CBW_HANDOFF_ENVELOPE_V1",
+  "deliveryMode": "ONE_BRANCH_ONE_DRAFT_PR",
+  "requiredResearchInventory": [
+    "research-run.json",
+    "source-verification.json",
+    "claim-verdicts.json",
+    "conflict-resolution.json",
+    "product-availability.json",
+    "payment-rails.json",
+    "offer-eligibility-review.json",
+    "schema-normalization-notes.json",
+    "import-readiness.json",
+    "source-truth-review-report.md",
+    "MANIFEST.txt"
+  ]
+}
