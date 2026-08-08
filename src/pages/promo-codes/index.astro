@@ -146,8 +146,8 @@ const faqSchema = {
                   {view.showVerifiedBadge && <span class="promo-verified">✓ verified offer</span>}
                 </td>
                 <td data-label="Promo code" class="promo-code-cell">
-                  {view.promoCode && view.promoCodeAuthority === 'owner_confirmed'
-                    ? <div class="promo-code-confirmed"><PromoCodeCopy code={view.promoCode} exchange={exchange.name} /><small>Owner confirmed</small></div>
+                  {route.promoCode && route.promoCodeAuthority === 'owner_confirmed'
+                    ? <div class="promo-code-confirmed"><PromoCodeCopy code={route.promoCode} exchange={exchange.name} /><small>Owner confirmed</small></div>
                     : <span class="promo-code-none">Not confirmed yet</span>}
                 </td>
                 <td data-label="Offer status" class="promo-copy">{view.bonusHeadline}</td>
