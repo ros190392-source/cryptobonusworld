@@ -39,7 +39,11 @@ export interface PublicOfferView {
   statusTone: 'verified' | 'preview' | 'research' | 'review';
   /** Whether a "✓ Verified offer" badge may be shown. */
   showVerifiedBadge: boolean;
-  /** Whether an owner-confirmed affiliate CTA may be shown. Does NOT mean offer claims are verified. */
+  /**
+   * Claim/evidence commercial state retained for compatibility with older consumers.
+   * IMPORTANT: owner-confirmed LINK authority does NOT set this true. Consumers that need
+   * registration-link authority must use `linkAuthority` / `resolvePublicCommercialRoute()`.
+   */
   isCommercial: boolean;
 }
 
@@ -59,7 +63,9 @@ function applyOwnerCommercialAuthority(
     promoCode: promoConfirmed ? authority?.confirmedPromoCode ?? null : null,
     linkAuthority: linkConfirmed ? 'owner_confirmed' : 'unconfirmed',
     promoCodeAuthority: promoConfirmed ? 'owner_confirmed' : 'unconfirmed',
-    isCommercial: linkConfirmed,
+    // Do NOT overload `isCommercial` with link authority. This protects every legacy
+    // consumer that historically treated isCommercial as permission for claim-bearing copy.
+    isCommercial: view.isCommercial,
   };
 }
 
@@ -98,14 +104,15 @@ const AUTHORIZING_DISPATCHERS: Readonly<Record<string, ClaimDispatcher>> = Objec
       slug: 'bybit',
       publicState: p.publicState,
       strategy: 'bybit_claim_packet_v1',
+      // Promo code authority is overlaid independently from the owner-confirmation manifest.
       promoCode: null,
       bonusHeadline: p.headline,
       summary: p.summary,
       statusLabel: p.statusLabel,
       statusTone: p.statusTone,
       showVerifiedBadge: p.publicState === 'verified',
-      // Claim presentation may not grant link authority. #269 overlays this independently.
-      isCommercial: false,
+      // Preserve the claim-level commercial result only; #269 link authority is independent.
+      isCommercial: p.isCommercialCtaAllowed,
     };
   },
 });
@@ -139,6 +146,7 @@ export interface OfferAuthorityMatrixRow {
   slug: string;
   strategy: PublicOfferAuthorityStrategyId;
   publicState: PublicOfferView['publicState'];
+  /** Claim/evidence commercial state (NOT link authority). */
   commercial: boolean;
   linkAuthority: PublicOfferView['linkAuthority'];
   promoCodeAuthority: PublicOfferView['promoCodeAuthority'];
