@@ -1,30 +1,45 @@
 ---
 /**
- * Neutral exchange notice (Issue #264).
+ * Neutral exchange notice (Issue #264, commercial authority split #269).
  *
- * Rendered instead of the commercial promo page whenever an exchange's PUBLIC factual
- * state is not `verified`. It presents ONLY the exchange identity and a concise,
- * non-claiming re-verification notice — no promo code, bonus amount, value estimate,
- * fee discount, KYC/deposit/availability/restricted-country/reward/expiry/terms claims,
- * and no commercial (affiliate) CTA. The CTA is a plain, non-affiliate link to the
- * exchange's official site and to the local directory.
+ * Rendered whenever an exchange's PUBLIC factual offer state is not verified. It keeps
+ * factual promotion claims fail-closed while allowing the exact owner-confirmed promo code
+ * and an internal /go/<slug>/ commercial hop to remain usable independently.
  */
 import ExchangeLogo from '../ExchangeLogo.astro';
+import PromoCodeCopy from '../promo/PromoCodeCopy.astro';
 
 export interface Props {
   slug: string;
   name: string;
-  /** Neutral status label, e.g. "Under re-verification". */
   statusLabel: string;
-  /** Neutral headline, e.g. "Offer details are being re-verified". */
   headline: string;
-  /** Neutral supporting sentence. */
   detailText: string;
-  /** Exchange official site (non-affiliate, nofollow) for "check directly". */
+  /** Exchange official site (non-affiliate, nofollow) for checking current terms. */
   officialUrl: string;
+  /** Internal /go/<slug>/ hop only when an exact owner-confirmed external route exists. */
+  commercialHref?: string | null;
+  /** Claim-neutral CTA label supplied by the governed commercial-route projection. */
+  commercialCtaLabel?: string | null;
+  /** Exact owner-confirmed promo/referral code, otherwise null. */
+  promoCode?: string | null;
+  promoCodeAuthority?: 'owner_confirmed' | 'unconfirmed';
 }
 
-const { slug, name, statusLabel, headline, detailText, officialUrl } = Astro.props;
+const {
+  slug,
+  name,
+  statusLabel,
+  headline,
+  detailText,
+  officialUrl,
+  commercialHref = null,
+  commercialCtaLabel = null,
+  promoCode = null,
+  promoCodeAuthority = 'unconfirmed',
+} = Astro.props;
+
+const showConfirmedPromoCode = promoCodeAuthority === 'owner_confirmed' && Boolean(promoCode);
 ---
 
 <section class="cbw-unverified" aria-labelledby="cbw-unverified-title">
@@ -35,15 +50,53 @@ const { slug, name, statusLabel, headline, detailText, officialUrl } = Astro.pro
     <span class="cbw-unverified__status">{statusLabel}</span>
     <h1 id="cbw-unverified-title" class="cbw-unverified__title">{name}: {headline}</h1>
     <p class="cbw-unverified__detail">{detailText}</p>
+
+    {showConfirmedPromoCode && promoCode && (
+      <div class="cbw-unverified__code" aria-label={`${name} promo or referral code`}>
+        <span class="cbw-unverified__code-label">Promo/referral code</span>
+        <PromoCodeCopy code={promoCode} exchange={name} />
+        <span class="cbw-unverified__code-state">Owner confirmed</span>
+      </div>
+    )}
+
     <p class="cbw-unverified__note">
       We are re-checking this exchange's current promotion against its official source.
-      Bonus details are unavailable while re-verification is in progress. Check the exchange
-      directly for current terms.
+      Bonus amounts, eligibility, KYC/deposit requirements, expiry, country availability and
+      other offer terms remain under re-verification. A confirmed registration link or code
+      does not verify those offer terms.
     </p>
+
     <div class="cbw-unverified__actions">
-      <a class="cbw-action cbw-unverified__primary" href={officialUrl} target="_blank" rel="noopener noreferrer nofollow">
-        Visit {name} official site →
-      </a>
+      {commercialHref ? (
+        <a
+          class="cbw-action cbw-unverified__primary"
+          href={commercialHref}
+          target="_blank"
+          rel="noopener noreferrer sponsored"
+        >
+          {commercialCtaLabel || `Register on ${name}`} →
+        </a>
+      ) : (
+        <a
+          class="cbw-action cbw-unverified__primary"
+          href={officialUrl}
+          target="_blank"
+          rel="noopener noreferrer nofollow"
+        >
+          Visit {name} official site →
+        </a>
+      )}
+
+      {commercialHref && (
+        <a
+          class="cbw-unverified__secondary"
+          href={officialUrl}
+          target="_blank"
+          rel="noopener noreferrer nofollow"
+        >
+          Check current terms on {name}
+        </a>
+      )}
       <a class="cbw-unverified__secondary" href="/exchanges/">Browse the exchange directory</a>
     </div>
   </div>
@@ -51,7 +104,7 @@ const { slug, name, statusLabel, headline, detailText, officialUrl } = Astro.pro
 
 <style>
   .cbw-unverified { display: flex; justify-content: center; padding: clamp(2.5rem, 6vw, 5rem) 1.25rem; }
-  .cbw-unverified__inner { display: flex; max-width: 640px; flex-direction: column; align-items: center; gap: 1rem; text-align: center; }
+  .cbw-unverified__inner { display: flex; max-width: 680px; flex-direction: column; align-items: center; gap: 1rem; text-align: center; }
   .cbw-unverified__logo { line-height: 0; }
   .cbw-unverified__status {
     padding: 4px 12px; border: 1px solid #d9c48a; border-radius: 999px;
@@ -60,7 +113,15 @@ const { slug, name, statusLabel, headline, detailText, officialUrl } = Astro.pro
   }
   .cbw-unverified__title { margin: 0; font-family: 'Barlow Condensed', Inter, sans-serif; font-size: clamp(1.6rem, 4vw, 2.4rem); font-weight: 800; line-height: 1.1; text-wrap: balance; }
   .cbw-unverified__detail { margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--cbw-text-secondary, #47506a); }
-  .cbw-unverified__note { margin: 0; max-width: 52ch; font-size: .95rem; line-height: 1.6; color: var(--cbw-text-muted, #5c6479); }
+  .cbw-unverified__code {
+    display: grid; gap: .25rem; justify-items: center; min-width: min(100%, 290px);
+    padding: .85rem 1rem; border: 1px solid var(--cbw-border, #dfe3ea); border-radius: 12px;
+    background: var(--cbw-surface-soft, #f7f8fb);
+  }
+  .cbw-unverified__code-label { font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--cbw-text-muted, #5c6479); }
+  .cbw-unverified__code :global(.pcc-row) { width: min(100%, 300px); }
+  .cbw-unverified__code-state { font-size: 11px; font-weight: 800; color: #35684d; }
+  .cbw-unverified__note { margin: 0; max-width: 58ch; font-size: .95rem; line-height: 1.6; color: var(--cbw-text-muted, #5c6479); }
   .cbw-unverified__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: .75rem; margin-top: .5rem; }
   .cbw-unverified__primary { font-size: 14px; }
   .cbw-unverified__secondary { align-self: center; color: var(--cbw-text-secondary, #47506a); font-size: 13px; font-weight: 800; text-decoration: none; }

@@ -1,33 +1,23 @@
 #!/usr/bin/env node
 /**
- * Global public-offer output audit V2 (Issue #266 R5/R6/R13 — generalizes the Bybit-only #265
- * audit and the offers.ts-scoped #266 v1).
+ * Global public-offer output audit V3 (Issues #266 + #269).
  *
- * Deterministic, code-owned audit of GENERATED PUBLIC OUTPUT (built `dist/`). The forbidden
- * inventory is built from the COMPLETE commercial-candidate catalog in RAW exchanges.json (NOT
- * offers.ts) — every exchange whose raw record carries real commercial material — plus the
- * matching clean Offer where one exists. `/go/[exchange]` is generated from ALL of
- * exchanges.json, so legacy candidates (Gate.io / HTX / CoinEx / Phemex / Bitunix / Binance /
- * Coinbase) are now in scope; the v1 audit could not see them.
+ * #266 established a fail-closed public truth gate. #269 deliberately splits three
+ * independent authorities:
+ *   1. owner-confirmed registration LINK authority;
+ *   2. owner-confirmed promo/referral CODE authority;
+ *   3. evidence-driven OFFER-CLAIM authority.
  *
- * For each candidate it fails closed if that exchange presents an unverified commercial claim
- * as a current fact — in visible text, hrefs, attributes, embedded JSON/script, JSON-LD or
- * metadata — inside its OWN scoped context: its `data-exchange-slug="<slug>"` blocks, its
- * dedicated `/<slug>/` root status page (only the seven that have one), and its `/go/<slug>/`
- * route. Codes/hosts/headlines collide across exchanges, so nothing is banned globally.
+ * Therefore V3 no longer treats an exact confirmed code or an internal /go/<slug>/ hop as a
+ * violation. Instead it proves that only exact owner-confirmed commercial values are usable,
+ * while raw affiliate destinations never leak directly into content pages and unsupported
+ * bonus/KYC/deposit/expiry/country/terms claims remain absent.
  *
- * Three token classes (R5):
- *   A. DISTINCTIVE affiliate/referral tokens (host+path with a real path or a referral query)
- *      and raw promo/referral codes — forbidden inside an exchange's scoped public context.
- *   B. The raw commercial destination — ALWAYS forbidden inside a non-commercial /go route
- *      (enforced by the generic "no external destination in /go" check).
- *   C. A plain official-homepage root (e.g. Coinbase → https://www.coinbase.com/) — allowed as
- *      a non-affiliate "visit official site" link on a neutral content page, so it is NOT a
- *      class-A token.
+ * Review/design fixtures under /__design/ are explicitly outside PUBLIC output scope. They
+ * intentionally contain synthetic /go/demo-* contract examples and are validated by the
+ * contract suite instead; treating them as production links would create false positives.
  *
  * Usage: node scripts/portal/public-offer-output-audit.mjs [distDir]
- * `buildPublicOfferForbiddenInventory()` → per-slug inventory (async, loads offers.ts).
- * `runPublicOfferOutputAudit(distDir, inventory)` → { ok, violations, scanned }.
  */
 import { build } from 'esbuild';
 import { readFileSync, readdirSync, statSync, existsSync, mkdtempSync, rmSync } from 'node:fs';
@@ -44,14 +34,30 @@ const ROOT_STATUS_PAGES = new Set(['bybit', 'mexc', 'bitget', 'okx', 'kucoin', '
 /** Referral-style query params that make an affiliate URL distinctive even with a shallow path. */
 const REFERRAL_QUERY_KEYS = ['ref', 'rc', 'code', 'sharecode', 'referralcode', 'invite_code', 'invitecode', 'channel', 'af', 'aff', 'affiliate_id'];
 
-/** Load the raw offers array by transpiling offers.ts (type-only imports are stripped). */
-async function loadOffers() {
-  const tmp = mkdtempSync(join(tmpdir(), 'cbw-offers-'));
-  const out = join(tmp, 'offers.mjs');
+/** Load clean offers + exact owner authority through one temporary TypeScript bundle. */
+async function loadGovernedData() {
+  const tmp = mkdtempSync(join(tmpdir(), 'cbw-public-audit-'));
+  const out = join(tmp, 'governed.mjs');
   try {
-    await build({ entryPoints: [join(ROOT, 'src/data/offers.ts')], bundle: true, format: 'esm', platform: 'node', outfile: out, logLevel: 'silent' });
-    const mod = await import(pathToFileURL(out).href);
-    return mod.offers;
+    const offersPath = join(ROOT, 'src/data/offers.ts');
+    const ownerPath = join(ROOT, 'src/data/contracts/ownerConfirmedCommercialAuthority.ts');
+    await build({
+      stdin: {
+        contents:
+          `export { offers } from ${JSON.stringify(offersPath)};\n` +
+          `export { resolveOwnerConfirmedCommercialAuthority } from ${JSON.stringify(ownerPath)};\n`,
+        resolveDir: ROOT,
+        loader: 'ts',
+        sourcefile: 'public-offer-audit-entry.ts',
+      },
+      bundle: true,
+      format: 'esm',
+      platform: 'node',
+      target: 'node20',
+      outfile: out,
+      logLevel: 'silent',
+    });
+    return await import(`${pathToFileURL(out).href}?v=${Date.now()}`);
   } finally {
     rmSync(tmp, { recursive: true, force: true });
   }
@@ -60,11 +66,6 @@ async function loadOffers() {
 const isRealUrl = (u) => typeof u === 'string' && /^https?:\/\//i.test(u.trim());
 const isRealCode = (c) => typeof c === 'string' && c.trim() !== '' && c.trim() !== '#';
 
-/**
- * Classify an affiliate URL. Returns a DISTINCTIVE `host+pathname` token when the URL has a real
- * path (not just "/") or a referral query param; otherwise null (a bare official-homepage root
- * that may legitimately appear as a "visit official site" link on a neutral page).
- */
 function distinctiveAffiliateToken(u) {
   if (!isRealUrl(u)) return null;
   let url;
@@ -72,56 +73,82 @@ function distinctiveAffiliateToken(u) {
   const path = url.pathname.replace(/\/+$/, '');
   const hasPath = path !== '';
   const hasReferralQuery = [...url.searchParams.keys()].some((k) => REFERRAL_QUERY_KEYS.includes(k.toLowerCase()));
-  if (!hasPath && !hasReferralQuery) return null; // bare official root → class C, allowed
+  if (!hasPath && !hasReferralQuery) return null;
   return (url.host + url.pathname).replace(/\/+$/, '');
 }
 
-/** Non-empty, sufficiently distinctive claim strings (avoid short/generic false positives). */
 function claimStrings(...vals) {
   return vals.filter((v) => typeof v === 'string' && v.trim().length >= 10);
 }
 
+function addRealUrl(set, value) {
+  if (isRealUrl(value)) set.add(value.trim());
+}
+
 /**
- * Build the per-exchange forbidden inventory from the COMPLETE raw exchanges.json catalog, plus
- * the matching clean Offer where one exists.
+ * Build per-exchange audit inventory from raw catalog + clean offer + executable exact owner
+ * authority. The raw catalog supplies what could leak; owner authority supplies the ONLY
+ * commercial values allowed to be public.
  */
 export async function buildPublicOfferForbiddenInventory() {
-  const offers = await loadOffers();
+  const governed = await loadGovernedData();
+  const offers = governed.offers;
   const exchanges = JSON.parse(readFileSync(join(ROOT, 'src/data/exchanges.json'), 'utf8'));
   const offerBySlug = new Map(offers.map((o) => [o.exchangeSlug, o]));
   const inv = {};
+
   for (const ex of exchanges) {
     if (!ex || typeof ex.slug !== 'string') continue;
 
-    const codes = new Set();
-    if (isRealCode(ex.promoCode)) codes.add(ex.promoCode.trim());
-    for (const p of ex.promoCodes ?? []) if (p && isRealCode(p.code)) codes.add(p.code.trim());
+    const rawCodes = new Set();
+    if (isRealCode(ex.promoCode)) rawCodes.add(ex.promoCode.trim());
+    for (const p of ex.promoCodes ?? []) if (p && isRealCode(p.code)) rawCodes.add(p.code.trim());
 
-    const affiliateTokens = new Set();
-    const addAff = (u) => { const t = distinctiveAffiliateToken(u); if (t) affiliateTokens.add(t); };
-    addAff(ex.affiliateUrl);
-    addAff(ex.affiliateLinks?.default);
-    for (const g of Object.values(ex.affiliateLinks?.geo ?? {})) addAff(g);
+    const rawAffiliateUrls = new Set();
+    addRealUrl(rawAffiliateUrls, ex.affiliateUrl);
+    addRealUrl(rawAffiliateUrls, ex.affiliateLinks?.default);
+    for (const g of Object.values(ex.affiliateLinks?.geo ?? {})) addRealUrl(rawAffiliateUrls, g);
 
     const claims = new Set(claimStrings(ex.bonusTitle, ex.bonusNote, ex.realisticUserExpectation, ex.seoTitleOverride));
 
     const offer = offerBySlug.get(ex.slug);
     if (offer) {
-      addAff(offer.sourceUrl);
+      addRealUrl(rawAffiliateUrls, offer.sourceUrl);
       for (const c of claimStrings(offer.bonusHeadline, offer.realisticValue, offer.termsSummary)) claims.add(c);
-      if (isRealCode(offer.promoCode)) codes.add(offer.promoCode.trim());
+      if (isRealCode(offer.promoCode)) rawCodes.add(offer.promoCode.trim());
+    }
+
+    const authority = governed.resolveOwnerConfirmedCommercialAuthority(ex.slug);
+    const allowedCode = authority?.promoCodeConfirmed ? authority.confirmedPromoCode : null;
+    const allowedExternalUrls = new Set();
+    if (authority?.linkConfirmed) {
+      addRealUrl(allowedExternalUrls, authority.confirmedDefaultUrl);
+      for (const g of Object.values(authority.confirmedGeoUrls ?? {})) addRealUrl(allowedExternalUrls, g);
+    }
+
+    const affiliateTokens = new Set();
+    for (const u of rawAffiliateUrls) {
+      const token = distinctiveAffiliateToken(u);
+      if (token) affiliateTokens.add(token);
     }
 
     inv[ex.slug] = {
-      codes: [...codes],
+      rawCodes: [...rawCodes],
+      allowedCode,
+      forbiddenCodes: [...rawCodes].filter((c) => c !== allowedCode),
+      rawAffiliateUrls: [...rawAffiliateUrls],
+      allowedExternalUrls: [...allowedExternalUrls],
       affiliateTokens: [...affiliateTokens],
       claims: [...claims],
+      linkConfirmed: authority?.linkConfirmed === true,
+      promoCodeConfirmed: authority?.promoCodeConfirmed === true,
     };
   }
   return inv;
 }
 
 const EXCLUDED_GO_PREFIX = `go${sep}`;
+const EXCLUDED_DESIGN_PREFIX = `__design${sep}`;
 
 function walkHtml(dir) {
   const out = [];
@@ -134,7 +161,6 @@ function walkHtml(dir) {
   return out;
 }
 
-/** Extract the HTML slices tagged as a given exchange's block (bounded to the container). */
 function exchangeBlocks(html, slug) {
   const blocks = [];
   const marker = `data-exchange-slug="${slug}"`;
@@ -151,6 +177,79 @@ function exchangeBlocks(html, slug) {
   return blocks;
 }
 
+const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const codeAppearsAsToken = (slice, code) => new RegExp(`(?<![A-Za-z0-9])${escapeRe(code)}(?![A-Za-z0-9])`).test(slice);
+
+function urlAppears(slice, url) {
+  if (!url) return false;
+  const variants = new Set([
+    url,
+    url.replaceAll('&', '&amp;'),
+    url.replaceAll('&', '\\u0026'),
+    encodeURI(url),
+  ]);
+  return [...variants].some((v) => slice.includes(v));
+}
+
+/**
+ * Common content checks. Confirmed promo code is allowed; any OTHER raw code is forbidden.
+ * Raw affiliate destinations remain forbidden directly in ordinary public content even when
+ * confirmed: content CTAs must use the internal /go/<slug>/ boundary instead.
+ */
+function checkContentSlice(violations, rel, slice, slug, ctx, inventory) {
+  const inv = inventory[slug];
+
+  for (const code of inv.forbiddenCodes) {
+    if (codeAppearsAsToken(slice, code)) {
+      violations.push({ file: rel, code: `${slug.toUpperCase()}_UNCONFIRMED_CODE_IN_${ctx}`, message: `[${slug}] unconfirmed promo code "${code}" in ${ctx}.` });
+    }
+  }
+
+  for (const token of inv.affiliateTokens) {
+    if (slice.includes(token)) {
+      violations.push({ file: rel, code: `${slug.toUpperCase()}_DIRECT_AFFILIATE_IN_${ctx}`, message: `[${slug}] raw affiliate destination "${token}" leaked directly into ${ctx}; use /go/${slug}/ instead.` });
+    }
+  }
+
+  for (const claim of inv.claims) {
+    if (slice.includes(claim)) {
+      violations.push({ file: rel, code: `${slug.toUpperCase()}_CLAIM_IN_${ctx}`, message: `[${slug}] unsupported commercial claim "${String(claim).slice(0, 44)}…" in ${ctx}.` });
+    }
+  }
+}
+
+/** /go is the ONLY surface allowed to contain the exact confirmed external destination. */
+function checkGoSlice(violations, rel, html, slug, inventory) {
+  const inv = inventory[slug];
+
+  for (const code of inv.forbiddenCodes) {
+    if (codeAppearsAsToken(html, code)) {
+      violations.push({ file: rel, code: `${slug.toUpperCase()}_GO_UNCONFIRMED_CODE`, message: `[${slug}] /go contains an unconfirmed promo/referral code.` });
+    }
+  }
+  for (const claim of inv.claims) {
+    if (html.includes(claim)) {
+      violations.push({ file: rel, code: `${slug.toUpperCase()}_GO_CLAIM`, message: `[${slug}] /go contains unsupported offer claim "${String(claim).slice(0, 44)}…".` });
+    }
+  }
+
+  for (const rawUrl of inv.rawAffiliateUrls) {
+    if (!urlAppears(html, rawUrl)) continue;
+    if (!inv.allowedExternalUrls.includes(rawUrl)) {
+      violations.push({ file: rel, code: `${slug.toUpperCase()}_GO_UNCONFIRMED_EXTERNAL`, message: `[${slug}] /go contains non-confirmed commercial destination: ${rawUrl.slice(0, 72)}` });
+    }
+  }
+
+  if (inv.linkConfirmed) {
+    if (!inv.allowedExternalUrls.some((u) => urlAppears(html, u))) {
+      violations.push({ file: rel, code: `${slug.toUpperCase()}_GO_CONFIRMED_DESTINATION_MISSING`, message: `[${slug}] confirmed /go route does not contain an exact owner-confirmed destination.` });
+    }
+  } else {
+    if (/\bsponsored\b/.test(html)) violations.push({ file: rel, code: `${slug.toUpperCase()}_GO_SPONSORED_WITHOUT_AUTHORITY`, message: `[${slug}] /go emits sponsored state without confirmed link authority.` });
+    if (/cbw_affiliate_click/.test(html)) violations.push({ file: rel, code: `${slug.toUpperCase()}_GO_ANALYTICS_WITHOUT_AUTHORITY`, message: `[${slug}] /go emits affiliate analytics without confirmed link authority.` });
+  }
+}
+
 export function runPublicOfferOutputAudit(distDir, inventory) {
   const violations = [];
   if (!existsSync(distDir)) return { ok: false, scanned: 0, violations: [{ file: distDir, code: 'DIST_MISSING', message: 'dist not found — build first.' }] };
@@ -163,68 +262,64 @@ export function runPublicOfferOutputAudit(distDir, inventory) {
 
   const files = walkHtml(distDir).filter((f) => {
     const rel = relative(distDir, f);
+    if (rel.startsWith(EXCLUDED_DESIGN_PREFIX)) return false;
     return !rel.startsWith(EXCLUDED_GO_PREFIX) || goSet.has(resolve(f));
   });
-
-  // A promo/referral code counts only as a whole token — NOT as a substring of a larger word.
-  // (e.g. HTX's `cryptobonusw` is a prefix of the brand domain `cryptobonusworld.com`, and
-  // Bybit's `CRYPTOBONUSW` is a prefix of BingX's `CRYPTOBONUSWORLD`.)
-  const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const codeAppearsAsToken = (slice, code) => new RegExp(`(?<![A-Za-z0-9])${escapeRe(code)}(?![A-Za-z0-9])`).test(slice);
-
-  // exchange-scoped forbidden checks for one string set inside a given HTML slice.
-  const checkSlice = (rel, slice, slug, ctx) => {
-    const inv = inventory[slug];
-    for (const code of inv.codes) {
-      if (codeAppearsAsToken(slice, code)) violations.push({ file: rel, code: `${slug.toUpperCase()}_CODE_IN_${ctx}`, message: `[${slug}] forbidden promo code "${code}" in ${ctx}.` });
-    }
-    for (const token of inv.affiliateTokens) {
-      if (slice.includes(token)) violations.push({ file: rel, code: `${slug.toUpperCase()}_AFFILIATE_IN_${ctx}`, message: `[${slug}] affiliate destination "${token}" in ${ctx}.` });
-    }
-    for (const claim of inv.claims) {
-      if (slice.includes(claim)) violations.push({ file: rel, code: `${slug.toUpperCase()}_CLAIM_IN_${ctx}`, message: `[${slug}] forbidden commercial claim "${String(claim).slice(0, 44)}…" in ${ctx}.` });
-    }
-  };
 
   for (const f of files) {
     const rel = relative(distDir, f).replace(/\\/g, '/');
     const html = readFileSync(f, 'utf8');
     const abs = resolve(f);
 
-    // (a) exchange-tagged blocks on any shared page → that exchange's forbidden set.
+    // (a) exchange-tagged shared-page blocks: confirmed code and internal /go hop are allowed;
+    // raw direct affiliate destination and unsupported claims are not.
     for (const slug of slugs) {
-      for (const block of exchangeBlocks(html, slug)) checkSlice(rel, block, slug, 'BLOCK');
+      for (const block of exchangeBlocks(html, slug)) checkContentSlice(violations, rel, block, slug, 'BLOCK', inventory);
     }
 
-    // (b) a dedicated exchange root page is entirely that exchange's scope.
+    // (b) dedicated exchange status page: same content rule. /go is allowed ONLY when link authority exists.
     if (dedicatedSet.has(abs)) {
       const slug = dedicatedSet.get(abs);
-      checkSlice(rel, html, slug, 'PAGE');
-      if (/\/go\//.test(html)) violations.push({ file: rel, code: `${slug.toUpperCase()}_PAGE_GO_LINK`, message: `[${slug}] dedicated page emits a /go/ affiliate target.` });
-      if (/>\s*✓?\s*Verified\b/.test(html)) violations.push({ file: rel, code: `${slug.toUpperCase()}_PAGE_VERIFIED_LABEL`, message: `[${slug}] dedicated page presents a "Verified" status.` });
+      const inv = inventory[slug];
+      checkContentSlice(violations, rel, html, slug, 'PAGE', inventory);
+      if (/\/go\//.test(html) && !inv.linkConfirmed) {
+        violations.push({ file: rel, code: `${slug.toUpperCase()}_PAGE_GO_WITHOUT_AUTHORITY`, message: `[${slug}] dedicated page emits /go without confirmed link authority.` });
+      }
+      if (/>\s*✓?\s*Verified\b/.test(html)) {
+        violations.push({ file: rel, code: `${slug.toUpperCase()}_PAGE_VERIFIED_LABEL`, message: `[${slug}] dedicated page presents a Verified offer status while current claim evidence is under re-verification.` });
+      }
     }
 
-    // (c) a /go/<slug>/ route must be internal / non-commercial.
+    // (c) /go/<slug>/: exact confirmed external values are allowed; no others.
     if (goSet.has(abs)) {
       const slug = goSet.get(abs);
-      checkSlice(rel, html, slug, 'GO');
-      if (/\bsponsored\b/.test(html)) violations.push({ file: rel, code: `${slug.toUpperCase()}_GO_SPONSORED`, message: `[${slug}] /go route emits rel=sponsored while non-commercial.` });
-      if (/cbw_affiliate_click/.test(html)) violations.push({ file: rel, code: `${slug.toUpperCase()}_GO_ANALYTICS`, message: `[${slug}] /go route fires affiliate-click analytics while non-commercial.` });
-      const ext = /https?:\/\/(?!cryptobonusworld\.com)[^\s"']+/.exec(html);
-      if (ext) violations.push({ file: rel, code: `${slug.toUpperCase()}_GO_EXTERNAL`, message: `[${slug}] /go route references an external destination: ${ext[0].slice(0, 50)}` });
+      checkGoSlice(violations, rel, html, slug, inventory);
     }
   }
 
-  // Every candidate's /go route must EXIST and be audited (guard against silent skip). Dedicated
-  // root pages are only required for the seven exchanges that maintain one.
+  // Every current candidate's /go route must exist and be audited.
   for (const slug of slugs) {
-    if (ROOT_STATUS_PAGES.has(slug) && !existsSync(dedicatedPage(slug))) violations.push({ file: `${slug}/index.html`, code: `${slug.toUpperCase()}_PAGE_MISSING`, message: `Expected dedicated /${slug}/ page.` });
-    if (!existsSync(goPage(slug))) violations.push({ file: `go/${slug}/index.html`, code: `${slug.toUpperCase()}_GO_MISSING`, message: `Expected /go/${slug}/ route in audit scope.` });
+    if (ROOT_STATUS_PAGES.has(slug) && !existsSync(dedicatedPage(slug))) {
+      violations.push({ file: `${slug}/index.html`, code: `${slug.toUpperCase()}_PAGE_MISSING`, message: `Expected dedicated /${slug}/ page.` });
+    }
+    if (!existsSync(goPage(slug))) {
+      violations.push({ file: `go/${slug}/index.html`, code: `${slug.toUpperCase()}_GO_MISSING`, message: `Expected /go/${slug}/ route in audit scope.` });
+    }
   }
 
-  // Homepage must not emit /go/*.
-  const home = join(distDir, 'index.html');
-  if (existsSync(home) && /\/go\//.test(readFileSync(home, 'utf8'))) violations.push({ file: 'index.html', code: 'HOMEPAGE_GO_LINK', message: 'Homepage emits a /go/ affiliate target.' });
+  // Any internal /go link anywhere in PUBLIC HTML must target a governed slug with confirmed
+  // link authority. /__design/ fixtures were removed from `files` above and are contract-tested.
+  for (const f of files) {
+    const rel = relative(distDir, f).replace(/\\/g, '/');
+    if (rel.startsWith('go/')) continue;
+    const html = readFileSync(f, 'utf8');
+    for (const match of html.matchAll(/\/go\/([a-z0-9-]+)\/?/g)) {
+      const slug = match[1];
+      if (!inventory[slug]?.linkConfirmed) {
+        violations.push({ file: rel, code: 'UNAUTHORIZED_GO_LINK', message: `Public page emits /go/${slug}/ without exact owner-confirmed link authority.` });
+      }
+    }
+  }
 
   return { ok: violations.length === 0, scanned: files.length, violations };
 }
@@ -235,10 +330,10 @@ if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
   const { ok, scanned, violations } = runPublicOfferOutputAudit(distArg, inventory);
   const n = Object.keys(inventory).length;
   if (ok) {
-    console.log(`PASS: public-offer output audit V2 — ${scanned} HTML files scanned across ${n} commercial candidates (incl. all /go/<slug>/); no unverified commercial claim, promo code, affiliate destination, /go CTA or verified label in any candidate's public output.`);
+    console.log(`PASS: public-offer output audit V3 — ${scanned} public HTML files scanned across ${n} commercial candidates; exact owner-confirmed codes/routes allowed, direct raw affiliate leaks and unsupported offer claims absent.`);
     process.exit(0);
   }
-  console.error(`FAIL: public-offer output audit V2 (${violations.length} violation(s) across ${n} candidates):`);
+  console.error(`FAIL: public-offer output audit V3 (${violations.length} violation(s) across ${n} candidates):`);
   for (const v of violations) console.error(`  [${v.code}] ${v.file}: ${v.message}`);
   process.exit(1);
 }

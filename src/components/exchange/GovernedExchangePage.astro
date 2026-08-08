@@ -1,15 +1,12 @@
 ---
 /**
- * GovernedExchangePage (Issue #266).
+ * GovernedExchangePage (Issue #266, authority split #269).
  *
- * ONE generic governed wrapper for every dedicated exchange page. It resolves the
- * evidence-driven PublicOfferView for the exchange against an explicit render clock and
- * renders EITHER the rich commercial promo page (only when the exchange's public state is
- * commercial/verified through its authorizing strategy) OR a neutral non-commercial
- * re-verification notice. Page metadata (title / description / OG) is neutral unless the
- * exchange is commercial. No page carries bespoke gating logic — this wrapper handles all
- * six offer-bearing exchanges uniformly (Bybit included), so the truth gate can never be
- * forgotten on one page.
+ * Factual offer claims and commercial link/code authority are intentionally independent.
+ * A confirmed affiliate link MUST NOT unlock rich promo copy. The rich promo surface is
+ * rendered only when the factual offer state itself is verified; otherwise we render the
+ * neutral re-verification surface and may expose only the exact owner-confirmed promo code
+ * plus an internal /go/<slug>/ registration hop backed by #269 commercial-route authority.
  */
 import CleanLayout from '../../layouts/CleanLayout.astro';
 import ExchangePromoPageV2 from './ExchangePromoPageV2.astro';
@@ -17,6 +14,7 @@ import ExchangeUnverifiedNotice from './ExchangeUnverifiedNotice.astro';
 import '../../styles/exchange-page-standard-v1-responsive.css';
 import type { ExchangePromoPageConfig } from '../../data/exchangePages/types';
 import { resolvePublicOfferView } from '../../data/publicOfferView';
+import { resolvePublicCommercialRoute } from '../../data/publicCommercialRoute';
 import { NEUTRAL_PUBLIC_DETAIL } from '../../data/contracts/publicOfferAuthority';
 
 export interface Props {
@@ -25,11 +23,23 @@ export interface Props {
 
 const { config } = Astro.props;
 
-// ONE explicit build/render clock (R5) — the truth gate is evidence-driven, never
-// Offer.status. A non-authoritative exchange renders the neutral surface.
+// One explicit build/render clock for both projections.
 const nowMs = Date.now();
 const view = resolvePublicOfferView(config.slug, nowMs);
-const commercial = view?.isCommercial === true;
+const commercialRoute = resolvePublicCommercialRoute(config.slug, nowMs);
+
+// IMPORTANT: link authority alone never unlocks claim-bearing rich content.
+// ExchangePromoPageV2 still contains claim-bearing config fields, so it is allowed only when
+// the factual offer itself is verified AND the commercial destination is independently safe.
+const claimsVerified = view?.publicState === 'verified' && view?.showVerifiedBadge === true;
+const richPromoAllowed = claimsVerified && commercialRoute.externalAllowed === true;
+
+const confirmedPromoCode = commercialRoute.promoCodeAuthority === 'owner_confirmed'
+  ? commercialRoute.promoCode
+  : null;
+const commercialHref = commercialRoute.externalAllowed
+  ? `/go/${config.slug}/`
+  : null;
 
 const officialUrl = `https://www.${config.officialDomain}`;
 const neutralTitle = `${config.name} exchange — offer under re-verification | CryptoBonusWorld`;
@@ -37,14 +47,14 @@ const neutralDescription = `${config.name} promotion details are being re-verifi
 ---
 
 <CleanLayout
-  title={commercial ? config.pageTitle : neutralTitle}
-  description={commercial ? config.pageDescription : neutralDescription}
+  title={richPromoAllowed ? config.pageTitle : neutralTitle}
+  description={richPromoAllowed ? config.pageDescription : neutralDescription}
   canonical={config.canonicalUrl}
   ogImage={config.ogImage}
-  ogTitle={commercial ? config.ogTitle : neutralTitle}
-  ogDescription={commercial ? config.ogDescription : neutralDescription}
+  ogTitle={richPromoAllowed ? config.ogTitle : neutralTitle}
+  ogDescription={richPromoAllowed ? config.ogDescription : neutralDescription}
 >
-  {commercial ? (
+  {richPromoAllowed ? (
     <ExchangePromoPageV2 config={config} />
   ) : (
     <ExchangeUnverifiedNotice
@@ -54,6 +64,10 @@ const neutralDescription = `${config.name} promotion details are being re-verifi
       headline={view?.bonusHeadline ?? 'Offer details are being re-verified'}
       detailText={NEUTRAL_PUBLIC_DETAIL}
       officialUrl={officialUrl}
+      commercialHref={commercialHref}
+      commercialCtaLabel={commercialRoute.ctaLabel}
+      promoCode={confirmedPromoCode}
+      promoCodeAuthority={commercialRoute.promoCodeAuthority}
     />
   )}
 </CleanLayout>

@@ -1,31 +1,19 @@
 ---
 /**
- * /go/[exchange]/ — Safe Affiliate Redirect Page
+ * /go/[exchange]/ — owner-confirmed commercial redirect boundary (Issue #269).
  *
- * Static HTML redirect page for affiliate links. Handles:
- *  1. Analytics logging (cbw_affiliate_click) before redirect
- *  2. GEO-aware URL resolution (reads localStorage cbw_geo)
- *  3. Client-side redirect via window.location.replace() — no history entry
- *     (equivalent to HTTP 302 from the browser's perspective)
- *  4. <meta http-equiv="refresh"> fallback for JS-disabled environments
- *  5. <link rel="canonical"> pointing to the exchange detail page (SEO-safe)
- *
- * SEO: noindex + nofollow on all outbound links.
- *      Canonical → /exchanges/{slug}/ (exchange detail page).
- *      These pages are excluded from the sitemap.
- *
- * Note on HTTP 302: This is a static site (output: 'static'). A true
- * server-side 302 requires a server adapter or nginx rewrite rules.
- * JS location.replace() is the functional equivalent:
- *  - no browser history entry created
- *  - same user experience as server 302
- *  - affiliate programs accept JS redirects
- * If migrating to SSR, replace this page with a server endpoint that
- * returns Response.redirect(url, 302).
+ * Link/code authority is independent from offer-claim authority:
+ * - outbound navigation may use ONLY an exact destination returned by
+ *   resolvePublicCommercialRoute(), which is bound to the frozen owner-confirmation manifest;
+ * - confirmed GEO variants are projected through the same resolver before being serialized;
+ * - no subid/UTM/query/path mutation is permitted here;
+ * - analytics may observe a click but never changes the destination;
+ * - bonus/KYC/deposit/expiry/availability/terms remain neutral / under re-verification.
  */
 
 import exchanges from '../../data/exchanges.json';
-import { resolvePublicOfferView } from '../../data/publicOfferView';
+import { resolvePublicCommercialRoute } from '../../data/publicCommercialRoute';
+import { resolveOwnerConfirmedCommercialAuthority } from '../../data/contracts/ownerConfirmedCommercialAuthority';
 
 export function getStaticPaths() {
   return exchanges.map(ex => ({
@@ -35,40 +23,32 @@ export function getStaticPaths() {
 }
 
 const { exchange: ex } = Astro.props;
-
-// Issue #264 (R1) / Issue #266 (R3): the /go route is gated by the SAME evidence-driven
-// public commercial state as every other surface, against ONE explicit render clock (R5),
-// and DEFAULTS DENY. `/go/[exchange]` is generated from ALL of exchanges.json, and every
-// commercial candidate there is governed by PUBLIC_OFFER_AUTHORITY_REGISTRY — so a null /
-// unknown / non-authorizing view means NON-COMMERCIAL, never a fallthrough to the affiliate
-// URL. While non-commercial, this route must NOT serialize the affiliate destination / promo
-// code / geo links, must NOT fire affiliate-click analytics, must NOT auto-redirect
-// externally, and presents a neutral internal hop. The raw exchanges.json affiliate data is
-// never mutated.
 const nowMs = Date.now();
-const view = resolvePublicOfferView(ex.slug, nowMs);
-const commercial = view?.isCommercial === true;
+const defaultDecision = resolvePublicCommercialRoute(ex.slug, nowMs);
+const ownerAuthority = resolveOwnerConfirmedCommercialAuthority(ex.slug);
+const fallbackUrl = defaultDecision.fallbackUrl;
 
-// Guaranteed-existing safe internal fallback. Exchanges with a maintained dedicated root
-// status page (the six governed offer pages + CoinEx) go there; every other candidate goes
-// to the governed directory (/exchanges/), which always exists.
-const ROOT_STATUS_PAGES = new Set(['bybit', 'mexc', 'bitget', 'okx', 'kucoin', 'bingx', 'coinex']);
-const fallbackUrl = ROOT_STATUS_PAGES.has(ex.slug) ? `/${ex.slug}/` : '/exchanges/';
+// Project every serialized GEO destination through the exact-value route resolver.
+// Raw exchanges.json URLs are never serialized directly by this page.
+const confirmedGeoRoutes: Record<string, string> = {};
+for (const country of Object.keys(ownerAuthority?.confirmedGeoUrls ?? {})) {
+  const geoDecision = resolvePublicCommercialRoute(ex.slug, nowMs, country);
+  if (geoDecision.externalAllowed && geoDecision.destinationKind === 'confirmed_geo') {
+    confirmedGeoRoutes[country] = geoDecision.destination;
+  }
+}
 
-// Visible "Continue" href. Commercial: the default affiliate URL when a real https link
-// (the client script upgrades it to the GEO/tracked URL). Non-commercial: the safe
-// internal page — no affiliate destination is ever rendered.
-const rawDefault = ex.affiliateLinks?.default ?? ex.affiliateUrl ?? '#';
-const continueHref = commercial && /^https?:\/\//.test(rawDefault) ? rawDefault : fallbackUrl;
+const hasConfirmedGeoRoute = Object.keys(confirmedGeoRoutes).length > 0;
+const hasConfirmedExternalRoute = defaultDecision.externalAllowed || hasConfirmedGeoRoute;
+const continueHref = defaultDecision.externalAllowed ? defaultDecision.destination : fallbackUrl;
+const confirmedPromo = defaultDecision.promoCodeAuthority === 'owner_confirmed'
+  ? defaultDecision.promoCode
+  : null;
 
-// Serialise affiliate link data ONLY in the commercial branch. Non-commercial → null, so
-// no affiliate destination / code reaches the HTML or inline JS.
-const linkData = commercial
+const clientRouteData = hasConfirmedExternalRoute
   ? {
-      slug:    ex.slug,
-      name:    ex.name,
-      default: ex.affiliateLinks?.default ?? ex.affiliateUrl ?? '#',
-      geo:     ex.affiliateLinks?.geo ?? {},
+      default: defaultDecision.externalAllowed ? defaultDecision.destination : null,
+      geo: confirmedGeoRoutes,
     }
   : null;
 ---
@@ -79,17 +59,11 @@ const linkData = commercial
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Opening {ex.name} — CryptoBonusWorld</title>
-
-  <!-- SEO: noindex this redirect page; canonical → content page -->
   <meta name="robots" content="noindex, nofollow" />
   <link rel="canonical" href={ex.slug === 'bybit' ? 'https://cryptobonusworld.com/bybit/' : `https://cryptobonusworld.com/exchanges/${ex.slug}/`} />
 
-  <!--
-    Fallback meta-refresh: redirects to exchange detail page if JS fails.
-    We redirect to the detail page (not affiliate URL) so the fallback is
-    always safe regardless of URL placeholder state.
-  -->
-  <meta http-equiv="refresh" content={commercial ? `8;url=${fallbackUrl}` : `0;url=${fallbackUrl}`} />
+  <!-- JS-disabled fallback always remains internal; no unconfirmed external URL in meta refresh. -->
+  <meta http-equiv="refresh" content={`8;url=${fallbackUrl}`} />
 
   <style>
     *, *::before, *::after { box-sizing: border-box; }
@@ -105,12 +79,12 @@ const linkData = commercial
       padding: 1.25rem;
     }
     .card {
-      background: #13233E; /* header navy */
+      background: #13233E;
       border: 1px solid #27405F;
       border-radius: 16px;
       padding: 2rem 1.75rem 1.75rem;
       text-align: center;
-      max-width: 400px;
+      max-width: 440px;
       width: 100%;
     }
     .brand {
@@ -132,13 +106,19 @@ const linkData = commercial
       font-size: 1.15rem;
       font-weight: 800;
       color: #FFFFFF;
-      margin: 0 0 0.6rem;
+      margin: 0 0 0.75rem;
     }
     p {
       font-size: 0.85rem;
       color: #94A3B8;
-      margin: 0 0 0.6rem;
+      margin: 0 0 0.65rem;
       line-height: 1.55;
+    }
+    strong { color: #E2E8F0; }
+    code {
+      color: #FFFFFF;
+      font-weight: 800;
+      overflow-wrap: anywhere;
     }
     .progress {
       display: flex;
@@ -189,217 +169,166 @@ const linkData = commercial
       alt={`${ex.name} logo`}
       onerror="this.style.display='none'"
     />
-    {commercial ? (
+
+    {hasConfirmedExternalRoute ? (
       <Fragment>
         <h1>Opening {ex.name}</h1>
-        <p>You’re being redirected to the official {ex.name} registration page.</p>
-        <p>Your referral code and available bonus will be applied where supported.</p>
+        <p>Continuing to {ex.name} using an owner-confirmed registration link.</p>
+        {confirmedPromo && (
+          <p><strong>Promo/referral code:</strong> <code>{confirmedPromo}</code> — owner confirmed</p>
+        )}
+        <p><strong>Offer terms:</strong> {defaultDecision.offerTermsLabel}</p>
         <div class="progress">
           <span class="spinner" aria-hidden="true"></span>
-          <span>Redirecting securely…</span>
+          <span>Redirecting…</span>
         </div>
       </Fragment>
     ) : (
       <Fragment>
         <h1>{ex.name} — under re-verification</h1>
-        <p>This offer is being re-verified. Current promotion terms are not verified yet.</p>
-        <p>You’re being taken to the {ex.name} status page. Check the exchange directly for current terms.</p>
+        <p>No owner-confirmed external destination is available for this route.</p>
+        <p>You’re being taken to the internal {ex.name} status surface.</p>
       </Fragment>
     )}
+
     <a
       id="cbw-continue"
       href={continueHref}
       class="continue-btn"
-      rel={commercial ? 'noopener noreferrer sponsored' : 'noopener'}
+      rel={hasConfirmedExternalRoute ? 'noopener noreferrer sponsored' : 'noopener'}
     >
-      {commercial ? `Continue to ${ex.name}` : `View ${ex.name} status`}
+      {hasConfirmedExternalRoute ? `Register on ${ex.name}` : `View ${ex.name} status`}
     </a>
+
     <p class="disclaimer">
-      {commercial
-        ? 'Conditions apply. Always verify bonus terms on the official exchange website before registering.'
-        : 'This listing is under re-verification. No current bonus or referral code is published for it.'}
+      {hasConfirmedExternalRoute
+        ? 'The destination and displayed promo/referral code, when present, are owner confirmed. Bonus amounts, eligibility, KYC/deposit requirements, expiry, country availability and other offer terms are not verified by that confirmation.'
+        : 'This listing is under re-verification. No unconfirmed commercial destination is used.'}
     </p>
   </div>
 
-  <!--
-    Affiliate redirect script (COMMERCIAL branch only).
-    Runs immediately — define:vars inlines the link data so no fetch needed.
-    Reads localStorage cbw_geo (set by Analytics.astro) for GEO-aware routing.
-    Fires the affiliate-click analytics event before redirect.
-    Uses window.location.replace() — equivalent to HTTP 302 (no history entry).
-    Issue #264: NOT rendered while the exchange's public view is non-commercial — a
-    neutral internal hop (below) is used instead, with no affiliate data or analytics.
-  -->
-  {commercial && (
-  <script define:vars={{ __linkData: linkData, __exchangeSlug: ex.slug, __fallbackUrl: fallbackUrl }} is:inline>
+  {hasConfirmedExternalRoute && clientRouteData && (
+  <script define:vars={{ __routeData: clientRouteData, __exchangeSlug: ex.slug, __fallbackUrl: fallbackUrl }} is:inline>
   (function () {
     'use strict';
 
-    var PLACEHOLDER = '#';
-    var SITE_BASE   = 'https://cryptobonusworld.com';
-
-    // ── Helpers ───────────────────────────────────────────────────────────────
-    function isPlaceholder(url) {
-      return !url || url === PLACEHOLDER || url.trim() === '' || url === 'null';
-    }
-    function isValidUrl(url) {
-      try { var u = new URL(url); return u.protocol === 'https:' || u.protocol === 'http:'; }
-      catch(_) { return false; }
-    }
-
-    // ── Read visitor context ──────────────────────────────────────────────────
-    var geo = 'unknown', device = 'unknown', sid = 'unknown', abVariant = 'control', sessionPageCount = 0;
+    var geo = 'unknown', device = 'unknown', sid = 'unknown', abVariant = 'control';
     try {
-      geo    = localStorage.getItem('cbw_geo')    || 'unknown';
+      geo = (localStorage.getItem('cbw_geo') || 'unknown').trim().toLowerCase();
       device = localStorage.getItem('cbw_device') || 'unknown';
-    } catch(_) {}
-    try {
-      sid              = sessionStorage.getItem('cbw_sid')    || 'unknown';
-      sessionPageCount = parseInt(sessionStorage.getItem('cbw_pcount') || '0', 10);
-    } catch(_) {}
-    try { abVariant = localStorage.getItem('cbw_ab') || 'control'; } catch(_) {}
+    } catch (_) {}
+    try { sid = sessionStorage.getItem('cbw_sid') || 'unknown'; } catch (_) {}
+    try { abVariant = localStorage.getItem('cbw_ab') || 'control'; } catch (_) {}
 
-    // Read URL params (placement, pageType, comparePair passed from referring page)
     var searchParams = new URLSearchParams(location.search);
-    var placement    = searchParams.get('pl')   || 'go-redirect';
-    var pageType     = searchParams.get('pt')   || 'unknown';
-    var comparePair  = searchParams.get('cp')   || null;
-    var ctxRank      = searchParams.get('rank') ? parseInt(searchParams.get('rank'), 10) : null;
-    var geoOverride  = searchParams.get('geo');
-    if (geoOverride) geo = geoOverride;
+    var placement = searchParams.get('pl') || 'go-redirect';
+    var pageType = searchParams.get('pt') || 'unknown';
+    var comparePair = searchParams.get('cp') || null;
+    var ctxRank = searchParams.get('rank') ? parseInt(searchParams.get('rank'), 10) : null;
 
-    // ── Resolve affiliate URL ─────────────────────────────────────────────────
-    var resolvedUrl  = null;
-    var linkSource   = 'fallback-page';
+    // A caller may select a GEO key, but the resulting value must still come from the
+    // frozen resolver-projected map. The URL itself is never accepted from query params.
+    var geoOverride = searchParams.get('geo');
+    if (geoOverride) geo = geoOverride.trim().toLowerCase();
 
-    // 1. GEO URL
-    if (geo !== 'unknown' && __linkData.geo && __linkData.geo[geo]) {
-      var geoUrl = __linkData.geo[geo];
-      if (!isPlaceholder(geoUrl) && isValidUrl(geoUrl)) {
-        resolvedUrl = geoUrl;
-        linkSource  = 'geo';
+    var finalUrl = null;
+    var linkSource = 'fallback-page';
+    if (geo !== 'unknown' && __routeData.geo && __routeData.geo[geo]) {
+      finalUrl = __routeData.geo[geo];
+      linkSource = 'confirmed-geo';
+    } else if (__routeData.default) {
+      finalUrl = __routeData.default;
+      linkSource = 'confirmed-default';
+    }
+
+    function isValidExternal(url) {
+      try {
+        var parsed = new URL(url);
+        return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+      } catch (_) {
+        return false;
       }
     }
 
-    // 2. Default URL
-    if (!resolvedUrl && !isPlaceholder(__linkData.default) && isValidUrl(__linkData.default)) {
-      resolvedUrl = __linkData.default;
-      linkSource  = 'default';
+    if (!finalUrl || !isValidExternal(finalUrl)) {
+      try { window.location.replace(__fallbackUrl); } catch (_) {}
+      return;
     }
 
-    // 3. Safe internal fallback
-    if (!resolvedUrl) {
-      resolvedUrl = SITE_BASE + '/exchanges/' + __exchangeSlug + '/';
-      linkSource  = 'fallback-page';
-    }
-
-    // ── Build SubID and tracked URL ───────────────────────────────────────────
-    function buildSubId() {
-      var parts = ['cbw', __exchangeSlug, placement];
-      if (geo !== 'unknown')    parts.push(geo);
-      if (device !== 'unknown') parts.push(device);
-      return parts.join('_').replace(/[^a-z0-9_-]/gi, '-');
-    }
-
-    function appendTracking(url) {
-      if (linkSource === 'fallback-page') return url; // don't append to internal URLs
-      try {
-        var u = new URL(url);
-        u.searchParams.set('subid', buildSubId());
-        if (!u.searchParams.has('utm_source'))   u.searchParams.set('utm_source',   'cbw');
-        if (!u.searchParams.has('utm_medium'))   u.searchParams.set('utm_medium',   'affiliate');
-        if (!u.searchParams.has('utm_campaign')) u.searchParams.set('utm_campaign', __exchangeSlug + '-bonus');
-        return u.toString();
-      } catch(_) { return url; }
-    }
-
-    var finalUrl = appendTracking(resolvedUrl);
-
-    // ── Fire analytics ────────────────────────────────────────────────────────
+    // IMPORTANT: finalUrl is the exact confirmed value. Do not append subids, UTMs,
+    // query params, or rewrite its path here. Analytics observes the click separately.
     var clickEvent = {
-      schema_version:  1,
-      event:           'cbw_affiliate_click',
-      timestamp:       new Date().toISOString(),
-      ts:              Date.now(),
-      exchange:        __exchangeSlug,
-      placement:       placement,
-      page_type:       pageType,
-      path:            document.referrer ? new URL(document.referrer).pathname : '/',
-      geo_code:        geo,
-      device_type:     device,
-      session_id:      sid,
-      ab_variant:      abVariant,
-      link_source:     linkSource,
-      href:            finalUrl,
-      is_go_redirect:  true,
+      schema_version: 1,
+      event: 'cbw_affiliate_click',
+      timestamp: new Date().toISOString(),
+      ts: Date.now(),
+      exchange: __exchangeSlug,
+      placement: placement,
+      page_type: pageType,
+      path: document.referrer ? new URL(document.referrer).pathname : '/',
+      geo_code: geo,
+      device_type: device,
+      session_id: sid,
+      ab_variant: abVariant,
+      link_source: linkSource,
+      href: finalUrl,
+      is_go_redirect: true,
       contextual_rank: ctxRank,
-      compare_pair:    comparePair,
+      compare_pair: comparePair,
     };
 
-    // Internal event log (window.cbw may not exist here — it's set by Analytics.astro on referrer page)
     try {
       if (window.cbw && Array.isArray(window.cbw.events)) window.cbw.events.push(clickEvent);
-    } catch(_) {}
-
-    // GTM dataLayer
+    } catch (_) {}
     try {
       if (window.dataLayer && Array.isArray(window.dataLayer)) {
         window.dataLayer.push(Object.assign({ event: clickEvent.event }, clickEvent));
       }
-    } catch(_) {}
-
-    // Plausible
+    } catch (_) {}
     try {
       if (typeof window.plausible === 'function') {
         window.plausible('cbw_affiliate_click', { props: {
-          exchange:        String(clickEvent.exchange),
-          placement:       String(clickEvent.placement),
-          page_type:       String(clickEvent.page_type),
-          geo_code:        String(clickEvent.geo_code),
-          device_type:     String(clickEvent.device_type),
-          link_source:     String(clickEvent.link_source),
+          exchange: String(clickEvent.exchange),
+          placement: String(clickEvent.placement),
+          page_type: String(clickEvent.page_type),
+          geo_code: String(clickEvent.geo_code),
+          device_type: String(clickEvent.device_type),
+          link_source: String(clickEvent.link_source),
         }});
       }
-    } catch(_) {}
-
-    // Custom event (BI listeners)
+    } catch (_) {}
     try {
       document.dispatchEvent(new CustomEvent('cbw:click', { detail: clickEvent, bubbles: true }));
-    } catch(_) {}
-
-    // PostHog
+    } catch (_) {}
     try {
       if (typeof window.posthog !== 'undefined' && typeof window.posthog.capture === 'function') {
         window.posthog.capture('cbw_affiliate_click', clickEvent);
       }
-    } catch(_) {}
+    } catch (_) {}
 
-    // ─ Dev console ────────────────────────────────────────────────────────────
-    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
-      console.info('[CBW /go/] Resolved:', { slug: __exchangeSlug, linkSource, finalUrl, geo, device });
-    }
-
-    // ── Fallback button: upgrade to the fully resolved GEO/tracked URL ────────
     try {
       var btn = document.getElementById('cbw-continue');
       if (btn) btn.setAttribute('href', finalUrl);
-    } catch(_) {}
+    } catch (_) {}
 
-    // ── Redirect ──────────────────────────────────────────────────────────────
-    // Branded screen stays visible for ~1000 ms (owner spec), then this tab
-    // navigates to the resolved destination. location.replace() keeps /go/ out
-    // of browser history (302 semantics). The referring CBW page stays open in
-    // its own tab because CTAs open /go/ with target="_blank".
+    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+      console.info('[CBW /go/] Exact owner-confirmed destination:', {
+        slug: __exchangeSlug,
+        linkSource: linkSource,
+        finalUrl: finalUrl,
+        geo: geo,
+      });
+    }
+
     setTimeout(function () {
       window.location.replace(finalUrl);
     }, 1000);
-
   })();
   </script>
   )}
-  {!commercial && (
+
+  {!hasConfirmedExternalRoute && (
   <script define:vars={{ __internalUrl: fallbackUrl }} is:inline>
-    /* Issue #264: neutral internal hop — no affiliate destination, no analytics. */
     try { window.location.replace(__internalUrl); } catch (_) {}
   </script>
   )}

@@ -7,6 +7,7 @@ import PromoCodeCopy from '../../components/promo/PromoCodeCopy.astro';
 import { getFeaturedExchanges } from '../../data/exchanges';
 import { getOffer } from '../../data/offers';
 import { resolvePublicOfferView } from '../../data/publicOfferView';
+import { resolvePublicCommercialRoute } from '../../data/publicCommercialRoute';
 
 const exchanges = getFeaturedExchanges();
 
@@ -28,13 +29,17 @@ const COUNTRY_NOTE: Record<string, string> = {
   bingx: 'Available in most regions except the US — check terms',
 };
 
-// Public presentation is evidence-driven (Issue #264) against ONE explicit render clock
-// (R5): Bybit renders neutralized while under re-verification (no code, neutral bonus
-// text, no verified badge, non-commercial action); other exchanges pass through unchanged.
-// Ordering uses the PUBLIC view state, never raw Offer.status (R7).
+// Issue #269: factual offer presentation and registration-link/code authority are independent.
+// Bonus/country claims remain evidence-driven; exact owner-confirmed promo codes and registration
+// routes may stay usable while the offer terms are under re-verification.
 const nowMs = Date.now();
 const rows = exchanges
-  .map(exchange => ({ exchange, offer: getOffer(exchange.slug)!, view: resolvePublicOfferView(exchange.slug, nowMs)! }))
+  .map(exchange => ({
+    exchange,
+    offer: getOffer(exchange.slug)!,
+    view: resolvePublicOfferView(exchange.slug, nowMs)!,
+    route: resolvePublicCommercialRoute(exchange.slug, nowMs),
+  }))
   .filter(row => row.offer && row.view)
   .sort((a, b) => {
     const bucket = (v: { publicState: string }) => (v.publicState === 'verified' ? 0 : 1);
@@ -65,11 +70,11 @@ const faqs = [
   },
   {
     q: 'Are these affiliate links?',
-    a: 'Yes. Links marked “Check offer” are affiliate referral links. If you register through one, CryptoBonusWorld may earn a commission from the exchange. This does not cost you anything extra and does not change your bonus.',
+    a: 'Yes. Registration links on this page may be affiliate referral links. If you register through one, CryptoBonusWorld may earn a commission from the exchange. This does not cost you anything extra. Current bonus and eligibility terms must still be checked separately.',
   },
   {
     q: 'How often are codes checked?',
-    a: 'We track each listed code and offer against the exchange’s own promotions page. Verified offers and listings under re-verification are shown separately, and where a code is currently shown its verification state is displayed. Listings under re-verification may temporarily hide the code and offer terms until they are re-checked.',
+    a: 'Promo/referral codes shown here are the exact values confirmed by the CryptoBonusWorld owner. Bonus amounts, eligibility, KYC/deposit requirements, expiry and country availability are checked separately and may remain under re-verification.',
   },
   {
     q: 'Can a promo code expire?',
@@ -90,7 +95,7 @@ const faqSchema = {
 
 <CleanLayout
   title="Crypto Promo Codes & Referral Codes by Country | CryptoBonusWorld"
-  description="Compare tracked crypto exchange promo codes and their verification states, referral links, and sign-up bonus offers. Verified offers and listings under re-verification are shown separately; availability and terms may vary by country and account."
+  description="Compare tracked crypto exchange promo/referral codes and their verification states. Current bonus, eligibility and country terms are checked separately and may remain under re-verification."
   canonical="https://cryptobonusworld.com/promo-codes/"
 >
   <PageFrame family="directory" class="promo-directory-page">
@@ -99,11 +104,11 @@ const faqSchema = {
       container="wide"
       eyebrow="Tracked codes & verification states · country and account terms vary"
       title="Crypto Promo Codes by Exchange"
-      lede="Compare six tracked exchange codes, current offer snapshots, evidence status and regional limitations in one governed table."
+      lede="Compare six tracked exchange codes, current verification state and neutral registration links while offer terms are checked separately."
     >
       <div class="promo-context">
         <span>6 tracked exchange rows</span>
-        <span>Official-source checks</span>
+        <span>Codes owner-confirmed</span>
         <a href="/#exchanges">Compare the homepage Top 10 →</a>
       </div>
     </FirstViewport>
@@ -113,7 +118,7 @@ const faqSchema = {
         <div>
           <p class="promo-eyebrow">Current comparison</p>
           <h2>Crypto exchange promo-code ranking</h2>
-          <p>Terms vary by exchange and account. Confirm current conditions on the official exchange page before signing up.</p>
+          <p>Shown codes are owner-confirmed. Bonus, eligibility, KYC/deposit and country terms are verified separately — confirm current conditions on the exchange before signing up.</p>
         </div>
         <a href="/exchanges/">Browse exchange profiles →</a>
       </header>
@@ -125,7 +130,7 @@ const faqSchema = {
               <th>Rank</th>
               <th>Exchange</th>
               <th>Promo code</th>
-              <th>Bonus snapshot</th>
+              <th>Offer status</th>
               <th>Best for</th>
               <th>Country note</th>
               <th>Review</th>
@@ -133,27 +138,27 @@ const faqSchema = {
             </tr>
           </thead>
           <tbody>
-            {rows.map(({ exchange, view, rank }) => (
+            {rows.map(({ exchange, view, route, rank }) => (
               <tr class="promo-row" data-promo-row data-rank={rank} data-exchange-slug={exchange.slug}>
                 <td data-label="Rank"><span class="promo-rank">#{rank}</span></td>
                 <td data-label="Exchange">
                   <a href={exchange.pageUrl ?? `/${exchange.slug}/`} class="promo-exchange">{exchange.name}</a>
-                  {view.showVerifiedBadge && <span class="promo-verified">✓ verified</span>}
+                  {view.showVerifiedBadge && <span class="promo-verified">✓ verified offer</span>}
                 </td>
                 <td data-label="Promo code" class="promo-code-cell">
-                  {view.promoCode
-                    ? <PromoCodeCopy code={view.promoCode} exchange={exchange.name} />
-                    : <span class="promo-code-none">Not verified yet</span>}
+                  {route.promoCode && route.promoCodeAuthority === 'owner_confirmed'
+                    ? <div class="promo-code-confirmed"><PromoCodeCopy code={route.promoCode} exchange={exchange.name} /><small>Owner confirmed</small></div>
+                    : <span class="promo-code-none">Not confirmed yet</span>}
                 </td>
-                <td data-label="Bonus snapshot" class="promo-copy">{view.bonusHeadline}</td>
+                <td data-label="Offer status" class="promo-copy">{view.bonusHeadline}</td>
                 <td data-label="Best for" class="promo-best">{BEST_FOR[exchange.slug]}</td>
                 <td data-label="Country note" class="promo-copy">{view.isCommercial ? COUNTRY_NOTE[exchange.slug] : 'Under re-verification — check the exchange directly'}</td>
                 <td data-label="Review">
                   <a href={exchange.pageUrl ?? `/${exchange.slug}/`} class="promo-review">Read review →</a>
                 </td>
                 <td data-label="Action">
-                  {view.isCommercial
-                    ? <a href={`/go/${exchange.slug}/`} class="cbw-action promo-action" target="_blank" rel="noopener noreferrer sponsored">Check offer →</a>
+                  {route.externalAllowed
+                    ? <a href={`/go/${exchange.slug}/`} class="cbw-action promo-action" target="_blank" rel="noopener noreferrer sponsored">Register →</a>
                     : <a href={exchange.pageUrl ?? `/${exchange.slug}/`} class="cbw-action promo-action">View status →</a>}
                 </td>
               </tr>
@@ -167,8 +172,7 @@ const faqSchema = {
       <p class="promo-eyebrow">Methodology</p>
       <h2>How this promo-code list works</h2>
       <p class="promo-prose">
-        Verified offers appear ahead of records still in public-preview status. The current order also preserves the
-        existing CryptoBonusWorld catalog sequence. Affiliate status does not create a verified record or improve its position.
+        Promo/referral-code authority is separate from offer-claim authority. A code or registration link can be owner-confirmed while bonus amount, eligibility, KYC/deposit requirements, expiry and country availability remain under re-verification. Affiliate status never creates a verified offer or improves its position.
       </p>
     </Section>
 
@@ -200,8 +204,8 @@ const faqSchema = {
     <Section container="prose" spacing="compact" tone="page" class="promo-disclosure">
       <p>
         <strong>Disclosure:</strong> CryptoBonusWorld may earn a commission when you register through approved links.
-        This does not affect editorial status or the codes listed. Advertised amounts are maximums and depend on meeting
-        all exchange requirements. Verify current official terms before registering or depositing. Read the
+        This does not affect editorial or evidence status. Promo/referral-code confirmation does not verify any advertised
+        bonus amount or eligibility term. Check the exchange's current terms before registering or depositing. Read the
         <a href="/affiliate-disclosure/">affiliate disclosure</a>.
       </p>
     </Section>
@@ -241,6 +245,8 @@ const faqSchema = {
   .promo-verified { color: var(--cbw-evidence); font-size: 8px; font-weight: 900; }
   .promo-code-cell { min-width: 190px; }
   .promo-code-cell :global(.pcc-row) { max-width: 210px; height: 38px; }
+  .promo-code-confirmed { display: grid; gap: 3px; }
+  .promo-code-confirmed small { color: #35684d; font-size: 8px; font-weight: 900; letter-spacing: .04em; text-transform: uppercase; }
   .promo-copy { max-width: 190px; }
   .promo-best { min-width: 132px; color: var(--cbw-text-primary); font-weight: 800; }
   .promo-review { color: var(--cbw-text-secondary); font-weight: 800; text-decoration: none; white-space: nowrap; }

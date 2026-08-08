@@ -10,6 +10,7 @@ import Top10Disclosure from './Top10Disclosure.astro';
 import { resolveDisclosure } from '../../data/contracts/portalDisclosure';
 import { getOffer } from '../../data/offers';
 import { resolvePublicOfferView } from '../../data/publicOfferView';
+import { resolvePublicCommercialRoute } from '../../data/publicCommercialRoute';
 
 // Current published locale for the homepage. All CTA labels and microcopy are
 // sourced through the localization contract, so switching this constant
@@ -21,6 +22,19 @@ const ctaLocale: CtaLocale = 'en';
 // no hidden Date.now() inside authorization helpers, no permanent no-clock snapshot.
 const nowMs = Date.now();
 const homepageTop10 = buildHomepageTop10(nowMs);
+
+// Issue #269: commercial code values stay OUT of the claim/evidence homepage data model.
+// Resolve them independently from the exact owner-confirmed commercial projection at render
+// time. A future raw code mutation therefore disappears automatically until re-confirmed.
+const commercialPromoCodes = new Map(
+  homepageTop10.map((entry) => {
+    const route = resolvePublicCommercialRoute(entry.slug, nowMs);
+    return [
+      entry.slug,
+      route.promoCodeAuthority === 'owner_confirmed' ? route.promoCode : null,
+    ] as const;
+  }),
+);
 
 // Gated commercial CTA bindings, derived from the canonical fail-closed
 // contract. In the default 'preview' mode every primary CTA resolves to an
@@ -119,10 +133,10 @@ const disclosures = new Map(
           <div class="top10-evidence">
             <span class="top10-mobile-label">Offer or evidence status</span>
             <p class="top10-summary">{entry.summary}</p>
-            {entry.promoCode && (
+            {commercialPromoCodes.get(entry.slug) && (
               <div class="top10-code">
-                <span class="top10-code-label">Promo code</span>
-                <PromoCodeCopy code={entry.promoCode} exchange={entry.name} />
+                <span class="top10-code-label">Promo/referral code · Owner confirmed</span>
+                <PromoCodeCopy code={commercialPromoCodes.get(entry.slug)!} exchange={entry.name} />
               </div>
             )}
             {disclosures.get(entry.rank) && (
