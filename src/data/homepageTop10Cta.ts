@@ -1,18 +1,12 @@
 /**
- * Homepage Top-10 — country-aware commercial CTA binding (Split 3).
+ * Homepage Top-10 — commercial CTA binding (Split 3 / Issue #269).
  *
- * Each row is bound through resolveCountryAwareCommercialCta. Availability and
- * profile approval are decided ONLY by an approved Exchange × Country
- * MarketProfile — never by offer status. Offer status (via getOffer) is passed
- * through solely so the resolver can authorize the OFFER itself and enforce
- * offer.restrictedCountries; it can never create country availability.
- *
- * The static homepage has no country routing yet, so it uses an explicit,
- * non-country review context (PUBLIC_HOMEPAGE_COUNTRY = 'global') and the empty
- * PUBLIC_MARKET_PROFILES registry. Consequently the public homepage emits ZERO
- * `/go/*` links in BOTH preview and production simulation — fully fail-closed —
- * until real approved profiles + country routing land in a later task. There is
- * no hidden default country that could authorize a production action.
+ * Country-specific availability remains governed ONLY by an approved Exchange × Country
+ * MarketProfile. Issue #269 adds one deliberately narrower global-homepage path: in explicit
+ * production mode, an exact owner-confirmed registration destination may power a neutral
+ * `/go/<slug>` CTA even while factual offer terms and country availability are under
+ * re-verification. That CTA says only "Register"; it does NOT claim that the exchange or
+ * promotion is available in the visitor's country.
  */
 import type { HomepageTop10Entry } from './homepageTop10';
 import { getExchange } from './exchanges';
@@ -20,6 +14,8 @@ import { getOffer } from './offers';
 import type { CtaMode } from './exchangePreview/cta-contract';
 import { resolvePublicCtaMode } from './portalCtaMode';
 import {
+  assertCommercialCtaModel,
+  ctaLabels,
   type CommercialCtaModel,
   type CtaIntent,
   type CtaLocale,
@@ -31,11 +27,12 @@ import {
 } from './contracts/countryAwareCta';
 import { PUBLIC_MARKET_PROFILES } from './contracts/marketProfileRegistry';
 import type { MarketProfile } from './contracts/portalFactory';
+import { resolvePublicCommercialRoute } from './publicCommercialRoute';
 
 export interface HomepageTop10CtaBinding {
   rank: number;
   slug: string;
-  /** Gated primary CTA (commercial only when a country-aware proof exists). */
+  /** Gated primary CTA. */
   primary: CommercialCtaModel;
   /** Secondary internal transition (always a local review/status route). */
   secondaryLabel: string;
@@ -48,14 +45,9 @@ export interface HomepageCtaOptions {
   countryCode?: string;
   /** MarketProfile registry; defaults to the empty public registry. */
   marketProfiles?: readonly MarketProfile[];
-  /** Explicit clock for evidence freshness. */
+  /** Explicit clock for evidence/link authority. */
   now?: number;
-  /**
-   * TEST-ONLY override of authoritative offer evidence, keyed by slug. The
-   * public homepage NEVER passes this — real offer evidence (currently null)
-   * always flows through. It exists purely to prove the end-to-end positive
-   * path (approved profile + authoritative offer evidence) without public data.
-   */
+  /** TEST-ONLY override of authoritative offer evidence, keyed by slug. */
   offerEvidence?: Readonly<Record<string, unknown>>;
 }
 
@@ -69,16 +61,53 @@ function reviewHrefFor(slug: string): string {
 }
 
 /**
- * Choose the primary commercial intent for a row. Offer-bearing rows use a
- * commercial intent (the country-aware gate decides affiliate vs. internal);
- * rows without an offer use a non-commercial review intent.
+ * Choose the primary intent for the country-aware path. Offer-bearing rows request a
+ * commercial bonus intent; rows without a clean offer request review.
  */
 function primaryIntentFor(entry: HomepageTop10Entry): CtaIntent {
   const offer = getOffer(entry.slug);
   return offer ? 'get_bonus' : 'view_review';
 }
 
-/** Resolve the country-aware CTA binding for a single entry. */
+function registerLabel(locale: CtaLocale): string {
+  return ctaLabels.register[locale] ?? ctaLabels.register.en;
+}
+
+/**
+ * Global homepage exception introduced by #269.
+ *
+ * It is intentionally NOT a country-availability decision. It only turns a verified owner
+ * destination into a neutral registration CTA in explicit production mode. The /go route
+ * independently re-checks the exact destination before leaving CBW.
+ */
+function resolveOwnerConfirmedGlobalHomepageCta(
+  entry: HomepageTop10Entry,
+  mode: CtaMode,
+  locale: CtaLocale,
+  now: number | undefined,
+): CommercialCtaModel | null {
+  if (mode !== 'production' || !Number.isFinite(now)) return null;
+
+  const route = resolvePublicCommercialRoute(entry.slug, now as number);
+  if (!route.externalAllowed) return null;
+
+  return assertCommercialCtaModel({
+    requestedIntent: 'register',
+    resolvedIntent: 'register',
+    locale,
+    label: registerLabel(locale),
+    mode,
+    visualState: 'commercial',
+    interactionState: 'default',
+    href: `/go/${entry.slug}`,
+    isAffiliate: true,
+    disabled: false,
+    rel: 'sponsored nofollow noopener',
+    gateReason: null,
+  });
+}
+
+/** Resolve the CTA binding for a single entry. */
 export function resolveHomepageTop10Cta(
   entry: HomepageTop10Entry,
   mode: CtaMode,
@@ -86,11 +115,22 @@ export function resolveHomepageTop10Cta(
   options: HomepageCtaOptions = {},
 ): HomepageTop10CtaBinding {
   const offer = getOffer(entry.slug);
-  const primary = resolveCountryAwareCommercialCta({
+  const countryCode = options.countryCode ?? PUBLIC_HOMEPAGE_COUNTRY;
+  const marketProfiles = options.marketProfiles ?? PUBLIC_MARKET_PROFILES;
+
+  // Only the non-country GLOBAL homepage with the canonical public registry may use the
+  // owner-confirmed neutral registration path. Any explicit country context remains fully
+  // MarketProfile-gated and falls through to resolveCountryAwareCommercialCta below.
+  const ownerConfirmedGlobal =
+    countryCode === PUBLIC_HOMEPAGE_COUNTRY && marketProfiles === PUBLIC_MARKET_PROFILES
+      ? resolveOwnerConfirmedGlobalHomepageCta(entry, mode, locale, options.now)
+      : null;
+
+  const primary = ownerConfirmedGlobal ?? resolveCountryAwareCommercialCta({
     intent: primaryIntentFor(entry),
     locale,
     mode,
-    countryCode: options.countryCode ?? PUBLIC_HOMEPAGE_COUNTRY,
+    countryCode,
     exchangeId: entry.slug,
     slug: entry.slug,
     reviewHref: reviewHrefFor(entry.slug),
@@ -99,25 +139,16 @@ export function resolveHomepageTop10Cta(
           exchangeSlug: offer.exchangeSlug,
           status: offer.status,
           restrictedCountries: offer.restrictedCountries,
-          // Real machine offer evidence (null while under re-verification). The
-          // gate requires this to be authoritative + identity-bound (R1/R2). The
-          // test-only override is never supplied on the public homepage.
+          // Country-aware offer eligibility still requires authoritative machine evidence.
           evidence: options.offerEvidence && entry.slug in options.offerEvidence
             ? options.offerEvidence[entry.slug]
             : (offer.evidence ?? null),
         }
       : null,
-    marketProfiles: options.marketProfiles ?? PUBLIC_MARKET_PROFILES,
-    // No hidden Date.now() fallback (R4): a live decision needs an explicit
-    // finite clock. The public global/empty-registry context never reaches a
-    // live decision, so rendering without a clock is safe and stays fail-closed.
+    marketProfiles,
     now: options.now,
   });
 
-  // Fail-closed secondary-action contract: the destination must be a normalized
-  // internal path (never affiliate /go/*, external absolute, protocol-relative
-  // or otherwise malformed) and the label must be non-empty. The component
-  // renders THIS validated binding, never the raw entry fields.
   const secondaryHref = entry.secondaryAction.href;
   if (!isInternalPath(secondaryHref)) {
     throw new Error(`Homepage Top-10 secondary action for ${entry.slug} must be a normalized internal path (never affiliate/external/protocol-relative): ${secondaryHref}`);
@@ -136,7 +167,7 @@ export function resolveHomepageTop10Cta(
   };
 }
 
-/** Resolve country-aware CTA bindings for the whole Top-10, using the central mode. */
+/** Resolve CTA bindings for the whole Top-10, using the central mode. */
 export function resolveHomepageTop10Ctas(
   entries: HomepageTop10Entry[],
   locale: CtaLocale = 'en',
@@ -145,12 +176,30 @@ export function resolveHomepageTop10Ctas(
   const mode = resolvePublicCtaMode();
   const bindings = entries.map((entry) => resolveHomepageTop10Cta(entry, mode, locale, options));
 
-  // Fail-closed build guard: with the public (empty) registry and the
-  // non-country homepage context, NO /go/ target may appear in EITHER preview
-  // or production simulation. A leak means a country-aware invariant regressed.
   const usingPublicRegistry = (options.marketProfiles ?? PUBLIC_MARKET_PROFILES) === PUBLIC_MARKET_PROFILES;
-  if (usingPublicRegistry && bindings.some((b) => b.primary.href.startsWith('/go/'))) {
-    throw new Error('Homepage Top-10 public build must not emit any /go/ affiliate target (no approved MarketProfile registry).');
+  const countryCode = options.countryCode ?? PUBLIC_HOMEPAGE_COUNTRY;
+
+  if (usingPublicRegistry) {
+    for (const binding of bindings) {
+      if (!binding.primary.href.startsWith('/go/')) continue;
+
+      // Preview must never emit live affiliate routes.
+      if (mode !== 'production') {
+        throw new Error('Homepage Top-10 preview build must not emit any /go/ affiliate target.');
+      }
+
+      // A /go route without an explicit neutral global context would imply country
+      // availability without a MarketProfile, which #269 does not authorize.
+      if (countryCode !== PUBLIC_HOMEPAGE_COUNTRY || !Number.isFinite(options.now)) {
+        throw new Error('Homepage Top-10 owner-confirmed /go target requires the explicit global context and finite clock.');
+      }
+
+      const route = resolvePublicCommercialRoute(binding.slug, options.now as number);
+      if (!route.externalAllowed || binding.primary.href !== `/go/${binding.slug}`) {
+        throw new Error(`Homepage Top-10 /go target for ${binding.slug} lacks exact owner-confirmed link authority.`);
+      }
+    }
   }
+
   return bindings;
 }
