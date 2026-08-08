@@ -68,7 +68,8 @@ const nowMsAlt = Date.now();
 const altCards = verifiedAlternatives.map(ex => {
   const ctas = resolveAlternativeCtas(ex, ctaMode);
   const view = resolvePublicOfferView(ex.slug, nowMsAlt);
-  const commercial = view ? view.isCommercial : true;
+  // Default-deny (Issue #266 R4): a null / unknown / non-commercial view is never commercial.
+  const commercial = view?.isCommercial === true;
   return {
     ...ex,
     ...ctas,
@@ -543,8 +544,8 @@ const faqItems = [
 <!-- Verified alternatives — Editorial Card Standard v1 (semantic list) -->
 <section class="p2-section p2-alt-editorial">
   <div class="p2-inner">
-    <h2 class="p2-h2">Verified alternatives available now</h2>
-    <p class="p2-related-intro">While {e.displayName} is under review, these exchanges already have verified CryptoBonusWorld listings.</p>
+    <h2 class="p2-h2">Other exchanges to compare</h2>
+    <p class="p2-related-intro">While {e.displayName} is under review, compare other exchanges tracked on CryptoBonusWorld and their current status.</p>
     <ul class="p2-related-grid">
       {altCards.map(ex => (
         <li class="p2-rel-card" data-exchange-slug={ex.slug}>
@@ -606,7 +607,7 @@ const faqItems = [
     <p class="bh-promo-label">Referral Code</p>
     <span class="bh-status-pill">Under review — no verified code listed</span>
     <div class="bh-int-ctas">
-      <a href="/promo-codes/" class="bh-int-primary">View Verified Promo Codes</a>
+      <a href="/promo-codes/" class="bh-int-primary">Compare Promo Codes</a>
       <a href="/exchanges/" class="bh-int-secondary">Browse Exchanges</a>
     </div>
   </div>

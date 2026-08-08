@@ -3,23 +3,24 @@
  *
  * The ONE helper every shared public surface (homepage Top-10 row, /exchanges/ directory
  * card, /promo-codes/ table, related/alternative tiles, /go route, dedicated pages) uses
- * to render an offer. It is evidence-driven for EVERY offer-bearing exchange and NEVER
- * reads raw volatile `Offer` fields to grant public authority.
+ * to render an offer. It is evidence-driven for EVERY governed commercial-candidate exchange
+ * and NEVER reads raw volatile `Offer` / exchanges.json fields to grant public authority.
  *
- * Dispatch is governed by PUBLIC_OFFER_AUTHORITY_REGISTRY (#266): only a strategy backed
- * by an EXECUTABLE authorizer here may be commercial. Today only Bybit has one
- * (`bybit_claim_packet_v1`), and it currently still resolves to under_re_verification;
- * every other offer-bearing exchange has `no_authorizing_evidence` and is neutral /
- * non-commercial. Raw `Offer.status` (verified / public-preview / …) is legacy editorial
- * state and NEVER grants public authority. A bare valid `Offer.evidence` does NOT restore
- * any raw offer field — EvidenceMetadata proves identity/source/time only, not the
- * individual commercial claims.
+ * Dispatch is governed by PUBLIC_OFFER_AUTHORITY_REGISTRY (#266): a view can be commercial
+ * ONLY when the exchange's strategy is authorizing AND that strategy is backed by an EXECUTABLE
+ * dispatcher here that returns a commercial view. Today only Bybit has one
+ * (`bybit_claim_packet_v1`), and it currently still resolves to under_re_verification; every
+ * other governed candidate has `no_authorizing_evidence` and is neutral / non-commercial. Raw
+ * `Offer.status` / `verificationStatus` / `affiliateUrl` are legacy editorial state and NEVER
+ * grant public authority. A bare valid `Offer.evidence` does NOT restore any raw offer field.
+ *
+ * Default-deny (R3/R4): every path that is not an explicit commercial dispatcher result is
+ * neutral. There is NO fallback from "no view / unknown strategy / missing dispatcher" to
+ * commercial behaviour.
  */
-import { getOffer } from './offers';
 import { deriveBybitPublicOfferPresentation } from './evidence/offers/bybitPublicPresentation';
 import {
   getPublicOfferAuthority,
-  isAuthorizingStrategy,
   PUBLIC_OFFER_AUTHORITY_REGISTRY,
   NEUTRAL_PUBLIC_HEADLINE,
   NEUTRAL_PUBLIC_STATUS_LABEL,
@@ -48,7 +49,7 @@ export interface PublicOfferView {
   isCommercial: boolean;
 }
 
-/** The fail-closed neutral view every non-authoritative offer-bearing exchange gets. */
+/** The fail-closed neutral view every non-authoritative governed exchange gets. */
 function neutralView(slug: string, strategy: PublicOfferAuthorityStrategyId): PublicOfferView {
   return {
     slug,
@@ -65,22 +66,22 @@ function neutralView(slug: string, strategy: PublicOfferAuthorityStrategyId): Pu
 }
 
 /**
- * Resolve the public, render-safe view for an exchange's offer against an EXPLICIT finite
- * clock (R5). Returns null only when the slug is not a registered offer-bearing exchange
- * (e.g. a research-only / retired directory entry). A registered exchange whose strategy
- * is unknown/non-authorizing fails closed to the neutral view.
+ * Executable authorizer dispatchers (R8/R14). One entry per AUTHORIZING strategy — the ONLY
+ * place a commercial public view can be produced. A dispatcher returns a view (which may itself
+ * be non-commercial, as Bybit is today) or null to decline; a declined / missing dispatcher
+ * fails closed to the neutral view. Adding a future authorizing strategy REQUIRES adding a real
+ * dispatcher here; a data-only registry edit can never reach commercial behaviour.
  */
-export function resolvePublicOfferView(slug: string, nowMs: number): PublicOfferView | null {
-  const authority = getPublicOfferAuthority(slug);
-  if (!authority) return null; // not an offer-bearing exchange → no public offer view
+type AuthorizingDispatcher = (slug: string, nowMs: number) => PublicOfferView | null;
 
-  // bybit_claim_packet_v1 — the ONE executable authorizing strategy today.
-  if (authority.strategy === 'bybit_claim_packet_v1' && slug === 'bybit') {
+const AUTHORIZING_DISPATCHERS: Readonly<Record<string, AuthorizingDispatcher>> = Object.freeze({
+  bybit_claim_packet_v1: (slug: string, nowMs: number): PublicOfferView | null => {
+    if (slug !== 'bybit') return null; // this strategy authorizes Bybit only
     const p = deriveBybitPublicOfferPresentation(nowMs);
     return {
       slug: 'bybit',
       publicState: p.publicState,
-      strategy: authority.strategy,
+      strategy: 'bybit_claim_packet_v1',
       promoCode: p.promoCode,
       bonusHeadline: p.headline,
       summary: p.summary,
@@ -89,12 +90,37 @@ export function resolvePublicOfferView(slug: string, nowMs: number): PublicOffer
       showVerifiedBadge: p.publicState === 'verified',
       isCommercial: p.isCommercialCtaAllowed,
     };
+  },
+});
+
+/** Strategies that actually have an executable dispatcher wired (consumed by the wiring proof). */
+export const WIRED_AUTHORIZING_STRATEGIES: readonly string[] = Object.freeze(
+  Object.keys(AUTHORIZING_DISPATCHERS),
+);
+
+export function getAuthorizingDispatcher(strategy: string): AuthorizingDispatcher | null {
+  return AUTHORIZING_DISPATCHERS[strategy] ?? null;
+}
+
+/**
+ * Resolve the public, render-safe view for an exchange's offer against an EXPLICIT finite
+ * clock (R5). Returns null only when the slug is not a governed commercial-candidate exchange
+ * (e.g. a research-only / retired directory entry with no commercial material). Every governed
+ * candidate resolves to a non-null view; a non-authorizing or unwired strategy fails closed to
+ * neutral (R3/R4/R7).
+ */
+export function resolvePublicOfferView(slug: string, nowMs: number): PublicOfferView | null {
+  const authority = getPublicOfferAuthority(slug);
+  if (!authority) return null; // not a governed commercial candidate → no public offer view
+
+  const dispatch = getAuthorizingDispatcher(authority.strategy);
+  if (dispatch) {
+    const view = dispatch(slug, nowMs);
+    if (view) return view; // the ONLY route to a (possibly) commercial view
   }
 
-  // Any other strategy — including an authorizing strategy id that lacks a wired executable
-  // authorizer here (defensive), and every `no_authorizing_evidence` exchange — fails
-  // closed to neutral. A data-only strategy flip can never make an exchange commercial.
-  void isAuthorizingStrategy; // documents the contract: commercial requires an authorizer above
+  // Non-authorizing strategy, or an authorizing strategy whose dispatcher is missing/declined —
+  // fail closed. A data-only strategy flip can never make an exchange commercial.
   return neutralView(slug, authority.strategy);
 }
 
@@ -107,12 +133,12 @@ export interface OfferAuthorityMatrixRow {
 
 /**
  * Deterministic current-state authority matrix (R13): the governing strategy, public state
- * and commercial flag for every registered offer-bearing exchange, at an explicit clock.
+ * and commercial flag for every governed commercial-candidate exchange, at an explicit clock.
  */
 export function resolvePublicOfferAuthorityMatrix(nowMs: number): OfferAuthorityMatrixRow[] {
   return PUBLIC_OFFER_AUTHORITY_REGISTRY.map((e) => {
     const view = resolvePublicOfferView(e.slug, nowMs);
-    // A registered offer with no view would be a contract break; fail closed to neutral.
+    // A registered candidate with no view would be a contract break; fail closed to neutral.
     const v = view ?? neutralView(e.slug, e.strategy);
     return { slug: e.slug, strategy: v.strategy, publicState: v.publicState, commercial: v.isCommercial };
   });

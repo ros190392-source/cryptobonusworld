@@ -20,7 +20,8 @@ const bonusMaxFmt = c.bonusMax.toLocaleString('en-US');
 const nowMs = Date.now();
 const relatedTiles = c.relatedExchanges.map((exchange) => {
   const view = resolvePublicOfferView(exchange.slug, nowMs);
-  const neutralize = view ? !view.isCommercial : false;
+  // Default-deny (Issue #266 R4): a null / unknown / non-commercial view neutralizes the tile.
+  const neutralize = view?.isCommercial !== true;
   return {
     ...exchange,
     bonus: neutralize ? 'Offer under re-verification' : exchange.bonus,

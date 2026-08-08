@@ -17,7 +17,10 @@ const reviewUrl = ex.pageUrl ?? `/exchanges/${ex.slug}/`;
 // is neutralized while under re-verification; other exchanges pass through unchanged.
 // Never render raw offer fields.
 const nowMs = Date.now();
-const view = offer ? resolvePublicOfferView(offer.exchangeSlug, nowMs) : null;
+// Issue #266 (R7/R9): resolve the governed view by the exchange slug directly (not gated on a
+// clean offers.ts record), so legacy commercial candidates render the honest neutral
+// "under re-verification" status instead of a blank card. Non-candidates → null → neutral.
+const view = resolvePublicOfferView(ex.slug, nowMs);
 ---
 
 <article class="cbw-card exchange-directory-card" data-exchange-slug={ex.slug}>
