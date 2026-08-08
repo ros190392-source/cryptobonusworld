@@ -2,15 +2,12 @@
 /**
  * PromoCodeCopy — canonical promo-code field + Copy button.
  *
- * Cloned from the approved review-page hero promo row
- * (`.bh-promo-row` in ExchangePromoPage.astro / bybit / mexc inline copies):
- * same shape, colors, typography, hover and copied-state behavior.
- * The review pages keep their own inline implementation (they are the
- * design source of truth and are not touched); every other surface
- * (homepage cards, /exchanges/ cards, /promo-codes/ table, GEO finder)
- * renders this component.
+ * The visual treatment follows the approved review-page promo row, but the code
+ * value itself is case-preserving. Referral/promo codes may be case-sensitive,
+ * so the visible text, accessible label, data-code value and clipboard value
+ * must all represent the exact supplied owner-confirmed string.
  *
- * The code value must always come from the existing offer/exchange data —
+ * The code value must always come from the governed offer/commercial projection —
  * never hardcode codes here or at call sites.
  */
 interface Props {
@@ -29,8 +26,6 @@ const aria = exchange ? `Copy promo code ${code} for ${exchange}` : `Copy promo 
 
 <script>
   // Delegated once per page (Astro dedupes this module across instances).
-  // Behavior mirrors the review-page hero copy button exactly:
-  // 'Copied ✓' + green success state on row/code/button for 1800 ms.
   document.addEventListener('click', async (e) => {
     const btn = (e.target as Element).closest<HTMLButtonElement>('.pcc-copy');
     if (!btn) return;
@@ -62,7 +57,6 @@ const aria = exchange ? `Copy promo code ${code} for ${exchange}` : `Copy promo 
 </script>
 
 <style>
-  /* Byte-for-byte visual clone of .bh-promo-row / .bh-promo-code / .bh-copy-btn */
   .pcc-row {
     width: 100%; max-width: 298px;
     display: flex; align-items: stretch;
@@ -78,7 +72,7 @@ const aria = exchange ? `Copy promo code ${code} for ${exchange}` : `Copy promo 
     flex: 1; display: flex; align-items: center; padding: 0 14px;
     font-family: "Arial Narrow", "Roboto Condensed", "Inter Tight", Inter, system-ui, sans-serif;
     font-size: 20px; font-weight: 800; letter-spacing: 0.01em; font-stretch: condensed;
-    text-transform: uppercase; color: #111827; -webkit-text-fill-color: #111827;
+    text-transform: none; color: #111827; -webkit-text-fill-color: #111827;
     min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
     transition: color .18s;
     background: #ffffff; background-image: linear-gradient(#ffffff 0 0);
