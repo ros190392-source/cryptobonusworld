@@ -55,7 +55,7 @@ export const OWNER_CONFIRMED_COMMERCIAL_MANIFEST: readonly ConfirmedEntry[] = Ob
   Object.freeze({ slug: 'coinbase', affiliateUrl: 'https://www.coinbase.com/', defaultUrl: 'https://www.coinbase.com/', geo: Object.freeze({}), promoCode: null }),
 ]);
 
-type RawExchange = {
+export type OwnerCommercialRawExchange = {
   slug?: unknown;
   affiliateUrl?: unknown;
   affiliateLinks?: { default?: unknown; geo?: Record<string, unknown> } | null;
@@ -78,7 +78,7 @@ function isRealUrl(value: unknown): value is string {
   return typeof value === 'string' && /^https?:\/\//i.test(value.trim());
 }
 
-function realPromoCodes(raw: RawExchange): string[] {
+function realPromoCodes(raw: OwnerCommercialRawExchange): string[] {
   const values: string[] = [];
   if (typeof raw.promoCode === 'string' && raw.promoCode.trim()) values.push(raw.promoCode);
   if (Array.isArray(raw.promoCodes)) {
@@ -90,7 +90,7 @@ function realPromoCodes(raw: RawExchange): string[] {
   return [...new Set(values)];
 }
 
-function realGeo(raw: RawExchange): Record<string, string> {
+function realGeo(raw: OwnerCommercialRawExchange): Record<string, string> {
   const out: Record<string, string> = {};
   for (const [key, value] of Object.entries(raw.affiliateLinks?.geo ?? {})) {
     if (isRealUrl(value)) out[key] = value;
@@ -104,8 +104,8 @@ function sameStringRecord(a: Readonly<Record<string, string>>, b: Readonly<Recor
   return ak.length === bk.length && ak.every((key, index) => key === bk[index] && a[key] === b[key]);
 }
 
-function rawBySlug(slug: string): RawExchange | null {
-  const rows = exchanges as RawExchange[];
+function rawBySlug(slug: string): OwnerCommercialRawExchange | null {
+  const rows = exchanges as OwnerCommercialRawExchange[];
   return rows.find((row) => row?.slug === slug) ?? null;
 }
 
@@ -114,12 +114,14 @@ export function getOwnerConfirmedManifestEntry(slug: string): ConfirmedEntry | n
 }
 
 /**
- * Resolve link/code authority against CURRENT raw data. This is deliberately a
- * runtime exact-value comparison rather than a slug allow-list.
+ * Pure exact-value resolver for validation and mutation tests. It accepts a caller-supplied
+ * raw record but still uses the immutable owner-confirmed manifest as the only authority.
  */
-export function resolveOwnerConfirmedCommercialAuthority(slug: string): OwnerConfirmedCommercialAuthority | null {
+export function resolveOwnerConfirmedCommercialAuthorityForRaw(
+  slug: string,
+  raw: OwnerCommercialRawExchange | null,
+): OwnerConfirmedCommercialAuthority | null {
   const expected = getOwnerConfirmedManifestEntry(slug);
-  const raw = rawBySlug(slug);
   if (!expected || !raw) return null;
 
   const currentAffiliateUrl = isRealUrl(raw.affiliateUrl) ? raw.affiliateUrl : null;
@@ -146,6 +148,11 @@ export function resolveOwnerConfirmedCommercialAuthority(slug: string): OwnerCon
     promoCodeConfirmed,
     confirmedPromoCode: promoCodeConfirmed ? expected.promoCode : null,
   });
+}
+
+/** Resolve link/code authority against CURRENT repository raw data. */
+export function resolveOwnerConfirmedCommercialAuthority(slug: string): OwnerConfirmedCommercialAuthority | null {
+  return resolveOwnerConfirmedCommercialAuthorityForRaw(slug, rawBySlug(slug));
 }
 
 /** Exact current confirmed destination for a country code, falling back to default. */
