@@ -67,9 +67,11 @@ try {
 
     check(`${slug}: raw record exists`, Boolean(raw));
     check(`${slug}: exact current link is owner-confirmed`, authority?.linkConfirmed === true);
-    check(`${slug}: exact current public view exposes owner-confirmed link authority`, view?.linkAuthority === 'owner_confirmed');
+    check(`${slug}: claim view exposes owner-confirmed link authority flag only`, view?.linkAuthority === 'owner_confirmed');
     check(`${slug}: link authority does not verify factual offer state`, view?.publicState === 'under_re_verification');
     check(`${slug}: link authority does not flip legacy claim-commercial flag`, view?.isCommercial === false);
+    check(`${slug}: claim view carries no owner promo value`, view?.promoCode === null);
+    check(`${slug}: claim view may expose owner promo authority flag without the value`, view?.promoCodeAuthority === 'owner_confirmed');
     check(`${slug}: no verified-offer badge from link/code authority`, view?.showVerifiedBadge === false);
     check(`${slug}: external route is allowed only through confirmed resolver`, route?.externalAllowed === true);
     check(`${slug}: route destination equals exact confirmed default`, route?.destination === authority?.confirmedDefaultUrl);
@@ -77,10 +79,10 @@ try {
     check(`${slug}: route terms remain under re-verification`, /re-verification/i.test(route?.offerTermsLabel ?? ''));
 
     if (slug === 'coinbase') {
-      check('coinbase: empty promo code remains absent', authority?.promoCodeConfirmed === true && authority?.confirmedPromoCode === null && view?.promoCode === null);
+      check('coinbase: empty promo code remains absent everywhere', authority?.promoCodeConfirmed === true && authority?.confirmedPromoCode === null && route?.promoCodeAuthority === 'owner_confirmed' && route?.promoCode === null && view?.promoCode === null);
     } else {
       check(`${slug}: exact current promo code is owner-confirmed`, authority?.promoCodeConfirmed === true && typeof authority?.confirmedPromoCode === 'string' && authority.confirmedPromoCode.length > 0);
-      check(`${slug}: public view exposes only confirmed promo code`, view?.promoCodeAuthority === 'owner_confirmed' && view?.promoCode === authority?.confirmedPromoCode);
+      check(`${slug}: commercial projection exposes exact confirmed promo code`, route?.promoCodeAuthority === 'owner_confirmed' && route?.promoCode === authority?.confirmedPromoCode);
     }
 
     if (raw) {
@@ -113,24 +115,30 @@ try {
 
   // Homepage product policy: exact owner-confirmed links remain usable in explicit production
   // global context, but neither preview nor an explicit country may bypass their existing gates.
+  // Commercial CODE values must stay out of the homepage data model and be resolved separately.
   const top10 = m.buildHomepageTop10(NOW);
   check('homepage model still contains exactly 10 rows', top10.length === 10);
   for (const entry of top10) {
     const productionGlobal = m.resolveHomepageTop10Cta(entry, 'production', 'en', { now: NOW });
     const previewGlobal = m.resolveHomepageTop10Cta(entry, 'preview', 'en', { now: NOW });
     const productionPoland = m.resolveHomepageTop10Cta(entry, 'production', 'en', { now: NOW, countryCode: 'PL' });
+    const route = m.resolvePublicCommercialRoute(entry.slug, NOW);
 
+    check(`${entry.slug}: homepage data model carries no commercial code`, !entry.promoCode);
     check(`${entry.slug}: production global homepage uses owner-confirmed /go route`, productionGlobal.primary.href === `/go/${entry.slug}` && productionGlobal.primary.isAffiliate === true);
     check(`${entry.slug}: production global label is neutral Register`, productionGlobal.primary.label === 'Register' && !/bonus|claim|reward|verified/i.test(productionGlobal.primary.label));
     check(`${entry.slug}: preview global homepage never emits /go`, !previewGlobal.primary.href.startsWith('/go/') && previewGlobal.primary.isAffiliate === false);
     check(`${entry.slug}: explicit country stays MarketProfile-gated`, !productionPoland.primary.href.startsWith('/go/') && productionPoland.primary.isAffiliate === false);
+    if (route.promoCodeAuthority === 'owner_confirmed' && route.promoCode) {
+      check(`${entry.slug}: homepage-visible code can be resolved only from commercial projection`, route.promoCode.length > 0);
+    }
   }
 
-  // Source-level guards for the UI boundaries that previously conflated public-commercial
-  // claim state with registration-link authority.
+  // Source-level guards for UI boundaries that previously conflated claim state with commercial authority.
   const governedSource = readFileSync(join(ROOT, 'src/components/exchange/GovernedExchangePage.astro'), 'utf8');
   check('governed page gates rich promo on verified factual state', /claimsVerified\s*=\s*view\?\.publicState\s*===\s*['"]verified['"]/.test(governedSource));
   check('governed page also requires independently safe commercial route', /richPromoAllowed\s*=\s*claimsVerified\s*&&\s*commercialRoute\.externalAllowed\s*===\s*true/.test(governedSource));
+  check('governed page sources confirmed code from commercial route', governedSource.includes("commercialRoute.promoCodeAuthority === 'owner_confirmed'") && governedSource.includes('commercialRoute.promoCode'));
   check('governed page no longer equates isCommercial with rich claims', !/const\s+commercial\s*=\s*view\?\.isCommercial\s*===\s*true/.test(governedSource));
 
   const neutralSource = readFileSync(join(ROOT, 'src/components/exchange/ExchangeUnverifiedNotice.astro'), 'utf8');
@@ -143,12 +151,12 @@ try {
 
   const directorySource = readFileSync(join(ROOT, 'src/components/site-standard/ExchangeDirectoryCard.astro'), 'utf8');
   check('directory card resolves commercial route independently', directorySource.includes('resolvePublicCommercialRoute') && directorySource.includes('commercialRoute.externalAllowed'));
+  check('directory card sources confirmed code from commercial route', directorySource.includes("commercialRoute.promoCodeAuthority === 'owner_confirmed'") && directorySource.includes('commercialRoute.promoCode'));
   check('directory card uses internal go hop instead of raw affiliate URL', directorySource.includes('href={`/go/${ex.slug}/`}') && !directorySource.includes('href={ex.affiliateUrl}'));
   check('directory card keeps verified badge evidence-gated', directorySource.includes('view?.showVerifiedBadge'));
 
   const promoSource = readFileSync(join(ROOT, 'src/pages/promo-codes/index.astro'), 'utf8');
   check('promo directory resolves exact commercial route separately', promoSource.includes('resolvePublicCommercialRoute') && promoSource.includes('route.externalAllowed'));
-  check('promo directory labels confirmed code independently', promoSource.includes("view.promoCodeAuthority === 'owner_confirmed'") && promoSource.includes('Owner confirmed'));
   check('promo directory uses internal go hop and neutral Register CTA', promoSource.includes('href={`/go/${exchange.slug}/`}') && promoSource.includes('>Register →</a>'));
   check('promo directory keeps country claim neutral while claim-commercial state is false', promoSource.includes("view.isCommercial ? COUNTRY_NOTE[exchange.slug] : 'Under re-verification — check the exchange directly'"));
 
