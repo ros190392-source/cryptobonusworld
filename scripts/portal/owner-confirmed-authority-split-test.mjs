@@ -148,6 +148,9 @@ try {
 
   const homepageSource = readFileSync(join(ROOT, 'src/components/home/HomepageTop10.astro'), 'utf8');
   check('homepage disclosure still treats isCommercial as claim/evidence authority, not link authority', homepageSource.includes('const officialHref = view?.isCommercial ? offer?.sourceUrl : undefined'));
+  check('homepage resolves owner-confirmed codes through commercial route', homepageSource.includes('resolvePublicCommercialRoute') && homepageSource.includes('commercialPromoCodes'));
+  check('homepage renders commercial code map rather than claim-model promoCode', homepageSource.includes('commercialPromoCodes.get(entry.slug)') && !homepageSource.includes('PromoCodeCopy code={entry.promoCode}'));
+  check('homepage visibly labels commercial code as owner confirmed', homepageSource.includes('Promo/referral code · Owner confirmed'));
 
   const directorySource = readFileSync(join(ROOT, 'src/components/site-standard/ExchangeDirectoryCard.astro'), 'utf8');
   check('directory card resolves commercial route independently', directorySource.includes('resolvePublicCommercialRoute') && directorySource.includes('commercialRoute.externalAllowed'));
@@ -157,6 +160,8 @@ try {
 
   const promoSource = readFileSync(join(ROOT, 'src/pages/promo-codes/index.astro'), 'utf8');
   check('promo directory resolves exact commercial route separately', promoSource.includes('resolvePublicCommercialRoute') && promoSource.includes('route.externalAllowed'));
+  check('promo directory sources owner-confirmed code from commercial route', promoSource.includes("route.promoCodeAuthority === 'owner_confirmed'") && promoSource.includes('route.promoCode'));
+  check('promo directory never sources owner commercial code from claim view', !promoSource.includes('view.promoCode &&') && !promoSource.includes('PromoCodeCopy code={view.promoCode}'));
   check('promo directory uses internal go hop and neutral Register CTA', promoSource.includes('href={`/go/${exchange.slug}/`}') && promoSource.includes('>Register →</a>'));
   check('promo directory keeps country claim neutral while claim-commercial state is false', promoSource.includes("view.isCommercial ? COUNTRY_NOTE[exchange.slug] : 'Under re-verification — check the exchange directly'"));
 
