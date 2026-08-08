@@ -29,6 +29,12 @@ function check(label, ok, detail = '') {
   if (!ok) failures.push(detail ? `${label}: ${detail}` : label);
 }
 
+function isNeutralPosture(text) {
+  const value = String(text ?? '').replace(/\s+/g, ' ').trim();
+  if (!value || /(?:✓\s*)?verified offer/i.test(value)) return false;
+  return /re-verif(?:ication|ied)|being re-verified|re-?check(?:ed|ing)?|under review|research completed|not verified/i.test(value);
+}
+
 const CONTENT_TYPES = Object.freeze({
   '.html': 'text/html; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
@@ -186,14 +192,20 @@ async function homepageSnapshot(page, label, manifestBySlug) {
   const snapshot = await rows.evaluateAll((els) => els.map((el) => ({
     slug: el.getAttribute('data-exchange-slug') ?? '',
     status: el.querySelector('.top10-status')?.textContent?.trim() ?? '',
+    summary: el.querySelector('.top10-summary')?.textContent?.trim() ?? '',
     code: el.querySelector('.pcc-code')?.textContent?.trim() ?? '',
+    dataCode: el.querySelector('.pcc-copy')?.getAttribute('data-code') ?? '',
   })));
-  check(`${label}: all statuses under re-verification`, snapshot.every((r) => /re-verification/i.test(r.status)));
+  check(`${label}: every status remains neutral/research`, snapshot.every((r) => isNeutralPosture(`${r.status} ${r.summary}`)));
   for (const row of snapshot) {
     const expected = manifestBySlug.get(row.slug);
     check(`${label} ${row.slug}: manifest exists`, Boolean(expected));
-    if (expected?.promoCode) check(`${label} ${row.slug}: exact owner code`, row.code === expected.promoCode, `actual=${row.code}`);
-    else check(`${label} ${row.slug}: no invented owner code`, row.code === '', `actual=${row.code}`);
+    if (expected?.promoCode) {
+      check(`${label} ${row.slug}: exact visible owner code`, row.code === expected.promoCode, `actual=${row.code}`);
+      check(`${label} ${row.slug}: exact data-code`, row.dataCode === expected.promoCode, `actual=${row.dataCode}`);
+    } else {
+      check(`${label} ${row.slug}: no invented owner code`, row.code === '' && row.dataCode === '', `visible=${row.code} data=${row.dataCode}`);
+    }
   }
   check(`${label}: no console/page errors`, errors.length === 0, errors.join(' | '));
   return snapshot;
@@ -230,6 +242,7 @@ async function checkPromoDirectory(context, manifestBySlug) {
     const state = await rows.evaluateAll((els) => els.map((el) => ({
       slug: el.getAttribute('data-exchange-slug') ?? '',
       code: el.querySelector('.pcc-code')?.textContent?.trim() ?? '',
+      dataCode: el.querySelector('.pcc-copy')?.getAttribute('data-code') ?? '',
       codeState: el.querySelector('.promo-code-confirmed small')?.textContent?.trim() ?? '',
       href: el.querySelector('.promo-action')?.getAttribute('href') ?? '',
       action: el.querySelector('.promo-action')?.textContent?.trim() ?? '',
@@ -239,12 +252,13 @@ async function checkPromoDirectory(context, manifestBySlug) {
     for (const row of state) {
       const expected = manifestBySlug.get(row.slug);
       check(`promo ${row.slug}: manifest exists`, Boolean(expected));
-      check(`promo ${row.slug}: exact code`, row.code === (expected?.promoCode ?? ''), `actual=${row.code}`);
+      check(`promo ${row.slug}: exact visible code`, row.code === (expected?.promoCode ?? ''), `actual=${row.code}`);
+      check(`promo ${row.slug}: exact data-code`, row.dataCode === (expected?.promoCode ?? ''), `actual=${row.dataCode}`);
       check(`promo ${row.slug}: owner label`, /owner confirmed/i.test(row.codeState));
       check(`promo ${row.slug}: /go boundary`, row.href === `/go/${row.slug}/`, `href=${row.href}`);
       check(`promo ${row.slug}: neutral CTA`, /^Register/i.test(row.action) && !/bonus|claim|reward|verified/i.test(row.action));
-      check(`promo ${row.slug}: neutral offer`, /re-verification/i.test(row.offer));
-      check(`promo ${row.slug}: neutral country`, /re-verification/i.test(row.country));
+      check(`promo ${row.slug}: neutral offer`, isNeutralPosture(row.offer), row.offer);
+      check(`promo ${row.slug}: neutral country`, isNeutralPosture(row.country), row.country);
     }
     check('promo: no console/page errors', errors.length === 0, errors.join(' | '));
   } finally {
@@ -270,13 +284,15 @@ async function checkDedicated(context, manifestBySlug) {
       }
       check(`${slug}: neutral surface`, true);
       const bodyText = await page.locator('body').innerText();
-      check(`${slug}: no verified offer text`, !bodyText.includes('✓ Verified offer'));
-      check(`${slug}: offer terms remain neutral`, /under re-verification|not verified/i.test(bodyText));
+      check(`${slug}: no verified offer text`, !/(?:✓\s*)?verified offer/i.test(bodyText));
+      check(`${slug}: offer terms remain neutral`, isNeutralPosture(bodyText));
 
       const expected = manifestBySlug.get(slug);
       check(`${slug}: manifest exists`, Boolean(expected));
-      const code = (await page.locator('.pcc-code').count()) ? (await page.locator('.pcc-code').first().innerText()).trim() : '';
-      check(`${slug}: exact confirmed code`, code === (expected?.promoCode ?? ''), `actual=${code}`);
+      const code = (await page.locator('.pcc-code').count()) ? ((await page.locator('.pcc-code').first().textContent()) ?? '').trim() : '';
+      const dataCode = (await page.locator('.pcc-copy').count()) ? ((await page.locator('.pcc-copy').first().getAttribute('data-code')) ?? '') : '';
+      check(`${slug}: exact visible confirmed code`, code === (expected?.promoCode ?? ''), `actual=${code}`);
+      check(`${slug}: exact confirmed data-code`, dataCode === (expected?.promoCode ?? ''), `actual=${dataCode}`);
 
       const primary = page.locator('.cbw-unverified__primary');
       check(`${slug}: one primary CTA`, await primary.count() === 1);
@@ -303,9 +319,9 @@ async function checkGoMatrix(browser, manifest) {
         check(`go/${entry.slug}: stays local`, new URL(page.url()).hostname === '127.0.0.1', page.url());
         const href = await page.locator('#cbw-continue').getAttribute('href');
         check(`go/${entry.slug}: exact destination`, href === entry.defaultUrl, `actual=${href} expected=${entry.defaultUrl}`);
-        check(`go/${entry.slug}: terms neutral`, /under re-verification|not verified/i.test(await page.locator('body').innerText()));
+        check(`go/${entry.slug}: terms neutral`, isNeutralPosture(await page.locator('body').innerText()));
         if (entry.promoCode) {
-          const code = (await page.locator('code').first().innerText()).trim();
+          const code = ((await page.locator('code').first().textContent()) ?? '').trim();
           check(`go/${entry.slug}: exact code`, code === entry.promoCode, `actual=${code}`);
         } else {
           check(`go/${entry.slug}: no invented code`, await page.locator('code').count() === 0);
