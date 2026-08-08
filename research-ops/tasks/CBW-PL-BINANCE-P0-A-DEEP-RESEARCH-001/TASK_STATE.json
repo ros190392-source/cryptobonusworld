@@ -7,7 +7,7 @@
   "exchangeId": "binance",
   "batchId": "PL-P0-A",
   "priority": "P0",
-  "state": "VALIDATED",
+  "state": "OWNER_CLOSEOUT_REQUIRED",
   "createdAt": "2026-08-08",
   "stages": {
     "00-contract": "PRESENT",
@@ -71,6 +71,10 @@
     },
     {
       "state": "VALIDATED",
+      "at": "2026-08-08"
+    },
+    {
+      "state": "OWNER_CLOSEOUT_REQUIRED",
       "at": "2026-08-08"
     }
   ]
