@@ -34,8 +34,8 @@ const commercialRoute = resolvePublicCommercialRoute(config.slug, nowMs);
 const claimsVerified = view?.publicState === 'verified' && view?.showVerifiedBadge === true;
 const richPromoAllowed = claimsVerified && commercialRoute.externalAllowed === true;
 
-const confirmedPromoCode = view?.promoCodeAuthority === 'owner_confirmed'
-  ? view.promoCode
+const confirmedPromoCode = commercialRoute.promoCodeAuthority === 'owner_confirmed'
+  ? commercialRoute.promoCode
   : null;
 const commercialHref = commercialRoute.externalAllowed
   ? `/go/${config.slug}/`
@@ -67,7 +67,7 @@ const neutralDescription = `${config.name} promotion details are being re-verifi
       commercialHref={commercialHref}
       commercialCtaLabel={commercialRoute.ctaLabel}
       promoCode={confirmedPromoCode}
-      promoCodeAuthority={view?.promoCodeAuthority ?? 'unconfirmed'}
+      promoCodeAuthority={commercialRoute.promoCodeAuthority}
     />
   )}
 </CleanLayout>
