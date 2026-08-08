@@ -7,7 +7,7 @@
   "exchangeId": "binance",
   "batchId": "PL-P0-A",
   "priority": "P0",
-  "state": "SOURCE_TRUTH_REVIEWED",
+  "state": "VALIDATED",
   "createdAt": "2026-08-08",
   "stages": {
     "00-contract": "PRESENT",
@@ -15,7 +15,7 @@
     "20-research-output": "PRESENT",
     "50-source-truth-review": "PRESENT",
     "60-correction": "EMPTY",
-    "70-validation": "EMPTY",
+    "70-validation": "PRESENT",
     "80-closeout": "EMPTY"
   },
   "requiredResearchInventory": [
@@ -67,6 +67,10 @@
     },
     {
       "state": "SOURCE_TRUTH_REVIEWED",
+      "at": "2026-08-08"
+    },
+    {
+      "state": "VALIDATED",
       "at": "2026-08-08"
     }
   ]
