@@ -82,8 +82,12 @@ function exactConfirmedDestination(
  * Resolve one render-safe commercial route decision.
  *
  * External navigation requires BOTH:
- *  - the shared public view to expose owner-confirmed link authority; and
+ *  - the shared public view to expose owner-confirmed LINK authority; and
  *  - an exact destination from the frozen owner-confirmation manifest.
+ *
+ * Factual `view.isCommercial` is intentionally NOT consulted here. Issue #269
+ * separates registration-link authority from offer-claim authority: a safe exact
+ * registration link may stay active while bonus/KYC/terms remain under re-verification.
  *
  * The returned external destination is byte-for-byte the confirmed value.
  * Analytics may observe the click separately, but callers must not mutate this
@@ -101,8 +105,7 @@ export function resolvePublicCommercialRoute(
   const view = resolvePublicOfferView(slug, nowMs);
   const ownerAuthority = resolveOwnerConfirmedCommercialAuthority(slug);
 
-  const exact = view?.isCommercial === true
-    && view.linkAuthority === 'owner_confirmed'
+  const exact = view?.linkAuthority === 'owner_confirmed'
     && ownerAuthority?.linkConfirmed === true
       ? exactConfirmedDestination(ownerAuthority, countryCode)
       : null;
