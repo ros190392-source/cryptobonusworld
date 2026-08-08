@@ -13,6 +13,10 @@
  * while raw affiliate destinations never leak directly into content pages and unsupported
  * bonus/KYC/deposit/expiry/country/terms claims remain absent.
  *
+ * Review/design fixtures under /__design/ are explicitly outside PUBLIC output scope. They
+ * intentionally contain synthetic /go/demo-* contract examples and are validated by the
+ * contract suite instead; treating them as production links would create false positives.
+ *
  * Usage: node scripts/portal/public-offer-output-audit.mjs [distDir]
  */
 import { build } from 'esbuild';
@@ -144,6 +148,7 @@ export async function buildPublicOfferForbiddenInventory() {
 }
 
 const EXCLUDED_GO_PREFIX = `go${sep}`;
+const EXCLUDED_DESIGN_PREFIX = `__design${sep}`;
 
 function walkHtml(dir) {
   const out = [];
@@ -257,6 +262,7 @@ export function runPublicOfferOutputAudit(distDir, inventory) {
 
   const files = walkHtml(distDir).filter((f) => {
     const rel = relative(distDir, f);
+    if (rel.startsWith(EXCLUDED_DESIGN_PREFIX)) return false;
     return !rel.startsWith(EXCLUDED_GO_PREFIX) || goSet.has(resolve(f));
   });
 
@@ -301,7 +307,8 @@ export function runPublicOfferOutputAudit(distDir, inventory) {
     }
   }
 
-  // Any internal /go link anywhere in public HTML must target a governed slug with confirmed link authority.
+  // Any internal /go link anywhere in PUBLIC HTML must target a governed slug with confirmed
+  // link authority. /__design/ fixtures were removed from `files` above and are contract-tested.
   for (const f of files) {
     const rel = relative(distDir, f).replace(/\\/g, '/');
     if (rel.startsWith('go/')) continue;
@@ -323,7 +330,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
   const { ok, scanned, violations } = runPublicOfferOutputAudit(distArg, inventory);
   const n = Object.keys(inventory).length;
   if (ok) {
-    console.log(`PASS: public-offer output audit V3 — ${scanned} HTML files scanned across ${n} commercial candidates; exact owner-confirmed codes/routes allowed, direct raw affiliate leaks and unsupported offer claims absent.`);
+    console.log(`PASS: public-offer output audit V3 — ${scanned} public HTML files scanned across ${n} commercial candidates; exact owner-confirmed codes/routes allowed, direct raw affiliate leaks and unsupported offer claims absent.`);
     process.exit(0);
   }
   console.error(`FAIL: public-offer output audit V3 (${violations.length} violation(s) across ${n} candidates):`);
