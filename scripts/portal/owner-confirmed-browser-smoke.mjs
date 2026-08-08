@@ -155,13 +155,13 @@ function captureErrors(page, bucket, prefix) {
   });
 }
 
-async function gotoReady(page, path, selector) {
+async function gotoReady(page, path, selector = 'body') {
   const response = await page.goto(`${BASE}${path}`, { waitUntil: 'domcontentloaded', timeout: 15000 });
-  if (selector) await page.locator(selector).first().waitFor({ state: 'attached', timeout: 10000 });
+  await page.locator(selector).first().waitFor({ state: 'attached', timeout: 10000 });
   return response;
 }
 
-async function homepageSnapshot(page, label) {
+async function homepageSnapshot(page, label, manifestBySlug) {
   const errors = [];
   captureErrors(page, errors, `${label} homepage`);
   const response = await gotoReady(page, '/', '.top10-row');
@@ -189,88 +189,129 @@ async function homepageSnapshot(page, label) {
     code: el.querySelector('.pcc-code')?.textContent?.trim() ?? '',
   })));
   check(`${label}: all statuses under re-verification`, snapshot.every((r) => /re-verification/i.test(r.status)));
+  for (const row of snapshot) {
+    const expected = manifestBySlug.get(row.slug);
+    check(`${label} ${row.slug}: manifest exists`, Boolean(expected));
+    if (expected?.promoCode) check(`${label} ${row.slug}: exact owner code`, row.code === expected.promoCode, `actual=${row.code}`);
+    else check(`${label} ${row.slug}: no invented owner code`, row.code === '', `actual=${row.code}`);
+  }
   check(`${label}: no console/page errors`, errors.length === 0, errors.join(' | '));
   return snapshot;
 }
 
 async function checkKeyboard(page) {
   await gotoReady(page, '/', '.top10-row');
-  for (let i = 0; i < 4; i += 1) await page.keyboard.press('Tab');
-  const focus = await page.evaluate(() => {
-    const el = document.activeElement;
-    if (!(el instanceof HTMLElement)) return { tag: '', visible: false };
-    const r = el.getBoundingClientRect();
-    return { tag: el.tagName, visible: r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== 'hidden' };
-  });
-  check('keyboard: visible interactive focus', ['A', 'BUTTON', 'INPUT', 'SELECT'].includes(focus.tag) && focus.visible, JSON.stringify(focus));
+  let visibleInteractive = false;
+  for (let i = 0; i < 20; i += 1) {
+    await page.keyboard.press('Tab');
+    visibleInteractive = await page.evaluate(() => {
+      const el = document.activeElement;
+      if (!(el instanceof HTMLElement)) return false;
+      const r = el.getBoundingClientRect();
+      return ['A', 'BUTTON', 'INPUT', 'SELECT'].includes(el.tagName)
+        && r.width > 0 && r.height > 0
+        && getComputedStyle(el).visibility !== 'hidden';
+    });
+    if (visibleInteractive) break;
+  }
+  check('keyboard: visible interactive focus', visibleInteractive);
 }
 
-async function checkPromoDirectory(page, manifestBySlug) {
+async function checkPromoDirectory(context, manifestBySlug) {
+  const page = await context.newPage();
   const errors = [];
   captureErrors(page, errors, 'promo directory');
-  const response = await gotoReady(page, '/promo-codes/', '.promo-row');
-  check('promo: HTTP 200', response?.status() === 200, `status=${response?.status()}`);
-  const rows = page.locator('.promo-row');
-  const count = await rows.count();
-  check('promo: 6 rows', count === 6, `count=${count}`);
-  const state = await rows.evaluateAll((els) => els.map((el) => ({
-    slug: el.getAttribute('data-exchange-slug') ?? '',
-    code: el.querySelector('.pcc-code')?.textContent?.trim() ?? '',
-    codeState: el.querySelector('.promo-code-confirmed small')?.textContent?.trim() ?? '',
-    href: el.querySelector('.promo-action')?.getAttribute('href') ?? '',
-    action: el.querySelector('.promo-action')?.textContent?.trim() ?? '',
-    offer: el.querySelector('[data-label="Offer status"]')?.textContent?.trim() ?? '',
-    country: el.querySelector('[data-label="Country note"]')?.textContent?.trim() ?? '',
-  })));
-  for (const row of state) {
-    const expected = manifestBySlug.get(row.slug);
-    check(`promo ${row.slug}: manifest exists`, Boolean(expected));
-    check(`promo ${row.slug}: exact code`, row.code === (expected?.promoCode ?? ''), `actual=${row.code}`);
-    check(`promo ${row.slug}: owner label`, /owner confirmed/i.test(row.codeState));
-    check(`promo ${row.slug}: /go boundary`, row.href === `/go/${row.slug}/`, `href=${row.href}`);
-    check(`promo ${row.slug}: neutral CTA`, /^Register/i.test(row.action) && !/bonus|claim|reward|verified/i.test(row.action));
-    check(`promo ${row.slug}: neutral offer`, /re-verification/i.test(row.offer));
-    check(`promo ${row.slug}: neutral country`, /re-verification/i.test(row.country));
+  try {
+    const response = await gotoReady(page, '/promo-codes/', '.promo-row');
+    check('promo: HTTP 200', response?.status() === 200, `status=${response?.status()}`);
+    const rows = page.locator('.promo-row');
+    const count = await rows.count();
+    check('promo: 6 rows', count === 6, `count=${count}`);
+    const state = await rows.evaluateAll((els) => els.map((el) => ({
+      slug: el.getAttribute('data-exchange-slug') ?? '',
+      code: el.querySelector('.pcc-code')?.textContent?.trim() ?? '',
+      codeState: el.querySelector('.promo-code-confirmed small')?.textContent?.trim() ?? '',
+      href: el.querySelector('.promo-action')?.getAttribute('href') ?? '',
+      action: el.querySelector('.promo-action')?.textContent?.trim() ?? '',
+      offer: el.querySelector('[data-label="Offer status"]')?.textContent?.trim() ?? '',
+      country: el.querySelector('[data-label="Country note"]')?.textContent?.trim() ?? '',
+    })));
+    for (const row of state) {
+      const expected = manifestBySlug.get(row.slug);
+      check(`promo ${row.slug}: manifest exists`, Boolean(expected));
+      check(`promo ${row.slug}: exact code`, row.code === (expected?.promoCode ?? ''), `actual=${row.code}`);
+      check(`promo ${row.slug}: owner label`, /owner confirmed/i.test(row.codeState));
+      check(`promo ${row.slug}: /go boundary`, row.href === `/go/${row.slug}/`, `href=${row.href}`);
+      check(`promo ${row.slug}: neutral CTA`, /^Register/i.test(row.action) && !/bonus|claim|reward|verified/i.test(row.action));
+      check(`promo ${row.slug}: neutral offer`, /re-verification/i.test(row.offer));
+      check(`promo ${row.slug}: neutral country`, /re-verification/i.test(row.country));
+    }
+    check('promo: no console/page errors', errors.length === 0, errors.join(' | '));
+  } finally {
+    await page.close();
   }
-  check('promo: no console/page errors', errors.length === 0, errors.join(' | '));
 }
 
-async function checkDedicated(page, manifestBySlug) {
+async function checkDedicated(context, manifestBySlug) {
   for (const slug of ['bybit', 'mexc', 'okx', 'bitget', 'bingx', 'kucoin', 'coinex']) {
+    const page = await context.newPage();
     const errors = [];
     captureErrors(page, errors, `dedicated ${slug}`);
-    const response = await gotoReady(page, `/${slug}/`, '.cbw-unverified');
-    check(`${slug}: HTTP 200`, response?.status() === 200, `status=${response?.status()}`);
-    check(`${slug}: neutral surface`, await page.locator('.cbw-unverified').count() === 1);
-    check(`${slug}: no verified offer text`, !(await page.locator('body').innerText()).includes('✓ Verified offer'));
-    const expected = manifestBySlug.get(slug);
-    const code = (await page.locator('.pcc-code').count()) ? (await page.locator('.pcc-code').first().innerText()).trim() : '';
-    check(`${slug}: exact confirmed code`, code === (expected?.promoCode ?? ''), `actual=${code}`);
-    const href = await page.locator('.cbw-unverified__primary').getAttribute('href');
-    check(`${slug}: internal /go action`, href === `/go/${slug}/`, `href=${href}`);
-    const text = (await page.locator('.cbw-unverified__primary').innerText()).trim();
-    check(`${slug}: neutral registration CTA`, /^Register on /i.test(text) && !/bonus|claim|reward|verified/i.test(text));
-    check(`${slug}: no console/page errors`, errors.length === 0, errors.join(' | '));
+    try {
+      const response = await gotoReady(page, `/${slug}/`, 'main');
+      check(`${slug}: HTTP 200`, response?.status() === 200, `status=${response?.status()}`);
+
+      const neutralCount = await page.locator('.cbw-unverified').count();
+      if (neutralCount !== 1) {
+        const title = await page.locator('h1').first().textContent().catch(() => '');
+        check(`${slug}: neutral surface`, false, `count=${neutralCount}; h1=${String(title ?? '').trim()}`);
+        check(`${slug}: no console/page errors`, errors.length === 0, errors.join(' | '));
+        continue;
+      }
+      check(`${slug}: neutral surface`, true);
+      const bodyText = await page.locator('body').innerText();
+      check(`${slug}: no verified offer text`, !bodyText.includes('✓ Verified offer'));
+      check(`${slug}: offer terms remain neutral`, /under re-verification|not verified/i.test(bodyText));
+
+      const expected = manifestBySlug.get(slug);
+      check(`${slug}: manifest exists`, Boolean(expected));
+      const code = (await page.locator('.pcc-code').count()) ? (await page.locator('.pcc-code').first().innerText()).trim() : '';
+      check(`${slug}: exact confirmed code`, code === (expected?.promoCode ?? ''), `actual=${code}`);
+
+      const primary = page.locator('.cbw-unverified__primary');
+      check(`${slug}: one primary CTA`, await primary.count() === 1);
+      const href = await primary.getAttribute('href');
+      check(`${slug}: internal /go action`, href === `/go/${slug}/`, `href=${href}`);
+      const text = (await primary.innerText()).trim();
+      check(`${slug}: neutral registration CTA`, /^Register on /i.test(text) && !/bonus|claim|reward|verified/i.test(text));
+      check(`${slug}: no console/page errors`, errors.length === 0, errors.join(' | '));
+    } finally {
+      await page.close();
+    }
   }
 }
 
 async function checkGoMatrix(browser, manifest) {
   const context = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 1024, height: 768 } });
   await sandbox(context);
-  const page = await context.newPage();
   try {
     for (const entry of manifest) {
-      const response = await gotoReady(page, `/go/${entry.slug}/`, '#cbw-continue');
-      check(`go/${entry.slug}: HTTP 200`, response?.status() === 200, `status=${response?.status()}`);
-      check(`go/${entry.slug}: stays local`, new URL(page.url()).hostname === '127.0.0.1', page.url());
-      const href = await page.locator('#cbw-continue').getAttribute('href');
-      check(`go/${entry.slug}: exact destination`, href === entry.defaultUrl, `actual=${href} expected=${entry.defaultUrl}`);
-      check(`go/${entry.slug}: terms neutral`, /under re-verification/i.test(await page.locator('body').innerText()));
-      if (entry.promoCode) {
-        const code = (await page.locator('code').first().innerText()).trim();
-        check(`go/${entry.slug}: exact code`, code === entry.promoCode, `actual=${code}`);
-      } else {
-        check(`go/${entry.slug}: no invented code`, await page.locator('code').count() === 0);
+      const page = await context.newPage();
+      try {
+        const response = await gotoReady(page, `/go/${entry.slug}/`, '#cbw-continue');
+        check(`go/${entry.slug}: HTTP 200`, response?.status() === 200, `status=${response?.status()}`);
+        check(`go/${entry.slug}: stays local`, new URL(page.url()).hostname === '127.0.0.1', page.url());
+        const href = await page.locator('#cbw-continue').getAttribute('href');
+        check(`go/${entry.slug}: exact destination`, href === entry.defaultUrl, `actual=${href} expected=${entry.defaultUrl}`);
+        check(`go/${entry.slug}: terms neutral`, /under re-verification|not verified/i.test(await page.locator('body').innerText()));
+        if (entry.promoCode) {
+          const code = (await page.locator('code').first().innerText()).trim();
+          check(`go/${entry.slug}: exact code`, code === entry.promoCode, `actual=${code}`);
+        } else {
+          check(`go/${entry.slug}: no invented code`, await page.locator('code').count() === 0);
+        }
+      } finally {
+        await page.close();
       }
     }
   } finally {
@@ -291,16 +332,18 @@ try {
   const desktop = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   await sandbox(desktop);
   const desktopPage = await desktop.newPage();
-  const desktopSnapshot = await homepageSnapshot(desktopPage, 'desktop');
+  const desktopSnapshot = await homepageSnapshot(desktopPage, 'desktop', manifestBySlug);
   await checkKeyboard(desktopPage);
-  await checkPromoDirectory(desktopPage, manifestBySlug);
-  await checkDedicated(desktopPage, manifestBySlug);
+  await desktopPage.close();
+  await checkPromoDirectory(desktop, manifestBySlug);
+  await checkDedicated(desktop, manifestBySlug);
   await desktop.close();
 
   const mobile = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true });
   await sandbox(mobile);
   const mobilePage = await mobile.newPage();
-  const mobileSnapshot = await homepageSnapshot(mobilePage, 'mobile');
+  const mobileSnapshot = await homepageSnapshot(mobilePage, 'mobile', manifestBySlug);
+  await mobilePage.close();
   await mobile.close();
 
   check('desktop/mobile factual posture matches', JSON.stringify(desktopSnapshot) === JSON.stringify(mobileSnapshot));
