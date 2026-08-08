@@ -1,7 +1,7 @@
 # CBW-SPLIT3-P0-OWNER-CONFIRMED-LINK-CODE-AUTHORITY-SPLIT-011
 
 ## Status
-Prepared owner task. Not implemented. Not merged. Not deployed.
+Implemented in Draft PR #270. Readiness is determined by the latest exact-head gates and owner review. Not merged. Not deployed.
 
 ## Governing issue
 GitHub Issue #269.
