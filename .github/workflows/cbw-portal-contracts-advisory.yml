@@ -131,6 +131,13 @@ jobs:
         id: public_offers_audit
         run: npm run portal:audit:public-offers
 
+      - name: Install Chromium for owner browser matrix
+        run: npx playwright install --with-deps chromium
+
+      - name: Owner-confirmed Chromium desktop/mobile/keyboard matrix
+        id: owner_browser_matrix
+        run: node scripts/portal/owner-confirmed-browser-matrix.mjs
+
       - name: Advisory summary
         if: always()
         env:
@@ -142,6 +149,7 @@ jobs:
           BUILD: ${{ steps.build.outcome }}
           BYBIT_PUBLIC_AUDIT: ${{ steps.bybit_public_audit.outcome }}
           PUBLIC_OFFERS_AUDIT: ${{ steps.public_offers_audit.outcome }}
+          OWNER_BROWSER_MATRIX: ${{ steps.owner_browser_matrix.outcome }}
         run: |
           {
             echo "### Portal Contracts Advisory (non-blocking)"
@@ -156,6 +164,7 @@ jobs:
             echo "| Fail-closed build | ${BUILD} |"
             echo "| Bybit public-output audit | ${BYBIT_PUBLIC_AUDIT} |"
             echo "| Global public-offer audit | ${PUBLIC_OFFERS_AUDIT} |"
+            echo "| Chromium desktop/mobile/keyboard matrix | ${OWNER_BROWSER_MATRIX} |"
             echo ""
             echo "> **Advisory only — not a required merge gate.** This job is \`continue-on-error\`, so its"
             echo "> conclusion is non-blocking; inspect every individual step result before owner merge."
