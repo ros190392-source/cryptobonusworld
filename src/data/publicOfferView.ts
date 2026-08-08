@@ -1,22 +1,8 @@
 /**
- * Public offer view (Issue #264, generalized in #266).
+ * Public offer view (Issue #264, generalized in #266, authority split in #269).
  *
- * The ONE helper every shared public surface (homepage Top-10 row, /exchanges/ directory
- * card, /promo-codes/ table, related/alternative tiles, /go route, dedicated pages) uses
- * to render an offer. It is evidence-driven for EVERY governed commercial-candidate exchange
- * and NEVER reads raw volatile `Offer` / exchanges.json fields to grant public authority.
- *
- * Dispatch is governed by PUBLIC_OFFER_AUTHORITY_REGISTRY (#266): a view can be commercial
- * ONLY when the exchange's strategy is authorizing AND that strategy is backed by an EXECUTABLE
- * dispatcher here that returns a commercial view. Today only Bybit has one
- * (`bybit_claim_packet_v1`), and it currently still resolves to under_re_verification; every
- * other governed candidate has `no_authorizing_evidence` and is neutral / non-commercial. Raw
- * `Offer.status` / `verificationStatus` / `affiliateUrl` are legacy editorial state and NEVER
- * grant public authority. A bare valid `Offer.evidence` does NOT restore any raw offer field.
- *
- * Default-deny (R3/R4): every path that is not an explicit commercial dispatcher result is
- * neutral. There is NO fallback from "no view / unknown strategy / missing dispatcher" to
- * commercial behaviour.
+ * Offer claims remain evidence-driven. Affiliate-link and promo-code authority are
+ * independent and exact-value bound to the owner's 2026-08-08 confirmation.
  */
 import { deriveBybitPublicOfferPresentation } from './evidence/offers/bybitPublicPresentation';
 import {
@@ -27,31 +13,63 @@ import {
   NEUTRAL_PUBLIC_SUMMARY,
   type PublicOfferAuthorityStrategyId,
 } from './contracts/publicOfferAuthority';
+import {
+  resolveOwnerConfirmedCommercialAuthority,
+  type OwnerConfirmedCommercialAuthority,
+} from './contracts/ownerConfirmedCommercialAuthority';
 
 export interface PublicOfferView {
   slug: string;
-  /** Public factual state. */
+  /** Public factual offer state. Link/code authority does not upgrade this. */
   publicState: 'verified' | 'under_re_verification' | 'unavailable' | 'expired';
-  /** The strategy that governed this view (for the authority matrix / diagnostics). */
+  /** The claim-evidence strategy governing factual offer presentation. */
   strategy: PublicOfferAuthorityStrategyId;
-  /** Promo code to display, or null when it must be hidden. */
+  /** Exact owner-confirmed promo/referral code, or null. */
   promoCode: string | null;
+  /** Independent link authority state. */
+  linkAuthority: 'owner_confirmed' | 'unconfirmed';
+  /** Independent promo-code authority state. */
+  promoCodeAuthority: 'owner_confirmed' | 'unconfirmed';
   /** Bonus/headline display text — neutral copy when unsupported. */
   bonusHeadline: string;
-  /** Short summary for the homepage row. */
+  /** Short summary for shared public surfaces. */
   summary: string;
-  /** Status badge label; never "verified" unless truly verified. */
+  /** Status badge label; never "verified" merely because link/code is confirmed. */
   statusLabel: string;
   statusTone: 'verified' | 'preview' | 'research' | 'review';
   /** Whether a "✓ Verified offer" badge may be shown. */
   showVerifiedBadge: boolean;
-  /** Whether a commercial (affiliate) CTA may be shown; false → non-commercial only. */
+  /** Whether an owner-confirmed affiliate CTA may be shown. Does NOT mean offer claims are verified. */
   isCommercial: boolean;
 }
 
-/** The fail-closed neutral view every non-authoritative governed exchange gets. */
-function neutralView(slug: string, strategy: PublicOfferAuthorityStrategyId): PublicOfferView {
+function commercialAuthority(slug: string): OwnerConfirmedCommercialAuthority | null {
+  return resolveOwnerConfirmedCommercialAuthority(slug);
+}
+
+/** Apply independent link/code authority without changing any factual claim state/copy. */
+function applyOwnerCommercialAuthority(
+  view: Omit<PublicOfferView, 'linkAuthority' | 'promoCodeAuthority'>,
+  authority: OwnerConfirmedCommercialAuthority | null,
+): PublicOfferView {
+  const linkConfirmed = authority?.linkConfirmed === true;
+  const promoConfirmed = authority?.promoCodeConfirmed === true;
   return {
+    ...view,
+    promoCode: promoConfirmed ? authority?.confirmedPromoCode ?? null : null,
+    linkAuthority: linkConfirmed ? 'owner_confirmed' : 'unconfirmed',
+    promoCodeAuthority: promoConfirmed ? 'owner_confirmed' : 'unconfirmed',
+    isCommercial: linkConfirmed,
+  };
+}
+
+/** Fail-closed factual view. Owner-confirmed link/code can remain usable alongside it. */
+function neutralView(
+  slug: string,
+  strategy: PublicOfferAuthorityStrategyId,
+  authority: OwnerConfirmedCommercialAuthority | null = commercialAuthority(slug),
+): PublicOfferView {
+  return applyOwnerCommercialAuthority({
     slug,
     publicState: 'under_re_verification',
     strategy,
@@ -62,66 +80,58 @@ function neutralView(slug: string, strategy: PublicOfferAuthorityStrategyId): Pu
     statusTone: 'review',
     showVerifiedBadge: false,
     isCommercial: false,
-  };
+  }, authority);
 }
 
 /**
- * Executable authorizer dispatchers (R8/R14). One entry per AUTHORIZING strategy — the ONLY
- * place a commercial public view can be produced. A dispatcher returns a view (which may itself
- * be non-commercial, as Bybit is today) or null to decline; a declined / missing dispatcher
- * fails closed to the neutral view. Adding a future authorizing strategy REQUIRES adding a real
- * dispatcher here; a data-only registry edit can never reach commercial behaviour.
+ * Claim-evidence authorizer dispatchers. They decide factual offer presentation only.
+ * Link/code authority is applied independently afterwards by #269.
  */
-type AuthorizingDispatcher = (slug: string, nowMs: number) => PublicOfferView | null;
+type ClaimDispatcher = (slug: string, nowMs: number) => Omit<PublicOfferView, 'linkAuthority' | 'promoCodeAuthority'> | null;
 
-const AUTHORIZING_DISPATCHERS: Readonly<Record<string, AuthorizingDispatcher>> = Object.freeze({
-  bybit_claim_packet_v1: (slug: string, nowMs: number): PublicOfferView | null => {
-    if (slug !== 'bybit') return null; // this strategy authorizes Bybit only
+const AUTHORIZING_DISPATCHERS: Readonly<Record<string, ClaimDispatcher>> = Object.freeze({
+  bybit_claim_packet_v1: (slug: string, nowMs: number) => {
+    if (slug !== 'bybit') return null;
     const p = deriveBybitPublicOfferPresentation(nowMs);
     return {
       slug: 'bybit',
       publicState: p.publicState,
       strategy: 'bybit_claim_packet_v1',
-      promoCode: p.promoCode,
+      promoCode: null,
       bonusHeadline: p.headline,
       summary: p.summary,
       statusLabel: p.statusLabel,
       statusTone: p.statusTone,
       showVerifiedBadge: p.publicState === 'verified',
-      isCommercial: p.isCommercialCtaAllowed,
+      // Claim presentation may not grant link authority. #269 overlays this independently.
+      isCommercial: false,
     };
   },
 });
 
-/** Strategies that actually have an executable dispatcher wired (consumed by the wiring proof). */
-export const WIRED_AUTHORIZING_STRATEGIES: readonly string[] = Object.freeze(
-  Object.keys(AUTHORIZING_DISPATCHERS),
-);
+/** Strategies with executable claim dispatchers (consumed by the existing wiring proof). */
+export const WIRED_AUTHORIZING_STRATEGIES: readonly string[] = Object.freeze(Object.keys(AUTHORIZING_DISPATCHERS));
 
-export function getAuthorizingDispatcher(strategy: string): AuthorizingDispatcher | null {
+export function getAuthorizingDispatcher(strategy: string): ClaimDispatcher | null {
   return AUTHORIZING_DISPATCHERS[strategy] ?? null;
 }
 
 /**
- * Resolve the public, render-safe view for an exchange's offer against an EXPLICIT finite
- * clock (R5). Returns null only when the slug is not a governed commercial-candidate exchange
- * (e.g. a research-only / retired directory entry with no commercial material). Every governed
- * candidate resolves to a non-null view; a non-authorizing or unwired strategy fails closed to
- * neutral (R3/R4/R7).
+ * Resolve the public render-safe offer view. Factual claims are evidence-gated;
+ * current owner-confirmed links/codes are exact-value gated independently.
  */
 export function resolvePublicOfferView(slug: string, nowMs: number): PublicOfferView | null {
-  const authority = getPublicOfferAuthority(slug);
-  if (!authority) return null; // not a governed commercial candidate → no public offer view
+  const claimAuthority = getPublicOfferAuthority(slug);
+  if (!claimAuthority) return null;
 
-  const dispatch = getAuthorizingDispatcher(authority.strategy);
+  const ownerAuthority = commercialAuthority(slug);
+  const dispatch = getAuthorizingDispatcher(claimAuthority.strategy);
   if (dispatch) {
-    const view = dispatch(slug, nowMs);
-    if (view) return view; // the ONLY route to a (possibly) commercial view
+    const claimView = dispatch(slug, nowMs);
+    if (claimView) return applyOwnerCommercialAuthority(claimView, ownerAuthority);
   }
 
-  // Non-authorizing strategy, or an authorizing strategy whose dispatcher is missing/declined —
-  // fail closed. A data-only strategy flip can never make an exchange commercial.
-  return neutralView(slug, authority.strategy);
+  return neutralView(slug, claimAuthority.strategy, ownerAuthority);
 }
 
 export interface OfferAuthorityMatrixRow {
@@ -129,17 +139,20 @@ export interface OfferAuthorityMatrixRow {
   strategy: PublicOfferAuthorityStrategyId;
   publicState: PublicOfferView['publicState'];
   commercial: boolean;
+  linkAuthority: PublicOfferView['linkAuthority'];
+  promoCodeAuthority: PublicOfferView['promoCodeAuthority'];
 }
 
-/**
- * Deterministic current-state authority matrix (R13): the governing strategy, public state
- * and commercial flag for every governed commercial-candidate exchange, at an explicit clock.
- */
 export function resolvePublicOfferAuthorityMatrix(nowMs: number): OfferAuthorityMatrixRow[] {
-  return PUBLIC_OFFER_AUTHORITY_REGISTRY.map((e) => {
-    const view = resolvePublicOfferView(e.slug, nowMs);
-    // A registered candidate with no view would be a contract break; fail closed to neutral.
-    const v = view ?? neutralView(e.slug, e.strategy);
-    return { slug: e.slug, strategy: v.strategy, publicState: v.publicState, commercial: v.isCommercial };
+  return PUBLIC_OFFER_AUTHORITY_REGISTRY.map((entry) => {
+    const view = resolvePublicOfferView(entry.slug, nowMs) ?? neutralView(entry.slug, entry.strategy);
+    return {
+      slug: entry.slug,
+      strategy: view.strategy,
+      publicState: view.publicState,
+      commercial: view.isCommercial,
+      linkAuthority: view.linkAuthority,
+      promoCodeAuthority: view.promoCodeAuthority,
+    };
   });
 }
