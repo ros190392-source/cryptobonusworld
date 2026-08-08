@@ -18,6 +18,8 @@ const ownerAuthority = join(ROOT, 'src/data/contracts/ownerConfirmedCommercialAu
 const offerAuthority = join(ROOT, 'src/data/contracts/publicOfferAuthority.ts');
 const publicOfferView = join(ROOT, 'src/data/publicOfferView.ts');
 const publicCommercialRoute = join(ROOT, 'src/data/publicCommercialRoute.ts');
+const homepageTop10 = join(ROOT, 'src/data/homepageTop10.ts');
+const homepageTop10Cta = join(ROOT, 'src/data/homepageTop10Cta.ts');
 
 let checks = 0;
 const failures = [];
@@ -33,7 +35,9 @@ try {
         `export { OWNER_CONFIRMED_COMMERCIAL_MANIFEST, resolveOwnerConfirmedCommercialAuthority, resolveOwnerConfirmedCommercialAuthorityForRaw, validateOwnerConfirmedCommercialManifest } from ${JSON.stringify(ownerAuthority)};\n` +
         `export { PUBLIC_COMMERCIAL_CANDIDATE_EXCHANGES } from ${JSON.stringify(offerAuthority)};\n` +
         `export { resolvePublicOfferView } from ${JSON.stringify(publicOfferView)};\n` +
-        `export { resolvePublicCommercialRoute } from ${JSON.stringify(publicCommercialRoute)};\n`,
+        `export { resolvePublicCommercialRoute } from ${JSON.stringify(publicCommercialRoute)};\n` +
+        `export { buildHomepageTop10 } from ${JSON.stringify(homepageTop10)};\n` +
+        `export { resolveHomepageTop10Cta } from ${JSON.stringify(homepageTop10Cta)};\n`,
       resolveDir: ROOT,
       loader: 'ts',
       sourcefile: 'owner-authority-split-test-entry.ts',
@@ -65,6 +69,7 @@ try {
     check(`${slug}: exact current link is owner-confirmed`, authority?.linkConfirmed === true);
     check(`${slug}: exact current public view exposes owner-confirmed link authority`, view?.linkAuthority === 'owner_confirmed');
     check(`${slug}: link authority does not verify factual offer state`, view?.publicState === 'under_re_verification');
+    check(`${slug}: link authority does not flip legacy claim-commercial flag`, view?.isCommercial === false);
     check(`${slug}: no verified-offer badge from link/code authority`, view?.showVerifiedBadge === false);
     check(`${slug}: external route is allowed only through confirmed resolver`, route?.externalAllowed === true);
     check(`${slug}: route destination equals exact confirmed default`, route?.destination === authority?.confirmedDefaultUrl);
@@ -106,6 +111,21 @@ try {
   check('unknown exchange has no owner authority', m.resolveOwnerConfirmedCommercialAuthority('new-exchange-never-confirmed') === null);
   check('unknown exchange has no external public route', m.resolvePublicCommercialRoute('new-exchange-never-confirmed', NOW).externalAllowed === false);
 
+  // Homepage product policy: exact owner-confirmed links remain usable in explicit production
+  // global context, but neither preview nor an explicit country may bypass their existing gates.
+  const top10 = m.buildHomepageTop10(NOW);
+  check('homepage model still contains exactly 10 rows', top10.length === 10);
+  for (const entry of top10) {
+    const productionGlobal = m.resolveHomepageTop10Cta(entry, 'production', 'en', { now: NOW });
+    const previewGlobal = m.resolveHomepageTop10Cta(entry, 'preview', 'en', { now: NOW });
+    const productionPoland = m.resolveHomepageTop10Cta(entry, 'production', 'en', { now: NOW, countryCode: 'PL' });
+
+    check(`${entry.slug}: production global homepage uses owner-confirmed /go route`, productionGlobal.primary.href === `/go/${entry.slug}` && productionGlobal.primary.isAffiliate === true);
+    check(`${entry.slug}: production global label is neutral Register`, productionGlobal.primary.label === 'Register' && !/bonus|claim|reward|verified/i.test(productionGlobal.primary.label));
+    check(`${entry.slug}: preview global homepage never emits /go`, !previewGlobal.primary.href.startsWith('/go/') && previewGlobal.primary.isAffiliate === false);
+    check(`${entry.slug}: explicit country stays MarketProfile-gated`, !productionPoland.primary.href.startsWith('/go/') && productionPoland.primary.isAffiliate === false);
+  }
+
   // Source-level guard for the UI boundary that originally created the hidden regression:
   // a link-confirmed state may not unlock claim-bearing ExchangePromoPageV2.
   const governedSource = readFileSync(join(ROOT, 'src/components/exchange/GovernedExchangePage.astro'), 'utf8');
@@ -117,6 +137,9 @@ try {
   check('neutral page supports owner-confirmed promo code', neutralSource.includes('promoCodeAuthority') && neutralSource.includes('Owner confirmed'));
   check('neutral page uses internal commercial hop, not raw affiliate URL', neutralSource.includes('commercialHref') && !neutralSource.includes('affiliateUrl'));
   check('neutral page explicitly keeps offer terms under re-verification', /KYC\/deposit requirements/.test(neutralSource) && /under re-verification/.test(neutralSource));
+
+  const homepageSource = readFileSync(join(ROOT, 'src/components/home/HomepageTop10.astro'), 'utf8');
+  check('homepage disclosure still treats isCommercial as claim/evidence authority, not link authority', homepageSource.includes('const officialHref = view?.isCommercial ? offer?.sourceUrl : undefined'));
 
   if (failures.length > 0) {
     console.error(`OWNER-CONFIRMED AUTHORITY SPLIT: FAIL (${failures.length}/${checks})`);
