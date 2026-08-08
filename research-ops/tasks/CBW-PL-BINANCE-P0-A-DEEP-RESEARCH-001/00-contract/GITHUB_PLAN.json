@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-PL-BINANCE-P0-A-DEEP-RESEARCH-001",
+  "model": "ONE_BRANCH_ONE_DRAFT_PR",
+  "baseBranch": "main",
+  "taskBranch": "research/pl-binance-pl-p0-a",
+  "pullRequest": {
+    "draft": true,
+    "base": "main",
+    "head": "research/pl-binance-pl-p0-a",
+    "title": "research(pl-binance): Binance × Poland deep-research record",
+    "autoMerge": false
+  },
+  "appendOnly": true,
+  "mergeAuthorized": false,
+  "ownerGatedMerge": true
+}
