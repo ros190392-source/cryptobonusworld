@@ -20,7 +20,8 @@ import { runResolutionHarness } from './test-support/offer-packet-resolution-har
 import { makeSyntheticPromoPolicy, makeSyntheticPartnerConfirmation } from './test-support/synthetic-confirmation-fixtures.mjs';
 import { runTestAuthorityGuard, runGuardSelfTests } from './test-authority-guard.mjs';
 import { runBybitPublicOutputAudit, BYBIT_UNIQUE_FORBIDDEN, BYBIT_PROMO_CODE } from './bybit-public-output-audit.mjs';
-import { existsSync } from 'node:fs';
+import { runPublicOfferOutputAudit, buildPublicOfferForbiddenInventory } from './public-offer-output-audit.mjs';
+import { existsSync, readFileSync } from 'node:fs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '..', '..');
@@ -48,6 +49,7 @@ const officialSourceCapture = join(ROOT, 'src/data/contracts/officialSourceCaptu
 const bybitOfferClaimSourcePlan = join(ROOT, 'src/data/contracts/bybitOfferClaimSourcePlan.ts');
 const bybitPublicPresentation = join(ROOT, 'src/data/evidence/offers/bybitPublicPresentation.ts');
 const publicOfferView = join(ROOT, 'src/data/publicOfferView.ts');
+const publicOfferAuthority = join(ROOT, 'src/data/contracts/publicOfferAuthority.ts');
 
 const tmp = mkdtempSync(join(tmpdir(), 'cbw-portal-test-'));
 const outfile = join(tmp, 'contracts.mjs');
@@ -91,7 +93,8 @@ try {
         `export * as OSC from ${JSON.stringify(officialSourceCapture)};\n` +
         `export { BYBIT_OFFER_CLAIM_SOURCE_PLAN, BYBIT_OFFICIAL_SOURCE_CANDIDATES, BYBIT_OFFER_EXTRACTION_PLAN, SOURCE_PLAN_TARGET_CLAIMS, SOURCE_PLAN_EXCLUDED_CLAIMS, BYBIT_SOURCE_PLAN_ID, BYBIT_SOURCE_PLAN_DIGEST, getSourcePlanEntry, getCandidate, computeCandidateDigest, assessOfferClaimEvidence, assessAllOfferClaims, buildOfficialSourceEvidenceRun, documentIdentity, validateSourcePlanCoverage, validateExtractionCoverage } from ${JSON.stringify(bybitOfferClaimSourcePlan)};\n` +
         `export { deriveBybitPublicOfferPresentation, BYBIT_PUBLIC_CLAIM_BINDINGS, resolvePublicClaimValue, resolvePublicPromoCode, BYBIT_NEUTRAL_HEADLINE, BYBIT_NEUTRAL_DETAIL, BYBIT_NEUTRAL_STATUS_LABEL, BYBIT_NEUTRAL_SUMMARY } from ${JSON.stringify(bybitPublicPresentation)};\n` +
-        `export { resolvePublicOfferView } from ${JSON.stringify(publicOfferView)};`,
+        `export { resolvePublicOfferView, resolvePublicOfferAuthorityMatrix, WIRED_AUTHORIZING_STRATEGIES, getAuthorizingDispatcher } from ${JSON.stringify(publicOfferView)};\n` +
+        `export { PUBLIC_OFFER_AUTHORITY_REGISTRY, PUBLIC_COMMERCIAL_CANDIDATE_EXCHANGES, OFFER_BEARING_EXCHANGES, getPublicOfferAuthority, isCommercialCandidateExchange, isOfferBearingExchange, isAuthorizingStrategy, isCommercialCandidate, discoverCommercialCandidateSlugs, validatePublicOfferAuthorityRegistry, validatePublicOfferAuthorityRegistryCoverage, validateAuthorizingStrategyWiring, PUBLIC_OFFER_STRATEGY_DEFINITIONS, AUTHORIZING_STRATEGIES, NEUTRAL_PUBLIC_HEADLINE, NEUTRAL_PUBLIC_STATUS_LABEL } from ${JSON.stringify(publicOfferAuthority)};`,
       resolveDir: ROOT,
       loader: 'ts',
     },
@@ -1701,7 +1704,7 @@ try {
   check('pub/39: test-authority guard PASS', GUARD.ok === true);
   check('pub/40: adaptBybitOfferToEvidence remains the sole product evidence adapter', Object.keys(m.OPR).filter((k) => /^adapt/.test(k)).join(',') === 'adaptBybitOfferToEvidence');
   check('pub/41: synthetic test values never enter public output', auditClean && !presStrings.includes('test-partner-fixture') && !presStrings.includes('partner.test'));
-  check('pub/42: other exchange presentation has no factual regression', (() => { const okx = m.resolvePublicOfferView('okx', PNOW); const raw = m.getOffer('okx'); return !!okx && okx.promoCode === raw.promoCode && okx.bonusHeadline === raw.bonusHeadline && okx.showVerifiedBadge === (raw.status === 'verified') && okx.isCommercial === true; })());
+  check('pub/42: unknown / non-candidate exchanges have no public offer view (fail-closed null)', m.resolvePublicOfferView('kraken', PNOW) === null && m.resolvePublicOfferView('nonexistent-x', PNOW) === null && m.getPublicOfferAuthority('kraken') === null);
 
   // pub/mut/* — R10 future-reactivation regression matrix. Exercises the PURE binding
   // resolvers with synthetic supported/confirmed inputs + mutated raw candidates to prove
@@ -1728,6 +1731,104 @@ try {
   check('pub/mut/18: mixed-state — Bybit public view exposes no verified/confirmed label', !/verified|confirmed/i.test(m.resolvePublicOfferView('bybit', PNOW).statusLabel) && auditClean);
   check('pub/mut/19: public-output audit includes /go/bybit in scope', (() => { const r = existsSync(distIndex) ? runBybitPublicOutputAudit(join(ROOT, 'dist')) : null; return r === null || r.violations.every((v) => v.code !== 'GO_BYBIT_MISSING'); })());
   check('pub/mut/20: current real output remains fully neutral', PRES.promoCode === null && PRES.bonusHeadline === null && PRES.feeDiscount === null && PRES.kycRequired === null && PRES.depositRequired === null && PRES.minDeposit === null && PRES.availability === null && PRES.restrictedCountries === null && PRES.rewardType === null && PRES.expiry === null && PRES.termsSummary === null && auditClean);
+
+  // ===== Split 3 (#266 + PR #267 remediation) — GLOBAL unverified-offer public truth gate =====
+  // The governed set is the COMPLETE commercial-candidate catalog discovered from
+  // exchanges.json (13 slugs), not the six clean offer records. `/go/[exchange]` is generated
+  // from ALL of exchanges.json and DEFAULTS DENY: a null / unknown / non-authorizing view is
+  // never commercial. Only a strategy with an EXECUTABLE dispatcher may be commercial; today
+  // every candidate resolves to under_re_verification / non-commercial.
+  const EXCHANGES = JSON.parse(readFileSync(join(ROOT, 'src/data/exchanges.json'), 'utf8'));
+  const CANDIDATES = m.PUBLIC_COMMERCIAL_CANDIDATE_EXCHANGES;
+  const CLEAN_OFFER_SLUGS = CANDIDATES.filter((s) => m.getOffer(s));           // 6 clean offers.ts records
+  const LEGACY_SLUGS = CANDIDATES.filter((s) => !m.getOffer(s));               // 7 legacy candidates
+  const GENERIC = CANDIDATES.filter((s) => s !== 'bybit');                     // every non-Bybit candidate
+  const RAW_CODES = { bybit: 'CRYPTOBONUSW', mexc: 'mexc-CryptoBonus', okx: 'CRYPTOBONUSW', bitget: 'CryptoBonW', bingx: 'CRYPTOBONUSWORLD', 'gate-io': 'BONUSCBW', kucoin: 'CRYPTOBONW', htx: 'cryptobonusw', coinex: '2my4f', phemex: 'GJFJA5', bitunix: 'phpZuw', binance: 'CRYPTOBONW', coinbase: '' };
+  const gview = Object.fromEntries(CANDIDATES.map((s) => [s, m.resolvePublicOfferView(s, PNOW)]));
+  const GMATRIX = m.resolvePublicOfferAuthorityMatrix(PNOW);
+  const gInv = existsSync(distIndex) ? await buildPublicOfferForbiddenInventory() : null;
+  const GAUD = gInv ? runPublicOfferOutputAudit(join(ROOT, 'dist'), gInv) : null;
+  const gauditClean = GAUD === null || GAUD.ok === true;
+  const allViews = CANDIDATES.map((s) => gview[s]);
+  const perSlug = (label, pred) => CANDIDATES.forEach((s) => check(`gate/${label}[${s}]`, pred(s, gview[s])));
+
+  // --- R1/R5/R11/R12: independent commercial-candidate discovery + registry coverage ---
+  const DISCOVERED = m.discoverCommercialCandidateSlugs(EXCHANGES);
+  const COVERAGE = m.validatePublicOfferAuthorityRegistryCoverage(EXCHANGES);
+  check('gate/disc/1: discovery finds every current exchange with real commercial data', new Set(DISCOVERED).size === DISCOVERED.length && DISCOVERED.length === 13);
+  check('gate/disc/2: discovered count matches the real repository catalog', DISCOVERED.length === CANDIDATES.length && CANDIDATES.length === 13);
+  check('gate/disc/3: registry coverage EXACTLY matches candidate discovery', COVERAGE.ok === true && new Set(COVERAGE.discovered).size === 13 && COVERAGE.discovered.slice().sort().join(',') === COVERAGE.registered.slice().sort().join(','));
+  ['gate-io', 'htx', 'coinex', 'phemex', 'bitunix', 'binance', 'coinbase'].forEach((s) =>
+    check(`gate/disc/legacy[${s}] discovered + non-commercial`, DISCOVERED.includes(s) && gview[s] !== null && gview[s].isCommercial === false && gview[s].publicState === 'under_re_verification'));
+  check('gate/disc/coinbase: bare official-root affiliate still a governed candidate', m.isCommercialCandidate(EXCHANGES.find((e) => e.slug === 'coinbase')) === true && (gInv === null || gInv['coinbase'].affiliateTokens.length === 0));
+  check('gate/cov/missing-breaks: a new raw candidate without a registry entry fails coverage', m.validatePublicOfferAuthorityRegistryCoverage([...EXCHANGES, { slug: 'newexch', affiliateUrl: 'https://newexch.com/ref/AB', promoCode: 'AB' }]).ok === false);
+  check('gate/cov/stale-breaks: a stale registry entry with no candidate fails coverage', m.validatePublicOfferAuthorityRegistryCoverage(EXCHANGES, [...m.PUBLIC_OFFER_AUTHORITY_REGISTRY, { slug: 'ghost', strategy: 'no_authorizing_evidence', implemented: false, claimLevelRestoration: false, promoCodeAuthority: false, commercialCtaAuthority: false }]).ok === false);
+
+  // --- R8: executable-authorizer consistency + capability-not-data-authority ---
+  check('gate/wiring/ok: every authorizing strategy has a wired executable dispatcher', m.validateAuthorizingStrategyWiring(m.WIRED_AUTHORIZING_STRATEGIES).ok === true && m.WIRED_AUTHORIZING_STRATEGIES.includes('bybit_claim_packet_v1') && typeof m.getAuthorizingDispatcher('bybit_claim_packet_v1') === 'function');
+  check('gate/wiring/missing-fails: an authorizing strategy without a dispatcher fails closed', m.validateAuthorizingStrategyWiring([]).ok === false && m.getAuthorizingDispatcher('no_authorizing_evidence') === null);
+  check('gate/cap/mismatch: a capability flag flipped against its strategy fails validation', m.validatePublicOfferAuthorityRegistry([{ slug: 'z', strategy: 'no_authorizing_evidence', implemented: true, claimLevelRestoration: false, promoCodeAuthority: false, commercialCtaAuthority: false }]).ok === false && m.validatePublicOfferAuthorityRegistry([{ slug: 'z', strategy: 'no_authorizing_evidence', implemented: false, claimLevelRestoration: false, promoCodeAuthority: false, commercialCtaAuthority: true }]).ok === false);
+
+  // --- Mandatory current-state matrix (R12 1–20) ---
+  // 1–6 (generalized to all 13): each candidate under_re_verification + non-commercial.
+  perSlug('all:under_re_verification+non-commercial', (s, v) => !!v && v.publicState === 'under_re_verification' && v.isCommercial === false);
+  // 7: every promo code hidden in its public view.
+  check('gate/7: every current promo code hidden in its exchange public view', allViews.every((v) => v.promoCode === null));
+  // 8: every raw bonus headline hidden (neutral instead of the raw candidate).
+  check('gate/8: every raw bonus headline hidden', CANDIDATES.every((s) => gview[s].bonusHeadline === m.NEUTRAL_PUBLIC_HEADLINE) && CLEAN_OFFER_SLUGS.every((s) => gview[s].bonusHeadline !== m.getOffer(s).bonusHeadline));
+  // 9: raw Offer.status / verificationStatus cannot authorize any candidate (non-authorizing strategy).
+  check('gate/9: raw status cannot authorize any generic candidate', GENERIC.every((s) => m.getPublicOfferAuthority(s).strategy === 'no_authorizing_evidence' && gview[s].isCommercial === false) && CLEAN_OFFER_SLUGS.filter((s) => s !== 'bybit').every((s) => ['verified', 'public-preview', 'unverified'].includes(m.getOffer(s).status)) && LEGACY_SLUGS.every((s) => EXCHANGES.find((e) => e.slug === s).verificationStatus === 'verified' && gview[s].isCommercial === false));
+  // 10: synthetic bare EvidenceMetadata cannot authorize them (no authorizer → neutral).
+  check('gate/10: bare EvidenceMetadata cannot authorize any generic candidate', GENERIC.every((s) => { const a = m.getPublicOfferAuthority(s); return a.commercialCtaAuthority === false && a.promoCodeAuthority === false && a.claimLevelRestoration === false && m.resolvePublicOfferView(s, PNOW).isCommercial === false; }));
+  // 11: unknown / malformed authority strategy fails closed.
+  check('gate/11: unknown authority strategy fails closed (registry validation)', m.validatePublicOfferAuthorityRegistry([{ slug: 'x', strategy: 'verified', implemented: true, claimLevelRestoration: true, promoCodeAuthority: true, commercialCtaAuthority: true }]).ok === false && m.validatePublicOfferAuthorityRegistry().ok === true);
+  // 12: unknown offer-bearing exchange fails closed (no view → no commercial).
+  check('gate/12: unknown exchange fails closed', m.getPublicOfferAuthority('totally-unknown') === null && m.resolvePublicOfferView('totally-unknown', PNOW) === null && m.isCommercialCandidateExchange('totally-unknown') === false);
+  // 13: homepage carries no latent affiliate destination / code / commercial action.
+  check('gate/13: homepage carries no latent affiliate destination/code/action', (() => { const j = JSON.stringify(homepageTop10); return homepageTop10.every((e) => e.primaryAction === undefined && !e.promoCode) && !/\/go\/|partner\.|bingxdao|shareCode|\/join\/|\/r\/af\/|\/bg\/|\/share\/|\/register\?|invite_code|referralCode|inviteCode/.test(j); })());
+  // 14–15: promo-code table + exchange directory use the public state (all non-verified).
+  check('gate/14-15: directory + promo-code table use public state (all candidates non-verified)', allViews.every((v) => v.publicState !== 'verified' && v.showVerifiedBadge === false));
+  // 16–17: related + preview alternative tiles use public state (audit: no code/host in blocks).
+  check('gate/16-17: related/preview tiles carry no code/affiliate in any exchange block', GAUD === null || GAUD.violations.every((v) => !/_IN_BLOCK$/.test(v.code)));
+  // 18–20: dedicated pages + metadata neutral; no raw bonus/code in output.
+  check('gate/18-20: dedicated pages + metadata neutral (audit)', GAUD === null || GAUD.violations.every((v) => !/_IN_PAGE$|_PAGE_/.test(v.code)));
+  // 21–33: each /go/<slug> non-commercial (all 13 discovered candidate routes).
+  CANDIDATES.forEach((s) => check(`gate/go/${s} non-commercial`, GAUD === null || GAUD.violations.every((v) => !v.code.startsWith(`${s.toUpperCase()}_GO_`))));
+  // 27–30 (all routes): no /go route serializes affiliate / analytics / sponsored / external redirect.
+  check('gate/27-30: no /go route serializes affiliate/analytics/sponsored/external redirect', GAUD === null || GAUD.violations.every((v) => !/_GO_/.test(v.code)));
+  // R4: repository guard — no NULL→commercial fallback reintroduced at any consumer.
+  check('gate/null-deny-guard: no consumer contains a NULL→commercial view fallback', (() => {
+    const consumers = ['src/pages/go/[exchange].astro', 'src/components/exchange/ExchangePromoPageV2.astro', 'src/components/exchange-preview/ExchangeReviewPreviewPage.astro', 'src/components/site-standard/ExchangeDirectoryCard.astro', 'src/components/exchange/GovernedExchangePage.astro', 'src/components/home/HomepageTop10.astro', 'src/pages/promo-codes/index.astro'];
+    const failOpen = /\?\s*view\.isCommercial\s*:\s*true|\?\s*!\s*view\.isCommercial\s*:\s*false/;
+    return consumers.every((f) => !failOpen.test(readFileSync(join(ROOT, f), 'utf8')));
+  })());
+  // 31: raw offers.ts candidate values intact (codes still present internally).
+  check('gate/31: raw offers.ts candidate codes intact', CLEAN_OFFER_SLUGS.every((s) => m.getOffer(s).promoCode === RAW_CODES[s]));
+  // 32: raw exchanges.json affiliate destinations intact (present in the audit inventory + raw JSON).
+  check('gate/32: raw exchanges.json affiliate destinations intact', (gInv === null || CANDIDATES.filter((s) => s !== 'coinbase').every((s) => gInv[s] && gInv[s].affiliateTokens.length > 0)) && EXCHANGES.find((e) => e.slug === 'bybit').affiliateUrl === 'https://partner.bybit.com/b/CRYPTOBONUSW' && EXCHANGES.find((e) => e.slug === 'binance').affiliateUrl === 'https://www.binance.com/join?ref=CRYPTOBONW' && EXCHANGES.find((e) => e.slug === 'coinbase').affiliateUrl === 'https://www.coinbase.com/');
+  // 33–38, 40: Bybit evidence posture unchanged.
+  check('gate/33: Bybit packet remains draft', realPkt262.approval === 'draft');
+  check('gate/34: Bybit confirmation state remains missing', m.BYBIT_PROMO_CODE_CONFIRMATION_STATE === 'missing');
+  check('gate/35: Bybit source-plan claims remain inaccessible', m.SOURCE_PLAN_TARGET_CLAIMS.every((id) => realPkt262.claims.find((c) => c.claimId === id).result === 'inaccessible'));
+  check('gate/36: Bybit exact-value mutation binding remains green', m.resolvePublicClaimValue(bind('bonusHeadline'), RAW_BYBIT, true) === bind('bonusHeadline').assertedValue && m.resolvePublicClaimValue(bind('bonusHeadline'), mut({ bonusHeadline: 'X' }), true) === null);
+  check('gate/37: eight Bybit source captures + digests unchanged', (realPkt262.officialSourceCaptures || []).length === 8 && (realPkt262.officialSourceCaptures || []).every((c) => m.computeOfficialSourceDigest(c) === c.sourceDigest));
+  check('gate/38: PUBLIC_MARKET_PROFILES frozen empty', Array.isArray(m.PUBLIC_MARKET_PROFILES) && m.PUBLIC_MARKET_PROFILES.length === 0 && Object.isFrozen(m.PUBLIC_MARKET_PROFILES));
+  check('gate/39: test-authority guard PASS', GUARD.ok === true);
+  check('gate/40: adaptBybitOfferToEvidence remains the sole Bybit EvidenceMetadata producer', Object.keys(m.OPR).filter((k) => /^adapt/.test(k)).join(',') === 'adaptBybitOfferToEvidence');
+  // 41: no new generic authorizing strategy (bybit strategy is the only authorizing one).
+  check('gate/41: no new generic authorizing strategy exists', m.AUTHORIZING_STRATEGIES.length === 1 && m.AUTHORIZING_STRATEGIES[0] === 'bybit_claim_packet_v1' && GENERIC.every((s) => !m.isAuthorizingStrategy(m.getPublicOfferAuthority(s).strategy)));
+  // 42–43: homepage /go/* = 0 in preview + production simulation.
+  check('gate/42: preview homepage /go/* = 0', homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'preview', 'en').primary.href.startsWith('/go/')));
+  check('gate/43: production simulation homepage /go/* = 0', homepageTop10.every((e) => !m.resolveHomepageTop10Cta(e, 'production', 'en').primary.href.startsWith('/go/')));
+  // 44: global public-offer output audit PASS.
+  check('gate/44: global public-offer output audit PASS', gauditClean && (GAUD === null || GAUD.scanned > 0));
+  // 45: desktop/mobile factual posture matches (one evidence-driven projection per exchange).
+  check('gate/45: desktop/mobile factual posture matches', gauditClean && CANDIDATES.every((s) => JSON.stringify(m.resolvePublicOfferView(s, PNOW)) === JSON.stringify(gview[s])));
+  // 46: no universal SEO/FAQ copy falsely claims every listed offer/code is currently verified.
+  check('gate/46: no universal verified-code claim (all views non-verified + audit clean)', allViews.every((v) => !v.showVerifiedBadge) && gauditClean);
+  // Authority matrix (R13): exact code-owned current-state result across all 13 candidates.
+  check('gate/matrix: current-state authority matrix is exact + fail-closed', GMATRIX.length === 13 && GMATRIX.every((r) => r.publicState === 'under_re_verification' && r.commercial === false) && GMATRIX.find((r) => r.slug === 'bybit').strategy === 'bybit_claim_packet_v1' && GENERIC.every((s) => GMATRIX.find((r) => r.slug === s).strategy === 'no_authorizing_evidence'));
+  void perSlug;
 
   // --- Invariant: a non-commercial model may never point at /go/ ---
   let threw = false;

@@ -8,7 +8,7 @@
  *
  * CoinEx is NOT one of the six live promo exchanges and has no verified CBW bonus
  * offer, so this page makes NO bonus claim, NO KYC/availability claim, and shows
- * NO active affiliate CTA. It steers users to the verified promo-code comparison
+ * NO active affiliate CTA. It steers users to the promo-code comparison table
  * and the exchange hub.
  *
  * Data-safety: no promo code, no bonus amount, no affiliate URL, no /go/ link is
@@ -18,7 +18,7 @@ import CleanLayout from '../../layouts/CleanLayout.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
 
 const pageTitle = 'CoinEx Referral Code: Current Status | CryptoBonusWorld';
-const pageDesc  = 'CoinEx referral code status on CryptoBonusWorld. We do not currently list a verified CoinEx promo code — compare verified crypto exchange promo codes and bonuses instead.';
+const pageDesc  = 'CoinEx referral code status on CryptoBonusWorld. We do not currently list a verified CoinEx promo code — compare tracked crypto exchange promo codes and their current verification status instead.';
 
 const crumbs = [
   { label: 'Home', href: '/' },
@@ -27,7 +27,7 @@ const crumbs = [
 ];
 
 const statusRows = [
-  { label: 'Verified CBW code', value: 'Not listed' },
+  { label: 'CBW promo code', value: 'Not listed' },
   { label: 'Affiliate CTA',     value: 'Not active' },
   { label: 'Bonus amount',      value: 'Not verified' },
   { label: 'Last reviewed',     value: 'July 2026' },
@@ -51,8 +51,8 @@ const statusRows = [
       <div class="cx-eyebrow">Exchange status</div>
       <h1>CoinEx Referral Code: Current Status</h1>
       <p class="cx-lead">
-        We do not currently list a verified CoinEx promo code. Compare verified
-        crypto exchange promo codes below.
+        We do not currently list a verified CoinEx promo code. Compare tracked
+        crypto exchange promo codes and their current verification status below.
       </p>
     </header>
 
@@ -81,10 +81,10 @@ const statusRows = [
     <!-- CTAs -->
     <section class="cx-wrap cx-section">
       <div class="cx-cta">
-        <h2>Looking for a verified crypto bonus?</h2>
-        <p>Use a promo code we have actually checked against the exchange's official page.</p>
+        <h2>Comparing crypto exchange bonuses?</h2>
+        <p>Browse the tracked exchange promo codes and see each one's current verification status.</p>
         <div class="cx-cta-actions">
-          <a href="/promo-codes/" class="btn-primary">View Verified Promo Codes →</a>
+          <a href="/promo-codes/" class="btn-primary">Compare Promo Codes →</a>
           <a href="/exchanges/" class="btn-secondary">Browse Exchanges</a>
         </div>
       </div>

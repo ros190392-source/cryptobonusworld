@@ -1,0 +1,59 @@
+---
+/**
+ * GovernedExchangePage (Issue #266).
+ *
+ * ONE generic governed wrapper for every dedicated exchange page. It resolves the
+ * evidence-driven PublicOfferView for the exchange against an explicit render clock and
+ * renders EITHER the rich commercial promo page (only when the exchange's public state is
+ * commercial/verified through its authorizing strategy) OR a neutral non-commercial
+ * re-verification notice. Page metadata (title / description / OG) is neutral unless the
+ * exchange is commercial. No page carries bespoke gating logic — this wrapper handles all
+ * six offer-bearing exchanges uniformly (Bybit included), so the truth gate can never be
+ * forgotten on one page.
+ */
+import CleanLayout from '../../layouts/CleanLayout.astro';
+import ExchangePromoPageV2 from './ExchangePromoPageV2.astro';
+import ExchangeUnverifiedNotice from './ExchangeUnverifiedNotice.astro';
+import '../../styles/exchange-page-standard-v1-responsive.css';
+import type { ExchangePromoPageConfig } from '../../data/exchangePages/types';
+import { resolvePublicOfferView } from '../../data/publicOfferView';
+import { NEUTRAL_PUBLIC_DETAIL } from '../../data/contracts/publicOfferAuthority';
+
+export interface Props {
+  config: ExchangePromoPageConfig;
+}
+
+const { config } = Astro.props;
+
+// ONE explicit build/render clock (R5) — the truth gate is evidence-driven, never
+// Offer.status. A non-authoritative exchange renders the neutral surface.
+const nowMs = Date.now();
+const view = resolvePublicOfferView(config.slug, nowMs);
+const commercial = view?.isCommercial === true;
+
+const officialUrl = `https://www.${config.officialDomain}`;
+const neutralTitle = `${config.name} exchange — offer under re-verification | CryptoBonusWorld`;
+const neutralDescription = `${config.name} promotion details are being re-verified. Current promotion terms are not verified yet — check the exchange directly for current terms.`;
+---
+
+<CleanLayout
+  title={commercial ? config.pageTitle : neutralTitle}
+  description={commercial ? config.pageDescription : neutralDescription}
+  canonical={config.canonicalUrl}
+  ogImage={config.ogImage}
+  ogTitle={commercial ? config.ogTitle : neutralTitle}
+  ogDescription={commercial ? config.ogDescription : neutralDescription}
+>
+  {commercial ? (
+    <ExchangePromoPageV2 config={config} />
+  ) : (
+    <ExchangeUnverifiedNotice
+      slug={config.slug}
+      name={config.name}
+      statusLabel={view?.statusLabel ?? 'Under re-verification'}
+      headline={view?.bonusHeadline ?? 'Offer details are being re-verified'}
+      detailText={NEUTRAL_PUBLIC_DETAIL}
+      officialUrl={officialUrl}
+    />
+  )}
+</CleanLayout>

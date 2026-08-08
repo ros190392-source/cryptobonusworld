@@ -9,6 +9,7 @@ import type { CtaLocale } from '../../data/contracts/portalCta';
 import Top10Disclosure from './Top10Disclosure.astro';
 import { resolveDisclosure } from '../../data/contracts/portalDisclosure';
 import { getOffer } from '../../data/offers';
+import { resolvePublicOfferView } from '../../data/publicOfferView';
 
 // Current published locale for the homepage. All CTA labels and microcopy are
 // sourced through the localization contract, so switching this constant
@@ -43,6 +44,12 @@ const disclosures = new Map(
   homepageTop10.map((entry) => {
     const offer = getOffer(entry.slug);
     const binding = ctaBindings.get(entry.rank);
+    // Issue #266: the "Official offer page" link is a commercial offer reference — some
+    // exchanges' `sourceUrl` is itself an affiliate/partner URL carrying the promo code
+    // (e.g. bingx). While the row's public view is non-commercial it must NOT surface, so
+    // no affiliate destination or code leaks from the disclosure of an unverified offer.
+    const view = offer ? resolvePublicOfferView(entry.slug, nowMs) : null;
+    const officialHref = view?.isCommercial ? offer?.sourceUrl : undefined;
     return [entry.rank, resolveDisclosure({
       tone: entry.statusTone,
       evidence: entry.evidence ?? null,
@@ -52,7 +59,7 @@ const disclosures = new Map(
       now: nowMs,
       isAffiliate: Boolean(binding?.primary.isAffiliate),
       methodologyHref: '/methodology/',
-      officialHref: offer?.sourceUrl,
+      officialHref,
     }, ctaLocale)];
   }),
 );

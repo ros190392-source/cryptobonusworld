@@ -97,6 +97,7 @@ jobs:
             src/data/contracts/countryAwareCta.ts \
             src/data/contracts/portalStateFixtures.ts \
             src/data/homepageTop10Cta.ts \
+            src/data/contracts/publicOfferAuthority.ts \
             src/data/publicOfferView.ts \
             src/data/evidence/offers/bybitPublicPresentation.ts \
             src/data/evidence/offers/bybitOfferEvidence.ts \
@@ -123,6 +124,10 @@ jobs:
         id: bybit_public_audit
         run: npm run portal:audit:bybit-public
 
+      - name: Global public-offer output audit (all offer-bearing exchanges)
+        id: public_offers_audit
+        run: npm run portal:audit:public-offers
+
       - name: Advisory summary
         if: always()
         env:
@@ -132,6 +137,7 @@ jobs:
           CONTRACTS_TEST: ${{ steps.contracts_test.outcome }}
           BUILD: ${{ steps.build.outcome }}
           BYBIT_PUBLIC_AUDIT: ${{ steps.bybit_public_audit.outcome }}
+          PUBLIC_OFFERS_AUDIT: ${{ steps.public_offers_audit.outcome }}
         run: |
           {
             echo "### Portal Contracts Advisory (non-blocking)"
@@ -144,6 +150,7 @@ jobs:
             echo "| Contracts fail-closed test | ${CONTRACTS_TEST} |"
             echo "| Fail-closed build | ${BUILD} |"
             echo "| Bybit public-output audit | ${BYBIT_PUBLIC_AUDIT} |"
+            echo "| Global public-offer audit | ${PUBLIC_OFFERS_AUDIT} |"
             echo ""
             echo "> **Advisory only — not a required merge gate.** This job is \`continue-on-error\`, so its"
             echo "> conclusion is always non-blocking; inspect the individual step results in the table above."

@@ -36,19 +36,24 @@ export function getStaticPaths() {
 
 const { exchange: ex } = Astro.props;
 
-// Issue #264 (R1): the /go route is gated by the SAME evidence-driven public commercial
-// state as every other Bybit surface, against ONE explicit render clock (R5). While an
-// exchange's public view is non-commercial (Bybit under re-verification), this route must
-// NOT serialize the affiliate destination / promo code / geo links, must NOT fire the
-// affiliate-click analytics, must NOT auto-redirect externally, and presents a neutral
-// internal hop to the exchange's local page. Exchanges without an offer keep the existing
-// affiliate behavior. The raw exchanges.json affiliate data is never mutated.
+// Issue #264 (R1) / Issue #266 (R3): the /go route is gated by the SAME evidence-driven
+// public commercial state as every other surface, against ONE explicit render clock (R5),
+// and DEFAULTS DENY. `/go/[exchange]` is generated from ALL of exchanges.json, and every
+// commercial candidate there is governed by PUBLIC_OFFER_AUTHORITY_REGISTRY — so a null /
+// unknown / non-authorizing view means NON-COMMERCIAL, never a fallthrough to the affiliate
+// URL. While non-commercial, this route must NOT serialize the affiliate destination / promo
+// code / geo links, must NOT fire affiliate-click analytics, must NOT auto-redirect
+// externally, and presents a neutral internal hop. The raw exchanges.json affiliate data is
+// never mutated.
 const nowMs = Date.now();
 const view = resolvePublicOfferView(ex.slug, nowMs);
-const commercial = view ? view.isCommercial : true;
+const commercial = view?.isCommercial === true;
 
-// Fallback redirect target. bybit has a dedicated /bybit/ route; others → /exchanges/[slug]/
-const fallbackUrl = ex.slug === 'bybit' ? '/bybit/' : `/exchanges/${ex.slug}/`;
+// Guaranteed-existing safe internal fallback. Exchanges with a maintained dedicated root
+// status page (the six governed offer pages + CoinEx) go there; every other candidate goes
+// to the governed directory (/exchanges/), which always exists.
+const ROOT_STATUS_PAGES = new Set(['bybit', 'mexc', 'bitget', 'okx', 'kucoin', 'bingx', 'coinex']);
+const fallbackUrl = ROOT_STATUS_PAGES.has(ex.slug) ? `/${ex.slug}/` : '/exchanges/';
 
 // Visible "Continue" href. Commercial: the default affiliate URL when a real https link
 // (the client script upgrades it to the GEO/tracked URL). Non-commercial: the safe

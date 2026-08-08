@@ -1,17 +1,5 @@
 ---
-import CleanLayout from '../../layouts/CleanLayout.astro';
-import ExchangePromoPageV2 from '../../components/exchange/ExchangePromoPageV2.astro';
-import '../../styles/exchange-page-standard-v1-responsive.css';
+import GovernedExchangePage from '../../components/exchange/GovernedExchangePage.astro';
 import { mexcConfig } from '../../data/exchangePages/mexc';
 ---
-
-<CleanLayout
-  title={mexcConfig.pageTitle}
-  description={mexcConfig.pageDescription}
-  canonical={mexcConfig.canonicalUrl}
-  ogImage={mexcConfig.ogImage}
-  ogTitle={mexcConfig.ogTitle}
-  ogDescription={mexcConfig.ogDescription}
->
-  <ExchangePromoPageV2 config={mexcConfig} />
-</CleanLayout>
+<GovernedExchangePage config={mexcConfig} />
