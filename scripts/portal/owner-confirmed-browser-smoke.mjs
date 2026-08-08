@@ -10,8 +10,9 @@
  * - seven dedicated exchange pages stay neutral while keeping confirmed code/CTA;
  * - all 13 /go routes serialize the exact confirmed destination without navigating off-site.
  *
- * Direct /go matrix uses a JavaScript-disabled browser context. The server-rendered page is
- * exercised by Chromium, but its redirect script cannot execute and no exchange is contacted.
+ * Every browser context is network-sandboxed to localhost. Direct /go matrix additionally uses
+ * JavaScript disabled, so the server-rendered route is exercised by Chromium but no exchange or
+ * third-party host can be contacted.
  *
  * Usage:
  *   node scripts/portal/owner-confirmed-browser-smoke.mjs preview
@@ -124,10 +125,31 @@ async function launchChromium() {
   }
 }
 
+async function sandboxContext(context) {
+  await context.route('**/*', async (route) => {
+    const requestUrl = route.request().url();
+    try {
+      const parsed = new URL(requestUrl);
+      if (
+        parsed.hostname === '127.0.0.1'
+        || parsed.hostname === 'localhost'
+        || parsed.protocol === 'data:'
+        || parsed.protocol === 'blob:'
+      ) {
+        await route.continue();
+        return;
+      }
+    } catch (_) {}
+    await route.abort('blockedbyclient');
+  });
+}
+
 function attachErrorCapture(page, bucket, prefix) {
   page.on('pageerror', (err) => bucket.push(`${prefix} pageerror: ${err.message}`));
   page.on('console', (msg) => {
-    if (msg.type() === 'error') bucket.push(`${prefix} console.error: ${msg.text()}`);
+    if (msg.type() === 'error' && !/ERR_BLOCKED_BY_CLIENT/i.test(msg.text())) {
+      bucket.push(`${prefix} console.error: ${msg.text()}`);
+    }
   });
 }
 
@@ -138,7 +160,8 @@ async function homepageSnapshot(page, viewportLabel) {
   check(`${viewportLabel}: homepage HTTP 200`, response?.status() === 200, `status=${response?.status()}`);
 
   const rows = page.locator('.top10-row');
-  check(`${viewportLabel}: homepage has 10 Top-10 rows`, await rows.count() === 10, `count=${await rows.count()}`);
+  const rowCount = await rows.count();
+  check(`${viewportLabel}: homepage has 10 Top-10 rows`, rowCount === 10, `count=${rowCount}`);
   check(`${viewportLabel}: no verified factual status badges`, await page.locator('.top10-status--verified').count() === 0);
 
   const goCount = await page.locator('.top10-primary[href^="/go/"]').count();
@@ -182,7 +205,8 @@ async function checkPromoDirectory(page, manifestBySlug) {
   const response = await page.goto(`${BASE}/promo-codes/`, { waitUntil: 'networkidle' });
   check('promo directory HTTP 200', response?.status() === 200, `status=${response?.status()}`);
   const rows = page.locator('.promo-row');
-  check('promo directory has 6 tracked rows', await rows.count() === 6, `count=${await rows.count()}`);
+  const rowCount = await rows.count();
+  check('promo directory has 6 tracked rows', rowCount === 6, `count=${rowCount}`);
 
   const state = await rows.evaluateAll((els) => els.map((el) => ({
     slug: el.getAttribute('data-exchange-slug') ?? '',
@@ -229,6 +253,7 @@ async function checkDedicatedPages(page, manifestBySlug) {
 
 async function checkGoMatrix(browser, manifest) {
   const context = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 1024, height: 768 } });
+  await sandboxContext(context);
   const page = await context.newPage();
   try {
     for (const entry of manifest) {
@@ -263,6 +288,7 @@ try {
   browser = await launchChromium();
 
   const desktopContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  await sandboxContext(desktopContext);
   const desktopPage = await desktopContext.newPage();
   const desktopSnapshot = await homepageSnapshot(desktopPage, 'desktop');
   await checkKeyboardFocus(desktopPage);
@@ -271,6 +297,7 @@ try {
   await desktopContext.close();
 
   const mobileContext = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true });
+  await sandboxContext(mobileContext);
   const mobilePage = await mobileContext.newPage();
   const mobileSnapshot = await homepageSnapshot(mobilePage, 'mobile');
   await mobileContext.close();
