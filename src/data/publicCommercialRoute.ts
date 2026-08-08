@@ -2,9 +2,8 @@
  * Public commercial-route projection for Issue #269.
  *
  * This module is deliberately separate from factual offer-claim authority.
- * It answers only whether a public CTA or /go route may leave CBW, and if so,
- * which EXACT owner-confirmed destination may be used. It never appends query
- * parameters, rewrites paths, or upgrades offer claims.
+ * It answers whether an exact owner-confirmed registration destination may be used and which
+ * exact owner-confirmed promo/referral code may be displayed. It never upgrades offer claims.
  */
 import exchanges from './exchanges.json';
 import { resolvePublicOfferView, type PublicOfferView } from './publicOfferView';
@@ -30,8 +29,9 @@ export interface PublicCommercialRouteDecision {
   destinationKind: PublicCommercialDestinationKind;
   fallbackUrl: string;
   ctaLabel: string;
+  /** Exact owner-confirmed promo/referral code; independent from factual claim view. */
   promoCode: string | null;
-  promoCodeAuthority: PublicOfferView['promoCodeAuthority'] | 'unconfirmed';
+  promoCodeAuthority: 'owner_confirmed' | 'unconfirmed';
   offerTermsLabel: string;
 }
 
@@ -79,20 +79,13 @@ function exactConfirmedDestination(
 }
 
 /**
- * Resolve one render-safe commercial route decision.
+ * Resolve one render-safe commercial decision.
  *
- * External navigation requires BOTH:
- *  - the shared public view to expose owner-confirmed LINK authority; and
- *  - an exact destination from the frozen owner-confirmation manifest.
+ * LINK and CODE authority are independent:
+ * - a confirmed code may still be displayed even if the link is missing/unconfirmed;
+ * - a confirmed link may navigate while factual bonus/KYC/terms stay under re-verification.
  *
- * Factual `view.isCommercial` is intentionally NOT consulted here. Issue #269
- * separates registration-link authority from offer-claim authority: a safe exact
- * registration link may stay active while bonus/KYC/terms remain under re-verification.
- *
- * The returned external destination is byte-for-byte the confirmed value.
- * Analytics may observe the click separately, but callers must not mutate this
- * URL by adding subids/UTMs/query params unless that new value is separately
- * owner-confirmed in the manifest.
+ * Factual `view.isCommercial` is intentionally NOT consulted here.
  */
 export function resolvePublicCommercialRoute(
   slug: string,
@@ -105,14 +98,17 @@ export function resolvePublicCommercialRoute(
   const view = resolvePublicOfferView(slug, nowMs);
   const ownerAuthority = resolveOwnerConfirmedCommercialAuthority(slug);
 
+  const promoCodeAuthority: PublicCommercialRouteDecision['promoCodeAuthority'] =
+    ownerAuthority?.promoCodeConfirmed === true ? 'owner_confirmed' : 'unconfirmed';
+  const promoCode = promoCodeAuthority === 'owner_confirmed'
+    ? ownerAuthority?.confirmedPromoCode ?? null
+    : null;
+
   const exact = view?.linkAuthority === 'owner_confirmed'
     && ownerAuthority?.linkConfirmed === true
       ? exactConfirmedDestination(ownerAuthority, countryCode)
       : null;
 
-  // Explicitly fail closed on either missing projection. Besides being safer to read,
-  // this gives strict TypeScript a real control-flow proof that `view` is non-null in
-  // the external branch below.
   if (!exact || !view) {
     return Object.freeze({
       slug,
@@ -123,8 +119,8 @@ export function resolvePublicCommercialRoute(
       destinationKind: 'internal',
       fallbackUrl,
       ctaLabel: `View ${name} status`,
-      promoCode: view?.promoCode ?? null,
-      promoCodeAuthority: view?.promoCodeAuthority ?? 'unconfirmed',
+      promoCode,
+      promoCodeAuthority,
       offerTermsLabel: view?.statusLabel ?? 'Under re-verification',
     });
   }
@@ -138,8 +134,8 @@ export function resolvePublicCommercialRoute(
     destinationKind: exact.kind,
     fallbackUrl,
     ctaLabel: `Register on ${name}`,
-    promoCode: view.promoCode,
-    promoCodeAuthority: view.promoCodeAuthority,
+    promoCode,
+    promoCodeAuthority,
     offerTermsLabel: view.statusLabel,
   });
 }
@@ -177,6 +173,14 @@ export function validatePublicCommercialRouteMatrix(nowMs: number): PublicCommer
       }
     } else if (!decision.destination.startsWith('/')) {
       issues.push(`internal-fallback-not-internal:${slug}`);
+    }
+
+    if (decision.promoCodeAuthority === 'owner_confirmed') {
+      if (!authority?.promoCodeConfirmed || decision.promoCode !== authority.confirmedPromoCode) {
+        issues.push(`promo-code-not-exact-confirmed-value:${slug}`);
+      }
+    } else if (decision.promoCode !== null) {
+      issues.push(`unconfirmed-promo-code-leak:${slug}`);
     }
   }
 
