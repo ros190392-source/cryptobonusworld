@@ -87,10 +87,11 @@ function neutralView(
  * Claim-evidence authorizer dispatchers. They decide factual offer presentation only.
  * Link/code authority is applied independently afterwards by #269.
  */
-type ClaimDispatcher = (slug: string, nowMs: number) => Omit<PublicOfferView, 'linkAuthority' | 'promoCodeAuthority'> | null;
+type ClaimView = Omit<PublicOfferView, 'linkAuthority' | 'promoCodeAuthority'>;
+type ClaimDispatcher = (slug: string, nowMs: number) => ClaimView | null;
 
 const AUTHORIZING_DISPATCHERS: Readonly<Record<string, ClaimDispatcher>> = Object.freeze({
-  bybit_claim_packet_v1: (slug: string, nowMs: number) => {
+  bybit_claim_packet_v1: (slug: string, nowMs: number): ClaimView | null => {
     if (slug !== 'bybit') return null;
     const p = deriveBybitPublicOfferPresentation(nowMs);
     return {
