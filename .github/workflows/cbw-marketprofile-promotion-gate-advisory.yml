@@ -1,0 +1,112 @@
+name: CBW MarketProfile Promotion Gate Advisory
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'src/data/contracts/marketProfilePromotionGate.ts'
+      - 'src/data/contracts/marketProfileCandidateReview.ts'
+      - 'src/data/contracts/researchToMarketProfileV1Bridge.ts'
+      - 'src/data/contracts/marketProfileV1.ts'
+      - 'scripts/portal/marketprofile-promotion-gate-test.mjs'
+      - 'scripts/portal/marketprofile-candidate-review-test.mjs'
+      - 'scripts/portal/research-marketprofile-bridge-test.mjs'
+      - '.github/workflows/cbw-marketprofile-promotion-gate-advisory.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cbw-marketprofile-promotion-gate-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  promotion-gate:
+    name: MarketProfile promotion gate advisory (non-blocking)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    continue-on-error: true
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Strict TypeScript promotion contracts
+        id: typecheck
+        run: |
+          set -euo pipefail
+          node_modules/.bin/tsc --noEmit --strict --skipLibCheck --resolveJsonModule \
+            --moduleResolution bundler --module esnext --target es2022 \
+            src/data/contracts/portalFactory.ts \
+            src/data/contracts/marketProfileV1.ts \
+            src/data/contracts/researchToMarketProfileV1Bridge.ts \
+            src/data/contracts/marketProfileCandidateReview.ts \
+            src/data/contracts/marketProfilePromotionGate.ts
+
+      - name: MarketProfile promotion gate regression
+        id: promotion
+        run: node scripts/portal/marketprofile-promotion-gate-test.mjs
+
+      - name: Candidate review packet regression
+        id: review
+        run: node scripts/portal/marketprofile-candidate-review-test.mjs
+
+      - name: Research to MarketProfile bridge regression
+        id: bridge
+        run: node scripts/portal/research-marketprofile-bridge-test.mjs
+
+      - name: Country Foundation regression
+        id: country
+        run: node scripts/portal/country-foundation-test.mjs
+
+      - name: Production test-authority guard
+        id: guard
+        run: npm run portal:guard:test-authority
+
+      - name: Portal contracts
+        id: contracts
+        run: npm run portal:contracts:test
+
+      - name: Full site build
+        id: build
+        run: npm run build
+
+      - name: Advisory summary
+        if: always()
+        env:
+          TYPECHECK: ${{ steps.typecheck.outcome }}
+          PROMOTION: ${{ steps.promotion.outcome }}
+          REVIEW: ${{ steps.review.outcome }}
+          BRIDGE: ${{ steps.bridge.outcome }}
+          COUNTRY: ${{ steps.country.outcome }}
+          GUARD: ${{ steps.guard.outcome }}
+          CONTRACTS: ${{ steps.contracts.outcome }}
+          BUILD: ${{ steps.build.outcome }}
+        run: |
+          {
+            echo '### CBW MarketProfile Promotion Gate Advisory'
+            echo ''
+            echo '| Check | Result |'
+            echo '|---|---|'
+            echo "| Strict TypeScript | ${TYPECHECK} |"
+            echo "| Promotion gate regression | ${PROMOTION} |"
+            echo "| Candidate review regression | ${REVIEW} |"
+            echo "| Bridge regression | ${BRIDGE} |"
+            echo "| Country Foundation regression | ${COUNTRY} |"
+            echo "| Test-authority guard | ${GUARD} |"
+            echo "| Portal contracts | ${CONTRACTS} |"
+            echo "| Full build | ${BUILD} |"
+            echo ''
+            echo '> A green gate may only report readiness for a separate future import task. It performs no import, registry mutation, publication or deploy.'
+          } >> "$GITHUB_STEP_SUMMARY"
