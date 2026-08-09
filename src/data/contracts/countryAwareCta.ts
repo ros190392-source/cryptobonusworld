@@ -11,6 +11,7 @@
  * A live `/go/*` action requires ALL of:
  *   - explicit production mode + commercial intent;
  *   - a valid, supported country (never `global` / missing / malformed);
+ *   - an atomically valid Country Foundation V1 registry in strict V1 mode;
  *   - exactly one valid, approved Exchange × Country MarketProfile;
  *   - profile availability available|limited AND offerEligibility approved;
  *   - for Country Foundation V1, every material structured dimension explicitly positive;
@@ -33,6 +34,7 @@ import { resolveMarketProfile } from './marketProfileRegistry';
 import {
   evaluateCountryMarketProfileV1CommercialReadiness,
   validateCountryMarketProfileV1,
+  type CountryMarketProfileV1,
 } from './marketProfileV1';
 import { resolveOfferEvidenceAuthorization } from './evidenceMetadata';
 
@@ -86,6 +88,59 @@ export interface CountryAwareCtaInput {
 
 export type CountryFoundationCtaInput = Omit<CountryAwareCtaInput, 'profileContract'>;
 export type RestrictionState = 'ok' | 'missing' | 'invalid';
+
+export type CountryFoundationRegistryValidation =
+  | { ok: true }
+  | {
+      ok: false;
+      reason: 'INVALID_ENTRY' | 'DUPLICATE_PAIR';
+      duplicateKeys: readonly string[];
+    };
+
+function countryProfilePairKey(exchangeId: string, countryCode: string): string {
+  return `${exchangeId}\u0000${countryCode}`;
+}
+
+/**
+ * Strict Country Foundation registry validation (#300).
+ *
+ * Atomic means the selected pair is never considered in isolation: every sibling
+ * must satisfy the V1 contract and every `(exchangeId,countryCode)` pair must be
+ * unique across the complete supplied registry. The legacy resolver remains
+ * unchanged and is used only after this strict V1 preflight succeeds.
+ */
+export function validateCountryFoundationRegistry(
+  input: unknown,
+): CountryFoundationRegistryValidation {
+  if (!Array.isArray(input)) {
+    return { ok: false, reason: 'INVALID_ENTRY', duplicateKeys: Object.freeze([]) };
+  }
+
+  const counts = new Map<string, number>();
+  for (const entry of input) {
+    const validated = validateCountryMarketProfileV1(entry);
+    if (!validated.ok || !validated.value) {
+      return { ok: false, reason: 'INVALID_ENTRY', duplicateKeys: Object.freeze([]) };
+    }
+    const profile: CountryMarketProfileV1 = validated.value;
+    const key = countryProfilePairKey(profile.exchangeId, profile.countryCode);
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+
+  const duplicateKeys = [...counts.entries()]
+    .filter(([, count]) => count > 1)
+    .map(([key]) => key)
+    .sort();
+  if (duplicateKeys.length > 0) {
+    return {
+      ok: false,
+      reason: 'DUPLICATE_PAIR',
+      duplicateKeys: Object.freeze(duplicateKeys),
+    };
+  }
+
+  return { ok: true };
+}
 
 /**
  * Normalize + validate offer.restrictedCountries for a PRODUCTION country gate.
@@ -147,6 +202,21 @@ export function resolveCountryAwareCommercialCta(input: CountryAwareCtaInput): C
   if (sel.state === 'global') return review('COUNTRY_GLOBAL');
   if (sel.state === 'unsupported') return review('COUNTRY_UNSUPPORTED');
   const code = sel.code!;
+
+  // Country Foundation V1 registry validation must happen atomically BEFORE the
+  // selected pair is resolved. A malformed/legacy sibling or duplicate pair
+  // elsewhere in the registry can never be ignored to authorize this pair.
+  if (profileContract === 'country_v1') {
+    const registryValidation = validateCountryFoundationRegistry(marketProfiles);
+    if (!registryValidation.ok) {
+      const selectedKey = countryProfilePairKey(exchangeId, code);
+      if (registryValidation.reason === 'DUPLICATE_PAIR'
+        && registryValidation.duplicateKeys.includes(selectedKey)) {
+        return review('PROFILE_CONFLICT');
+      }
+      return review('PROFILE_REGISTRY_INVALID');
+    }
+  }
 
   const res = resolveMarketProfile(exchangeId, code, marketProfiles as never);
   if (!res.ok) {
