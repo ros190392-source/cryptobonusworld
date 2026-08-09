@@ -29,7 +29,7 @@ jobs:
   ranking-first-ui:
     name: Product system UI advisory (non-blocking)
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     continue-on-error: true
     steps:
       - name: Checkout exact PR head
@@ -58,12 +58,17 @@ jobs:
         id: browser
         run: node scripts/ui/ranking-first-browser-smoke.mjs
 
+      - name: Full public route matrix
+        id: matrix
+        run: node scripts/ui/site-route-matrix-browser-smoke.mjs
+
       - name: Advisory summary
         if: always()
         env:
           FOUNDATION: ${{ steps.foundation.outcome }}
           BUILD: ${{ steps.build.outcome }}
           BROWSER: ${{ steps.browser.outcome }}
+          MATRIX: ${{ steps.matrix.outcome }}
         run: |
           {
             echo '### CBW Product System UI Advisory'
@@ -73,6 +78,7 @@ jobs:
             echo "| Product system foundation | ${FOUNDATION} |"
             echo "| Production build | ${BUILD} |"
             echo "| Ranking-first Chromium smoke | ${BROWSER} |"
+            echo "| Full public route matrix | ${MATRIX} |"
             echo ''
             echo '> Read-only visual/product advisory. It performs no publish, import or deploy action.'
           } >> "$GITHUB_STEP_SUMMARY"
