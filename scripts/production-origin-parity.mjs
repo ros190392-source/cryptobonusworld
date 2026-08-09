@@ -16,8 +16,10 @@ function sha256(text) {
   return createHash('sha256').update(text).digest('hex');
 }
 
+// Match only the forbidden standalone public UI state, not explanatory prose
+// that happens to contain the words "verified offer".
 function marker(text) {
-  return /\bverified\s+offer\b/i.test(String(text));
+  return />\s*(?:✓\s*)?verified\s+offer\s*</i.test(String(text));
 }
 
 function posixQuote(value) {
@@ -80,7 +82,7 @@ const remoteIndex = `${remotePath.replace(/\/$/, '')}/index.html`;
 const remoteCommand = [
   `test -f ${posixQuote(remoteIndex)} || { echo REMOTE_FILE_MISSING; exit 3; }`,
   `sha256sum ${posixQuote(remoteIndex)} | awk '{print $1}'`,
-  `if grep -Eiq 'verified[[:space:]]+offer([^[:alnum:]_]|$)' ${posixQuote(remoteIndex)}; then echo REMOTE_MARKER_PRESENT; else echo REMOTE_MARKER_ABSENT; fi`,
+  `if grep -Eiq '>[[:space:]]*(✓[[:space:]]*)?[Vv]erified[[:space:]]+[Oo]ffer[[:space:]]*<' ${posixQuote(remoteIndex)}; then echo REMOTE_MARKER_PRESENT; else echo REMOTE_MARKER_ABSENT; fi`,
 ].join(' && ');
 
 const remote = safeExec('ssh', [
@@ -128,7 +130,7 @@ try {
   const response = await fetch(publicUrl, {
     redirect: 'follow',
     headers: {
-      'user-agent': 'CBW-Origin-Parity/1.1',
+      'user-agent': 'CBW-Origin-Parity/1.2',
       accept: 'text/html,application/xhtml+xml',
       'cache-control': 'no-cache, no-store, max-age=0',
       pragma: 'no-cache',
