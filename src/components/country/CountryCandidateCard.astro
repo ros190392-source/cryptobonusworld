@@ -1,0 +1,119 @@
+---
+import ExchangeLogo from '../ExchangeLogo.astro';
+import StatusBadge from '../site-standard/StatusBadge.astro';
+import type { CountryMarketProfileV1Candidate } from '../../data/contracts/researchToMarketProfileV1Bridge';
+
+export interface Props {
+  name: string;
+  slug: string;
+  candidate: CountryMarketProfileV1Candidate;
+  href?: string;
+}
+
+const { name, slug, candidate, href = '/exchanges/' } = Astro.props;
+const profile = candidate.proposedProfile;
+const nowMs = Date.now();
+const stale = Number.isFinite(Date.parse(candidate.source.nextReviewAt))
+  && Date.parse(candidate.source.nextReviewAt) <= nowMs;
+
+const availabilityLabel = candidate.state === 'blocked'
+  ? 'Blocked'
+  : profile?.availability === 'available'
+    ? 'Available'
+    : profile?.availability === 'limited'
+      ? 'Available with limits'
+      : profile?.availability === 'restricted'
+        ? 'Restricted'
+        : profile?.availability === 'unavailable'
+          ? 'Unavailable'
+          : 'Availability under review';
+
+const tone = candidate.state === 'blocked'
+  ? 'blocked'
+  : stale
+    ? 'review'
+    : profile?.availability === 'limited'
+      ? 'limited'
+      : profile?.availability === 'available'
+        ? 'verified'
+        : 'review';
+
+const fact = (value?: string | null) => (value ?? 'under_review').replace(/_/g, ' ').replace(/\b\w/g, ch => ch.toUpperCase());
+const fiatMethods = profile?.fiatPayments.methods ?? [];
+const limitations = candidate.limitations.slice(0, 2);
+---
+
+<article class="cbw-card country-candidate-card" data-country-candidate={slug} data-candidate-state={candidate.state}>
+  <div class="candidate-head">
+    <span class="candidate-rank">Non-ranked</span>
+    <ExchangeLogo slug={slug} name={name} size={54} variant="square" lazy={false} />
+    <div class="candidate-identity">
+      <h3>{name}</h3>
+      <StatusBadge label={stale && candidate.state !== 'blocked' ? 'Evidence refresh required' : availabilityLabel} tone={tone} />
+    </div>
+  </div>
+
+  <div class="candidate-facts">
+    <div><span>Availability</span><strong>{availabilityLabel}</strong></div>
+    <div><span>Regulation</span><strong>{candidate.state === 'blocked' ? 'Under review' : fact(profile?.regulation.state)}</strong></div>
+    <div><span>KYC</span><strong>{candidate.state === 'blocked' ? 'Under review' : fact(profile?.kyc.state)}</strong></div>
+    <div><span>Products</span><strong>{candidate.state === 'blocked' ? 'Under review' : fact(profile?.products.state)}</strong></div>
+  </div>
+
+  <div class="candidate-payment">
+    <span>Fiat & local payment evidence</span>
+    <strong>{candidate.state === 'blocked' ? 'Not cleared for a candidate profile' : fact(profile?.fiatPayments.state)}</strong>
+    <small>{fiatMethods.length ? fiatMethods.join(' · ') : 'No local payment method is promoted from this candidate.'}</small>
+  </div>
+
+  <div class="candidate-offer">
+    <span>Local bonus / referral status</span>
+    <strong>{candidate.state === 'blocked' ? 'Under review' : fact(profile?.bonusAvailability.state)}</strong>
+    <small>No affiliate action is published from this country candidate.</small>
+  </div>
+
+  {limitations.length > 0 && (
+    <details class="candidate-limitations">
+      <summary>Key limitations <span aria-hidden="true">+</span></summary>
+      <ul>{limitations.map(item => <li>{item}</li>)}</ul>
+    </details>
+  )}
+
+  <div class="candidate-footer">
+    <div>
+      <span>Evidence checked</span>
+      <strong>{candidate.source.lastCheckedAt.slice(0, 10)}</strong>
+      <small>{stale ? 'Refresh required before any promotion review.' : `Next review: ${candidate.source.nextReviewAt.slice(0, 10)}`}</small>
+    </div>
+    <a href={href}>Exchange profile →</a>
+  </div>
+</article>
+
+<style>
+  .country-candidate-card { display: flex; min-width: 0; min-height: 100%; flex-direction: column; gap: var(--cbw-space-3); }
+  .candidate-head { display: grid; grid-template-columns: auto 54px minmax(0,1fr); gap: var(--cbw-space-3); align-items: center; }
+  .candidate-rank { display: inline-flex; min-height: 28px; align-items: center; padding-inline: 9px; border-radius: var(--cbw-radius-pill); color: var(--cbw-text-muted); background: var(--cbw-surface-secondary); font-size: 8px; font-weight: 900; text-transform: uppercase; }
+  .candidate-identity { display: grid; gap: 5px; min-width: 0; justify-items: start; }
+  .candidate-identity h3 { margin: 0; color: var(--cbw-text-primary); font-family: 'Barlow Condensed','Inter',sans-serif; font-size: 25px; line-height: 1; text-transform: uppercase; }
+  .candidate-facts { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 7px; }
+  .candidate-facts > div,.candidate-payment,.candidate-offer { display: grid; gap: 3px; padding: 10px 11px; border-radius: var(--cbw-radius-control); background: var(--cbw-surface-secondary); }
+  .candidate-facts span,.candidate-payment > span,.candidate-offer > span,.candidate-footer span { color: var(--cbw-text-muted); font-size: 8px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; }
+  .candidate-facts strong,.candidate-payment strong,.candidate-offer strong { color: var(--cbw-text-primary); font-size: 11px; line-height: 1.4; }
+  .candidate-payment small,.candidate-offer small { color: var(--cbw-text-muted); font-size: 9px; line-height: 1.45; }
+  .candidate-limitations { border-top: 1px solid var(--cbw-border-standard); }
+  .candidate-limitations summary { display: flex; min-height: 38px; align-items: center; justify-content: space-between; color: var(--cbw-text-secondary); font-size: 9px; font-weight: 900; cursor: pointer; list-style: none; }
+  .candidate-limitations summary::-webkit-details-marker { display: none; }
+  .candidate-limitations[open] summary span { transform: rotate(45deg); }
+  .candidate-limitations ul { margin: 0 0 var(--cbw-space-2); padding-left: 18px; color: var(--cbw-text-secondary); font-size: 9px; line-height: 1.55; }
+  .candidate-footer { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: var(--cbw-space-3); align-items: end; margin-top: auto; padding-top: var(--cbw-space-2); border-top: 1px solid var(--cbw-border-standard); }
+  .candidate-footer > div { display: grid; gap: 2px; }
+  .candidate-footer strong { color: var(--cbw-text-primary); font-size: 10px; }
+  .candidate-footer small { color: var(--cbw-text-muted); font-size: 8px; }
+  .candidate-footer a { display: inline-flex; min-height: 38px; align-items: center; padding-inline: var(--cbw-space-3); border: 1px solid var(--cbw-border-standard); border-radius: var(--cbw-radius-control); color: #925204; font-size: 9px; font-weight: 900; text-decoration: none; white-space: nowrap; }
+  @media (max-width: 480px) {
+    .candidate-head { grid-template-columns: auto 48px minmax(0,1fr); }
+    .candidate-facts { grid-template-columns: 1fr; }
+    .candidate-footer { grid-template-columns: 1fr; align-items: start; }
+    .candidate-footer a { width: 100%; justify-content: center; }
+  }
+</style>
