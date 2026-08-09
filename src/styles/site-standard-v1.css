@@ -1,9 +1,13 @@
 /*
- * CryptoBonusWorld Site Standard v1
- * Governed layout primitives. Do not add page-specific widths here.
+ * CryptoBonusWorld Product System foundation.
+ *
+ * The filename remains site-standard-v1.css for compatibility with existing
+ * imports, but the rules below are the canonical site-wide layout contract.
+ * Pages choose a container role; pages do not invent local widths.
  */
 
 :root {
+  /* Canonical widths — the only page/container widths in the product system. */
   --cbw-width-shell: 1180px;
   --cbw-width-wide: 1180px;
   --cbw-width-standard: 960px;
@@ -42,30 +46,29 @@
   --cbw-evidence: #16834b;
   --cbw-danger: #b53f3f;
 
-  --cbw-header-budget: 68px;
-  --cbw-intro-home-budget: 330px;
-  --cbw-intro-exchange-budget: 520px;
-  --cbw-intro-standard-budget: 280px;
+  /* Real header is 56px mobile / 60px desktop. Budgets include no hidden gap. */
+  --cbw-header-height: 56px;
+
+  /* First-screen values are review targets, never hard clipping heights. */
+  --cbw-intro-home-target: 190px;
+  --cbw-intro-exchange-target: 280px;
+  --cbw-intro-directory-target: 180px;
+  --cbw-intro-guide-target: 200px;
+  --cbw-intro-trust-target: 180px;
+  --cbw-intro-legal-target: 150px;
+  --cbw-intro-utility-target: 180px;
 
   --cbw-shadow-panel: 0 10px 30px rgba(19,35,62,.055);
 }
 
 @media (min-width: 640px) {
-  :root {
-    --cbw-gutter: 24px;
-    --cbw-intro-home-budget: 300px;
-    --cbw-intro-exchange-budget: 540px;
-    --cbw-intro-standard-budget: 300px;
-  }
+  :root { --cbw-gutter: 24px; }
 }
 
 @media (min-width: 900px) {
   :root {
     --cbw-gutter: 32px;
-    --cbw-header-budget: 76px;
-    --cbw-intro-home-budget: 230px;
-    --cbw-intro-exchange-budget: 520px;
-    --cbw-intro-standard-budget: 300px;
+    --cbw-header-height: 60px;
   }
 }
 
@@ -103,11 +106,15 @@
 .cbw-section--primary { --cbw-section-bg: var(--cbw-surface-primary); }
 .cbw-section--secondary { --cbw-section-bg: var(--cbw-surface-secondary); }
 
+/*
+ * Content-driven hero. Never use max-height on a content container: titles,
+ * chips, translations and accessibility text must be allowed to expand.
+ */
 .cbw-first-viewport {
   display: flex;
+  min-width: 0;
+  min-height: var(--cbw-first-viewport-target, var(--cbw-intro-directory-target));
   align-items: center;
-  min-height: 0;
-  max-height: var(--cbw-first-viewport-budget, var(--cbw-intro-standard-budget));
   overflow: hidden;
   color: #fff;
   background:
@@ -115,16 +122,21 @@
     #0a1424;
 }
 
-.cbw-first-viewport--homepage { --cbw-first-viewport-budget: var(--cbw-intro-home-budget); }
-.cbw-first-viewport--exchange { --cbw-first-viewport-budget: var(--cbw-intro-exchange-budget); }
-.cbw-first-viewport--standard { --cbw-first-viewport-budget: var(--cbw-intro-standard-budget); }
+.cbw-first-viewport--homepage { --cbw-first-viewport-target: var(--cbw-intro-home-target); }
+.cbw-first-viewport--exchange { --cbw-first-viewport-target: var(--cbw-intro-exchange-target); }
+.cbw-first-viewport--directory { --cbw-first-viewport-target: var(--cbw-intro-directory-target); }
+.cbw-first-viewport--guide { --cbw-first-viewport-target: var(--cbw-intro-guide-target); }
+.cbw-first-viewport--trust { --cbw-first-viewport-target: var(--cbw-intro-trust-target); }
+.cbw-first-viewport--legal { --cbw-first-viewport-target: var(--cbw-intro-legal-target); }
+.cbw-first-viewport--utility { --cbw-first-viewport-target: var(--cbw-intro-utility-target); }
 
 .cbw-first-viewport__inner {
   width: 100%;
   padding-block: var(--cbw-space-7);
 }
 
-.cbw-eyebrow {
+.cbw-eyebrow,
+.cbw-section-eyebrow {
   margin: 0 0 var(--cbw-space-3);
   color: #f7a93f;
   font-size: 10px;
@@ -145,11 +157,40 @@
 }
 
 .cbw-lede {
-  max-width: 680px;
+  max-width: var(--cbw-width-prose);
   margin: var(--cbw-space-4) 0 0;
   color: rgba(255,255,255,.72);
   font-size: 15px;
   line-height: 1.65;
+}
+
+/* Shared section heading language. */
+.cbw-section-header {
+  display: grid;
+  gap: var(--cbw-space-2);
+  margin-bottom: var(--cbw-space-5);
+}
+.cbw-section-header--split {
+  grid-template-columns: minmax(0,1fr) auto;
+  align-items: end;
+  gap: var(--cbw-space-6);
+}
+.cbw-section-title {
+  margin: 0;
+  color: var(--cbw-text-primary);
+  font-family: 'Barlow Condensed','Inter',sans-serif;
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 800;
+  letter-spacing: -.02em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.cbw-section-lede {
+  max-width: var(--cbw-width-prose);
+  margin: 0;
+  color: var(--cbw-text-secondary);
+  font-size: 13px;
+  line-height: 1.6;
 }
 
 .cbw-panel {
@@ -169,21 +210,72 @@
   background: var(--cbw-surface-primary);
 }
 
+.cbw-card-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cbw-card-columns, 1), minmax(0,1fr));
+  gap: var(--cbw-space-4);
+}
+
 .cbw-prose {
   color: var(--cbw-text-secondary);
   font-size: 15px;
   line-height: 1.78;
 }
-
 .cbw-prose > * + * { margin-top: var(--cbw-space-4); }
-.cbw-prose :where(h2, h3) {
+.cbw-prose :where(h2,h3) {
   color: var(--cbw-text-primary);
-  font-family: 'Barlow Condensed', 'Inter', sans-serif;
+  font-family: 'Barlow Condensed','Inter',sans-serif;
   font-weight: 800;
   line-height: 1.05;
 }
-.cbw-prose h2 { font-size: clamp(28px, 4vw, 38px); }
-.cbw-prose h3 { font-size: clamp(20px, 3vw, 26px); }
+.cbw-prose h2 { font-size: clamp(28px,4vw,38px); }
+.cbw-prose h3 { font-size: clamp(20px,3vw,26px); }
+
+/* Shared compact status vocabulary. */
+.cbw-status-badge {
+  display: inline-flex;
+  min-height: 24px;
+  align-items: center;
+  gap: 5px;
+  padding: 0 9px;
+  border-radius: var(--cbw-radius-pill);
+  font-size: 9px;
+  font-weight: 900;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+.cbw-status-badge--verified { color: #12653b; background: #e8f6ed; }
+.cbw-status-badge--limited { color: #7d5206; background: #fff1d9; }
+.cbw-status-badge--review { color: #315d88; background: #e8f1fa; }
+.cbw-status-badge--blocked { color: #8f3333; background: #fae9e9; }
+.cbw-status-badge--neutral { color: #596579; background: #edf0f3; }
+
+/* Shared FAQ/details surface. */
+.cbw-faq-list { display: grid; gap: var(--cbw-space-2); }
+.cbw-faq-item {
+  overflow: hidden;
+  border: 1px solid var(--cbw-border-standard);
+  border-radius: var(--cbw-radius-control);
+  background: var(--cbw-surface-primary);
+}
+.cbw-faq-summary {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cbw-space-4);
+  padding: var(--cbw-space-3) var(--cbw-space-4);
+  color: var(--cbw-text-primary);
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.4;
+  cursor: pointer;
+  list-style: none;
+}
+.cbw-faq-summary::-webkit-details-marker { display: none; }
+.cbw-faq-summary::after { content: '+'; color: var(--cbw-text-muted); font-size: 18px; font-weight: 500; }
+.cbw-faq-item[open] .cbw-faq-summary::after { content: '−'; }
+.cbw-faq-answer { padding: 0 var(--cbw-space-4) var(--cbw-space-4); color: var(--cbw-text-secondary); font-size: 13px; line-height: 1.7; }
 
 .cbw-action {
   display: inline-flex;
@@ -210,7 +302,7 @@
 
 .cbw-grid {
   display: grid;
-  grid-template-columns: repeat(var(--cbw-grid-columns, 1), minmax(0, 1fr));
+  grid-template-columns: repeat(var(--cbw-grid-columns, 1), minmax(0,1fr));
   gap: var(--cbw-grid-gap, var(--cbw-space-4));
 }
 
@@ -218,11 +310,18 @@
   .cbw-grid--2 { --cbw-grid-columns: 2; }
   .cbw-grid--3 { --cbw-grid-columns: 3; }
   .cbw-grid--4 { --cbw-grid-columns: 4; }
+  .cbw-card-grid--2 { --cbw-card-columns: 2; }
+  .cbw-card-grid--3 { --cbw-card-columns: 3; }
+}
+
+@media (max-width: 699px) {
+  .cbw-section-header--split { grid-template-columns: 1fr; align-items: start; gap: var(--cbw-space-3); }
 }
 
 @media (max-width: 639px) {
   .cbw-section--standard,
   .cbw-section--spacious { --cbw-section-space: var(--cbw-space-8); }
   .cbw-panel { padding: var(--cbw-space-5); border-radius: var(--cbw-radius-card); }
-  .cbw-display-title { font-size: clamp(36px, 13vw, 52px); }
+  .cbw-display-title { font-size: clamp(36px,13vw,52px); }
+  .cbw-first-viewport__inner { padding-block: var(--cbw-space-6); }
 }
