@@ -1,0 +1,97 @@
+name: CBW Research MarketProfile Bridge Advisory
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'src/data/contracts/researchToMarketProfileV1Bridge.ts'
+      - 'src/data/contracts/marketProfileV1.ts'
+      - 'src/data/contracts/marketProfileRegistry.ts'
+      - 'scripts/portal/research-marketprofile-bridge-test.mjs'
+      - 'scripts/portal/country-foundation-test.mjs'
+      - '.github/workflows/cbw-research-marketprofile-bridge-advisory.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cbw-research-marketprofile-bridge-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  bridge:
+    name: Research → MarketProfile bridge advisory (non-blocking)
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    continue-on-error: true
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Strict TypeScript bridge contracts
+        id: typecheck
+        run: |
+          set -euo pipefail
+          node_modules/.bin/tsc --noEmit --strict --skipLibCheck --resolveJsonModule \
+            --moduleResolution bundler --module esnext --target es2022 \
+            src/data/contracts/portalFactory.ts \
+            src/data/contracts/marketProfileV1.ts \
+            src/data/contracts/marketProfileRegistry.ts \
+            src/data/contracts/researchToMarketProfileV1Bridge.ts
+
+      - name: Research to MarketProfile bridge regression
+        id: bridge
+        run: node scripts/portal/research-marketprofile-bridge-test.mjs
+
+      - name: Country Foundation regression
+        id: country
+        run: node scripts/portal/country-foundation-test.mjs
+
+      - name: Production test-authority guard
+        id: guard
+        run: npm run portal:guard:test-authority
+
+      - name: Portal contracts
+        id: contracts
+        run: npm run portal:contracts:test
+
+      - name: Full site build
+        id: build
+        run: npm run build
+
+      - name: Advisory summary
+        if: always()
+        env:
+          TYPECHECK: ${{ steps.typecheck.outcome }}
+          BRIDGE: ${{ steps.bridge.outcome }}
+          COUNTRY: ${{ steps.country.outcome }}
+          GUARD: ${{ steps.guard.outcome }}
+          CONTRACTS: ${{ steps.contracts.outcome }}
+          BUILD: ${{ steps.build.outcome }}
+        run: |
+          {
+            echo '### CBW Research → MarketProfile Bridge Advisory'
+            echo ''
+            echo '| Check | Result |'
+            echo '|---|---|'
+            echo "| Strict TypeScript | ${TYPECHECK} |"
+            echo "| Bridge regression | ${BRIDGE} |"
+            echo "| Country Foundation regression | ${COUNTRY} |"
+            echo "| Test-authority guard | ${GUARD} |"
+            echo "| Portal contracts | ${CONTRACTS} |"
+            echo "| Full build | ${BUILD} |"
+            echo ''
+            echo '> Advisory only. Bridge output remains non-authorizing; owner review is the merge authority.'
+          } >> "$GITHUB_STEP_SUMMARY"
