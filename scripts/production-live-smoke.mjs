@@ -15,6 +15,7 @@ const sleep = (ms) => new Promise((resolvePromise) => setTimeout(resolvePromise,
 const assert = (condition, message) => {
   if (!condition) throw new Error(message);
 };
+const hasUnsupportedVerifiedOfferLabel = (text) => /\bverified\s+offer\b/i.test(String(text));
 const decodeHtmlUrl = (text) => String(text).replaceAll('&amp;', '&');
 const meaningfulHttpUrl = (value) => {
   if (typeof value !== 'string' || value.trim() === '' || value.trim() === '#') return false;
@@ -64,7 +65,7 @@ async function requestWithRetry(url, options = {}) {
       const response = await fetch(requestUrl, {
         redirect: options.redirect || 'follow',
         headers: {
-          'user-agent': 'CBW-Production-Live-Smoke/1.1',
+          'user-agent': 'CBW-Production-Live-Smoke/1.2',
           accept: 'text/html,application/xhtml+xml',
           'cache-control': 'no-cache, no-store, max-age=0',
           pragma: 'no-cache',
@@ -94,12 +95,12 @@ async function getHtml(pathname) {
     const html = await response.text();
     assert(html.length > 100, `${pathname}: unexpectedly short HTML response`);
 
-    if (!/verified offer/i.test(html)) return html;
+    if (!hasUnsupportedVerifiedOfferLabel(html)) return html;
 
     staleSeen = true;
     lastMeta = cacheMetadata(response);
     if (attempt < 5) {
-      console.warn(`${pathname}: stale/unsupported marker seen on live attempt ${attempt}/5 (${lastMeta}); retrying with a fresh cache-buster`);
+      console.warn(`${pathname}: unsupported singular marker seen on live attempt ${attempt}/5 (${lastMeta}); retrying with a fresh cache-buster`);
       await sleep(attempt * 2000);
       continue;
     }
@@ -141,7 +142,7 @@ async function verifyGoRoute(slug, expectedDestination) {
       body.includes(expectedDestination),
       `/go/${slug}/: rendered route does not contain exact owner-confirmed destination`,
     );
-    assert(!/verified offer/i.test(body), `/go/${slug}/: unsupported "Verified offer" label leaked`);
+    assert(!hasUnsupportedVerifiedOfferLabel(body), `/go/${slug}/: unsupported "Verified offer" label leaked`);
     return;
   }
   throw new Error(`/go/${slug}/: exceeded internal redirect limit`);
@@ -168,7 +169,7 @@ for (const slug of ['bybit', 'mexc', 'bitget', 'coinex']) {
   );
 }
 
-assert(!/verified offer/i.test(homepageHtml), '/: unsupported "Verified offer" label leaked');
+assert(!hasUnsupportedVerifiedOfferLabel(homepageHtml), '/: unsupported "Verified offer" label leaked');
 
 const commercialCandidates = exchanges
   .map((exchange) => ({
