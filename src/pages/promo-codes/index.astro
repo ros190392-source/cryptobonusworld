@@ -3,291 +3,87 @@ import CleanLayout from '../../layouts/CleanLayout.astro';
 import PageFrame from '../../components/site-standard/PageFrame.astro';
 import FirstViewport from '../../components/site-standard/FirstViewport.astro';
 import Section from '../../components/site-standard/Section.astro';
-import PromoCodeCopy from '../../components/promo/PromoCodeCopy.astro';
+import ActiveCountryContext from '../../components/site-standard/ActiveCountryContext.astro';
+import ExchangeDirectoryCard from '../../components/site-standard/ExchangeDirectoryCard.astro';
 import { getFeaturedExchanges } from '../../data/exchanges';
 import { getOffer } from '../../data/offers';
-import { resolvePublicOfferView } from '../../data/publicOfferView';
-import { resolvePublicCommercialRoute } from '../../data/publicCommercialRoute';
+import { buildHomepageTop10 } from '../../data/homepageTop10';
 
-const exchanges = getFeaturedExchanges();
-
-const BEST_FOR: Record<string, string> = {
-  bybit: 'Derivatives & spot trading',
-  mexc: 'No-KYC altcoin trading',
-  okx: 'Spot, futures & Web3',
-  bitget: 'Copy trading',
-  kucoin: 'No-KYC altcoin access',
-  bingx: 'Copy & social trading',
-};
-
-const COUNTRY_NOTE: Record<string, string> = {
-  bybit: 'Restricted in several countries (incl. US, UK, CA) — check terms',
-  mexc: 'No KYC for base tier; restricted in several countries',
-  okx: 'Restricted in several countries — check terms',
-  bitget: 'Not available in US, UK, or CA — check terms',
-  kucoin: 'No KYC for base tier; check regional terms',
-  bingx: 'Available in most regions except the US — check terms',
-};
-
-// Issue #269: factual offer presentation and registration-link/code authority are independent.
-// Bonus/country claims remain evidence-driven; exact owner-confirmed promo codes and registration
-// routes may stay usable while the offer terms are under re-verification.
 const nowMs = Date.now();
-const rows = exchanges
-  .map(exchange => ({
-    exchange,
-    offer: getOffer(exchange.slug)!,
-    view: resolvePublicOfferView(exchange.slug, nowMs)!,
-    route: resolvePublicCommercialRoute(exchange.slug, nowMs),
-  }))
-  .filter(row => row.offer && row.view)
-  .sort((a, b) => {
-    const bucket = (v: { publicState: string }) => (v.publicState === 'verified' ? 0 : 1);
-    return bucket(a.view) - bucket(b.view);
-  })
-  .map((row, index) => ({ ...row, rank: index + 1 }));
-
-const faqs = [
-  {
-    q: 'What is a crypto promo code?',
-    a: 'A crypto promo code (also called a referral or bonus code) is entered during sign-up at an exchange to link your new account to a partner offer. Applying it can unlock a welcome bonus, fee discount, or other new-user reward.',
-  },
-  {
-    q: 'Is a crypto exchange bonus guaranteed?',
-    a: 'No. Advertised bonus figures are maximums, not typical results. Reaching them usually requires completing tasks such as KYC, a qualifying deposit, and trading volume milestones within a set window. Many users receive a partial reward.',
-  },
-  {
-    q: 'Do I need to enter the code manually?',
-    a: 'It depends on the exchange. Some referral links prefill the code automatically when you click through; others require you to paste it into a field during sign-up. Copy the code before clicking, just in case.',
-  },
-  {
-    q: 'Why do offers differ by country?',
-    a: 'Bonus programs are subject to local regulations, exchange licensing, and KYC requirements. An offer available in one country may be restricted or unavailable in another — always check the exchange’s terms for your region.',
-  },
-  {
-    q: 'How do I check current country context?',
-    a: 'Use the country and language context on the homepage and review the country-specific limitations shown on each exchange profile. Country-specific availability is still being verified, so always confirm eligibility against the exchange’s own terms.',
-  },
-  {
-    q: 'Are these affiliate links?',
-    a: 'Yes. Registration links on this page may be affiliate referral links. If you register through one, CryptoBonusWorld may earn a commission from the exchange. This does not cost you anything extra. Current bonus and eligibility terms must still be checked separately.',
-  },
-  {
-    q: 'How often are codes checked?',
-    a: 'Promo/referral codes shown here are the exact values confirmed by the CryptoBonusWorld owner. Bonus amounts, eligibility, KYC/deposit requirements, expiry and country availability are checked separately and may remain under re-verification.',
-  },
-  {
-    q: 'Can a promo code expire?',
-    a: 'Yes. Exchanges can change or discontinue a promo code or referral offer at any time, without notice. If a code on this page appears outdated, check the individual exchange page for the latest version.',
-  },
-];
-
-const faqSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: faqs.map(item => ({
-    '@type': 'Question',
-    name: item.q,
-    acceptedAnswer: { '@type': 'Answer', text: item.a },
-  })),
-};
+const exchanges = getFeaturedExchanges();
+const fitBySlug = new Map(buildHomepageTop10(nowMs).map(entry => [entry.slug, entry.bestFor]));
+const cards = exchanges.map(exchange => ({
+  exchange,
+  offer: getOffer(exchange.slug),
+  bestFor: fitBySlug.get(exchange.slug),
+}));
 ---
 
 <CleanLayout
-  title="Crypto Promo Codes & Referral Codes by Country | CryptoBonusWorld"
-  description="Compare tracked crypto exchange promo/referral codes and their verification states. Current bonus, eligibility and country terms are checked separately and may remain under re-verification."
+  title="Crypto Promo & Referral Codes by Exchange | CryptoBonusWorld"
+  description="Browse tracked crypto exchange promo and referral codes in one card view. Code confirmation, offer claims and country eligibility remain separate."
   canonical="https://cryptobonusworld.com/promo-codes/"
 >
-  <PageFrame family="directory" class="promo-directory-page">
+  <PageFrame family="directory" class="promo-directory-product">
     <FirstViewport
       family="directory"
       container="wide"
-      eyebrow="Tracked codes & verification states · country and account terms vary"
-      title="Crypto Promo Codes by Exchange"
-      lede="Compare six tracked exchange codes, current verification state and neutral registration links while offer terms are checked separately."
+      eyebrow="Promo & referral codes"
+      title="Tracked codes by exchange"
+      lede="Compare exchange cards with current code and offer status. A confirmed referral code does not by itself prove a bonus amount, account eligibility or country availability."
     >
-      <div class="promo-context">
-        <span>6 tracked exchange rows</span>
-        <span>Codes owner-confirmed</span>
-        <a href="/#exchanges">Compare the homepage Top 10 →</a>
+      <div class="promo-country">
+        <ActiveCountryContext
+          compact={true}
+          note="The active market helps you review local context, but code confirmation remains separate from country eligibility."
+        />
       </div>
     </FirstViewport>
 
-    <Section container="wide" spacing="compact" tone="primary" id="ranking" class="promo-ranking-section">
-      <header class="promo-heading">
+    <Section container="wide" spacing="compact" tone="page" id="promo-codes">
+      <header class="cbw-section-header cbw-section-header--split">
         <div>
-          <p class="promo-eyebrow">Current comparison</p>
-          <h2>Crypto exchange promo-code ranking</h2>
-          <p>Shown codes are owner-confirmed. Bonus, eligibility, KYC/deposit and country terms are verified separately — confirm current conditions on the exchange before signing up.</p>
+          <p class="cbw-section-eyebrow">Tracked exchange codes</p>
+          <h2 class="cbw-section-title">Promo-code cards</h2>
+          <p class="cbw-section-lede">The same exchange-card language as the homepage and directory. Current offer and local eligibility states remain visible instead of being compressed into a wide table.</p>
         </div>
-        <a href="/exchanges/">Browse exchange profiles →</a>
+        <a class="promo-directory-link" href="/exchanges/">All exchange profiles →</a>
       </header>
 
-      <div class="promo-table-wrap">
-        <table class="promo-table" data-promo-table>
-          <thead>
-            <tr>
-              <th>Rank</th>
-              <th>Exchange</th>
-              <th>Promo code</th>
-              <th>Offer status</th>
-              <th>Best for</th>
-              <th>Country note</th>
-              <th>Review</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map(({ exchange, view, route, rank }) => (
-              <tr class="promo-row" data-promo-row data-rank={rank} data-exchange-slug={exchange.slug}>
-                <td data-label="Rank"><span class="promo-rank">#{rank}</span></td>
-                <td data-label="Exchange">
-                  <a href={exchange.pageUrl ?? `/${exchange.slug}/`} class="promo-exchange">{exchange.name}</a>
-                  {view.showVerifiedBadge && <span class="promo-verified">✓ verified offer</span>}
-                </td>
-                <td data-label="Promo code" class="promo-code-cell">
-                  {route.promoCode && route.promoCodeAuthority === 'owner_confirmed'
-                    ? <div class="promo-code-confirmed"><PromoCodeCopy code={route.promoCode} exchange={exchange.name} /><small>Owner confirmed</small></div>
-                    : <span class="promo-code-none">Not confirmed yet</span>}
-                </td>
-                <td data-label="Offer status" class="promo-copy">{view.bonusHeadline}</td>
-                <td data-label="Best for" class="promo-best">{BEST_FOR[exchange.slug]}</td>
-                <td data-label="Country note" class="promo-copy">{view.isCommercial ? COUNTRY_NOTE[exchange.slug] : 'Under re-verification — check the exchange directly'}</td>
-                <td data-label="Review">
-                  <a href={exchange.pageUrl ?? `/${exchange.slug}/`} class="promo-review">Read review →</a>
-                </td>
-                <td data-label="Action">
-                  {route.externalAllowed
-                    ? <a href={`/go/${exchange.slug}/`} class="cbw-action promo-action" target="_blank" rel="noopener noreferrer sponsored">Register →</a>
-                    : <a href={exchange.pageUrl ?? `/${exchange.slug}/`} class="cbw-action promo-action">View status →</a>}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </Section>
-
-    <Section container="prose" spacing="standard" tone="secondary">
-      <p class="promo-eyebrow">Methodology</p>
-      <h2>How this promo-code list works</h2>
-      <p class="promo-prose">
-        Promo/referral-code authority is separate from offer-claim authority. A code or registration link can be owner-confirmed while bonus amount, eligibility, KYC/deposit requirements, expiry and country availability remain under re-verification. Affiliate status never creates a verified offer or improves its position.
-      </p>
-    </Section>
-
-    <Section container="prose" spacing="standard" tone="primary">
-      <p class="promo-eyebrow">Important</p>
-      <h2>Why crypto bonuses differ by country</h2>
-      <ul class="promo-list">
-        <li>Exchanges may restrict access for residents of certain countries independently of any bonus offer.</li>
-        <li>Identity verification rules and required documents can differ by region.</li>
-        <li>Bonus campaigns may change or end without notice.</li>
-        <li>Deposit minimums and trading-volume requirements can differ by account and reward tier.</li>
-        <li>Some referral links prefill the code; others require manual entry during sign-up.</li>
-      </ul>
-    </Section>
-
-    <Section container="prose" spacing="standard" tone="secondary" id="faq">
-      <p class="promo-eyebrow">Common questions</p>
-      <h2>Frequently asked questions</h2>
-      <div class="promo-faq">
-        {faqs.map(item => (
-          <details>
-            <summary>{item.q}</summary>
-            <p>{item.a}</p>
-          </details>
+      <div class="promo-card-grid cbw-card-grid cbw-card-grid--2" data-promo-card-grid>
+        {cards.map(({ exchange, offer, bestFor }) => (
+          <ExchangeDirectoryCard exchange={exchange} offer={offer} bestFor={bestFor} mode="promo" />
         ))}
       </div>
-    </Section>
 
-    <Section container="prose" spacing="compact" tone="page" class="promo-disclosure">
-      <p>
-        <strong>Disclosure:</strong> CryptoBonusWorld may earn a commission when you register through approved links.
-        This does not affect editorial or evidence status. Promo/referral-code confirmation does not verify any advertised
-        bonus amount or eligibility term. Check the exchange's current terms before registering or depositing. Read the
-        <a href="/affiliate-disclosure/">affiliate disclosure</a>.
-      </p>
+      <div class="promo-foot cbw-panel">
+        <div>
+          <strong>How to read these cards</strong>
+          <span>A code can be owner-confirmed while bonus terms or local eligibility remain under review. Check the exchange-owned terms before acting on a promotion.</span>
+        </div>
+        <nav aria-label="Promo-code help links">
+          <a href="/methodology/">How we verify</a>
+          <a href="/faq/">FAQ</a>
+          <a href="/affiliate-disclosure/">Affiliate disclosure</a>
+        </nav>
+      </div>
     </Section>
-
-    <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
   </PageFrame>
 </CleanLayout>
 
 <style>
-  .promo-directory-page { background: var(--cbw-surface-page); }
-  :global(.promo-directory-page .cbw-first-viewport) {
-    background: radial-gradient(circle at 84% 14%, rgba(247,147,26,.19), transparent 31%), linear-gradient(135deg,#091321,#13233e 70%,#1c355b);
-  }
-  :global(.promo-directory-page .cbw-first-viewport__inner) { padding-block: var(--cbw-space-6); }
-  :global(.promo-directory-page .cbw-display-title) { max-width: var(--cbw-width-standard); font-size: clamp(42px,5vw,64px); }
-  .promo-context { display: flex; flex-wrap: wrap; gap: 7px; margin-top: var(--cbw-space-4); }
-  .promo-context span,
-  .promo-context a { display: inline-flex; min-height: 28px; align-items: center; padding-inline: 10px; border: 1px solid rgba(255,255,255,.15); border-radius: var(--cbw-radius-pill); color: rgba(255,255,255,.75); background: rgba(255,255,255,.05); font-size: 9px; text-decoration: none; }
-  .promo-context a { color: #ffd291; border-color: rgba(247,147,26,.34); background: rgba(247,147,26,.1); font-weight: 900; }
-  .promo-heading { display: grid; gap: var(--cbw-space-4); align-items: end; margin-bottom: var(--cbw-space-5); }
-  .promo-eyebrow { margin: 0 0 var(--cbw-space-2); color: var(--cbw-action); font-size: 9px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
-  .promo-heading h2,
-  .promo-directory-page :global(.cbw-section h2) { margin: 0; color: var(--cbw-text-primary); font-family: 'Barlow Condensed', Inter, sans-serif; font-size: clamp(30px,4.4vw,44px); font-weight: 800; line-height: 1; text-transform: uppercase; }
-  .promo-heading p:last-child { max-width: var(--cbw-width-prose); margin: var(--cbw-space-2) 0 0; color: var(--cbw-text-secondary); font-size: 12px; line-height: 1.55; }
-  .promo-heading > a { color: #925204; font-size: 11px; font-weight: 900; text-decoration: none; }
-  .promo-heading > a:hover { text-decoration: underline; text-underline-offset: 3px; }
-  .promo-table-wrap { overflow-x: auto; border: 1px solid var(--cbw-border-standard); border-radius: var(--cbw-radius-card); background: #fff; }
-  .promo-table { width: 100%; min-width: 1060px; border-collapse: collapse; }
-  .promo-table th,
-  .promo-table td { padding: 10px 11px; border-bottom: 1px solid #edf0ec; color: var(--cbw-text-secondary); font-size: 10.5px; line-height: 1.45; text-align: left; vertical-align: middle; }
-  .promo-table th { color: var(--cbw-text-muted); background: var(--cbw-surface-secondary); font-size: 8px; font-weight: 900; letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; }
-  .promo-table tr:last-child td { border-bottom: 0; }
-  .promo-table tbody tr:hover { background: #fbfcfa; }
-  .promo-rank { display: inline-flex; width: 30px; height: 30px; align-items: center; justify-content: center; border-radius: var(--cbw-radius-pill); color: var(--cbw-text-primary); background: var(--cbw-action); font-size: 10px; font-weight: 900; }
-  .promo-exchange { display: block; color: var(--cbw-text-primary); font-size: 12px; font-weight: 900; text-decoration: none; }
-  .promo-exchange:hover { color: #a65400; }
-  .promo-verified { color: var(--cbw-evidence); font-size: 8px; font-weight: 900; }
-  .promo-code-cell { min-width: 190px; }
-  .promo-code-cell :global(.pcc-row) { max-width: 210px; height: 38px; }
-  .promo-code-confirmed { display: grid; gap: 3px; }
-  .promo-code-confirmed small { color: #35684d; font-size: 8px; font-weight: 900; letter-spacing: .04em; text-transform: uppercase; }
-  .promo-copy { max-width: 190px; }
-  .promo-best { min-width: 132px; color: var(--cbw-text-primary); font-weight: 800; }
-  .promo-review { color: var(--cbw-text-secondary); font-weight: 800; text-decoration: none; white-space: nowrap; }
-  .promo-review:hover { color: var(--cbw-text-primary); text-decoration: underline; text-underline-offset: 2px; }
-  .promo-action { min-height: 40px; padding-inline: 13px; font-size: 10px; white-space: nowrap; }
-  .promo-prose { margin: var(--cbw-space-5) 0 0; color: var(--cbw-text-secondary); font-size: 14px; line-height: 1.75; }
-  .promo-list { display: grid; gap: var(--cbw-space-3); margin: var(--cbw-space-5) 0 0; padding-left: 20px; color: var(--cbw-text-secondary); font-size: 14px; line-height: 1.65; }
-  .promo-list li::marker { color: var(--cbw-action); }
-  .promo-faq { display: grid; gap: var(--cbw-space-2); margin-top: var(--cbw-space-5); }
-  .promo-faq details { overflow: hidden; border: 1px solid var(--cbw-border-standard); border-radius: var(--cbw-radius-control); background: #fff; }
-  .promo-faq summary { display: flex; justify-content: space-between; gap: var(--cbw-space-4); padding: var(--cbw-space-4) var(--cbw-space-5); color: var(--cbw-text-primary); font-size: 13px; font-weight: 800; cursor: pointer; list-style: none; }
-  .promo-faq summary::-webkit-details-marker { display: none; }
-  .promo-faq summary::after { content: '+'; color: #9ca3af; font-size: 18px; }
-  .promo-faq details[open] summary::after { content: '−'; }
-  .promo-faq p { margin: 0; padding: 0 var(--cbw-space-5) var(--cbw-space-4); color: var(--cbw-text-secondary); font-size: 12px; line-height: 1.7; }
-  .promo-disclosure p { margin: 0; color: var(--cbw-text-secondary); font-size: 11px; line-height: 1.7; }
-  .promo-disclosure strong { color: var(--cbw-text-primary); }
-  .promo-disclosure a { color: #166534; font-weight: 800; }
-  @media (min-width: 760px) { .promo-heading { grid-template-columns: minmax(0,1fr) auto; } }
-  @media (max-width: 760px) {
-    .promo-table { min-width: 0; }
-    .promo-table thead { display: none; }
-    .promo-table,
-    .promo-table tbody,
-    .promo-table tr,
-    .promo-table td { display: block; width: 100%; box-sizing: border-box; }
-    .promo-table-wrap { overflow: visible; border: 0; background: transparent; }
-    .promo-table tr { margin-bottom: var(--cbw-space-3); padding: var(--cbw-space-4); border: 1px solid var(--cbw-border-standard); border-radius: var(--cbw-radius-card); background: #fff; box-shadow: 0 5px 18px rgba(19,35,62,.05); }
-    .promo-table td { display: flex; justify-content: space-between; gap: var(--cbw-space-3); padding: 6px 0; border: 0; }
-    .promo-table td::before { content: attr(data-label); flex: 0 0 104px; color: var(--cbw-text-muted); font-size: 8px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; }
-    .promo-code-cell { flex-direction: column; align-items: stretch; }
-    .promo-code-cell::before { margin-bottom: 3px; }
-    .promo-code-cell :global(.pcc-row) { width: 100%; max-width: none; }
-    .promo-copy { max-width: 62%; text-align: right; }
-    .promo-action { width: 100%; }
-  }
-  @media (max-width: 620px) {
-    :global(.promo-directory-page .cbw-first-viewport__inner) { padding-block: var(--cbw-space-5); }
-    :global(.promo-directory-page .cbw-display-title) { font-size: 42px; }
-    .promo-context { margin-top: var(--cbw-space-3); gap: 5px; }
-    .promo-context span,
-    .promo-context a { min-height: 25px; padding-inline: 8px; font-size: 8px; }
+  .promo-directory-product { background: var(--cbw-surface-page); }
+  .promo-country { max-width: 760px; margin-top: var(--cbw-space-4); }
+  .promo-card-grid { --cbw-card-columns: 2; }
+  .promo-directory-link { color: #925204; font-size: 11px; font-weight: 900; white-space: nowrap; }
+  .promo-foot { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: var(--cbw-space-5); align-items: center; margin-top: var(--cbw-space-5); box-shadow: none; }
+  .promo-foot > div { display: grid; gap: 3px; }
+  .promo-foot strong { color: var(--cbw-text-primary); font-size: 12px; }
+  .promo-foot span { max-width: var(--cbw-width-prose); color: var(--cbw-text-secondary); font-size: 10px; line-height: 1.5; }
+  .promo-foot nav { display: flex; flex-wrap: wrap; gap: var(--cbw-space-3); }
+  .promo-foot a { color: #925204; font-size: 10px; font-weight: 900; }
+  @media (max-width: 699px) {
+    .promo-card-grid { --cbw-card-columns: 1; }
+    .promo-foot { grid-template-columns: 1fr; }
   }
 </style>
