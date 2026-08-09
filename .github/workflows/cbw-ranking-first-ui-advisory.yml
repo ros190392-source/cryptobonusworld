@@ -16,6 +16,7 @@ on:
       - 'src/data/header/**'
       - 'src/data/contracts/countryInput.ts'
       - 'scripts/ui/**'
+      - 'scripts/seo/**'
       - '.github/workflows/cbw-ranking-first-ui-advisory.yml'
 
 permissions:
@@ -62,6 +63,10 @@ jobs:
         id: matrix
         run: node scripts/ui/site-route-matrix-browser-smoke.mjs
 
+      - name: Full built-route indexability inventory
+        id: indexability
+        run: node scripts/seo/site-indexability-inventory.mjs
+
       - name: Advisory summary
         if: always()
         env:
@@ -69,16 +74,18 @@ jobs:
           BUILD: ${{ steps.build.outcome }}
           BROWSER: ${{ steps.browser.outcome }}
           MATRIX: ${{ steps.matrix.outcome }}
+          INDEXABILITY: ${{ steps.indexability.outcome }}
         run: |
           {
-            echo '### CBW Product System UI Advisory'
+            echo '### CBW Product System UI / SEO Advisory'
             echo ''
             echo '| Check | Result |'
             echo '|---|---|'
             echo "| Product system foundation | ${FOUNDATION} |"
             echo "| Production build | ${BUILD} |"
-            echo "| Ranking-first Chromium smoke | ${BROWSER} |"
+            echo "| Product Chromium smoke | ${BROWSER} |"
             echo "| Full public route matrix | ${MATRIX} |"
+            echo "| Built-route indexability inventory | ${INDEXABILITY} |"
             echo ''
-            echo '> Read-only visual/product advisory. It performs no publish, import or deploy action.'
+            echo '> Read-only visual/product/SEO advisory. It performs no publish, import or deploy action.'
           } >> "$GITHUB_STEP_SUMMARY"
