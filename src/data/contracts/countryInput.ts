@@ -33,6 +33,7 @@ const GLOBAL_TOKEN = 'global';
 export const COUNTRY_SLUG_TO_ISO: Readonly<Record<string, string>> = Object.freeze({
   poland: 'PL',
   kazakhstan: 'KZ',
+  bulgaria: 'BG',
   turkey: 'TR',
   india: 'IN',
   indonesia: 'ID',
