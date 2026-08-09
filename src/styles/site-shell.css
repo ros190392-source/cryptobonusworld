@@ -1,8 +1,6 @@
-/* CBW Site Shell v2 — global interaction and exchange CTA contract */
+/* CBW global shell — shared interaction and legacy exchange CTA normalization */
 
-*, *::before, *::after {
-  box-sizing: border-box;
-}
+*, *::before, *::after { box-sizing: border-box; }
 
 :root {
   --cbw-shell-navy: #0a1424;
@@ -13,20 +11,36 @@
   --cbw-action-max: 360px;
 }
 
-body.cbw-menu-open {
-  overflow: hidden;
+html {
+  scroll-padding-top: calc(var(--cbw-header-height, 56px) + 12px);
 }
 
+body.cbw-menu-open { overflow: hidden; }
+
 :where(a, button, summary):focus-visible {
-  outline: 3px solid rgba(247, 147, 26, .55);
+  outline: 3px solid rgba(247,147,26,.55);
   outline-offset: 3px;
+}
+
+/*
+ * Header and footer must share exactly the same outer frame and responsive
+ * gutters as every wide product surface. Page-local shell widths are forbidden.
+ */
+.header-shell,
+.footer-shell,
+.footer-bottom {
+  width: 100% !important;
+  max-width: var(--cbw-width-shell, 1180px) !important;
+  margin-inline: auto !important;
+  padding-inline: var(--cbw-gutter, 20px) !important;
+  box-sizing: border-box !important;
 }
 
 /*
   Shared exchange conversion pattern.
   Amber means action; green remains reserved for verified/evidence states.
-  These selectors intentionally normalize legacy exchange page CTA classes
-  without changing hrefs, labels, offer records or affiliate bindings.
+  These selectors normalize legacy exchange page CTA classes without changing
+  hrefs, labels, offer records or affiliate bindings.
 */
 .p2-section.p2-cta-block {
   padding-block: 18px 22px !important;
@@ -34,9 +48,10 @@ body.cbw-menu-open {
 }
 
 .p2-cta-block .p2-inner {
-  width: min(100%, 720px) !important;
+  width: 100% !important;
+  max-width: var(--cbw-width-prose, 760px) !important;
   margin-inline: auto !important;
-  padding-inline: 20px !important;
+  padding-inline: var(--cbw-gutter, 20px) !important;
 }
 
 .p2-cta-bar,
@@ -49,12 +64,12 @@ body.cbw-menu-open {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  border: 1px solid rgba(19, 35, 62, .12) !important;
-  border-radius: 12px !important;
+  border: 1px solid rgba(19,35,62,.12) !important;
+  border-radius: var(--cbw-radius-control, 10px) !important;
   color: var(--cbw-shell-navy-2) !important;
   -webkit-text-fill-color: var(--cbw-shell-navy-2) !important;
   background: var(--cbw-shell-amber) !important;
-  box-shadow: 0 10px 24px rgba(247, 147, 26, .18) !important;
+  box-shadow: 0 10px 24px rgba(247,147,26,.18) !important;
   font-size: 15px !important;
   font-weight: 900 !important;
   line-height: 1.25 !important;
@@ -72,17 +87,16 @@ body.cbw-menu-open {
   color: var(--cbw-shell-navy-2) !important;
   -webkit-text-fill-color: var(--cbw-shell-navy-2) !important;
   background: var(--cbw-shell-amber-hover) !important;
-  box-shadow: 0 12px 28px rgba(247, 147, 26, .25) !important;
+  box-shadow: 0 12px 28px rgba(247,147,26,.25) !important;
   transform: translateY(-1px) !important;
 }
 
-/* Main exchange hero action follows the same role without changing layout. */
 .bh-cta-btn {
-  border: 1px solid rgba(19, 35, 62, .12) !important;
+  border: 1px solid rgba(19,35,62,.12) !important;
   color: var(--cbw-shell-navy-2) !important;
   -webkit-text-fill-color: var(--cbw-shell-navy-2) !important;
   background: var(--cbw-shell-amber) !important;
-  box-shadow: 0 10px 26px rgba(247, 147, 26, .2) !important;
+  box-shadow: 0 10px 26px rgba(247,147,26,.2) !important;
 }
 
 .bh-cta-btn:hover,
@@ -92,31 +106,17 @@ body.cbw-menu-open {
   background: var(--cbw-shell-amber-hover) !important;
 }
 
-/* Keep disclosure and article image rhythm connected to the CTA below it. */
-.p2-article-banner-figure {
-  margin-bottom: 0 !important;
-}
-
-.p2-article-banner-caption {
-  margin-bottom: 0 !important;
-}
+.p2-article-banner-figure,
+.p2-article-banner-caption { margin-bottom: 0 !important; }
 
 @media (max-width: 639px) {
-  .p2-section.p2-cta-block {
-    padding-block: 14px 18px !important;
-  }
-
-  .p2-cta-block .p2-inner {
-    padding-inline: 20px !important;
-  }
-
+  .p2-section.p2-cta-block { padding-block: 14px 18px !important; }
   .p2-cta-bar,
   .p2-cta-btn {
     width: 100% !important;
     max-width: var(--cbw-action-max) !important;
     min-height: 50px !important;
     padding: 12px 16px !important;
-    border-radius: 11px !important;
     font-size: 14px !important;
   }
 }

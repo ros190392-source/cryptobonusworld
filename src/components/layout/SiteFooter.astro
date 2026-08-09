@@ -2,21 +2,23 @@
 const year = new Date().getFullYear();
 ---
 
-<footer class="site-footer">
+<footer class="site-footer" data-site-footer>
   <div class="footer-shell">
     <section class="footer-brand" aria-label="CryptoBonusWorld information">
       <a href="/" class="footer-logo" aria-label="CryptoBonusWorld home">
-        <img src="/brand/cbw-header-mark-final.png" alt="" aria-hidden="true" width="46" height="46" loading="lazy" />
+        <img src="/brand/cbw-header-mark-final.png" alt="" aria-hidden="true" width="44" height="44" loading="lazy" />
         <span>
           <strong><i>Crypto</i><b>Bonus</b><i>World</i></strong>
-          <small>Country-aware exchange evidence</small>
+          <small>Exchange rankings by market</small>
         </span>
       </a>
       <p>
-        Compare crypto exchange offers, research status and market limitations without mixing global claims with country-specific facts.
+        Compare exchange ranking context, evidence and offers without mixing global promotion claims with local eligibility.
       </p>
       <div class="footer-context" aria-label="Current site context">
-        <span>Global market</span><i aria-hidden="true"></i><span>English</span><i aria-hidden="true"></i><span>Country pages in review</span>
+        <span data-footer-country>🌍 General</span><i aria-hidden="true"></i>
+        <span data-footer-language>EN</span><i aria-hidden="true"></i>
+        <span>Local rankings only when approved</span>
       </div>
     </section>
 
@@ -26,7 +28,7 @@ const year = new Date().getFullYear();
         <a href="/#exchanges">Top 10 Exchanges</a>
         <a href="/exchanges/">All Exchanges</a>
         <a href="/promo-codes/">Promo Codes</a>
-        <a href="/#guide">Bonus Guide</a>
+        <a href="/guides/">Guides</a>
         <a href="/faq/">FAQ</a>
       </div>
 
@@ -55,6 +57,34 @@ const year = new Date().getFullYear();
   </div>
 </footer>
 
+<script is:inline>
+  (function () {
+    var footer = document.querySelector('[data-site-footer]');
+    if (!footer) return;
+    var country = footer.querySelector('[data-footer-country]');
+    var language = footer.querySelector('[data-footer-language]');
+
+    function syncContext() {
+      var header = document.querySelector('[data-site-header]');
+      if (!header) return;
+      var flag = header.querySelector('[data-country-summary] [data-country-flag]');
+      var name = header.querySelector('[data-country-name]');
+      var lang = header.querySelector('[data-language-summary] [data-language-short]');
+      if (country) {
+        var flagText = flag && flag.textContent ? flag.textContent.trim() : '🌍';
+        var nameText = name && name.textContent ? name.textContent.trim() : 'General';
+        country.textContent = flagText + ' ' + nameText;
+      }
+      if (language) language.textContent = lang && lang.textContent ? lang.textContent.trim() : 'EN';
+    }
+
+    syncContext();
+    document.addEventListener('cbw:country-context-change', syncContext);
+    document.addEventListener('cbw:language-context-change', syncContext);
+    window.addEventListener('pageshow', syncContext);
+  })();
+</script>
+
 <style>
   .site-footer {
     margin-top: auto;
@@ -66,96 +96,45 @@ const year = new Date().getFullYear();
   }
 
   .footer-shell {
-    width: min(var(--cbw-page-max, 1180px), 100%);
-    margin: 0 auto;
-    padding: 44px 20px 36px;
+    padding-block: 42px 34px;
     display: grid;
-    gap: 36px;
+    gap: 34px;
   }
 
   .footer-brand { max-width: 390px; }
   .footer-logo {
     display: inline-flex;
     align-items: center;
-    gap: 12px;
+    gap: 11px;
     color: #fff;
     text-decoration: none;
   }
-  .footer-logo img { width: 44px; height: 44px; object-fit: contain; }
-  .footer-logo span, .footer-logo strong, .footer-logo small { display: block; }
-  .footer-logo strong {
-    display: flex;
-    align-items: baseline;
-    font-size: 20px;
-    line-height: 1;
-    letter-spacing: -.035em;
-  }
+  .footer-logo img { width: 42px; height: 42px; object-fit: contain; }
+  .footer-logo span,.footer-logo strong,.footer-logo small { display: block; }
+  .footer-logo strong { display: flex; align-items: baseline; font-size: 20px; line-height: 1; letter-spacing: -.035em; }
   .footer-logo strong i { color: rgba(255,255,255,.82); font-style: normal; font-weight: 800; }
   .footer-logo strong b { color: #f7931a; font-weight: 900; }
-  .footer-logo small {
-    margin-top: 5px;
-    color: rgba(255,255,255,.4);
-    font-size: 9px;
-    font-weight: 800;
-    letter-spacing: .08em;
-    text-transform: uppercase;
-  }
-  .footer-brand > p { margin: 18px 0 0; color: rgba(255,255,255,.53); font-size: 13px; line-height: 1.75; }
+  .footer-logo small { margin-top: 5px; color: rgba(255,255,255,.4); font-size: 9px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+  .footer-brand > p { margin: 16px 0 0; color: rgba(255,255,255,.53); font-size: 12px; line-height: 1.65; }
 
-  .footer-context {
-    margin-top: 20px;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
-    color: rgba(255,255,255,.46);
-    font-size: 9px;
-    font-weight: 800;
-    letter-spacing: .065em;
-    text-transform: uppercase;
-  }
+  .footer-context { margin-top: 18px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: rgba(255,255,255,.48); font-size: 9px; font-weight: 800; letter-spacing: .055em; text-transform: uppercase; }
   .footer-context i { width: 3px; height: 3px; border-radius: 50%; background: #f7931a; }
 
-  .footer-links { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 30px 24px; }
-  .footer-column { display: flex; flex-direction: column; gap: 9px; }
-  .footer-column h2 {
-    margin: 0 0 5px;
-    color: rgba(255,255,255,.37);
-    font-size: 10px;
-    font-weight: 900;
-    letter-spacing: .1em;
-    text-transform: uppercase;
-  }
-  .footer-column a {
-    width: fit-content;
-    color: rgba(255,255,255,.64);
-    font-size: 12px;
-    font-weight: 700;
-    line-height: 1.45;
-    text-decoration: none;
-    transition: color .15s, transform .15s;
-  }
-  .footer-column a:hover, .footer-column a:focus-visible { color: #f7a83b; transform: translateX(2px); }
+  .footer-links { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 28px 22px; }
+  .footer-column { display: flex; flex-direction: column; gap: 8px; }
+  .footer-column h2 { margin: 0 0 4px; color: rgba(255,255,255,.37); font-size: 10px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+  .footer-column a { width: fit-content; color: rgba(255,255,255,.66); font-size: 12px; font-weight: 700; line-height: 1.45; text-decoration: none; transition: color .15s, transform .15s; }
+  .footer-column a:hover,.footer-column a:focus-visible { color: #f7a83b; transform: translateX(2px); }
 
-  .footer-bottom {
-    width: min(var(--cbw-page-max, 1180px), 100%);
-    margin: 0 auto;
-    padding: 18px 20px 24px;
-    display: grid;
-    gap: 5px;
-    border-top: 1px solid rgba(255,255,255,.07);
-  }
-  .footer-bottom p { margin: 0; color: rgba(255,255,255,.3); font-size: 10px; line-height: 1.65; }
+  .footer-bottom { padding-block: 17px 23px; display: grid; gap: 5px; border-top: 1px solid rgba(255,255,255,.07); }
+  .footer-bottom p { margin: 0; color: rgba(255,255,255,.31); font-size: 9px; line-height: 1.6; }
 
   @media (min-width: 640px) {
-    .footer-shell { padding-inline: 24px; }
-    .footer-links { grid-template-columns: repeat(3, minmax(0,1fr)); }
-    .footer-bottom { padding-inline: 24px; }
+    .footer-links { grid-template-columns: repeat(3,minmax(0,1fr)); }
   }
-
   @media (min-width: 900px) {
-    .footer-shell { grid-template-columns: minmax(280px, .85fr) minmax(520px, 1.15fr); gap: 80px; padding: 58px 32px 46px; }
-    .footer-bottom { grid-template-columns: 1fr 1.25fr; gap: 36px; padding: 18px 32px 26px; }
+    .footer-shell { grid-template-columns: minmax(280px,.85fr) minmax(520px,1.15fr); gap: 76px; padding-block: 50px 40px; }
+    .footer-bottom { grid-template-columns: 1fr 1.25fr; gap: 36px; padding-block: 17px 24px; }
     .footer-bottom p:last-child { text-align: right; }
   }
 </style>
