@@ -1,90 +1,9 @@
-import countriesJson from '../countries.json';
-import {
-  COUNTRY_SLUG_TO_ISO,
-  SUPPORTED_COUNTRY_CODES,
-  normalizeCountryInput,
-} from '../contracts/countryInput';
+import { normalizeCountryInput } from '../contracts/countryInput';
 import {
   parseStoredCountryContext,
   resolveCountryContext,
   serializeStoredCountryContext,
 } from '../contracts/countryContext';
-
-export interface HeaderCountryOption {
-  code: string | 'global';
-  slug: string;
-  name: string;
-  shortName: string;
-  flag: string;
-}
-
-interface CountryRecord {
-  name?: unknown;
-  slug?: unknown;
-  flag?: unknown;
-}
-
-function isoFlag(code: string): string {
-  if (!/^[A-Z]{2}$/.test(code)) return '🌍';
-  return [...code]
-    .map((char) => String.fromCodePoint(127397 + char.charCodeAt(0)))
-    .join('');
-}
-
-const IDENTITY_NAME_FALLBACKS: Readonly<Record<string, string>> = Object.freeze({
-  PL: 'Poland',
-  KZ: 'Kazakhstan',
-});
-
-const countryRecords = Array.isArray(countriesJson)
-  ? (countriesJson as CountryRecord[])
-  : [];
-
-const recordByCode = new Map<string, CountryRecord>();
-for (const record of countryRecords) {
-  if (typeof record?.slug !== 'string') continue;
-  if (record.slug === 'global') {
-    recordByCode.set('global', record);
-    continue;
-  }
-  const code = COUNTRY_SLUG_TO_ISO[record.slug];
-  if (code) recordByCode.set(code, record);
-}
-
-function countryOption(code: string): HeaderCountryOption {
-  const record = recordByCode.get(code);
-  const name = typeof record?.name === 'string' && record.name.trim()
-    ? record.name.trim()
-    : IDENTITY_NAME_FALLBACKS[code] ?? code;
-  const flag = typeof record?.flag === 'string' && record.flag.trim()
-    ? record.flag.trim()
-    : isoFlag(code);
-  const slug = Object.entries(COUNTRY_SLUG_TO_ISO)
-    .find(([, iso]) => iso === code)?.[0] ?? code.toLowerCase();
-  return Object.freeze({ code, slug, name, shortName: code, flag });
-}
-
-const globalRecord = recordByCode.get('global');
-const GLOBAL_COUNTRY: HeaderCountryOption = Object.freeze({
-  code: 'global',
-  slug: 'global',
-  name: 'General',
-  shortName: 'General',
-  flag: typeof globalRecord?.flag === 'string' && globalRecord.flag.trim()
-    ? globalRecord.flag.trim()
-    : '🌍',
-});
-
-export const HEADER_COUNTRIES: readonly HeaderCountryOption[] = Object.freeze([
-  GLOBAL_COUNTRY,
-  ...SUPPORTED_COUNTRY_CODES.map(countryOption).sort((a, b) => a.name.localeCompare(b.name, 'en')),
-]);
-
-export function findHeaderCountry(code: unknown): HeaderCountryOption {
-  if (code === 'global' || code === null || code === undefined) return GLOBAL_COUNTRY;
-  if (typeof code !== 'string') return GLOBAL_COUNTRY;
-  return HEADER_COUNTRIES.find((entry) => entry.code === code) ?? GLOBAL_COUNTRY;
-}
 
 export function parseCloudflareTraceCountry(trace: unknown): string | null {
   if (typeof trace !== 'string') return null;
@@ -98,7 +17,7 @@ export function parseCloudflareTraceCountry(trace: unknown): string | null {
 }
 
 export interface HeaderCountryDecision {
-  country: HeaderCountryOption;
+  countryCode: string | 'global';
   source: 'manual' | 'ip' | 'global' | 'invalid_storage';
 }
 
@@ -113,22 +32,22 @@ export function resolveHeaderCountry(input: {
     if (!parsed) {
       const failed = resolveCountryContext({ explicitOverride: '__invalid__', proposedCountry: input.ipCountryCode });
       return {
-        country: findHeaderCountry(failed.countryCode),
+        countryCode: failed.countryCode ?? 'global',
         source: 'invalid_storage',
       };
     }
     const manual = resolveCountryContext({ explicitOverride: parsed.country });
     return {
-      country: findHeaderCountry(manual.countryCode),
+      countryCode: manual.countryCode ?? 'global',
       source: 'manual',
     };
   }
 
   const proposed = resolveCountryContext({ proposedCountry: input.ipCountryCode });
   if (proposed.context === 'country' && proposed.countryCode) {
-    return { country: findHeaderCountry(proposed.countryCode), source: 'ip' };
+    return { countryCode: proposed.countryCode, source: 'ip' };
   }
-  return { country: GLOBAL_COUNTRY, source: 'global' };
+  return { countryCode: 'global', source: 'global' };
 }
 
 export function serializeHeaderCountrySelection(code: unknown): string | null {
