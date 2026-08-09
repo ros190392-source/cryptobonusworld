@@ -166,7 +166,7 @@ async function contextChecks(page) {
   }));
   check('context: IP proposal selects PL', state.country === 'PL' && state.countrySource === 'ip', JSON.stringify(state));
   check('context: browser ru-RU proposes RU language', state.language === 'ru' && state.languageSource === 'browser', JSON.stringify(state));
-  check('context: Poland flag visible', (await page.locator('[data-country-flag]').textContent())?.trim() === '🇵🇱');
+  check('context: Poland flag visible', (await page.locator('[data-country-summary] [data-country-flag]').textContent())?.trim() === '🇵🇱');
 
   await page.locator('[data-country-summary]').click();
   const kz = page.locator('[data-country-option][data-country-code="KZ"]');
@@ -177,7 +177,7 @@ async function contextChecks(page) {
     source: el.dataset.countrySource,
   }));
   check('context: manual KZ selection wins', state.country === 'KZ' && state.source === 'manual', JSON.stringify(state));
-  check('context: Kazakhstan flag visible', (await page.locator('[data-country-flag]').textContent())?.trim() === '🇰🇿');
+  check('context: Kazakhstan flag visible', (await page.locator('[data-country-summary] [data-country-flag]').textContent())?.trim() === '🇰🇿');
 
   await page.reload({ waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => document.querySelector('[data-site-header]')?.dataset.contextReady === 'true');
