@@ -1,19 +1,27 @@
 # CBW-COUNTRY-FOUNDATION-PL-KZ-MARKETPROFILE-001
 
 ## Status
-Implementation in progress on Issue #272. Not merged. Not deployed. Public country facts remain fail-closed.
+Implementation complete on Draft PR #273 and returned to Owner Review after remediation #299. Not merged. Not deployed. Public PL/KZ country facts remain fail-closed.
 
-## Dependency
-Production rollout Issue #271 is owner-authorized but externally blocked in the current ChatGPT runtime because operator/CI SSH deployment credentials are not injected here.
+## Dependency status
+The production dependency is cleared:
+- Issue #271 production rollout: **COMPLETE / GREEN**.
+- Issue #287 safe batch auto-deploy: **COMPLETE / GREEN**.
+- PR #298 live-smoke scope fix: **MERGED / GREEN**.
+- Production auto-deploy run #15 for `master @ 460183766f6f4f1e6b5196e3c09098f7345cf6d7`: **SUCCESS**.
 
-This task may implement and validate architecture in isolation. It MUST NOT publish country availability claims, merge, or deploy until #271 production smoke is green and owner review authorizes this task's integration.
+Clearing the production dependency does not itself authorize this Country Foundation PR to merge or deploy. PR #273 remains Draft until Owner Review explicitly authorizes integration.
 
-## Canonical base
+## Canonical integration state
 - Repository: `ros190392-source/cryptobonusworld`
 - Base branch: `master`
-- Required base SHA: `cc7c25baf05652727e57aa29e21c9e72c7854e88`
+- Original architecture base: `cc7c25baf05652727e57aa29e21c9e72c7854e88`
 - Feature branch: `feat/cbw-country-foundation-pl-kz-001`
 - Governing issue: #272
+- Remediation issue: #299
+- Reviewed pre-remediation head: `48ecb6bc8bda07ce9ac7613f0ad7f3386b869ae7`
+- Remediation implementation head before master sync: `0da98391c9b18f931bc2ccc229d1e35527e31f5d`
+- Current-master sync merge: `28c53a3f78fc20f02137766c6d743c023ded8497`, combining feature head `0da9839...` with current `master @ 721c13c76c6ec0dc6986ff49414f9f8a4d3ea692` without force or conflict.
 
 ## Objective
 Establish the production-grade Country Foundation around one canonical factual unit:
@@ -62,8 +70,34 @@ Structured dimensions:
 
 Factual positive/negative states require claim references. Dimension claim references must also be bound into the base profile `claimIds`. Approved country profiles require `high` or `medium` confidence.
 
-### 4. Strict public CTA boundary
-The existing `resolveCountryAwareCommercialCta()` remains the canonical composed gate and supports a compatibility profile mode for existing internal fixtures.
+### 4. Cross-dimension fail-closed policy — remediation #299
+Owner Review found that a positive base `availability` / `offerEligibility` could contradict richer V1 dimensions. Remediation #299 closes that gap with two layers.
+
+Structural consistency:
+- approved positive base availability requires `regulation = licensed|registered`;
+- approved positive base availability requires `restrictions = clear`;
+- approved local offer eligibility requires every material dimension to be explicitly `supported|limited`;
+- negative, unknown, or under-review material dimensions cannot be silently promoted by positive base fields.
+
+Runtime defense-in-depth:
+- `evaluateCountryMarketProfileV1CommercialReadiness()` independently composes V1 dimensions;
+- `restricted` maps to a disabled restricted decision;
+- `prohibited` / unavailable maps to a disabled unavailable decision;
+- `under_review` / `unknown` remains internal review;
+- only an explicitly coherent positive V1 profile may continue toward `/go/*`.
+
+Material commercial dimensions covered by policy:
+- regulation
+- restrictions
+- KYC
+- deposits
+- withdrawals
+- fiat/local payment methods
+- products
+- bonus availability
+
+### 5. Strict public CTA boundary
+The existing `resolveCountryAwareCommercialCta()` remains the canonical composed gate and supports compatibility mode for existing internal fixtures.
 
 All new Country Foundation public work must enter through:
 
@@ -71,52 +105,48 @@ All new Country Foundation public work must enter through:
 
 which pins `profileContract: 'country_v1'`.
 
-A legacy/incomplete profile reaching that strict boundary returns `PROFILE_FOUNDATION_INVALID` and cannot emit `/go/*`.
+A legacy, incomplete, contradictory, negative, or unresolved V1 profile cannot emit `/go/*`.
 
 Global owner-confirmed link/code authority from Issue #269 remains independent and cannot substitute for a country MarketProfile.
 
-### 5. Public registry
+### 6. Public registry
 `PUBLIC_MARKET_PROFILES` remains `Object.freeze([])` in this architecture task.
 
 No PL/KZ production facts are populated from memory, editorial prose, `countries.json`, affiliate destinations, or research artifacts automatically.
 
-Existing KZ research in `research-ops/**` is control-plane evidence and requires a separate governed evidence-to-MarketProfile import/approval task.
+Existing KZ/PL research on the research control plane requires a separate governed evidence-to-MarketProfile bridge/import/approval task.
 
-## Verification
-Dedicated suite:
+## Remediation diff audit
+From reviewed head `48ecb6b...` to remediation head `0da9839...`, exactly three files changed:
+- `src/data/contracts/marketProfileV1.ts`
+- `src/data/contracts/countryAwareCta.ts`
+- `scripts/portal/country-foundation-test.mjs`
 
-`scripts/portal/country-foundation-test.mjs`
+No affiliate values, raw offers, public MarketProfile registry, ranking, SEO, sitemap, canonical, deployment, or production data files changed in remediation #299.
 
-It proves at minimum:
-- PL/KZ identity accepted; lowercase malformed
-- explicit override precedence
-- malformed explicit override cannot fall through to proposal
-- proposal/global behavior
-- versioned storage parse/serialize fail-closed behavior
-- legacy MarketProfile cannot pass Country V1
-- complete V1 profile can pass
-- missing dimensions / missing evidence refs / unbound claims fail
-- confidence policy
-- strict CTA positive isolated fixture
-- strict CTA blocks legacy/missing/wrong/duplicate/malformed/stale/overdue/restricted profiles
-- locale does not alter factual decision
-- public registry remains frozen empty
-- confirmed global link/GEO authority cannot authorize PL availability
+## Verification — remediation head `0da9839...`
+Fresh exact-head GitHub CI completed successfully before current-master synchronization:
+- Country Foundation regression: **69/69 PASS**
+- owner-confirmed link/code authority regression: **319/319 PASS**
+- AI-ops fixtures: **43/43 PASS**
+- test-authority guard: **PASS**
+- portal contracts: **712/712 PASS**
+- resolution harness: **5/5 PASS**
+- Bybit official-source offline replay: **8/8 PASS**
+- preview build: **109 pages PASS**
+- preview Bybit public-output audit: **PASS**
+- preview global public-offer audit: **PASS**
+- preview Chromium owner-authority smoke: **268/268 PASS**
+- production-simulation build: **109 pages PASS**
+- production Bybit public-output audit: **PASS**
+- production global public-offer audit: **PASS**
+- production Chromium owner-authority smoke: **272/272 PASS**
+- CBW PR Advisory Gate run #287: **SUCCESS**
+- CBW Portal Contracts Advisory run #73: **SUCCESS**
 
-## CI
-`CBW Portal Contracts Advisory` must include:
-- strict TypeScript for `countryContext.ts` and `marketProfileV1.ts`
-- Country Foundation PL/KZ regression
-- existing owner-authority regression
-- fixtures
-- test-authority guard
-- portal contracts
-- resolution harness
-- Bybit offline replay
-- preview build/audits/Chromium
-- production-simulation build/audits/Chromium
+The Country Foundation regression includes mutation cases proving positive base fields cannot override restricted/prohibited/unavailable/under-review/unknown V1 dimensions.
 
-## Prohibited in this task
+## Prohibited / unchanged
 - no production PL/KZ availability claims
 - no auto-import of research records into public authority
 - no `countries.json` editorial text as authority
@@ -125,10 +155,12 @@ It proves at minimum:
 - no ranking changes
 - no new indexable country URL scheme
 - no sitemap/canonical changes
-- no production deploy
+- no production deploy from this task
 
 ## Integration
-Open a Draft PR against `master`. Keep it Draft until:
-1. exact-head CI is green;
-2. #271 production rollout smoke is green;
-3. owner review explicitly authorizes merge.
+Keep Draft PR #273 unmerged until:
+1. fresh exact-head CI after the current-master sync/docs closeout is green;
+2. final independent Owner Review is green;
+3. owner explicitly authorizes merge.
+
+No merge/deploy authorization is implied by this document.
