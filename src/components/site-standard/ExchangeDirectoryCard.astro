@@ -5,73 +5,118 @@ import { resolvePublicOfferView } from '../../data/publicOfferView';
 import { resolvePublicCommercialRoute } from '../../data/publicCommercialRoute';
 import PromoCodeCopy from '../promo/PromoCodeCopy.astro';
 import ExchangeLogo from '../ExchangeLogo.astro';
+import StatusBadge from './StatusBadge.astro';
 import '../../styles/site-standard-v1.css';
 
 export interface Props {
   exchange: Exchange;
   offer?: Offer;
+  bestFor?: string;
+  rank?: number;
+  mode?: 'profile' | 'promo';
 }
 
-const { exchange: ex, offer } = Astro.props;
+const {
+  exchange: ex,
+  offer,
+  bestFor,
+  rank,
+  mode = 'profile',
+} = Astro.props;
+
 const reviewUrl = ex.pageUrl ?? `/exchanges/${ex.slug}/`;
 const nowMs = Date.now();
-
-// Factual offer copy and commercial link/code authority are independent (#269).
-// `view` stays claim/evidence-safe; `commercialRoute` is the only source of exact
-// owner-confirmed code + registration-route authority. Raw affiliate URLs are never rendered.
 const view = resolvePublicOfferView(ex.slug, nowMs);
 const commercialRoute = resolvePublicCommercialRoute(ex.slug, nowMs);
+const statusTone = view?.showVerifiedBadge ? 'verified' : 'review';
+const statusLabel = view?.showVerifiedBadge ? 'Verified offer' : (view?.statusLabel ?? 'Under review');
 ---
 
-<article class="cbw-card exchange-directory-card" data-exchange-slug={ex.slug}>
-  <div class="exchange-directory-card__head">
-    <a href={reviewUrl} class="exchange-directory-card__logo" tabindex="-1" aria-label={`${ex.name} review`}>
-      <ExchangeLogo slug={ex.slug} name={ex.name} size={88} variant="square" lazy={false} class="exchange-directory-card__logo-image" />
+<article class:list={['cbw-card', 'exchange-product-card', `exchange-product-card--${mode}`]} data-exchange-slug={ex.slug}>
+  <div class="exchange-product-card__head">
+    {rank && <span class="exchange-product-card__rank">#{rank}</span>}
+    <a href={reviewUrl} class="exchange-product-card__logo" tabindex="-1" aria-label={`${ex.name} review`}>
+      <ExchangeLogo slug={ex.slug} name={ex.name} size={54} variant="square" lazy={false} class="exchange-product-card__logo-image" />
     </a>
-    <a href={reviewUrl} class="exchange-directory-card__name">{ex.name}</a>
-    {view?.showVerifiedBadge && <span class="exchange-directory-card__verified">✓ Verified offer</span>}
+    <div class="exchange-product-card__identity">
+      <a href={reviewUrl} class="exchange-product-card__name">{ex.name}</a>
+      <StatusBadge label={statusLabel} tone={statusTone} />
+    </div>
   </div>
 
-  {view && <p class="exchange-directory-card__bonus">{view.bonusHeadline}</p>}
+  {bestFor && (
+    <div class="exchange-product-card__fit">
+      <span>Best for</span>
+      <strong>{bestFor}</strong>
+    </div>
+  )}
+
+  <p class="exchange-product-card__summary">
+    {view?.bonusHeadline ?? 'Current offer details are being re-verified.'}
+  </p>
+
+  <div class="exchange-product-card__country">
+    <span>Country status</span>
+    <strong>Check active-market evidence</strong>
+    <small>Global offer status does not prove local eligibility.</small>
+  </div>
 
   {commercialRoute.promoCodeAuthority === 'owner_confirmed' && commercialRoute.promoCode && (
-    <div class="exchange-directory-card__code">
+    <div class="exchange-product-card__code">
       <span>Promo/referral code · owner confirmed</span>
       <PromoCodeCopy code={commercialRoute.promoCode} exchange={ex.name} />
     </div>
   )}
 
-  {commercialRoute.externalAllowed ? (
-    <a href={`/go/${ex.slug}/`} class="cbw-action exchange-directory-card__action" target="_blank" rel="noopener noreferrer sponsored">
-      {commercialRoute.ctaLabel} →
-    </a>
-  ) : (
-    <a href={reviewUrl} class="cbw-action exchange-directory-card__action">
-      View {ex.name} status →
-    </a>
-  )}
-  <a href={reviewUrl} class="exchange-directory-card__review">Read {ex.name} review</a>
+  <div class="exchange-product-card__actions">
+    {commercialRoute.externalAllowed ? (
+      <a href={`/go/${ex.slug}/`} class="cbw-action exchange-product-card__primary" target="_blank" rel="noopener noreferrer sponsored">
+        {commercialRoute.ctaLabel} →
+      </a>
+    ) : (
+      <a href={reviewUrl} class="cbw-action exchange-product-card__primary">View status →</a>
+    )}
+    <a href={reviewUrl} class="exchange-product-card__review">Read review →</a>
+  </div>
 </article>
 
 <style>
-  .exchange-directory-card { display: flex; min-height: 100%; flex-direction: column; align-items: center; text-align: center; transition: border-color .18s, box-shadow .18s, transform .18s; }
-  .exchange-directory-card:hover { border-color: rgba(247,147,26,.38); box-shadow: 0 16px 38px rgba(19,35,62,.1); transform: translateY(-2px); }
-  .exchange-directory-card__head { display: flex; width: 100%; flex-direction: column; align-items: center; gap: var(--cbw-space-2); }
-  .exchange-directory-card__logo { display: inline-flex; border-radius: var(--cbw-radius-panel); line-height: 0; }
-  .exchange-directory-card__logo:focus-visible { outline: 3px solid rgba(247,147,26,.5); outline-offset: 3px; }
-  .exchange-directory-card__logo :global(.exchange-directory-card__logo-image) { border: 1px solid rgba(19,35,62,.08); border-radius: var(--cbw-radius-panel); box-shadow: 0 5px 18px rgba(19,35,62,.08); }
-  .exchange-directory-card__name { color: var(--cbw-text-primary); font-family: 'Barlow Condensed', Inter, sans-serif; font-size: 25px; font-weight: 800; line-height: 1; text-decoration: none; text-transform: uppercase; }
-  .exchange-directory-card__name:hover { color: #a65400; }
-  .exchange-directory-card__verified { padding: 3px 9px; border: 1px solid #b7dfc7; border-radius: var(--cbw-radius-pill); color: var(--cbw-evidence); background: #f1fbf5; font-size: 9px; font-weight: 900; letter-spacing: .04em; text-transform: uppercase; }
-  .exchange-directory-card__bonus { display: flex; min-height: 42px; align-items: center; justify-content: center; margin: var(--cbw-space-4) 0 var(--cbw-space-3); color: var(--cbw-text-secondary); font-size: 12px; font-weight: 700; line-height: 1.5; }
-  .exchange-directory-card__code { display: flex; width: 100%; flex-direction: column; align-items: center; gap: 5px; margin-bottom: var(--cbw-space-4); }
-  .exchange-directory-card__code > span { color: var(--cbw-text-muted); font-size: 8px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
-  .exchange-directory-card__action { width: 100%; margin-top: auto; font-size: 12px; }
-  .exchange-directory-card__review { display: block; padding: 9px 0 0; color: var(--cbw-text-secondary); font-size: 11px; font-weight: 800; text-decoration: none; }
-  .exchange-directory-card__review:hover { color: var(--cbw-text-primary); text-decoration: underline; text-underline-offset: 3px; }
+  .exchange-product-card {
+    display: flex;
+    min-width: 0;
+    min-height: 100%;
+    flex-direction: column;
+    gap: var(--cbw-space-3);
+    text-align: left;
+    transition: border-color .18s, box-shadow .18s, transform .18s;
+  }
+  .exchange-product-card:hover { border-color: rgba(247,147,26,.34); box-shadow: 0 12px 30px rgba(19,35,62,.08); transform: translateY(-1px); }
+  .exchange-product-card__head { display: grid; grid-template-columns: auto 54px minmax(0,1fr); gap: var(--cbw-space-3); align-items: center; }
+  .exchange-product-card__head:not(:has(.exchange-product-card__rank)) { grid-template-columns: 54px minmax(0,1fr); }
+  .exchange-product-card__rank { display: inline-flex; min-width: 36px; height: 30px; align-items: center; justify-content: center; border-radius: var(--cbw-radius-pill); color: #fff; background: var(--cbw-text-primary); font-size: 10px; font-weight: 900; }
+  .exchange-product-card__logo { display: inline-flex; border-radius: 12px; line-height: 0; }
+  .exchange-product-card__logo :global(.exchange-product-card__logo-image) { border: 1px solid rgba(19,35,62,.08); border-radius: 12px; }
+  .exchange-product-card__identity { display: grid; gap: 5px; min-width: 0; justify-items: start; }
+  .exchange-product-card__name { max-width: 100%; overflow: hidden; color: var(--cbw-text-primary); font-family: 'Barlow Condensed','Inter',sans-serif; font-size: 25px; font-weight: 800; line-height: 1; text-decoration: none; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
+  .exchange-product-card__name:hover { color: #925204; }
+  .exchange-product-card__fit,
+  .exchange-product-card__country { display: grid; gap: 3px; padding: 10px 11px; border-radius: var(--cbw-radius-control); background: var(--cbw-surface-secondary); }
+  .exchange-product-card__fit > span,
+  .exchange-product-card__country > span,
+  .exchange-product-card__code > span { color: var(--cbw-text-muted); font-size: 8px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+  .exchange-product-card__fit strong,
+  .exchange-product-card__country strong { color: var(--cbw-text-primary); font-size: 11px; line-height: 1.4; }
+  .exchange-product-card__country small { color: var(--cbw-text-muted); font-size: 9px; line-height: 1.45; }
+  .exchange-product-card__summary { min-height: 34px; margin: 0; color: var(--cbw-text-secondary); font-size: 11px; line-height: 1.55; }
+  .exchange-product-card__code { display: grid; gap: 5px; }
+  .exchange-product-card__code :global(.pcc-row) { max-width: 100%; }
+  .exchange-product-card__actions { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: var(--cbw-space-2); align-items: center; margin-top: auto; }
+  .exchange-product-card__primary { width: 100%; min-height: 42px; padding-inline: var(--cbw-space-4); font-size: 11px; }
+  .exchange-product-card__review { display: inline-flex; min-height: 42px; align-items: center; justify-content: center; padding-inline: var(--cbw-space-3); border: 1px solid var(--cbw-border-standard); border-radius: var(--cbw-radius-control); color: var(--cbw-text-secondary); font-size: 10px; font-weight: 900; text-decoration: none; white-space: nowrap; }
+  .exchange-product-card__review:hover { color: var(--cbw-text-primary); background: var(--cbw-surface-secondary); }
   @media (max-width: 480px) {
-    .exchange-directory-card { padding: var(--cbw-space-5); }
-    .exchange-directory-card__logo :global(.exlogo),
-    .exchange-directory-card__logo :global(.exlogo-img) { width: 72px !important; height: 72px !important; }
+    .exchange-product-card { padding: var(--cbw-space-4); }
+    .exchange-product-card__actions { grid-template-columns: 1fr; }
+    .exchange-product-card__review { width: 100%; }
   }
 </style>

@@ -22,6 +22,8 @@ const STRICT_MIGRATED = new Map([
   ['/methodology/', { family: 'trust', prose: true }],
   ['/editorial-policy/', { family: 'trust', prose: true }],
   ['/update-policy/', { family: 'trust', prose: true }],
+  ['/exchanges/', { family: 'directory' }],
+  ['/promo-codes/', { family: 'directory' }],
 ]);
 
 let checks = 0;
@@ -155,6 +157,7 @@ async function inspectRoute(page, item, viewportName) {
     check(`${item.route} ${viewportName}: no errors`, errors.length === 0, errors.join(' | '));
     check(`${item.route} ${viewportName}: family ${strict.family}`, metrics.pageFamily === strict.family, `actual=${metrics.pageFamily}`);
     if (strict.family === 'trust') check(`${item.route} ${viewportName}: trust first viewport`, metrics.firstScreenFamily === 'trust', `actual=${metrics.firstScreenFamily}`);
+    if (strict.family === 'directory') check(`${item.route} ${viewportName}: directory first viewport`, metrics.firstScreenFamily === 'directory', `actual=${metrics.firstScreenFamily}`);
     if (strict.prose && viewportName === 'desktop') check(`${item.route} desktop: prose 760`, metrics.proseWidth !== null && Math.abs(metrics.proseWidth - 760) <= 1, `width=${metrics.proseWidth}`);
   } else {
     const findings = [];

@@ -1,0 +1,86 @@
+---
+export interface Props {
+  note?: string;
+  compact?: boolean;
+  class?: string;
+}
+
+const {
+  note = 'Country context is presentation only. Local availability is shown only when supported by country-bound evidence.',
+  compact = false,
+  class: className = '',
+} = Astro.props;
+---
+
+<div class:list={['active-country-context', { 'active-country-context--compact': compact }, className]} data-active-country-context>
+  <span class="active-country-context__flag" aria-hidden="true" data-active-country-flag>🌍</span>
+  <div class="active-country-context__copy">
+    <span class="active-country-context__label">Active market</span>
+    <strong data-active-country-name>General</strong>
+    <small data-active-country-code>Global context</small>
+  </div>
+  <p>{note}</p>
+</div>
+
+<script is:inline>
+  (function () {
+    function syncOne(root) {
+      var header = document.querySelector('[data-site-header]');
+      if (!header || !root) return;
+      var code = header.dataset.countryContext || 'global';
+      var flagSource = header.querySelector('[data-country-summary] [data-country-flag]');
+      var nameSource = header.querySelector('[data-country-name]');
+      var flag = root.querySelector('[data-active-country-flag]');
+      var name = root.querySelector('[data-active-country-name]');
+      var codeEl = root.querySelector('[data-active-country-code]');
+      if (flag) flag.textContent = flagSource && flagSource.textContent ? flagSource.textContent.trim() : '🌍';
+      if (name) name.textContent = nameSource && nameSource.textContent ? nameSource.textContent.trim() : 'General';
+      if (codeEl) codeEl.textContent = code === 'global' ? 'Global context' : code + ' · selected or detected';
+    }
+    function syncAll() {
+      document.querySelectorAll('[data-active-country-context]').forEach(syncOne);
+    }
+    syncAll();
+    document.addEventListener('cbw:country-context-change', syncAll);
+    window.addEventListener('pageshow', syncAll);
+  })();
+</script>
+
+<style>
+  .active-country-context {
+    display: grid;
+    grid-template-columns: auto minmax(130px,auto) minmax(0,1fr);
+    gap: var(--cbw-space-3);
+    align-items: center;
+    min-width: 0;
+    padding: var(--cbw-space-3) var(--cbw-space-4);
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: var(--cbw-radius-card);
+    color: #fff;
+    background: rgba(255,255,255,.065);
+  }
+  .active-country-context__flag {
+    display: inline-flex;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: rgba(255,255,255,.08);
+    font-size: 29px;
+    line-height: 1;
+  }
+  .active-country-context__copy { min-width: 0; }
+  .active-country-context__label,
+  .active-country-context__copy small { display: block; color: rgba(255,255,255,.48); font-size: 8px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+  .active-country-context__copy strong { display: block; max-width: 180px; overflow: hidden; margin-block: 2px; font-family: 'Barlow Condensed','Inter',sans-serif; font-size: 22px; line-height: 1; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
+  .active-country-context > p { margin: 0; color: rgba(255,255,255,.64); font-size: 10px; line-height: 1.5; }
+  .active-country-context--compact { grid-template-columns: auto minmax(110px,auto) minmax(0,1fr); padding: var(--cbw-space-2) var(--cbw-space-3); }
+  .active-country-context--compact .active-country-context__flag { width: 38px; height: 38px; font-size: 25px; }
+  @media (max-width: 620px) {
+    .active-country-context,
+    .active-country-context--compact { grid-template-columns: auto minmax(0,1fr); }
+    .active-country-context > p { grid-column: 1 / -1; }
+    .active-country-context__copy strong { max-width: 220px; }
+  }
+</style>

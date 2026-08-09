@@ -3,160 +3,87 @@ import CleanLayout from '../../layouts/CleanLayout.astro';
 import PageFrame from '../../components/site-standard/PageFrame.astro';
 import FirstViewport from '../../components/site-standard/FirstViewport.astro';
 import Section from '../../components/site-standard/Section.astro';
+import ActiveCountryContext from '../../components/site-standard/ActiveCountryContext.astro';
 import ExchangeDirectoryCard from '../../components/site-standard/ExchangeDirectoryCard.astro';
 import { getFeaturedExchanges } from '../../data/exchanges';
 import { getOffer } from '../../data/offers';
+import { buildHomepageTop10 } from '../../data/homepageTop10';
 
+const nowMs = Date.now();
 const exchanges = getFeaturedExchanges();
-const exchangesWithOffers = exchanges.map(exchange => ({ exchange, offer: getOffer(exchange.slug) }));
-
-const faqs = [
-  {
-    q: 'What is a crypto exchange referral code?',
-    a: 'A referral code links your new exchange account to a partner, which can unlock a welcome bonus, fee discount, or other new-user reward that is not available without the code.',
-  },
-  {
-    q: 'Are exchange bonuses guaranteed?',
-    a: 'No. Advertised bonus figures are maximums, not typical results. Reaching them usually requires completing tasks such as KYC, a qualifying deposit, and trading volume milestones within a set window.',
-  },
-  {
-    q: 'Why do offers differ by country?',
-    a: 'Bonus programs are subject to local regulations, exchange licensing, and KYC requirements. An offer available in one country may be restricted or unavailable in another.',
-  },
-  {
-    q: 'Do I need to enter the code manually?',
-    a: 'It depends on the exchange. Some referral links prefill the code automatically when you click through; others require you to paste it into a field during sign-up.',
-  },
-  {
-    q: 'Are these affiliate links?',
-    a: 'Yes. Links marked “Check current offer” are affiliate referral links. If you register through one, CryptoBonusWorld may earn a commission from the exchange, at no extra cost to you.',
-  },
-  {
-    q: 'How are exchanges added to this directory?',
-    a: 'Each exchange has a dedicated review page. We publish a promo code and offer terms only after checking them against official exchange sources; listings still under re-verification are shown without a current code or offer terms until that check is complete.',
-  },
-];
-
-const faqSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: faqs.map(item => ({
-    '@type': 'Question',
-    name: item.q,
-    acceptedAnswer: { '@type': 'Answer', text: item.a },
-  })),
-};
+const fitBySlug = new Map(buildHomepageTop10(nowMs).map(entry => [entry.slug, entry.bestFor]));
+const cards = exchanges.map(exchange => ({
+  exchange,
+  offer: getOffer(exchange.slug),
+  bestFor: fitBySlug.get(exchange.slug),
+}));
 ---
 
 <CleanLayout
-  title="Crypto Exchange Promo Codes & Referral Links | CryptoBonusWorld"
-  description="Browse tracked crypto exchange referral codes and their verification states, bonus links, and review pages. Verified offers and listings under re-verification are shown separately; availability and terms may vary by country and account."
+  title="Compare Crypto Exchanges by Market | CryptoBonusWorld"
+  description="Browse CryptoBonusWorld exchange profiles in one consistent card view. Active country context, offer status and local eligibility remain separate."
   canonical="https://cryptobonusworld.com/exchanges/"
 >
-  <PageFrame family="directory" class="exchange-directory-page">
+  <PageFrame family="directory" class="exchange-directory-product">
     <FirstViewport
       family="directory"
       container="wide"
-      eyebrow="Exchange directory · evidence and offer status"
-      title="Crypto Exchange Promo Codes"
-      lede="Browse current exchange profiles, referral codes and evidence states. Availability and terms can vary by country and account."
+      eyebrow="Exchange directory"
+      title="Compare crypto exchanges"
+      lede="Start with the active market, then compare exchange fit, current offer status and review pages without treating a global promotion as local availability."
     >
-      <div class="directory-context" aria-label="Directory trust context">
-        <span>✓ Codes and offer states tracked against official exchange pages</span>
-        <span>ⓘ Country and account restrictions may apply</span>
-        <a href="/affiliate-disclosure/">Affiliate disclosure</a>
+      <div class="directory-country">
+        <ActiveCountryContext
+          compact={true}
+          note="The directory does not relabel global exchange or offer data as local availability. Country evidence is shown separately when approved."
+        />
       </div>
     </FirstViewport>
 
-    <Section container="wide" spacing="compact" tone="primary" id="exchanges" class="directory-list-section">
-      <header class="directory-heading">
+    <Section container="wide" spacing="compact" tone="page" id="exchanges">
+      <header class="cbw-section-header cbw-section-header--split">
         <div>
-          <p class="directory-eyebrow">Featured profiles</p>
-          <h2>Compare live exchange pages</h2>
-          <p>Six public exchange profiles currently carry tracked offer and evidence records.</p>
+          <p class="cbw-section-eyebrow">Exchange profiles</p>
+          <h2 class="cbw-section-title">Browse current exchange cards</h2>
+          <p class="cbw-section-lede">One card language across the homepage and directory: exchange identity, fit, offer state, country caution and actions.</p>
         </div>
-        <a href="/promo-codes/">Open the promo-code table →</a>
+        <a class="directory-link" href="/#exchanges">Homepage Top 10 →</a>
       </header>
 
-      <div class="directory-grid">
-        {exchangesWithOffers.map(({ exchange, offer }) => (
-          <ExchangeDirectoryCard exchange={exchange} offer={offer} />
+      <div class="directory-grid cbw-card-grid cbw-card-grid--2" data-exchange-directory-grid>
+        {cards.map(({ exchange, offer, bestFor }) => (
+          <ExchangeDirectoryCard exchange={exchange} offer={offer} bestFor={bestFor} />
         ))}
       </div>
 
-      <aside class="directory-next">
-        <strong>More exchanges are being checked</strong>
-        <span>Binance remains in governed research and profile work before a public offer card can be enabled.</span>
-      </aside>
-    </Section>
-
-    <Section container="prose" spacing="standard" tone="secondary">
-      <p class="directory-eyebrow">Methodology</p>
-      <h2>How CryptoBonusWorld checks exchanges</h2>
-      <ul class="directory-list">
-        <li>Every referral code or link is checked against official exchange promotion and terms pages.</li>
-        <li>Bonus terms can change at any time, so current conditions must be confirmed before registering or depositing.</li>
-        <li>Country restrictions may apply independently of the global offer shown.</li>
-        <li>KYC, deposits and trading-volume requirements may apply depending on the exchange and reward tier.</li>
-        <li>Commercial relationships cannot create a verified status or improve editorial placement.</li>
-      </ul>
-    </Section>
-
-    <Section container="prose" spacing="standard" tone="primary" id="faq">
-      <p class="directory-eyebrow">Common questions</p>
-      <h2>Frequently asked questions</h2>
-      <div class="directory-faq">
-        {faqs.map(item => (
-          <details>
-            <summary>{item.q}</summary>
-            <p>{item.a}</p>
-          </details>
-        ))}
+      <div class="directory-foot cbw-panel">
+        <div>
+          <strong>Need the verification detail?</strong>
+          <span>Methodology and FAQ are now canonical pages instead of repeated blocks inside every directory.</span>
+        </div>
+        <nav aria-label="Directory help links">
+          <a href="/methodology/">How we verify</a>
+          <a href="/faq/">FAQ</a>
+          <a href="/promo-codes/">Promo codes</a>
+        </nav>
       </div>
     </Section>
-
-    <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
   </PageFrame>
 </CleanLayout>
 
 <style>
-  .exchange-directory-page { background: var(--cbw-surface-page); }
-  :global(.exchange-directory-page .cbw-first-viewport) {
-    background: radial-gradient(circle at 86% 12%, rgba(247,147,26,.18), transparent 31%), linear-gradient(135deg,#091321,#13233e 70%,#1b355b);
-  }
-  :global(.exchange-directory-page .cbw-first-viewport__inner) { padding-block: var(--cbw-space-6); }
-  :global(.exchange-directory-page .cbw-display-title) { max-width: var(--cbw-width-standard); font-size: clamp(42px,5vw,64px); }
-  .directory-context { display: flex; flex-wrap: wrap; gap: 7px; margin-top: var(--cbw-space-4); }
-  .directory-context span,
-  .directory-context a { display: inline-flex; min-height: 28px; align-items: center; padding-inline: 10px; border: 1px solid rgba(255,255,255,.15); border-radius: var(--cbw-radius-pill); color: rgba(255,255,255,.75); background: rgba(255,255,255,.05); font-size: 9px; text-decoration: none; }
-  .directory-context a { color: #ffd291; border-color: rgba(247,147,26,.34); background: rgba(247,147,26,.1); font-weight: 900; }
-  .directory-heading { display: grid; gap: var(--cbw-space-4); align-items: end; margin-bottom: var(--cbw-space-6); }
-  .directory-eyebrow { margin: 0 0 var(--cbw-space-2); color: var(--cbw-action); font-size: 9px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
-  .directory-heading h2,
-  .exchange-directory-page :global(.cbw-section h2) { margin: 0; color: var(--cbw-text-primary); font-family: 'Barlow Condensed', Inter, sans-serif; font-size: clamp(30px,4.4vw,44px); font-weight: 800; line-height: 1; text-transform: uppercase; }
-  .directory-heading p:last-child { max-width: var(--cbw-width-prose); margin: var(--cbw-space-2) 0 0; color: var(--cbw-text-secondary); font-size: 13px; line-height: 1.6; }
-  .directory-heading > a { color: #925204; font-size: 11px; font-weight: 900; text-decoration: none; }
-  .directory-heading > a:hover { text-decoration: underline; text-underline-offset: 3px; }
-  .directory-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: var(--cbw-space-4); }
-  .directory-next { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--cbw-space-3); margin-top: var(--cbw-space-5); padding: var(--cbw-space-4); border: 1px dashed #cfd8cf; border-radius: var(--cbw-radius-card); color: var(--cbw-text-secondary); background: var(--cbw-surface-secondary); font-size: 11px; }
-  .directory-next strong { color: var(--cbw-text-primary); }
-  .directory-list { display: grid; gap: var(--cbw-space-3); margin: var(--cbw-space-6) 0 0; padding-left: 20px; color: var(--cbw-text-secondary); font-size: 14px; line-height: 1.65; }
-  .directory-list li::marker { color: var(--cbw-action); }
-  .directory-faq { display: grid; gap: var(--cbw-space-2); margin-top: var(--cbw-space-6); }
-  .directory-faq details { overflow: hidden; border: 1px solid var(--cbw-border-standard); border-radius: var(--cbw-radius-control); background: #fff; }
-  .directory-faq summary { display: flex; justify-content: space-between; gap: var(--cbw-space-4); padding: var(--cbw-space-4) var(--cbw-space-5); color: var(--cbw-text-primary); font-size: 13px; font-weight: 800; cursor: pointer; list-style: none; }
-  .directory-faq summary::-webkit-details-marker { display: none; }
-  .directory-faq summary::after { content: '+'; color: #9ca3af; font-size: 18px; }
-  .directory-faq details[open] summary::after { content: '−'; }
-  .directory-faq p { margin: 0; padding: 0 var(--cbw-space-5) var(--cbw-space-4); color: var(--cbw-text-secondary); font-size: 12px; line-height: 1.7; }
-  @media (min-width: 760px) { .directory-heading { grid-template-columns: minmax(0,1fr) auto; } }
-  @media (max-width: 900px) { .directory-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
-  @media (max-width: 620px) {
-    :global(.exchange-directory-page .cbw-first-viewport__inner) { padding-block: var(--cbw-space-5); }
-    :global(.exchange-directory-page .cbw-display-title) { font-size: 42px; }
-    .directory-context { margin-top: var(--cbw-space-3); gap: 5px; }
-    .directory-context span,
-    .directory-context a { min-height: 25px; padding-inline: 8px; font-size: 8px; }
-    .directory-grid { grid-template-columns: 1fr; }
+  .exchange-directory-product { background: var(--cbw-surface-page); }
+  .directory-country { max-width: 760px; margin-top: var(--cbw-space-4); }
+  .directory-grid { --cbw-card-columns: 2; }
+  .directory-link { color: #925204; font-size: 11px; font-weight: 900; white-space: nowrap; }
+  .directory-foot { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: var(--cbw-space-5); align-items: center; margin-top: var(--cbw-space-5); box-shadow: none; }
+  .directory-foot > div { display: grid; gap: 3px; }
+  .directory-foot strong { color: var(--cbw-text-primary); font-size: 12px; }
+  .directory-foot span { color: var(--cbw-text-secondary); font-size: 10px; line-height: 1.5; }
+  .directory-foot nav { display: flex; flex-wrap: wrap; gap: var(--cbw-space-3); }
+  .directory-foot a { color: #925204; font-size: 10px; font-weight: 900; }
+  @media (max-width: 699px) {
+    .directory-grid { --cbw-card-columns: 1; }
+    .directory-foot { grid-template-columns: 1fr; }
   }
 </style>
