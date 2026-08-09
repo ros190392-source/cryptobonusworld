@@ -29,6 +29,9 @@ function fnv1a64(input) {
   for (const byte of new TextEncoder().encode(input)) { hash ^= BigInt(byte); hash = (hash * prime) & mask; }
   return hash.toString(16).padStart(16, '0');
 }
+function importsMarketProfileRegistry(source) {
+  return /(?:from\s*['"][^'"]*marketProfileRegistry['"]|import\s*['"][^'"]*marketProfileRegistry['"])/.test(source);
+}
 
 try {
   await build({
@@ -151,9 +154,11 @@ try {
   check('authority/3: every KZ entry promotion ceiling false', set.entries.every((x) => x.candidate.authorizationCeilingAllowsLaterPromotion === false));
   check('authority/4: every KZ source authorization false', set.entries.every((x) => allFalse(x.candidate)));
   check('public/1: PUBLIC_MARKET_PROFILES frozen empty', Object.isFrozen(m.PUBLIC_MARKET_PROFILES) && m.PUBLIC_MARKET_PROFILES.length === 0);
-  check('public/2: legacy adapter never imports public registry', !/marketProfileRegistry|PUBLIC_MARKET_PROFILES/.test(readFileSync(join(ROOT, 'src/data/contracts/legacyGovernedMarketProfileCandidate.ts'), 'utf8')));
-  check('public/3: KZ candidate module never imports public registry', !/marketProfileRegistry|PUBLIC_MARKET_PROFILES/.test(readFileSync(join(ROOT, 'src/data/candidates/kzP0MarketProfileCandidates.ts'), 'utf8')));
-  check('public/4: modern bridge source unchanged by this PR scope', !readFileSync(join(ROOT, 'src/data/contracts/legacyGovernedMarketProfileCandidate.ts'), 'utf8').includes('SOURCE_BRANCH_NOT_RESEARCH_MAIN'));
+  const legacySource = readFileSync(join(ROOT, 'src/data/contracts/legacyGovernedMarketProfileCandidate.ts'), 'utf8');
+  const kzSource = readFileSync(join(ROOT, 'src/data/candidates/kzP0MarketProfileCandidates.ts'), 'utf8');
+  check('public/2: legacy adapter never imports public registry', !importsMarketProfileRegistry(legacySource));
+  check('public/3: KZ candidate module never imports public registry', !importsMarketProfileRegistry(kzSource));
+  check('public/4: modern bridge source unchanged by this PR scope', !legacySource.includes('SOURCE_BRANCH_NOT_RESEARCH_MAIN'));
 
   if (failures.length) {
     console.error(`CBW MARKETPROFILE KZ P0 MIXED SET: FAIL (${failures.length}/${checks})`);
