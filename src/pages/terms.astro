@@ -1,73 +1,81 @@
 ---
-import InfoLayout from '../layouts/InfoLayout.astro';
-import Breadcrumbs from '../components/Breadcrumbs.astro';
+import LegalLayout from '../layouts/LegalLayout.astro';
 ---
 
-<InfoLayout
+<LegalLayout
   title="Terms of Use — CryptoBonusWorld"
-  description="Terms of Use for CryptoBonusWorld.com. Rules, limitations and conditions for using this crypto bonus comparison site."
-  canonical="/terms/"
+  description="Terms of Use for CryptoBonusWorld.com covering informational use, affiliate relationships, accuracy, risk, third-party services and limitations."
+  canonical="https://cryptobonusworld.com/terms/"
+  eyebrow="Terms of use"
+  heading="Terms for using CryptoBonusWorld"
+  lede="These terms govern use of CryptoBonusWorld as an informational exchange-comparison website. Exchange services and campaign terms remain controlled by their respective third parties."
+  updated="10 Aug 2026"
 >
-  <div class="container">
-    <Breadcrumbs crumbs={[
-      { label: 'Home', href: '/' },
-      { label: 'Terms of Use' },
-    ]} />
-    <div class="page-header">
-      <h1>Terms of Use</h1>
-    </div>
-    <div class="prose">
-      <p><em>Last updated: June 2026</em></p>
+  <h2>1. Acceptance of terms</h2>
+  <p>By accessing and using CryptoBonusWorld.com, you agree to these Terms of Use. If you do not agree, do not use the site.</p>
 
-      <h2>1. Acceptance of Terms</h2>
-      <p>By accessing and using CryptoBonusWorld.com ("the Site"), you accept and agree to be bound by these Terms of Use. If you do not agree to these terms, please do not use the Site.</p>
+  <h2>2. Informational purpose</h2>
+  <p>
+    CryptoBonusWorld provides informational and comparison content about crypto exchanges, country context, promotions, referral routes, fees and related topics.
+    Nothing on the site constitutes financial, investment, legal or tax advice or a personalized recommendation.
+  </p>
 
-      <h2>2. Informational Purpose Only</h2>
-      <p>CryptoBonusWorld is an informational and comparison website. All content on this Site — including exchange reviews, bonus descriptions, referral codes, fee comparisons and guides — is provided for informational purposes only. Nothing on this Site constitutes financial, investment, legal or tax advice.</p>
+  <h2>3. Affiliate relationships</h2>
+  <p>
+    CryptoBonusWorld has commercial relationships with some exchanges and may receive compensation when users register through approved referral routes.
+    Affiliate relationships are disclosed and are kept separate from ranking authority and country evidence. See the <a href="/affiliate-disclosure/">Affiliate Disclosure</a>.
+  </p>
 
-      <h2>3. Affiliate Relationships</h2>
-      <p>CryptoBonusWorld has commercial relationships with some of the exchanges and services listed on this Site. When you register through our links, we may receive a referral commission from the exchange. This does not affect the price you pay or the bonus you receive. For full details, see our <a href="/affiliate-disclosure/">Affiliate Disclosure</a>.</p>
+  <h2>4. Accuracy, evidence and changing terms</h2>
+  <p>We make reasonable efforts to present information according to the current evidence and product state. However:</p>
+  <ul>
+    <li>exchange terms, fees, products, restrictions and promotions can change without notice;</li>
+    <li>a global offer or registration route does not prove local availability;</li>
+    <li>stale or incomplete information may be shown as under review rather than verified;</li>
+    <li>users should confirm current account-level and country-specific terms on the exchange's official site before acting.</li>
+  </ul>
 
-      <h2>4. Accuracy of Information</h2>
-      <p>We make reasonable efforts to ensure that information about bonuses, fees and exchange features is accurate and up to date. However:</p>
-      <ul>
-        <li>Exchange terms, bonus amounts and availability can change without notice.</li>
-        <li>We cannot guarantee that all information is current at the time of your visit.</li>
-        <li>Always verify current terms directly on the official exchange website before registering or depositing funds.</li>
-        <li>Bonus availability varies by country, account type and current promotion status.</li>
-      </ul>
-
-      <h2>5. Risk Warning</h2>
-      <p>Cryptocurrency trading involves substantial risk of loss. The value of digital assets can be extremely volatile. You may lose all of your invested capital. Bonus offers add additional conditions such as trading volume requirements that may encourage excessive trading. Only trade with funds you can afford to lose entirely.</p>
-
-      <h2>6. No Guarantees</h2>
-      <p>CryptoBonusWorld does not guarantee:</p>
-      <ul>
-        <li>That any bonus will be available or honored in your specific case or jurisdiction.</li>
-        <li>That any exchange listed will remain in operation or maintain its licenses.</li>
-        <li>Any profit, return or financial outcome from using any product or service listed on this Site.</li>
-      </ul>
-
-      <h2>7. Intellectual Property</h2>
-      <p>All content on CryptoBonusWorld.com — including text, screenshots, graphics and data — is the property of CryptoBonusWorld or its content suppliers and is protected by applicable intellectual property laws. You may not reproduce, distribute or republish any content without written permission.</p>
-
-      <h2>8. Third-Party Links</h2>
-      <p>This Site contains links to third-party exchanges and services. We are not responsible for the content, terms, security or practices of any third-party website. Following a link to another site is at your own risk.</p>
-
-      <h2>9. Limitation of Liability</h2>
-      <p>To the maximum extent permitted by applicable law, CryptoBonusWorld and its operators shall not be liable for any direct, indirect, incidental, special or consequential damages arising from your use of this Site or any exchange, bonus or service referenced herein.</p>
-
-      <h2>10. Country Availability</h2>
-      <p>Not all exchanges or bonus offers are available in all countries. It is your responsibility to verify that an exchange is legally accessible in your country of residence before registering. CryptoBonusWorld does not provide legal advice regarding exchange availability in any jurisdiction.</p>
-
-      <h2>11. Changes to These Terms</h2>
-      <p>We reserve the right to modify these Terms of Use at any time. Changes take effect upon publication on this page. Continued use of the Site constitutes acceptance of the updated terms.</p>
-
-      <h2>12. Governing Law</h2>
-      <p>These Terms of Use are governed by applicable law. Any disputes shall be resolved in the appropriate legal jurisdiction.</p>
-
-      <h2>13. Contact</h2>
-      <p>For questions about these Terms of Use, please use our <a href="/contact/">contact page</a>.</p>
-    </div>
+  <h2>5. Risk warning</h2>
+  <div class="legal-callout legal-callout--risk">
+    <p>Cryptocurrency trading involves substantial risk of loss. Digital assets can be highly volatile and you may lose some or all of the funds you commit.</p>
   </div>
-</InfoLayout>
+  <p>Promotions can include deposits, trading-volume targets or deadlines and do not remove the underlying risks of trading or using a third-party exchange.</p>
+
+  <h2>6. No guarantees</h2>
+  <p>CryptoBonusWorld does not guarantee:</p>
+  <ul>
+    <li>that an exchange, product or promotion is available to a particular person or jurisdiction;</li>
+    <li>that a promotion will remain active or that a user will receive an advertised maximum reward;</li>
+    <li>exchange uptime, account approval, withdrawal outcomes or continued licensing;</li>
+    <li>profit, return or any particular financial outcome.</li>
+  </ul>
+
+  <h2>7. Intellectual property</h2>
+  <p>
+    Site content, design, original editorial materials and site-owned graphics may be protected by applicable intellectual-property laws.
+    Third-party exchange names, logos and marks remain the property of their respective owners. Content may not be republished or commercially redistributed without appropriate permission.
+  </p>
+
+  <h2>8. Third-party services</h2>
+  <p>
+    Links can lead to independent exchanges and other services. CryptoBonusWorld does not control their account decisions, security, terms, privacy practices or product availability.
+    Use of a third-party service is subject to that provider's own agreement and policies.
+  </p>
+
+  <h2>9. Limitation of liability</h2>
+  <p>
+    To the maximum extent permitted by applicable law, CryptoBonusWorld and its operators are not liable for losses arising from a user's trading decisions,
+    use of a third-party exchange, reliance on changed external terms, or interruption of a third-party service.
+  </p>
+
+  <h2>10. Country availability</h2>
+  <p>
+    Not all exchanges, products or promotions are available in every country. Active country context on the site is not legal advice and does not replace the exchange's own eligibility checks or applicable local requirements.
+  </p>
+
+  <h2>11. Changes to these terms</h2>
+  <p>These Terms may be updated when the site, product or applicable requirements change. The current version takes effect when published on this page.</p>
+
+  <h2>12. Contact</h2>
+  <p>For questions about these Terms, use the <a href="/contact/">Contact page</a>.</p>
+</LegalLayout>
