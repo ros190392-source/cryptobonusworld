@@ -34,15 +34,40 @@ const exactPromoCode = (exchange) => {
   return code.trim() ? code : null;
 };
 
+const SMOKE_BASE = `${String(process.env.GITHUB_SHA || 'manual').slice(0, 12)}-${Date.now()}`;
+let requestSequence = 0;
+
+function cacheBustedUrl(input) {
+  const url = new URL(input);
+  requestSequence += 1;
+  url.searchParams.set('__cbw_smoke', `${SMOKE_BASE}-${requestSequence}`);
+  return url;
+}
+
+function cacheMetadata(response) {
+  return [
+    ['cf-cache-status', response.headers.get('cf-cache-status')],
+    ['age', response.headers.get('age')],
+    ['x-cache', response.headers.get('x-cache')],
+    ['cache-control', response.headers.get('cache-control')],
+  ]
+    .filter(([, value]) => value)
+    .map(([name, value]) => `${name}=${value}`)
+    .join(', ') || 'no-cache-metadata';
+}
+
 async function requestWithRetry(url, options = {}) {
   let lastError;
   for (let attempt = 1; attempt <= 5; attempt += 1) {
     try {
-      const response = await fetch(url, {
+      const requestUrl = cacheBustedUrl(url);
+      const response = await fetch(requestUrl, {
         redirect: options.redirect || 'follow',
         headers: {
-          'user-agent': 'CBW-Production-Live-Smoke/1.0',
+          'user-agent': 'CBW-Production-Live-Smoke/1.1',
           accept: 'text/html,application/xhtml+xml',
+          'cache-control': 'no-cache, no-store, max-age=0',
+          pragma: 'no-cache',
         },
       });
       if (response.status >= 500 && attempt < 5) {
@@ -60,12 +85,34 @@ async function requestWithRetry(url, options = {}) {
 
 async function getHtml(pathname) {
   const url = new URL(pathname, BASE_URL);
-  const response = await requestWithRetry(url);
-  assert(response.status >= 200 && response.status < 300, `${pathname}: expected 2xx, got ${response.status}`);
-  const html = await response.text();
-  assert(html.length > 100, `${pathname}: unexpectedly short HTML response`);
-  assert(!/verified offer/i.test(html), `${pathname}: unsupported "Verified offer" label leaked to production`);
-  return html;
+  let staleSeen = false;
+  let lastMeta = 'no-cache-metadata';
+
+  for (let attempt = 1; attempt <= 5; attempt += 1) {
+    const response = await requestWithRetry(url);
+    assert(response.status >= 200 && response.status < 300, `${pathname}: expected 2xx, got ${response.status}`);
+    const html = await response.text();
+    assert(html.length > 100, `${pathname}: unexpectedly short HTML response`);
+
+    if (!/verified offer/i.test(html)) return html;
+
+    staleSeen = true;
+    lastMeta = cacheMetadata(response);
+    if (attempt < 5) {
+      console.warn(`${pathname}: stale/unsupported marker seen on live attempt ${attempt}/5 (${lastMeta}); retrying with a fresh cache-buster`);
+      await sleep(attempt * 2000);
+      continue;
+    }
+  }
+
+  assert(!staleSeen, `${pathname}: unsupported "Verified offer" label leaked to production after cache-busted retries (${lastMeta})`);
+  throw new Error(`${pathname}: live HTML verification failed`);
+}
+
+function withoutInjectedSmokeParam(url) {
+  const normalized = new URL(url);
+  normalized.searchParams.delete('__cbw_smoke');
+  return normalized;
 }
 
 async function verifyGoRoute(slug, expectedDestination) {
@@ -80,8 +127,9 @@ async function verifyGoRoute(slug, expectedDestination) {
         current = target;
         continue;
       }
+      const normalizedTarget = withoutInjectedSmokeParam(target);
       assert(
-        target.toString() === new URL(expectedDestination).toString(),
+        normalizedTarget.toString() === new URL(expectedDestination).toString(),
         `/go/${slug}/: external Location does not equal exact owner-confirmed destination`,
       );
       return;
