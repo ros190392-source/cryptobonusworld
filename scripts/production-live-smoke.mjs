@@ -15,7 +15,27 @@ const sleep = (ms) => new Promise((resolvePromise) => setTimeout(resolvePromise,
 const assert = (condition, message) => {
   if (!condition) throw new Error(message);
 };
-const hasUnsupportedVerifiedOfferLabel = (text) => /\bverified\s+offer\b/i.test(String(text));
+
+// Detect the forbidden public STATUS LABEL, not explanatory prose that merely
+// contains the same words. This intentionally blocks standalone UI such as
+// <span>✓ Verified offer</span> while allowing text like "Verified offers..."
+// or "affiliate status never creates a verified offer".
+const VERIFIED_OFFER_UI_LABEL = />\s*(?:✓\s*)?verified\s+offer\s*</i;
+const hasUnsupportedVerifiedOfferLabel = (html) => VERIFIED_OFFER_UI_LABEL.test(String(html));
+
+const detectorCases = [
+  ['<span class="badge">✓ Verified offer</span>', true, 'checkmarked verified-offer badge'],
+  ['<span>Verified offer</span>', true, 'plain verified-offer badge'],
+  ['<p>Verified offers, research records and profiles remain separate.</p>', false, 'plural explanatory copy'],
+  ['<p>Affiliate status never creates a verified offer or improves its position.</p>', false, 'negative explanatory copy'],
+];
+for (const [html, expected, label] of detectorCases) {
+  assert(
+    hasUnsupportedVerifiedOfferLabel(html) === expected,
+    `verified-offer detector self-test failed: ${label}`,
+  );
+}
+
 const decodeHtmlUrl = (text) => String(text).replaceAll('&amp;', '&');
 const meaningfulHttpUrl = (value) => {
   if (typeof value !== 'string' || value.trim() === '' || value.trim() === '#') return false;
@@ -65,7 +85,7 @@ async function requestWithRetry(url, options = {}) {
       const response = await fetch(requestUrl, {
         redirect: options.redirect || 'follow',
         headers: {
-          'user-agent': 'CBW-Production-Live-Smoke/1.2',
+          'user-agent': 'CBW-Production-Live-Smoke/1.3',
           accept: 'text/html,application/xhtml+xml',
           'cache-control': 'no-cache, no-store, max-age=0',
           pragma: 'no-cache',
@@ -86,7 +106,7 @@ async function requestWithRetry(url, options = {}) {
 
 async function getHtml(pathname) {
   const url = new URL(pathname, BASE_URL);
-  let staleSeen = false;
+  let unsupportedLabelSeen = false;
   let lastMeta = 'no-cache-metadata';
 
   for (let attempt = 1; attempt <= 5; attempt += 1) {
@@ -97,16 +117,16 @@ async function getHtml(pathname) {
 
     if (!hasUnsupportedVerifiedOfferLabel(html)) return html;
 
-    staleSeen = true;
+    unsupportedLabelSeen = true;
     lastMeta = cacheMetadata(response);
     if (attempt < 5) {
-      console.warn(`${pathname}: unsupported singular marker seen on live attempt ${attempt}/5 (${lastMeta}); retrying with a fresh cache-buster`);
+      console.warn(`${pathname}: unsupported Verified-offer UI label seen on live attempt ${attempt}/5 (${lastMeta}); retrying with a fresh cache-buster`);
       await sleep(attempt * 2000);
       continue;
     }
   }
 
-  assert(!staleSeen, `${pathname}: unsupported "Verified offer" label leaked to production after cache-busted retries (${lastMeta})`);
+  assert(!unsupportedLabelSeen, `${pathname}: unsupported "Verified offer" UI label leaked to production after cache-busted retries (${lastMeta})`);
   throw new Error(`${pathname}: live HTML verification failed`);
 }
 
@@ -142,7 +162,7 @@ async function verifyGoRoute(slug, expectedDestination) {
       body.includes(expectedDestination),
       `/go/${slug}/: rendered route does not contain exact owner-confirmed destination`,
     );
-    assert(!hasUnsupportedVerifiedOfferLabel(body), `/go/${slug}/: unsupported "Verified offer" label leaked`);
+    assert(!hasUnsupportedVerifiedOfferLabel(body), `/go/${slug}/: unsupported "Verified offer" UI label leaked`);
     return;
   }
   throw new Error(`/go/${slug}/: exceeded internal redirect limit`);
@@ -169,7 +189,7 @@ for (const slug of ['bybit', 'mexc', 'bitget', 'coinex']) {
   );
 }
 
-assert(!hasUnsupportedVerifiedOfferLabel(homepageHtml), '/: unsupported "Verified offer" label leaked');
+assert(!hasUnsupportedVerifiedOfferLabel(homepageHtml), '/: unsupported "Verified offer" UI label leaked');
 
 const commercialCandidates = exchanges
   .map((exchange) => ({
