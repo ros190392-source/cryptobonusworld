@@ -1,0 +1,79 @@
+name: CBW Header Context Advisory
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'src/components/layout/SiteHeader.astro'
+      - 'src/data/header/**'
+      - 'src/data/contracts/countryInput.ts'
+      - 'src/data/contracts/countryContext.ts'
+      - 'scripts/header/**'
+      - '.github/workflows/cbw-header-context-advisory.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cbw-header-context-advisory-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  header-context:
+    name: Header context advisory (non-blocking)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    continue-on-error: true
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Strict TypeScript header contracts
+        id: typecheck
+        run: |
+          set -euo pipefail
+          node_modules/.bin/tsc --noEmit --strict --skipLibCheck --resolveJsonModule \
+            --moduleResolution bundler --module esnext --target es2022 \
+            src/data/contracts/countryInput.ts \
+            src/data/contracts/countryContext.ts \
+            src/data/header/headerContext.ts \
+            src/data/header/headerCatalog.ts
+
+      - name: Header country/language regression
+        id: regression
+        run: node scripts/header/header-context-test.mjs
+
+      - name: Full site build
+        id: build
+        run: npm run build
+
+      - name: Advisory summary
+        if: always()
+        env:
+          TYPECHECK: ${{ steps.typecheck.outcome }}
+          REGRESSION: ${{ steps.regression.outcome }}
+          BUILD: ${{ steps.build.outcome }}
+        run: |
+          {
+            echo "### CBW Header Context Advisory"
+            echo ""
+            echo "| Check | Result |"
+            echo "|---|---|"
+            echo "| Strict TypeScript | ${TYPECHECK} |"
+            echo "| Country/language regression | ${REGRESSION} |"
+            echo "| Full site build | ${BUILD} |"
+            echo ""
+            echo "> Advisory only. Owner review remains the merge authority."
+          } >> "$GITHUB_STEP_SUMMARY"
