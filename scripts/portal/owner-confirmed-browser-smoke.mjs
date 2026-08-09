@@ -97,6 +97,25 @@ function staticFileFor(requestUrl) {
 async function startStaticServer() {
   if (!existsSync(DIST)) throw new Error('dist not found — build before browser smoke.');
   const server = createServer((req, res) => {
+    let pathname = '';
+    try {
+      pathname = new URL(req.url ?? '/', BASE).pathname;
+    } catch {}
+
+    // The production header asks Cloudflare for a same-origin country proposal.
+    // This localhost-only smoke must never contact Cloudflare, so return a
+    // deterministic unsupported location. `ZZ` is intentionally non-authorizing:
+    // the header parser rejects it and remains in the safe General context.
+    if (pathname === '/cdn-cgi/trace') {
+      res.writeHead(200, { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' });
+      if (req.method === 'HEAD') {
+        res.end();
+        return;
+      }
+      res.end('ip=127.0.0.1\nloc=ZZ\ntls=TLSv1.3\n');
+      return;
+    }
+
     const file = staticFileFor(req.url ?? '/');
     if (!file) {
       res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' });
