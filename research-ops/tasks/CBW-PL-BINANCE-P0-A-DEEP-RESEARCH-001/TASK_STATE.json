@@ -7,7 +7,7 @@
   "exchangeId": "binance",
   "batchId": "PL-P0-A",
   "priority": "P0",
-  "state": "OWNER_CLOSEOUT_REQUIRED",
+  "state": "RESEARCH_RECORD_MERGE_AUTHORIZED",
   "createdAt": "2026-08-08",
   "stages": {
     "00-contract": "PRESENT",
@@ -16,7 +16,7 @@
     "50-source-truth-review": "PRESENT",
     "60-correction": "EMPTY",
     "70-validation": "PRESENT",
-    "80-closeout": "EMPTY"
+    "80-closeout": "PRESENT"
   },
   "requiredResearchInventory": [
     "research-run.json",
@@ -76,6 +76,10 @@
     {
       "state": "OWNER_CLOSEOUT_REQUIRED",
       "at": "2026-08-08"
+    },
+    {
+      "state": "RESEARCH_RECORD_MERGE_AUTHORIZED",
+      "at": "2026-08-09"
     }
   ]
 }
