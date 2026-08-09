@@ -1,0 +1,13 @@
+---
+export interface Props {
+  label: string;
+  tone?: 'verified' | 'limited' | 'review' | 'blocked' | 'neutral';
+  class?: string;
+}
+
+const { label, tone = 'neutral', class: className = '' } = Astro.props;
+---
+
+<span class:list={['cbw-status-badge', `cbw-status-badge--${tone}`, className]} data-status-tone={tone}>
+  {label}
+</span>
