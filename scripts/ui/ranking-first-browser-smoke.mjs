@@ -66,10 +66,22 @@ async function homepageChecks(browser, viewport, label, maxTop10Y) {
   await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded', timeout: 15000 });
   await page.waitForFunction(() => document.querySelector('[data-site-header]')?.dataset.countryContext === 'BG');
   await page.waitForFunction(() => document.querySelector('[data-home-country-name]')?.textContent?.trim() === 'Bulgaria');
+  await page.waitForFunction(() => document.querySelector('[data-footer-country]')?.textContent?.includes('Bulgaria'));
 
   check(`${label}: Bulgaria flag visible`, (await page.locator('[data-home-country-flag]').textContent())?.trim() === '🇧🇬');
   check(`${label}: Bulgaria market name visible`, (await page.locator('[data-home-country-name]').textContent())?.trim() === 'Bulgaria');
   check(`${label}: local ranking remains under review`, (await page.locator('[data-home-ranking-state]').textContent())?.includes('Local ranking under review'));
+  check(`${label}: footer mirrors Bulgaria context`, (await page.locator('[data-footer-country]').textContent())?.trim() === '🇧🇬 Bulgaria');
+  check(`${label}: footer mirrors EN language`, (await page.locator('[data-footer-language]').textContent())?.trim() === 'EN');
+  check(`${label}: removed homepage guide anchor absent`, await page.locator('.site-footer a[href="/#guide"]').count() === 0);
+
+  const headerShell = await page.locator('.header-shell').boundingBox();
+  const footerShell = await page.locator('.footer-shell').boundingBox();
+  check(`${label}: header/footer shells rendered`, Boolean(headerShell && footerShell));
+  if (headerShell && footerShell) {
+    check(`${label}: header/footer shell left edge aligned`, Math.abs(headerShell.x - footerShell.x) <= 1, `headerX=${headerShell.x}, footerX=${footerShell.x}`);
+    check(`${label}: header/footer shell width aligned`, Math.abs(headerShell.width - footerShell.width) <= 1, `headerW=${headerShell.width}, footerW=${footerShell.width}`);
+  }
 
   const top10 = await page.locator('#exchanges').boundingBox();
   check(`${label}: Top 10 rendered`, Boolean(top10));
