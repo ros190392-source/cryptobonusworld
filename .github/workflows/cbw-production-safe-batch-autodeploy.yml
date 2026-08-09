@@ -11,10 +11,12 @@ on:
     paths:
       - '.github/workflows/cbw-production-safe-batch-autodeploy.yml'
       - 'scripts/production-live-smoke.mjs'
+      - 'scripts/production-origin-parity.mjs'
       - 'docs/tasks/CBW_PRODUCTION_P2_SAFE_BATCH_AUTODEPLOY_001.md'
 
 permissions:
   contents: read
+  issues: write
 
 jobs:
   validate-autodeploy:
@@ -34,8 +36,10 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Syntax-check production live smoke
-        run: node --check scripts/production-live-smoke.mjs
+      - name: Syntax-check production diagnostics
+        run: |
+          node --check scripts/production-live-smoke.mjs
+          node --check scripts/production-origin-parity.mjs
 
       - name: Verify fail-closed workflow invariants
         run: |
@@ -51,7 +55,10 @@ jobs:
             'PUBLIC_CBW_CTA_MODE: production',
             'CBW_DEPLOY_PRIVATE_KEY',
             'CBW_DEPLOY_KNOWN_HOSTS',
+            'issues: write',
             'node scripts/deploy.mjs --no-indexnow',
+            'node scripts/production-origin-parity.mjs',
+            'gh issue comment 287',
             'node scripts/production-live-smoke.mjs',
             'node scripts/indexnow.mjs --mode priority',
           ];
@@ -63,6 +70,12 @@ jobs:
           const seoIndex = text.indexOf('      - name: SEO check');
           if (buildIndex === -1 || seoIndex === -1 || buildIndex > seoIndex) {
             throw new Error('Production-mode build must run before SEO check because seo:check reads dist/');
+          }
+          const deployIndex = text.indexOf('      - name: Deploy exact master SHA');
+          const parityIndex = text.indexOf('      - name: Diagnose production origin parity');
+          const smokeIndex = text.indexOf('      - name: Live production smoke');
+          if (deployIndex === -1 || parityIndex === -1 || smokeIndex === -1 || !(deployIndex < parityIndex && parityIndex < smokeIndex)) {
+            throw new Error('Origin parity diagnostic must run after deploy and before public live smoke');
           }
           console.log('AUTO-DEPLOY CONTRACT PASS');
           NODE
@@ -224,6 +237,23 @@ jobs:
         if: steps.config.outputs.configured == 'true' && steps.freshness.outputs.deploy == 'true'
         run: node scripts/deploy.mjs --no-indexnow
 
+      - name: Diagnose production origin parity
+        id: origin_parity
+        if: steps.deploy.outcome == 'success'
+        continue-on-error: true
+        run: node scripts/production-origin-parity.mjs
+
+      - name: Publish origin parity diagnostic
+        if: always() && steps.deploy.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -f "$RUNNER_TEMP/cbw-origin-parity.md" ]; then
+            gh issue comment 287 --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/cbw-origin-parity.md"
+          else
+            echo "Origin parity summary file was not produced."
+          fi
+
       - name: Live production smoke
         id: live_smoke
         if: steps.deploy.outcome == 'success'
@@ -240,6 +270,7 @@ jobs:
           RELEASE_ELIGIBLE: ${{ steps.freshness.outputs.deploy }}
           CONFIGURED: ${{ steps.config.outputs.configured }}
           DEPLOY_OUTCOME: ${{ steps.deploy.outcome }}
+          ORIGIN_PARITY_OUTCOME: ${{ steps.origin_parity.outcome }}
           SMOKE_OUTCOME: ${{ steps.live_smoke.outcome }}
         run: |
           {
@@ -249,6 +280,7 @@ jobs:
             echo "- current-master eligible: ${RELEASE_ELIGIBLE:-false}"
             echo "- production configuration present: ${CONFIGURED:-false}"
             echo "- deploy: ${DEPLOY_OUTCOME:-not-run}"
+            echo "- origin parity diagnostic: ${ORIGIN_PARITY_OUTCOME:-not-run}"
             echo "- live smoke: ${SMOKE_OUTCOME:-not-run}"
           } >> "$GITHUB_STEP_SUMMARY"
 
