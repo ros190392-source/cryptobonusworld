@@ -7,14 +7,14 @@
   "exchangeId": "bybit",
   "batchId": "PL-P0-B",
   "priority": "P0",
-  "state": "CORRECTION_REQUIRED",
+  "state": "CORRECTED",
   "createdAt": "2026-08-08",
   "stages": {
     "00-contract": "PRESENT",
     "10-input": "EMPTY",
     "20-research-output": "PRESENT",
     "50-source-truth-review": "PRESENT",
-    "60-correction": "EMPTY",
+    "60-correction": "PRESENT",
     "70-validation": "EMPTY",
     "80-closeout": "EMPTY"
   },
@@ -72,6 +72,10 @@
     {
       "state": "CORRECTION_REQUIRED",
       "at": "2026-08-08"
+    },
+    {
+      "state": "CORRECTED",
+      "at": "2026-08-09"
     }
   ]
 }
