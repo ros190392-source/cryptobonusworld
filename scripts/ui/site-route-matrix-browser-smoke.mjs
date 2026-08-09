@@ -9,23 +9,24 @@ const DIST = resolve(ROOT, 'dist');
 const PORT = 4492;
 const BASE = `http://127.0.0.1:${PORT}`;
 const TYPES = Object.freeze({
-  '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8',
-  '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8',
-  '.json': 'application/json; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png',
-  '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.ico': 'image/x-icon',
+  '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
+  '.mjs': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8', '.svg': 'image/svg+xml',
+  '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.ico': 'image/x-icon',
   '.woff': 'font/woff', '.woff2': 'font/woff2', '.xml': 'application/xml; charset=utf-8',
 });
 
 const STRICT_MIGRATED = new Map([
-  ['/', { family: 'homepage', container: 'wide' }],
-  ['/faq/', { family: 'trust', container: 'prose' }],
+  ['/', { family: 'homepage' }],
+  ['/faq/', { family: 'trust', prose: true }],
+  ['/about/', { family: 'trust', prose: true }],
+  ['/methodology/', { family: 'trust', prose: true }],
+  ['/editorial-policy/', { family: 'trust', prose: true }],
+  ['/update-policy/', { family: 'trust', prose: true }],
 ]);
 
 let checks = 0;
 const failures = [];
 const legacyFindings = [];
-const routeInventory = [];
-
 function check(label, ok, detail = '') {
   checks += 1;
   if (!ok) failures.push(detail ? `${label}: ${detail}` : label);
@@ -49,8 +50,7 @@ function routeForFile(file) {
 }
 
 function isPublicHtml(html, route) {
-  if (!route) return false;
-  if (route.startsWith('/__design/')) return false;
+  if (!route || route.startsWith('/__design/') || route.startsWith('/preview/')) return false;
   if (/<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*noindex/i.test(html)) return false;
   if (/<meta[^>]+content=["'][^"']*noindex[^"']*["'][^>]+name=["']robots["']/i.test(html)) return false;
   return true;
@@ -58,27 +58,22 @@ function isPublicHtml(html, route) {
 
 function classify(route) {
   if (route === '/') return 'homepage';
-  if (route === '/faq/' || route === '/methodology/' || route === '/about/' || route === '/editorial-policy/' || route === '/update-policy/') return 'trust';
+  if (['/faq/','/methodology/','/about/','/editorial-policy/','/update-policy/'].includes(route)) return 'trust';
   if (['/affiliate-disclosure/','/disclaimer/','/privacy-policy/','/terms/','/contact/'].includes(route)) return 'legal';
-  if (route === '/exchanges/' || route === '/promo-codes/' || route === '/guides/') return 'directory';
+  if (['/exchanges/','/promo-codes/','/guides/'].includes(route)) return 'directory';
   if (route.startsWith('/guides/')) return 'guide';
   if (route.startsWith('/countries/')) return 'country';
   if (route.startsWith('/exchanges/')) return 'exchange';
-  if (/^\/(bybit|mexc|okx|bitget|kucoin|bingx)\/$/.test(route)) return 'exchange';
+  if (/^\/(bybit|mexc|okx|bitget|kucoin|bingx|coinex)\/$/.test(route)) return 'exchange';
   return 'other';
 }
 
 function discoverPublicRoutes() {
-  const files = findHtml(DIST);
-  const routes = [];
-  for (const file of files) {
-    const route = routeForFile(file);
-    const html = readFileSync(file, 'utf8');
-    if (!isPublicHtml(html, route)) continue;
-    routes.push({ route, family: classify(route), file });
-  }
-  routes.sort((a, b) => a.route.localeCompare(b.route));
-  return routes;
+  return findHtml(DIST)
+    .map(file => ({ file, route: routeForFile(file), html: readFileSync(file, 'utf8') }))
+    .filter(item => isPublicHtml(item.html, item.route))
+    .map(item => ({ route: item.route, family: classify(item.route), file: item.file }))
+    .sort((a, b) => a.route.localeCompare(b.route));
 }
 
 function fileFor(requestUrl) {
@@ -113,56 +108,33 @@ async function sandbox(context) {
   await context.route('**/*', async route => {
     let url;
     try { url = new URL(route.request().url()); } catch { await route.abort('blockedbyclient'); return; }
-    if (url.hostname === '127.0.0.1' || url.hostname === 'localhost' || url.protocol === 'data:' || url.protocol === 'blob:') {
-      await route.continue();
-      return;
-    }
-    await route.abort('blockedbyclient');
+    if (url.hostname === '127.0.0.1' || url.hostname === 'localhost' || url.protocol === 'data:' || url.protocol === 'blob:') await route.continue();
+    else await route.abort('blockedbyclient');
   });
 }
 
-async function inspectRoute(page, item, viewportName, viewport) {
+async function inspectRoute(page, item, viewportName) {
   const errors = [];
   const onPageError = error => errors.push(`pageerror:${error.message}`);
   const onConsole = message => { if (message.type() === 'error' && !/ERR_BLOCKED_BY_CLIENT/i.test(message.text())) errors.push(`console:${message.text()}`); };
   page.on('pageerror', onPageError);
   page.on('console', onConsole);
-
   let navOk = true;
-  try {
-    await page.goto(`${BASE}${item.route}`, { waitUntil: 'domcontentloaded', timeout: 12000 });
-  } catch (error) {
-    navOk = false;
-    errors.push(`navigation:${error.message}`);
-  }
+  try { await page.goto(`${BASE}${item.route}`, { waitUntil: 'domcontentloaded', timeout: 12000 }); }
+  catch (error) { navOk = false; errors.push(`navigation:${error.message}`); }
 
   const metrics = navOk ? await page.evaluate(() => {
-    const header = document.querySelector('[data-site-header]');
-    const footer = document.querySelector('[data-site-footer]');
-    const h1s = [...document.querySelectorAll('h1')];
     const pageFrame = document.querySelector('[data-page-family]');
     const firstViewport = document.querySelector('[data-first-screen-family]');
-    const headerRect = header?.getBoundingClientRect();
-    const firstMain = document.querySelector('main > :first-child, body > main > :first-child');
-    const firstMainRect = firstMain?.getBoundingClientRect();
-    const wide = document.querySelector('.cbw-container--wide');
-    const standard = document.querySelector('.cbw-container--standard');
     const prose = document.querySelector('.cbw-container--prose');
-    const overflow = document.documentElement.scrollWidth - document.documentElement.clientWidth;
     return {
       headerCount: document.querySelectorAll('[data-site-header]').length,
       footerCount: document.querySelectorAll('[data-site-footer]').length,
-      h1Count: h1s.length,
+      h1Count: document.querySelectorAll('h1').length,
       pageFamily: pageFrame?.getAttribute('data-page-family') ?? null,
       firstScreenFamily: firstViewport?.getAttribute('data-first-screen-family') ?? null,
-      overflow,
-      bodyWidth: document.body.getBoundingClientRect().width,
-      headerBottom: headerRect ? headerRect.bottom : null,
-      firstMainTop: firstMainRect ? firstMainRect.top : null,
-      wideWidth: wide?.getBoundingClientRect().width ?? null,
-      standardWidth: standard?.getBoundingClientRect().width ?? null,
       proseWidth: prose?.getBoundingClientRect().width ?? null,
-      pageHeight: document.documentElement.scrollHeight,
+      overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
     };
   }) : null;
 
@@ -174,19 +146,16 @@ async function inspectRoute(page, item, viewportName, viewport) {
     return;
   }
 
-  routeInventory.push({ route: item.route, family: item.family, viewport: viewportName, ...metrics });
-
   const strict = STRICT_MIGRATED.get(item.route);
   if (strict) {
     check(`${item.route} ${viewportName}: one header`, metrics.headerCount === 1, `count=${metrics.headerCount}`);
     check(`${item.route} ${viewportName}: one footer`, metrics.footerCount === 1, `count=${metrics.footerCount}`);
     check(`${item.route} ${viewportName}: one H1`, metrics.h1Count === 1, `count=${metrics.h1Count}`);
     check(`${item.route} ${viewportName}: no overflow`, metrics.overflow <= 1, `overflow=${metrics.overflow}`);
-    check(`${item.route} ${viewportName}: no console/page errors`, errors.length === 0, errors.join(' | '));
-    if (strict.family && metrics.pageFamily) check(`${item.route} ${viewportName}: family ${strict.family}`, metrics.pageFamily === strict.family, `actual=${metrics.pageFamily}`);
-    if (viewportName === 'desktop' && strict.container === 'prose' && metrics.proseWidth !== null) {
-      check(`${item.route} desktop: prose width 760`, Math.abs(metrics.proseWidth - 760) <= 1, `width=${metrics.proseWidth}`);
-    }
+    check(`${item.route} ${viewportName}: no errors`, errors.length === 0, errors.join(' | '));
+    check(`${item.route} ${viewportName}: family ${strict.family}`, metrics.pageFamily === strict.family, `actual=${metrics.pageFamily}`);
+    if (strict.family === 'trust') check(`${item.route} ${viewportName}: trust first viewport`, metrics.firstScreenFamily === 'trust', `actual=${metrics.firstScreenFamily}`);
+    if (strict.prose && viewportName === 'desktop') check(`${item.route} desktop: prose 760`, metrics.proseWidth !== null && Math.abs(metrics.proseWidth - 760) <= 1, `width=${metrics.proseWidth}`);
   } else {
     const findings = [];
     if (metrics.headerCount !== 1) findings.push(`header=${metrics.headerCount}`);
@@ -204,24 +173,21 @@ let browser;
 try {
   const routes = discoverPublicRoutes();
   check('matrix: public routes discovered', routes.length > 0, `count=${routes.length}`);
-  check('matrix: homepage discovered', routes.some(item => item.route === '/'));
-  check('matrix: FAQ discovered', routes.some(item => item.route === '/faq/'));
+  for (const route of STRICT_MIGRATED.keys()) check(`matrix: strict route ${route} discovered`, routes.some(item => item.route === route));
 
   server = await startServer();
   try { browser = await chromium.launch({ headless: true, channel: 'chrome' }); }
   catch { browser = await chromium.launch({ headless: true }); }
 
-  const configs = [
+  for (const config of [
     { name: 'desktop', viewport: { width: 1440, height: 900 } },
     { name: 'mobile', viewport: { width: 390, height: 844 } },
-  ];
-
-  for (const config of configs) {
+  ]) {
     const context = await browser.newContext({ viewport: config.viewport, locale: 'en-US' });
     await sandbox(context);
     await context.addInitScript(() => { localStorage.clear(); sessionStorage.clear(); });
     const page = await context.newPage();
-    for (const item of routes) await inspectRoute(page, item, config.name, config.viewport);
+    for (const item of routes) await inspectRoute(page, item, config.name);
     await context.close();
   }
 
@@ -232,7 +198,6 @@ try {
   console.log(`CBW STRICT MIGRATED: ${JSON.stringify([...STRICT_MIGRATED.keys()])}`);
   console.log(`CBW LEGACY FINDINGS: ${legacyFindings.length}`);
   legacyFindings.slice(0, 120).forEach(item => console.log(` LEGACY ${item}`));
-  if (legacyFindings.length > 120) console.log(` ... ${legacyFindings.length - 120} more legacy findings omitted`);
 
   if (failures.length) {
     console.error(`CBW SITE ROUTE MATRIX: FAIL (${failures.length}/${checks})`);
