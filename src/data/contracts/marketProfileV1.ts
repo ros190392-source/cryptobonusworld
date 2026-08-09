@@ -1,5 +1,5 @@
 /**
- * Country Foundation MarketProfile V1 (Issue #272).
+ * Country Foundation MarketProfile V1 (Issue #272 / remediation #299).
  *
  * The existing portalFactory MarketProfile remains the shared base record. This
  * extension adds the structured country dimensions required for a production
@@ -72,6 +72,16 @@ export interface CountryMarketProfileV1 extends MarketProfile {
   restrictions: CountryRestrictionDimension;
 }
 
+export type CountryCommercialReadinessBlock =
+  | 'invalid'
+  | 'restricted'
+  | 'unavailable'
+  | 'under_review';
+
+export type CountryCommercialReadiness =
+  | { ok: true }
+  | { ok: false; block: CountryCommercialReadinessBlock; path: string };
+
 const FACT_STATES: readonly CountryFactState[] = Object.freeze([
   'supported', 'limited', 'restricted', 'unavailable', 'under_review', 'unknown',
 ]);
@@ -82,6 +92,8 @@ const RESTRICTION_STATES: readonly RestrictionFactState[] = Object.freeze([
   'clear', 'restricted', 'under_review', 'unknown',
 ]);
 const CONFIDENCE_STATES: readonly Confidence[] = Object.freeze(['high', 'medium', 'low', 'unknown']);
+const POSITIVE_FACT_STATES: readonly CountryFactState[] = Object.freeze(['supported', 'limited']);
+const POSITIVE_REGULATION_STATES: readonly RegulationState[] = Object.freeze(['licensed', 'registered']);
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -179,6 +191,82 @@ function validateRestrictionDimension(
   return claimIds;
 }
 
+function factState(value: unknown): CountryFactState | null {
+  if (!isObject(value) || !FACT_STATES.includes(value.state as CountryFactState)) return null;
+  return value.state as CountryFactState;
+}
+
+function regulationState(value: unknown): RegulationState | null {
+  if (!isObject(value) || !REGULATION_STATES.includes(value.state as RegulationState)) return null;
+  return value.state as RegulationState;
+}
+
+function restrictionState(value: unknown): RestrictionFactState | null {
+  if (!isObject(value) || !RESTRICTION_STATES.includes(value.state as RestrictionFactState)) return null;
+  return value.state as RestrictionFactState;
+}
+
+function classifyFactForCommercial(state: CountryFactState, path: string): CountryCommercialReadiness {
+  if (POSITIVE_FACT_STATES.includes(state)) return { ok: true };
+  if (state === 'restricted') return { ok: false, block: 'restricted', path };
+  if (state === 'unavailable') return { ok: false, block: 'unavailable', path };
+  return { ok: false, block: 'under_review', path };
+}
+
+/**
+ * Code-owned V1 commercial-readiness policy (#299).
+ *
+ * This is deliberately stricter than mere structural validity. A country CTA is
+ * positive only when every material V1 dimension is explicitly positive. Negative
+ * and unresolved states are never silently treated as authorization.
+ */
+export function evaluateCountryMarketProfileV1CommercialReadiness(
+  input: unknown,
+): CountryCommercialReadiness {
+  const validation = validateCountryMarketProfileV1(input);
+  if (!validation.ok || !validation.value) return { ok: false, block: 'invalid', path: '$' };
+  const profile = validation.value;
+
+  if (profile.approval !== 'approved') return { ok: false, block: 'under_review', path: 'approval' };
+  if (profile.availability === 'restricted') return { ok: false, block: 'restricted', path: 'availability' };
+  if (profile.availability === 'unavailable') return { ok: false, block: 'unavailable', path: 'availability' };
+  if (profile.availability !== 'available' && profile.availability !== 'limited') {
+    return { ok: false, block: 'under_review', path: 'availability' };
+  }
+  if (profile.offerEligibility !== 'approved') {
+    return { ok: false, block: 'under_review', path: 'offerEligibility' };
+  }
+
+  const reg = profile.regulation.state;
+  if (!POSITIVE_REGULATION_STATES.includes(reg)) {
+    if (reg === 'restricted') return { ok: false, block: 'restricted', path: 'regulation.state' };
+    if (reg === 'prohibited') return { ok: false, block: 'unavailable', path: 'regulation.state' };
+    return { ok: false, block: 'under_review', path: 'regulation.state' };
+  }
+
+  const restrictions = profile.restrictions.state;
+  if (restrictions !== 'clear') {
+    return restrictions === 'restricted'
+      ? { ok: false, block: 'restricted', path: 'restrictions.state' }
+      : { ok: false, block: 'under_review', path: 'restrictions.state' };
+  }
+
+  const material: Array<[string, CountryFactState]> = [
+    ['kyc.state', profile.kyc.state],
+    ['deposits.state', profile.deposits.state],
+    ['withdrawals.state', profile.withdrawals.state],
+    ['fiatPayments.state', profile.fiatPayments.state],
+    ['products.state', profile.products.state],
+    ['bonusAvailability.state', profile.bonusAvailability.state],
+  ];
+  for (const [path, state] of material) {
+    const result = classifyFactForCommercial(state, path);
+    if (!result.ok) return result;
+  }
+
+  return { ok: true };
+}
+
 /** Strict validator for a production-capable country MarketProfile V1. */
 export function validateCountryMarketProfileV1(input: unknown): ValidationResult<CountryMarketProfileV1> {
   const base = validateMarketProfile(input);
@@ -223,14 +311,47 @@ export function validateCountryMarketProfileV1(input: unknown): ValidationResult
     }
   }
 
-  const bonusState = isObject(input.bonusAvailability)
-    ? input.bonusAvailability.state as CountryFactState
-    : 'unknown';
-  if (input.offerEligibility === 'approved' && bonusState !== 'supported' && bonusState !== 'limited') {
-    issues.push(issue('bonusAvailability.state', 'OFFER_STATE_MISMATCH', 'Approved local offer eligibility requires supported or limited bonus availability.'));
+  const availabilityPositive = input.availability === 'available' || input.availability === 'limited';
+  const regState = regulationState(input.regulation);
+  const restrState = restrictionState(input.restrictions);
+
+  // A base positive country-availability statement must not contradict the richer
+  // legal/restriction dimensions. Unknown or under-review legal state cannot back
+  // an approved positive availability result.
+  if (input.approval === 'approved' && availabilityPositive) {
+    if (!regState || !POSITIVE_REGULATION_STATES.includes(regState)) {
+      issues.push(issue('regulation.state', 'BASE_STATE_CONTRADICTION', 'Positive approved availability requires licensed or registered regulation state.'));
+    }
+    if (restrState !== 'clear') {
+      issues.push(issue('restrictions.state', 'BASE_STATE_CONTRADICTION', 'Positive approved availability requires clear restriction state.'));
+    }
   }
-  if ((bonusState === 'restricted' || bonusState === 'unavailable') && input.offerEligibility === 'approved') {
-    issues.push(issue('offerEligibility', 'OFFER_STATE_MISMATCH', 'Restricted/unavailable bonus state cannot have approved offer eligibility.'));
+
+  // Local commercial approval is stricter than general availability: every
+  // material operational/offer dimension must be explicitly supported or limited.
+  if (input.offerEligibility === 'approved') {
+    if (!availabilityPositive || input.approval !== 'approved') {
+      issues.push(issue('offerEligibility', 'OFFER_STATE_MISMATCH', 'Approved local offer eligibility requires approved available/limited country availability.'));
+    }
+    const material: Array<[string, CountryFactState | null]> = [
+      ['kyc.state', factState(input.kyc)],
+      ['deposits.state', factState(input.deposits)],
+      ['withdrawals.state', factState(input.withdrawals)],
+      ['fiatPayments.state', factState(input.fiatPayments)],
+      ['products.state', factState(input.products)],
+      ['bonusAvailability.state', factState(input.bonusAvailability)],
+    ];
+    for (const [path, state] of material) {
+      if (!state || !POSITIVE_FACT_STATES.includes(state)) {
+        issues.push(issue(path, 'COMMERCIAL_DIMENSION_NOT_READY', 'Approved local offer eligibility requires this material dimension to be supported or limited.'));
+      }
+    }
+    if (!regState || !POSITIVE_REGULATION_STATES.includes(regState)) {
+      issues.push(issue('regulation.state', 'COMMERCIAL_DIMENSION_NOT_READY', 'Approved local offer eligibility requires licensed or registered regulation state.'));
+    }
+    if (restrState !== 'clear') {
+      issues.push(issue('restrictions.state', 'COMMERCIAL_DIMENSION_NOT_READY', 'Approved local offer eligibility requires clear restriction state.'));
+    }
   }
 
   return issues.length
