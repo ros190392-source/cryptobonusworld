@@ -12,200 +12,145 @@ import { getOffer } from '../../data/offers';
 import { resolvePublicOfferView } from '../../data/publicOfferView';
 import { resolvePublicCommercialRoute } from '../../data/publicCommercialRoute';
 
-// Current published locale for the homepage. All CTA labels and microcopy are
-// sourced through the localization contract, so switching this constant
-// localizes labels + reasons + microcopy together (facts are unaffected).
 const ctaLocale: CtaLocale = 'en';
-
-// ONE explicit build/render clock (R5) for this page: it drives the evidence-driven
-// public offer projection, the country-aware CTA resolution and the evidence disclosure —
-// no hidden Date.now() inside authorization helpers, no permanent no-clock snapshot.
 const nowMs = Date.now();
 const homepageTop10 = buildHomepageTop10(nowMs);
 
-// Issue #269: commercial code values stay OUT of the claim/evidence homepage data model.
-// Resolve them independently from the exact owner-confirmed commercial projection at render
-// time. A future raw code mutation therefore disappears automatically until re-confirmed.
 const commercialPromoCodes = new Map(
   homepageTop10.map((entry) => {
     const route = resolvePublicCommercialRoute(entry.slug, nowMs);
-    return [
-      entry.slug,
-      route.promoCodeAuthority === 'owner_confirmed' ? route.promoCode : null,
-    ] as const;
+    return [entry.slug, route.promoCodeAuthority === 'owner_confirmed' ? route.promoCode : null] as const;
   }),
 );
 
-// Gated commercial CTA bindings, derived from the canonical fail-closed
-// contract. In the default 'preview' mode every primary CTA resolves to an
-// internal review target; a live /go/ affiliate target appears only when the
-// owner enables production mode AND the row is verified + offer-eligible.
 const ctaBindings = new Map(
-  resolveHomepageTop10Ctas(homepageTop10, ctaLocale, { now: nowMs }).map((b) => [b.rank, b]),
+  resolveHomepageTop10Ctas(homepageTop10, ctaLocale, { now: nowMs }).map((binding) => [binding.rank, binding]),
 );
 
 const opensNewTab = pickLocalized(ctaMicrocopy.opensNewTab, ctaLocale);
 const loadingText = pickLocalized(ctaMicrocopy.loading, ctaLocale);
 
-// Fail-closed evidence disclosure per row, derived from ONE canonical evidence
-// record + the SAME explicit clock. The checked date, semantic <time>, evidence state
-// and evidence Source link all derive from `entry.evidence` (null → honest
-// under-re-verification state, no fabricated date). The exchange's promo page is
-// carried ONLY as a separately-named non-evidence "Official offer page" link,
-// never as the source backing a checked timestamp. Evidence state overrides the
-// tone so a verified row can never look current without machine evidence.
 const disclosures = new Map(
   homepageTop10.map((entry) => {
     const offer = getOffer(entry.slug);
     const binding = ctaBindings.get(entry.rank);
-    // Issue #266: the "Official offer page" link is a commercial offer reference — some
-    // exchanges' `sourceUrl` is itself an affiliate/partner URL carrying the promo code
-    // (e.g. bingx). While the row's public view is non-commercial it must NOT surface, so
-    // no affiliate destination or code leaks from the disclosure of an unverified offer.
     const view = offer ? resolvePublicOfferView(entry.slug, nowMs) : null;
     const officialHref = view?.isCommercial ? offer?.sourceUrl : undefined;
     return [entry.rank, resolveDisclosure({
       tone: entry.statusTone,
       evidence: entry.evidence ?? null,
-      // Bind the disclosure to THIS row's exchange (R10): evidence for another
-      // exchange can never surface as this row's checked date or Source.
       expectedExchangeId: entry.slug,
       now: nowMs,
       isAffiliate: Boolean(binding?.primary.isAffiliate),
       methodologyHref: '/methodology/',
       officialHref,
-    }, ctaLocale)];
+    }, ctaLocale)] as const;
   }),
 );
 ---
 
 <section class="top10-section" id="exchanges" aria-labelledby="top10-title" data-cta-loading-text={loadingText}>
   <div class="top10-wrap">
-    <div class="top10-heading">
+    <header class="top10-heading">
       <div>
-        <div class="top10-label">Editorial comparison · 10 exchanges</div>
-        <h2 id="top10-title">Top 10 Crypto Exchanges to Compare</h2>
-        <p>
-          Ranked from the current CryptoBonusWorld editorial inventory. Offer and research badges show
-          how far each listing has been verified — availability can still differ by country and account.
-        </p>
+        <span class="top10-label">10 governed exchange profiles</span>
+        <h2 id="top10-title">Top 10 crypto exchanges</h2>
+        <p>Start with the card. Open evidence only when you need the detail.</p>
       </div>
-      <a href="/exchanges/" class="top10-directory-link">View full exchange directory →</a>
-    </div>
+      <a href="/exchanges/" class="top10-directory-link">All exchanges →</a>
+    </header>
 
-    <div class="top10-column-head" aria-hidden="true">
-      <span>Rank</span>
-      <span>Exchange</span>
-      <span>Best for</span>
-      <span>Offer or evidence status</span>
-      <span>Actions</span>
-    </div>
-
-    <ol class="top10-list">
-      {homepageTop10.map((entry) => (
-        <li class="top10-row" data-rank={entry.rank} data-exchange-slug={entry.slug}>
-          <div class="top10-rank" aria-label={`Rank ${entry.rank}`}>
-            <span>{entry.rank}</span>
-          </div>
-
-          <div class="top10-exchange">
-            <ExchangeLogo
-              slug={entry.slug}
-              name={entry.name}
-              size={48}
-              variant="square"
-              lazy={entry.rank > 4}
-              class="top10-logo"
-            />
-            <div class="top10-exchange-copy">
-              <strong>{entry.name}</strong>
-              <span class:list={['top10-status', `top10-status--${entry.statusTone}`]}>
-                {entry.statusLabel}
-              </span>
+    <ol class="exchange-card-grid">
+      {homepageTop10.map((entry) => {
+        const cta = ctaBindings.get(entry.rank);
+        const primary = cta?.primary;
+        const promoCode = commercialPromoCodes.get(entry.slug);
+        const disclosure = disclosures.get(entry.rank);
+        return (
+          <li class="exchange-card" data-rank={entry.rank} data-exchange-slug={entry.slug}>
+            <div class="card-head">
+              <span class="rank-badge" aria-label={`Rank ${entry.rank}`}>#{entry.rank}</span>
+              <ExchangeLogo
+                slug={entry.slug}
+                name={entry.name}
+                size={52}
+                variant="square"
+                lazy={entry.rank > 4}
+                class="card-logo"
+              />
+              <div class="exchange-name">
+                <h3>{entry.name}</h3>
+                <span class:list={['status-badge', `status-${entry.statusTone}`]}>{entry.statusLabel}</span>
+              </div>
             </div>
-          </div>
 
-          <div class="top10-fit">
-            <span class="top10-mobile-label">Best for</span>
-            <p>{entry.bestFor}</p>
-          </div>
+            <div class="card-fit">
+              <span>Best for</span>
+              <strong>{entry.bestFor}</strong>
+            </div>
 
-          <div class="top10-evidence">
-            <span class="top10-mobile-label">Offer or evidence status</span>
-            <p class="top10-summary">{entry.summary}</p>
-            {commercialPromoCodes.get(entry.slug) && (
-              <div class="top10-code">
-                <span class="top10-code-label">Promo/referral code · Owner confirmed</span>
-                <PromoCodeCopy code={commercialPromoCodes.get(entry.slug)!} exchange={entry.name} />
+            <p class="card-summary">{entry.summary}</p>
+
+            {promoCode && (
+              <div class="card-code">
+                <span>Owner-confirmed code</span>
+                <PromoCodeCopy code={promoCode} exchange={entry.name} />
               </div>
             )}
-            {disclosures.get(entry.rank) && (
-              <Top10Disclosure model={disclosures.get(entry.rank)!} />
-            )}
-          </div>
 
-          <div class="top10-actions">
-            {(() => {
-              const cta = ctaBindings.get(entry.rank);
-              if (!cta) return null;
-              const p = cta.primary;
-              const stateClass = `top10-primary--${p.visualState}`;
-
-              // A withheld commercial action is a genuinely non-actionable
-              // control (disabled <button>), never a JS-suppressed anchor. Its
-              // accessible name carries the reason so it is unambiguous.
-              if (p.disabled) {
-                const reason = gateReasonText(p.gateReason, ctaLocale);
+            <div class="card-actions">
+              {primary && (() => {
+                const stateClass = `top10-primary--${primary.visualState}`;
+                if (primary.disabled) {
+                  const reason = gateReasonText(primary.gateReason, ctaLocale);
+                  return (
+                    <button
+                      type="button"
+                      class:list={['top10-primary', 'top10-primary--disabled', stateClass]}
+                      disabled
+                      aria-label={`${primary.label} at ${entry.name}: ${reason}`}
+                    >
+                      <span>{primary.label}</span>
+                      <small>{reason}</small>
+                    </button>
+                  );
+                }
+                const accessibleName = primary.isAffiliate
+                  ? `${primary.label} at ${entry.name} (${opensNewTab})`
+                  : `${primary.label} — ${entry.name}`;
                 return (
-                  <button
-                    type="button"
-                    class:list={['top10-primary', 'top10-primary--disabled', stateClass]}
-                    disabled
-                    aria-label={`${p.label} at ${entry.name}: ${reason}`}
+                  <a
+                    href={primary.href}
+                    class:list={['top10-primary', stateClass, { 'is-affiliate': primary.isAffiliate }]}
+                    data-cta-affiliate={primary.isAffiliate ? 'true' : undefined}
+                    target={primary.isAffiliate ? '_blank' : undefined}
+                    rel={primary.isAffiliate ? primary.rel : 'noopener'}
+                    aria-label={accessibleName}
                   >
-                    <span aria-hidden="true">{p.label}</span>
-                    <span class="top10-primary-why" aria-hidden="true">{reason}</span>
-                  </button>
+                    <span class="top10-primary-label">{primary.label} →</span>
+                    <span class="top10-primary-spinner" aria-hidden="true"></span>
+                  </a>
                 );
-              }
+              })()}
+              {cta && (
+                <a href={cta.secondaryHref} class="top10-secondary" rel="noopener">{cta.secondaryLabel}</a>
+              )}
+            </div>
 
-              // Affiliate targets open externally with sponsored/nofollow rel;
-              // internal review targets stay in-tab and non-sponsored. The
-              // accessible name is exchange-qualified so screen-reader users do
-              // not hear ten identical "Get bonus" links.
-              const accessibleName = p.isAffiliate
-                ? `${p.label} at ${entry.name} (${opensNewTab})`
-                : `${p.label} — ${entry.name}`;
-              return (
-                <a
-                  href={p.href}
-                  class:list={['top10-primary', stateClass, { 'is-affiliate': p.isAffiliate }]}
-                  data-cta-affiliate={p.isAffiliate ? 'true' : undefined}
-                  target={p.isAffiliate ? '_blank' : undefined}
-                  rel={p.isAffiliate ? p.rel : 'noopener'}
-                  aria-label={accessibleName}
-                >
-                  <span class="top10-primary-label" aria-hidden="true">{p.label} →</span>
-                  <span class="top10-primary-spinner" aria-hidden="true"></span>
-                </a>
-              );
-            })()}
-            {ctaBindings.get(entry.rank) && (
-              <a href={ctaBindings.get(entry.rank)!.secondaryHref} class="top10-secondary" rel="noopener">
-                {ctaBindings.get(entry.rank)!.secondaryLabel}
-              </a>
+            {disclosure && (
+              <details class="evidence-details">
+                <summary>Evidence &amp; checks <span aria-hidden="true">+</span></summary>
+                <div class="evidence-content"><Top10Disclosure model={disclosure} /></div>
+              </details>
             )}
-          </div>
-        </li>
-      ))}
+          </li>
+        );
+      })}
     </ol>
 
-    <div class="top10-method" id="top-10-methodology">
-      <strong>How to read this list:</strong>
-      rank reflects the current CryptoBonusWorld editorial inventory, not a personalized recommendation.
-      A green badge means the clean offer record is verified; amber means a public preview; blue means
-      completed country research with campaign eligibility still under review; gray means the profile is
-      being re-verified. Always confirm current regional terms on the exchange’s official website.
+    <div class="top10-method">
+      <strong>Ranking note:</strong> this is the current global governed comparison. Country context and local eligibility stay separate until an approved local ranking exists.
+      <a href="/methodology/">Methodology →</a>
     </div>
 
     <span class="top10-sr-only" data-cta-live role="status" aria-live="polite"></span>
@@ -213,17 +158,12 @@ const disclosures = new Map(
 </section>
 
 <script is:inline>
-  // Progressive enhancement: a truthful, temporary, accessible "opening" state
-  // for affiliate CTAs (which open in a NEW tab, so this page stays visible).
-  // Works without JS (plain navigation). The state is always reset: on a short
-  // timeout and whenever the user returns to this tab, so it never sticks.
   (function () {
     var section = document.getElementById('exchanges');
     if (!section) return;
     var loadingText = section.getAttribute('data-cta-loading-text') || 'Opening…';
     var live = section.querySelector('[data-cta-live]');
     var RESET_MS = 1400;
-
     function reset(el) {
       el.classList.remove('is-loading');
       el.removeAttribute('aria-busy');
@@ -232,11 +172,9 @@ const disclosures = new Map(
     function resetAll() {
       section.querySelectorAll('.top10-primary.is-loading').forEach(reset);
     }
-
     section.querySelectorAll('.top10-primary[data-cta-affiliate="true"]').forEach(function (el) {
       var timer = null;
       el.addEventListener('click', function (e) {
-        // Ignore repeat activations while already opening (avoid duplicate tabs).
         if (el.classList.contains('is-loading')) { e.preventDefault(); return; }
         el.classList.add('is-loading');
         el.setAttribute('aria-busy', 'true');
@@ -245,9 +183,6 @@ const disclosures = new Map(
         timer = setTimeout(function () { reset(el); }, RESET_MS);
       });
     });
-
-    // The affiliate link opens a new tab; clear the state as soon as the user
-    // returns here (or the page is restored from bfcache).
     window.addEventListener('pageshow', resetAll);
     window.addEventListener('focus', resetAll);
     document.addEventListener('visibilitychange', function () {
@@ -257,360 +192,72 @@ const disclosures = new Map(
 </script>
 
 <style>
-  .top10-section {
-    background: var(--cbw-surface-primary);
-    padding: 18px 0 var(--cbw-space-9);
+  .top10-section { padding: 18px 0 28px; background: #f6f7f3; }
+  .top10-wrap { width: 100%; max-width: var(--cbw-width-wide,1180px); margin: 0 auto; padding-inline: var(--cbw-gutter,20px); }
+  .top10-heading { display: flex; align-items: end; justify-content: space-between; gap: 18px; margin-bottom: 12px; }
+  .top10-label { display: block; margin-bottom: 4px; color: #b86205; font-size: 9px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+  .top10-heading h2 { margin: 0; color: #13233e; font-family: 'Barlow Condensed','Inter',sans-serif; font-size: clamp(30px,4vw,42px); line-height: .96; text-transform: uppercase; }
+  .top10-heading p { margin: 5px 0 0; color: #667386; font-size: 11px; }
+  .top10-directory-link { color: #925204; font-size: 11px; font-weight: 900; white-space: nowrap; }
+
+  .exchange-card-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+  .exchange-card { min-width: 0; padding: 15px; border: 1px solid #dce3dc; border-radius: 15px; background: #fff; box-shadow: 0 2px 8px rgba(19,35,62,.04); }
+  .exchange-card:hover { border-color: #c6d0c6; box-shadow: 0 8px 24px rgba(19,35,62,.08); }
+  .card-head { display: grid; grid-template-columns: auto 52px minmax(0,1fr); gap: 10px; align-items: center; }
+  .rank-badge { display: inline-flex; min-width: 38px; height: 30px; align-items: center; justify-content: center; border-radius: 999px; color: #fff; background: #13233e; font-size: 11px; font-weight: 900; }
+  .exchange-card[data-rank='1'] .rank-badge { color: #13233e; background: #f7931a; }
+  .exchange-name { min-width: 0; }
+  .exchange-name h3 { margin: 0 0 5px; overflow: hidden; color: #13233e; font-family: 'Barlow Condensed','Inter',sans-serif; font-size: 25px; line-height: 1; text-overflow: ellipsis; white-space: nowrap; }
+  .status-badge { display: inline-flex; max-width: 100%; min-height: 22px; align-items: center; padding: 0 8px; border-radius: 999px; font-size: 8px; font-weight: 900; text-transform: uppercase; }
+  .status-verified { color: #12653b; background: #e8f6ed; }
+  .status-preview { color: #875000; background: #fff0d7; }
+  .status-research { color: #245b8f; background: #e7f0fa; }
+  .status-review { color: #596579; background: #edf0f3; }
+
+  .card-fit { display: grid; gap: 3px; margin-top: 13px; padding: 10px 11px; border-radius: 10px; background: #f5f7f4; }
+  .card-fit span,.card-code > span { color: #778394; font-size: 8px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+  .card-fit strong { color: #263750; font-size: 11px; line-height: 1.4; }
+  .card-summary { min-height: 34px; margin: 10px 0 0; color: #667386; font-size: 10px; line-height: 1.5; }
+  .card-code { display: grid; gap: 6px; margin-top: 10px; }
+  .card-code :global(.pcc-row) { max-width: 100%; }
+
+  .card-actions { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px; margin-top: 13px; }
+  .top10-primary,.top10-secondary { display: inline-flex; min-height: 40px; align-items: center; justify-content: center; border-radius: 10px; font-size: 10px; font-weight: 900; text-align: center; }
+  .top10-primary { gap: 6px; padding: 0 12px; border: 1px solid #e17c08; color: #13233e; background: #f7931a; }
+  .top10-primary:hover { background: #ffac43; }
+  .top10-primary--disabled { display: grid; gap: 1px; border-color: #dce3dc; color: #596579; background: #edf0f3; cursor: not-allowed; }
+  .top10-primary--disabled small { font-size: 7px; font-weight: 700; }
+  .top10-secondary { padding: 0 11px; border: 1px solid #d5ddd5; color: #46556a; background: #fff; }
+  .top10-secondary:hover { background: #f5f7f4; }
+  .top10-primary-spinner { display: none; width: 12px; height: 12px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; }
+  .top10-primary.is-loading .top10-primary-label { opacity: .55; }
+  .top10-primary.is-loading .top10-primary-spinner { display: inline-block; }
+
+  .evidence-details { margin-top: 10px; border-top: 1px solid #e4e9e4; }
+  .evidence-details summary { display: flex; min-height: 36px; align-items: center; justify-content: space-between; color: #667386; font-size: 9px; font-weight: 900; cursor: pointer; list-style: none; }
+  .evidence-details summary::-webkit-details-marker { display: none; }
+  .evidence-details[open] summary span { transform: rotate(45deg); }
+  .evidence-content { padding: 0 0 5px; }
+
+  .top10-method { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; margin-top: 12px; padding: 10px 12px; border: 1px solid #dce3dc; border-radius: 10px; color: #718095; background: #fff; font-size: 9px; line-height: 1.5; }
+  .top10-method strong { color: #34455d; }
+  .top10-method a { margin-left: auto; color: #925204; font-weight: 900; white-space: nowrap; }
+  .top10-sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 850px) {
+    .exchange-card-grid { grid-template-columns: 1fr; }
+    .top10-heading { align-items: start; }
   }
-
-  .top10-sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-  }
-
-  .top10-wrap {
-    width: 100%;
-    max-width: var(--cbw-width-wide);
-    margin: 0 auto;
-    padding-inline: var(--cbw-gutter);
-    box-sizing: border-box;
-  }
-
-  .top10-heading {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: var(--cbw-space-6);
-    margin-bottom: 13px;
-  }
-
-  .top10-label {
-    margin-bottom: 5px;
-    color: var(--cbw-action);
-    font-size: 9px;
-    font-weight: 900;
-    letter-spacing: .1em;
-    text-transform: uppercase;
-  }
-
-  .top10-heading h2 {
-    margin: 0 0 5px;
-    color: var(--cbw-text-primary);
-    font-family: 'Barlow Condensed', 'Inter', sans-serif;
-    font-size: clamp(27px, 3vw, 34px);
-    font-weight: 800;
-    letter-spacing: -.025em;
-    line-height: 1.02;
-    text-transform: uppercase;
-  }
-
-  .top10-heading p {
-    max-width: var(--cbw-width-prose);
-    margin: 0;
-    color: var(--cbw-text-secondary);
-    font-size: 12px;
-    line-height: 1.5;
-  }
-
-  .top10-directory-link {
-    flex: 0 0 auto;
-    color: #925204;
-    font-size: 11px;
-    font-weight: 900;
-    text-decoration: none;
-    white-space: nowrap;
-  }
-
-  .top10-directory-link:hover {
-    text-decoration: underline;
-    text-underline-offset: 3px;
-  }
-
-  .top10-column-head,
-  .top10-row {
-    display: grid;
-    grid-template-columns: 46px minmax(150px, .9fr) minmax(142px, .84fr) minmax(258px, 1.5fr) minmax(142px, .74fr);
-    gap: 12px;
-    align-items: center;
-  }
-
-  .top10-column-head {
-    padding: 0 13px 6px;
-    color: var(--cbw-text-muted);
-    font-size: 9px;
-    font-weight: 900;
-    letter-spacing: .07em;
-    text-transform: uppercase;
-  }
-
-  .top10-list {
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .top10-row {
-    min-width: 0;
-    padding: 11px 13px;
-    border: 1px solid var(--cbw-border-standard);
-    border-radius: var(--cbw-radius-card);
-    background: var(--cbw-surface-primary);
-    box-shadow: 0 1px 3px rgba(17,24,39,.04);
-    transition: border-color .18s, box-shadow .18s, transform .18s;
-  }
-
-  .top10-row:hover {
-    border-color: #cbd3cb;
-    box-shadow: 0 7px 24px rgba(17,24,39,.08);
-    transform: translateY(-1px);
-  }
-
-  .top10-rank {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .top10-rank span {
-    display: inline-flex;
-    width: 31px;
-    height: 31px;
-    align-items: center;
-    justify-content: center;
-    border-radius: var(--cbw-radius-pill);
-    background: var(--cbw-text-primary);
-    color: #fff;
-    font-size: 13px;
-    font-weight: 900;
-  }
-
-  .top10-row[data-rank='1'] .top10-rank span { color: var(--cbw-text-primary); background: var(--cbw-action); }
-  .top10-row[data-rank='2'] .top10-rank span,
-  .top10-row[data-rank='3'] .top10-rank span { background: #374151; }
-
-  .top10-exchange {
-    display: flex;
-    min-width: 0;
-    align-items: center;
-    gap: 9px;
-  }
-
-  .top10-exchange-copy {
-    display: flex;
-    min-width: 0;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-  }
-
-  .top10-exchange-copy strong {
-    overflow: hidden;
-    max-width: 100%;
-    color: var(--cbw-text-primary);
-    font-size: 15px;
-    font-weight: 900;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .top10-status {
-    display: inline-flex;
-    max-width: 100%;
-    padding: 2px 7px;
-    border: 1px solid transparent;
-    border-radius: var(--cbw-radius-pill);
-    font-size: 9px;
-    font-weight: 900;
-    line-height: 1.2;
-  }
-
-  .top10-status--verified { border-color: #bbf7d0; color: #166534; background: #f0fdf4; }
-  .top10-status--preview { border-color: #fde68a; color: #92400e; background: #fffbeb; }
-  .top10-status--research { border-color: #bfdbfe; color: #1d4ed8; background: #eff6ff; }
-  .top10-status--review { border-color: #e5e7eb; color: #4b5563; background: #f9fafb; }
-
-  .top10-fit,
-  .top10-evidence,
-  .top10-actions { min-width: 0; }
-
-  .top10-fit p,
-  .top10-summary {
-    margin: 0;
-    color: #374151;
-    font-size: 11.5px;
-    line-height: 1.45;
-  }
-
-  .top10-summary { color: var(--cbw-text-primary); font-weight: 700; }
-  .top10-code { margin-top: 6px; }
-  .top10-code-label { display: block; margin-bottom: 3px; color: #92400e; font-size: 8px; font-weight: 900; letter-spacing: .07em; text-transform: uppercase; }
-  .top10-code :global(.pcc-row) { max-width: 240px; height: 36px; }
-  .top10-code :global(.pcc-code) { padding: 0 9px; font-size: 13px; }
-  .top10-code :global(.pcc-copy) { width: 52px; font-size: 9px; }
-  .top10-checked { display: block; margin-top: 5px; color: #929ba7; font-size: 9px; line-height: 1.3; }
-
-  .top10-actions {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 6px;
-  }
-
-  .top10-primary,
-  .top10-secondary {
-    position: relative;
-    display: flex;
-    min-height: 35px;
-    align-items: center;
-    justify-content: center;
-    gap: 7px;
-    box-sizing: border-box;
-    border-radius: var(--cbw-radius-control);
-    font-size: 11px;
-    font-weight: 900;
-    line-height: 1.2;
-    text-align: center;
-    text-decoration: none;
-  }
-
-  .top10-primary {
-    /* Site Standard v1 action styling (base) + Split-2 interaction states. */
-    border: 1px solid rgba(19,35,62,.12);
-    color: var(--cbw-text-primary);
-    background: var(--cbw-action);
-    box-shadow: 0 2px 7px rgba(247,147,26,.2);
-    cursor: pointer;
-    font-family: inherit;
-    transition: background-color .16s, box-shadow .16s, transform .12s;
-  }
-
-  .top10-primary:hover { background: var(--cbw-action-hover); }
-
-  .top10-primary:focus-visible,
-  .top10-secondary:focus-visible {
-    outline: 2px solid #0f766e;
-    outline-offset: 2px;
-  }
-
-  .top10-primary:active {
-    transform: translateY(1px);
-    box-shadow: 0 1px 3px rgba(19, 35, 62, .18);
-  }
-
-  /* Withheld commercial action: a real disabled control, not a fake link. */
-  .top10-primary--disabled,
-  .top10-primary:disabled {
-    flex-direction: column;
-    gap: 2px;
-    background: #f3f4f6;
-    border-color: #e5e7eb;
-    color: #6b7280;
-    box-shadow: none;
-    cursor: not-allowed;
-    transform: none;
-  }
-
-  .top10-primary-why {
-    color: #6b7280;
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: .02em;
-    line-height: 1.2;
-    text-transform: none;
-  }
-
-  /* Loading state (progressive enhancement on affiliate outbound). Spinner
-     uses currentColor so it stays legible on the Site Standard action color. */
-  .top10-primary-spinner {
-    display: none;
-    width: 13px;
-    height: 13px;
-    border: 2px solid currentColor;
-    border-top-color: transparent;
-    border-radius: 50%;
-    opacity: .85;
-  }
-
-  .top10-primary.is-loading { pointer-events: none; }
-  .top10-primary.is-loading .top10-primary-label { opacity: .75; }
-  .top10-primary.is-loading .top10-primary-spinner {
-    display: inline-block;
-    animation: top10-spin .6s linear infinite;
-  }
-
-  @keyframes top10-spin {
-    to { transform: rotate(360deg); }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .top10-row,
-    .top10-row:hover,
-    .top10-primary,
-    .top10-primary:active {
-      transition: none;
-      transform: none;
-    }
-
-    .top10-primary.is-loading .top10-primary-spinner {
-      animation: none;
-    }
-  }
-
-  .top10-secondary { border: 1px solid #d1d5db; color: #374151; background: #fff; }
-  .top10-secondary:hover { border-color: #9ca3af; background: #f9fafb; }
-  .top10-mobile-label { display: none; }
-
-  .top10-method {
-    margin-top: 14px;
-    padding: 12px 14px;
-    border: 1px solid var(--cbw-border-standard);
-    border-radius: var(--cbw-radius-control);
-    color: #6b7280;
-    background: var(--cbw-surface-secondary);
-    font-size: 10px;
-    line-height: 1.6;
-  }
-  .top10-method strong { color: #374151; }
-
-  @media (max-width: 959px) {
-    .top10-heading { align-items: flex-start; flex-direction: column; gap: 8px; }
-    .top10-column-head { display: none; }
-    .top10-row { grid-template-columns: 40px minmax(0,1fr); gap: 9px 11px; align-items: start; padding: 13px; }
-    .top10-rank { grid-column: 1; grid-row: 1; padding-top: 6px; }
-    .top10-exchange { grid-column: 2; grid-row: 1; }
-    .top10-fit,
-    .top10-evidence,
-    .top10-actions { grid-column: 1 / -1; padding-left: 51px; }
-    .top10-mobile-label { display: block; margin-bottom: 3px; color: #9ca3af; font-size: 8px; font-weight: 900; letter-spacing: .07em; text-transform: uppercase; }
-    .top10-actions { flex-direction: row; flex-wrap: wrap; }
-    .top10-primary,
-    .top10-secondary { min-width: 140px; flex: 1 1 140px; padding-inline: 12px; }
-  }
-
   @media (max-width: 520px) {
-    .top10-section { padding: 15px 0 var(--cbw-space-8); }
-    .top10-heading { margin-bottom: 10px; }
-    .top10-heading h2 { font-size: 25px; }
-    .top10-heading p { font-size: 11px; line-height: 1.45; }
-    .top10-directory-link { font-size: 10px; white-space: normal; }
-    .top10-row { grid-template-columns: 36px minmax(0,1fr); padding: 12px 10px; }
-    .top10-rank span { width: 29px; height: 29px; font-size: 12px; }
-    .top10-exchange :global(.top10-logo) { width: 40px !important; height: 40px !important; }
-    .top10-fit,
-    .top10-evidence,
-    .top10-actions { padding-left: 47px; }
-    .top10-actions { flex-direction: column; }
-    .top10-primary,
-    .top10-secondary { width: 100%; min-width: 0; flex-basis: auto; }
-    .top10-code :global(.pcc-row) { max-width: 100%; }
+    .top10-section { padding-top: 14px; }
+    .top10-heading { display: grid; gap: 6px; }
+    .top10-heading h2 { font-size: 32px; }
+    .top10-directory-link { justify-self: start; }
+    .exchange-card { padding: 13px; }
+    .card-head { grid-template-columns: auto 46px minmax(0,1fr); }
+    .exchange-name h3 { font-size: 23px; }
+    .card-actions { grid-template-columns: 1fr; }
+    .top10-secondary { width: 100%; }
   }
 </style>
