@@ -70,9 +70,31 @@ async function homepageChecks(browser, viewport, label, maxTop10Y) {
   check(`${label}: Bulgaria flag visible`, (await page.locator('[data-home-country-flag]').textContent())?.trim() === '🇧🇬');
   check(`${label}: Bulgaria market name visible`, (await page.locator('[data-home-country-name]').textContent())?.trim() === 'Bulgaria');
   check(`${label}: local ranking remains under review`, (await page.locator('[data-home-ranking-state]').textContent())?.includes('Local ranking under review'));
+
   const top10 = await page.locator('#exchanges').boundingBox();
   check(`${label}: Top 10 rendered`, Boolean(top10));
   if (top10) check(`${label}: Top 10 starts near first viewport`, top10.y <= maxTop10Y, `y=${top10.y}`);
+
+  const cards = page.locator('.exchange-card');
+  check(`${label}: exactly ten exchange cards`, await cards.count() === 10, `count=${await cards.count()}`);
+  check(`${label}: legacy column header removed`, await page.locator('.top10-column-head').count() === 0);
+  check(`${label}: first card rank visible`, (await cards.first().locator('.rank-badge').textContent())?.trim() === '#1');
+  check(`${label}: every card has exchange title`, await cards.locator('.exchange-name h3').count() === 10);
+  check(`${label}: every card has best-for surface`, await cards.locator('.card-fit').count() === 10);
+  check(`${label}: evidence details collapsed by default`, await cards.locator('.evidence-details[open]').count() === 0);
+  check(`${label}: evidence details available`, await cards.locator('.evidence-details').count() >= 6);
+  check(`${label}: every card has actions`, await cards.locator('.card-actions').count() === 10);
+
+  const firstCard = await cards.first().boundingBox();
+  const secondCard = await cards.nth(1).boundingBox();
+  if (firstCard && secondCard) {
+    if (label === 'desktop') {
+      check('desktop: card grid is two-column', Math.abs(firstCard.y - secondCard.y) <= 2 && secondCard.x > firstCard.x, `first=${JSON.stringify(firstCard)} second=${JSON.stringify(secondCard)}`);
+    } else {
+      check('mobile: cards stack one-column', secondCard.y > firstCard.y + 10 && Math.abs(firstCard.x - secondCard.x) <= 2, `first=${JSON.stringify(firstCard)} second=${JSON.stringify(secondCard)}`);
+    }
+  }
+
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   check(`${label}: no horizontal overflow`, overflow <= 1, `overflow=${overflow}`);
   check(`${label}: no page/console errors`, errors.length === 0, errors.join(' | '));
