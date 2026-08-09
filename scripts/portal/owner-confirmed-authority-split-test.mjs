@@ -1,10 +1,6 @@
 #!/usr/bin/env node
 import { build } from 'esbuild';
-import {
-  mkdtempSync,
-  readFileSync,
-  rmSync,
-} from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -101,11 +97,7 @@ try {
       check(`${slug}: newly-added real GEO URL fails link authority`, m.resolveOwnerConfirmedCommercialAuthorityForRaw(slug, newGeoMutation)?.linkConfirmed === false);
 
       const promoMutation = structuredClone(raw);
-      if (slug === 'coinbase') {
-        promoMutation.promoCode = 'NEW-UNCONFIRMED-CODE';
-      } else {
-        promoMutation.promoCode = `${String(raw.promoCode ?? '')}x`;
-      }
+      promoMutation.promoCode = slug === 'coinbase' ? 'NEW-UNCONFIRMED-CODE' : `${String(raw.promoCode ?? '')}x`;
       check(`${slug}: promo mutation/new code fails promo authority`, m.resolveOwnerConfirmedCommercialAuthorityForRaw(slug, promoMutation)?.promoCodeConfirmed === false);
     }
   }
@@ -113,9 +105,6 @@ try {
   check('unknown exchange has no owner authority', m.resolveOwnerConfirmedCommercialAuthority('new-exchange-never-confirmed') === null);
   check('unknown exchange has no external public route', m.resolvePublicCommercialRoute('new-exchange-never-confirmed', NOW).externalAllowed === false);
 
-  // Homepage product policy: exact owner-confirmed links remain usable in explicit production
-  // global context, but neither preview nor an explicit country may bypass their existing gates.
-  // Commercial CODE values must stay out of the homepage data model and be resolved separately.
   const top10 = m.buildHomepageTop10(NOW);
   check('homepage model still contains exactly 10 rows', top10.length === 10);
   for (const entry of top10) {
@@ -134,23 +123,30 @@ try {
     }
   }
 
-  // Source-level guards for UI boundaries that previously conflated claim state with commercial authority.
+  // Source-level guards follow the reusable Product System architecture rather
+  // than assuming each directory/page resolves commercial state inline.
   const governedSource = readFileSync(join(ROOT, 'src/components/exchange/GovernedExchangePage.astro'), 'utf8');
   check('governed page gates rich promo on verified factual state', /claimsVerified\s*=\s*view\?\.publicState\s*===\s*['"]verified['"]/.test(governedSource));
   check('governed page also requires independently safe commercial route', /richPromoAllowed\s*=\s*claimsVerified\s*&&\s*commercialRoute\.externalAllowed\s*===\s*true/.test(governedSource));
   check('governed page sources confirmed code from commercial route', governedSource.includes("commercialRoute.promoCodeAuthority === 'owner_confirmed'") && governedSource.includes('commercialRoute.promoCode'));
+  check('governed page passes only governed internal commercial hop to rich template', governedSource.includes('commercialHref={commercialHref}') && governedSource.includes('confirmedPromoCode={confirmedPromoCode}'));
   check('governed page no longer equates isCommercial with rich claims', !/const\s+commercial\s*=\s*view\?\.isCommercial\s*===\s*true/.test(governedSource));
 
+  const richSource = readFileSync(join(ROOT, 'src/components/exchange/ExchangePromoPageV2.astro'), 'utf8');
+  check('verified review consumes governed commercialHref instead of raw affiliateUrl', richSource.includes('commercialHref: string') && richSource.includes('href={commercialHref}') && !richSource.includes('href={c.affiliateUrl}'));
+  check('verified review consumes only separately confirmed promo code', richSource.includes('confirmedPromoCode') && !richSource.includes('code={c.promoCode}'));
+  check('verified review explicitly separates active country from global offer', richSource.includes('ActiveCountryContext') && /global offer does not prove local eligibility/i.test(richSource));
+
   const neutralSource = readFileSync(join(ROOT, 'src/components/exchange/ExchangeUnverifiedNotice.astro'), 'utf8');
-  check('neutral page supports owner-confirmed promo code', neutralSource.includes('promoCodeAuthority') && neutralSource.includes('Owner confirmed'));
+  check('neutral page supports owner-confirmed promo code', neutralSource.includes('promoCodeAuthority') && neutralSource.includes('Owner-confirmed code'));
   check('neutral page uses internal commercial hop, not raw affiliate URL', neutralSource.includes('commercialHref') && !neutralSource.includes('affiliateUrl'));
-  check('neutral page explicitly keeps offer terms under re-verification', /KYC\/deposit requirements/.test(neutralSource) && /under re-verification/.test(neutralSource));
+  check('neutral page explicitly keeps offer terms under re-verification', /KYC or deposit requirements/.test(neutralSource) && /under re-verification/.test(neutralSource));
 
   const homepageSource = readFileSync(join(ROOT, 'src/components/home/HomepageTop10.astro'), 'utf8');
   check('homepage disclosure still treats isCommercial as claim/evidence authority, not link authority', homepageSource.includes('const officialHref = view?.isCommercial ? offer?.sourceUrl : undefined'));
   check('homepage resolves owner-confirmed codes through commercial route', homepageSource.includes('resolvePublicCommercialRoute') && homepageSource.includes('commercialPromoCodes'));
   check('homepage renders commercial code map rather than claim-model promoCode', homepageSource.includes('commercialPromoCodes.get(entry.slug)') && !homepageSource.includes('PromoCodeCopy code={entry.promoCode}'));
-  check('homepage visibly labels commercial code as owner confirmed', homepageSource.includes('Promo/referral code · Owner confirmed'));
+  check('homepage visibly labels commercial code as owner confirmed', homepageSource.includes('Owner-confirmed code'));
 
   const directorySource = readFileSync(join(ROOT, 'src/components/site-standard/ExchangeDirectoryCard.astro'), 'utf8');
   check('directory card resolves commercial route independently', directorySource.includes('resolvePublicCommercialRoute') && directorySource.includes('commercialRoute.externalAllowed'));
@@ -159,11 +155,11 @@ try {
   check('directory card keeps verified badge evidence-gated', directorySource.includes('view?.showVerifiedBadge'));
 
   const promoSource = readFileSync(join(ROOT, 'src/pages/promo-codes/index.astro'), 'utf8');
-  check('promo directory resolves exact commercial route separately', promoSource.includes('resolvePublicCommercialRoute') && promoSource.includes('route.externalAllowed'));
-  check('promo directory sources owner-confirmed code from commercial route', promoSource.includes("route.promoCodeAuthority === 'owner_confirmed'") && promoSource.includes('route.promoCode'));
-  check('promo directory never sources owner commercial code from claim view', !promoSource.includes('view.promoCode &&') && !promoSource.includes('PromoCodeCopy code={view.promoCode}'));
-  check('promo directory uses internal go hop and neutral Register CTA', promoSource.includes('href={`/go/${exchange.slug}/`}') && promoSource.includes('>Register →</a>'));
-  check('promo directory keeps country claim neutral while claim-commercial state is false', promoSource.includes("view.isCommercial ? COUNTRY_NOTE[exchange.slug] : 'Under re-verification — check the exchange directly'"));
+  check('promo directory delegates commercial resolution to canonical card', promoSource.includes('ExchangeDirectoryCard') && promoSource.includes('mode="promo"') && !promoSource.includes('resolvePublicCommercialRoute'));
+  check('promo directory never sources commercial code from claim view', !promoSource.includes('PromoCodeCopy') && !promoSource.includes('view.promoCode'));
+  check('promo directory contains no raw /go or affiliate destination', !promoSource.includes('/go/') && !promoSource.includes('affiliateUrl'));
+  check('promo directory keeps country claim neutral', promoSource.includes('code confirmation remains separate from country eligibility'));
+  check('promo directory legacy wide table is removed at source', !promoSource.includes('<table'));
 
   if (failures.length > 0) {
     console.error(`OWNER-CONFIRMED AUTHORITY SPLIT: FAIL (${failures.length}/${checks})`);
