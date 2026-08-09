@@ -53,10 +53,12 @@ try {
   check('catalog: no duplicate country codes', new Set(m.HEADER_COUNTRIES.map(country => country.code)).size === m.HEADER_COUNTRIES.length);
   check('catalog: Poland identity present', m.HEADER_COUNTRIES.some(country => country.code === 'PL' && country.name === 'Poland' && country.flag === '🇵🇱'));
   check('catalog: Kazakhstan identity present', m.HEADER_COUNTRIES.some(country => country.code === 'KZ' && country.name === 'Kazakhstan' && country.flag === '🇰🇿'));
+  check('catalog: Bulgaria identity present', m.HEADER_COUNTRIES.some(country => country.code === 'BG' && country.name === 'Bulgaria' && country.flag === '🇧🇬'));
 
   // Same-origin Cloudflare trace parser — proposal only.
   check('trace: supported PL accepted', m.parseCloudflareTraceCountry('ip=1.2.3.4\nloc=PL\ntls=TLSv1.3\n') === 'PL');
   check('trace: supported KZ accepted', m.parseCloudflareTraceCountry('loc=KZ\n') === 'KZ');
+  check('trace: supported BG accepted', m.parseCloudflareTraceCountry('loc=BG\n') === 'BG');
   check('trace: unsupported FR rejected', m.parseCloudflareTraceCountry('loc=FR\n') === null);
   check('trace: lowercase rejected', m.parseCloudflareTraceCountry('loc=pl\n') === null);
   check('trace: duplicate loc rejected', m.parseCloudflareTraceCountry('loc=PL\nloc=KZ\n') === null);
@@ -72,6 +74,8 @@ try {
   check('country: malformed storage fails closed', invalidStoredCountry.countryCode === 'global' && invalidStoredCountry.source === 'invalid_storage');
   const ipPL = m.resolveHeaderCountry({ ipCountryCode: 'PL' });
   check('country: supported IP proposal used when no manual override', ipPL.countryCode === 'PL' && ipPL.source === 'ip');
+  const ipBG = m.resolveHeaderCountry({ ipCountryCode: 'BG' });
+  check('country: Bulgaria IP identity used when no manual override', ipBG.countryCode === 'BG' && ipBG.source === 'ip');
   check('country: unsupported IP falls to General', m.resolveHeaderCountry({ ipCountryCode: 'FR' }).countryCode === 'global');
   check('country: missing IP falls to General', m.resolveHeaderCountry({}).countryCode === 'global');
 
@@ -91,6 +95,7 @@ try {
   const countryDecision = m.resolveHeaderCountry({ ipCountryCode: 'PL' });
   const languageDecision = m.resolveHeaderLanguage({ browserLanguages: ['ru-RU'] });
   check('separation: country and language resolve independently', countryDecision.countryCode === 'PL' && languageDecision.language.code === 'ru');
+  check('separation: Bulgaria identity does not populate MarketProfile registry', ipBG.countryCode === 'BG' && Object.isFrozen(m.PUBLIC_MARKET_PROFILES) && m.PUBLIC_MARKET_PROFILES.length === 0);
   check('separation: public MarketProfile registry remains frozen empty', Object.isFrozen(m.PUBLIC_MARKET_PROFILES) && m.PUBLIC_MARKET_PROFILES.length === 0);
 
   // Header static contract / compactness.
