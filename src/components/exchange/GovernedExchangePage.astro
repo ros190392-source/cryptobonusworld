@@ -1,17 +1,16 @@
 ---
 /**
- * GovernedExchangePage (Issue #266, authority split #269).
+ * Governed exchange-page dispatcher.
  *
- * Factual offer claims and commercial link/code authority are intentionally independent.
- * A confirmed affiliate link MUST NOT unlock rich promo copy. The rich promo surface is
- * rendered only when the factual offer state itself is verified; otherwise we render the
- * neutral re-verification surface and may expose only the exact owner-confirmed promo code
- * plus an internal /go/<slug>/ registration hop backed by #269 commercial-route authority.
+ * Factual offer claims and commercial link/code authority remain independent.
+ * A verified offer may render the rich review only when the commercial route is
+ * independently allowed. Even then, the review receives only the internal
+ * governed `/go/<slug>/` hop and the separately owner-confirmed code — never the
+ * raw affiliate destination from page config.
  */
 import CleanLayout from '../../layouts/CleanLayout.astro';
 import ExchangePromoPageV2 from './ExchangePromoPageV2.astro';
 import ExchangeUnverifiedNotice from './ExchangeUnverifiedNotice.astro';
-import '../../styles/exchange-page-standard-v1-responsive.css';
 import type { ExchangePromoPageConfig } from '../../data/exchangePages/types';
 import { resolvePublicOfferView } from '../../data/publicOfferView';
 import { resolvePublicCommercialRoute } from '../../data/publicCommercialRoute';
@@ -22,24 +21,16 @@ export interface Props {
 }
 
 const { config } = Astro.props;
-
-// One explicit build/render clock for both projections.
 const nowMs = Date.now();
 const view = resolvePublicOfferView(config.slug, nowMs);
 const commercialRoute = resolvePublicCommercialRoute(config.slug, nowMs);
 
-// IMPORTANT: link authority alone never unlocks claim-bearing rich content.
-// ExchangePromoPageV2 still contains claim-bearing config fields, so it is allowed only when
-// the factual offer itself is verified AND the commercial destination is independently safe.
 const claimsVerified = view?.publicState === 'verified' && view?.showVerifiedBadge === true;
 const richPromoAllowed = claimsVerified && commercialRoute.externalAllowed === true;
-
 const confirmedPromoCode = commercialRoute.promoCodeAuthority === 'owner_confirmed'
   ? commercialRoute.promoCode
   : null;
-const commercialHref = commercialRoute.externalAllowed
-  ? `/go/${config.slug}/`
-  : null;
+const commercialHref = commercialRoute.externalAllowed ? `/go/${config.slug}/` : null;
 
 const officialUrl = `https://www.${config.officialDomain}`;
 const neutralTitle = `${config.name} exchange — offer under re-verification | CryptoBonusWorld`;
@@ -54,8 +45,12 @@ const neutralDescription = `${config.name} promotion details are being re-verifi
   ogTitle={richPromoAllowed ? config.ogTitle : neutralTitle}
   ogDescription={richPromoAllowed ? config.ogDescription : neutralDescription}
 >
-  {richPromoAllowed ? (
-    <ExchangePromoPageV2 config={config} />
+  {richPromoAllowed && commercialHref ? (
+    <ExchangePromoPageV2
+      config={config}
+      commercialHref={commercialHref}
+      confirmedPromoCode={confirmedPromoCode}
+    />
   ) : (
     <ExchangeUnverifiedNotice
       slug={config.slug}
