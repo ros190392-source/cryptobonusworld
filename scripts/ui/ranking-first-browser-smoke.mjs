@@ -113,6 +113,34 @@ async function homepageChecks(browser, viewport, label, maxTop10Y) {
   await context.close();
 }
 
+async function faqChecks(browser, viewport, label) {
+  const context = await browser.newContext({ viewport, locale: 'en-US' });
+  const page = await context.newPage();
+  const errors = [];
+  captureErrors(page, errors);
+  await page.goto(`${BASE}/faq/`, { waitUntil: 'domcontentloaded', timeout: 15000 });
+
+  check(`faq ${label}: one H1`, await page.locator('h1').count() === 1);
+  check(`faq ${label}: canonical trust family`, await page.locator('[data-page-family="trust"]').count() === 1);
+  check(`faq ${label}: canonical FAQ groups`, await page.locator('[data-faq-groups]').count() === 1);
+  check(`faq ${label}: twenty FAQ items`, await page.locator('.cbw-faq-item').count() === 20, `count=${await page.locator('.cbw-faq-item').count()}`);
+  check(`faq ${label}: all FAQ items collapsed initially`, await page.locator('.cbw-faq-item[open]').count() === 0);
+
+  const prose = await page.locator('#faq .cbw-container--prose').boundingBox();
+  const firstFaq = await page.locator('.cbw-faq-item').first().boundingBox();
+  check(`faq ${label}: prose container rendered`, Boolean(prose));
+  if (prose && label === 'desktop') check('faq desktop: prose width canonical 760', Math.abs(prose.width - 760) <= 1, `width=${prose.width}`);
+  if (prose && firstFaq) {
+    check(`faq ${label}: card stays inside prose container`, firstFaq.x >= prose.x - 1 && firstFaq.x + firstFaq.width <= prose.x + prose.width + 1);
+  }
+  if (firstFaq) check(`faq ${label}: first useful FAQ begins in first viewport`, firstFaq.y < viewport.height, `y=${firstFaq.y}, viewport=${viewport.height}`);
+
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  check(`faq ${label}: no horizontal overflow`, overflow <= 1, `overflow=${overflow}`);
+  check(`faq ${label}: no page/console errors`, errors.length === 0, errors.join(' | '));
+  await context.close();
+}
+
 async function methodologyChecks(browser) {
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await context.newPage();
@@ -141,6 +169,8 @@ try {
 
   await homepageChecks(browser, { width: 1440, height: 900 }, 'desktop', 430);
   await homepageChecks(browser, { width: 390, height: 844 }, 'mobile', 520);
+  await faqChecks(browser, { width: 1440, height: 900 }, 'desktop');
+  await faqChecks(browser, { width: 390, height: 844 }, 'mobile');
   await methodologyChecks(browser);
 
   if (failures.length) {
