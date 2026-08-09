@@ -1,0 +1,36 @@
+name: CBW Live Smoke Diagnostic 002
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - '.github/workflows/cbw-live-smoke-diagnostic-002.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  live-smoke:
+    name: Read-only production live smoke 002
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CBW_PRODUCTION_BASE_URL: https://cryptobonusworld.com
+    steps:
+      - name: Checkout exact diagnostic head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Syntax check
+        run: node --check scripts/production-live-smoke.mjs
+
+      - name: Run read-only live smoke
+        run: node scripts/production-live-smoke.mjs
