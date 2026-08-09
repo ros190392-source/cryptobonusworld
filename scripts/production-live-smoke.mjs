@@ -85,7 +85,7 @@ async function requestWithRetry(url, options = {}) {
       const response = await fetch(requestUrl, {
         redirect: options.redirect || 'follow',
         headers: {
-          'user-agent': 'CBW-Production-Live-Smoke/1.3',
+          'user-agent': 'CBW-Production-Live-Smoke/1.4',
           accept: 'text/html,application/xhtml+xml',
           'cache-control': 'no-cache, no-store, max-age=0',
           pragma: 'no-cache',
@@ -174,12 +174,16 @@ const homepageHtml = await getHtml('/');
 const promoHtml = await getHtml('/promo-codes/');
 await getHtml('/exchanges/');
 
-for (const slug of ['bybit', 'mexc', 'okx', 'coinex']) {
+const dedicatedPageHtml = new Map();
+for (const slug of ['bybit', 'mexc', 'okx', 'bitget', 'bingx', 'kucoin', 'coinex']) {
   const exchange = exchanges.find((item) => item?.slug === slug);
-  if (exchange) await getHtml(`/${slug}/`);
+  if (exchange) dedicatedPageHtml.set(slug, await getHtml(`/${slug}/`));
 }
 
-for (const slug of ['bybit', 'mexc', 'bitget', 'coinex']) {
+// `/promo-codes/` is intentionally a featured-exchange surface, not a complete
+// catalog of every owner-confirmed code. Check exact-case codes only for rows
+// contractually expected on that surface.
+for (const slug of ['bybit', 'mexc', 'bitget']) {
   const exchange = exchanges.find((item) => item?.slug === slug);
   const code = exchange ? exactPromoCode(exchange) : null;
   if (!code) continue;
@@ -188,6 +192,14 @@ for (const slug of ['bybit', 'mexc', 'bitget', 'coinex']) {
     `/promo-codes/: exact-case owner-confirmed promo code missing for ${slug}: ${code}`,
   );
 }
+
+// Issue #271 requires CoinEx `2my4f` on the dedicated CoinEx page; CoinEx is
+// not required to be one of the six featured rows on `/promo-codes/`.
+const coinex = exchanges.find((item) => item?.slug === 'coinex');
+const coinexCode = coinex ? exactPromoCode(coinex) : null;
+const coinexHtml = dedicatedPageHtml.get('coinex');
+assert(Boolean(coinexCode), '/coinex/: owner-confirmed promo code missing from exchange data');
+assert(typeof coinexHtml === 'string' && coinexHtml.includes(coinexCode), `/coinex/: exact-case owner-confirmed promo code missing: ${coinexCode}`);
 
 assert(!hasUnsupportedVerifiedOfferLabel(homepageHtml), '/: unsupported "Verified offer" UI label leaked');
 
@@ -204,4 +216,4 @@ for (const candidate of commercialCandidates) {
   await verifyGoRoute(candidate.slug, candidate.destination);
 }
 
-console.log(`CBW LIVE SMOKE PASS — pages=7, goRoutes=${commercialCandidates.length}`);
+console.log(`CBW LIVE SMOKE PASS — pages=${3 + dedicatedPageHtml.size}, goRoutes=${commercialCandidates.length}`);
