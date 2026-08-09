@@ -34,8 +34,9 @@ const { img, variant = 'tall', class: cls = '' } = Astro.props;
     z-index: 0;
     background: linear-gradient(90deg,rgba(7,12,21,.97) 0%,rgba(7,12,21,.93) 38%,rgba(7,12,21,.62) 72%,rgba(7,12,21,.25) 100%);
   }
-  .page-hero--tall { max-height: 300px; }
-  .page-hero--short { max-height: 260px; }
+  /* Content-driven heights: never clip long titles, chips or update text. */
+  .page-hero--tall { min-height: 260px; }
+  .page-hero--short { min-height: 220px; }
   .page-hero__inner {
     position: relative;
     z-index: 1;
@@ -102,13 +103,13 @@ const { img, variant = 'tall', class: cls = '' } = Astro.props;
   @media (max-width: 768px) {
     .page-hero { background-position: center right -40px; }
     .page-hero::before { background: linear-gradient(90deg,rgba(7,12,21,.96) 0%,rgba(7,12,21,.9) 58%,rgba(7,12,21,.68) 100%); }
-    .page-hero--tall { max-height: 280px; }
-    .page-hero--short { max-height: 240px; }
+    .page-hero--tall { min-height: 240px; }
+    .page-hero--short { min-height: 210px; }
     .page-hero__inner { padding-block: 24px; }
   }
   @media (max-width: 480px) {
-    .page-hero--tall { max-height: 260px; }
-    .page-hero--short { max-height: 230px; }
+    .page-hero--tall { min-height: 230px; }
+    .page-hero--short { min-height: 200px; }
     .page-hero__inner { padding-block: 20px; }
     .page-hero :global(.ph-title) { font-size: 42px; }
     .page-hero :global(.ph-sub) { font-size: 12px; line-height: 1.42; }
