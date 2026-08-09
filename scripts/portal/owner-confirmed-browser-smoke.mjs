@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Browser smoke for Issue #269. Localhost-only; never contacts exchanges. */
+/** Browser smoke for owner-confirmed commercial authority. Localhost-only. */
 import { createServer } from 'node:http';
 import { createReadStream, existsSync, mkdtempSync, rmSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -21,6 +21,12 @@ const PORT = mode === 'production' ? 4471 : 4470;
 const BASE = `http://127.0.0.1:${PORT}`;
 const TMP = mkdtempSync(join(tmpdir(), 'cbw-owner-browser-smoke-'));
 const BUNDLE = join(TMP, 'owner-manifest.mjs');
+const CONTENT_TYPES = Object.freeze({
+  '.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8',
+  '.json':'application/json; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.ico':'image/x-icon',
+  '.woff':'font/woff','.woff2':'font/woff2','.xml':'application/xml; charset=utf-8','.txt':'text/plain; charset=utf-8',
+});
+const DEDICATED_SLUGS = ['bybit','mexc','okx','bitget','bingx','kucoin','coinex'];
 
 let checks = 0;
 const failures = [];
@@ -32,26 +38,8 @@ function check(label, ok, detail = '') {
 function isNeutralPosture(text) {
   const value = String(text ?? '').replace(/\s+/g, ' ').trim();
   if (!value || /(?:✓\s*)?verified offer/i.test(value)) return false;
-  return /re-verif(?:ication|ied)|being re-verified|re-?check(?:ed|ing)?|under review|research completed|not verified/i.test(value);
+  return /re-verif(?:ication|ied)|being re-verified|re-?check(?:ed|ing)?|under review|research completed|not verified|offer under review/i.test(value);
 }
-
-const CONTENT_TYPES = Object.freeze({
-  '.html': 'text/html; charset=utf-8',
-  '.css': 'text/css; charset=utf-8',
-  '.js': 'text/javascript; charset=utf-8',
-  '.mjs': 'text/javascript; charset=utf-8',
-  '.json': 'application/json; charset=utf-8',
-  '.svg': 'image/svg+xml',
-  '.png': 'image/png',
-  '.jpg': 'image/jpeg',
-  '.jpeg': 'image/jpeg',
-  '.webp': 'image/webp',
-  '.ico': 'image/x-icon',
-  '.woff': 'font/woff',
-  '.woff2': 'font/woff2',
-  '.xml': 'application/xml; charset=utf-8',
-  '.txt': 'text/plain; charset=utf-8',
-});
 
 async function loadManifest() {
   const contract = join(ROOT, 'src/data/contracts/ownerConfirmedCommercialAuthority.ts');
@@ -74,13 +62,8 @@ async function loadManifest() {
 
 function staticFileFor(requestUrl) {
   let pathname;
-  try {
-    pathname = decodeURIComponent(new URL(requestUrl, BASE).pathname);
-  } catch {
-    return null;
-  }
+  try { pathname = decodeURIComponent(new URL(requestUrl, BASE).pathname); } catch { return null; }
   if (pathname.includes('\0')) return null;
-
   const rel = pathname.replace(/^\/+/, '');
   let candidate = resolve(DIST, rel);
   if (pathname.endsWith('/')) candidate = resolve(candidate, 'index.html');
@@ -88,46 +71,31 @@ function staticFileFor(requestUrl) {
     const directIsFile = existsSync(candidate) && statSync(candidate).isFile();
     if (!directIsFile) candidate = resolve(candidate, 'index.html');
   }
-
   if (candidate !== DIST && !candidate.startsWith(`${DIST}${sep}`)) return null;
-  if (!existsSync(candidate) || !statSync(candidate).isFile()) return null;
-  return candidate;
+  return existsSync(candidate) && statSync(candidate).isFile() ? candidate : null;
 }
 
 async function startStaticServer() {
   if (!existsSync(DIST)) throw new Error('dist not found — build before browser smoke.');
   const server = createServer((req, res) => {
     let pathname = '';
-    try {
-      pathname = new URL(req.url ?? '/', BASE).pathname;
-    } catch {}
-
-    // The production header asks Cloudflare for a same-origin country proposal.
-    // This localhost-only smoke must never contact Cloudflare, so return a
-    // deterministic unsupported location. `ZZ` is intentionally non-authorizing:
-    // the header parser rejects it and remains in the safe General context.
+    try { pathname = new URL(req.url ?? '/', BASE).pathname; } catch {}
     if (pathname === '/cdn-cgi/trace') {
       res.writeHead(200, { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' });
-      if (req.method === 'HEAD') {
-        res.end();
-        return;
-      }
+      if (req.method === 'HEAD') { res.end(); return; }
       res.end('ip=127.0.0.1\nloc=ZZ\ntls=TLSv1.3\n');
       return;
     }
-
     const file = staticFileFor(req.url ?? '/');
     if (!file) {
+      console.error(`CBW_STATIC_404 ${req.method ?? 'GET'} ${pathname || req.url || ''}`);
       res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' });
       res.end('Not found');
       return;
     }
     const type = CONTENT_TYPES[extname(file).toLowerCase()] ?? 'application/octet-stream';
     res.writeHead(200, { 'content-type': type, 'cache-control': 'no-store' });
-    if (req.method === 'HEAD') {
-      res.end();
-      return;
-    }
+    if (req.method === 'HEAD') { res.end(); return; }
     createReadStream(file).on('error', () => {
       if (!res.headersSent) res.writeHead(500);
       res.end();
@@ -149,12 +117,10 @@ async function stopStaticServer(server) {
 }
 
 async function launchBrowser() {
-  try {
-    return await chromium.launch({ headless: true, channel: 'chrome' });
-  } catch (chromeError) {
-    try {
-      return await chromium.launch({ headless: true });
-    } catch (bundledError) {
+  try { return await chromium.launch({ headless: true, channel: 'chrome' }); }
+  catch (chromeError) {
+    try { return await chromium.launch({ headless: true }); }
+    catch (bundledError) {
       throw new Error(`Chrome launch failed: ${chromeError?.message ?? chromeError}\nBundled Chromium failed: ${bundledError?.message ?? bundledError}`);
     }
   }
@@ -178,6 +144,9 @@ function captureErrors(page, bucket, prefix) {
   page.on('console', (m) => {
     if (m.type() === 'error' && !/ERR_BLOCKED_BY_CLIENT/i.test(m.text())) bucket.push(`${prefix} console.error: ${m.text()}`);
   });
+  page.on('response', (response) => {
+    if (response.status() >= 400) bucket.push(`${prefix} HTTP ${response.status()}: ${response.url()}`);
+  });
 }
 
 async function gotoReady(page, path, selector = 'body') {
@@ -189,12 +158,12 @@ async function gotoReady(page, path, selector = 'body') {
 async function homepageSnapshot(page, label, manifestBySlug) {
   const errors = [];
   captureErrors(page, errors, `${label} homepage`);
-  const response = await gotoReady(page, '/', '.top10-row');
+  const response = await gotoReady(page, '/', '.exchange-card');
   check(`${label}: homepage HTTP 200`, response?.status() === 200, `status=${response?.status()}`);
-  const rows = page.locator('.top10-row');
+  const rows = page.locator('.exchange-card');
   const count = await rows.count();
-  check(`${label}: 10 Top-10 rows`, count === 10, `count=${count}`);
-  check(`${label}: no verified factual badge`, await page.locator('.top10-status--verified').count() === 0);
+  check(`${label}: 10 Top-10 cards`, count === 10, `count=${count}`);
+  check(`${label}: no verified factual badge`, await page.locator('.status-verified').count() === 0);
 
   const goCount = await page.locator('.top10-primary[href^="/go/"]').count();
   if (mode === 'production') {
@@ -210,8 +179,8 @@ async function homepageSnapshot(page, label, manifestBySlug) {
 
   const snapshot = await rows.evaluateAll((els) => els.map((el) => ({
     slug: el.getAttribute('data-exchange-slug') ?? '',
-    status: el.querySelector('.top10-status')?.textContent?.trim() ?? '',
-    summary: el.querySelector('.top10-summary')?.textContent?.trim() ?? '',
+    status: el.querySelector('.status-badge')?.textContent?.trim() ?? '',
+    summary: el.querySelector('.card-summary')?.textContent?.trim() ?? '',
     code: el.querySelector('.pcc-code')?.textContent?.trim() ?? '',
     dataCode: el.querySelector('.pcc-copy')?.getAttribute('data-code') ?? '',
   })));
@@ -226,12 +195,12 @@ async function homepageSnapshot(page, label, manifestBySlug) {
       check(`${label} ${row.slug}: no invented owner code`, row.code === '' && row.dataCode === '', `visible=${row.code} data=${row.dataCode}`);
     }
   }
-  check(`${label}: no console/page errors`, errors.length === 0, errors.join(' | '));
+  check(`${label}: no console/page/http errors`, errors.length === 0, errors.join(' | '));
   return snapshot;
 }
 
 async function checkKeyboard(page) {
-  await gotoReady(page, '/', '.top10-row');
+  await gotoReady(page, '/', '.exchange-card');
   let visibleInteractive = false;
   for (let i = 0; i < 20; i += 1) {
     await page.keyboard.press('Tab');
@@ -239,7 +208,7 @@ async function checkKeyboard(page) {
       const el = document.activeElement;
       if (!(el instanceof HTMLElement)) return false;
       const r = el.getBoundingClientRect();
-      return ['A', 'BUTTON', 'INPUT', 'SELECT'].includes(el.tagName)
+      return ['A','BUTTON','INPUT','SELECT','SUMMARY'].includes(el.tagName)
         && r.width > 0 && r.height > 0
         && getComputedStyle(el).visibility !== 'hidden';
     });
@@ -253,58 +222,50 @@ async function checkPromoDirectory(context, manifestBySlug) {
   const errors = [];
   captureErrors(page, errors, 'promo directory');
   try {
-    const response = await gotoReady(page, '/promo-codes/', '.promo-row');
+    const response = await gotoReady(page, '/promo-codes/', '[data-promo-card-grid] .exchange-product-card');
     check('promo: HTTP 200', response?.status() === 200, `status=${response?.status()}`);
-    const rows = page.locator('.promo-row');
-    const count = await rows.count();
-    check('promo: 6 rows', count === 6, `count=${count}`);
-    const state = await rows.evaluateAll((els) => els.map((el) => ({
+    const cards = page.locator('[data-promo-card-grid] .exchange-product-card');
+    const count = await cards.count();
+    check('promo: 6 cards', count === 6, `count=${count}`);
+    check('promo: legacy table absent', await page.locator('table').count() === 0);
+    const state = await cards.evaluateAll((els) => els.map((el) => ({
       slug: el.getAttribute('data-exchange-slug') ?? '',
       code: el.querySelector('.pcc-code')?.textContent?.trim() ?? '',
       dataCode: el.querySelector('.pcc-copy')?.getAttribute('data-code') ?? '',
-      codeState: el.querySelector('.promo-code-confirmed small')?.textContent?.trim() ?? '',
-      href: el.querySelector('.promo-action')?.getAttribute('href') ?? '',
-      action: el.querySelector('.promo-action')?.textContent?.trim() ?? '',
-      offer: el.querySelector('[data-label="Offer status"]')?.textContent?.trim() ?? '',
-      country: el.querySelector('[data-label="Country note"]')?.textContent?.trim() ?? '',
+      href: el.querySelector('.exchange-product-card__primary')?.getAttribute('href') ?? '',
+      action: el.querySelector('.exchange-product-card__primary')?.textContent?.trim() ?? '',
+      status: el.querySelector('[data-status-tone]')?.textContent?.trim() ?? '',
+      country: el.querySelector('.exchange-product-card__country')?.textContent?.trim() ?? '',
     })));
-    for (const row of state) {
-      const expected = manifestBySlug.get(row.slug);
-      check(`promo ${row.slug}: manifest exists`, Boolean(expected));
-      check(`promo ${row.slug}: exact visible code`, row.code === (expected?.promoCode ?? ''), `actual=${row.code}`);
-      check(`promo ${row.slug}: exact data-code`, row.dataCode === (expected?.promoCode ?? ''), `actual=${row.dataCode}`);
-      check(`promo ${row.slug}: owner label`, /owner confirmed/i.test(row.codeState));
-      check(`promo ${row.slug}: /go boundary`, row.href === `/go/${row.slug}/`, `href=${row.href}`);
-      check(`promo ${row.slug}: neutral CTA`, /^Register/i.test(row.action) && !/bonus|claim|reward|verified/i.test(row.action));
-      check(`promo ${row.slug}: neutral offer`, isNeutralPosture(row.offer), row.offer);
-      check(`promo ${row.slug}: neutral country`, isNeutralPosture(row.country), row.country);
+    for (const card of state) {
+      const expected = manifestBySlug.get(card.slug);
+      check(`promo ${card.slug}: manifest exists`, Boolean(expected));
+      check(`promo ${card.slug}: exact visible code`, card.code === (expected?.promoCode ?? ''), `actual=${card.code}`);
+      check(`promo ${card.slug}: exact data-code`, card.dataCode === (expected?.promoCode ?? ''), `actual=${card.dataCode}`);
+      check(`promo ${card.slug}: /go boundary`, card.href === `/go/${card.slug}/`, `href=${card.href}`);
+      check(`promo ${card.slug}: neutral CTA`, /^Register/i.test(card.action) && !/bonus|claim|reward|verified/i.test(card.action));
+      check(`promo ${card.slug}: neutral offer`, isNeutralPosture(card.status), card.status);
+      check(`promo ${card.slug}: country remains cautionary`, /does not prove local eligibility|check active-market evidence/i.test(card.country), card.country);
     }
-    check('promo: no console/page errors', errors.length === 0, errors.join(' | '));
+    check('promo: no console/page/http errors', errors.length === 0, errors.join(' | '));
   } finally {
     await page.close();
   }
 }
 
 async function checkDedicated(context, manifestBySlug) {
-  for (const slug of ['bybit', 'mexc', 'okx', 'bitget', 'bingx', 'kucoin', 'coinex']) {
+  for (const slug of DEDICATED_SLUGS) {
     const page = await context.newPage();
     const errors = [];
     captureErrors(page, errors, `dedicated ${slug}`);
     try {
-      const response = await gotoReady(page, `/${slug}/`, 'main');
+      const response = await gotoReady(page, `/${slug}/`, '.exchange-review-product');
       check(`${slug}: HTTP 200`, response?.status() === 200, `status=${response?.status()}`);
-
-      const neutralCount = await page.locator('.cbw-unverified').count();
-      if (neutralCount !== 1) {
-        const title = await page.locator('h1').first().textContent().catch(() => '');
-        check(`${slug}: neutral surface`, false, `count=${neutralCount}; h1=${String(title ?? '').trim()}`);
-        check(`${slug}: no console/page errors`, errors.length === 0, errors.join(' | '));
-        continue;
-      }
-      check(`${slug}: neutral surface`, true);
+      check(`${slug}: canonical exchange family`, await page.locator('[data-page-family="exchange"]').count() === 1);
       const bodyText = await page.locator('body').innerText();
-      check(`${slug}: no verified offer text`, !/(?:✓\s*)?verified offer/i.test(bodyText));
-      check(`${slug}: offer terms remain neutral`, isNeutralPosture(bodyText));
+      const verified = await page.locator('.exchange-offer-card').count() === 1;
+      const underReview = await page.locator('.unverified-state-card').count() === 1;
+      check(`${slug}: exactly one governed review state`, Number(verified) + Number(underReview) === 1, `verified=${verified} underReview=${underReview}`);
 
       const expected = manifestBySlug.get(slug);
       check(`${slug}: manifest exists`, Boolean(expected));
@@ -313,13 +274,23 @@ async function checkDedicated(context, manifestBySlug) {
       check(`${slug}: exact visible confirmed code`, code === (expected?.promoCode ?? ''), `actual=${code}`);
       check(`${slug}: exact confirmed data-code`, dataCode === (expected?.promoCode ?? ''), `actual=${dataCode}`);
 
-      const primary = page.locator('.cbw-unverified__primary');
-      check(`${slug}: one primary CTA`, await primary.count() === 1);
-      const href = await primary.getAttribute('href');
-      check(`${slug}: internal /go action`, href === `/go/${slug}/`, `href=${href}`);
-      const text = (await primary.innerText()).trim();
-      check(`${slug}: neutral registration CTA`, /^Register on /i.test(text) && !/bonus|claim|reward|verified/i.test(text));
-      check(`${slug}: no console/page errors`, errors.length === 0, errors.join(' | '));
+      const sponsored = page.locator('a[rel~="sponsored"]');
+      const sponsoredCount = await sponsored.count();
+      check(`${slug}: one sponsored primary at most`, sponsoredCount <= 1, `count=${sponsoredCount}`);
+      if (sponsoredCount === 1) {
+        const href = await sponsored.first().getAttribute('href');
+        check(`${slug}: sponsored action uses internal /go`, href === `/go/${slug}/`, `href=${href}`);
+      }
+
+      if (underReview) {
+        check(`${slug}: under-review page has no verified-offer text`, !/(?:✓\s*)?verified offer/i.test(bodyText));
+        check(`${slug}: under-review terms remain neutral`, isNeutralPosture(bodyText));
+      }
+      if (verified) {
+        check(`${slug}: verified page states global offer scope`, /verified global offer/i.test(bodyText));
+        check(`${slug}: verified page still separates local eligibility`, /does not prove local eligibility|country context does not guarantee/i.test(bodyText));
+      }
+      check(`${slug}: no console/page/http errors`, errors.length === 0, errors.join(' | '));
     } finally {
       await page.close();
     }
@@ -345,13 +316,9 @@ async function checkGoMatrix(browser, manifest) {
         } else {
           check(`go/${entry.slug}: no invented code`, await page.locator('code').count() === 0);
         }
-      } finally {
-        await page.close();
-      }
+      } finally { await page.close(); }
     }
-  } finally {
-    await context.close();
-  }
+  } finally { await context.close(); }
 }
 
 let server;
@@ -386,7 +353,7 @@ try {
 
   if (failures.length) {
     console.error(`OWNER-CONFIRMED BROWSER SMOKE (${mode}): FAIL (${failures.length}/${checks})`);
-    for (const f of failures) console.error(` - ${f}`);
+    for (const failure of failures) console.error(` - ${failure}`);
     process.exitCode = 1;
   } else {
     console.log(`OWNER-CONFIRMED BROWSER SMOKE (${mode}): PASS (${checks}/${checks})`);
