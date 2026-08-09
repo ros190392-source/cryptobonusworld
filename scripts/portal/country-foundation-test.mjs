@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Country Foundation regression suite (Issue #272, remediation #299).
+ * Country Foundation regression suite (Issue #272, remediations #299 / #300).
  *
  * Proves the PL/KZ identity + context + MarketProfile V1 boundary without
  * populating the public registry or publishing country availability facts.
@@ -44,7 +44,7 @@ try {
         `export { validateMarketProfile } from ${JSON.stringify(portalFactory)};\n` +
         `export { COUNTRY_MARKET_PROFILE_SCHEMA_VERSION, validateCountryMarketProfileV1, evaluateCountryMarketProfileV1CommercialReadiness } from ${JSON.stringify(marketProfileV1)};\n` +
         `export { resolveMarketProfile, PUBLIC_MARKET_PROFILES } from ${JSON.stringify(marketProfileRegistry)};\n` +
-        `export { resolveCountryAwareCommercialCta, resolveCountryFoundationCommercialCta } from ${JSON.stringify(countryAwareCta)};\n` +
+        `export { resolveCountryAwareCommercialCta, resolveCountryFoundationCommercialCta, validateCountryFoundationRegistry } from ${JSON.stringify(countryAwareCta)};\n` +
         `export { gateReasonText } from ${JSON.stringify(portalCtaI18n)};\n` +
         `export { resolveOwnerConfirmedCommercialAuthority } from ${JSON.stringify(ownerAuthority)};\n`,
       resolveDir: ROOT,
@@ -191,6 +191,35 @@ try {
   const readinessRestricted = m.evaluateCountryMarketProfileV1CommercialReadiness(coherentRestricted);
   check('readiness/#299: coherent restricted profile blocks independently', readinessRestricted.ok === false && readinessRestricted.block === 'restricted');
 
+  // ── #300 atomic Country Foundation registry ────────────────────────────────
+  const validSibling = {
+    ...v1Profile,
+    profileId: 'mp:other:kz:v1',
+    exchangeId: 'other',
+    countryCode: 'KZ',
+  };
+  const legacySibling = {
+    ...legacyProfile,
+    profileId: 'mp:other:kz:legacy',
+    exchangeId: 'other',
+    countryCode: 'KZ',
+  };
+  const invalidV1Sibling = { ...validSibling, profileId: 'mp:other:kz:invalid', kyc: undefined };
+  const contradictoryV1Sibling = {
+    ...validSibling,
+    profileId: 'mp:other:kz:contradictory',
+    restrictions: { state: 'restricted', claimIds: ['claim:restr'], limitations: [] },
+  };
+  const duplicateSibling = { ...validSibling, profileId: 'mp:other:kz:v1:duplicate' };
+
+  check('registry/v1/#300: empty registry is structurally valid', m.validateCountryFoundationRegistry([]).ok === true);
+  check('registry/v1/#300: distinct valid V1 siblings are structurally valid', m.validateCountryFoundationRegistry([v1Profile, validSibling]).ok === true);
+  check('registry/v1/#300: legacy base-valid sibling invalidates registry', m.validateCountryFoundationRegistry([v1Profile, legacySibling]).ok === false);
+  check('registry/v1/#300: V1-invalid sibling invalidates registry', m.validateCountryFoundationRegistry([v1Profile, invalidV1Sibling]).ok === false);
+  check('registry/v1/#300: contradictory V1 sibling invalidates registry', m.validateCountryFoundationRegistry([v1Profile, contradictoryV1Sibling]).ok === false);
+  const duplicateSiblingValidation = m.validateCountryFoundationRegistry([v1Profile, validSibling, duplicateSibling]);
+  check('registry/v1/#300: duplicate sibling pair invalidates complete registry', duplicateSiblingValidation.ok === false && duplicateSiblingValidation.reason === 'DUPLICATE_PAIR');
+
   // ── Strict Country Foundation CTA ─────────────────────────────────────────
   const offerEvidence = {
     evidenceCheckedAt: days(-5),
@@ -210,7 +239,7 @@ try {
   check('cta/v1: exact approved V1 pair may authorize isolated positive fixture', isGo(positive) && positive.href === '/go/ex');
 
   const legacyBlocked = m.resolveCountryFoundationCommercialCta({ ...baseCta, marketProfiles: [legacyProfile] });
-  check('cta/v1: legacy profile fails strict public boundary', !isGo(legacyBlocked) && legacyBlocked.gateReason === 'PROFILE_FOUNDATION_INVALID');
+  check('cta/v1: legacy profile fails strict public boundary', !isGo(legacyBlocked) && legacyBlocked.gateReason === 'PROFILE_REGISTRY_INVALID');
 
   const missingBlocked = m.resolveCountryFoundationCommercialCta({ ...baseCta, marketProfiles: [] });
   check('cta/v1: missing profile fails closed', !isGo(missingBlocked) && missingBlocked.gateReason === 'PROFILE_MISSING');
@@ -222,10 +251,28 @@ try {
   check('cta/v1: wrong exchange pair fails closed', !isGo(wrongExchange));
 
   const duplicate = m.resolveCountryFoundationCommercialCta({ ...baseCta, marketProfiles: [v1Profile, { ...v1Profile, profileId: 'mp:ex:pl:v1:2' }] });
-  check('cta/v1: duplicate pair conflicts', !isGo(duplicate) && duplicate.gateReason === 'PROFILE_CONFLICT');
+  check('cta/v1: duplicate selected pair remains conflict', !isGo(duplicate) && duplicate.gateReason === 'PROFILE_CONFLICT');
 
   const malformedRegistry = m.resolveCountryFoundationCommercialCta({ ...baseCta, marketProfiles: [v1Profile, null] });
   check('cta/v1: malformed registry fails atomically', !isGo(malformedRegistry) && malformedRegistry.gateReason === 'PROFILE_REGISTRY_INVALID');
+
+  const legacySiblingBlocked = m.resolveCountryFoundationCommercialCta({ ...baseCta, marketProfiles: [v1Profile, legacySibling] });
+  check('cta/v1/#300: base-valid legacy sibling blocks selected V1 pair', !isGo(legacySiblingBlocked) && legacySiblingBlocked.gateReason === 'PROFILE_REGISTRY_INVALID');
+
+  const invalidSiblingBlocked = m.resolveCountryFoundationCommercialCta({ ...baseCta, marketProfiles: [v1Profile, invalidV1Sibling] });
+  check('cta/v1/#300: V1-invalid sibling blocks selected V1 pair', !isGo(invalidSiblingBlocked) && invalidSiblingBlocked.gateReason === 'PROFILE_REGISTRY_INVALID');
+
+  const contradictorySiblingBlocked = m.resolveCountryFoundationCommercialCta({ ...baseCta, marketProfiles: [v1Profile, contradictoryV1Sibling] });
+  check('cta/v1/#300: contradictory V1 sibling blocks selected V1 pair', !isGo(contradictorySiblingBlocked) && contradictorySiblingBlocked.gateReason === 'PROFILE_REGISTRY_INVALID');
+
+  const duplicateSiblingBlocked = m.resolveCountryFoundationCommercialCta({ ...baseCta, marketProfiles: [v1Profile, validSibling, duplicateSibling] });
+  check('cta/v1/#300: duplicate sibling pair blocks selected V1 pair', !isGo(duplicateSiblingBlocked) && duplicateSiblingBlocked.gateReason === 'PROFILE_REGISTRY_INVALID');
+
+  const distinctSiblingAllowed = m.resolveCountryFoundationCommercialCta({ ...baseCta, marketProfiles: [v1Profile, validSibling] });
+  check('cta/v1/#300: distinct valid sibling preserves exact selected authorization', isGo(distinctSiblingAllowed) && distinctSiblingAllowed.href === '/go/ex');
+
+  const legacyCompatibility = m.resolveCountryAwareCommercialCta({ ...baseCta, marketProfiles: [v1Profile, legacySibling] });
+  check('cta/legacy/#300: legacy compatibility path remains unchanged', isGo(legacyCompatibility) && legacyCompatibility.href === '/go/ex');
 
   const stale = m.resolveCountryFoundationCommercialCta({ ...baseCta, marketProfiles: [{ ...v1Profile, lastCheckedAt: days(-120), nextReviewAt: days(30) }] });
   check('cta/v1: stale profile fails closed', !isGo(stale) && stale.gateReason === 'EVIDENCE_STALE');
