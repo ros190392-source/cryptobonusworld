@@ -1,0 +1,254 @@
+name: CBW Production Safe Batch Auto-Deploy
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - '.github/workflows/cbw-production-safe-batch-autodeploy.yml'
+      - 'scripts/production-live-smoke.mjs'
+      - 'docs/tasks/CBW_PRODUCTION_P2_SAFE_BATCH_AUTODEPLOY_001.md'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-autodeploy:
+    name: Validate auto-deploy contract
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Syntax-check production live smoke
+        run: node --check scripts/production-live-smoke.mjs
+
+      - name: Verify fail-closed workflow invariants
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+          const path = '.github/workflows/cbw-production-safe-batch-autodeploy.yml';
+          const text = readFileSync(path, 'utf8');
+          const mustContain = [
+            "branches:\n      - master",
+            'environment: production',
+            'cancel-in-progress: true',
+            "if: github.event_name != 'pull_request'",
+            'PUBLIC_CBW_CTA_MODE: production',
+            'CBW_DEPLOY_PRIVATE_KEY',
+            'CBW_DEPLOY_KNOWN_HOSTS',
+            'node scripts/deploy.mjs --no-indexnow',
+            'node scripts/production-live-smoke.mjs',
+            'node scripts/indexnow.mjs --mode priority',
+          ];
+          for (const needle of mustContain) {
+            if (!text.includes(needle)) throw new Error(`missing required auto-deploy invariant: ${needle}`);
+          }
+          if (/\bschedule\s*:/.test(text)) throw new Error('production auto-deploy must not use schedule on default research branch');
+          console.log('AUTO-DEPLOY CONTRACT PASS');
+          NODE
+
+  deploy:
+    name: Production release
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 45
+    concurrency:
+      group: cbw-production-safe-batch-autodeploy
+      cancel-in-progress: true
+    env:
+      PUBLIC_CBW_CTA_MODE: production
+      CBW_PRODUCTION_BASE_URL: https://cryptobonusworld.com
+      CBW_DEPLOY_HOST: ${{ secrets.CBW_DEPLOY_HOST }}
+      CBW_DEPLOY_USER: ${{ secrets.CBW_DEPLOY_USER }}
+      CBW_DEPLOY_PRIVATE_KEY: ${{ secrets.CBW_DEPLOY_PRIVATE_KEY }}
+      CBW_DEPLOY_KNOWN_HOSTS: ${{ secrets.CBW_DEPLOY_KNOWN_HOSTS }}
+      CBW_DEPLOY_PORT: ${{ vars.CBW_DEPLOY_PORT }}
+      CBW_DEPLOY_REMOTE_PATH: ${{ vars.CBW_DEPLOY_REMOTE_PATH }}
+
+    steps:
+      - name: Checkout exact release SHA
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Require production master ref
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_REF}" != "refs/heads/master" ]; then
+            echo "::error::production workflow must run from refs/heads/master, got ${GITHUB_REF}"
+            exit 1
+          fi
+          if [ "$(git rev-parse HEAD)" != "${GITHUB_SHA}" ]; then
+            echo "::error::checked-out HEAD does not equal trusted GitHub SHA"
+            exit 1
+          fi
+
+      - name: Check protected production configuration
+        id: config
+        run: |
+          set -euo pipefail
+          missing=0
+          for name in CBW_DEPLOY_HOST CBW_DEPLOY_USER CBW_DEPLOY_PRIVATE_KEY CBW_DEPLOY_KNOWN_HOSTS; do
+            if [ -z "${!name:-}" ]; then
+              echo "::warning::required production environment secret is not configured: ${name}"
+              missing=1
+            fi
+          done
+          if [ "$missing" -ne 0 ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            {
+              echo "### CBW production release — CONFIGURATION_REQUIRED"
+              echo ""
+              echo "Production deploy was skipped fail-closed because one or more protected environment secrets are missing."
+              echo "No password fallback or default production destination is permitted."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          echo "configured=true" >> "$GITHUB_OUTPUT"
+
+      - name: Batch debounce
+        if: github.event_name == 'push' && steps.config.outputs.configured == 'true'
+        run: sleep 300
+
+      - name: Verify release is still current master
+        id: freshness
+        if: steps.config.outputs.configured == 'true'
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin '+refs/heads/master:refs/remotes/origin/master'
+          LATEST="$(git rev-parse refs/remotes/origin/master)"
+          if [ "${LATEST}" != "${GITHUB_SHA}" ]; then
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+            {
+              echo "### CBW production release"
+              echo ""
+              echo "Superseded batch run: exact SHA ${GITHUB_SHA} is no longer current master."
+              echo "No deployment performed."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          echo "deploy=true" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Node 20
+        if: steps.config.outputs.configured == 'true' && steps.freshness.outputs.deploy == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        if: steps.config.outputs.configured == 'true' && steps.freshness.outputs.deploy == 'true'
+        run: npm ci
+
+      - name: AI Ops validation
+        if: steps.config.outputs.configured == 'true' && steps.freshness.outputs.deploy == 'true'
+        run: npm run ai-ops:validate
+
+      - name: Owner-confirmed link/code authority regression
+        if: steps.config.outputs.configured == 'true' && steps.freshness.outputs.deploy == 'true'
+        run: node scripts/portal/owner-confirmed-authority-split-test.mjs
+
+      - name: Production test-authority guard
+        if: steps.config.outputs.configured == 'true' && steps.freshness.outputs.deploy == 'true'
+        run: npm run portal:guard:test-authority
+
+      - name: Portal contracts fail-closed test
+        if: steps.config.outputs.configured == 'true' && steps.freshness.outputs.deploy == 'true'
+        run: npm run portal:contracts:test
+
+      - name: Offer-packet resolution harness
+        if: steps.config.outputs.configured == 'true' && steps.freshness.outputs.deploy == 'true'
+        run: npm run portal:harness:resolution
+
+      - name: Affiliate integrity
+        if: steps.config.outputs.configured == 'true' && steps.freshness.outputs.deploy == 'true'
+        run: npm run validate:affiliate
+
+      - name: SEO check
+        if: steps.config.outputs.configured == 'true' && steps.freshness.outputs.deploy == 'true'
+        run: npm run seo:check
+
+      - name: Production-mode build
+        if: steps.config.outputs.configured == 'true' && steps.freshness.outputs.deploy == 'true'
+        run: npm run build
+
+      - name: Bybit rendered-output audit
+        if: steps.config.outputs.configured == 'true' && steps.freshness.outputs.deploy == 'true'
+        run: npm run portal:audit:bybit-public
+
+      - name: Global public-offer audit
+        if: steps.config.outputs.configured == 'true' && steps.freshness.outputs.deploy == 'true'
+        run: npm run portal:audit:public-offers
+
+      - name: Production Chromium owner-authority smoke
+        if: steps.config.outputs.configured == 'true' && steps.freshness.outputs.deploy == 'true'
+        run: node scripts/portal/owner-confirmed-browser-smoke.mjs production
+
+      - name: Materialize ephemeral SSH credentials
+        if: steps.config.outputs.configured == 'true' && steps.freshness.outputs.deploy == 'true'
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.ssh"
+          chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$CBW_DEPLOY_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+          KEY_PATH="$RUNNER_TEMP/cbw-production-deploy-key"
+          printf '%s\n' "$CBW_DEPLOY_PRIVATE_KEY" > "$KEY_PATH"
+          chmod 600 "$KEY_PATH"
+          echo "CBW_DEPLOY_KEY_PATH=$KEY_PATH" >> "$GITHUB_ENV"
+
+      - name: Deploy exact master SHA
+        id: deploy
+        if: steps.config.outputs.configured == 'true' && steps.freshness.outputs.deploy == 'true'
+        run: node scripts/deploy.mjs --no-indexnow
+
+      - name: Live production smoke
+        id: live_smoke
+        if: steps.deploy.outcome == 'success'
+        run: node scripts/production-live-smoke.mjs
+
+      - name: Notify search engines after green live smoke
+        if: steps.live_smoke.outcome == 'success'
+        continue-on-error: true
+        run: node scripts/indexnow.mjs --mode priority
+
+      - name: Release summary
+        if: always()
+        env:
+          RELEASE_ELIGIBLE: ${{ steps.freshness.outputs.deploy }}
+          CONFIGURED: ${{ steps.config.outputs.configured }}
+          DEPLOY_OUTCOME: ${{ steps.deploy.outcome }}
+          SMOKE_OUTCOME: ${{ steps.live_smoke.outcome }}
+        run: |
+          {
+            echo "### CBW Production Safe Batch Auto-Deploy"
+            echo ""
+            echo "- exact SHA: ${GITHUB_SHA}"
+            echo "- current-master eligible: ${RELEASE_ELIGIBLE:-false}"
+            echo "- production configuration present: ${CONFIGURED:-false}"
+            echo "- deploy: ${DEPLOY_OUTCOME:-not-run}"
+            echo "- live smoke: ${SMOKE_OUTCOME:-not-run}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Cleanup ephemeral SSH material
+        if: always()
+        run: |
+          rm -f "$RUNNER_TEMP/cbw-production-deploy-key"
+          rm -f "$HOME/.ssh/known_hosts"
