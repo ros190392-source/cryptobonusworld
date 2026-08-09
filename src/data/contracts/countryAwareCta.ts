@@ -13,6 +13,7 @@
  *   - a valid, supported country (never `global` / missing / malformed);
  *   - exactly one valid, approved Exchange × Country MarketProfile;
  *   - profile availability available|limited AND offerEligibility approved;
+ *   - for Country Foundation V1, every material structured dimension explicitly positive;
  *   - fresh machine-readable profile evidence (canonical freshness policy);
  *   - an offer that exists and is itself verified;
  *   - the country NOT present in offer.restrictedCountries (malformed → block);
@@ -29,7 +30,10 @@ import {
 import type { CtaMode } from '../exchangePreview/cta-contract';
 import { normalizeCountryInput, SUPPORTED_COUNTRY_CODES } from './countryInput';
 import { resolveMarketProfile } from './marketProfileRegistry';
-import { validateCountryMarketProfileV1 } from './marketProfileV1';
+import {
+  evaluateCountryMarketProfileV1CommercialReadiness,
+  validateCountryMarketProfileV1,
+} from './marketProfileV1';
 import { resolveOfferEvidenceAuthorization } from './evidenceMetadata';
 
 /** Explicit non-country homepage context until real country routing exists. */
@@ -159,10 +163,19 @@ export function resolveCountryAwareCommercialCta(input: CountryAwareCtaInput): C
   }
   const profile = res.profile;
 
-  // Country Foundation hardening: a public V1 consumer must prove the richer
-  // structured country profile before any factual/commercial authorization.
-  if (profileContract === 'country_v1' && !validateCountryMarketProfileV1(profile).ok) {
-    return review('PROFILE_FOUNDATION_INVALID');
+  // Country Foundation hardening: structural V1 validity is necessary but not
+  // sufficient. The separate readiness policy independently composes the rich
+  // V1 dimensions into the final country-commercial decision (#299).
+  if (profileContract === 'country_v1') {
+    if (!validateCountryMarketProfileV1(profile).ok) {
+      return review('PROFILE_FOUNDATION_INVALID');
+    }
+    const readiness = evaluateCountryMarketProfileV1CommercialReadiness(profile);
+    if (!readiness.ok) {
+      if (readiness.block === 'restricted') return disabled('restricted', 'MARKET_RESTRICTED');
+      if (readiness.block === 'unavailable') return disabled('unavailable', 'MARKET_UNAVAILABLE');
+      return review('PROFILE_FOUNDATION_INVALID');
+    }
   }
 
   if (profile.exchangeId !== exchangeId) return review('EXCHANGE_IDENTITY_MISMATCH');
