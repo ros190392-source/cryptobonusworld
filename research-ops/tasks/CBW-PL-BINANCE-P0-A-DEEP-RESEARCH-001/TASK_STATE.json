@@ -7,7 +7,7 @@
   "exchangeId": "binance",
   "batchId": "PL-P0-A",
   "priority": "P0",
-  "state": "RESEARCH_RECORD_MERGE_AUTHORIZED",
+  "state": "RESEARCH_RECORD_MERGED_TO_MAIN",
   "createdAt": "2026-08-08",
   "stages": {
     "00-contract": "PRESENT",
@@ -79,6 +79,10 @@
     },
     {
       "state": "RESEARCH_RECORD_MERGE_AUTHORIZED",
+      "at": "2026-08-09"
+    },
+    {
+      "state": "RESEARCH_RECORD_MERGED_TO_MAIN",
       "at": "2026-08-09"
     }
   ]
