@@ -5,15 +5,17 @@ on:
     branches:
       - master
     paths:
-      - 'src/pages/index.astro'
-      - 'src/pages/methodology.astro'
-      - 'src/components/home/HomepageTop10.astro'
-      - 'src/components/PageHero.astro'
-      - 'src/components/Breadcrumbs.astro'
-      - 'src/components/layout/SiteHeader.astro'
+      - 'src/pages/**'
+      - 'src/layouts/**'
+      - 'src/components/**'
+      - 'src/styles/site-standard-v1.css'
+      - 'src/styles/site-shell.css'
+      - 'src/styles/info-pages-v2.css'
+      - 'src/styles/faq-page-v2.css'
+      - 'src/data/siteStandard/**'
       - 'src/data/header/**'
       - 'src/data/contracts/countryInput.ts'
-      - 'scripts/ui/ranking-first-browser-smoke.mjs'
+      - 'scripts/ui/**'
       - '.github/workflows/cbw-ranking-first-ui-advisory.yml'
 
 permissions:
@@ -25,9 +27,9 @@ concurrency:
 
 jobs:
   ranking-first-ui:
-    name: Ranking-first UI advisory (non-blocking)
+    name: Product system UI advisory (non-blocking)
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     continue-on-error: true
     steps:
       - name: Checkout exact PR head
@@ -44,6 +46,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Product system foundation regression
+        id: foundation
+        run: node scripts/ui/product-system-foundation-test.mjs
+
       - name: Production build
         id: build
         run: npm run build
@@ -55,16 +61,18 @@ jobs:
       - name: Advisory summary
         if: always()
         env:
+          FOUNDATION: ${{ steps.foundation.outcome }}
           BUILD: ${{ steps.build.outcome }}
           BROWSER: ${{ steps.browser.outcome }}
         run: |
           {
-            echo '### CBW Ranking-First UI Advisory'
+            echo '### CBW Product System UI Advisory'
             echo ''
             echo '| Check | Result |'
             echo '|---|---|'
+            echo "| Product system foundation | ${FOUNDATION} |"
             echo "| Production build | ${BUILD} |"
             echo "| Ranking-first Chromium smoke | ${BROWSER} |"
             echo ''
-            echo '> Visual/product advisory only. It performs no publish, import or deploy action.'
+            echo '> Read-only visual/product advisory. It performs no publish, import or deploy action.'
           } >> "$GITHUB_STEP_SUMMARY"
