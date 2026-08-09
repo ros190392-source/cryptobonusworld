@@ -28,6 +28,7 @@ function isoFlag(code: string): string {
 const IDENTITY_NAME_FALLBACKS: Readonly<Record<string, string>> = Object.freeze({
   PL: 'Poland',
   KZ: 'Kazakhstan',
+  BG: 'Bulgaria',
 });
 
 const records = Array.isArray(countriesJson)
