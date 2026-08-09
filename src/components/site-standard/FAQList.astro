@@ -1,0 +1,57 @@
+---
+export interface FaqItem {
+  q: string;
+  a: string;
+}
+
+export interface FaqGroup {
+  title: string;
+  items: readonly FaqItem[];
+}
+
+export interface Props {
+  groups: readonly FaqGroup[];
+}
+
+const { groups } = Astro.props;
+---
+
+<div class="cbw-faq-groups" data-faq-groups>
+  {groups.map((group) => (
+    <section class="cbw-faq-group" aria-labelledby={`faq-${group.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>
+      <h2 id={`faq-${group.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`} class="cbw-faq-group-title">{group.title}</h2>
+      <div class="cbw-faq-list">
+        {group.items.map((item) => (
+          <details class="cbw-faq-item">
+            <summary class="cbw-faq-summary">{item.q}</summary>
+            <div class="cbw-faq-answer" set:html={item.a} />
+          </details>
+        ))}
+      </div>
+    </section>
+  ))}
+</div>
+
+<style>
+  .cbw-faq-groups { display: grid; gap: var(--cbw-space-8); }
+  .cbw-faq-group { min-width: 0; }
+  .cbw-faq-group-title {
+    margin: 0 0 var(--cbw-space-3);
+    padding-bottom: var(--cbw-space-2);
+    border-bottom: 1px solid var(--cbw-border-standard);
+    color: var(--cbw-text-primary);
+    font-family: 'Barlow Condensed','Inter',sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -.01em;
+    line-height: 1.05;
+    text-transform: uppercase;
+  }
+  .cbw-faq-answer :global(a) {
+    color: #925204;
+    font-weight: 800;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .cbw-faq-answer :global(a:hover) { color: #6d3c02; }
+</style>
