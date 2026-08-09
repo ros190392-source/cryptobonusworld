@@ -1,23 +1,10 @@
 ---
 import CleanLayout from '../../layouts/CleanLayout.astro';
-
-/**
- * /faq/ — central FAQ hub (Phase 2B).
- *
- * Grouped, cautious FAQ covering promo/referral codes, claiming bonuses,
- * country availability, verification, and safety/affiliate/risk.
- *
- * Single source of truth: FAQ_GROUPS. Visible <details> answers render the
- * SAME HTML string (`set:html`) that the FAQPage JSON-LD uses as its answer
- * `text`, so schema text matches visible text exactly. Answers may contain
- * internal <a> links — Google's FAQPage spec permits HTML in answer text.
- *
- * Wording rules enforced here: bonuses are never described as guaranteed;
- * eligibility is always conditioned on exchange terms/region/account/KYC/
- * activity/campaign rules; landing-page evidence != dashboard eligibility;
- * no country-availability claim without evidence; EU is not a country; no
- * financial advice. No promo codes, offer amounts, or affiliate URLs appear.
- */
+import PageFrame from '../../components/site-standard/PageFrame.astro';
+import FirstViewport from '../../components/site-standard/FirstViewport.astro';
+import Section from '../../components/site-standard/Section.astro';
+import FAQList from '../../components/site-standard/FAQList.astro';
+import StatusBadge from '../../components/site-standard/StatusBadge.astro';
 
 interface FaqItem { q: string; a: string; }
 interface FaqGroup { title: string; items: FaqItem[]; }
@@ -130,8 +117,7 @@ const FAQ_GROUPS: FaqGroup[] = [
   },
 ];
 
-const allItems = FAQ_GROUPS.flatMap(g => g.items);
-
+const allItems = FAQ_GROUPS.flatMap(group => group.items);
 const faqSchema = {
   '@context': 'https://schema.org',
   '@type': 'FAQPage',
@@ -147,122 +133,59 @@ const faqSchema = {
   title="Crypto Promo Code & Bonus FAQ | CryptoBonusWorld"
   description="Answers about crypto promo codes, referral codes, claiming bonuses, country availability, verification, and affiliate links. Bonuses are not guaranteed."
   canonical="https://cryptobonusworld.com/faq/"
+  bodyClass="cbw-faq-product"
 >
+  <PageFrame family="trust" class="faq-product-page">
+    <FirstViewport
+      family="trust"
+      container="standard"
+      eyebrow="Help center"
+      title="Crypto Bonus & Promo Code FAQ"
+      lede="Straight answers about promo codes, exchange offers, country availability, verification and affiliate disclosure."
+    >
+      <div class="faq-hero-meta">
+        <StatusBadge label="Informational" tone="neutral" />
+        <span>Offer eligibility depends on exchange terms, location and account status.</span>
+      </div>
+    </FirstViewport>
 
-  <!-- 1. Intro -->
-  <section class="faq-intro">
-    <div class="faq-text-wrap">
-      <div class="faq-label">Help Center</div>
-      <h1 class="faq-h1">Crypto Bonus & Promo Code FAQ</h1>
-      <p class="faq-sub">
-        Straight answers about crypto promo codes, referral codes, sign-up bonuses,
-        country availability, how we verify listings, and affiliate links.
-      </p>
-      <p class="faq-caveat">
-        Bonuses are never guaranteed. Eligibility depends on each exchange's terms,
-        your region, account status, KYC, deposit and trading activity, and current
-        campaign rules. This page is informational and is not financial advice.
-      </p>
-    </div>
-  </section>
-
-  <!-- 2. Grouped FAQ -->
-  <section class="section bg-white" id="faq">
-    <div class="faq-text-wrap">
-      {FAQ_GROUPS.map(group => (
-        <div class="faq-group">
-          <h2 class="faq-group-title">{group.title}</h2>
-          <div class="faq-list">
-            {group.items.map(item => (
-              <details class="faq-item">
-                <summary class="faq-q">{item.q}</summary>
-                <p class="faq-a" set:html={item.a} />
-              </details>
-            ))}
-          </div>
-        </div>
-      ))}
-
+    <Section container="prose" spacing="standard" tone="primary" id="faq">
+      <FAQList groups={FAQ_GROUPS} />
       <p class="faq-foot">
-        Still deciding? Compare tracked offers on the
-        <a href="/promo-codes/">crypto promo codes</a> page, browse
-        <a href="/exchanges/">exchange reviews</a>, or
-        <a href="/#exchanges">compare the governed Top 10</a>.
+        Need the product view instead? <a href="/#exchanges">Compare the Top 10</a>,
+        browse <a href="/exchanges/">all exchanges</a>, or see
+        <a href="/methodology/">how we verify information</a>.
       </p>
-    </div>
-  </section>
+    </Section>
 
-  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
-
+    <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+  </PageFrame>
 </CleanLayout>
 
 <style>
-  .bg-white { background: #fff; }
-
-  .faq-text-wrap {
-    max-width: var(--cbw-prose-max, 800px); margin: 0 auto;
-    padding: 0 20px; box-sizing: border-box;
+  :global(body.cbw-faq-product) { background: var(--cbw-surface-page); }
+  .faq-hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--cbw-space-2) var(--cbw-space-3);
+    align-items: center;
+    margin-top: var(--cbw-space-4);
+    color: rgba(255,255,255,.62);
+    font-size: 11px;
   }
-  @media (min-width: 820px) { .faq-text-wrap { padding: 0 32px; } }
-
-  /* ── 1. Intro ─────────────────────────────────────────────────── */
-  .faq-intro { background: #fff; padding: 40px 0 24px; text-align: center; }
-  @media (min-width: 820px) { .faq-intro { padding: 56px 0 32px; } }
-  .faq-label {
-    display: inline-block; font-size: 11px; font-weight: 700;
-    text-transform: uppercase; letter-spacing: .1em; color: #F7931A;
-    background: rgba(247,147,26,.08); border: 1px solid rgba(247,147,26,.22);
-    padding: 4px 12px; border-radius: 20px; margin-bottom: 14px;
-  }
-  .faq-h1 {
-    font-size: clamp(26px, 4.2vw, 38px); font-weight: 800; line-height: 1.15;
-    letter-spacing: -.02em; color: #111827; margin-bottom: 12px;
-  }
-  .faq-sub { font-size: 15px; line-height: 1.65; color: #4B5563; margin-bottom: 10px; }
-  .faq-caveat { font-size: 13px; line-height: 1.6; color: #9CA3AF; max-width: 620px; margin: 0 auto; }
-
-  /* ── 2. Groups ────────────────────────────────────────────────── */
-  .faq-group { margin-bottom: 36px; }
-  .faq-group:last-of-type { margin-bottom: 8px; }
-  .faq-group-title {
-    font-size: 18px; font-weight: 800; color: #111827;
-    letter-spacing: -.01em; margin-bottom: 12px;
-    padding-bottom: 8px; border-bottom: 2px solid #F3F4F6;
-  }
-
-  .faq-list { display: flex; flex-direction: column; gap: 8px; }
-  .faq-item {
-    background: #fff; border: 1px solid #E5E7EB; border-radius: 10px;
-    overflow: hidden; transition: border-color .15s;
-  }
-  .faq-item[open] { border-color: #D1D5DB; }
-  .faq-q {
-    display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    padding: 14px 16px; cursor: pointer; list-style: none;
-    font-size: 14.5px; font-weight: 600; color: #111827; line-height: 1.4;
-  }
-  .faq-q::-webkit-details-marker { display: none; }
-  .faq-q::after {
-    content: '+'; flex-shrink: 0; font-size: 18px; font-weight: 400; color: #9CA3AF;
-  }
-  .faq-item[open] .faq-q::after { content: '\2212'; }
-  .faq-q:hover { background: #F9FAFB; }
-  .faq-a {
-    padding: 0 16px 15px; font-size: 13.5px; color: #4B5563; line-height: 1.6;
-  }
-  .faq-a :global(a) {
-    color: #15803D; font-weight: 600;
-    text-decoration: underline; text-underline-offset: 2px;
-  }
-  .faq-a :global(a:hover) { color: #166534; }
-
   .faq-foot {
-    margin-top: 28px; padding-top: 20px; border-top: 1px solid #F3F4F6;
-    font-size: 13.5px; color: #6B7280; line-height: 1.7; text-align: center;
+    margin: var(--cbw-space-8) 0 0;
+    padding-top: var(--cbw-space-5);
+    border-top: 1px solid var(--cbw-border-standard);
+    color: var(--cbw-text-muted);
+    font-size: 12px;
+    line-height: 1.7;
+    text-align: center;
   }
   .faq-foot a {
-    color: #15803D; font-weight: 600;
-    text-decoration: underline; text-underline-offset: 2px;
+    color: #925204;
+    font-weight: 800;
+    text-decoration: underline;
+    text-underline-offset: 2px;
   }
-  .faq-foot a:hover { color: #166534; }
 </style>
