@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Country Foundation regression suite (Issue #272).
+ * Country Foundation regression suite (Issue #272, remediation #299).
  *
  * Proves the PL/KZ identity + context + MarketProfile V1 boundary without
  * populating the public registry or publishing country availability facts.
@@ -42,7 +42,7 @@ try {
         `export { normalizeCountryInput, SUPPORTED_COUNTRY_CODES, COUNTRY_SLUG_TO_ISO } from ${JSON.stringify(countryInput)};\n` +
         `export { COUNTRY_CONTEXT_STORAGE_KEY, COUNTRY_CONTEXT_STORAGE_VERSION, resolveCountryContext, serializeStoredCountryContext, parseStoredCountryContext } from ${JSON.stringify(countryContext)};\n` +
         `export { validateMarketProfile } from ${JSON.stringify(portalFactory)};\n` +
-        `export { COUNTRY_MARKET_PROFILE_SCHEMA_VERSION, validateCountryMarketProfileV1 } from ${JSON.stringify(marketProfileV1)};\n` +
+        `export { COUNTRY_MARKET_PROFILE_SCHEMA_VERSION, validateCountryMarketProfileV1, evaluateCountryMarketProfileV1CommercialReadiness } from ${JSON.stringify(marketProfileV1)};\n` +
         `export { resolveMarketProfile, PUBLIC_MARKET_PROFILES } from ${JSON.stringify(marketProfileRegistry)};\n` +
         `export { resolveCountryAwareCommercialCta, resolveCountryFoundationCommercialCta } from ${JSON.stringify(countryAwareCta)};\n` +
         `export { gateReasonText } from ${JSON.stringify(portalCtaI18n)};\n` +
@@ -144,6 +144,53 @@ try {
   check('profile/v1: approved offer requires supported/limited bonus state', m.validateCountryMarketProfileV1({ ...v1Profile, bonusAvailability: { state: 'under_review', claimIds: [], limitations: [] } }).ok === false);
   check('profile/v1: supported fiat requires method label', m.validateCountryMarketProfileV1({ ...v1Profile, fiatPayments: { state: 'supported', claimIds: ['claim:fiat'], limitations: [], methods: [] } }).ok === false);
 
+  // #299 cross-dimension structural consistency: a positive base cannot override
+  // negative or unresolved legal/restriction state.
+  const restrictionsContradiction = {
+    ...v1Profile,
+    restrictions: { state: 'restricted', claimIds: ['claim:restr'], limitations: [] },
+  };
+  check('profile/v1/#299: positive base + restricted V1 restrictions fails', m.validateCountryMarketProfileV1(restrictionsContradiction).ok === false);
+
+  const regulationProhibited = {
+    ...v1Profile,
+    regulation: { state: 'prohibited', legalEntityClaimIds: ['claim:reg'], licenseClaimIds: [], limitations: [] },
+  };
+  check('profile/v1/#299: positive base + prohibited regulation fails', m.validateCountryMarketProfileV1(regulationProhibited).ok === false);
+
+  const regulationUnknown = {
+    ...v1Profile,
+    regulation: { state: 'unknown', legalEntityClaimIds: [], licenseClaimIds: [], limitations: [] },
+  };
+  check('profile/v1/#299: positive base + unknown regulation fails', m.validateCountryMarketProfileV1(regulationUnknown).ok === false);
+
+  const materialCases = [
+    ['kyc', { state: 'under_review', claimIds: [], limitations: [] }],
+    ['deposits', { state: 'unavailable', claimIds: ['claim:dep'], limitations: [] }],
+    ['withdrawals', { state: 'restricted', claimIds: ['claim:wd'], limitations: [] }],
+    ['fiatPayments', { state: 'unknown', claimIds: [], limitations: [], methods: [] }],
+    ['products', { state: 'under_review', claimIds: [], limitations: [] }],
+    ['bonusAvailability', { state: 'restricted', claimIds: ['claim:bonus'], limitations: [] }],
+  ];
+  for (const [dimension, value] of materialCases) {
+    const candidate = { ...v1Profile, [dimension]: value };
+    check(`profile/v1/#299: approved offer blocks material ${dimension}`, m.validateCountryMarketProfileV1(candidate).ok === false);
+  }
+
+  const readinessPositive = m.evaluateCountryMarketProfileV1CommercialReadiness(v1Profile);
+  check('readiness/#299: coherent positive profile is ready', readinessPositive.ok === true);
+
+  const coherentRestricted = {
+    ...v1Profile,
+    availability: 'restricted',
+    offerEligibility: 'not_eligible',
+    regulation: { state: 'restricted', legalEntityClaimIds: ['claim:reg'], licenseClaimIds: [], limitations: [] },
+    restrictions: { state: 'restricted', claimIds: ['claim:restr'], limitations: [] },
+    bonusAvailability: { state: 'restricted', claimIds: ['claim:bonus'], limitations: [] },
+  };
+  const readinessRestricted = m.evaluateCountryMarketProfileV1CommercialReadiness(coherentRestricted);
+  check('readiness/#299: coherent restricted profile blocks independently', readinessRestricted.ok === false && readinessRestricted.block === 'restricted');
+
   // ── Strict Country Foundation CTA ─────────────────────────────────────────
   const offerEvidence = {
     evidenceCheckedAt: days(-5),
@@ -194,6 +241,21 @@ try {
   };
   const restricted = m.resolveCountryFoundationCommercialCta({ ...baseCta, marketProfiles: [restrictedProfile] });
   check('cta/v1: restricted profile cannot emit live CTA', !isGo(restricted) && restricted.disabled === true);
+
+  // #299 runtime mutation matrix: contradictory or unresolved rich dimensions can
+  // never be overridden by the positive base availability/offer fields.
+  for (const [name, candidate] of [
+    ['restrictions restricted', restrictionsContradiction],
+    ['regulation prohibited', regulationProhibited],
+    ['regulation unknown', regulationUnknown],
+    ...materialCases.map(([dimension, value]) => [`${dimension} non-positive`, { ...v1Profile, [dimension]: value }]),
+  ]) {
+    const result = m.resolveCountryFoundationCommercialCta({ ...baseCta, marketProfiles: [candidate] });
+    check(`cta/v1/#299: ${name} cannot emit /go`, !isGo(result));
+  }
+
+  const coherentRestrictedCta = m.resolveCountryFoundationCommercialCta({ ...baseCta, marketProfiles: [coherentRestricted] });
+  check('cta/v1/#299: runtime readiness maps coherent restricted profile to disabled', !isGo(coherentRestrictedCta) && coherentRestrictedCta.disabled === true);
 
   const locales = ['en', 'ru', 'kk'].map((locale) => m.resolveCountryFoundationCommercialCta({ ...baseCta, locale }));
   check('cta/v1: locale cannot alter factual authorization', locales.every((x) => x.href === locales[0].href && x.isAffiliate === locales[0].isAffiliate && x.disabled === locales[0].disabled));
