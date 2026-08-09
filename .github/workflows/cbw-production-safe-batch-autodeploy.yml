@@ -59,6 +59,11 @@ jobs:
             if (!text.includes(needle)) throw new Error(`missing required auto-deploy invariant: ${needle}`);
           }
           if (/\bschedule\s*:/.test(text)) throw new Error('production auto-deploy must not use schedule on default research branch');
+          const buildIndex = text.indexOf('      - name: Production-mode build');
+          const seoIndex = text.indexOf('      - name: SEO check');
+          if (buildIndex === -1 || seoIndex === -1 || buildIndex > seoIndex) {
+            throw new Error('Production-mode build must run before SEO check because seo:check reads dist/');
+          }
           console.log('AUTO-DEPLOY CONTRACT PASS');
           NODE
 
@@ -181,13 +186,13 @@ jobs:
         if: steps.config.outputs.configured == 'true' && steps.freshness.outputs.deploy == 'true'
         run: npm run validate:affiliate
 
-      - name: SEO check
-        if: steps.config.outputs.configured == 'true' && steps.freshness.outputs.deploy == 'true'
-        run: npm run seo:check
-
       - name: Production-mode build
         if: steps.config.outputs.configured == 'true' && steps.freshness.outputs.deploy == 'true'
         run: npm run build
+
+      - name: SEO check
+        if: steps.config.outputs.configured == 'true' && steps.freshness.outputs.deploy == 'true'
+        run: npm run seo:check
 
       - name: Bybit rendered-output audit
         if: steps.config.outputs.configured == 'true' && steps.freshness.outputs.deploy == 'true'
