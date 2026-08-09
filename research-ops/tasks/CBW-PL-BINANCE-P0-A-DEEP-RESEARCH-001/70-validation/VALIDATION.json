@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-PL-BINANCE-P0-A-DEEP-RESEARCH-001",
+  "validationTaskId": "CBW-PL-BINANCE-P0-A-INDEPENDENT-VALIDATION-001",
+  "validatedHeadSha": "9e77c4d112df947b4742d0274dfa62ee15e1908f",
+  "validatedAt": "2026-08-08",
+  "validatorRole": "Independent deterministic ResearchOps validator",
+  "outcome": "VALIDATED_FOR_RESEARCH_RECORD_CLOSEOUT",
+  "checks": {
+    "researchPackageExactInventory": "PASS_11_OF_11",
+    "jsonParsing": "PASS_9_OF_9",
+    "manifestShaAndBytes": "PASS_FACTORY_VALIDATED",
+    "uniqueIds": "PASS",
+    "crossReferences": "PASS",
+    "sourceTruthReviewPair": "PASS",
+    "sourceTruthReviewOutcome": "ACCEPT_AS_RESEARCH_RECORD",
+    "correctionRequired": false,
+    "appendOnlyBoundary": "PASS",
+    "taskHistoryAppendOnly": "PASS",
+    "taskIdentityBinding": "PASS",
+    "authorizationsAllFalse": true
+  },
+  "factoryEvidence": [
+    {
+      "runNumber": 115,
+      "headSha": "988bcd2eb1de2b122420a40f687a3b465f8bdf7e",
+      "result": "PASS_RESEARCH_CAPTURED"
+    },
+    {
+      "runNumber": 116,
+      "headSha": "8fc3438405a1c34f4ec0157b4d065fb16c01bf96",
+      "result": "PASS_PACKAGE_VALIDATED"
+    },
+    {
+      "runNumber": 118,
+      "headSha": "9e77c4d112df947b4742d0274dfa62ee15e1908f",
+      "result": "PASS_SOURCE_TRUTH_REVIEWED"
+    }
+  ],
+  "validatedResearchPosture": {
+    "countryCode": "PL",
+    "exchangeId": "binance",
+    "legalAccountAvailability": "UNDER_REVIEW",
+    "spotSurface": "PUBLIC_SURFACE_VISIBLE_ELIGIBILITY_UNDER_REVIEW",
+    "p2pSurface": "PUBLIC_SURFACE_VISIBLE_ELIGIBILITY_UNDER_REVIEW",
+    "derivatives": "NOT_VERIFIED",
+    "earnStaking": "NOT_VERIFIED",
+    "polandOfferEligibility": "UNCONFIRMED",
+    "approvedMarketProfileAuthorized": false
+  },
+  "remainingLimitations": [
+    "Current Binance MiCA/CASP authorisation was not bound from a directly parsed ESMA authorised-CASP row.",
+    "No account onboarding or product-entitlement testing was performed.",
+    "Direct PLN bank/card rails were not independently verified.",
+    "Poland-specific derivatives, earn/staking and campaign eligibility remain unverified."
+  ],
+  "nextAllowedState": "OWNER_CLOSEOUT_REQUIRED",
+  "authorizations": {
+    "researchRecordMergeToMainAuthorized": false,
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false,
+    "masterChangeAuthorized": false,
+    "binancePilotAuthorized": false
+  }
+}

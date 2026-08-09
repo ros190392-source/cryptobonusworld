@@ -1,0 +1,179 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "CBW-PL-BINANCE-P0-A-DEEP-RESEARCH-001",
+  "reviewTaskId": "CBW-PL-BINANCE-P0-A-SOURCE-TRUTH-REVIEW-001",
+  "evidencePullRequest": 276,
+  "reviewedEvidenceHeadSha": "8fc3438405a1c34f4ec0157b4d065fb16c01bf96",
+  "reviewedAt": "2026-08-08",
+  "reviewerRole": "Independent adversarial Source Truth Reviewer",
+  "method": "Official-source-first re-verification of decisive Poland/MiCA, Binance public-surface and KYC claims. No proxy, account creation, login, KYC submission, payment, trade, referral submission or transaction testing. Secondary media used only as corroboration where the primary ESMA row set could not be parsed by the available tooling.",
+  "outcome": "PROCEED_TO_VALIDATION",
+  "finalReviewOutcome": "ACCEPT_AS_RESEARCH_RECORD",
+  "packageIntegrity": {
+    "verdict": "PASS",
+    "fileCount": 11,
+    "jsonFilesParsed": 9,
+    "uniqueSourceIds": 15,
+    "uniqueClaimIds": 16,
+    "uniqueConflictIds": 4,
+    "uniqueProductIds": 6,
+    "uniquePaymentRailIds": 3,
+    "manifestAndHashes": "PASS_FACTORY_VALIDATED",
+    "crossReferencesResolve": true,
+    "authorizationsAllFalse": true
+  },
+  "independentVerification": {
+    "decisiveChecks": [
+      {
+        "topic": "historical-polish-registration",
+        "result": "CONFIRMED_WITH_SCOPE_LIMIT",
+        "detail": "UKNF confirms Binance Poland sp. z o.o. entered the former Polish virtual-currency register on 2022-09-29 and explicitly says that regime was not KNF licensing, registration, supervision or approval of the exchange business."
+      },
+      {
+        "topic": "mica-transition",
+        "result": "CONFIRMED",
+        "detail": "UKNF confirms Poland's Article 143(3) MiCA transitional period ends on 2026-07-01."
+      },
+      {
+        "topic": "post-transition-authorisation-rule",
+        "result": "CONFIRMED",
+        "detail": "ESMA Article 59 requires Article 63 CASP authorisation or an applicable Article 60 basis for provision of crypto-asset services in the Union; grandfathering is not itself MiCA authorisation."
+      },
+      {
+        "topic": "current-esma-register",
+        "result": "CONFIRMED_WITH_TOOLING_LIMITATION",
+        "detail": "ESMA's Interim MiCA Register landing page is current to 2026-07-16 and identifies the authorised-CASP register. The linked CASP CSV could not be row-parsed with the available reviewer tooling, so no direct Binance absence/presence assertion is made from that failure."
+      },
+      {
+        "topic": "binance-current-eu-process",
+        "result": "CORROBORATED_SECONDARY_ONLY",
+        "detail": "Reuters on 2026-07-09 reports Binance remained in talks with EU regulators after withdrawing the Greek MiCA application; Financial Times on 2026-08-06 reports Binance had not received EU approval. These are retained only as current corroboration, not primary register proof."
+      },
+      {
+        "topic": "pln-p2p-and-polish-surfaces",
+        "result": "CONFIRMED_SURFACE_ONLY",
+        "detail": "Public Binance USDT/PLN P2P, Santander Poland and Polish-language trading surfaces are reachable. The package correctly refuses to treat those surfaces as legal authorisation, onboarding success or product eligibility."
+      },
+      {
+        "topic": "kyc",
+        "result": "CONFIRMED_PLATFORM_GENERAL",
+        "detail": "Current Binance guidance supports identity-verification requirements for full account functionality and P2P. The package correctly keeps this separate from Poland-specific onboarding approval."
+      },
+      {
+        "topic": "poland-offer-eligibility",
+        "result": "CORRECTLY_UNCONFIRMED",
+        "detail": "No Poland-specific Binance referral/bonus eligibility evidence was established. Global owner-confirmed CBW link/code authority is correctly excluded as country eligibility evidence."
+      }
+    ]
+  },
+  "sourceVerdicts": {
+    "SRC001": "ACCEPTED_CONTROL_SOURCE",
+    "SRC002": "ACCEPTED_CONTROL_SOURCE",
+    "SRC003": "ACCEPTED_HISTORICAL_REGULATOR_SOURCE",
+    "SRC004": "ACCEPTED_CURRENT_REGULATOR_SOURCE",
+    "SRC005": "ACCEPTED_PRIMARY_REGISTER_LANDING_WITH_ROW_LIMITATION",
+    "SRC006": "ACCEPTED_PRIMARY_EU_RULEBOOK",
+    "SRC007": "ACCEPTED_PRIMARY_ESMA_GUIDANCE",
+    "SRC008": "ACCEPTED_SURFACE_ONLY",
+    "SRC009": "ACCEPTED_SURFACE_ONLY",
+    "SRC010": "ACCEPTED_PLATFORM_GENERAL_KYC",
+    "SRC011": "ACCEPTED_PLATFORM_GENERAL_P2P_KYC",
+    "SRC012": "ACCEPTED_WITH_INSUFFICIENT_PL_BINDING_LIMITATION",
+    "SRC013": "ACCEPTED_AUTHORITATIVE_MEDIA_CORROBORATION",
+    "SRC014": "ACCEPTED_AUTHORITATIVE_MEDIA_CORROBORATION",
+    "SRC015": "ACCEPTED_SURFACE_ONLY"
+  },
+  "claimVerdicts": {
+    "CLM001": "SUPPORTED_HISTORICAL_ONLY",
+    "CLM002": "SUPPORTED",
+    "CLM003": "SUPPORTED",
+    "CLM004": "SUPPORTED",
+    "CLM005": "SUPPORTED_WITH_CSV_TOOLING_LIMITATION",
+    "CLM006": "AGREE_UNDER_REVIEW",
+    "CLM007": "SUPPORTED_SECONDARY_CORROBORATION",
+    "CLM008": "SUPPORTED_SECONDARY_CORROBORATION",
+    "CLM009": "SUPPORTED_SURFACE_ONLY",
+    "CLM010": "SUPPORTED_SURFACE_ONLY",
+    "CLM011": "SUPPORTED_SURFACE_ONLY",
+    "CLM012": "SUPPORTED_PLATFORM_GENERAL",
+    "CLM013": "SUPPORTED_PLATFORM_GENERAL",
+    "CLM014": "SUPPORTED_CONSERVATIVE_INFERENCE",
+    "CLM015": "AGREE_FAIL_CLOSED_UNDER_REVIEW",
+    "CLM016": "AGREE_UNCONFIRMED"
+  },
+  "conflictVerdicts": [
+    {
+      "conflictId": "CONF001",
+      "verdict": "CORRECTLY_RESOLVED_BY_SEPARATION",
+      "note": "Old VASP registration is historical and not current MiCA authorisation."
+    },
+    {
+      "conflictId": "CONF002",
+      "verdict": "CORRECTLY_RETAINED_FAIL_CLOSED",
+      "note": "Visible PLN/P2P/spot surfaces do not prove legal or onboarding availability."
+    },
+    {
+      "conflictId": "CONF003",
+      "verdict": "CORRECTLY_RETAINED_PRIMARY_ROW_REQUIRED",
+      "note": "Secondary current reporting may corroborate, but a primary authorised-CASP row is still required for a positive licence conclusion."
+    },
+    {
+      "conflictId": "CONF004",
+      "verdict": "CORRECTLY_RESOLVED_BY_SEPARATION",
+      "note": "Owner-confirmed global referral identity is not Poland campaign or market eligibility evidence."
+    }
+  ],
+  "productVerdicts": {
+    "PROD001": "AGREE_UNDER_REVIEW",
+    "PROD002": "AGREE_SURFACE_ONLY",
+    "PROD003": "AGREE_SURFACE_ONLY",
+    "PROD004": "AGREE_NOT_VERIFIED",
+    "PROD005": "AGREE_NOT_VERIFIED",
+    "PROD006": "AGREE_UNCONFIRMED"
+  },
+  "paymentRailVerdicts": {
+    "RAIL001": "AGREE_SURFACE_ONLY",
+    "RAIL002": "AGREE_SURFACE_ONLY",
+    "RAIL003": "AGREE_NOT_VERIFIED"
+  },
+  "offerEligibilityVerdict": {
+    "verdict": "AGREE_UNCONFIRMED_FOR_POLAND",
+    "note": "No country campaign eligibility is authorised by this record."
+  },
+  "overallRecommendation": {
+    "reviewed": "Accept the package as a research record without correction. Keep Binance × Poland legal/account/product availability under review. Do not create an approved/available MarketProfile until current primary MiCA/CASP authorisation and exact product/account eligibility are independently bound.",
+    "confidence": "HIGH_ON_REGULATORY_SEPARATION_AND_SURFACE_FACTS_MEDIUM_ON_CURRENT_BINANCE_MICA_STATUS"
+  },
+  "importReadiness": {
+    "verdict": "RESEARCH_RECORD_ACCEPTED_IMPORT_STILL_BLOCKED",
+    "countryMarketProfileImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionEligible": false
+  },
+  "correctionsRequired": [],
+  "unresolvedLimitations": [
+    "The ESMA authorised-CASP CSV was not row-parsed by the available reviewer tooling.",
+    "No account creation, onboarding, KYC submission, product entitlement, payment, referral or transaction testing was performed.",
+    "Direct PLN bank/card deposit and withdrawal rails were not independently verified.",
+    "Poland-specific derivatives, earn/staking and referral/bonus eligibility remain unverified."
+  ],
+  "authorizations": {
+    "researchRecordMergeToMainAuthorized": false,
+    "researchImportAuthorized": false,
+    "stagingImportAuthorized": false,
+    "canonicalImportAuthorized": false,
+    "productionChangeAuthorized": false,
+    "productionBindingAuthorized": false,
+    "rankingChangeAuthorized": false,
+    "ctaChangeAuthorized": false,
+    "promoChangeAuthorized": false,
+    "affiliateRouteChangeAuthorized": false,
+    "publicationAuthorized": false,
+    "sitemapAuthorized": false,
+    "indexabilityAuthorized": false,
+    "migration5Authorized": false,
+    "deployAuthorized": false,
+    "masterChangeAuthorized": false,
+    "binancePilotAuthorized": false
+  }
+}
