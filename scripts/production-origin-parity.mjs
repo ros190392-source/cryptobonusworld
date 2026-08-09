@@ -17,7 +17,7 @@ function sha256(text) {
 }
 
 function marker(text) {
-  return /verified\s+offer/i.test(String(text));
+  return /\bverified\s+offer\b/i.test(String(text));
 }
 
 function posixQuote(value) {
@@ -80,7 +80,7 @@ const remoteIndex = `${remotePath.replace(/\/$/, '')}/index.html`;
 const remoteCommand = [
   `test -f ${posixQuote(remoteIndex)} || { echo REMOTE_FILE_MISSING; exit 3; }`,
   `sha256sum ${posixQuote(remoteIndex)} | awk '{print $1}'`,
-  `if grep -Eiq 'verified[[:space:]]+offer' ${posixQuote(remoteIndex)}; then echo REMOTE_MARKER_PRESENT; else echo REMOTE_MARKER_ABSENT; fi`,
+  `if grep -Eiq 'verified[[:space:]]+offer([^[:alnum:]_]|$)' ${posixQuote(remoteIndex)}; then echo REMOTE_MARKER_PRESENT; else echo REMOTE_MARKER_ABSENT; fi`,
 ].join(' && ');
 
 const remote = safeExec('ssh', [
@@ -128,7 +128,7 @@ try {
   const response = await fetch(publicUrl, {
     redirect: 'follow',
     headers: {
-      'user-agent': 'CBW-Origin-Parity/1.0',
+      'user-agent': 'CBW-Origin-Parity/1.1',
       accept: 'text/html,application/xhtml+xml',
       'cache-control': 'no-cache, no-store, max-age=0',
       pragma: 'no-cache',
