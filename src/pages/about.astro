@@ -1,10 +1,11 @@
 ---
 import InfoLayout from '../layouts/InfoLayout.astro';
-import Breadcrumbs from '../components/Breadcrumbs.astro';
+import FirstViewport from '../components/site-standard/FirstViewport.astro';
+import Section from '../components/site-standard/Section.astro';
+import StatusBadge from '../components/site-standard/StatusBadge.astro';
 import { buildOrganizationSchema, SITE_URL } from '../utils/seo';
 
 const orgSchema = buildOrganizationSchema();
-// Augment with about page reference for E-E-A-T
 const aboutSchema = {
   ...orgSchema,
   mainEntityOfPage: {
@@ -17,53 +18,81 @@ const aboutSchema = {
 ---
 
 <InfoLayout
-  title="About CryptoBonusWorld — Crypto Bonus Comparison Platform"
-  description="About CryptoBonusWorld.com — an independent editorial platform comparing crypto exchange bonus offers worldwide. Our mission, standards and approach."
+  title="About CryptoBonusWorld — Country-Aware Exchange Comparison"
+  description="About CryptoBonusWorld: a country-aware crypto exchange comparison product that separates ranking, evidence, local availability and affiliate offers."
   canonical="/about/"
   schema={aboutSchema}
 >
-  <div class="container">
-    <Breadcrumbs crumbs={[
-      { label: 'Home', href: '/' },
-      { label: 'About' },
-    ]} />
-    <div class="page-header">
-      <h1>About CryptoBonusWorld</h1>
-      <p class="lead">A conversion-focused crypto exchange bonus comparison platform.</p>
+  <FirstViewport
+    family="trust"
+    container="standard"
+    eyebrow="About CryptoBonusWorld"
+    title="One exchange comparison product, built around your market."
+    lede="We organize exchange rankings, country evidence and offer status so users can see what is known, what is still under review, and what needs confirmation on the exchange itself."
+  >
+    <div class="trust-meta">
+      <StatusBadge label="Country-aware" tone="review" />
+      <StatusBadge label="Evidence-bound" tone="verified" />
+      <StatusBadge label="Affiliate-separated" tone="neutral" />
     </div>
-    <div class="prose">
-      <h2>What We Do</h2>
-      <p>CryptoBonusWorld.com helps users compare crypto exchange bonus offers and find the best promotion for their trading goals and country of residence.</p>
-      <p>We are not a news site, not a blog, and not a general crypto information portal. Our focus is entirely on one thing: helping you understand crypto exchange bonus offers and make an informed decision about which exchange to register on.</p>
+  </FirstViewport>
 
-      <h2>Our Mission</h2>
-      <p>The crypto bonus landscape is complex, misleading and constantly changing. Our mission is to cut through the noise and present clear, accurate, condition-verified bonus data — with proper risk disclosures — so that users can make informed decisions.</p>
+  <Section container="prose" spacing="standard" tone="primary">
+    <div class="cbw-prose">
+      <h2>What the product does</h2>
+      <p>
+        CryptoBonusWorld helps users compare crypto exchanges in a consistent format. The product starts with the active country,
+        shows the best available ranking context, and then explains each exchange through concise cards and review pages.
+      </p>
+      <p>
+        A global exchange offer and a country-specific availability claim are not the same thing. When local evidence is incomplete,
+        we show an under-review state instead of turning a global claim into a local recommendation.
+      </p>
 
-      <h2>What We Cover</h2>
-      <ul>
-        <li>Welcome and signup bonuses</li>
-        <li>No deposit bonuses</li>
-        <li>Deposit match bonuses</li>
-        <li>Futures trading bonuses</li>
-        <li>No-KYC bonus options</li>
-        <li>Country-specific bonus availability</li>
-        <li>Exchange comparison tables</li>
-      </ul>
+      <h2>How we keep the product honest</h2>
+      <div class="about-grid cbw-card-grid cbw-card-grid--2">
+        <article class="cbw-card">
+          <strong>Country truth stays separate</strong>
+          <p>IP or a manual country choice sets context. It does not prove that an exchange, product or promotion is available there.</p>
+        </article>
+        <article class="cbw-card">
+          <strong>Evidence has a state</strong>
+          <p>Verified, limited, under-review and blocked states stay visible rather than being flattened into one marketing claim.</p>
+        </article>
+        <article class="cbw-card">
+          <strong>Commercial links are separate</strong>
+          <p>Affiliate relationships and promo codes cannot create a ranking position or country-availability fact.</p>
+        </article>
+        <article class="cbw-card">
+          <strong>Missing evidence fails closed</strong>
+          <p>When a required fact is missing, stale or conflicting, the public product keeps that limitation instead of guessing.</p>
+        </article>
+      </div>
 
-      <h2>Our Principles</h2>
-      <ul>
-        <li>We never promise profits or guaranteed income.</li>
-        <li>We always include risk disclosures.</li>
-        <li>We always disclose our affiliate relationships.</li>
-        <li>We verify bonus data against official sources.</li>
-        <li>We show both pros and cons for every exchange.</li>
-      </ul>
+      <h2>How CryptoBonusWorld is funded</h2>
+      <p>
+        CryptoBonusWorld may earn affiliate commissions when a user follows an approved referral link and registers with an exchange.
+        This commercial relationship is disclosed and is kept separate from country evidence and ranking authority.
+        Read the <a href="/affiliate-disclosure/">Affiliate Disclosure</a> for details.
+      </p>
 
-      <h2>Affiliate Relationships</h2>
-      <p>CryptoBonusWorld earns income through affiliate partnerships with crypto exchanges. We receive compensation when users register through our links. This is disclosed on every page. See our <a href="/affiliate-disclosure/">Affiliate Disclosure</a> for full details.</p>
+      <h2>Research and editorial standards</h2>
+      <p>
+        Our methodology explains how source evidence, country context, freshness and commercial status are separated.
+        See <a href="/methodology/">How We Verify</a>, the <a href="/editorial-policy/">Editorial Policy</a>,
+        and the <a href="/update-policy/">Update Policy</a>.
+      </p>
 
       <h2>Contact</h2>
-      <p>For questions, data corrections or business inquiries, visit our <a href="/contact/">Contact page</a>.</p>
+      <p>For corrections, product feedback or business inquiries, use the <a href="/contact/">Contact page</a>.</p>
     </div>
-  </div>
+  </Section>
 </InfoLayout>
+
+<style>
+  .trust-meta { display: flex; flex-wrap: wrap; gap: var(--cbw-space-2); margin-top: var(--cbw-space-4); }
+  .about-grid { margin-block: var(--cbw-space-5); }
+  .about-grid article { margin: 0; }
+  .about-grid strong { display: block; margin-bottom: var(--cbw-space-2); color: var(--cbw-text-primary); font-size: 13px; }
+  .about-grid p { margin: 0; font-size: 12px; line-height: 1.6; }
+</style>
