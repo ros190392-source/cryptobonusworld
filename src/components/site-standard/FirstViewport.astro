@@ -21,13 +21,11 @@ const {
   class: className = '',
   id,
 } = Astro.props;
-
-const variant = family === 'homepage' ? 'homepage' : family === 'exchange' ? 'exchange' : 'standard';
 ---
 
 <section
   id={id}
-  class:list={['cbw-first-viewport', `cbw-first-viewport--${variant}`, className]}
+  class:list={['cbw-first-viewport', `cbw-first-viewport--${family}`, className]}
   data-first-screen-family={family}
 >
   <Container size={container} class="cbw-first-viewport__inner">
