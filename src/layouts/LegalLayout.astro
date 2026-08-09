@@ -1,0 +1,60 @@
+---
+import CleanLayout from './CleanLayout.astro';
+import PageFrame from '../components/site-standard/PageFrame.astro';
+import FirstViewport from '../components/site-standard/FirstViewport.astro';
+import Section from '../components/site-standard/Section.astro';
+
+export interface Props {
+  title: string;
+  description: string;
+  canonical: string;
+  eyebrow?: string;
+  heading: string;
+  lede: string;
+  updated?: string;
+}
+
+const {
+  title,
+  description,
+  canonical,
+  eyebrow = 'Legal & disclosure',
+  heading,
+  lede,
+  updated,
+} = Astro.props;
+---
+
+<CleanLayout title={title} description={description} canonical={canonical}>
+  <PageFrame family="legal" class="legal-product-page">
+    <FirstViewport family="legal" container="standard" eyebrow={eyebrow} title={heading} lede={lede}>
+      {updated && <p class="legal-updated">Last updated: {updated}</p>}
+    </FirstViewport>
+    <Section container="prose" spacing="standard" tone="primary">
+      <div class="cbw-prose legal-prose">
+        <slot />
+      </div>
+    </Section>
+  </PageFrame>
+</CleanLayout>
+
+<style>
+  .legal-updated { margin: var(--cbw-space-3) 0 0; color: rgba(255,255,255,.5); font-size: 10px; }
+  .legal-prose :global(.legal-callout) {
+    margin-block: var(--cbw-space-5);
+    padding: var(--cbw-space-4);
+    border: 1px solid var(--cbw-border-standard);
+    border-left: 3px solid var(--cbw-action);
+    border-radius: var(--cbw-radius-control);
+    background: var(--cbw-surface-secondary);
+  }
+  .legal-prose :global(.legal-callout--risk) { border-left-color: var(--cbw-danger); }
+  .legal-prose :global(code) {
+    padding: 2px 6px;
+    border: 1px solid var(--cbw-border-standard);
+    border-radius: 5px;
+    background: var(--cbw-surface-secondary);
+    font-size: .9em;
+  }
+  .legal-prose :global(a) { color: #925204; font-weight: 800; text-decoration: underline; text-underline-offset: 2px; }
+</style>

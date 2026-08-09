@@ -1,48 +1,43 @@
 ---
-import InfoLayout from '../layouts/InfoLayout.astro';
-import Breadcrumbs from '../components/Breadcrumbs.astro';
+import LegalLayout from '../layouts/LegalLayout.astro';
 ---
 
-<InfoLayout
+<LegalLayout
   title="Privacy Policy — CryptoBonusWorld"
-  description="Privacy Policy for CryptoBonusWorld.com. How we collect, use and protect your data."
-  canonical="/privacy-policy/"
+  description="Privacy Policy for CryptoBonusWorld.com: site data, analytics, affiliate click tracking, third-party links, retention and privacy requests."
+  canonical="https://cryptobonusworld.com/privacy-policy/"
+  eyebrow="Privacy policy"
+  heading="How site and third-party data may be handled"
+  lede="CryptoBonusWorld is primarily an informational website. This policy describes the data categories that may be processed when you browse the site or follow third-party exchange links."
+  updated="June 2026"
 >
-  <div class="container">
-    <Breadcrumbs crumbs={[
-      { label: 'Home', href: '/' },
-      { label: 'Privacy Policy' },
-    ]} />
-    <div class="page-header">
-      <h1>Privacy Policy</h1>
-    </div>
-    <div class="prose">
-      <h2>Data We Collect</h2>
-      <p>CryptoBonusWorld.com is a static informational website. We do not require registration or collect personal information directly. The following data may be collected through third-party tools:</p>
-      <ul>
-        <li><strong>Analytics</strong> — We may use analytics tools (such as Google Analytics or Cloudflare Web Analytics) that collect aggregated, anonymized data about page views, referral sources, and browser information.</li>
-        <li><strong>Affiliate Click Tracking</strong> — When you click affiliate links, the destination exchange may use cookies and tracking pixels to attribute your registration. This is controlled by the exchange's own privacy policy.</li>
-      </ul>
+  <h2>Data we collect</h2>
+  <p>CryptoBonusWorld does not require a user account for ordinary public browsing. The following data may be processed through site infrastructure or third-party tools:</p>
+  <ul>
+    <li><strong>Analytics and technical data</strong> — aggregated or pseudonymous information such as page views, referral source, browser or device information may be processed by analytics or hosting tools used by the site.</li>
+    <li><strong>Affiliate click attribution</strong> — when you follow an affiliate link, the destination exchange or partner platform may use cookies, identifiers or tracking parameters to attribute a registration or other qualifying action.</li>
+  </ul>
 
-      <h2>Cookies</h2>
-      <p>Our website may use cookies for analytics purposes only. We do not use cookies for advertising profiling. You can disable cookies in your browser settings.</p>
+  <h2>Cookies and local browser storage</h2>
+  <p>
+    The site may use browser storage for product preferences such as selected country or language, and third-party providers may use cookies or similar technologies according to their own policies. Browser controls can be used to clear or restrict stored data.
+  </p>
 
-      <h2>Third-Party Links</h2>
-      <p>This website contains links to third-party exchanges and services. We are not responsible for the privacy practices of those third parties. Review the privacy policy of each exchange before registering.</p>
+  <h2>Third-party links</h2>
+  <p>
+    CryptoBonusWorld links to exchanges and other third-party services. Those services control their own data processing and privacy practices. Review the privacy policy of the destination service before creating an account or providing personal information.
+  </p>
 
-      <h2>Data Retention</h2>
-      <p>We do not store personal data on our servers. Analytics data is retained according to the third-party provider's policies.</p>
+  <h2>Data retention</h2>
+  <p>
+    CryptoBonusWorld does not operate a public user-account database for ordinary site visitors. Any analytics, hosting or affiliate-attribution data is retained according to the configuration and policies of the relevant provider and applicable requirements.
+  </p>
 
-      <h2>Your Rights</h2>
-      <p>Depending on your jurisdiction, you may have rights to access, correct or delete data held about you. Contact us if you have privacy-related requests.</p>
+  <h2>Your rights</h2>
+  <p>
+    Depending on your jurisdiction and the data involved, you may have rights relating to access, correction, deletion, restriction or objection. For privacy-related questions about CryptoBonusWorld, use the <a href="/contact/">Contact page</a>. Requests concerning an exchange or third-party platform should be directed to that provider.
+  </p>
 
-      <h2>Changes to This Policy</h2>
-      <p>We may update this Privacy Policy from time to time. Continued use of the website after changes constitutes acceptance of the updated policy.</p>
-
-      <h2>Contact</h2>
-      <p>For privacy-related questions, please use our <a href="/contact/">contact page</a>.</p>
-
-      <p><em>Last updated: June 2026</em></p>
-    </div>
-  </div>
-</InfoLayout>
+  <h2>Changes to this policy</h2>
+  <p>We may update this Privacy Policy when the site's data practices, infrastructure or legal requirements change. The current version is published on this page.</p>
+</LegalLayout>

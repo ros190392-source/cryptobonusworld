@@ -1,51 +1,60 @@
 ---
-import InfoLayout from '../layouts/InfoLayout.astro';
-import Breadcrumbs from '../components/Breadcrumbs.astro';
+import LegalLayout from '../layouts/LegalLayout.astro';
 ---
 
-<InfoLayout
+<LegalLayout
   title="Disclaimer — CryptoBonusWorld"
-  description="Read the full disclaimer for CryptoBonusWorld.com. Risk warning, no financial advice, and bonus availability information."
-  canonical="/disclaimer/"
+  description="CryptoBonusWorld disclaimer covering informational use, crypto risk, exchange and bonus availability, third-party terms and affiliate relationships."
+  canonical="https://cryptobonusworld.com/disclaimer/"
+  eyebrow="Risk disclaimer"
+  heading="Important limitations before you use the site"
+  lede="CryptoBonusWorld is an informational comparison product. Exchange access, promotions and financial outcomes depend on external terms and your own circumstances."
+  updated="10 Aug 2026"
 >
-  <div class="container">
-    <Breadcrumbs crumbs={[
-      { label: 'Home', href: '/' },
-      { label: 'Disclaimer' },
-    ]} />
-    <div class="page-header">
-      <h1>Disclaimer</h1>
-    </div>
-    <div class="prose">
-      <h2>No Financial Advice</h2>
-      <p>The content on CryptoBonusWorld.com is for informational purposes only. Nothing on this website constitutes financial, investment, legal or tax advice. You should not treat any content on this website as a substitute for professional financial advice.</p>
+  <h2>No financial, investment, legal or tax advice</h2>
+  <p>
+    Content on CryptoBonusWorld is provided for informational and comparison purposes only. Nothing on this website should be treated as financial, investment, legal or tax advice, or as a personalized recommendation to open an account, deposit funds or trade.
+  </p>
 
-      <h2>Risk Warning</h2>
-      <p>Crypto trading involves significant risk. The value of cryptocurrencies can rise or fall dramatically. You may lose some or all of your invested capital. Only trade with funds you can afford to lose.</p>
-      <p>Bonus promotions add additional complexity. Bonuses typically require meeting trading volume requirements which may incentivize trading beyond what is financially appropriate for your situation.</p>
-
-      <h2>Bonus Terms</h2>
-      <p>Bonus amounts, conditions, expiration dates and availability shown on CryptoBonusWorld are based on information from official exchange sources. However:</p>
-      <ul>
-        <li>Bonus terms can change without notice.</li>
-        <li>Availability may vary by country, account type and current promotion status.</li>
-        <li>We cannot guarantee that any bonus will be honored in your specific case.</li>
-        <li>Always verify current terms directly on the official exchange website before registering.</li>
-      </ul>
-
-      <h2>No Profit Guarantee</h2>
-      <p>CryptoBonusWorld does not guarantee any income, profit, or financial return from using any exchange, bonus, or trading product listed on this website. Past performance of any asset is not indicative of future results.</p>
-
-      <h2>Exchange Availability</h2>
-      <p>Not all exchanges are available in all countries. Regulatory requirements differ by jurisdiction. It is your responsibility to verify that an exchange is legally available in your country of residence before registering.</p>
-
-      <h2>Affiliate Relationships</h2>
-      <p>CryptoBonusWorld has affiliate relationships with some exchanges listed on this website. We may receive compensation when users register through our links. See our <a href="/affiliate-disclosure/">Affiliate Disclosure</a> for full details.</p>
-
-      <h2>Accuracy of Information</h2>
-      <p>While we make reasonable efforts to ensure the accuracy of information, we make no warranties regarding the completeness, accuracy or timeliness of any content. All data should be verified with official exchange sources.</p>
-
-      <p><em>Last updated: May 2026</em></p>
-    </div>
+  <h2>Cryptocurrency risk</h2>
+  <div class="legal-callout legal-callout--risk">
+    <p><strong>Cryptocurrency trading involves substantial risk of loss.</strong> Digital-asset prices can move sharply and you may lose some or all of the funds you commit.</p>
   </div>
-</InfoLayout>
+  <p>
+    Promotions can add conditions such as deposits, trading-volume targets or deadlines. Those conditions can encourage additional activity and do not reduce the underlying market or counterparty risk.
+  </p>
+
+  <h2>Exchange and country availability</h2>
+  <p>
+    Not every exchange, product, payment method or promotion is available in every country or to every account. CryptoBonusWorld separates active country context from evidence-backed local availability, but users should still confirm current eligibility on the exchange's official site before registering or depositing.
+  </p>
+
+  <h2>Bonus and promotion terms</h2>
+  <ul>
+    <li>Promotions can change, expire or be withdrawn without notice.</li>
+    <li>Advertised maximum rewards are not guaranteed outcomes.</li>
+    <li>Account-level eligibility can depend on country, verification, deposits, trading activity and campaign rules.</li>
+    <li>The exchange's current official terms control the final promotion.</li>
+  </ul>
+
+  <h2>No profit or outcome guarantee</h2>
+  <p>
+    CryptoBonusWorld does not guarantee profits, investment returns, exchange uptime, withdrawal outcomes, campaign acceptance or any particular result from using an exchange or promotion shown on the site.
+  </p>
+
+  <h2>Third-party exchanges and links</h2>
+  <p>
+    Exchanges and other third-party services operate independently of CryptoBonusWorld. We are not responsible for their security, account decisions, terms, availability or privacy practices. Review the relevant exchange-owned information before using a service.
+  </p>
+
+  <h2>Affiliate relationships</h2>
+  <p>
+    CryptoBonusWorld may earn commissions from approved referral routes. Those relationships are disclosed and are kept separate from country evidence and ranking authority.
+    See the <a href="/affiliate-disclosure/">Affiliate Disclosure</a>.
+  </p>
+
+  <h2>Accuracy and freshness</h2>
+  <p>
+    We make reasonable efforts to keep material claims evidence-bound and current, but external facts can change between checks. Where evidence is stale or incomplete, the product may show an under-review state. See the <a href="/update-policy/">Update Policy</a> for more detail.
+  </p>
+</LegalLayout>
