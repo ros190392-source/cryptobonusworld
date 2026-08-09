@@ -59,12 +59,17 @@ jobs:
         id: build
         run: npm run build
 
+      - name: Compact header browser smoke
+        id: browser
+        run: node scripts/header/header-browser-smoke.mjs
+
       - name: Advisory summary
         if: always()
         env:
           TYPECHECK: ${{ steps.typecheck.outcome }}
           REGRESSION: ${{ steps.regression.outcome }}
           BUILD: ${{ steps.build.outcome }}
+          BROWSER: ${{ steps.browser.outcome }}
         run: |
           {
             echo "### CBW Header Context Advisory"
@@ -74,6 +79,7 @@ jobs:
             echo "| Strict TypeScript | ${TYPECHECK} |"
             echo "| Country/language regression | ${REGRESSION} |"
             echo "| Full site build | ${BUILD} |"
+            echo "| Compact header browser smoke | ${BROWSER} |"
             echo ""
             echo "> Advisory only. Owner review remains the merge authority."
           } >> "$GITHUB_STEP_SUMMARY"
