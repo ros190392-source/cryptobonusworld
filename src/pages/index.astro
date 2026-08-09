@@ -2,390 +2,140 @@
 import CleanLayout from '../layouts/CleanLayout.astro';
 import HomepageTop10 from '../components/home/HomepageTop10.astro';
 import PageFrame from '../components/site-standard/PageFrame.astro';
-import FirstViewport from '../components/site-standard/FirstViewport.astro';
-import Section from '../components/site-standard/Section.astro';
 import Container from '../components/site-standard/Container.astro';
-
-const pathways = [
-  {
-    number: '01',
-    title: 'Choose a market',
-    text: 'Country controls availability, restrictions, KYC and local payment context.',
-  },
-  {
-    number: '02',
-    title: 'Compare evidence states',
-    text: 'Verified offers, research records and profiles under review remain visibly separate.',
-  },
-  {
-    number: '03',
-    title: 'Check the terms',
-    text: 'Open the exchange profile and confirm current regional terms before registering or depositing.',
-  },
-];
-
-const countryCards = [
-  {
-    flag: '🇰🇿',
-    name: 'Kazakhstan',
-    note: 'Three validated review profiles and a governed evidence matrix.',
-    status: 'Pilot · review only',
-    tone: 'pilot',
-  },
-  {
-    flag: '🇵🇱',
-    name: 'Poland',
-    note: 'European regulatory and country evidence is being normalized.',
-    status: 'Profiles in progress',
-    tone: 'progress',
-  },
-  {
-    flag: '🇩🇪',
-    name: 'Germany',
-    note: 'Existing GEO evidence is queued for the new profile contracts.',
-    status: 'Under review',
-    tone: 'review',
-  },
-  {
-    flag: '🇧🇷',
-    name: 'Brazil',
-    note: 'Planned market expansion after the first country factory pilot.',
-    status: 'Source mapping planned',
-    tone: 'planned',
-  },
-];
-
-const trustItems = [
-  {
-    number: '01',
-    title: 'Official-source-first',
-    text: 'Regulators and exchange-owned sources lead evidence collection.',
-  },
-  {
-    number: '02',
-    title: 'Country-specific truth',
-    text: 'Global exchange facts never silently override local restrictions.',
-  },
-  {
-    number: '03',
-    title: 'Freshness and limitations',
-    text: 'Checked dates, gaps and conflicts remain visible instead of being smoothed over.',
-  },
-  {
-    number: '04',
-    title: 'Affiliate separation',
-    text: 'Commercial status cannot create a ranking row or improve its position.',
-  },
-];
-
-const updates = [
-  {
-    date: 'July 2026',
-    label: 'Research record',
-    title: 'Binance Kazakhstan evidence lifecycle completed',
-    detail: 'Local entity, licence, KYC and public P2P surfaces mapped with explicit limitations.',
-  },
-  {
-    date: 'July 2026',
-    label: 'Product update',
-    title: 'One governed Homepage Top-10 published',
-    detail: 'Verified offers and neutral research rows now share one clearly labeled comparison surface.',
-  },
-  {
-    date: 'In progress',
-    label: 'Platform work',
-    title: 'Country and language foundations',
-    detail: 'Country facts and translated presentation are being built as separate controlled layers.',
-  },
-];
-
-const guideBlocks = [
-  {
-    h3: 'What is a crypto referral code?',
-    p: 'A crypto referral code (also called a promo code or invite code) is a short identifier you enter during sign-up at a crypto exchange. It links your new account to a partner, which can unlock a welcome bonus, fee discount, or other new-user reward that is not available to accounts created without a code.',
-  },
-  {
-    h3: 'How to claim a crypto sign-up bonus',
-    p: 'Open the exchange’s official offer page through a verified link, create a new account, and apply the code if it is not already pre-filled. Most exchanges also require identity verification (KYC) and a qualifying deposit before any reward becomes available — complete these steps before making further deposits so you do not miss a bonus tier.',
-  },
-  {
-    h3: 'Why bonus amounts are not guaranteed',
-    p: 'Advertised bonus figures are maximum amounts, not typical results. Reaching the full advertised amount usually requires completing several tasks — a deposit above a set threshold, a minimum trading volume, and finishing KYC — within a limited time window, often 30 days. Most users receive a partial reward rather than the headline figure.',
-  },
-  {
-    h3: 'Common bonus requirements',
-    p: 'Bonus programs vary by exchange, but frequently include identity verification (KYC), a minimum first deposit, a trading volume milestone, and a deadline to complete all tasks. Some rewards are issued as trading fee vouchers rather than withdrawable cash. Always read the current terms on the exchange’s official page before depositing.',
-  },
-  {
-    h3: 'Referral link vs promo code',
-    p: 'A referral link and a promo code often unlock the same offer, but work differently. A referral link usually applies the code automatically when you register through it. A promo code must be entered manually during sign-up, typically in a dedicated field. We list both where available — use the link where possible, and keep the code visible as a backup.',
-  },
-  {
-    h3: 'How CryptoBonusWorld checks exchange codes',
-    p: 'We check each listed code and bonus offer directly against the exchange’s own promotions page, not third-party forums or expired affiliate databases. Each exchange page on this site shows the date it was last verified. Promotions change frequently — if something looks outdated, check the individual exchange page for the latest information.',
-  },
-];
-
-const faqs = [
-  {
-    q: 'What is a crypto referral code?',
-    a: 'It’s a code entered at sign-up that links your account to a partner offer. Applying it can unlock a welcome bonus or fee discount that is not available otherwise. See the guide above for more detail on how these work.',
-  },
-  {
-    q: 'Do I need to enter the code manually?',
-    a: 'It depends on the exchange. Some auto-apply the code when you use our link — you just complete registration. Others require you to paste the code into a field during signup. Copy the code before clicking, just in case.',
-  },
-  {
-    q: 'Are crypto exchange bonuses guaranteed?',
-    a: 'No. Welcome bonuses are not guaranteed for every user. Advertised amounts are maximums — reaching them typically requires completing multiple tasks such as a deposit, a trading volume milestone, and KYC within a set window. Many users receive a partial bonus. Always read the full terms on the exchange’s official website before depositing.',
-  },
-  {
-    q: 'Why do offers differ by country?',
-    a: 'Bonus programs are subject to local regulations, exchange licensing, and KYC requirements. An offer available in one country may be restricted or unavailable in another. Always check the exchange’s terms for your region before signing up.',
-  },
-  {
-    q: 'Are these affiliate links?',
-    a: 'Yes. Links marked “Check offer” are affiliate referral links. If you register through one, CryptoBonusWorld may earn a commission from the exchange. This does not cost you anything extra and does not change your bonus. See our affiliate disclosure for details.',
-  },
-  {
-    q: 'Which exchange bonus is best?',
-    a: 'There is no single “best” bonus for everyone — it depends on your priorities, region, eligibility, and how much activity each reward requires. Compare the verification badge and current details on each exchange page before deciding.',
-  },
-  {
-    q: 'How often are codes checked?',
-    a: 'We check each exchange’s promo codes regularly, with the date of the last check shown on each exchange page. Promotions change frequently — if a code looks outdated, check the most recent version on the official exchange website.',
-  },
-  {
-    q: 'Can a code expire?',
-    a: 'Yes. Exchanges can change or discontinue a promo code or referral offer at any time, without notice. We recheck listed codes regularly and update or remove them if they stop working. If a code on this site appears expired, check the individual exchange page for the latest version.',
-  },
-];
-
-const faqSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: faqs.map(item => ({
-    '@type': 'Question',
-    name: item.q,
-    acceptedAnswer: { '@type': 'Answer', text: item.a },
-  })),
-};
 ---
 
 <CleanLayout
-  title="Compare Crypto Exchanges by Offer & Evidence | CryptoBonusWorld"
-  description="Compare 10 crypto exchanges in one governed view. See verified offers, research status, country context, limitations, and current evidence before choosing an exchange."
+  title="Best Crypto Exchanges by Country | CryptoBonusWorld"
+  description="Choose your country and compare CryptoBonusWorld's governed Top 10 crypto exchanges with country and evidence status kept separate."
   ogImage="/og-default.png"
   bodyClass="cbw-homepage-ranking-first"
 >
-  <PageFrame family="homepage" class="homepage-v2">
-    <main>
-      <FirstViewport
-        family="homepage"
-        container="wide"
-        eyebrow="Checked by country · backed by evidence"
-        title="Find the right crypto exchange for your market."
-        lede="Compare 10 exchanges with offer, research and country-context states kept clearly separate."
-      >
-        <div class="hero-meta" aria-label="Market, language and ranking context">
-          <span><b>Country</b> Global</span>
-          <span><b>Language</b> English</span>
-          <span><b>Ranking</b> 10 governed rows</span>
-          <a href="#exchanges">Open Top 10 ↓</a>
-          <a href="#markets">Markets ↓</a>
-        </div>
-      </FirstViewport>
-
-      <HomepageTop10 />
-
-      <Section container="wide" spacing="compact" tone="page" class="path-section" ariaLabel="How CryptoBonusWorld works">
-        <div class="path-grid">
-          {pathways.map(path => (
-            <article class="path-card">
-              <span>{path.number}</span>
-              <h2>{path.title}</h2>
-              <p>{path.text}</p>
-            </article>
-          ))}
-        </div>
-      </Section>
-
-      <Section container="wide" spacing="standard" tone="secondary" id="markets" class="markets">
-        <header class="section-heading">
-          <div>
-            <p class="eyebrow">Country-first discovery</p>
-            <h2>Explore markets, not duplicate rankings.</h2>
-            <p>Country cards show research readiness only. They do not create a second exchange table on the homepage.</p>
+  <PageFrame family="homepage" class="homepage-product">
+    <section class="market-hero" aria-labelledby="home-title" data-home-market>
+      <Container size="wide" class="market-hero-inner">
+        <div class="market-context">
+          <p class="kicker">Your market</p>
+          <div class="market-identity" aria-live="polite">
+            <span class="market-flag" aria-hidden="true" data-home-country-flag>🌍</span>
+            <div>
+              <strong data-home-country-name>General</strong>
+              <span data-home-country-code>Global context</span>
+            </div>
           </div>
-          <span class="section-state">Country pages in controlled preview</span>
-        </header>
-
-        <div class="country-grid">
-          {countryCards.map(country => (
-            <article class="country-card">
-              <div class="country-top"><span class="country-flag">{country.flag}</span><span class={`country-tone tone-${country.tone}`}></span></div>
-              <h3>{country.name}</h3>
-              <p>{country.note}</p>
-              <strong>{country.status}</strong>
-            </article>
-          ))}
         </div>
-      </Section>
 
-      <section class="trust">
-        <Container size="wide" class="trust-grid">
-          <div class="trust-copy">
-            <p class="eyebrow">Why trust CryptoBonusWorld</p>
-            <h2>Evidence is a product feature, not a footnote.</h2>
-            <p>We show what was checked, what remains uncertain, and when a profile needs review. Missing evidence produces a visible limitation — not an invented answer.</p>
-            <a class="trust-link" href="#guide">Read the bonus guide</a>
+        <div class="market-copy">
+          <p class="kicker">Ranking first · country aware</p>
+          <h1 id="home-title">Top crypto exchanges to compare</h1>
+          <p data-home-ranking-note>
+            Choose a country in the header. The Top 10 stays global until a local ranking is approved.
+          </p>
+          <div class="market-actions">
+            <a href="#exchanges">View Top 10 ↓</a>
+            <span data-home-ranking-state>Global governed ranking</span>
           </div>
-          <div class="trust-list">
-            {trustItems.map(item => (
-              <article><span>{item.number}</span><div><strong>{item.title}</strong><p>{item.text}</p></div></article>
-            ))}
-          </div>
-        </Container>
-      </section>
-
-      <Section container="wide" spacing="standard" tone="primary" class="updates">
-        <header class="section-heading">
-          <div><p class="eyebrow">Research and product changes</p><h2>Latest governed updates</h2></div>
-        </header>
-        <div class="updates-list">
-          {updates.map(update => (
-            <article class="update-row">
-              <span class="update-date">{update.date}</span>
-              <div><strong>{update.title}</strong><p>{update.detail}</p></div>
-              <span class="update-label">{update.label}</span>
-            </article>
-          ))}
         </div>
-      </Section>
+      </Container>
+    </section>
 
-      <Section container="prose" spacing="standard" tone="secondary" id="guide" class="guide">
-        <p class="eyebrow">Guide</p>
-        <h2>Crypto exchange bonuses guide</h2>
-        <div class="guide-list">
-          {guideBlocks.map(block => (
-            <article><h3>{block.h3}</h3><p>{block.p}</p></article>
-          ))}
-        </div>
-      </Section>
+    <HomepageTop10 />
 
-      <Section container="prose" spacing="standard" tone="primary" id="faq" class="faq">
-        <p class="eyebrow">Common questions</p>
-        <h2>Frequently asked questions</h2>
-        <div class="faq-list">
-          {faqs.map(item => (
-            <details><summary>{item.q}</summary><p>{item.a}</p></details>
-          ))}
-        </div>
-      </Section>
+    <section class="trust-strip" aria-label="Ranking safeguards">
+      <Container size="wide" class="trust-grid">
+        <article><strong>Country-aware</strong><span>Country context is not proof of availability.</span></article>
+        <article><strong>Evidence-bound</strong><span>Unknown or stale facts stay under review.</span></article>
+        <article><strong>Affiliate-separated</strong><span>Commercial links cannot create rank or country truth.</span></article>
+        <a href="/methodology/">How we verify →</a>
+      </Container>
+    </section>
 
-      <Section container="prose" spacing="compact" tone="page" class="disclosure">
-        <p>
-          <strong>Disclosure:</strong> CryptoBonusWorld may earn a commission when you register through approved links on this site.
-          This does not affect editorial status or ranking position. Advertised bonus amounts are maximums and depend on eligibility,
-          KYC, deposits, trading activity, deadlines, and local terms. Verify current conditions on the official exchange website before
-          registering or depositing. Cryptocurrency trading carries significant risk and nothing here is financial advice.
-          Read our <a href="/affiliate-disclosure/">affiliate disclosure</a>.
-        </p>
-      </Section>
+    <section class="quick-links">
+      <Container size="wide" class="quick-grid">
+        <a href="/exchanges/"><strong>All exchanges</strong><span>Directory →</span></a>
+        <a href="/countries/kazakhstan/"><strong>🇰🇿 Kazakhstan</strong><span>Market preview →</span></a>
+        <a href="/promo-codes/"><strong>Promo codes</strong><span>Offer status →</span></a>
+      </Container>
+    </section>
 
-      <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
-    </main>
+    <section class="disclosure">
+      <Container size="prose">
+        <p><strong>Disclosure:</strong> CryptoBonusWorld may earn a commission from approved links. This does not affect ranking or country evidence. <a href="/affiliate-disclosure/">Details</a>.</p>
+      </Container>
+    </section>
   </PageFrame>
 </CleanLayout>
 
+<script is:inline>
+  (function () {
+    var root = document.querySelector('[data-home-market]');
+    if (!root) return;
+    function syncMarket() {
+      var header = document.querySelector('[data-site-header]');
+      if (!header) return;
+      var countryCode = header.dataset.countryContext || 'global';
+      var headerFlag = header.querySelector('[data-country-summary] [data-country-flag]');
+      var headerName = header.querySelector('[data-country-name]');
+      var flag = root.querySelector('[data-home-country-flag]');
+      var name = root.querySelector('[data-home-country-name]');
+      var code = root.querySelector('[data-home-country-code]');
+      var note = root.querySelector('[data-home-ranking-note]');
+      var state = root.querySelector('[data-home-ranking-state]');
+      var countryName = headerName && headerName.textContent ? headerName.textContent.trim() : 'General';
+      if (flag) flag.textContent = headerFlag && headerFlag.textContent ? headerFlag.textContent.trim() : '🌍';
+      if (name) name.textContent = countryName;
+      if (countryCode === 'global') {
+        if (code) code.textContent = 'Global context';
+        if (state) state.textContent = 'Global governed ranking';
+        if (note) note.textContent = 'Choose a country in the header. The Top 10 stays global until a local ranking is approved.';
+      } else {
+        if (code) code.textContent = countryCode + ' · active market';
+        if (state) state.textContent = 'Local ranking under review';
+        if (note) note.textContent = countryName + ' is your active market. The list below remains the global Top 10 until a local ranking is approved.';
+      }
+    }
+    syncMarket();
+    document.addEventListener('cbw:country-context-change', syncMarket);
+    window.addEventListener('pageshow', syncMarket);
+  })();
+</script>
+
 <style>
-  :global(body.cbw-homepage-ranking-first) { background: var(--cbw-surface-page); }
-  .homepage-v2 { color: var(--cbw-text-primary); background: var(--cbw-surface-page); }
-  .eyebrow { margin: 0 0 var(--cbw-space-3); color: var(--cbw-action); font-size: 10px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
-  h2 { margin: 0; color: var(--cbw-text-primary); font-family: 'Barlow Condensed', sans-serif; font-size: clamp(34px, 5vw, 54px); letter-spacing: -.025em; line-height: .98; text-transform: uppercase; }
-
-  :global(.homepage-v2 .cbw-first-viewport) {
-    background: radial-gradient(circle at 82% 10%, rgba(247,147,26,.2), transparent 30%), linear-gradient(135deg,#0c1729,#13233e 68%,#1c355b);
-  }
-  :global(.homepage-v2 .cbw-first-viewport__inner) { padding-block: 16px; }
-  :global(.homepage-v2 .cbw-display-title) { max-width: var(--cbw-width-standard); font-size: clamp(40px, 4.6vw, 58px); }
-  :global(.homepage-v2 .cbw-lede) { max-width: var(--cbw-width-prose); margin-top: 8px; font-size: 14px; line-height: 1.5; }
-  .hero-meta { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 13px; }
-  .hero-meta span, .hero-meta a { display: inline-flex; min-height: 28px; align-items: center; gap: 5px; padding: 0 10px; border: 1px solid rgba(255,255,255,.15); border-radius: var(--cbw-radius-pill); color: rgba(255,255,255,.75); background: rgba(255,255,255,.05); font-size: 9px; text-decoration: none; }
-  .hero-meta b { color: #fff; }
-  .hero-meta a { color: #ffd291; border-color: rgba(247,147,26,.34); background: rgba(247,147,26,.1); font-weight: 900; }
-
-  .path-grid { display: grid; gap: var(--cbw-space-3); }
-  .path-card { padding: var(--cbw-space-5); border: 1px solid var(--cbw-border-standard); border-radius: var(--cbw-radius-card); background: var(--cbw-surface-primary); box-shadow: var(--cbw-shadow-panel); }
-  .path-card > span { color: var(--cbw-action); font-size: 10px; font-weight: 900; }
-  .path-card h2 { margin-top: var(--cbw-space-3); font-size: 25px; }
-  .path-card p { margin: var(--cbw-space-2) 0 0; color: var(--cbw-text-secondary); font-size: 12px; line-height: 1.6; }
-
-  .section-heading { display: grid; gap: var(--cbw-space-4); align-items: end; margin-bottom: var(--cbw-space-7); }
-  .section-heading p:last-child { max-width: var(--cbw-width-prose); margin: var(--cbw-space-3) 0 0; color: var(--cbw-text-secondary); line-height: 1.65; }
-  .section-state { align-self: start; padding: 7px 10px; border-radius: var(--cbw-radius-pill); color: #fff; background: var(--cbw-text-primary); font-size: 9px; font-weight: 900; text-transform: uppercase; }
-  .country-grid { display: grid; gap: var(--cbw-space-3); }
-  .country-card { padding: var(--cbw-space-5); border: 1px solid var(--cbw-border-standard); border-radius: var(--cbw-radius-card); background: var(--cbw-surface-primary); }
-  .country-top { display: flex; justify-content: space-between; align-items: center; }
-  .country-flag { font-size: 30px; }
-  .country-tone { width: 10px; height: 10px; border-radius: var(--cbw-radius-pill); background: #9ca3af; }
-  .tone-pilot { background: var(--cbw-evidence); }
-  .tone-progress { background: var(--cbw-action); }
-  .tone-review { background: #3b82f6; }
-  .country-card h3 { margin: var(--cbw-space-4) 0 var(--cbw-space-2); font-size: 20px; }
-  .country-card p { min-height: 42px; margin: 0; color: var(--cbw-text-secondary); font-size: 12px; line-height: 1.55; }
-  .country-card strong { display: block; margin-top: var(--cbw-space-4); color: #925204; font-size: 9px; text-transform: uppercase; }
-
-  .trust { padding-block: var(--cbw-space-10); color: #fff; background: #13233e; }
-  .trust-grid { display: grid; gap: var(--cbw-space-7); }
-  .trust-copy h2 { color: #fff; }
-  .trust-copy > p:last-of-type { color: #bdc9d8; line-height: 1.65; }
-  .trust-link { display: inline-flex; min-height: 44px; align-items: center; margin-top: var(--cbw-space-5); padding-inline: var(--cbw-space-5); border-radius: var(--cbw-radius-control); color: var(--cbw-text-primary); background: #fff; font-size: 12px; font-weight: 900; text-decoration: none; }
-  .trust-list { display: grid; gap: var(--cbw-space-3); }
-  .trust-list article { display: grid; grid-template-columns: auto 1fr; gap: var(--cbw-space-3); padding: var(--cbw-space-4); border: 1px solid rgba(255,255,255,.12); border-radius: var(--cbw-radius-card); background: rgba(255,255,255,.05); }
-  .trust-list article > span { color: var(--cbw-action); font-size: 10px; font-weight: 900; }
-  .trust-list strong { display: block; }
-  .trust-list p { margin: var(--cbw-space-2) 0 0; color: #bdc9d8; font-size: 11px; line-height: 1.55; }
-
-  .updates-list { overflow: hidden; border: 1px solid var(--cbw-border-standard); border-radius: var(--cbw-radius-card); }
-  .update-row { display: grid; gap: var(--cbw-space-3); padding: var(--cbw-space-5); border-top: 1px solid #e4e8e3; }
-  .update-row:first-child { border-top: 0; }
-  .update-date { color: var(--cbw-text-muted); font-size: 9px; font-weight: 900; text-transform: uppercase; }
-  .update-row strong { display: block; }
-  .update-row p { margin: var(--cbw-space-2) 0 0; color: var(--cbw-text-secondary); font-size: 11px; line-height: 1.55; }
-  .update-label { align-self: start; justify-self: start; padding: 6px 8px; border-radius: var(--cbw-radius-pill); color: #8a4d00; background: #fff0dc; font-size: 8px; font-weight: 900; text-transform: uppercase; }
-
-  .guide-list { display: grid; gap: var(--cbw-space-6); margin-top: var(--cbw-space-7); }
-  .guide-list article { padding-top: var(--cbw-space-5); border-top: 1px solid var(--cbw-border-standard); }
-  .guide-list h3 { margin: 0; font-size: 17px; }
-  .guide-list p { margin: var(--cbw-space-2) 0 0; color: var(--cbw-text-secondary); font-size: 14px; line-height: 1.75; }
-  .faq-list { display: grid; gap: var(--cbw-space-2); margin-top: var(--cbw-space-7); }
-  .faq details { overflow: hidden; border: 1px solid var(--cbw-border-standard); border-radius: var(--cbw-radius-control); background: var(--cbw-surface-primary); }
-  .faq summary { display: flex; justify-content: space-between; gap: var(--cbw-space-4); padding: var(--cbw-space-4) var(--cbw-space-5); color: #111827; font-size: 14px; font-weight: 700; cursor: pointer; list-style: none; }
-  .faq summary::-webkit-details-marker { display: none; }
-  .faq summary::after { content: '+'; color: #9ca3af; font-size: 18px; }
-  .faq details[open] summary::after { content: '−'; }
-  .faq details p { margin: 0; padding: 0 var(--cbw-space-5) var(--cbw-space-4); color: var(--cbw-text-secondary); font-size: 13px; line-height: 1.7; }
-  .disclosure p { margin: 0; color: #6b7280; font-size: 11px; line-height: 1.7; }
-  .disclosure strong { color: #374151; }
-  .disclosure a { color: #166534; font-weight: 800; }
-
-  @media (min-width: 720px) {
-    .path-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
-    .section-heading { grid-template-columns: minmax(0,1fr) auto; }
-    .country-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
-    .update-row { grid-template-columns: 110px minmax(0,1fr) auto; align-items: center; }
-  }
-  @media (min-width: 920px) {
-    .country-grid { grid-template-columns: repeat(4,minmax(0,1fr)); }
-    .trust-grid { grid-template-columns: 1.05fr .95fr; align-items: center; }
-  }
-  @media (max-width: 639px) {
-    :global(.homepage-v2 .cbw-first-viewport__inner) { padding-block: 12px; }
-    :global(.homepage-v2 .cbw-display-title) { font-size: 42px; line-height: .92; }
-    :global(.homepage-v2 .cbw-lede) { font-size: 13px; line-height: 1.4; }
-    .hero-meta { margin-top: 9px; gap: 5px; }
-    .hero-meta span, .hero-meta a { min-height: 25px; padding-inline: 8px; font-size: 8px; }
-    .trust { padding-block: var(--cbw-space-9); }
+  :global(body.cbw-homepage-ranking-first) { background: #f6f7f3; }
+  .homepage-product { color: #13233e; background: #f6f7f3; }
+  .market-hero { color: #fff; background: radial-gradient(circle at 85% 12%,rgba(247,147,26,.22),transparent 28%),linear-gradient(135deg,#0a1424,#142945 72%,#1d385c); }
+  .market-hero-inner { display: grid; grid-template-columns: minmax(220px,.7fr) minmax(0,1.5fr); gap: 28px; align-items: center; padding-block: 24px 26px; }
+  .kicker { margin: 0 0 7px; color: #f7b04a; font-size: 10px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+  .market-identity { display: flex; align-items: center; gap: 14px; min-width: 0; }
+  .market-flag { display: inline-flex; width: 58px; height: 58px; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,.16); border-radius: 16px; background: rgba(255,255,255,.08); font-size: 38px; }
+  .market-identity strong { display: block; max-width: 230px; overflow: hidden; color: #fff; font-family: 'Barlow Condensed','Inter',sans-serif; font-size: clamp(30px,3vw,40px); line-height: .95; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
+  .market-identity div > span { display: block; margin-top: 5px; color: #aebdd0; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+  .market-copy h1 { max-width: 760px; margin: 0; color: #fff; font-family: 'Barlow Condensed','Inter',sans-serif; font-size: clamp(42px,5.8vw,68px); line-height: .9; text-transform: uppercase; }
+  .market-copy > p:not(.kicker) { max-width: 720px; margin: 10px 0 0; color: #cbd6e4; font-size: 13px; line-height: 1.5; }
+  .market-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 13px; }
+  .market-actions a,.market-actions span { display: inline-flex; min-height: 34px; align-items: center; padding: 0 12px; border-radius: 999px; font-size: 10px; font-weight: 900; }
+  .market-actions a { color: #13233e; background: #f7931a; }
+  .market-actions span { border: 1px solid rgba(255,255,255,.15); color: #d8e1ec; background: rgba(255,255,255,.055); }
+  .trust-strip { padding: 20px 0; border-block: 1px solid #dde3dc; background: #fff; }
+  .trust-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)) auto; gap: 14px; align-items: center; }
+  .trust-grid article { display: grid; gap: 2px; }
+  .trust-grid strong { font-size: 12px; }
+  .trust-grid span { color: #667386; font-size: 10px; line-height: 1.45; }
+  .trust-grid > a { color: #925204; font-size: 11px; font-weight: 900; white-space: nowrap; }
+  .quick-links { padding: 16px 0; }
+  .quick-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; }
+  .quick-grid a { padding: 13px 15px; border: 1px solid #dce3dc; border-radius: 12px; background: #fff; }
+  .quick-grid strong { display: block; font-size: 12px; }
+  .quick-grid span { color: #718095; font-size: 10px; }
+  .disclosure { padding: 8px 0 22px; color: #778394; }
+  .disclosure p { margin: 0; font-size: 9px; line-height: 1.6; }
+  .disclosure a { color: #925204; font-weight: 800; text-decoration: underline; }
+  @media (max-width: 820px) {
+    .market-hero-inner { grid-template-columns: 1fr; gap: 16px; padding-block: 18px 20px; }
+    .market-context > .kicker { display: none; }
+    .market-flag { width: 48px; height: 48px; font-size: 32px; }
+    .market-identity strong { font-size: 30px; }
+    .market-copy h1 { font-size: clamp(40px,12vw,56px); }
+    .trust-grid,.quick-grid { grid-template-columns: 1fr; }
   }
 </style>

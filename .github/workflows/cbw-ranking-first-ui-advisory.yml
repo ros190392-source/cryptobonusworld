@@ -1,0 +1,70 @@
+name: CBW Ranking-First UI Advisory
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'src/pages/index.astro'
+      - 'src/pages/methodology.astro'
+      - 'src/components/home/HomepageTop10.astro'
+      - 'src/components/PageHero.astro'
+      - 'src/components/Breadcrumbs.astro'
+      - 'src/components/layout/SiteHeader.astro'
+      - 'src/data/header/**'
+      - 'src/data/contracts/countryInput.ts'
+      - 'scripts/ui/ranking-first-browser-smoke.mjs'
+      - '.github/workflows/cbw-ranking-first-ui-advisory.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cbw-ranking-first-ui-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  ranking-first-ui:
+    name: Ranking-first UI advisory (non-blocking)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    continue-on-error: true
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Production build
+        id: build
+        run: npm run build
+
+      - name: Ranking-first Chromium smoke
+        id: browser
+        run: node scripts/ui/ranking-first-browser-smoke.mjs
+
+      - name: Advisory summary
+        if: always()
+        env:
+          BUILD: ${{ steps.build.outcome }}
+          BROWSER: ${{ steps.browser.outcome }}
+        run: |
+          {
+            echo '### CBW Ranking-First UI Advisory'
+            echo ''
+            echo '| Check | Result |'
+            echo '|---|---|'
+            echo "| Production build | ${BUILD} |"
+            echo "| Ranking-first Chromium smoke | ${BROWSER} |"
+            echo ''
+            echo '> Visual/product advisory only. It performs no publish, import or deploy action.'
+          } >> "$GITHUB_STEP_SUMMARY"
