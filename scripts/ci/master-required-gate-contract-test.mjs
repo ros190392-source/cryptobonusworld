@@ -23,7 +23,13 @@ import {
   isMaterialPath,
   isNonMaterialPath,
   classifyChangedPaths,
+  VALID_REASONS,
 } from './master-required-gate-classify.mjs';
+import { validateClassifierOutput } from './master-required-gate-validate-output.mjs';
+import {
+  auditProducerConsumerContract,
+  ALLOWED_STEP_IF as CONTRACT_ALLOWED_STEP_IF,
+} from './master-required-gate-workflow-contract.mjs';
 
 const ROOT = resolve(process.cwd());
 const WORKFLOW_DIR = resolve(ROOT, '.github/workflows');
@@ -32,7 +38,8 @@ const HEADER_WORKFLOW = resolve(WORKFLOW_DIR, 'cbw-global-header-interaction.yml
 const REQUIRED_CONTEXT = 'Master required gate';
 const HEADER_GATE_SCRIPT = 'scripts/ui/global-header-interaction-browser-smoke.mjs';
 const CLASSIFY_SCRIPT = 'scripts/ci/master-required-gate-classify.mjs';
-const ALLOWED_STEP_IF = "steps.classify.outputs.material == 'true'";
+const VALIDATE_SCRIPT = 'scripts/ci/master-required-gate-validate-output.mjs';
+const ALLOWED_STEP_IF = CONTRACT_ALLOWED_STEP_IF;
 
 let checks = 0;
 const failures = [];
@@ -315,6 +322,12 @@ check(
     String(step.run ?? '').includes('master-required-gate-classifier-fixture-test.mjs'),
   ),
 );
+check(
+  'required job always executes the producer/output mutation suite',
+  unconditionalSteps.some((step) =>
+    String(step.run ?? '').includes('master-required-gate-mutation-test.mjs'),
+  ),
+);
 
 // Fail-closed resolution boundaries.
 check('unresolved change set is MATERIAL', classifyChangedPaths(null).material === true);
@@ -376,6 +389,201 @@ check(
   'required workflow references no repository secrets',
   !readFileSync(REQUIRED_WORKFLOW, 'utf8').includes('secrets.'),
 );
+
+// --- 10. producer/consumer contract ------------------------------------------
+//
+// Closes the reviewed fail-open: nothing previously required the classification
+// PRODUCER to exist. Renaming `id: classify` or deleting the classifier step
+// left this suite green while `steps.classify.outputs.material` resolved to ''
+// at runtime, skipping build + header matrix + indexability under SUCCESS.
+// Every assertion below is exercised against deliberate mutations by
+// scripts/ci/master-required-gate-mutation-test.mjs.
+const validatorSource = readFileSync(resolve(ROOT, VALIDATE_SCRIPT), 'utf8');
+for (const result of auditProducerConsumerContract({
+  workflowText: readFileSync(REQUIRED_WORKFLOW, 'utf8'),
+  classifierSource: readFileSync(resolve(ROOT, CLASSIFY_SCRIPT), 'utf8'),
+  validatorSource,
+})) {
+  check(result.label, result.ok, result.detail);
+}
+check('validator script exists on disk', existsSync(resolve(ROOT, VALIDATE_SCRIPT)));
+
+// --- 11. runtime validator behaviour -----------------------------------------
+//
+// The validator is the runtime half of the producer binding, so its acceptance
+// set is asserted directly rather than inferred from its source.
+const GOOD_SIDECAR = JSON.stringify({ material: true, reason: 'material-path-changed' });
+const GOOD_FALSE_SIDECAR = JSON.stringify({
+  material: false,
+  reason: 'only-allowlisted-non-material-paths',
+});
+check(
+  'validator ACCEPTS material=true with an agreeing sidecar',
+  validateClassifierOutput({
+    material: 'true',
+    reason: 'material-path-changed',
+    sidecarRaw: GOOD_SIDECAR,
+  }).length === 0,
+);
+check(
+  'validator ACCEPTS material=false with an agreeing sidecar',
+  validateClassifierOutput({
+    material: 'false',
+    reason: 'only-allowlisted-non-material-paths',
+    sidecarRaw: GOOD_FALSE_SIDECAR,
+  }).length === 0,
+);
+// Every rejected shape. `undefined` is a deleted/renamed producer; '' is an
+// unresolved expression; the rest are malformed emissions.
+const REJECTED_MATERIAL_VALUES = [
+  undefined,
+  null,
+  '',
+  ' ',
+  'true ',
+  ' true',
+  'true\n',
+  'true\t',
+  'True',
+  'TRUE',
+  'yes',
+  'no',
+  '1',
+  '0',
+  'material',
+  'true,false',
+  true,
+  1,
+];
+for (const value of REJECTED_MATERIAL_VALUES) {
+  check(
+    `validator REJECTS material=${JSON.stringify(value)}`,
+    validateClassifierOutput({
+      material: value,
+      reason: 'material-path-changed',
+      sidecarRaw: GOOD_SIDECAR,
+    }).length > 0,
+  );
+}
+for (const value of [undefined, null, '', ' ', 'material-path-changed ', 'nonsense', 'MATERIAL-PATH-CHANGED']) {
+  check(
+    `validator REJECTS reason=${JSON.stringify(value)}`,
+    validateClassifierOutput({ material: 'true', reason: value, sidecarRaw: GOOD_SIDECAR }).length > 0,
+  );
+}
+check(
+  'validator REJECTS a missing producer sidecar (producer step deleted)',
+  validateClassifierOutput({
+    material: 'true',
+    reason: 'material-path-changed',
+    sidecarRaw: null,
+  }).length > 0,
+);
+check(
+  'validator REJECTS an empty producer sidecar',
+  validateClassifierOutput({ material: 'true', reason: 'material-path-changed', sidecarRaw: '' })
+    .length > 0,
+);
+check(
+  'validator REJECTS an unparseable producer sidecar',
+  validateClassifierOutput({
+    material: 'true',
+    reason: 'material-path-changed',
+    sidecarRaw: '{not json',
+  }).length > 0,
+);
+check(
+  'validator REJECTS a sidecar that disagrees on material (producer id renamed)',
+  validateClassifierOutput({
+    material: 'false',
+    reason: 'material-path-changed',
+    sidecarRaw: GOOD_SIDECAR,
+  }).length > 0,
+);
+check(
+  'validator REJECTS a sidecar that disagrees on reason',
+  validateClassifierOutput({
+    material: 'true',
+    reason: 'unresolved-or-empty-change-set',
+    sidecarRaw: GOOD_SIDECAR,
+  }).length > 0,
+);
+check(
+  'validator REJECTS a non-boolean sidecar material',
+  validateClassifierOutput({
+    material: 'true',
+    reason: 'material-path-changed',
+    sidecarRaw: JSON.stringify({ material: 'true', reason: 'material-path-changed' }),
+  }).length > 0,
+);
+check('VALID_REASONS is a closed, non-empty vocabulary', VALID_REASONS.length === 3);
+for (const reason of VALID_REASONS) {
+  check(
+    `reason "${reason}" is actually produced by the classifier`,
+    new RegExp(`'${reason}'`).test(readFileSync(resolve(ROOT, CLASSIFY_SCRIPT), 'utf8')),
+  );
+}
+
+// --- 12. raw filenames are never trimmed -------------------------------------
+//
+// Reviewed fail-open: `normalizePath` trimmed, so the legal Git filename
+// "README.md " (trailing space) collapsed onto the allowlisted "README.md" and
+// an unreviewed material file inherited non-material status. Boundary
+// whitespace is part of the name and must be compared byte-for-byte.
+const WHITESPACE_VARIANTS = [
+  'README.md ',
+  ' README.md',
+  '  README.md  ',
+  'README.md\t',
+  '\tREADME.md',
+  'README.md\n',
+  '\nREADME.md',
+  'README.md\r',
+  'README .md',
+  'READ ME.md',
+  'AUDIT_REPORT.md ',
+  ' AUDIT_REPORT.md',
+  'CryptoBonusWorld_Master_Architecture.md ',
+  'SCREENSHOT_PROCESSING_CONSTITUTION_v1.md ',
+];
+for (const variant of WHITESPACE_VARIANTS) {
+  check(
+    `whitespace variant ${JSON.stringify(variant)} is MATERIAL (not trimmed onto the allowlist)`,
+    isMaterialPath(variant) === true,
+  );
+  check(
+    `whitespace variant ${JSON.stringify(variant)} is MATERIAL as a change set`,
+    classifyChangedPaths([variant]).material === true,
+  );
+}
+// The exact names must still be non-material, so the fix did not simply break
+// the allowlist.
+for (const entry of NON_MATERIAL_PATHS) {
+  check(`exact "${entry}" remains non-material after the no-trim fix`, isNonMaterialPath(entry));
+}
+check(
+  'an allowlisted path plus its trailing-space twin is MATERIAL',
+  classifyChangedPaths(['README.md', 'README.md ']).material === true,
+);
+// Source-level guards: the two removed trims must not come back. Comment lines
+// are stripped first — this file's own prose explains what must NOT appear, and
+// a guard that trips on its own documentation proves nothing.
+const classifierCode = readFileSync(resolve(ROOT, CLASSIFY_SCRIPT), 'utf8')
+  .split('\n')
+  .filter((line) => !/^\s*\/\//.test(line))
+  .join('\n');
+check(
+  'classifier never trims a resolved path segment',
+  !/\.split\('\\0'\)[\s\S]{0,200}\.trim\(\)/.test(classifierCode),
+);
+check('classifier never drops segments with filter(Boolean)', !/filter\(Boolean\)/.test(classifierCode));
+check(
+  'classifier removes only the trailing NUL terminator segment',
+  /segments\[segments\.length - 1\] === ''/.test(classifierCode) &&
+    /segments\.pop\(\)/.test(classifierCode),
+);
+check('normalizePath does not trim', !/normalized[^\n]*\.trim\(\)/.test(classifierCode));
+check('classifier code contains no .trim() at all', !/\.trim\(\)/.test(classifierCode));
 
 if (failures.length) {
   console.error(`CBW MASTER REQUIRED GATE CONTRACT: FAIL (${failures.length}/${checks})`);

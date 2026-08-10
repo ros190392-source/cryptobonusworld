@@ -220,6 +220,205 @@ try {
   rmSync(repo, { recursive: true, force: true });
 }
 
+// --- 13. RAW WHITESPACE FILENAMES (real git) ---------------------------------
+//
+// Regression guard for the reviewed fail-open: `normalizePath` used to trim, so
+// the legal Git filename `README.md ` (trailing space) collapsed onto the
+// allowlisted `README.md`. A material, unreviewed file inherited non-material
+// status and the whole heavy matrix would skip.
+//
+// These fixtures are built INDEX-ONLY (hash-object + update-index + write-tree
+// + commit-tree, never a working-tree checkout). Windows cannot create a file
+// whose name ends in a space and cannot represent a newline in a filename, but
+// Git objects can hold both — and Git on Linux will happily hand such a path to
+// this classifier. Building through the index reproduces exactly what the
+// resolver sees on the CI runner, on every platform.
+const wsRepo = mkdtempSync(join(tmpdir(), 'cbw-gate-ws-'));
+try {
+  const wsGit = (...args) =>
+    execFileSync('git', args, { cwd: wsRepo, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+  const identity = {
+    ...process.env,
+    GIT_AUTHOR_NAME: 'cbw-fixture',
+    GIT_AUTHOR_EMAIL: 'fixture@cbw.local',
+    GIT_COMMITTER_NAME: 'cbw-fixture',
+    GIT_COMMITTER_EMAIL: 'fixture@cbw.local',
+  };
+
+  wsGit('init', '--initial-branch=master');
+  // Git for Windows refuses to index a path with a trailing space/dot unless
+  // NTFS protection is relaxed. The Linux CI runner has no such restriction;
+  // disabling it here makes the fixture reproduce the runner's view of these
+  // filenames identically on both platforms.
+  wsGit('config', 'core.protectNTFS', 'false');
+
+  // Builds a commit whose tree is exactly `state` (path -> contents).
+  function snapshot(state, message) {
+    wsGit('read-tree', '--empty');
+    for (const [path, contents] of Object.entries(state)) {
+      const blob = execFileSync('git', ['hash-object', '-w', '--stdin'], {
+        cwd: wsRepo,
+        input: contents,
+        encoding: 'utf8',
+      }).trim();
+      wsGit('update-index', '--add', '--cacheinfo', `100644,${blob},${path}`);
+    }
+    const tree = wsGit('write-tree').trim();
+    return execFileSync('git', ['commit-tree', tree, '-m', message], {
+      cwd: wsRepo,
+      encoding: 'utf8',
+      env: identity,
+    }).trim();
+  }
+  const wsClassify = (base, head) => {
+    const paths = resolveChangedPaths(base, head, { cwd: wsRepo });
+    return { paths: paths ?? [], result: classifyChangedPaths(paths) };
+  };
+
+  const TRAILING_SPACE = 'README.md ';
+  const LEADING_SPACE = ' README.md';
+  const TRAILING_TAB = 'README.md\t';
+  const NEWLINE_NAME = 'README.md\n';
+  const INTERNAL_SPACES = 'notes and things.md';
+  const MATERIAL_SPACES = 'src/a file.ts';
+
+  const wsBaseState = { 'README.md': 'v1\n', 'AUDIT_REPORT.md': 'a1\n', [MATERIAL_SPACES]: 'x\n' };
+  const wsBase = snapshot(wsBaseState, 'ws baseline');
+
+  // 13a. Control — the EXACT allowlisted name is still non-material.
+  const exactEdit = snapshot({ ...wsBaseState, 'README.md': 'v2\n' }, 'ws exact readme edit');
+  let ws = wsClassify(wsBase, exactEdit);
+  check('ws: exact README.md edit resolves one path', ws.paths.length === 1, JSON.stringify(ws.paths));
+  check('ws: exact README.md is non-material', ws.result.material === false, ws.result.reason);
+
+  // 13b. Every boundary-whitespace variant is a DIFFERENT, material file.
+  const WHITESPACE_FIXTURES = [
+    ['trailing space', TRAILING_SPACE],
+    ['leading space', LEADING_SPACE],
+    ['trailing tab', TRAILING_TAB],
+    ['embedded newline', NEWLINE_NAME],
+    ['internal spaces', INTERNAL_SPACES],
+    ['material path with spaces', MATERIAL_SPACES],
+  ];
+  for (const [label, name] of WHITESPACE_FIXTURES) {
+    const head = snapshot({ ...wsBaseState, [name]: 'whitespace fixture\n' }, `ws add ${label}`);
+    const { paths, result } = wsClassify(wsBase, head);
+    check(
+      `ws: ${label} ${JSON.stringify(name)} is preserved byte-for-byte by the parser`,
+      paths.includes(name),
+      JSON.stringify(paths),
+    );
+    check(
+      `ws: ${label} ${JSON.stringify(name)} is MATERIAL`,
+      result.material === true,
+      result.reason,
+    );
+    check(
+      `ws: ${label} ${JSON.stringify(name)} resolves exactly one path (no split on whitespace)`,
+      paths.length === 1,
+      JSON.stringify(paths),
+    );
+  }
+
+  // 13c. Whitespace twin alongside the real allowlisted file — the twin poisons
+  // the diff even though its trimmed form would have been allowlisted.
+  const twinHead = snapshot(
+    { ...wsBaseState, 'README.md': 'v2\n', [TRAILING_SPACE]: 'twin\n' },
+    'ws readme + trailing-space twin',
+  );
+  ws = wsClassify(wsBase, twinHead);
+  check('ws: twin diff resolves both raw names', ws.paths.length === 2, JSON.stringify(ws.paths));
+  check(
+    'ws: allowlisted README.md + its trailing-space twin is MATERIAL',
+    ws.result.material === true,
+    ws.result.reason,
+  );
+
+  // 13d. Renames across the whitespace boundary (--no-renames exposes both sides).
+  const renameOut = snapshot(
+    { 'AUDIT_REPORT.md': 'a1\n', [MATERIAL_SPACES]: 'x\n', [TRAILING_SPACE]: 'v1\n' },
+    'ws rename README.md -> "README.md "',
+  );
+  ws = wsClassify(wsBase, renameOut);
+  check(
+    'ws: rename README.md -> "README.md " exposes both sides',
+    ws.paths.includes('README.md') && ws.paths.includes(TRAILING_SPACE),
+    JSON.stringify(ws.paths),
+  );
+  check(
+    'ws: rename allowlisted -> trailing-space twin is MATERIAL',
+    ws.result.material === true,
+    ws.result.reason,
+  );
+
+  const twinBaseState = { 'AUDIT_REPORT.md': 'a1\n', [MATERIAL_SPACES]: 'x\n', [TRAILING_SPACE]: 'v1\n' };
+  const twinBase = snapshot(twinBaseState, 'ws twin baseline');
+  const renameIn = snapshot(
+    { 'AUDIT_REPORT.md': 'a1\n', [MATERIAL_SPACES]: 'x\n', 'README.md': 'v1\n' },
+    'ws rename "README.md " -> README.md',
+  );
+  ws = wsClassify(twinBase, renameIn);
+  check(
+    'ws: rename "README.md " -> README.md exposes the material source side',
+    ws.paths.includes(TRAILING_SPACE),
+    JSON.stringify(ws.paths),
+  );
+  check(
+    'ws: rename trailing-space twin -> allowlisted name is MATERIAL (source is material)',
+    ws.result.material === true,
+    ws.result.reason,
+  );
+
+  const spacesRename = snapshot(
+    { 'AUDIT_REPORT.md': 'a1\n', [TRAILING_SPACE]: 'v1\n', 'README.md': 'x\n' },
+    'ws rename "src/a file.ts" -> README.md',
+  );
+  ws = wsClassify(twinBase, spacesRename);
+  check(
+    'ws: material spaced filename -> allowlisted-looking destination exposes the source',
+    ws.paths.includes(MATERIAL_SPACES),
+    JSON.stringify(ws.paths),
+  );
+  check(
+    'ws: material spaced filename -> allowlisted destination is MATERIAL',
+    ws.result.material === true,
+    ws.result.reason,
+  );
+
+  // 13e. The parser must not invent or drop entries around the NUL terminator.
+  const multiHead = snapshot(
+    {
+      ...wsBaseState,
+      [TRAILING_SPACE]: '1\n',
+      [LEADING_SPACE]: '2\n',
+      [TRAILING_TAB]: '3\n',
+      [NEWLINE_NAME]: '4\n',
+    },
+    'ws all variants at once',
+  );
+  ws = wsClassify(wsBase, multiHead);
+  check(
+    'ws: four whitespace variants resolve to exactly four raw paths',
+    ws.paths.length === 4,
+    JSON.stringify(ws.paths),
+  );
+  check(
+    'ws: no resolved path is empty (only the NUL terminator was dropped)',
+    ws.paths.every((path) => path.length > 0),
+    JSON.stringify(ws.paths),
+  );
+  check(
+    'ws: every whitespace variant survives intact in one diff',
+    [TRAILING_SPACE, LEADING_SPACE, TRAILING_TAB, NEWLINE_NAME].every((name) =>
+      ws.paths.includes(name),
+    ),
+    JSON.stringify(ws.paths),
+  );
+  check('ws: combined whitespace diff is MATERIAL', ws.result.material === true, ws.result.reason);
+} finally {
+  rmSync(wsRepo, { recursive: true, force: true });
+}
+
 if (failures.length) {
   console.error(`CBW MASTER REQUIRED GATE CLASSIFIER FIXTURES: FAIL (${failures.length}/${checks})`);
   for (const failure of failures) console.error(` - ${failure}`);

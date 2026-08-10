@@ -39,7 +39,9 @@
 // a trigger fails the gate rather than silently widening the allowlist.
 
 import { execFileSync } from 'node:child_process';
-import { appendFileSync } from 'node:fs';
+import { appendFileSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 // EXACT repo-relative paths proven inert: pure human-readable governance
 // records at the repository root. None is a workflow trigger, a build input,
@@ -54,11 +56,44 @@ export const NON_MATERIAL_PATHS = Object.freeze([
 
 const NON_MATERIAL_SET = new Set(NON_MATERIAL_PATHS);
 
+// The complete, closed set of classification reasons. The downstream validator
+// rejects anything outside it, so a truncated/garbled output cannot pass.
+export const VALID_REASONS = Object.freeze([
+  'unresolved-or-empty-change-set',
+  'material-path-changed',
+  'only-allowlisted-non-material-paths',
+]);
+
+// Sidecar written by the producer and cross-checked by the unconditional
+// validator. It binds producer to consumer at RUNTIME: if the producer step is
+// removed the file is absent, and if the producer step id is renamed the
+// consumer's `steps.classify.outputs.*` expressions resolve to empty while the
+// sidecar still holds a real value — either way the validator fails closed.
+export function classifierResultFilePath() {
+  return join(process.env.RUNNER_TEMP || tmpdir(), 'cbw-master-required-gate-classification.json');
+}
+
 // Normalizes to a comparable repo-relative form, or returns null when the
 // path is unusable/suspicious — null always resolves to MATERIAL upstream.
+//
+// RAW-FILENAME RULE — this function MUST NOT trim, case-fold, or otherwise
+// rewrite filename bytes. A Git filename may legally contain leading/trailing
+// spaces, tabs and newlines: `README.md ` (trailing space) is a DIFFERENT file
+// from `README.md`. Trimming collapsed the former onto the latter and made a
+// material, unreviewed file inherit allowlisted status — fail-open.
+//
+// The only permitted rewrite is stripping a single leading `./`, which is a
+// pure path-syntax prefix meaning "this directory" and cannot be part of a
+// name Git emits under `-z`. Note that a separator rewrite can only ever
+// INSERT a `/` into the string, and every NON_MATERIAL_PATHS entry is a
+// root-level name containing no `/`, so no normalization here can manufacture
+// an allowlist hit out of a nested path. Backslashes are deliberately NOT
+// rewritten: `\` is a legal POSIX filename character and Git `-z` always emits
+// `/` separators, so rewriting it would corrupt a raw filename.
 function normalizePath(path) {
   if (typeof path !== 'string') return null;
-  const normalized = path.replace(/\\/g, '/').replace(/^\.\//, '').trim();
+  if (path.length === 0) return null;
+  const normalized = path.startsWith('./') ? path.slice(2) : path;
   if (normalized.length === 0) return null;
   if (normalized.startsWith('/')) return null; // absolute: not repo-relative
   if (normalized.split('/').includes('..')) return null; // traversal
@@ -108,8 +143,14 @@ export function resolveChangedPaths(baseSha, headSha, options = {}) {
         ...(options.cwd ? { cwd: options.cwd } : {}),
       },
     );
-    const paths = out.split('\0').map((entry) => entry.trim()).filter(Boolean);
-    return paths.length > 0 ? paths : null; // empty diff -> fail-closed
+    // `-z` NUL-TERMINATES (not NUL-separates) every entry, so a well-formed
+    // stream always ends with one trailing empty segment. Remove ONLY that
+    // terminator. Deliberately no `.trim()` and no `.filter(Boolean)`: both
+    // would rewrite or drop legal Git filenames such as `README.md ` and let a
+    // material file masquerade as an allowlisted one.
+    const segments = out.split('\0');
+    if (segments[segments.length - 1] === '') segments.pop();
+    return segments.length > 0 ? segments : null; // empty diff -> fail-closed
   } catch {
     return null; // fail-closed
   }
@@ -133,6 +174,17 @@ function main() {
       console.error('master-required-gate: GITHUB_OUTPUT is not set');
       process.exit(1); // fail-closed: never silently drop the classification
     }
+    // Duplicate/ambiguous emission guard. GitHub keeps the LAST `material=`
+    // line, so a second write would silently override the classification.
+    if (existsSync(outputFile) && /^material=/m.test(readFileSync(outputFile, 'utf8'))) {
+      console.error('master-required-gate: GITHUB_OUTPUT already carries a material= line (ambiguous)');
+      process.exit(1);
+    }
+    writeFileSync(
+      classifierResultFilePath(),
+      `${JSON.stringify({ material: result.material, reason: result.reason })}\n`,
+      'utf8',
+    );
     appendFileSync(outputFile, `material=${result.material}\nreason=${result.reason}\n`);
   }
 }
