@@ -21,10 +21,9 @@ concurrency:
 
 jobs:
   noindex-product-preview:
-    name: Noindex Product preview advisory (non-blocking)
+    name: Noindex Product preview gate
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    continue-on-error: true
     steps:
       - name: Checkout exact PR head
         uses: actions/checkout@v4
@@ -54,6 +53,7 @@ jobs:
 
       - name: Indexability inventory
         id: indexability
+        if: always() && steps.build.outcome == 'success'
         run: node scripts/seo/site-indexability-inventory.mjs
 
       - name: Advisory summary
@@ -65,7 +65,7 @@ jobs:
           INDEXABILITY: ${{ steps.indexability.outcome }}
         run: |
           {
-            echo '### CBW Noindex Product Preview Advisory'
+            echo '### CBW Noindex Product Preview Gate'
             echo ''
             echo '| Check | Result |'
             echo '|---|---|'
@@ -74,5 +74,5 @@ jobs:
             echo "| Noindex preview Chromium | ${BROWSER} |"
             echo "| Indexability inventory | ${INDEXABILITY} |"
             echo ''
-            echo '> Read-only owner-preview QA. It must not authorize indexing, ranking, affiliate actions or deploy.'
+            echo '> Read-only owner-preview QA. Any failed gate fails this workflow. It never authorizes indexing, ranking, affiliate actions or deploy.'
           } >> "$GITHUB_STEP_SUMMARY"
