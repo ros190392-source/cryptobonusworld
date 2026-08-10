@@ -1,0 +1,80 @@
+name: CBW Master Required Gate
+
+# Single stable, ALWAYS-REPORTING required check context for product branch
+# `master` (issue #366).
+#
+# Design contract — enforced by scripts/ci/master-required-gate-contract-test.mjs:
+#   * NO `paths` / `paths-ignore` filter. The workflow triggers on every
+#     pull_request targeting master, so the check context is always reported
+#     and branch protection can never deadlock on
+#     "Expected — Waiting for status to be reported".
+#   * Exactly ONE job, whose stable check context is "Master required gate".
+#   * The job is never `continue-on-error` and carries no job-level `if`.
+#   * This is NOT an aggregator over other workflows. It executes the material
+#     hard-gate work itself, so a path-filtered child workflow that never ran
+#     can never be mistaken for PASS.
+#   * Change classification is fail-closed: an unresolvable or empty change set
+#     is treated as MATERIAL and runs the full matrix.
+#   * Read-only permissions; never deploys and never writes repository contents.
+#
+# Material changes run the full production build plus the complete Global
+# Header Interaction matrix (46 Product System routes). The pre-existing
+# path-filtered workflow .github/workflows/cbw-global-header-interaction.yml is
+# left untouched and continues to report independently; this gate does not
+# reduce its coverage.
+
+on:
+  pull_request:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cbw-master-required-gate-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  master-required-gate:
+    name: Master required gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Required gate contract self-test
+        run: node scripts/ci/master-required-gate-contract-test.mjs
+
+      - name: Classify changed files (fail-closed)
+        id: classify
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: node scripts/ci/master-required-gate-classify.mjs --emit-github-output
+
+      - name: Production build
+        id: build
+        if: steps.classify.outputs.material == 'true'
+        run: npm run build
+
+      - name: Global header interaction matrix
+        if: steps.classify.outputs.material == 'true'
+        run: node scripts/ui/global-header-interaction-browser-smoke.mjs
+
+      - name: Indexability inventory
+        if: steps.classify.outputs.material == 'true'
+        run: node scripts/seo/site-indexability-inventory.mjs
