@@ -1,0 +1,54 @@
+name: CBW Route Inventory Artifact
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'src/pages/**'
+      - 'src/layouts/**'
+      - 'src/components/**'
+      - 'src/styles/**'
+      - 'scripts/seo/site-indexability-inventory-artifact.mjs'
+      - '.github/workflows/cbw-route-inventory-artifact.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cbw-route-inventory-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  route-inventory:
+    name: Build and emit route inventory
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Production build
+        run: npm run build
+
+      - name: Emit route inventory JSON
+        run: node scripts/seo/site-indexability-inventory-artifact.mjs
+
+      - name: Upload route inventory
+        uses: actions/upload-artifact@v4
+        with:
+          name: cbw-site-route-inventory
+          path: artifacts/site-indexability-inventory.json
+          if-no-files-found: error
+          retention-days: 7
