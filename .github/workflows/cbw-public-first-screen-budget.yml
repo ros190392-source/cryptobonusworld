@@ -1,0 +1,47 @@
+name: CBW Public First Screen Budget
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'src/pages/**'
+      - 'src/layouts/**'
+      - 'src/components/**'
+      - 'src/styles/**'
+      - 'src/data/siteStandard/**'
+      - 'scripts/ui/public-first-screen-budget-browser-smoke.mjs'
+      - '.github/workflows/cbw-public-first-screen-budget.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cbw-public-first-screen-budget-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  public-first-screen-budget:
+    name: Public first-screen budget hard gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Production build
+        run: npm run build
+
+      - name: Public first-screen Chromium matrix
+        run: node scripts/ui/public-first-screen-budget-browser-smoke.mjs
