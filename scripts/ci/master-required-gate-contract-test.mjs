@@ -5,9 +5,10 @@
 //   1. the required workflow has no pull_request.paths / paths-ignore filter;
 //   2. the required check context name is stable and unique;
 //   3. the required job cannot be skipped, softened or made advisory;
-//   4. header-material changes are classified MATERIAL (superset of the
-//      path-filtered header hard gate) and invoke the header gate script;
-//   5. irrelevant changes do not deadlock and still report the context;
+//   4. classification is fail-closed by construction: only the exact paths in
+//      NON_MATERIAL_PATHS are non-material, everything else (including every
+//      unknown/new path and every header hard-gate trigger) is MATERIAL;
+//   5. allowlisted-only changes do not deadlock and still report the context;
 //   6. a header-gate failure propagates to the required job conclusion;
 //   7. advisory (continue-on-error) jobs cannot satisfy the required gate;
 //   8. the exact PR head SHA is checked out;
@@ -18,8 +19,9 @@ import { resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import yaml from 'js-yaml';
 import {
-  MATERIAL_PATTERNS,
+  NON_MATERIAL_PATHS,
   isMaterialPath,
+  isNonMaterialPath,
   classifyChangedPaths,
 } from './master-required-gate-classify.mjs';
 
@@ -154,7 +156,61 @@ check(
     steps.findIndex((step) => String(step.run ?? '').includes(HEADER_GATE_SCRIPT)),
 );
 
-// --- 4. material superset over the path-filtered header hard gate ------------
+// --- 4. fail-closed classification: default MATERIAL -------------------------
+//
+// The model is a negative allowlist. Anything not literally present in
+// NON_MATERIAL_PATHS must be MATERIAL — including paths nobody enumerated.
+
+// 4a. The allowlist itself stays tiny, exact-path only, and inert.
+check('NON_MATERIAL_PATHS is non-empty', NON_MATERIAL_PATHS.length > 0);
+check(
+  'NON_MATERIAL_PATHS stays intentionally narrow (<= 8 entries)',
+  NON_MATERIAL_PATHS.length <= 8,
+  String(NON_MATERIAL_PATHS.length),
+);
+for (const entry of NON_MATERIAL_PATHS) {
+  check(
+    `non-material entry "${entry}" is an exact path, not a prefix/glob`,
+    !entry.includes('*') && !entry.endsWith('/'),
+    entry,
+  );
+  check(`non-material entry "${entry}" classifies non-material`, isNonMaterialPath(entry));
+  check(
+    `non-material entry "${entry}" is a root-level governance document`,
+    !entry.includes('/') && entry.endsWith('.md'),
+    entry,
+  );
+}
+
+// 4b. No workflow trigger may intersect the allowlist. This is what makes the
+// allowlist provable rather than asserted: if anyone makes an allowlisted file
+// load-bearing for CI/CD (as docs/tasks/**.md already is for the autodeploy
+// workflow), this gate fails instead of silently skipping the matrix.
+for (const file of workflowFiles) {
+  const doc = loadWorkflow(resolve(ROOT, file));
+  const on = doc?.on ?? doc?.true;
+  const triggerPatterns = [];
+  for (const event of Object.values(on ?? {})) {
+    if (event && typeof event === 'object') {
+      for (const key of ['paths', 'paths-ignore']) {
+        if (Array.isArray(event[key])) triggerPatterns.push(...event[key]);
+      }
+    }
+  }
+  for (const pattern of triggerPatterns) {
+    const prefix = pattern.replace(/\*+.*$/, '');
+    const hits = NON_MATERIAL_PATHS.filter(
+      (entry) => entry === pattern || (pattern.includes('*') && entry.startsWith(prefix)),
+    );
+    check(
+      `workflow trigger "${pattern}" (${file}) does not intersect NON_MATERIAL_PATHS`,
+      hits.length === 0,
+      hits.join(','),
+    );
+  }
+}
+
+// 4c. Every path filter of the header hard gate is MATERIAL here (superset).
 const header = loadWorkflow(HEADER_WORKFLOW);
 const headerPaths = (header?.on ?? header?.true)?.pull_request?.paths ?? [];
 check('header hard gate still declares its path filter', headerPaths.length > 0);
@@ -167,19 +223,85 @@ for (const pattern of headerPaths) {
     probe,
   );
 }
-check(
-  'required gate workflow file is itself material',
-  isMaterialPath('.github/workflows/cbw-master-required-gate.yml'),
-);
-check('classifier implementation is itself material', isMaterialPath(CLASSIFY_SCRIPT));
-check('contract test is itself material', isMaterialPath('scripts/ci/master-required-gate-contract-test.mjs'));
-for (const shared of ['package.json', 'package-lock.json', 'astro.config.mjs']) {
-  check(`shared build input "${shared}" is material`, isMaterialPath(shared));
+
+// 4d. Explicitly named fail-open regressions from independent review. Each of
+// these was non-material under the previous positive-allowlist model.
+const MUST_BE_MATERIAL = [
+  // gate + build surface
+  '.github/workflows/cbw-master-required-gate.yml',
+  CLASSIFY_SCRIPT,
+  'scripts/ci/master-required-gate-contract-test.mjs',
+  'scripts/ci/master-required-gate-classifier-fixture-test.mjs',
+  'package.json',
+  'package-lock.json',
+  'astro.config.mjs',
+  'tsconfig.json',
+  'src/components/layout/SiteHeader.astro',
+  'public/robots.txt',
+  // previously fail-open: unknown roots
+  'unknown-root-file.mjs',
+  'UNKNOWN.md',
+  '.env.example',
+  '.gitignore',
+  '.gitattributes',
+  '.github/CODEOWNERS',
+  // previously fail-open: unlisted script trees
+  'scripts/portal/foo.mjs',
+  'scripts/deploy.mjs',
+  'scripts/production-live-smoke.mjs',
+  'scripts/production-origin-parity.mjs',
+  'scripts/check-affiliate-integrity.mjs',
+  'scripts/hard-gates/future.mjs',
+  'scripts/ai-ops/validate-scope.mjs',
+  // previously fail-open: unlisted config/data trees
+  'config/new-config.mjs',
+  'config/deploy/production.json',
+  'tests/ai-ops/run-fixtures.mjs',
+  'docs/tasks/CBW_PRODUCTION_P2_SAFE_BATCH_AUTODEPLOY_001.md',
+  'docs/anything-else.md',
+  'Reference/VISUAL_PACK_STANDARD_v1.md',
+];
+for (const path of MUST_BE_MATERIAL) {
+  check(`"${path}" is MATERIAL`, isMaterialPath(path), path);
+  check(
+    `"${path}" is MATERIAL as a single-path change set`,
+    classifyChangedPaths([path]).material === true,
+  );
 }
 
-// --- 5. irrelevant changes report without deadlocking ------------------------
-const irrelevant = classifyChangedPaths(['README.md', 'docs/tasks/example.md']);
-check('irrelevant-only change is non-material', irrelevant.material === false, irrelevant.reason);
+// 4e. Malformed / hostile path shapes are MATERIAL.
+for (const bad of [undefined, null, '', '   ', 42, {}, '/abs/path.ts', '../escape.ts', 'a/../../b.ts']) {
+  check(`malformed path ${JSON.stringify(bad)} is MATERIAL`, isMaterialPath(bad) === true);
+}
+// Case-sensitivity: a near-miss of an allowlisted name must not inherit it.
+check('case-variant of an allowlisted path is MATERIAL', isMaterialPath('readme.md') === true);
+check('allowlisted basename in a subdirectory is MATERIAL', isMaterialPath('docs/README.md') === true);
+
+// --- 5. allowlisted-only changes report without deadlocking ------------------
+const allowlistedOnly = classifyChangedPaths(['README.md', 'AUDIT_REPORT.md']);
+check(
+  'allowlisted-only change set is non-material',
+  allowlistedOnly.material === false,
+  allowlistedOnly.reason,
+);
+check(
+  'single allowlisted path is non-material',
+  classifyChangedPaths(['README.md']).material === false,
+);
+// Mixed sets: one unknown or material path poisons the whole diff.
+check(
+  'allowlisted + unknown path is MATERIAL',
+  classifyChangedPaths(['README.md', 'scripts/portal/foo.mjs']).material === true,
+);
+check(
+  'allowlisted + material source path is MATERIAL',
+  classifyChangedPaths(['README.md', 'src/pages/index.astro']).material === true,
+);
+check(
+  'allowlisted + unknown root file is MATERIAL',
+  classifyChangedPaths(['AUDIT_REPORT.md', 'unknown-root-file.txt']).material === true,
+);
+
 // The context is still reported because the workflow has no paths filter
 // (asserted above) and the job always runs the contract self-test.
 const unconditionalSteps = steps.filter((step) => !Object.prototype.hasOwnProperty.call(step, 'if'));
@@ -187,21 +309,28 @@ check(
   'required job always executes at least one unconditional verification step',
   unconditionalSteps.some((step) => String(step.run ?? '').includes('master-required-gate-contract-test.mjs')),
 );
+check(
+  'required job always executes the real-git classifier fixture suite',
+  unconditionalSteps.some((step) =>
+    String(step.run ?? '').includes('master-required-gate-classifier-fixture-test.mjs'),
+  ),
+);
 
-// Fail-closed classification.
+// Fail-closed resolution boundaries.
 check('unresolved change set is MATERIAL', classifyChangedPaths(null).material === true);
 check('empty change set is MATERIAL', classifyChangedPaths([]).material === true);
-check('undefined path entry is MATERIAL', isMaterialPath(undefined) === true);
-check('empty path entry is MATERIAL', isMaterialPath('') === true);
+check('non-array change set is MATERIAL', classifyChangedPaths('src/x.ts').material === true);
+
+// The classifier must not carry a positive material allowlist any more.
+const classifierSource = readFileSync(resolve(ROOT, CLASSIFY_SCRIPT), 'utf8');
 check(
-  'a header source change is MATERIAL',
-  classifyChangedPaths(['src/components/layout/SiteHeader.astro']).material === true,
+  'classifier exposes no positive MATERIAL allowlist',
+  !/export\s+const\s+MATERIAL_PATTERNS/.test(classifierSource),
 );
 check(
-  'a mixed change set containing one material path is MATERIAL',
-  classifyChangedPaths(['README.md', 'src/pages/index.astro']).material === true,
+  'classifier disables rename detection when resolving changed paths',
+  /'--no-renames'/.test(classifierSource),
 );
-check('MATERIAL_PATTERNS is non-empty', MATERIAL_PATTERNS.length > 0);
 
 // --- 7. advisory jobs cannot satisfy the required gate -----------------------
 const advisoryJobs = allJobs.filter((entry) => entry.def?.['continue-on-error'] === true);

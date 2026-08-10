@@ -13,8 +13,12 @@ name: CBW Master Required Gate
 #   * This is NOT an aggregator over other workflows. It executes the material
 #     hard-gate work itself, so a path-filtered child workflow that never ran
 #     can never be mistaken for PASS.
-#   * Change classification is fail-closed: an unresolvable or empty change set
-#     is treated as MATERIAL and runs the full matrix.
+#   * Change classification is fail-closed by construction: a path is
+#     non-material ONLY if it is listed verbatim in NON_MATERIAL_PATHS
+#     (scripts/ci/master-required-gate-classify.mjs). Every other path —
+#     including unknown/new paths — is MATERIAL, as is an unresolvable or empty
+#     change set. Rename detection is disabled when resolving changed paths so
+#     a material source renamed to a non-material destination cannot hide.
 #   * Read-only permissions; never deploys and never writes repository contents.
 #
 # Material changes run the full production build plus the complete Global
@@ -58,6 +62,9 @@ jobs:
 
       - name: Required gate contract self-test
         run: node scripts/ci/master-required-gate-contract-test.mjs
+
+      - name: Classifier real-git fixture suite
+        run: node scripts/ci/master-required-gate-classifier-fixture-test.mjs
 
       - name: Classify changed files (fail-closed)
         id: classify
