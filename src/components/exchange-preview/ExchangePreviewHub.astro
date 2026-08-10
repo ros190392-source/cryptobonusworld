@@ -1,0 +1,113 @@
+---
+import type { ExchangePreviewEntry } from '../../data/exchangePreview/batch-01';
+import PageFrame from '../site-standard/PageFrame.astro';
+import FirstViewport from '../site-standard/FirstViewport.astro';
+import Section from '../site-standard/Section.astro';
+import StatusBadge from '../site-standard/StatusBadge.astro';
+
+export interface Props {
+  title: string;
+  eyebrow: string;
+  lede: string;
+  entries: readonly ExchangePreviewEntry[];
+  expectedCount: number;
+  hubId: string;
+}
+
+const { title, eyebrow, lede, entries, expectedCount, hubId } = Astro.props;
+
+if (entries.length !== expectedCount) {
+  throw new Error(`Exchange preview hub ${hubId} expected ${expectedCount} entries; received ${entries.length}.`);
+}
+for (const entry of entries) {
+  if (
+    entry.status !== 'under_review'
+    || entry.promoCode !== null
+    || entry.bonusAmount !== null
+    || entry.affiliateUrl !== null
+    || entry.externalCtaEnabled !== false
+    || entry.productionEligible !== false
+  ) {
+    throw new Error(`Exchange preview hub ${hubId} received a non-neutral entry: ${entry.slug}`);
+  }
+}
+---
+
+<PageFrame family="directory" class="exchange-preview-hub-product">
+  <div data-exchange-preview-hub={hubId} data-preview-count={entries.length}>
+    <FirstViewport
+      family="directory"
+      container="wide"
+      eyebrow={eyebrow}
+      title={title}
+      lede={lede}
+    >
+      <div class="preview-hub-summary" aria-label="Preview publication boundary">
+        <strong>{entries.length} owner-preview pages</strong>
+        <span>noindex · no verified codes · no commercial actions</span>
+      </div>
+    </FirstViewport>
+
+    <Section container="wide" spacing="compact" tone="page" ariaLabel={`${title} cards`}>
+      <header class="cbw-section-header">
+        <p class="cbw-section-eyebrow">Owner review directory</p>
+        <h2 class="cbw-section-title">Prepared, not published</h2>
+        <p class="cbw-section-lede">
+          Visual readiness and source preparation do not authorize a referral code, bonus amount,
+          country availability or production activation. Open a card to review the neutral preview surface.
+        </p>
+      </header>
+
+      <div class="preview-hub-grid cbw-card-grid cbw-card-grid--3" data-preview-hub-grid>
+        {entries.map((entry) => (
+          <article class="cbw-card preview-hub-card" data-preview-hub-card={entry.slug}>
+            <div class="preview-hub-card__head">
+              <div class="preview-hub-logo">
+                <img src={entry.logoSlotPath} alt={`${entry.displayName} logo`} width="136" height="44" loading="lazy" />
+              </div>
+              <div>
+                <strong>{entry.displayName}</strong>
+                <StatusBadge label="Under review" tone="review" />
+              </div>
+            </div>
+
+            <div class="preview-hub-card__facts">
+              <span>Referral code <b>Not listed</b></span>
+              <span>Bonus <b>Not verified</b></span>
+            </div>
+
+            {entry.ownerReviewRequired && (
+              <p class="preview-hub-review-note">Owner review required before any production decision.</p>
+            )}
+
+            <a href={entry.pageRoute}>Open preview →</a>
+          </article>
+        ))}
+      </div>
+    </Section>
+  </div>
+</PageFrame>
+
+<style>
+  .exchange-preview-hub-product :global(.cbw-first-viewport--directory) { --cbw-first-viewport-target: 210px; }
+  .preview-hub-summary { display: inline-flex; flex-wrap: wrap; gap: 5px 12px; margin-top: 16px; padding: 10px 12px; border: 1px solid rgba(255,255,255,.14); border-radius: var(--cbw-radius-control); background: rgba(255,255,255,.06); }
+  .preview-hub-summary strong { color: #fff; font-size: 11px; }
+  .preview-hub-summary span { color: rgba(255,255,255,.62); font-size: 9px; }
+  .preview-hub-grid { align-items: stretch; }
+  .preview-hub-card { display: grid; gap: 12px; align-content: start; }
+  .preview-hub-card__head { display: grid; grid-template-columns: 136px minmax(0,1fr); gap: 11px; align-items: center; }
+  .preview-hub-logo { display: flex; height: 52px; align-items: center; justify-content: center; padding: 5px 8px; border-radius: var(--cbw-radius-control); background: #0c1526; box-sizing: border-box; }
+  .preview-hub-logo img { display: block; max-width: 126px; max-height: 40px; width: auto; height: auto; object-fit: contain; }
+  .preview-hub-card__head > div:last-child { display: grid; gap: 5px; justify-items: start; min-width: 0; }
+  .preview-hub-card__head strong { overflow: hidden; max-width: 100%; color: var(--cbw-text-primary); font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
+  .preview-hub-card__facts { display: grid; gap: 5px; padding: 9px 10px; border-radius: var(--cbw-radius-control); background: var(--cbw-surface-secondary); }
+  .preview-hub-card__facts span { display: flex; justify-content: space-between; gap: 10px; color: var(--cbw-text-muted); font-size: 9px; }
+  .preview-hub-card__facts b { color: var(--cbw-text-primary); font-weight: 900; }
+  .preview-hub-review-note { margin: 0; color: #7d5206; font-size: 9px; line-height: 1.5; }
+  .preview-hub-card > a { display: inline-flex; min-height: 38px; align-items: center; justify-content: center; margin-top: auto; border: 1px solid var(--cbw-border-standard); border-radius: var(--cbw-radius-control); color: #925204; background: #fff; font-size: 10px; font-weight: 900; text-decoration: none; }
+  @media (max-width: 460px) {
+    .preview-hub-card__head { grid-template-columns: 110px minmax(0,1fr); }
+    .preview-hub-logo { width: 110px; }
+    .preview-hub-logo img { max-width: 100px; }
+  }
+</style>

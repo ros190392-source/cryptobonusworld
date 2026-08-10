@@ -60,34 +60,60 @@ async function startServer() {
   return server;
 }
 
-async function inspect(page, slug, viewport, viewportLabel) {
-  const errors = [];
+function captureErrors(page, errors) {
   page.removeAllListeners('pageerror');
   page.removeAllListeners('console');
   page.on('pageerror', error => errors.push(`pageerror:${error.message}`));
   page.on('console', message => {
     if (message.type() === 'error' && !/ERR_BLOCKED_BY_CLIENT/i.test(message.text())) errors.push(`console:${message.text()}`);
   });
+}
 
+async function common(page, label, family, firstFamily) {
+  const robots = await page.locator('meta[name="robots"]').getAttribute('content');
+  check(`${label}: noindex`, /\bnoindex\b/i.test(robots ?? ''), `robots=${robots}`);
+  check(`${label}: Product System family ${family}`, await page.locator(`[data-page-family="${family}"]`).count() === 1);
+  check(`${label}: first viewport ${firstFamily}`, await page.locator(`[data-first-screen-family="${firstFamily}"]`).count() === 1);
+  check(`${label}: one H1`, await page.locator('h1').count() === 1);
+  check(`${label}: no /go links`, await page.locator('a[href^="/go/"]').count() === 0);
+  check(`${label}: no sponsored actions`, await page.locator('a[rel~="sponsored"]').count() === 0);
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  check(`${label}: no horizontal overflow`, overflow <= 1, `overflow=${overflow}`);
+}
+
+async function inspectPreview(page, slug, viewport, viewportLabel) {
+  const errors = [];
+  captureErrors(page, errors);
   const response = await page.goto(`${BASE}/preview/exchanges/${slug}/`, { waitUntil:'domcontentloaded', timeout:15000 });
   const label = `${slug} ${viewportLabel}`;
   check(`${label}: HTTP 200`, response?.status() === 200, `status=${response?.status()}`);
-  const robots = await page.locator('meta[name="robots"]').getAttribute('content');
-  check(`${label}: noindex`, /\bnoindex\b/i.test(robots ?? ''), `robots=${robots}`);
-  check(`${label}: exchange Product System family`, await page.locator('[data-page-family="exchange"]').count() === 1);
-  check(`${label}: exchange first viewport`, await page.locator('[data-first-screen-family="exchange"]').count() === 1);
-  check(`${label}: one H1`, await page.locator('h1').count() === 1);
+  await common(page, label, 'exchange', 'exchange');
   check(`${label}: preview marker`, await page.locator(`[data-preview-exchange="${slug}"][data-preview-commercial="false"]`).count() === 1);
   check(`${label}: four neutral checks`, await page.locator('[data-preview-check-grid] .preview-check').count() === 4);
   check(`${label}: disabled commercial state`, await page.locator('[data-preview-primary][aria-disabled="true"]').count() === 1);
-  check(`${label}: no /go links`, await page.locator('a[href^="/go/"]').count() === 0);
-  check(`${label}: no sponsored actions`, await page.locator('a[rel~="sponsored"]').count() === 0);
   check(`${label}: details collapsed`, await page.locator('[data-preview-review-details][open]').count() === 0);
   check(`${label}: old preview factory DOM removed`, await page.locator('.brand-hero,.pv-banner,.bh-promo-row,.bh-cta-btn').count() === 0);
   const bodyText = await page.locator('body').innerText();
   check(`${label}: no claim-bearing verified offer`, !/verified offer|claim bonus|get bonus now/i.test(bodyText));
-  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-  check(`${label}: no horizontal overflow`, overflow <= 1, `overflow=${overflow}`);
+  const firstSection = await page.locator('.cbw-section').first().boundingBox();
+  check(`${label}: first useful section in viewport`, Boolean(firstSection) && firstSection.y < viewport.height, `y=${firstSection?.y} viewport=${viewport.height}`);
+  check(`${label}: no page/console errors`, errors.length === 0, errors.join(' | '));
+}
+
+async function inspectHub(page, hubId, expectedCards, viewport, viewportLabel) {
+  const errors = [];
+  captureErrors(page, errors);
+  const path = hubId === 'all' ? '/preview/exchanges/all/' : '/preview/exchanges/batch-01/';
+  const response = await page.goto(`${BASE}${path}`, { waitUntil:'domcontentloaded', timeout:15000 });
+  const label = `hub ${hubId} ${viewportLabel}`;
+  check(`${label}: HTTP 200`, response?.status() === 200, `status=${response?.status()}`);
+  await common(page, label, 'directory', 'directory');
+  check(`${label}: hub marker`, await page.locator(`[data-exchange-preview-hub="${hubId}"]`).count() === 1);
+  check(`${label}: exact card count`, await page.locator('[data-preview-hub-grid] [data-preview-hub-card]').count() === expectedCards, `count=${await page.locator('[data-preview-hub-grid] [data-preview-hub-card]').count()}`);
+  check(`${label}: every card links only to preview exchange`, await page.locator('[data-preview-hub-card] > a[href^="/preview/exchanges/"]').count() === expectedCards);
+  const bodyText = await page.locator('body').innerText();
+  check(`${label}: neutral commercial copy`, !/verified offer|claim bonus|get bonus now/i.test(bodyText));
+  check(`${label}: legacy admin hub DOM removed`, await page.locator('.ah-warn,.ah-filters,.hub-warn,.hub-hero').count() === 0);
   const firstSection = await page.locator('.cbw-section').first().boundingBox();
   check(`${label}: first useful section in viewport`, Boolean(firstSection) && firstSection.y < viewport.height, `y=${firstSection?.y} viewport=${viewport.height}`);
   check(`${label}: no page/console errors`, errors.length === 0, errors.join(' | '));
@@ -109,7 +135,9 @@ try {
     const context = await browser.newContext({ viewport:config.viewport, locale:'en-US' });
     await context.addInitScript(() => { localStorage.clear(); sessionStorage.clear(); });
     const page = await context.newPage();
-    for (const slug of slugs) await inspect(page, slug, config.viewport, config.label);
+    await inspectHub(page, 'batch-01', 10, config.viewport, config.label);
+    await inspectHub(page, 'all', 20, config.viewport, config.label);
+    for (const slug of slugs) await inspectPreview(page, slug, config.viewport, config.label);
     await context.close();
   }
 
@@ -120,6 +148,7 @@ try {
   } else {
     console.log(`CBW EXCHANGE PREVIEW FAMILY: PASS (${checks}/${checks})`);
     console.log(`CBW EXCHANGE PREVIEW ROUTES: ${slugs.join(', ')}`);
+    console.log('CBW EXCHANGE PREVIEW HUBS: batch-01=10, all=20');
   }
 } catch (error) {
   console.error('CBW EXCHANGE PREVIEW FAMILY: ERROR');
