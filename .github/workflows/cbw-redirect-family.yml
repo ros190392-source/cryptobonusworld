@@ -38,10 +38,12 @@ jobs:
         run: npm ci
 
       - name: Production build
+        id: build
         run: npm run build
 
       - name: Redirect family matrix
         run: node scripts/seo/redirect-family-matrix-test.mjs
 
       - name: Indexability inventory
+        if: always() && steps.build.outcome == 'success'
         run: node scripts/seo/site-indexability-inventory.mjs
