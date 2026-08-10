@@ -1,0 +1,52 @@
+name: CBW Global Header Interaction
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'src/pages/**'
+      - 'src/layouts/**'
+      - 'src/components/**'
+      - 'src/data/header/**'
+      - 'src/data/contracts/countryContext.ts'
+      - 'scripts/ui/global-header-interaction-browser-smoke.mjs'
+      - '.github/workflows/cbw-global-header-interaction.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cbw-global-header-interaction-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  global-header-interaction:
+    name: Global header interaction hard gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Production build
+        id: build
+        run: npm run build
+
+      - name: Global header mobile interaction matrix
+        run: node scripts/ui/global-header-interaction-browser-smoke.mjs
+
+      - name: Indexability inventory
+        if: always() && steps.build.outcome == 'success'
+        run: node scripts/seo/site-indexability-inventory.mjs
