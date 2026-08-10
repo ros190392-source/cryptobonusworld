@@ -130,6 +130,15 @@ import Container from '../components/site-standard/Container.astro';
   .disclosure { padding: 8px 0 22px; color: #778394; }
   .disclosure p { margin: 0; font-size: 9px; line-height: 1.6; }
   .disclosure a { color: #925204; font-weight: 800; text-decoration: underline; }
+  @media (min-width: 821px) {
+    .market-hero-inner { gap: 20px; padding-block: 14px 16px; }
+    .market-flag { width: 52px; height: 52px; font-size: 34px; }
+    .market-identity strong { font-size: 36px; }
+    .market-copy h1 { font-size: clamp(44px,4.8vw,58px); }
+    .market-copy > p:not(.kicker) { margin-top: 8px; font-size: 12px; line-height: 1.45; }
+    .market-actions { margin-top: 10px; }
+    .market-actions a,.market-actions span { min-height: 32px; }
+  }
   @media (max-width: 820px) {
     .market-hero-inner { grid-template-columns: 1fr; gap: 16px; padding-block: 18px 20px; }
     .market-context > .kicker { display: none; }
