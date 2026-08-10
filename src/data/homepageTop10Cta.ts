@@ -51,13 +51,19 @@ export interface HomepageCtaOptions {
   offerEvidence?: Readonly<Record<string, unknown>>;
 }
 
+const PUBLIC_STANDALONE_REVIEW_SLUGS = new Set([
+  'bybit', 'mexc', 'okx', 'bitget', 'kucoin', 'bingx', 'coinex',
+]);
+
 function reviewHrefFor(slug: string): string {
   const exchange = getExchange(slug);
-  const href = exchange?.pageUrl ?? `/exchanges/${slug}/`;
-  if (!isInternalPath(href)) {
-    throw new Error(`Homepage Top-10 review href for ${slug} must be a normalized internal path: ${href}`);
+  const candidate = PUBLIC_STANDALONE_REVIEW_SLUGS.has(slug)
+    ? (exchange?.pageUrl ?? `/${slug}/`)
+    : '/exchanges/';
+  if (!isInternalPath(candidate)) {
+    throw new Error(`Homepage Top-10 review href for ${slug} must be a normalized internal path: ${candidate}`);
   }
-  return href;
+  return candidate;
 }
 
 /**
