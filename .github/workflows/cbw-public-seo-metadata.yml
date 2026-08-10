@@ -1,0 +1,50 @@
+name: CBW Public SEO Metadata
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'src/pages/**'
+      - 'src/layouts/**'
+      - 'src/components/**'
+      - 'scripts/seo/public-seo-metadata-schema-test.mjs'
+      - '.github/workflows/cbw-public-seo-metadata.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cbw-public-seo-metadata-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  public-seo-metadata:
+    name: Public SEO metadata hard gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Production build
+        id: build
+        run: npm run build
+
+      - name: Public SEO metadata and schema
+        run: node scripts/seo/public-seo-metadata-schema-test.mjs
+
+      - name: Indexability inventory
+        if: always() && steps.build.outcome == 'success'
+        run: node scripts/seo/site-indexability-inventory.mjs
