@@ -21,7 +21,7 @@ const { target, canonical, message, targetLabel } = Astro.props;
   <meta name="theme-color" content="#0A1424" />
 </head>
 <body>
-  <main class="redirect-page">
+  <main class="redirect-page" data-redirect-page data-redirect-target={target}>
     <section class="redirect-card" aria-labelledby="redirect-title">
       <p class="redirect-eyebrow">CryptoBonusWorld route update</p>
       <h1 id="redirect-title">This page has moved.</h1>
