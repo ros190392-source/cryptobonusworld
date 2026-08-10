@@ -1,0 +1,52 @@
+name: CBW Public Asset Client Weight
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'src/pages/**'
+      - 'src/layouts/**'
+      - 'src/components/**'
+      - 'src/styles/**'
+      - 'public/**'
+      - 'scripts/perf/public-asset-client-weight-test.mjs'
+      - '.github/workflows/cbw-public-asset-client-weight.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cbw-public-asset-client-weight-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  public-asset-client-weight:
+    name: Public asset/client-weight hard gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Production build
+        id: build
+        run: npm run build
+
+      - name: Public asset integrity and client weight
+        run: node scripts/perf/public-asset-client-weight-test.mjs
+
+      - name: Indexability inventory
+        if: always() && steps.build.outcome == 'success'
+        run: node scripts/seo/site-indexability-inventory.mjs
