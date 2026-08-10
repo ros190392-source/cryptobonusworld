@@ -1,0 +1,78 @@
+name: CBW Noindex Product Preview Advisory
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'src/pages/countries/**'
+      - 'src/components/country/**'
+      - 'src/data/candidates/**'
+      - 'src/data/siteStandard/**'
+      - 'scripts/ui/noindex-product-preview-browser-smoke.mjs'
+      - '.github/workflows/cbw-noindex-product-preview-advisory.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cbw-noindex-product-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  noindex-product-preview:
+    name: Noindex Product preview advisory (non-blocking)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    continue-on-error: true
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Product system foundation regression
+        id: foundation
+        run: node scripts/ui/product-system-foundation-test.mjs
+
+      - name: Production build
+        id: build
+        run: npm run build
+
+      - name: Noindex Product preview Chromium
+        id: browser
+        run: node scripts/ui/noindex-product-preview-browser-smoke.mjs
+
+      - name: Indexability inventory
+        id: indexability
+        run: node scripts/seo/site-indexability-inventory.mjs
+
+      - name: Advisory summary
+        if: always()
+        env:
+          FOUNDATION: ${{ steps.foundation.outcome }}
+          BUILD: ${{ steps.build.outcome }}
+          BROWSER: ${{ steps.browser.outcome }}
+          INDEXABILITY: ${{ steps.indexability.outcome }}
+        run: |
+          {
+            echo '### CBW Noindex Product Preview Advisory'
+            echo ''
+            echo '| Check | Result |'
+            echo '|---|---|'
+            echo "| Product system foundation | ${FOUNDATION} |"
+            echo "| Production build | ${BUILD} |"
+            echo "| Noindex preview Chromium | ${BROWSER} |"
+            echo "| Indexability inventory | ${INDEXABILITY} |"
+            echo ''
+            echo '> Read-only owner-preview QA. It must not authorize indexing, ranking, affiliate actions or deploy.'
+          } >> "$GITHUB_STEP_SUMMARY"

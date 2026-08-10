@@ -37,7 +37,7 @@ export const RADIUS_SCALE = {
 } as const;
 
 export type ContainerRole = keyof typeof CONTAINER_WIDTHS;
-export type FirstScreenFamily = 'homepage' | 'exchange' | 'directory' | 'guide' | 'trust' | 'legal' | 'utility';
+export type FirstScreenFamily = 'homepage' | 'country' | 'exchange' | 'directory' | 'guide' | 'trust' | 'legal' | 'utility';
 
 export interface FirstScreenContract {
   family: FirstScreenFamily;
@@ -74,6 +74,19 @@ export const FIRST_SCREEN_CONTRACTS: Record<FirstScreenFamily, FirstScreenContra
       'At least three complete ranking rows appear at 1440x900; target five.',
       'The first real ranking row begins within 390x844.',
       'No pathway, decorative or duplicate ranking section precedes the canonical ranking.',
+    ],
+  },
+  country: {
+    family: 'country',
+    desktop: { viewport: '1440x900', headerMax: 76, introMax: 330, firstUsefulMustBeginBy: 560 },
+    tablet: { viewport: '768x1024', headerMax: 68, introMax: 360, firstUsefulMustBeginBy: 610 },
+    mobile: { viewport: '390x844', headerMax: 68, introMax: 360, firstUsefulMustBeginBy: 620 },
+    requirements: [
+      'Country identity and flag are visible.',
+      'Local ranking state is explicit.',
+      'A global ranking is never relabelled as local.',
+      'When no local ranking is approved, non-ranked exchange candidates remain clearly labelled.',
+      'The first exchange candidate or ranking row begins in the first viewport.',
     ],
   },
   exchange: {
@@ -136,6 +149,7 @@ export interface PageFamilyStandard {
 
 export const PAGE_FAMILY_STANDARDS: readonly PageFamilyStandard[] = [
   { id: 'homepage', firstScreenFamily: 'homepage', container: 'wide', introContainer: 'wide', localWidthExceptions: [] },
+  { id: 'country-hub', firstScreenFamily: 'country', container: 'wide', introContainer: 'wide', localWidthExceptions: [] },
   { id: 'exchange-review', firstScreenFamily: 'exchange', container: 'prose', introContainer: 'standard', localWidthExceptions: [] },
   { id: 'exchange-directory', firstScreenFamily: 'directory', container: 'wide', introContainer: 'standard', localWidthExceptions: [] },
   { id: 'exchange-directory-detail', firstScreenFamily: 'exchange', container: 'prose', introContainer: 'standard', localWidthExceptions: [] },
@@ -145,7 +159,7 @@ export const PAGE_FAMILY_STANDARDS: readonly PageFamilyStandard[] = [
   { id: 'methodology-trust', firstScreenFamily: 'trust', container: 'standard', introContainer: 'standard', localWidthExceptions: [] },
   { id: 'faq', firstScreenFamily: 'trust', container: 'prose', introContainer: 'standard', localWidthExceptions: [] },
   { id: 'legal-contact', firstScreenFamily: 'legal', container: 'prose', introContainer: 'prose', localWidthExceptions: [] },
-  { id: 'country-foundation', firstScreenFamily: 'utility', container: 'wide', introContainer: 'standard', localWidthExceptions: [] },
+  { id: 'country-foundation', firstScreenFamily: 'country', container: 'wide', introContainer: 'wide', localWidthExceptions: [] },
   { id: 'utility-directory', firstScreenFamily: 'utility', container: 'wide', introContainer: 'standard', localWidthExceptions: [] },
 ] as const;
 
