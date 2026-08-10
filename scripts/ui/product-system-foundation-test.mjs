@@ -54,14 +54,18 @@ try {
   check('gutter: mobile 20', cssToken('--cbw-gutter') === '20px');
   check('header: canonical mobile height 56', cssToken('--cbw-header-height') === '56px');
   check('foundation: validation remains clean', Array.isArray(m.SITE_STANDARD_V1_ISSUES) && m.SITE_STANDARD_V1_ISSUES.length === 0);
+  check('country: canonical intro token 220', cssToken('--cbw-intro-country-target') === '220px');
+  check('country: TS first-screen contract exists', m.FIRST_SCREEN_CONTRACTS?.country?.family === 'country');
+  check('country: TS first-useful desktop budget 560', m.FIRST_SCREEN_CONTRACTS?.country?.desktop?.firstUsefulMustBeginBy === 560);
 
   const firstViewportBlock = css.match(/\.cbw-first-viewport\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
   check('hero: no max-height clipping', !/max-height\s*:/.test(firstViewportBlock));
   check('hero: content-driven minimum target', /min-height\s*:\s*var\(--cbw-first-viewport-target/.test(firstViewportBlock));
   check('hero: direct family class', firstViewport.includes('`cbw-first-viewport--${family}`'));
-  for (const family of ['homepage','exchange','directory','guide','trust','legal','utility']) {
+  for (const family of ['homepage','country','exchange','directory','guide','trust','legal','utility']) {
     check(`hero: ${family} family token`, css.includes(`.cbw-first-viewport--${family}`));
   }
+  check('country: CSS family uses country token', /\.cbw-first-viewport--country\s*\{[^}]*var\(--cbw-intro-country-target\)/.test(css));
 
   check('primitive: shared section header', css.includes('.cbw-section-header') && css.includes('.cbw-section-title') && css.includes('.cbw-section-lede'));
   check('primitive: shared card grid', css.includes('.cbw-card-grid'));
