@@ -8,8 +8,11 @@ on:
       - 'src/pages/**'
       - 'src/layouts/**'
       - 'src/components/**'
+      - 'src/styles/**'
       - 'src/data/header/**'
       - 'src/data/contracts/countryContext.ts'
+      - 'src/data/contracts/countryInput.ts'
+      - 'src/data/countries.json'
       - 'scripts/ui/global-header-interaction-browser-smoke.mjs'
       - '.github/workflows/cbw-global-header-interaction.yml'
 
