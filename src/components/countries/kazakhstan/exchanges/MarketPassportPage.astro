@@ -1,38 +1,20 @@
 ---
 import CleanLayout from '../../../../layouts/CleanLayout.astro';
-import ReviewStatus from '../../../portal-v2/ReviewStatus.astro';
+import PageFrame from '../../../site-standard/PageFrame.astro';
+import FirstViewport from '../../../site-standard/FirstViewport.astro';
+import Section from '../../../site-standard/Section.astro';
+import StatusBadge from '../../../site-standard/StatusBadge.astro';
+import ExchangeLogo from '../../../ExchangeLogo.astro';
 import {
   assertPortalRouteRecord,
   resolvePortalRoute,
 } from '../../../../data/contracts/portalRouteGuards';
-import type { MarketProfile, NormalizedClaim, SourcePacket } from '../../../../data/contracts/portalFactory';
 import {
-  binanceKazakhstanClaims,
-  binanceKazakhstanMarketProfile,
-  binanceKazakhstanSourcePackets,
-} from '../../../../data/pilots/kz/binanceReview';
-import {
-  bybitKazakhstanClaims,
-  bybitKazakhstanMarketProfile,
-  bybitKazakhstanSourcePackets,
-} from '../../../../data/pilots/kz/bybitReview';
-import {
-  okxKazakhstanClaims,
-  okxKazakhstanMarketProfile,
-  okxKazakhstanSourcePackets,
-} from '../../../../data/pilots/kz/okxReview';
-import {
-  binanceKazakhstanFactParityPass,
-  binanceKazakhstanLocalizedViews,
-} from '../../../../data/pilots/kz/binanceLocaleParity';
-import {
-  binanceKazakhstanPassportReviewPackage,
-  bybitKazakhstanPassportReviewPackage,
-  kazakhstanReviewContentPackagesPass,
-  okxKazakhstanPassportReviewPackage,
-  type KazakhstanReviewContentPackage,
-} from '../../../../data/pilots/kz/contentPackages';
-import { kazakhstanDraftRankingSnapshot } from '../../../../data/pilots/kz/rankingSnapshotDraft';
+  KZ_BINANCE_CANDIDATE,
+  KZ_BYBIT_CANDIDATE,
+  KZ_OKX_CANDIDATE,
+} from '../../../../data/candidates/kzP0MarketProfileCandidates';
+import type { CountryMarketProfileV1Candidate } from '../../../../data/contracts/researchToMarketProfileV1Bridge';
 
 const exchangeIds = ['binance', 'bybit', 'okx'] as const;
 type ExchangeId = typeof exchangeIds[number];
@@ -40,48 +22,24 @@ type ExchangeId = typeof exchangeIds[number];
 interface PassportConfig {
   exchangeId: ExchangeId;
   exchangeName: string;
-  profile: MarketProfile;
-  claims: NormalizedClaim[];
-  sources: SourcePacket[];
-  packageData: KazakhstanReviewContentPackage;
-  rankingState: 'under_review' | 'excluded';
-  conflictPreserving: boolean;
-  intro: string;
+  candidate: CountryMarketProfileV1Candidate;
 }
 
 const configs: Record<ExchangeId, PassportConfig> = {
-  binance: {
-    exchangeId: 'binance', exchangeName: 'Binance',
-    profile: binanceKazakhstanMarketProfile,
-    claims: binanceKazakhstanClaims,
-    sources: binanceKazakhstanSourcePackets,
-    packageData: binanceKazakhstanPassportReviewPackage,
-    rankingState: 'under_review', conflictPreserving: false,
-    intro: 'Validated AFSA, registration, identity-verification and public P2P-surface evidence. Availability remains limited and no Kazakhstan offer is approved.',
-  },
-  bybit: {
-    exchangeId: 'bybit', exchangeName: 'Bybit',
-    profile: bybitKazakhstanMarketProfile,
-    claims: bybitKazakhstanClaims,
-    sources: bybitKazakhstanSourcePackets,
-    packageData: bybitKazakhstanPassportReviewPackage,
-    rankingState: 'under_review', conflictPreserving: false,
-    intro: 'Validated AFSA licensing plus date-bound Standard KYC, P2P fee and KZT range evidence. Welcome-offer eligibility remains under review.',
-  },
-  okx: {
-    exchangeId: 'okx', exchangeName: 'OKX',
-    profile: okxKazakhstanMarketProfile,
-    claims: okxKazakhstanClaims,
-    sources: okxKazakhstanSourcePackets,
-    packageData: okxKazakhstanPassportReviewPackage,
-    rankingState: 'excluded', conflictPreserving: true,
-    intro: 'Validated conflicting profile: technical surfaces are visible while AFSA warning and regulated-P2P evidence block a positive local-authorization conclusion.',
-  },
+  binance: { exchangeId: 'binance', exchangeName: 'Binance', candidate: KZ_BINANCE_CANDIDATE },
+  bybit: { exchangeId: 'bybit', exchangeName: 'Bybit', candidate: KZ_BYBIT_CANDIDATE },
+  okx: { exchangeId: 'okx', exchangeName: 'OKX', candidate: KZ_OKX_CANDIDATE },
 };
 
 const { exchangeId } = Astro.props as { exchangeId: ExchangeId };
 const config = configs[exchangeId];
-const pkg = config.packageData;
+if (!config) throw new Error(`Unsupported Kazakhstan exchange passport: ${exchangeId}`);
+
+const candidate = config.candidate;
+const profile = candidate.proposedProfile;
+const nowMs = Date.now();
+const stale = Number.isFinite(Date.parse(candidate.source.nextReviewAt))
+  && Date.parse(candidate.source.nextReviewAt) <= nowMs;
 
 const routeRecord = assertPortalRouteRecord({
   routeId: `market-passport:${exchangeId}:kz:noindex-preview`,
@@ -94,205 +52,196 @@ const routeRecord = assertPortalRouteRecord({
 let publicResolutionRejected = false;
 try { resolvePortalRoute(routeRecord, 'public'); } catch { publicResolutionRejected = true; }
 
-const authorizationFlags = [
-  ['Recommendation', pkg.recommendationAuthorized],
-  ['Publication', pkg.publicationAuthorized],
-  ['Ranking rows', pkg.rankingRowsAuthorized],
-  ['Affiliate CTA', pkg.affiliateCtaAuthorized],
-  ['Indexability', pkg.indexabilityAuthorized],
-] as const;
+const boundaryPass =
+  publicResolutionRejected
+  && candidate.source.exchangeId === exchangeId
+  && candidate.source.countryCode === 'KZ'
+  && candidate.publicAuthority === false
+  && candidate.importable === false
+  && (exchangeId !== 'okx' || candidate.state === 'blocked');
 
-const sameIdSet = (left: string[], right: string[]) => {
-  if (left.length !== right.length) return false;
-  const leftSorted = [...left].sort();
-  const rightSorted = [...right].sort();
-  return leftSorted.every((value, index) => value === rightSorted[index]);
-};
-
-const expectedSourceIds = [...new Set(config.claims.flatMap(claim => claim.supportingPacketIds))];
-const sourceRegistryIds = config.sources.map(source => source.packetId);
-const contradictionCount = config.claims.filter(claim => claim.contradictingPacketIds.length > 0).length;
-const dateBoundClaims = config.claims.filter(claim => claim.expiresAt !== undefined);
-
-const requiredBybitDateBoundIds = [
-  'claim:kz:bybit:standard-kyc-mandatory',
-  'claim:kz:bybit:p2p-platform-fee-zero',
-  'claim:kz:bybit:p2p-kzt-usdt-per-ad-range',
-];
-const bybitBoundaryPass = exchangeId !== 'bybit' || requiredBybitDateBoundIds.every(claimId => {
-  const claim = config.claims.find(item => item.claimId === claimId);
-  return Boolean(claim?.effectiveAt && claim?.expiresAt);
-});
-
-const enIds = binanceKazakhstanLocalizedViews.en.facts.map(item => item.claim.claimId);
-const ruIds = binanceKazakhstanLocalizedViews.ru.facts.map(item => item.claim.claimId);
-const binanceBoundaryPass = exchangeId !== 'binance' || (
-  binanceKazakhstanFactParityPass
-  && enIds.length === 10
-  && JSON.stringify(enIds) === JSON.stringify(ruIds)
-);
-
-const okxBoundaryPass = exchangeId !== 'okx' || (
-  config.profile.availability === 'unknown'
-  && config.conflictPreserving
-  && config.rankingState === 'excluded'
-  && contradictionCount >= 4
-  && pkg.recommendationAuthorized === false
-);
-
-const rankingBoundaryPass = config.rankingState === 'excluded'
-  ? kazakhstanDraftRankingSnapshot.excludedExchangeIds.includes(exchangeId)
-  : kazakhstanDraftRankingSnapshot.underReviewExchangeIds.includes(exchangeId);
-
-const foundationPass =
-  kazakhstanReviewContentPackagesPass
-  && config.profile.approval === 'validated'
-  && config.profile.offerEligibility === 'under_review'
-  && pkg.approval === 'draft'
-  && pkg.approvedClaimIds.length === 0
-  && pkg.marketProfileId === config.profile.profileId
-  && sameIdSet(pkg.candidateClaimIds, config.profile.claimIds)
-  && sameIdSet(pkg.sourcePacketIds, expectedSourceIds)
-  && expectedSourceIds.every(sourceId => sourceRegistryIds.includes(sourceId))
-  && authorizationFlags.every(([, value]) => value === false)
-  && kazakhstanDraftRankingSnapshot.rows.length === 0
-  && rankingBoundaryPass
-  && publicResolutionRejected
-  && bybitBoundaryPass
-  && binanceBoundaryPass
-  && okxBoundaryPass;
-
-if (!foundationPass) {
-  throw new Error(`Kazakhstan ${exchangeId} market-passport preview failed its governed boundary.`);
+if (!boundaryPass) {
+  throw new Error(`Kazakhstan ${exchangeId} candidate passport failed the governed noindex boundary.`);
 }
 
-const titleCase = (value: string) => value.replace(/[-_]/g, ' ').replace(/\b\w/g, letter => letter.toUpperCase());
-const displayValue = (value: string | number | boolean) => typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value);
-const toneForAvailability = (value: string) => value === 'available' ? 'verified' as const : value === 'limited' ? 'partial' as const : value === 'unknown' ? 'review' as const : 'restricted' as const;
+const humanize = (value: string | undefined | null) =>
+  (value ?? 'under_review').replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
+
+const availability = candidate.state === 'blocked'
+  ? 'Blocked'
+  : humanize(profile?.availability);
+const statusTone = candidate.state === 'blocked'
+  ? 'blocked'
+  : stale
+    ? 'review'
+    : profile?.availability === 'available'
+      ? 'verified'
+      : profile?.availability === 'limited'
+        ? 'limited'
+        : 'review';
+const statusLabel = candidate.state === 'blocked'
+  ? 'Candidate blocked'
+  : stale
+    ? 'Evidence refresh required'
+    : `${availability} · candidate only`;
+
+const dimensions = [
+  ['Availability', candidate.state === 'blocked' ? 'Blocked' : humanize(profile?.availability)],
+  ['Regulation', candidate.state === 'blocked' ? 'Under review' : humanize(profile?.regulation.state)],
+  ['KYC', candidate.state === 'blocked' ? 'Under review' : humanize(profile?.kyc.state)],
+  ['Deposits', candidate.state === 'blocked' ? 'Under review' : humanize(profile?.deposits.state)],
+  ['Withdrawals', candidate.state === 'blocked' ? 'Under review' : humanize(profile?.withdrawals.state)],
+  ['Fiat & payments', candidate.state === 'blocked' ? 'Under review' : humanize(profile?.fiatPayments.state)],
+  ['Products', candidate.state === 'blocked' ? 'Under review' : humanize(profile?.products.state)],
+  ['Local bonus / referral', candidate.state === 'blocked' ? 'Under review' : humanize(profile?.bonusAvailability.state)],
+  ['Restrictions', candidate.state === 'blocked' ? 'Under review' : humanize(profile?.restrictions.state)],
+] as const;
+
+const limitations = candidate.limitations.slice(0, 6);
+const unresolved = candidate.unresolvedDimensions.slice(0, 8);
 ---
 
 <CleanLayout
   title={`${config.exchangeName} in Kazakhstan — Review Passport | CryptoBonusWorld`}
-  description={`Noindex evidence passport for ${config.exchangeName} in Kazakhstan without ranking or affiliate recommendation.`}
+  description={`Noindex owner preview of the current ${config.exchangeName} × Kazakhstan candidate evidence. No ranking position or affiliate recommendation is published.`}
   noindex={true}
   bodyClass="kz-passport-preview"
 >
-  <div
-    class="passport-page"
-    data-passport={exchangeId}
-    data-availability={config.profile.availability}
-    data-offer-eligibility={config.profile.offerEligibility}
-    data-ranking-state={config.rankingState}
-    data-conflict-preserving={String(config.conflictPreserving)}
-  >
-    <section class="passport-hero">
-      <div class="shell">
-        <div class="preview-strip"><span>Noindex market passport</span><span>Draft · no recommendation · no affiliate action</span></div>
-        <p class="crumbs">Kazakhstan <b>/</b> Exchanges <b>/</b> {config.exchangeName}</p>
-        <div class="hero-grid">
+  <PageFrame family="country" class="kz-passport-product">
+    <div
+      data-country-exchange-passport={exchangeId}
+      data-candidate-state={candidate.state}
+      data-country-code="KZ"
+      data-ranking-position="none"
+    >
+      <FirstViewport
+        family="country"
+        container="wide"
+        eyebrow="Kazakhstan · exchange evidence passport"
+        title={`${config.exchangeName} in Kazakhstan`}
+        lede="This owner-preview summarizes the current governed candidate only. It does not create a local ranking position, country-specific referral eligibility or permission to publish."
+      >
+        <div class="passport-identity">
+          <span class="passport-flag" aria-hidden="true">🇰🇿</span>
+          <ExchangeLogo slug={exchangeId} name={config.exchangeName} size={48} variant="square" lazy={false} />
           <div>
-            <p class="eyebrow">Exchange × country evidence profile</p>
-            <h1>{config.exchangeName} in Kazakhstan</h1>
-            <p class="lede">{config.intro}</p>
+            <strong>{config.exchangeName} × Kazakhstan</strong>
+            <StatusBadge label={statusLabel} tone={statusTone} />
           </div>
-          <aside class="state-card">
-            <p class="eyebrow">Validated review state</p>
-            <ReviewStatus label={`${config.profile.approval} · ${config.profile.availability}`} detail={`Offer ${config.profile.offerEligibility.replace(/_/g, ' ')} · ranking ${config.rankingState.replace(/_/g, ' ')}`} tone={toneForAvailability(config.profile.availability)} />
-            <dl>
-              <div><dt>Candidate claims</dt><dd>{config.claims.length}</dd></div>
-              <div><dt>Source packets</dt><dd>{config.sources.length}</dd></div>
-              <div><dt>Ranking position</dt><dd>None</dd></div>
-              <div><dt>Indexability</dt><dd>Disabled</dd></div>
-            </dl>
-          </aside>
         </div>
-      </div>
-    </section>
+      </FirstViewport>
 
-    <section class="metrics-section">
-      <div class="shell metrics-grid">
-        <article><span>Availability</span><strong>{titleCase(config.profile.availability)}</strong><small>Country-level evidence state</small></article>
-        <article><span>Offer eligibility</span><strong>{titleCase(config.profile.offerEligibility)}</strong><small>No approved Kazakhstan offer</small></article>
-        <article><span>Date-bound claims</span><strong>{dateBoundClaims.length}</strong><small>Explicit freshness boundary</small></article>
-        <article><span>Contradicting claims</span><strong>{contradictionCount}</strong><small>Conflicts remain visible</small></article>
-      </div>
-    </section>
-
-    <section class="content-section">
-      <div class="shell content-grid">
-        <main>
-          {exchangeId === 'okx' && <article class="notice conflict" data-conflict-banner><p class="eyebrow">Conflict preserved</p><h2>Reachability is not authorization</h2><p>OKX remains excluded and non-recommended. Platform surfaces coexist with regulator evidence that blocks a positive local-authorization conclusion.</p></article>}
-          {exchangeId === 'bybit' && <article class="notice date" data-date-bound-banner><p class="eyebrow">Date-bound evidence</p><h2>KYC, fees and P2P range require freshness labels</h2><p>The published facts do not prove a currently active advertisement, universal eligibility or account approval.</p></article>}
-
-          <header class="section-heading"><p class="eyebrow">Validated candidate facts</p><h2>Evidence-backed claims</h2><p>Validated for review does not mean approved for recommendation. Dates, confidence, evidence and limitations stay attached to every fact.</p></header>
-
-          {exchangeId === 'binance' ? (
-            <div data-locale-switcher>
-              <div class="locale-tabs" role="tablist" aria-label="Binance Kazakhstan review language">
-                <button type="button" class="active" data-locale-button="en" role="tab" aria-selected="true">English</button>
-                <button type="button" data-locale-button="ru" role="tab" aria-selected="false">Русский</button>
-                <span>Immutable claim parity: PASS</span>
-              </div>
-              {(['en', 'ru'] as const).map(locale => (
-                <section data-locale-panel={locale} hidden={locale === 'ru'} lang={locale}>
-                  <div class="locale-summary"><strong>{binanceKazakhstanLocalizedViews[locale].profileCopy.title}</strong><span>{binanceKazakhstanLocalizedViews[locale].profileCopy.statusLabel}</span></div>
-                  <div class="fact-grid">
-                    {binanceKazakhstanLocalizedViews[locale].facts.map(({ claim, copy }) => (
-                      <article class="fact-card" data-claim-id={claim.claimId}>
-                        <div class="fact-head"><span>{copy.label}</span><ReviewStatus label={claim.confidence} tone={claim.confidence === 'high' ? 'verified' : 'partial'} compact={true} /></div>
-                        <h3>{displayValue(claim.value)}</h3><p>{copy.summary}</p>
-                        <dl><div><dt>Effective</dt><dd>{claim.effectiveAt?.slice(0,10) ?? 'Not stated'}</dd></div><div><dt>Expires</dt><dd>{claim.expiresAt?.slice(0,10) ?? 'No explicit expiry'}</dd></div><div><dt>Evidence</dt><dd>{claim.supportingPacketIds.length}</dd></div><div><dt>Approval</dt><dd>{claim.approval}</dd></div></dl>
-                        <small>{claim.limitations[0]}</small>
-                      </article>
-                    ))}
-                  </div>
-                </section>
-              ))}
-            </div>
-          ) : (
-            <div class="fact-grid">
-              {config.claims.map(claim => (
-                <article class="fact-card" data-claim-id={claim.claimId} data-date-bound={claim.expiresAt ? 'true' : undefined} data-contradiction={claim.contradictingPacketIds.length ? 'true' : undefined}>
-                  <div class="fact-head"><span>{titleCase(claim.predicate)}</span><ReviewStatus label={claim.confidence} tone={claim.contradictingPacketIds.length ? 'restricted' : claim.confidence === 'high' ? 'verified' : 'partial'} compact={true} /></div>
-                  <h3>{displayValue(claim.value)}</h3>
-                  <dl><div><dt>Effective</dt><dd>{claim.effectiveAt?.slice(0,10) ?? 'Not stated'}</dd></div><div><dt>Expires</dt><dd>{claim.expiresAt?.slice(0,10) ?? 'No explicit expiry'}</dd></div><div><dt>Evidence</dt><dd>{claim.supportingPacketIds.length}</dd></div><div><dt>Contradictions</dt><dd>{claim.contradictingPacketIds.length}</dd></div></dl>
-                  <ul>{claim.limitations.map(item => <li>{item}</li>)}</ul>
-                </article>
-              ))}
-            </div>
-          )}
-
-          <header class="section-heading sources-heading"><p class="eyebrow">Source register</p><h2>Evidence packets</h2></header>
-          <div class="source-list">
-            {config.sources.map(source => (
-              <article><div><span>{source.sourceClass.replace(/_/g,' ')}</span><h3>{source.publisher}</h3></div><small>{source.accessedAt.slice(0,10)} · {source.topics.join(', ')}</small><a href={source.sourceUrl} target="_blank" rel="noopener noreferrer nofollow">Official source ↗</a></article>
-            ))}
+      <Section container="standard" spacing="compact" tone="page" ariaLabel={`${config.exchangeName} Kazakhstan candidate summary`}>
+        <div class="passport-summary cbw-panel">
+          <div>
+            <p class="cbw-section-eyebrow">Current candidate posture</p>
+            <h2>{availability}</h2>
+            <p>
+              {candidate.state === 'blocked'
+                ? 'The candidate is blocked and no CountryMarketProfile is materialized from the current evidence.'
+                : stale
+                  ? 'The evidence review window has passed. Current availability must be rechecked before any later promotion review.'
+                  : 'The candidate contains reviewable evidence, but it remains non-importable and carries no public authority.'}
+            </p>
           </div>
-        </main>
+          <dl>
+            <div><dt>Evidence checked</dt><dd>{candidate.source.lastCheckedAt.slice(0, 10)}</dd></div>
+            <div><dt>Next review</dt><dd>{candidate.source.nextReviewAt.slice(0, 10)}</dd></div>
+            <div><dt>Ranking position</dt><dd>None</dd></div>
+            <div><dt>Public authority</dt><dd>No</dd></div>
+          </dl>
+        </div>
+      </Section>
 
-        <aside class="side-column">
-          <section class="side-card"><p class="eyebrow">ContentPackage</p><dl><div><dt>Package</dt><dd>{pkg.packageId}</dd></div><div><dt>Approval</dt><dd>{pkg.approval}</dd></div><div><dt>Approved claims</dt><dd>{pkg.approvedClaimIds.length}</dd></div><div><dt>Candidate claims</dt><dd>{pkg.candidateClaimIds.length}</dd></div><div><dt>Ranking position</dt><dd>None</dd></div></dl></section>
-          <section class="side-card"><p class="eyebrow">Authorization flags</p><div class="flag-list">{authorizationFlags.map(([label,value]) => <div><span>{label}</span><strong>{value ? 'ON' : 'OFF'}</strong></div>)}</div></section>
-          <section class="side-card"><p class="eyebrow">Profile limitations</p><ul>{config.profile.limitations.map(item => <li>{item}</li>)}</ul></section>
-          <section class:list={['boundary-card',{ conflict: config.conflictPreserving }]}><strong>{config.conflictPreserving ? 'Conflict-preserving boundary' : 'Preview-only boundary'}</strong><p>Noindex, no sitemap, no ranking position and no affiliate action. Public resolution remains rejected.</p></section>
-        </aside>
-      </div>
-    </section>
-  </div>
+      <Section container="standard" spacing="compact" tone="primary" ariaLabel={`${config.exchangeName} Kazakhstan evidence dimensions`}>
+        <header class="cbw-section-header">
+          <p class="cbw-section-eyebrow">Evidence dimensions</p>
+          <h2 class="cbw-section-title">What the candidate currently says</h2>
+          <p class="cbw-section-lede">Each dimension remains independent. A positive licence or visible product surface cannot by itself establish local account, product or campaign eligibility.</p>
+        </header>
 
-  {exchangeId === 'binance' && <script is:inline>
-    document.querySelectorAll('[data-locale-switcher]').forEach(root => {
-      const buttons = Array.from(root.querySelectorAll('[data-locale-button]'));
-      const panels = Array.from(root.querySelectorAll('[data-locale-panel]'));
-      buttons.forEach(button => button.addEventListener('click', () => {
-        const locale = button.getAttribute('data-locale-button');
-        buttons.forEach(item => { const selected = item === button; item.classList.toggle('active', selected); item.setAttribute('aria-selected', selected ? 'true' : 'false'); });
-        panels.forEach(panel => { panel.hidden = panel.getAttribute('data-locale-panel') !== locale; });
-      }));
-    });
-  </script>}
+        <div class="passport-dimensions cbw-grid cbw-grid--3">
+          {dimensions.map(([label, value]) => (
+            <article class="cbw-card passport-dimension">
+              <span>{label}</span>
+              <strong>{value}</strong>
+            </article>
+          ))}
+        </div>
+
+        {profile?.fiatPayments.methods?.length ? (
+          <div class="payment-note cbw-card">
+            <span>Observed local payment evidence</span>
+            <strong>{profile.fiatPayments.methods.join(' · ')}</strong>
+            <small>Method visibility is not universal account eligibility.</small>
+          </div>
+        ) : null}
+      </Section>
+
+      <Section container="prose" spacing="compact" tone="secondary" ariaLabel={`${config.exchangeName} Kazakhstan review limitations`}>
+        <details class="passport-review-details cbw-panel" data-passport-review-details>
+          <summary>What still needs verification</summary>
+          <div class="passport-review-copy">
+            {limitations.length > 0 && (
+              <div>
+                <h2>Material limitations</h2>
+                <ul>{limitations.map(item => <li>{item}</li>)}</ul>
+              </div>
+            )}
+            {unresolved.length > 0 && (
+              <div>
+                <h2>Unresolved dimensions</h2>
+                <ul>{unresolved.map(item => <li>{humanize(item)}</li>)}</ul>
+              </div>
+            )}
+            <p>
+              This preview contains no affiliate action. A later public or commercial state would require a separate governed promotion decision using fresh evidence.
+            </p>
+          </div>
+        </details>
+
+        <a class="passport-back" href="/countries/kazakhstan/">← Kazakhstan market preview</a>
+      </Section>
+    </div>
+  </PageFrame>
 </CleanLayout>
 
 <style>
-  :global(body.kz-passport-preview){background:#f7f8f4}.passport-page{min-height:100vh;color:#13233e;background:#f7f8f4}.shell{width:min(1160px,calc(100% - 40px));margin-inline:auto}.passport-hero{padding:18px 0 70px;color:#fff;background:radial-gradient(circle at 80% 16%,rgba(247,147,26,.22),transparent 30%),linear-gradient(135deg,#091426,#173250)}.preview-strip{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;padding:10px 13px;border:1px solid rgba(255,255,255,.14);border-radius:10px;color:#c7d2e1;font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}.crumbs{margin:32px 0;color:#aebed2;font-size:12px}.crumbs b{padding-inline:7px;color:#f7931a}.hero-grid{display:grid;gap:28px;align-items:end}.eyebrow{margin:0 0 10px;color:#f7931a;font-size:10px;font-weight:900;letter-spacing:.11em;text-transform:uppercase}h1,h2{font-family:'Barlow Condensed','Inter',sans-serif;text-transform:uppercase;letter-spacing:-.025em}h1{max-width:820px;margin:0;font-size:clamp(52px,8vw,84px);line-height:.92}.lede{max-width:760px;margin:22px 0 0;color:#d2ddea;font-size:16px;line-height:1.72}.state-card{min-width:0;padding:20px;border:1px solid rgba(255,255,255,.16);border-radius:16px;background:rgba(255,255,255,.08)}.state-card dl,.side-card dl{display:grid;gap:8px;margin-top:16px}.state-card dl div,.side-card dl div{display:flex;justify-content:space-between;gap:12px;padding-top:9px;border-top:1px solid rgba(255,255,255,.12)}.state-card dt{color:#b8c5d4;font-size:9px}.state-card dd{margin:0;font-size:9px;font-weight:900;text-transform:uppercase}.metrics-section{position:relative;margin-top:-26px}.metrics-grid{display:grid;gap:10px}.metrics-grid article{min-width:0;padding:17px;border:1px solid #dce2dc;border-radius:14px;background:#fff;box-shadow:0 11px 26px rgba(19,35,62,.08)}.metrics-grid span{display:block;color:#738092;font-size:9px;font-weight:900;text-transform:uppercase}.metrics-grid strong{display:block;margin:8px 0 4px;font-family:'Barlow Condensed','Inter',sans-serif;font-size:27px;line-height:1;text-transform:uppercase}.metrics-grid small{color:#718092;font-size:10px}.content-section{padding:72px 0 90px}.content-grid{display:grid;gap:26px}.section-heading h2,.notice h2{margin:0;font-size:clamp(38px,6vw,56px);line-height:.96}.section-heading>p:last-child,.notice>p:last-child{max-width:760px;color:#627080;line-height:1.7}.notice{margin-bottom:28px;padding:24px;border:1px solid #ead3bd;border-left:5px solid #c46a25;border-radius:15px;background:#fff8ef}.notice.conflict{border-color:#e2b4af;border-left-color:#a12828;background:#fff4f3}.locale-tabs{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:25px 0 14px}.locale-tabs button{min-height:38px;padding:0 14px;border:1px solid #d5ddd5;border-radius:9px;background:#fff;font-weight:800}.locale-tabs button.active{border-color:#f7931a;background:#fff1dc}.locale-tabs span{color:#16834b;font-size:10px;font-weight:900;text-transform:uppercase}.locale-summary{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;margin-bottom:12px;padding:12px 14px;border-radius:10px;background:#eef3f8}.fact-grid{display:grid;gap:12px;margin-top:26px}.locale-summary+.fact-grid{margin-top:0}.fact-card{min-width:0;padding:18px;border:1px solid #dce2dc;border-radius:14px;background:#fff;box-shadow:0 7px 22px rgba(19,35,62,.035)}.fact-head{display:flex;justify-content:space-between;gap:10px}.fact-head>span{color:#778494;font-size:9px;font-weight:900;text-transform:uppercase}.fact-card h3{margin:10px 0 8px;font-family:'Barlow Condensed','Inter',sans-serif;font-size:26px;line-height:1;overflow-wrap:anywhere}.fact-card p,.fact-card>small,.fact-card li{color:#687587;font-size:9px;line-height:1.55}.fact-card dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:12px}.fact-card dl div{padding:8px;border-radius:8px;background:#f5f7f4}.fact-card dt{color:#8290a0;font-size:8px;text-transform:uppercase}.fact-card dd{margin:2px 0 0;font-size:9px;font-weight:800;overflow-wrap:anywhere}.fact-card ul{padding-left:16px}.sources-heading{margin-top:42px}.source-list{display:grid;gap:9px}.source-list article{display:grid;gap:8px;padding:15px;border:1px solid #dce2dc;border-radius:12px;background:#fff}.source-list span{color:#9a5a08;font-size:8px;font-weight:900;text-transform:uppercase}.source-list h3{margin:2px 0;font-size:14px}.source-list small{color:#657386;font-size:9px}.source-list a{color:#935107;font-size:10px;font-weight:900;text-decoration:underline}.side-column{display:grid;align-content:start;gap:14px}.side-card,.boundary-card{min-width:0;padding:18px;border:1px solid #dce2dc;border-radius:14px;background:#fff}.side-card dl div{border-color:#edf0ec}.side-card dt{color:#778494;font-size:9px}.side-card dd{max-width:62%;margin:0;font-size:9px;font-weight:800;text-align:right;overflow-wrap:anywhere}.side-card>ul{padding-left:16px;color:#627083;font-size:10px;line-height:1.55}.flag-list{display:grid;gap:7px}.flag-list div{display:flex;justify-content:space-between;gap:12px;padding:9px 10px;border-radius:9px;background:#fff3f1}.flag-list span{color:#667487;font-size:10px}.flag-list strong{color:#a12828;font-size:10px}.boundary-card{border-left:5px solid #f7931a}.boundary-card.conflict{border-left-color:#a12828;background:#fff4f3}.boundary-card p{margin:6px 0 0;color:#627083;font-size:10px;line-height:1.6}[hidden]{display:none!important}@media(min-width:720px){.metrics-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.fact-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.source-list article{grid-template-columns:1fr 1.2fr auto;align-items:center}}@media(min-width:960px){.hero-grid{grid-template-columns:minmax(0,1.65fr) minmax(280px,.65fr)}.metrics-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.content-grid{grid-template-columns:minmax(0,1fr) 310px}}@media(max-width:719px){.shell{width:min(100% - 32px,1160px)}.fact-grid{grid-template-columns:1fr}.fact-head{display:grid}}
+  :global(body.kz-passport-preview) { background: var(--cbw-surface-page, #f7f8f4); }
+  .kz-passport-product :global(.cbw-first-viewport--country) { --cbw-first-viewport-target: 230px; }
+  .passport-identity { display: grid; grid-template-columns: auto 48px minmax(0,1fr); gap: 11px; align-items: center; margin-top: 18px; }
+  .passport-flag { display: inline-flex; width: 48px; height: 48px; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,.15); border-radius: var(--cbw-radius-control); background: rgba(255,255,255,.07); font-size: 30px; }
+  .passport-identity > div { display: grid; gap: 5px; justify-items: start; }
+  .passport-identity strong { color: #fff; font-size: 13px; }
+  .passport-summary { display: grid; gap: var(--cbw-space-6); }
+  .passport-summary h2 { margin: 0; color: var(--cbw-text-primary); font-family: 'Barlow Condensed','Inter',sans-serif; font-size: clamp(30px,4vw,42px); line-height: 1; text-transform: uppercase; }
+  .passport-summary p { max-width: 640px; margin: 8px 0 0; color: var(--cbw-text-secondary); font-size: 12px; line-height: 1.65; }
+  .passport-summary dl { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; margin: 0; }
+  .passport-summary dl div { display: grid; gap: 2px; padding: 10px 11px; border-radius: var(--cbw-radius-control); background: var(--cbw-surface-secondary); }
+  .passport-summary dt,.passport-dimension span,.payment-note span { color: var(--cbw-text-muted); font-size: 8px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; }
+  .passport-summary dd { margin: 0; color: var(--cbw-text-primary); font-size: 11px; font-weight: 900; }
+  .passport-dimensions { align-items: stretch; }
+  .passport-dimension { display: grid; gap: 7px; min-height: 84px; align-content: center; }
+  .passport-dimension strong { color: var(--cbw-text-primary); font-size: 12px; line-height: 1.4; }
+  .payment-note { display: grid; gap: 4px; margin-top: var(--cbw-space-4); }
+  .payment-note strong { color: var(--cbw-text-primary); font-size: 12px; }
+  .payment-note small { color: var(--cbw-text-muted); font-size: 9px; line-height: 1.5; }
+  .passport-review-details summary { display: flex; min-height: 46px; align-items: center; justify-content: space-between; color: var(--cbw-text-primary); font-size: 13px; font-weight: 900; cursor: pointer; list-style: none; }
+  .passport-review-details summary::-webkit-details-marker { display: none; }
+  .passport-review-details summary::after { content: '+'; color: var(--cbw-text-muted); font-size: 18px; font-weight: 500; }
+  .passport-review-details[open] summary::after { content: '−'; }
+  .passport-review-copy { display: grid; gap: 16px; padding-top: 14px; border-top: 1px solid var(--cbw-border-standard); color: var(--cbw-text-secondary); font-size: 11px; line-height: 1.65; }
+  .passport-review-copy h2 { margin: 0 0 7px; color: var(--cbw-text-primary); font-size: 13px; }
+  .passport-review-copy ul { margin: 0; padding-left: 18px; }
+  .passport-review-copy p { margin: 0; }
+  .passport-back { display: inline-flex; margin-top: 14px; color: #925204; font-size: 10px; font-weight: 900; text-decoration: none; }
+  @media (min-width: 760px) {
+    .passport-summary { grid-template-columns: minmax(0,1.25fr) minmax(280px,.75fr); align-items: center; }
+  }
+  @media (max-width: 639px) {
+    .kz-passport-product :global(.cbw-first-viewport--country) { --cbw-first-viewport-target: 270px; }
+    .passport-identity { grid-template-columns: auto 44px minmax(0,1fr); }
+    .passport-flag { width: 44px; height: 44px; font-size: 27px; }
+    .passport-summary dl { grid-template-columns: 1fr; }
+  }
 </style>
