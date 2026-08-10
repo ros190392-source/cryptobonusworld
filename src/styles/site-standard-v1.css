@@ -51,6 +51,7 @@
 
   /* First-screen values are review targets, never hard clipping heights. */
   --cbw-intro-home-target: 190px;
+  --cbw-intro-country-target: 220px;
   --cbw-intro-exchange-target: 280px;
   --cbw-intro-directory-target: 180px;
   --cbw-intro-guide-target: 200px;
@@ -123,6 +124,7 @@
 }
 
 .cbw-first-viewport--homepage { --cbw-first-viewport-target: var(--cbw-intro-home-target); }
+.cbw-first-viewport--country { --cbw-first-viewport-target: var(--cbw-intro-country-target); }
 .cbw-first-viewport--exchange { --cbw-first-viewport-target: var(--cbw-intro-exchange-target); }
 .cbw-first-viewport--directory { --cbw-first-viewport-target: var(--cbw-intro-directory-target); }
 .cbw-first-viewport--guide { --cbw-first-viewport-target: var(--cbw-intro-guide-target); }
