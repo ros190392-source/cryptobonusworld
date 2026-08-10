@@ -7,6 +7,7 @@ on:
     paths:
       - 'src/pages/countries/**'
       - 'src/components/country/**'
+      - 'src/components/countries/**'
       - 'src/data/candidates/**'
       - 'src/data/siteStandard/**'
       - 'scripts/ui/noindex-product-preview-browser-smoke.mjs'
