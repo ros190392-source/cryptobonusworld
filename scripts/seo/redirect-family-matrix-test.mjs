@@ -5,7 +5,8 @@ import { relative, resolve, sep } from 'node:path';
 const ROOT = resolve(process.cwd());
 const DIST = resolve(ROOT, 'dist');
 const ORIGIN = 'https://cryptobonusworld.com';
-const EXPECTED_REDIRECTS = 44;
+const EXPECTED_RETIRED_REDIRECTS = 44;
+const EXPECTED_GOVERNED_GO_REFRESHES = 13;
 
 if (!existsSync(DIST)) {
   console.error('CBW REDIRECT FAMILY: ERROR — dist missing; run production build first');
@@ -51,6 +52,9 @@ function state(route, html) {
   if (/\bnoindex\b/i.test(meta(html,'robots') ?? '')) return 'noindex';
   return 'public';
 }
+function hasRedirectMarker(html) {
+  return /data-redirect-page(?:\s|>|=)/i.test(html);
+}
 
 let checks=0; const failures=[];
 function check(label,ok,detail=''){checks+=1;if(!ok)failures.push(detail?`${label}: ${detail}`:label);}
@@ -59,22 +63,37 @@ const routeMap = new Map();
 for (const file of findHtml(DIST)) {
   const route = routeForFile(file);
   const html = readFileSync(file,'utf8');
-  routeMap.set(route,{route,html,state:state(route,html),target:refreshTarget(html),canonical:canonicalPath(html)});
+  routeMap.set(route,{
+    route,
+    html,
+    state:state(route,html),
+    refreshTarget:refreshTarget(html),
+    canonical:canonicalPath(html),
+    retiredRedirect:hasRedirectMarker(html),
+  });
 }
 
-const redirects = [...routeMap.values()].filter(row => row.target !== null);
-check('redirect family: exactly 44 retired redirects', redirects.length === EXPECTED_REDIRECTS, `count=${redirects.length}`);
+const retired = [...routeMap.values()].filter(row => row.retiredRedirect);
+const allRefresh = [...routeMap.values()].filter(row => row.refreshTarget !== null);
+const nonRetiredRefresh = allRefresh.filter(row => !row.retiredRedirect);
+
+check('redirect family: exactly 44 retired redirects', retired.length === EXPECTED_RETIRED_REDIRECTS, `count=${retired.length}`);
+check('refresh boundary: exactly 13 non-retired governed refresh routes', nonRetiredRefresh.length === EXPECTED_GOVERNED_GO_REFRESHES, `count=${nonRetiredRefresh.length}`);
+check('refresh boundary: every non-retired refresh is /go/*', nonRetiredRefresh.every(row => row.route.startsWith('/go/')), nonRetiredRefresh.map(row => row.route).join(','));
+check('refresh boundary: every /go/* refresh remains noindex', nonRetiredRefresh.every(row => row.state === 'noindex'));
 
 const families = { guides:0, exchangeAliases:0, countries:0, legacy:0 };
-for (const row of redirects) {
-  const target = row.target;
+for (const row of retired) {
+  const target = row.refreshTarget;
+  check(`${row.route}: has refresh target`, Boolean(target));
+  if (!target) continue;
   const targetRow = routeMap.get(target);
   check(`${row.route}: noindex`, row.state === 'noindex', `state=${row.state}`);
-  check(`${row.route}: redirect marker`, /data-redirect-page(?:\s|>|=)/i.test(row.html));
   check(`${row.route}: canonical equals target`, row.canonical === target, `canonical=${row.canonical} target=${target}`);
   check(`${row.route}: target exists`, Boolean(targetRow), `target=${target}`);
   check(`${row.route}: target is public`, targetRow?.state === 'public', `targetState=${targetRow?.state}`);
-  check(`${row.route}: target is not another redirect`, !targetRow?.target, `target=${target}`);
+  check(`${row.route}: target is not retired redirect`, !targetRow?.retiredRedirect, `target=${target}`);
+  check(`${row.route}: target is not any refresh route`, !targetRow?.refreshTarget, `target=${target}`);
   check(`${row.route}: does not redirect to /go`, !target.startsWith('/go/'), `target=${target}`);
   check(`${row.route}: not self-loop`, row.route !== target);
   const anchor = row.html.match(/<a\b[^>]*href\s*=\s*["']([^"']+)["']/i)?.[1] ?? null;
@@ -98,4 +117,5 @@ if (failures.length) {
 } else {
   console.log(`CBW REDIRECT FAMILY: PASS (${checks}/${checks})`);
   console.log(`CBW REDIRECT GROUPS: ${JSON.stringify(families)}`);
+  console.log(`CBW GOVERNED GO REFRESHES: ${nonRetiredRefresh.length}`);
 }
