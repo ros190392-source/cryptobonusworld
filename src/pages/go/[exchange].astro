@@ -27,6 +27,10 @@ const nowMs = Date.now();
 const defaultDecision = resolvePublicCommercialRoute(ex.slug, nowMs);
 const ownerAuthority = resolveOwnerConfirmedCommercialAuthority(ex.slug);
 const fallbackUrl = defaultDecision.fallbackUrl;
+if (typeof fallbackUrl !== 'string' || !fallbackUrl.startsWith('/') || fallbackUrl.startsWith('//')) {
+  throw new Error(`Invalid governed fallback URL for ${ex.slug}: ${String(fallbackUrl)}`);
+}
+const canonicalHref = `https://cryptobonusworld.com${fallbackUrl}`;
 
 // Project every serialized GEO destination through the exact-value route resolver.
 // Raw exchanges.json URLs are never serialized directly by this page.
@@ -60,7 +64,7 @@ const clientRouteData = hasConfirmedExternalRoute
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Opening {ex.name} — CryptoBonusWorld</title>
   <meta name="robots" content="noindex, nofollow" />
-  <link rel="canonical" href={ex.slug === 'bybit' ? 'https://cryptobonusworld.com/bybit/' : `https://cryptobonusworld.com/exchanges/${ex.slug}/`} />
+  <link rel="canonical" href={canonicalHref} />
 
   <!-- JS-disabled fallback always remains internal; no unconfirmed external URL in meta refresh. -->
   <meta http-equiv="refresh" content={`8;url=${fallbackUrl}`} />
@@ -69,127 +73,134 @@ const clientRouteData = hasConfirmedExternalRoute
     *, *::before, *::after { box-sizing: border-box; }
     body {
       margin: 0;
-      background: #0B1220;
-      color: #94A3B8;
-      font-family: Inter, system-ui, sans-serif;
+      display: grid;
+      min-height: 100dvh;
+      place-items: center;
+      padding: 20px;
+      color: #536176;
+      background:
+        radial-gradient(circle at 82% 12%, rgba(247,147,26,.15), transparent 30%),
+        #f7f8f4;
+      font-family: Inter, system-ui, -apple-system, sans-serif;
+    }
+    .transition-card {
+      width: min(100%, 560px);
+      padding: 28px;
+      border: 1px solid #dce3dc;
+      border-radius: 18px;
+      background: #fff;
+      box-shadow: 0 12px 36px rgba(19,35,62,.08);
+    }
+    .transition-eyebrow {
+      margin: 0 0 14px;
+      color: #a65400;
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+    .exchange-identity {
+      display: grid;
+      grid-template-columns: 72px minmax(0,1fr);
+      gap: 14px;
+      align-items: center;
+    }
+    .logo-box {
       display: flex;
+      width: 72px;
+      height: 58px;
       align-items: center;
       justify-content: center;
-      min-height: 100vh;
-      padding: 1.25rem;
+      padding: 7px;
+      border-radius: 10px;
+      background: #0c1526;
     }
-    .card {
-      background: #13233E;
-      border: 1px solid #27405F;
-      border-radius: 16px;
-      padding: 2rem 1.75rem 1.75rem;
-      text-align: center;
-      max-width: 440px;
-      width: 100%;
-    }
-    .brand {
-      font-size: 0.8rem;
-      font-weight: 800;
-      letter-spacing: 0.02em;
-      color: #F8FAFC;
-      margin: 0 0 1.25rem;
-    }
-    .brand .accent { color: #F5A623; }
-    .ex-logo {
-      height: 44px;
-      max-width: 200px;
-      object-fit: contain;
-      margin: 0 auto 0.9rem;
-      display: block;
-    }
+    .ex-logo { display: block; max-width: 58px; max-height: 42px; width: auto; height: auto; object-fit: contain; }
     h1 {
-      font-size: 1.15rem;
+      margin: 0;
+      color: #13233e;
+      font-family: 'Barlow Condensed', Inter, sans-serif;
+      font-size: clamp(34px, 8vw, 50px);
       font-weight: 800;
-      color: #FFFFFF;
-      margin: 0 0 0.75rem;
+      letter-spacing: -.025em;
+      line-height: .95;
+      text-transform: uppercase;
     }
-    p {
-      font-size: 0.85rem;
-      color: #94A3B8;
-      margin: 0 0 0.65rem;
-      line-height: 1.55;
+    .exchange-identity p { margin: 5px 0 0; color: #778391; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+    .transition-state {
+      display: grid;
+      gap: 8px;
+      margin-top: 20px;
+      padding: 14px;
+      border-radius: 10px;
+      background: #f2f5f1;
     }
-    strong { color: #E2E8F0; }
-    code {
-      color: #FFFFFF;
-      font-weight: 800;
-      overflow-wrap: anywhere;
-    }
-    .progress {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      margin: 1rem 0 1.1rem;
-      font-size: 0.8rem;
-      color: #CBD5E1;
-    }
-    .spinner {
-      width: 18px;
-      height: 18px;
-      border: 2px solid #27405F;
-      border-top-color: #F5A623;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      flex: none;
-    }
+    .transition-state p { margin: 0; color: #536176; font-size: 12px; line-height: 1.6; }
+    .transition-state strong { color: #13233e; }
+    code { color: #13233e; font-weight: 900; overflow-wrap: anywhere; }
+    .progress { display: flex; align-items: center; gap: 8px; color: #778391; font-size: 10px; }
+    .spinner { width: 16px; height: 16px; border: 2px solid #dce3dc; border-top-color: #f7931a; border-radius: 50%; animation: spin .8s linear infinite; flex: none; }
     @keyframes spin { to { transform: rotate(360deg); } }
     .continue-btn {
-      display: block;
-      width: 100%;
-      padding: 0.85rem 1rem;
+      display: flex;
+      min-height: 48px;
+      align-items: center;
+      justify-content: center;
+      margin-top: 16px;
+      padding: 0 18px;
+      border: 1px solid #d97807;
       border-radius: 10px;
-      background: #15803D;
-      color: #FFFFFF;
-      font-size: 0.9rem;
-      font-weight: 800;
+      color: #13233e;
+      background: #f7931a;
+      font-size: 12px;
+      font-weight: 900;
+      text-align: center;
       text-decoration: none;
-      line-height: 1.2;
     }
-    .continue-btn:hover { background: #166534; }
-    .disclaimer {
-      font-size: 0.68rem;
-      color: #64748B;
-      margin: 1.1rem 0 0;
-      line-height: 1.5;
+    .continue-btn:hover,.continue-btn:focus-visible { background: #ffad3d; }
+    .disclaimer { margin: 14px 0 0; color: #778391; font-size: 9px; line-height: 1.6; }
+    @media (max-width: 520px) {
+      .transition-card { padding: 22px 18px; border-radius: 14px; }
+      .exchange-identity { grid-template-columns: 58px minmax(0,1fr); }
+      .logo-box { width: 58px; height: 52px; }
+      .ex-logo { max-width: 46px; max-height: 38px; }
     }
   </style>
 </head>
 <body>
-  <div class="card">
-    <p class="brand">Crypto<span class="accent">Bonus</span>World</p>
-    <img
-      class="ex-logo"
-      src={`/logos/${ex.slug}.png`}
-      alt={`${ex.name} logo`}
-      onerror="this.style.display='none'"
-    />
+  <main
+    class="transition-card"
+    data-go-transition={ex.slug}
+    data-go-external={hasConfirmedExternalRoute ? 'true' : 'false'}
+    data-go-fallback={fallbackUrl}
+  >
+    <p class="transition-eyebrow">Leaving CryptoBonusWorld · governed registration route</p>
 
-    {hasConfirmedExternalRoute ? (
-      <Fragment>
-        <h1>Opening {ex.name}</h1>
-        <p>Continuing to {ex.name} using an owner-confirmed registration link.</p>
-        {confirmedPromo && (
-          <p><strong>Promo/referral code:</strong> <code>{confirmedPromo}</code> — owner confirmed</p>
-        )}
-        <p><strong>Offer terms:</strong> {defaultDecision.offerTermsLabel}</p>
-        <div class="progress">
-          <span class="spinner" aria-hidden="true"></span>
-          <span>Redirecting…</span>
-        </div>
-      </Fragment>
-    ) : (
-      <Fragment>
-        <h1>{ex.name} — under re-verification</h1>
-        <p>No owner-confirmed external destination is available for this route.</p>
-        <p>You’re being taken to the internal {ex.name} status surface.</p>
-      </Fragment>
-    )}
+    <div class="exchange-identity">
+      <div class="logo-box">
+        <img class="ex-logo" src={`/logos/${ex.slug}.png`} alt={`${ex.name} logo`} onerror="this.style.display='none'" />
+      </div>
+      <div>
+        <h1>{ex.name}</h1>
+        <p>{hasConfirmedExternalRoute ? 'Owner-confirmed destination available' : 'External destination under re-verification'}</p>
+      </div>
+    </div>
+
+    <div class="transition-state">
+      {hasConfirmedExternalRoute ? (
+        <Fragment>
+          <p><strong>Registration link:</strong> owner confirmed.</p>
+          {confirmedPromo && <p><strong>Promo/referral code:</strong> <code>{confirmedPromo}</code> — owner confirmed.</p>}
+          <p><strong>Offer terms:</strong> {defaultDecision.offerTermsLabel}</p>
+          <div class="progress"><span class="spinner" aria-hidden="true"></span><span>Opening the confirmed destination…</span></div>
+        </Fragment>
+      ) : (
+        <Fragment>
+          <p><strong>No confirmed external destination is available.</strong></p>
+          <p>You will stay inside CryptoBonusWorld and continue to the current {ex.name} status surface.</p>
+        </Fragment>
+      )}
+    </div>
 
     <a
       id="cbw-continue"
@@ -197,15 +208,15 @@ const clientRouteData = hasConfirmedExternalRoute
       class="continue-btn"
       rel={hasConfirmedExternalRoute ? 'noopener noreferrer sponsored' : 'noopener'}
     >
-      {hasConfirmedExternalRoute ? `Register on ${ex.name}` : `View ${ex.name} status`}
+      {hasConfirmedExternalRoute ? `Continue to ${ex.name}` : `View ${ex.name} status`}
     </a>
 
     <p class="disclaimer">
       {hasConfirmedExternalRoute
-        ? 'The destination and displayed promo/referral code, when present, are owner confirmed. Bonus amounts, eligibility, KYC/deposit requirements, expiry, country availability and other offer terms are not verified by that confirmation.'
-        : 'This listing is under re-verification. No unconfirmed commercial destination is used.'}
+        ? 'Link and displayed code authority are separate from offer truth. This page does not verify bonus amount, country availability, account eligibility, KYC/deposit requirements, expiry or other promotion terms.'
+        : 'No unconfirmed external destination is used. Commercial and country facts remain under re-verification.'}
     </p>
-  </div>
+  </main>
 
   {hasConfirmedExternalRoute && clientRouteData && (
   <script define:vars={{ __routeData: clientRouteData, __exchangeSlug: ex.slug, __fallbackUrl: fallbackUrl }} is:inline>
