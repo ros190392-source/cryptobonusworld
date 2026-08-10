@@ -10,6 +10,7 @@ on:
       - 'src/components/countries/**'
       - 'src/data/candidates/**'
       - 'src/data/siteStandard/**'
+      - 'src/styles/site-standard-v1.css'
       - 'scripts/ui/noindex-product-preview-browser-smoke.mjs'
       - '.github/workflows/cbw-noindex-product-preview-advisory.yml'
 
