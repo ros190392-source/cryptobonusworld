@@ -16,7 +16,10 @@ name: CBW Master Required Gate
 #     "Validate classifier output" step immediately follows it and fails the
 #     gate closed unless the output is exactly `true`/`false`, because a
 #     missing step output silently evaluates false and would skip every heavy
-#     step while still reporting SUCCESS.
+#     step while still reporting SUCCESS. The producer/validator sidecar lives in
+#     RUNNER_TEMP with NO process-global temp fallback, and carries this run's
+#     identity (PR head SHA + run id + run attempt) so a stale file cannot stand
+#     in for a producer that never executed.
 #   * This is NOT an aggregator over other workflows. It executes the material
 #     hard-gate work itself, so a path-filtered child workflow that never ran
 #     can never be mistaken for PASS.
@@ -25,7 +28,10 @@ name: CBW Master Required Gate
 #     (scripts/ci/master-required-gate-classify.mjs). Every other path —
 #     including unknown/new paths — is MATERIAL, as is an unresolvable or empty
 #     change set. Rename detection is disabled when resolving changed paths so
-#     a material source renamed to a non-material destination cannot hide.
+#     a material source renamed to a non-material destination cannot hide. The
+#     bounded allowlist is re-proved inert on every run: no workflow trigger may
+#     intersect it, and no tracked source/scripts/config/package/workflow file
+#     may reference those exact filenames.
 #   * Read-only permissions; never deploys and never writes repository contents.
 #
 # Material changes run the full production build plus the complete Global
@@ -88,11 +94,18 @@ jobs:
       # `'' == 'true'` is false, so every heavy step below would SKIP while this
       # job still reported SUCCESS. This step fails the gate closed unless the
       # producer emitted an exactly-valid output that matches its own sidecar.
+      #
+      # HEAD_SHA (with the runner-provided GITHUB_RUN_ID / GITHUB_RUN_ATTEMPT)
+      # identifies THIS gate run. The producer stamps the same identity into its
+      # sidecar, so a sidecar left in RUNNER_TEMP by an earlier run, an earlier
+      # re-run attempt or a different PR head is rejected as STALE instead of
+      # standing in for a producer that never executed.
       - name: Validate classifier output
         id: validate
         env:
           CLASSIFIER_MATERIAL: ${{ steps.classify.outputs.material }}
           CLASSIFIER_REASON: ${{ steps.classify.outputs.reason }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: node scripts/ci/master-required-gate-validate-output.mjs
 
       - name: Production build

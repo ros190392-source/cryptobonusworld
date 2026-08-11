@@ -12,7 +12,15 @@
 //   6. a header-gate failure propagates to the required job conclusion;
 //   7. advisory (continue-on-error) jobs cannot satisfy the required gate;
 //   8. the exact PR head SHA is checked out;
-//   9. permissions stay minimal / read-only.
+//   9. permissions stay minimal / read-only;
+//  10. the producer/consumer sidecar binding is structural — the classifier is
+//      proved to PERFORM the sidecar write with the classification payload, not
+//      merely to mention the path helper;
+//  11. the sidecar directory is RUNNER_TEMP with NO process-global fallback, and
+//      a sidecar that does not name this exact run is rejected as STALE;
+//  12. raw Git filenames are never trimmed onto the allowlist;
+//  13. the NON_MATERIAL allowlist is re-proved inert against the currently
+//      tracked build/test/runtime/gate surface (dependency-drift guard).
 
 import { readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -23,6 +31,12 @@ import {
   isMaterialPath,
   isNonMaterialPath,
   classifyChangedPaths,
+  classifierResultFilePath,
+  isConsistentClassification,
+  resolveRunIdentity,
+  REASON_MATERIALITY,
+  RUN_IDENTITY_ENV,
+  SIDECAR_BASENAME,
   VALID_REASONS,
 } from './master-required-gate-classify.mjs';
 import { validateClassifierOutput } from './master-required-gate-validate-output.mjs';
@@ -30,6 +44,13 @@ import {
   auditProducerConsumerContract,
   ALLOWED_STEP_IF as CONTRACT_ALLOWED_STEP_IF,
 } from './master-required-gate-workflow-contract.mjs';
+import {
+  auditAllowlistDependencyDrift,
+  auditTypeCoverage,
+  selectScannedFiles,
+  EXCLUDED_PATHS as DRIFT_EXCLUDED_PATHS,
+  SCANNED_EXTENSIONS as DRIFT_SCANNED_EXTENSIONS,
+} from './master-required-gate-allowlist-drift.mjs';
 
 const ROOT = resolve(process.cwd());
 const WORKFLOW_DIR = resolve(ROOT, '.github/workflows');
@@ -215,6 +236,239 @@ for (const file of workflowFiles) {
       hits.join(','),
     );
   }
+}
+
+// 4b-2. DEPENDENCY DRIFT. A workflow trigger is only one of the ways an
+// allowlisted file can become load-bearing. A script that reads it, a package
+// manifest that ships it, or a page that imports it makes it a real
+// build/test/runtime input while no trigger pattern ever mentions it. The
+// bounded, deterministic scan below re-proves inertness against the CURRENTLY
+// TRACKED build/test/runtime/gate surface on every run; any direct reference
+// fails the gate instead of letting the file keep non-material status.
+//
+// The scan is bounded by FILE TYPE rather than by directory prefix: an
+// enumerated prefix list was stale on arrival (it missed server/** and
+// tools/**) and every future top-level runtime directory would have fallen
+// outside it silently. Type classification is proved TOTAL below, so a new file
+// type fails the contract instead of quietly going unscanned.
+
+// GIT INVENTORY — a failure here is fail-closed, never an empty scan.
+let trackedPaths = null;
+let trackedInventoryError = null;
+try {
+  const raw = execFileSync('git', ['ls-files', '-z'], {
+    encoding: 'utf8',
+    maxBuffer: 1024 * 1024 * 256,
+  }).split('\0');
+  if (raw[raw.length - 1] === '') raw.pop();
+  trackedPaths = raw;
+} catch (error) {
+  trackedInventoryError = String(error.message);
+}
+check(
+  'git tracked-file inventory resolved for the allowlist drift scan',
+  trackedInventoryError === null,
+  String(trackedInventoryError),
+);
+check(
+  'git tracked-file inventory is non-empty',
+  Array.isArray(trackedPaths) && trackedPaths.length > 0,
+);
+const trackedInventory = Array.isArray(trackedPaths) ? trackedPaths : [];
+
+// Type classification must be TOTAL over the inventory — this is what keeps the
+// claimed scope and the actual scope identical as the repository grows.
+for (const result of auditTypeCoverage(trackedInventory)) {
+  check(result.label, result.ok, result.detail);
+}
+
+const scannedPaths = selectScannedFiles(trackedInventory);
+const scannedFiles = [];
+for (const path of scannedPaths) {
+  const full = resolve(ROOT, path);
+  // A tracked path that cannot be read is not silently skipped: an unreadable
+  // file is an unproven file, so it enters the scan as an explicit failure and
+  // is carried into the audit with a non-string body so the audit fails too.
+  let text = null;
+  try {
+    text = readFileSync(full, 'utf8');
+  } catch (error) {
+    check(
+      `tracked scanned file "${path}" is readable for the allowlist drift scan`,
+      false,
+      String(error.message),
+    );
+  }
+  scannedFiles.push({ path, text });
+}
+for (const result of auditAllowlistDependencyDrift({
+  files: scannedFiles,
+  allowlist: NON_MATERIAL_PATHS,
+  tracked: trackedInventory,
+})) {
+  check(result.label, result.ok, result.detail);
+}
+// The scan's own exclusion set must stay honest: every excluded path is one of
+// the gate's own files and must actually exist, so a stale exclusion cannot
+// quietly cover a file that was renamed into the build surface.
+for (const excluded of DRIFT_EXCLUDED_PATHS) {
+  check(
+    `allowlist drift exclusion "${excluded}" is a real gate file`,
+    existsSync(resolve(ROOT, excluded)) && excluded.startsWith('scripts/ci/master-required-gate-'),
+    excluded,
+  );
+}
+check(
+  'allowlist drift exclusions are exact paths, never prefixes or globs',
+  DRIFT_EXCLUDED_PATHS.every((path) => !path.includes('*') && !path.endsWith('/')),
+);
+// The extension list is matched by exact suffix, so a malformed entry would
+// silently never match and shrink the scan without any visible failure.
+check(
+  'drift scan extensions are normalized (dot-prefixed, lowercase, no globs)',
+  DRIFT_SCANNED_EXTENSIONS.every(
+    (extension) =>
+      extension.startsWith('.') &&
+      extension === extension.toLowerCase() &&
+      !extension.includes('*') &&
+      !extension.includes('/'),
+  ),
+  DRIFT_SCANNED_EXTENSIONS.join(','),
+);
+check(
+  'drift scan extensions are unique',
+  new Set(DRIFT_SCANNED_EXTENSIONS).size === DRIFT_SCANNED_EXTENSIONS.length,
+);
+// The executable/runtime types the review named must be scanned by name.
+for (const extension of ['.mjs', '.js', '.cjs', '.ts', '.sh', '.service', '.json', '.yml', '.py']) {
+  check(`drift scan covers the "${extension}" runtime/build type`, DRIFT_SCANNED_EXTENSIONS.includes(extension));
+}
+// And the guard must be demonstrably capable of failing. A scan that silently
+// matches nothing looks identical to a scan that proves inertness, so each
+// runtime surface is probed with a synthetic referencing file — including the
+// two surfaces the reviewed prefix model missed entirely.
+const DRIFT_PROBES = [
+  ['src/**', { path: 'src/pages/probe.astro', text: "import x from '../../README.md';" }],
+  ['scripts/**', { path: 'scripts/probe.mjs', text: "readFileSync('AUDIT_REPORT.md', 'utf8');" }],
+  [
+    'server/** (.mjs)',
+    { path: 'server/votes/probe.mjs', text: "const doc = readFileSync('README.md');" },
+  ],
+  [
+    'server/** (.sh)',
+    { path: 'server/votes/probe.sh', text: '#!/bin/sh\ncp README.md /var/backups/\n' },
+  ],
+  [
+    'server/** (.service)',
+    {
+      path: 'server/votes/probe.service',
+      text: '[Service]\nExecStart=/usr/bin/node /srv/app/render.mjs AUDIT_REPORT.md\n',
+    },
+  ],
+  [
+    'tools/** (.mjs)',
+    {
+      path: 'tools/evidence-capture/probe.mjs',
+      text: "import spec from '../../CryptoBonusWorld_Master_Architecture.md';",
+    },
+  ],
+  [
+    'tools/** (.json)',
+    {
+      path: 'tools/evidence-capture/probe.json',
+      text: '{"inputs":["SCREENSHOT_PROCESSING_CONSTITUTION_v1.md"]}',
+    },
+  ],
+  ['root manifest', { path: 'package.json', text: '{"files":["README.md"]}' }],
+  ['.github/CODEOWNERS', { path: '.github/CODEOWNERS', text: 'README.md @owner\n' }],
+];
+for (const [surface, probe] of DRIFT_PROBES) {
+  const probeResults = auditAllowlistDependencyDrift({
+    files: [...scannedFiles.filter((file) => file.path !== probe.path), probe],
+    allowlist: NON_MATERIAL_PATHS,
+    tracked: trackedInventory,
+  });
+  const referenceFailures = probeResults.filter(
+    (result) => !result.ok && /is referenced by NO tracked/.test(result.label),
+  );
+  check(
+    `allowlist drift scan DETECTS an allowlist reference in ${surface}`,
+    referenceFailures.length > 0,
+  );
+  check(
+    `allowlist drift scan NAMES the offending ${surface} file`,
+    referenceFailures.some((result) => String(result.detail).includes(probe.path)),
+    referenceFailures.map((result) => result.detail).join(' | '),
+  );
+  // The probe path must be one the selector would really have picked up, or the
+  // probe proves nothing about the live scan.
+  check(
+    `drift probe path "${probe.path}" is inside the real scan selection`,
+    selectScannedFiles([probe.path]).length === 1,
+  );
+}
+
+// Fail-closed inputs to the scan itself.
+check(
+  'allowlist drift scan FAILS on an empty file population',
+  auditAllowlistDependencyDrift({ files: [], allowlist: NON_MATERIAL_PATHS, tracked: trackedInventory })
+    .some((result) => !result.ok),
+);
+check(
+  'allowlist drift scan FAILS when a selected file was unreadable',
+  auditAllowlistDependencyDrift({
+    files: [...scannedFiles, { path: 'server/votes/unreadable.mjs', text: null }],
+    allowlist: NON_MATERIAL_PATHS,
+    tracked: trackedInventory,
+  }).some((result) => !result.ok && /readable/.test(result.label)),
+);
+check(
+  'allowlist drift scan FAILS when a required runtime surface contributes nothing',
+  auditAllowlistDependencyDrift({
+    files: scannedFiles.filter((file) => !file.path.startsWith('server/')),
+    allowlist: NON_MATERIAL_PATHS,
+    tracked: trackedInventory,
+  }).some((result) => !result.ok && /server\//.test(result.label)),
+);
+check(
+  'allowlist drift scan FAILS when a tracked runtime file is not scanned',
+  auditAllowlistDependencyDrift({
+    files: scannedFiles.filter((file) => file.path !== 'server/votes/server.mjs'),
+    allowlist: NON_MATERIAL_PATHS,
+    tracked: trackedInventory,
+  }).some((result) => !result.ok && /server\/votes\/server\.mjs/.test(result.label)),
+);
+// Type-coverage fail-closed: an unclassified extension and a degraded inventory.
+check(
+  'type coverage FAILS on an unclassified tracked extension',
+  auditTypeCoverage([...trackedInventory, 'server/votes/agent.rb']).some(
+    (result) => !result.ok && /extension is classified/.test(result.label),
+  ),
+);
+check(
+  'type coverage FAILS on an unclassified extensionless tracked file',
+  auditTypeCoverage([...trackedInventory, 'server/votes/Makefile']).some(
+    (result) => !result.ok && /extensionless/.test(result.label),
+  ),
+);
+check(
+  'type coverage FAILS on a degraded (implausibly small) git inventory',
+  auditTypeCoverage(['package.json']).some((result) => !result.ok && /inventory/.test(result.label)),
+);
+
+// The reviewed MEDIUM, stated as a direct regression proof: the two surfaces the
+// prefix model missed are really in the live scan today.
+for (const surface of ['server/', 'tools/']) {
+  const live = scannedPaths.filter((path) => path.startsWith(surface));
+  check(
+    `live scan actually covers tracked "${surface}**" files`,
+    live.length > 0,
+    `${live.length} files`,
+  );
+}
+for (const path of ['server/votes/server.mjs', 'server/votes/backup.sh', 'server/votes/cbw-votes.service']) {
+  if (!trackedInventory.includes(path)) continue;
+  check(`Codex-named runtime file "${path}" is in the live scan selection`, scannedPaths.includes(path));
 }
 
 // 4c. Every path filter of the header hard gate is MATERIAL here (superset).
@@ -412,27 +666,74 @@ check('validator script exists on disk', existsSync(resolve(ROOT, VALIDATE_SCRIP
 //
 // The validator is the runtime half of the producer binding, so its acceptance
 // set is asserted directly rather than inferred from its source.
-const GOOD_SIDECAR = JSON.stringify({ material: true, reason: 'material-path-changed' });
-const GOOD_FALSE_SIDECAR = JSON.stringify({
-  material: false,
-  reason: 'only-allowlisted-non-material-paths',
-});
+const IDENTITY = Object.freeze({ headSha: 'deadbeef'.repeat(5), runId: '424242', runAttempt: '1' });
+const sidecarOf = (material, reason, overrides = {}) =>
+  JSON.stringify({ material, reason, ...IDENTITY, ...overrides });
+const GOOD_SIDECAR = sidecarOf(true, 'material-path-changed');
+const GOOD_FALSE_SIDECAR = sidecarOf(false, 'only-allowlisted-non-material-paths');
 check(
-  'validator ACCEPTS material=true with an agreeing sidecar',
+  'validator ACCEPTS material=true with an agreeing, current sidecar',
   validateClassifierOutput({
     material: 'true',
     reason: 'material-path-changed',
     sidecarRaw: GOOD_SIDECAR,
+    identity: IDENTITY,
   }).length === 0,
 );
 check(
-  'validator ACCEPTS material=false with an agreeing sidecar',
+  'validator ACCEPTS material=false with an agreeing, current sidecar',
   validateClassifierOutput({
     material: 'false',
     reason: 'only-allowlisted-non-material-paths',
     sidecarRaw: GOOD_FALSE_SIDECAR,
+    identity: IDENTITY,
   }).length === 0,
 );
+// STALENESS — each identity field independently binds the sidecar to this run.
+// A leftover file in RUNNER_TEMP carries a perfectly well-formed classification;
+// only the identity distinguishes it from one this run's producer just wrote.
+const STALE_SIDECARS = [
+  ['a previous PR head', { headSha: 'cafebabe'.repeat(5) }],
+  ['a previous workflow run', { runId: '424241' }],
+  ['a previous re-run attempt', { runAttempt: '0' }],
+  ['a sidecar with no identity at all (pre-hardening format)', { headSha: undefined, runId: undefined, runAttempt: undefined }],
+  ['a sidecar with a null identity field', { runId: null }],
+  ['a sidecar with a numeric runId instead of the raw env string', { runId: 424242 }],
+];
+for (const [label, overrides] of STALE_SIDECARS) {
+  check(
+    `validator REJECTS a STALE sidecar from ${label}`,
+    validateClassifierOutput({
+      material: 'true',
+      reason: 'material-path-changed',
+      sidecarRaw: sidecarOf(true, 'material-path-changed', overrides),
+      identity: IDENTITY,
+    }).length > 0,
+  );
+}
+// A missing/unusable run identity on the VALIDATOR side is itself fail-closed:
+// if this run cannot be identified, no sidecar can be proven fresh.
+for (const badIdentity of [
+  undefined,
+  null,
+  {},
+  [],
+  'deadbeef',
+  { headSha: '', runId: '424242', runAttempt: '1' },
+  { headSha: 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef', runId: '', runAttempt: '1' },
+  { headSha: 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef', runId: '424242', runAttempt: '' },
+  { headSha: 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef', runId: '424242' },
+]) {
+  check(
+    `validator REJECTS an unidentifiable run identity ${JSON.stringify(badIdentity)}`,
+    validateClassifierOutput({
+      material: 'true',
+      reason: 'material-path-changed',
+      sidecarRaw: GOOD_SIDECAR,
+      identity: badIdentity,
+    }).length > 0,
+  );
+}
 // Every rejected shape. `undefined` is a deleted/renamed producer; '' is an
 // unresolved expression; the rest are malformed emissions.
 const REJECTED_MATERIAL_VALUES = [
@@ -462,13 +763,19 @@ for (const value of REJECTED_MATERIAL_VALUES) {
       material: value,
       reason: 'material-path-changed',
       sidecarRaw: GOOD_SIDECAR,
+      identity: IDENTITY,
     }).length > 0,
   );
 }
 for (const value of [undefined, null, '', ' ', 'material-path-changed ', 'nonsense', 'MATERIAL-PATH-CHANGED']) {
   check(
     `validator REJECTS reason=${JSON.stringify(value)}`,
-    validateClassifierOutput({ material: 'true', reason: value, sidecarRaw: GOOD_SIDECAR }).length > 0,
+    validateClassifierOutput({
+      material: 'true',
+      reason: value,
+      sidecarRaw: GOOD_SIDECAR,
+      identity: IDENTITY,
+    }).length > 0,
   );
 }
 check(
@@ -477,12 +784,17 @@ check(
     material: 'true',
     reason: 'material-path-changed',
     sidecarRaw: null,
+    identity: IDENTITY,
   }).length > 0,
 );
 check(
   'validator REJECTS an empty producer sidecar',
-  validateClassifierOutput({ material: 'true', reason: 'material-path-changed', sidecarRaw: '' })
-    .length > 0,
+  validateClassifierOutput({
+    material: 'true',
+    reason: 'material-path-changed',
+    sidecarRaw: '',
+    identity: IDENTITY,
+  }).length > 0,
 );
 check(
   'validator REJECTS an unparseable producer sidecar',
@@ -490,6 +802,7 @@ check(
     material: 'true',
     reason: 'material-path-changed',
     sidecarRaw: '{not json',
+    identity: IDENTITY,
   }).length > 0,
 );
 check(
@@ -498,6 +811,7 @@ check(
     material: 'false',
     reason: 'material-path-changed',
     sidecarRaw: GOOD_SIDECAR,
+    identity: IDENTITY,
   }).length > 0,
 );
 check(
@@ -506,6 +820,7 @@ check(
     material: 'true',
     reason: 'unresolved-or-empty-change-set',
     sidecarRaw: GOOD_SIDECAR,
+    identity: IDENTITY,
   }).length > 0,
 );
 check(
@@ -513,9 +828,170 @@ check(
   validateClassifierOutput({
     material: 'true',
     reason: 'material-path-changed',
-    sidecarRaw: JSON.stringify({ material: 'true', reason: 'material-path-changed' }),
+    sidecarRaw: sidecarOf('true', 'material-path-changed'),
+    identity: IDENTITY,
   }).length > 0,
 );
+// --- 11b. JSON shapes cannot route around the sidecar checks ------------------
+//
+// Reviewed MEDIUM: `sidecar` was both the parsed value and the parse-failure
+// sentinel, so the four bytes `null` parsed SUCCESSFULLY to null, matched the
+// `sidecar !== null` guard, and skipped the classification, agreement and
+// staleness checks entirely — with valid step outputs the gate PASSED on a
+// sidecar that asserted nothing. Parse success and parsed value are now
+// separate facts, and the value must be a non-null, non-array object.
+const NON_OBJECT_SIDECARS = [
+  ['null (the exact reviewed bypass)', 'null'],
+  ['an empty array', '[]'],
+  ['a populated array', '[{"material":true,"reason":"material-path-changed"}]'],
+  ['a JSON string', '"string"'],
+  ['the number 0', '0'],
+  ['the number 1', '1'],
+  ['boolean false', 'false'],
+  ['boolean true', 'true'],
+  ['a quoted null', '"null"'],
+  ['whitespace-padded null', '  null  '],
+];
+for (const [label, raw] of NON_OBJECT_SIDECARS) {
+  const errors = validateClassifierOutput({
+    material: 'true',
+    reason: 'material-path-changed',
+    sidecarRaw: raw,
+    identity: IDENTITY,
+  });
+  check(`validator REJECTS a sidecar that is ${label}`, errors.length > 0, raw);
+  check(
+    `validator rejects ${label} as a non-object sidecar, not by accident`,
+    errors.some((error) => /must be a JSON object/.test(error)),
+    errors.join(' | '),
+  );
+}
+for (const raw of ['{not json', '', '{"material":true,', 'undefined', "{'material':true}"]) {
+  check(
+    `validator REJECTS malformed sidecar JSON ${JSON.stringify(raw)}`,
+    validateClassifierOutput({
+      material: 'true',
+      reason: 'material-path-changed',
+      sidecarRaw: raw,
+      identity: IDENTITY,
+    }).length > 0,
+  );
+}
+// An object shape still has to pass everything — no bypass was introduced.
+check(
+  'a non-null object sidecar still undergoes full material/reason/identity validation',
+  validateClassifierOutput({
+    material: 'true',
+    reason: 'material-path-changed',
+    sidecarRaw: '{}',
+    identity: IDENTITY,
+  }).length > 0,
+);
+
+// --- 11c. material/reason must be a semantically possible PAIR ----------------
+//
+// Reviewed MEDIUM: each field was validated against its own vocabulary, so
+// every contradictory cross-product was accepted — including
+// `material=false reason=material-path-changed`, a MATERIAL change reported as
+// non-material, which skips build + header matrix + indexability under SUCCESS.
+check(
+  'REASON_MATERIALITY covers exactly the valid reason vocabulary',
+  Object.keys(REASON_MATERIALITY).length === VALID_REASONS.length &&
+    VALID_REASONS.every((reason) =>
+      Object.prototype.hasOwnProperty.call(REASON_MATERIALITY, reason),
+    ),
+);
+check(
+  'both fail-closed reasons imply MATERIAL',
+  REASON_MATERIALITY['unresolved-or-empty-change-set'] === true &&
+    REASON_MATERIALITY['material-path-changed'] === true,
+);
+check(
+  'only the affirmative allowlist reason implies non-material',
+  REASON_MATERIALITY['only-allowlisted-non-material-paths'] === false,
+);
+// The complete cross-product: every pair is asserted, valid or not.
+for (const materialValue of ['true', 'false']) {
+  for (const reason of VALID_REASONS) {
+    const expectedValid = REASON_MATERIALITY[reason] === (materialValue === 'true');
+    check(
+      `isConsistentClassification("${materialValue}", "${reason}") === ${expectedValid}`,
+      isConsistentClassification(materialValue, reason) === expectedValid,
+    );
+    const errors = validateClassifierOutput({
+      material: materialValue,
+      reason,
+      sidecarRaw: sidecarOf(materialValue === 'true', reason),
+      identity: IDENTITY,
+    });
+    if (expectedValid) {
+      check(
+        `validator ACCEPTS the valid mapping material=${materialValue} reason=${reason}`,
+        errors.length === 0,
+        errors.join(' | '),
+      );
+    } else {
+      check(
+        `validator REJECTS the contradictory pair material=${materialValue} reason=${reason}`,
+        errors.length > 0,
+      );
+      check(
+        `validator names the contradiction for material=${materialValue} reason=${reason}`,
+        errors.some((error) => /contradicts/.test(error)),
+        errors.join(' | '),
+      );
+    }
+  }
+}
+// The three combinations Codex verified as accepted must now each fail.
+const CODEX_CONTRADICTIONS = [
+  ['false', 'material-path-changed'],
+  ['false', 'unresolved-or-empty-change-set'],
+  ['true', 'only-allowlisted-non-material-paths'],
+];
+for (const [materialValue, reason] of CODEX_CONTRADICTIONS) {
+  check(
+    `reviewed contradiction material=${materialValue} reason=${reason} is REJECTED`,
+    validateClassifierOutput({
+      material: materialValue,
+      reason,
+      sidecarRaw: sidecarOf(materialValue === 'true', reason),
+      identity: IDENTITY,
+    }).length > 0,
+  );
+}
+// A contradictory SIDECAR is rejected even when the step outputs agree with it.
+check(
+  'validator REJECTS a sidecar whose own material/reason pair is contradictory',
+  validateClassifierOutput({
+    material: 'false',
+    reason: 'material-path-changed',
+    sidecarRaw: sidecarOf(false, 'material-path-changed'),
+    identity: IDENTITY,
+  }).some((error) => /contradicts its own/.test(error)),
+);
+// And the producer itself can only ever emit consistent pairs.
+const PRODUCER_PAIR_INPUTS = [
+  null,
+  undefined,
+  [],
+  'src/x.ts',
+  ['README.md'],
+  ['README.md', 'AUDIT_REPORT.md'],
+  ['src/pages/index.astro'],
+  ['README.md', 'src/pages/index.astro'],
+  ['unknown-root-file.mjs'],
+  ['README.md ', 'AUDIT_REPORT.md'],
+];
+for (const input of PRODUCER_PAIR_INPUTS) {
+  const result = classifyChangedPaths(input);
+  check(
+    `classifier emits a consistent pair for ${JSON.stringify(input)}`,
+    isConsistentClassification(String(result.material), result.reason),
+    `${result.material}/${result.reason}`,
+  );
+}
+
 check('VALID_REASONS is a closed, non-empty vocabulary', VALID_REASONS.length === 3);
 for (const reason of VALID_REASONS) {
   check(
@@ -584,6 +1060,95 @@ check(
 );
 check('normalizePath does not trim', !/normalized[^\n]*\.trim\(\)/.test(classifierCode));
 check('classifier code contains no .trim() at all', !/\.trim\(\)/.test(classifierCode));
+
+// --- 13. RUNNER_TEMP is required; there is no process-global temp fallback ---
+//
+// Reviewed LOW: `join(process.env.RUNNER_TEMP || tmpdir(), ...)`. The fallback
+// is fail-open — the producer and validator could resolve to different
+// directories (binding vacuous), and the process-global temp is not job-scoped
+// on a reused/self-hosted runner, so a leftover file could impersonate a
+// producer that never ran. RUNNER_TEMP is guaranteed present in the GitHub
+// required-gate runtime, so anything else means the runtime is not the one this
+// gate was proven against and the step must fail closed.
+const SAVED_ENV = {
+  RUNNER_TEMP: process.env.RUNNER_TEMP,
+  HEAD_SHA: process.env.HEAD_SHA,
+  GITHUB_RUN_ID: process.env.GITHUB_RUN_ID,
+  GITHUB_RUN_ATTEMPT: process.env.GITHUB_RUN_ATTEMPT,
+};
+const restoreEnv = () => {
+  for (const [name, value] of Object.entries(SAVED_ENV)) {
+    if (value === undefined) delete process.env[name];
+    else process.env[name] = value;
+  }
+};
+const throwsWith = (fn) => {
+  try {
+    fn();
+    return null;
+  } catch (error) {
+    return String(error.message);
+  }
+};
+try {
+  const REJECTED_RUNNER_TEMP = [
+    ['unset', undefined, /RUNNER_TEMP is not set/],
+    ['empty', '', /RUNNER_TEMP is empty/],
+    ['relative', 'runner-temp', /not an absolute path/],
+    ['dot-relative', './tmp', /not an absolute path/],
+    ['nonexistent absolute', resolve(ROOT, 'no-such-runner-temp-dir-cbw'), /does not exist/],
+    ['a file, not a directory', resolve(ROOT, 'package.json'), /is not a directory/],
+  ];
+  for (const [label, value, expected] of REJECTED_RUNNER_TEMP) {
+    if (value === undefined) delete process.env.RUNNER_TEMP;
+    else process.env.RUNNER_TEMP = value;
+    const message = throwsWith(() => classifierResultFilePath());
+    check(`classifierResultFilePath() THROWS on a ${label} RUNNER_TEMP`, message !== null, 'returned a path');
+    check(
+      `classifierResultFilePath() names the ${label} RUNNER_TEMP problem`,
+      typeof message === 'string' && expected.test(message),
+      String(message),
+    );
+    check(
+      `classifierResultFilePath() never returns an os.tmpdir() path for a ${label} RUNNER_TEMP`,
+      message !== null,
+    );
+  }
+  // A usable RUNNER_TEMP still resolves, so "fails closed" is not vacuous.
+  process.env.RUNNER_TEMP = ROOT;
+  const resolvedPath = classifierResultFilePath();
+  check(
+    'classifierResultFilePath() resolves inside a usable RUNNER_TEMP',
+    resolvedPath === resolve(ROOT, SIDECAR_BASENAME),
+    resolvedPath,
+  );
+
+  // Run identity: every field is required, from the validator's own environment.
+  process.env.HEAD_SHA = 'a'.repeat(40);
+  process.env.GITHUB_RUN_ID = '99';
+  process.env.GITHUB_RUN_ATTEMPT = '2';
+  const identity = resolveRunIdentity();
+  check(
+    'resolveRunIdentity() reads head sha, run id and run attempt from the environment',
+    identity.headSha === 'a'.repeat(40) && identity.runId === '99' && identity.runAttempt === '2',
+    JSON.stringify(identity),
+  );
+  check('RUN_IDENTITY_ENV is the exact bound triple', RUN_IDENTITY_ENV.length === 3);
+  for (const name of RUN_IDENTITY_ENV) {
+    for (const bad of [undefined, '']) {
+      const saved = process.env[name];
+      if (bad === undefined) delete process.env[name];
+      else process.env[name] = bad;
+      check(
+        `resolveRunIdentity() THROWS when ${name} is ${bad === undefined ? 'unset' : 'empty'}`,
+        throwsWith(() => resolveRunIdentity()) !== null,
+      );
+      process.env[name] = saved;
+    }
+  }
+} finally {
+  restoreEnv();
+}
 
 if (failures.length) {
   console.error(`CBW MASTER REQUIRED GATE CONTRACT: FAIL (${failures.length}/${checks})`);

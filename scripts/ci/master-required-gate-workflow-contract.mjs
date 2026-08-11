@@ -27,6 +27,48 @@ export const MATERIAL_OUTPUT_EXPR = '${{ steps.classify.outputs.material }}';
 export const REASON_OUTPUT_EXPR = '${{ steps.classify.outputs.reason }}';
 export const ALLOWED_STEP_IF = "steps.classify.outputs.material == 'true'";
 
+// Extracts every top-level `fnName(...)` call expression from JS source text,
+// balanced-paren aware, as raw text.
+//
+// Why not a regex: the sidecar-write contract below must prove the classifier
+// ACTUALLY PERFORMS the write — that a `writeFileSync` call exists whose
+// destination argument is `classifierResultFilePath()` and whose payload
+// argument carries the classification. A regex for the identifier
+// `classifierResultFilePath()` alone is satisfied by the import statement and
+// by the function's own definition, so deleting only the write STATEMENT left
+// the previous contract fully green (the reviewed LOW). Extracting the call and
+// inspecting its arguments cannot be satisfied by a mere mention.
+//
+// A call site is only recognised when `fnName` is not preceded by an identifier
+// character, so `appendFileSync(` never matches a search for `FileSync(`.
+export function extractCallExpressions(source, fnName) {
+  const text = String(source ?? '');
+  const needle = `${fnName}(`;
+  const calls = [];
+  let index = text.indexOf(needle);
+  while (index !== -1) {
+    const preceding = index === 0 ? '' : text[index - 1];
+    if (!/[A-Za-z0-9_$.]/.test(preceding)) {
+      let depth = 0;
+      let end = -1;
+      for (let cursor = index + needle.length - 1; cursor < text.length; cursor += 1) {
+        const character = text[cursor];
+        if (character === '(') depth += 1;
+        else if (character === ')') {
+          depth -= 1;
+          if (depth === 0) {
+            end = cursor;
+            break;
+          }
+        }
+      }
+      if (end !== -1) calls.push(text.slice(index, end + 1));
+    }
+    index = text.indexOf(needle, index + needle.length);
+  }
+  return calls;
+}
+
 // Heavy work that must never silently skip.
 export const HEAVY_STEP_COMMANDS = Object.freeze([
   'npm run build',
@@ -215,12 +257,97 @@ export function auditProducerConsumerContract({ workflowText, classifierSource, 
       /process\.exit\(1\)/.test(String(classifierSource)),
   );
   check(
-    'classifier source writes the producer sidecar',
-    /classifierResultFilePath\(\)/.test(String(classifierSource)),
-  );
-  check(
     'classifier source rejects a duplicate material= emission',
     /already carries a material= line/.test(String(classifierSource)),
+  );
+
+  // --- F2. the producer actually PERFORMS the sidecar write -------------------
+  //
+  // Reviewed LOW: the previous assertion was `/classifierResultFilePath\(\)/`,
+  // an identifier search satisfied by the import line and the function
+  // definition. A mutation that deleted ONLY the writeFileSync statement — the
+  // one operation the entire producer/consumer binding rests on — survived it.
+  // The producer would then emit step outputs with no sidecar behind them, and
+  // the validator's "sidecar is missing" rule would fire on every legitimate run
+  // instead of only on a vanished producer, which is the kind of always-red
+  // signal that gets "fixed" by softening the validator.
+  //
+  // The binding is now proved structurally: exactly one writeFileSync call whose
+  // FIRST argument is the resolved sidecar path and whose payload argument
+  // serializes the classification result.
+  const classifierText = String(classifierSource);
+  const writeCalls = extractCallExpressions(classifierText, 'writeFileSync');
+  const sidecarWrites = writeCalls.filter((call) =>
+    /^writeFileSync\(\s*classifierResultFilePath\(\)\s*,/.test(call),
+  );
+  check(
+    'classifier performs exactly ONE writeFileSync whose destination is classifierResultFilePath()',
+    sidecarWrites.length === 1,
+    `writeFileSync calls=${writeCalls.length} sidecar writes=${sidecarWrites.length}`,
+  );
+  const sidecarWrite = sidecarWrites[0] ?? '';
+  check(
+    'the sidecar write serializes the classification as JSON',
+    /JSON\.stringify\(/.test(sidecarWrite),
+    sidecarWrite.slice(0, 120),
+  );
+  check(
+    'the sidecar write carries the classification material value',
+    /\bmaterial:\s*result\.material\b/.test(sidecarWrite),
+    sidecarWrite.slice(0, 200),
+  );
+  check(
+    'the sidecar write carries the classification reason value',
+    /\breason:\s*result\.reason\b/.test(sidecarWrite),
+    sidecarWrite.slice(0, 200),
+  );
+  // Run identity is what makes a STALE sidecar detectable; without it a leftover
+  // file whose classification happens to agree passes every other rule.
+  for (const field of ['headSha', 'runId', 'runAttempt']) {
+    check(
+      `the sidecar write stamps the run identity field "${field}"`,
+      new RegExp(`\\b${field}:\\s*identity\\.${field}\\b`).test(sidecarWrite),
+      sidecarWrite.slice(0, 240),
+    );
+  }
+  check(
+    'the producer resolves the run identity before writing the sidecar',
+    /resolveRunIdentity\(\)/.test(classifierText) &&
+      classifierText.indexOf('resolveRunIdentity()') < classifierText.indexOf(sidecarWrite),
+  );
+
+  // --- F3. RUNNER_TEMP is required, with no process-global temp fallback ------
+  //
+  // Reviewed LOW: `process.env.RUNNER_TEMP || tmpdir()`. A fallback lets the
+  // producer and the validator resolve to DIFFERENT directories (binding
+  // vacuous) or to a shared, non-job-scoped directory where a leftover file can
+  // impersonate a producer that never ran. Both are fail-open.
+  const classifierCode = classifierText
+    .split('\n')
+    .filter((line) => !/^\s*\/\//.test(line))
+    .join('\n');
+  check(
+    'classifier does not import os.tmpdir',
+    !/\btmpdir\b/.test(classifierCode),
+    'the sidecar directory must be RUNNER_TEMP only',
+  );
+  check(
+    'classifier never falls back when RUNNER_TEMP is unset',
+    !/RUNNER_TEMP\s*(\|\||\?\?)/.test(classifierCode),
+  );
+  check(
+    'classifier fails closed on a missing RUNNER_TEMP',
+    /RUNNER_TEMP is not set/.test(classifierText) && /throw new Error\(/.test(classifierCode),
+  );
+  check('classifier fails closed on an empty RUNNER_TEMP', /RUNNER_TEMP is empty/.test(classifierText));
+  check(
+    'classifier fails closed on a malformed/unusable RUNNER_TEMP',
+    /isAbsolute\(runnerTemp\)/.test(classifierCode) && /statSync\(runnerTemp\)/.test(classifierCode),
+  );
+  check(
+    'classifier fails closed when the gate run cannot be identified',
+    /export function resolveRunIdentity/.test(classifierText) &&
+      /is missing or empty/.test(classifierText),
   );
 
   // --- G. the validator source cannot be softened into tolerance -------------
@@ -244,6 +371,118 @@ export function auditProducerConsumerContract({ workflowText, classifierSource, 
   check(
     'validator exits non-zero on invalid output',
     /process\.exit\(1\)/.test(validatorText),
+  );
+  // The validator must resolve the sidecar through the SAME fail-closed helper
+  // as the producer. A private path expression here would silently unbind the
+  // two halves, and a swallowed resolution error would turn "RUNNER_TEMP is
+  // unusable" into "no sidecar found" — a different failure with the same exit
+  // code today, but one that a future `sidecarRaw ?? {}` would make green.
+  check(
+    'validator resolves the sidecar via the shared fail-closed helper',
+    /classifierResultFilePath\(\)/.test(validatorText),
+  );
+  check(
+    'validator does not fall back to a process-global temp directory',
+    !/\btmpdir\b/.test(validatorText),
+  );
+  // BOTH resolution failures — the sidecar path and the run identity — must be
+  // surfaced. Swallowing either one converts a hard "this runtime is not the one
+  // the gate was proven against" into a soft "no sidecar found", which a later
+  // tolerance change could turn green.
+  const surfacedResolutionFailures = (
+    validatorText.match(/catch \(error\) \{\s*errors\.push\(String\(error\.message\)\);?\s*\}/g) ?? []
+  ).length;
+  check(
+    'validator surfaces BOTH the sidecar-path and run-identity resolution failures',
+    surfacedResolutionFailures === 2,
+    `found ${surfacedResolutionFailures}`,
+  );
+  check(
+    'validator rejects a STALE sidecar from another run/attempt/head',
+    /sidecar is STALE/.test(validatorText) && /resolveRunIdentity\(\)/.test(validatorText),
+  );
+
+  // --- G2. JSON parse success is not conflated with the parsed value ---------
+  //
+  // Reviewed MEDIUM: one variable served as both the parsed sidecar and the
+  // parse-failure sentinel, so a sidecar of literal `null` parsed successfully,
+  // matched the `!== null` sentinel guard, and skipped every downstream check.
+  check(
+    'validator tracks JSON parse SUCCESS separately from the parsed value',
+    /parseOk\s*=\s*true/.test(validatorText) && /if \(parseOk/.test(validatorText),
+  );
+  check(
+    'validator never uses null as the JSON parse-failure sentinel',
+    !/if \(sidecar !== null\)/.test(validatorText),
+  );
+  check(
+    'validator requires the parsed sidecar to be a non-null, non-array object',
+    /typeof parsed !== 'object'/.test(validatorText) &&
+      /parsed === null/.test(validatorText) &&
+      /Array\.isArray\(parsed\)/.test(validatorText) &&
+      /must be a JSON object/.test(validatorText),
+  );
+
+  // --- G3. material/reason are validated as a PAIR --------------------------
+  //
+  // Reviewed MEDIUM: independent per-field vocabularies accepted every
+  // contradictory cross-product, including `material=false` alongside
+  // `material-path-changed` — a MATERIAL change reported as non-material.
+  // Structural, not an identifier search — the same lesson as the sidecar write.
+  // `isConsistentClassification` appears in the import line and in the sibling
+  // sidecar check, so `/isConsistentClassification\(/` stays true even after the
+  // step-output consistency test is replaced with `false`. The CALL SITES are
+  // therefore extracted and their arguments inspected.
+  const consistencyCalls = extractCallExpressions(validatorText, 'isConsistentClassification');
+  check(
+    'validator makes exactly two pair-consistency calls (step outputs and sidecar)',
+    consistencyCalls.length === 2,
+    `found ${consistencyCalls.length}: ${consistencyCalls.join(' | ')}`,
+  );
+  check(
+    'validator checks the STEP OUTPUT pair for consistency',
+    consistencyCalls.some((call) => /^isConsistentClassification\(\s*material\s*,\s*reason\s*\)$/.test(call)),
+    consistencyCalls.join(' | '),
+  );
+  check(
+    'validator checks the SIDECAR pair for consistency',
+    consistencyCalls.some((call) =>
+      /^isConsistentClassification\(\s*String\(sidecar\.material\)\s*,\s*sidecar\.reason\s*\)$/.test(call),
+    ),
+    consistencyCalls.join(' | '),
+  );
+  check(
+    'validator reports a contradictory pair as an error',
+    /contradicts/.test(validatorText),
+  );
+  check(
+    'validator enforces pair consistency on the sidecar as well as the step outputs',
+    /contradicts its own/.test(validatorText),
+  );
+  check(
+    'classifier declares the reason -> materiality mapping as the single source of truth',
+    /export const REASON_MATERIALITY = Object\.freeze\(\{/.test(classifierText),
+  );
+  check(
+    'classifier derives the reason vocabulary from that mapping, never by hand',
+    /VALID_REASONS = Object\.freeze\(Object\.keys\(REASON_MATERIALITY\)\)/.test(classifierText),
+  );
+  check(
+    'the reason -> materiality mapping pins both fail-closed reasons to MATERIAL',
+    /'unresolved-or-empty-change-set':\s*true/.test(classifierText) &&
+      /'material-path-changed':\s*true/.test(classifierText) &&
+      /'only-allowlisted-non-material-paths':\s*false/.test(classifierText),
+  );
+  check(
+    'validator compares run identity against its OWN environment, not the sidecar',
+    /sidecar\[field\] !== expectedIdentity\[field\]/.test(validatorText),
+  );
+
+  // --- H. the validator step is wired with this run's head SHA ---------------
+  check(
+    'validator step receives the exact PR head sha for staleness binding',
+    validator?.env?.HEAD_SHA === HEAD_SHA_EXPR,
+    `actual=${JSON.stringify(validator?.env?.HEAD_SHA)}`,
   );
 
   return results;

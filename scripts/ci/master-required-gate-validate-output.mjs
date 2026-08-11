@@ -17,16 +17,34 @@
 //
 // It fails closed on: missing output, empty output, whitespace-padded output
 // (`true `), wrong casing (`True`), any non-boolean token (`yes`, `1`), an
-// unknown reason, a missing producer sidecar, or a sidecar that disagrees with
-// the step output (which is what a renamed producer id looks like).
+// unknown reason, a missing/empty/unusable RUNNER_TEMP, a missing producer
+// sidecar, a malformed sidecar, a sidecar that disagrees with the step output
+// (which is what a renamed producer id looks like), or a STALE sidecar left by
+// an earlier run, re-run attempt or PR head.
 
 import { readFileSync, existsSync } from 'node:fs';
-import { classifierResultFilePath, VALID_REASONS } from './master-required-gate-classify.mjs';
+import {
+  classifierResultFilePath,
+  isConsistentClassification,
+  resolveRunIdentity,
+  REASON_MATERIALITY,
+  RUN_IDENTITY_ENV,
+  VALID_REASONS,
+} from './master-required-gate-classify.mjs';
+
+// Describes any JSON value for an error message without trusting its shape.
+function describeJsonValue(value) {
+  if (value === null) return 'null';
+  if (Array.isArray(value)) return 'an array';
+  return `a ${typeof value}`;
+}
 
 // Pure, exported so the contract test can drive it with hostile inputs.
 // `material` / `reason` are the RAW env values; `sidecarRaw` is the sidecar
-// file contents or null when it is absent.
-export function validateClassifierOutput({ material, reason, sidecarRaw }) {
+// file contents or null when it is absent; `identity` is this run's identity as
+// resolved by the VALIDATOR from its own environment — never a value read out
+// of the sidecar, which would let the sidecar vouch for itself.
+export function validateClassifierOutput({ material, reason, sidecarRaw, identity }) {
   const errors = [];
 
   // 1. material must be present and EXACTLY one of two byte sequences.
@@ -45,19 +63,71 @@ export function validateClassifierOutput({ material, reason, sidecarRaw }) {
     errors.push(`reason output is not a known classifier reason, got ${JSON.stringify(reason)}`);
   }
 
-  // 3. the producer sidecar must exist and agree — this is the producer/consumer
+  // 2b. the PAIR must be semantically possible. Validating each field against
+  //     its own vocabulary is not enough: every contradictory cross-product
+  //     passed that way, including `material=false reason=material-path-changed`
+  //     — a MATERIAL change reported as non-material, which skips every heavy
+  //     step under a SUCCESS conclusion. A reason pins its materiality.
+  if (
+    typeof material === 'string' &&
+    typeof reason === 'string' &&
+    (material === 'true' || material === 'false') &&
+    VALID_REASONS.includes(reason) &&
+    !isConsistentClassification(material, reason)
+  ) {
+    errors.push(
+      `step output material=${JSON.stringify(material)} contradicts reason ${JSON.stringify(reason)}, ` +
+        `which implies material=${JSON.stringify(String(REASON_MATERIALITY[reason]))}`,
+    );
+  }
+
+  // 3. this run must be identifiable, or "the sidecar belongs to this run" is
+  //    unprovable and the sidecar must not be trusted at all.
+  const expectedIdentity =
+    identity && typeof identity === 'object' && !Array.isArray(identity) ? identity : null;
+  if (expectedIdentity === null) {
+    errors.push('gate run identity is missing — the sidecar cannot be proven fresh');
+  } else {
+    for (const [field, envName] of [
+      ['headSha', RUN_IDENTITY_ENV[0]],
+      ['runId', RUN_IDENTITY_ENV[1]],
+      ['runAttempt', RUN_IDENTITY_ENV[2]],
+    ]) {
+      if (typeof expectedIdentity[field] !== 'string' || expectedIdentity[field].length === 0) {
+        errors.push(`gate run identity field ${field} (${envName}) is missing or empty`);
+      }
+    }
+  }
+
+  // 4. the producer sidecar must exist and agree — this is the producer/consumer
   //    binding. A renamed producer id yields empty step outputs beside a
   //    populated sidecar; a removed producer yields no sidecar at all.
   if (typeof sidecarRaw !== 'string' || sidecarRaw.length === 0) {
     errors.push('classifier result sidecar is missing — the producer step did not run');
   } else {
-    let sidecar = null;
+    // PARSE SUCCESS AND PARSED VALUE ARE SEPARATE FACTS — reviewed MEDIUM.
+    // `sidecar` was initialised to null and also used as the parse-failure
+    // sentinel, so a sidecar containing the four bytes `null` parsed
+    // SUCCESSFULLY to null, hit the `sidecar !== null` guard, and skipped every
+    // classification, agreement and staleness check below. With otherwise valid
+    // step outputs the error list stayed empty and the gate PASSED with a
+    // sidecar that asserted nothing. `parsed` is now never conflated with
+    // `parseOk`, and the parsed value must be a non-null, non-array object
+    // before any field is read — so no JSON shape can route around the checks.
+    let parsed;
+    let parseOk = false;
     try {
-      sidecar = JSON.parse(sidecarRaw);
+      parsed = JSON.parse(sidecarRaw);
+      parseOk = true;
     } catch {
       errors.push('classifier result sidecar is not valid JSON');
     }
-    if (sidecar !== null) {
+    if (parseOk && (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed))) {
+      errors.push(
+        `classifier result sidecar must be a JSON object, got ${describeJsonValue(parsed)}`,
+      );
+    } else if (parseOk) {
+      const sidecar = parsed;
       if (typeof sidecar.material !== 'boolean') {
         errors.push(`sidecar material must be a boolean, got ${JSON.stringify(sidecar.material)}`);
       } else if (String(sidecar.material) !== material) {
@@ -72,6 +142,39 @@ export function validateClassifierOutput({ material, reason, sidecarRaw }) {
             `reason=${JSON.stringify(sidecar.reason)}`,
         );
       }
+
+      // The sidecar's OWN pair must be consistent too. Checking only the step
+      // outputs would let a contradictory sidecar through whenever the outputs
+      // were made to agree with it.
+      if (typeof sidecar.material === 'boolean') {
+        if (!isConsistentClassification(String(sidecar.material), sidecar.reason)) {
+          errors.push(
+            `producer sidecar material=${JSON.stringify(sidecar.material)} contradicts its own ` +
+              `reason=${JSON.stringify(sidecar.reason)}`,
+          );
+        }
+      }
+
+      // STALENESS. The sidecar must name THIS gate run. A file left in
+      // RUNNER_TEMP by an earlier run, an earlier re-run attempt of this run, or
+      // a run against a different PR head can otherwise satisfy every check
+      // above by coincidence — it carries a well-formed classification that
+      // happens to agree with the step outputs — while the producer for this run
+      // never executed.
+      if (expectedIdentity !== null) {
+        for (const [field, envName] of [
+          ['headSha', RUN_IDENTITY_ENV[0]],
+          ['runId', RUN_IDENTITY_ENV[1]],
+          ['runAttempt', RUN_IDENTITY_ENV[2]],
+        ]) {
+          if (sidecar[field] !== expectedIdentity[field]) {
+            errors.push(
+              `producer sidecar is STALE: ${field}=${JSON.stringify(sidecar[field])} does not match ` +
+                `this run's ${envName}=${JSON.stringify(expectedIdentity[field])}`,
+            );
+          }
+        }
+      }
     }
   }
 
@@ -83,10 +186,28 @@ function main() {
   // the expression resolves to nothing. Both are rejected above.
   const material = process.env.CLASSIFIER_MATERIAL;
   const reason = process.env.CLASSIFIER_REASON;
-  const sidecarPath = classifierResultFilePath();
-  const sidecarRaw = existsSync(sidecarPath) ? readFileSync(sidecarPath, 'utf8') : null;
 
-  const errors = validateClassifierOutput({ material, reason, sidecarRaw });
+  // Resolving the sidecar path or this run's identity THROWS when RUNNER_TEMP is
+  // missing/empty/unusable or the run cannot be identified. Those are hard
+  // fail-closed conditions, not "no sidecar found": there is deliberately no
+  // process-global temp fallback to degrade into, so they are reported as
+  // validation errors and the gate fails.
+  let sidecarRaw = null;
+  let identity = null;
+  const errors = [];
+  try {
+    const sidecarPath = classifierResultFilePath();
+    sidecarRaw = existsSync(sidecarPath) ? readFileSync(sidecarPath, 'utf8') : null;
+  } catch (error) {
+    errors.push(String(error.message));
+  }
+  try {
+    identity = resolveRunIdentity();
+  } catch (error) {
+    errors.push(String(error.message));
+  }
+
+  errors.push(...validateClassifierOutput({ material, reason, sidecarRaw, identity }));
 
   if (errors.length > 0) {
     console.error('CBW MASTER REQUIRED GATE: classifier output INVALID — failing closed');

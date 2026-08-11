@@ -37,11 +37,18 @@
 // scripts/ci/master-required-gate-contract-test.mjs re-proves on every run
 // that no workflow trigger pattern intersects NON_MATERIAL_PATHS; adding such
 // a trigger fails the gate rather than silently widening the allowlist.
+//
+// A trigger intersection is not the only way an allowlisted file can become
+// load-bearing, so the same contract additionally runs a bounded, deterministic
+// DEPENDENCY-DRIFT scan (scripts/ci/master-required-gate-allowlist-drift.mjs)
+// over the currently tracked source/scripts/config/package/workflow files for
+// direct references to these exact filenames. The moment one of them becomes a
+// build, test, runtime or gate input, the contract FAILS rather than letting the
+// file keep its non-material status.
 
 import { execFileSync } from 'node:child_process';
-import { appendFileSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { appendFileSync, readFileSync, writeFileSync, existsSync, statSync } from 'node:fs';
+import { isAbsolute, join } from 'node:path';
 
 // EXACT repo-relative paths proven inert: pure human-readable governance
 // records at the repository root. None is a workflow trigger, a build input,
@@ -56,21 +63,117 @@ export const NON_MATERIAL_PATHS = Object.freeze([
 
 const NON_MATERIAL_SET = new Set(NON_MATERIAL_PATHS);
 
-// The complete, closed set of classification reasons. The downstream validator
-// rejects anything outside it, so a truncated/garbled output cannot pass.
-export const VALID_REASONS = Object.freeze([
-  'unresolved-or-empty-change-set',
-  'material-path-changed',
-  'only-allowlisted-non-material-paths',
-]);
+// The complete, closed set of classification reasons AND the materiality each
+// one necessarily implies. This is the single source of truth for the pair.
+//
+// WHY A MAPPING AND NOT TWO INDEPENDENT VOCABULARIES — reviewed MEDIUM. The
+// validator previously checked `material` against {true,false} and `reason`
+// against the reason list SEPARATELY, so every cross-product was accepted:
+// `material=false reason=material-path-changed` passed, as did
+// `material=false reason=unresolved-or-empty-change-set` and
+// `material=true reason=only-allowlisted-non-material-paths`. Each of those is
+// a contradiction the producer can never legitimately emit, and the first two
+// are precisely the shape of a fail-open bug — a MATERIAL classification
+// reported as non-material, skipping the build, header matrix and indexability
+// under a SUCCESS conclusion. A reason must therefore PIN its materiality.
+//
+// Both fail-closed reasons imply MATERIAL. Only the one affirmative
+// "everything changed is on the exact allowlist" reason implies non-material.
+export const REASON_MATERIALITY = Object.freeze({
+  'unresolved-or-empty-change-set': true,
+  'material-path-changed': true,
+  'only-allowlisted-non-material-paths': false,
+});
+
+// Derived, never hand-maintained: a reason that exists without a declared
+// materiality cannot silently become valid.
+export const VALID_REASONS = Object.freeze(Object.keys(REASON_MATERIALITY));
+
+// True when the pair is semantically possible. `material` is the RAW string
+// form used on the wire (`'true'` / `'false'`); `reason` is the raw reason.
+export function isConsistentClassification(material, reason) {
+  if (material !== 'true' && material !== 'false') return false;
+  if (!Object.prototype.hasOwnProperty.call(REASON_MATERIALITY, reason)) return false;
+  return REASON_MATERIALITY[reason] === (material === 'true');
+}
+
+export const SIDECAR_BASENAME = 'cbw-master-required-gate-classification.json';
 
 // Sidecar written by the producer and cross-checked by the unconditional
 // validator. It binds producer to consumer at RUNTIME: if the producer step is
 // removed the file is absent, and if the producer step id is renamed the
 // consumer's `steps.classify.outputs.*` expressions resolve to empty while the
 // sidecar still holds a real value — either way the validator fails closed.
+//
+// RUNNER_TEMP IS REQUIRED — there is deliberately NO os.tmpdir() fallback.
+// RUNNER_TEMP is guaranteed present and job-scoped in the GitHub-hosted runtime
+// this gate runs in. A fallback to the process-global temp directory is
+// fail-OPEN in two directions: producer and validator could silently resolve to
+// DIFFERENT directories (the binding is then vacuous — no sidecar, gate fails
+// for the wrong reason, or worse a stale file in a shared directory satisfies
+// it), and on a self-hosted or reused runner the global temp is not job-scoped,
+// so any leftover file could stand in for a producer that never ran. An absent,
+// empty or unusable RUNNER_TEMP means the runtime is not the one this gate was
+// proven against, so it throws and the step fails CLOSED.
 export function classifierResultFilePath() {
-  return join(process.env.RUNNER_TEMP || tmpdir(), 'cbw-master-required-gate-classification.json');
+  const runnerTemp = process.env.RUNNER_TEMP;
+  if (typeof runnerTemp !== 'string') {
+    throw new Error(
+      'master-required-gate: RUNNER_TEMP is not set — the classifier sidecar has no job-scoped ' +
+        'directory and must not fall back to the process-global temp directory',
+    );
+  }
+  if (runnerTemp.length === 0) {
+    throw new Error('master-required-gate: RUNNER_TEMP is empty');
+  }
+  if (runnerTemp.includes('\0')) {
+    throw new Error('master-required-gate: RUNNER_TEMP contains a NUL byte and is unusable');
+  }
+  if (!isAbsolute(runnerTemp)) {
+    throw new Error(
+      `master-required-gate: RUNNER_TEMP is not an absolute path (${JSON.stringify(runnerTemp)}) — ` +
+        'a relative sidecar directory resolves against each step\'s cwd and cannot bind them',
+    );
+  }
+  let stats = null;
+  try {
+    stats = statSync(runnerTemp);
+  } catch {
+    throw new Error(
+      `master-required-gate: RUNNER_TEMP ${JSON.stringify(runnerTemp)} does not exist or is not readable`,
+    );
+  }
+  if (!stats.isDirectory()) {
+    throw new Error(`master-required-gate: RUNNER_TEMP ${JSON.stringify(runnerTemp)} is not a directory`);
+  }
+  return join(runnerTemp, SIDECAR_BASENAME);
+}
+
+// Env vars that identify the ONE gate run the sidecar is allowed to speak for.
+// Both the producer and the unconditional validator resolve this from their own
+// environment inside the same job, so a sidecar left behind by an earlier run,
+// an earlier re-run attempt, or a different PR head cannot be mistaken for this
+// run's classification. Without it a STALE sidecar whose content happens to
+// agree with the step outputs is indistinguishable from a fresh one.
+export const RUN_IDENTITY_ENV = Object.freeze(['HEAD_SHA', 'GITHUB_RUN_ID', 'GITHUB_RUN_ATTEMPT']);
+
+export function resolveRunIdentity(env = process.env) {
+  const values = {};
+  for (const name of RUN_IDENTITY_ENV) {
+    const value = env?.[name];
+    if (typeof value !== 'string' || value.length === 0) {
+      throw new Error(
+        `master-required-gate: ${name} is missing or empty — the classifier sidecar cannot be ` +
+          'bound to this gate run and must not be trusted',
+      );
+    }
+    values[name] = value;
+  }
+  return {
+    headSha: values.HEAD_SHA,
+    runId: values.GITHUB_RUN_ID,
+    runAttempt: values.GITHUB_RUN_ATTEMPT,
+  };
 }
 
 // Normalizes to a comparable repo-relative form, or returns null when the
@@ -180,9 +283,22 @@ function main() {
       console.error('master-required-gate: GITHUB_OUTPUT already carries a material= line (ambiguous)');
       process.exit(1);
     }
+    // Sidecar first, output line second. The sidecar carries the classification
+    // AND the identity of this exact gate run; the unconditional validator
+    // rejects any sidecar that does not match both its own step outputs and its
+    // own run identity. Resolving the path or the identity throws on a missing/
+    // unusable RUNNER_TEMP or an unidentifiable run, which fails the step closed
+    // before any output line is emitted.
+    const identity = resolveRunIdentity();
     writeFileSync(
       classifierResultFilePath(),
-      `${JSON.stringify({ material: result.material, reason: result.reason })}\n`,
+      `${JSON.stringify({
+        material: result.material,
+        reason: result.reason,
+        headSha: identity.headSha,
+        runId: identity.runId,
+        runAttempt: identity.runAttempt,
+      })}\n`,
       'utf8',
     );
     appendFileSync(outputFile, `material=${result.material}\nreason=${result.reason}\n`);
