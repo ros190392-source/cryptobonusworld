@@ -1,0 +1,2637 @@
+{
+  "schemaVersion": 1,
+  "issue": 366,
+  "stage": "S2-02",
+  "description": "Machine-readable blocking-portfolio contract for every GitHub Actions job that can run on a pull request targeting product branch master. INVENTORY AND CONTRACT ONLY: no gate logic is migrated, no branch protection is changed and no workflow is weakened by this artifact. Every derivable field is re-proved against the workflow YAML by scripts/ci/master-blocking-portfolio-validator.mjs.",
+  "classifications": [
+    "BLOCKING",
+    "ADVISORY",
+    "CONDITIONAL_PRODUCTION_ONLY",
+    "NON_PR"
+  ],
+  "migrationStates": [
+    "LEGACY_EXTERNAL",
+    "UNIFIED_GATE_HOST",
+    "NOT_APPLICABLE"
+  ],
+  "gapCodes": [
+    "PATH_FILTERED_NOT_ALWAYS_REPORTING",
+    "NO_BRANCH_FILTER",
+    "TRIGGER_GAP_OWN_WORKFLOW_FILE",
+    "TRIGGER_GAP_SCRIPT",
+    "TRIGGER_GAP_SHARED_CONFIG",
+    "TRIGGER_COVERAGE_UNRESOLVABLE",
+    "MISLEADING_ADVISORY_FILENAME",
+    "MISLEADING_NON_BLOCKING_JOB_NAME",
+    "UNRECOGNIZED_JOB_IF"
+  ],
+  "totals": {
+    "BLOCKING": 15,
+    "ADVISORY": 7,
+    "CONDITIONAL_PRODUCTION_ONLY": 1,
+    "NON_PR": 3,
+    "total": 26,
+    "directRequiredSafe": 2
+  },
+  "entries": [
+    {
+      "id": "contact-utility",
+      "workflowFile": "cbw-contact-utility.yml",
+      "workflowName": "CBW Contact Utility",
+      "jobId": "contact-utility",
+      "checkContext": "Contact utility hard gate",
+      "classification": "BLOCKING",
+      "directRequiredSafe": false,
+      "pathFiltered": true,
+      "blockingSemantics": {
+        "canFailPullRequest": true,
+        "jobContinueOnError": false,
+        "jobIf": null,
+        "jobIfPullRequestState": "RUNNABLE",
+        "needs": [],
+        "totalSteps": 6,
+        "softenedSteps": 0,
+        "failableSteps": 6,
+        "timeoutMinutes": 15
+      },
+      "commands": [
+        "npm ci",
+        "npm run build",
+        "node scripts/ui/contact-utility-browser-smoke.mjs",
+        "node scripts/seo/site-indexability-inventory.mjs"
+      ],
+      "dependencies": {
+        "scripts": [
+          "scripts/seo/site-indexability-inventory.mjs",
+          "scripts/ui/contact-utility-browser-smoke.mjs"
+        ],
+        "npmScripts": [
+          "build"
+        ],
+        "sharedConfig": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "tsconfig.json"
+        ]
+      },
+      "triggerCoverage": {
+        "pathFiltered": true,
+        "paths": [
+          "src/pages/contact.astro",
+          "scripts/ui/contact-utility-browser-smoke.mjs",
+          ".github/workflows/cbw-contact-utility.yml"
+        ],
+        "pathsIgnore": [],
+        "branches": [
+          "master"
+        ],
+        "targetsMaster": true,
+        "selfTriggersOnOwnWorkflowFile": true,
+        "coveredInputs": [
+          "scripts/ui/contact-utility-browser-smoke.mjs"
+        ],
+        "uncoveredInputs": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "scripts/seo/site-indexability-inventory.mjs",
+          "tsconfig.json"
+        ],
+        "unresolvableInputs": []
+      },
+      "knownGaps": [
+        {
+          "code": "PATH_FILTERED_NOT_ALWAYS_REPORTING",
+          "detail": "pull_request path filter means this context is not reported on every PR to master; naming it directly in branch protection would deadlock on \"Expected - Waiting for status to be reported\""
+        },
+        {
+          "code": "TRIGGER_GAP_SCRIPT",
+          "detail": "scripts/seo/site-indexability-inventory.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "astro.config.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "package-lock.json"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "package.json"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "tsconfig.json"
+        }
+      ],
+      "migrationState": "LEGACY_EXTERNAL",
+      "stage2MigrationCandidate": true,
+      "stage2MigrationCandidateReason": "blocking-capable, still external to the unified gate, and not directly requirable because it is path-filtered",
+      "notes": "Contact Utility hard gate. Narrowest path filter in the portfolio (a single page file plus its own script)."
+    },
+    {
+      "id": "exchange-preview-family",
+      "workflowFile": "cbw-exchange-preview-family.yml",
+      "workflowName": "CBW Exchange Preview Family",
+      "jobId": "exchange-preview-family",
+      "checkContext": "Exchange preview family hard gate",
+      "classification": "BLOCKING",
+      "directRequiredSafe": false,
+      "pathFiltered": true,
+      "blockingSemantics": {
+        "canFailPullRequest": true,
+        "jobContinueOnError": false,
+        "jobIf": null,
+        "jobIfPullRequestState": "RUNNABLE",
+        "needs": [],
+        "totalSteps": 7,
+        "softenedSteps": 0,
+        "failableSteps": 7,
+        "timeoutMinutes": 25
+      },
+      "commands": [
+        "npm ci",
+        "npm run build",
+        "node scripts/ui/exchange-preview-family-browser-smoke.mjs",
+        "node scripts/seo/site-indexability-inventory.mjs"
+      ],
+      "dependencies": {
+        "scripts": [
+          "scripts/seo/site-indexability-inventory.mjs",
+          "scripts/ui/exchange-preview-family-browser-smoke.mjs"
+        ],
+        "npmScripts": [
+          "build"
+        ],
+        "sharedConfig": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "tsconfig.json"
+        ]
+      },
+      "triggerCoverage": {
+        "pathFiltered": true,
+        "paths": [
+          "src/pages/preview/exchanges/**",
+          "src/components/exchange-preview/**",
+          "src/data/exchangePreview/**",
+          "scripts/ui/exchange-preview-family-browser-smoke.mjs",
+          ".github/workflows/cbw-exchange-preview-family.yml"
+        ],
+        "pathsIgnore": [],
+        "branches": [
+          "master"
+        ],
+        "targetsMaster": true,
+        "selfTriggersOnOwnWorkflowFile": true,
+        "coveredInputs": [
+          "scripts/ui/exchange-preview-family-browser-smoke.mjs"
+        ],
+        "uncoveredInputs": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "scripts/seo/site-indexability-inventory.mjs",
+          "tsconfig.json"
+        ],
+        "unresolvableInputs": []
+      },
+      "knownGaps": [
+        {
+          "code": "PATH_FILTERED_NOT_ALWAYS_REPORTING",
+          "detail": "pull_request path filter means this context is not reported on every PR to master; naming it directly in branch protection would deadlock on \"Expected - Waiting for status to be reported\""
+        },
+        {
+          "code": "TRIGGER_GAP_SCRIPT",
+          "detail": "scripts/seo/site-indexability-inventory.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "astro.config.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "package-lock.json"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "package.json"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "tsconfig.json"
+        }
+      ],
+      "migrationState": "LEGACY_EXTERNAL",
+      "stage2MigrationCandidate": true,
+      "stage2MigrationCandidateReason": "blocking-capable, still external to the unified gate, and not directly requirable because it is path-filtered",
+      "notes": "Exchange Preview Family hard gate. Owner-preview only; it never authorizes publication, indexing, ranking or affiliate actions."
+    },
+    {
+      "id": "global-header-interaction",
+      "workflowFile": "cbw-global-header-interaction.yml",
+      "workflowName": "CBW Global Header Interaction",
+      "jobId": "global-header-interaction",
+      "checkContext": "Global header interaction hard gate",
+      "classification": "BLOCKING",
+      "directRequiredSafe": false,
+      "pathFiltered": true,
+      "blockingSemantics": {
+        "canFailPullRequest": true,
+        "jobContinueOnError": false,
+        "jobIf": null,
+        "jobIfPullRequestState": "RUNNABLE",
+        "needs": [],
+        "totalSteps": 6,
+        "softenedSteps": 0,
+        "failableSteps": 6,
+        "timeoutMinutes": 35
+      },
+      "commands": [
+        "npm ci",
+        "npm run build",
+        "node scripts/ui/global-header-interaction-browser-smoke.mjs",
+        "node scripts/seo/site-indexability-inventory.mjs"
+      ],
+      "dependencies": {
+        "scripts": [
+          "scripts/seo/site-indexability-inventory.mjs",
+          "scripts/ui/global-header-interaction-browser-smoke.mjs"
+        ],
+        "npmScripts": [
+          "build"
+        ],
+        "sharedConfig": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "tsconfig.json"
+        ]
+      },
+      "triggerCoverage": {
+        "pathFiltered": true,
+        "paths": [
+          "src/pages/**",
+          "src/layouts/**",
+          "src/components/**",
+          "src/styles/**",
+          "src/data/header/**",
+          "src/data/contracts/countryContext.ts",
+          "src/data/contracts/countryInput.ts",
+          "src/data/countries.json",
+          "scripts/ui/global-header-interaction-browser-smoke.mjs",
+          ".github/workflows/cbw-global-header-interaction.yml"
+        ],
+        "pathsIgnore": [],
+        "branches": [
+          "master"
+        ],
+        "targetsMaster": true,
+        "selfTriggersOnOwnWorkflowFile": true,
+        "coveredInputs": [
+          "scripts/ui/global-header-interaction-browser-smoke.mjs"
+        ],
+        "uncoveredInputs": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "scripts/seo/site-indexability-inventory.mjs",
+          "tsconfig.json"
+        ],
+        "unresolvableInputs": []
+      },
+      "knownGaps": [
+        {
+          "code": "PATH_FILTERED_NOT_ALWAYS_REPORTING",
+          "detail": "pull_request path filter means this context is not reported on every PR to master; naming it directly in branch protection would deadlock on \"Expected - Waiting for status to be reported\""
+        },
+        {
+          "code": "TRIGGER_GAP_SCRIPT",
+          "detail": "scripts/seo/site-indexability-inventory.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "astro.config.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "package-lock.json"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "package.json"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "tsconfig.json"
+        }
+      ],
+      "migrationState": "LEGACY_EXTERNAL",
+      "stage2MigrationCandidate": true,
+      "stage2MigrationCandidateReason": "blocking-capable, still external to the unified gate, and not directly requirable because it is path-filtered",
+      "notes": "Global Header Interaction hard gate. Its matrix is already executed inside the unified gate for MATERIAL changes; this path-filtered workflow still reports independently and is left untouched."
+    },
+    {
+      "id": "go-transition",
+      "workflowFile": "cbw-go-transition.yml",
+      "workflowName": "CBW Go Transition",
+      "jobId": "go-transition",
+      "checkContext": "Governed go transition hard gate",
+      "classification": "BLOCKING",
+      "directRequiredSafe": false,
+      "pathFiltered": true,
+      "blockingSemantics": {
+        "canFailPullRequest": true,
+        "jobContinueOnError": false,
+        "jobIf": null,
+        "jobIfPullRequestState": "RUNNABLE",
+        "needs": [],
+        "totalSteps": 8,
+        "softenedSteps": 0,
+        "failableSteps": 8,
+        "timeoutMinutes": 20
+      },
+      "commands": [
+        "npm ci",
+        "node scripts/portal/owner-confirmed-authority-split-test.mjs",
+        "npm run build",
+        "node scripts/ui/go-transition-browser-smoke.mjs",
+        "node scripts/seo/redirect-family-matrix-test.mjs",
+        "node scripts/seo/site-indexability-inventory.mjs"
+      ],
+      "dependencies": {
+        "scripts": [
+          "scripts/portal/owner-confirmed-authority-split-test.mjs",
+          "scripts/seo/redirect-family-matrix-test.mjs",
+          "scripts/seo/site-indexability-inventory.mjs",
+          "scripts/ui/go-transition-browser-smoke.mjs"
+        ],
+        "npmScripts": [
+          "build"
+        ],
+        "sharedConfig": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "tsconfig.json"
+        ]
+      },
+      "triggerCoverage": {
+        "pathFiltered": true,
+        "paths": [
+          "src/pages/go/**",
+          "src/data/publicCommercialRoute.ts",
+          "src/data/contracts/ownerConfirmedCommercialAuthority.ts",
+          "scripts/ui/go-transition-browser-smoke.mjs",
+          ".github/workflows/cbw-go-transition.yml"
+        ],
+        "pathsIgnore": [],
+        "branches": [
+          "master"
+        ],
+        "targetsMaster": true,
+        "selfTriggersOnOwnWorkflowFile": true,
+        "coveredInputs": [
+          "scripts/ui/go-transition-browser-smoke.mjs"
+        ],
+        "uncoveredInputs": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "scripts/portal/owner-confirmed-authority-split-test.mjs",
+          "scripts/seo/redirect-family-matrix-test.mjs",
+          "scripts/seo/site-indexability-inventory.mjs",
+          "tsconfig.json"
+        ],
+        "unresolvableInputs": []
+      },
+      "knownGaps": [
+        {
+          "code": "PATH_FILTERED_NOT_ALWAYS_REPORTING",
+          "detail": "pull_request path filter means this context is not reported on every PR to master; naming it directly in branch protection would deadlock on \"Expected - Waiting for status to be reported\""
+        },
+        {
+          "code": "TRIGGER_GAP_SCRIPT",
+          "detail": "scripts/portal/owner-confirmed-authority-split-test.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SCRIPT",
+          "detail": "scripts/seo/redirect-family-matrix-test.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SCRIPT",
+          "detail": "scripts/seo/site-indexability-inventory.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "astro.config.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "package-lock.json"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "package.json"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "tsconfig.json"
+        }
+      ],
+      "migrationState": "LEGACY_EXTERNAL",
+      "stage2MigrationCandidate": true,
+      "stage2MigrationCandidateReason": "blocking-capable, still external to the unified gate, and not directly requirable because it is path-filtered",
+      "notes": "Governed Go Transition hard gate. Also runs the owner-confirmed commercial-authority split regression and the redirect-family matrix, neither of which appears in its own path filter."
+    },
+    {
+      "id": "header-context-advisory",
+      "workflowFile": "cbw-header-context-advisory.yml",
+      "workflowName": "CBW Header Context Advisory",
+      "jobId": "header-context",
+      "checkContext": "Header context advisory (non-blocking)",
+      "classification": "ADVISORY",
+      "directRequiredSafe": false,
+      "pathFiltered": true,
+      "blockingSemantics": {
+        "canFailPullRequest": false,
+        "jobContinueOnError": true,
+        "jobIf": null,
+        "jobIfPullRequestState": "RUNNABLE",
+        "needs": [],
+        "totalSteps": 8,
+        "softenedSteps": 0,
+        "failableSteps": 8,
+        "timeoutMinutes": 15
+      },
+      "commands": [
+        "npm ci",
+        "node_modules/.bin/tsc --noEmit --strict --skipLibCheck --resolveJsonModule --moduleResolution bundler --module esnext --target es2022 src/data/contracts/countryInput.ts src/data/contracts/countryContext.ts src/data/header/headerContext.ts src/data/header/headerCatalog.ts",
+        "node scripts/header/header-context-test.mjs",
+        "npm run build",
+        "node scripts/header/header-browser-smoke.mjs"
+      ],
+      "dependencies": {
+        "scripts": [
+          "scripts/header/header-browser-smoke.mjs",
+          "scripts/header/header-context-test.mjs"
+        ],
+        "npmScripts": [
+          "build"
+        ],
+        "sharedConfig": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "tsconfig.json"
+        ]
+      },
+      "triggerCoverage": {
+        "pathFiltered": true,
+        "paths": [
+          "src/components/layout/SiteHeader.astro",
+          "src/data/header/**",
+          "src/data/contracts/countryInput.ts",
+          "src/data/contracts/countryContext.ts",
+          "scripts/header/**",
+          ".github/workflows/cbw-header-context-advisory.yml"
+        ],
+        "pathsIgnore": [],
+        "branches": [
+          "master"
+        ],
+        "targetsMaster": true,
+        "selfTriggersOnOwnWorkflowFile": true,
+        "coveredInputs": [
+          "scripts/header/header-browser-smoke.mjs",
+          "scripts/header/header-context-test.mjs"
+        ],
+        "uncoveredInputs": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "tsconfig.json"
+        ],
+        "unresolvableInputs": []
+      },
+      "knownGaps": [
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "astro.config.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "package-lock.json"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "package.json"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "tsconfig.json"
+        }
+      ],
+      "migrationState": "LEGACY_EXTERNAL",
+      "stage2MigrationCandidate": false,
+      "stage2MigrationCandidateReason": "not blocking-capable (ADVISORY)",
+      "notes": "Genuinely advisory: job-level continue-on-error."
+    },
+    {
+      "id": "marketprofile-candidate-review-advisory",
+      "workflowFile": "cbw-marketprofile-candidate-review-advisory.yml",
+      "workflowName": "CBW MarketProfile Candidate Review Advisory",
+      "jobId": "review-packet",
+      "checkContext": "Candidate review packet advisory (non-blocking)",
+      "classification": "ADVISORY",
+      "directRequiredSafe": false,
+      "pathFiltered": true,
+      "blockingSemantics": {
+        "canFailPullRequest": false,
+        "jobContinueOnError": true,
+        "jobIf": null,
+        "jobIfPullRequestState": "RUNNABLE",
+        "needs": [],
+        "totalSteps": 11,
+        "softenedSteps": 0,
+        "failableSteps": 11,
+        "timeoutMinutes": 18
+      },
+      "commands": [
+        "npm ci",
+        "node_modules/.bin/tsc --noEmit --strict --skipLibCheck --resolveJsonModule --moduleResolution bundler --module esnext --target es2022 src/data/contracts/portalFactory.ts src/data/contracts/marketProfileV1.ts src/data/contracts/researchToMarketProfileV1Bridge.ts src/data/contracts/marketProfileCandidateReview.ts",
+        "node scripts/portal/marketprofile-candidate-review-test.mjs",
+        "node scripts/portal/research-marketprofile-bridge-test.mjs",
+        "node scripts/portal/country-foundation-test.mjs",
+        "npm run portal:guard:test-authority",
+        "npm run portal:contracts:test",
+        "npm run build"
+      ],
+      "dependencies": {
+        "scripts": [
+          "scripts/portal/contracts-test.mjs",
+          "scripts/portal/country-foundation-test.mjs",
+          "scripts/portal/marketprofile-candidate-review-test.mjs",
+          "scripts/portal/research-marketprofile-bridge-test.mjs",
+          "scripts/portal/test-authority-guard.mjs"
+        ],
+        "npmScripts": [
+          "portal:guard:test-authority",
+          "portal:contracts:test",
+          "build"
+        ],
+        "sharedConfig": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "tsconfig.json"
+        ]
+      },
+      "triggerCoverage": {
+        "pathFiltered": true,
+        "paths": [
+          "src/data/contracts/marketProfileCandidateReview.ts",
+          "src/data/contracts/researchToMarketProfileV1Bridge.ts",
+          "src/data/contracts/marketProfileV1.ts",
+          "scripts/portal/marketprofile-candidate-review-test.mjs",
+          "scripts/portal/research-marketprofile-bridge-test.mjs",
+          ".github/workflows/cbw-marketprofile-candidate-review-advisory.yml"
+        ],
+        "pathsIgnore": [],
+        "branches": [
+          "master"
+        ],
+        "targetsMaster": true,
+        "selfTriggersOnOwnWorkflowFile": true,
+        "coveredInputs": [
+          "scripts/portal/marketprofile-candidate-review-test.mjs",
+          "scripts/portal/research-marketprofile-bridge-test.mjs"
+        ],
+        "uncoveredInputs": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "scripts/portal/contracts-test.mjs",
+          "scripts/portal/country-foundation-test.mjs",
+          "scripts/portal/test-authority-guard.mjs",
+          "tsconfig.json"
+        ],
+        "unresolvableInputs": []
+      },
+      "knownGaps": [
+        {
+          "code": "TRIGGER_GAP_SCRIPT",
+          "detail": "scripts/portal/contracts-test.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SCRIPT",
+          "detail": "scripts/portal/country-foundation-test.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SCRIPT",
+          "detail": "scripts/portal/test-authority-guard.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "astro.config.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "package-lock.json"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "package.json"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "tsconfig.json"
+        }
+      ],
+      "migrationState": "LEGACY_EXTERNAL",
+      "stage2MigrationCandidate": false,
+      "stage2MigrationCandidateReason": "not blocking-capable (ADVISORY)",
+      "notes": "Genuinely advisory: job-level continue-on-error. Research-adjacent; no product authority."
+    },
+    {
+      "id": "marketprofile-pipeline-advisory",
+      "workflowFile": "cbw-marketprofile-pipeline-advisory.yml",
+      "workflowName": "CBW MarketProfile Pipeline Advisory",
+      "jobId": "marketprofile-pipeline",
+      "checkContext": "MarketProfile pipeline advisory (non-blocking)",
+      "classification": "ADVISORY",
+      "directRequiredSafe": false,
+      "pathFiltered": true,
+      "blockingSemantics": {
+        "canFailPullRequest": false,
+        "jobContinueOnError": true,
+        "jobIf": null,
+        "jobIfPullRequestState": "RUNNABLE",
+        "needs": [],
+        "totalSteps": 13,
+        "softenedSteps": 0,
+        "failableSteps": 13,
+        "timeoutMinutes": 25
+      },
+      "commands": [
+        "npm ci",
+        "node_modules/.bin/tsc --noEmit --strict --skipLibCheck --resolveJsonModule --moduleResolution bundler --module esnext --target es2022 src/data/contracts/portalFactory.ts src/data/contracts/marketProfileV1.ts src/data/contracts/researchToMarketProfileV1Bridge.ts src/data/contracts/marketProfileCandidateReview.ts src/data/contracts/marketProfilePromotionGate.ts src/data/contracts/marketProfileCandidateBundle.ts \"${candidate_files[@]}\"",
+        "node \"$test\"",
+        "node scripts/portal/marketprofile-candidate-review-test.mjs",
+        "node scripts/portal/marketprofile-promotion-gate-test.mjs",
+        "node scripts/portal/research-marketprofile-bridge-test.mjs",
+        "node scripts/portal/country-foundation-test.mjs",
+        "npm run portal:guard:test-authority",
+        "npm run portal:contracts:test",
+        "npm run build"
+      ],
+      "dependencies": {
+        "scripts": [
+          "scripts/portal/contracts-test.mjs",
+          "scripts/portal/country-foundation-test.mjs",
+          "scripts/portal/marketprofile-candidate-review-test.mjs",
+          "scripts/portal/marketprofile-promotion-gate-test.mjs",
+          "scripts/portal/research-marketprofile-bridge-test.mjs",
+          "scripts/portal/test-authority-guard.mjs"
+        ],
+        "npmScripts": [
+          "portal:guard:test-authority",
+          "portal:contracts:test",
+          "build"
+        ],
+        "sharedConfig": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "tsconfig.json"
+        ]
+      },
+      "triggerCoverage": {
+        "pathFiltered": true,
+        "paths": [
+          "src/data/contracts/marketProfile*.ts",
+          "src/data/contracts/researchToMarketProfileV1Bridge.ts",
+          "src/data/candidates/**",
+          "scripts/portal/marketprofile-pipeline-*.mjs",
+          "scripts/portal/marketprofile-candidate-review-test.mjs",
+          "scripts/portal/marketprofile-promotion-gate-test.mjs",
+          "scripts/portal/research-marketprofile-bridge-test.mjs",
+          ".github/workflows/cbw-marketprofile-pipeline-advisory.yml"
+        ],
+        "pathsIgnore": [],
+        "branches": [
+          "master"
+        ],
+        "targetsMaster": true,
+        "selfTriggersOnOwnWorkflowFile": true,
+        "coveredInputs": [
+          "scripts/portal/marketprofile-candidate-review-test.mjs",
+          "scripts/portal/marketprofile-promotion-gate-test.mjs",
+          "scripts/portal/research-marketprofile-bridge-test.mjs"
+        ],
+        "uncoveredInputs": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "scripts/portal/contracts-test.mjs",
+          "scripts/portal/country-foundation-test.mjs",
+          "scripts/portal/test-authority-guard.mjs",
+          "tsconfig.json"
+        ],
+        "unresolvableInputs": []
+      },
+      "knownGaps": [
+        {
+          "code": "TRIGGER_GAP_SCRIPT",
+          "detail": "scripts/portal/contracts-test.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SCRIPT",
+          "detail": "scripts/portal/country-foundation-test.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SCRIPT",
+          "detail": "scripts/portal/test-authority-guard.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "astro.config.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "package-lock.json"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "package.json"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "tsconfig.json"
+        }
+      ],
+      "migrationState": "LEGACY_EXTERNAL",
+      "stage2MigrationCandidate": false,
+      "stage2MigrationCandidateReason": "not blocking-capable (ADVISORY)",
+      "notes": "Genuinely advisory: job-level continue-on-error. Research-adjacent; no product authority."
+    },
+    {
+      "id": "marketprofile-promotion-gate-advisory",
+      "workflowFile": "cbw-marketprofile-promotion-gate-advisory.yml",
+      "workflowName": "CBW MarketProfile Promotion Gate Advisory",
+      "jobId": "promotion-gate",
+      "checkContext": "MarketProfile promotion gate advisory (non-blocking)",
+      "classification": "ADVISORY",
+      "directRequiredSafe": false,
+      "pathFiltered": true,
+      "blockingSemantics": {
+        "canFailPullRequest": false,
+        "jobContinueOnError": true,
+        "jobIf": null,
+        "jobIfPullRequestState": "RUNNABLE",
+        "needs": [],
+        "totalSteps": 12,
+        "softenedSteps": 0,
+        "failableSteps": 12,
+        "timeoutMinutes": 20
+      },
+      "commands": [
+        "npm ci",
+        "node_modules/.bin/tsc --noEmit --strict --skipLibCheck --resolveJsonModule --moduleResolution bundler --module esnext --target es2022 src/data/contracts/portalFactory.ts src/data/contracts/marketProfileV1.ts src/data/contracts/researchToMarketProfileV1Bridge.ts src/data/contracts/marketProfileCandidateReview.ts src/data/contracts/marketProfilePromotionGate.ts",
+        "node scripts/portal/marketprofile-promotion-gate-test.mjs",
+        "node scripts/portal/marketprofile-candidate-review-test.mjs",
+        "node scripts/portal/research-marketprofile-bridge-test.mjs",
+        "node scripts/portal/country-foundation-test.mjs",
+        "npm run portal:guard:test-authority",
+        "npm run portal:contracts:test",
+        "npm run build"
+      ],
+      "dependencies": {
+        "scripts": [
+          "scripts/portal/contracts-test.mjs",
+          "scripts/portal/country-foundation-test.mjs",
+          "scripts/portal/marketprofile-candidate-review-test.mjs",
+          "scripts/portal/marketprofile-promotion-gate-test.mjs",
+          "scripts/portal/research-marketprofile-bridge-test.mjs",
+          "scripts/portal/test-authority-guard.mjs"
+        ],
+        "npmScripts": [
+          "portal:guard:test-authority",
+          "portal:contracts:test",
+          "build"
+        ],
+        "sharedConfig": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "tsconfig.json"
+        ]
+      },
+      "triggerCoverage": {
+        "pathFiltered": true,
+        "paths": [
+          "src/data/contracts/marketProfilePromotionGate.ts",
+          "src/data/contracts/marketProfileCandidateReview.ts",
+          "src/data/contracts/researchToMarketProfileV1Bridge.ts",
+          "src/data/contracts/marketProfileV1.ts",
+          "scripts/portal/marketprofile-promotion-gate-test.mjs",
+          "scripts/portal/marketprofile-candidate-review-test.mjs",
+          "scripts/portal/research-marketprofile-bridge-test.mjs",
+          ".github/workflows/cbw-marketprofile-promotion-gate-advisory.yml"
+        ],
+        "pathsIgnore": [],
+        "branches": [
+          "master"
+        ],
+        "targetsMaster": true,
+        "selfTriggersOnOwnWorkflowFile": true,
+        "coveredInputs": [
+          "scripts/portal/marketprofile-candidate-review-test.mjs",
+          "scripts/portal/marketprofile-promotion-gate-test.mjs",
+          "scripts/portal/research-marketprofile-bridge-test.mjs"
+        ],
+        "uncoveredInputs": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "scripts/portal/contracts-test.mjs",
+          "scripts/portal/country-foundation-test.mjs",
+          "scripts/portal/test-authority-guard.mjs",
+          "tsconfig.json"
+        ],
+        "unresolvableInputs": []
+      },
+      "knownGaps": [
+        {
+          "code": "TRIGGER_GAP_SCRIPT",
+          "detail": "scripts/portal/contracts-test.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SCRIPT",
+          "detail": "scripts/portal/country-foundation-test.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SCRIPT",
+          "detail": "scripts/portal/test-authority-guard.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "astro.config.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "package-lock.json"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "package.json"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "tsconfig.json"
+        }
+      ],
+      "migrationState": "LEGACY_EXTERNAL",
+      "stage2MigrationCandidate": false,
+      "stage2MigrationCandidateReason": "not blocking-capable (ADVISORY)",
+      "notes": "Genuinely advisory: job-level continue-on-error. Research-adjacent; no product authority."
+    },
+    {
+      "id": "master-required-gate",
+      "workflowFile": "cbw-master-required-gate.yml",
+      "workflowName": "CBW Master Required Gate",
+      "jobId": "master-required-gate",
+      "checkContext": "Master required gate",
+      "classification": "BLOCKING",
+      "directRequiredSafe": true,
+      "pathFiltered": false,
+      "blockingSemantics": {
+        "canFailPullRequest": true,
+        "jobContinueOnError": false,
+        "jobIf": null,
+        "jobIfPullRequestState": "RUNNABLE",
+        "needs": [],
+        "totalSteps": 11,
+        "softenedSteps": 0,
+        "failableSteps": 11,
+        "timeoutMinutes": 45
+      },
+      "commands": [
+        "npm ci",
+        "node scripts/ci/master-required-gate-contract-test.mjs",
+        "node scripts/ci/master-required-gate-classifier-fixture-test.mjs",
+        "node scripts/ci/master-required-gate-mutation-test.mjs",
+        "node scripts/ci/master-required-gate-classify.mjs --emit-github-output",
+        "node scripts/ci/master-required-gate-validate-output.mjs",
+        "npm run build",
+        "node scripts/ui/global-header-interaction-browser-smoke.mjs",
+        "node scripts/seo/site-indexability-inventory.mjs"
+      ],
+      "dependencies": {
+        "scripts": [
+          "scripts/ci/master-required-gate-classifier-fixture-test.mjs",
+          "scripts/ci/master-required-gate-classify.mjs",
+          "scripts/ci/master-required-gate-contract-test.mjs",
+          "scripts/ci/master-required-gate-mutation-test.mjs",
+          "scripts/ci/master-required-gate-validate-output.mjs",
+          "scripts/seo/site-indexability-inventory.mjs",
+          "scripts/ui/global-header-interaction-browser-smoke.mjs"
+        ],
+        "npmScripts": [
+          "build"
+        ],
+        "sharedConfig": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "tsconfig.json"
+        ]
+      },
+      "triggerCoverage": {
+        "pathFiltered": false,
+        "paths": [],
+        "pathsIgnore": [],
+        "branches": [
+          "master"
+        ],
+        "targetsMaster": true,
+        "selfTriggersOnOwnWorkflowFile": true,
+        "coveredInputs": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "scripts/ci/master-required-gate-classifier-fixture-test.mjs",
+          "scripts/ci/master-required-gate-classify.mjs",
+          "scripts/ci/master-required-gate-contract-test.mjs",
+          "scripts/ci/master-required-gate-mutation-test.mjs",
+          "scripts/ci/master-required-gate-validate-output.mjs",
+          "scripts/seo/site-indexability-inventory.mjs",
+          "scripts/ui/global-header-interaction-browser-smoke.mjs",
+          "tsconfig.json"
+        ],
+        "uncoveredInputs": [],
+        "unresolvableInputs": []
+      },
+      "knownGaps": [],
+      "migrationState": "UNIFIED_GATE_HOST",
+      "stage2MigrationCandidate": false,
+      "stage2MigrationCandidateReason": "not external to the unified gate (UNIFIED_GATE_HOST)",
+      "notes": "S2-01 deliverable. The ONE always-reporting required context for master. Executes the material hard-gate work itself; it is not an aggregator over other workflows."
+    },
+    {
+      "id": "noindex-product-preview",
+      "workflowFile": "cbw-noindex-product-preview-advisory.yml",
+      "workflowName": "CBW Noindex Product Preview Advisory",
+      "jobId": "noindex-product-preview",
+      "checkContext": "Noindex Product preview gate",
+      "classification": "BLOCKING",
+      "directRequiredSafe": false,
+      "pathFiltered": true,
+      "blockingSemantics": {
+        "canFailPullRequest": true,
+        "jobContinueOnError": false,
+        "jobIf": null,
+        "jobIfPullRequestState": "RUNNABLE",
+        "needs": [],
+        "totalSteps": 8,
+        "softenedSteps": 0,
+        "failableSteps": 8,
+        "timeoutMinutes": 20
+      },
+      "commands": [
+        "npm ci",
+        "node scripts/ui/product-system-foundation-test.mjs",
+        "npm run build",
+        "node scripts/ui/noindex-product-preview-browser-smoke.mjs",
+        "node scripts/seo/site-indexability-inventory.mjs"
+      ],
+      "dependencies": {
+        "scripts": [
+          "scripts/seo/site-indexability-inventory.mjs",
+          "scripts/ui/noindex-product-preview-browser-smoke.mjs",
+          "scripts/ui/product-system-foundation-test.mjs"
+        ],
+        "npmScripts": [
+          "build"
+        ],
+        "sharedConfig": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "tsconfig.json"
+        ]
+      },
+      "triggerCoverage": {
+        "pathFiltered": true,
+        "paths": [
+          "src/pages/countries/**",
+          "src/components/country/**",
+          "src/components/countries/**",
+          "src/data/candidates/**",
+          "src/data/siteStandard/**",
+          "src/styles/site-standard-v1.css",
+          "scripts/ui/noindex-product-preview-browser-smoke.mjs",
+          ".github/workflows/cbw-noindex-product-preview-advisory.yml"
+        ],
+        "pathsIgnore": [],
+        "branches": [
+          "master"
+        ],
+        "targetsMaster": true,
+        "selfTriggersOnOwnWorkflowFile": true,
+        "coveredInputs": [
+          "scripts/ui/noindex-product-preview-browser-smoke.mjs"
+        ],
+        "uncoveredInputs": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "scripts/seo/site-indexability-inventory.mjs",
+          "scripts/ui/product-system-foundation-test.mjs",
+          "tsconfig.json"
+        ],
+        "unresolvableInputs": []
+      },
+      "knownGaps": [
+        {
+          "code": "MISLEADING_ADVISORY_FILENAME",
+          "detail": "cbw-noindex-product-preview-advisory.yml"
+        },
+        {
+          "code": "PATH_FILTERED_NOT_ALWAYS_REPORTING",
+          "detail": "pull_request path filter means this context is not reported on every PR to master; naming it directly in branch protection would deadlock on \"Expected - Waiting for status to be reported\""
+        },
+        {
+          "code": "TRIGGER_GAP_SCRIPT",
+          "detail": "scripts/seo/site-indexability-inventory.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SCRIPT",
+          "detail": "scripts/ui/product-system-foundation-test.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "astro.config.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "package-lock.json"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "package.json"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "tsconfig.json"
+        }
+      ],
+      "migrationState": "LEGACY_EXTERNAL",
+      "stage2MigrationCandidate": true,
+      "stage2MigrationCandidateReason": "blocking-capable, still external to the unified gate, and not directly requirable because it is path-filtered",
+      "notes": "FILENAME SAYS ADVISORY, SEMANTICS ARE BLOCKING. The workflow file is named *-advisory.yml but neither the job nor any step carries continue-on-error, and the job name is \"Noindex Product preview gate\". Any failed step fails the pull request."
+    },
+    {
+      "id": "portal-contracts-advisory",
+      "workflowFile": "cbw-portal-contracts-advisory.yml",
+      "workflowName": "CBW Portal Contracts Advisory",
+      "jobId": "portal-contracts",
+      "checkContext": "Portal contracts advisory (non-blocking)",
+      "classification": "ADVISORY",
+      "directRequiredSafe": false,
+      "pathFiltered": true,
+      "blockingSemantics": {
+        "canFailPullRequest": false,
+        "jobContinueOnError": true,
+        "jobIf": null,
+        "jobIfPullRequestState": "RUNNABLE",
+        "needs": [],
+        "totalSteps": 20,
+        "softenedSteps": 0,
+        "failableSteps": 20,
+        "timeoutMinutes": null
+      },
+      "commands": [
+        "npm ci",
+        "node_modules/.bin/tsc --noEmit --strict --skipLibCheck --resolveJsonModule --moduleResolution bundler --module esnext --target es2022 src/data/contracts/internalPath.ts src/data/contracts/portalFactory.ts src/data/contracts/portalUi.ts src/data/contracts/portalRouteGuards.ts src/data/contracts/portalPublication.ts src/data/contracts/portalFoundationFixtures.ts src/data/contracts/portalCta.ts src/data/contracts/portalCtaI18n.ts src/data/contracts/portalDisclosure.ts src/data/contracts/evidenceMetadata.ts src/data/contracts/offerEvidencePacket.ts src/data/contracts/publicRenderedCapture.ts src/data/contracts/claimConfirmation.ts src/data/contracts/offerPacketResolution.ts src/data/contracts/officialSourceCapture.ts src/data/contracts/bybitOfferClaimSourcePlan.ts src/data/contracts/countryInput.ts src/data/contracts/countryContext.ts src/data/contracts/marketProfileRegistry.ts src/data/contracts/marketProfileV1.ts src/data/contracts/countryAwareCta.ts src/data/contracts/portalStateFixtures.ts src/data/homepageTop10Cta.ts src/data/contracts/publicOfferAuthority.ts src/data/contracts/ownerConfirmedCommercialAuthority.ts src/data/publicOfferView.ts src/data/publicCommercialRoute.ts src/data/evidence/offers/bybitPublicPresentation.ts src/data/evidence/offers/bybitOfferEvidence.ts src/data/evidence/offers/bybitPromoCodeConfirmation.ts src/data/exchangePreview/cta-contract.ts",
+        "node scripts/portal/owner-confirmed-authority-split-test.mjs",
+        "node scripts/portal/country-foundation-test.mjs",
+        "npm run ai-ops:validate:fixtures",
+        "npm run portal:guard:test-authority",
+        "npm run portal:contracts:test",
+        "npm run portal:harness:resolution",
+        "node --input-type=module <<'NODE'",
+        "npm run evidence:capture:bybit:official-sources -- --replay /tmp/bybit-official-source-captures.json",
+        "npm run build",
+        "npm run portal:audit:bybit-public",
+        "npm run portal:audit:public-offers",
+        "node scripts/portal/owner-confirmed-browser-smoke.mjs preview",
+        "node scripts/portal/owner-confirmed-browser-smoke.mjs production"
+      ],
+      "dependencies": {
+        "scripts": [
+          "scripts/evidence/capture-bybit-official-sources.mjs",
+          "scripts/portal/bybit-public-output-audit.mjs",
+          "scripts/portal/contracts-test.mjs",
+          "scripts/portal/country-foundation-test.mjs",
+          "scripts/portal/owner-confirmed-authority-split-test.mjs",
+          "scripts/portal/owner-confirmed-browser-smoke.mjs",
+          "scripts/portal/public-offer-output-audit.mjs",
+          "scripts/portal/test-authority-guard.mjs",
+          "scripts/portal/test-support/offer-packet-resolution-harness.mjs"
+        ],
+        "npmScripts": [
+          "ai-ops:validate:fixtures",
+          "portal:guard:test-authority",
+          "portal:contracts:test",
+          "portal:harness:resolution",
+          "evidence:capture:bybit:official-sources",
+          "build",
+          "portal:audit:bybit-public",
+          "portal:audit:public-offers"
+        ],
+        "sharedConfig": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "tsconfig.json"
+        ]
+      },
+      "triggerCoverage": {
+        "pathFiltered": true,
+        "paths": [
+          "src/data/contracts/**",
+          "src/data/homepageTop10.ts",
+          "src/data/homepageTop10Cta.ts",
+          "src/data/portalCtaMode.ts",
+          "src/data/publicOfferView.ts",
+          "src/data/publicCommercialRoute.ts",
+          "src/data/offers.ts",
+          "src/data/evidence/offers/**",
+          "src/data/exchanges.ts",
+          "src/data/exchanges.json",
+          "src/data/exchangePreview/cta-contract.ts",
+          "src/components/home/**",
+          "src/components/exchange/**",
+          "src/components/exchange-preview/**",
+          "src/components/site-standard/ExchangeDirectoryCard.astro",
+          "src/components/portal-v2/**",
+          "src/pages/go/**",
+          "src/pages/promo-codes/**",
+          "src/pages/**/portal-contracts/**",
+          "scripts/portal/**",
+          "scripts/evidence/**",
+          "package.json",
+          "package-lock.json",
+          ".github/workflows/cbw-portal-contracts-advisory.yml"
+        ],
+        "pathsIgnore": [],
+        "branches": [],
+        "targetsMaster": true,
+        "selfTriggersOnOwnWorkflowFile": true,
+        "coveredInputs": [
+          "package-lock.json",
+          "package.json",
+          "scripts/evidence/capture-bybit-official-sources.mjs",
+          "scripts/portal/bybit-public-output-audit.mjs",
+          "scripts/portal/contracts-test.mjs",
+          "scripts/portal/country-foundation-test.mjs",
+          "scripts/portal/owner-confirmed-authority-split-test.mjs",
+          "scripts/portal/owner-confirmed-browser-smoke.mjs",
+          "scripts/portal/public-offer-output-audit.mjs",
+          "scripts/portal/test-authority-guard.mjs",
+          "scripts/portal/test-support/offer-packet-resolution-harness.mjs"
+        ],
+        "uncoveredInputs": [
+          "astro.config.mjs",
+          "tsconfig.json"
+        ],
+        "unresolvableInputs": []
+      },
+      "knownGaps": [
+        {
+          "code": "NO_BRANCH_FILTER",
+          "detail": "pull_request trigger declares no branches filter, so it runs on PRs to every branch"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "astro.config.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "tsconfig.json"
+        }
+      ],
+      "migrationState": "LEGACY_EXTERNAL",
+      "stage2MigrationCandidate": false,
+      "stage2MigrationCandidateReason": "not blocking-capable (ADVISORY)",
+      "notes": "Genuinely advisory: job-level continue-on-error. Note it declares NO pull_request branches filter, so it also runs on PRs targeting non-master branches."
+    },
+    {
+      "id": "pr-advisory-gate",
+      "workflowFile": "cbw-pr-advisory-gate.yml",
+      "workflowName": "CBW PR Advisory Gate",
+      "jobId": "advisory",
+      "checkContext": "Advisory validation (non-blocking)",
+      "classification": "BLOCKING",
+      "directRequiredSafe": true,
+      "pathFiltered": false,
+      "blockingSemantics": {
+        "canFailPullRequest": true,
+        "jobContinueOnError": false,
+        "jobIf": null,
+        "jobIfPullRequestState": "RUNNABLE",
+        "needs": [],
+        "totalSteps": 13,
+        "softenedSteps": 7,
+        "failableSteps": 6,
+        "timeoutMinutes": null
+      },
+      "commands": [
+        "npm ci",
+        "node <<'NODE'",
+        "npm run ai-ops:validate",
+        "npm run build",
+        "npm run validate:affiliate",
+        "npm run seo:check",
+        "node scripts/ai-ops/validate-branch-authority.mjs owner-ops/ai-ops/CBW_BRANCH_AUTHORITY_MAP_v1.json master changed-files.txt",
+        "node scripts/ai-ops/validate-task-contract.mjs \"${CONTRACT_PATH}\"",
+        "node scripts/ai-ops/validate-scope.mjs \"${CONTRACT_PATH}\" changed-files.txt"
+      ],
+      "dependencies": {
+        "scripts": [
+          "scripts/ai-ops/validate-ai-ops-foundation.mjs",
+          "scripts/ai-ops/validate-branch-authority.mjs",
+          "scripts/ai-ops/validate-scope.mjs",
+          "scripts/ai-ops/validate-task-contract.mjs",
+          "scripts/audit-seo-titles.mjs",
+          "scripts/check-affiliate-integrity.mjs"
+        ],
+        "npmScripts": [
+          "ai-ops:validate",
+          "build",
+          "validate:affiliate",
+          "seo:check"
+        ],
+        "sharedConfig": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "tsconfig.json"
+        ]
+      },
+      "triggerCoverage": {
+        "pathFiltered": false,
+        "paths": [],
+        "pathsIgnore": [],
+        "branches": [
+          "master"
+        ],
+        "targetsMaster": true,
+        "selfTriggersOnOwnWorkflowFile": true,
+        "coveredInputs": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "scripts/ai-ops/validate-ai-ops-foundation.mjs",
+          "scripts/ai-ops/validate-branch-authority.mjs",
+          "scripts/ai-ops/validate-scope.mjs",
+          "scripts/ai-ops/validate-task-contract.mjs",
+          "scripts/audit-seo-titles.mjs",
+          "scripts/check-affiliate-integrity.mjs",
+          "tsconfig.json"
+        ],
+        "uncoveredInputs": [],
+        "unresolvableInputs": []
+      },
+      "knownGaps": [
+        {
+          "code": "MISLEADING_ADVISORY_FILENAME",
+          "detail": "cbw-pr-advisory-gate.yml"
+        },
+        {
+          "code": "MISLEADING_NON_BLOCKING_JOB_NAME",
+          "detail": "Advisory validation (non-blocking)"
+        }
+      ],
+      "migrationState": "LEGACY_EXTERNAL",
+      "stage2MigrationCandidate": false,
+      "stage2MigrationCandidateReason": "already always-reporting, so it can be required directly without migration",
+      "notes": "FILENAME AND JOB NAME BOTH SAY ADVISORY / NON-BLOCKING, SEMANTICS ARE PARTLY BLOCKING. The job carries no job-level continue-on-error. Its validation steps (ai-ops:validate, build, affiliate, seo, branch authority, contract, scope) are individually softened, but the fail-closed changed-file discovery step and the task-contract parse step are NOT, so either one failing fails the pull request. It is the only OTHER always-reporting PR job on master besides the unified gate."
+    },
+    {
+      "id": "production-autodeploy-contract-validation",
+      "workflowFile": "cbw-production-safe-batch-autodeploy.yml",
+      "workflowName": "CBW Production Safe Batch Auto-Deploy",
+      "jobId": "validate-autodeploy",
+      "checkContext": "Validate auto-deploy contract",
+      "classification": "BLOCKING",
+      "directRequiredSafe": false,
+      "pathFiltered": true,
+      "blockingSemantics": {
+        "canFailPullRequest": true,
+        "jobContinueOnError": false,
+        "jobIf": "github.event_name == 'pull_request'",
+        "jobIfPullRequestState": "RUNNABLE",
+        "needs": [],
+        "totalSteps": 4,
+        "softenedSteps": 0,
+        "failableSteps": 4,
+        "timeoutMinutes": 10
+      },
+      "commands": [
+        "node --check scripts/production-live-smoke.mjs",
+        "node --check scripts/production-origin-parity.mjs",
+        "node --input-type=module <<'NODE'"
+      ],
+      "dependencies": {
+        "scripts": [
+          "scripts/production-live-smoke.mjs",
+          "scripts/production-origin-parity.mjs"
+        ],
+        "npmScripts": [],
+        "sharedConfig": []
+      },
+      "triggerCoverage": {
+        "pathFiltered": true,
+        "paths": [
+          ".github/workflows/cbw-production-safe-batch-autodeploy.yml",
+          "scripts/production-live-smoke.mjs",
+          "scripts/production-origin-parity.mjs",
+          "docs/tasks/CBW_PRODUCTION_P2_SAFE_BATCH_AUTODEPLOY_001.md"
+        ],
+        "pathsIgnore": [],
+        "branches": [
+          "master"
+        ],
+        "targetsMaster": true,
+        "selfTriggersOnOwnWorkflowFile": true,
+        "coveredInputs": [
+          "scripts/production-live-smoke.mjs",
+          "scripts/production-origin-parity.mjs"
+        ],
+        "uncoveredInputs": [],
+        "unresolvableInputs": []
+      },
+      "knownGaps": [
+        {
+          "code": "PATH_FILTERED_NOT_ALWAYS_REPORTING",
+          "detail": "pull_request path filter means this context is not reported on every PR to master; naming it directly in branch protection would deadlock on \"Expected - Waiting for status to be reported\""
+        }
+      ],
+      "migrationState": "LEGACY_EXTERNAL",
+      "stage2MigrationCandidate": true,
+      "stage2MigrationCandidateReason": "blocking-capable, still external to the unified gate, and not directly requirable because it is path-filtered",
+      "notes": "PR-only half of the auto-deploy workflow. Syntax-checks the production diagnostics and re-asserts the deploy workflow fail-closed invariants. It performs no deploy."
+    },
+    {
+      "id": "production-autodeploy-release",
+      "workflowFile": "cbw-production-safe-batch-autodeploy.yml",
+      "workflowName": "CBW Production Safe Batch Auto-Deploy",
+      "jobId": "deploy",
+      "checkContext": "Production release",
+      "classification": "CONDITIONAL_PRODUCTION_ONLY",
+      "directRequiredSafe": false,
+      "pathFiltered": true,
+      "blockingSemantics": {
+        "canFailPullRequest": false,
+        "jobContinueOnError": false,
+        "jobIf": "github.event_name != 'pull_request'",
+        "jobIfPullRequestState": "NEVER",
+        "needs": [],
+        "totalSteps": 26,
+        "softenedSteps": 2,
+        "failableSteps": 24,
+        "timeoutMinutes": 45
+      },
+      "commands": [
+        "npm ci",
+        "npm run ai-ops:validate",
+        "node scripts/portal/owner-confirmed-authority-split-test.mjs",
+        "npm run portal:guard:test-authority",
+        "npm run portal:contracts:test",
+        "npm run portal:harness:resolution",
+        "npm run validate:affiliate",
+        "npm run build",
+        "npm run seo:check",
+        "npm run portal:audit:bybit-public",
+        "npm run portal:audit:public-offers",
+        "node scripts/portal/owner-confirmed-browser-smoke.mjs production",
+        "node scripts/deploy.mjs --no-indexnow",
+        "node scripts/production-origin-parity.mjs",
+        "node scripts/production-live-smoke.mjs",
+        "node scripts/indexnow.mjs --mode priority"
+      ],
+      "dependencies": {
+        "scripts": [
+          "scripts/ai-ops/validate-ai-ops-foundation.mjs",
+          "scripts/audit-seo-titles.mjs",
+          "scripts/check-affiliate-integrity.mjs",
+          "scripts/deploy.mjs",
+          "scripts/indexnow.mjs",
+          "scripts/portal/bybit-public-output-audit.mjs",
+          "scripts/portal/contracts-test.mjs",
+          "scripts/portal/owner-confirmed-authority-split-test.mjs",
+          "scripts/portal/owner-confirmed-browser-smoke.mjs",
+          "scripts/portal/public-offer-output-audit.mjs",
+          "scripts/portal/test-authority-guard.mjs",
+          "scripts/portal/test-support/offer-packet-resolution-harness.mjs",
+          "scripts/production-live-smoke.mjs",
+          "scripts/production-origin-parity.mjs"
+        ],
+        "npmScripts": [
+          "ai-ops:validate",
+          "portal:guard:test-authority",
+          "portal:contracts:test",
+          "portal:harness:resolution",
+          "validate:affiliate",
+          "build",
+          "seo:check",
+          "portal:audit:bybit-public",
+          "portal:audit:public-offers"
+        ],
+        "sharedConfig": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "tsconfig.json"
+        ]
+      },
+      "triggerCoverage": {
+        "pathFiltered": true,
+        "paths": [
+          ".github/workflows/cbw-production-safe-batch-autodeploy.yml",
+          "scripts/production-live-smoke.mjs",
+          "scripts/production-origin-parity.mjs",
+          "docs/tasks/CBW_PRODUCTION_P2_SAFE_BATCH_AUTODEPLOY_001.md"
+        ],
+        "pathsIgnore": [],
+        "branches": [
+          "master"
+        ],
+        "targetsMaster": true,
+        "selfTriggersOnOwnWorkflowFile": true,
+        "coveredInputs": [
+          "scripts/production-live-smoke.mjs",
+          "scripts/production-origin-parity.mjs"
+        ],
+        "uncoveredInputs": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "scripts/ai-ops/validate-ai-ops-foundation.mjs",
+          "scripts/audit-seo-titles.mjs",
+          "scripts/check-affiliate-integrity.mjs",
+          "scripts/deploy.mjs",
+          "scripts/indexnow.mjs",
+          "scripts/portal/bybit-public-output-audit.mjs",
+          "scripts/portal/contracts-test.mjs",
+          "scripts/portal/owner-confirmed-authority-split-test.mjs",
+          "scripts/portal/owner-confirmed-browser-smoke.mjs",
+          "scripts/portal/public-offer-output-audit.mjs",
+          "scripts/portal/test-authority-guard.mjs",
+          "scripts/portal/test-support/offer-packet-resolution-harness.mjs",
+          "tsconfig.json"
+        ],
+        "unresolvableInputs": []
+      },
+      "knownGaps": [],
+      "migrationState": "NOT_APPLICABLE",
+      "stage2MigrationCandidate": false,
+      "stage2MigrationCandidateReason": "not blocking-capable (CONDITIONAL_PRODUCTION_ONLY)",
+      "notes": "Production release job. Gated on `github.event_name != 'pull_request'`, so it can never run on a pull request and can never participate in a PR-required portfolio."
+    },
+    {
+      "id": "public-asset-client-weight",
+      "workflowFile": "cbw-public-asset-client-weight.yml",
+      "workflowName": "CBW Public Asset Client Weight",
+      "jobId": "public-asset-client-weight",
+      "checkContext": "Public asset/client-weight hard gate",
+      "classification": "BLOCKING",
+      "directRequiredSafe": false,
+      "pathFiltered": true,
+      "blockingSemantics": {
+        "canFailPullRequest": true,
+        "jobContinueOnError": false,
+        "jobIf": null,
+        "jobIfPullRequestState": "RUNNABLE",
+        "needs": [],
+        "totalSteps": 6,
+        "softenedSteps": 0,
+        "failableSteps": 6,
+        "timeoutMinutes": 15
+      },
+      "commands": [
+        "npm ci",
+        "npm run build",
+        "node scripts/perf/public-asset-client-weight-test.mjs",
+        "node scripts/seo/site-indexability-inventory.mjs"
+      ],
+      "dependencies": {
+        "scripts": [
+          "scripts/perf/public-asset-client-weight-test.mjs",
+          "scripts/seo/site-indexability-inventory.mjs"
+        ],
+        "npmScripts": [
+          "build"
+        ],
+        "sharedConfig": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "tsconfig.json"
+        ]
+      },
+      "triggerCoverage": {
+        "pathFiltered": true,
+        "paths": [
+          "src/pages/**",
+          "src/layouts/**",
+          "src/components/**",
+          "src/styles/**",
+          "public/**",
+          "scripts/perf/public-asset-client-weight-test.mjs",
+          ".github/workflows/cbw-public-asset-client-weight.yml"
+        ],
+        "pathsIgnore": [],
+        "branches": [
+          "master"
+        ],
+        "targetsMaster": true,
+        "selfTriggersOnOwnWorkflowFile": true,
+        "coveredInputs": [
+          "scripts/perf/public-asset-client-weight-test.mjs"
+        ],
+        "uncoveredInputs": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "scripts/seo/site-indexability-inventory.mjs",
+          "tsconfig.json"
+        ],
+        "unresolvableInputs": []
+      },
+      "knownGaps": [
+        {
+          "code": "PATH_FILTERED_NOT_ALWAYS_REPORTING",
+          "detail": "pull_request path filter means this context is not reported on every PR to master; naming it directly in branch protection would deadlock on \"Expected - Waiting for status to be reported\""
+        },
+        {
+          "code": "TRIGGER_GAP_SCRIPT",
+          "detail": "scripts/seo/site-indexability-inventory.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "astro.config.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "package-lock.json"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "package.json"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "tsconfig.json"
+        }
+      ],
+      "migrationState": "LEGACY_EXTERNAL",
+      "stage2MigrationCandidate": true,
+      "stage2MigrationCandidateReason": "blocking-capable, still external to the unified gate, and not directly requirable because it is path-filtered",
+      "notes": "Public Asset Client Weight hard gate."
+    },
+    {
+      "id": "public-first-screen-budget",
+      "workflowFile": "cbw-public-first-screen-budget.yml",
+      "workflowName": "CBW Public First Screen Budget",
+      "jobId": "public-first-screen-budget",
+      "checkContext": "Public first-screen budget hard gate",
+      "classification": "BLOCKING",
+      "directRequiredSafe": false,
+      "pathFiltered": true,
+      "blockingSemantics": {
+        "canFailPullRequest": true,
+        "jobContinueOnError": false,
+        "jobIf": null,
+        "jobIfPullRequestState": "RUNNABLE",
+        "needs": [],
+        "totalSteps": 5,
+        "softenedSteps": 0,
+        "failableSteps": 5,
+        "timeoutMinutes": 25
+      },
+      "commands": [
+        "npm ci",
+        "npm run build",
+        "node scripts/ui/public-first-screen-budget-browser-smoke.mjs"
+      ],
+      "dependencies": {
+        "scripts": [
+          "scripts/ui/public-first-screen-budget-browser-smoke.mjs"
+        ],
+        "npmScripts": [
+          "build"
+        ],
+        "sharedConfig": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "tsconfig.json"
+        ]
+      },
+      "triggerCoverage": {
+        "pathFiltered": true,
+        "paths": [
+          "src/pages/**",
+          "src/layouts/**",
+          "src/components/**",
+          "src/styles/**",
+          "src/data/siteStandard/**",
+          "scripts/ui/public-first-screen-budget-browser-smoke.mjs",
+          ".github/workflows/cbw-public-first-screen-budget.yml"
+        ],
+        "pathsIgnore": [],
+        "branches": [
+          "master"
+        ],
+        "targetsMaster": true,
+        "selfTriggersOnOwnWorkflowFile": true,
+        "coveredInputs": [
+          "scripts/ui/public-first-screen-budget-browser-smoke.mjs"
+        ],
+        "uncoveredInputs": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "tsconfig.json"
+        ],
+        "unresolvableInputs": []
+      },
+      "knownGaps": [
+        {
+          "code": "PATH_FILTERED_NOT_ALWAYS_REPORTING",
+          "detail": "pull_request path filter means this context is not reported on every PR to master; naming it directly in branch protection would deadlock on \"Expected - Waiting for status to be reported\""
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "astro.config.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "package-lock.json"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "package.json"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "tsconfig.json"
+        }
+      ],
+      "migrationState": "LEGACY_EXTERNAL",
+      "stage2MigrationCandidate": true,
+      "stage2MigrationCandidateReason": "blocking-capable, still external to the unified gate, and not directly requirable because it is path-filtered",
+      "notes": "Public First Screen Budget hard gate (Chromium matrix)."
+    },
+    {
+      "id": "public-navigation-boundary",
+      "workflowFile": "cbw-public-navigation-boundary.yml",
+      "workflowName": "CBW Public Navigation Boundary",
+      "jobId": "public-navigation",
+      "checkContext": "Public navigation hard gate",
+      "classification": "BLOCKING",
+      "directRequiredSafe": false,
+      "pathFiltered": true,
+      "blockingSemantics": {
+        "canFailPullRequest": true,
+        "jobContinueOnError": false,
+        "jobIf": null,
+        "jobIfPullRequestState": "RUNNABLE",
+        "needs": [],
+        "totalSteps": 5,
+        "softenedSteps": 0,
+        "failableSteps": 5,
+        "timeoutMinutes": 15
+      },
+      "commands": [
+        "npm ci",
+        "npm run build",
+        "node scripts/seo/public-navigation-boundary-test.mjs"
+      ],
+      "dependencies": {
+        "scripts": [
+          "scripts/seo/public-navigation-boundary-test.mjs"
+        ],
+        "npmScripts": [
+          "build"
+        ],
+        "sharedConfig": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "tsconfig.json"
+        ]
+      },
+      "triggerCoverage": {
+        "pathFiltered": true,
+        "paths": [
+          "src/pages/**",
+          "src/layouts/**",
+          "src/components/**",
+          "scripts/seo/public-navigation-boundary-test.mjs",
+          ".github/workflows/cbw-public-navigation-boundary.yml"
+        ],
+        "pathsIgnore": [],
+        "branches": [
+          "master"
+        ],
+        "targetsMaster": true,
+        "selfTriggersOnOwnWorkflowFile": true,
+        "coveredInputs": [
+          "scripts/seo/public-navigation-boundary-test.mjs"
+        ],
+        "uncoveredInputs": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "tsconfig.json"
+        ],
+        "unresolvableInputs": []
+      },
+      "knownGaps": [
+        {
+          "code": "PATH_FILTERED_NOT_ALWAYS_REPORTING",
+          "detail": "pull_request path filter means this context is not reported on every PR to master; naming it directly in branch protection would deadlock on \"Expected - Waiting for status to be reported\""
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "astro.config.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "package-lock.json"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "package.json"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "tsconfig.json"
+        }
+      ],
+      "migrationState": "LEGACY_EXTERNAL",
+      "stage2MigrationCandidate": true,
+      "stage2MigrationCandidateReason": "blocking-capable, still external to the unified gate, and not directly requirable because it is path-filtered",
+      "notes": "Public Navigation Boundary hard gate. The only product hard gate that runs no indexability inventory step."
+    },
+    {
+      "id": "public-seo-metadata",
+      "workflowFile": "cbw-public-seo-metadata.yml",
+      "workflowName": "CBW Public SEO Metadata",
+      "jobId": "public-seo-metadata",
+      "checkContext": "Public SEO metadata hard gate",
+      "classification": "BLOCKING",
+      "directRequiredSafe": false,
+      "pathFiltered": true,
+      "blockingSemantics": {
+        "canFailPullRequest": true,
+        "jobContinueOnError": false,
+        "jobIf": null,
+        "jobIfPullRequestState": "RUNNABLE",
+        "needs": [],
+        "totalSteps": 6,
+        "softenedSteps": 0,
+        "failableSteps": 6,
+        "timeoutMinutes": 15
+      },
+      "commands": [
+        "npm ci",
+        "npm run build",
+        "node scripts/seo/public-seo-metadata-schema-test.mjs",
+        "node scripts/seo/site-indexability-inventory.mjs"
+      ],
+      "dependencies": {
+        "scripts": [
+          "scripts/seo/public-seo-metadata-schema-test.mjs",
+          "scripts/seo/site-indexability-inventory.mjs"
+        ],
+        "npmScripts": [
+          "build"
+        ],
+        "sharedConfig": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "tsconfig.json"
+        ]
+      },
+      "triggerCoverage": {
+        "pathFiltered": true,
+        "paths": [
+          "src/pages/**",
+          "src/layouts/**",
+          "src/components/**",
+          "scripts/seo/public-seo-metadata-schema-test.mjs",
+          ".github/workflows/cbw-public-seo-metadata.yml"
+        ],
+        "pathsIgnore": [],
+        "branches": [
+          "master"
+        ],
+        "targetsMaster": true,
+        "selfTriggersOnOwnWorkflowFile": true,
+        "coveredInputs": [
+          "scripts/seo/public-seo-metadata-schema-test.mjs"
+        ],
+        "uncoveredInputs": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "scripts/seo/site-indexability-inventory.mjs",
+          "tsconfig.json"
+        ],
+        "unresolvableInputs": []
+      },
+      "knownGaps": [
+        {
+          "code": "PATH_FILTERED_NOT_ALWAYS_REPORTING",
+          "detail": "pull_request path filter means this context is not reported on every PR to master; naming it directly in branch protection would deadlock on \"Expected - Waiting for status to be reported\""
+        },
+        {
+          "code": "TRIGGER_GAP_SCRIPT",
+          "detail": "scripts/seo/site-indexability-inventory.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "astro.config.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "package-lock.json"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "package.json"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "tsconfig.json"
+        }
+      ],
+      "migrationState": "LEGACY_EXTERNAL",
+      "stage2MigrationCandidate": true,
+      "stage2MigrationCandidateReason": "blocking-capable, still external to the unified gate, and not directly requirable because it is path-filtered",
+      "notes": "Public SEO Metadata hard gate."
+    },
+    {
+      "id": "ranking-first-ui-advisory",
+      "workflowFile": "cbw-ranking-first-ui-advisory.yml",
+      "workflowName": "CBW Ranking-First UI Advisory",
+      "jobId": "ranking-first-ui",
+      "checkContext": "Product system UI advisory (non-blocking)",
+      "classification": "ADVISORY",
+      "directRequiredSafe": false,
+      "pathFiltered": true,
+      "blockingSemantics": {
+        "canFailPullRequest": false,
+        "jobContinueOnError": true,
+        "jobIf": null,
+        "jobIfPullRequestState": "RUNNABLE",
+        "needs": [],
+        "totalSteps": 9,
+        "softenedSteps": 0,
+        "failableSteps": 9,
+        "timeoutMinutes": 25
+      },
+      "commands": [
+        "npm ci",
+        "node scripts/ui/product-system-foundation-test.mjs",
+        "npm run build",
+        "node scripts/ui/ranking-first-browser-smoke.mjs",
+        "node scripts/ui/site-route-matrix-browser-smoke.mjs",
+        "node scripts/seo/site-indexability-inventory.mjs"
+      ],
+      "dependencies": {
+        "scripts": [
+          "scripts/seo/site-indexability-inventory.mjs",
+          "scripts/ui/product-system-foundation-test.mjs",
+          "scripts/ui/ranking-first-browser-smoke.mjs",
+          "scripts/ui/site-route-matrix-browser-smoke.mjs"
+        ],
+        "npmScripts": [
+          "build"
+        ],
+        "sharedConfig": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "tsconfig.json"
+        ]
+      },
+      "triggerCoverage": {
+        "pathFiltered": true,
+        "paths": [
+          "src/pages/**",
+          "src/layouts/**",
+          "src/components/**",
+          "src/styles/site-standard-v1.css",
+          "src/styles/site-shell.css",
+          "src/styles/info-pages-v2.css",
+          "src/styles/faq-page-v2.css",
+          "src/data/siteStandard/**",
+          "src/data/header/**",
+          "src/data/contracts/countryInput.ts",
+          "scripts/ui/**",
+          "scripts/seo/**",
+          ".github/workflows/cbw-ranking-first-ui-advisory.yml"
+        ],
+        "pathsIgnore": [],
+        "branches": [
+          "master"
+        ],
+        "targetsMaster": true,
+        "selfTriggersOnOwnWorkflowFile": true,
+        "coveredInputs": [
+          "scripts/seo/site-indexability-inventory.mjs",
+          "scripts/ui/product-system-foundation-test.mjs",
+          "scripts/ui/ranking-first-browser-smoke.mjs",
+          "scripts/ui/site-route-matrix-browser-smoke.mjs"
+        ],
+        "uncoveredInputs": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "tsconfig.json"
+        ],
+        "unresolvableInputs": []
+      },
+      "knownGaps": [
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "astro.config.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "package-lock.json"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "package.json"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "tsconfig.json"
+        }
+      ],
+      "migrationState": "LEGACY_EXTERNAL",
+      "stage2MigrationCandidate": false,
+      "stage2MigrationCandidateReason": "not blocking-capable (ADVISORY)",
+      "notes": "Genuinely advisory: job-level continue-on-error."
+    },
+    {
+      "id": "redirect-family",
+      "workflowFile": "cbw-redirect-family.yml",
+      "workflowName": "CBW Redirect Family",
+      "jobId": "redirect-family",
+      "checkContext": "Redirect family hard gate",
+      "classification": "BLOCKING",
+      "directRequiredSafe": false,
+      "pathFiltered": true,
+      "blockingSemantics": {
+        "canFailPullRequest": true,
+        "jobContinueOnError": false,
+        "jobIf": null,
+        "jobIfPullRequestState": "RUNNABLE",
+        "needs": [],
+        "totalSteps": 6,
+        "softenedSteps": 0,
+        "failableSteps": 6,
+        "timeoutMinutes": 15
+      },
+      "commands": [
+        "npm ci",
+        "npm run build",
+        "node scripts/seo/redirect-family-matrix-test.mjs",
+        "node scripts/seo/site-indexability-inventory.mjs"
+      ],
+      "dependencies": {
+        "scripts": [
+          "scripts/seo/redirect-family-matrix-test.mjs",
+          "scripts/seo/site-indexability-inventory.mjs"
+        ],
+        "npmScripts": [
+          "build"
+        ],
+        "sharedConfig": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "tsconfig.json"
+        ]
+      },
+      "triggerCoverage": {
+        "pathFiltered": true,
+        "paths": [
+          "src/pages/**",
+          "src/components/site-standard/RedirectPage.astro",
+          "scripts/seo/redirect-family-matrix-test.mjs",
+          ".github/workflows/cbw-redirect-family.yml"
+        ],
+        "pathsIgnore": [],
+        "branches": [
+          "master"
+        ],
+        "targetsMaster": true,
+        "selfTriggersOnOwnWorkflowFile": true,
+        "coveredInputs": [
+          "scripts/seo/redirect-family-matrix-test.mjs"
+        ],
+        "uncoveredInputs": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "scripts/seo/site-indexability-inventory.mjs",
+          "tsconfig.json"
+        ],
+        "unresolvableInputs": []
+      },
+      "knownGaps": [
+        {
+          "code": "PATH_FILTERED_NOT_ALWAYS_REPORTING",
+          "detail": "pull_request path filter means this context is not reported on every PR to master; naming it directly in branch protection would deadlock on \"Expected - Waiting for status to be reported\""
+        },
+        {
+          "code": "TRIGGER_GAP_SCRIPT",
+          "detail": "scripts/seo/site-indexability-inventory.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "astro.config.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "package-lock.json"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "package.json"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "tsconfig.json"
+        }
+      ],
+      "migrationState": "LEGACY_EXTERNAL",
+      "stage2MigrationCandidate": true,
+      "stage2MigrationCandidateReason": "blocking-capable, still external to the unified gate, and not directly requirable because it is path-filtered",
+      "notes": "Redirect Family hard gate."
+    },
+    {
+      "id": "research-marketprofile-bridge-advisory",
+      "workflowFile": "cbw-research-marketprofile-bridge-advisory.yml",
+      "workflowName": "CBW Research MarketProfile Bridge Advisory",
+      "jobId": "bridge",
+      "checkContext": "Research → MarketProfile bridge advisory (non-blocking)",
+      "classification": "ADVISORY",
+      "directRequiredSafe": false,
+      "pathFiltered": true,
+      "blockingSemantics": {
+        "canFailPullRequest": false,
+        "jobContinueOnError": true,
+        "jobIf": null,
+        "jobIfPullRequestState": "RUNNABLE",
+        "needs": [],
+        "totalSteps": 10,
+        "softenedSteps": 0,
+        "failableSteps": 10,
+        "timeoutMinutes": 18
+      },
+      "commands": [
+        "npm ci",
+        "node_modules/.bin/tsc --noEmit --strict --skipLibCheck --resolveJsonModule --moduleResolution bundler --module esnext --target es2022 src/data/contracts/portalFactory.ts src/data/contracts/marketProfileV1.ts src/data/contracts/marketProfileRegistry.ts src/data/contracts/researchToMarketProfileV1Bridge.ts",
+        "node scripts/portal/research-marketprofile-bridge-test.mjs",
+        "node scripts/portal/country-foundation-test.mjs",
+        "npm run portal:guard:test-authority",
+        "npm run portal:contracts:test",
+        "npm run build"
+      ],
+      "dependencies": {
+        "scripts": [
+          "scripts/portal/contracts-test.mjs",
+          "scripts/portal/country-foundation-test.mjs",
+          "scripts/portal/research-marketprofile-bridge-test.mjs",
+          "scripts/portal/test-authority-guard.mjs"
+        ],
+        "npmScripts": [
+          "portal:guard:test-authority",
+          "portal:contracts:test",
+          "build"
+        ],
+        "sharedConfig": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "tsconfig.json"
+        ]
+      },
+      "triggerCoverage": {
+        "pathFiltered": true,
+        "paths": [
+          "src/data/contracts/researchToMarketProfileV1Bridge.ts",
+          "src/data/contracts/marketProfileV1.ts",
+          "src/data/contracts/marketProfileRegistry.ts",
+          "scripts/portal/research-marketprofile-bridge-test.mjs",
+          "scripts/portal/country-foundation-test.mjs",
+          ".github/workflows/cbw-research-marketprofile-bridge-advisory.yml"
+        ],
+        "pathsIgnore": [],
+        "branches": [
+          "master"
+        ],
+        "targetsMaster": true,
+        "selfTriggersOnOwnWorkflowFile": true,
+        "coveredInputs": [
+          "scripts/portal/country-foundation-test.mjs",
+          "scripts/portal/research-marketprofile-bridge-test.mjs"
+        ],
+        "uncoveredInputs": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "scripts/portal/contracts-test.mjs",
+          "scripts/portal/test-authority-guard.mjs",
+          "tsconfig.json"
+        ],
+        "unresolvableInputs": []
+      },
+      "knownGaps": [
+        {
+          "code": "TRIGGER_GAP_SCRIPT",
+          "detail": "scripts/portal/contracts-test.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SCRIPT",
+          "detail": "scripts/portal/test-authority-guard.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "astro.config.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "package-lock.json"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "package.json"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "tsconfig.json"
+        }
+      ],
+      "migrationState": "LEGACY_EXTERNAL",
+      "stage2MigrationCandidate": false,
+      "stage2MigrationCandidateReason": "not blocking-capable (ADVISORY)",
+      "notes": "Genuinely advisory: job-level continue-on-error. Research-adjacent; no product authority."
+    },
+    {
+      "id": "route-inventory-artifact",
+      "workflowFile": "cbw-route-inventory-artifact.yml",
+      "workflowName": "CBW Route Inventory Artifact",
+      "jobId": "route-inventory",
+      "checkContext": "Build and emit route inventory",
+      "classification": "BLOCKING",
+      "directRequiredSafe": false,
+      "pathFiltered": true,
+      "blockingSemantics": {
+        "canFailPullRequest": true,
+        "jobContinueOnError": false,
+        "jobIf": null,
+        "jobIfPullRequestState": "RUNNABLE",
+        "needs": [],
+        "totalSteps": 6,
+        "softenedSteps": 0,
+        "failableSteps": 6,
+        "timeoutMinutes": 15
+      },
+      "commands": [
+        "npm ci",
+        "npm run build",
+        "node scripts/seo/site-indexability-inventory-artifact.mjs"
+      ],
+      "dependencies": {
+        "scripts": [
+          "scripts/seo/site-indexability-inventory-artifact.mjs"
+        ],
+        "npmScripts": [
+          "build"
+        ],
+        "sharedConfig": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "tsconfig.json"
+        ]
+      },
+      "triggerCoverage": {
+        "pathFiltered": true,
+        "paths": [
+          "src/pages/**",
+          "src/layouts/**",
+          "src/components/**",
+          "src/styles/**",
+          "scripts/seo/site-indexability-inventory-artifact.mjs",
+          ".github/workflows/cbw-route-inventory-artifact.yml"
+        ],
+        "pathsIgnore": [],
+        "branches": [
+          "master"
+        ],
+        "targetsMaster": true,
+        "selfTriggersOnOwnWorkflowFile": true,
+        "coveredInputs": [
+          "scripts/seo/site-indexability-inventory-artifact.mjs"
+        ],
+        "uncoveredInputs": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "tsconfig.json"
+        ],
+        "unresolvableInputs": []
+      },
+      "knownGaps": [
+        {
+          "code": "PATH_FILTERED_NOT_ALWAYS_REPORTING",
+          "detail": "pull_request path filter means this context is not reported on every PR to master; naming it directly in branch protection would deadlock on \"Expected - Waiting for status to be reported\""
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "astro.config.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "package-lock.json"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "package.json"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "tsconfig.json"
+        }
+      ],
+      "migrationState": "LEGACY_EXTERNAL",
+      "stage2MigrationCandidate": true,
+      "stage2MigrationCandidateReason": "blocking-capable, still external to the unified gate, and not directly requirable because it is path-filtered",
+      "notes": "DERIVED TWELFTH PRODUCT HARD GATE. Not named \"gate\" and not in any prior candidate list, but it runs on PRs to master with no continue-on-error anywhere, so a failed build, a failed inventory emission or a missing artifact (if-no-files-found: error) fails the pull request."
+    },
+    {
+      "id": "structural-accessibility",
+      "workflowFile": "cbw-structural-accessibility.yml",
+      "workflowName": "CBW Structural Accessibility",
+      "jobId": "structural-accessibility",
+      "checkContext": "Structural accessibility hard gate",
+      "classification": "BLOCKING",
+      "directRequiredSafe": false,
+      "pathFiltered": true,
+      "blockingSemantics": {
+        "canFailPullRequest": true,
+        "jobContinueOnError": false,
+        "jobIf": null,
+        "jobIfPullRequestState": "RUNNABLE",
+        "needs": [],
+        "totalSteps": 6,
+        "softenedSteps": 0,
+        "failableSteps": 6,
+        "timeoutMinutes": 30
+      },
+      "commands": [
+        "npm ci",
+        "npm run build",
+        "node scripts/ui/structural-accessibility-browser-smoke.mjs",
+        "node scripts/seo/site-indexability-inventory.mjs"
+      ],
+      "dependencies": {
+        "scripts": [
+          "scripts/seo/site-indexability-inventory.mjs",
+          "scripts/ui/structural-accessibility-browser-smoke.mjs"
+        ],
+        "npmScripts": [
+          "build"
+        ],
+        "sharedConfig": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "tsconfig.json"
+        ]
+      },
+      "triggerCoverage": {
+        "pathFiltered": true,
+        "paths": [
+          "src/pages/**",
+          "src/layouts/**",
+          "src/components/**",
+          "src/styles/**",
+          "scripts/ui/structural-accessibility-browser-smoke.mjs",
+          ".github/workflows/cbw-structural-accessibility.yml"
+        ],
+        "pathsIgnore": [],
+        "branches": [
+          "master"
+        ],
+        "targetsMaster": true,
+        "selfTriggersOnOwnWorkflowFile": true,
+        "coveredInputs": [
+          "scripts/ui/structural-accessibility-browser-smoke.mjs"
+        ],
+        "uncoveredInputs": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "scripts/seo/site-indexability-inventory.mjs",
+          "tsconfig.json"
+        ],
+        "unresolvableInputs": []
+      },
+      "knownGaps": [
+        {
+          "code": "PATH_FILTERED_NOT_ALWAYS_REPORTING",
+          "detail": "pull_request path filter means this context is not reported on every PR to master; naming it directly in branch protection would deadlock on \"Expected - Waiting for status to be reported\""
+        },
+        {
+          "code": "TRIGGER_GAP_SCRIPT",
+          "detail": "scripts/seo/site-indexability-inventory.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "astro.config.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "package-lock.json"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "package.json"
+        },
+        {
+          "code": "TRIGGER_GAP_SHARED_CONFIG",
+          "detail": "tsconfig.json"
+        }
+      ],
+      "migrationState": "LEGACY_EXTERNAL",
+      "stage2MigrationCandidate": true,
+      "stage2MigrationCandidateReason": "blocking-capable, still external to the unified gate, and not directly requirable because it is path-filtered",
+      "notes": "Structural Accessibility hard gate (Chromium)."
+    },
+    {
+      "id": "critical-alerts",
+      "workflowFile": "critical-alerts.yml",
+      "workflowName": "Critical Alerts",
+      "jobId": "critical-alert",
+      "checkContext": "Send Critical Alerts",
+      "classification": "NON_PR",
+      "directRequiredSafe": false,
+      "pathFiltered": false,
+      "blockingSemantics": {
+        "canFailPullRequest": false,
+        "jobContinueOnError": false,
+        "jobIf": null,
+        "jobIfPullRequestState": "RUNNABLE",
+        "needs": [],
+        "totalSteps": 7,
+        "softenedSteps": 0,
+        "failableSteps": 7,
+        "timeoutMinutes": 15
+      },
+      "commands": [
+        "npm ci",
+        "npx playwright install chromium",
+        "npm run bonus:verify:all",
+        "npm run affiliate:report || npm run affiliate:audit:strict",
+        "npm run monitor:telegram:critical -- --send"
+      ],
+      "dependencies": {
+        "scripts": [
+          "scripts/affiliate-link-inventory.mjs",
+          "scripts/audit-affiliate-links.mjs",
+          "scripts/monitor-telegram-critical.mjs",
+          "scripts/verify-bonus-capture.mjs"
+        ],
+        "npmScripts": [
+          "bonus:verify:all",
+          "affiliate:report",
+          "affiliate:audit:strict",
+          "monitor:telegram:critical"
+        ],
+        "sharedConfig": [
+          "package-lock.json",
+          "package.json"
+        ]
+      },
+      "triggerCoverage": {
+        "pathFiltered": false,
+        "paths": [],
+        "pathsIgnore": [],
+        "branches": [],
+        "targetsMaster": false,
+        "selfTriggersOnOwnWorkflowFile": true,
+        "coveredInputs": [
+          "package-lock.json",
+          "package.json",
+          "scripts/affiliate-link-inventory.mjs",
+          "scripts/audit-affiliate-links.mjs",
+          "scripts/monitor-telegram-critical.mjs",
+          "scripts/verify-bonus-capture.mjs"
+        ],
+        "uncoveredInputs": [],
+        "unresolvableInputs": []
+      },
+      "knownGaps": [],
+      "migrationState": "NOT_APPLICABLE",
+      "stage2MigrationCandidate": false,
+      "stage2MigrationCandidateReason": "not blocking-capable (NON_PR)",
+      "notes": "workflow_dispatch only. Never runs on a pull request."
+    },
+    {
+      "id": "production-monitor",
+      "workflowFile": "production-monitor.yml",
+      "workflowName": "Production Monitor",
+      "jobId": "monitor",
+      "checkContext": "Build & Health Checks",
+      "classification": "NON_PR",
+      "directRequiredSafe": false,
+      "pathFiltered": false,
+      "blockingSemantics": {
+        "canFailPullRequest": false,
+        "jobContinueOnError": false,
+        "jobIf": null,
+        "jobIfPullRequestState": "RUNNABLE",
+        "needs": [],
+        "totalSteps": 15,
+        "softenedSteps": 2,
+        "failableSteps": 13,
+        "timeoutMinutes": 15
+      },
+      "commands": [
+        "npm ci",
+        "npm run build",
+        "npm run affiliate:audit:strict",
+        "npm run screenshots:check",
+        "npm run seo:check",
+        "npm run schema:check",
+        "npm run freshness:audit",
+        "npm run links:audit"
+      ],
+      "dependencies": {
+        "scripts": [
+          "scripts/audit-affiliate-links.mjs",
+          "scripts/audit-exchange-screenshots.mjs",
+          "scripts/audit-freshness.mjs",
+          "scripts/audit-internal-links.mjs",
+          "scripts/audit-schema.mjs",
+          "scripts/audit-seo-titles.mjs"
+        ],
+        "npmScripts": [
+          "build",
+          "affiliate:audit:strict",
+          "screenshots:check",
+          "seo:check",
+          "schema:check",
+          "freshness:audit",
+          "links:audit"
+        ],
+        "sharedConfig": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "tsconfig.json"
+        ]
+      },
+      "triggerCoverage": {
+        "pathFiltered": false,
+        "paths": [],
+        "pathsIgnore": [],
+        "branches": [],
+        "targetsMaster": false,
+        "selfTriggersOnOwnWorkflowFile": true,
+        "coveredInputs": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "scripts/audit-affiliate-links.mjs",
+          "scripts/audit-exchange-screenshots.mjs",
+          "scripts/audit-freshness.mjs",
+          "scripts/audit-internal-links.mjs",
+          "scripts/audit-schema.mjs",
+          "scripts/audit-seo-titles.mjs",
+          "tsconfig.json"
+        ],
+        "uncoveredInputs": [],
+        "unresolvableInputs": []
+      },
+      "knownGaps": [],
+      "migrationState": "NOT_APPLICABLE",
+      "stage2MigrationCandidate": false,
+      "stage2MigrationCandidateReason": "not blocking-capable (NON_PR)",
+      "notes": "workflow_dispatch / schedule / push to master. Never runs on a pull request."
+    },
+    {
+      "id": "telegram-reports",
+      "workflowFile": "telegram-reports.yml",
+      "workflowName": "Telegram Reports",
+      "jobId": "send-reports",
+      "checkContext": "Send Telegram Reports",
+      "classification": "NON_PR",
+      "directRequiredSafe": false,
+      "pathFiltered": false,
+      "blockingSemantics": {
+        "canFailPullRequest": false,
+        "jobContinueOnError": false,
+        "jobIf": null,
+        "jobIfPullRequestState": "RUNNABLE",
+        "needs": [],
+        "totalSteps": 11,
+        "softenedSteps": 0,
+        "failableSteps": 11,
+        "timeoutMinutes": 20
+      },
+      "commands": [
+        "npm ci",
+        "npx playwright install chromium",
+        "npm run bonus:verify:all",
+        "npm run affiliate:report || npm run affiliate:audit:strict",
+        "npm run screenshots:report || npm run screenshots:check",
+        "npm run bonus:telegram-report -- --send",
+        "npm run affiliate:telegram-report -- --send",
+        "npm run screenshots:telegram-report -- --send",
+        "npm run monitor:telegram:summary -- --send"
+      ],
+      "dependencies": {
+        "scripts": [
+          "scripts/affiliate-link-inventory.mjs",
+          "scripts/affiliate-telegram-report.mjs",
+          "scripts/audit-affiliate-links.mjs",
+          "scripts/audit-exchange-screenshots.mjs",
+          "scripts/bonus-telegram-report.mjs",
+          "scripts/monitor-telegram-summary.mjs",
+          "scripts/screenshots-telegram-report.mjs",
+          "scripts/verify-bonus-capture.mjs"
+        ],
+        "npmScripts": [
+          "bonus:verify:all",
+          "affiliate:report",
+          "affiliate:audit:strict",
+          "screenshots:report",
+          "screenshots:check",
+          "bonus:telegram-report",
+          "affiliate:telegram-report",
+          "screenshots:telegram-report",
+          "monitor:telegram:summary"
+        ],
+        "sharedConfig": [
+          "package-lock.json",
+          "package.json"
+        ]
+      },
+      "triggerCoverage": {
+        "pathFiltered": false,
+        "paths": [],
+        "pathsIgnore": [],
+        "branches": [],
+        "targetsMaster": false,
+        "selfTriggersOnOwnWorkflowFile": true,
+        "coveredInputs": [
+          "package-lock.json",
+          "package.json",
+          "scripts/affiliate-link-inventory.mjs",
+          "scripts/affiliate-telegram-report.mjs",
+          "scripts/audit-affiliate-links.mjs",
+          "scripts/audit-exchange-screenshots.mjs",
+          "scripts/bonus-telegram-report.mjs",
+          "scripts/monitor-telegram-summary.mjs",
+          "scripts/screenshots-telegram-report.mjs",
+          "scripts/verify-bonus-capture.mjs"
+        ],
+        "uncoveredInputs": [],
+        "unresolvableInputs": []
+      },
+      "knownGaps": [],
+      "migrationState": "NOT_APPLICABLE",
+      "stage2MigrationCandidate": false,
+      "stage2MigrationCandidateReason": "not blocking-capable (NON_PR)",
+      "notes": "workflow_dispatch / schedule. Never runs on a pull request."
+    }
+  ]
+}
