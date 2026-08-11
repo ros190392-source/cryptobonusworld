@@ -152,6 +152,8 @@ const EXECUTABLE_EXTENSIONS = Object.freeze(['.mjs', '.cjs', '.js', '.sh']);
 // silent truncation.
 const MAX_CLOSURE_NODES = 600;
 const MAX_CLOSURE_DEPTH = 16;
+// How deep template `${…}` interiors are re-scanned as code.
+const MAX_TEMPLATE_DEPTH = 3;
 
 // --- small deterministic helpers ---------------------------------------------
 
@@ -160,44 +162,110 @@ export function parseWorkflow(text) {
   return yaml.load(text, { schema: yaml.CORE_SCHEMA });
 }
 
-// Glob characters GitHub supports that this engine deliberately does NOT model.
-// Their presence in a filter makes the whole trigger UNMODELED rather than
-// being silently mis-evaluated.
+// --- filter-pattern engine (bounded, tri-state) ------------------------------
+//
+// GitHub's filter-pattern cheat sheet, implemented LITERALLY. The wildcards do
+// NOT mean what the equivalent shell/regex characters mean, and guessing is what
+// makes a wrong classification look provable:
+//
+//   *   zero or more characters, never `/`
+//   **  zero or more of ANY character, including `/`
+//   ?   ZERO OR ONE of the PRECEDING character — NOT "one arbitrary character".
+//       `maste?` therefore matches `maste` and `mast`, and does NOT match
+//       `master`; `master?` matches `master` and `maste`.
+//   +   one or more of the preceding character — NOT MODELLED
+//   []  character class                        — NOT MODELLED
+//   !   leading negation / ordering            — NOT MODELLED
+//
+// A `**/` segment (leading, or between slashes) matches ZERO or more whole path
+// segments, so `docs/**/*.md` matches `docs/OVERVIEW.md` as well as
+// `docs/a/b/OVERVIEW.md`.
+//
+// Shell globs (`find … -name`, a `run:` block's `scripts/*.mjs`) are a DIFFERENT
+// language: there `?` really is one arbitrary character. The two flavours are
+// compiled by the same bounded engine but never share semantics.
+
+// Pattern syntax this engine refuses to guess at. Presence => UNMODELED.
 const UNMODELED_GLOB_RE = /[[\]+!\\{}]/;
 
-function globToRegExp(source, doubleStarCrossesSlash = true) {
-  let out = '';
-  for (let i = 0; i < source.length; i += 1) {
-    const ch = source[i];
+const GITHUB_FLAVOR = 'github';
+const SHELL_FLAVOR = 'shell';
+
+function escapeRegExpChar(ch) {
+  return ch.replace(/[.*+^${}()|[\]\\?]/g, '\\$&');
+}
+
+/**
+ * Compile a filter pattern to an anchored RegExp, or return null for any form
+ * outside the supported model. null is UNMODELED — never "no match".
+ */
+function compileFilterPattern(source, flavor) {
+  const text = String(source ?? '');
+  if (UNMODELED_GLOB_RE.test(text)) return null;
+  // Each atom is one matchable unit. `quantifiable` records whether a following
+  // `?` has a single PRECEDING CHARACTER to apply to.
+  const atoms = [];
+  let i = 0;
+  while (i < text.length) {
+    const ch = text[i];
     if (ch === '*') {
-      if (source[i + 1] === '*') {
-        out += doubleStarCrossesSlash ? '.*' : '[^/]*';
-        i += 1;
-      } else {
-        out += '[^/]*';
+      if (text[i + 1] === '*') {
+        if (text[i + 2] === '*') return null; // `***` is not a modelled form
+        if ((i === 0 || text[i - 1] === '/') && text[i + 2] === '/') {
+          // A whole `**/` segment: zero or more complete path segments.
+          atoms.push({ source: '(?:[\\s\\S]*/)?', quantifiable: false });
+          i += 3;
+          continue;
+        }
+        atoms.push({ source: '[\\s\\S]*', quantifiable: false });
+        i += 2;
+        continue;
       }
+      atoms.push({ source: '[^/]*', quantifiable: false });
+      i += 1;
       continue;
     }
     if (ch === '?') {
-      out += '[^/]';
+      if (flavor === SHELL_FLAVOR) {
+        atoms.push({ source: '[^/]', quantifiable: false });
+        i += 1;
+        continue;
+      }
+      // GitHub: zero or one of the PRECEDING character. A `?` with no preceding
+      // character, or one applied to a wildcard or to an already-quantified
+      // atom, is a form this engine will not guess at.
+      const previous = atoms[atoms.length - 1];
+      if (!previous || !previous.quantifiable) return null;
+      previous.source = `(?:${previous.source})?`;
+      previous.quantifiable = false;
+      i += 1;
       continue;
     }
-    out += ch.replace(/[.+^${}()|[\]\\]/g, '\\$&');
+    atoms.push({ source: escapeRegExpChar(ch), quantifiable: true });
+    i += 1;
   }
-  return new RegExp(`^${out}$`);
+  return new RegExp(`^${atoms.map((atom) => atom.source).join('')}$`);
 }
 
-// GitHub path-filter glob -> anchored RegExp. `**` crosses `/`, `*` does not.
+function matchFilterPattern(pattern, candidate, flavor) {
+  const regexp = compileFilterPattern(pattern, flavor);
+  if (regexp === null) return null;
+  return regexp.test(String(candidate ?? ''));
+}
+
+/** GitHub `paths` / `paths-ignore` filter -> true | false | null (UNMODELED). */
 export function matchesPathPattern(pattern, path) {
-  return globToRegExp(String(pattern ?? '')).test(String(path ?? ''));
+  return matchFilterPattern(pattern, path, GITHUB_FLAVOR);
 }
 
-// GitHub branch-filter glob -> tri-state match. Returns null (UNMODELED) for
-// pattern syntax this engine refuses to guess at (`[]`, `+`, `!` negation).
+/** GitHub `branches` / `branches-ignore` filter -> true | false | null. */
 export function matchesRefPattern(pattern, ref) {
-  const source = String(pattern ?? '');
-  if (UNMODELED_GLOB_RE.test(source)) return null;
-  return globToRegExp(source).test(String(ref ?? ''));
+  return matchFilterPattern(pattern, ref, GITHUB_FLAVOR);
+}
+
+/** Shell glob (`*`, `**`, `?` = one arbitrary char) -> true | false | null. */
+export function matchesShellGlob(pattern, path) {
+  return matchFilterPattern(pattern, path, SHELL_FLAVOR);
 }
 
 // --- GitHub expression evaluator (bounded, tri-state) -------------------------
@@ -207,6 +275,43 @@ export function matchesRefPattern(pattern, ref) {
 // evaluates to UNMODELED and propagates. There is no permissive fallback.
 
 export const UNMODELED = Symbol('UNMODELED');
+
+// GitHub does NOT compare with JavaScript's `===`. Its `==` is LOOSE, and two
+// strings are compared CASE-INSENSITIVELY, so
+// `github.event_name == 'PULL_REQUEST'` is TRUE for a pull_request event. Mixed
+// operand types are cast to a number ('' -> 0, a numeric string -> its value,
+// anything else -> NaN, and NaN equals nothing).
+function toComparableNumber(value) {
+  if (typeof value === 'boolean') return value ? 1 : 0;
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (trimmed === '') return 0;
+    return Number(trimmed);
+  }
+  return Number.NaN;
+}
+
+function looseEquals(left, right) {
+  if (left === UNMODELED || right === UNMODELED) return UNMODELED;
+  if (typeof left === 'string' && typeof right === 'string') {
+    return left.toLowerCase() === right.toLowerCase();
+  }
+  if (typeof left === 'boolean' && typeof right === 'boolean') return left === right;
+  const a = toComparableNumber(left);
+  const b = toComparableNumber(right);
+  if (Number.isNaN(a) || Number.isNaN(b)) return false;
+  return a === b;
+}
+
+// GitHub truthiness for the value domain this engine models: a boolean is
+// itself, the empty string is false and any other string is true. Anything else
+// stays UNMODELED rather than being coerced to a guess.
+function truthiness(value) {
+  if (value === UNMODELED) return UNMODELED;
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') return value !== '';
+  return UNMODELED;
+}
 
 function tokenizeExpression(text) {
   const tokens = [];
@@ -281,9 +386,8 @@ function evaluateTokens(tokens, context) {
       return value;
     }
     if (eat('!')) {
-      const value = primary();
-      if (value === UNMODELED) return UNMODELED;
-      return typeof value === 'boolean' ? !value : UNMODELED;
+      const truth = truthiness(primary());
+      return truth === UNMODELED ? UNMODELED : !truth;
     }
     if (token.type === 'string') {
       pos += 1;
@@ -317,20 +421,25 @@ function evaluateTokens(tokens, context) {
     if (token?.type === '==' || token?.type === '!=') {
       pos += 1;
       const right = primary();
-      if (left === UNMODELED || right === UNMODELED) return UNMODELED;
-      return token.type === '==' ? left === right : left !== right;
+      const equal = looseEquals(left, right);
+      if (equal === UNMODELED) return UNMODELED;
+      return token.type === '==' ? equal : !equal;
     }
     return left;
   }
 
+  // `&&` / `||` return an OPERAND in GitHub, not a boolean. Short-circuiting is
+  // kept because a provably-false left operand of `&&` (or a provably-true left
+  // operand of `||`) decides the whole expression even when the other side is
+  // UNMODELED.
   function andExpression() {
     let left = comparison();
     while (peek()?.type === '&&') {
       pos += 1;
       const right = comparison();
-      if (left === false) continue; // short-circuit: provably false
-      if (left === UNMODELED || right === UNMODELED) left = UNMODELED;
-      else left = Boolean(left) && Boolean(right);
+      const truth = truthiness(left);
+      if (truth === false) continue; // short-circuit: provably falsy
+      left = truth === UNMODELED ? UNMODELED : right;
     }
     return left;
   }
@@ -340,9 +449,9 @@ function evaluateTokens(tokens, context) {
     while (peek()?.type === '||') {
       pos += 1;
       const right = andExpression();
-      if (left === true) continue; // short-circuit: provably true
-      if (left === UNMODELED || right === UNMODELED) left = UNMODELED;
-      else left = Boolean(left) || Boolean(right);
+      const truth = truthiness(left);
+      if (truth === true) continue; // short-circuit: provably truthy
+      left = truth === UNMODELED ? UNMODELED : right;
     }
     return left;
   }
@@ -373,8 +482,9 @@ export function evaluateGithubExpression(raw, context = {}) {
   }
   const tokens = tokenizeExpression(text);
   if (tokens === null || tokens.length === 0) return UNMODELED;
-  const value = evaluateTokens(tokens, context);
-  return typeof value === 'boolean' ? value : UNMODELED;
+  // A job-level `if` is coerced to a boolean by GitHub, so a modelled non-boolean
+  // result is resolved through GitHub truthiness. Anything else stays UNMODELED.
+  return truthiness(evaluateTokens(tokens, context));
 }
 
 const PULL_REQUEST_CONTEXT = Object.freeze({ event_name: 'pull_request' });
@@ -509,14 +619,24 @@ export function derivePullRequestTrigger(workflowDoc, targetBranch = 'master') {
     paths = stringArray(config.paths);
     if (paths === null) return unmodeled('paths is not a list of strings');
     for (const pattern of paths) {
-      if (UNMODELED_GLOB_RE.test(pattern)) return unmodeled(`unmodelled path glob syntax: ${pattern}`);
+      // Compiled, not string-tested: any form the engine cannot compile — a
+      // character class, a `+`, a negation, a `?` with nothing to quantify —
+      // makes the whole trigger UNMODELED instead of being approximated.
+      if (compileFilterPattern(pattern, GITHUB_FLAVOR) === null) {
+        return unmodeled(`unmodelled path glob syntax: ${pattern}`);
+      }
     }
   }
   if (has('paths-ignore')) {
     pathsIgnore = stringArray(config['paths-ignore']);
     if (pathsIgnore === null) return unmodeled('paths-ignore is not a list of strings');
     for (const pattern of pathsIgnore) {
-      if (UNMODELED_GLOB_RE.test(pattern)) return unmodeled(`unmodelled path glob syntax: ${pattern}`);
+      // Compiled, not string-tested: any form the engine cannot compile — a
+      // character class, a `+`, a negation, a `?` with nothing to quantify —
+      // makes the whole trigger UNMODELED instead of being approximated.
+      if (compileFilterPattern(pattern, GITHUB_FLAVOR) === null) {
+        return unmodeled(`unmodelled path glob syntax: ${pattern}`);
+      }
     }
   }
   if (has('types')) {
@@ -650,6 +770,13 @@ function isExecutable(path) {
 // Any whitespace/quote-delimited token that could be a repository path.
 const PATH_TOKEN_RE = /[A-Za-z0-9._][A-Za-z0-9._*?/-]*\/[A-Za-z0-9._*?/-]+/g;
 const FIND_NAME_RE = /\bfind\s+([A-Za-z0-9._/-]+)\b[^\n]*?-name\s+'?"?([^\s'"]+)'?"?/g;
+// One whole `find` invocation, up to the next shell separator.
+const FIND_COMMAND_RE = /\bfind\s+[^\n;|&)]*/g;
+// `find` operators that change WHICH files the command visits. Outside the
+// supported subset => DEPENDENCY_UNRESOLVABLE, never an approximation.
+const FIND_UNSUPPORTED_RE = /(^|\s)-(maxdepth|mindepth|path|ipath|regex|iregex|exec|execdir|ok|prune|delete|newer|links|samefile|not|and|or|a|o)\b/;
+// A path-shaped token carrying glob syntax outside the supported subset.
+const UNSUPPORTED_SHELL_GLOB_RE = /(?:^|[\s'"=])([A-Za-z0-9._-]+\/[A-Za-z0-9._*?/-]*[[\]{}+][^\s'"]*)/g;
 const MODULE_EXTENSIONS = Object.freeze(['', '.mjs', '.js', '.cjs', '.ts', '.tsx', '.json']);
 
 // A string literal is treated as naming a repository input only when the CODE
@@ -679,6 +806,24 @@ const PATH_CALL_RE = new RegExp(
   'g',
 );
 const READDIR_CALL_RE = new RegExp('\\breaddir(?:Sync)?\\s*\\(((?:[^()]|\\([^()]*\\))*)\\)', 'g');
+// Calls that really READ repository CONTENT (as opposed to `join`/`resolve`,
+// which only compute a path). If one of these cannot be resolved to a tracked
+// file it becomes an explicit DEPENDENCY_UNRESOLVABLE fact.
+const IO_READ_CALL_NAMES = Object.freeze([
+  'readFileSync',
+  'readFile',
+  'createReadStream',
+  'readdirSync',
+  'readdir',
+  'opendirSync',
+  'globSync',
+]);
+// The subset of those that enumerate a DIRECTORY rather than read one file.
+const DIRECTORY_CALL_NAMES = new Set(['readdirSync', 'readdir', 'opendirSync', 'globSync']);
+const IO_READ_CALL_RE = new RegExp(
+  `\\b(${IO_READ_CALL_NAMES.join('|')})\\s*\\(((?:[^()]|\\([^()]*\\))*)\\)`,
+  'g',
+);
 const ASSIGNED_LITERAL_RE = /=\s*\u0001(\d+)\u0001/g;
 const STATIC_FROM_RE = /\bfrom\s*\u0001(\d+)\u0001/g;
 const BARE_IMPORT_RE = /^[ \t]*import\s*\u0001(\d+)\u0001/gm;
@@ -686,12 +831,137 @@ const CALL_SPECIFIER_RE = /\b(?:import|require)\s*\(\s*\u0001(\d+)\u0001\s*\)/g;
 const DYNAMIC_MODULE_RE = /\b(?:import|require)\s*\(\s*(?!\u0001)[^\s)][^\n]{0,79}/g;
 const PLACEHOLDER_RE = /\u0001(\d+)\u0001/g;
 
+// `const NAME = <expression>` — a bounded, deterministic binding table so that
+// `readFileSync(REQUIRED_WORKFLOW, 'utf8')` resolves through the literal that
+// name was bound to instead of being reported as a computed input.
+const BINDING_RE = /\b(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*([^;\n]{0,200})/g;
+// The two directory idioms that are DETERMINISTIC rather than dynamic: the
+// directory of the running script, and the repository root.
+const HERE_IDIOM_RE = /dirname\s*\(\s*fileURLToPath\s*\(\s*import\.meta\.url\s*\)\s*\)|import\.meta\.dirname/g;
+const CWD_IDIOM_RE = /process\.cwd\s*\(\s*\)/g;
+// Names that structure a path expression without contributing a segment.
+const PATH_STRUCTURAL_NAMES = new Set([
+  'join',
+  'resolve',
+  'normalize',
+  'relative',
+  'dirname',
+  'basename',
+  'extname',
+  'path',
+  'posix',
+  'sep',
+  'new',
+  'URL',
+  'fileURLToPath',
+  'pathToFileURL',
+  'String',
+  'toString',
+  'utf8',
+]);
+const MAX_BINDING_DEPTH = 4;
+const MAX_PATH_SEGMENTS = 8;
+// One token of a path expression: a lexed string literal, or an identifier.
+const SEGMENT_TOKEN_RE = new RegExp('\\u0001(\\d+)\\u0001|[A-Za-z_$][\\w$]*', 'g');
+
 // Bounded JavaScript string/comment lexer. NOT a parser: it only separates code
 // from string literals and comments so that code embedded inside a fixture
 // string is never scanned as if it were code. Regex literals are recognised with
 // the standard "previous significant token" heuristic so a pattern such as
 // /['"]/ cannot desynchronise the scan.
 const REGEX_PRECEDERS = new Set(['(', ',', '=', ':', '[', '!', '&', '|', '?', '{', '}', ';', '+', '-', '*', '%', '<', '>', '~', '^']);
+
+// Read a `${…}` template expression, starting just after the `${`. Returns the
+// verbatim expression source and the index after its closing `}`, or null when
+// the literal never closes. Nested braces, quoted strings and nested template
+// literals are all accounted for so the scan cannot desynchronise.
+function readBalancedExpression(text, start) {
+  let depth = 0;
+  let i = start;
+  while (i < text.length) {
+    const ch = text[i];
+    if (ch === '\\') {
+      i += 2;
+      continue;
+    }
+    if (ch === "'" || ch === '"') {
+      const quote = ch;
+      i += 1;
+      while (i < text.length) {
+        if (text[i] === '\\') {
+          i += 2;
+          continue;
+        }
+        if (text[i] === quote) {
+          i += 1;
+          break;
+        }
+        if (text[i] === '\n') break;
+        i += 1;
+      }
+      continue;
+    }
+    if (ch === '`') {
+      const nested = scanTemplateLiteral(text, i);
+      if (nested === null) return null;
+      i = nested.end;
+      continue;
+    }
+    if (ch === '{') {
+      depth += 1;
+      i += 1;
+      continue;
+    }
+    if (ch === '}') {
+      if (depth === 0) return { source: text.slice(start, i), end: i + 1 };
+      depth -= 1;
+      i += 1;
+      continue;
+    }
+    i += 1;
+  }
+  return null;
+}
+
+// A template literal is BOTH data and code: its static chunks are a string, but
+// every `${…}` interior is real code that really executes. Scanning only the
+// literal (as a plain string) is how an `import(…)` or a `readFileSync(…)`
+// written inside a template expression disappears from the dependency set.
+function scanTemplateLiteral(text, start) {
+  let i = start + 1;
+  let value = '';
+  let chunk = '';
+  const chunks = [];
+  const expressions = [];
+  while (i < text.length) {
+    const ch = text[i];
+    if (ch === '\\') {
+      const escaped = text[i + 1] ?? '';
+      value += escaped;
+      chunk += escaped;
+      i += 2;
+      continue;
+    }
+    if (ch === '`') {
+      chunks.push(chunk);
+      return { value, chunks, expressions, end: i + 1 };
+    }
+    if (ch === '$' && text[i + 1] === '{') {
+      const inner = readBalancedExpression(text, i + 2);
+      if (inner === null) return null;
+      value += `\${${inner.source}}`;
+      expressions.push(inner.source);
+      chunks.push(chunk);
+      chunk = '';
+      i = inner.end;
+      continue;
+    }
+    value += ch;
+    chunk += ch;
+    i += 1;
+  }
+  return null;
+}
 
 export function lexJavaScript(source) {
   const text = String(source ?? '');
@@ -742,7 +1012,22 @@ export function lexJavaScript(source) {
         continue;
       }
     }
-    if (ch === "'" || ch === '"' || ch === '`') {
+    if (ch === '`') {
+      const template = scanTemplateLiteral(text, i);
+      if (template) {
+        strings.push({
+          quote: '`',
+          value: template.value,
+          staticChunks: template.chunks,
+          expressions: template.expressions,
+        });
+        skeleton += `\u0001${strings.length - 1}\u0001`;
+        previousSignificant = '`';
+        i = template.end;
+        continue;
+      }
+    }
+    if (ch === "'" || ch === '"') {
       let j = i + 1;
       let value = '';
       let closed = false;
@@ -790,8 +1075,12 @@ function normalizeRepoPath(path) {
   return parts.join('/');
 }
 
+// Shell-glob expansion against the tracked file set. Returns null (never an
+// empty list) for a form outside the supported shell subset so the caller can
+// record DEPENDENCY_UNRESOLVABLE instead of silently resolving to nothing.
 function expandGlob(pattern, repoFiles) {
-  const regexp = globToRegExp(pattern);
+  const regexp = compileFilterPattern(pattern, SHELL_FLAVOR);
+  if (regexp === null) return null;
   return [...repoFiles].filter((path) => regexp.test(path)).sort();
 }
 
@@ -814,9 +1103,25 @@ function topLevelDirectories(repoFiles) {
   return roots;
 }
 
-// Static chunks of a template literal, i.e. everything outside `${…}`.
+// Static chunks of a template literal, i.e. everything outside `${…}`. The
+// lexer records them exactly (brace-aware); the regex split is the fallback for
+// a body that did not come from the lexer.
 function staticTemplateChunks(body) {
-  return body.split(/\$\{[^{}]*\}/g);
+  return String(body ?? '').split(/\$\{[^{}]*\}/g);
+}
+
+function templateChunksOf(token) {
+  return token?.staticChunks ?? staticTemplateChunks(token?.value);
+}
+
+// A readable, bounded rendering of a call site for an audit fact: string
+// literals are restored, whitespace is folded and the whole thing is capped.
+function describeCall(text, literalOf) {
+  const restored = String(text)
+    .replace(PLACEHOLDER_RE, (unused, index) => JSON.stringify(literalOf(index)))
+    .replace(/\s+/g, ' ')
+    .trim();
+  return restored.length > 120 ? `${restored.slice(0, 117)}...` : restored;
 }
 
 /**
@@ -877,14 +1182,61 @@ export function deriveDependencyClosure({ job, packageScripts = {}, repoFiles = 
     if (!budget(source, 'shell text')) return;
     const folded = String(text ?? '').replace(/[ \t]*\\\r?\n[ \t]*/g, ' ');
 
-    for (const [, dir, namePattern] of folded.matchAll(FIND_NAME_RE)) {
-      for (const path of expandGlob(`${normalizeRepoPath(dir)}/**/${namePattern}`, tracked)) addRead(path);
+    // `find` — supported subset: `find <dir> [-type x] -name <pattern>`, which
+    // searches RECURSIVELY. The expansion therefore has to include BOTH the
+    // direct children of <dir> and every nested descendant. Anything that
+    // changes which files the command visits (`-maxdepth`, `-path`, `-regex`,
+    // `-exec`, `-prune`, boolean operators) is outside the subset and is
+    // recorded rather than approximated.
+    for (const [command] of folded.matchAll(FIND_COMMAND_RE)) {
+      const invocation = command.trim();
+      const unsupported = FIND_UNSUPPORTED_RE.exec(invocation);
+      if (unsupported) {
+        note(unresolvable, source, `find form outside the supported subset (${unsupported[2]}): ${invocation}`);
+        continue;
+      }
+      const parsed = new RegExp(FIND_NAME_RE.source).exec(invocation);
+      if (!parsed) {
+        note(unresolvable, source, `find form outside the supported subset (no -name pattern): ${invocation}`);
+        continue;
+      }
+      const [, dir, namePattern] = parsed;
+      const root = normalizeRepoPath(dir);
+      // `**/` matches ZERO or more whole segments, so `dir/direct.ts` and
+      // `dir/nested/file.ts` both resolve from one recursive expansion.
+      const expanded = expandGlob(`${root}/**/${namePattern}`, tracked);
+      if (expanded === null) {
+        note(unresolvable, source, `find -name pattern is outside the supported glob subset: ${namePattern}`);
+        continue;
+      }
+      if (expanded.length === 0) {
+        note(unresolvable, source, `find expands to no tracked file: ${invocation}`);
+        continue;
+      }
+      for (const path of expanded) addRead(path);
+    }
+
+    // A path-shaped token carrying glob syntax this engine does not model is
+    // recorded, never silently dropped by a regex that simply fails to match it.
+    for (const [, token] of folded.matchAll(UNSUPPORTED_SHELL_GLOB_RE)) {
+      const candidate = token.replace(/^['"]|['"]$/g, '');
+      if (!repoRoots.has(candidate.split('/')[0])) continue;
+      note(unresolvable, source, `shell glob form outside the supported subset: ${candidate}`);
     }
 
     for (const [token] of folded.matchAll(PATH_TOKEN_RE)) {
       const candidate = token.replace(/^['"]|['"]$/g, '');
       if (candidate.includes('*') || candidate.includes('?')) {
-        for (const path of expandGlob(normalizeRepoPath(candidate), tracked)) {
+        const expanded = expandGlob(normalizeRepoPath(candidate), tracked);
+        if (expanded === null) {
+          note(unresolvable, source, `shell glob form outside the supported subset: ${candidate}`);
+          continue;
+        }
+        if (expanded.length === 0 && repoRoots.has(candidate.split('/')[0])) {
+          note(unresolvable, source, `shell glob expands to no tracked file: ${candidate}`);
+          continue;
+        }
+        for (const path of expanded) {
           if (isExecutable(path)) enqueueExec(path, depth + 1, source);
           else addRead(path);
         }
@@ -917,20 +1269,138 @@ export function deriveDependencyClosure({ job, packageScripts = {}, repoFiles = 
       scanShellText(raw, depth, path);
       return;
     }
+    scanCodeText(raw, path, depth, 0);
+  }
+
+  /**
+   * Scan one body of JavaScript. `level` bounds the recursion into template
+   * `${…}` expressions, which are CODE and are scanned as code — an `import(…)`
+   * or a `readFileSync(…)` written inside a template expression must never
+   * disappear just because it is spelled inside a literal.
+   */
+  function scanCodeText(raw, path, depth, level) {
+    if (!budget(path, `code text (level ${level})`)) return;
     // Lex once: `skeleton` is the CODE with every string literal replaced by a
     // placeholder. Every rule below reads the skeleton, so code that only exists
     // inside a fixture string is never scanned as code.
     const { skeleton, strings } = lexJavaScript(raw);
     const literalOf = (index) => strings[Number(index)]?.value ?? '';
+    const tokenOf = (index) => strings[Number(index)];
+    const base = path.split('/').slice(0, -1).join('/');
+
+    // --- bounded, deterministic path-expression resolution ----------------------
+    //
+    // A path argument is resolvable when the CODE fixes it: a literal, the
+    // ordered join of a call's literal segments (`join(ROOT, 'src', 'data',
+    // 'x.json')`), a name bound to either of those, or an interpolation whose
+    // static prefix expands to tracked files. Anything else is genuinely
+    // computed at run time and is reported.
+    const bindings = new Map();
+    for (const match of skeleton.matchAll(BINDING_RE)) {
+      if (!bindings.has(match[1])) bindings.set(match[1], match[2]);
+    }
+
+    // Split an expression into ordered path SEGMENTS: a literal, a name bound to
+    // literals, one of the two deterministic directory idioms, or a genuinely
+    // dynamic value that breaks the run.
+    const segmentsOf = (expression, seen, level) => {
+      if (level > MAX_BINDING_DEPTH) return [{ dynamic: true }];
+      const text = String(expression ?? '')
+        .replace(HERE_IDIOM_RE, ' __CBW_HERE__ ')
+        .replace(CWD_IDIOM_RE, ' __CBW_ROOT__ ');
+      const segments = [];
+      for (const match of text.matchAll(SEGMENT_TOKEN_RE)) {
+        if (match[1] !== undefined) {
+          segments.push({ value: literalOf(match[1]) });
+          continue;
+        }
+        const name = match[0];
+        if (name === '__CBW_HERE__') {
+          segments.push({ value: base }); // the directory of the script itself
+          continue;
+        }
+        if (name === '__CBW_ROOT__') {
+          segments.push({ value: '' }); // the repository root
+          continue;
+        }
+        const bound = bindings.get(name);
+        if (bound !== undefined && !seen.has(name)) {
+          seen.add(name);
+          segments.push(...segmentsOf(bound, seen, level + 1));
+          continue;
+        }
+        if (PATH_STRUCTURAL_NAMES.has(name)) continue; // `join`/`resolve`/… are not segments
+        segments.push({ dynamic: true });
+      }
+      return segments;
+    };
+
+    // Every path string an expression can be PROVED to denote: each contiguous
+    // run of resolved segments, joined in order. `join(ROOT, 'src', 'data',
+    // 'x.json')` therefore yields src/data/x.json, which per-literal matching
+    // alone would drop on the floor. Candidates are ordered LONGEST FIRST so the
+    // most specific reading of an expression always wins; `prefixOnly` keeps a
+    // directory expansion anchored at the start of the run, so a trailing
+    // encoding argument is dropped but `src/data` is never mistaken for the
+    // `src/data/evidence` the code actually enumerates.
+    const candidatePathsOf = (expression, { prefixOnly = false, seen = new Set() } = {}) => {
+      const candidates = [];
+      let run = [];
+      const flush = () => {
+        for (let start = 0; start < run.length; start += 1) {
+          if (prefixOnly && start > 0) break;
+          for (let end = start; end < run.length && end - start < MAX_PATH_SEGMENTS; end += 1) {
+            candidates.push({ length: end - start + 1, path: run.slice(start, end + 1).join('/') });
+          }
+        }
+        run = [];
+      };
+      for (const segment of segmentsOf(expression, seen, 0)) {
+        if (segment.dynamic) flush();
+        else run.push(segment.value);
+      }
+      flush();
+      return candidates.sort((a, b) => b.length - a.length).map((candidate) => candidate.path);
+    };
+
+    // A candidate resolves against the repository root or against the directory
+    // of the script that names it. Returns the tracked path, or null.
+    const resolveCandidate = (candidate) => {
+      if (typeof candidate !== 'string' || candidate === '' || candidate.includes('\u0001')) return null;
+      const rooted = normalizeRepoPath(candidate);
+      if (tracked.has(rooted)) return rooted;
+      if (candidate.startsWith('.')) {
+        const relative = normalizeRepoPath(`${base}/${candidate}`);
+        if (tracked.has(relative)) return relative;
+      }
+      return null;
+    };
+
+    // An interpolated literal counts as resolved only when a static chunk really
+    // expands to tracked repository files.
+    const interpolationResolves = (token) =>
+      templateChunksOf(token).some((chunk) => {
+        const normalized = normalizeRepoPath(chunk);
+        return (
+          normalized.includes('/') &&
+          repoRoots.has(normalized.split('/')[0]) &&
+          expandPrefix(normalized, tracked).length > 0
+        );
+      });
 
     // --- relative module specifiers -> EXEC / READ -----------------------------
     const specifierIndices = new Set();
     for (const source of [STATIC_FROM_RE, BARE_IMPORT_RE, CALL_SPECIFIER_RE]) {
       for (const match of skeleton.matchAll(source)) specifierIndices.add(match[1]);
     }
-    const base = path.split('/').slice(0, -1).join('/');
     for (const index of specifierIndices) {
       const specifier = literalOf(index);
+      if (specifier.includes('${')) {
+        // `import(`./${name}.mjs`)` — a real module load whose target is decided
+        // at run time. It is recorded, never resolved to the static prefix.
+        note(unresolvable, path, `interpolated module specifier is not statically resolvable: ${specifier}`);
+        continue;
+      }
       if (!specifier.startsWith('.')) continue; // a bare package specifier is not a repository file
       let resolved = null;
       for (const extension of MODULE_EXTENSIONS) {
@@ -957,6 +1427,13 @@ export function deriveDependencyClosure({ job, packageScripts = {}, repoFiles = 
     const readCandidates = new Set();
     for (const match of skeleton.matchAll(PATH_CALL_RE)) {
       for (const inner of String(match[2]).matchAll(PLACEHOLDER_RE)) readCandidates.add(inner[1]);
+      // The ORDERED JOIN of a call's literal segments is one path:
+      // `join(ROOT, 'src', 'data', 'x.json')` denotes src/data/x.json, which the
+      // per-literal rule alone would drop on the floor.
+      for (const candidate of candidatePathsOf(match[2])) {
+        const resolved = resolveCandidate(candidate);
+        if (resolved !== null) addRead(resolved);
+      }
     }
     for (const match of skeleton.matchAll(ASSIGNED_LITERAL_RE)) readCandidates.add(match[1]);
     for (const index of readCandidates) {
@@ -967,16 +1444,22 @@ export function deriveDependencyClosure({ job, packageScripts = {}, repoFiles = 
     }
 
     // --- deterministic enumerations ---------------------------------------------
-    for (const match of skeleton.matchAll(READDIR_CALL_RE)) {
-      for (const inner of String(match[1]).matchAll(PLACEHOLDER_RE)) {
-        const dir = literalOf(inner[1]);
-        if (!dir) continue;
-        for (const found of expandPrefix(`${normalizeRepoPath(dir)}/`, tracked)) addRead(found);
+    // A directory enumeration resolves to the MOST SPECIFIC directory the
+    // expression proves, and to that one only.
+    const enumerated = (argsText) => {
+      for (const candidate of candidatePathsOf(argsText, { prefixOnly: true })) {
+        if (candidate === '') continue;
+        const found = expandPrefix(`${normalizeRepoPath(candidate)}/`, tracked);
+        if (found.length === 0) continue;
+        for (const entry of found) addRead(entry);
+        return true;
       }
-    }
+      return false;
+    };
+    for (const match of skeleton.matchAll(READDIR_CALL_RE)) enumerated(match[1]);
     for (const token of strings) {
       if (token.quote !== '`' || !token.value.includes('${')) continue;
-      for (const chunk of staticTemplateChunks(token.value)) {
+      for (const chunk of templateChunksOf(token)) {
         const normalized = normalizeRepoPath(chunk);
         if (!normalized.includes('/')) continue;
         // Only a chunk rooted at a tracked top-level directory is a repository
@@ -994,6 +1477,31 @@ export function deriveDependencyClosure({ job, packageScripts = {}, repoFiles = 
     // --- fail closed on a module load with no static specifier ------------------
     for (const match of skeleton.matchAll(DYNAMIC_MODULE_RE)) {
       note(unresolvable, path, `dynamic module load is not statically resolvable: ${match[0].replace(PLACEHOLDER_RE, "<literal>").trim()}`);
+    }
+
+    // --- fail closed on a CONTENT READ whose input is computed ------------------
+    //
+    // `readFileSync(target)`, `readFile(join(dir, name))`, `readFileSync(argv[2])`
+    // all really read a repository file. The engine cannot say WHICH, so the
+    // call is recorded as DEPENDENCY_UNRESOLVABLE against its originating script
+    // instead of contributing nothing at all.
+    for (const match of skeleton.matchAll(IO_READ_CALL_RE)) {
+      const callName = match[1];
+      const interpolated = [...String(match[2]).matchAll(PLACEHOLDER_RE)]
+        .map((inner) => tokenOf(inner[1]))
+        .filter((token) => String(token?.value ?? '').includes('${'));
+      if (interpolated.some(interpolationResolves)) continue;
+      if (candidatePathsOf(match[2]).some((candidate) => resolveCandidate(candidate) !== null)) continue;
+      // A directory enumeration is resolved when the directory itself is proved
+      // and really expands to tracked files.
+      if (DIRECTORY_CALL_NAMES.has(callName) && enumerated(match[2])) continue;
+      note(unresolvable, path, `computed ${callName}(…) input is not statically resolvable: ${describeCall(match[0], literalOf)}`);
+    }
+
+    // --- template `${…}` interiors are CODE, so scan them as code ---------------
+    if (level < MAX_TEMPLATE_DEPTH) {
+      const expressions = strings.flatMap((token) => token.expressions ?? []).filter((text) => /[(`]/.test(text));
+      if (expressions.length) scanCodeText(expressions.join(';\n'), path, depth, level + 1);
     }
   }
 
@@ -1106,7 +1614,13 @@ export function deriveJobFacts({ workflowFile, workflowDoc, jobId, packageScript
     if (!trigger.modeled) return null;
     if (!pathFiltered) return true;
     if (pathsIgnore) return null; // unresolvable by this model — fail closed
-    return paths.some((pattern) => matchesPathPattern(pattern, candidate));
+    let covered = false;
+    for (const pattern of paths) {
+      const match = matchesPathPattern(pattern, candidate);
+      if (match === null) return null; // an uncompilable filter is never "not covered"
+      if (match) covered = true;
+    }
+    return covered;
   };
 
   const coveredInputs = [];

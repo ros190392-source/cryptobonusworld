@@ -51,6 +51,7 @@ import {
   lexJavaScript,
   matchesPathPattern,
   matchesRefPattern,
+  matchesShellGlob,
   parseWorkflow,
 } from './master-blocking-portfolio-contract.mjs';
 import {
@@ -211,6 +212,46 @@ check("matchesRefPattern: 'releases/**' does not match master", matchesRefPatter
 check('matchesRefPattern: unmodelled glob syntax is null, never a guess', matchesRefPattern('mast[er]', 'master') === null);
 check('matchesRefPattern: negation is unmodelled, never a guess', matchesRefPattern('!master', 'master') === null);
 
+// --- R2 HIGH: GitHub `?` is "zero or one of the PRECEDING character" ---------
+//
+// It is NOT "one arbitrary character". Reading it as a single-character
+// wildcard makes `maste?` look like a filter that targets master, which is
+// exactly how a workflow that never gates master could be reported as a master
+// gate. Each probe below is the literal GitHub semantics.
+check("matchesRefPattern: 'maste?' does NOT match master (`?` is not one-arbitrary-char)", matchesRefPattern('maste?', 'master') === false);
+check("matchesRefPattern: 'maste?' matches 'maste' (one of the preceding 'e')", matchesRefPattern('maste?', 'maste') === true);
+check("matchesRefPattern: 'maste?' matches 'mast' (ZERO of the preceding 'e')", matchesRefPattern('maste?', 'mast') === true);
+check("matchesRefPattern: 'master?' DOES match master", matchesRefPattern('master?', 'master') === true);
+check("matchesRefPattern: 'master?' also matches 'maste'", matchesRefPattern('master?', 'maste') === true);
+check("matchesRefPattern: 'master?' does not match 'masterly'", matchesRefPattern('master?', 'masterly') === false);
+check("matchesRefPattern: 'mast*' matches master (a `*` really is a wildcard)", matchesRefPattern('mast*', 'master') === true);
+check("matchesRefPattern: 'ma?ster' matches master and 'mster'", matchesRefPattern('ma?ster', 'master') === true && matchesRefPattern('ma?ster', 'mster') === true);
+check("matchesRefPattern: a leading '?' has nothing to quantify and is UNMODELED", matchesRefPattern('?master', 'master') === null);
+check("matchesRefPattern: '?' applied to a wildcard is UNMODELED", matchesRefPattern('mast*?', 'master') === null);
+check("matchesRefPattern: '+' is a valid GitHub form this engine does not model", matchesRefPattern('mast+er', 'master') === null);
+check(
+  'matchesPathPattern: the same `?` semantics apply to path filters',
+  matchesPathPattern('docs/OVERVIEW.md?', 'docs/OVERVIEW.md') === true && matchesPathPattern('docs/OVERVIEW.m?', 'docs/OVERVIEW.md') === false,
+);
+
+// --- R2 HIGH: `**/` matches ZERO or more whole path segments -----------------
+check("matchesPathPattern: 'docs/**/*.md' matches docs/OVERVIEW.md (ZERO segments)", matchesPathPattern('docs/**/*.md', 'docs/OVERVIEW.md') === true);
+check("matchesPathPattern: 'docs/**/*.md' matches a nested docs path", matchesPathPattern('docs/**/*.md', 'docs/ci/gates/OVERVIEW.md') === true);
+check("matchesPathPattern: 'docs/**/*.md' matches a one-level docs path", matchesPathPattern('docs/**/*.md', 'docs/ci/OVERVIEW.md') === true);
+check("matchesPathPattern: 'docs/**/*.md' does not escape the docs root", matchesPathPattern('docs/**/*.md', 'src/OVERVIEW.md') === false);
+check("matchesPathPattern: 'docs/**/*.md' still respects the extension", matchesPathPattern('docs/**/*.md', 'docs/ci/README.txt') === false);
+check("matchesPathPattern: a leading '**/' matches a root-level file", matchesPathPattern('**/OVERVIEW.md', 'OVERVIEW.md') === true);
+check("matchesPathPattern: a leading '**/' also matches a nested file", matchesPathPattern('**/OVERVIEW.md', 'docs/ci/OVERVIEW.md') === true);
+check("matchesPathPattern: '**' mid-segment still crosses separators", matchesPathPattern('src/**.astro', 'src/pages/a/b.astro') === true);
+check("matchesPathPattern: unmodelled path glob syntax is null, never a guess", matchesPathPattern('docs/[abc].md', 'docs/a.md') === null);
+
+// --- R2 HIGH: shell globs are a DIFFERENT language ---------------------------
+check("matchesShellGlob: '?' in a shell glob IS one arbitrary character", matchesShellGlob('maste?', 'master') === true);
+check("matchesShellGlob: 'dir/**/*.ts' matches a DIRECT child", matchesShellGlob('dir/**/*.ts', 'dir/direct.ts') === true);
+check("matchesShellGlob: 'dir/**/*.ts' matches a NESTED child", matchesShellGlob('dir/**/*.ts', 'dir/nested/file.ts') === true);
+check("matchesShellGlob: 'dir/**/*.ts' respects the extension", matchesShellGlob('dir/**/*.ts', 'dir/nested/file.json') === false);
+check('matchesShellGlob: an unmodelled brace form is null, never a guess', matchesShellGlob('dir/{a,b}.ts', 'dir/a.ts') === null);
+
 // --- the bounded expression evaluator ---------------------------------------
 const prContext = { event_name: 'pull_request' };
 check('expression: `true` is true', evaluateGithubExpression('true', prContext) === true);
@@ -237,6 +278,74 @@ check(
   evaluateGithubExpression("true || github.repository == 'x/y'", prContext) === true,
 );
 check('expression: always() is true', evaluateGithubExpression('always()', prContext) === true);
+
+// --- R2 HIGH: GitHub `==` is LOOSE and case-INSENSITIVE ----------------------
+//
+// Strict JavaScript equality disagrees with GitHub here. A workflow author who
+// writes 'PULL_REQUEST' gets a job that really does run on pull requests, so
+// modelling it as "not equal" would classify a live PR gate as a non-PR job.
+check(
+  "expression: github.event_name == 'PULL_REQUEST' is TRUE (case-insensitive)",
+  evaluateGithubExpression("github.event_name == 'PULL_REQUEST'", prContext) === true,
+);
+check(
+  "expression: github.event_name == 'Pull_Request' is TRUE (mixed case)",
+  evaluateGithubExpression("github.event_name == 'Pull_Request'", prContext) === true,
+);
+check(
+  "expression: github.event_name != 'PULL_REQUEST' is FALSE (case-insensitive)",
+  evaluateGithubExpression("github.event_name != 'PULL_REQUEST'", prContext) === false,
+);
+check(
+  "expression: github.event_name == 'PUSH' is FALSE in PR context",
+  evaluateGithubExpression("github.event_name == 'PUSH'", prContext) === false,
+);
+check(
+  'expression: two literal strings compare case-insensitively',
+  evaluateGithubExpression("'Master' == 'master'", prContext) === true,
+);
+check(
+  'expression: a genuinely different string is still not equal',
+  evaluateGithubExpression("'master' == 'main'", prContext) === false,
+);
+check('expression: loose equality casts a boolean against a string', evaluateGithubExpression("true == 'true'", prContext) === false);
+check("expression: loose equality casts '1' to a number against true", evaluateGithubExpression("true == '1'", prContext) === true);
+check("expression: loose equality casts '' to zero against false", evaluateGithubExpression("false == ''", prContext) === true);
+check('expression: loose equality on booleans is unchanged', evaluateGithubExpression('true == true', prContext) === true);
+check(
+  'expression: a non-empty string is truthy',
+  evaluateGithubExpression("github.event_name", prContext) === true,
+);
+check('expression: `!` uses GitHub truthiness', evaluateGithubExpression("!''", prContext) === true);
+check(
+  'expression: case-insensitive equality composes with boolean algebra',
+  evaluateGithubExpression("github.event_name == 'PULL_REQUEST' && !(github.event_name == 'PUSH')", prContext) === true,
+);
+for (const stillUnmodelled of [
+  "github.event_name === 'pull_request'", // not a GitHub operator at all
+  "github.event_name > 'pull_request'",
+  "startsWith(github.event_name, 'pull')",
+  "github.event.action == 'opened'",
+  "toJSON(github.event_name) == 'pull_request'",
+]) {
+  check(
+    `expression: ${JSON.stringify(stillUnmodelled)} stays UNMODELED after the loose-equality fix`,
+    evaluateGithubExpression(stillUnmodelled, prContext) === UNMODELED,
+    String(evaluateGithubExpression(stillUnmodelled, prContext)),
+  );
+}
+check(
+  "evaluateJobIfForPullRequest: an UPPERCASE PR guard is RUNNABLE, not UNMODELED",
+  evaluateJobIfForPullRequest("github.event_name == 'PULL_REQUEST'") === 'RUNNABLE',
+);
+check(
+  "evaluateJobIfForPullRequest: an UPPERCASE push guard NEVER runs on a PR",
+  evaluateJobIfForPullRequest("github.event_name == 'PUSH'") === 'NEVER',
+);
+check(
+  "continue-on-error: `${{ github.event_name == 'PULL_REQUEST' }}` is MODELED true",
+  evaluateContinueOnError("${{ github.event_name == 'PULL_REQUEST' }}").value === true,
+);
 for (const dynamic of [
   'github.run_attempt',
   "github.ref == 'refs/heads/master'",
@@ -601,6 +710,178 @@ check(
   check('lexJavaScript: string literals are extracted', strings.some((token) => token.value === 'x/y'));
   check('lexJavaScript: a comment-only literal is not extracted', !strings.some((token) => token.value === 'z/w'));
   check('lexJavaScript: the skeleton keeps code and drops comments', skeleton.includes('const b =') && !skeleton.includes('// '));
+}
+// --- R2 MEDIUM 1: no executed dependency form may SILENTLY disappear ---------
+//
+// Every probe below is a form the bounded extractor cannot deterministically
+// resolve. The requirement is not that the engine guess: it is that the form is
+// recorded as DEPENDENCY_UNRESOLVABLE against the exact script that contains it,
+// so it reaches the frozen snapshot and can be reviewed.
+{
+  const source = [
+    "import { readFileSync, readFile, createReadStream } from 'node:fs';",
+    "import { join } from 'node:path';",
+    "const name = process.argv[2];",
+    'const bare = await import(`./${name}.mjs`);',
+    'const viaExpr = await import(pathExpr);',
+    'const required = require(dynamicSpecifier);',
+    'const computed = readFileSync(target, "utf8");',
+    'const joined = readFileSync(join(DYNAMIC_DIR, name), "utf8");',
+    'readFile(candidatePath, "utf8", () => {});',
+    'const streamed = createReadStream(whicheverFile);',
+    'export { bare, viaExpr, required, computed, joined, streamed };',
+  ].join('\n');
+  const closure = deriveDependencyClosure({
+    job: { steps: [{ run: 'node scripts/dynamic-probe.mjs' }] },
+    packageScripts: {},
+    repoFiles: ['scripts/dynamic-probe.mjs', 'scripts/real.mjs'],
+    readFile: (path) => (path === 'scripts/dynamic-probe.mjs' ? source : null),
+  });
+  const recorded = (needle) => closure.unresolvable.some((entry) => entry.includes(needle));
+  const attributed = (needle) =>
+    closure.unresolvable.some((entry) => entry.startsWith('scripts/dynamic-probe.mjs :: ') && entry.includes(needle));
+  check('dependency closure: `import(`./${name}.mjs`)` is recorded, never dropped', recorded('interpolated module specifier'), JSON.stringify(closure.unresolvable));
+  check('dependency closure: `import(pathExpr)` is recorded, never dropped', recorded('import(pathExpr'), JSON.stringify(closure.unresolvable));
+  check('dependency closure: `require(dynamic)` is recorded, never dropped', recorded('require(dynamicSpecifier'), JSON.stringify(closure.unresolvable));
+  check('dependency closure: `readFileSync(variable)` is recorded, never dropped', recorded('computed readFileSync'), JSON.stringify(closure.unresolvable));
+  check(
+    'dependency closure: `readFileSync(join(...dynamic...))` is recorded, never dropped',
+    recorded('join(DYNAMIC_DIR'),
+    JSON.stringify(closure.unresolvable),
+  );
+  check('dependency closure: a computed `readFile` is recorded, never dropped', recorded('computed readFile(…)'), JSON.stringify(closure.unresolvable));
+  check(
+    'dependency closure: a computed `createReadStream` is recorded, never dropped',
+    recorded('computed createReadStream'),
+    JSON.stringify(closure.unresolvable),
+  );
+  check(
+    'dependency closure: every unresolvable form names its ORIGINATING script',
+    closure.unresolvable.every((entry) => entry.startsWith('scripts/dynamic-probe.mjs :: ')) && attributed('computed readFileSync'),
+    JSON.stringify(closure.unresolvable),
+  );
+}
+{
+  // An import or a read written INSIDE a template expression is code that really
+  // runs. Before R2 the lexer swallowed the whole template as a string and the
+  // dependency vanished.
+  const source = [
+    "import { readFileSync } from 'node:fs';",
+    'const banner = `loaded ${(await import("./inner.mjs")).name}`;',
+    'const body = `size ${readFileSync(mysteryPath, "utf8").length}`;',
+    'export { banner, body };',
+  ].join('\n');
+  const closure = deriveDependencyClosure({
+    job: { steps: [{ run: 'node scripts/template-probe.mjs' }] },
+    packageScripts: {},
+    repoFiles: ['scripts/template-probe.mjs', 'scripts/inner.mjs'],
+    readFile: (path) => (path === 'scripts/template-probe.mjs' ? source : 'const name = 1;\n'),
+  });
+  check(
+    'dependency closure: an import inside a template EXPRESSION is followed, not swallowed',
+    closure.executed.includes('scripts/inner.mjs'),
+    JSON.stringify(closure.executed),
+  );
+  check(
+    'dependency closure: a computed read inside a template EXPRESSION is recorded',
+    closure.unresolvable.some((entry) => entry.includes('computed readFileSync') && entry.includes('mysteryPath')),
+    JSON.stringify(closure.unresolvable),
+  );
+}
+{
+  // The other half of the rule: a form the engine CAN resolve deterministically
+  // must resolve, and must NOT be parked in the unresolvable list as noise.
+  const source = [
+    "import { readFileSync } from 'node:fs';",
+    "import { dirname, join, resolve } from 'node:path';",
+    "import { fileURLToPath } from 'node:url';",
+    'const HERE = dirname(fileURLToPath(import.meta.url));',
+    'const ROOT = resolve(HERE, "..");',
+    'const CONFIG = join(ROOT, "src", "data", "config.json");',
+    'const a = readFileSync(CONFIG, "utf8");',
+    'const b = readFileSync(join(ROOT, "src", "data", "other.json"), "utf-8");',
+    'const c = readFileSync(join(HERE, "sibling.json"), "utf8");',
+    'export { a, b, c };',
+  ].join('\n');
+  const closure = deriveDependencyClosure({
+    job: { steps: [{ run: 'node scripts/deterministic-probe.mjs' }] },
+    packageScripts: {},
+    repoFiles: [
+      'scripts/deterministic-probe.mjs',
+      'scripts/sibling.json',
+      'src/data/config.json',
+      'src/data/other.json',
+    ],
+    readFile: (path) => (path === 'scripts/deterministic-probe.mjs' ? source : null),
+  });
+  for (const path of ['src/data/config.json', 'src/data/other.json', 'scripts/sibling.json']) {
+    check(`dependency closure: the deterministic read "${path}" resolves`, closure.readInputs.includes(path), JSON.stringify(closure.readInputs));
+  }
+  check(
+    'dependency closure: a deterministic read is NOT parked as unresolvable noise',
+    closure.unresolvable.length === 0,
+    JSON.stringify(closure.unresolvable),
+  );
+}
+{
+  // `find dir -name '*.ts'` searches RECURSIVELY: the direct child and the
+  // nested child are BOTH inputs. Translating it to a pattern that only matched
+  // nested files silently dropped every direct child.
+  const closure = deriveDependencyClosure({
+    job: { steps: [{ run: "find src/data/candidates -name '*.ts' | xargs node scripts/check.mjs" }] },
+    packageScripts: {},
+    repoFiles: [
+      'scripts/check.mjs',
+      'src/data/candidates/direct.ts',
+      'src/data/candidates/nested/file.ts',
+      'src/data/candidates/nested/deeper/file.ts',
+      'src/data/candidates/ignored.json',
+    ],
+    readFile: () => 'const x = 1;\n',
+  });
+  check(
+    'dependency closure: `find dir -name` resolves the DIRECT child',
+    closure.readInputs.includes('src/data/candidates/direct.ts'),
+    JSON.stringify(closure.readInputs),
+  );
+  check(
+    'dependency closure: `find dir -name` resolves the NESTED child',
+    closure.readInputs.includes('src/data/candidates/nested/file.ts') &&
+      closure.readInputs.includes('src/data/candidates/nested/deeper/file.ts'),
+    JSON.stringify(closure.readInputs),
+  );
+  check(
+    'dependency closure: `find dir -name` still respects the name pattern',
+    !closure.readInputs.includes('src/data/candidates/ignored.json'),
+    JSON.stringify(closure.readInputs),
+  );
+}
+{
+  const closure = deriveDependencyClosure({
+    job: {
+      steps: [
+        { run: "find src/data -maxdepth 1 -name '*.ts'" },
+        { run: 'find src/data -newer package.json -name "*.json"' },
+        { run: 'find src/data -type f' },
+        { run: 'cat scripts/{alpha,beta}.mjs' },
+      ],
+    },
+    packageScripts: {},
+    repoFiles: ['src/data/a.ts', 'scripts/alpha.mjs', 'scripts/beta.mjs'],
+    readFile: () => 'const x = 1;\n',
+  });
+  for (const [label, needle] of [
+    ['a `-maxdepth` find', 'maxdepth'],
+    ['a `-newer` find', 'newer'],
+    ['a find with no -name pattern', 'no -name pattern'],
+    ['a brace-expansion shell glob', 'shell glob form outside the supported subset'],
+  ]) {
+    check(
+      `dependency closure: ${label} is recorded as UNRESOLVABLE, never approximated`,
+      closure.unresolvable.some((entry) => entry.includes(needle)),
+      JSON.stringify(closure.unresolvable),
+    );
+  }
 }
 {
   const cycleScripts = { a: 'npm run b', b: 'npm run a' };
@@ -1150,6 +1431,33 @@ expectFailure(
   /points at an existing job/,
 );
 
+// R2 MEDIUM 1: an unresolved dependency fact must not be removable from the
+// frozen snapshot. Deleting the row is exactly what "silently disappears" means.
+{
+  const stored = clonePortfolio();
+  const carrier = stored.entries.find((entry) =>
+    (entry.knownGaps ?? []).some((gapEntry) => gapEntry.code === 'DEPENDENCY_UNRESOLVABLE'),
+  );
+  check('the snapshot really records DEPENDENCY_UNRESOLVABLE facts (the probe is not vacuous)', Boolean(carrier));
+  expectFailure(
+    'audit FAILS when a DEPENDENCY_UNRESOLVABLE row is deleted from the snapshot',
+    withPortfolio((portfolio) => {
+      const target = portfolio.entries.find((entry) => entry.id === carrier.id);
+      target.knownGaps = target.knownGaps.filter((gapEntry) => gapEntry.code !== 'DEPENDENCY_UNRESOLVABLE');
+    }),
+    /field "knownGaps" matches the workflow YAML/,
+  );
+  expectFailure(
+    'audit FAILS when a DEPENDENCY_UNRESOLVABLE reason is rewritten in the snapshot',
+    withPortfolio((portfolio) => {
+      const target = portfolio.entries.find((entry) => entry.id === carrier.id);
+      const gapEntry = target.knownGaps.find((candidate) => candidate.code === 'DEPENDENCY_UNRESOLVABLE');
+      gapEntry.detail = 'resolved, honestly';
+    }),
+    /field "knownGaps" matches the workflow YAML/,
+  );
+}
+
 // --- C8. fail-closed inputs ---------------------------------------------------
 expectFailure(
   'audit FAILS on an unparseable workflow file rather than skipping it',
@@ -1333,6 +1641,67 @@ jobs:
 `,
   ],
   [
+    // R2 HIGH: a `?` with nothing to quantify is valid GitHub syntax this
+    // engine will not guess at. Synchronising the snapshot to whatever it
+    // guessed must not make the audit pass.
+    'a branch glob whose `?` has no preceding character',
+    `name: CBW Leading Question Glob
+on:
+  pull_request:
+    branches: ['?master']
+jobs:
+  leading-question:
+    name: Leading question gate
+    runs-on: ubuntu-latest
+    steps:
+      - run: npm ci
+`,
+  ],
+  [
+    'a `+` branch glob (valid GitHub syntax, outside the supported model)',
+    `name: CBW Plus Glob
+on:
+  pull_request:
+    branches: ['mast+er']
+jobs:
+  plus-glob:
+    name: Plus glob gate
+    runs-on: ubuntu-latest
+    steps:
+      - run: npm ci
+`,
+  ],
+  [
+    'a `+` path glob (valid GitHub syntax, outside the supported model)',
+    `name: CBW Plus Path Glob
+on:
+  pull_request:
+    branches: [master]
+    paths: ['src/data+/**']
+jobs:
+  plus-path-glob:
+    name: Plus path glob gate
+    runs-on: ubuntu-latest
+    steps:
+      - run: npm ci
+`,
+  ],
+  [
+    'an expression operator GitHub has but this engine does not model',
+    `name: CBW Unmodelled Operator
+on:
+  pull_request:
+    branches: [master]
+jobs:
+  unmodelled-operator:
+    name: Unmodelled operator gate
+    if: startsWith(github.event_name, 'pull')
+    runs-on: ubuntu-latest
+    steps:
+      - run: npm ci
+`,
+  ],
+  [
     'a narrowed pull_request activity-type list',
     `name: CBW Narrowed Types
 on:
@@ -1429,6 +1798,109 @@ jobs:
       - run: npm ci
 `,
     { classification: 'BLOCKING', directRequiredSafe: true },
+  ],
+  [
+    // R2 HIGH: `maste?` is `mast` + an optional `e`. It does NOT target master,
+    // so the job is NOT a master PR gate. Reading `?` as one-arbitrary-character
+    // made this look like a BLOCKING master gate.
+    "a `maste?` branch filter does NOT target master",
+    `name: CBW Maste Question
+on:
+  pull_request:
+    branches: ['maste?']
+jobs:
+  maste-question:
+    name: Maste question job
+    runs-on: ubuntu-latest
+    steps:
+      - run: npm ci
+`,
+    { classification: 'NON_PR', directRequiredSafe: false },
+  ],
+  [
+    "a `master?` branch filter DOES target master",
+    `name: CBW Master Question
+on:
+  pull_request:
+    branches: ['master?']
+jobs:
+  master-question:
+    name: Master question job
+    runs-on: ubuntu-latest
+    steps:
+      - run: npm ci
+`,
+    { classification: 'BLOCKING', directRequiredSafe: true },
+  ],
+  [
+    "a `mast*` branch filter targets master",
+    `name: CBW Master Star
+on:
+  pull_request:
+    branches: ['mast*']
+jobs:
+  master-star:
+    name: Master star job
+    runs-on: ubuntu-latest
+    steps:
+      - run: npm ci
+`,
+    { classification: 'BLOCKING', directRequiredSafe: true },
+  ],
+  [
+    // R2 HIGH: `docs/**/*.md` covers `docs/OVERVIEW.md`, so a job whose only input
+    // is a root-level docs file IS covered by its own path filter.
+    'a `docs/**/*.md` path filter covers a direct docs child',
+    `name: CBW Docs Globstar
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - 'docs/**/*.md'
+jobs:
+  docs-globstar:
+    name: Docs globstar job
+    runs-on: ubuntu-latest
+    steps:
+      - run: npm ci
+`,
+    { classification: 'BLOCKING', directRequiredSafe: false },
+  ],
+  [
+    // R2 HIGH: GitHub compares strings case-insensitively, so this job really
+    // does run on pull requests and really is a blocking gate.
+    'an UPPERCASE event-name guard is still a real PR gate',
+    `name: CBW Uppercase Guard
+on:
+  pull_request:
+    branches: [master]
+jobs:
+  uppercase-guard:
+    name: Uppercase guard job
+    if: github.event_name == 'PULL_REQUEST'
+    runs-on: ubuntu-latest
+    steps:
+      - run: npm ci
+`,
+    { classification: 'BLOCKING', directRequiredSafe: true },
+  ],
+  [
+    'an UPPERCASE push-only guard never runs on a PR',
+    `name: CBW Uppercase Push
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+jobs:
+  uppercase-push:
+    name: Uppercase push job
+    if: github.event_name == 'PUSH'
+    runs-on: ubuntu-latest
+    steps:
+      - run: npm ci
+`,
+    { classification: 'CONDITIONAL_PRODUCTION_ONLY', directRequiredSafe: false },
   ],
   [
     'a scalar pull_request trigger is a real PR gate',

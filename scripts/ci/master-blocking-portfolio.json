@@ -119,6 +119,18 @@
       },
       "knownGaps": [
         {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/seo/site-indexability-inventory.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir, { withFileTypes: true })"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/seo/site-indexability-inventory.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ui/contact-utility-browser-smoke.mjs :: computed createReadStream(…) input is not statically resolvable: createReadStream(file)"
+        },
+        {
           "code": "PATH_FILTERED_NOT_ALWAYS_REPORTING",
           "detail": "pull_request path filter means this context is not reported on every PR to master; naming it directly in branch protection would deadlock on \"Expected - Waiting for status to be reported\""
         },
@@ -227,6 +239,22 @@
         "unresolvableInputs": []
       },
       "knownGaps": [
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/seo/site-indexability-inventory.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir, { withFileTypes: true })"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/seo/site-indexability-inventory.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ui/exchange-preview-family-browser-smoke.mjs :: computed createReadStream(…) input is not statically resolvable: createReadStream(file)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ui/exchange-preview-family-browser-smoke.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(PREVIEW_ROOT, { withFileTypes:true })"
+        },
         {
           "code": "PATH_FILTERED_NOT_ALWAYS_REPORTING",
           "detail": "pull_request path filter means this context is not reported on every PR to master; naming it directly in branch protection would deadlock on \"Expected - Waiting for status to be reported\""
@@ -341,6 +369,26 @@
         "unresolvableInputs": []
       },
       "knownGaps": [
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/seo/site-indexability-inventory.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir, { withFileTypes: true })"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/seo/site-indexability-inventory.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ui/global-header-interaction-browser-smoke.mjs :: computed createReadStream(…) input is not statically resolvable: createReadStream(file)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ui/global-header-interaction-browser-smoke.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir,{withFileTypes:true})"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ui/global-header-interaction-browser-smoke.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file,\"utf8\")"
+        },
         {
           "code": "PATH_FILTERED_NOT_ALWAYS_REPORTING",
           "detail": "pull_request path filter means this context is not reported on every PR to master; naming it directly in branch protection would deadlock on \"Expected - Waiting for status to be reported\""
@@ -483,6 +531,38 @@
         "unresolvableInputs": []
       },
       "knownGaps": [
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/owner-confirmed-authority-split-test.mjs :: interpolated module specifier is not statically resolvable: ${pathToFileURL(OUT).href}?v=${Date.now()}"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/seo/redirect-family-matrix-test.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir, { withFileTypes:true })"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/seo/redirect-family-matrix-test.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file,\"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/seo/site-indexability-inventory.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir, { withFileTypes: true })"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/seo/site-indexability-inventory.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ui/go-transition-browser-smoke.mjs :: computed createReadStream(…) input is not statically resolvable: createReadStream(file)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ui/go-transition-browser-smoke.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(GO_ROOT,{withFileTypes:true})"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ui/go-transition-browser-smoke.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(resolve(GO_ROOT,slug,\"index.html\"),\"utf8\")"
+        },
         {
           "code": "PATH_FILTERED_NOT_ALWAYS_REPORTING",
           "detail": "pull_request path filter means this context is not reported on every PR to master; naming it directly in branch protection would deadlock on \"Expected - Waiting for status to be reported\""
@@ -659,6 +739,14 @@
         "unresolvableInputs": []
       },
       "knownGaps": [
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/header/header-browser-smoke.mjs :: computed createReadStream(…) input is not statically resolvable: createReadStream(file)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/header/header-context-test.mjs :: interpolated module specifier is not statically resolvable: ${pathToFileURL(OUT).href}?v=${Date.now()}"
+        },
         {
           "code": "TRIGGER_GAP_INPUT",
           "detail": "src/data/contracts/marketProfileRegistry.ts"
@@ -850,7 +938,55 @@
       "knownGaps": [
         {
           "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/bybit-public-output-audit.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/bybit-public-output-audit.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(f, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/contracts-test.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(join(ROOT, f), \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
           "detail": "scripts/portal/contracts-test.mjs :: dynamic module load is not statically resolvable: import(pathToFileURL(outfile).href);"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/country-foundation-test.mjs :: interpolated module specifier is not statically resolvable: ${pathToFileURL(OUT).href}?v=${Date.now()}"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/marketprofile-candidate-review-test.mjs :: interpolated module specifier is not statically resolvable: ${pathToFileURL(OUT).href}?v=${Date.now()}"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/public-offer-output-audit.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/public-offer-output-audit.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(f, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/public-offer-output-audit.mjs :: interpolated module specifier is not statically resolvable: ${pathToFileURL(out).href}?v=${Date.now()}"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/research-marketprofile-bridge-test.mjs :: interpolated module specifier is not statically resolvable: ${pathToFileURL(OUT).href}?v=${Date.now()}"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/test-authority-guard.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/test-authority-guard.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(f, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/test-authority-guard.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file, \"utf8\")"
         },
         {
           "code": "DEPENDENCY_UNRESOLVABLE",
@@ -1231,7 +1367,87 @@
       "knownGaps": [
         {
           "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/bybit-public-output-audit.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/bybit-public-output-audit.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(f, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/contracts-test.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(join(ROOT, f), \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
           "detail": "scripts/portal/contracts-test.mjs :: dynamic module load is not statically resolvable: import(pathToFileURL(outfile).href);"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/country-foundation-test.mjs :: interpolated module specifier is not statically resolvable: ${pathToFileURL(OUT).href}?v=${Date.now()}"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/marketprofile-candidate-review-test.mjs :: interpolated module specifier is not statically resolvable: ${pathToFileURL(OUT).href}?v=${Date.now()}"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/marketprofile-pipeline-import-dry-run-test.mjs :: interpolated module specifier is not statically resolvable: ${pathToFileURL(OUT).href}?v=${Date.now()}"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/marketprofile-pipeline-inventory-test.mjs :: interpolated module specifier is not statically resolvable: ${pathToFileURL(OUT).href}?v=${Date.now()}"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/marketprofile-pipeline-kz-bundle-test.mjs :: interpolated module specifier is not statically resolvable: ${pathToFileURL(OUT).href}?v=${Date.now()}"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/marketprofile-pipeline-pl-bundle-test.mjs :: interpolated module specifier is not statically resolvable: ${pathToFileURL(OUT).href}?v=${Date.now()}"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/marketprofile-pipeline-promotion-preflight-test.mjs :: interpolated module specifier is not statically resolvable: ${pathToFileURL(OUT).href}?v=${Date.now()}"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/marketprofile-pipeline-registry-guard-test.mjs :: interpolated module specifier is not statically resolvable: ${pathToFileURL(OUT).href}?v=${Date.now()}"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/marketprofile-pipeline-review-preflight-test.mjs :: interpolated module specifier is not statically resolvable: ${pathToFileURL(OUT).href}?v=${Date.now()}"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/marketprofile-promotion-gate-test.mjs :: interpolated module specifier is not statically resolvable: ${pathToFileURL(OUT).href}?v=${Date.now()}"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/public-offer-output-audit.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/public-offer-output-audit.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(f, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/public-offer-output-audit.mjs :: interpolated module specifier is not statically resolvable: ${pathToFileURL(out).href}?v=${Date.now()}"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/research-marketprofile-bridge-test.mjs :: interpolated module specifier is not statically resolvable: ${pathToFileURL(OUT).href}?v=${Date.now()}"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/test-authority-guard.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/test-authority-guard.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(f, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/test-authority-guard.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file, \"utf8\")"
         },
         {
           "code": "DEPENDENCY_UNRESOLVABLE",
@@ -1571,7 +1787,59 @@
       "knownGaps": [
         {
           "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/bybit-public-output-audit.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/bybit-public-output-audit.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(f, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/contracts-test.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(join(ROOT, f), \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
           "detail": "scripts/portal/contracts-test.mjs :: dynamic module load is not statically resolvable: import(pathToFileURL(outfile).href);"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/country-foundation-test.mjs :: interpolated module specifier is not statically resolvable: ${pathToFileURL(OUT).href}?v=${Date.now()}"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/marketprofile-candidate-review-test.mjs :: interpolated module specifier is not statically resolvable: ${pathToFileURL(OUT).href}?v=${Date.now()}"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/marketprofile-promotion-gate-test.mjs :: interpolated module specifier is not statically resolvable: ${pathToFileURL(OUT).href}?v=${Date.now()}"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/public-offer-output-audit.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/public-offer-output-audit.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(f, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/public-offer-output-audit.mjs :: interpolated module specifier is not statically resolvable: ${pathToFileURL(out).href}?v=${Date.now()}"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/research-marketprofile-bridge-test.mjs :: interpolated module specifier is not statically resolvable: ${pathToFileURL(OUT).href}?v=${Date.now()}"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/test-authority-guard.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/test-authority-guard.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(f, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/test-authority-guard.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file, \"utf8\")"
         },
         {
           "code": "DEPENDENCY_UNRESOLVABLE",
@@ -1789,7 +2057,9 @@
           "scripts/ui/global-header-interaction-browser-smoke.mjs"
         ],
         "readInputs": [
+          ".github/workflows/cbw-global-header-interaction.yml",
           ".github/workflows/cbw-master-required-gate.yml",
+          "package.json",
           "server/votes/server.mjs"
         ],
         "localActions": [],
@@ -1815,9 +2085,11 @@
         "targetsMaster": true,
         "selfTriggersOnOwnWorkflowFile": true,
         "coveredInputs": [
+          ".github/workflows/cbw-global-header-interaction.yml",
           ".github/workflows/cbw-master-required-gate.yml",
           "astro.config.mjs",
           "package-lock.json",
+          "package.json",
           "package.json",
           "scripts/ci/master-required-gate-allowlist-drift.mjs",
           "scripts/ci/master-required-gate-classifier-fixture-test.mjs",
@@ -1834,7 +2106,56 @@
         "uncoveredInputs": [],
         "unresolvableInputs": []
       },
-      "knownGaps": [],
+      "knownGaps": [
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ci/master-required-gate-classify.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(outputFile, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ci/master-required-gate-contract-test.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(full, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ci/master-required-gate-contract-test.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(path, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ci/master-required-gate-mutation-test.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(mutantOutput, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ci/master-required-gate-mutation-test.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(outputFile, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ci/master-required-gate-mutation-test.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(sidecarPath, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ci/master-required-gate-validate-output.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(sidecarPath, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/seo/site-indexability-inventory.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir, { withFileTypes: true })"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/seo/site-indexability-inventory.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ui/global-header-interaction-browser-smoke.mjs :: computed createReadStream(…) input is not statically resolvable: createReadStream(file)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ui/global-header-interaction-browser-smoke.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir,{withFileTypes:true})"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ui/global-header-interaction-browser-smoke.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file,\"utf8\")"
+        }
+      ],
       "migrationState": "UNIFIED_GATE_HOST",
       "stage2MigrationCandidate": false,
       "stage2MigrationCandidateReason": "not external to the unified gate (UNIFIED_GATE_HOST)",
@@ -1932,6 +2253,22 @@
         "unresolvableInputs": []
       },
       "knownGaps": [
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/seo/site-indexability-inventory.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir, { withFileTypes: true })"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/seo/site-indexability-inventory.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ui/noindex-product-preview-browser-smoke.mjs :: computed createReadStream(…) input is not statically resolvable: createReadStream(file)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ui/product-system-foundation-test.mjs :: interpolated module specifier is not statically resolvable: ${pathToFileURL(OUT).href}?v=${Date.now()}"
+        },
         {
           "code": "MISLEADING_ADVISORY_FILENAME",
           "detail": "cbw-noindex-product-preview-advisory.yml"
@@ -2039,6 +2376,8 @@
           "tests/ai-ops/run-fixtures.mjs"
         ],
         "readInputs": [
+          "owner-ops/ai-ops/CBW_BRANCH_AUTHORITY_MAP_v1.json",
+          "owner-ops/ai-ops/examples/CBW_AI_TASK_CONTRACT_EXAMPLE_v1.json",
           "src/components/exchange/ExchangePromoPageV2.astro",
           "src/components/exchange/ExchangeUnverifiedNotice.astro",
           "src/components/exchange/GovernedExchangePage.astro",
@@ -2079,7 +2418,12 @@
           "src/data/offers.ts",
           "src/data/publicCommercialRoute.ts",
           "src/data/publicOfferView.ts",
-          "src/pages/promo-codes/index.astro"
+          "src/pages/promo-codes/index.astro",
+          "tests/ai-ops/fixtures/invalid-authorization.json",
+          "tests/ai-ops/fixtures/invalid-changed-files.txt",
+          "tests/ai-ops/fixtures/invalid-missing-field.json",
+          "tests/ai-ops/fixtures/valid-changed-files.txt",
+          "tests/ai-ops/fixtures/valid-contract.json"
         ],
         "localActions": [],
         "sharedConfig": [
@@ -2183,6 +2527,13 @@
         ],
         "uncoveredInputs": [
           "astro.config.mjs",
+          "owner-ops/ai-ops/CBW_BRANCH_AUTHORITY_MAP_v1.json",
+          "owner-ops/ai-ops/examples/CBW_AI_TASK_CONTRACT_EXAMPLE_v1.json",
+          "tests/ai-ops/fixtures/invalid-authorization.json",
+          "tests/ai-ops/fixtures/invalid-changed-files.txt",
+          "tests/ai-ops/fixtures/invalid-missing-field.json",
+          "tests/ai-ops/fixtures/valid-changed-files.txt",
+          "tests/ai-ops/fixtures/valid-contract.json",
           "tests/ai-ops/run-fixtures.mjs",
           "tsconfig.json"
         ],
@@ -2191,11 +2542,67 @@
       "knownGaps": [
         {
           "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/evidence/capture-bybit-official-sources.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(path, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
           "detail": "scripts/evidence/capture-bybit-official-sources.mjs :: dynamic module load is not statically resolvable: import(pathToFileURL(outfile).href);"
         },
         {
           "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/bybit-public-output-audit.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/bybit-public-output-audit.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(f, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/contracts-test.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(join(ROOT, f), \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
           "detail": "scripts/portal/contracts-test.mjs :: dynamic module load is not statically resolvable: import(pathToFileURL(outfile).href);"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/country-foundation-test.mjs :: interpolated module specifier is not statically resolvable: ${pathToFileURL(OUT).href}?v=${Date.now()}"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/owner-confirmed-authority-split-test.mjs :: interpolated module specifier is not statically resolvable: ${pathToFileURL(OUT).href}?v=${Date.now()}"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/owner-confirmed-browser-smoke.mjs :: computed createReadStream(…) input is not statically resolvable: createReadStream(file)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/owner-confirmed-browser-smoke.mjs :: interpolated module specifier is not statically resolvable: ${pathToFileURL(BUNDLE).href}?v=${Date.now()}"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/public-offer-output-audit.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/public-offer-output-audit.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(f, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/public-offer-output-audit.mjs :: interpolated module specifier is not statically resolvable: ${pathToFileURL(out).href}?v=${Date.now()}"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/test-authority-guard.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/test-authority-guard.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(f, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/test-authority-guard.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file, \"utf8\")"
         },
         {
           "code": "DEPENDENCY_UNRESOLVABLE",
@@ -2204,6 +2611,34 @@
         {
           "code": "NO_BRANCH_FILTER",
           "detail": "pull_request trigger declares no branches filter, so it runs on PRs to every branch"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "owner-ops/ai-ops/CBW_BRANCH_AUTHORITY_MAP_v1.json"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "owner-ops/ai-ops/examples/CBW_AI_TASK_CONTRACT_EXAMPLE_v1.json"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "tests/ai-ops/fixtures/invalid-authorization.json"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "tests/ai-ops/fixtures/invalid-changed-files.txt"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "tests/ai-ops/fixtures/invalid-missing-field.json"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "tests/ai-ops/fixtures/valid-changed-files.txt"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "tests/ai-ops/fixtures/valid-contract.json"
         },
         {
           "code": "TRIGGER_GAP_SCRIPT",
@@ -2274,7 +2709,15 @@
           "scripts/check-affiliate-integrity.mjs"
         ],
         "readInputs": [
-          "owner-ops/ai-ops/CBW_BRANCH_AUTHORITY_MAP_v1.json"
+          "owner-ops/ai-ops/CBW_AI_OPS_FOUNDATION_v1.json",
+          "owner-ops/ai-ops/CBW_AI_TASK_CONTRACT_SCHEMA_v1.json",
+          "owner-ops/ai-ops/CBW_AI_WORKFLOW_STATE_MODEL_v1.json",
+          "owner-ops/ai-ops/CBW_BRANCH_AUTHORITY_MAP_v1.json",
+          "owner-ops/ai-ops/CBW_CONTROLLED_REPAIR_POLICY_v1.json",
+          "owner-ops/ai-ops/examples/CBW_AI_TASK_CONTRACT_EXAMPLE_v1.json",
+          "src/data/affiliate-links.ts",
+          "src/data/exchanges.json",
+          "tests/ai-ops/run-fixtures.mjs"
         ],
         "localActions": [],
         "sharedConfig": [
@@ -2300,7 +2743,12 @@
         "selfTriggersOnOwnWorkflowFile": true,
         "coveredInputs": [
           "astro.config.mjs",
+          "owner-ops/ai-ops/CBW_AI_OPS_FOUNDATION_v1.json",
+          "owner-ops/ai-ops/CBW_AI_TASK_CONTRACT_SCHEMA_v1.json",
+          "owner-ops/ai-ops/CBW_AI_WORKFLOW_STATE_MODEL_v1.json",
           "owner-ops/ai-ops/CBW_BRANCH_AUTHORITY_MAP_v1.json",
+          "owner-ops/ai-ops/CBW_CONTROLLED_REPAIR_POLICY_v1.json",
+          "owner-ops/ai-ops/examples/CBW_AI_TASK_CONTRACT_EXAMPLE_v1.json",
           "package-lock.json",
           "package.json",
           "scripts/ai-ops/lib/path-policy.mjs",
@@ -2310,12 +2758,51 @@
           "scripts/ai-ops/validate-task-contract.mjs",
           "scripts/audit-seo-titles.mjs",
           "scripts/check-affiliate-integrity.mjs",
+          "src/data/affiliate-links.ts",
+          "src/data/exchanges.json",
+          "tests/ai-ops/run-fixtures.mjs",
           "tsconfig.json"
         ],
         "uncoveredInputs": [],
         "unresolvableInputs": []
       },
       "knownGaps": [
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ai-ops/validate-ai-ops-foundation.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(p, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ai-ops/validate-branch-authority.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(args[0], \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ai-ops/validate-branch-authority.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(args[1], \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ai-ops/validate-branch-authority.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(args[2], \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ai-ops/validate-scope.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(contractFile, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ai-ops/validate-scope.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ai-ops/validate-task-contract.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/audit-seo-titles.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/audit-seo-titles.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file, \"utf8\")"
+        },
         {
           "code": "MISLEADING_ADVISORY_FILENAME",
           "detail": "cbw-pr-advisory-gate.yml"
@@ -2405,6 +2892,14 @@
         "unresolvableInputs": []
       },
       "knownGaps": [
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/indexnow.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(join(ROOT, relativePath), \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/indexnow.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(localPath, \"utf8\")"
+        },
         {
           "code": "PATH_FILTERED_NOT_ALWAYS_REPORTING",
           "detail": "pull_request path filter means this context is not reported on every PR to master; naming it directly in branch protection would deadlock on \"Expected - Waiting for status to be reported\""
@@ -2498,11 +2993,19 @@
           "scripts/production-origin-parity.mjs"
         ],
         "readInputs": [
+          "owner-ops/ai-ops/CBW_AI_OPS_FOUNDATION_v1.json",
+          "owner-ops/ai-ops/CBW_AI_TASK_CONTRACT_SCHEMA_v1.json",
+          "owner-ops/ai-ops/CBW_AI_WORKFLOW_STATE_MODEL_v1.json",
+          "owner-ops/ai-ops/CBW_BRANCH_AUTHORITY_MAP_v1.json",
+          "owner-ops/ai-ops/CBW_CONTROLLED_REPAIR_POLICY_v1.json",
+          "owner-ops/ai-ops/examples/CBW_AI_TASK_CONTRACT_EXAMPLE_v1.json",
+          "scripts/ai-ops/validate-task-contract.mjs",
           "src/components/exchange/ExchangePromoPageV2.astro",
           "src/components/exchange/ExchangeUnverifiedNotice.astro",
           "src/components/exchange/GovernedExchangePage.astro",
           "src/components/home/HomepageTop10.astro",
           "src/components/site-standard/ExchangeDirectoryCard.astro",
+          "src/data/affiliate-links.ts",
           "src/data/contracts/bybitOfferClaimSourcePlan.ts",
           "src/data/contracts/claimConfirmation.ts",
           "src/data/contracts/countryAwareCta.ts",
@@ -2531,7 +3034,8 @@
           "src/data/offers.ts",
           "src/data/publicCommercialRoute.ts",
           "src/data/publicOfferView.ts",
-          "src/pages/promo-codes/index.astro"
+          "src/pages/promo-codes/index.astro",
+          "tests/ai-ops/run-fixtures.mjs"
         ],
         "localActions": [],
         "sharedConfig": [
@@ -2566,9 +3070,16 @@
         ],
         "uncoveredInputs": [
           "astro.config.mjs",
+          "owner-ops/ai-ops/CBW_AI_OPS_FOUNDATION_v1.json",
+          "owner-ops/ai-ops/CBW_AI_TASK_CONTRACT_SCHEMA_v1.json",
+          "owner-ops/ai-ops/CBW_AI_WORKFLOW_STATE_MODEL_v1.json",
+          "owner-ops/ai-ops/CBW_BRANCH_AUTHORITY_MAP_v1.json",
+          "owner-ops/ai-ops/CBW_CONTROLLED_REPAIR_POLICY_v1.json",
+          "owner-ops/ai-ops/examples/CBW_AI_TASK_CONTRACT_EXAMPLE_v1.json",
           "package-lock.json",
           "package.json",
           "scripts/ai-ops/validate-ai-ops-foundation.mjs",
+          "scripts/ai-ops/validate-task-contract.mjs",
           "scripts/audit-seo-titles.mjs",
           "scripts/check-affiliate-integrity.mjs",
           "scripts/deploy.mjs",
@@ -2586,6 +3097,7 @@
           "src/components/exchange/GovernedExchangePage.astro",
           "src/components/home/HomepageTop10.astro",
           "src/components/site-standard/ExchangeDirectoryCard.astro",
+          "src/data/affiliate-links.ts",
           "src/data/contracts/bybitOfferClaimSourcePlan.ts",
           "src/data/contracts/claimConfirmation.ts",
           "src/data/contracts/countryAwareCta.ts",
@@ -2615,6 +3127,7 @@
           "src/data/publicCommercialRoute.ts",
           "src/data/publicOfferView.ts",
           "src/pages/promo-codes/index.astro",
+          "tests/ai-ops/run-fixtures.mjs",
           "tsconfig.json"
         ],
         "unresolvableInputs": []
@@ -2622,7 +3135,75 @@
       "knownGaps": [
         {
           "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ai-ops/validate-ai-ops-foundation.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(p, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/audit-seo-titles.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/audit-seo-titles.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/indexnow.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(join(ROOT, relativePath), \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/indexnow.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(localPath, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/bybit-public-output-audit.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/bybit-public-output-audit.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(f, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/contracts-test.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(join(ROOT, f), \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
           "detail": "scripts/portal/contracts-test.mjs :: dynamic module load is not statically resolvable: import(pathToFileURL(outfile).href);"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/owner-confirmed-authority-split-test.mjs :: interpolated module specifier is not statically resolvable: ${pathToFileURL(OUT).href}?v=${Date.now()}"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/owner-confirmed-browser-smoke.mjs :: computed createReadStream(…) input is not statically resolvable: createReadStream(file)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/owner-confirmed-browser-smoke.mjs :: interpolated module specifier is not statically resolvable: ${pathToFileURL(BUNDLE).href}?v=${Date.now()}"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/public-offer-output-audit.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/public-offer-output-audit.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(f, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/public-offer-output-audit.mjs :: interpolated module specifier is not statically resolvable: ${pathToFileURL(out).href}?v=${Date.now()}"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/test-authority-guard.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/test-authority-guard.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(f, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/test-authority-guard.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file, \"utf8\")"
         },
         {
           "code": "DEPENDENCY_UNRESOLVABLE",
@@ -2716,6 +3297,22 @@
       },
       "knownGaps": [
         {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/perf/public-asset-client-weight-test.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir,{withFileTypes:true})"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/perf/public-asset-client-weight-test.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file,\"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/seo/site-indexability-inventory.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir, { withFileTypes: true })"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/seo/site-indexability-inventory.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file, \"utf8\")"
+        },
+        {
           "code": "PATH_FILTERED_NOT_ALWAYS_REPORTING",
           "detail": "pull_request path filter means this context is not reported on every PR to master; naming it directly in branch protection would deadlock on \"Expected - Waiting for status to be reported\""
         },
@@ -2780,7 +3377,9 @@
         "executed": [
           "scripts/ui/public-first-screen-budget-browser-smoke.mjs"
         ],
-        "readInputs": [],
+        "readInputs": [
+          "src/data/siteStandard/siteStandardV1.ts"
+        ],
         "localActions": [],
         "sharedConfig": [
           "astro.config.mjs",
@@ -2812,7 +3411,8 @@
         "targetsMaster": true,
         "selfTriggersOnOwnWorkflowFile": true,
         "coveredInputs": [
-          "scripts/ui/public-first-screen-budget-browser-smoke.mjs"
+          "scripts/ui/public-first-screen-budget-browser-smoke.mjs",
+          "src/data/siteStandard/siteStandardV1.ts"
         ],
         "uncoveredInputs": [
           "astro.config.mjs",
@@ -2823,6 +3423,22 @@
         "unresolvableInputs": []
       },
       "knownGaps": [
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ui/public-first-screen-budget-browser-smoke.mjs :: computed createReadStream(…) input is not statically resolvable: createReadStream(file)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ui/public-first-screen-budget-browser-smoke.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir,{withFileTypes:true})"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ui/public-first-screen-budget-browser-smoke.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file,\"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ui/public-first-screen-budget-browser-smoke.mjs :: interpolated module specifier is not statically resolvable: ${pathToFileURL(CONTRACT_BUNDLE).href}?v=${Date.now()}"
+        },
         {
           "code": "PATH_FILTERED_NOT_ALWAYS_REPORTING",
           "detail": "pull_request path filter means this context is not reported on every PR to master; naming it directly in branch protection would deadlock on \"Expected - Waiting for status to be reported\""
@@ -2929,6 +3545,14 @@
       },
       "knownGaps": [
         {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/seo/public-navigation-boundary-test.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir, { withFileTypes: true })"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/seo/public-navigation-boundary-test.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file, \"utf8\")"
+        },
+        {
           "code": "PATH_FILTERED_NOT_ALWAYS_REPORTING",
           "detail": "pull_request path filter means this context is not reported on every PR to master; naming it directly in branch protection would deadlock on \"Expected - Waiting for status to be reported\""
         },
@@ -3033,6 +3657,26 @@
         "unresolvableInputs": []
       },
       "knownGaps": [
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/seo/public-seo-metadata-schema-test.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir,{withFileTypes:true})"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/seo/public-seo-metadata-schema-test.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file,\"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/seo/public-seo-metadata-schema-test.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(path,\"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/seo/site-indexability-inventory.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir, { withFileTypes: true })"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/seo/site-indexability-inventory.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file, \"utf8\")"
+        },
         {
           "code": "PATH_FILTERED_NOT_ALWAYS_REPORTING",
           "detail": "pull_request path filter means this context is not reported on every PR to master; naming it directly in branch protection would deadlock on \"Expected - Waiting for status to be reported\""
@@ -3164,6 +3808,34 @@
       },
       "knownGaps": [
         {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/seo/site-indexability-inventory.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir, { withFileTypes: true })"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/seo/site-indexability-inventory.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ui/product-system-foundation-test.mjs :: interpolated module specifier is not statically resolvable: ${pathToFileURL(OUT).href}?v=${Date.now()}"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ui/ranking-first-browser-smoke.mjs :: computed createReadStream(…) input is not statically resolvable: createReadStream(file)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ui/site-route-matrix-browser-smoke.mjs :: computed createReadStream(…) input is not statically resolvable: createReadStream(file)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ui/site-route-matrix-browser-smoke.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir,{withFileTypes:true})"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ui/site-route-matrix-browser-smoke.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file,\"utf8\")"
+        },
+        {
           "code": "TRIGGER_GAP_SHARED_CONFIG",
           "detail": "astro.config.mjs"
         },
@@ -3263,6 +3935,22 @@
         "unresolvableInputs": []
       },
       "knownGaps": [
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/seo/redirect-family-matrix-test.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir, { withFileTypes:true })"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/seo/redirect-family-matrix-test.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file,\"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/seo/site-indexability-inventory.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir, { withFileTypes: true })"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/seo/site-indexability-inventory.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file, \"utf8\")"
+        },
         {
           "code": "PATH_FILTERED_NOT_ALWAYS_REPORTING",
           "detail": "pull_request path filter means this context is not reported on every PR to master; naming it directly in branch protection would deadlock on \"Expected - Waiting for status to be reported\""
@@ -3453,7 +4141,51 @@
       "knownGaps": [
         {
           "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/bybit-public-output-audit.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/bybit-public-output-audit.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(f, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/contracts-test.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(join(ROOT, f), \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
           "detail": "scripts/portal/contracts-test.mjs :: dynamic module load is not statically resolvable: import(pathToFileURL(outfile).href);"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/country-foundation-test.mjs :: interpolated module specifier is not statically resolvable: ${pathToFileURL(OUT).href}?v=${Date.now()}"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/public-offer-output-audit.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/public-offer-output-audit.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(f, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/public-offer-output-audit.mjs :: interpolated module specifier is not statically resolvable: ${pathToFileURL(out).href}?v=${Date.now()}"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/research-marketprofile-bridge-test.mjs :: interpolated module specifier is not statically resolvable: ${pathToFileURL(OUT).href}?v=${Date.now()}"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/test-authority-guard.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/test-authority-guard.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(f, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/test-authority-guard.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file, \"utf8\")"
         },
         {
           "code": "DEPENDENCY_UNRESOLVABLE",
@@ -3691,6 +4423,14 @@
       },
       "knownGaps": [
         {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/seo/site-indexability-inventory-artifact.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir, { withFileTypes: true })"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/seo/site-indexability-inventory-artifact.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file, \"utf8\")"
+        },
+        {
           "code": "PATH_FILTERED_NOT_ALWAYS_REPORTING",
           "detail": "pull_request path filter means this context is not reported on every PR to master; naming it directly in branch protection would deadlock on \"Expected - Waiting for status to be reported\""
         },
@@ -3796,6 +4536,26 @@
         "unresolvableInputs": []
       },
       "knownGaps": [
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/seo/site-indexability-inventory.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir, { withFileTypes: true })"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/seo/site-indexability-inventory.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ui/structural-accessibility-browser-smoke.mjs :: computed createReadStream(…) input is not statically resolvable: createReadStream(file)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ui/structural-accessibility-browser-smoke.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir, { withFileTypes:true })"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ui/structural-accessibility-browser-smoke.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file,\"utf8\")"
+        },
         {
           "code": "PATH_FILTERED_NOT_ALWAYS_REPORTING",
           "detail": "pull_request path filter means this context is not reported on every PR to master; naming it directly in branch protection would deadlock on \"Expected - Waiting for status to be reported\""
@@ -4086,7 +4846,8 @@
           "public/screenshots/okx/proof_of_reserves/global-desktop-2026-06.webp",
           "public/screenshots/okx/registration/global-desktop-2026-06.webp",
           "src/data/affiliate-links.ts",
-          "src/data/exchanges.json"
+          "src/data/exchanges.json",
+          "src/data/verification-regions.ts"
         ],
         "localActions": [],
         "sharedConfig": [
@@ -4329,12 +5090,61 @@
           "scripts/monitor-telegram-critical.mjs",
           "scripts/verify-bonus-capture.mjs",
           "src/data/affiliate-links.ts",
-          "src/data/exchanges.json"
+          "src/data/exchanges.json",
+          "src/data/verification-regions.ts"
         ],
         "uncoveredInputs": [],
         "unresolvableInputs": []
       },
       "knownGaps": [
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/affiliate-link-inventory.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/affiliate-link-inventory.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/audit-affiliate-links.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(d)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/audit-affiliate-links.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/evidence-snapshot.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(SNAP_DIR)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/evidence-snapshot.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(filePath)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/evidence-snapshot.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(join(SNAP_DIR, f), \"utf-8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/evidence-snapshot.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(queuePath, \"utf-8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/lib/telegram.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(envPath, \"utf-8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/monitor-telegram-critical.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(p, \"utf-8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/verify-bonus-capture.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(queuePath, \"utf-8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/verify-bonus-capture.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(reportPath, \"utf-8\")"
+        },
         {
           "code": "DEPENDENCY_UNRESOLVABLE",
           "detail": "scripts/verify-bonus-capture.mjs :: dynamic module load is not statically resolvable: import(dataUri);"
@@ -4398,6 +5208,26 @@
         ],
         "readInputs": [
           "src/data/affiliate-links.ts",
+          "src/data/evidence/_schema.ts",
+          "src/data/evidence/binance.json",
+          "src/data/evidence/bingx.json",
+          "src/data/evidence/bitget.json",
+          "src/data/evidence/bitunix.json",
+          "src/data/evidence/bybit.json",
+          "src/data/evidence/coinbase.json",
+          "src/data/evidence/coinex.json",
+          "src/data/evidence/gate-io.json",
+          "src/data/evidence/htx.json",
+          "src/data/evidence/index.ts",
+          "src/data/evidence/kucoin.json",
+          "src/data/evidence/lbank.json",
+          "src/data/evidence/mexc.json",
+          "src/data/evidence/offers/bybit-new-user-2026-08-05.json",
+          "src/data/evidence/offers/bybitOfferEvidence.ts",
+          "src/data/evidence/offers/bybitPromoCodeConfirmation.ts",
+          "src/data/evidence/offers/bybitPublicPresentation.ts",
+          "src/data/evidence/okx.json",
+          "src/data/evidence/phemex.json",
           "src/data/exchanges.json"
         ],
         "localActions": [],
@@ -4431,13 +5261,74 @@
           "scripts/audit-schema.mjs",
           "scripts/audit-seo-titles.mjs",
           "src/data/affiliate-links.ts",
+          "src/data/evidence/_schema.ts",
+          "src/data/evidence/binance.json",
+          "src/data/evidence/bingx.json",
+          "src/data/evidence/bitget.json",
+          "src/data/evidence/bitunix.json",
+          "src/data/evidence/bybit.json",
+          "src/data/evidence/coinbase.json",
+          "src/data/evidence/coinex.json",
+          "src/data/evidence/gate-io.json",
+          "src/data/evidence/htx.json",
+          "src/data/evidence/index.ts",
+          "src/data/evidence/kucoin.json",
+          "src/data/evidence/lbank.json",
+          "src/data/evidence/mexc.json",
+          "src/data/evidence/offers/bybit-new-user-2026-08-05.json",
+          "src/data/evidence/offers/bybitOfferEvidence.ts",
+          "src/data/evidence/offers/bybitPromoCodeConfirmation.ts",
+          "src/data/evidence/offers/bybitPublicPresentation.ts",
+          "src/data/evidence/okx.json",
+          "src/data/evidence/phemex.json",
           "src/data/exchanges.json",
           "tsconfig.json"
         ],
         "uncoveredInputs": [],
         "unresolvableInputs": []
       },
-      "knownGaps": [],
+      "knownGaps": [
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/audit-affiliate-links.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(d)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/audit-affiliate-links.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/audit-exchange-screenshots.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(join(EVIDENCE, f), \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/audit-freshness.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(join(EVIDENCE, f), \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/audit-internal-links.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(d, { withFileTypes: true })"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/audit-internal-links.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(f, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/audit-schema.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(d, { withFileTypes: true })"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/audit-schema.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(filePath, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/audit-seo-titles.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/audit-seo-titles.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file, \"utf8\")"
+        }
+      ],
       "migrationState": "NOT_APPLICABLE",
       "stage2MigrationCandidate": false,
       "stage2MigrationCandidateReason": "not blocking-capable (NON_PR)",
@@ -4716,7 +5607,28 @@
           "public/screenshots/okx/proof_of_reserves/global-desktop-2026-06.webp",
           "public/screenshots/okx/registration/global-desktop-2026-06.webp",
           "src/data/affiliate-links.ts",
-          "src/data/exchanges.json"
+          "src/data/evidence/_schema.ts",
+          "src/data/evidence/binance.json",
+          "src/data/evidence/bingx.json",
+          "src/data/evidence/bitget.json",
+          "src/data/evidence/bitunix.json",
+          "src/data/evidence/bybit.json",
+          "src/data/evidence/coinbase.json",
+          "src/data/evidence/coinex.json",
+          "src/data/evidence/gate-io.json",
+          "src/data/evidence/htx.json",
+          "src/data/evidence/index.ts",
+          "src/data/evidence/kucoin.json",
+          "src/data/evidence/lbank.json",
+          "src/data/evidence/mexc.json",
+          "src/data/evidence/offers/bybit-new-user-2026-08-05.json",
+          "src/data/evidence/offers/bybitOfferEvidence.ts",
+          "src/data/evidence/offers/bybitPromoCodeConfirmation.ts",
+          "src/data/evidence/offers/bybitPublicPresentation.ts",
+          "src/data/evidence/okx.json",
+          "src/data/evidence/phemex.json",
+          "src/data/exchanges.json",
+          "src/data/verification-regions.ts"
         ],
         "localActions": [],
         "sharedConfig": [
@@ -4963,12 +5875,93 @@
           "scripts/screenshots-telegram-report.mjs",
           "scripts/verify-bonus-capture.mjs",
           "src/data/affiliate-links.ts",
-          "src/data/exchanges.json"
+          "src/data/evidence/_schema.ts",
+          "src/data/evidence/binance.json",
+          "src/data/evidence/bingx.json",
+          "src/data/evidence/bitget.json",
+          "src/data/evidence/bitunix.json",
+          "src/data/evidence/bybit.json",
+          "src/data/evidence/coinbase.json",
+          "src/data/evidence/coinex.json",
+          "src/data/evidence/gate-io.json",
+          "src/data/evidence/htx.json",
+          "src/data/evidence/index.ts",
+          "src/data/evidence/kucoin.json",
+          "src/data/evidence/lbank.json",
+          "src/data/evidence/mexc.json",
+          "src/data/evidence/offers/bybit-new-user-2026-08-05.json",
+          "src/data/evidence/offers/bybitOfferEvidence.ts",
+          "src/data/evidence/offers/bybitPromoCodeConfirmation.ts",
+          "src/data/evidence/offers/bybitPublicPresentation.ts",
+          "src/data/evidence/okx.json",
+          "src/data/evidence/phemex.json",
+          "src/data/exchanges.json",
+          "src/data/verification-regions.ts"
         ],
         "uncoveredInputs": [],
         "unresolvableInputs": []
       },
       "knownGaps": [
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/affiliate-link-inventory.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/affiliate-link-inventory.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/audit-affiliate-links.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(d)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/audit-affiliate-links.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/audit-exchange-screenshots.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(join(EVIDENCE, f), \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/bonus-telegram-report.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(p, \"utf-8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/evidence-snapshot.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(SNAP_DIR)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/evidence-snapshot.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(filePath)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/evidence-snapshot.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(join(SNAP_DIR, f), \"utf-8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/evidence-snapshot.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(queuePath, \"utf-8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/lib/telegram.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(envPath, \"utf-8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/monitor-telegram-summary.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(p, \"utf-8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/screenshots-telegram-report.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(p, \"utf-8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/verify-bonus-capture.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(queuePath, \"utf-8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/verify-bonus-capture.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(reportPath, \"utf-8\")"
+        },
         {
           "code": "DEPENDENCY_UNRESOLVABLE",
           "detail": "scripts/verify-bonus-capture.mjs :: dynamic module load is not statically resolvable: import(dataUri);"

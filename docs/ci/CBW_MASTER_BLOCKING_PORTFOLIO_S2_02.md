@@ -72,11 +72,45 @@ literal strings. What is modelled:
 | Surface | Modelled |
 |---|---|
 | `on:` form | scalar `on: pull_request`, sequence `on: [pull_request]`, mapping with or without a filter block |
-| `branches` / `branches-ignore` | exact names and `*` / `**` / `?` globs (`*` does not cross `/`) |
+| `branches` / `branches-ignore` | exact names and `*` / `**` / `?` globs, compiled to GitHub's filter-pattern semantics (see below) |
 | `paths` / `paths-ignore` | exact paths and `*` / `**` / `?` globs; `paths-ignore` makes trigger *coverage* unresolvable, which is recorded, not guessed |
 | `types` | only the default set (`opened`, `synchronize`, `reopened`) or a superset |
 | job `continue-on-error` | booleans, the strings `'true'`/`'false'`, and expression forms such as `${{ true }}`, `${{ false }}`, `${{ github.event_name == 'pull_request' }}` |
-| job `if` | boolean algebra (`==`, `!=`, `&&`, `\|\|`, `!`, parentheses) over boolean literals, single-quoted strings, `github.event_name` and `always()` |
+| job `if` | boolean algebra (`==`, `!=`, `&&`, `\|\|`, `!`, parentheses) over boolean literals, single-quoted strings, `github.event_name` and `always()`, with GitHub's **loose, case-insensitive** comparison |
+
+### Filter patterns are GitHub's language, not shell or regex
+
+The wildcards are compiled to GitHub's documented filter-pattern semantics. The
+distinction that matters most is `?`:
+
+| Form | Meaning | Consequence |
+|---|---|---|
+| `*` | zero or more characters, never `/` | `mast*` matches `master` |
+| `**` | zero or more of **any** character, including `/` | `src/**.astro` matches `src/a/b.astro` |
+| `**/` | zero or more **whole path segments** | `docs/**/*.md` matches `docs/README.md` *and* `docs/ci/gates/README.md` |
+| `?` | **zero or one of the PRECEDING character** | `maste?` matches `maste` and `mast` but **NOT** `master`; `master?` matches `master` |
+| `+`, `[]`, `!`, `{}` | valid GitHub / shell forms outside the supported model | `UNMODELED` — the trigger fails closed |
+
+Reading `?` as "one arbitrary character" is what would let `branches: ['maste?']`
+— a filter that does not target master at all — be reported as a master PR gate.
+A `?` with nothing to quantify (`?master`) or applied to a wildcard (`mast*?`) is
+`UNMODELED` rather than approximated.
+
+Shell globs (`find … -name`, a `run:` block's `scripts/*.mjs`) are compiled by
+the same bounded engine under **shell** semantics, where `?` really is one
+arbitrary character. The two flavours never share semantics.
+
+### Expression comparison is GitHub's, not JavaScript's
+
+`==` is **loose** and compares strings **case-insensitively**, so
+`github.event_name == 'PULL_REQUEST'` is true for a pull_request event and the
+job is classified as the live PR gate it really is. Mixed operand types are cast
+to a number (`''` → 0, a numeric string → its value, anything else → `NaN`, which
+equals nothing). `&&` / `||` return an operand, not a boolean, and a job `if`
+result is resolved through GitHub truthiness (the empty string is false, any
+other string is true). Operators and functions outside this set — `===`, `>`,
+`startsWith(...)`, `contains(...)`, `toJSON(...)`, any context other than
+`github.event_name` — remain `UNMODELED`.
 
 Everything else — `[]`/`+`/`!` glob syntax, a narrowed `types` list, an unknown
 `pull_request` filter key, `${{ vars.X }}`, `github.ref` comparisons,
@@ -128,20 +162,46 @@ stops — a file read as text is not itself executed):
   `readFileSync(join(ROOT, 'src/components/…​.astro'), 'utf8')` resolves), or the
   right-hand side of a plain assignment. Position matters: a path that appears
   only as fixture *data* inside a test's case table is not a file that test reads.
-* `readdirSync('<literal dir>')`, expanded against the tracked file list
+* `readdirSync(<dir>)`, expanded against the tracked file list, where `<dir>` is
+  a literal or a name bound to one
 * a template literal whose static chunk is rooted at a tracked top-level
   directory, expanded as a deterministic prefix
-* `find <dir> … -name '<pat>'` in a `run:` block
+* `find <dir> [-type f] -name '<pat>'` in a `run:` block. `find` searches
+  **recursively**, so the expansion covers the direct children of `<dir>` *and*
+  every nested descendant.
+* the ordered join of a call's literal path segments — `join(ROOT, 'src',
+  'data', 'x.json')` denotes `src/data/x.json`, not four unrelated strings
+* a name bound to any of the above by a `const`/`let`/`var` declaration, followed
+  up to four levels, plus the two deterministic directory idioms
+  `dirname(fileURLToPath(import.meta.url))` (the script's own directory) and
+  `process.cwd()` (the repository root)
+* code inside a template `${…}` **expression**, which is scanned as code — an
+  `import(…)` or a `readFileSync(…)` written inside a template literal really
+  executes and must not disappear into the string
 
 **Fail closed — recorded, never silently omitted:**
 
 * `DEPENDENCY_UNREADABLE` — an EXEC target that cannot be read. This is an
   **audit failure**.
-* `DEPENDENCY_UNRESOLVABLE` — a dynamic `import()`/`require()`, a relative
+* `DEPENDENCY_UNRESOLVABLE` — **any executed dependency form the bounded
+  extractor cannot deterministically resolve**, recorded against the exact
+  originating script with its reason. That is: a dynamic
+  `import(pathExpr)`/`require(x)`, an interpolated module specifier
+  (`` import(`./${name}.mjs`) ``), a content read whose input is computed
+  (`readFileSync(target)`, `readFile(join(dir, name))`, `createReadStream(f)`), a
+  directory enumeration whose directory is computed, a `find` form outside the
+  supported subset (`-maxdepth`, `-path`, `-regex`, `-exec`, `-prune`, boolean
+  operators, or no `-name` at all), a shell glob carrying `[]`/`{}`/`+` syntax, a
+  shell glob rooted in the repository that expands to nothing, a relative
   specifier that resolves to no tracked file, a local `uses: ./…` with no tracked
-  action manifest, or a closure that hit its node/depth bound. This is recorded
-  as a **fact in the frozen snapshot**, so it cannot be dropped without failing
-  the drift comparison.
+  action manifest, or a closure that hit its node/depth bound. Each is recorded
+  as a **fact in the frozen snapshot**, so it cannot be dropped or reworded
+  without failing the `knownGaps` drift comparison.
+
+The rule is symmetric: a form the engine *can* resolve deterministically must
+resolve and must not be parked in the unresolvable list as noise, and a form it
+cannot resolve must appear there. There is no third option in which the
+dependency simply does not exist.
 
 **Deliberately not modelled.** This is not a JavaScript interpreter and not a
 speculative universal parser. Each executed file is run through a bounded
