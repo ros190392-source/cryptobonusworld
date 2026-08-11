@@ -1,0 +1,109 @@
+name: CBW Master Required Gate
+
+# Single stable, ALWAYS-REPORTING required check context for product branch
+# `master` (issue #366).
+#
+# Design contract — enforced by scripts/ci/master-required-gate-contract-test.mjs:
+#   * NO `paths` / `paths-ignore` filter. The workflow triggers on every
+#     pull_request targeting master, so the check context is always reported
+#     and branch protection can never deadlock on
+#     "Expected — Waiting for status to be reported".
+#   * Exactly ONE job, whose stable check context is "Master required gate".
+#   * The job is never `continue-on-error` and carries no job-level `if`.
+#   * The classification PRODUCER is bound by contract: exactly one step with
+#     the stable id `classify`, running the exact classifier command with
+#     BASE_SHA/HEAD_SHA wired to the exact PR base/head SHAs. An UNCONDITIONAL
+#     "Validate classifier output" step immediately follows it and fails the
+#     gate closed unless the output is exactly `true`/`false`, because a
+#     missing step output silently evaluates false and would skip every heavy
+#     step while still reporting SUCCESS.
+#   * This is NOT an aggregator over other workflows. It executes the material
+#     hard-gate work itself, so a path-filtered child workflow that never ran
+#     can never be mistaken for PASS.
+#   * Change classification is fail-closed by construction: a path is
+#     non-material ONLY if it is listed verbatim in NON_MATERIAL_PATHS
+#     (scripts/ci/master-required-gate-classify.mjs). Every other path —
+#     including unknown/new paths — is MATERIAL, as is an unresolvable or empty
+#     change set. Rename detection is disabled when resolving changed paths so
+#     a material source renamed to a non-material destination cannot hide.
+#   * Read-only permissions; never deploys and never writes repository contents.
+#
+# Material changes run the full production build plus the complete Global
+# Header Interaction matrix (46 Product System routes). The pre-existing
+# path-filtered workflow .github/workflows/cbw-global-header-interaction.yml is
+# left untouched and continues to report independently; this gate does not
+# reduce its coverage.
+
+on:
+  pull_request:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cbw-master-required-gate-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  master-required-gate:
+    name: Master required gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Required gate contract self-test
+        run: node scripts/ci/master-required-gate-contract-test.mjs
+
+      - name: Classifier real-git fixture suite
+        run: node scripts/ci/master-required-gate-classifier-fixture-test.mjs
+
+      - name: Producer/output mutation suite
+        run: node scripts/ci/master-required-gate-mutation-test.mjs
+
+      - name: Classify changed files (fail-closed)
+        id: classify
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: node scripts/ci/master-required-gate-classify.mjs --emit-github-output
+
+      # UNCONDITIONAL — no `if`. `steps.classify.outputs.material` resolves to
+      # the empty string if the producer above is deleted or its id renamed, and
+      # `'' == 'true'` is false, so every heavy step below would SKIP while this
+      # job still reported SUCCESS. This step fails the gate closed unless the
+      # producer emitted an exactly-valid output that matches its own sidecar.
+      - name: Validate classifier output
+        id: validate
+        env:
+          CLASSIFIER_MATERIAL: ${{ steps.classify.outputs.material }}
+          CLASSIFIER_REASON: ${{ steps.classify.outputs.reason }}
+        run: node scripts/ci/master-required-gate-validate-output.mjs
+
+      - name: Production build
+        id: build
+        if: steps.classify.outputs.material == 'true'
+        run: npm run build
+
+      - name: Global header interaction matrix
+        if: steps.classify.outputs.material == 'true'
+        run: node scripts/ui/global-header-interaction-browser-smoke.mjs
+
+      - name: Indexability inventory
+        if: steps.classify.outputs.material == 'true'
+        run: node scripts/seo/site-indexability-inventory.mjs
