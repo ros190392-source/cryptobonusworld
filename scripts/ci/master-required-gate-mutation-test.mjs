@@ -118,15 +118,102 @@ if (!baseClassifier.includes(SIDECAR_WRITE_STATEMENT)) {
   throw new Error('mutation setup failed: the sidecar write is not a standalone statement');
 }
 
+// Mutant sources shared by the STATIC audit and the BEHAVIOURAL execution
+// proofs, so "the contract catches it" and "it really is a fail-open mutant"
+// are two facts about the SAME text rather than about two similar strings.
+//
+// `mutate` fails closed: a replacement that does not change the source, or a
+// mutant that does not differ from the original, aborts the suite instead of
+// being reported as caught. A mutation that never applied is worse than a
+// failing one — it looks like evidence and is not.
+function mutate(label, source, replacements) {
+  let mutant = source;
+  for (const [from, to] of replacements) {
+    const next = mutant.replace(from, to);
+    if (next === mutant) {
+      throw new Error(`mutation setup failed (no-op): ${label} — "${String(from).slice(0, 60)}"`);
+    }
+    mutant = next;
+  }
+  return mutant;
+}
+
+// HARNESS ACCOMMODATIONS — applied AFTER a mutation, never as part of one.
+// A mutant copy runs from the sandbox rather than from scripts/ci, so two
+// things must be rewritten for it to execute at all: its sibling import (a bare
+// `c:\...` path is not a legal ESM specifier on Windows) and its filename-based
+// entry guard. Both are asserted below not to restore anything the mutation
+// removed, so an accommodation can never be mistaken for a fix.
+function asRunnableValidator(source) {
+  return mutate('validator harness accommodation', source, [
+    [
+      "from './master-required-gate-classify.mjs'",
+      `from ${JSON.stringify(pathToFileURL(CLASSIFY_SCRIPT).href)}`,
+    ],
+    ["process.argv[1]?.endsWith('master-required-gate-validate-output.mjs')", 'true'],
+  ]);
+}
+
+function asRunnableClassifier(source) {
+  return mutate('classifier harness accommodation', source, [
+    ["process.argv[1]?.endsWith('master-required-gate-classify.mjs')", 'true'],
+  ]);
+}
+
+const MUTANT_SOURCES = Object.freeze({
+  // LOW 1 replacement: runnable, because the `node:os` import comes back too.
+  tmpdirFallback: mutate('restore tmpdir fallback with its import', baseClassifier, [
+    ["import { isAbsolute, join } from 'node:path';", "import { tmpdir } from 'node:os';\nimport { isAbsolute, join } from 'node:path';"],
+    ['  const runnerTemp = process.env.RUNNER_TEMP;', '  const runnerTemp = process.env.RUNNER_TEMP || tmpdir();'],
+  ]),
+  // LOW 1 replacement: the empty-value fail-open is REACHED, because the
+  // mutant returns before the absolute-path guard can reject it.
+  emptyRunnerTempCwd: mutate('empty RUNNER_TEMP resolves against cwd', baseClassifier, [
+    [
+      "  if (runnerTemp.length === 0) {\n    throw new Error('master-required-gate: RUNNER_TEMP is empty');\n  }",
+      '  if (runnerTemp.length === 0) {\n    return join(process.cwd(), SIDECAR_BASENAME);\n  }',
+    ],
+  ]),
+  // MEDIUM 1: the exact reviewed bypass — one variable serving as both the
+  // parsed value and the parse-failure sentinel.
+  nullSentinelValidator: mutate('null-as-parse-sentinel', baseValidator, [
+    ['    let parsed;\n    let parseOk = false;', '    let parsed = null;\n    let parseOk = false;'],
+    ['      parseOk = true;\n', ''],
+    [
+      "    if (parseOk && (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed))) {\n      errors.push(\n        `classifier result sidecar must be a JSON object, got ${describeJsonValue(parsed)}`,\n      );\n    } else if (parseOk) {",
+      '    if (false) {\n      errors.push("unreachable");\n    } else if (parsed !== null) {',
+    ],
+  ]),
+  // MEDIUM 2: per-field vocabularies only, which is what accepted every
+  // contradictory cross-product.
+  noPairConsistencyValidator: mutate('drop step-output pair consistency', baseValidator, [
+    ['    !isConsistentClassification(material, reason)', '    false'],
+  ]),
+  // Both halves removed. Needed for the BEHAVIOURAL demonstration: with only
+  // the step-output check gone, the sidecar's own consistency check still
+  // rejects the contradictory pair, so the fail-open shape never becomes
+  // observable. Softening both is what exposes it — which is itself the
+  // evidence that the two checks are independent lines of defence.
+  noAnyPairConsistencyValidator: mutate('drop both pair-consistency checks', baseValidator, [
+    ['    !isConsistentClassification(material, reason)', '    false'],
+    [
+      'if (!isConsistentClassification(String(sidecar.material), sidecar.reason)) {',
+      'if (false) {',
+    ],
+  ]),
+});
+
 // --- A. static mutations -----------------------------------------------------
 const MUTATIONS = [
   {
     id: 1,
+    killedBy: /exactly one step carries the producer id/,
     label: 'remove the classifier producer step entirely',
     apply: () => ({ workflowText: removeStep(baseWorkflow, CLASSIFY_STEP) }),
   },
   {
     id: 2,
+    killedBy: /exactly one step carries the producer id/,
     label: 'rename the producer step id `classify` -> `classify2`',
     apply: () => ({
       workflowText: requireChanged(
@@ -138,6 +225,7 @@ const MUTATIONS = [
   },
   {
     id: 3,
+    killedBy: /exactly one step runs the exact classifier command/,
     label: 'change the classifier command (drop --emit-github-output)',
     apply: () => ({
       workflowText: requireChanged(
@@ -152,6 +240,7 @@ const MUTATIONS = [
   },
   {
     id: 4,
+    killedBy: /producer BASE_SHA is bound exactly to the PR base sha/,
     label: 'remove the BASE_SHA env wiring',
     apply: () => ({
       workflowText: requireChanged(
@@ -163,6 +252,7 @@ const MUTATIONS = [
   },
   {
     id: 5,
+    killedBy: /producer HEAD_SHA is bound exactly to the PR head sha/,
     label: 'remove the HEAD_SHA env wiring',
     apply: () => ({
       workflowText: requireChanged(
@@ -174,6 +264,7 @@ const MUTATIONS = [
   },
   {
     id: 6,
+    killedBy: /producer BASE_SHA does not point at the head sha/,
     label: 'point BASE_SHA at the head sha',
     apply: () => ({
       workflowText: requireChanged(
@@ -188,6 +279,7 @@ const MUTATIONS = [
   },
   {
     id: 7,
+    killedBy: /producer HEAD_SHA does not point at the base sha/,
     label: 'point HEAD_SHA at the base sha',
     apply: () => ({
       workflowText: requireChanged(
@@ -202,11 +294,13 @@ const MUTATIONS = [
   },
   {
     id: 8,
+    killedBy: /exactly one step runs the exact classifier-output validator command/,
     label: 'remove the unconditional validator step',
     apply: () => ({ workflowText: removeStep(baseWorkflow, VALIDATE_STEP) }),
   },
   {
     id: 9,
+    killedBy: /validator step is UNCONDITIONAL/,
     label: 'make the validator conditional on the very output it validates',
     apply: () => ({
       workflowText: insertAfterStepName(
@@ -218,6 +312,7 @@ const MUTATIONS = [
   },
   {
     id: 10,
+    killedBy: /validator compares the material output to the exact literal/,
     label: 'soften the validator to tolerate an empty material value',
     apply: () => ({
       validatorSource: requireChanged(
@@ -229,6 +324,7 @@ const MUTATIONS = [
   },
   {
     id: '10b',
+    killedBy: /validator never trims or case-folds the material value/,
     label: 'soften the validator by trimming the material value',
     apply: () => ({
       validatorSource: requireChanged(
@@ -243,6 +339,7 @@ const MUTATIONS = [
   },
   {
     id: 11,
+    killedBy: /targets an existing step id/,
     label: 'repoint a heavy consumer at a nonexistent step id',
     apply: () => ({
       workflowText: requireChanged(
@@ -257,6 +354,7 @@ const MUTATIONS = [
   },
   {
     id: '11b',
+    killedBy: /names an emitted output/,
     label: 'repoint a heavy consumer at a nonexistent output name',
     apply: () => ({
       workflowText: requireChanged(
@@ -271,6 +369,7 @@ const MUTATIONS = [
   },
   {
     id: 12,
+    killedBy: /classifier source appends the material\+reason pair to GITHUB_OUTPUT/,
     label: 'remove the material output emission from the classifier',
     apply: () => ({
       classifierSource: requireChanged(
@@ -282,6 +381,7 @@ const MUTATIONS = [
   },
   {
     id: '12b',
+    killedBy: /classifier performs exactly ONE writeFileSync/,
     label: 'remove the producer sidecar write from the classifier',
     apply: () => ({
       classifierSource: requireChanged(
@@ -296,6 +396,7 @@ const MUTATIONS = [
     // in its own definition and in the validator, so an identifier search is
     // fully satisfied while the producer no longer writes anything at all.
     id: '12e',
+    killedBy: /classifier performs exactly ONE writeFileSync/,
     label: 'remove ONLY the sidecar write STATEMENT (the path helper is still referenced)',
     apply: () => ({
       classifierSource: requireChanged(
@@ -313,6 +414,7 @@ const MUTATIONS = [
   },
   {
     id: '12f',
+    killedBy: /the sidecar write carries the classification material value/,
     label: 'keep the sidecar write but drop the classification payload',
     apply: () => ({
       classifierSource: requireChanged(
@@ -327,6 +429,7 @@ const MUTATIONS = [
   },
   {
     id: '12g',
+    killedBy: /classifier performs exactly ONE writeFileSync/,
     label: 'redirect the sidecar write away from classifierResultFilePath()',
     apply: () => ({
       classifierSource: requireChanged(
@@ -346,6 +449,7 @@ const MUTATIONS = [
   },
   {
     id: '12h',
+    killedBy: /the sidecar write stamps the run identity field/,
     label: 'drop the run-identity stamp from the sidecar payload (staleness undetectable)',
     apply: () => ({
       classifierSource: requireChanged(
@@ -359,35 +463,103 @@ const MUTATIONS = [
     }),
   },
   {
+    // REPLACED after review. The previous 12i inserted `|| tmpdir()` WITHOUT
+    // restoring the `node:os` import, so the mutant was a ReferenceError, not a
+    // fail-open classifier — it would have "died" of its own broken syntax
+    // rather than of the contract. This version restores the import too, so the
+    // mutant is genuinely runnable and its fail-open behaviour is reachable:
+    // with RUNNER_TEMP unset it silently writes the sidecar into the
+    // process-global temp directory. Section B9 proves both facts by execution.
     id: '12i',
-    label: 'reintroduce the os.tmpdir() fallback for RUNNER_TEMP',
+    killedBy: /classifier (does not import os.tmpdir|never falls back when RUNNER_TEMP is unset)/,
+    label: 'reintroduce the os.tmpdir() fallback for RUNNER_TEMP (with its import, runnable)',
+    apply: () => ({ classifierSource: MUTANT_SOURCES.tmpdirFallback }),
+  },
+  {
+    // REPLACED after review. The previous 12j deleted the empty-RUNNER_TEMP
+    // throw, but execution then fell into the NEXT guard (`isAbsolute('')` is
+    // false) and died there — killed by an unrelated rule, so it proved nothing
+    // about the empty-value rule. This version makes the intended weakened
+    // behaviour actually reachable: an empty RUNNER_TEMP silently resolves the
+    // sidecar against the current working directory, the absolute-path guard is
+    // never reached, and the producer succeeds. Section B9 proves it.
+    id: '12j',
+    killedBy: /classifier fails closed on an empty RUNNER_TEMP/,
+    label: 'silently resolve an empty RUNNER_TEMP against cwd (reachable fail-open)',
+    apply: () => ({ classifierSource: MUTANT_SOURCES.emptyRunnerTempCwd }),
+  },
+  {
+    id: 16,
+    killedBy: /validator (tracks JSON parse SUCCESS separately|requires the parsed sidecar to be a non-null)/,
+    label: 'reintroduce null as the JSON parse-failure sentinel (the `null` sidecar bypass)',
+    apply: () => ({ validatorSource: MUTANT_SOURCES.nullSentinelValidator }),
+  },
+  {
+    id: 17,
+    killedBy: /validator requires the parsed sidecar to be a non-null, non-array object/,
+    label: 'drop the non-null-object requirement on the parsed sidecar',
     apply: () => ({
-      classifierSource: requireChanged(
-        'restore tmpdir fallback',
-        baseClassifier,
-        baseClassifier.replace(
-          '  const runnerTemp = process.env.RUNNER_TEMP;',
-          "  const runnerTemp = process.env.RUNNER_TEMP || tmpdir();",
+      validatorSource: requireChanged(
+        'drop object requirement',
+        baseValidator,
+        baseValidator.replace(
+          "if (parseOk && (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed))) {",
+          'if (parseOk && false) {',
         ),
       ),
     }),
   },
   {
-    id: '12j',
-    label: 'accept an empty RUNNER_TEMP instead of failing closed',
+    id: 18,
+    killedBy: /validator checks the STEP OUTPUT pair for consistency/,
+    label: 'drop material/reason pair-consistency validation on the step outputs',
+    apply: () => ({ validatorSource: MUTANT_SOURCES.noPairConsistencyValidator }),
+  },
+  {
+    id: 19,
+    killedBy: /validator enforces pair consistency on the sidecar/,
+    label: 'drop material/reason pair-consistency validation on the sidecar',
+    apply: () => ({
+      validatorSource: requireChanged(
+        'drop sidecar pair consistency',
+        baseValidator,
+        baseValidator.replace('contradicts its own', 'is fine alongside'),
+      ),
+    }),
+  },
+  {
+    id: 20,
+    killedBy: /the reason -> materiality mapping pins both fail-closed reasons to MATERIAL/,
+    label: 'flip a fail-closed reason to imply NON-material in REASON_MATERIALITY',
     apply: () => ({
       classifierSource: requireChanged(
-        'drop empty RUNNER_TEMP guard',
+        'flip reason materiality',
         baseClassifier,
         baseClassifier.replace(
-          "throw new Error('master-required-gate: RUNNER_TEMP is empty');",
-          '/* tolerated */;',
+          "'unresolved-or-empty-change-set': true,",
+          "'unresolved-or-empty-change-set': false,",
+        ),
+      ),
+    }),
+  },
+  {
+    id: 21,
+    killedBy: /classifier derives the reason vocabulary from that mapping/,
+    label: 'hand-maintain VALID_REASONS instead of deriving it from the mapping',
+    apply: () => ({
+      classifierSource: requireChanged(
+        'undo derived vocabulary',
+        baseClassifier,
+        baseClassifier.replace(
+          'export const VALID_REASONS = Object.freeze(Object.keys(REASON_MATERIALITY));',
+          "export const VALID_REASONS = Object.freeze(['unresolved-or-empty-change-set', 'material-path-changed', 'only-allowlisted-non-material-paths']);",
         ),
       ),
     }),
   },
   {
     id: '12k',
+    killedBy: /classifier fails closed on a malformed\/unusable RUNNER_TEMP/,
     label: 'stop rejecting a malformed/unusable RUNNER_TEMP',
     apply: () => ({
       classifierSource: requireChanged(
@@ -401,6 +573,7 @@ const MUTATIONS = [
   },
   {
     id: 13,
+    killedBy: /validator step receives the exact PR head sha for staleness binding/,
     label: 'unwire the validator step from this run\'s head sha (staleness unbindable)',
     apply: () => ({
       workflowText: requireChanged(
@@ -415,6 +588,7 @@ const MUTATIONS = [
   },
   {
     id: 14,
+    killedBy: /validator compares run identity against its OWN environment/,
     label: 'soften the validator to ignore sidecar staleness',
     apply: () => ({
       validatorSource: requireChanged(
@@ -426,6 +600,7 @@ const MUTATIONS = [
   },
   {
     id: 15,
+    killedBy: /validator surfaces BOTH the sidecar-path and run-identity resolution failures/,
     label: 'let the validator swallow a RUNNER_TEMP resolution failure',
     apply: () => ({
       validatorSource: requireChanged(
@@ -440,6 +615,7 @@ const MUTATIONS = [
   },
   {
     id: '12c',
+    killedBy: /classifier source rejects a duplicate material= emission/,
     label: 'remove the duplicate-emission guard from the classifier',
     apply: () => ({
       classifierSource: requireChanged(
@@ -451,6 +627,7 @@ const MUTATIONS = [
   },
   {
     id: '12d',
+    killedBy: /classifier source fails closed when GITHUB_OUTPUT is unset/,
     label: 'let the classifier silently skip emission when GITHUB_OUTPUT is unset',
     apply: () => ({
       classifierSource: requireChanged(
@@ -487,6 +664,19 @@ for (const mutation of MUTATIONS) {
     `MUTATION ${mutation.id} (${mutation.label}) is CAUGHT by the contract`,
     caught.length > 0,
     'mutant survived — the contract does not bind this property',
+  );
+  // KILLED FOR THE INTENDED REASON — reviewed LOW. A mutant that dies of a
+  // broken import, a syntax error or an unrelated downstream guard is not
+  // evidence that the rule it targets is bound. Every mutation therefore
+  // declares which contract assertion must be the one that fails, and a
+  // mutation with no declaration aborts the suite rather than counting.
+  if (!mutation.killedBy) {
+    throw new Error(`MUTATION ${mutation.id} declares no killedBy assertion`);
+  }
+  check(
+    `MUTATION ${mutation.id} is killed for its INTENDED reason`,
+    caught.some((entry) => mutation.killedBy.test(entry.label)),
+    `intended ${mutation.killedBy} | actual: ${caught.map((entry) => entry.label).join(' | ').slice(0, 300)}`,
   );
 }
 
@@ -675,7 +865,7 @@ try {
       label: 'JSON sidecar that is not an object',
       setup: () => writeRawSidecar('"material-path-changed"'),
       input: { material: 'true', reason: 'material-path-changed' },
-      expect: /sidecar material must be a boolean/,
+      expect: /sidecar must be a JSON object/,
     },
     {
       label: 'sidecar whose material is a STRING, not a boolean',
@@ -811,21 +1001,14 @@ try {
   const softenedPath = join(sandbox, 'softened-validator.mjs');
   writeFileSync(
     softenedPath,
-    baseValidator
-      .replace("material !== 'true' && material !== 'false'", 'false')
-      .replace('String(sidecar.material) !== material', 'false')
-      .replace('sidecar[field] !== expectedIdentity[field]', 'false')
-      // The copy lives outside scripts/ci, so its sibling import must be
-      // rewritten to an absolute file:// URL (a bare `c:\...` path is not a
-      // legal ESM specifier on Windows).
-      .replace(
-        "from './master-required-gate-classify.mjs'",
-        `from ${JSON.stringify(pathToFileURL(CLASSIFY_SCRIPT).href)}`,
-      )
-      .replace(
-        "process.argv[1]?.endsWith('master-required-gate-validate-output.mjs')",
-        'true',
-      ),
+    asRunnableValidator(
+      mutate('soften every independent rule', baseValidator, [
+        ["material !== 'true' && material !== 'false'", 'false'],
+        ['String(sidecar.material) !== material', 'false'],
+        ['sidecar[field] !== expectedIdentity[field]', 'false'],
+        ['    !isConsistentClassification(material, reason)', '    false'],
+      ]),
+    ),
     'utf8',
   );
   clearSidecar();
@@ -1037,6 +1220,228 @@ try {
     staleRescue.status !== 0 && /STALE/.test(`${staleRescue.stderr ?? ''}`),
     `exit=${staleRescue.status}`,
   );
+  clearSidecar();
+
+  // B8. MEDIUM 1 — no JSON shape may route around the sidecar checks.
+  //
+  // The reviewed bypass: `null` PARSES successfully, and the validator used
+  // null as its parse-failure sentinel, so the classification, agreement and
+  // staleness checks were skipped and the gate PASSED on a sidecar that
+  // asserted nothing. Proved here by execution, against the real validator.
+  const NON_OBJECT_SIDECAR_BODIES = [
+    ['null (the exact reviewed bypass)', 'null'],
+    ['an empty array', '[]'],
+    ['a JSON string', '"string"'],
+    ['the number 0', '0'],
+    ['boolean false', 'false'],
+    ['boolean true', 'true'],
+  ];
+  for (const [label, body] of NON_OBJECT_SIDECAR_BODIES) {
+    const run = runScenario({
+      setup: () => writeRawSidecar(body),
+      input: { material: 'true', reason: 'material-path-changed' },
+    });
+    check(`RUNTIME: a sidecar of ${label} FAILS the gate`, run.status !== 0, `exit=${run.status}`);
+    check(
+      `RUNTIME: a sidecar of ${label} is rejected as a non-object, not incidentally`,
+      /sidecar must be a JSON object/.test(`${run.stdout ?? ''}${run.stderr ?? ''}`),
+      (run.stderr ?? '').slice(0, 200),
+    );
+  }
+  // And the fix is load-bearing: a validator with the null sentinel restored
+  // ACCEPTS the `null` sidecar that the real one rejects.
+  const nullSentinelPath = join(sandbox, 'null-sentinel-validator.mjs');
+  writeFileSync(nullSentinelPath, asRunnableValidator(MUTANT_SOURCES.nullSentinelValidator), 'utf8');
+  clearSidecar();
+  writeRawSidecar('null');
+  const nullSentinelRun = runValidator(nullSentinelPath, {
+    material: 'true',
+    reason: 'material-path-changed',
+  });
+  clearSidecar();
+  writeRawSidecar('null');
+  const realNullRun = runValidator(VALIDATE_SCRIPT, {
+    material: 'true',
+    reason: 'material-path-changed',
+  });
+  check(
+    'MUTATION 16 is behaviourally observable: null-sentinel validator ACCEPTS a `null` sidecar',
+    nullSentinelRun.status === 0,
+    `exit=${nullSentinelRun.status} ${nullSentinelRun.stderr ?? ''}`,
+  );
+  check(
+    'MUTATION 16 is behaviourally observable: the real validator REJECTS a `null` sidecar',
+    realNullRun.status !== 0,
+    `exit=${realNullRun.status}`,
+  );
+
+  // B8b. MEDIUM 2 — contradictory material/reason pairs, by execution.
+  const VALID_PAIRS = [
+    ['true', 'material-path-changed'],
+    ['true', 'unresolved-or-empty-change-set'],
+    ['false', 'only-allowlisted-non-material-paths'],
+  ];
+  const CONTRADICTORY_PAIRS = [
+    ['false', 'material-path-changed'],
+    ['false', 'unresolved-or-empty-change-set'],
+    ['true', 'only-allowlisted-non-material-paths'],
+  ];
+  for (const [materialValue, reason] of VALID_PAIRS) {
+    const run = runScenario({
+      setup: () => writeSidecar(materialValue === 'true', reason),
+      input: { material: materialValue, reason },
+    });
+    check(
+      `RUNTIME: valid mapping material=${materialValue} reason=${reason} PASSES`,
+      run.status === 0,
+      `exit=${run.status} ${run.stderr ?? ''}`,
+    );
+  }
+  for (const [materialValue, reason] of CONTRADICTORY_PAIRS) {
+    const run = runScenario({
+      setup: () => writeSidecar(materialValue === 'true', reason),
+      input: { material: materialValue, reason },
+    });
+    check(
+      `RUNTIME: contradictory pair material=${materialValue} reason=${reason} FAILS`,
+      run.status !== 0,
+      `exit=${run.status}`,
+    );
+    check(
+      `RUNTIME: contradictory pair material=${materialValue} reason=${reason} is named as a contradiction`,
+      /contradicts/.test(`${run.stdout ?? ''}${run.stderr ?? ''}`),
+      (run.stderr ?? '').slice(0, 200),
+    );
+  }
+  // Load-bearing: a validator without pair consistency accepts the fail-open
+  // shape (a MATERIAL change reported as non-material) that the real one kills.
+  const noPairPath = join(sandbox, 'no-pair-consistency-validator.mjs');
+  writeFileSync(
+    noPairPath,
+    asRunnableValidator(MUTANT_SOURCES.noAnyPairConsistencyValidator),
+    'utf8',
+  );
+  clearSidecar();
+  writeSidecar(false, 'material-path-changed');
+  const noPairRun = runValidator(noPairPath, { material: 'false', reason: 'material-path-changed' });
+  check(
+    'MUTATIONS 18+19 are behaviourally observable: the softened validator ACCEPTS material=false + material-path-changed',
+    noPairRun.status === 0,
+    `exit=${noPairRun.status} ${noPairRun.stderr ?? ''}`,
+  );
+  // With ONLY the step-output check softened, the sidecar's own consistency
+  // rule still kills it — the two checks are independent lines of defence.
+  const stepOnlyPath = join(sandbox, 'no-step-pair-consistency-validator.mjs');
+  writeFileSync(
+    stepOnlyPath,
+    asRunnableValidator(MUTANT_SOURCES.noPairConsistencyValidator),
+    'utf8',
+  );
+  clearSidecar();
+  writeSidecar(false, 'material-path-changed');
+  const stepOnlyRun = runValidator(stepOnlyPath, {
+    material: 'false',
+    reason: 'material-path-changed',
+  });
+  check(
+    'the sidecar pair-consistency rule is an INDEPENDENT defence (still rejects when only the step-output rule is softened)',
+    stepOnlyRun.status !== 0 && /contradicts its own/.test(`${stepOnlyRun.stderr ?? ''}`),
+    `exit=${stepOnlyRun.status}`,
+  );
+  clearSidecar();
+
+  // B9. LOW 1 — the replacement 12i / 12j mutants are BEHAVIOURALLY VALID.
+  //
+  // The previous 12i/12j did not qualify as mutants at all: 12i referenced an
+  // unimported `tmpdir` (a ReferenceError, killed by its own broken syntax), and
+  // 12j fell through to the NEXT guard (`isAbsolute('')`) and was killed by an
+  // unrelated rule. Neither ever reached the fail-open behaviour it claimed to
+  // model. Each replacement is proved on three axes: it parses, its weakened
+  // behaviour is genuinely reached, and the hardened classifier under the same
+  // conditions fails closed.
+  const BEHAVIOURAL_MUTANTS = [
+    {
+      id: '12i',
+      label: 'os.tmpdir() fallback restored with its import',
+      source: MUTANT_SOURCES.tmpdirFallback,
+      env: { RUNNER_TEMP: undefined },
+      // Where the sidecar lands when the fallback is taken.
+      landsIn: () => tmpdir(),
+      killedBy: /classifier (does not import os\.tmpdir|never falls back when RUNNER_TEMP is unset)/,
+    },
+    {
+      id: '12j',
+      label: 'empty RUNNER_TEMP silently resolved against cwd',
+      source: MUTANT_SOURCES.emptyRunnerTempCwd,
+      env: { RUNNER_TEMP: '' },
+      landsIn: () => repo,
+      killedBy: /classifier fails closed on an empty RUNNER_TEMP/,
+    },
+  ];
+  for (const mutant of BEHAVIOURAL_MUTANTS) {
+    const mutantPath = join(sandbox, `mutant-${mutant.id}.mjs`);
+    writeFileSync(mutantPath, asRunnableClassifier(mutant.source), 'utf8');
+
+    // (a) syntactically runnable — not killed by a parse/import error.
+    const syntax = spawnSync(process.execPath, ['--check', mutantPath], { encoding: 'utf8' });
+    check(
+      `MUTANT ${mutant.id} (${mutant.label}) is syntactically valid`,
+      syntax.status === 0,
+      (syntax.stderr ?? '').slice(0, 200),
+    );
+
+    // (b) the intended weakened behaviour is REACHED: the producer succeeds and
+    //     writes its sidecar outside RUNNER_TEMP.
+    const strayPath = join(mutant.landsIn(), SIDECAR_NAME);
+    if (existsSync(strayPath)) rmSync(strayPath);
+    clearSidecar();
+    const mutantOut = join(sandbox, `github-output-${mutant.id}.txt`);
+    writeFileSync(mutantOut, '', 'utf8');
+    const mutantRunResult = runProducer(mutantPath, { GITHUB_OUTPUT: mutantOut, ...mutant.env });
+    check(
+      `MUTANT ${mutant.id} reaches its fail-open behaviour (producer SUCCEEDS where the real one must not)`,
+      mutantRunResult.status === 0,
+      `exit=${mutantRunResult.status} ${(mutantRunResult.stderr ?? '').slice(0, 200)}`,
+    );
+    check(
+      `MUTANT ${mutant.id} writes its sidecar OUTSIDE RUNNER_TEMP (the fail-open is observable)`,
+      existsSync(strayPath),
+      strayPath,
+    );
+    check(
+      `MUTANT ${mutant.id} did not write into the job-scoped RUNNER_TEMP`,
+      !existsSync(sidecarPath),
+    );
+    check(
+      `MUTANT ${mutant.id} is not killed by a runtime error (no ReferenceError/TypeError)`,
+      !/(ReferenceError|TypeError|SyntaxError)/.test(`${mutantRunResult.stderr ?? ''}`),
+      (mutantRunResult.stderr ?? '').slice(0, 200),
+    );
+    if (existsSync(strayPath)) rmSync(strayPath);
+
+    // (c) the hardened classifier under the SAME conditions fails closed — so
+    //     the difference is the hardening, not the environment.
+    const realOut = join(sandbox, `github-output-real-${mutant.id}.txt`);
+    writeFileSync(realOut, '', 'utf8');
+    const realResult = runProducer(CLASSIFY_SCRIPT, { GITHUB_OUTPUT: realOut, ...mutant.env });
+    check(
+      `MUTANT ${mutant.id}: the REAL classifier fails closed under the same environment`,
+      realResult.status !== 0,
+      `exit=${realResult.status}`,
+    );
+
+    // (d) and the static contract kills the mutant for its intended reason.
+    const staticFailures = audit({ classifierSource: mutant.source }).filter((entry) => !entry.ok);
+    check(
+      `MUTANT ${mutant.id} is caught by the static contract`,
+      staticFailures.length > 0,
+    );
+    check(
+      `MUTANT ${mutant.id} is caught for its INTENDED reason`,
+      staticFailures.some((entry) => mutant.killedBy.test(entry.label)),
+      staticFailures.map((entry) => entry.label).join(' | ').slice(0, 240),
+    );
+  }
   clearSidecar();
 } finally {
   rmSync(sandbox, { recursive: true, force: true });

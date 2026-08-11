@@ -32,7 +32,9 @@ import {
   isNonMaterialPath,
   classifyChangedPaths,
   classifierResultFilePath,
+  isConsistentClassification,
   resolveRunIdentity,
+  REASON_MATERIALITY,
   RUN_IDENTITY_ENV,
   SIDECAR_BASENAME,
   VALID_REASONS,
@@ -44,8 +46,10 @@ import {
 } from './master-required-gate-workflow-contract.mjs';
 import {
   auditAllowlistDependencyDrift,
+  auditTypeCoverage,
   selectScannedFiles,
   EXCLUDED_PATHS as DRIFT_EXCLUDED_PATHS,
+  SCANNED_EXTENSIONS as DRIFT_SCANNED_EXTENSIONS,
 } from './master-required-gate-allowlist-drift.mjs';
 
 const ROOT = resolve(process.cwd());
@@ -241,29 +245,66 @@ for (const file of workflowFiles) {
 // bounded, deterministic scan below re-proves inertness against the CURRENTLY
 // TRACKED build/test/runtime/gate surface on every run; any direct reference
 // fails the gate instead of letting the file keep non-material status.
-const trackedPaths = execFileSync('git', ['ls-files', '-z'], {
-  encoding: 'utf8',
-  maxBuffer: 1024 * 1024 * 256,
-}).split('\0');
-if (trackedPaths[trackedPaths.length - 1] === '') trackedPaths.pop();
-const scannedPaths = selectScannedFiles(trackedPaths);
+//
+// The scan is bounded by FILE TYPE rather than by directory prefix: an
+// enumerated prefix list was stale on arrival (it missed server/** and
+// tools/**) and every future top-level runtime directory would have fallen
+// outside it silently. Type classification is proved TOTAL below, so a new file
+// type fails the contract instead of quietly going unscanned.
+
+// GIT INVENTORY — a failure here is fail-closed, never an empty scan.
+let trackedPaths = null;
+let trackedInventoryError = null;
+try {
+  const raw = execFileSync('git', ['ls-files', '-z'], {
+    encoding: 'utf8',
+    maxBuffer: 1024 * 1024 * 256,
+  }).split('\0');
+  if (raw[raw.length - 1] === '') raw.pop();
+  trackedPaths = raw;
+} catch (error) {
+  trackedInventoryError = String(error.message);
+}
+check(
+  'git tracked-file inventory resolved for the allowlist drift scan',
+  trackedInventoryError === null,
+  String(trackedInventoryError),
+);
+check(
+  'git tracked-file inventory is non-empty',
+  Array.isArray(trackedPaths) && trackedPaths.length > 0,
+);
+const trackedInventory = Array.isArray(trackedPaths) ? trackedPaths : [];
+
+// Type classification must be TOTAL over the inventory — this is what keeps the
+// claimed scope and the actual scope identical as the repository grows.
+for (const result of auditTypeCoverage(trackedInventory)) {
+  check(result.label, result.ok, result.detail);
+}
+
+const scannedPaths = selectScannedFiles(trackedInventory);
 const scannedFiles = [];
 for (const path of scannedPaths) {
   const full = resolve(ROOT, path);
   // A tracked path that cannot be read is not silently skipped: an unreadable
-  // file is an unproven file, so it enters the scan as an explicit failure.
+  // file is an unproven file, so it enters the scan as an explicit failure and
+  // is carried into the audit with a non-string body so the audit fails too.
   let text = null;
   try {
     text = readFileSync(full, 'utf8');
-  } catch {
-    check(`tracked scanned file "${path}" is readable for the allowlist drift scan`, false);
-    continue;
+  } catch (error) {
+    check(
+      `tracked scanned file "${path}" is readable for the allowlist drift scan`,
+      false,
+      String(error.message),
+    );
   }
   scannedFiles.push({ path, text });
 }
 for (const result of auditAllowlistDependencyDrift({
   files: scannedFiles,
   allowlist: NON_MATERIAL_PATHS,
+  tracked: trackedInventory,
 })) {
   check(result.label, result.ok, result.detail);
 }
@@ -281,17 +322,154 @@ check(
   'allowlist drift exclusions are exact paths, never prefixes or globs',
   DRIFT_EXCLUDED_PATHS.every((path) => !path.includes('*') && !path.endsWith('/')),
 );
-// And the guard must be demonstrably capable of failing: a synthetic build-surface
-// file that references an allowlisted document is rejected. Without this the
-// scan could pass because it silently matches nothing at all.
-const driftProbe = auditAllowlistDependencyDrift({
-  files: [...scannedFiles, { path: 'src/pages/probe.astro', text: `import x from '../../README.md';` }],
-  allowlist: NON_MATERIAL_PATHS,
-});
+// The extension list is matched by exact suffix, so a malformed entry would
+// silently never match and shrink the scan without any visible failure.
 check(
-  'allowlist drift scan FAILS when a build-surface file references an allowlisted document',
-  driftProbe.some((result) => !result.ok),
+  'drift scan extensions are normalized (dot-prefixed, lowercase, no globs)',
+  DRIFT_SCANNED_EXTENSIONS.every(
+    (extension) =>
+      extension.startsWith('.') &&
+      extension === extension.toLowerCase() &&
+      !extension.includes('*') &&
+      !extension.includes('/'),
+  ),
+  DRIFT_SCANNED_EXTENSIONS.join(','),
 );
+check(
+  'drift scan extensions are unique',
+  new Set(DRIFT_SCANNED_EXTENSIONS).size === DRIFT_SCANNED_EXTENSIONS.length,
+);
+// The executable/runtime types the review named must be scanned by name.
+for (const extension of ['.mjs', '.js', '.cjs', '.ts', '.sh', '.service', '.json', '.yml', '.py']) {
+  check(`drift scan covers the "${extension}" runtime/build type`, DRIFT_SCANNED_EXTENSIONS.includes(extension));
+}
+// And the guard must be demonstrably capable of failing. A scan that silently
+// matches nothing looks identical to a scan that proves inertness, so each
+// runtime surface is probed with a synthetic referencing file — including the
+// two surfaces the reviewed prefix model missed entirely.
+const DRIFT_PROBES = [
+  ['src/**', { path: 'src/pages/probe.astro', text: "import x from '../../README.md';" }],
+  ['scripts/**', { path: 'scripts/probe.mjs', text: "readFileSync('AUDIT_REPORT.md', 'utf8');" }],
+  [
+    'server/** (.mjs)',
+    { path: 'server/votes/probe.mjs', text: "const doc = readFileSync('README.md');" },
+  ],
+  [
+    'server/** (.sh)',
+    { path: 'server/votes/probe.sh', text: '#!/bin/sh\ncp README.md /var/backups/\n' },
+  ],
+  [
+    'server/** (.service)',
+    {
+      path: 'server/votes/probe.service',
+      text: '[Service]\nExecStart=/usr/bin/node /srv/app/render.mjs AUDIT_REPORT.md\n',
+    },
+  ],
+  [
+    'tools/** (.mjs)',
+    {
+      path: 'tools/evidence-capture/probe.mjs',
+      text: "import spec from '../../CryptoBonusWorld_Master_Architecture.md';",
+    },
+  ],
+  [
+    'tools/** (.json)',
+    {
+      path: 'tools/evidence-capture/probe.json',
+      text: '{"inputs":["SCREENSHOT_PROCESSING_CONSTITUTION_v1.md"]}',
+    },
+  ],
+  ['root manifest', { path: 'package.json', text: '{"files":["README.md"]}' }],
+  ['.github/CODEOWNERS', { path: '.github/CODEOWNERS', text: 'README.md @owner\n' }],
+];
+for (const [surface, probe] of DRIFT_PROBES) {
+  const probeResults = auditAllowlistDependencyDrift({
+    files: [...scannedFiles.filter((file) => file.path !== probe.path), probe],
+    allowlist: NON_MATERIAL_PATHS,
+    tracked: trackedInventory,
+  });
+  const referenceFailures = probeResults.filter(
+    (result) => !result.ok && /is referenced by NO tracked/.test(result.label),
+  );
+  check(
+    `allowlist drift scan DETECTS an allowlist reference in ${surface}`,
+    referenceFailures.length > 0,
+  );
+  check(
+    `allowlist drift scan NAMES the offending ${surface} file`,
+    referenceFailures.some((result) => String(result.detail).includes(probe.path)),
+    referenceFailures.map((result) => result.detail).join(' | '),
+  );
+  // The probe path must be one the selector would really have picked up, or the
+  // probe proves nothing about the live scan.
+  check(
+    `drift probe path "${probe.path}" is inside the real scan selection`,
+    selectScannedFiles([probe.path]).length === 1,
+  );
+}
+
+// Fail-closed inputs to the scan itself.
+check(
+  'allowlist drift scan FAILS on an empty file population',
+  auditAllowlistDependencyDrift({ files: [], allowlist: NON_MATERIAL_PATHS, tracked: trackedInventory })
+    .some((result) => !result.ok),
+);
+check(
+  'allowlist drift scan FAILS when a selected file was unreadable',
+  auditAllowlistDependencyDrift({
+    files: [...scannedFiles, { path: 'server/votes/unreadable.mjs', text: null }],
+    allowlist: NON_MATERIAL_PATHS,
+    tracked: trackedInventory,
+  }).some((result) => !result.ok && /readable/.test(result.label)),
+);
+check(
+  'allowlist drift scan FAILS when a required runtime surface contributes nothing',
+  auditAllowlistDependencyDrift({
+    files: scannedFiles.filter((file) => !file.path.startsWith('server/')),
+    allowlist: NON_MATERIAL_PATHS,
+    tracked: trackedInventory,
+  }).some((result) => !result.ok && /server\//.test(result.label)),
+);
+check(
+  'allowlist drift scan FAILS when a tracked runtime file is not scanned',
+  auditAllowlistDependencyDrift({
+    files: scannedFiles.filter((file) => file.path !== 'server/votes/server.mjs'),
+    allowlist: NON_MATERIAL_PATHS,
+    tracked: trackedInventory,
+  }).some((result) => !result.ok && /server\/votes\/server\.mjs/.test(result.label)),
+);
+// Type-coverage fail-closed: an unclassified extension and a degraded inventory.
+check(
+  'type coverage FAILS on an unclassified tracked extension',
+  auditTypeCoverage([...trackedInventory, 'server/votes/agent.rb']).some(
+    (result) => !result.ok && /extension is classified/.test(result.label),
+  ),
+);
+check(
+  'type coverage FAILS on an unclassified extensionless tracked file',
+  auditTypeCoverage([...trackedInventory, 'server/votes/Makefile']).some(
+    (result) => !result.ok && /extensionless/.test(result.label),
+  ),
+);
+check(
+  'type coverage FAILS on a degraded (implausibly small) git inventory',
+  auditTypeCoverage(['package.json']).some((result) => !result.ok && /inventory/.test(result.label)),
+);
+
+// The reviewed MEDIUM, stated as a direct regression proof: the two surfaces the
+// prefix model missed are really in the live scan today.
+for (const surface of ['server/', 'tools/']) {
+  const live = scannedPaths.filter((path) => path.startsWith(surface));
+  check(
+    `live scan actually covers tracked "${surface}**" files`,
+    live.length > 0,
+    `${live.length} files`,
+  );
+}
+for (const path of ['server/votes/server.mjs', 'server/votes/backup.sh', 'server/votes/cbw-votes.service']) {
+  if (!trackedInventory.includes(path)) continue;
+  check(`Codex-named runtime file "${path}" is in the live scan selection`, scannedPaths.includes(path));
+}
 
 // 4c. Every path filter of the header hard gate is MATERIAL here (superset).
 const header = loadWorkflow(HEADER_WORKFLOW);
@@ -654,6 +832,166 @@ check(
     identity: IDENTITY,
   }).length > 0,
 );
+// --- 11b. JSON shapes cannot route around the sidecar checks ------------------
+//
+// Reviewed MEDIUM: `sidecar` was both the parsed value and the parse-failure
+// sentinel, so the four bytes `null` parsed SUCCESSFULLY to null, matched the
+// `sidecar !== null` guard, and skipped the classification, agreement and
+// staleness checks entirely — with valid step outputs the gate PASSED on a
+// sidecar that asserted nothing. Parse success and parsed value are now
+// separate facts, and the value must be a non-null, non-array object.
+const NON_OBJECT_SIDECARS = [
+  ['null (the exact reviewed bypass)', 'null'],
+  ['an empty array', '[]'],
+  ['a populated array', '[{"material":true,"reason":"material-path-changed"}]'],
+  ['a JSON string', '"string"'],
+  ['the number 0', '0'],
+  ['the number 1', '1'],
+  ['boolean false', 'false'],
+  ['boolean true', 'true'],
+  ['a quoted null', '"null"'],
+  ['whitespace-padded null', '  null  '],
+];
+for (const [label, raw] of NON_OBJECT_SIDECARS) {
+  const errors = validateClassifierOutput({
+    material: 'true',
+    reason: 'material-path-changed',
+    sidecarRaw: raw,
+    identity: IDENTITY,
+  });
+  check(`validator REJECTS a sidecar that is ${label}`, errors.length > 0, raw);
+  check(
+    `validator rejects ${label} as a non-object sidecar, not by accident`,
+    errors.some((error) => /must be a JSON object/.test(error)),
+    errors.join(' | '),
+  );
+}
+for (const raw of ['{not json', '', '{"material":true,', 'undefined', "{'material':true}"]) {
+  check(
+    `validator REJECTS malformed sidecar JSON ${JSON.stringify(raw)}`,
+    validateClassifierOutput({
+      material: 'true',
+      reason: 'material-path-changed',
+      sidecarRaw: raw,
+      identity: IDENTITY,
+    }).length > 0,
+  );
+}
+// An object shape still has to pass everything — no bypass was introduced.
+check(
+  'a non-null object sidecar still undergoes full material/reason/identity validation',
+  validateClassifierOutput({
+    material: 'true',
+    reason: 'material-path-changed',
+    sidecarRaw: '{}',
+    identity: IDENTITY,
+  }).length > 0,
+);
+
+// --- 11c. material/reason must be a semantically possible PAIR ----------------
+//
+// Reviewed MEDIUM: each field was validated against its own vocabulary, so
+// every contradictory cross-product was accepted — including
+// `material=false reason=material-path-changed`, a MATERIAL change reported as
+// non-material, which skips build + header matrix + indexability under SUCCESS.
+check(
+  'REASON_MATERIALITY covers exactly the valid reason vocabulary',
+  Object.keys(REASON_MATERIALITY).length === VALID_REASONS.length &&
+    VALID_REASONS.every((reason) =>
+      Object.prototype.hasOwnProperty.call(REASON_MATERIALITY, reason),
+    ),
+);
+check(
+  'both fail-closed reasons imply MATERIAL',
+  REASON_MATERIALITY['unresolved-or-empty-change-set'] === true &&
+    REASON_MATERIALITY['material-path-changed'] === true,
+);
+check(
+  'only the affirmative allowlist reason implies non-material',
+  REASON_MATERIALITY['only-allowlisted-non-material-paths'] === false,
+);
+// The complete cross-product: every pair is asserted, valid or not.
+for (const materialValue of ['true', 'false']) {
+  for (const reason of VALID_REASONS) {
+    const expectedValid = REASON_MATERIALITY[reason] === (materialValue === 'true');
+    check(
+      `isConsistentClassification("${materialValue}", "${reason}") === ${expectedValid}`,
+      isConsistentClassification(materialValue, reason) === expectedValid,
+    );
+    const errors = validateClassifierOutput({
+      material: materialValue,
+      reason,
+      sidecarRaw: sidecarOf(materialValue === 'true', reason),
+      identity: IDENTITY,
+    });
+    if (expectedValid) {
+      check(
+        `validator ACCEPTS the valid mapping material=${materialValue} reason=${reason}`,
+        errors.length === 0,
+        errors.join(' | '),
+      );
+    } else {
+      check(
+        `validator REJECTS the contradictory pair material=${materialValue} reason=${reason}`,
+        errors.length > 0,
+      );
+      check(
+        `validator names the contradiction for material=${materialValue} reason=${reason}`,
+        errors.some((error) => /contradicts/.test(error)),
+        errors.join(' | '),
+      );
+    }
+  }
+}
+// The three combinations Codex verified as accepted must now each fail.
+const CODEX_CONTRADICTIONS = [
+  ['false', 'material-path-changed'],
+  ['false', 'unresolved-or-empty-change-set'],
+  ['true', 'only-allowlisted-non-material-paths'],
+];
+for (const [materialValue, reason] of CODEX_CONTRADICTIONS) {
+  check(
+    `reviewed contradiction material=${materialValue} reason=${reason} is REJECTED`,
+    validateClassifierOutput({
+      material: materialValue,
+      reason,
+      sidecarRaw: sidecarOf(materialValue === 'true', reason),
+      identity: IDENTITY,
+    }).length > 0,
+  );
+}
+// A contradictory SIDECAR is rejected even when the step outputs agree with it.
+check(
+  'validator REJECTS a sidecar whose own material/reason pair is contradictory',
+  validateClassifierOutput({
+    material: 'false',
+    reason: 'material-path-changed',
+    sidecarRaw: sidecarOf(false, 'material-path-changed'),
+    identity: IDENTITY,
+  }).some((error) => /contradicts its own/.test(error)),
+);
+// And the producer itself can only ever emit consistent pairs.
+const PRODUCER_PAIR_INPUTS = [
+  null,
+  undefined,
+  [],
+  'src/x.ts',
+  ['README.md'],
+  ['README.md', 'AUDIT_REPORT.md'],
+  ['src/pages/index.astro'],
+  ['README.md', 'src/pages/index.astro'],
+  ['unknown-root-file.mjs'],
+  ['README.md ', 'AUDIT_REPORT.md'],
+];
+for (const input of PRODUCER_PAIR_INPUTS) {
+  const result = classifyChangedPaths(input);
+  check(
+    `classifier emits a consistent pair for ${JSON.stringify(input)}`,
+    isConsistentClassification(String(result.material), result.reason),
+    `${result.material}/${result.reason}`,
+  );
+}
+
 check('VALID_REASONS is a closed, non-empty vocabulary', VALID_REASONS.length === 3);
 for (const reason of VALID_REASONS) {
   check(

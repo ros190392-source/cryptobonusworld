@@ -401,6 +401,78 @@ export function auditProducerConsumerContract({ workflowText, classifierSource, 
     'validator rejects a STALE sidecar from another run/attempt/head',
     /sidecar is STALE/.test(validatorText) && /resolveRunIdentity\(\)/.test(validatorText),
   );
+
+  // --- G2. JSON parse success is not conflated with the parsed value ---------
+  //
+  // Reviewed MEDIUM: one variable served as both the parsed sidecar and the
+  // parse-failure sentinel, so a sidecar of literal `null` parsed successfully,
+  // matched the `!== null` sentinel guard, and skipped every downstream check.
+  check(
+    'validator tracks JSON parse SUCCESS separately from the parsed value',
+    /parseOk\s*=\s*true/.test(validatorText) && /if \(parseOk/.test(validatorText),
+  );
+  check(
+    'validator never uses null as the JSON parse-failure sentinel',
+    !/if \(sidecar !== null\)/.test(validatorText),
+  );
+  check(
+    'validator requires the parsed sidecar to be a non-null, non-array object',
+    /typeof parsed !== 'object'/.test(validatorText) &&
+      /parsed === null/.test(validatorText) &&
+      /Array\.isArray\(parsed\)/.test(validatorText) &&
+      /must be a JSON object/.test(validatorText),
+  );
+
+  // --- G3. material/reason are validated as a PAIR --------------------------
+  //
+  // Reviewed MEDIUM: independent per-field vocabularies accepted every
+  // contradictory cross-product, including `material=false` alongside
+  // `material-path-changed` — a MATERIAL change reported as non-material.
+  // Structural, not an identifier search — the same lesson as the sidecar write.
+  // `isConsistentClassification` appears in the import line and in the sibling
+  // sidecar check, so `/isConsistentClassification\(/` stays true even after the
+  // step-output consistency test is replaced with `false`. The CALL SITES are
+  // therefore extracted and their arguments inspected.
+  const consistencyCalls = extractCallExpressions(validatorText, 'isConsistentClassification');
+  check(
+    'validator makes exactly two pair-consistency calls (step outputs and sidecar)',
+    consistencyCalls.length === 2,
+    `found ${consistencyCalls.length}: ${consistencyCalls.join(' | ')}`,
+  );
+  check(
+    'validator checks the STEP OUTPUT pair for consistency',
+    consistencyCalls.some((call) => /^isConsistentClassification\(\s*material\s*,\s*reason\s*\)$/.test(call)),
+    consistencyCalls.join(' | '),
+  );
+  check(
+    'validator checks the SIDECAR pair for consistency',
+    consistencyCalls.some((call) =>
+      /^isConsistentClassification\(\s*String\(sidecar\.material\)\s*,\s*sidecar\.reason\s*\)$/.test(call),
+    ),
+    consistencyCalls.join(' | '),
+  );
+  check(
+    'validator reports a contradictory pair as an error',
+    /contradicts/.test(validatorText),
+  );
+  check(
+    'validator enforces pair consistency on the sidecar as well as the step outputs',
+    /contradicts its own/.test(validatorText),
+  );
+  check(
+    'classifier declares the reason -> materiality mapping as the single source of truth',
+    /export const REASON_MATERIALITY = Object\.freeze\(\{/.test(classifierText),
+  );
+  check(
+    'classifier derives the reason vocabulary from that mapping, never by hand',
+    /VALID_REASONS = Object\.freeze\(Object\.keys\(REASON_MATERIALITY\)\)/.test(classifierText),
+  );
+  check(
+    'the reason -> materiality mapping pins both fail-closed reasons to MATERIAL',
+    /'unresolved-or-empty-change-set':\s*true/.test(classifierText) &&
+      /'material-path-changed':\s*true/.test(classifierText) &&
+      /'only-allowlisted-non-material-paths':\s*false/.test(classifierText),
+  );
   check(
     'validator compares run identity against its OWN environment, not the sidecar',
     /sidecar\[field\] !== expectedIdentity\[field\]/.test(validatorText),

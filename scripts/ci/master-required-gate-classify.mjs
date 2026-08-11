@@ -63,13 +63,39 @@ export const NON_MATERIAL_PATHS = Object.freeze([
 
 const NON_MATERIAL_SET = new Set(NON_MATERIAL_PATHS);
 
-// The complete, closed set of classification reasons. The downstream validator
-// rejects anything outside it, so a truncated/garbled output cannot pass.
-export const VALID_REASONS = Object.freeze([
-  'unresolved-or-empty-change-set',
-  'material-path-changed',
-  'only-allowlisted-non-material-paths',
-]);
+// The complete, closed set of classification reasons AND the materiality each
+// one necessarily implies. This is the single source of truth for the pair.
+//
+// WHY A MAPPING AND NOT TWO INDEPENDENT VOCABULARIES — reviewed MEDIUM. The
+// validator previously checked `material` against {true,false} and `reason`
+// against the reason list SEPARATELY, so every cross-product was accepted:
+// `material=false reason=material-path-changed` passed, as did
+// `material=false reason=unresolved-or-empty-change-set` and
+// `material=true reason=only-allowlisted-non-material-paths`. Each of those is
+// a contradiction the producer can never legitimately emit, and the first two
+// are precisely the shape of a fail-open bug — a MATERIAL classification
+// reported as non-material, skipping the build, header matrix and indexability
+// under a SUCCESS conclusion. A reason must therefore PIN its materiality.
+//
+// Both fail-closed reasons imply MATERIAL. Only the one affirmative
+// "everything changed is on the exact allowlist" reason implies non-material.
+export const REASON_MATERIALITY = Object.freeze({
+  'unresolved-or-empty-change-set': true,
+  'material-path-changed': true,
+  'only-allowlisted-non-material-paths': false,
+});
+
+// Derived, never hand-maintained: a reason that exists without a declared
+// materiality cannot silently become valid.
+export const VALID_REASONS = Object.freeze(Object.keys(REASON_MATERIALITY));
+
+// True when the pair is semantically possible. `material` is the RAW string
+// form used on the wire (`'true'` / `'false'`); `reason` is the raw reason.
+export function isConsistentClassification(material, reason) {
+  if (material !== 'true' && material !== 'false') return false;
+  if (!Object.prototype.hasOwnProperty.call(REASON_MATERIALITY, reason)) return false;
+  return REASON_MATERIALITY[reason] === (material === 'true');
+}
 
 export const SIDECAR_BASENAME = 'cbw-master-required-gate-classification.json';
 

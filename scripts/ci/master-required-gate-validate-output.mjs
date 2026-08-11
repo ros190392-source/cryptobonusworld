@@ -25,10 +25,19 @@
 import { readFileSync, existsSync } from 'node:fs';
 import {
   classifierResultFilePath,
+  isConsistentClassification,
   resolveRunIdentity,
+  REASON_MATERIALITY,
   RUN_IDENTITY_ENV,
   VALID_REASONS,
 } from './master-required-gate-classify.mjs';
+
+// Describes any JSON value for an error message without trusting its shape.
+function describeJsonValue(value) {
+  if (value === null) return 'null';
+  if (Array.isArray(value)) return 'an array';
+  return `a ${typeof value}`;
+}
 
 // Pure, exported so the contract test can drive it with hostile inputs.
 // `material` / `reason` are the RAW env values; `sidecarRaw` is the sidecar
@@ -52,6 +61,24 @@ export function validateClassifierOutput({ material, reason, sidecarRaw, identit
     errors.push(`reason output is missing (received ${JSON.stringify(reason)})`);
   } else if (!VALID_REASONS.includes(reason)) {
     errors.push(`reason output is not a known classifier reason, got ${JSON.stringify(reason)}`);
+  }
+
+  // 2b. the PAIR must be semantically possible. Validating each field against
+  //     its own vocabulary is not enough: every contradictory cross-product
+  //     passed that way, including `material=false reason=material-path-changed`
+  //     — a MATERIAL change reported as non-material, which skips every heavy
+  //     step under a SUCCESS conclusion. A reason pins its materiality.
+  if (
+    typeof material === 'string' &&
+    typeof reason === 'string' &&
+    (material === 'true' || material === 'false') &&
+    VALID_REASONS.includes(reason) &&
+    !isConsistentClassification(material, reason)
+  ) {
+    errors.push(
+      `step output material=${JSON.stringify(material)} contradicts reason ${JSON.stringify(reason)}, ` +
+        `which implies material=${JSON.stringify(String(REASON_MATERIALITY[reason]))}`,
+    );
   }
 
   // 3. this run must be identifiable, or "the sidecar belongs to this run" is
@@ -78,13 +105,29 @@ export function validateClassifierOutput({ material, reason, sidecarRaw, identit
   if (typeof sidecarRaw !== 'string' || sidecarRaw.length === 0) {
     errors.push('classifier result sidecar is missing — the producer step did not run');
   } else {
-    let sidecar = null;
+    // PARSE SUCCESS AND PARSED VALUE ARE SEPARATE FACTS — reviewed MEDIUM.
+    // `sidecar` was initialised to null and also used as the parse-failure
+    // sentinel, so a sidecar containing the four bytes `null` parsed
+    // SUCCESSFULLY to null, hit the `sidecar !== null` guard, and skipped every
+    // classification, agreement and staleness check below. With otherwise valid
+    // step outputs the error list stayed empty and the gate PASSED with a
+    // sidecar that asserted nothing. `parsed` is now never conflated with
+    // `parseOk`, and the parsed value must be a non-null, non-array object
+    // before any field is read — so no JSON shape can route around the checks.
+    let parsed;
+    let parseOk = false;
     try {
-      sidecar = JSON.parse(sidecarRaw);
+      parsed = JSON.parse(sidecarRaw);
+      parseOk = true;
     } catch {
       errors.push('classifier result sidecar is not valid JSON');
     }
-    if (sidecar !== null) {
+    if (parseOk && (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed))) {
+      errors.push(
+        `classifier result sidecar must be a JSON object, got ${describeJsonValue(parsed)}`,
+      );
+    } else if (parseOk) {
+      const sidecar = parsed;
       if (typeof sidecar.material !== 'boolean') {
         errors.push(`sidecar material must be a boolean, got ${JSON.stringify(sidecar.material)}`);
       } else if (String(sidecar.material) !== material) {
@@ -98,6 +141,18 @@ export function validateClassifierOutput({ material, reason, sidecarRaw, identit
           `step output reason=${JSON.stringify(reason)} disagrees with producer sidecar ` +
             `reason=${JSON.stringify(sidecar.reason)}`,
         );
+      }
+
+      // The sidecar's OWN pair must be consistent too. Checking only the step
+      // outputs would let a contradictory sidecar through whenever the outputs
+      // were made to agree with it.
+      if (typeof sidecar.material === 'boolean') {
+        if (!isConsistentClassification(String(sidecar.material), sidecar.reason)) {
+          errors.push(
+            `producer sidecar material=${JSON.stringify(sidecar.material)} contradicts its own ` +
+              `reason=${JSON.stringify(sidecar.reason)}`,
+          );
+        }
       }
 
       // STALENESS. The sidecar must name THIS gate run. A file left in
