@@ -770,8 +770,10 @@ function isExecutable(path) {
 // Any whitespace/quote-delimited token that could be a repository path.
 const PATH_TOKEN_RE = /[A-Za-z0-9._][A-Za-z0-9._*?/-]*\/[A-Za-z0-9._*?/-]+/g;
 const FIND_NAME_RE = /\bfind\s+([A-Za-z0-9._/-]+)\b[^\n]*?-name\s+'?"?([^\s'"]+)'?"?/g;
-// One whole `find` invocation, up to the next shell separator.
-const FIND_COMMAND_RE = /\bfind\s+[^\n;|&)]*/g;
+// One whole `find` invocation, up to the next shell separator. Anchored at a
+// COMMAND position so the word "find" inside an `echo` message is not mistaken
+// for an invocation.
+const FIND_COMMAND_RE = /(?:^|[\n;|&(])\s*find\s+([^\n;|&)]*)/g;
 // `find` operators that change WHICH files the command visits. Outside the
 // supported subset => DEPENDENCY_UNRESOLVABLE, never an approximation.
 const FIND_UNSUPPORTED_RE = /(^|\s)-(maxdepth|mindepth|path|ipath|regex|iregex|exec|execdir|ok|prune|delete|newer|links|samefile|not|and|or|a|o)\b/;
@@ -1188,8 +1190,8 @@ export function deriveDependencyClosure({ job, packageScripts = {}, repoFiles = 
     // changes which files the command visits (`-maxdepth`, `-path`, `-regex`,
     // `-exec`, `-prune`, boolean operators) is outside the subset and is
     // recorded rather than approximated.
-    for (const [command] of folded.matchAll(FIND_COMMAND_RE)) {
-      const invocation = command.trim();
+    for (const [, args] of folded.matchAll(FIND_COMMAND_RE)) {
+      const invocation = `find ${args.trim()}`;
       const unsupported = FIND_UNSUPPORTED_RE.exec(invocation);
       if (unsupported) {
         note(unresolvable, source, `find form outside the supported subset (${unsupported[2]}): ${invocation}`);
