@@ -53,6 +53,8 @@ import {
   matchesRefPattern,
   matchesShellGlob,
   parseWorkflow,
+  summarizeUnresolvedDependencies,
+  tokenizeShell,
 } from './master-blocking-portfolio-contract.mjs';
 import {
   loadWorkflowFiles,
@@ -269,15 +271,71 @@ check(
   'expression: boolean algebra is evaluated, not pattern-matched',
   evaluateGithubExpression("github.event_name == 'pull_request' && !(github.event_name == 'push')", prContext) === true,
 );
-check(
-  'expression: `false && <unmodelled>` short-circuits to false',
-  evaluateGithubExpression("false && github.repository == 'x/y'", prContext) === false,
-);
-check(
-  'expression: `true || <unmodelled>` short-circuits to true',
-  evaluateGithubExpression("true || github.repository == 'x/y'", prContext) === true,
-);
 check('expression: always() is true', evaluateGithubExpression('always()', prContext) === true);
+
+// --- R3 HIGH: SHORT-CIRCUIT MUST NOT HIDE UNMODELLED SUBEXPRESSIONS ----------
+//
+// Regression for the R3 Codex finding. The pre-remediation evaluator decided
+// truthiness AS IT PARSED, so a provably-false `&&` left operand (or a
+// provably-true `||` left operand) discarded the other side WITHOUT EVER
+// CHECKING whether that side was inside the model. `github.ref` is outside the
+// expression model, yet
+//
+//     false && github.ref == 'refs/heads/master'
+//     true  || github.ref == 'refs/heads/master'
+//
+// were accepted as MODELLED (false / true), laundering unsupported governance
+// surface into a "provable" classification. Modelability is now decided over the
+// WHOLE token stream before any truthiness is computed, so every one of these is
+// UNMODELED — and `github.ref` stays deliberately unmodelled rather than being
+// over-modelled just to make a probe pass.
+const SHORT_CIRCUIT_LAUNDERING_PROBES = [
+  ['false && unsupported (the exact Codex case)', "false && github.ref == 'refs/heads/master'"],
+  ['true || unsupported (the exact Codex case)', "true || github.ref == 'refs/heads/master'"],
+  ['supported && unsupported', "github.event_name == 'pull_request' && github.ref == 'refs/heads/master'"],
+  ['supported || unsupported', "github.event_name == 'pull_request' || github.ref == 'refs/heads/master'"],
+  ['unsupported on the LEFT of &&', "github.ref == 'refs/heads/master' && false"],
+  ['unsupported on the LEFT of ||', "github.ref == 'refs/heads/master' || true"],
+  ['unsupported on the RIGHT of &&', 'false && vars.ENABLE_GATE'],
+  ['unsupported on the RIGHT of ||', 'true || vars.ENABLE_GATE'],
+  ['nested parentheses hide nothing', "(false && (github.ref == 'refs/heads/master'))"],
+  ['nested parentheses on the || side', "((true) || ((github.ref == 'refs/heads/master')))"],
+  ['a chain of &&', "false && true && github.ref == 'x' && true"],
+  ['a chain of ||', "true || false || github.ref == 'x' || false"],
+  ['a mixed &&/|| chain', "false && true || github.ref == 'x'"],
+  ['unsupported inside an equality LEFT operand', "github.ref == 'x' == true"],
+  ['unsupported inside an equality RIGHT operand', 'false && true == github.ref'],
+  ['unsupported behind a negation', "!(false && github.ref == 'x')"],
+  ['an unmodelled FUNCTION behind a short-circuit', "false && contains(github.ref, 'master')"],
+  ['a modelled function name used as a bare value', 'false && always'],
+  ['a modelled function name given arguments', "false && always('x')"],
+];
+for (const [label, expression] of SHORT_CIRCUIT_LAUNDERING_PROBES) {
+  check(
+    `R3 HIGH: short-circuit does not launder ${label}`,
+    evaluateGithubExpression(expression, prContext) === UNMODELED,
+    `${expression} => ${String(evaluateGithubExpression(expression, prContext))}`,
+  );
+  check(
+    `R3 HIGH: job-level \`if\` fails closed for ${label}`,
+    evaluateJobIfForPullRequest(expression) === 'UNMODELED',
+    `${expression} => ${evaluateJobIfForPullRequest(expression)}`,
+  );
+}
+// The counterpart obligation: short-circuiting still WORKS inside the model, so
+// this fix costs no modelling power it previously had.
+check(
+  'R3 HIGH: `false && <modelled>` still short-circuits to false',
+  evaluateGithubExpression("false && github.event_name == 'pull_request'", prContext) === false,
+);
+check(
+  'R3 HIGH: `true || <modelled>` still short-circuits to true',
+  evaluateGithubExpression("true || github.event_name == 'push'", prContext) === true,
+);
+check(
+  'R3 HIGH: `github.ref` is NOT over-modelled to make the probes pass',
+  evaluateGithubExpression("github.ref == 'refs/heads/master'", prContext) === UNMODELED,
+);
 
 // --- R2 HIGH: GitHub `==` is LOOSE and case-INSENSITIVE ----------------------
 //
@@ -978,6 +1036,440 @@ expectFailure(
   run({ readFile: () => null }),
   /raises no fail-closed modelling gap|has PROVABLE pull_request semantics/,
 );
+
+// ============================================================================
+// F2. R3 REGRESSION — shell command position, shell globs, JS lexer, quoting
+// ============================================================================
+//
+// Every probe below reproduces a form Codex demonstrated on the PREVIOUS head
+// and asserts the new behaviour. The obligation is uniform: a dependency-bearing
+// construct either RESOLVES deterministically or is RECORDED as
+// DEPENDENCY_UNRESOLVABLE. Silent omission is never an acceptable outcome.
+
+// A fixed synthetic repository so each probe's expectation is exact.
+const R3_REPO_FILES = Object.freeze([
+  'scripts/probe.mjs',
+  'scripts/alpha.mjs',
+  'scripts/beta.mjs',
+  'src/data/direct.ts',
+  'src/data/nested/deep.ts',
+  'src/data/notes.md',
+]);
+
+function r3Closure(run, { sources = {}, repoFiles = R3_REPO_FILES, packageScripts = {} } = {}) {
+  return deriveDependencyClosure({
+    job: { steps: [{ run }] },
+    packageScripts,
+    repoFiles,
+    readFile: (path) => sources[path] ?? null,
+  });
+}
+
+// --- R3 MEDIUM 1: `find` must be recognised at EVERY command position --------
+//
+// The previous detector anchored on "start of line, `;`, `|`, `&` or `(`", so a
+// `find` introduced by `if`, `then`, `do`, `{` or a control keyword was silently
+// omitted — the dependency simply vanished from the portfolio.
+const FIND_COMMAND_POSITION_PROBES = [
+  ['start of script', "find src/data -name '*.ts'"],
+  ['an `if` head', "if find src/data -name '*.ts'; then echo hit; fi"],
+  ['a `then` branch', "if true; then find src/data -name '*.ts'; fi"],
+  ['an `elif` head', "if false; then echo a; elif find src/data -name '*.ts'; then echo b; fi"],
+  ['an `else` branch', "if false; then echo a; else find src/data -name '*.ts'; fi"],
+  ['a `while` head', "while find src/data -name '*.ts'; do echo x; done"],
+  ['an `until` head', "until find src/data -name '*.ts'; do echo x; done"],
+  ['a `do` body', "for f in a b; do find src/data -name '*.ts'; done"],
+  ['a `{ …; }` group', "{ find src/data -name '*.ts'; }"],
+  ['a `(...)` subshell', "( find src/data -name '*.ts' )"],
+  ['after `&&`', "npm ci && find src/data -name '*.ts'"],
+  ['after `||`', "npm ci || find src/data -name '*.ts'"],
+  ['after a pipeline `|`', "echo x | find src/data -name '*.ts'"],
+  ['after `;` with no space', "echo x;find src/data -name '*.ts'"],
+  ['after a newline', "echo x\nfind src/data -name '*.ts'"],
+  ['inside a `$(…)` substitution', "COUNT=$(find src/data -name '*.ts' | wc -l)"],
+  ['inside a backtick substitution', "COUNT=`find src/data -name '*.ts'`"],
+  ['after a `VAR=value` prefix', "LC_ALL=C find src/data -name '*.ts'"],
+  ['a `case` arm', "case $x in a) find src/data -name '*.ts';; esac"],
+];
+for (const [label, run] of FIND_COMMAND_POSITION_PROBES) {
+  const closure = r3Closure(run);
+  // BOTH the direct child and the nested descendant must resolve: `find` is
+  // recursive, so a model that only saw one of them would be wrong.
+  check(
+    `R3 MEDIUM: \`find\` at ${label} resolves the DIRECT file`,
+    closure.readInputs.includes('src/data/direct.ts'),
+    JSON.stringify({ read: closure.readInputs, unresolvable: closure.unresolvable }),
+  );
+  check(
+    `R3 MEDIUM: \`find\` at ${label} resolves the NESTED file`,
+    closure.readInputs.includes('src/data/nested/deep.ts'),
+    JSON.stringify({ read: closure.readInputs, unresolvable: closure.unresolvable }),
+  );
+  check(
+    `R3 MEDIUM: \`find\` at ${label} does not over-match a non-\`.ts\` file`,
+    !closure.readInputs.includes('src/data/notes.md'),
+    JSON.stringify(closure.readInputs),
+  );
+}
+
+// A `find` whose structure is outside the supported subset is RECORDED.
+const FIND_UNSUPPORTED_PROBES = [
+  ['-maxdepth', "find src/data -maxdepth 1 -name '*.ts'"],
+  ['-exec', "find src/data -name '*.ts' -exec rm {} +"],
+  ['-regex', "find src/data -regex '.*[.]ts'"],
+  ['-prune', "find src/data -path node_modules -prune -o -name '*.ts'"],
+  ['no -name pattern', 'find src/data -type f'],
+  ['a computed search root', 'find "$DIR" -name \'*.ts\''],
+  ['a glob search root', "find src/*/ -name '*.ts'"],
+];
+for (const [label, run] of FIND_UNSUPPORTED_PROBES) {
+  const closure = r3Closure(run);
+  check(
+    `R3 MEDIUM: unsupported \`find\` form (${label}) is recorded, never silently ignored`,
+    closure.unresolvable.length > 0,
+    JSON.stringify({ read: closure.readInputs, unresolvable: closure.unresolvable }),
+  );
+}
+
+// --- R3 LOW: quoted shell text is DATA, not an executed command ---------------
+{
+  const closure = r3Closure("echo '(find src/data -maxdepth 1 -name \"*.ts\")'");
+  check(
+    'R3 LOW: `find` inside single-quoted text creates NO dependency row',
+    closure.readInputs.length === 0 && closure.unresolvable.length === 0,
+    JSON.stringify({ read: closure.readInputs, unresolvable: closure.unresolvable }),
+  );
+}
+{
+  const closure = r3Closure('echo "a find src/data -name pattern is only text here"');
+  check(
+    'R3 LOW: `find` inside double-quoted text creates NO dependency row',
+    closure.unresolvable.length === 0,
+    JSON.stringify(closure.unresolvable),
+  );
+}
+{
+  const closure = r3Closure("echo \\(find src/data -name '*.ts'\\)");
+  check(
+    'R3 LOW: an ESCAPED `find` is text, not a command',
+    closure.readInputs.length === 0,
+    JSON.stringify(closure.readInputs),
+  );
+}
+{
+  // The symmetric obligation: a REAL command substitution still executes.
+  const closure = r3Closure('echo "count=$(find src/data -name \'*.ts\' | wc -l)"');
+  check(
+    'R3 LOW: a `$(find …)` substitution inside DOUBLE quotes still executes',
+    closure.readInputs.includes('src/data/direct.ts') && closure.readInputs.includes('src/data/nested/deep.ts'),
+    JSON.stringify(closure.readInputs),
+  );
+}
+{
+  const closure = r3Closure("node 'scripts/alpha.mjs'");
+  check(
+    'R3 LOW: a quoted PATH is still a real executed dependency',
+    closure.executed.includes('scripts/alpha.mjs'),
+    JSON.stringify(closure.executed),
+  );
+}
+{
+  const closure = r3Closure("echo 'scripts/*.mjs'");
+  check(
+    'R3 LOW: a quoted `*` is a literal asterisk, not a glob to expand',
+    closure.executed.length === 0 && closure.unresolvable.length === 0,
+    JSON.stringify({ executed: closure.executed, unresolvable: closure.unresolvable }),
+  );
+}
+
+// --- R3 MEDIUM 2: unsupported executed shell globs must not disappear --------
+//
+// `./scripts/{alpha,beta}.mjs` and `./scripts/[ab].mjs` previously vanished:
+// the reporting rule tested the FIRST path segment against the tracked
+// top-level directories, and for a `./`-relative word that segment is `.`,
+// which is never a tracked directory. Both are now recorded.
+const UNSUPPORTED_GLOB_PROBES = [
+  ['brace expansion, `./`-relative (the exact Codex case)', 'node ./scripts/{alpha,beta}.mjs'],
+  ['brace expansion, repo-rooted', 'node scripts/{alpha,beta}.mjs'],
+  ['character class, `./`-relative (the exact Codex case)', 'node ./scripts/[ab].mjs'],
+  ['character class, repo-rooted', 'node scripts/[ab].mjs'],
+  ['negated character class', 'node scripts/[!a]lpha.mjs'],
+  ['a `+` quantifier form', 'node scripts/alpha+.mjs'],
+  ['a malformed/unclosed class', 'node scripts/[ab.mjs'],
+  ['a nested brace form', 'node ./scripts/{alpha,{beta,gamma}}.mjs'],
+];
+for (const [label, run] of UNSUPPORTED_GLOB_PROBES) {
+  const closure = r3Closure(run);
+  check(
+    `R3 MEDIUM: unsupported shell glob (${label}) is recorded as unresolvable`,
+    closure.unresolvable.some((entry) => entry.includes('shell glob form outside the supported subset')),
+    JSON.stringify({ executed: closure.executed, unresolvable: closure.unresolvable }),
+  );
+}
+{
+  // The symmetric obligation: an ORDINARY supported glob stays deterministic
+  // and produces NO unresolvable row.
+  const closure = r3Closure('node scripts/*.mjs');
+  check(
+    'R3 MEDIUM: an ordinary supported glob still expands deterministically',
+    ['scripts/alpha.mjs', 'scripts/beta.mjs', 'scripts/probe.mjs'].every((path) => closure.executed.includes(path)),
+    JSON.stringify(closure.executed),
+  );
+  check(
+    'R3 MEDIUM: an ordinary supported glob raises NO unresolvable row',
+    closure.unresolvable.length === 0,
+    JSON.stringify(closure.unresolvable),
+  );
+}
+{
+  const closure = r3Closure('node ./scripts/*.mjs');
+  check(
+    'R3 MEDIUM: a `./`-relative supported glob also expands deterministically',
+    closure.executed.includes('scripts/alpha.mjs') && closure.executed.includes('scripts/beta.mjs'),
+    JSON.stringify(closure.executed),
+  );
+}
+{
+  const closure = r3Closure('node scripts/missing-*.mjs');
+  check(
+    'R3 MEDIUM: a supported glob matching nothing is recorded, not silently empty',
+    closure.unresolvable.some((entry) => entry.includes('expands to no tracked file')),
+    JSON.stringify(closure.unresolvable),
+  );
+}
+
+// --- R3 MEDIUM: shell STRUCTURE outside the model is reported ----------------
+const UNMODELED_SHELL_STRUCTURE_PROBES = [
+  ['a here-document', "node <<'EOF'\nreadFileSync(x);\nEOF"],
+  ['a process substitution', 'diff <(node scripts/alpha.mjs) scripts/beta.mjs'],
+  ['an unterminated command substitution', 'echo $(node scripts/alpha.mjs'],
+];
+for (const [label, run] of UNMODELED_SHELL_STRUCTURE_PROBES) {
+  const closure = r3Closure(run);
+  check(
+    `R3 MEDIUM: ${label} emits DEPENDENCY_UNRESOLVABLE rather than being ignored`,
+    closure.unresolvable.some((entry) => entry.includes('shell structure outside the supported model')),
+    JSON.stringify(closure.unresolvable),
+  );
+}
+
+// --- R3 MEDIUM 3: the JS lexer must not swallow executable code --------------
+//
+// The previous regex heuristic keyed on the previous CHARACTER, so `return`
+// left `n` behind and `return /['"]/.test(x)` was read as division — which made
+// the `'` inside the regex open a bogus string literal that swallowed every
+// dependency-bearing call after it. Each probe asserts the call AFTER the
+// ambiguous construct is still found.
+const LEXER_PROBES = [
+  [
+    'a regex literal after `return`',
+    "export function f(x) { return /['\"]/.test(x); }\nreadFileSync('src/data/direct.ts', 'utf8');",
+  ],
+  [
+    'a regex literal after `)` of an `if` head',
+    "if (flag) /['\"]/.test(x);\nreadFileSync('src/data/direct.ts', 'utf8');",
+  ],
+  [
+    'division after `)` of a grouping expression',
+    "const ratio = (a + b) / c;\nreadFileSync('src/data/direct.ts', 'utf8');",
+  ],
+  [
+    'division after `)` of a call expression',
+    "const ratio = size(a) / count(b);\nreadFileSync('src/data/direct.ts', 'utf8');",
+  ],
+  [
+    'division after an identifier',
+    "const ratio = total / count;\nreadFileSync('src/data/direct.ts', 'utf8');",
+  ],
+  [
+    'division after a number',
+    "const half = 10 / 2;\nreadFileSync('src/data/direct.ts', 'utf8');",
+  ],
+  [
+    'division after `++`',
+    "let i = 0;\nconst half = i++ / 2;\nreadFileSync('src/data/direct.ts', 'utf8');",
+  ],
+  [
+    'a regex containing an escaped slash',
+    "const re = /a\\/b['\"]/g;\nreadFileSync('src/data/direct.ts', 'utf8');",
+  ],
+  [
+    'a regex literal after `typeof`',
+    "const t = typeof /['\"]/;\nreadFileSync('src/data/direct.ts', 'utf8');",
+  ],
+  [
+    'a regex literal after `case`',
+    "switch (k) { case /['\"]/.source: break; }\nreadFileSync('src/data/direct.ts', 'utf8');",
+  ],
+  [
+    'a template literal, then a regex, then a computed read',
+    "const t = `x${y}`;\nconst re = /['\"]/g;\nreadFileSync('src/data/direct.ts', 'utf8');",
+  ],
+  [
+    'a quote inside a regex inside a template expression (the R3 desync case)',
+    "const q = `'${String(v).replace(/'/g, `'\\\\''`)}'`;\nreadFileSync('src/data/direct.ts', 'utf8');",
+  ],
+  [
+    'a comment mentioning a regex and an apostrophe',
+    "// a /regex/ and an apostrophe: don't desync\nreadFileSync('src/data/direct.ts', 'utf8');",
+  ],
+  [
+    'a string literal containing regex-looking text',
+    "const s = \"a /re/ b\";\nreadFileSync('src/data/direct.ts', 'utf8');",
+  ],
+];
+for (const [label, source] of LEXER_PROBES) {
+  const closure = r3Closure('node scripts/probe.mjs', { sources: { 'scripts/probe.mjs': source } });
+  check(
+    `R3 MEDIUM: no executable read disappears behind ${label}`,
+    closure.readInputs.includes('src/data/direct.ts'),
+    JSON.stringify({ read: closure.readInputs, unresolvable: closure.unresolvable }),
+  );
+}
+{
+  // Comments and string literals are still IGNORED as code: a path that only
+  // appears inside them must not become a dependency.
+  const closure = r3Closure('node scripts/probe.mjs', {
+    sources: {
+      'scripts/probe.mjs': [
+        "// readFileSync('src/data/notes.md', 'utf8');",
+        "const fixture = { text: \"readFileSync('src/data/notes.md')\" };",
+        "readFileSync('src/data/direct.ts', 'utf8');",
+        'export { fixture };',
+      ].join('\n'),
+    },
+  });
+  check(
+    'R3 MEDIUM: a path that only appears in a comment is NOT a dependency',
+    !closure.readInputs.includes('src/data/notes.md'),
+    JSON.stringify(closure.readInputs),
+  );
+  check(
+    'R3 MEDIUM: the real read alongside it IS still a dependency',
+    closure.readInputs.includes('src/data/direct.ts'),
+    JSON.stringify(closure.readInputs),
+  );
+}
+{
+  // The EXACT R3 desync, isolated. On the previous head the lexer's
+  // `${…}` reader did not know about regex literals, so the `'` inside
+  // `.replace(/'/g, …)` opened a bogus string literal that swallowed the rest
+  // of the line — and the `readFileSync` after it produced NEITHER a dependency
+  // NOR an unresolvable row. It disappeared completely.
+  const desync = "const q = `'${String(v).replace(/'/g, `'\\\\''`)}'`; const t = readFileSync(target, 'utf8');";
+  const closure = r3Closure('node scripts/probe.mjs', { sources: { 'scripts/probe.mjs': desync } });
+  check(
+    'R3 MEDIUM: a COMPUTED read after the desyncing template/regex construct is still recorded',
+    closure.unresolvable.some((entry) => entry.includes('computed readFileSync(…) input')),
+    JSON.stringify({ read: closure.readInputs, unresolvable: closure.unresolvable }),
+  );
+}
+{
+  const desync =
+    "const q = `'${String(v).replace(/'/g, `'\\\\''`)}'`; const t = readFileSync('src/data/direct.ts', 'utf8');";
+  const closure = r3Closure('node scripts/probe.mjs', { sources: { 'scripts/probe.mjs': desync } });
+  check(
+    'R3 MEDIUM: a LITERAL read after the desyncing template/regex construct still resolves',
+    closure.readInputs.includes('src/data/direct.ts'),
+    JSON.stringify({ read: closure.readInputs, unresolvable: closure.unresolvable }),
+  );
+}
+{
+  // Fail closed: a construct the lexer cannot disambiguate is REPORTED.
+  const closure = r3Closure('node scripts/probe.mjs', {
+    sources: { 'scripts/probe.mjs': "const s = 'unterminated\nreadFileSync(dynamic);" },
+  });
+  check(
+    'R3 MEDIUM: a construct the lexer cannot disambiguate emits DEPENDENCY_UNRESOLVABLE',
+    closure.unresolvable.some((entry) => entry.includes('could not be lexed unambiguously')),
+    JSON.stringify(closure.unresolvable),
+  );
+}
+// The lexer's own contract, probed directly.
+check(
+  'R3 MEDIUM: lexJavaScript reports a lexing ambiguity instead of guessing',
+  lexJavaScript("const s = 'unterminated\nmore();").unmodeled.length > 0,
+);
+check(
+  'R3 MEDIUM: lexJavaScript reports NO ambiguity for ordinary code',
+  lexJavaScript("const re = /a\\/b/g;\nconst q = (a + b) / c;\nreturn /['\"]/.test(x);").unmodeled.length === 0,
+  JSON.stringify(lexJavaScript("const re = /a\\/b/g;\nconst q = (a + b) / c;\nreturn /['\"]/.test(x);").unmodeled),
+);
+
+// --- the tokenizer's own contract, probed directly ---------------------------
+check(
+  'R3 MEDIUM: tokenizeShell puts `find` in command position after `if`',
+  tokenizeShell("if find src -name '*.ts'; then echo x; fi").commands.some((command) => command.name === 'find'),
+);
+check(
+  'R3 LOW: tokenizeShell never puts quoted text in command position',
+  tokenizeShell("echo '(find src -name x)'").commands.every((command) => command.name !== 'find'),
+);
+check(
+  'R3 MEDIUM: tokenizeShell keeps a brace-expansion word intact',
+  tokenizeShell('node ./scripts/{alpha,beta}.mjs').commands[0].argv[0].value === './scripts/{alpha,beta}.mjs',
+  JSON.stringify(tokenizeShell('node ./scripts/{alpha,beta}.mjs').commands),
+);
+check(
+  'R3 MEDIUM: tokenizeShell still treats a standalone `{ … }` as a group',
+  tokenizeShell('{ find src -name x; }').commands.some((command) => command.name === 'find'),
+);
+
+// --- R3: COUNT TERMINOLOGY IS DEFINED IN CODE, NOT IN PROSE ------------------
+//
+// "42 distinct forms" was quoted in an R2 write-up and could not be reproduced,
+// because "form" was never defined anywhere executable. The metric vocabulary
+// now lives in `summarizeUnresolvedDependencies` and is asserted here against a
+// hand-checkable fixture, so every number a document quotes can be regenerated.
+{
+  const fixture = {
+    entries: [
+      {
+        knownGaps: [
+          { code: 'DEPENDENCY_UNRESOLVABLE', detail: 'a.mjs :: reason one' },
+          { code: 'DEPENDENCY_UNRESOLVABLE', detail: 'a.mjs :: reason two' },
+          { code: 'DEPENDENCY_UNRESOLVABLE', detail: 'b.mjs :: reason one' },
+          { code: 'TRIGGER_GAP_SCRIPT', detail: 'a.mjs :: reason one' },
+        ],
+      },
+      {
+        // The SAME fact seen by a second job: one more ROW, no new distinct fact.
+        knownGaps: [{ code: 'DEPENDENCY_UNRESOLVABLE', detail: 'a.mjs :: reason one' }],
+      },
+      {
+        // A reason that itself contains ` :: ` — the split is at the FIRST one.
+        knownGaps: [{ code: 'DEPENDENCY_UNRESOLVABLE', detail: 'c.mjs :: reason :: with separator' }],
+      },
+    ],
+  };
+  const metrics = summarizeUnresolvedDependencies(fixture);
+  check('R3 metrics: unresolvedRows counts one row per (entry, gap) pair', metrics.unresolvedRows === 5, JSON.stringify(metrics));
+  check('R3 metrics: distinctOriginReasonFacts dedupes the repeated fact', metrics.distinctOriginReasonFacts === 4, JSON.stringify(metrics));
+  check('R3 metrics: distinctReasons removes the origin prefix', metrics.distinctReasons === 3, JSON.stringify(metrics));
+  check('R3 metrics: distinctOrigins counts origins', metrics.distinctOrigins === 3, JSON.stringify(metrics));
+  check(
+    'R3 metrics: a non-DEPENDENCY_UNRESOLVABLE gap is never counted',
+    summarizeUnresolvedDependencies({ entries: [{ knownGaps: [{ code: 'TRIGGER_GAP_SCRIPT', detail: 'x :: y' }] }] })
+      .unresolvedRows === 0,
+  );
+  check('R3 metrics: an empty portfolio yields zeroes, not NaN', summarizeUnresolvedDependencies({}).unresolvedRows === 0);
+}
+{
+  // And the LIVE numbers are self-consistent, so a quoted figure can never
+  // drift from the file it claims to describe.
+  const live = summarizeUnresolvedDependencies(JSON.parse(portfolioText));
+  check('R3 metrics: the live portfolio really has unresolved rows (the probe is not vacuous)', live.unresolvedRows > 0);
+  check(
+    'R3 metrics: distinct facts never exceed rows, and distinct reasons never exceed facts',
+    live.distinctOriginReasonFacts <= live.unresolvedRows && live.distinctReasons <= live.distinctOriginReasonFacts,
+    JSON.stringify(live),
+  );
+  check(
+    'R3 metrics: distinct origins never exceed distinct facts',
+    live.distinctOrigins <= live.distinctOriginReasonFacts,
+    JSON.stringify(live),
+  );
+}
 
 // ============================================================================
 // C. MUTATION PROBES — the audit must be capable of failing
@@ -1726,6 +2218,71 @@ on:
 jobs:
   unknown-filter:
     name: Unknown filter gate
+    runs-on: ubuntu-latest
+    steps:
+      - run: npm ci
+`,
+  ],
+  // --- R3 HIGH, end to end ---------------------------------------------------
+  // The unit probes above prove the EVALUATOR refuses these. These prove the
+  // whole audit does: a job-level `if` that hides `github.ref` behind a
+  // short-circuit derives UNMODELED, is never BLOCKING, and STILL fails even
+  // when the portfolio snapshot has been synchronised perfectly to it.
+  [
+    'a job-level `if` hiding `github.ref` behind `false &&`',
+    `name: CBW Short Circuit And
+on:
+  pull_request:
+    branches: [master]
+jobs:
+  short-circuit-and:
+    name: Short circuit and gate
+    if: \${{ false && github.ref == 'refs/heads/master' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: npm ci
+`,
+  ],
+  [
+    'a job-level `if` hiding `github.ref` behind `true ||`',
+    `name: CBW Short Circuit Or
+on:
+  pull_request:
+    branches: [master]
+jobs:
+  short-circuit-or:
+    name: Short circuit or gate
+    if: \${{ true || github.ref == 'refs/heads/master' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: npm ci
+`,
+  ],
+  [
+    'a job-level `if` hiding an unmodelled operand inside nested parentheses',
+    `name: CBW Short Circuit Nested
+on:
+  pull_request:
+    branches: [master]
+jobs:
+  short-circuit-nested:
+    name: Short circuit nested gate
+    if: \${{ (false && (github.ref == 'refs/heads/master')) || (true && vars.ENABLE) }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: npm ci
+`,
+  ],
+  [
+    'a `continue-on-error` hiding `github.ref` behind a short-circuit',
+    `name: CBW Short Circuit Soften
+on:
+  pull_request:
+    branches: [master]
+jobs:
+  short-circuit-soften:
+    name: Short circuit soften gate
+    continue-on-error: \${{ true || github.ref == 'refs/heads/master' }}
     runs-on: ubuntu-latest
     steps:
       - run: npm ci

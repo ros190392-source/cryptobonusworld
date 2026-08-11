@@ -31,7 +31,7 @@
 import { readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { auditPortfolio } from './master-blocking-portfolio-contract.mjs';
+import { auditPortfolio, summarizeUnresolvedDependencies } from './master-blocking-portfolio-contract.mjs';
 
 const ROOT = resolve(process.cwd());
 export const PORTFOLIO_PATH = 'scripts/ci/master-blocking-portfolio.json';
@@ -117,4 +117,14 @@ if (invokedDirectly) {
     process.exit(1);
   }
   console.log(`CBW MASTER BLOCKING PORTFOLIO: PASS (${results.length}/${results.length})`);
+  // Reproducible metrics, printed from the SAME code that defines them, so a
+  // number quoted in a report or a PR body can always be regenerated with one
+  // command instead of being restated as prose. See
+  // `summarizeUnresolvedDependencies` for the exact definition of each term.
+  const metrics = summarizeUnresolvedDependencies(JSON.parse(readFileSync(resolve(ROOT, PORTFOLIO_PATH), 'utf8')));
+  console.log(
+    `CBW MASTER BLOCKING PORTFOLIO METRICS: unresolvedRows=${metrics.unresolvedRows} ` +
+      `distinctOriginReasonFacts=${metrics.distinctOriginReasonFacts} ` +
+      `distinctReasons=${metrics.distinctReasons} distinctOrigins=${metrics.distinctOrigins}`,
+  );
 }

@@ -362,6 +362,49 @@ function tokenizeExpression(text) {
   return tokens;
 }
 
+// The EXACT set of leaf identifiers this engine models. Anything else — a
+// `github.ref`, a `vars.X`, a `contains(…)` — is outside the model.
+const MODELED_IDENTIFIERS = Object.freeze(['true', 'false', 'github.event_name']);
+const MODELED_FUNCTIONS = Object.freeze(['always']);
+
+/**
+ * MODELABILITY IS DECIDED BEFORE EVALUATION, OVER THE WHOLE TOKEN STREAM.
+ *
+ * GitHub's `&&` / `||` short-circuit at RUN TIME, but governance modelling is a
+ * statement about SYNTAX: `false && github.ref == 'refs/heads/master'` mentions
+ * `github.ref`, which this engine does not model, so the expression is UNMODELED
+ * even though a run-time evaluator could decide it without ever looking right of
+ * the `&&`. Letting short-circuit erase the unsupported operand would silently
+ * launder unmodelled surface into a "provable" classification — exactly the
+ * permissive guess the whole engine refuses to make.
+ *
+ * Every reachable syntactic sub-expression is therefore checked here, before
+ * `evaluateTokens` is allowed to short-circuit anything. The operator/punctuation
+ * vocabulary is already closed by `tokenizeExpression` (an unrecognised character
+ * makes the whole expression unmodelled), so the remaining surface to validate is
+ * the identifier/function leaves.
+ *
+ * @returns {boolean} true when EVERY leaf in the stream is inside the model.
+ */
+export function expressionIsFullyModeled(tokens) {
+  if (!Array.isArray(tokens)) return false;
+  for (const [index, token] of tokens.entries()) {
+    if (token.type !== 'ident') continue;
+    const isCall = tokens[index + 1]?.type === '(';
+    if (isCall) {
+      // A modelled function is `name` `(` `)` and nothing else: an argument list
+      // is a form this engine does not model, even for a modelled name.
+      if (!MODELED_FUNCTIONS.includes(token.value)) return false;
+      if (tokens[index + 2]?.type !== ')') return false;
+      continue;
+    }
+    // A modelled function name used OUTSIDE a call (`always && x`) is not a
+    // modelled value either.
+    if (!MODELED_IDENTIFIERS.includes(token.value)) return false;
+  }
+  return true;
+}
+
 function evaluateTokens(tokens, context) {
   let pos = 0;
   let bad = false;
@@ -430,8 +473,9 @@ function evaluateTokens(tokens, context) {
 
   // `&&` / `||` return an OPERAND in GitHub, not a boolean. Short-circuiting is
   // kept because a provably-false left operand of `&&` (or a provably-true left
-  // operand of `||`) decides the whole expression even when the other side is
-  // UNMODELED.
+  // operand of `||`) decides the whole expression. This is only sound because
+  // `evaluateGithubExpression` has ALREADY proved, over the whole token stream,
+  // that no sub-expression is outside the model — see `expressionIsFullyModeled`.
   function andExpression() {
     let left = comparison();
     while (peek()?.type === '&&') {
@@ -482,6 +526,10 @@ export function evaluateGithubExpression(raw, context = {}) {
   }
   const tokens = tokenizeExpression(text);
   if (tokens === null || tokens.length === 0) return UNMODELED;
+  // WHOLE-TREE MODELABILITY FIRST. Short-circuit evaluation may only run once
+  // every reachable sub-expression is known to be inside the model, so no
+  // unsupported operand can be hidden behind a `false &&` or a `true ||`.
+  if (!expressionIsFullyModeled(tokens)) return UNMODELED;
   // A job-level `if` is coerced to a boolean by GitHub, so a modelled non-boolean
   // result is resolved through GitHub truthiness. Anything else stays UNMODELED.
   return truthiness(evaluateTokens(tokens, context));
@@ -769,17 +817,367 @@ function isExecutable(path) {
 
 // Any whitespace/quote-delimited token that could be a repository path.
 const PATH_TOKEN_RE = /[A-Za-z0-9._][A-Za-z0-9._*?/-]*\/[A-Za-z0-9._*?/-]+/g;
-const FIND_NAME_RE = /\bfind\s+([A-Za-z0-9._/-]+)\b[^\n]*?-name\s+'?"?([^\s'"]+)'?"?/g;
-// One whole `find` invocation, up to the next shell separator. Anchored at a
-// COMMAND position so the word "find" inside an `echo` message is not mistaken
-// for an invocation.
-const FIND_COMMAND_RE = /(?:^|[\n;|&(])\s*find\s+([^\n;|&)]*)/g;
-// `find` operators that change WHICH files the command visits. Outside the
-// supported subset => DEPENDENCY_UNRESOLVABLE, never an approximation.
-const FIND_UNSUPPORTED_RE = /(^|\s)-(maxdepth|mindepth|path|ipath|regex|iregex|exec|execdir|ok|prune|delete|newer|links|samefile|not|and|or|a|o)\b/;
-// A path-shaped token carrying glob syntax outside the supported subset.
-const UNSUPPORTED_SHELL_GLOB_RE = /(?:^|[\s'"=])([A-Za-z0-9._-]+\/[A-Za-z0-9._*?/-]*[[\]{}+][^\s'"]*)/g;
+// A whole WORD that is shaped like a repository path. Used only to decide
+// whether an UNSUPPORTED glob form is worth reporting, so it deliberately
+// accepts the metacharacters `PATH_TOKEN_RE` excludes.
+const SHELL_PATH_LIKE_RE = /^[.A-Za-z0-9_][^\s]*\/[^\s]*$/;
+// Glob syntax the bounded engine does not model. A word carrying any of these
+// UNQUOTED is reported, never silently expanded to nothing.
+const UNSUPPORTED_GLOB_CHAR_RE = /[[\]{}+]/;
+// `find` options this engine models. `-name` selects; `-type`/`-print`/`-print0`
+// do not change WHICH files are visited. EVERY other option is outside the
+// subset => DEPENDENCY_UNRESOLVABLE, never an approximation.
+const FIND_SUPPORTED_OPTIONS = Object.freeze(['-name', '-type', '-print', '-print0']);
+const FIND_OPTIONS_WITH_VALUE = Object.freeze(['-name', '-type']);
 const MODULE_EXTENSIONS = Object.freeze(['', '.mjs', '.js', '.cjs', '.ts', '.tsx', '.json']);
+
+// --- bounded shell tokenizer ---------------------------------------------------
+//
+// A `run:` block is SHELL, not text. Deciding "is this word a command?" with a
+// regex anchored at "start of line, `;`, `|`, `&` or `(`" silently omits every
+// other real command position — `if find …`, `then find …`, `do find …`,
+// `{ find …`, an `elif`/`else`/`while`/`until` head — and simultaneously
+// mistakes the word `find` inside `echo '(find …)'` for an invocation, because
+// a regex cannot tell an executable token from quoted DATA.
+//
+// This tokenizer is the bounded replacement. It is NOT a shell: it recognises
+// exactly the structure the governance model needs — word boundaries, quoting,
+// escaping, command substitution and command position — and every construct
+// outside that structure is REPORTED (so the caller emits
+// DEPENDENCY_UNRESOLVABLE) rather than skipped.
+//
+//   command position = start of script | newline | `;` | `;;` | `&&` | `||`
+//                    | `|` | `&` | `(` | `)` | `{` | `}` | after one of the
+//                      control keywords below | after a `VAR=value` prefix
+//
+// `)` is included because it is how a `case` arm introduces its command list.
+
+const SHELL_SEPARATORS = Object.freeze([';;', '&&', '||', ';', '|', '&', '(', ')', '{', '}', '\n']);
+// Keywords that occupy no command slot: the word after them is still a command.
+const SHELL_COMMAND_KEYWORDS = Object.freeze([
+  'if',
+  'then',
+  'elif',
+  'else',
+  'while',
+  'until',
+  'do',
+  'time',
+  '!',
+]);
+const SHELL_ASSIGNMENT_PREFIX_RE = /^[A-Za-z_][A-Za-z0-9_]*=/;
+// Constructs whose expansion this engine does not model. Presence anywhere in a
+// scanned shell body is an explicit unresolvable fact.
+const SHELL_UNMODELED_CONSTRUCTS = Object.freeze([
+  ['<<', 'here-document redirection'],
+  ['<(', 'process substitution'],
+  ['>(', 'process substitution'],
+]);
+const MAX_SHELL_SUBSTITUTION_DEPTH = 4;
+
+/**
+ * Tokenize a shell body into commands.
+ *
+ * @returns {{commands: {name: string|null, words: object[]}[], unmodeled: string[]}}
+ *   Each word carries `value` (the literal text it contributes), `quotedOnly`
+ *   (every character came from quoted/escaped text, so it is DATA and never
+ *   glob-expanded), `dynamic` (an unexpanded `$VAR`/`${…}` took part) and
+ *   `substitution` (a `$(…)`/backtick command substitution took part).
+ */
+export function tokenizeShell(source, depth = 0) {
+  const text = String(source ?? '');
+  const commands = [];
+  const unmodeled = [];
+  if (depth > MAX_SHELL_SUBSTITUTION_DEPTH) {
+    unmodeled.push(`command substitution nested deeper than ${MAX_SHELL_SUBSTITUTION_DEPTH}`);
+    return { commands, unmodeled };
+  }
+
+  let words = [];
+  let word = null;
+
+  const startWord = () => {
+    if (word === null) word = { value: '', quotedOnly: true, dynamic: false, substitution: false, empty: true };
+    return word;
+  };
+  const addLiteral = (chunk, quoted) => {
+    const current = startWord();
+    current.value += chunk;
+    current.empty = false;
+    if (!quoted) current.quotedOnly = false;
+  };
+  const endWord = () => {
+    if (word === null) return;
+    words.push(word);
+    word = null;
+  };
+  const endCommand = () => {
+    endWord();
+    if (words.length) commands.push({ words });
+    words = [];
+  };
+  const absorb = (nested) => {
+    for (const command of nested.commands) commands.push(command);
+    for (const detail of nested.unmodeled) if (!unmodeled.includes(detail)) unmodeled.push(detail);
+  };
+
+  for (const [needle, description] of SHELL_UNMODELED_CONSTRUCTS) {
+    if (text.includes(needle)) unmodeled.push(`${description} (\`${needle}\`)`);
+  }
+
+  let i = 0;
+  while (i < text.length) {
+    const ch = text[i];
+
+    if (ch === ' ' || ch === '\t' || ch === '\r') {
+      endWord();
+      i += 1;
+      continue;
+    }
+
+    // A `#` only starts a comment where a WORD could start.
+    if (ch === '#' && word === null) {
+      while (i < text.length && text[i] !== '\n') i += 1;
+      continue;
+    }
+
+    // A separator ends the current word AND the current command, so both
+    // `foo; bar` and `foo;bar` put `bar` in command position.
+    //
+    // `{` and `}` are the exception: they only GROUP when they stand alone as a
+    // word (`{ find …; }`). Attached to a word they are brace-expansion syntax
+    // (`./scripts/{alpha,beta}.mjs`), which must stay ONE word so the caller can
+    // report it as an unmodelled glob instead of shredding it into fragments
+    // that resolve to nothing.
+    const separator = SHELL_SEPARATORS.find((candidate) => {
+      if (!text.startsWith(candidate, i)) return false;
+      if (candidate === '{') return word === null && /^[\s;&|)]|^$/.test(text.slice(i + 1, i + 2) || '');
+      if (candidate === '}') return word === null;
+      return true;
+    });
+    if (separator !== undefined) {
+      endCommand();
+      i += separator.length;
+      continue;
+    }
+
+    if (ch === '\\') {
+      addLiteral(text[i + 1] ?? '', true);
+      i += 2;
+      continue;
+    }
+
+    if (ch === "'") {
+      const close = text.indexOf("'", i + 1);
+      if (close === -1) {
+        unmodeled.push('unterminated single-quoted string');
+        addLiteral(text.slice(i + 1), true);
+        i = text.length;
+        continue;
+      }
+      addLiteral(text.slice(i + 1, close), true);
+      i = close + 1;
+      continue;
+    }
+
+    if (ch === '"') {
+      let j = i + 1;
+      let closed = false;
+      while (j < text.length) {
+        if (text[j] === '\\') {
+          addLiteral(text[j + 1] ?? '', true);
+          j += 2;
+          continue;
+        }
+        if (text[j] === '"') {
+          closed = true;
+          j += 1;
+          break;
+        }
+        // A command substitution EXECUTES even inside double quotes.
+        if (text[j] === '$' && text[j + 1] === '(') {
+          const inner = readShellSubstitution(text, j + 2, ')');
+          if (inner === null) {
+            unmodeled.push('unterminated command substitution');
+            j = text.length;
+            break;
+          }
+          absorb(tokenizeShell(inner.source, depth + 1));
+          startWord().substitution = true;
+          j = inner.end;
+          continue;
+        }
+        if (text[j] === '`') {
+          const inner = readShellSubstitution(text, j + 1, '`');
+          if (inner === null) {
+            unmodeled.push('unterminated command substitution');
+            j = text.length;
+            break;
+          }
+          absorb(tokenizeShell(inner.source, depth + 1));
+          startWord().substitution = true;
+          j = inner.end;
+          continue;
+        }
+        if (text[j] === '$') {
+          startWord().dynamic = true;
+          j += 1;
+          continue;
+        }
+        addLiteral(text[j], true);
+        j += 1;
+      }
+      if (!closed && j >= text.length) unmodeled.push('unterminated double-quoted string');
+      i = j;
+      continue;
+    }
+
+    if (ch === '$' && text[i + 1] === '(') {
+      const inner = readShellSubstitution(text, i + 2, ')');
+      if (inner === null) {
+        unmodeled.push('unterminated command substitution');
+        i = text.length;
+        continue;
+      }
+      absorb(tokenizeShell(inner.source, depth + 1));
+      startWord().substitution = true;
+      i = inner.end;
+      continue;
+    }
+
+    if (ch === '`') {
+      const inner = readShellSubstitution(text, i + 1, '`');
+      if (inner === null) {
+        unmodeled.push('unterminated command substitution');
+        i = text.length;
+        continue;
+      }
+      absorb(tokenizeShell(inner.source, depth + 1));
+      startWord().substitution = true;
+      i = inner.end;
+      continue;
+    }
+
+    if (ch === '$') {
+      startWord().dynamic = true;
+      i += 1;
+      continue;
+    }
+
+    addLiteral(ch, false);
+    i += 1;
+  }
+  endCommand();
+
+  // --- resolve command position -------------------------------------------------
+  // Every `commands` element above is one separator-delimited word list. Control
+  // keywords and `VAR=value` prefixes occupy no command slot, so the executable
+  // token is the first word past them.
+  const resolved = [];
+  for (const command of commands) {
+    let index = 0;
+    while (index < command.words.length) {
+      const candidate = command.words[index];
+      // A control keyword only counts as one when it is a bare, unquoted word.
+      if (candidate.quotedOnly === false && SHELL_COMMAND_KEYWORDS.includes(candidate.value)) {
+        index += 1;
+        continue;
+      }
+      if (candidate.quotedOnly === false && SHELL_ASSIGNMENT_PREFIX_RE.test(candidate.value)) {
+        index += 1;
+        continue;
+      }
+      break;
+    }
+    const head = command.words[index];
+    resolved.push({
+      // `name` is the EXECUTABLE token, and only when it is unquoted text: a
+      // fully quoted word is data, never an invocation this model recognises.
+      name: head && head.quotedOnly === false && !head.dynamic && !head.substitution ? head.value : null,
+      words: command.words,
+      argv: command.words.slice(index + 1),
+    });
+  }
+  return { commands: resolved, unmodeled };
+}
+
+/** A bounded, readable rendering of a tokenized command for an audit fact. */
+export function describeShellCommand(command) {
+  const rendered = command.words
+    .map((word) => (word.substitution ? '$(…)' : word.dynamic ? `${word.value}$…` : word.value))
+    .join(' ')
+    .trim();
+  return rendered.length > 160 ? `${rendered.slice(0, 157)}...` : rendered;
+}
+
+/**
+ * Parse a tokenized `find` argument list against the supported subset.
+ * @returns {{dir: string, namePattern: string}|{unsupported: string}}
+ */
+export function parseFindInvocation(argv) {
+  let dir = null;
+  let namePattern = null;
+  for (let index = 0; index < argv.length; index += 1) {
+    const word = argv[index];
+    if (word.substitution || word.dynamic) return { unsupported: 'argument is computed at run time' };
+    const value = word.value;
+    if (value.startsWith('-')) {
+      if (!FIND_SUPPORTED_OPTIONS.includes(value)) return { unsupported: value };
+      if (!FIND_OPTIONS_WITH_VALUE.includes(value)) continue;
+      const operand = argv[index + 1];
+      if (!operand || operand.substitution || operand.dynamic) return { unsupported: `${value} operand is not a literal` };
+      index += 1;
+      if (value === '-name') {
+        if (namePattern !== null) return { unsupported: 'more than one -name pattern' };
+        namePattern = operand.value;
+      }
+      continue;
+    }
+    // A non-option operand before any option is a search root. More than one
+    // root, or a root that is itself a glob, is outside the subset.
+    if (namePattern !== null || dir !== null) return { unsupported: `unexpected operand ${value}` };
+    if (/[*?[\]{}]/.test(value)) return { unsupported: `search root is a glob (${value})` };
+    dir = value;
+  }
+  if (dir === null) return { unsupported: 'no literal search root' };
+  if (namePattern === null) return { unsupported: 'no -name pattern' };
+  return { dir, namePattern };
+}
+
+// Read the interior of a `$(…)` / `` `…` `` substitution, tracking nesting and
+// quoting so the scan cannot desynchronise. Returns null when it never closes.
+function readShellSubstitution(text, start, closer) {
+  let depth = 0;
+  let i = start;
+  while (i < text.length) {
+    const ch = text[i];
+    if (ch === '\\') {
+      i += 2;
+      continue;
+    }
+    if (ch === "'" && closer === ')') {
+      const close = text.indexOf("'", i + 1);
+      if (close === -1) return null;
+      i = close + 1;
+      continue;
+    }
+    if (closer === ')' && ch === '(') {
+      depth += 1;
+      i += 1;
+      continue;
+    }
+    if (ch === closer) {
+      if (closer === ')' && depth > 0) {
+        depth -= 1;
+        i += 1;
+        continue;
+      }
+      return { source: text.slice(start, i), end: i + 1 };
+    }
+    i += 1;
+  }
+  return null;
+}
 
 // A string literal is treated as naming a repository input only when the CODE
 // around it says so: it is an argument to one of these path/IO calls, or it is
@@ -871,17 +1269,122 @@ const SEGMENT_TOKEN_RE = new RegExp('\\u0001(\\d+)\\u0001|[A-Za-z_$][\\w$]*', 'g
 // string is never scanned as if it were code. Regex literals are recognised with
 // the standard "previous significant token" heuristic so a pattern such as
 // /['"]/ cannot desynchronise the scan.
-const REGEX_PRECEDERS = new Set(['(', ',', '=', ':', '[', '!', '&', '|', '?', '{', '}', ';', '+', '-', '*', '%', '<', '>', '~', '^']);
+// Keywords after which a `/` can only begin a REGEX LITERAL, never a division.
+const REGEX_PRECEDING_KEYWORDS = new Set([
+  'return',
+  'typeof',
+  'instanceof',
+  'in',
+  'of',
+  'new',
+  'delete',
+  'void',
+  'throw',
+  'case',
+  'do',
+  'else',
+  'yield',
+  'await',
+]);
+// Sticky (`y`) so the lexers can match AT an offset without slicing the whole
+// remaining source on every character — that slicing is quadratic, and these
+// scanners run over every executed file of every job.
+const JS_WORD_RE = /[A-Za-z_$][\w$]*/y;
+const JS_NUMBER_RE = /(?:0[xXbBoO][0-9a-fA-F_]+|\d[\d_]*(?:\.[\d_]*)?(?:[eE][+-]?\d+)?)n?/y;
+function matchAt(regexp, text, index) {
+  regexp.lastIndex = index;
+  return regexp.exec(text);
+}
+
+// Keywords whose parenthesised HEAD is a statement head, so the `)` that closes
+// it is followed by a statement — where a `/` begins a regex. Every other `)`
+// closes an expression or an argument list, where a `/` is division.
+const CONTROL_HEAD_KEYWORDS = new Set(['if', 'while', 'for', 'with']);
+
+/**
+ * Is a `/` at this point the start of a REGEX LITERAL (rather than division)?
+ * Decided from the previous significant TOKEN — see `lexJavaScript`.
+ */
+function regexAllowedAfter(previous) {
+  switch (previous.type) {
+    case 'none':
+      return true;
+    case 'word':
+      return REGEX_PRECEDING_KEYWORDS.has(previous.value);
+    case 'number':
+    case 'string':
+    case 'template':
+    case 'regex':
+      return false;
+    default:
+      if (previous.value === ')') return previous.controlHead === true;
+      if (previous.value === ']') return false;
+      if (previous.value === '++' || previous.value === '--') return false;
+      return true;
+  }
+}
+
+/**
+ * Consume a regex literal starting at `start` (the opening `/`), including its
+ * flags. Returns the index after it, or null when it does not close on its line.
+ */
+function readRegexLiteral(text, start) {
+  let j = start + 1;
+  let inClass = false;
+  while (j < text.length) {
+    const ch = text[j];
+    if (ch === '\\') {
+      j += 2; // an escaped `/` never closes the literal
+      continue;
+    }
+    if (ch === '\n') return null;
+    if (ch === '[') inClass = true;
+    else if (ch === ']') inClass = false;
+    else if (ch === '/' && !inClass) {
+      j += 1;
+      while (j < text.length && /[a-z]/.test(text[j])) j += 1;
+      return j;
+    }
+    j += 1;
+  }
+  return null;
+}
 
 // Read a `${…}` template expression, starting just after the `${`. Returns the
 // verbatim expression source and the index after its closing `}`, or null when
-// the literal never closes. Nested braces, quoted strings and nested template
-// literals are all accounted for so the scan cannot desynchronise.
+// the literal never closes.
+//
+// This is CODE, so it is scanned with the same token-aware rules as
+// `lexJavaScript`: nested braces, quoted strings, nested template literals AND
+// REGEX LITERALS. Skipping the regex rule here is not a cosmetic gap — an
+// interior such as `String(v).replace(/'/g, `'\\''`)` contains a quote INSIDE a
+// regex, and a scan that reads it as an opening string literal desynchronises,
+// which is exactly how following executable code disappears.
 function readBalancedExpression(text, start) {
   let depth = 0;
   let i = start;
+  let previous = { type: 'none', value: '' };
+  const parenStack = [];
   while (i < text.length) {
     const ch = text[i];
+    if (ch === '/' && text[i + 1] === '/') {
+      while (i < text.length && text[i] !== '\n') i += 1;
+      continue;
+    }
+    if (ch === '/' && text[i + 1] === '*') {
+      i += 2;
+      while (i < text.length && !(text[i] === '*' && text[i + 1] === '/')) i += 1;
+      i += 2;
+      continue;
+    }
+    if (ch === '/' && regexAllowedAfter(previous)) {
+      const end = readRegexLiteral(text, i);
+      if (end !== null) {
+        previous = { type: 'regex', value: '/' };
+        i = end;
+        continue;
+      }
+    }
     if (ch === '\\') {
       i += 2;
       continue;
@@ -901,25 +1404,60 @@ function readBalancedExpression(text, start) {
         if (text[i] === '\n') break;
         i += 1;
       }
+      previous = { type: 'string', value: quote };
       continue;
     }
     if (ch === '`') {
       const nested = scanTemplateLiteral(text, i);
       if (nested === null) return null;
+      previous = { type: 'template', value: '`' };
       i = nested.end;
       continue;
     }
     if (ch === '{') {
       depth += 1;
+      previous = { type: 'punct', value: '{' };
       i += 1;
       continue;
     }
     if (ch === '}') {
       if (depth === 0) return { source: text.slice(start, i), end: i + 1 };
       depth -= 1;
+      previous = { type: 'punct', value: '}' };
       i += 1;
       continue;
     }
+    const word = matchAt(JS_WORD_RE, text, i);
+    if (word) {
+      previous = { type: 'word', value: word[0] };
+      i += word[0].length;
+      continue;
+    }
+    const number = matchAt(JS_NUMBER_RE, text, i);
+    if (number) {
+      previous = { type: 'number', value: number[0] };
+      i += number[0].length;
+      continue;
+    }
+    if (ch === '(') {
+      parenStack.push({ controlHead: previous.type === 'word' && CONTROL_HEAD_KEYWORDS.has(previous.value) });
+      previous = { type: 'punct', value: '(' };
+      i += 1;
+      continue;
+    }
+    if (ch === ')') {
+      const frame = parenStack.pop();
+      previous = { type: 'punct', value: ')', controlHead: frame?.controlHead === true };
+      i += 1;
+      continue;
+    }
+    const pair = text.slice(i, i + 2);
+    if (pair === '++' || pair === '--') {
+      previous = { type: 'punct', value: pair };
+      i += 2;
+      continue;
+    }
+    if (!/\s/.test(ch)) previous = { type: 'punct', value: ch };
     i += 1;
   }
   return null;
@@ -968,8 +1506,22 @@ function scanTemplateLiteral(text, start) {
 export function lexJavaScript(source) {
   const text = String(source ?? '');
   const strings = [];
+  const unmodeled = [];
   let skeleton = '';
-  let previousSignificant = '';
+  // The previous SIGNIFICANT TOKEN, not the previous character. A single-char
+  // preceder set cannot tell `return /re/` (a regex) from `total / count`
+  // (division), and getting that wrong is not a cosmetic miss: mis-lexing
+  // `return /['"]/.test(x)` as division makes the `'` open a bogus string
+  // literal that then swallows every executable call after it.
+  let previous = { type: 'none', value: '' };
+  // What each open `(` was introduced by, so a `)` knows whether it closed a
+  // control-flow head (`if (a) /re/.test(b)` — regex) or an expression / call
+  // argument list (`(a + b) / c` — division).
+  const parenStack = [];
+  const note = (detail) => {
+    if (!unmodeled.includes(detail)) unmodeled.push(detail);
+  };
+
   let i = 0;
   while (i < text.length) {
     const ch = text[i];
@@ -985,34 +1537,18 @@ export function lexJavaScript(source) {
       skeleton += ' ';
       continue;
     }
-    if (ch === '/' && (previousSignificant === '' || REGEX_PRECEDERS.has(previousSignificant))) {
-      // regex literal
-      let j = i + 1;
-      let inClass = false;
-      let closed = false;
-      while (j < text.length) {
-        const rc = text[j];
-        if (rc === '\\') {
-          j += 2;
-          continue;
-        }
-        if (rc === '\n') break;
-        if (rc === '[') inClass = true;
-        else if (rc === ']') inClass = false;
-        else if (rc === '/' && !inClass) {
-          closed = true;
-          j += 1;
-          break;
-        }
-        j += 1;
-      }
-      if (closed) {
-        while (j < text.length && /[a-z]/.test(text[j])) j += 1;
+    if (ch === '/' && regexAllowedAfter(previous)) {
+      const end = readRegexLiteral(text, i);
+      if (end !== null) {
         skeleton += ' ';
-        previousSignificant = ')';
-        i = j;
+        previous = { type: 'regex', value: '/' };
+        i = end;
         continue;
       }
+      // A `/` in regex position that does not close on its line is a construct
+      // this lexer cannot disambiguate. Fail closed: REPORT it rather than
+      // silently pick a reading that may swallow executable code.
+      note(`unterminated regex literal near "${text.slice(i, i + 40).split('\n')[0]}"`);
     }
     if (ch === '`') {
       const template = scanTemplateLiteral(text, i);
@@ -1023,11 +1559,12 @@ export function lexJavaScript(source) {
           staticChunks: template.chunks,
           expressions: template.expressions,
         });
-        skeleton += `\u0001${strings.length - 1}\u0001`;
-        previousSignificant = '`';
+        skeleton += `${strings.length - 1}`;
+        previous = { type: 'template', value: '`' };
         i = template.end;
         continue;
       }
+      note('unterminated template literal');
     }
     if (ch === "'" || ch === '"') {
       let j = i + 1;
@@ -1045,23 +1582,63 @@ export function lexJavaScript(source) {
           j += 1;
           break;
         }
-        if (sc === '\n' && ch !== '`') break; // unterminated single-line string
+        if (sc === '\n') break; // unterminated single-line string
         value += sc;
         j += 1;
       }
       if (closed) {
         strings.push({ quote: ch, value });
-        skeleton += `\u0001${strings.length - 1}\u0001`;
-        previousSignificant = ch;
+        skeleton += `${strings.length - 1}`;
+        previous = { type: 'string', value: ch };
         i = j;
         continue;
       }
+      note(`unterminated string literal near "${text.slice(i, i + 40).split('\n')[0]}"`);
+    }
+    // A whole IDENTIFIER/KEYWORD is ONE token, so `return` stays distinguishable
+    // from the bare `n` a per-character scan would have left behind.
+    const word = matchAt(JS_WORD_RE, text, i);
+    if (word) {
+      skeleton += word[0];
+      previous = { type: 'word', value: word[0] };
+      i += word[0].length;
+      continue;
+    }
+    const number = matchAt(JS_NUMBER_RE, text, i);
+    if (number) {
+      skeleton += number[0];
+      previous = { type: 'number', value: number[0] };
+      i += number[0].length;
+      continue;
+    }
+    // `++` / `--` are ONE token: consuming them as two `+` characters would
+    // leave `+` as the previous token and turn a following division into a
+    // bogus regex literal.
+    const pair = text.slice(i, i + 2);
+    if (pair === '++' || pair === '--') {
+      skeleton += pair;
+      previous = { type: 'punct', value: pair };
+      i += 2;
+      continue;
     }
     skeleton += ch;
-    if (!/\s/.test(ch)) previousSignificant = ch;
+    if (ch === '(') {
+      parenStack.push({ controlHead: previous.type === 'word' && CONTROL_HEAD_KEYWORDS.has(previous.value) });
+      previous = { type: 'punct', value: '(' };
+      i += 1;
+      continue;
+    }
+    if (ch === ')') {
+      const frame = parenStack.pop();
+      if (frame === undefined) note('unbalanced closing parenthesis; regex vs division position is not decidable');
+      previous = { type: 'punct', value: ')', controlHead: frame?.controlHead === true };
+      i += 1;
+      continue;
+    }
+    if (!/\s/.test(ch)) previous = { type: 'punct', value: ch };
     i += 1;
   }
-  return { skeleton, strings };
+  return { skeleton, strings, unmodeled };
 }
 
 function normalizeRepoPath(path) {
@@ -1184,31 +1761,38 @@ export function deriveDependencyClosure({ job, packageScripts = {}, repoFiles = 
     if (!budget(source, 'shell text')) return;
     const folded = String(text ?? '').replace(/[ \t]*\\\r?\n[ \t]*/g, ' ');
 
+    // SHELL STRUCTURE FIRST. Command position, quoting and command substitution
+    // are decided by the bounded tokenizer, not by a regex guessing where a
+    // command "usually" starts. Structure the tokenizer does not model is
+    // reported, never ignored.
+    const { commands, unmodeled } = tokenizeShell(folded);
+    for (const detail of unmodeled) {
+      note(unresolvable, source, `shell structure outside the supported model: ${detail}`);
+    }
+
     // `find` — supported subset: `find <dir> [-type x] -name <pattern>`, which
     // searches RECURSIVELY. The expansion therefore has to include BOTH the
     // direct children of <dir> and every nested descendant. Anything that
     // changes which files the command visits (`-maxdepth`, `-path`, `-regex`,
     // `-exec`, `-prune`, boolean operators) is outside the subset and is
-    // recorded rather than approximated.
-    for (const [, args] of folded.matchAll(FIND_COMMAND_RE)) {
-      const invocation = `find ${args.trim()}`;
-      const unsupported = FIND_UNSUPPORTED_RE.exec(invocation);
-      if (unsupported) {
-        note(unresolvable, source, `find form outside the supported subset (${unsupported[2]}): ${invocation}`);
+    // recorded rather than approximated. `find` is recognised at EVERY shell
+    // command position (`if find …`, `then find …`, `do find …`, `{ find …`,
+    // after `&&`/`||`/`|`/`;`/a newline, inside `$(…)`) and NEVER inside quoted
+    // data such as `echo '(find src/data -maxdepth 1 …)'`.
+    for (const command of commands) {
+      if (command.name !== 'find') continue;
+      const invocation = describeShellCommand(command);
+      const parsed = parseFindInvocation(command.argv);
+      if (parsed.unsupported) {
+        note(unresolvable, source, `find form outside the supported subset (${parsed.unsupported}): ${invocation}`);
         continue;
       }
-      const parsed = new RegExp(FIND_NAME_RE.source).exec(invocation);
-      if (!parsed) {
-        note(unresolvable, source, `find form outside the supported subset (no -name pattern): ${invocation}`);
-        continue;
-      }
-      const [, dir, namePattern] = parsed;
-      const root = normalizeRepoPath(dir);
+      const root = normalizeRepoPath(parsed.dir);
       // `**/` matches ZERO or more whole segments, so `dir/direct.ts` and
       // `dir/nested/file.ts` both resolve from one recursive expansion.
-      const expanded = expandGlob(`${root}/**/${namePattern}`, tracked);
+      const expanded = expandGlob(`${root}/**/${parsed.namePattern}`, tracked);
       if (expanded === null) {
-        note(unresolvable, source, `find -name pattern is outside the supported glob subset: ${namePattern}`);
+        note(unresolvable, source, `find -name pattern is outside the supported glob subset: ${parsed.namePattern}`);
         continue;
       }
       if (expanded.length === 0) {
@@ -1218,36 +1802,52 @@ export function deriveDependencyClosure({ job, packageScripts = {}, repoFiles = 
       for (const path of expanded) addRead(path);
     }
 
-    // A path-shaped token carrying glob syntax this engine does not model is
-    // recorded, never silently dropped by a regex that simply fails to match it.
-    for (const [, token] of folded.matchAll(UNSUPPORTED_SHELL_GLOB_RE)) {
-      const candidate = token.replace(/^['"]|['"]$/g, '');
-      if (!repoRoots.has(candidate.split('/')[0])) continue;
-      note(unresolvable, source, `shell glob form outside the supported subset: ${candidate}`);
-    }
+    for (const command of commands) {
+      for (const word of command.words) {
+        // A word made only of quoted/escaped text is DATA: the shell never
+        // glob-expands it, so it can neither resolve nor be "unresolvable".
+        // Its literal value is still checked against the tracked file set,
+        // because `node "scripts/x.mjs"` really does run that file.
+        const globbable = word.quotedOnly === false;
+        const candidateWord = word.value;
 
-    for (const [token] of folded.matchAll(PATH_TOKEN_RE)) {
-      const candidate = token.replace(/^['"]|['"]$/g, '');
-      if (candidate.includes('*') || candidate.includes('?')) {
-        const expanded = expandGlob(normalizeRepoPath(candidate), tracked);
-        if (expanded === null) {
-          note(unresolvable, source, `shell glob form outside the supported subset: ${candidate}`);
-          continue;
+        // A whole word carrying UNMODELLED glob syntax — brace expansion
+        // (`./scripts/{alpha,beta}.mjs`), a character class (`./scripts/[ab].mjs`),
+        // a negated class — must be reported. `./` is stripped BEFORE the
+        // repository-root test, which is exactly what used to make these forms
+        // disappear: `.` is not a tracked top-level directory.
+        if (globbable && SHELL_PATH_LIKE_RE.test(candidateWord) && UNSUPPORTED_GLOB_CHAR_RE.test(candidateWord)) {
+          const rooted = candidateWord.replace(/^\.\//, '');
+          if (repoRoots.has(rooted.split('/')[0])) {
+            note(unresolvable, source, `shell glob form outside the supported subset: ${candidateWord}`);
+            continue;
+          }
         }
-        if (expanded.length === 0 && repoRoots.has(candidate.split('/')[0])) {
-          note(unresolvable, source, `shell glob expands to no tracked file: ${candidate}`);
-          continue;
+
+        for (const [token] of candidateWord.matchAll(PATH_TOKEN_RE)) {
+          if (token.includes('*') || token.includes('?')) {
+            if (!globbable) continue; // quoted `*` is a literal asterisk, not a glob
+            const expanded = expandGlob(normalizeRepoPath(token), tracked);
+            if (expanded === null) {
+              note(unresolvable, source, `shell glob form outside the supported subset: ${token}`);
+              continue;
+            }
+            if (expanded.length === 0 && repoRoots.has(token.replace(/^\.\//, '').split('/')[0])) {
+              note(unresolvable, source, `shell glob expands to no tracked file: ${token}`);
+              continue;
+            }
+            for (const path of expanded) {
+              if (isExecutable(path)) enqueueExec(path, depth + 1, source);
+              else addRead(path);
+            }
+            continue;
+          }
+          const normalized = normalizeRepoPath(token);
+          if (!tracked.has(normalized)) continue;
+          if (isExecutable(normalized)) enqueueExec(normalized, depth + 1, source);
+          else addRead(normalized);
         }
-        for (const path of expanded) {
-          if (isExecutable(path)) enqueueExec(path, depth + 1, source);
-          else addRead(path);
-        }
-        continue;
       }
-      const normalized = normalizeRepoPath(candidate);
-      if (!tracked.has(normalized)) continue;
-      if (isExecutable(normalized)) enqueueExec(normalized, depth + 1, source);
-      else addRead(normalized);
     }
 
     for (const name of extractNpmScriptNames(folded)) {
@@ -1285,7 +1885,13 @@ export function deriveDependencyClosure({ job, packageScripts = {}, repoFiles = 
     // Lex once: `skeleton` is the CODE with every string literal replaced by a
     // placeholder. Every rule below reads the skeleton, so code that only exists
     // inside a fixture string is never scanned as code.
-    const { skeleton, strings } = lexJavaScript(raw);
+    const { skeleton, strings, unmodeled } = lexJavaScript(raw);
+    // FAIL CLOSED ON THE LEXER ITSELF. A construct the lexer cannot safely
+    // disambiguate could hide an executable dependency-bearing call behind a
+    // mis-read regex/string boundary, so it is reported rather than skipped.
+    for (const detail of unmodeled ?? []) {
+      note(unresolvable, path, `source could not be lexed unambiguously: ${detail}`);
+    }
     const literalOf = (index) => strings[Number(index)]?.value ?? '';
     const tokenOf = (index) => strings[Number(index)];
     const base = path.split('/').slice(0, -1).join('/');
@@ -1780,6 +2386,57 @@ export function deriveStage2Candidacy(entry, migrationState) {
         ? `not external to the unified gate (${migrationState})`
         : 'already always-reporting, so it can be required directly without migration';
   return { candidate, reason };
+}
+
+// --- reproducible unresolved-dependency metrics ------------------------------
+//
+// COUNT TERMINOLOGY IS DEFINED HERE, IN CODE, AND NOWHERE ELSE.
+//
+// The R2 write-up quoted "42 distinct forms", a number no one could reproduce
+// because "form" was never defined anywhere executable. Prose metrics are not
+// auditable, so this function is now the single definition and every document
+// quotes ITS output. There is deliberately no "distinct forms" metric.
+//
+// Every DEPENDENCY_UNRESOLVABLE detail is a FACT of the shape
+// `<origin> :: <reason>`, where `origin` is the file or step the engine was
+// scanning and `reason` is what it could not resolve. The split is at the FIRST
+// ` :: `, because a reason may itself contain that sequence.
+//
+//   unresolvedRows              one per (portfolio entry, gap) pair. The same
+//                               fact counted once per job that depends on it.
+//   distinctOriginReasonFacts   distinct whole `<origin> :: <reason>` strings.
+//   distinctReasons             distinct `<reason>` strings, origin removed.
+//   distinctOrigins             distinct `<origin>` strings.
+//
+// @param {{entries: {knownGaps?: {code: string, detail: string}[]}[]}} portfolio
+export function summarizeUnresolvedDependencies(portfolio) {
+  const FACT_SEPARATOR = ' :: ';
+  let unresolvedRows = 0;
+  const facts = new Set();
+  const reasons = new Set();
+  const origins = new Set();
+  for (const entry of Array.isArray(portfolio?.entries) ? portfolio.entries : []) {
+    for (const gap of Array.isArray(entry?.knownGaps) ? entry.knownGaps : []) {
+      if (gap?.code !== 'DEPENDENCY_UNRESOLVABLE') continue;
+      const detail = String(gap.detail ?? '');
+      unresolvedRows += 1;
+      facts.add(detail);
+      const index = detail.indexOf(FACT_SEPARATOR);
+      if (index === -1) {
+        origins.add('');
+        reasons.add(detail);
+        continue;
+      }
+      origins.add(detail.slice(0, index));
+      reasons.add(detail.slice(index + FACT_SEPARATOR.length));
+    }
+  }
+  return {
+    unresolvedRows,
+    distinctOriginReasonFacts: facts.size,
+    distinctReasons: reasons.size,
+    distinctOrigins: origins.size,
+  };
 }
 
 // --- the audit ----------------------------------------------------------------

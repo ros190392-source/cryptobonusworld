@@ -112,6 +112,26 @@ other string is true). Operators and functions outside this set — `===`, `>`,
 `startsWith(...)`, `contains(...)`, `toJSON(...)`, any context other than
 `github.event_name` — remain `UNMODELED`.
 
+#### Short-circuit never hides an unmodelled subexpression
+
+Modelability is decided over the **whole expression**, before any truthiness is
+computed. GitHub's `&&` / `||` short-circuit at run time, but governance
+modelling is a statement about *syntax*: an expression that mentions something
+outside the model is unmodelled even when a run-time evaluator could decide it
+without looking at that operand. So all of
+
+```
+false && github.ref == 'refs/heads/master'
+true  || github.ref == 'refs/heads/master'
+(false && (github.ref == 'refs/heads/master'))
+false && contains(github.ref, 'master')
+```
+
+derive `UNMODELED`, not `false`/`true`. `github.ref` stays deliberately outside
+the model; the fix is a modelability pass (`expressionIsFullyModeled`), not a
+widening of the supported surface. Short-circuiting still works *inside* the
+model, so `false && github.event_name == 'pull_request'` is still `false`.
+
 Everything else — `[]`/`+`/`!` glob syntax, a narrowed `types` list, an unknown
 `pull_request` filter key, `${{ vars.X }}`, `github.ref` comparisons,
 `contains(...)`, a partially interpolated string — derives the explicit
@@ -203,15 +223,59 @@ resolve and must not be parked in the unresolvable list as noise, and a form it
 cannot resolve must appear there. There is no third option in which the
 dependency simply does not exist.
 
+### A `run:` block is shell, so it is tokenized as shell
+
+Command position is decided by a bounded shell tokenizer (`tokenizeShell`), not
+by a regex guessing where a command "usually" starts. A regex anchored at *start
+of line, `;`, `|`, `&`, `(`* silently omits every other real command position
+and simultaneously mistakes quoted data for an invocation. The tokenizer
+recognises an executable command position at: start of script, a newline, `;`,
+`;;`, `&&`, `||`, `|`, `&`, `(`, `)` (which is also how a `case` arm introduces
+its command list), a standalone `{` or `}`, after any of the control keywords
+`if` / `then` / `elif` / `else` / `while` / `until` / `do` / `time` / `!`, and
+after a `VAR=value` assignment prefix. It tracks single quotes, double quotes,
+backslash escapes and `$(…)` / backtick command substitutions (which execute,
+and are tokenized recursively, even inside double quotes).
+
+Two consequences:
+
+* `if find …`, `then find …`, `do find …`, `{ find …; }`, `x=$(find …)` all
+  resolve their dependencies. None of them did before.
+* `echo '(find src/data -maxdepth 1 …)'` creates **no** dependency and **no**
+  unresolvable row: it is data, not an executed command. A quoted `*` is a
+  literal asterisk, not a glob — but a quoted *path* is still a real dependency,
+  because `node "scripts/x.mjs"` really runs that file.
+
+Shell structure outside this model — a here-document, a process substitution
+(`<(…)`), an unterminated substitution — emits `DEPENDENCY_UNRESOLVABLE` rather
+than being ignored. Unmodelled glob syntax on an executed word is likewise
+recorded, including the `./`-relative forms `./scripts/{alpha,beta}.mjs` and
+`./scripts/[ab].mjs`; an ordinary `scripts/*.mjs` still expands
+deterministically and raises no row.
+
 **Deliberately not modelled.** This is not a JavaScript interpreter and not a
 speculative universal parser. Each executed file is run through a bounded
-string/comment **lexer** (`lexJavaScript`) that separates code from string
-literals, comments and regex literals — so `/['"]/` cannot desynchronise the
-scan, and an `import … from './x'` that exists only *inside* a fixture string is
-never treated as a real import. Every extraction rule then reads the resulting
-code skeleton. Data flow through variables is covered only because the literal
-scan is variable-agnostic; a computed path with no static repository-rooted
-chunk is reported as `DEPENDENCY_UNRESOLVABLE` rather than guessed at.
+**lexer** (`lexJavaScript`) that separates code from string literals, comments,
+template literals and regex literals, so an `import … from './x'` that exists
+only *inside* a fixture string is never treated as a real import. Every
+extraction rule then reads the resulting code skeleton.
+
+Regex-versus-division is decided from the previous significant **token**, not
+the previous character: after a keyword only `return`, `typeof`, `instanceof`,
+`in`, `of`, `new`, `delete`, `void`, `throw`, `case`, `do`, `else`, `yield` and
+`await` admit a regex; after `)` it depends on whether that paren closed an
+`if`/`while`/`for`/`with` head; after a number, a string, a template, a regex,
+`]`, `++` or `--` a `/` is division. The same rules apply *inside* a template
+`${…}` expression, which is where the previous single-character heuristic
+desynchronised: `` `'${String(v).replace(/'/g, `'\\''`)}'` `` contains a quote
+inside a regex, and reading it as an opening string literal swallowed every
+executable call after it. A construct the lexer cannot disambiguate emits
+`DEPENDENCY_UNRESOLVABLE` ("source could not be lexed unambiguously") rather
+than being silently skipped.
+
+Data flow through variables is covered only because the literal scan is
+variable-agnostic; a computed path with no static repository-rooted chunk is
+reported as `DEPENDENCY_UNRESOLVABLE` rather than guessed at.
 
 What this closes, concretely, versus the previous one-level model:
 
@@ -227,6 +291,34 @@ What this closes, concretely, versus the previous one-level model:
   `scripts/portal/marketprofile-pipeline-*.mjs` set and the
   `src/data/candidates/**/*.ts` files the strict `tsc` step enumerates with
   `find`.
+
+## Counting unresolved dependencies — the terms are defined in code
+
+Every metric quoted about this contract comes from
+`summarizeUnresolvedDependencies` in
+`scripts/ci/master-blocking-portfolio-contract.mjs` and is printed by the
+validator, so any figure in a report or a PR body can be regenerated with one
+command:
+
+```
+npm run ci:master-portfolio:validate
+```
+
+Each `DEPENDENCY_UNRESOLVABLE` detail is a fact of the shape
+`<origin> :: <reason>`, split at the **first** ` :: ` (a reason may itself
+contain that sequence). The four defined terms are:
+
+| term | definition |
+| --- | --- |
+| `unresolvedRows` | one per (portfolio entry, gap) pair — the same fact is counted once per job that depends on it |
+| `distinctOriginReasonFacts` | distinct whole `<origin> :: <reason>` strings |
+| `distinctReasons` | distinct `<reason>` strings, origin removed |
+| `distinctOrigins` | distinct `<origin>` strings |
+
+There is deliberately **no** "distinct forms" metric. An earlier write-up quoted
+"42 distinct forms", a number nobody could reproduce because "form" was never
+defined anywhere executable; prose metrics are not auditable. Do not introduce a
+new count without defining it in code here first.
 
 ## Direct-required safety
 
@@ -292,6 +384,32 @@ workflow file itself. It is therefore not exposed to the dependency/build shared
 config gap in the same way — which is a statement about that job's inputs only
 and changes no classification: it remains `BLOCKING`, path-filtered and
 `directRequiredSafe: false`.
+
+## R3 regression coverage
+
+Section **F2** of `master-blocking-portfolio-discovery-test.mjs` reproduces each
+form the R3 review demonstrated on the previous head and asserts the new
+behaviour. What each group pins:
+
+| group | obligation |
+| --- | --- |
+| `R3 HIGH: short-circuit does not launder …` (19 forms × 2) | an unmodelled operand behind `false &&` / `true \|\|`, nested parentheses, `&&`/`\|\|` chains, either side of an equality, an unmodelled function — every one derives `UNMODELED`, and the matching job-level `if` fails closed |
+| `R3 HIGH: … still short-circuits` | short-circuiting inside the model is unchanged, so nothing was traded away |
+| `R3 HIGH: github.ref is NOT over-modelled` | the unsupported surface stayed unsupported |
+| `R3 MEDIUM: find at <position>` (19 positions × 3) | `find` resolves both the direct and the nested match, and over-matches nothing, at every modelled command position |
+| `R3 MEDIUM: unsupported find form` | `-maxdepth`, `-exec`, `-regex`, `-prune`, a missing `-name`, a computed or glob search root are all recorded |
+| `R3 MEDIUM: unsupported shell glob` | brace expansion and character classes, `./`-relative and repo-rooted, plus negated and malformed forms |
+| `R3 MEDIUM: an ordinary supported glob …` | the symmetric obligation — deterministic expansion, zero unresolvable rows |
+| `R3 MEDIUM: shell structure outside the model` | here-documents, process substitutions and unterminated substitutions emit `DEPENDENCY_UNRESOLVABLE` |
+| `R3 MEDIUM: no executable read disappears behind …` (14 constructs) | regex after `return`/`typeof`/`case`/an `if` head; division after `)`/an identifier/a number/`++`; an escaped slash; the template+regex desync case; comments and strings still ignored |
+| `R3 LOW: …` | quoted, double-quoted and escaped `find` text creates no row; a real `$(find …)` still executes; a quoted path is still a dependency; a quoted `*` is a literal |
+| `R3 metrics: …` | the count vocabulary above, against a hand-checkable fixture and the live file |
+
+The fully-synchronised mutation suite (section **G**) additionally carries four
+short-circuit-laundering workflows. Each derives `UNMODELED`, is never
+`BLOCKING`, and **still fails the audit** after the snapshot has been
+regenerated to agree with it perfectly — which is the property that makes the
+contract un-synchronisable out of a fail-closed state.
 
 ## Not wired into CI by this task
 
