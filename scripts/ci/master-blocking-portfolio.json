@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "issue": 366,
   "stage": "S2-02",
   "description": "Machine-readable blocking-portfolio contract for every GitHub Actions job that can run on a pull request targeting product branch master. INVENTORY AND CONTRACT ONLY: no gate logic is migrated, no branch protection is changed and no workflow is weakened by this artifact. Every derivable field is re-proved against the workflow YAML by scripts/ci/master-blocking-portfolio-validator.mjs.",
@@ -7,7 +7,8 @@
     "BLOCKING",
     "ADVISORY",
     "CONDITIONAL_PRODUCTION_ONLY",
-    "NON_PR"
+    "NON_PR",
+    "UNMODELED"
   ],
   "migrationStates": [
     "LEGACY_EXTERNAL",
@@ -19,17 +20,23 @@
     "NO_BRANCH_FILTER",
     "TRIGGER_GAP_OWN_WORKFLOW_FILE",
     "TRIGGER_GAP_SCRIPT",
+    "TRIGGER_GAP_INPUT",
     "TRIGGER_GAP_SHARED_CONFIG",
     "TRIGGER_COVERAGE_UNRESOLVABLE",
     "MISLEADING_ADVISORY_FILENAME",
     "MISLEADING_NON_BLOCKING_JOB_NAME",
-    "UNRECOGNIZED_JOB_IF"
+    "UNMODELED_TRIGGER",
+    "UNMODELED_JOB_IF",
+    "UNMODELED_CONTINUE_ON_ERROR",
+    "DEPENDENCY_UNRESOLVABLE",
+    "DEPENDENCY_UNREADABLE"
   ],
   "totals": {
     "BLOCKING": 15,
     "ADVISORY": 7,
     "CONDITIONAL_PRODUCTION_ONLY": 1,
     "NON_PR": 3,
+    "UNMODELED": 0,
     "total": 26,
     "directRequiredSafe": 2
   },
@@ -45,7 +52,10 @@
       "pathFiltered": true,
       "blockingSemantics": {
         "canFailPullRequest": true,
+        "semanticsProvable": true,
         "jobContinueOnError": false,
+        "jobContinueOnErrorState": "MODELED",
+        "jobContinueOnErrorSource": null,
         "jobIf": null,
         "jobIfPullRequestState": "RUNNABLE",
         "needs": [],
@@ -61,13 +71,15 @@
         "node scripts/seo/site-indexability-inventory.mjs"
       ],
       "dependencies": {
-        "scripts": [
-          "scripts/seo/site-indexability-inventory.mjs",
-          "scripts/ui/contact-utility-browser-smoke.mjs"
-        ],
         "npmScripts": [
           "build"
         ],
+        "executed": [
+          "scripts/seo/site-indexability-inventory.mjs",
+          "scripts/ui/contact-utility-browser-smoke.mjs"
+        ],
+        "readInputs": [],
+        "localActions": [],
         "sharedConfig": [
           "astro.config.mjs",
           "package-lock.json",
@@ -76,6 +88,9 @@
         ]
       },
       "triggerCoverage": {
+        "modeled": true,
+        "unmodeledReason": null,
+        "hasPullRequest": true,
         "pathFiltered": true,
         "paths": [
           "src/pages/contact.astro",
@@ -86,6 +101,8 @@
         "branches": [
           "master"
         ],
+        "branchesIgnore": [],
+        "types": [],
         "targetsMaster": true,
         "selfTriggersOnOwnWorkflowFile": true,
         "coveredInputs": [
@@ -142,7 +159,10 @@
       "pathFiltered": true,
       "blockingSemantics": {
         "canFailPullRequest": true,
+        "semanticsProvable": true,
         "jobContinueOnError": false,
+        "jobContinueOnErrorState": "MODELED",
+        "jobContinueOnErrorSource": null,
         "jobIf": null,
         "jobIfPullRequestState": "RUNNABLE",
         "needs": [],
@@ -158,13 +178,15 @@
         "node scripts/seo/site-indexability-inventory.mjs"
       ],
       "dependencies": {
-        "scripts": [
-          "scripts/seo/site-indexability-inventory.mjs",
-          "scripts/ui/exchange-preview-family-browser-smoke.mjs"
-        ],
         "npmScripts": [
           "build"
         ],
+        "executed": [
+          "scripts/seo/site-indexability-inventory.mjs",
+          "scripts/ui/exchange-preview-family-browser-smoke.mjs"
+        ],
+        "readInputs": [],
+        "localActions": [],
         "sharedConfig": [
           "astro.config.mjs",
           "package-lock.json",
@@ -173,6 +195,9 @@
         ]
       },
       "triggerCoverage": {
+        "modeled": true,
+        "unmodeledReason": null,
+        "hasPullRequest": true,
         "pathFiltered": true,
         "paths": [
           "src/pages/preview/exchanges/**",
@@ -185,6 +210,8 @@
         "branches": [
           "master"
         ],
+        "branchesIgnore": [],
+        "types": [],
         "targetsMaster": true,
         "selfTriggersOnOwnWorkflowFile": true,
         "coveredInputs": [
@@ -241,7 +268,10 @@
       "pathFiltered": true,
       "blockingSemantics": {
         "canFailPullRequest": true,
+        "semanticsProvable": true,
         "jobContinueOnError": false,
+        "jobContinueOnErrorState": "MODELED",
+        "jobContinueOnErrorSource": null,
         "jobIf": null,
         "jobIfPullRequestState": "RUNNABLE",
         "needs": [],
@@ -257,13 +287,15 @@
         "node scripts/seo/site-indexability-inventory.mjs"
       ],
       "dependencies": {
-        "scripts": [
-          "scripts/seo/site-indexability-inventory.mjs",
-          "scripts/ui/global-header-interaction-browser-smoke.mjs"
-        ],
         "npmScripts": [
           "build"
         ],
+        "executed": [
+          "scripts/seo/site-indexability-inventory.mjs",
+          "scripts/ui/global-header-interaction-browser-smoke.mjs"
+        ],
+        "readInputs": [],
+        "localActions": [],
         "sharedConfig": [
           "astro.config.mjs",
           "package-lock.json",
@@ -272,6 +304,9 @@
         ]
       },
       "triggerCoverage": {
+        "modeled": true,
+        "unmodeledReason": null,
+        "hasPullRequest": true,
         "pathFiltered": true,
         "paths": [
           "src/pages/**",
@@ -289,6 +324,8 @@
         "branches": [
           "master"
         ],
+        "branchesIgnore": [],
+        "types": [],
         "targetsMaster": true,
         "selfTriggersOnOwnWorkflowFile": true,
         "coveredInputs": [
@@ -345,7 +382,10 @@
       "pathFiltered": true,
       "blockingSemantics": {
         "canFailPullRequest": true,
+        "semanticsProvable": true,
         "jobContinueOnError": false,
+        "jobContinueOnErrorState": "MODELED",
+        "jobContinueOnErrorSource": null,
         "jobIf": null,
         "jobIfPullRequestState": "RUNNABLE",
         "needs": [],
@@ -363,15 +403,31 @@
         "node scripts/seo/site-indexability-inventory.mjs"
       ],
       "dependencies": {
-        "scripts": [
+        "npmScripts": [
+          "build"
+        ],
+        "executed": [
           "scripts/portal/owner-confirmed-authority-split-test.mjs",
           "scripts/seo/redirect-family-matrix-test.mjs",
           "scripts/seo/site-indexability-inventory.mjs",
           "scripts/ui/go-transition-browser-smoke.mjs"
         ],
-        "npmScripts": [
-          "build"
+        "readInputs": [
+          "src/components/exchange/ExchangePromoPageV2.astro",
+          "src/components/exchange/ExchangeUnverifiedNotice.astro",
+          "src/components/exchange/GovernedExchangePage.astro",
+          "src/components/home/HomepageTop10.astro",
+          "src/components/site-standard/ExchangeDirectoryCard.astro",
+          "src/data/contracts/ownerConfirmedCommercialAuthority.ts",
+          "src/data/contracts/publicOfferAuthority.ts",
+          "src/data/exchanges.json",
+          "src/data/homepageTop10.ts",
+          "src/data/homepageTop10Cta.ts",
+          "src/data/publicCommercialRoute.ts",
+          "src/data/publicOfferView.ts",
+          "src/pages/promo-codes/index.astro"
         ],
+        "localActions": [],
         "sharedConfig": [
           "astro.config.mjs",
           "package-lock.json",
@@ -380,6 +436,9 @@
         ]
       },
       "triggerCoverage": {
+        "modeled": true,
+        "unmodeledReason": null,
+        "hasPullRequest": true,
         "pathFiltered": true,
         "paths": [
           "src/pages/go/**",
@@ -392,10 +451,14 @@
         "branches": [
           "master"
         ],
+        "branchesIgnore": [],
+        "types": [],
         "targetsMaster": true,
         "selfTriggersOnOwnWorkflowFile": true,
         "coveredInputs": [
-          "scripts/ui/go-transition-browser-smoke.mjs"
+          "scripts/ui/go-transition-browser-smoke.mjs",
+          "src/data/contracts/ownerConfirmedCommercialAuthority.ts",
+          "src/data/publicCommercialRoute.ts"
         ],
         "uncoveredInputs": [
           "astro.config.mjs",
@@ -404,6 +467,17 @@
           "scripts/portal/owner-confirmed-authority-split-test.mjs",
           "scripts/seo/redirect-family-matrix-test.mjs",
           "scripts/seo/site-indexability-inventory.mjs",
+          "src/components/exchange/ExchangePromoPageV2.astro",
+          "src/components/exchange/ExchangeUnverifiedNotice.astro",
+          "src/components/exchange/GovernedExchangePage.astro",
+          "src/components/home/HomepageTop10.astro",
+          "src/components/site-standard/ExchangeDirectoryCard.astro",
+          "src/data/contracts/publicOfferAuthority.ts",
+          "src/data/exchanges.json",
+          "src/data/homepageTop10.ts",
+          "src/data/homepageTop10Cta.ts",
+          "src/data/publicOfferView.ts",
+          "src/pages/promo-codes/index.astro",
           "tsconfig.json"
         ],
         "unresolvableInputs": []
@@ -412,6 +486,50 @@
         {
           "code": "PATH_FILTERED_NOT_ALWAYS_REPORTING",
           "detail": "pull_request path filter means this context is not reported on every PR to master; naming it directly in branch protection would deadlock on \"Expected - Waiting for status to be reported\""
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/components/exchange/ExchangePromoPageV2.astro"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/components/exchange/ExchangeUnverifiedNotice.astro"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/components/exchange/GovernedExchangePage.astro"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/components/home/HomepageTop10.astro"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/components/site-standard/ExchangeDirectoryCard.astro"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/publicOfferAuthority.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/exchanges.json"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/homepageTop10.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/homepageTop10Cta.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/publicOfferView.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/pages/promo-codes/index.astro"
         },
         {
           "code": "TRIGGER_GAP_SCRIPT",
@@ -458,7 +576,10 @@
       "pathFiltered": true,
       "blockingSemantics": {
         "canFailPullRequest": false,
+        "semanticsProvable": true,
         "jobContinueOnError": true,
+        "jobContinueOnErrorState": "MODELED",
+        "jobContinueOnErrorSource": null,
         "jobIf": null,
         "jobIfPullRequestState": "RUNNABLE",
         "needs": [],
@@ -475,13 +596,22 @@
         "node scripts/header/header-browser-smoke.mjs"
       ],
       "dependencies": {
-        "scripts": [
-          "scripts/header/header-browser-smoke.mjs",
-          "scripts/header/header-context-test.mjs"
-        ],
         "npmScripts": [
           "build"
         ],
+        "executed": [
+          "scripts/header/header-browser-smoke.mjs",
+          "scripts/header/header-context-test.mjs"
+        ],
+        "readInputs": [
+          "src/components/layout/SiteHeader.astro",
+          "src/data/contracts/countryContext.ts",
+          "src/data/contracts/countryInput.ts",
+          "src/data/contracts/marketProfileRegistry.ts",
+          "src/data/header/headerCatalog.ts",
+          "src/data/header/headerContext.ts"
+        ],
+        "localActions": [],
         "sharedConfig": [
           "astro.config.mjs",
           "package-lock.json",
@@ -490,6 +620,9 @@
         ]
       },
       "triggerCoverage": {
+        "modeled": true,
+        "unmodeledReason": null,
+        "hasPullRequest": true,
         "pathFiltered": true,
         "paths": [
           "src/components/layout/SiteHeader.astro",
@@ -503,21 +636,33 @@
         "branches": [
           "master"
         ],
+        "branchesIgnore": [],
+        "types": [],
         "targetsMaster": true,
         "selfTriggersOnOwnWorkflowFile": true,
         "coveredInputs": [
           "scripts/header/header-browser-smoke.mjs",
-          "scripts/header/header-context-test.mjs"
+          "scripts/header/header-context-test.mjs",
+          "src/components/layout/SiteHeader.astro",
+          "src/data/contracts/countryContext.ts",
+          "src/data/contracts/countryInput.ts",
+          "src/data/header/headerCatalog.ts",
+          "src/data/header/headerContext.ts"
         ],
         "uncoveredInputs": [
           "astro.config.mjs",
           "package-lock.json",
           "package.json",
+          "src/data/contracts/marketProfileRegistry.ts",
           "tsconfig.json"
         ],
         "unresolvableInputs": []
       },
       "knownGaps": [
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/marketProfileRegistry.ts"
+        },
         {
           "code": "TRIGGER_GAP_SHARED_CONFIG",
           "detail": "astro.config.mjs"
@@ -551,7 +696,10 @@
       "pathFiltered": true,
       "blockingSemantics": {
         "canFailPullRequest": false,
+        "semanticsProvable": true,
         "jobContinueOnError": true,
+        "jobContinueOnErrorState": "MODELED",
+        "jobContinueOnErrorSource": null,
         "jobIf": null,
         "jobIfPullRequestState": "RUNNABLE",
         "needs": [],
@@ -571,18 +719,56 @@
         "npm run build"
       ],
       "dependencies": {
-        "scripts": [
+        "npmScripts": [
+          "build",
+          "portal:contracts:test",
+          "portal:guard:test-authority"
+        ],
+        "executed": [
+          "scripts/portal/bybit-public-output-audit.mjs",
           "scripts/portal/contracts-test.mjs",
           "scripts/portal/country-foundation-test.mjs",
           "scripts/portal/marketprofile-candidate-review-test.mjs",
+          "scripts/portal/public-offer-output-audit.mjs",
           "scripts/portal/research-marketprofile-bridge-test.mjs",
-          "scripts/portal/test-authority-guard.mjs"
+          "scripts/portal/test-authority-guard.mjs",
+          "scripts/portal/test-support/offer-packet-resolution-harness.mjs",
+          "scripts/portal/test-support/synthetic-confirmation-fixtures.mjs"
         ],
-        "npmScripts": [
-          "portal:guard:test-authority",
-          "portal:contracts:test",
-          "build"
+        "readInputs": [
+          "src/data/contracts/bybitOfferClaimSourcePlan.ts",
+          "src/data/contracts/claimConfirmation.ts",
+          "src/data/contracts/countryAwareCta.ts",
+          "src/data/contracts/countryContext.ts",
+          "src/data/contracts/countryInput.ts",
+          "src/data/contracts/evidenceMetadata.ts",
+          "src/data/contracts/internalPath.ts",
+          "src/data/contracts/marketProfileCandidateReview.ts",
+          "src/data/contracts/marketProfileRegistry.ts",
+          "src/data/contracts/marketProfileV1.ts",
+          "src/data/contracts/offerEvidencePacket.ts",
+          "src/data/contracts/offerPacketResolution.ts",
+          "src/data/contracts/officialSourceCapture.ts",
+          "src/data/contracts/ownerConfirmedCommercialAuthority.ts",
+          "src/data/contracts/portalCta.ts",
+          "src/data/contracts/portalCtaI18n.ts",
+          "src/data/contracts/portalDisclosure.ts",
+          "src/data/contracts/portalFactory.ts",
+          "src/data/contracts/portalPublication.ts",
+          "src/data/contracts/portalRouteGuards.ts",
+          "src/data/contracts/publicOfferAuthority.ts",
+          "src/data/contracts/publicRenderedCapture.ts",
+          "src/data/contracts/researchToMarketProfileV1Bridge.ts",
+          "src/data/evidence/offers/bybitOfferEvidence.ts",
+          "src/data/evidence/offers/bybitPromoCodeConfirmation.ts",
+          "src/data/evidence/offers/bybitPublicPresentation.ts",
+          "src/data/exchanges.json",
+          "src/data/homepageTop10.ts",
+          "src/data/homepageTop10Cta.ts",
+          "src/data/offers.ts",
+          "src/data/publicOfferView.ts"
         ],
+        "localActions": [],
         "sharedConfig": [
           "astro.config.mjs",
           "package-lock.json",
@@ -591,6 +777,9 @@
         ]
       },
       "triggerCoverage": {
+        "modeled": true,
+        "unmodeledReason": null,
+        "hasPullRequest": true,
         "pathFiltered": true,
         "paths": [
           "src/data/contracts/marketProfileCandidateReview.ts",
@@ -604,24 +793,185 @@
         "branches": [
           "master"
         ],
+        "branchesIgnore": [],
+        "types": [],
         "targetsMaster": true,
         "selfTriggersOnOwnWorkflowFile": true,
         "coveredInputs": [
           "scripts/portal/marketprofile-candidate-review-test.mjs",
-          "scripts/portal/research-marketprofile-bridge-test.mjs"
+          "scripts/portal/research-marketprofile-bridge-test.mjs",
+          "src/data/contracts/marketProfileCandidateReview.ts",
+          "src/data/contracts/marketProfileV1.ts",
+          "src/data/contracts/researchToMarketProfileV1Bridge.ts"
         ],
         "uncoveredInputs": [
           "astro.config.mjs",
           "package-lock.json",
           "package.json",
+          "scripts/portal/bybit-public-output-audit.mjs",
           "scripts/portal/contracts-test.mjs",
           "scripts/portal/country-foundation-test.mjs",
+          "scripts/portal/public-offer-output-audit.mjs",
           "scripts/portal/test-authority-guard.mjs",
+          "scripts/portal/test-support/offer-packet-resolution-harness.mjs",
+          "scripts/portal/test-support/synthetic-confirmation-fixtures.mjs",
+          "src/data/contracts/bybitOfferClaimSourcePlan.ts",
+          "src/data/contracts/claimConfirmation.ts",
+          "src/data/contracts/countryAwareCta.ts",
+          "src/data/contracts/countryContext.ts",
+          "src/data/contracts/countryInput.ts",
+          "src/data/contracts/evidenceMetadata.ts",
+          "src/data/contracts/internalPath.ts",
+          "src/data/contracts/marketProfileRegistry.ts",
+          "src/data/contracts/offerEvidencePacket.ts",
+          "src/data/contracts/offerPacketResolution.ts",
+          "src/data/contracts/officialSourceCapture.ts",
+          "src/data/contracts/ownerConfirmedCommercialAuthority.ts",
+          "src/data/contracts/portalCta.ts",
+          "src/data/contracts/portalCtaI18n.ts",
+          "src/data/contracts/portalDisclosure.ts",
+          "src/data/contracts/portalFactory.ts",
+          "src/data/contracts/portalPublication.ts",
+          "src/data/contracts/portalRouteGuards.ts",
+          "src/data/contracts/publicOfferAuthority.ts",
+          "src/data/contracts/publicRenderedCapture.ts",
+          "src/data/evidence/offers/bybitOfferEvidence.ts",
+          "src/data/evidence/offers/bybitPromoCodeConfirmation.ts",
+          "src/data/evidence/offers/bybitPublicPresentation.ts",
+          "src/data/exchanges.json",
+          "src/data/homepageTop10.ts",
+          "src/data/homepageTop10Cta.ts",
+          "src/data/offers.ts",
+          "src/data/publicOfferView.ts",
           "tsconfig.json"
         ],
         "unresolvableInputs": []
       },
       "knownGaps": [
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/contracts-test.mjs :: dynamic module load is not statically resolvable: import(pathToFileURL(outfile).href);"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/test-support/offer-packet-resolution-harness.mjs :: dynamic module load is not statically resolvable: import(pathToFileURL(outfile).href);"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/bybitOfferClaimSourcePlan.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/claimConfirmation.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/countryAwareCta.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/countryContext.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/countryInput.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/evidenceMetadata.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/internalPath.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/marketProfileRegistry.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/offerEvidencePacket.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/offerPacketResolution.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/officialSourceCapture.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/ownerConfirmedCommercialAuthority.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/portalCta.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/portalCtaI18n.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/portalDisclosure.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/portalFactory.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/portalPublication.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/portalRouteGuards.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/publicOfferAuthority.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/publicRenderedCapture.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/evidence/offers/bybitOfferEvidence.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/evidence/offers/bybitPromoCodeConfirmation.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/evidence/offers/bybitPublicPresentation.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/exchanges.json"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/homepageTop10.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/homepageTop10Cta.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/offers.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/publicOfferView.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_SCRIPT",
+          "detail": "scripts/portal/bybit-public-output-audit.mjs"
+        },
         {
           "code": "TRIGGER_GAP_SCRIPT",
           "detail": "scripts/portal/contracts-test.mjs"
@@ -632,7 +982,19 @@
         },
         {
           "code": "TRIGGER_GAP_SCRIPT",
+          "detail": "scripts/portal/public-offer-output-audit.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SCRIPT",
           "detail": "scripts/portal/test-authority-guard.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SCRIPT",
+          "detail": "scripts/portal/test-support/offer-packet-resolution-harness.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SCRIPT",
+          "detail": "scripts/portal/test-support/synthetic-confirmation-fixtures.mjs"
         },
         {
           "code": "TRIGGER_GAP_SHARED_CONFIG",
@@ -667,7 +1029,10 @@
       "pathFiltered": true,
       "blockingSemantics": {
         "canFailPullRequest": false,
+        "semanticsProvable": true,
         "jobContinueOnError": true,
+        "jobContinueOnErrorState": "MODELED",
+        "jobContinueOnErrorSource": null,
         "jobIf": null,
         "jobIfPullRequestState": "RUNNABLE",
         "needs": [],
@@ -689,19 +1054,78 @@
         "npm run build"
       ],
       "dependencies": {
-        "scripts": [
+        "npmScripts": [
+          "build",
+          "portal:contracts:test",
+          "portal:guard:test-authority"
+        ],
+        "executed": [
+          "scripts/portal/bybit-public-output-audit.mjs",
           "scripts/portal/contracts-test.mjs",
           "scripts/portal/country-foundation-test.mjs",
           "scripts/portal/marketprofile-candidate-review-test.mjs",
+          "scripts/portal/marketprofile-pipeline-import-dry-run-test.mjs",
+          "scripts/portal/marketprofile-pipeline-inventory-test.mjs",
+          "scripts/portal/marketprofile-pipeline-kz-bundle-test.mjs",
+          "scripts/portal/marketprofile-pipeline-pl-bundle-test.mjs",
+          "scripts/portal/marketprofile-pipeline-promotion-preflight-test.mjs",
+          "scripts/portal/marketprofile-pipeline-registry-guard-test.mjs",
+          "scripts/portal/marketprofile-pipeline-review-preflight-test.mjs",
           "scripts/portal/marketprofile-promotion-gate-test.mjs",
+          "scripts/portal/public-offer-output-audit.mjs",
           "scripts/portal/research-marketprofile-bridge-test.mjs",
-          "scripts/portal/test-authority-guard.mjs"
+          "scripts/portal/test-authority-guard.mjs",
+          "scripts/portal/test-support/offer-packet-resolution-harness.mjs",
+          "scripts/portal/test-support/synthetic-confirmation-fixtures.mjs"
         ],
-        "npmScripts": [
-          "portal:guard:test-authority",
-          "portal:contracts:test",
-          "build"
+        "readInputs": [
+          "src/data/candidates/kzP0MarketProfileCandidates.ts",
+          "src/data/candidates/plKzMarketProfileCandidateInventory.ts",
+          "src/data/candidates/plKzMarketProfileImportDryRun.ts",
+          "src/data/candidates/plKzMarketProfilePromotionPreflight.ts",
+          "src/data/candidates/plKzMarketProfileReviewPreflight.ts",
+          "src/data/candidates/plP0MarketProfileCandidates.ts",
+          "src/data/contracts/bybitOfferClaimSourcePlan.ts",
+          "src/data/contracts/claimConfirmation.ts",
+          "src/data/contracts/countryAwareCta.ts",
+          "src/data/contracts/countryContext.ts",
+          "src/data/contracts/countryInput.ts",
+          "src/data/contracts/evidenceMetadata.ts",
+          "src/data/contracts/internalPath.ts",
+          "src/data/contracts/legacyGovernedMarketProfileCandidate.ts",
+          "src/data/contracts/marketProfileCandidateBundle.ts",
+          "src/data/contracts/marketProfileCandidateInventory.ts",
+          "src/data/contracts/marketProfileCandidateReview.ts",
+          "src/data/contracts/marketProfileImportDryRun.ts",
+          "src/data/contracts/marketProfilePromotionGate.ts",
+          "src/data/contracts/marketProfilePromotionPreflight.ts",
+          "src/data/contracts/marketProfileRegistry.ts",
+          "src/data/contracts/marketProfileRegistryMutationGuard.ts",
+          "src/data/contracts/marketProfileReviewPreflight.ts",
+          "src/data/contracts/marketProfileV1.ts",
+          "src/data/contracts/offerEvidencePacket.ts",
+          "src/data/contracts/offerPacketResolution.ts",
+          "src/data/contracts/officialSourceCapture.ts",
+          "src/data/contracts/ownerConfirmedCommercialAuthority.ts",
+          "src/data/contracts/portalCta.ts",
+          "src/data/contracts/portalCtaI18n.ts",
+          "src/data/contracts/portalDisclosure.ts",
+          "src/data/contracts/portalFactory.ts",
+          "src/data/contracts/portalPublication.ts",
+          "src/data/contracts/portalRouteGuards.ts",
+          "src/data/contracts/publicOfferAuthority.ts",
+          "src/data/contracts/publicRenderedCapture.ts",
+          "src/data/contracts/researchToMarketProfileV1Bridge.ts",
+          "src/data/evidence/offers/bybitOfferEvidence.ts",
+          "src/data/evidence/offers/bybitPromoCodeConfirmation.ts",
+          "src/data/evidence/offers/bybitPublicPresentation.ts",
+          "src/data/exchanges.json",
+          "src/data/homepageTop10.ts",
+          "src/data/homepageTop10Cta.ts",
+          "src/data/offers.ts",
+          "src/data/publicOfferView.ts"
         ],
+        "localActions": [],
         "sharedConfig": [
           "astro.config.mjs",
           "package-lock.json",
@@ -710,6 +1134,9 @@
         ]
       },
       "triggerCoverage": {
+        "modeled": true,
+        "unmodeledReason": null,
+        "hasPullRequest": true,
         "pathFiltered": true,
         "paths": [
           "src/data/contracts/marketProfile*.ts",
@@ -725,25 +1152,207 @@
         "branches": [
           "master"
         ],
+        "branchesIgnore": [],
+        "types": [],
         "targetsMaster": true,
         "selfTriggersOnOwnWorkflowFile": true,
         "coveredInputs": [
           "scripts/portal/marketprofile-candidate-review-test.mjs",
+          "scripts/portal/marketprofile-pipeline-import-dry-run-test.mjs",
+          "scripts/portal/marketprofile-pipeline-inventory-test.mjs",
+          "scripts/portal/marketprofile-pipeline-kz-bundle-test.mjs",
+          "scripts/portal/marketprofile-pipeline-pl-bundle-test.mjs",
+          "scripts/portal/marketprofile-pipeline-promotion-preflight-test.mjs",
+          "scripts/portal/marketprofile-pipeline-registry-guard-test.mjs",
+          "scripts/portal/marketprofile-pipeline-review-preflight-test.mjs",
           "scripts/portal/marketprofile-promotion-gate-test.mjs",
-          "scripts/portal/research-marketprofile-bridge-test.mjs"
+          "scripts/portal/research-marketprofile-bridge-test.mjs",
+          "src/data/candidates/kzP0MarketProfileCandidates.ts",
+          "src/data/candidates/plKzMarketProfileCandidateInventory.ts",
+          "src/data/candidates/plKzMarketProfileImportDryRun.ts",
+          "src/data/candidates/plKzMarketProfilePromotionPreflight.ts",
+          "src/data/candidates/plKzMarketProfileReviewPreflight.ts",
+          "src/data/candidates/plP0MarketProfileCandidates.ts",
+          "src/data/contracts/marketProfileCandidateBundle.ts",
+          "src/data/contracts/marketProfileCandidateInventory.ts",
+          "src/data/contracts/marketProfileCandidateReview.ts",
+          "src/data/contracts/marketProfileImportDryRun.ts",
+          "src/data/contracts/marketProfilePromotionGate.ts",
+          "src/data/contracts/marketProfilePromotionPreflight.ts",
+          "src/data/contracts/marketProfileRegistry.ts",
+          "src/data/contracts/marketProfileRegistryMutationGuard.ts",
+          "src/data/contracts/marketProfileReviewPreflight.ts",
+          "src/data/contracts/marketProfileV1.ts",
+          "src/data/contracts/researchToMarketProfileV1Bridge.ts"
         ],
         "uncoveredInputs": [
           "astro.config.mjs",
           "package-lock.json",
           "package.json",
+          "scripts/portal/bybit-public-output-audit.mjs",
           "scripts/portal/contracts-test.mjs",
           "scripts/portal/country-foundation-test.mjs",
+          "scripts/portal/public-offer-output-audit.mjs",
           "scripts/portal/test-authority-guard.mjs",
+          "scripts/portal/test-support/offer-packet-resolution-harness.mjs",
+          "scripts/portal/test-support/synthetic-confirmation-fixtures.mjs",
+          "src/data/contracts/bybitOfferClaimSourcePlan.ts",
+          "src/data/contracts/claimConfirmation.ts",
+          "src/data/contracts/countryAwareCta.ts",
+          "src/data/contracts/countryContext.ts",
+          "src/data/contracts/countryInput.ts",
+          "src/data/contracts/evidenceMetadata.ts",
+          "src/data/contracts/internalPath.ts",
+          "src/data/contracts/legacyGovernedMarketProfileCandidate.ts",
+          "src/data/contracts/offerEvidencePacket.ts",
+          "src/data/contracts/offerPacketResolution.ts",
+          "src/data/contracts/officialSourceCapture.ts",
+          "src/data/contracts/ownerConfirmedCommercialAuthority.ts",
+          "src/data/contracts/portalCta.ts",
+          "src/data/contracts/portalCtaI18n.ts",
+          "src/data/contracts/portalDisclosure.ts",
+          "src/data/contracts/portalFactory.ts",
+          "src/data/contracts/portalPublication.ts",
+          "src/data/contracts/portalRouteGuards.ts",
+          "src/data/contracts/publicOfferAuthority.ts",
+          "src/data/contracts/publicRenderedCapture.ts",
+          "src/data/evidence/offers/bybitOfferEvidence.ts",
+          "src/data/evidence/offers/bybitPromoCodeConfirmation.ts",
+          "src/data/evidence/offers/bybitPublicPresentation.ts",
+          "src/data/exchanges.json",
+          "src/data/homepageTop10.ts",
+          "src/data/homepageTop10Cta.ts",
+          "src/data/offers.ts",
+          "src/data/publicOfferView.ts",
           "tsconfig.json"
         ],
         "unresolvableInputs": []
       },
       "knownGaps": [
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/contracts-test.mjs :: dynamic module load is not statically resolvable: import(pathToFileURL(outfile).href);"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/test-support/offer-packet-resolution-harness.mjs :: dynamic module load is not statically resolvable: import(pathToFileURL(outfile).href);"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/bybitOfferClaimSourcePlan.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/claimConfirmation.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/countryAwareCta.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/countryContext.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/countryInput.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/evidenceMetadata.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/internalPath.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/legacyGovernedMarketProfileCandidate.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/offerEvidencePacket.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/offerPacketResolution.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/officialSourceCapture.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/ownerConfirmedCommercialAuthority.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/portalCta.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/portalCtaI18n.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/portalDisclosure.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/portalFactory.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/portalPublication.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/portalRouteGuards.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/publicOfferAuthority.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/publicRenderedCapture.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/evidence/offers/bybitOfferEvidence.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/evidence/offers/bybitPromoCodeConfirmation.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/evidence/offers/bybitPublicPresentation.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/exchanges.json"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/homepageTop10.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/homepageTop10Cta.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/offers.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/publicOfferView.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_SCRIPT",
+          "detail": "scripts/portal/bybit-public-output-audit.mjs"
+        },
         {
           "code": "TRIGGER_GAP_SCRIPT",
           "detail": "scripts/portal/contracts-test.mjs"
@@ -754,7 +1363,19 @@
         },
         {
           "code": "TRIGGER_GAP_SCRIPT",
+          "detail": "scripts/portal/public-offer-output-audit.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SCRIPT",
           "detail": "scripts/portal/test-authority-guard.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SCRIPT",
+          "detail": "scripts/portal/test-support/offer-packet-resolution-harness.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SCRIPT",
+          "detail": "scripts/portal/test-support/synthetic-confirmation-fixtures.mjs"
         },
         {
           "code": "TRIGGER_GAP_SHARED_CONFIG",
@@ -789,7 +1410,10 @@
       "pathFiltered": true,
       "blockingSemantics": {
         "canFailPullRequest": false,
+        "semanticsProvable": true,
         "jobContinueOnError": true,
+        "jobContinueOnErrorState": "MODELED",
+        "jobContinueOnErrorSource": null,
         "jobIf": null,
         "jobIfPullRequestState": "RUNNABLE",
         "needs": [],
@@ -810,19 +1434,58 @@
         "npm run build"
       ],
       "dependencies": {
-        "scripts": [
+        "npmScripts": [
+          "build",
+          "portal:contracts:test",
+          "portal:guard:test-authority"
+        ],
+        "executed": [
+          "scripts/portal/bybit-public-output-audit.mjs",
           "scripts/portal/contracts-test.mjs",
           "scripts/portal/country-foundation-test.mjs",
           "scripts/portal/marketprofile-candidate-review-test.mjs",
           "scripts/portal/marketprofile-promotion-gate-test.mjs",
+          "scripts/portal/public-offer-output-audit.mjs",
           "scripts/portal/research-marketprofile-bridge-test.mjs",
-          "scripts/portal/test-authority-guard.mjs"
+          "scripts/portal/test-authority-guard.mjs",
+          "scripts/portal/test-support/offer-packet-resolution-harness.mjs",
+          "scripts/portal/test-support/synthetic-confirmation-fixtures.mjs"
         ],
-        "npmScripts": [
-          "portal:guard:test-authority",
-          "portal:contracts:test",
-          "build"
+        "readInputs": [
+          "src/data/contracts/bybitOfferClaimSourcePlan.ts",
+          "src/data/contracts/claimConfirmation.ts",
+          "src/data/contracts/countryAwareCta.ts",
+          "src/data/contracts/countryContext.ts",
+          "src/data/contracts/countryInput.ts",
+          "src/data/contracts/evidenceMetadata.ts",
+          "src/data/contracts/internalPath.ts",
+          "src/data/contracts/marketProfileCandidateReview.ts",
+          "src/data/contracts/marketProfilePromotionGate.ts",
+          "src/data/contracts/marketProfileRegistry.ts",
+          "src/data/contracts/marketProfileV1.ts",
+          "src/data/contracts/offerEvidencePacket.ts",
+          "src/data/contracts/offerPacketResolution.ts",
+          "src/data/contracts/officialSourceCapture.ts",
+          "src/data/contracts/ownerConfirmedCommercialAuthority.ts",
+          "src/data/contracts/portalCta.ts",
+          "src/data/contracts/portalCtaI18n.ts",
+          "src/data/contracts/portalDisclosure.ts",
+          "src/data/contracts/portalFactory.ts",
+          "src/data/contracts/portalPublication.ts",
+          "src/data/contracts/portalRouteGuards.ts",
+          "src/data/contracts/publicOfferAuthority.ts",
+          "src/data/contracts/publicRenderedCapture.ts",
+          "src/data/contracts/researchToMarketProfileV1Bridge.ts",
+          "src/data/evidence/offers/bybitOfferEvidence.ts",
+          "src/data/evidence/offers/bybitPromoCodeConfirmation.ts",
+          "src/data/evidence/offers/bybitPublicPresentation.ts",
+          "src/data/exchanges.json",
+          "src/data/homepageTop10.ts",
+          "src/data/homepageTop10Cta.ts",
+          "src/data/offers.ts",
+          "src/data/publicOfferView.ts"
         ],
+        "localActions": [],
         "sharedConfig": [
           "astro.config.mjs",
           "package-lock.json",
@@ -831,6 +1494,9 @@
         ]
       },
       "triggerCoverage": {
+        "modeled": true,
+        "unmodeledReason": null,
+        "hasPullRequest": true,
         "pathFiltered": true,
         "paths": [
           "src/data/contracts/marketProfilePromotionGate.ts",
@@ -846,25 +1512,187 @@
         "branches": [
           "master"
         ],
+        "branchesIgnore": [],
+        "types": [],
         "targetsMaster": true,
         "selfTriggersOnOwnWorkflowFile": true,
         "coveredInputs": [
           "scripts/portal/marketprofile-candidate-review-test.mjs",
           "scripts/portal/marketprofile-promotion-gate-test.mjs",
-          "scripts/portal/research-marketprofile-bridge-test.mjs"
+          "scripts/portal/research-marketprofile-bridge-test.mjs",
+          "src/data/contracts/marketProfileCandidateReview.ts",
+          "src/data/contracts/marketProfilePromotionGate.ts",
+          "src/data/contracts/marketProfileV1.ts",
+          "src/data/contracts/researchToMarketProfileV1Bridge.ts"
         ],
         "uncoveredInputs": [
           "astro.config.mjs",
           "package-lock.json",
           "package.json",
+          "scripts/portal/bybit-public-output-audit.mjs",
           "scripts/portal/contracts-test.mjs",
           "scripts/portal/country-foundation-test.mjs",
+          "scripts/portal/public-offer-output-audit.mjs",
           "scripts/portal/test-authority-guard.mjs",
+          "scripts/portal/test-support/offer-packet-resolution-harness.mjs",
+          "scripts/portal/test-support/synthetic-confirmation-fixtures.mjs",
+          "src/data/contracts/bybitOfferClaimSourcePlan.ts",
+          "src/data/contracts/claimConfirmation.ts",
+          "src/data/contracts/countryAwareCta.ts",
+          "src/data/contracts/countryContext.ts",
+          "src/data/contracts/countryInput.ts",
+          "src/data/contracts/evidenceMetadata.ts",
+          "src/data/contracts/internalPath.ts",
+          "src/data/contracts/marketProfileRegistry.ts",
+          "src/data/contracts/offerEvidencePacket.ts",
+          "src/data/contracts/offerPacketResolution.ts",
+          "src/data/contracts/officialSourceCapture.ts",
+          "src/data/contracts/ownerConfirmedCommercialAuthority.ts",
+          "src/data/contracts/portalCta.ts",
+          "src/data/contracts/portalCtaI18n.ts",
+          "src/data/contracts/portalDisclosure.ts",
+          "src/data/contracts/portalFactory.ts",
+          "src/data/contracts/portalPublication.ts",
+          "src/data/contracts/portalRouteGuards.ts",
+          "src/data/contracts/publicOfferAuthority.ts",
+          "src/data/contracts/publicRenderedCapture.ts",
+          "src/data/evidence/offers/bybitOfferEvidence.ts",
+          "src/data/evidence/offers/bybitPromoCodeConfirmation.ts",
+          "src/data/evidence/offers/bybitPublicPresentation.ts",
+          "src/data/exchanges.json",
+          "src/data/homepageTop10.ts",
+          "src/data/homepageTop10Cta.ts",
+          "src/data/offers.ts",
+          "src/data/publicOfferView.ts",
           "tsconfig.json"
         ],
         "unresolvableInputs": []
       },
       "knownGaps": [
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/contracts-test.mjs :: dynamic module load is not statically resolvable: import(pathToFileURL(outfile).href);"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/test-support/offer-packet-resolution-harness.mjs :: dynamic module load is not statically resolvable: import(pathToFileURL(outfile).href);"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/bybitOfferClaimSourcePlan.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/claimConfirmation.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/countryAwareCta.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/countryContext.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/countryInput.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/evidenceMetadata.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/internalPath.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/marketProfileRegistry.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/offerEvidencePacket.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/offerPacketResolution.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/officialSourceCapture.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/ownerConfirmedCommercialAuthority.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/portalCta.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/portalCtaI18n.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/portalDisclosure.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/portalFactory.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/portalPublication.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/portalRouteGuards.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/publicOfferAuthority.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/publicRenderedCapture.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/evidence/offers/bybitOfferEvidence.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/evidence/offers/bybitPromoCodeConfirmation.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/evidence/offers/bybitPublicPresentation.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/exchanges.json"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/homepageTop10.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/homepageTop10Cta.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/offers.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/publicOfferView.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_SCRIPT",
+          "detail": "scripts/portal/bybit-public-output-audit.mjs"
+        },
         {
           "code": "TRIGGER_GAP_SCRIPT",
           "detail": "scripts/portal/contracts-test.mjs"
@@ -875,7 +1703,19 @@
         },
         {
           "code": "TRIGGER_GAP_SCRIPT",
+          "detail": "scripts/portal/public-offer-output-audit.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SCRIPT",
           "detail": "scripts/portal/test-authority-guard.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SCRIPT",
+          "detail": "scripts/portal/test-support/offer-packet-resolution-harness.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SCRIPT",
+          "detail": "scripts/portal/test-support/synthetic-confirmation-fixtures.mjs"
         },
         {
           "code": "TRIGGER_GAP_SHARED_CONFIG",
@@ -910,7 +1750,10 @@
       "pathFiltered": false,
       "blockingSemantics": {
         "canFailPullRequest": true,
+        "semanticsProvable": true,
         "jobContinueOnError": false,
+        "jobContinueOnErrorState": "MODELED",
+        "jobContinueOnErrorSource": null,
         "jobIf": null,
         "jobIfPullRequestState": "RUNNABLE",
         "needs": [],
@@ -931,18 +1774,25 @@
         "node scripts/seo/site-indexability-inventory.mjs"
       ],
       "dependencies": {
-        "scripts": [
+        "npmScripts": [
+          "build"
+        ],
+        "executed": [
+          "scripts/ci/master-required-gate-allowlist-drift.mjs",
           "scripts/ci/master-required-gate-classifier-fixture-test.mjs",
           "scripts/ci/master-required-gate-classify.mjs",
           "scripts/ci/master-required-gate-contract-test.mjs",
           "scripts/ci/master-required-gate-mutation-test.mjs",
           "scripts/ci/master-required-gate-validate-output.mjs",
+          "scripts/ci/master-required-gate-workflow-contract.mjs",
           "scripts/seo/site-indexability-inventory.mjs",
           "scripts/ui/global-header-interaction-browser-smoke.mjs"
         ],
-        "npmScripts": [
-          "build"
+        "readInputs": [
+          ".github/workflows/cbw-master-required-gate.yml",
+          "server/votes/server.mjs"
         ],
+        "localActions": [],
         "sharedConfig": [
           "astro.config.mjs",
           "package-lock.json",
@@ -951,25 +1801,34 @@
         ]
       },
       "triggerCoverage": {
+        "modeled": true,
+        "unmodeledReason": null,
+        "hasPullRequest": true,
         "pathFiltered": false,
         "paths": [],
         "pathsIgnore": [],
         "branches": [
           "master"
         ],
+        "branchesIgnore": [],
+        "types": [],
         "targetsMaster": true,
         "selfTriggersOnOwnWorkflowFile": true,
         "coveredInputs": [
+          ".github/workflows/cbw-master-required-gate.yml",
           "astro.config.mjs",
           "package-lock.json",
           "package.json",
+          "scripts/ci/master-required-gate-allowlist-drift.mjs",
           "scripts/ci/master-required-gate-classifier-fixture-test.mjs",
           "scripts/ci/master-required-gate-classify.mjs",
           "scripts/ci/master-required-gate-contract-test.mjs",
           "scripts/ci/master-required-gate-mutation-test.mjs",
           "scripts/ci/master-required-gate-validate-output.mjs",
+          "scripts/ci/master-required-gate-workflow-contract.mjs",
           "scripts/seo/site-indexability-inventory.mjs",
           "scripts/ui/global-header-interaction-browser-smoke.mjs",
+          "server/votes/server.mjs",
           "tsconfig.json"
         ],
         "uncoveredInputs": [],
@@ -992,7 +1851,10 @@
       "pathFiltered": true,
       "blockingSemantics": {
         "canFailPullRequest": true,
+        "semanticsProvable": true,
         "jobContinueOnError": false,
+        "jobContinueOnErrorState": "MODELED",
+        "jobContinueOnErrorSource": null,
         "jobIf": null,
         "jobIfPullRequestState": "RUNNABLE",
         "needs": [],
@@ -1009,14 +1871,20 @@
         "node scripts/seo/site-indexability-inventory.mjs"
       ],
       "dependencies": {
-        "scripts": [
+        "npmScripts": [
+          "build"
+        ],
+        "executed": [
           "scripts/seo/site-indexability-inventory.mjs",
           "scripts/ui/noindex-product-preview-browser-smoke.mjs",
           "scripts/ui/product-system-foundation-test.mjs"
         ],
-        "npmScripts": [
-          "build"
+        "readInputs": [
+          "src/components/site-standard/FirstViewport.astro",
+          "src/data/siteStandard/siteStandardV1.ts",
+          "src/styles/site-standard-v1.css"
         ],
+        "localActions": [],
         "sharedConfig": [
           "astro.config.mjs",
           "package-lock.json",
@@ -1025,6 +1893,9 @@
         ]
       },
       "triggerCoverage": {
+        "modeled": true,
+        "unmodeledReason": null,
+        "hasPullRequest": true,
         "pathFiltered": true,
         "paths": [
           "src/pages/countries/**",
@@ -1040,10 +1911,14 @@
         "branches": [
           "master"
         ],
+        "branchesIgnore": [],
+        "types": [],
         "targetsMaster": true,
         "selfTriggersOnOwnWorkflowFile": true,
         "coveredInputs": [
-          "scripts/ui/noindex-product-preview-browser-smoke.mjs"
+          "scripts/ui/noindex-product-preview-browser-smoke.mjs",
+          "src/data/siteStandard/siteStandardV1.ts",
+          "src/styles/site-standard-v1.css"
         ],
         "uncoveredInputs": [
           "astro.config.mjs",
@@ -1051,6 +1926,7 @@
           "package.json",
           "scripts/seo/site-indexability-inventory.mjs",
           "scripts/ui/product-system-foundation-test.mjs",
+          "src/components/site-standard/FirstViewport.astro",
           "tsconfig.json"
         ],
         "unresolvableInputs": []
@@ -1063,6 +1939,10 @@
         {
           "code": "PATH_FILTERED_NOT_ALWAYS_REPORTING",
           "detail": "pull_request path filter means this context is not reported on every PR to master; naming it directly in branch protection would deadlock on \"Expected - Waiting for status to be reported\""
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/components/site-standard/FirstViewport.astro"
         },
         {
           "code": "TRIGGER_GAP_SCRIPT",
@@ -1105,7 +1985,10 @@
       "pathFiltered": true,
       "blockingSemantics": {
         "canFailPullRequest": false,
+        "semanticsProvable": true,
         "jobContinueOnError": true,
+        "jobContinueOnErrorState": "MODELED",
+        "jobContinueOnErrorSource": null,
         "jobIf": null,
         "jobIfPullRequestState": "RUNNABLE",
         "needs": [],
@@ -1132,7 +2015,17 @@
         "node scripts/portal/owner-confirmed-browser-smoke.mjs production"
       ],
       "dependencies": {
-        "scripts": [
+        "npmScripts": [
+          "ai-ops:validate:fixtures",
+          "build",
+          "evidence:capture:bybit:official-sources",
+          "portal:audit:bybit-public",
+          "portal:audit:public-offers",
+          "portal:contracts:test",
+          "portal:guard:test-authority",
+          "portal:harness:resolution"
+        ],
+        "executed": [
           "scripts/evidence/capture-bybit-official-sources.mjs",
           "scripts/portal/bybit-public-output-audit.mjs",
           "scripts/portal/contracts-test.mjs",
@@ -1141,18 +2034,54 @@
           "scripts/portal/owner-confirmed-browser-smoke.mjs",
           "scripts/portal/public-offer-output-audit.mjs",
           "scripts/portal/test-authority-guard.mjs",
-          "scripts/portal/test-support/offer-packet-resolution-harness.mjs"
+          "scripts/portal/test-support/offer-packet-resolution-harness.mjs",
+          "scripts/portal/test-support/synthetic-confirmation-fixtures.mjs",
+          "tests/ai-ops/run-fixtures.mjs"
         ],
-        "npmScripts": [
-          "ai-ops:validate:fixtures",
-          "portal:guard:test-authority",
-          "portal:contracts:test",
-          "portal:harness:resolution",
-          "evidence:capture:bybit:official-sources",
-          "build",
-          "portal:audit:bybit-public",
-          "portal:audit:public-offers"
+        "readInputs": [
+          "src/components/exchange/ExchangePromoPageV2.astro",
+          "src/components/exchange/ExchangeUnverifiedNotice.astro",
+          "src/components/exchange/GovernedExchangePage.astro",
+          "src/components/home/HomepageTop10.astro",
+          "src/components/site-standard/ExchangeDirectoryCard.astro",
+          "src/data/contracts/bybitOfferClaimSourcePlan.ts",
+          "src/data/contracts/claimConfirmation.ts",
+          "src/data/contracts/countryAwareCta.ts",
+          "src/data/contracts/countryContext.ts",
+          "src/data/contracts/countryInput.ts",
+          "src/data/contracts/evidenceMetadata.ts",
+          "src/data/contracts/internalPath.ts",
+          "src/data/contracts/marketProfileRegistry.ts",
+          "src/data/contracts/marketProfileV1.ts",
+          "src/data/contracts/offerEvidencePacket.ts",
+          "src/data/contracts/offerPacketResolution.ts",
+          "src/data/contracts/officialSourceCapture.ts",
+          "src/data/contracts/ownerConfirmedCommercialAuthority.ts",
+          "src/data/contracts/portalCta.ts",
+          "src/data/contracts/portalCtaI18n.ts",
+          "src/data/contracts/portalDisclosure.ts",
+          "src/data/contracts/portalFactory.ts",
+          "src/data/contracts/portalFoundationFixtures.ts",
+          "src/data/contracts/portalPublication.ts",
+          "src/data/contracts/portalRouteGuards.ts",
+          "src/data/contracts/portalStateFixtures.ts",
+          "src/data/contracts/portalUi.ts",
+          "src/data/contracts/publicOfferAuthority.ts",
+          "src/data/contracts/publicRenderedCapture.ts",
+          "src/data/evidence/offers/bybit-new-user-2026-08-05.json",
+          "src/data/evidence/offers/bybitOfferEvidence.ts",
+          "src/data/evidence/offers/bybitPromoCodeConfirmation.ts",
+          "src/data/evidence/offers/bybitPublicPresentation.ts",
+          "src/data/exchangePreview/cta-contract.ts",
+          "src/data/exchanges.json",
+          "src/data/homepageTop10.ts",
+          "src/data/homepageTop10Cta.ts",
+          "src/data/offers.ts",
+          "src/data/publicCommercialRoute.ts",
+          "src/data/publicOfferView.ts",
+          "src/pages/promo-codes/index.astro"
         ],
+        "localActions": [],
         "sharedConfig": [
           "astro.config.mjs",
           "package-lock.json",
@@ -1161,6 +2090,9 @@
         ]
       },
       "triggerCoverage": {
+        "modeled": true,
+        "unmodeledReason": null,
+        "hasPullRequest": true,
         "pathFiltered": true,
         "paths": [
           "src/data/contracts/**",
@@ -1190,6 +2122,8 @@
         ],
         "pathsIgnore": [],
         "branches": [],
+        "branchesIgnore": [],
+        "types": [],
         "targetsMaster": true,
         "selfTriggersOnOwnWorkflowFile": true,
         "coveredInputs": [
@@ -1203,18 +2137,77 @@
           "scripts/portal/owner-confirmed-browser-smoke.mjs",
           "scripts/portal/public-offer-output-audit.mjs",
           "scripts/portal/test-authority-guard.mjs",
-          "scripts/portal/test-support/offer-packet-resolution-harness.mjs"
+          "scripts/portal/test-support/offer-packet-resolution-harness.mjs",
+          "scripts/portal/test-support/synthetic-confirmation-fixtures.mjs",
+          "src/components/exchange/ExchangePromoPageV2.astro",
+          "src/components/exchange/ExchangeUnverifiedNotice.astro",
+          "src/components/exchange/GovernedExchangePage.astro",
+          "src/components/home/HomepageTop10.astro",
+          "src/components/site-standard/ExchangeDirectoryCard.astro",
+          "src/data/contracts/bybitOfferClaimSourcePlan.ts",
+          "src/data/contracts/claimConfirmation.ts",
+          "src/data/contracts/countryAwareCta.ts",
+          "src/data/contracts/countryContext.ts",
+          "src/data/contracts/countryInput.ts",
+          "src/data/contracts/evidenceMetadata.ts",
+          "src/data/contracts/internalPath.ts",
+          "src/data/contracts/marketProfileRegistry.ts",
+          "src/data/contracts/marketProfileV1.ts",
+          "src/data/contracts/offerEvidencePacket.ts",
+          "src/data/contracts/offerPacketResolution.ts",
+          "src/data/contracts/officialSourceCapture.ts",
+          "src/data/contracts/ownerConfirmedCommercialAuthority.ts",
+          "src/data/contracts/portalCta.ts",
+          "src/data/contracts/portalCtaI18n.ts",
+          "src/data/contracts/portalDisclosure.ts",
+          "src/data/contracts/portalFactory.ts",
+          "src/data/contracts/portalFoundationFixtures.ts",
+          "src/data/contracts/portalPublication.ts",
+          "src/data/contracts/portalRouteGuards.ts",
+          "src/data/contracts/portalStateFixtures.ts",
+          "src/data/contracts/portalUi.ts",
+          "src/data/contracts/publicOfferAuthority.ts",
+          "src/data/contracts/publicRenderedCapture.ts",
+          "src/data/evidence/offers/bybit-new-user-2026-08-05.json",
+          "src/data/evidence/offers/bybitOfferEvidence.ts",
+          "src/data/evidence/offers/bybitPromoCodeConfirmation.ts",
+          "src/data/evidence/offers/bybitPublicPresentation.ts",
+          "src/data/exchangePreview/cta-contract.ts",
+          "src/data/exchanges.json",
+          "src/data/homepageTop10.ts",
+          "src/data/homepageTop10Cta.ts",
+          "src/data/offers.ts",
+          "src/data/publicCommercialRoute.ts",
+          "src/data/publicOfferView.ts",
+          "src/pages/promo-codes/index.astro"
         ],
         "uncoveredInputs": [
           "astro.config.mjs",
+          "tests/ai-ops/run-fixtures.mjs",
           "tsconfig.json"
         ],
         "unresolvableInputs": []
       },
       "knownGaps": [
         {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/evidence/capture-bybit-official-sources.mjs :: dynamic module load is not statically resolvable: import(pathToFileURL(outfile).href);"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/contracts-test.mjs :: dynamic module load is not statically resolvable: import(pathToFileURL(outfile).href);"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/test-support/offer-packet-resolution-harness.mjs :: dynamic module load is not statically resolvable: import(pathToFileURL(outfile).href);"
+        },
+        {
           "code": "NO_BRANCH_FILTER",
           "detail": "pull_request trigger declares no branches filter, so it runs on PRs to every branch"
+        },
+        {
+          "code": "TRIGGER_GAP_SCRIPT",
+          "detail": "tests/ai-ops/run-fixtures.mjs"
         },
         {
           "code": "TRIGGER_GAP_SHARED_CONFIG",
@@ -1241,7 +2234,10 @@
       "pathFiltered": false,
       "blockingSemantics": {
         "canFailPullRequest": true,
+        "semanticsProvable": true,
         "jobContinueOnError": false,
+        "jobContinueOnErrorState": "MODELED",
+        "jobContinueOnErrorSource": null,
         "jobIf": null,
         "jobIfPullRequestState": "RUNNABLE",
         "needs": [],
@@ -1262,7 +2258,14 @@
         "node scripts/ai-ops/validate-scope.mjs \"${CONTRACT_PATH}\" changed-files.txt"
       ],
       "dependencies": {
-        "scripts": [
+        "npmScripts": [
+          "ai-ops:validate",
+          "build",
+          "seo:check",
+          "validate:affiliate"
+        ],
+        "executed": [
+          "scripts/ai-ops/lib/path-policy.mjs",
           "scripts/ai-ops/validate-ai-ops-foundation.mjs",
           "scripts/ai-ops/validate-branch-authority.mjs",
           "scripts/ai-ops/validate-scope.mjs",
@@ -1270,12 +2273,10 @@
           "scripts/audit-seo-titles.mjs",
           "scripts/check-affiliate-integrity.mjs"
         ],
-        "npmScripts": [
-          "ai-ops:validate",
-          "build",
-          "validate:affiliate",
-          "seo:check"
+        "readInputs": [
+          "owner-ops/ai-ops/CBW_BRANCH_AUTHORITY_MAP_v1.json"
         ],
+        "localActions": [],
         "sharedConfig": [
           "astro.config.mjs",
           "package-lock.json",
@@ -1284,18 +2285,25 @@
         ]
       },
       "triggerCoverage": {
+        "modeled": true,
+        "unmodeledReason": null,
+        "hasPullRequest": true,
         "pathFiltered": false,
         "paths": [],
         "pathsIgnore": [],
         "branches": [
           "master"
         ],
+        "branchesIgnore": [],
+        "types": [],
         "targetsMaster": true,
         "selfTriggersOnOwnWorkflowFile": true,
         "coveredInputs": [
           "astro.config.mjs",
+          "owner-ops/ai-ops/CBW_BRANCH_AUTHORITY_MAP_v1.json",
           "package-lock.json",
           "package.json",
+          "scripts/ai-ops/lib/path-policy.mjs",
           "scripts/ai-ops/validate-ai-ops-foundation.mjs",
           "scripts/ai-ops/validate-branch-authority.mjs",
           "scripts/ai-ops/validate-scope.mjs",
@@ -1333,7 +2341,10 @@
       "pathFiltered": true,
       "blockingSemantics": {
         "canFailPullRequest": true,
+        "semanticsProvable": true,
         "jobContinueOnError": false,
+        "jobContinueOnErrorState": "MODELED",
+        "jobContinueOnErrorSource": null,
         "jobIf": "github.event_name == 'pull_request'",
         "jobIfPullRequestState": "RUNNABLE",
         "needs": [],
@@ -1348,14 +2359,24 @@
         "node --input-type=module <<'NODE'"
       ],
       "dependencies": {
-        "scripts": [
+        "npmScripts": [],
+        "executed": [
+          "scripts/deploy.mjs",
+          "scripts/indexnow.mjs",
           "scripts/production-live-smoke.mjs",
           "scripts/production-origin-parity.mjs"
         ],
-        "npmScripts": [],
+        "readInputs": [
+          ".github/workflows/cbw-production-safe-batch-autodeploy.yml",
+          "src/data/exchanges.json"
+        ],
+        "localActions": [],
         "sharedConfig": []
       },
       "triggerCoverage": {
+        "modeled": true,
+        "unmodeledReason": null,
+        "hasPullRequest": true,
         "pathFiltered": true,
         "paths": [
           ".github/workflows/cbw-production-safe-batch-autodeploy.yml",
@@ -1367,19 +2388,38 @@
         "branches": [
           "master"
         ],
+        "branchesIgnore": [],
+        "types": [],
         "targetsMaster": true,
         "selfTriggersOnOwnWorkflowFile": true,
         "coveredInputs": [
+          ".github/workflows/cbw-production-safe-batch-autodeploy.yml",
           "scripts/production-live-smoke.mjs",
           "scripts/production-origin-parity.mjs"
         ],
-        "uncoveredInputs": [],
+        "uncoveredInputs": [
+          "scripts/deploy.mjs",
+          "scripts/indexnow.mjs",
+          "src/data/exchanges.json"
+        ],
         "unresolvableInputs": []
       },
       "knownGaps": [
         {
           "code": "PATH_FILTERED_NOT_ALWAYS_REPORTING",
           "detail": "pull_request path filter means this context is not reported on every PR to master; naming it directly in branch protection would deadlock on \"Expected - Waiting for status to be reported\""
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/exchanges.json"
+        },
+        {
+          "code": "TRIGGER_GAP_SCRIPT",
+          "detail": "scripts/deploy.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SCRIPT",
+          "detail": "scripts/indexnow.mjs"
         }
       ],
       "migrationState": "LEGACY_EXTERNAL",
@@ -1398,7 +2438,10 @@
       "pathFiltered": true,
       "blockingSemantics": {
         "canFailPullRequest": false,
+        "semanticsProvable": true,
         "jobContinueOnError": false,
+        "jobContinueOnErrorState": "MODELED",
+        "jobContinueOnErrorSource": null,
         "jobIf": "github.event_name != 'pull_request'",
         "jobIfPullRequestState": "NEVER",
         "needs": [],
@@ -1426,7 +2469,18 @@
         "node scripts/indexnow.mjs --mode priority"
       ],
       "dependencies": {
-        "scripts": [
+        "npmScripts": [
+          "ai-ops:validate",
+          "build",
+          "portal:audit:bybit-public",
+          "portal:audit:public-offers",
+          "portal:contracts:test",
+          "portal:guard:test-authority",
+          "portal:harness:resolution",
+          "seo:check",
+          "validate:affiliate"
+        ],
+        "executed": [
           "scripts/ai-ops/validate-ai-ops-foundation.mjs",
           "scripts/audit-seo-titles.mjs",
           "scripts/check-affiliate-integrity.mjs",
@@ -1439,20 +2493,47 @@
           "scripts/portal/public-offer-output-audit.mjs",
           "scripts/portal/test-authority-guard.mjs",
           "scripts/portal/test-support/offer-packet-resolution-harness.mjs",
+          "scripts/portal/test-support/synthetic-confirmation-fixtures.mjs",
           "scripts/production-live-smoke.mjs",
           "scripts/production-origin-parity.mjs"
         ],
-        "npmScripts": [
-          "ai-ops:validate",
-          "portal:guard:test-authority",
-          "portal:contracts:test",
-          "portal:harness:resolution",
-          "validate:affiliate",
-          "build",
-          "seo:check",
-          "portal:audit:bybit-public",
-          "portal:audit:public-offers"
+        "readInputs": [
+          "src/components/exchange/ExchangePromoPageV2.astro",
+          "src/components/exchange/ExchangeUnverifiedNotice.astro",
+          "src/components/exchange/GovernedExchangePage.astro",
+          "src/components/home/HomepageTop10.astro",
+          "src/components/site-standard/ExchangeDirectoryCard.astro",
+          "src/data/contracts/bybitOfferClaimSourcePlan.ts",
+          "src/data/contracts/claimConfirmation.ts",
+          "src/data/contracts/countryAwareCta.ts",
+          "src/data/contracts/countryInput.ts",
+          "src/data/contracts/evidenceMetadata.ts",
+          "src/data/contracts/internalPath.ts",
+          "src/data/contracts/marketProfileRegistry.ts",
+          "src/data/contracts/offerEvidencePacket.ts",
+          "src/data/contracts/offerPacketResolution.ts",
+          "src/data/contracts/officialSourceCapture.ts",
+          "src/data/contracts/ownerConfirmedCommercialAuthority.ts",
+          "src/data/contracts/portalCta.ts",
+          "src/data/contracts/portalCtaI18n.ts",
+          "src/data/contracts/portalDisclosure.ts",
+          "src/data/contracts/portalFactory.ts",
+          "src/data/contracts/portalPublication.ts",
+          "src/data/contracts/portalRouteGuards.ts",
+          "src/data/contracts/publicOfferAuthority.ts",
+          "src/data/contracts/publicRenderedCapture.ts",
+          "src/data/evidence/offers/bybitOfferEvidence.ts",
+          "src/data/evidence/offers/bybitPromoCodeConfirmation.ts",
+          "src/data/evidence/offers/bybitPublicPresentation.ts",
+          "src/data/exchanges.json",
+          "src/data/homepageTop10.ts",
+          "src/data/homepageTop10Cta.ts",
+          "src/data/offers.ts",
+          "src/data/publicCommercialRoute.ts",
+          "src/data/publicOfferView.ts",
+          "src/pages/promo-codes/index.astro"
         ],
+        "localActions": [],
         "sharedConfig": [
           "astro.config.mjs",
           "package-lock.json",
@@ -1461,6 +2542,9 @@
         ]
       },
       "triggerCoverage": {
+        "modeled": true,
+        "unmodeledReason": null,
+        "hasPullRequest": true,
         "pathFiltered": true,
         "paths": [
           ".github/workflows/cbw-production-safe-batch-autodeploy.yml",
@@ -1472,6 +2556,8 @@
         "branches": [
           "master"
         ],
+        "branchesIgnore": [],
+        "types": [],
         "targetsMaster": true,
         "selfTriggersOnOwnWorkflowFile": true,
         "coveredInputs": [
@@ -1494,11 +2580,55 @@
           "scripts/portal/public-offer-output-audit.mjs",
           "scripts/portal/test-authority-guard.mjs",
           "scripts/portal/test-support/offer-packet-resolution-harness.mjs",
+          "scripts/portal/test-support/synthetic-confirmation-fixtures.mjs",
+          "src/components/exchange/ExchangePromoPageV2.astro",
+          "src/components/exchange/ExchangeUnverifiedNotice.astro",
+          "src/components/exchange/GovernedExchangePage.astro",
+          "src/components/home/HomepageTop10.astro",
+          "src/components/site-standard/ExchangeDirectoryCard.astro",
+          "src/data/contracts/bybitOfferClaimSourcePlan.ts",
+          "src/data/contracts/claimConfirmation.ts",
+          "src/data/contracts/countryAwareCta.ts",
+          "src/data/contracts/countryInput.ts",
+          "src/data/contracts/evidenceMetadata.ts",
+          "src/data/contracts/internalPath.ts",
+          "src/data/contracts/marketProfileRegistry.ts",
+          "src/data/contracts/offerEvidencePacket.ts",
+          "src/data/contracts/offerPacketResolution.ts",
+          "src/data/contracts/officialSourceCapture.ts",
+          "src/data/contracts/ownerConfirmedCommercialAuthority.ts",
+          "src/data/contracts/portalCta.ts",
+          "src/data/contracts/portalCtaI18n.ts",
+          "src/data/contracts/portalDisclosure.ts",
+          "src/data/contracts/portalFactory.ts",
+          "src/data/contracts/portalPublication.ts",
+          "src/data/contracts/portalRouteGuards.ts",
+          "src/data/contracts/publicOfferAuthority.ts",
+          "src/data/contracts/publicRenderedCapture.ts",
+          "src/data/evidence/offers/bybitOfferEvidence.ts",
+          "src/data/evidence/offers/bybitPromoCodeConfirmation.ts",
+          "src/data/evidence/offers/bybitPublicPresentation.ts",
+          "src/data/exchanges.json",
+          "src/data/homepageTop10.ts",
+          "src/data/homepageTop10Cta.ts",
+          "src/data/offers.ts",
+          "src/data/publicCommercialRoute.ts",
+          "src/data/publicOfferView.ts",
+          "src/pages/promo-codes/index.astro",
           "tsconfig.json"
         ],
         "unresolvableInputs": []
       },
-      "knownGaps": [],
+      "knownGaps": [
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/contracts-test.mjs :: dynamic module load is not statically resolvable: import(pathToFileURL(outfile).href);"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/test-support/offer-packet-resolution-harness.mjs :: dynamic module load is not statically resolvable: import(pathToFileURL(outfile).href);"
+        }
+      ],
       "migrationState": "NOT_APPLICABLE",
       "stage2MigrationCandidate": false,
       "stage2MigrationCandidateReason": "not blocking-capable (CONDITIONAL_PRODUCTION_ONLY)",
@@ -1515,7 +2645,10 @@
       "pathFiltered": true,
       "blockingSemantics": {
         "canFailPullRequest": true,
+        "semanticsProvable": true,
         "jobContinueOnError": false,
+        "jobContinueOnErrorState": "MODELED",
+        "jobContinueOnErrorSource": null,
         "jobIf": null,
         "jobIfPullRequestState": "RUNNABLE",
         "needs": [],
@@ -1531,13 +2664,15 @@
         "node scripts/seo/site-indexability-inventory.mjs"
       ],
       "dependencies": {
-        "scripts": [
-          "scripts/perf/public-asset-client-weight-test.mjs",
-          "scripts/seo/site-indexability-inventory.mjs"
-        ],
         "npmScripts": [
           "build"
         ],
+        "executed": [
+          "scripts/perf/public-asset-client-weight-test.mjs",
+          "scripts/seo/site-indexability-inventory.mjs"
+        ],
+        "readInputs": [],
+        "localActions": [],
         "sharedConfig": [
           "astro.config.mjs",
           "package-lock.json",
@@ -1546,6 +2681,9 @@
         ]
       },
       "triggerCoverage": {
+        "modeled": true,
+        "unmodeledReason": null,
+        "hasPullRequest": true,
         "pathFiltered": true,
         "paths": [
           "src/pages/**",
@@ -1560,6 +2698,8 @@
         "branches": [
           "master"
         ],
+        "branchesIgnore": [],
+        "types": [],
         "targetsMaster": true,
         "selfTriggersOnOwnWorkflowFile": true,
         "coveredInputs": [
@@ -1616,7 +2756,10 @@
       "pathFiltered": true,
       "blockingSemantics": {
         "canFailPullRequest": true,
+        "semanticsProvable": true,
         "jobContinueOnError": false,
+        "jobContinueOnErrorState": "MODELED",
+        "jobContinueOnErrorSource": null,
         "jobIf": null,
         "jobIfPullRequestState": "RUNNABLE",
         "needs": [],
@@ -1631,12 +2774,14 @@
         "node scripts/ui/public-first-screen-budget-browser-smoke.mjs"
       ],
       "dependencies": {
-        "scripts": [
-          "scripts/ui/public-first-screen-budget-browser-smoke.mjs"
-        ],
         "npmScripts": [
           "build"
         ],
+        "executed": [
+          "scripts/ui/public-first-screen-budget-browser-smoke.mjs"
+        ],
+        "readInputs": [],
+        "localActions": [],
         "sharedConfig": [
           "astro.config.mjs",
           "package-lock.json",
@@ -1645,6 +2790,9 @@
         ]
       },
       "triggerCoverage": {
+        "modeled": true,
+        "unmodeledReason": null,
+        "hasPullRequest": true,
         "pathFiltered": true,
         "paths": [
           "src/pages/**",
@@ -1659,6 +2807,8 @@
         "branches": [
           "master"
         ],
+        "branchesIgnore": [],
+        "types": [],
         "targetsMaster": true,
         "selfTriggersOnOwnWorkflowFile": true,
         "coveredInputs": [
@@ -1710,7 +2860,10 @@
       "pathFiltered": true,
       "blockingSemantics": {
         "canFailPullRequest": true,
+        "semanticsProvable": true,
         "jobContinueOnError": false,
+        "jobContinueOnErrorState": "MODELED",
+        "jobContinueOnErrorSource": null,
         "jobIf": null,
         "jobIfPullRequestState": "RUNNABLE",
         "needs": [],
@@ -1725,12 +2878,16 @@
         "node scripts/seo/public-navigation-boundary-test.mjs"
       ],
       "dependencies": {
-        "scripts": [
-          "scripts/seo/public-navigation-boundary-test.mjs"
-        ],
         "npmScripts": [
           "build"
         ],
+        "executed": [
+          "scripts/seo/public-navigation-boundary-test.mjs"
+        ],
+        "readInputs": [
+          "src/components/layout/SiteFooter.astro"
+        ],
+        "localActions": [],
         "sharedConfig": [
           "astro.config.mjs",
           "package-lock.json",
@@ -1739,6 +2896,9 @@
         ]
       },
       "triggerCoverage": {
+        "modeled": true,
+        "unmodeledReason": null,
+        "hasPullRequest": true,
         "pathFiltered": true,
         "paths": [
           "src/pages/**",
@@ -1751,10 +2911,13 @@
         "branches": [
           "master"
         ],
+        "branchesIgnore": [],
+        "types": [],
         "targetsMaster": true,
         "selfTriggersOnOwnWorkflowFile": true,
         "coveredInputs": [
-          "scripts/seo/public-navigation-boundary-test.mjs"
+          "scripts/seo/public-navigation-boundary-test.mjs",
+          "src/components/layout/SiteFooter.astro"
         ],
         "uncoveredInputs": [
           "astro.config.mjs",
@@ -1802,7 +2965,10 @@
       "pathFiltered": true,
       "blockingSemantics": {
         "canFailPullRequest": true,
+        "semanticsProvable": true,
         "jobContinueOnError": false,
+        "jobContinueOnErrorState": "MODELED",
+        "jobContinueOnErrorSource": null,
         "jobIf": null,
         "jobIfPullRequestState": "RUNNABLE",
         "needs": [],
@@ -1818,13 +2984,15 @@
         "node scripts/seo/site-indexability-inventory.mjs"
       ],
       "dependencies": {
-        "scripts": [
-          "scripts/seo/public-seo-metadata-schema-test.mjs",
-          "scripts/seo/site-indexability-inventory.mjs"
-        ],
         "npmScripts": [
           "build"
         ],
+        "executed": [
+          "scripts/seo/public-seo-metadata-schema-test.mjs",
+          "scripts/seo/site-indexability-inventory.mjs"
+        ],
+        "readInputs": [],
+        "localActions": [],
         "sharedConfig": [
           "astro.config.mjs",
           "package-lock.json",
@@ -1833,6 +3001,9 @@
         ]
       },
       "triggerCoverage": {
+        "modeled": true,
+        "unmodeledReason": null,
+        "hasPullRequest": true,
         "pathFiltered": true,
         "paths": [
           "src/pages/**",
@@ -1845,6 +3016,8 @@
         "branches": [
           "master"
         ],
+        "branchesIgnore": [],
+        "types": [],
         "targetsMaster": true,
         "selfTriggersOnOwnWorkflowFile": true,
         "coveredInputs": [
@@ -1901,7 +3074,10 @@
       "pathFiltered": true,
       "blockingSemantics": {
         "canFailPullRequest": false,
+        "semanticsProvable": true,
         "jobContinueOnError": true,
+        "jobContinueOnErrorState": "MODELED",
+        "jobContinueOnErrorSource": null,
         "jobIf": null,
         "jobIfPullRequestState": "RUNNABLE",
         "needs": [],
@@ -1919,15 +3095,21 @@
         "node scripts/seo/site-indexability-inventory.mjs"
       ],
       "dependencies": {
-        "scripts": [
+        "npmScripts": [
+          "build"
+        ],
+        "executed": [
           "scripts/seo/site-indexability-inventory.mjs",
           "scripts/ui/product-system-foundation-test.mjs",
           "scripts/ui/ranking-first-browser-smoke.mjs",
           "scripts/ui/site-route-matrix-browser-smoke.mjs"
         ],
-        "npmScripts": [
-          "build"
+        "readInputs": [
+          "src/components/site-standard/FirstViewport.astro",
+          "src/data/siteStandard/siteStandardV1.ts",
+          "src/styles/site-standard-v1.css"
         ],
+        "localActions": [],
         "sharedConfig": [
           "astro.config.mjs",
           "package-lock.json",
@@ -1936,6 +3118,9 @@
         ]
       },
       "triggerCoverage": {
+        "modeled": true,
+        "unmodeledReason": null,
+        "hasPullRequest": true,
         "pathFiltered": true,
         "paths": [
           "src/pages/**",
@@ -1956,13 +3141,18 @@
         "branches": [
           "master"
         ],
+        "branchesIgnore": [],
+        "types": [],
         "targetsMaster": true,
         "selfTriggersOnOwnWorkflowFile": true,
         "coveredInputs": [
           "scripts/seo/site-indexability-inventory.mjs",
           "scripts/ui/product-system-foundation-test.mjs",
           "scripts/ui/ranking-first-browser-smoke.mjs",
-          "scripts/ui/site-route-matrix-browser-smoke.mjs"
+          "scripts/ui/site-route-matrix-browser-smoke.mjs",
+          "src/components/site-standard/FirstViewport.astro",
+          "src/data/siteStandard/siteStandardV1.ts",
+          "src/styles/site-standard-v1.css"
         ],
         "uncoveredInputs": [
           "astro.config.mjs",
@@ -2006,7 +3196,10 @@
       "pathFiltered": true,
       "blockingSemantics": {
         "canFailPullRequest": true,
+        "semanticsProvable": true,
         "jobContinueOnError": false,
+        "jobContinueOnErrorState": "MODELED",
+        "jobContinueOnErrorSource": null,
         "jobIf": null,
         "jobIfPullRequestState": "RUNNABLE",
         "needs": [],
@@ -2022,13 +3215,15 @@
         "node scripts/seo/site-indexability-inventory.mjs"
       ],
       "dependencies": {
-        "scripts": [
-          "scripts/seo/redirect-family-matrix-test.mjs",
-          "scripts/seo/site-indexability-inventory.mjs"
-        ],
         "npmScripts": [
           "build"
         ],
+        "executed": [
+          "scripts/seo/redirect-family-matrix-test.mjs",
+          "scripts/seo/site-indexability-inventory.mjs"
+        ],
+        "readInputs": [],
+        "localActions": [],
         "sharedConfig": [
           "astro.config.mjs",
           "package-lock.json",
@@ -2037,6 +3232,9 @@
         ]
       },
       "triggerCoverage": {
+        "modeled": true,
+        "unmodeledReason": null,
+        "hasPullRequest": true,
         "pathFiltered": true,
         "paths": [
           "src/pages/**",
@@ -2048,6 +3246,8 @@
         "branches": [
           "master"
         ],
+        "branchesIgnore": [],
+        "types": [],
         "targetsMaster": true,
         "selfTriggersOnOwnWorkflowFile": true,
         "coveredInputs": [
@@ -2104,7 +3304,10 @@
       "pathFiltered": true,
       "blockingSemantics": {
         "canFailPullRequest": false,
+        "semanticsProvable": true,
         "jobContinueOnError": true,
+        "jobContinueOnErrorState": "MODELED",
+        "jobContinueOnErrorSource": null,
         "jobIf": null,
         "jobIfPullRequestState": "RUNNABLE",
         "needs": [],
@@ -2123,17 +3326,54 @@
         "npm run build"
       ],
       "dependencies": {
-        "scripts": [
+        "npmScripts": [
+          "build",
+          "portal:contracts:test",
+          "portal:guard:test-authority"
+        ],
+        "executed": [
+          "scripts/portal/bybit-public-output-audit.mjs",
           "scripts/portal/contracts-test.mjs",
           "scripts/portal/country-foundation-test.mjs",
+          "scripts/portal/public-offer-output-audit.mjs",
           "scripts/portal/research-marketprofile-bridge-test.mjs",
-          "scripts/portal/test-authority-guard.mjs"
+          "scripts/portal/test-authority-guard.mjs",
+          "scripts/portal/test-support/offer-packet-resolution-harness.mjs",
+          "scripts/portal/test-support/synthetic-confirmation-fixtures.mjs"
         ],
-        "npmScripts": [
-          "portal:guard:test-authority",
-          "portal:contracts:test",
-          "build"
+        "readInputs": [
+          "src/data/contracts/bybitOfferClaimSourcePlan.ts",
+          "src/data/contracts/claimConfirmation.ts",
+          "src/data/contracts/countryAwareCta.ts",
+          "src/data/contracts/countryContext.ts",
+          "src/data/contracts/countryInput.ts",
+          "src/data/contracts/evidenceMetadata.ts",
+          "src/data/contracts/internalPath.ts",
+          "src/data/contracts/marketProfileRegistry.ts",
+          "src/data/contracts/marketProfileV1.ts",
+          "src/data/contracts/offerEvidencePacket.ts",
+          "src/data/contracts/offerPacketResolution.ts",
+          "src/data/contracts/officialSourceCapture.ts",
+          "src/data/contracts/ownerConfirmedCommercialAuthority.ts",
+          "src/data/contracts/portalCta.ts",
+          "src/data/contracts/portalCtaI18n.ts",
+          "src/data/contracts/portalDisclosure.ts",
+          "src/data/contracts/portalFactory.ts",
+          "src/data/contracts/portalPublication.ts",
+          "src/data/contracts/portalRouteGuards.ts",
+          "src/data/contracts/publicOfferAuthority.ts",
+          "src/data/contracts/publicRenderedCapture.ts",
+          "src/data/contracts/researchToMarketProfileV1Bridge.ts",
+          "src/data/evidence/offers/bybitOfferEvidence.ts",
+          "src/data/evidence/offers/bybitPromoCodeConfirmation.ts",
+          "src/data/evidence/offers/bybitPublicPresentation.ts",
+          "src/data/exchanges.json",
+          "src/data/homepageTop10.ts",
+          "src/data/homepageTop10Cta.ts",
+          "src/data/offers.ts",
+          "src/data/publicOfferView.ts"
         ],
+        "localActions": [],
         "sharedConfig": [
           "astro.config.mjs",
           "package-lock.json",
@@ -2142,6 +3382,9 @@
         ]
       },
       "triggerCoverage": {
+        "modeled": true,
+        "unmodeledReason": null,
+        "hasPullRequest": true,
         "pathFiltered": true,
         "paths": [
           "src/data/contracts/researchToMarketProfileV1Bridge.ts",
@@ -2155,30 +3398,198 @@
         "branches": [
           "master"
         ],
+        "branchesIgnore": [],
+        "types": [],
         "targetsMaster": true,
         "selfTriggersOnOwnWorkflowFile": true,
         "coveredInputs": [
           "scripts/portal/country-foundation-test.mjs",
-          "scripts/portal/research-marketprofile-bridge-test.mjs"
+          "scripts/portal/research-marketprofile-bridge-test.mjs",
+          "src/data/contracts/marketProfileRegistry.ts",
+          "src/data/contracts/marketProfileV1.ts",
+          "src/data/contracts/researchToMarketProfileV1Bridge.ts"
         ],
         "uncoveredInputs": [
           "astro.config.mjs",
           "package-lock.json",
           "package.json",
+          "scripts/portal/bybit-public-output-audit.mjs",
           "scripts/portal/contracts-test.mjs",
+          "scripts/portal/public-offer-output-audit.mjs",
           "scripts/portal/test-authority-guard.mjs",
+          "scripts/portal/test-support/offer-packet-resolution-harness.mjs",
+          "scripts/portal/test-support/synthetic-confirmation-fixtures.mjs",
+          "src/data/contracts/bybitOfferClaimSourcePlan.ts",
+          "src/data/contracts/claimConfirmation.ts",
+          "src/data/contracts/countryAwareCta.ts",
+          "src/data/contracts/countryContext.ts",
+          "src/data/contracts/countryInput.ts",
+          "src/data/contracts/evidenceMetadata.ts",
+          "src/data/contracts/internalPath.ts",
+          "src/data/contracts/offerEvidencePacket.ts",
+          "src/data/contracts/offerPacketResolution.ts",
+          "src/data/contracts/officialSourceCapture.ts",
+          "src/data/contracts/ownerConfirmedCommercialAuthority.ts",
+          "src/data/contracts/portalCta.ts",
+          "src/data/contracts/portalCtaI18n.ts",
+          "src/data/contracts/portalDisclosure.ts",
+          "src/data/contracts/portalFactory.ts",
+          "src/data/contracts/portalPublication.ts",
+          "src/data/contracts/portalRouteGuards.ts",
+          "src/data/contracts/publicOfferAuthority.ts",
+          "src/data/contracts/publicRenderedCapture.ts",
+          "src/data/evidence/offers/bybitOfferEvidence.ts",
+          "src/data/evidence/offers/bybitPromoCodeConfirmation.ts",
+          "src/data/evidence/offers/bybitPublicPresentation.ts",
+          "src/data/exchanges.json",
+          "src/data/homepageTop10.ts",
+          "src/data/homepageTop10Cta.ts",
+          "src/data/offers.ts",
+          "src/data/publicOfferView.ts",
           "tsconfig.json"
         ],
         "unresolvableInputs": []
       },
       "knownGaps": [
         {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/contracts-test.mjs :: dynamic module load is not statically resolvable: import(pathToFileURL(outfile).href);"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/portal/test-support/offer-packet-resolution-harness.mjs :: dynamic module load is not statically resolvable: import(pathToFileURL(outfile).href);"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/bybitOfferClaimSourcePlan.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/claimConfirmation.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/countryAwareCta.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/countryContext.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/countryInput.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/evidenceMetadata.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/internalPath.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/offerEvidencePacket.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/offerPacketResolution.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/officialSourceCapture.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/ownerConfirmedCommercialAuthority.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/portalCta.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/portalCtaI18n.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/portalDisclosure.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/portalFactory.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/portalPublication.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/portalRouteGuards.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/publicOfferAuthority.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/contracts/publicRenderedCapture.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/evidence/offers/bybitOfferEvidence.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/evidence/offers/bybitPromoCodeConfirmation.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/evidence/offers/bybitPublicPresentation.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/exchanges.json"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/homepageTop10.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/homepageTop10Cta.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/offers.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_INPUT",
+          "detail": "src/data/publicOfferView.ts"
+        },
+        {
+          "code": "TRIGGER_GAP_SCRIPT",
+          "detail": "scripts/portal/bybit-public-output-audit.mjs"
+        },
+        {
           "code": "TRIGGER_GAP_SCRIPT",
           "detail": "scripts/portal/contracts-test.mjs"
         },
         {
           "code": "TRIGGER_GAP_SCRIPT",
+          "detail": "scripts/portal/public-offer-output-audit.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SCRIPT",
           "detail": "scripts/portal/test-authority-guard.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SCRIPT",
+          "detail": "scripts/portal/test-support/offer-packet-resolution-harness.mjs"
+        },
+        {
+          "code": "TRIGGER_GAP_SCRIPT",
+          "detail": "scripts/portal/test-support/synthetic-confirmation-fixtures.mjs"
         },
         {
           "code": "TRIGGER_GAP_SHARED_CONFIG",
@@ -2213,7 +3624,10 @@
       "pathFiltered": true,
       "blockingSemantics": {
         "canFailPullRequest": true,
+        "semanticsProvable": true,
         "jobContinueOnError": false,
+        "jobContinueOnErrorState": "MODELED",
+        "jobContinueOnErrorSource": null,
         "jobIf": null,
         "jobIfPullRequestState": "RUNNABLE",
         "needs": [],
@@ -2228,12 +3642,14 @@
         "node scripts/seo/site-indexability-inventory-artifact.mjs"
       ],
       "dependencies": {
-        "scripts": [
-          "scripts/seo/site-indexability-inventory-artifact.mjs"
-        ],
         "npmScripts": [
           "build"
         ],
+        "executed": [
+          "scripts/seo/site-indexability-inventory-artifact.mjs"
+        ],
+        "readInputs": [],
+        "localActions": [],
         "sharedConfig": [
           "astro.config.mjs",
           "package-lock.json",
@@ -2242,6 +3658,9 @@
         ]
       },
       "triggerCoverage": {
+        "modeled": true,
+        "unmodeledReason": null,
+        "hasPullRequest": true,
         "pathFiltered": true,
         "paths": [
           "src/pages/**",
@@ -2255,6 +3674,8 @@
         "branches": [
           "master"
         ],
+        "branchesIgnore": [],
+        "types": [],
         "targetsMaster": true,
         "selfTriggersOnOwnWorkflowFile": true,
         "coveredInputs": [
@@ -2306,7 +3727,10 @@
       "pathFiltered": true,
       "blockingSemantics": {
         "canFailPullRequest": true,
+        "semanticsProvable": true,
         "jobContinueOnError": false,
+        "jobContinueOnErrorState": "MODELED",
+        "jobContinueOnErrorSource": null,
         "jobIf": null,
         "jobIfPullRequestState": "RUNNABLE",
         "needs": [],
@@ -2322,13 +3746,15 @@
         "node scripts/seo/site-indexability-inventory.mjs"
       ],
       "dependencies": {
-        "scripts": [
-          "scripts/seo/site-indexability-inventory.mjs",
-          "scripts/ui/structural-accessibility-browser-smoke.mjs"
-        ],
         "npmScripts": [
           "build"
         ],
+        "executed": [
+          "scripts/seo/site-indexability-inventory.mjs",
+          "scripts/ui/structural-accessibility-browser-smoke.mjs"
+        ],
+        "readInputs": [],
+        "localActions": [],
         "sharedConfig": [
           "astro.config.mjs",
           "package-lock.json",
@@ -2337,6 +3763,9 @@
         ]
       },
       "triggerCoverage": {
+        "modeled": true,
+        "unmodeledReason": null,
+        "hasPullRequest": true,
         "pathFiltered": true,
         "paths": [
           "src/pages/**",
@@ -2350,6 +3779,8 @@
         "branches": [
           "master"
         ],
+        "branchesIgnore": [],
+        "types": [],
         "targetsMaster": true,
         "selfTriggersOnOwnWorkflowFile": true,
         "coveredInputs": [
@@ -2406,7 +3837,10 @@
       "pathFiltered": false,
       "blockingSemantics": {
         "canFailPullRequest": false,
+        "semanticsProvable": true,
         "jobContinueOnError": false,
+        "jobContinueOnErrorState": "MODELED",
+        "jobContinueOnErrorSource": null,
         "jobIf": null,
         "jobIfPullRequestState": "RUNNABLE",
         "needs": [],
@@ -2423,42 +3857,489 @@
         "npm run monitor:telegram:critical -- --send"
       ],
       "dependencies": {
-        "scripts": [
+        "npmScripts": [
+          "affiliate:audit:strict",
+          "affiliate:report",
+          "bonus:verify:all",
+          "monitor:telegram:critical"
+        ],
+        "executed": [
           "scripts/affiliate-link-inventory.mjs",
           "scripts/audit-affiliate-links.mjs",
+          "scripts/evidence-snapshot.mjs",
+          "scripts/lib/affiliate-snapshot.mjs",
+          "scripts/lib/telegram.mjs",
           "scripts/monitor-telegram-critical.mjs",
           "scripts/verify-bonus-capture.mjs"
         ],
-        "npmScripts": [
-          "bonus:verify:all",
-          "affiliate:report",
-          "affiliate:audit:strict",
-          "monitor:telegram:critical"
+        "readInputs": [
+          "public/screenshots/_archive/bybit/!2FA.jpg",
+          "public/screenshots/_archive/bybit/0-p2p.jpg",
+          "public/screenshots/_archive/bybit/0000000006.jpg",
+          "public/screenshots/_archive/bybit/0001.jpg",
+          "public/screenshots/_archive/bybit/0002.jpg",
+          "public/screenshots/_archive/bybit/0003.jpg",
+          "public/screenshots/_archive/bybit/0004.jpg",
+          "public/screenshots/_archive/bybit/0005.jpg",
+          "public/screenshots/_archive/bybit/0006.jpg",
+          "public/screenshots/_archive/bybit/0007.jpg",
+          "public/screenshots/_archive/bybit/0008.jpg",
+          "public/screenshots/_archive/bybit/1-p2p.jpg",
+          "public/screenshots/_archive/bybit/1.jpg",
+          "public/screenshots/_archive/bybit/2-p2p.jpg",
+          "public/screenshots/_archive/bybit/6-p2p-seller-info(Maybe must be 2.5).jpg",
+          "public/screenshots/_archive/bybit/Antifishing-code.jpg",
+          "public/screenshots/_archive/bybit/Bonuses_30Kplus.jpg",
+          "public/screenshots/_archive/bybit/Bybit_p2p_general_info.png",
+          "public/screenshots/_archive/bybit/FLOW 1 - 1.png",
+          "public/screenshots/_archive/bybit/Futures - FEES.jpg",
+          "public/screenshots/_archive/bybit/KYC - 1 .jpg",
+          "public/screenshots/_archive/bybit/KYC - 2 .jpg",
+          "public/screenshots/_archive/bybit/KYC - 3 .jpg",
+          "public/screenshots/_archive/bybit/KYC - 5 .jpg",
+          "public/screenshots/_archive/bybit/KYC - VERIFIED.jpg",
+          "public/screenshots/_archive/bybit/KYC - all levels and limits.jpg",
+          "public/screenshots/_archive/bybit/KYC - mob - 1 - document - edited.jpg",
+          "public/screenshots/_archive/bybit/KYC - mob - 1 - document.jpg",
+          "public/screenshots/_archive/bybit/KYC - mob - face id - edited.jpg",
+          "public/screenshots/_archive/bybit/KYC - mob - face id.jpg",
+          "public/screenshots/_archive/bybit/KYC DOCS.jpg",
+          "public/screenshots/_archive/bybit/KYC-MOB-FACE.png",
+          "public/screenshots/_archive/bybit/KYC-MOB-ID-CARD.png",
+          "public/screenshots/_archive/bybit/Options FEES.jpg",
+          "public/screenshots/_archive/bybit/PRO-SPOT_FEEs.jpg",
+          "public/screenshots/_archive/bybit/SPOT FEES 2 .jpg",
+          "public/screenshots/_archive/bybit/SPOT-FEES-1.jpg",
+          "public/screenshots/_archive/bybit/V2-p2p-4-approve-my-payment.png",
+          "public/screenshots/_archive/bybit/btc-usdt-order-complete-spot.jpg",
+          "public/screenshots/_archive/bybit/bybit-dep-01-aad110a8.jpg",
+          "public/screenshots/_archive/bybit/bybit-dep-01-aad110a8.webp",
+          "public/screenshots/_archive/bybit/bybit-dep-02-6ce35d41.jpg",
+          "public/screenshots/_archive/bybit/bybit-dep-02-6ce35d41.webp",
+          "public/screenshots/_archive/bybit/bybit-dep-02-85903873.png",
+          "public/screenshots/_archive/bybit/bybit-dep-03-d5039050.jpg",
+          "public/screenshots/_archive/bybit/bybit-dep-03-d5039050.webp",
+          "public/screenshots/_archive/bybit/bybit-dep-06-4a5ac998.jpg",
+          "public/screenshots/_archive/bybit/bybit-dep-06-4a5ac998.webp",
+          "public/screenshots/_archive/bybit/bybit-dep-08-75a0f67b.jpg",
+          "public/screenshots/_archive/bybit/bybit-dep-08-75a0f67b.webp",
+          "public/screenshots/_archive/bybit/bybit-kyc-02-cc90fdb3.jpg",
+          "public/screenshots/_archive/bybit/bybit-kyc-05-a73e4319.jpg",
+          "public/screenshots/_archive/bybit/bybit-kyc-06-ca5317cc.jpg",
+          "public/screenshots/_archive/bybit/bybit-p2p-04.jpg",
+          "public/screenshots/_archive/bybit/bybit-p2p-04.webp",
+          "public/screenshots/_archive/bybit/bybit-p2p-04v2.jpg",
+          "public/screenshots/_archive/bybit/bybit-p2p-04v2.webp",
+          "public/screenshots/_archive/bybit/bybit-p2p-05.jpg",
+          "public/screenshots/_archive/bybit/bybit-p2p-05.webp",
+          "public/screenshots/_archive/bybit/bybit-p2p-06.jpg",
+          "public/screenshots/_archive/bybit/bybit-p2p-06v2.jpg",
+          "public/screenshots/_archive/bybit/bybit-p2p-07.jpg",
+          "public/screenshots/_archive/bybit/bybit-p2p-07.webp",
+          "public/screenshots/_archive/bybit/bybit-p2p-bank-2d268b40.jpg",
+          "public/screenshots/_archive/bybit/bybit-p2p-bank-2d268b40.webp",
+          "public/screenshots/_archive/bybit/bybit-p2p-bank-en.jpg",
+          "public/screenshots/_archive/bybit/bybit-p2p-bank-v2.jpg",
+          "public/screenshots/_archive/bybit/bybit-p2p-bank.jpg",
+          "public/screenshots/_archive/bybit/bybit-step-05.jpg",
+          "public/screenshots/_archive/bybit/bybit-step-05.webp",
+          "public/screenshots/_archive/bybit/bybit-step-06.jpg",
+          "public/screenshots/_archive/bybit/bybit-step-06.webp",
+          "public/screenshots/_archive/bybit/kyc - 4 .jpg",
+          "public/screenshots/_archive/bybit/monobank-send-money-for-sellers-reqisites-2500-hrn-to 55-usdt.png",
+          "public/screenshots/_archive/bybit/p2p-11.jpg",
+          "public/screenshots/_archive/bybit/p2p-12-approve-55.96 usdt.jpg",
+          "public/screenshots/_archive/bybit/p2p-14-order-complete.jpg",
+          "public/screenshots/_archive/bybit/p2p-3-order.jpg",
+          "public/screenshots/_archive/bybit/p2p-3.jpg",
+          "public/screenshots/_archive/bybit/p2p-4-approve-my-payment.jpg",
+          "public/screenshots/_archive/bybit/p2p-5-woiting-for-approve.jpg",
+          "public/screenshots/_archive/bybit/p2p-7-pending.jpg",
+          "public/screenshots/_archive/bybit/p2p-8-pending-time.jpg",
+          "public/screenshots/_archive/bybit/p2p-9-payment-from-card-sent.jpg",
+          "public/screenshots/_archive/bybit/p2p-order-complete-13.jpg",
+          "public/screenshots/_archive/bybit/photo_2026-05-29_14-06-04.jpg",
+          "public/screenshots/_archive/bybit/spot-6+.jpg",
+          "public/screenshots/_archive/bybit/step 3 - 1 -assets.jpg",
+          "public/screenshots/_archive/bybit/step 3 - 10.jpg",
+          "public/screenshots/_archive/bybit/step 3 - 2 - assets-deposit.jpg",
+          "public/screenshots/_archive/bybit/step 3 - 4 -winthral-binance-bybit-50usdt.jpg",
+          "public/screenshots/_archive/bybit/step 3 - 5 - approve.jpg",
+          "public/screenshots/_archive/bybit/step 3 - 6 - waiting.jpg",
+          "public/screenshots/_archive/bybit/step 3 - 7 .jpg",
+          "public/screenshots/_archive/bybit/step 3 - 8.jpg",
+          "public/screenshots/_archive/bybit/step 3 - 9.jpg",
+          "public/screenshots/_archive/bybit/step 3+  - 1 -assets.png",
+          "public/screenshots/_archive/bybit/step 3+ - 2 - assets-deposit.png",
+          "public/screenshots/_archive/bybit/step 3+ - 3 .jpg",
+          "public/screenshots/_archive/bybit/step 4 - 1 assetst.jpg",
+          "public/screenshots/_archive/bybit/step 4 - 10 - order change succesfully.jpg",
+          "public/screenshots/_archive/bybit/step 4 - 11 .jpg",
+          "public/screenshots/_archive/bybit/step 4 - 12.jpg",
+          "public/screenshots/_archive/bybit/step 4 - 13 .jpg",
+          "public/screenshots/_archive/bybit/step 4 - 13+.jpg",
+          "public/screenshots/_archive/bybit/step 4 - 13.jpg",
+          "public/screenshots/_archive/bybit/step 4 - 14 .jpg",
+          "public/screenshots/_archive/bybit/step 4 - 2 - transfer to wallet.jpg",
+          "public/screenshots/_archive/bybit/step 4 - 4 .jpg",
+          "public/screenshots/_archive/bybit/step 4 - 5-1.jpg",
+          "public/screenshots/_archive/bybit/step 4 - 5-2.jpg",
+          "public/screenshots/_archive/bybit/step 4 - 7.jpg",
+          "public/screenshots/_archive/bybit/step 4 - 8.1 - limit order - position.jpg",
+          "public/screenshots/_archive/bybit/step 4 - 9.jpg",
+          "public/screenshots/_archive/bybit/step 4 -3 .jpg",
+          "public/screenshots/_archive/bybit/step-4 - 6 .jpg",
+          "public/screenshots/_archive/bybit/step4  - 8.2.jpg",
+          "public/screenshots/binance/bonus/global-desktop-2026-06.webp",
+          "public/screenshots/binance/bonus_referral_landing/global-desktop-2026-06-v2.webp",
+          "public/screenshots/binance/bonus_referral_landing/global-desktop-2026-06-v3.webp",
+          "public/screenshots/binance/bonus_referral_landing/global-desktop-2026-06.webp",
+          "public/screenshots/binance/fees/global-desktop-2026-06-v2.webp",
+          "public/screenshots/binance/fees/global-desktop-2026-06-v3.webp",
+          "public/screenshots/binance/fees/global-desktop-2026-06.webp",
+          "public/screenshots/binance/fees_futures/global-desktop-2026-06-v2.webp",
+          "public/screenshots/binance/fees_futures/global-desktop-2026-06.webp",
+          "public/screenshots/binance/futures/global-desktop-2026-06.webp",
+          "public/screenshots/binance/kyc/global-desktop-2026-06.webp",
+          "public/screenshots/binance/mobile_app/global-mobile-2026-06.webp",
+          "public/screenshots/binance/p2p/global-desktop-2026-06.webp",
+          "public/screenshots/binance/p2p_direction_usd_usdt/binance-p2p-usdt-usd-en-global-full-interface-2026-06.webp",
+          "public/screenshots/binance/proof_of_reserves/global-desktop-2026-06-v2.webp",
+          "public/screenshots/binance/proof_of_reserves/global-desktop-2026-06.webp",
+          "public/screenshots/binance/registration/global-desktop-2026-06.webp",
+          "public/screenshots/binance/registration_demo_state/global-desktop-2026-06.webp",
+          "public/screenshots/binance/spot/global-desktop-2026-06-v2.webp",
+          "public/screenshots/binance/spot/global-desktop-2026-06-v3.webp",
+          "public/screenshots/binance/spot/global-desktop-2026-06.webp",
+          "public/screenshots/binance/steps/bn-01-landing-empty.webp",
+          "public/screenshots/binance/steps/bn-018-dashboard-kyc-cta.webp",
+          "public/screenshots/binance/steps/bn-01c-landing-19800-arrow.webp",
+          "public/screenshots/binance/steps/bn-01c-landing-19800-empty.webp",
+          "public/screenshots/binance/steps/bn-02-landing-email-blurred.webp",
+          "public/screenshots/binance/steps/bn-023-security-2fa-app-intro.webp",
+          "public/screenshots/binance/steps/bn-02b-landing-email-entered-blurred.webp",
+          "public/screenshots/binance/steps/bn-03-captcha-cars.webp",
+          "public/screenshots/binance/steps/bn-030-futures-demo-mode.webp",
+          "public/screenshots/binance/steps/bn-032-p2p-express-buy-usdt.webp",
+          "public/screenshots/binance/steps/bn-035-p2p-marketplace-listings.webp",
+          "public/screenshots/binance/steps/bn-037-p2p-seller-profile.webp",
+          "public/screenshots/binance/steps/bn-038-fees-spot-margin.webp",
+          "public/screenshots/binance/steps/bn-039-fees-usdm-futures.webp",
+          "public/screenshots/binance/steps/bn-03b-captcha-airplanes.webp",
+          "public/screenshots/binance/steps/bn-04-verify-email-blurred.webp",
+          "public/screenshots/binance/steps/bn-041-options-contracts.webp",
+          "public/screenshots/binance/steps/bn-042-trading-bots-active.webp",
+          "public/screenshots/binance/steps/bn-043-copytrading-selection.webp",
+          "public/screenshots/binance/steps/bn-04b-verify-code-entry-blurred.webp",
+          "public/screenshots/binance/steps/bn-05-activation-email-blurred.webp",
+          "public/screenshots/binance/steps/bn-06-create-password.webp",
+          "public/screenshots/binance/steps/bn-07-welcome-desktop.webp",
+          "public/screenshots/binance/steps/bn-07-welcome-medium.webp",
+          "public/screenshots/binance/steps/bn-07-welcome-mobile-success.webp",
+          "public/screenshots/binance/steps/bn-07-welcome-mobile.webp",
+          "public/screenshots/binance/steps/bn-07-welcome-tablet.webp",
+          "public/screenshots/binance/steps/bn-08-kyc-continue.webp",
+          "public/screenshots/binance/steps/bn-08-kyc-country-select.webp",
+          "public/screenshots/binance/steps/bn-08-kyc-ukraine-doctype-full.webp",
+          "public/screenshots/binance/steps/bn-08-kyc-ukraine-full.webp",
+          "public/screenshots/binance/steps/bn-08-kyc-ukraine-mobile.webp",
+          "public/screenshots/binance/steps/bn-09-docverif-qr-desktop-blurred.webp",
+          "public/screenshots/binance/steps/bn-09-docverif-qr-desktop2-blurred.webp",
+          "public/screenshots/binance/steps/bn-09-docverif-qr-mobile-blurred.webp",
+          "public/screenshots/binance/steps/bn-10-upload-id-desktop.webp",
+          "public/screenshots/binance/steps/bn-10-upload-id-mobile.webp",
+          "public/screenshots/binance/steps/bn-11-rewards-tasks.webp",
+          "public/screenshots/binance/steps/bn-legacy-100usd-landing.webp",
+          "public/screenshots/binance/steps/bn-legacy-100usd-registration.webp",
+          "public/screenshots/binance/steps/bn-legacy-600usd-landing-arrow.webp",
+          "public/screenshots/binance/steps/bn-legacy-600usd-landing.webp",
+          "public/screenshots/binance/steps/bn-mob-053-verification-center-verified.webp",
+          "public/screenshots/binance/steps/bn-owner-app-inviter-code-2026-06.webp",
+          "public/screenshots/binance/steps/bn-owner-rewardshub-4tasks-2026-06-v2.webp",
+          "public/screenshots/binance/steps/bn-owner-task-reward-overview-2026-06-v5.webp",
+          "public/screenshots/binance/steps/bn-reg-landing-cryptobonw-jun26.webp",
+          "public/screenshots/binance/steps/mob-002f-welcome-aboard-referral.webp",
+          "public/screenshots/binance/steps/mob-031c-withdrawal-details-completed.webp",
+          "public/screenshots/binance/steps/mob-032-bybit-deposit-arrived-toast.webp",
+          "public/screenshots/binance/steps/mob-044-fees-overview-spot-limit2000.webp",
+          "public/screenshots/binance/steps/mob-044d-fees-overview-verified-8m.webp",
+          "public/screenshots/binance/steps/web-009-welcome-bonus-tasks-breakdown.webp",
+          "public/screenshots/bingx/bonus_referral_landing/global-desktop-2026-06-v2.webp",
+          "public/screenshots/bitget/bonus_referral_landing/global-desktop-2026-06.webp",
+          "public/screenshots/bitget/fees/global-desktop-2026-06.webp",
+          "public/screenshots/bitget/registration/global-desktop-2026-06.webp",
+          "public/screenshots/bybit/bonus/global-desktop-2026-06.jpg",
+          "public/screenshots/bybit/bonus/global-desktop-2026-06.webp",
+          "public/screenshots/bybit/bonus_referral_landing/global-desktop-2026-06.webp",
+          "public/screenshots/bybit/deposit/global-desktop-2026-06.webp",
+          "public/screenshots/bybit/futures/global-desktop-2026-06.webp",
+          "public/screenshots/bybit/kyc/global-desktop-2026-06.webp",
+          "public/screenshots/bybit/p2p/global-desktop-2026-06.webp",
+          "public/screenshots/bybit/registration/global-desktop-2026-06.webp",
+          "public/screenshots/bybit/spot/global-desktop-2026-06.webp",
+          "public/screenshots/gate-io/bonus_referral_landing/global-desktop-2026-06.webp",
+          "public/screenshots/kucoin/bonus_referral_landing/global-desktop-2026-06.webp",
+          "public/screenshots/mexc/fees/global-desktop-2026-06.webp",
+          "public/screenshots/okx/bonus/global-desktop-2026-06.webp",
+          "public/screenshots/okx/bonus_referral_landing/global-desktop-2026-06.webp",
+          "public/screenshots/okx/fees/global-desktop-2026-06.webp",
+          "public/screenshots/okx/proof_of_reserves/global-desktop-2026-06.webp",
+          "public/screenshots/okx/registration/global-desktop-2026-06.webp",
+          "src/data/affiliate-links.ts",
+          "src/data/exchanges.json"
         ],
+        "localActions": [],
         "sharedConfig": [
           "package-lock.json",
           "package.json"
         ]
       },
       "triggerCoverage": {
+        "modeled": true,
+        "unmodeledReason": null,
+        "hasPullRequest": false,
         "pathFiltered": false,
         "paths": [],
         "pathsIgnore": [],
         "branches": [],
+        "branchesIgnore": [],
+        "types": [],
         "targetsMaster": false,
         "selfTriggersOnOwnWorkflowFile": true,
         "coveredInputs": [
           "package-lock.json",
           "package.json",
+          "public/screenshots/_archive/bybit/!2FA.jpg",
+          "public/screenshots/_archive/bybit/0-p2p.jpg",
+          "public/screenshots/_archive/bybit/0000000006.jpg",
+          "public/screenshots/_archive/bybit/0001.jpg",
+          "public/screenshots/_archive/bybit/0002.jpg",
+          "public/screenshots/_archive/bybit/0003.jpg",
+          "public/screenshots/_archive/bybit/0004.jpg",
+          "public/screenshots/_archive/bybit/0005.jpg",
+          "public/screenshots/_archive/bybit/0006.jpg",
+          "public/screenshots/_archive/bybit/0007.jpg",
+          "public/screenshots/_archive/bybit/0008.jpg",
+          "public/screenshots/_archive/bybit/1-p2p.jpg",
+          "public/screenshots/_archive/bybit/1.jpg",
+          "public/screenshots/_archive/bybit/2-p2p.jpg",
+          "public/screenshots/_archive/bybit/6-p2p-seller-info(Maybe must be 2.5).jpg",
+          "public/screenshots/_archive/bybit/Antifishing-code.jpg",
+          "public/screenshots/_archive/bybit/Bonuses_30Kplus.jpg",
+          "public/screenshots/_archive/bybit/Bybit_p2p_general_info.png",
+          "public/screenshots/_archive/bybit/FLOW 1 - 1.png",
+          "public/screenshots/_archive/bybit/Futures - FEES.jpg",
+          "public/screenshots/_archive/bybit/KYC - 1 .jpg",
+          "public/screenshots/_archive/bybit/KYC - 2 .jpg",
+          "public/screenshots/_archive/bybit/KYC - 3 .jpg",
+          "public/screenshots/_archive/bybit/KYC - 5 .jpg",
+          "public/screenshots/_archive/bybit/KYC - VERIFIED.jpg",
+          "public/screenshots/_archive/bybit/KYC - all levels and limits.jpg",
+          "public/screenshots/_archive/bybit/KYC - mob - 1 - document - edited.jpg",
+          "public/screenshots/_archive/bybit/KYC - mob - 1 - document.jpg",
+          "public/screenshots/_archive/bybit/KYC - mob - face id - edited.jpg",
+          "public/screenshots/_archive/bybit/KYC - mob - face id.jpg",
+          "public/screenshots/_archive/bybit/KYC DOCS.jpg",
+          "public/screenshots/_archive/bybit/KYC-MOB-FACE.png",
+          "public/screenshots/_archive/bybit/KYC-MOB-ID-CARD.png",
+          "public/screenshots/_archive/bybit/Options FEES.jpg",
+          "public/screenshots/_archive/bybit/PRO-SPOT_FEEs.jpg",
+          "public/screenshots/_archive/bybit/SPOT FEES 2 .jpg",
+          "public/screenshots/_archive/bybit/SPOT-FEES-1.jpg",
+          "public/screenshots/_archive/bybit/V2-p2p-4-approve-my-payment.png",
+          "public/screenshots/_archive/bybit/btc-usdt-order-complete-spot.jpg",
+          "public/screenshots/_archive/bybit/bybit-dep-01-aad110a8.jpg",
+          "public/screenshots/_archive/bybit/bybit-dep-01-aad110a8.webp",
+          "public/screenshots/_archive/bybit/bybit-dep-02-6ce35d41.jpg",
+          "public/screenshots/_archive/bybit/bybit-dep-02-6ce35d41.webp",
+          "public/screenshots/_archive/bybit/bybit-dep-02-85903873.png",
+          "public/screenshots/_archive/bybit/bybit-dep-03-d5039050.jpg",
+          "public/screenshots/_archive/bybit/bybit-dep-03-d5039050.webp",
+          "public/screenshots/_archive/bybit/bybit-dep-06-4a5ac998.jpg",
+          "public/screenshots/_archive/bybit/bybit-dep-06-4a5ac998.webp",
+          "public/screenshots/_archive/bybit/bybit-dep-08-75a0f67b.jpg",
+          "public/screenshots/_archive/bybit/bybit-dep-08-75a0f67b.webp",
+          "public/screenshots/_archive/bybit/bybit-kyc-02-cc90fdb3.jpg",
+          "public/screenshots/_archive/bybit/bybit-kyc-05-a73e4319.jpg",
+          "public/screenshots/_archive/bybit/bybit-kyc-06-ca5317cc.jpg",
+          "public/screenshots/_archive/bybit/bybit-p2p-04.jpg",
+          "public/screenshots/_archive/bybit/bybit-p2p-04.webp",
+          "public/screenshots/_archive/bybit/bybit-p2p-04v2.jpg",
+          "public/screenshots/_archive/bybit/bybit-p2p-04v2.webp",
+          "public/screenshots/_archive/bybit/bybit-p2p-05.jpg",
+          "public/screenshots/_archive/bybit/bybit-p2p-05.webp",
+          "public/screenshots/_archive/bybit/bybit-p2p-06.jpg",
+          "public/screenshots/_archive/bybit/bybit-p2p-06v2.jpg",
+          "public/screenshots/_archive/bybit/bybit-p2p-07.jpg",
+          "public/screenshots/_archive/bybit/bybit-p2p-07.webp",
+          "public/screenshots/_archive/bybit/bybit-p2p-bank-2d268b40.jpg",
+          "public/screenshots/_archive/bybit/bybit-p2p-bank-2d268b40.webp",
+          "public/screenshots/_archive/bybit/bybit-p2p-bank-en.jpg",
+          "public/screenshots/_archive/bybit/bybit-p2p-bank-v2.jpg",
+          "public/screenshots/_archive/bybit/bybit-p2p-bank.jpg",
+          "public/screenshots/_archive/bybit/bybit-step-05.jpg",
+          "public/screenshots/_archive/bybit/bybit-step-05.webp",
+          "public/screenshots/_archive/bybit/bybit-step-06.jpg",
+          "public/screenshots/_archive/bybit/bybit-step-06.webp",
+          "public/screenshots/_archive/bybit/kyc - 4 .jpg",
+          "public/screenshots/_archive/bybit/monobank-send-money-for-sellers-reqisites-2500-hrn-to 55-usdt.png",
+          "public/screenshots/_archive/bybit/p2p-11.jpg",
+          "public/screenshots/_archive/bybit/p2p-12-approve-55.96 usdt.jpg",
+          "public/screenshots/_archive/bybit/p2p-14-order-complete.jpg",
+          "public/screenshots/_archive/bybit/p2p-3-order.jpg",
+          "public/screenshots/_archive/bybit/p2p-3.jpg",
+          "public/screenshots/_archive/bybit/p2p-4-approve-my-payment.jpg",
+          "public/screenshots/_archive/bybit/p2p-5-woiting-for-approve.jpg",
+          "public/screenshots/_archive/bybit/p2p-7-pending.jpg",
+          "public/screenshots/_archive/bybit/p2p-8-pending-time.jpg",
+          "public/screenshots/_archive/bybit/p2p-9-payment-from-card-sent.jpg",
+          "public/screenshots/_archive/bybit/p2p-order-complete-13.jpg",
+          "public/screenshots/_archive/bybit/photo_2026-05-29_14-06-04.jpg",
+          "public/screenshots/_archive/bybit/spot-6+.jpg",
+          "public/screenshots/_archive/bybit/step 3 - 1 -assets.jpg",
+          "public/screenshots/_archive/bybit/step 3 - 10.jpg",
+          "public/screenshots/_archive/bybit/step 3 - 2 - assets-deposit.jpg",
+          "public/screenshots/_archive/bybit/step 3 - 4 -winthral-binance-bybit-50usdt.jpg",
+          "public/screenshots/_archive/bybit/step 3 - 5 - approve.jpg",
+          "public/screenshots/_archive/bybit/step 3 - 6 - waiting.jpg",
+          "public/screenshots/_archive/bybit/step 3 - 7 .jpg",
+          "public/screenshots/_archive/bybit/step 3 - 8.jpg",
+          "public/screenshots/_archive/bybit/step 3 - 9.jpg",
+          "public/screenshots/_archive/bybit/step 3+  - 1 -assets.png",
+          "public/screenshots/_archive/bybit/step 3+ - 2 - assets-deposit.png",
+          "public/screenshots/_archive/bybit/step 3+ - 3 .jpg",
+          "public/screenshots/_archive/bybit/step 4 - 1 assetst.jpg",
+          "public/screenshots/_archive/bybit/step 4 - 10 - order change succesfully.jpg",
+          "public/screenshots/_archive/bybit/step 4 - 11 .jpg",
+          "public/screenshots/_archive/bybit/step 4 - 12.jpg",
+          "public/screenshots/_archive/bybit/step 4 - 13 .jpg",
+          "public/screenshots/_archive/bybit/step 4 - 13+.jpg",
+          "public/screenshots/_archive/bybit/step 4 - 13.jpg",
+          "public/screenshots/_archive/bybit/step 4 - 14 .jpg",
+          "public/screenshots/_archive/bybit/step 4 - 2 - transfer to wallet.jpg",
+          "public/screenshots/_archive/bybit/step 4 - 4 .jpg",
+          "public/screenshots/_archive/bybit/step 4 - 5-1.jpg",
+          "public/screenshots/_archive/bybit/step 4 - 5-2.jpg",
+          "public/screenshots/_archive/bybit/step 4 - 7.jpg",
+          "public/screenshots/_archive/bybit/step 4 - 8.1 - limit order - position.jpg",
+          "public/screenshots/_archive/bybit/step 4 - 9.jpg",
+          "public/screenshots/_archive/bybit/step 4 -3 .jpg",
+          "public/screenshots/_archive/bybit/step-4 - 6 .jpg",
+          "public/screenshots/_archive/bybit/step4  - 8.2.jpg",
+          "public/screenshots/binance/bonus/global-desktop-2026-06.webp",
+          "public/screenshots/binance/bonus_referral_landing/global-desktop-2026-06-v2.webp",
+          "public/screenshots/binance/bonus_referral_landing/global-desktop-2026-06-v3.webp",
+          "public/screenshots/binance/bonus_referral_landing/global-desktop-2026-06.webp",
+          "public/screenshots/binance/fees/global-desktop-2026-06-v2.webp",
+          "public/screenshots/binance/fees/global-desktop-2026-06-v3.webp",
+          "public/screenshots/binance/fees/global-desktop-2026-06.webp",
+          "public/screenshots/binance/fees_futures/global-desktop-2026-06-v2.webp",
+          "public/screenshots/binance/fees_futures/global-desktop-2026-06.webp",
+          "public/screenshots/binance/futures/global-desktop-2026-06.webp",
+          "public/screenshots/binance/kyc/global-desktop-2026-06.webp",
+          "public/screenshots/binance/mobile_app/global-mobile-2026-06.webp",
+          "public/screenshots/binance/p2p/global-desktop-2026-06.webp",
+          "public/screenshots/binance/p2p_direction_usd_usdt/binance-p2p-usdt-usd-en-global-full-interface-2026-06.webp",
+          "public/screenshots/binance/proof_of_reserves/global-desktop-2026-06-v2.webp",
+          "public/screenshots/binance/proof_of_reserves/global-desktop-2026-06.webp",
+          "public/screenshots/binance/registration/global-desktop-2026-06.webp",
+          "public/screenshots/binance/registration_demo_state/global-desktop-2026-06.webp",
+          "public/screenshots/binance/spot/global-desktop-2026-06-v2.webp",
+          "public/screenshots/binance/spot/global-desktop-2026-06-v3.webp",
+          "public/screenshots/binance/spot/global-desktop-2026-06.webp",
+          "public/screenshots/binance/steps/bn-01-landing-empty.webp",
+          "public/screenshots/binance/steps/bn-018-dashboard-kyc-cta.webp",
+          "public/screenshots/binance/steps/bn-01c-landing-19800-arrow.webp",
+          "public/screenshots/binance/steps/bn-01c-landing-19800-empty.webp",
+          "public/screenshots/binance/steps/bn-02-landing-email-blurred.webp",
+          "public/screenshots/binance/steps/bn-023-security-2fa-app-intro.webp",
+          "public/screenshots/binance/steps/bn-02b-landing-email-entered-blurred.webp",
+          "public/screenshots/binance/steps/bn-03-captcha-cars.webp",
+          "public/screenshots/binance/steps/bn-030-futures-demo-mode.webp",
+          "public/screenshots/binance/steps/bn-032-p2p-express-buy-usdt.webp",
+          "public/screenshots/binance/steps/bn-035-p2p-marketplace-listings.webp",
+          "public/screenshots/binance/steps/bn-037-p2p-seller-profile.webp",
+          "public/screenshots/binance/steps/bn-038-fees-spot-margin.webp",
+          "public/screenshots/binance/steps/bn-039-fees-usdm-futures.webp",
+          "public/screenshots/binance/steps/bn-03b-captcha-airplanes.webp",
+          "public/screenshots/binance/steps/bn-04-verify-email-blurred.webp",
+          "public/screenshots/binance/steps/bn-041-options-contracts.webp",
+          "public/screenshots/binance/steps/bn-042-trading-bots-active.webp",
+          "public/screenshots/binance/steps/bn-043-copytrading-selection.webp",
+          "public/screenshots/binance/steps/bn-04b-verify-code-entry-blurred.webp",
+          "public/screenshots/binance/steps/bn-05-activation-email-blurred.webp",
+          "public/screenshots/binance/steps/bn-06-create-password.webp",
+          "public/screenshots/binance/steps/bn-07-welcome-desktop.webp",
+          "public/screenshots/binance/steps/bn-07-welcome-medium.webp",
+          "public/screenshots/binance/steps/bn-07-welcome-mobile-success.webp",
+          "public/screenshots/binance/steps/bn-07-welcome-mobile.webp",
+          "public/screenshots/binance/steps/bn-07-welcome-tablet.webp",
+          "public/screenshots/binance/steps/bn-08-kyc-continue.webp",
+          "public/screenshots/binance/steps/bn-08-kyc-country-select.webp",
+          "public/screenshots/binance/steps/bn-08-kyc-ukraine-doctype-full.webp",
+          "public/screenshots/binance/steps/bn-08-kyc-ukraine-full.webp",
+          "public/screenshots/binance/steps/bn-08-kyc-ukraine-mobile.webp",
+          "public/screenshots/binance/steps/bn-09-docverif-qr-desktop-blurred.webp",
+          "public/screenshots/binance/steps/bn-09-docverif-qr-desktop2-blurred.webp",
+          "public/screenshots/binance/steps/bn-09-docverif-qr-mobile-blurred.webp",
+          "public/screenshots/binance/steps/bn-10-upload-id-desktop.webp",
+          "public/screenshots/binance/steps/bn-10-upload-id-mobile.webp",
+          "public/screenshots/binance/steps/bn-11-rewards-tasks.webp",
+          "public/screenshots/binance/steps/bn-legacy-100usd-landing.webp",
+          "public/screenshots/binance/steps/bn-legacy-100usd-registration.webp",
+          "public/screenshots/binance/steps/bn-legacy-600usd-landing-arrow.webp",
+          "public/screenshots/binance/steps/bn-legacy-600usd-landing.webp",
+          "public/screenshots/binance/steps/bn-mob-053-verification-center-verified.webp",
+          "public/screenshots/binance/steps/bn-owner-app-inviter-code-2026-06.webp",
+          "public/screenshots/binance/steps/bn-owner-rewardshub-4tasks-2026-06-v2.webp",
+          "public/screenshots/binance/steps/bn-owner-task-reward-overview-2026-06-v5.webp",
+          "public/screenshots/binance/steps/bn-reg-landing-cryptobonw-jun26.webp",
+          "public/screenshots/binance/steps/mob-002f-welcome-aboard-referral.webp",
+          "public/screenshots/binance/steps/mob-031c-withdrawal-details-completed.webp",
+          "public/screenshots/binance/steps/mob-032-bybit-deposit-arrived-toast.webp",
+          "public/screenshots/binance/steps/mob-044-fees-overview-spot-limit2000.webp",
+          "public/screenshots/binance/steps/mob-044d-fees-overview-verified-8m.webp",
+          "public/screenshots/binance/steps/web-009-welcome-bonus-tasks-breakdown.webp",
+          "public/screenshots/bingx/bonus_referral_landing/global-desktop-2026-06-v2.webp",
+          "public/screenshots/bitget/bonus_referral_landing/global-desktop-2026-06.webp",
+          "public/screenshots/bitget/fees/global-desktop-2026-06.webp",
+          "public/screenshots/bitget/registration/global-desktop-2026-06.webp",
+          "public/screenshots/bybit/bonus/global-desktop-2026-06.jpg",
+          "public/screenshots/bybit/bonus/global-desktop-2026-06.webp",
+          "public/screenshots/bybit/bonus_referral_landing/global-desktop-2026-06.webp",
+          "public/screenshots/bybit/deposit/global-desktop-2026-06.webp",
+          "public/screenshots/bybit/futures/global-desktop-2026-06.webp",
+          "public/screenshots/bybit/kyc/global-desktop-2026-06.webp",
+          "public/screenshots/bybit/p2p/global-desktop-2026-06.webp",
+          "public/screenshots/bybit/registration/global-desktop-2026-06.webp",
+          "public/screenshots/bybit/spot/global-desktop-2026-06.webp",
+          "public/screenshots/gate-io/bonus_referral_landing/global-desktop-2026-06.webp",
+          "public/screenshots/kucoin/bonus_referral_landing/global-desktop-2026-06.webp",
+          "public/screenshots/mexc/fees/global-desktop-2026-06.webp",
+          "public/screenshots/okx/bonus/global-desktop-2026-06.webp",
+          "public/screenshots/okx/bonus_referral_landing/global-desktop-2026-06.webp",
+          "public/screenshots/okx/fees/global-desktop-2026-06.webp",
+          "public/screenshots/okx/proof_of_reserves/global-desktop-2026-06.webp",
+          "public/screenshots/okx/registration/global-desktop-2026-06.webp",
           "scripts/affiliate-link-inventory.mjs",
           "scripts/audit-affiliate-links.mjs",
+          "scripts/evidence-snapshot.mjs",
+          "scripts/lib/affiliate-snapshot.mjs",
+          "scripts/lib/telegram.mjs",
           "scripts/monitor-telegram-critical.mjs",
-          "scripts/verify-bonus-capture.mjs"
+          "scripts/verify-bonus-capture.mjs",
+          "src/data/affiliate-links.ts",
+          "src/data/exchanges.json"
         ],
         "uncoveredInputs": [],
         "unresolvableInputs": []
       },
-      "knownGaps": [],
+      "knownGaps": [
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/verify-bonus-capture.mjs :: dynamic module load is not statically resolvable: import(dataUri);"
+        }
+      ],
       "migrationState": "NOT_APPLICABLE",
       "stage2MigrationCandidate": false,
       "stage2MigrationCandidateReason": "not blocking-capable (NON_PR)",
@@ -2475,7 +4356,10 @@
       "pathFiltered": false,
       "blockingSemantics": {
         "canFailPullRequest": false,
+        "semanticsProvable": true,
         "jobContinueOnError": false,
+        "jobContinueOnErrorState": "MODELED",
+        "jobContinueOnErrorSource": null,
         "jobIf": null,
         "jobIfPullRequestState": "RUNNABLE",
         "needs": [],
@@ -2495,7 +4379,16 @@
         "npm run links:audit"
       ],
       "dependencies": {
-        "scripts": [
+        "npmScripts": [
+          "affiliate:audit:strict",
+          "build",
+          "freshness:audit",
+          "links:audit",
+          "schema:check",
+          "screenshots:check",
+          "seo:check"
+        ],
+        "executed": [
           "scripts/audit-affiliate-links.mjs",
           "scripts/audit-exchange-screenshots.mjs",
           "scripts/audit-freshness.mjs",
@@ -2503,15 +4396,11 @@
           "scripts/audit-schema.mjs",
           "scripts/audit-seo-titles.mjs"
         ],
-        "npmScripts": [
-          "build",
-          "affiliate:audit:strict",
-          "screenshots:check",
-          "seo:check",
-          "schema:check",
-          "freshness:audit",
-          "links:audit"
+        "readInputs": [
+          "src/data/affiliate-links.ts",
+          "src/data/exchanges.json"
         ],
+        "localActions": [],
         "sharedConfig": [
           "astro.config.mjs",
           "package-lock.json",
@@ -2520,10 +4409,15 @@
         ]
       },
       "triggerCoverage": {
+        "modeled": true,
+        "unmodeledReason": null,
+        "hasPullRequest": false,
         "pathFiltered": false,
         "paths": [],
         "pathsIgnore": [],
         "branches": [],
+        "branchesIgnore": [],
+        "types": [],
         "targetsMaster": false,
         "selfTriggersOnOwnWorkflowFile": true,
         "coveredInputs": [
@@ -2536,6 +4430,8 @@
           "scripts/audit-internal-links.mjs",
           "scripts/audit-schema.mjs",
           "scripts/audit-seo-titles.mjs",
+          "src/data/affiliate-links.ts",
+          "src/data/exchanges.json",
           "tsconfig.json"
         ],
         "uncoveredInputs": [],
@@ -2558,7 +4454,10 @@
       "pathFiltered": false,
       "blockingSemantics": {
         "canFailPullRequest": false,
+        "semanticsProvable": true,
         "jobContinueOnError": false,
+        "jobContinueOnErrorState": "MODELED",
+        "jobContinueOnErrorSource": null,
         "jobIf": null,
         "jobIfPullRequestState": "RUNNABLE",
         "needs": [],
@@ -2579,55 +4478,502 @@
         "npm run monitor:telegram:summary -- --send"
       ],
       "dependencies": {
-        "scripts": [
+        "npmScripts": [
+          "affiliate:audit:strict",
+          "affiliate:report",
+          "affiliate:telegram-report",
+          "bonus:telegram-report",
+          "bonus:verify:all",
+          "monitor:telegram:summary",
+          "screenshots:check",
+          "screenshots:report",
+          "screenshots:telegram-report"
+        ],
+        "executed": [
           "scripts/affiliate-link-inventory.mjs",
           "scripts/affiliate-telegram-report.mjs",
           "scripts/audit-affiliate-links.mjs",
           "scripts/audit-exchange-screenshots.mjs",
           "scripts/bonus-telegram-report.mjs",
+          "scripts/evidence-snapshot.mjs",
+          "scripts/lib/affiliate-snapshot.mjs",
+          "scripts/lib/telegram.mjs",
           "scripts/monitor-telegram-summary.mjs",
           "scripts/screenshots-telegram-report.mjs",
           "scripts/verify-bonus-capture.mjs"
         ],
-        "npmScripts": [
-          "bonus:verify:all",
-          "affiliate:report",
-          "affiliate:audit:strict",
-          "screenshots:report",
-          "screenshots:check",
-          "bonus:telegram-report",
-          "affiliate:telegram-report",
-          "screenshots:telegram-report",
-          "monitor:telegram:summary"
+        "readInputs": [
+          "public/screenshots/_archive/bybit/!2FA.jpg",
+          "public/screenshots/_archive/bybit/0-p2p.jpg",
+          "public/screenshots/_archive/bybit/0000000006.jpg",
+          "public/screenshots/_archive/bybit/0001.jpg",
+          "public/screenshots/_archive/bybit/0002.jpg",
+          "public/screenshots/_archive/bybit/0003.jpg",
+          "public/screenshots/_archive/bybit/0004.jpg",
+          "public/screenshots/_archive/bybit/0005.jpg",
+          "public/screenshots/_archive/bybit/0006.jpg",
+          "public/screenshots/_archive/bybit/0007.jpg",
+          "public/screenshots/_archive/bybit/0008.jpg",
+          "public/screenshots/_archive/bybit/1-p2p.jpg",
+          "public/screenshots/_archive/bybit/1.jpg",
+          "public/screenshots/_archive/bybit/2-p2p.jpg",
+          "public/screenshots/_archive/bybit/6-p2p-seller-info(Maybe must be 2.5).jpg",
+          "public/screenshots/_archive/bybit/Antifishing-code.jpg",
+          "public/screenshots/_archive/bybit/Bonuses_30Kplus.jpg",
+          "public/screenshots/_archive/bybit/Bybit_p2p_general_info.png",
+          "public/screenshots/_archive/bybit/FLOW 1 - 1.png",
+          "public/screenshots/_archive/bybit/Futures - FEES.jpg",
+          "public/screenshots/_archive/bybit/KYC - 1 .jpg",
+          "public/screenshots/_archive/bybit/KYC - 2 .jpg",
+          "public/screenshots/_archive/bybit/KYC - 3 .jpg",
+          "public/screenshots/_archive/bybit/KYC - 5 .jpg",
+          "public/screenshots/_archive/bybit/KYC - VERIFIED.jpg",
+          "public/screenshots/_archive/bybit/KYC - all levels and limits.jpg",
+          "public/screenshots/_archive/bybit/KYC - mob - 1 - document - edited.jpg",
+          "public/screenshots/_archive/bybit/KYC - mob - 1 - document.jpg",
+          "public/screenshots/_archive/bybit/KYC - mob - face id - edited.jpg",
+          "public/screenshots/_archive/bybit/KYC - mob - face id.jpg",
+          "public/screenshots/_archive/bybit/KYC DOCS.jpg",
+          "public/screenshots/_archive/bybit/KYC-MOB-FACE.png",
+          "public/screenshots/_archive/bybit/KYC-MOB-ID-CARD.png",
+          "public/screenshots/_archive/bybit/Options FEES.jpg",
+          "public/screenshots/_archive/bybit/PRO-SPOT_FEEs.jpg",
+          "public/screenshots/_archive/bybit/SPOT FEES 2 .jpg",
+          "public/screenshots/_archive/bybit/SPOT-FEES-1.jpg",
+          "public/screenshots/_archive/bybit/V2-p2p-4-approve-my-payment.png",
+          "public/screenshots/_archive/bybit/btc-usdt-order-complete-spot.jpg",
+          "public/screenshots/_archive/bybit/bybit-dep-01-aad110a8.jpg",
+          "public/screenshots/_archive/bybit/bybit-dep-01-aad110a8.webp",
+          "public/screenshots/_archive/bybit/bybit-dep-02-6ce35d41.jpg",
+          "public/screenshots/_archive/bybit/bybit-dep-02-6ce35d41.webp",
+          "public/screenshots/_archive/bybit/bybit-dep-02-85903873.png",
+          "public/screenshots/_archive/bybit/bybit-dep-03-d5039050.jpg",
+          "public/screenshots/_archive/bybit/bybit-dep-03-d5039050.webp",
+          "public/screenshots/_archive/bybit/bybit-dep-06-4a5ac998.jpg",
+          "public/screenshots/_archive/bybit/bybit-dep-06-4a5ac998.webp",
+          "public/screenshots/_archive/bybit/bybit-dep-08-75a0f67b.jpg",
+          "public/screenshots/_archive/bybit/bybit-dep-08-75a0f67b.webp",
+          "public/screenshots/_archive/bybit/bybit-kyc-02-cc90fdb3.jpg",
+          "public/screenshots/_archive/bybit/bybit-kyc-05-a73e4319.jpg",
+          "public/screenshots/_archive/bybit/bybit-kyc-06-ca5317cc.jpg",
+          "public/screenshots/_archive/bybit/bybit-p2p-04.jpg",
+          "public/screenshots/_archive/bybit/bybit-p2p-04.webp",
+          "public/screenshots/_archive/bybit/bybit-p2p-04v2.jpg",
+          "public/screenshots/_archive/bybit/bybit-p2p-04v2.webp",
+          "public/screenshots/_archive/bybit/bybit-p2p-05.jpg",
+          "public/screenshots/_archive/bybit/bybit-p2p-05.webp",
+          "public/screenshots/_archive/bybit/bybit-p2p-06.jpg",
+          "public/screenshots/_archive/bybit/bybit-p2p-06v2.jpg",
+          "public/screenshots/_archive/bybit/bybit-p2p-07.jpg",
+          "public/screenshots/_archive/bybit/bybit-p2p-07.webp",
+          "public/screenshots/_archive/bybit/bybit-p2p-bank-2d268b40.jpg",
+          "public/screenshots/_archive/bybit/bybit-p2p-bank-2d268b40.webp",
+          "public/screenshots/_archive/bybit/bybit-p2p-bank-en.jpg",
+          "public/screenshots/_archive/bybit/bybit-p2p-bank-v2.jpg",
+          "public/screenshots/_archive/bybit/bybit-p2p-bank.jpg",
+          "public/screenshots/_archive/bybit/bybit-step-05.jpg",
+          "public/screenshots/_archive/bybit/bybit-step-05.webp",
+          "public/screenshots/_archive/bybit/bybit-step-06.jpg",
+          "public/screenshots/_archive/bybit/bybit-step-06.webp",
+          "public/screenshots/_archive/bybit/kyc - 4 .jpg",
+          "public/screenshots/_archive/bybit/monobank-send-money-for-sellers-reqisites-2500-hrn-to 55-usdt.png",
+          "public/screenshots/_archive/bybit/p2p-11.jpg",
+          "public/screenshots/_archive/bybit/p2p-12-approve-55.96 usdt.jpg",
+          "public/screenshots/_archive/bybit/p2p-14-order-complete.jpg",
+          "public/screenshots/_archive/bybit/p2p-3-order.jpg",
+          "public/screenshots/_archive/bybit/p2p-3.jpg",
+          "public/screenshots/_archive/bybit/p2p-4-approve-my-payment.jpg",
+          "public/screenshots/_archive/bybit/p2p-5-woiting-for-approve.jpg",
+          "public/screenshots/_archive/bybit/p2p-7-pending.jpg",
+          "public/screenshots/_archive/bybit/p2p-8-pending-time.jpg",
+          "public/screenshots/_archive/bybit/p2p-9-payment-from-card-sent.jpg",
+          "public/screenshots/_archive/bybit/p2p-order-complete-13.jpg",
+          "public/screenshots/_archive/bybit/photo_2026-05-29_14-06-04.jpg",
+          "public/screenshots/_archive/bybit/spot-6+.jpg",
+          "public/screenshots/_archive/bybit/step 3 - 1 -assets.jpg",
+          "public/screenshots/_archive/bybit/step 3 - 10.jpg",
+          "public/screenshots/_archive/bybit/step 3 - 2 - assets-deposit.jpg",
+          "public/screenshots/_archive/bybit/step 3 - 4 -winthral-binance-bybit-50usdt.jpg",
+          "public/screenshots/_archive/bybit/step 3 - 5 - approve.jpg",
+          "public/screenshots/_archive/bybit/step 3 - 6 - waiting.jpg",
+          "public/screenshots/_archive/bybit/step 3 - 7 .jpg",
+          "public/screenshots/_archive/bybit/step 3 - 8.jpg",
+          "public/screenshots/_archive/bybit/step 3 - 9.jpg",
+          "public/screenshots/_archive/bybit/step 3+  - 1 -assets.png",
+          "public/screenshots/_archive/bybit/step 3+ - 2 - assets-deposit.png",
+          "public/screenshots/_archive/bybit/step 3+ - 3 .jpg",
+          "public/screenshots/_archive/bybit/step 4 - 1 assetst.jpg",
+          "public/screenshots/_archive/bybit/step 4 - 10 - order change succesfully.jpg",
+          "public/screenshots/_archive/bybit/step 4 - 11 .jpg",
+          "public/screenshots/_archive/bybit/step 4 - 12.jpg",
+          "public/screenshots/_archive/bybit/step 4 - 13 .jpg",
+          "public/screenshots/_archive/bybit/step 4 - 13+.jpg",
+          "public/screenshots/_archive/bybit/step 4 - 13.jpg",
+          "public/screenshots/_archive/bybit/step 4 - 14 .jpg",
+          "public/screenshots/_archive/bybit/step 4 - 2 - transfer to wallet.jpg",
+          "public/screenshots/_archive/bybit/step 4 - 4 .jpg",
+          "public/screenshots/_archive/bybit/step 4 - 5-1.jpg",
+          "public/screenshots/_archive/bybit/step 4 - 5-2.jpg",
+          "public/screenshots/_archive/bybit/step 4 - 7.jpg",
+          "public/screenshots/_archive/bybit/step 4 - 8.1 - limit order - position.jpg",
+          "public/screenshots/_archive/bybit/step 4 - 9.jpg",
+          "public/screenshots/_archive/bybit/step 4 -3 .jpg",
+          "public/screenshots/_archive/bybit/step-4 - 6 .jpg",
+          "public/screenshots/_archive/bybit/step4  - 8.2.jpg",
+          "public/screenshots/binance/bonus/global-desktop-2026-06.webp",
+          "public/screenshots/binance/bonus_referral_landing/global-desktop-2026-06-v2.webp",
+          "public/screenshots/binance/bonus_referral_landing/global-desktop-2026-06-v3.webp",
+          "public/screenshots/binance/bonus_referral_landing/global-desktop-2026-06.webp",
+          "public/screenshots/binance/fees/global-desktop-2026-06-v2.webp",
+          "public/screenshots/binance/fees/global-desktop-2026-06-v3.webp",
+          "public/screenshots/binance/fees/global-desktop-2026-06.webp",
+          "public/screenshots/binance/fees_futures/global-desktop-2026-06-v2.webp",
+          "public/screenshots/binance/fees_futures/global-desktop-2026-06.webp",
+          "public/screenshots/binance/futures/global-desktop-2026-06.webp",
+          "public/screenshots/binance/kyc/global-desktop-2026-06.webp",
+          "public/screenshots/binance/mobile_app/global-mobile-2026-06.webp",
+          "public/screenshots/binance/p2p/global-desktop-2026-06.webp",
+          "public/screenshots/binance/p2p_direction_usd_usdt/binance-p2p-usdt-usd-en-global-full-interface-2026-06.webp",
+          "public/screenshots/binance/proof_of_reserves/global-desktop-2026-06-v2.webp",
+          "public/screenshots/binance/proof_of_reserves/global-desktop-2026-06.webp",
+          "public/screenshots/binance/registration/global-desktop-2026-06.webp",
+          "public/screenshots/binance/registration_demo_state/global-desktop-2026-06.webp",
+          "public/screenshots/binance/spot/global-desktop-2026-06-v2.webp",
+          "public/screenshots/binance/spot/global-desktop-2026-06-v3.webp",
+          "public/screenshots/binance/spot/global-desktop-2026-06.webp",
+          "public/screenshots/binance/steps/bn-01-landing-empty.webp",
+          "public/screenshots/binance/steps/bn-018-dashboard-kyc-cta.webp",
+          "public/screenshots/binance/steps/bn-01c-landing-19800-arrow.webp",
+          "public/screenshots/binance/steps/bn-01c-landing-19800-empty.webp",
+          "public/screenshots/binance/steps/bn-02-landing-email-blurred.webp",
+          "public/screenshots/binance/steps/bn-023-security-2fa-app-intro.webp",
+          "public/screenshots/binance/steps/bn-02b-landing-email-entered-blurred.webp",
+          "public/screenshots/binance/steps/bn-03-captcha-cars.webp",
+          "public/screenshots/binance/steps/bn-030-futures-demo-mode.webp",
+          "public/screenshots/binance/steps/bn-032-p2p-express-buy-usdt.webp",
+          "public/screenshots/binance/steps/bn-035-p2p-marketplace-listings.webp",
+          "public/screenshots/binance/steps/bn-037-p2p-seller-profile.webp",
+          "public/screenshots/binance/steps/bn-038-fees-spot-margin.webp",
+          "public/screenshots/binance/steps/bn-039-fees-usdm-futures.webp",
+          "public/screenshots/binance/steps/bn-03b-captcha-airplanes.webp",
+          "public/screenshots/binance/steps/bn-04-verify-email-blurred.webp",
+          "public/screenshots/binance/steps/bn-041-options-contracts.webp",
+          "public/screenshots/binance/steps/bn-042-trading-bots-active.webp",
+          "public/screenshots/binance/steps/bn-043-copytrading-selection.webp",
+          "public/screenshots/binance/steps/bn-04b-verify-code-entry-blurred.webp",
+          "public/screenshots/binance/steps/bn-05-activation-email-blurred.webp",
+          "public/screenshots/binance/steps/bn-06-create-password.webp",
+          "public/screenshots/binance/steps/bn-07-welcome-desktop.webp",
+          "public/screenshots/binance/steps/bn-07-welcome-medium.webp",
+          "public/screenshots/binance/steps/bn-07-welcome-mobile-success.webp",
+          "public/screenshots/binance/steps/bn-07-welcome-mobile.webp",
+          "public/screenshots/binance/steps/bn-07-welcome-tablet.webp",
+          "public/screenshots/binance/steps/bn-08-kyc-continue.webp",
+          "public/screenshots/binance/steps/bn-08-kyc-country-select.webp",
+          "public/screenshots/binance/steps/bn-08-kyc-ukraine-doctype-full.webp",
+          "public/screenshots/binance/steps/bn-08-kyc-ukraine-full.webp",
+          "public/screenshots/binance/steps/bn-08-kyc-ukraine-mobile.webp",
+          "public/screenshots/binance/steps/bn-09-docverif-qr-desktop-blurred.webp",
+          "public/screenshots/binance/steps/bn-09-docverif-qr-desktop2-blurred.webp",
+          "public/screenshots/binance/steps/bn-09-docverif-qr-mobile-blurred.webp",
+          "public/screenshots/binance/steps/bn-10-upload-id-desktop.webp",
+          "public/screenshots/binance/steps/bn-10-upload-id-mobile.webp",
+          "public/screenshots/binance/steps/bn-11-rewards-tasks.webp",
+          "public/screenshots/binance/steps/bn-legacy-100usd-landing.webp",
+          "public/screenshots/binance/steps/bn-legacy-100usd-registration.webp",
+          "public/screenshots/binance/steps/bn-legacy-600usd-landing-arrow.webp",
+          "public/screenshots/binance/steps/bn-legacy-600usd-landing.webp",
+          "public/screenshots/binance/steps/bn-mob-053-verification-center-verified.webp",
+          "public/screenshots/binance/steps/bn-owner-app-inviter-code-2026-06.webp",
+          "public/screenshots/binance/steps/bn-owner-rewardshub-4tasks-2026-06-v2.webp",
+          "public/screenshots/binance/steps/bn-owner-task-reward-overview-2026-06-v5.webp",
+          "public/screenshots/binance/steps/bn-reg-landing-cryptobonw-jun26.webp",
+          "public/screenshots/binance/steps/mob-002f-welcome-aboard-referral.webp",
+          "public/screenshots/binance/steps/mob-031c-withdrawal-details-completed.webp",
+          "public/screenshots/binance/steps/mob-032-bybit-deposit-arrived-toast.webp",
+          "public/screenshots/binance/steps/mob-044-fees-overview-spot-limit2000.webp",
+          "public/screenshots/binance/steps/mob-044d-fees-overview-verified-8m.webp",
+          "public/screenshots/binance/steps/web-009-welcome-bonus-tasks-breakdown.webp",
+          "public/screenshots/bingx/bonus_referral_landing/global-desktop-2026-06-v2.webp",
+          "public/screenshots/bitget/bonus_referral_landing/global-desktop-2026-06.webp",
+          "public/screenshots/bitget/fees/global-desktop-2026-06.webp",
+          "public/screenshots/bitget/registration/global-desktop-2026-06.webp",
+          "public/screenshots/bybit/bonus/global-desktop-2026-06.jpg",
+          "public/screenshots/bybit/bonus/global-desktop-2026-06.webp",
+          "public/screenshots/bybit/bonus_referral_landing/global-desktop-2026-06.webp",
+          "public/screenshots/bybit/deposit/global-desktop-2026-06.webp",
+          "public/screenshots/bybit/futures/global-desktop-2026-06.webp",
+          "public/screenshots/bybit/kyc/global-desktop-2026-06.webp",
+          "public/screenshots/bybit/p2p/global-desktop-2026-06.webp",
+          "public/screenshots/bybit/registration/global-desktop-2026-06.webp",
+          "public/screenshots/bybit/spot/global-desktop-2026-06.webp",
+          "public/screenshots/gate-io/bonus_referral_landing/global-desktop-2026-06.webp",
+          "public/screenshots/kucoin/bonus_referral_landing/global-desktop-2026-06.webp",
+          "public/screenshots/mexc/fees/global-desktop-2026-06.webp",
+          "public/screenshots/okx/bonus/global-desktop-2026-06.webp",
+          "public/screenshots/okx/bonus_referral_landing/global-desktop-2026-06.webp",
+          "public/screenshots/okx/fees/global-desktop-2026-06.webp",
+          "public/screenshots/okx/proof_of_reserves/global-desktop-2026-06.webp",
+          "public/screenshots/okx/registration/global-desktop-2026-06.webp",
+          "src/data/affiliate-links.ts",
+          "src/data/exchanges.json"
         ],
+        "localActions": [],
         "sharedConfig": [
           "package-lock.json",
           "package.json"
         ]
       },
       "triggerCoverage": {
+        "modeled": true,
+        "unmodeledReason": null,
+        "hasPullRequest": false,
         "pathFiltered": false,
         "paths": [],
         "pathsIgnore": [],
         "branches": [],
+        "branchesIgnore": [],
+        "types": [],
         "targetsMaster": false,
         "selfTriggersOnOwnWorkflowFile": true,
         "coveredInputs": [
           "package-lock.json",
           "package.json",
+          "public/screenshots/_archive/bybit/!2FA.jpg",
+          "public/screenshots/_archive/bybit/0-p2p.jpg",
+          "public/screenshots/_archive/bybit/0000000006.jpg",
+          "public/screenshots/_archive/bybit/0001.jpg",
+          "public/screenshots/_archive/bybit/0002.jpg",
+          "public/screenshots/_archive/bybit/0003.jpg",
+          "public/screenshots/_archive/bybit/0004.jpg",
+          "public/screenshots/_archive/bybit/0005.jpg",
+          "public/screenshots/_archive/bybit/0006.jpg",
+          "public/screenshots/_archive/bybit/0007.jpg",
+          "public/screenshots/_archive/bybit/0008.jpg",
+          "public/screenshots/_archive/bybit/1-p2p.jpg",
+          "public/screenshots/_archive/bybit/1.jpg",
+          "public/screenshots/_archive/bybit/2-p2p.jpg",
+          "public/screenshots/_archive/bybit/6-p2p-seller-info(Maybe must be 2.5).jpg",
+          "public/screenshots/_archive/bybit/Antifishing-code.jpg",
+          "public/screenshots/_archive/bybit/Bonuses_30Kplus.jpg",
+          "public/screenshots/_archive/bybit/Bybit_p2p_general_info.png",
+          "public/screenshots/_archive/bybit/FLOW 1 - 1.png",
+          "public/screenshots/_archive/bybit/Futures - FEES.jpg",
+          "public/screenshots/_archive/bybit/KYC - 1 .jpg",
+          "public/screenshots/_archive/bybit/KYC - 2 .jpg",
+          "public/screenshots/_archive/bybit/KYC - 3 .jpg",
+          "public/screenshots/_archive/bybit/KYC - 5 .jpg",
+          "public/screenshots/_archive/bybit/KYC - VERIFIED.jpg",
+          "public/screenshots/_archive/bybit/KYC - all levels and limits.jpg",
+          "public/screenshots/_archive/bybit/KYC - mob - 1 - document - edited.jpg",
+          "public/screenshots/_archive/bybit/KYC - mob - 1 - document.jpg",
+          "public/screenshots/_archive/bybit/KYC - mob - face id - edited.jpg",
+          "public/screenshots/_archive/bybit/KYC - mob - face id.jpg",
+          "public/screenshots/_archive/bybit/KYC DOCS.jpg",
+          "public/screenshots/_archive/bybit/KYC-MOB-FACE.png",
+          "public/screenshots/_archive/bybit/KYC-MOB-ID-CARD.png",
+          "public/screenshots/_archive/bybit/Options FEES.jpg",
+          "public/screenshots/_archive/bybit/PRO-SPOT_FEEs.jpg",
+          "public/screenshots/_archive/bybit/SPOT FEES 2 .jpg",
+          "public/screenshots/_archive/bybit/SPOT-FEES-1.jpg",
+          "public/screenshots/_archive/bybit/V2-p2p-4-approve-my-payment.png",
+          "public/screenshots/_archive/bybit/btc-usdt-order-complete-spot.jpg",
+          "public/screenshots/_archive/bybit/bybit-dep-01-aad110a8.jpg",
+          "public/screenshots/_archive/bybit/bybit-dep-01-aad110a8.webp",
+          "public/screenshots/_archive/bybit/bybit-dep-02-6ce35d41.jpg",
+          "public/screenshots/_archive/bybit/bybit-dep-02-6ce35d41.webp",
+          "public/screenshots/_archive/bybit/bybit-dep-02-85903873.png",
+          "public/screenshots/_archive/bybit/bybit-dep-03-d5039050.jpg",
+          "public/screenshots/_archive/bybit/bybit-dep-03-d5039050.webp",
+          "public/screenshots/_archive/bybit/bybit-dep-06-4a5ac998.jpg",
+          "public/screenshots/_archive/bybit/bybit-dep-06-4a5ac998.webp",
+          "public/screenshots/_archive/bybit/bybit-dep-08-75a0f67b.jpg",
+          "public/screenshots/_archive/bybit/bybit-dep-08-75a0f67b.webp",
+          "public/screenshots/_archive/bybit/bybit-kyc-02-cc90fdb3.jpg",
+          "public/screenshots/_archive/bybit/bybit-kyc-05-a73e4319.jpg",
+          "public/screenshots/_archive/bybit/bybit-kyc-06-ca5317cc.jpg",
+          "public/screenshots/_archive/bybit/bybit-p2p-04.jpg",
+          "public/screenshots/_archive/bybit/bybit-p2p-04.webp",
+          "public/screenshots/_archive/bybit/bybit-p2p-04v2.jpg",
+          "public/screenshots/_archive/bybit/bybit-p2p-04v2.webp",
+          "public/screenshots/_archive/bybit/bybit-p2p-05.jpg",
+          "public/screenshots/_archive/bybit/bybit-p2p-05.webp",
+          "public/screenshots/_archive/bybit/bybit-p2p-06.jpg",
+          "public/screenshots/_archive/bybit/bybit-p2p-06v2.jpg",
+          "public/screenshots/_archive/bybit/bybit-p2p-07.jpg",
+          "public/screenshots/_archive/bybit/bybit-p2p-07.webp",
+          "public/screenshots/_archive/bybit/bybit-p2p-bank-2d268b40.jpg",
+          "public/screenshots/_archive/bybit/bybit-p2p-bank-2d268b40.webp",
+          "public/screenshots/_archive/bybit/bybit-p2p-bank-en.jpg",
+          "public/screenshots/_archive/bybit/bybit-p2p-bank-v2.jpg",
+          "public/screenshots/_archive/bybit/bybit-p2p-bank.jpg",
+          "public/screenshots/_archive/bybit/bybit-step-05.jpg",
+          "public/screenshots/_archive/bybit/bybit-step-05.webp",
+          "public/screenshots/_archive/bybit/bybit-step-06.jpg",
+          "public/screenshots/_archive/bybit/bybit-step-06.webp",
+          "public/screenshots/_archive/bybit/kyc - 4 .jpg",
+          "public/screenshots/_archive/bybit/monobank-send-money-for-sellers-reqisites-2500-hrn-to 55-usdt.png",
+          "public/screenshots/_archive/bybit/p2p-11.jpg",
+          "public/screenshots/_archive/bybit/p2p-12-approve-55.96 usdt.jpg",
+          "public/screenshots/_archive/bybit/p2p-14-order-complete.jpg",
+          "public/screenshots/_archive/bybit/p2p-3-order.jpg",
+          "public/screenshots/_archive/bybit/p2p-3.jpg",
+          "public/screenshots/_archive/bybit/p2p-4-approve-my-payment.jpg",
+          "public/screenshots/_archive/bybit/p2p-5-woiting-for-approve.jpg",
+          "public/screenshots/_archive/bybit/p2p-7-pending.jpg",
+          "public/screenshots/_archive/bybit/p2p-8-pending-time.jpg",
+          "public/screenshots/_archive/bybit/p2p-9-payment-from-card-sent.jpg",
+          "public/screenshots/_archive/bybit/p2p-order-complete-13.jpg",
+          "public/screenshots/_archive/bybit/photo_2026-05-29_14-06-04.jpg",
+          "public/screenshots/_archive/bybit/spot-6+.jpg",
+          "public/screenshots/_archive/bybit/step 3 - 1 -assets.jpg",
+          "public/screenshots/_archive/bybit/step 3 - 10.jpg",
+          "public/screenshots/_archive/bybit/step 3 - 2 - assets-deposit.jpg",
+          "public/screenshots/_archive/bybit/step 3 - 4 -winthral-binance-bybit-50usdt.jpg",
+          "public/screenshots/_archive/bybit/step 3 - 5 - approve.jpg",
+          "public/screenshots/_archive/bybit/step 3 - 6 - waiting.jpg",
+          "public/screenshots/_archive/bybit/step 3 - 7 .jpg",
+          "public/screenshots/_archive/bybit/step 3 - 8.jpg",
+          "public/screenshots/_archive/bybit/step 3 - 9.jpg",
+          "public/screenshots/_archive/bybit/step 3+  - 1 -assets.png",
+          "public/screenshots/_archive/bybit/step 3+ - 2 - assets-deposit.png",
+          "public/screenshots/_archive/bybit/step 3+ - 3 .jpg",
+          "public/screenshots/_archive/bybit/step 4 - 1 assetst.jpg",
+          "public/screenshots/_archive/bybit/step 4 - 10 - order change succesfully.jpg",
+          "public/screenshots/_archive/bybit/step 4 - 11 .jpg",
+          "public/screenshots/_archive/bybit/step 4 - 12.jpg",
+          "public/screenshots/_archive/bybit/step 4 - 13 .jpg",
+          "public/screenshots/_archive/bybit/step 4 - 13+.jpg",
+          "public/screenshots/_archive/bybit/step 4 - 13.jpg",
+          "public/screenshots/_archive/bybit/step 4 - 14 .jpg",
+          "public/screenshots/_archive/bybit/step 4 - 2 - transfer to wallet.jpg",
+          "public/screenshots/_archive/bybit/step 4 - 4 .jpg",
+          "public/screenshots/_archive/bybit/step 4 - 5-1.jpg",
+          "public/screenshots/_archive/bybit/step 4 - 5-2.jpg",
+          "public/screenshots/_archive/bybit/step 4 - 7.jpg",
+          "public/screenshots/_archive/bybit/step 4 - 8.1 - limit order - position.jpg",
+          "public/screenshots/_archive/bybit/step 4 - 9.jpg",
+          "public/screenshots/_archive/bybit/step 4 -3 .jpg",
+          "public/screenshots/_archive/bybit/step-4 - 6 .jpg",
+          "public/screenshots/_archive/bybit/step4  - 8.2.jpg",
+          "public/screenshots/binance/bonus/global-desktop-2026-06.webp",
+          "public/screenshots/binance/bonus_referral_landing/global-desktop-2026-06-v2.webp",
+          "public/screenshots/binance/bonus_referral_landing/global-desktop-2026-06-v3.webp",
+          "public/screenshots/binance/bonus_referral_landing/global-desktop-2026-06.webp",
+          "public/screenshots/binance/fees/global-desktop-2026-06-v2.webp",
+          "public/screenshots/binance/fees/global-desktop-2026-06-v3.webp",
+          "public/screenshots/binance/fees/global-desktop-2026-06.webp",
+          "public/screenshots/binance/fees_futures/global-desktop-2026-06-v2.webp",
+          "public/screenshots/binance/fees_futures/global-desktop-2026-06.webp",
+          "public/screenshots/binance/futures/global-desktop-2026-06.webp",
+          "public/screenshots/binance/kyc/global-desktop-2026-06.webp",
+          "public/screenshots/binance/mobile_app/global-mobile-2026-06.webp",
+          "public/screenshots/binance/p2p/global-desktop-2026-06.webp",
+          "public/screenshots/binance/p2p_direction_usd_usdt/binance-p2p-usdt-usd-en-global-full-interface-2026-06.webp",
+          "public/screenshots/binance/proof_of_reserves/global-desktop-2026-06-v2.webp",
+          "public/screenshots/binance/proof_of_reserves/global-desktop-2026-06.webp",
+          "public/screenshots/binance/registration/global-desktop-2026-06.webp",
+          "public/screenshots/binance/registration_demo_state/global-desktop-2026-06.webp",
+          "public/screenshots/binance/spot/global-desktop-2026-06-v2.webp",
+          "public/screenshots/binance/spot/global-desktop-2026-06-v3.webp",
+          "public/screenshots/binance/spot/global-desktop-2026-06.webp",
+          "public/screenshots/binance/steps/bn-01-landing-empty.webp",
+          "public/screenshots/binance/steps/bn-018-dashboard-kyc-cta.webp",
+          "public/screenshots/binance/steps/bn-01c-landing-19800-arrow.webp",
+          "public/screenshots/binance/steps/bn-01c-landing-19800-empty.webp",
+          "public/screenshots/binance/steps/bn-02-landing-email-blurred.webp",
+          "public/screenshots/binance/steps/bn-023-security-2fa-app-intro.webp",
+          "public/screenshots/binance/steps/bn-02b-landing-email-entered-blurred.webp",
+          "public/screenshots/binance/steps/bn-03-captcha-cars.webp",
+          "public/screenshots/binance/steps/bn-030-futures-demo-mode.webp",
+          "public/screenshots/binance/steps/bn-032-p2p-express-buy-usdt.webp",
+          "public/screenshots/binance/steps/bn-035-p2p-marketplace-listings.webp",
+          "public/screenshots/binance/steps/bn-037-p2p-seller-profile.webp",
+          "public/screenshots/binance/steps/bn-038-fees-spot-margin.webp",
+          "public/screenshots/binance/steps/bn-039-fees-usdm-futures.webp",
+          "public/screenshots/binance/steps/bn-03b-captcha-airplanes.webp",
+          "public/screenshots/binance/steps/bn-04-verify-email-blurred.webp",
+          "public/screenshots/binance/steps/bn-041-options-contracts.webp",
+          "public/screenshots/binance/steps/bn-042-trading-bots-active.webp",
+          "public/screenshots/binance/steps/bn-043-copytrading-selection.webp",
+          "public/screenshots/binance/steps/bn-04b-verify-code-entry-blurred.webp",
+          "public/screenshots/binance/steps/bn-05-activation-email-blurred.webp",
+          "public/screenshots/binance/steps/bn-06-create-password.webp",
+          "public/screenshots/binance/steps/bn-07-welcome-desktop.webp",
+          "public/screenshots/binance/steps/bn-07-welcome-medium.webp",
+          "public/screenshots/binance/steps/bn-07-welcome-mobile-success.webp",
+          "public/screenshots/binance/steps/bn-07-welcome-mobile.webp",
+          "public/screenshots/binance/steps/bn-07-welcome-tablet.webp",
+          "public/screenshots/binance/steps/bn-08-kyc-continue.webp",
+          "public/screenshots/binance/steps/bn-08-kyc-country-select.webp",
+          "public/screenshots/binance/steps/bn-08-kyc-ukraine-doctype-full.webp",
+          "public/screenshots/binance/steps/bn-08-kyc-ukraine-full.webp",
+          "public/screenshots/binance/steps/bn-08-kyc-ukraine-mobile.webp",
+          "public/screenshots/binance/steps/bn-09-docverif-qr-desktop-blurred.webp",
+          "public/screenshots/binance/steps/bn-09-docverif-qr-desktop2-blurred.webp",
+          "public/screenshots/binance/steps/bn-09-docverif-qr-mobile-blurred.webp",
+          "public/screenshots/binance/steps/bn-10-upload-id-desktop.webp",
+          "public/screenshots/binance/steps/bn-10-upload-id-mobile.webp",
+          "public/screenshots/binance/steps/bn-11-rewards-tasks.webp",
+          "public/screenshots/binance/steps/bn-legacy-100usd-landing.webp",
+          "public/screenshots/binance/steps/bn-legacy-100usd-registration.webp",
+          "public/screenshots/binance/steps/bn-legacy-600usd-landing-arrow.webp",
+          "public/screenshots/binance/steps/bn-legacy-600usd-landing.webp",
+          "public/screenshots/binance/steps/bn-mob-053-verification-center-verified.webp",
+          "public/screenshots/binance/steps/bn-owner-app-inviter-code-2026-06.webp",
+          "public/screenshots/binance/steps/bn-owner-rewardshub-4tasks-2026-06-v2.webp",
+          "public/screenshots/binance/steps/bn-owner-task-reward-overview-2026-06-v5.webp",
+          "public/screenshots/binance/steps/bn-reg-landing-cryptobonw-jun26.webp",
+          "public/screenshots/binance/steps/mob-002f-welcome-aboard-referral.webp",
+          "public/screenshots/binance/steps/mob-031c-withdrawal-details-completed.webp",
+          "public/screenshots/binance/steps/mob-032-bybit-deposit-arrived-toast.webp",
+          "public/screenshots/binance/steps/mob-044-fees-overview-spot-limit2000.webp",
+          "public/screenshots/binance/steps/mob-044d-fees-overview-verified-8m.webp",
+          "public/screenshots/binance/steps/web-009-welcome-bonus-tasks-breakdown.webp",
+          "public/screenshots/bingx/bonus_referral_landing/global-desktop-2026-06-v2.webp",
+          "public/screenshots/bitget/bonus_referral_landing/global-desktop-2026-06.webp",
+          "public/screenshots/bitget/fees/global-desktop-2026-06.webp",
+          "public/screenshots/bitget/registration/global-desktop-2026-06.webp",
+          "public/screenshots/bybit/bonus/global-desktop-2026-06.jpg",
+          "public/screenshots/bybit/bonus/global-desktop-2026-06.webp",
+          "public/screenshots/bybit/bonus_referral_landing/global-desktop-2026-06.webp",
+          "public/screenshots/bybit/deposit/global-desktop-2026-06.webp",
+          "public/screenshots/bybit/futures/global-desktop-2026-06.webp",
+          "public/screenshots/bybit/kyc/global-desktop-2026-06.webp",
+          "public/screenshots/bybit/p2p/global-desktop-2026-06.webp",
+          "public/screenshots/bybit/registration/global-desktop-2026-06.webp",
+          "public/screenshots/bybit/spot/global-desktop-2026-06.webp",
+          "public/screenshots/gate-io/bonus_referral_landing/global-desktop-2026-06.webp",
+          "public/screenshots/kucoin/bonus_referral_landing/global-desktop-2026-06.webp",
+          "public/screenshots/mexc/fees/global-desktop-2026-06.webp",
+          "public/screenshots/okx/bonus/global-desktop-2026-06.webp",
+          "public/screenshots/okx/bonus_referral_landing/global-desktop-2026-06.webp",
+          "public/screenshots/okx/fees/global-desktop-2026-06.webp",
+          "public/screenshots/okx/proof_of_reserves/global-desktop-2026-06.webp",
+          "public/screenshots/okx/registration/global-desktop-2026-06.webp",
           "scripts/affiliate-link-inventory.mjs",
           "scripts/affiliate-telegram-report.mjs",
           "scripts/audit-affiliate-links.mjs",
           "scripts/audit-exchange-screenshots.mjs",
           "scripts/bonus-telegram-report.mjs",
+          "scripts/evidence-snapshot.mjs",
+          "scripts/lib/affiliate-snapshot.mjs",
+          "scripts/lib/telegram.mjs",
           "scripts/monitor-telegram-summary.mjs",
           "scripts/screenshots-telegram-report.mjs",
-          "scripts/verify-bonus-capture.mjs"
+          "scripts/verify-bonus-capture.mjs",
+          "src/data/affiliate-links.ts",
+          "src/data/exchanges.json"
         ],
         "uncoveredInputs": [],
         "unresolvableInputs": []
       },
-      "knownGaps": [],
+      "knownGaps": [
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/verify-bonus-capture.mjs :: dynamic module load is not statically resolvable: import(dataUri);"
+        }
+      ],
       "migrationState": "NOT_APPLICABLE",
       "stage2MigrationCandidate": false,
       "stage2MigrationCandidateReason": "not blocking-capable (NON_PR)",

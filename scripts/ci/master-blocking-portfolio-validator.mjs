@@ -6,7 +6,12 @@
 // scripts/ci/master-blocking-portfolio.json is a TRUE statement about the
 // workflows currently tracked in this repository:
 //
-//   * the machine-readable file parses strictly and carries no unknown fields;
+//   * the machine-readable file parses strictly, declares EXACTLY the allowed
+//     root keys, pins the one supported schemaVersion, and carries no unknown
+//     fields on any entry;
+//   * every discovered job's pull_request semantics are PROVABLE — an unmodelled
+//     trigger, job-level `if` or `continue-on-error` fails the audit outright and
+//     cannot be synchronised away by editing the snapshot;
 //   * every entry points at a workflow file and job that still exist;
 //   * workflow name / job id / visible check context still match the YAML;
 //   * blocking vs advisory semantics have not silently drifted;
@@ -49,6 +54,36 @@ export function loadPackageScripts() {
   return JSON.parse(readFileSync(resolve(ROOT, 'package.json'), 'utf8')).scripts ?? {};
 }
 
+// Every path git tracks. This is the ONLY universe the bounded dependency
+// closure resolves against, so an untracked scratch file can never become a
+// declared dependency and a deleted file can never stay one.
+export function loadRepoFiles() {
+  const listed = execFileSync('git', ['ls-files', '-z'], {
+    encoding: 'utf8',
+    maxBuffer: 1024 * 1024 * 256,
+  }).split('\0');
+  if (listed[listed.length - 1] === '') listed.pop();
+  return listed;
+}
+
+// Reader for the dependency closure. Returns null (never throws) so an
+// unreadable executed dependency becomes an explicit DEPENDENCY_UNREADABLE gap
+// rather than an exception that aborts the audit.
+export function makeRepoReader() {
+  const cache = new Map();
+  return (path) => {
+    if (cache.has(path)) return cache.get(path);
+    let text = null;
+    try {
+      text = readFileSync(resolve(ROOT, path), 'utf8');
+    } catch {
+      text = null;
+    }
+    cache.set(path, text);
+    return text;
+  };
+}
+
 export function runValidator() {
   const files = loadWorkflowFiles();
   if (files.length === 0) {
@@ -59,6 +94,8 @@ export function runValidator() {
     files,
     packageScripts: loadPackageScripts(),
     exists: (path) => existsSync(resolve(ROOT, path)),
+    repoFiles: loadRepoFiles(),
+    readFile: makeRepoReader(),
   });
 }
 
