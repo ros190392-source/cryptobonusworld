@@ -40,9 +40,18 @@ function check(label, ok, detail = '') {
   if (!ok) failures.push(detail ? `${label}: ${detail}` : label);
 }
 
-const baseWorkflow = readFileSync(WORKFLOW, 'utf8');
-const baseClassifier = readFileSync(CLASSIFY_SCRIPT, 'utf8');
-const baseValidator = readFileSync(VALIDATE_SCRIPT, 'utf8');
+// LINE-ENDING NORMALIZATION — load-bearing, not cosmetic. Mutations are applied
+// as exact text edits, and several of them span a line boundary. Git may check
+// these files out with CRLF (Windows) or LF (the Linux runner), so a mutation
+// written against `\n` silently becomes a NO-OP on a CRLF checkout. A no-op
+// mutation is the worst possible outcome for this suite: it either aborts the
+// run or, without the `requireChanged` guard, reports a mutant as "caught" when
+// nothing was ever mutated. Normalizing here makes every mutation deterministic
+// on both platforms; the audit is pure text-in and behaves identically.
+const normalizeEol = (text) => text.replace(/\r\n/g, '\n');
+const baseWorkflow = normalizeEol(readFileSync(WORKFLOW, 'utf8'));
+const baseClassifier = normalizeEol(readFileSync(CLASSIFY_SCRIPT, 'utf8'));
+const baseValidator = normalizeEol(readFileSync(VALIDATE_SCRIPT, 'utf8'));
 
 const audit = (overrides = {}) =>
   auditProducerConsumerContract({
@@ -61,6 +70,10 @@ check(
   baselineFailures.map((entry) => entry.label).join(' | '),
 );
 check('CONTROL: the audit actually asserts something', baseline.length >= 40, String(baseline.length));
+check(
+  'CONTROL: mutation base sources are line-ending normalized (mutations cannot silently no-op)',
+  !baseWorkflow.includes('\r') && !baseClassifier.includes('\r') && !baseValidator.includes('\r'),
+);
 
 // --- workflow text mutation helpers -----------------------------------------
 // Removes a step block: from its `- name:` line up to the next step or comment
@@ -319,9 +332,14 @@ const MUTATIONS = [
       classifierSource: requireChanged(
         'redirect sidecar write',
         baseClassifier,
+        // Derived from the real statement, so this cannot drift out of sync
+        // with the classifier's formatting.
         baseClassifier.replace(
-          'writeFileSync(\n      classifierResultFilePath(),',
-          "writeFileSync(\n      join(process.env.RUNNER_TEMP ?? '.', 'other.json'),",
+          SIDECAR_WRITE_STATEMENT,
+          SIDECAR_WRITE_STATEMENT.replace(
+            'classifierResultFilePath()',
+            "join(process.env.RUNNER_TEMP ?? '.', 'other.json')",
+          ),
         ),
       ),
     }),
