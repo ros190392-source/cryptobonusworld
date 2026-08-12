@@ -2411,7 +2411,6 @@
           "src/data/contracts/portalUi.ts",
           "src/data/contracts/publicOfferAuthority.ts",
           "src/data/contracts/publicRenderedCapture.ts",
-          "src/data/evidence/offers/bybit-new-user-2026-08-05.json",
           "src/data/evidence/offers/bybitOfferEvidence.ts",
           "src/data/evidence/offers/bybitPromoCodeConfirmation.ts",
           "src/data/evidence/offers/bybitPublicPresentation.ts",
@@ -2516,7 +2515,6 @@
           "src/data/contracts/portalUi.ts",
           "src/data/contracts/publicOfferAuthority.ts",
           "src/data/contracts/publicRenderedCapture.ts",
-          "src/data/evidence/offers/bybit-new-user-2026-08-05.json",
           "src/data/evidence/offers/bybitOfferEvidence.ts",
           "src/data/evidence/offers/bybitPromoCodeConfirmation.ts",
           "src/data/evidence/offers/bybitPublicPresentation.ts",
@@ -2816,10 +2814,6 @@
           "detail": "workflow step :: shell structure outside the supported model: here-document redirection (`<<`)"
         },
         {
-          "code": "DEPENDENCY_UNRESOLVABLE",
-          "detail": "workflow step :: shell structure outside the supported model: unterminated command substitution"
-        },
-        {
           "code": "MISLEADING_ADVISORY_FILENAME",
           "detail": "cbw-pr-advisory-gate.yml"
         },
@@ -2864,13 +2858,10 @@
       "dependencies": {
         "npmScripts": [],
         "executed": [
-          "scripts/deploy.mjs",
-          "scripts/indexnow.mjs",
           "scripts/production-live-smoke.mjs",
           "scripts/production-origin-parity.mjs"
         ],
         "readInputs": [
-          ".github/workflows/cbw-production-safe-batch-autodeploy.yml",
           "src/data/exchanges.json"
         ],
         "localActions": [],
@@ -2896,26 +2887,15 @@
         "targetsMaster": true,
         "selfTriggersOnOwnWorkflowFile": true,
         "coveredInputs": [
-          ".github/workflows/cbw-production-safe-batch-autodeploy.yml",
           "scripts/production-live-smoke.mjs",
           "scripts/production-origin-parity.mjs"
         ],
         "uncoveredInputs": [
-          "scripts/deploy.mjs",
-          "scripts/indexnow.mjs",
           "src/data/exchanges.json"
         ],
         "unresolvableInputs": []
       },
       "knownGaps": [
-        {
-          "code": "DEPENDENCY_UNRESOLVABLE",
-          "detail": "scripts/indexnow.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(join(ROOT, relativePath), \"utf8\")"
-        },
-        {
-          "code": "DEPENDENCY_UNRESOLVABLE",
-          "detail": "scripts/indexnow.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(localPath, \"utf8\")"
-        },
         {
           "code": "DEPENDENCY_UNRESOLVABLE",
           "detail": "scripts/production-origin-parity.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(localIndexPath, \"utf8\")"
@@ -2931,14 +2911,6 @@
         {
           "code": "TRIGGER_GAP_INPUT",
           "detail": "src/data/exchanges.json"
-        },
-        {
-          "code": "TRIGGER_GAP_SCRIPT",
-          "detail": "scripts/deploy.mjs"
-        },
-        {
-          "code": "TRIGGER_GAP_SCRIPT",
-          "detail": "scripts/indexnow.mjs"
         }
       ],
       "migrationState": "LEGACY_EXTERNAL",

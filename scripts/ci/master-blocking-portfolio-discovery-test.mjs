@@ -33,10 +33,12 @@ import { readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import {
   CLASSIFICATIONS,
+  FAIL_CLOSED_GAP_CODES,
   GAP_CODES,
   MIGRATION_STATES,
   ROOT_KEYS,
   SCHEMA_VERSION,
+  SUPPORTED_SHELL_MODEL,
   UNMODELED,
   auditPortfolio,
   deriveDependencyClosure,
@@ -122,12 +124,21 @@ function probeFacts(text, { workflowFile = 'probe.yml', jobId = 'probe' } = {}) 
 // ============================================================================
 
 check('workflow inventory is non-empty', files.length > 0);
+check(
+  'R5 M3: DEPENDENCY_UNRESOLVABLE is a fail-closed modelling-gap code',
+  FAIL_CLOSED_GAP_CODES.includes('DEPENDENCY_UNRESOLVABLE'),
+  JSON.stringify(FAIL_CLOSED_GAP_CODES),
+);
 const live = run();
 const liveFailures = live.filter((result) => !result.ok);
+const liveDependencyGapFailures = liveFailures.filter((result) =>
+  /raises no fail-closed modelling gap$/.test(result.label),
+);
+const liveSnapshotFailures = liveFailures.filter((result) => !liveDependencyGapFailures.includes(result));
 check(
-  'the live repository agrees with the stored blocking portfolio',
-  liveFailures.length === 0,
-  liveFailures.map((result) => `${result.label}${result.detail ? `: ${result.detail}` : ''}`).join(' | '),
+  'the live repository agrees with the stored blocking portfolio apart from deliberately fail-closed dependency debt',
+  liveSnapshotFailures.length === 0,
+  liveSnapshotFailures.map((result) => `${result.label}${result.detail ? `: ${result.detail}` : ''}`).join(' | '),
 );
 
 const { entries: derived, parseErrors } = deriveInventory({ files, packageScripts, repoFiles, readFile });
@@ -1434,13 +1445,18 @@ const WRAPPER_RESOLVING_PROBES = [
   ['`env` with a quoted assignment', "env 'LC_ALL=C' find src/data -name '*.ts'"],
   ['`bash -c` with a double-quoted program', 'bash -c "find src/data -name \'*.ts\'"'],
   ['`sh -c` with a single-quoted program', 'sh -c \'find src/data -name "*.ts"\''],
+  ['a single-quoted `bash` executable', '\'bash\' -c "find src/data -name \'*.ts\'"'],
+  ['a double-quoted `bash` executable', '"bash" -c "find src/data -name \'*.ts\'"'],
+  ['a path-qualified `bash` executable', '/bin/bash -c "find src/data -name \'*.ts\'"'],
+  ['a path-qualified `sh` executable', '/bin/sh -c "find src/data -name \'*.ts\'"'],
+  ['an inner quoted `find` executable', 'bash -c "\'find\' src/data -name \'*.ts\'"'],
+  ['a path-qualified `env` and `find`', "/usr/bin/env FOO=x /usr/bin/find src/data -name '*.ts'"],
+  ['a quoted command operand', "command 'find' src/data -name '*.ts'"],
   ['a nested `bash -c` inside a `bash -c`', 'bash -c "bash -c \'find src/data -name *.ts\'"'],
   ['`exec`', "exec find src/data -name '*.ts'"],
   ['`nohup`', "nohup find src/data -name '*.ts'"],
   ['`time`', "time find src/data -name '*.ts'"],
   ['`time -p`', "time -p find src/data -name '*.ts'"],
-  ['`builtin`', "builtin find src/data -name '*.ts'"],
-  ['a wrapper CHAIN (`env … command …`)', "env FOO=x command find src/data -name '*.ts'"],
   ['a wrapper in an `if` head', "if env LC_ALL=C find src/data -name '*.ts'; then echo hit; fi"],
   ['a wrapper inside a `$(…)` substitution', "COUNT=$(command find src/data -name '*.ts' | wc -l)"],
 ];
@@ -1503,8 +1519,13 @@ const WRAPPER_UNRESOLVABLE_PROBES = [
   ['a `bash -c` program from a command substitution', 'bash -c "$(cat script.sh)"'],
   ['`bash` shell options before `-c`', 'bash -euo pipefail -c "find src/data -name \'*.ts\'"'],
   ['a `bash -c` with no program argument', 'bash -c'],
-  ['a wrapper whose command name is quoted', "command 'find' src/data -name '*.ts'"],
   ['a wrapper whose command name is dynamic', "command $TOOL src/data -name '*.ts'"],
+  ['`builtin` applied to external `find`', "builtin find src/data -name '*.ts'"],
+  ['an external `env` context applied to shell-only `command`', "env FOO=x command find src/data -name '*.ts'"],
+  ['an external `nohup` context applied to shell-only `command`', "nohup command find src/data -name '*.ts'"],
+  ['the deliberately unsupported `sudo` wrapper', "sudo find src/data -name '*.ts'"],
+  ['an unknown absolute executable path', "/custom/tool find src/data -name '*.ts'"],
+  ['a dynamic executable path', '"$SHELL" -c "find src/data -name \'*.ts\'"'],
   ['a wrapper around an UNSUPPORTED `find`', "command find src/data -maxdepth 1 -name '*.ts'"],
   ['an `env` wrapper around an UNSUPPORTED `find`', "env LC_ALL=C find src/data -regex '.*[.]ts'"],
   ['a `bash -c` around an UNSUPPORTED `find`', 'bash -c "find src/data -name \'*.ts\' -exec rm {} +"'],
@@ -1552,6 +1573,140 @@ check(
   tokenizeShell('bash scripts/alpha.mjs').unmodeled.length === 0,
   JSON.stringify(tokenizeShell('bash scripts/alpha.mjs').unmodeled),
 );
+const derivedWithUnresolvedDependencies = derived.filter((entry) =>
+  entry.knownGaps.some((gapEntry) => gapEntry.code === 'DEPENDENCY_UNRESOLVABLE'),
+);
+check(
+  'R5 M3: every live DEPENDENCY_UNRESOLVABLE carrier is blocked independently of snapshot synchronisation',
+  liveDependencyGapFailures.length === derivedWithUnresolvedDependencies.length &&
+    derivedWithUnresolvedDependencies.every((entry) =>
+      liveDependencyGapFailures.some(
+        (failure) =>
+          failure.label ===
+          `discovered job ${entry.workflowFile}#${entry.jobId} raises no fail-closed modelling gap`,
+      ),
+    ),
+  JSON.stringify({
+    failureCount: liveDependencyGapFailures.length,
+    carrierCount: derivedWithUnresolvedDependencies.length,
+  }),
+);
+
+// --- R5 M1/M2: literal `-c` text and executable identity stay separate -------
+// Previous head e2dfd68903653aaa0eb57c462cae6aae91485ef5 rebuilt a
+// `-c` program from `word.value`. That had already erased outer quoting and
+// backslash semantics, so dependency-bearing commands could disappear.
+// Reproduced directly from that immutable blob before this fix:
+//   M1 escaped quote: readInputs=[]; unresolvable=[]
+//   M2 /bin/bash and quoted 'bash': readInputs=[]; unresolvable=[]
+//   M3 FAIL_CLOSED_GAP_CODES omitted DEPENDENCY_UNRESOLVABLE
+//   L1 escaped <<: false here-document unresolved row
+//   L2 builtin/env-command/nohup-command: both tracked .ts files invented cleanly
+const R5_LITERAL_C_FIND_PROBES = [
+  [
+    'an escaped quote before a later `find`',
+    String.raw`bash -c "echo \'; find src/data -name '*.ts'; echo \'"`,
+  ],
+  ['a literal single-quoted `-c` program', `bash -c 'find src/data -name "*.ts"'`],
+  ['a literal double-quoted `-c` program', `bash -c "find src/data -name '*.ts'"`],
+  [
+    'nested single/double quote combinations',
+    String.raw`bash -c 'echo "\"quoted\""; "find" src/data -name "*.ts"'`,
+  ],
+  [
+    'an escaped backslash whose later semicolon remains executable',
+    String.raw`bash -c "echo \\\\; find src/data -name '*.ts'"`,
+  ],
+  ['an actual later command after quoted data', `bash -c "echo 'find is data'; find src/data -name '*.ts'"`],
+];
+for (const [label, run] of R5_LITERAL_C_FIND_PROBES) {
+  const closure = r3Closure(run);
+  check(
+    `R5 M1: ${label} exposes the later DIRECT dependency`,
+    closure.readInputs.includes('src/data/direct.ts'),
+    JSON.stringify({ read: closure.readInputs, unresolvable: closure.unresolvable }),
+  );
+  check(
+    `R5 M1: ${label} exposes the later NESTED dependency`,
+    closure.readInputs.includes('src/data/nested/deep.ts'),
+    JSON.stringify({ read: closure.readInputs, unresolvable: closure.unresolvable }),
+  );
+  check(
+    `R5 M1: ${label} is exactly modelled`,
+    closure.unresolvable.length === 0,
+    JSON.stringify(closure.unresolvable),
+  );
+}
+
+{
+  const source = String.raw`bash -c "echo \<\<"`;
+  const outer = tokenizeShell(source).commands.find((command) => command.name === 'bash');
+  const program = outer?.argv?.[1];
+  check(
+    'R5 M1: a `-c` token preserves exact raw spelling separately from its literal program text',
+    program?.raw === String.raw`"echo \<\<"` && program?.literalText === String.raw`echo \<\<`,
+    JSON.stringify(program ?? null),
+  );
+}
+
+{
+  const quoted = tokenizeShell(`'find' src/data -name '*.ts'`).commands.find((command) => command.name === 'find');
+  check(
+    'R5 M2: a quoted executable normalises to `find` while preserving quote provenance',
+    quoted?.nameQuoted === true && quoted?.rawName === "'find'",
+    JSON.stringify(quoted ?? null),
+  );
+  const qualified = tokenizeShell(`/usr/bin/find src/data -name '*.ts'`).commands.find(
+    (command) => command.name === 'find',
+  );
+  check(
+    'R5 M2: a literal path-qualified executable normalises only by its modelled basename',
+    qualified?.pathQualified === true && qualified?.rawName === '/usr/bin/find',
+    JSON.stringify(qualified ?? null),
+  );
+}
+
+const R5_ESCAPED_C_DATA_PROBES = [
+  ['an escaped semicolon', String.raw`bash -c "echo \; find src/data -name '*.ts'"`],
+  ['escaped operator text', String.raw`bash -c "echo \&\& find src/data -name '*.ts'"`],
+  ['escaped here-document text', String.raw`bash -c "echo \<\<"`],
+  ['quoted process-substitution text', `bash -c "echo '<(text)'"`],
+  ['escaped process-substitution text', String.raw`bash -c "echo \<\(text\)"`],
+];
+for (const [label, run] of R5_ESCAPED_C_DATA_PROBES) {
+  const closure = r3Closure(run);
+  check(
+    `R5 M1/L1: ${label} remains data, with no invented dependency or modelling gap`,
+    closure.readInputs.length === 0 && closure.executed.length === 0 && closure.unresolvable.length === 0,
+    JSON.stringify(closure),
+  );
+}
+
+{
+  const closure = r3Closure(`bash -c 'echo "$(find src/data -name \'*.ts\')"'`);
+  check(
+    'R5 L1: an actual command substitution inside a literal `-c` program is analysed',
+    closure.readInputs.includes('src/data/direct.ts') && closure.readInputs.includes('src/data/nested/deep.ts'),
+    JSON.stringify(closure),
+  );
+}
+{
+  const closure = r3Closure(`bash -c 'diff <(find src/data -name \'*.ts\') scripts/beta.mjs'`);
+  check(
+    'R5 L1: actual process substitution is analysed and remains explicitly unresolved',
+    closure.readInputs.includes('src/data/direct.ts') &&
+      closure.unresolvable.some((detail) => /process substitution/.test(detail)),
+    JSON.stringify(closure),
+  );
+}
+{
+  const closure = r3Closure("bash -c 'node <<EOF\ntext\nEOF'");
+  check(
+    'R5 L1: an actual here-document remains outside the bounded model',
+    closure.unresolvable.some((detail) => /here-document/.test(detail)),
+    JSON.stringify(closure),
+  );
+}
 
 // --- R4 LOW: a shell OPERATOR only counts where the shell would execute it ----
 //
@@ -2290,11 +2445,22 @@ function fullySynced(mutate, { repoFiles: probeRepoFiles = repoFiles, readFile: 
   };
 }
 
-// Control: a fully synchronised snapshot of the UNMUTATED repository passes, so
-// the probes below fail for the reason claimed and not because syncing is broken.
+// Control: synchronisation removes every snapshot mismatch but MUST NOT remove
+// the repository's fail-closed dependency-model failures.
 {
   const control = fullySynced(() => {});
-  expectNoFailure('control: a fully synchronised snapshot of the real repository passes', control.results, /.*/);
+  const nonDependencyFailures = control.results.filter(
+    (result) => !result.ok && !/raises no fail-closed modelling gap$/.test(result.label),
+  );
+  check(
+    'control: a fully synchronised snapshot has no mismatch/structural failure',
+    nonDependencyFailures.length === 0,
+    nonDependencyFailures.map((result) => `${result.label}: ${result.detail}`).join(' | '),
+  );
+  check(
+    'R5 M3 control: snapshot synchronisation does not clear live DEPENDENCY_UNRESOLVABLE failures',
+    control.results.some((result) => !result.ok && /raises no fail-closed modelling gap$/.test(result.label)),
+  );
 }
 
 const DANGEROUS_SYNTAX_PROBES = [
@@ -2698,10 +2864,15 @@ for (const [index, [label, text, expected]] of NOW_MODELLED_PROBES.entries()) {
     entry?.directRequiredSafe === expected.directRequiredSafe,
     String(entry?.directRequiredSafe),
   );
-  expectNoFailure(
+  const targetPrefix = `discovered job ${entry?.workflowFile}#${entry?.jobId}`;
+  check(
     `regression: ${label} raises no fail-closed modelling gap once modelled`,
-    probe.results,
-    /has PROVABLE pull_request semantics|raises no fail-closed modelling gap/,
+    !probe.results.some(
+      (result) =>
+        !result.ok &&
+        result.label.startsWith(targetPrefix) &&
+        /has PROVABLE pull_request semantics|raises no fail-closed modelling gap/.test(result.label),
+    ),
   );
 }
 
@@ -2774,6 +2945,89 @@ for (const [index, [label, command]] of R4_UNSUPPORTED_WRAPPER_SYNC_PROBES.entri
       (gapEntry) => gapEntry.code === 'DEPENDENCY_UNRESOLVABLE' && /wrapper|-c/.test(gapEntry.detail),
     ),
     JSON.stringify(entry?.knownGaps ?? null),
+  );
+}
+
+// --- R5 M3/L2: unresolved execution models are absolute audit failures -------
+// At previous head e2dfd68903653aaa0eb57c462cae6aae91485ef5 these probes
+// could be copied into a fully synchronised snapshot and the audit would pass.
+// The snapshot below is intentionally regenerated from each mutation; the only
+// acceptable result is still the target job's fail-closed audit failure.
+const R5_FAIL_CLOSED_SYNC_PROBES = [
+  ['`env -i find`', "env -i find src/data -name '*.ts'"],
+  ['a dynamic `bash -c` program', 'bash -c "$CBW_COMMAND"'],
+  ['the unsupported `sudo` wrapper', "sudo find src/data -name '*.ts'"],
+  ['unsupported process substitution', "diff <(find src/data -name '*.ts') scripts/beta.mjs"],
+];
+for (const [index, [label, command]] of R5_FAIL_CLOSED_SYNC_PROBES.entries()) {
+  const jobId = `r5-fail-closed-${index}`;
+  const path = `.github/workflows/cbw-r5-fail-closed-${index}.yml`;
+  const probe = fullySynced((mutated) => mutated.push({ path, text: r4WrapperWorkflow(jobId, command) }));
+  const entry = probe.derived.find((candidate) => candidate.workflowFile === path.split('/').pop());
+  check(
+    `R5 M3: ${label} emits DEPENDENCY_UNRESOLVABLE`,
+    (entry?.knownGaps ?? []).some((gapEntry) => gapEntry.code === 'DEPENDENCY_UNRESOLVABLE'),
+    JSON.stringify(entry?.knownGaps ?? null),
+  );
+  check(
+    `R5 M3: ${label} fails the audit after full snapshot synchronisation`,
+    probe.results.some(
+      (result) =>
+        !result.ok &&
+        result.label === `discovered job ${entry?.workflowFile}#${entry?.jobId} raises no fail-closed modelling gap`,
+    ),
+    JSON.stringify(probe.results.filter((result) => !result.ok)),
+  );
+}
+
+const R5_INVALID_WRAPPER_CONTEXT_PROBES = [
+  ['`builtin find`', "builtin find src/data -name '*.ts'"],
+  ['`env FOO=x command find`', "env FOO=x command find src/data -name '*.ts'"],
+  ['`nohup command find`', "nohup command find src/data -name '*.ts'"],
+];
+for (const [index, [label, command]] of R5_INVALID_WRAPPER_CONTEXT_PROBES.entries()) {
+  const jobId = `r5-invalid-wrapper-${index}`;
+  const path = `.github/workflows/cbw-r5-invalid-wrapper-${index}.yml`;
+  const probe = fullySynced((mutated) => mutated.push({ path, text: r4WrapperWorkflow(jobId, command) }));
+  const entry = probe.derived.find((candidate) => candidate.workflowFile === path.split('/').pop());
+  check(
+    `R5 L2: ${label} invents no resolved find dependency`,
+    !(entry?.dependencies?.readInputs ?? []).includes('src/data/direct.ts') &&
+      !(entry?.dependencies?.readInputs ?? []).includes('src/data/nested/deep.ts'),
+    JSON.stringify(entry?.dependencies ?? null),
+  );
+  check(
+    `R5 L2: ${label} is unresolved and fail closed after synchronisation`,
+    (entry?.knownGaps ?? []).some((gapEntry) => gapEntry.code === 'DEPENDENCY_UNRESOLVABLE') &&
+      probe.results.some(
+        (result) =>
+          !result.ok &&
+          result.label === `discovered job ${entry?.workflowFile}#${entry?.jobId} raises no fail-closed modelling gap`,
+      ),
+    JSON.stringify(entry?.knownGaps ?? null),
+  );
+}
+
+// Supported shell-model boundary: command positions/separators, literal words
+// with quote provenance, the closed find subset, command/exec/nohup/time/env,
+// and literal sh-family `-c` programs. Anything else that can conceal execution
+// (here: `sudo`) must be DEPENDENCY_UNRESOLVABLE, never another parser feature.
+{
+  const boundary = r3Closure("sudo find src/data -name '*.ts'");
+  check(
+    'R5 BOUNDARY: the supported shell subset is a closed machine-readable contract',
+    JSON.stringify(SUPPORTED_SHELL_MODEL.wrappers) === JSON.stringify(['command', 'exec', 'nohup', 'time', 'env']) &&
+      JSON.stringify(SUPPORTED_SHELL_MODEL.shellCCommands) === JSON.stringify(['sh', 'bash', 'dash', 'ksh', 'zsh']) &&
+      JSON.stringify(SUPPORTED_SHELL_MODEL.pathQualifiedCommandBasenames) ===
+        JSON.stringify(['find', 'env', 'nohup', 'sh', 'bash', 'dash', 'ksh', 'zsh']) &&
+      SUPPORTED_SHELL_MODEL.unsupportedPolicy === 'DEPENDENCY_UNRESOLVABLE',
+    JSON.stringify(SUPPORTED_SHELL_MODEL),
+  );
+  check(
+    'R5 BOUNDARY: an execution wrapper outside the stated shell subset is unresolved and resolves no dependency',
+    boundary.unresolvable.some((detail) => /outside the supported model/.test(detail)) &&
+      boundary.readInputs.length === 0,
+    JSON.stringify(boundary),
   );
 }
 

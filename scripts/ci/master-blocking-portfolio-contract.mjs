@@ -122,6 +122,7 @@ export const FAIL_CLOSED_GAP_CODES = Object.freeze([
   'UNMODELED_TRIGGER',
   'UNMODELED_JOB_IF',
   'UNMODELED_CONTINUE_ON_ERROR',
+  'DEPENDENCY_UNRESOLVABLE',
   'DEPENDENCY_UNREADABLE',
 ]);
 
@@ -904,38 +905,104 @@ const MAX_SHELL_SUBSTITUTION_DEPTH = 4;
 //   exec     replaces the shell with the wrapped command — same dependencies.
 //   nohup    runs the wrapped command detached — same dependencies.
 //   time     times the wrapped command. `-p` selects POSIX output only.
-//   builtin  runs the shell builtin of that name. This engine cannot enumerate
-//            builtins, so it OVER-approximates by analysing the wrapped words:
-//            a superset of dependencies is safe here, a hidden one is not.
+//   builtin  is intentionally NOT peeled. It can only invoke a shell builtin;
+//            treating an external dependency command such as `find` as its
+//            operand would invent execution that Bash never performs.
 const ARGV_WRAPPERS = Object.freeze({
   command: ['-p'],
   exec: [],
   nohup: [],
   time: ['-p'],
-  builtin: [],
 });
 // Shells whose `-c` argument is a nested shell PROGRAM (a literal one is parsed
 // recursively; a computed one is reported).
 const SHELL_C_COMMANDS = Object.freeze(['sh', 'bash', 'dash', 'ksh', 'zsh']);
+// A path-qualified executable is normalised only when its exact basename is in
+// this closed set. Arbitrary absolute tools remain outside the dependency model.
+const PATH_QUALIFIED_COMMAND_BASENAMES = Object.freeze(['find', 'env', 'nohup', ...SHELL_C_COMMANDS]);
+// These names only have the wrapper semantics modelled here when the shell
+// itself resolves them. `env command ...` and `nohup command ...` ask an
+// external program to execute a shell-only builtin and are therefore invalid in
+// this model (and ordinarily invalid at runtime), not recursive wrapper chains.
+const SHELL_CONTEXT_ONLY_COMMANDS = Object.freeze(['command', 'exec', 'builtin', 'time']);
+// Known command-running wrappers that are deliberately OUTSIDE the supported
+// subset. Listing one here does not model it; it makes the boundary fail closed
+// instead of letting a dependency-bearing operand disappear behind its name.
+const OUT_OF_MODEL_COMMAND_WRAPPERS = Object.freeze(['sudo']);
 // How many wrappers may be peeled off one command (`env FOO=x command find …`).
 const MAX_WRAPPER_UNWRAP_DEPTH = 4;
+
+// Machine-readable boundary of the governance shell model. Growing any list is
+// a deliberate contract change; everything outside it fails closed.
+export const SUPPORTED_SHELL_MODEL = Object.freeze({
+  separators: SHELL_SEPARATORS,
+  commandKeywords: SHELL_COMMAND_KEYWORDS,
+  wrappers: Object.freeze(['command', 'exec', 'nohup', 'time', 'env']),
+  shellCCommands: SHELL_C_COMMANDS,
+  pathQualifiedCommandBasenames: PATH_QUALIFIED_COMMAND_BASENAMES,
+  findOptions: FIND_SUPPORTED_OPTIONS,
+  unsupportedPolicy: 'DEPENDENCY_UNRESOLVABLE',
+});
 
 /** Which wrapper family a command name belongs to, or null for an ordinary command. */
 function wrapperKindOf(name) {
   if (name === 'env') return 'env';
+  if (name === 'builtin') return 'builtin';
+  if (OUT_OF_MODEL_COMMAND_WRAPPERS.includes(name)) return 'unsupported';
   if (Object.prototype.hasOwnProperty.call(ARGV_WRAPPERS, name)) return 'argv';
   if (SHELL_C_COMMANDS.includes(name)) return 'shell-c';
   return null;
+}
+
+/** Resolve a static executable word without erasing quote/path provenance. */
+function commandIdentityOf(candidate) {
+  if (!candidate || candidate.dynamic || candidate.substitution) {
+    return { name: null, reason: 'command name is computed at run time' };
+  }
+  const value = candidate.value;
+  if (!value.startsWith('/')) return { name: value, pathQualified: false };
+  const basename = value.slice(value.lastIndexOf('/') + 1);
+  if (!PATH_QUALIFIED_COMMAND_BASENAMES.includes(basename)) {
+    return { name: null, reason: `absolute executable path is outside the supported model (${value})` };
+  }
+  return { name: basename, pathQualified: true };
+}
+
+// Skip opaque here-document DATA without pretending to interpret it. The
+// construct still emits an unresolved fact; this helper merely resumes lexical
+// scanning after a simple literal delimiter so later real commands do not
+// disappear. Delimiter expansion, indentation beyond `<<-`, multiple dynamic
+// delimiters, and every other form remain outside the model.
+function resumeAfterLiteralHereDocument(text, start) {
+  const header = /^<<(-)?[ \t]*(?:'([^'\r\n]+)'|"([^"\r\n]+)"|([A-Za-z_][A-Za-z0-9_]*))[^\r\n]*(?:\r?\n|$)/.exec(
+    text.slice(start),
+  );
+  if (!header) return null;
+  const stripTabs = header[1] === '-';
+  const delimiter = header[2] ?? header[3] ?? header[4];
+  let cursor = start + header[0].length;
+  while (cursor <= text.length) {
+    const newline = text.indexOf('\n', cursor);
+    const end = newline === -1 ? text.length : newline;
+    let line = text.slice(cursor, end).replace(/\r$/, '');
+    if (stripTabs) line = line.replace(/^\t+/, '');
+    if (line === delimiter) return newline === -1 ? text.length : newline + 1;
+    if (newline === -1) break;
+    cursor = newline + 1;
+  }
+  return text.length;
 }
 
 /**
  * Tokenize a shell body into commands.
  *
  * @returns {{commands: {name: string|null, words: object[]}[], unmodeled: string[]}}
- *   Each word carries `value` (the literal text it contributes), `quotedOnly`
- *   (every character came from quoted/escaped text, so it is DATA and never
- *   glob-expanded), `dynamic` (an unexpanded `$VAR`/`${…}` took part) and
- *   `substitution` (a `$(…)`/backtick command substitution took part).
+ *   Each word carries `value` (the shell-normalised token), `raw` (its exact
+ *   source spelling), `literalText` (the exact statically recoverable argument
+ *   text), `quotedOnly` (every character came from quoted/escaped text, which
+ *   suppresses glob expansion but NOT execution in command position), `dynamic`
+ *   (an unexpanded `$VAR`/`${…}` took part) and `substitution` (a
+ *   `$(…)`/backtick command substitution took part).
  */
 export function tokenizeShell(source, depth = 0) {
   const text = String(source ?? '');
@@ -949,23 +1016,39 @@ export function tokenizeShell(source, depth = 0) {
   let words = [];
   let word = null;
 
-  const startWord = () => {
-    if (word === null) word = { value: '', quotedOnly: true, dynamic: false, substitution: false, empty: true };
+  const startWord = (sourceIndex = i) => {
+    if (word === null) {
+      word = {
+        value: '',
+        literalText: '',
+        raw: '',
+        sourceStart: sourceIndex,
+        quotedOnly: true,
+        quoted: false,
+        dynamic: false,
+        substitution: false,
+        empty: true,
+      };
+    }
     return word;
   };
-  const addLiteral = (chunk, quoted) => {
-    const current = startWord();
+  const addLiteral = (chunk, quoted, sourceIndex = i) => {
+    const current = startWord(sourceIndex);
     current.value += chunk;
+    current.literalText += chunk;
     current.empty = false;
+    if (quoted) current.quoted = true;
     if (!quoted) current.quotedOnly = false;
   };
-  const endWord = () => {
+  const endWord = (sourceEnd = i) => {
     if (word === null) return;
+    word.raw = text.slice(word.sourceStart, sourceEnd);
+    delete word.sourceStart;
     words.push(word);
     word = null;
   };
-  const endCommand = () => {
-    endWord();
+  const endCommand = (sourceEnd = i) => {
+    endWord(sourceEnd);
     if (words.length) commands.push({ words });
     words = [];
   };
@@ -1002,7 +1085,19 @@ export function tokenizeShell(source, depth = 0) {
     // are then handled normally, so a `<(find …)` still exposes its `find`.
     if (ch === '<' || ch === '>') {
       const construct = SHELL_UNMODELED_CONSTRUCTS.find(([needle]) => text.startsWith(needle, i));
-      if (construct) noteUnmodeled(`${construct[1]} (\`${construct[0]}\`)`);
+      if (construct) {
+        noteUnmodeled(`${construct[1]} (\`${construct[0]}\`)`);
+        if (construct[0] === '<<') {
+          // The delimiter/body grammar is deliberately outside this bounded
+          // model. Once a real here-document begins, its remaining text is
+          // opaque data; parsing body lines as commands would invent execution.
+          // A simple literal terminator lets lexical scanning resume AFTER the
+          // body so a later real command still cannot disappear silently.
+          endCommand(i);
+          i = resumeAfterLiteralHereDocument(text, i) ?? text.length;
+          continue;
+        }
+      }
     }
 
     // A separator ends the current word AND the current command, so both
@@ -1026,12 +1121,13 @@ export function tokenizeShell(source, depth = 0) {
     }
 
     if (ch === '\\') {
-      addLiteral(text[i + 1] ?? '', true);
+      addLiteral(text[i + 1] ?? '', true, i);
       i += 2;
       continue;
     }
 
     if (ch === "'") {
+      startWord(i).quoted = true;
       const close = text.indexOf("'", i + 1);
       if (close === -1) {
         unmodeled.push('unterminated single-quoted string');
@@ -1045,11 +1141,21 @@ export function tokenizeShell(source, depth = 0) {
     }
 
     if (ch === '"') {
+      startWord(i).quoted = true;
       let j = i + 1;
       let closed = false;
       while (j < text.length) {
         if (text[j] === '\\') {
-          addLiteral(text[j + 1] ?? '', true);
+          const escaped = text[j + 1] ?? '';
+          // Inside double quotes Bash only removes a backslash before $, `, ",
+          // \\ or newline. Before every other character the backslash remains
+          // part of argv and may be significant to a nested `-c` shell.
+          if (escaped === '\n' || (escaped === '\r' && text[j + 2] === '\n')) {
+            j += escaped === '\r' ? 3 : 2;
+            continue;
+          }
+          const chunk = ['$', '`', '"', '\\'].includes(escaped) ? escaped : `\\${escaped}`;
+          addLiteral(chunk, true, j);
           j += 2;
           continue;
         }
@@ -1067,7 +1173,7 @@ export function tokenizeShell(source, depth = 0) {
             break;
           }
           absorb(tokenizeShell(inner.source, depth + 1));
-          startWord().substitution = true;
+          startWord(i).substitution = true;
           j = inner.end;
           continue;
         }
@@ -1079,12 +1185,13 @@ export function tokenizeShell(source, depth = 0) {
             break;
           }
           absorb(tokenizeShell(inner.source, depth + 1));
-          startWord().substitution = true;
+          startWord(i).substitution = true;
           j = inner.end;
           continue;
         }
         if (text[j] === '$') {
-          startWord().dynamic = true;
+          startWord(i).dynamic = true;
+          startWord(i).literalText += '$';
           j += 1;
           continue;
         }
@@ -1104,7 +1211,7 @@ export function tokenizeShell(source, depth = 0) {
         continue;
       }
       absorb(tokenizeShell(inner.source, depth + 1));
-      startWord().substitution = true;
+      startWord(i).substitution = true;
       i = inner.end;
       continue;
     }
@@ -1117,13 +1224,14 @@ export function tokenizeShell(source, depth = 0) {
         continue;
       }
       absorb(tokenizeShell(inner.source, depth + 1));
-      startWord().substitution = true;
+      startWord(i).substitution = true;
       i = inner.end;
       continue;
     }
 
     if (ch === '$') {
-      startWord().dynamic = true;
+      startWord(i).dynamic = true;
+      startWord(i).literalText += '$';
       i += 1;
       continue;
     }
@@ -1138,18 +1246,16 @@ export function tokenizeShell(source, depth = 0) {
   // keywords and `VAR=value` prefixes occupy no command slot, so the executable
   // token is the first word past them.
   //
-  // A WRAPPER (`command`, `env`, `exec`, `nohup`, `time`, `builtin`, `sh -c`)
-  // is then peeled: the wrapped command is resolved as a command in its own
-  // right, so the same `find` is analysed whether it is written bare or behind
-  // `env LC_ALL=C command find …`. The wrapper's own record is kept as well, so
-  // path-shaped words anywhere in the line are still scanned. A wrapper form
-  // outside the modelled subset is REPORTED, never dropped.
+  // A WRAPPER is peeled only when its execution context permits it. `command`
+  // and `exec` are shell builtins; `env` and `nohup` execute external programs.
+  // An impossible composition therefore stops here and is REPORTED instead of
+  // inventing dependencies from words that cannot execute.
   const resolved = [];
-  const isLiteral = (candidate) => Boolean(candidate) && candidate.quotedOnly === false && !candidate.dynamic && !candidate.substitution;
+  const isStaticLiteral = (candidate) => Boolean(candidate) && !candidate.dynamic && !candidate.substitution;
 
-  const resolveCommand = (allWords, start, unwrapDepth) => {
+  const resolveCommand = (allWords, start, unwrapDepth, executionContext = 'shell') => {
     let index = start;
-    while (index < allWords.length) {
+    while (executionContext === 'shell' && index < allWords.length) {
       const candidate = allWords[index];
       // A control keyword only counts as one when it is a bare, unquoted word.
       if (candidate.quotedOnly === false && SHELL_COMMAND_KEYWORDS.includes(candidate.value)) {
@@ -1163,17 +1269,55 @@ export function tokenizeShell(source, depth = 0) {
       break;
     }
     const head = allWords[index];
-    // `name` is the EXECUTABLE token, and only when it is unquoted text: a
-    // fully quoted word is data, never an invocation this model recognises.
-    const name = isLiteral(head) ? head.value : null;
-    resolved.push({ name, words: allWords, argv: allWords.slice(index + 1) });
-    if (name === null) return;
+    if (!head) return true;
+    const identity = commandIdentityOf(head);
+    const name = identity.name;
+    const record = {
+      name,
+      rawName: head.raw,
+      nameQuoted: head.quoted,
+      pathQualified: identity.pathQualified === true,
+      executionContext,
+      words: allWords.slice(index),
+      argv: allWords.slice(index + 1),
+      dependencyScan: true,
+    };
+    resolved.push(record);
+    if (name === null) {
+      record.dependencyScan = false;
+      noteUnmodeled(identity.reason);
+      return false;
+    }
+
+    if (executionContext === 'external' && SHELL_CONTEXT_ONLY_COMMANDS.includes(name)) {
+      record.dependencyScan = false;
+      noteUnmodeled(`invalid wrapper composition: external execution context cannot invoke shell-only \`${name}\``);
+      return false;
+    }
 
     const wrapper = wrapperKindOf(name);
-    if (wrapper === null) return;
+    if (wrapper === null) return true;
+    if (wrapper === 'unsupported') {
+      record.dependencyScan = false;
+      noteUnmodeled(`\`${name}\` command wrapper is outside the supported model`);
+      return false;
+    }
     if (unwrapDepth >= MAX_WRAPPER_UNWRAP_DEPTH) {
+      record.dependencyScan = false;
       noteUnmodeled(`command wrappers nested deeper than ${MAX_WRAPPER_UNWRAP_DEPTH} (\`${name}\`)`);
-      return;
+      return false;
+    }
+
+    if (wrapper === 'builtin') {
+      // This bounded engine does not model any dependency-bearing shell builtin.
+      // With an operand, `builtin` is therefore unresolved; specifically,
+      // `builtin find` must never be treated as execution of external `find`.
+      if (index + 1 < allWords.length) {
+        record.dependencyScan = false;
+        noteUnmodeled(`\`builtin\` target is outside the supported shell-builtin subset (${allWords[index + 1].value})`);
+        return false;
+      }
+      return true;
     }
 
     if (wrapper === 'argv' || wrapper === 'env') {
@@ -1181,8 +1325,9 @@ export function tokenizeShell(source, depth = 0) {
       while (next < allWords.length) {
         const candidate = allWords[next];
         if (candidate.dynamic || candidate.substitution) {
+          record.dependencyScan = false;
           noteUnmodeled(`\`${name}\` wrapper argument is computed at run time`);
-          return;
+          return false;
         }
         if (wrapper === 'env' && SHELL_ASSIGNMENT_PREFIX_RE.test(candidate.value)) {
           // A deterministic `NAME=value` assignment changes the ENVIRONMENT,
@@ -1190,11 +1335,12 @@ export function tokenizeShell(source, depth = 0) {
           next += 1;
           continue;
         }
-        if (candidate.quotedOnly === false && candidate.value.startsWith('-')) {
+        if (candidate.value.startsWith('-')) {
           const supported = wrapper === 'env' ? [] : ARGV_WRAPPERS[name];
           if (!supported.includes(candidate.value)) {
+            record.dependencyScan = false;
             noteUnmodeled(`\`${name}\` wrapper option outside the supported model (${candidate.value})`);
-            return;
+            return false;
           }
           next += 1;
           continue;
@@ -1203,41 +1349,48 @@ export function tokenizeShell(source, depth = 0) {
       }
       // `env`, `env FOO=bar` or a bare `command` with nothing left runs no
       // wrapped command at all, so there is nothing to hide.
-      if (next >= allWords.length) return;
-      if (!isLiteral(allWords[next])) {
-        noteUnmodeled(`\`${name}\` wrapper hides a command name this model cannot resolve`);
-        return;
-      }
-      resolveCommand(allWords, next, unwrapDepth + 1);
-      return;
+      if (next >= allWords.length) return true;
+      record.dependencyScan = false;
+      const nextContext = wrapper === 'env' || name === 'nohup' ? 'external' : executionContext;
+      return resolveCommand(allWords, next, unwrapDepth + 1, nextContext);
     }
 
     // `sh -c <program>`: the program is a nested shell body.
-    const cIndex = allWords.findIndex((candidate, at) => at > index && isLiteral(candidate) && candidate.value === '-c');
-    if (cIndex === -1) return; // e.g. `bash scripts/build.sh` — a path, not a program string
+    const cIndex = allWords.findIndex((candidate, at) => at > index && isStaticLiteral(candidate) && candidate.value === '-c');
+    if (cIndex === -1) return true; // e.g. `bash scripts/build.sh` — a path, not a program string
+    record.dependencyScan = false;
     if (cIndex !== index + 1) {
       noteUnmodeled(`\`${name} -c\` invocation carries options outside the supported model`);
-      return;
+      return false;
     }
     const program = allWords[cIndex + 1];
     if (!program) {
       noteUnmodeled(`\`${name} -c\` declares no program argument`);
-      return;
+      return false;
     }
     if (program.dynamic || program.substitution) {
       noteUnmodeled(`\`${name} -c\` program is computed at run time`);
-      return;
+      return false;
     }
     if (depth + 1 > MAX_SHELL_SUBSTITUTION_DEPTH) {
       noteUnmodeled(`\`-c\` shell program nested deeper than ${MAX_SHELL_SUBSTITUTION_DEPTH}`);
-      return;
+      return false;
     }
-    const nested = tokenizeShell(program.value, depth + 1);
+    // `literalText` was accumulated directly from the original source token.
+    // It deliberately preserves nested-shell escapes that the normalised token
+    // representation cannot safely reconstruct (for example \', \< and \; in
+    // an outer double-quoted program). Missing raw provenance is fail closed.
+    if (typeof program.raw !== 'string' || typeof program.literalText !== 'string') {
+      noteUnmodeled(`\`${name} -c\` literal program text could not be recovered exactly`);
+      return false;
+    }
+    const nested = tokenizeShell(program.literalText, depth + 1);
     for (const command of nested.commands) resolved.push(command);
     for (const detail of nested.unmodeled) noteUnmodeled(detail);
+    return nested.unmodeled.length === 0;
   };
 
-  for (const command of commands) resolveCommand(command.words, 0, 0);
+  for (const command of commands) resolveCommand(command.words, 0, 0, 'shell');
   return { commands: resolved, unmodeled };
 }
 
@@ -1920,6 +2073,7 @@ export function deriveDependencyClosure({ job, packageScripts = {}, repoFiles = 
     // after `&&`/`||`/`|`/`;`/a newline, inside `$(…)`) and NEVER inside quoted
     // data such as `echo '(find src/data -maxdepth 1 …)'`.
     for (const command of commands) {
+      if (command.dependencyScan === false) continue;
       if (command.name !== 'find') continue;
       const invocation = describeShellCommand(command);
       const parsed = parseFindInvocation(command.argv);
@@ -1943,6 +2097,7 @@ export function deriveDependencyClosure({ job, packageScripts = {}, repoFiles = 
     }
 
     for (const command of commands) {
+      if (command.dependencyScan === false) continue;
       for (const word of command.words) {
         // A word made only of quoted/escaped text is DATA: the shell never
         // glob-expands it, so it can neither resolve nor be "unresolvable".
