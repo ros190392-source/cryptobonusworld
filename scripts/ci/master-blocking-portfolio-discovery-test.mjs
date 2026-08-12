@@ -2153,7 +2153,8 @@ expectFailure(
   }),
   /gap-code vocabulary matches the closed engine vocabulary/,
 );
-check('the engine vocabulary still declares every migration state', MIGRATION_STATES.length === 3);
+// S2-03 added MIGRATED_UNIFIED_SHADOW and UNIFIED_GATE_COMPONENT.
+check('the engine vocabulary still declares every migration state', MIGRATION_STATES.length === 5, MIGRATION_STATES.join(','));
 
 // --- C3. duplicates ----------------------------------------------------------
 expectFailure(

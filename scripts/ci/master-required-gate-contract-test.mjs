@@ -40,10 +40,30 @@ import {
   VALID_REASONS,
 } from './master-required-gate-classify.mjs';
 import { validateClassifierOutput } from './master-required-gate-validate-output.mjs';
+import { auditProducerConsumerContract } from './master-required-gate-workflow-contract.mjs';
 import {
-  auditProducerConsumerContract,
-  ALLOWED_STEP_IF as CONTRACT_ALLOWED_STEP_IF,
-} from './master-required-gate-workflow-contract.mjs';
+  ACCEPTED_GATE_OUTCOMES,
+  APPLICABILITY_REASONS,
+  APPLICABILITY_VALUES,
+  FINAL_CHECK_CONTEXT,
+  FINAL_JOB_ID,
+  GATES,
+  GATE_IDS,
+  GATE_OUTCOMES,
+  UNIVERSALLY_INERT_PATHS,
+  VALID_APPLICABILITY_REASONS,
+  applicabilityDigest,
+  checkApplicabilityMaterialityConsistency,
+  classifyAllGates,
+  classifyGateApplicability,
+  gateCommands,
+  isConsistentApplicability,
+} from './master-required-gate-gates.mjs';
+import { computeApplicability } from './master-required-gate-applicability.mjs';
+import { validateApplicabilityOutput } from './master-required-gate-validate-applicability.mjs';
+import { evaluateGateResult } from './master-required-gate-gate-result.mjs';
+import { aggregate } from './master-required-gate-aggregate.mjs';
+import { deriveJobFacts, parseWorkflow } from './master-blocking-portfolio-contract.mjs';
 import {
   auditAllowlistDependencyDrift,
   auditTypeCoverage,
@@ -56,11 +76,15 @@ const ROOT = resolve(process.cwd());
 const WORKFLOW_DIR = resolve(ROOT, '.github/workflows');
 const REQUIRED_WORKFLOW = resolve(WORKFLOW_DIR, 'cbw-master-required-gate.yml');
 const HEADER_WORKFLOW = resolve(WORKFLOW_DIR, 'cbw-global-header-interaction.yml');
-const REQUIRED_CONTEXT = 'Master required gate';
+const REQUIRED_CONTEXT = FINAL_CHECK_CONTEXT;
 const HEADER_GATE_SCRIPT = 'scripts/ui/global-header-interaction-browser-smoke.mjs';
 const CLASSIFY_SCRIPT = 'scripts/ci/master-required-gate-classify.mjs';
 const VALIDATE_SCRIPT = 'scripts/ci/master-required-gate-validate-output.mjs';
-const ALLOWED_STEP_IF = CONTRACT_ALLOWED_STEP_IF;
+const GATES_SCRIPT = 'scripts/ci/master-required-gate-gates.mjs';
+const APPLICABILITY_SCRIPT = 'scripts/ci/master-required-gate-applicability.mjs';
+const VALIDATE_APPLICABILITY_SCRIPT = 'scripts/ci/master-required-gate-validate-applicability.mjs';
+const GATE_RESULT_SCRIPT = 'scripts/ci/master-required-gate-gate-result.mjs';
+const AGGREGATE_SCRIPT = 'scripts/ci/master-required-gate-aggregate.mjs';
 
 let checks = 0;
 const failures = [];
@@ -101,18 +125,59 @@ check(
 );
 
 // --- 2. stable, unique check context ----------------------------------------
+//
+// S2-03: the workflow is now a bounded DAG, so "exactly one job" became "exactly
+// one job whose visible name is the stable required context, and that job is the
+// FINAL aggregator". The full DAG shape is asserted by
+// auditProducerConsumerContract in section 10; these are the direct assertions a
+// reader should be able to find without following a call.
 const jobIds = Object.keys(required?.jobs ?? {});
-check('required workflow has exactly one job', jobIds.length === 1, jobIds.join(','));
-const job = required?.jobs?.[jobIds[0]];
+const namedRequired = jobIds.filter((id) => required.jobs[id]?.name === REQUIRED_CONTEXT);
 check(
-  'required check context name is stable',
-  job?.name === REQUIRED_CONTEXT,
-  `actual=${job?.name}`,
+  'the stable required check context appears EXACTLY once in this workflow',
+  namedRequired.length === 1,
+  `found ${namedRequired.length}: ${namedRequired.join(',')}`,
 );
 check(
-  'required job declares no matrix (context name cannot fan out)',
-  !job?.strategy,
+  'the stable required check context belongs to the FINAL aggregator job',
+  namedRequired.length === 1 && namedRequired[0] === FINAL_JOB_ID,
+  namedRequired.join(','),
 );
+const job = required?.jobs?.[FINAL_JOB_ID];
+const classifyJob = required?.jobs?.classify;
+check('required check context name is stable', job?.name === REQUIRED_CONTEXT, `actual=${job?.name}`);
+check('required job declares no matrix (context name cannot fan out)', !job?.strategy);
+// THE ALWAYS-REPORTING PROPERTY, stated directly. Without `if: always()` the
+// aggregator is skipped whenever an upstream job fails, reports no conclusion at
+// all, and a branch-protection rule naming it waits forever.
+check(
+  'the final required job carries `if: always()` so the context is ALWAYS reported',
+  String(job?.if ?? '').trim() === 'always()',
+  `actual=${JSON.stringify(job?.if)}`,
+);
+const requiredNeeds = job?.needs ? (Array.isArray(job.needs) ? job.needs : [job.needs]) : [];
+check(
+  'the final required job depends on the classifier and on every registered blocker',
+  JSON.stringify([...requiredNeeds].sort()) ===
+    JSON.stringify(['classify', ...GATE_IDS.map((gateId) => GATES[gateId].jobId)].sort()),
+  JSON.stringify(requiredNeeds),
+);
+for (const gateId of GATE_IDS) {
+  check(
+    `the final required job has a needs edge on blocker "${gateId}"`,
+    requiredNeeds.includes(GATES[gateId].jobId),
+  );
+  const blocker = required?.jobs?.[GATES[gateId].jobId];
+  check(`blocker job "${gateId}" exists in the unified workflow`, Boolean(blocker));
+  // A path-irrelevant blocker must still INSTANTIATE. A job-level `if` would make
+  // it `skipped`, and skipped is indistinguishable from an upstream failure.
+  check(
+    `blocker job "${gateId}" carries no job-level if (it always instantiates)`,
+    !Object.prototype.hasOwnProperty.call(blocker ?? {}, 'if'),
+    JSON.stringify(blocker?.if),
+  );
+  check(`blocker job "${gateId}" is not continue-on-error`, blocker?.['continue-on-error'] !== true);
+}
 
 // Context uniqueness across every workflow that can run on pull_request.
 const workflowFiles = execFileSync('git', ['ls-files', '.github/workflows'], { encoding: 'utf8' })
@@ -137,40 +202,41 @@ check(
   contextCollisions.map((entry) => entry.file).join(','),
 );
 
-// --- 3. the required job cannot be skipped or softened -----------------------
-check('required job has no job-level if', !Object.prototype.hasOwnProperty.call(job ?? {}, 'if'));
+// --- 3. no job in the DAG can be softened ------------------------------------
 check('required job is not continue-on-error', job?.['continue-on-error'] !== true);
-check('required job has no needs (not an aggregator)', !job?.needs);
 check('required job has a timeout', typeof job?.['timeout-minutes'] === 'number');
+check('classifier job exists', Boolean(classifyJob));
+check('classifier job has no job-level if', !Object.prototype.hasOwnProperty.call(classifyJob ?? {}, 'if'));
+check('classifier job is the DAG root (no needs)', !classifyJob?.needs);
 
-const steps = job?.steps ?? [];
-for (const step of steps) {
-  const label = step.name ?? step.uses ?? step.run ?? '<unnamed>';
-  check(`step "${label}" is not continue-on-error`, step['continue-on-error'] !== true);
-  if (Object.prototype.hasOwnProperty.call(step, 'if')) {
-    check(
-      `step "${label}" uses only the fail-closed material condition`,
-      String(step.if).trim() === ALLOWED_STEP_IF,
-      `actual=${step.if}`,
-    );
-  }
-  if (typeof step.run === 'string') {
-    check(
-      `step "${label}" does not swallow failures`,
-      !/\|\|\s*(true|exit\s+0|:)\b/.test(step.run) && !/set\s+\+e/.test(step.run),
-      step.run,
-    );
+const steps = classifyJob?.steps ?? [];
+for (const id of jobIds) {
+  for (const step of required.jobs[id]?.steps ?? []) {
+    const label = `${id}/${step.name ?? step.uses ?? step.run ?? '<unnamed>'}`;
+    check(`step "${label}" is not continue-on-error`, step['continue-on-error'] !== true);
+    if (typeof step.run === 'string') {
+      check(
+        `step "${label}" does not swallow failures`,
+        !/\|\|\s*(true|exit\s+0|:)\b/.test(step.run) && !/set\s+\+e/.test(step.run),
+        step.run,
+      );
+    }
   }
 }
 
-// --- 6. header-gate failure propagates --------------------------------------
-const headerStep = steps.find((step) => String(step.run ?? '').includes(HEADER_GATE_SCRIPT));
-check('required job runs the header hard-gate script itself', Boolean(headerStep));
+// --- 6. blocker failure propagates to the required context -------------------
+//
+// The header hard gate now lives in its own blocker job. Its failure reaches the
+// stable context through the aggregator, which rejects any blocker job result
+// other than `success`. Both halves are asserted: the step really runs inside the
+// unified DAG, and the aggregator really refuses to pass without it.
+const headerJob = required?.jobs?.[GATES['global-header-interaction'].jobId];
+const headerSteps = headerJob?.steps ?? [];
+const headerStep = headerSteps.find((step) => String(step.run ?? '').includes(HEADER_GATE_SCRIPT));
+check('the unified DAG runs the header hard-gate script itself', Boolean(headerStep));
 check(
-  'header hard-gate step failure propagates to the required job',
-  headerStep?.['continue-on-error'] !== true &&
-    !/\|\|/.test(String(headerStep?.run ?? '')) &&
-    (!headerStep?.if || String(headerStep.if).trim() === ALLOWED_STEP_IF),
+  'header hard-gate step failure propagates to its blocker job',
+  headerStep?.['continue-on-error'] !== true && !/\|\|/.test(String(headerStep?.run ?? '')),
 );
 // The gate script itself must fail-closed on a failed check.
 const headerScriptSource = readFileSync(resolve(ROOT, HEADER_GATE_SCRIPT), 'utf8');
@@ -179,9 +245,14 @@ check(
   /process\.exitCode\s*=\s*1/.test(headerScriptSource),
 );
 check(
-  'required job runs the production build before the header matrix',
-  steps.findIndex((step) => String(step.run ?? '').includes('npm run build')) <
-    steps.findIndex((step) => String(step.run ?? '').includes(HEADER_GATE_SCRIPT)),
+  'the header blocker runs the production build before the header matrix',
+  headerSteps.findIndex((step) => String(step.run ?? '').includes('npm run build')) <
+    headerSteps.findIndex((step) => String(step.run ?? '').includes(HEADER_GATE_SCRIPT)),
+);
+check(
+  'the required workflow executes the blocking work ITSELF and never queries another workflow status',
+  !readFileSync(REQUIRED_WORKFLOW, 'utf8').includes('workflow_run') &&
+    !readFileSync(REQUIRED_WORKFLOW, 'utf8').includes('github-script'),
 );
 
 // --- 4. fail-closed classification: default MATERIAL -------------------------
@@ -582,6 +653,10 @@ check(
     String(step.run ?? '').includes('master-required-gate-mutation-test.mjs'),
   ),
 );
+check(
+  'required job always executes the legacy/unified parity suite',
+  unconditionalSteps.some((step) => String(step.run ?? '').includes('master-required-gate-parity-test.mjs')),
+);
 
 // Fail-closed resolution boundaries.
 check('unresolved change set is MATERIAL', classifyChangedPaths(null).material === true);
@@ -657,10 +732,24 @@ for (const result of auditProducerConsumerContract({
   workflowText: readFileSync(REQUIRED_WORKFLOW, 'utf8'),
   classifierSource: readFileSync(resolve(ROOT, CLASSIFY_SCRIPT), 'utf8'),
   validatorSource,
+  gatesSource: readFileSync(resolve(ROOT, GATES_SCRIPT), 'utf8'),
+  applicabilitySource: readFileSync(resolve(ROOT, APPLICABILITY_SCRIPT), 'utf8'),
+  applicabilityValidatorSource: readFileSync(resolve(ROOT, VALIDATE_APPLICABILITY_SCRIPT), 'utf8'),
+  gateResultSource: readFileSync(resolve(ROOT, GATE_RESULT_SCRIPT), 'utf8'),
+  aggregateSource: readFileSync(resolve(ROOT, AGGREGATE_SCRIPT), 'utf8'),
 })) {
   check(result.label, result.ok, result.detail);
 }
-check('validator script exists on disk', existsSync(resolve(ROOT, VALIDATE_SCRIPT)));
+for (const script of [
+  VALIDATE_SCRIPT,
+  GATES_SCRIPT,
+  APPLICABILITY_SCRIPT,
+  VALIDATE_APPLICABILITY_SCRIPT,
+  GATE_RESULT_SCRIPT,
+  AGGREGATE_SCRIPT,
+]) {
+  check(`gate script "${script}" exists on disk`, existsSync(resolve(ROOT, script)));
+}
 
 // --- 11. runtime validator behaviour -----------------------------------------
 //
@@ -1148,6 +1237,681 @@ try {
   }
 } finally {
   restoreEnv();
+}
+
+// =============================================================================
+// S2-03 — THE MATRIX FOUNDATION
+// =============================================================================
+
+// --- 14. the applicability vocabulary is closed and pinned -------------------
+check('exactly two gates are migrated in S2-03', GATE_IDS.length === 2, GATE_IDS.join(','));
+check(
+  'the migrated gates are the two named by the stage',
+  JSON.stringify([...GATE_IDS]) === JSON.stringify(['global-header-interaction', 'public-seo-metadata']),
+  GATE_IDS.join(','),
+);
+check(
+  'applicability vocabulary is exactly APPLICABLE/NOT_APPLICABLE',
+  JSON.stringify([...APPLICABILITY_VALUES]) === JSON.stringify(['APPLICABLE', 'NOT_APPLICABLE']),
+);
+check(
+  'the outcome vocabulary is closed and includes an explicit FAIL',
+  JSON.stringify([...GATE_OUTCOMES]) === JSON.stringify(['PASS', 'NOT_APPLICABLE', 'FAIL']),
+);
+check(
+  'the ACCEPTED outcome vocabulary excludes FAIL',
+  JSON.stringify([...ACCEPTED_GATE_OUTCOMES]) === JSON.stringify(['PASS', 'NOT_APPLICABLE']),
+);
+check(
+  'APPLICABILITY_REASONS covers exactly the valid reason vocabulary',
+  Object.keys(APPLICABILITY_REASONS).length === VALID_APPLICABILITY_REASONS.length,
+);
+check(
+  'both fail-closed applicability reasons imply APPLICABLE',
+  APPLICABILITY_REASONS['unresolved-or-empty-change-set'] === 'APPLICABLE' &&
+    APPLICABILITY_REASONS['relevant-path-changed'] === 'APPLICABLE',
+);
+check(
+  'only the affirmative inert-paths reason implies NOT_APPLICABLE',
+  APPLICABILITY_REASONS['only-gate-irrelevant-paths'] === 'NOT_APPLICABLE',
+);
+// The complete cross-product, valid or not.
+for (const value of APPLICABILITY_VALUES) {
+  for (const reason of VALID_APPLICABILITY_REASONS) {
+    check(
+      `isConsistentApplicability("${value}", "${reason}") === ${APPLICABILITY_REASONS[reason] === value}`,
+      isConsistentApplicability(value, reason) === (APPLICABILITY_REASONS[reason] === value),
+    );
+  }
+}
+for (const bad of [undefined, null, '', 'applicable', 'APPLICABLE ', 'SKIPPED', 'PASS', 0, true]) {
+  check(
+    `isConsistentApplicability rejects applicability ${JSON.stringify(bad)}`,
+    isConsistentApplicability(bad, 'relevant-path-changed') === false,
+  );
+}
+
+// --- 15. NOT_APPLICABLE is fail-closed and evidence-backed -------------------
+//
+// A gate is irrelevant ONLY when every changed path is verbatim in its bounded
+// inert set. Everything else — including every unknown path — is relevant.
+for (const gateId of GATE_IDS) {
+  const gate = GATES[gateId];
+  check(
+    `gate "${gateId}" inert set is bounded (<= 8 entries)`,
+    gate.irrelevantPaths.length <= 8,
+    String(gate.irrelevantPaths.length),
+  );
+  for (const entry of gate.irrelevantPaths) {
+    check(
+      `gate "${gateId}" inert entry "${entry}" is an exact path, not a prefix/glob`,
+      !entry.includes('*') && !entry.endsWith('/'),
+      entry,
+    );
+    check(
+      `gate "${gateId}" inert entry "${entry}" is a real tracked file`,
+      existsSync(resolve(ROOT, entry)),
+      entry,
+    );
+  }
+  // The S2-01 allowlist is a SUBSET of every gate's inert set — that is what makes
+  // "material=false implies every gate NOT_APPLICABLE" a theorem rather than a
+  // coincidence, and it is why the two lists cannot be maintained independently.
+  for (const entry of UNIVERSALLY_INERT_PATHS) {
+    check(
+      `gate "${gateId}" inherits the S2-01 non-material allowlist entry "${entry}"`,
+      gate.irrelevantPaths.includes(entry),
+    );
+  }
+  // Fail-closed inputs.
+  for (const bad of [null, undefined, [], 'src/x.ts', 42, {}]) {
+    check(
+      `gate "${gateId}" is APPLICABLE for an unresolvable change set ${JSON.stringify(bad)}`,
+      classifyGateApplicability(gateId, bad).applicability === 'APPLICABLE',
+    );
+  }
+  for (const bad of ['/abs/path.ts', '../escape.ts', 'a/../../b.ts', '', '   ']) {
+    check(
+      `gate "${gateId}" treats malformed path ${JSON.stringify(bad)} as RELEVANT`,
+      classifyGateApplicability(gateId, [bad]).applicability === 'APPLICABLE',
+    );
+  }
+  // A whitespace twin of an inert entry is a DIFFERENT file and must be relevant.
+  for (const entry of gate.irrelevantPaths) {
+    check(
+      `gate "${gateId}" treats the trailing-space twin of "${entry}" as RELEVANT`,
+      classifyGateApplicability(gateId, [`${entry} `]).applicability === 'APPLICABLE',
+    );
+  }
+  // The inert set really is inert: NOT_APPLICABLE only for exactly those paths.
+  check(
+    `gate "${gateId}" is NOT_APPLICABLE when only its inert paths changed`,
+    classifyGateApplicability(gateId, [...gate.irrelevantPaths]).applicability === 'NOT_APPLICABLE',
+  );
+  check(
+    `gate "${gateId}" NOT_APPLICABLE carries the affirmative justification`,
+    classifyGateApplicability(gateId, [...gate.irrelevantPaths]).reason === 'only-gate-irrelevant-paths',
+  );
+  // One relevant path poisons the whole change set.
+  check(
+    `gate "${gateId}" is APPLICABLE when one unknown path joins its inert paths`,
+    classifyGateApplicability(gateId, [...gate.irrelevantPaths, 'unknown-new-file.mjs']).applicability ===
+      'APPLICABLE',
+  );
+  for (const relevant of ['src/pages/index.astro', 'package.json', 'astro.config.mjs', 'public/robots.txt']) {
+    check(
+      `gate "${gateId}" is APPLICABLE for build input "${relevant}"`,
+      classifyGateApplicability(gateId, [relevant]).applicability === 'APPLICABLE',
+    );
+  }
+}
+
+// --- 15b. INERT-SET DRIFT: an inert path must be outside the gate's real
+//          dependency closure, derived LIVE from the S2-02 engine.
+//
+// This is the S2-03 analogue of the allowlist dependency-drift scan. Claiming a
+// file inert is only safe while it really is outside what the gate executes and
+// reads. Both the LEGACY job and the UNIFIED blocker job are derived, so the
+// moment either one starts depending on a claimed-inert file, this fails instead
+// of letting the gate keep skipping on it.
+const packageScripts = JSON.parse(readFileSync(resolve(ROOT, 'package.json'), 'utf8')).scripts ?? {};
+const repoFiles = (() => {
+  const raw = execFileSync('git', ['ls-files', '-z'], { encoding: 'utf8', maxBuffer: 1024 * 1024 * 256 }).split('\0');
+  if (raw[raw.length - 1] === '') raw.pop();
+  return raw;
+})();
+const readRepoFile = (path) => {
+  try {
+    return readFileSync(resolve(ROOT, path), 'utf8');
+  } catch {
+    return null;
+  }
+};
+const unifiedDoc = parseWorkflow(readFileSync(REQUIRED_WORKFLOW, 'utf8'));
+for (const gateId of GATE_IDS) {
+  const gate = GATES[gateId];
+  const legacyDoc = parseWorkflow(readFileSync(resolve(ROOT, gate.legacyWorkflow), 'utf8'));
+  const surfaces = [
+    ['legacy', deriveJobFacts({
+      workflowFile: gate.legacyWorkflow.split('/').pop(),
+      workflowDoc: legacyDoc,
+      jobId: gate.legacyJobId,
+      packageScripts,
+      repoFiles,
+      readFile: readRepoFile,
+    })],
+    ['unified', deriveJobFacts({
+      workflowFile: 'cbw-master-required-gate.yml',
+      workflowDoc: unifiedDoc,
+      jobId: gate.jobId,
+      packageScripts,
+      repoFiles,
+      readFile: readRepoFile,
+    })],
+  ];
+  for (const [which, facts] of surfaces) {
+    const closure = [
+      ...facts.dependencies.executed,
+      ...facts.dependencies.readInputs,
+      ...facts.dependencies.sharedConfig,
+      ...facts.dependencies.localActions,
+    ];
+    for (const entry of gate.irrelevantPaths) {
+      check(
+        `gate "${gateId}" inert entry "${entry}" is outside its ${which} dependency closure`,
+        !closure.includes(entry),
+        `${which} closure: ${closure.join(',')}`,
+      );
+    }
+    // And every real dependency must be RELEVANT — the direction that catches a
+    // claimed-inert file that is actually load-bearing.
+    for (const path of closure) {
+      check(
+        `gate "${gateId}" treats its ${which} dependency "${path}" as RELEVANT`,
+        classifyGateApplicability(gateId, [path]).applicability === 'APPLICABLE',
+        path,
+      );
+    }
+  }
+  // The legacy TRIGGER surface must be relevant too, or the unified gate would
+  // skip work the legacy gate would have run.
+  const legacyPaths = (legacyDoc?.on ?? legacyDoc?.true)?.pull_request?.paths ?? [];
+  check(`legacy "${gateId}" still declares a path filter`, legacyPaths.length > 0);
+  for (const pattern of legacyPaths) {
+    const probe = pattern.endsWith('/**') ? `${pattern.slice(0, -2)}__probe__.astro` : pattern;
+    check(
+      `legacy "${gateId}" trigger "${pattern}" is RELEVANT to the unified blocker`,
+      classifyGateApplicability(gateId, [probe]).applicability === 'APPLICABLE',
+      probe,
+    );
+  }
+}
+
+// --- 15c. materiality/applicability consistency is a theorem ------------------
+const applicabilityOf = (paths) =>
+  classifyAllGates({
+    paths,
+    material: String(classifyChangedPaths(paths).material),
+    materialReason: classifyChangedPaths(paths).reason,
+  });
+check(
+  'an allowlisted-only change set makes EVERY gate NOT_APPLICABLE',
+  GATE_IDS.every((gateId) => applicabilityOf([...NON_MATERIAL_PATHS]).gates[gateId] === 'NOT_APPLICABLE'),
+);
+check(
+  'an unresolved change set makes EVERY gate APPLICABLE',
+  GATE_IDS.every((gateId) => applicabilityOf(null).gates[gateId] === 'APPLICABLE'),
+);
+check(
+  'a source change makes EVERY gate APPLICABLE',
+  GATE_IDS.every((gateId) => applicabilityOf(['src/pages/index.astro']).gates[gateId] === 'APPLICABLE'),
+);
+// The per-gate distinction really exists: the other gate's exclusive script is
+// inert here and relevant there.
+const seoOnly = applicabilityOf(['scripts/seo/public-seo-metadata-schema-test.mjs']);
+check(
+  'a public-SEO-only change leaves the global header blocker NOT_APPLICABLE',
+  seoOnly.gates['global-header-interaction'] === 'NOT_APPLICABLE',
+);
+check(
+  'a public-SEO-only change keeps the public SEO blocker APPLICABLE',
+  seoOnly.gates['public-seo-metadata'] === 'APPLICABLE',
+);
+const headerOnly = applicabilityOf(['scripts/ui/global-header-interaction-browser-smoke.mjs']);
+check(
+  'a global-header-only change keeps the global header blocker APPLICABLE',
+  headerOnly.gates['global-header-interaction'] === 'APPLICABLE',
+);
+check(
+  'a global-header-only change leaves the public SEO blocker NOT_APPLICABLE',
+  headerOnly.gates['public-seo-metadata'] === 'NOT_APPLICABLE',
+);
+for (const paths of [null, [], ['README.md'], ['src/pages/index.astro'], ['unknown.mjs'], [...NON_MATERIAL_PATHS]]) {
+  check(
+    `materiality/applicability are consistent for ${JSON.stringify(paths)}`,
+    checkApplicabilityMaterialityConsistency(applicabilityOf(paths)).length === 0,
+    checkApplicabilityMaterialityConsistency(applicabilityOf(paths)).join(' | '),
+  );
+}
+// A hand-forged contradictory decision is REJECTED.
+check(
+  'an APPLICABLE gate alongside material=false is rejected as contradictory',
+  checkApplicabilityMaterialityConsistency({
+    gates: Object.fromEntries(GATE_IDS.map((gateId) => [gateId, 'APPLICABLE'])),
+    reasons: Object.fromEntries(GATE_IDS.map((gateId) => [gateId, 'relevant-path-changed'])),
+    material: 'false',
+  }).length > 0,
+);
+check(
+  'a NOT_APPLICABLE gate justified by a relevance reason is rejected as contradictory',
+  checkApplicabilityMaterialityConsistency({
+    gates: Object.fromEntries(GATE_IDS.map((gateId) => [gateId, 'NOT_APPLICABLE'])),
+    reasons: Object.fromEntries(GATE_IDS.map((gateId) => [gateId, 'relevant-path-changed'])),
+    material: 'true',
+  }).length > 0,
+);
+
+// --- 16. the applicability validator, driven with hostile inputs -------------
+const APP_IDENTITY = Object.freeze({ headSha: 'ab'.repeat(20), runId: '515151', runAttempt: '1' });
+const goodProduced = computeApplicability({ paths: ['src/pages/index.astro'], identity: APP_IDENTITY });
+const goodDecision = goodProduced.decision;
+const goodDigest = goodProduced.digest;
+const goodGateOutputs = Object.fromEntries(
+  GATE_IDS.map((gateId) => [GATES[gateId].outputName, goodDecision.gates[gateId]]),
+);
+const goodSidecar = JSON.stringify({
+  gates: goodDecision.gates,
+  reasons: goodDecision.reasons,
+  changedPaths: goodDecision.changedPaths,
+  material: goodDecision.material,
+  materialReason: goodDecision.materialReason,
+  digest: goodDigest,
+  ...APP_IDENTITY,
+});
+const validateApp = (overrides = {}) =>
+  validateApplicabilityOutput({
+    applicabilityRaw: JSON.stringify(goodDecision),
+    digest: goodDigest,
+    gateOutputs: goodGateOutputs,
+    material: goodDecision.material,
+    sidecarRaw: goodSidecar,
+    identity: APP_IDENTITY,
+    ...overrides,
+  });
+check('applicability validator ACCEPTS a well-formed current decision', validateApp().length === 0, validateApp().join(' | '));
+const APP_REJECTIONS = [
+  ['a missing decision (producer deleted)', { applicabilityRaw: undefined }],
+  ['an empty decision (producer id renamed)', { applicabilityRaw: '' }],
+  ['unparseable JSON', { applicabilityRaw: '{not json' }],
+  ['a literal null decision', { applicabilityRaw: 'null' }],
+  ['an array decision', { applicabilityRaw: '[]' }],
+  ['a decision with no gates object', { applicabilityRaw: '{"reasons":{}}' }],
+  ['a missing digest', { digest: undefined }],
+  ['an empty digest', { digest: '' }],
+  ['a forged digest', { digest: 'f'.repeat(64) }],
+  ['a missing sidecar', { sidecarRaw: null }],
+  ['an empty sidecar', { sidecarRaw: '' }],
+  ['an unparseable sidecar', { sidecarRaw: '{' }],
+  ['a null sidecar', { sidecarRaw: 'null' }],
+  [
+    'a STALE sidecar from another run',
+    { sidecarRaw: JSON.stringify({ ...JSON.parse(goodSidecar), runId: '515150' }) },
+  ],
+  [
+    'a STALE sidecar from another PR head',
+    { sidecarRaw: JSON.stringify({ ...JSON.parse(goodSidecar), headSha: 'cd'.repeat(20) }) },
+  ],
+  [
+    'a STALE sidecar from another re-run attempt',
+    { sidecarRaw: JSON.stringify({ ...JSON.parse(goodSidecar), runAttempt: '2' }) },
+  ],
+  ['an unidentifiable run', { identity: null }],
+  ['an identity with an empty field', { identity: { ...APP_IDENTITY, runId: '' } }],
+  ['a materiality output that is missing', { material: undefined }],
+  ['a materiality output that disagrees with the decision', { material: 'false' }],
+  [
+    'a per-gate convenience output that disagrees with the decision',
+    { gateOutputs: { ...goodGateOutputs, [GATES[GATE_IDS[0]].outputName]: 'NOT_APPLICABLE' } },
+  ],
+  [
+    'a per-gate convenience output that is empty (renamed producer)',
+    { gateOutputs: { ...goodGateOutputs, [GATES[GATE_IDS[0]].outputName]: '' } },
+  ],
+  [
+    'a decision missing one registered gate',
+    {
+      applicabilityRaw: JSON.stringify({
+        ...goodDecision,
+        gates: { [GATE_IDS[0]]: goodDecision.gates[GATE_IDS[0]] },
+      }),
+    },
+  ],
+  [
+    'a decision with an out-of-vocabulary applicability',
+    {
+      applicabilityRaw: JSON.stringify({
+        ...goodDecision,
+        gates: { ...goodDecision.gates, [GATE_IDS[0]]: 'SKIPPED' },
+      }),
+    },
+  ],
+  [
+    'a decision with a contradictory applicability/reason pair',
+    {
+      applicabilityRaw: JSON.stringify({
+        ...goodDecision,
+        gates: { ...goodDecision.gates, [GATE_IDS[0]]: 'NOT_APPLICABLE' },
+      }),
+    },
+  ],
+];
+for (const [label, overrides] of APP_REJECTIONS) {
+  check(`applicability validator REJECTS ${label}`, validateApp(overrides).length > 0);
+}
+
+// --- 17. the per-blocker result emitter --------------------------------------
+const emitterInput = (overrides = {}) => ({
+  gateId: GATE_IDS[0],
+  applicability: 'APPLICABLE',
+  digest: goodDigest,
+  stepOutcomes: GATES[GATE_IDS[0]].steps.map((step) => ({ name: step.command, outcome: 'success' })),
+  ...overrides,
+});
+check(
+  'result emitter publishes PASS when an applicable gate ran every step successfully',
+  evaluateGateResult(emitterInput()).result === 'PASS',
+);
+check(
+  'result emitter publishes NOT_APPLICABLE when an inapplicable gate skipped every step',
+  evaluateGateResult(
+    emitterInput({
+      applicability: 'NOT_APPLICABLE',
+      stepOutcomes: GATES[GATE_IDS[0]].steps.map((step) => ({ name: step.command, outcome: 'skipped' })),
+    }),
+  ).result === 'NOT_APPLICABLE',
+);
+const EMITTER_FAILS = [
+  ['an unknown gate id', { gateId: 'nope' }],
+  ['a missing gate id', { gateId: undefined }],
+  ['an empty applicability (renamed classifier output)', { applicability: '' }],
+  ['a missing applicability', { applicability: undefined }],
+  ['an out-of-vocabulary applicability', { applicability: 'SKIPPED' }],
+  ['a missing evidence digest', { digest: undefined }],
+  ['an empty evidence digest', { digest: '' }],
+  ['no step outcomes at all', { stepOutcomes: [] }],
+  ['null step outcomes', { stepOutcomes: null }],
+  [
+    'a deleted blocking step (arity mismatch)',
+    { stepOutcomes: GATES[GATE_IDS[0]].steps.slice(1).map((step) => ({ name: step.command, outcome: 'success' })) },
+  ],
+  [
+    'an APPLICABLE gate whose step was SKIPPED',
+    {
+      stepOutcomes: GATES[GATE_IDS[0]].steps.map((step, index) => ({
+        name: step.command,
+        outcome: index === 0 ? 'skipped' : 'success',
+      })),
+    },
+  ],
+  [
+    'an APPLICABLE gate whose step FAILED',
+    {
+      stepOutcomes: GATES[GATE_IDS[0]].steps.map((step, index) => ({
+        name: step.command,
+        outcome: index === 0 ? 'failure' : 'success',
+      })),
+    },
+  ],
+  [
+    'an APPLICABLE gate whose step reported nothing',
+    {
+      stepOutcomes: GATES[GATE_IDS[0]].steps.map((step, index) => ({
+        name: step.command,
+        outcome: index === 0 ? '' : 'success',
+      })),
+    },
+  ],
+  [
+    'a NOT_APPLICABLE gate that actually RAN its work',
+    {
+      applicability: 'NOT_APPLICABLE',
+      stepOutcomes: GATES[GATE_IDS[0]].steps.map((step) => ({ name: step.command, outcome: 'success' })),
+    },
+  ],
+];
+for (const [label, overrides] of EMITTER_FAILS) {
+  const evaluation = evaluateGateResult(emitterInput(overrides));
+  check(`result emitter publishes FAIL for ${label}`, evaluation.result === 'FAIL');
+  check(`result emitter explains its FAIL for ${label}`, evaluation.errors.length > 0);
+}
+check(
+  'result emitter never invents a result outside the closed vocabulary',
+  [
+    evaluateGateResult(emitterInput()),
+    evaluateGateResult(emitterInput({ applicability: 'SKIPPED' })),
+  ].every((evaluation) => GATE_OUTCOMES.includes(evaluation.result)),
+);
+
+// --- 18. THE AGGREGATOR FAIL-CLOSED MATRIX -----------------------------------
+//
+// This is the whole point of the stage: the stable context may go green ONLY when
+// every expected blocker is provably PASS or provably, evidentially
+// NOT_APPLICABLE.
+const evidenceFor = (gateId, applicability, digest = goodDigest) =>
+  JSON.stringify({ gateId, applicability, digest });
+const passingGates = Object.fromEntries(
+  GATE_IDS.map((gateId) => [
+    gateId,
+    { jobResult: 'success', result: 'PASS', evidence: evidenceFor(gateId, 'APPLICABLE') },
+  ]),
+);
+const agg = (overrides = {}) =>
+  aggregate({
+    classifyResult: 'success',
+    material: goodDecision.material,
+    applicabilityRaw: JSON.stringify(goodDecision),
+    digest: goodDigest,
+    gates: passingGates,
+    ...overrides,
+  });
+
+// 8. PASS + PASS => GREEN.
+check('AGGREGATOR: PASS + PASS is GREEN', agg().ok === true, agg().errors.join(' | '));
+
+// 9. PASS + validated NOT_APPLICABLE => GREEN.
+const mixedProduced = computeApplicability({
+  paths: ['scripts/seo/public-seo-metadata-schema-test.mjs'],
+  identity: APP_IDENTITY,
+});
+const mixedGates = {
+  'global-header-interaction': {
+    jobResult: 'success',
+    result: 'NOT_APPLICABLE',
+    evidence: evidenceFor('global-header-interaction', 'NOT_APPLICABLE', mixedProduced.digest),
+  },
+  'public-seo-metadata': {
+    jobResult: 'success',
+    result: 'PASS',
+    evidence: evidenceFor('public-seo-metadata', 'APPLICABLE', mixedProduced.digest),
+  },
+};
+const mixed = aggregate({
+  classifyResult: 'success',
+  material: mixedProduced.decision.material,
+  applicabilityRaw: JSON.stringify(mixedProduced.decision),
+  digest: mixedProduced.digest,
+  gates: mixedGates,
+});
+check('AGGREGATOR: PASS + validated NOT_APPLICABLE is GREEN', mixed.ok === true, mixed.errors.join(' | '));
+
+// Every gate NOT_APPLICABLE, on an allowlisted-only diff.
+const inertProduced = computeApplicability({ paths: [...NON_MATERIAL_PATHS], identity: APP_IDENTITY });
+const inertAggregate = aggregate({
+  classifyResult: 'success',
+  material: inertProduced.decision.material,
+  applicabilityRaw: JSON.stringify(inertProduced.decision),
+  digest: inertProduced.digest,
+  gates: Object.fromEntries(
+    GATE_IDS.map((gateId) => [
+      gateId,
+      {
+        jobResult: 'success',
+        result: 'NOT_APPLICABLE',
+        evidence: evidenceFor(gateId, 'NOT_APPLICABLE', inertProduced.digest),
+      },
+    ]),
+  ),
+});
+check(
+  'AGGREGATOR: every gate evidentially NOT_APPLICABLE is GREEN',
+  inertAggregate.ok === true,
+  inertAggregate.errors.join(' | '),
+);
+
+const FIRST = GATE_IDS[0];
+const withFirst = (patch) => ({ gates: { ...passingGates, [FIRST]: { ...passingGates[FIRST], ...patch } } });
+const AGGREGATOR_FAILURES = [
+  // 11. a classifier failure cannot be hidden.
+  ['the classifier job FAILED', { classifyResult: 'failure' }],
+  ['the classifier job was CANCELLED', { classifyResult: 'cancelled' }],
+  ['the classifier job was SKIPPED', { classifyResult: 'skipped' }],
+  ['the classifier job result is missing', { classifyResult: undefined }],
+  ['the classifier job result is empty', { classifyResult: '' }],
+  // classifier output invalid.
+  ['the classifier applicability output is missing', { applicabilityRaw: undefined }],
+  ['the classifier applicability output is empty', { applicabilityRaw: '' }],
+  ['the classifier applicability output is unparseable', { applicabilityRaw: '{' }],
+  ['the classifier applicability output is a literal null', { applicabilityRaw: 'null' }],
+  ['the classifier digest is missing', { digest: undefined }],
+  [
+    'the classifier decision contradicts its own materiality',
+    { material: 'false' },
+  ],
+  [
+    'the classifier decision omits a registered gate',
+    {
+      applicabilityRaw: JSON.stringify({
+        ...goodDecision,
+        gates: { [FIRST]: goodDecision.gates[FIRST] },
+        reasons: { [FIRST]: goodDecision.reasons[FIRST] },
+      }),
+    },
+  ],
+  // 4/5. blocker failure and cancellation.
+  ['a blocker job FAILED', withFirst({ jobResult: 'failure' })],
+  ['a blocker job was CANCELLED', withFirst({ jobResult: 'cancelled' })],
+  // 12. a skipped blocker cannot silently count as success.
+  ['a blocker job was SKIPPED', withFirst({ jobResult: 'skipped' })],
+  ['a blocker job result is missing', withFirst({ jobResult: undefined })],
+  ['a blocker job result is empty', withFirst({ jobResult: '' })],
+  // 6. missing result.
+  ['a blocker published NO result', withFirst({ result: undefined })],
+  ['a blocker published an empty result', withFirst({ result: '' })],
+  ['an expected blocker produced nothing at all', { gates: { [GATE_IDS[1]]: passingGates[GATE_IDS[1]] } }],
+  ['every blocker produced nothing at all', { gates: {} }],
+  // 7. unknown result.
+  ['a blocker published an unknown result', withFirst({ result: 'GREEN' })],
+  ['a blocker published a lowercase result', withFirst({ result: 'pass' })],
+  ['a blocker published a padded result', withFirst({ result: 'PASS ' })],
+  ['a blocker published GitHub\'s own `skipped`', withFirst({ result: 'skipped' })],
+  ['a blocker published FAIL', withFirst({ result: 'FAIL' })],
+  // 10. NOT_APPLICABLE requires valid applicability evidence.
+  [
+    'a blocker claimed NOT_APPLICABLE while the classifier said APPLICABLE',
+    withFirst({ result: 'NOT_APPLICABLE', evidence: evidenceFor(FIRST, 'NOT_APPLICABLE') }),
+  ],
+  [
+    'a blocker claimed PASS while the classifier said NOT_APPLICABLE',
+    {
+      material: inertProduced.decision.material,
+      applicabilityRaw: JSON.stringify(inertProduced.decision),
+      digest: inertProduced.digest,
+      gates: Object.fromEntries(
+        GATE_IDS.map((gateId) => [
+          gateId,
+          {
+            jobResult: 'success',
+            result: 'PASS',
+            evidence: evidenceFor(gateId, 'APPLICABLE', inertProduced.digest),
+          },
+        ]),
+      ),
+    },
+  ],
+  ['a blocker published no evidence', withFirst({ evidence: undefined })],
+  ['a blocker published unparseable evidence', withFirst({ evidence: '{' })],
+  ['a blocker published null evidence', withFirst({ evidence: 'null' })],
+  [
+    'a blocker published evidence naming a different gate',
+    withFirst({ evidence: evidenceFor(GATE_IDS[1], 'APPLICABLE') }),
+  ],
+  // 13. a stale applicability sidecar/result cannot be laundered through the DAG.
+  [
+    'a blocker echoed a STALE evidence digest',
+    withFirst({ evidence: evidenceFor(FIRST, 'APPLICABLE', 'f'.repeat(64)) }),
+  ],
+  [
+    'a blocker ran under an applicability the classifier never decided',
+    withFirst({ evidence: evidenceFor(FIRST, 'NOT_APPLICABLE') }),
+  ],
+  ['a result arrived for an unregistered gate', { gates: { ...passingGates, 'made-up-gate': passingGates[FIRST] } }],
+];
+for (const [label, overrides] of AGGREGATOR_FAILURES) {
+  const outcome = agg(overrides);
+  check(`AGGREGATOR fails closed when ${label}`, outcome.ok === false);
+  check(`AGGREGATOR explains its failure when ${label}`, outcome.errors.length > 0);
+}
+// And the aggregator never passes on silence: the completely empty input.
+check(
+  'AGGREGATOR fails closed on completely empty input',
+  aggregate({
+    classifyResult: undefined,
+    material: undefined,
+    applicabilityRaw: undefined,
+    digest: undefined,
+    gates: {},
+  }).ok === false,
+);
+
+// --- 19. specialized path-filtered workflows are NOT queried externally -------
+//
+// The required gate owns its execution and its outcomes. If it ever read another
+// workflow's status, a path-filtered child that never ran would present as
+// "nothing failed" — the exact deadlock/fail-open this whole design avoids.
+const requiredWorkflowText = readFileSync(REQUIRED_WORKFLOW, 'utf8');
+for (const forbidden of [
+  'workflow_run',
+  'github-script',
+  'gh api',
+  'check-runs',
+  'GITHUB_TOKEN',
+  'secrets.',
+  'statuses',
+]) {
+  check(
+    `required workflow never reaches for external check status ("${forbidden}")`,
+    !requiredWorkflowText.includes(forbidden),
+  );
+}
+for (const gateId of GATE_IDS) {
+  const gate = GATES[gateId];
+  check(
+    `the required workflow does not reference the legacy workflow "${gate.legacyWorkflow}" as a dependency`,
+    !requiredWorkflowText.includes(`uses: ./${gate.legacyWorkflow}`),
+  );
+  // The legacy workflow is LEFT IN PLACE and still independently blocking.
+  check(`legacy workflow "${gate.legacyWorkflow}" still exists`, existsSync(resolve(ROOT, gate.legacyWorkflow)));
+  const legacyDoc = loadWorkflow(resolve(ROOT, gate.legacyWorkflow));
+  check(
+    `legacy workflow "${gate.legacyWorkflow}" job is still blocking`,
+    legacyDoc?.jobs?.[gate.legacyJobId]?.['continue-on-error'] !== true,
+  );
+  // Command parity, restated here so a reader of the contract test sees it too.
+  check(
+    `unified blocker "${gateId}" declares the full legacy command sequence`,
+    gateCommands(gateId).length === 4,
+    JSON.stringify(gateCommands(gateId)),
+  );
 }
 
 if (failures.length) {

@@ -115,7 +115,12 @@ export const SIDECAR_BASENAME = 'cbw-master-required-gate-classification.json';
 // so any leftover file could stand in for a producer that never ran. An absent,
 // empty or unusable RUNNER_TEMP means the runtime is not the one this gate was
 // proven against, so it throws and the step fails CLOSED.
-export function classifierResultFilePath() {
+//
+// S2-03: the RUNNER_TEMP resolution is factored out of `classifierResultFilePath`
+// so the Stage-2 applicability sidecar resolves through the EXACT same
+// fail-closed helper. Two independent copies of this logic would be two
+// independent places for a fallback to creep back in.
+export function runnerTempDir() {
   const runnerTemp = process.env.RUNNER_TEMP;
   if (typeof runnerTemp !== 'string') {
     throw new Error(
@@ -146,7 +151,11 @@ export function classifierResultFilePath() {
   if (!stats.isDirectory()) {
     throw new Error(`master-required-gate: RUNNER_TEMP ${JSON.stringify(runnerTemp)} is not a directory`);
   }
-  return join(runnerTemp, SIDECAR_BASENAME);
+  return runnerTemp;
+}
+
+export function classifierResultFilePath() {
+  return join(runnerTempDir(), SIDECAR_BASENAME);
 }
 
 // Env vars that identify the ONE gate run the sidecar is allowed to speak for.
@@ -193,7 +202,7 @@ export function resolveRunIdentity(env = process.env) {
 // an allowlist hit out of a nested path. Backslashes are deliberately NOT
 // rewritten: `\` is a legal POSIX filename character and Git `-z` always emits
 // `/` separators, so rewriting it would corrupt a raw filename.
-function normalizePath(path) {
+export function normalizePath(path) {
   if (typeof path !== 'string') return null;
   if (path.length === 0) return null;
   const normalized = path.startsWith('./') ? path.slice(2) : path;
