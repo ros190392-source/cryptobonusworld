@@ -798,13 +798,16 @@ export function deriveSharedConfigDependencies(commands) {
 //     * `readdirSync('<literal dir>')` expanded against the tracked file list
 //     * a template literal whose STATIC prefix is a tracked directory, expanded
 //       against the tracked file list (deterministic prefix enumeration)
-//     * `find <dir> … -name '<pat>'` in a `run:` block
+//     * `find <dir> … -name '<pat>'` in a `run:` block, at any shell command
+//       position, INCLUDING behind a modelled command wrapper (`command find …`,
+//       `env LC_ALL=C find …`, `bash -c "find …"`)
 //
 //   FAIL CLOSED — recorded, never silently dropped:
 //     * DEPENDENCY_UNREADABLE — an EXEC target that cannot be read (hard audit failure)
 //     * DEPENDENCY_UNRESOLVABLE — a dynamic `import()`/`require()`, an
 //       unresolvable relative specifier, a local `uses: ./…` that resolves to no
-//       tracked action, or a closure that hit its node/depth bound
+//       tracked action, a command-wrapper form outside the modelled subset, or a
+//       closure that hit its node/depth bound
 //
 //   NOT MODELLED BY DESIGN — this is not a JavaScript interpreter. Data flow
 //   through variables is covered only because the literal scan is variable
@@ -849,6 +852,7 @@ const MODULE_EXTENSIONS = Object.freeze(['', '.mjs', '.js', '.cjs', '.ts', '.tsx
 //   command position = start of script | newline | `;` | `;;` | `&&` | `||`
 //                    | `|` | `&` | `(` | `)` | `{` | `}` | after one of the
 //                      control keywords below | after a `VAR=value` prefix
+//                    | the command a modelled WRAPPER runs (see ARGV_WRAPPERS)
 //
 // `)` is included because it is how a `case` arm introduces its command list.
 
@@ -862,18 +866,67 @@ const SHELL_COMMAND_KEYWORDS = Object.freeze([
   'while',
   'until',
   'do',
-  'time',
+  // `time` is NOT here: it is a WRAPPER (`time -p find …` would otherwise put
+  // `-p` in command position and hide the `find`). See ARGV_WRAPPERS.
   '!',
 ]);
 const SHELL_ASSIGNMENT_PREFIX_RE = /^[A-Za-z_][A-Za-z0-9_]*=/;
-// Constructs whose expansion this engine does not model. Presence anywhere in a
-// scanned shell body is an explicit unresolvable fact.
+// Constructs whose expansion this engine does not model. These are OPERATORS,
+// so they only count when the tokenizer meets them in EXECUTABLE position:
+// `echo '<< documentation text'` and `echo "<(not executable)"` are DATA and
+// must produce neither a dependency nor an unresolvable row. The detection
+// therefore happens inside the lexical scan below, never against raw text.
 const SHELL_UNMODELED_CONSTRUCTS = Object.freeze([
   ['<<', 'here-document redirection'],
   ['<(', 'process substitution'],
   ['>(', 'process substitution'],
 ]);
 const MAX_SHELL_SUBSTITUTION_DEPTH = 4;
+
+// --- command wrappers ----------------------------------------------------------
+//
+// A wrapper is a command whose ARGUMENTS are themselves a command: `command find
+// …`, `env LC_ALL=C find …`, `bash -c "find …"`. Reading only the head word
+// makes the wrapped command — and every dependency it carries — disappear
+// silently, which is exactly the failure mode this contract exists to prevent.
+//
+// The rule is uniform and has no third option: a wrapper is either UNWRAPPED
+// deterministically (the wrapped words are re-resolved as a command in their own
+// right) or it is REPORTED, so the caller emits DEPENDENCY_UNRESOLVABLE. No
+// wrapper form is ever skipped.
+
+// Wrappers that exec the remaining words as a command in the same argument
+// vector, with the option set this engine is willing to model. Every OTHER
+// option is outside the subset and is reported.
+//
+//   command  POSIX "run this command, ignoring functions/aliases". `-p` only
+//            changes the PATH searched, not WHICH command runs.
+//   exec     replaces the shell with the wrapped command — same dependencies.
+//   nohup    runs the wrapped command detached — same dependencies.
+//   time     times the wrapped command. `-p` selects POSIX output only.
+//   builtin  runs the shell builtin of that name. This engine cannot enumerate
+//            builtins, so it OVER-approximates by analysing the wrapped words:
+//            a superset of dependencies is safe here, a hidden one is not.
+const ARGV_WRAPPERS = Object.freeze({
+  command: ['-p'],
+  exec: [],
+  nohup: [],
+  time: ['-p'],
+  builtin: [],
+});
+// Shells whose `-c` argument is a nested shell PROGRAM (a literal one is parsed
+// recursively; a computed one is reported).
+const SHELL_C_COMMANDS = Object.freeze(['sh', 'bash', 'dash', 'ksh', 'zsh']);
+// How many wrappers may be peeled off one command (`env FOO=x command find …`).
+const MAX_WRAPPER_UNWRAP_DEPTH = 4;
+
+/** Which wrapper family a command name belongs to, or null for an ordinary command. */
+function wrapperKindOf(name) {
+  if (name === 'env') return 'env';
+  if (Object.prototype.hasOwnProperty.call(ARGV_WRAPPERS, name)) return 'argv';
+  if (SHELL_C_COMMANDS.includes(name)) return 'shell-c';
+  return null;
+}
 
 /**
  * Tokenize a shell body into commands.
@@ -916,14 +969,13 @@ export function tokenizeShell(source, depth = 0) {
     if (words.length) commands.push({ words });
     words = [];
   };
+  const noteUnmodeled = (detail) => {
+    if (!unmodeled.includes(detail)) unmodeled.push(detail);
+  };
   const absorb = (nested) => {
     for (const command of nested.commands) commands.push(command);
-    for (const detail of nested.unmodeled) if (!unmodeled.includes(detail)) unmodeled.push(detail);
+    for (const detail of nested.unmodeled) noteUnmodeled(detail);
   };
-
-  for (const [needle, description] of SHELL_UNMODELED_CONSTRUCTS) {
-    if (text.includes(needle)) unmodeled.push(`${description} (\`${needle}\`)`);
-  }
 
   let i = 0;
   while (i < text.length) {
@@ -939,6 +991,18 @@ export function tokenizeShell(source, depth = 0) {
     if (ch === '#' && word === null) {
       while (i < text.length && text[i] !== '\n') i += 1;
       continue;
+    }
+
+    // UNSUPPORTED STRUCTURE IS LEXICAL, NOT TEXTUAL. Control reaches this point
+    // only for characters the shell would EXECUTE: everything inside `'…'`,
+    // inside `"…"`, or preceded by a `\` is consumed by the branches below and
+    // never sees this test. So `echo '<< documentation text'` and
+    // `echo "<(not executable)"` stay clean, while a REAL here-document or a
+    // REAL process substitution is still reported. The characters themselves
+    // are then handled normally, so a `<(find …)` still exposes its `find`.
+    if (ch === '<' || ch === '>') {
+      const construct = SHELL_UNMODELED_CONSTRUCTS.find(([needle]) => text.startsWith(needle, i));
+      if (construct) noteUnmodeled(`${construct[1]} (\`${construct[0]}\`)`);
     }
 
     // A separator ends the current word AND the current command, so both
@@ -1073,11 +1137,20 @@ export function tokenizeShell(source, depth = 0) {
   // Every `commands` element above is one separator-delimited word list. Control
   // keywords and `VAR=value` prefixes occupy no command slot, so the executable
   // token is the first word past them.
+  //
+  // A WRAPPER (`command`, `env`, `exec`, `nohup`, `time`, `builtin`, `sh -c`)
+  // is then peeled: the wrapped command is resolved as a command in its own
+  // right, so the same `find` is analysed whether it is written bare or behind
+  // `env LC_ALL=C command find …`. The wrapper's own record is kept as well, so
+  // path-shaped words anywhere in the line are still scanned. A wrapper form
+  // outside the modelled subset is REPORTED, never dropped.
   const resolved = [];
-  for (const command of commands) {
-    let index = 0;
-    while (index < command.words.length) {
-      const candidate = command.words[index];
+  const isLiteral = (candidate) => Boolean(candidate) && candidate.quotedOnly === false && !candidate.dynamic && !candidate.substitution;
+
+  const resolveCommand = (allWords, start, unwrapDepth) => {
+    let index = start;
+    while (index < allWords.length) {
+      const candidate = allWords[index];
       // A control keyword only counts as one when it is a bare, unquoted word.
       if (candidate.quotedOnly === false && SHELL_COMMAND_KEYWORDS.includes(candidate.value)) {
         index += 1;
@@ -1089,15 +1162,82 @@ export function tokenizeShell(source, depth = 0) {
       }
       break;
     }
-    const head = command.words[index];
-    resolved.push({
-      // `name` is the EXECUTABLE token, and only when it is unquoted text: a
-      // fully quoted word is data, never an invocation this model recognises.
-      name: head && head.quotedOnly === false && !head.dynamic && !head.substitution ? head.value : null,
-      words: command.words,
-      argv: command.words.slice(index + 1),
-    });
-  }
+    const head = allWords[index];
+    // `name` is the EXECUTABLE token, and only when it is unquoted text: a
+    // fully quoted word is data, never an invocation this model recognises.
+    const name = isLiteral(head) ? head.value : null;
+    resolved.push({ name, words: allWords, argv: allWords.slice(index + 1) });
+    if (name === null) return;
+
+    const wrapper = wrapperKindOf(name);
+    if (wrapper === null) return;
+    if (unwrapDepth >= MAX_WRAPPER_UNWRAP_DEPTH) {
+      noteUnmodeled(`command wrappers nested deeper than ${MAX_WRAPPER_UNWRAP_DEPTH} (\`${name}\`)`);
+      return;
+    }
+
+    if (wrapper === 'argv' || wrapper === 'env') {
+      let next = index + 1;
+      while (next < allWords.length) {
+        const candidate = allWords[next];
+        if (candidate.dynamic || candidate.substitution) {
+          noteUnmodeled(`\`${name}\` wrapper argument is computed at run time`);
+          return;
+        }
+        if (wrapper === 'env' && SHELL_ASSIGNMENT_PREFIX_RE.test(candidate.value)) {
+          // A deterministic `NAME=value` assignment changes the ENVIRONMENT,
+          // never which command runs, so it is skipped.
+          next += 1;
+          continue;
+        }
+        if (candidate.quotedOnly === false && candidate.value.startsWith('-')) {
+          const supported = wrapper === 'env' ? [] : ARGV_WRAPPERS[name];
+          if (!supported.includes(candidate.value)) {
+            noteUnmodeled(`\`${name}\` wrapper option outside the supported model (${candidate.value})`);
+            return;
+          }
+          next += 1;
+          continue;
+        }
+        break;
+      }
+      // `env`, `env FOO=bar` or a bare `command` with nothing left runs no
+      // wrapped command at all, so there is nothing to hide.
+      if (next >= allWords.length) return;
+      if (!isLiteral(allWords[next])) {
+        noteUnmodeled(`\`${name}\` wrapper hides a command name this model cannot resolve`);
+        return;
+      }
+      resolveCommand(allWords, next, unwrapDepth + 1);
+      return;
+    }
+
+    // `sh -c <program>`: the program is a nested shell body.
+    const cIndex = allWords.findIndex((candidate, at) => at > index && isLiteral(candidate) && candidate.value === '-c');
+    if (cIndex === -1) return; // e.g. `bash scripts/build.sh` — a path, not a program string
+    if (cIndex !== index + 1) {
+      noteUnmodeled(`\`${name} -c\` invocation carries options outside the supported model`);
+      return;
+    }
+    const program = allWords[cIndex + 1];
+    if (!program) {
+      noteUnmodeled(`\`${name} -c\` declares no program argument`);
+      return;
+    }
+    if (program.dynamic || program.substitution) {
+      noteUnmodeled(`\`${name} -c\` program is computed at run time`);
+      return;
+    }
+    if (depth + 1 > MAX_SHELL_SUBSTITUTION_DEPTH) {
+      noteUnmodeled(`\`-c\` shell program nested deeper than ${MAX_SHELL_SUBSTITUTION_DEPTH}`);
+      return;
+    }
+    const nested = tokenizeShell(program.value, depth + 1);
+    for (const command of nested.commands) resolved.push(command);
+    for (const detail of nested.unmodeled) noteUnmodeled(detail);
+  };
+
+  for (const command of commands) resolveCommand(command.words, 0, 0);
   return { commands: resolved, unmodeled };
 }
 

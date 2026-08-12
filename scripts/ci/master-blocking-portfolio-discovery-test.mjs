@@ -1415,6 +1415,210 @@ check(
   tokenizeShell('{ find src -name x; }').commands.some((command) => command.name === 'find'),
 );
 
+// ============================================================================
+// F3. R4 REGRESSION — command wrappers, and quoted shell OPERATORS
+// ============================================================================
+//
+// R4 MEDIUM: a wrapper is a command whose ARGUMENTS are a command. Reading only
+// the head word made `command find …`, `env LC_ALL=C find …` and
+// `bash -c "find …"` resolve to NOTHING AT ALL — no dependency and no
+// unresolvable row — which is precisely the silent omission this contract
+// forbids. Every wrapper form must now either unwrap deterministically or be
+// recorded as DEPENDENCY_UNRESOLVABLE.
+
+const WRAPPER_RESOLVING_PROBES = [
+  ['`command`', "command find src/data -name '*.ts'"],
+  ['`command -p`', "command -p find src/data -name '*.ts'"],
+  ['`env` with one assignment', "env LC_ALL=C find src/data -name '*.ts'"],
+  ['`env` with several assignments', "env FOO=bar BAR=baz LC_ALL=C find src/data -name '*.ts'"],
+  ['`env` with a quoted assignment', "env 'LC_ALL=C' find src/data -name '*.ts'"],
+  ['`bash -c` with a double-quoted program', 'bash -c "find src/data -name \'*.ts\'"'],
+  ['`sh -c` with a single-quoted program', 'sh -c \'find src/data -name "*.ts"\''],
+  ['a nested `bash -c` inside a `bash -c`', 'bash -c "bash -c \'find src/data -name *.ts\'"'],
+  ['`exec`', "exec find src/data -name '*.ts'"],
+  ['`nohup`', "nohup find src/data -name '*.ts'"],
+  ['`time`', "time find src/data -name '*.ts'"],
+  ['`time -p`', "time -p find src/data -name '*.ts'"],
+  ['`builtin`', "builtin find src/data -name '*.ts'"],
+  ['a wrapper CHAIN (`env … command …`)', "env FOO=x command find src/data -name '*.ts'"],
+  ['a wrapper in an `if` head', "if env LC_ALL=C find src/data -name '*.ts'; then echo hit; fi"],
+  ['a wrapper inside a `$(…)` substitution', "COUNT=$(command find src/data -name '*.ts' | wc -l)"],
+];
+for (const [label, run] of WRAPPER_RESOLVING_PROBES) {
+  const closure = r3Closure(run);
+  check(
+    `R4 MEDIUM: a wrapped \`find\` behind ${label} resolves the DIRECT file`,
+    closure.readInputs.includes('src/data/direct.ts'),
+    JSON.stringify({ read: closure.readInputs, unresolvable: closure.unresolvable }),
+  );
+  check(
+    `R4 MEDIUM: a wrapped \`find\` behind ${label} resolves the NESTED file`,
+    closure.readInputs.includes('src/data/nested/deep.ts'),
+    JSON.stringify({ read: closure.readInputs, unresolvable: closure.unresolvable }),
+  );
+  check(
+    `R4 MEDIUM: a wrapped \`find\` behind ${label} does not over-match a non-\`.ts\` file`,
+    !closure.readInputs.includes('src/data/notes.md'),
+    JSON.stringify(closure.readInputs),
+  );
+  check(
+    `R4 MEDIUM: a fully modelled wrapper (${label}) raises NO unresolvable row`,
+    closure.unresolvable.length === 0,
+    JSON.stringify(closure.unresolvable),
+  );
+}
+
+// A wrapper also carries EXEC edges through, including a glob that only becomes
+// visible once the `-c` program string is parsed as the shell program it is.
+{
+  const closure = r3Closure('bash -c "node scripts/alpha.mjs"');
+  check(
+    'R4 MEDIUM: `bash -c` carries an EXEC edge for the wrapped script',
+    closure.executed.includes('scripts/alpha.mjs'),
+    JSON.stringify({ executed: closure.executed, unresolvable: closure.unresolvable }),
+  );
+}
+{
+  // On the previous head the whole program string was QUOTED DATA, so its glob
+  // was never expanded and both scripts disappeared without a trace.
+  const closure = r3Closure('bash -c "node scripts/*.mjs"');
+  check(
+    'R4 MEDIUM: a glob inside a `-c` program string is expanded, not silently dropped',
+    ['scripts/alpha.mjs', 'scripts/beta.mjs', 'scripts/probe.mjs'].every((path) => closure.executed.includes(path)),
+    JSON.stringify({ executed: closure.executed, unresolvable: closure.unresolvable }),
+  );
+}
+
+// Every wrapper form OUTSIDE the modelled subset is recorded, and resolves
+// nothing — silence is never the outcome.
+const WRAPPER_UNRESOLVABLE_PROBES = [
+  ['an unsupported `command` option', "command -x find src/data -name '*.ts'"],
+  ['`command -v` (which does not execute the wrapped command)', "command -v find src/data -name '*.ts'"],
+  ['an unsupported `env` flag', "env -i find src/data -name '*.ts'"],
+  ['an `env` assignment computed at run time', 'env FOO=$DYNAMIC find src/data -name \'*.ts\''],
+  ['an `env` value from a command substitution', "env FOO=$(id -u) find src/data -name '*.ts'"],
+  ['an unsupported `time` option', "time -v find src/data -name '*.ts'"],
+  ['a `bash -c` program held in a variable', 'bash -c "$CMD"'],
+  ['a bare dynamic `bash -c` program', 'bash -c $CMD'],
+  ['a `bash -c` program from a command substitution', 'bash -c "$(cat script.sh)"'],
+  ['`bash` shell options before `-c`', 'bash -euo pipefail -c "find src/data -name \'*.ts\'"'],
+  ['a `bash -c` with no program argument', 'bash -c'],
+  ['a wrapper whose command name is quoted', "command 'find' src/data -name '*.ts'"],
+  ['a wrapper whose command name is dynamic', "command $TOOL src/data -name '*.ts'"],
+  ['a wrapper around an UNSUPPORTED `find`', "command find src/data -maxdepth 1 -name '*.ts'"],
+  ['an `env` wrapper around an UNSUPPORTED `find`', "env LC_ALL=C find src/data -regex '.*[.]ts'"],
+  ['a `bash -c` around an UNSUPPORTED `find`', 'bash -c "find src/data -name \'*.ts\' -exec rm {} +"'],
+  ['a wrapper chain deeper than the bound', "command command command command command find src/data -name '*.ts'"],
+  [
+    'a `-c` shell program nested deeper than the bound',
+    'bash -c "bash -c \\"bash -c \'bash -c \\\\\\"find src/data -name x\\\\\\"\'\\""',
+  ],
+];
+for (const [label, run] of WRAPPER_UNRESOLVABLE_PROBES) {
+  const closure = r3Closure(run);
+  check(
+    `R4 MEDIUM: ${label} is recorded as unresolvable, never silently dropped`,
+    closure.unresolvable.length > 0,
+    JSON.stringify({ read: closure.readInputs, executed: closure.executed, unresolvable: closure.unresolvable }),
+  );
+  check(
+    `R4 MEDIUM: ${label} never invents a resolved dependency`,
+    !closure.readInputs.includes('src/data/direct.ts') || closure.unresolvable.length > 0,
+    JSON.stringify({ read: closure.readInputs, unresolvable: closure.unresolvable }),
+  );
+}
+
+// The tokenizer contract, probed directly: the wrapped command really occupies a
+// command position of its own.
+check(
+  'R4 MEDIUM: tokenizeShell puts a `command`-wrapped word in command position',
+  tokenizeShell("command find src -name '*.ts'").commands.some((command) => command.name === 'find'),
+  JSON.stringify(tokenizeShell("command find src -name '*.ts'").commands.map((command) => command.name)),
+);
+check(
+  'R4 MEDIUM: tokenizeShell puts an `env`-wrapped word in command position',
+  tokenizeShell("env LC_ALL=C find src -name '*.ts'").commands.some((command) => command.name === 'find'),
+  JSON.stringify(tokenizeShell("env LC_ALL=C find src -name '*.ts'").commands.map((command) => command.name)),
+);
+check(
+  'R4 MEDIUM: tokenizeShell parses a literal `-c` program as a nested shell program',
+  tokenizeShell('bash -c "find src -name x && node scripts/alpha.mjs"').commands.some(
+    (command) => command.name === 'node',
+  ),
+  JSON.stringify(tokenizeShell('bash -c "find src -name x && node scripts/alpha.mjs"').commands.map((c) => c.name)),
+);
+check(
+  'R4 MEDIUM: `bash script.sh` is NOT treated as an unsupported wrapper form',
+  tokenizeShell('bash scripts/alpha.mjs').unmodeled.length === 0,
+  JSON.stringify(tokenizeShell('bash scripts/alpha.mjs').unmodeled),
+);
+
+// --- R4 LOW: a shell OPERATOR only counts where the shell would execute it ----
+//
+// `echo '<< is documentation text'` and `echo '<(not executable)'` are DATA.
+// Detecting unsupported structure against RAW TEXT reported both as a
+// here-document and a process substitution, inventing unresolvable rows for
+// text that executes nothing at all.
+const QUOTED_OPERATOR_CLEAN_PROBES = [
+  ['single-quoted `<<` text', "echo '<< is documentation text'"],
+  ['double-quoted `<<` text', 'echo "<< is documentation text"'],
+  ['escaped `<<`', 'echo \\<\\<'],
+  ['single-quoted escaped `<<`', "echo '\\<\\<'"],
+  ['single-quoted process-substitution text', "echo '<(not executable)'"],
+  ['double-quoted process-substitution text', 'echo "<(not executable)"'],
+  ['single-quoted `>(` text', "echo '>(not executable)'"],
+  ['a quoted here-doc marker', "echo '<<EOF'"],
+  ['a quoted here-doc marker word', "echo 'EOF'"],
+  ['quoted operator text in a `#` comment', "# a here-doc is written << EOF\necho ok"],
+];
+for (const [label, run] of QUOTED_OPERATOR_CLEAN_PROBES) {
+  const closure = r3Closure(run);
+  check(
+    `R4 LOW: ${label} raises NO here-document/process-substitution row`,
+    !closure.unresolvable.some((entry) => /here-document|process substitution/.test(entry)),
+    JSON.stringify(closure.unresolvable),
+  );
+  check(
+    `R4 LOW: ${label} raises no unresolvable row at all and no dependency`,
+    closure.unresolvable.length === 0 && closure.readInputs.length === 0 && closure.executed.length === 0,
+    JSON.stringify({ read: closure.readInputs, executed: closure.executed, unresolvable: closure.unresolvable }),
+  );
+}
+{
+  // A command substitution inside DOUBLE quotes really executes, so its `find`
+  // is still analysed — quoting data must not become quieting execution.
+  const closure = r3Closure('echo "$(find src/data -name \'*.ts\')"');
+  check(
+    'R4 LOW: a `$(…)` inside double quotes still has its inner `find` analysed',
+    closure.readInputs.includes('src/data/direct.ts') && closure.readInputs.includes('src/data/nested/deep.ts'),
+    JSON.stringify({ read: closure.readInputs, unresolvable: closure.unresolvable }),
+  );
+}
+const REAL_OPERATOR_PROBES = [
+  ['a real process substitution', 'diff <(find src/data -name \'*.ts\') scripts/beta.mjs', /process substitution/],
+  ['a real `>(` process substitution', 'tee >(node scripts/alpha.mjs) < scripts/beta.mjs', /process substitution/],
+  ['a real here-document', "node <<'EOF'\nreadFileSync(x);\nEOF", /here-document/],
+  ['a real here-string-style `<<` redirection', 'node <<EOF\nx\nEOF', /here-document/],
+];
+for (const [label, run, pattern] of REAL_OPERATOR_PROBES) {
+  const closure = r3Closure(run);
+  check(
+    `R4 LOW: ${label} is STILL recorded as unresolvable`,
+    closure.unresolvable.some((entry) => pattern.test(entry)),
+    JSON.stringify(closure.unresolvable),
+  );
+}
+{
+  // And a `find` that really is executed inside a process substitution is still
+  // analysed, alongside the unresolvable row for the construct itself.
+  const closure = r3Closure("diff <(find src/data -name '*.ts') scripts/beta.mjs");
+  check(
+    'R4 LOW: a `find` executed inside a real `<(…)` is still analysed',
+    closure.readInputs.includes('src/data/direct.ts'),
+    JSON.stringify({ read: closure.readInputs, unresolvable: closure.unresolvable }),
+  );
+}
+
 // --- R3: COUNT TERMINOLOGY IS DEFINED IN CODE, NOT IN PROSE ------------------
 //
 // "42 distinct forms" was quoted in an R2 write-up and could not be reproduced,
@@ -2043,10 +2247,15 @@ expectFailure(
 // the audit STILL refuses to pass — or, where the semantics are now provable,
 // that the derived value is the SAFE one.
 
-function syncedPortfolio(mutatedFiles) {
+function syncedPortfolio(mutatedFiles, { repoFiles: probeRepoFiles = repoFiles, readFile: probeReadFile = readFile } = {}) {
   const previous = clonePortfolio();
   const humanByKey = new Map(previous.entries.map((entry) => [`${entry.workflowFile}#${entry.jobId}`, entry]));
-  const { entries: freshlyDerived } = deriveInventory({ files: mutatedFiles, packageScripts, repoFiles, readFile });
+  const { entries: freshlyDerived } = deriveInventory({
+    files: mutatedFiles,
+    packageScripts,
+    repoFiles: probeRepoFiles,
+    readFile: probeReadFile,
+  });
   const entries = freshlyDerived.map((entry, index) => {
     const human = humanByKey.get(`${entry.workflowFile}#${entry.jobId}`);
     const migrationState =
@@ -2070,13 +2279,14 @@ function syncedPortfolio(mutatedFiles) {
   return { ...previous, totals, entries };
 }
 
-function fullySynced(mutate) {
+function fullySynced(mutate, { repoFiles: probeRepoFiles = repoFiles, readFile: probeReadFile = readFile } = {}) {
   const mutated = files.map((file) => ({ ...file }));
   mutate(mutated);
+  const overrides = { repoFiles: probeRepoFiles, readFile: probeReadFile };
   return {
     files: mutated,
-    results: run({ files: mutated, portfolioText: JSON.stringify(syncedPortfolio(mutated)) }),
-    derived: deriveInventory({ files: mutated, packageScripts, repoFiles, readFile }).entries,
+    results: run({ files: mutated, portfolioText: JSON.stringify(syncedPortfolio(mutated, overrides)), ...overrides }),
+    derived: deriveInventory({ files: mutated, packageScripts, ...overrides }).entries,
   };
 }
 
@@ -2492,6 +2702,78 @@ for (const [index, [label, text, expected]] of NOW_MODELLED_PROBES.entries()) {
     `regression: ${label} raises no fail-closed modelling gap once modelled`,
     probe.results,
     /has PROVABLE pull_request semantics|raises no fail-closed modelling gap/,
+  );
+}
+
+// --- R4: a WRAPPER cannot buy a pass by hiding execution semantics -----------
+//
+// The obligation Codex named: "a fully snapshot-synchronised mutation must still
+// fail if an unsupported wrapper silently changes execution semantics". These
+// probes use a tracked-but-unreadable script so the hidden EXEC edge, once it is
+// no longer hidden, becomes a FAIL-CLOSED gap the snapshot cannot absorb.
+const R4_HIDDEN_SCRIPT = 'scripts/ci/cbw-r4-wrapper-hidden-probe.mjs';
+const R4_WRAPPER_OVERRIDES = {
+  repoFiles: [...repoFiles, R4_HIDDEN_SCRIPT],
+  readFile: (path) => (path === R4_HIDDEN_SCRIPT ? null : readFile(path)),
+};
+const r4WrapperWorkflow = (jobId, command) => `name: CBW Wrapper Probe ${jobId}
+on:
+  pull_request:
+    branches: [master]
+jobs:
+  ${jobId}:
+    name: Wrapper probe ${jobId}
+    runs-on: ubuntu-latest
+    steps:
+      - run: ${command}
+`;
+
+const R4_WRAPPER_SYNC_PROBES = [
+  // On the previous head the whole `-c` argument was quoted DATA, so the glob
+  // inside it expanded to nothing and the executed script vanished from the
+  // model entirely — a state a synchronised snapshot then blessed.
+  ['a `bash -c` program string hiding a glob', 'bash -c "node scripts/ci/cbw-r4-wrapper-hidden-*.mjs"'],
+  ['a `sh -c` program string hiding a glob', "sh -c 'node scripts/ci/cbw-r4-wrapper-hidden-*.mjs'"],
+];
+for (const [index, [label, command]] of R4_WRAPPER_SYNC_PROBES.entries()) {
+  const jobId = `r4-wrapper-sync-${index}`;
+  const path = `.github/workflows/cbw-r4-wrapper-sync-${index}.yml`;
+  const probe = fullySynced(
+    (mutated) => mutated.push({ path, text: r4WrapperWorkflow(jobId, command) }),
+    R4_WRAPPER_OVERRIDES,
+  );
+  const entry = probe.derived.find((candidate) => candidate.workflowFile === path.split('/').pop());
+  check(
+    `R4 regression: ${label} exposes the hidden EXEC edge`,
+    (entry?.dependencies?.executed ?? []).includes(R4_HIDDEN_SCRIPT),
+    JSON.stringify(entry?.dependencies ?? null),
+  );
+  expectFailure(
+    `R4 regression: ${label} STILL fails the audit after full snapshot synchronisation`,
+    probe.results,
+    /raises no fail-closed modelling gap/,
+  );
+}
+
+// And an UNSUPPORTED wrapper form can never present a clean bill of health: the
+// synchronised snapshot carries the DEPENDENCY_UNRESOLVABLE fact itself.
+const R4_UNSUPPORTED_WRAPPER_SYNC_PROBES = [
+  ['an unsupported `env` flag', "env -i find src/data -name '*.ts'"],
+  ['`bash` options before `-c`', 'bash -euo pipefail -c "find src/data -name \'*.ts\'"'],
+  ['a `bash -c` program held in a variable', 'bash -c "$CBW_COMMAND"'],
+  ['an unsupported `command` option', "command -x find src/data -name '*.ts'"],
+];
+for (const [index, [label, command]] of R4_UNSUPPORTED_WRAPPER_SYNC_PROBES.entries()) {
+  const jobId = `r4-unsupported-wrapper-${index}`;
+  const path = `.github/workflows/cbw-r4-unsupported-wrapper-${index}.yml`;
+  const probe = fullySynced((mutated) => mutated.push({ path, text: r4WrapperWorkflow(jobId, command) }));
+  const entry = probe.derived.find((candidate) => candidate.workflowFile === path.split('/').pop());
+  check(
+    `R4 regression: ${label} is recorded as DEPENDENCY_UNRESOLVABLE in the synchronised snapshot`,
+    (entry?.knownGaps ?? []).some(
+      (gapEntry) => gapEntry.code === 'DEPENDENCY_UNRESOLVABLE' && /wrapper|-c/.test(gapEntry.detail),
+    ),
+    JSON.stringify(entry?.knownGaps ?? null),
   );
 }
 

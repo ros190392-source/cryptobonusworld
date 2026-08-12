@@ -188,7 +188,9 @@ stops — a file read as text is not itself executed):
   directory, expanded as a deterministic prefix
 * `find <dir> [-type f] -name '<pat>'` in a `run:` block. `find` searches
   **recursively**, so the expansion covers the direct children of `<dir>` *and*
-  every nested descendant.
+  every nested descendant. It is recognised at every shell command position,
+  including behind a modelled command wrapper (`command find …`,
+  `env LC_ALL=C find …`, `bash -c "find …"` — see below)
 * the ordered join of a call's literal path segments — `join(ROOT, 'src',
   'data', 'x.json')` denotes `src/data/x.json`, not four unrelated strings
 * a name bound to any of the above by a `const`/`let`/`var` declaration, followed
@@ -211,7 +213,10 @@ stops — a file read as text is not itself executed):
   (`readFileSync(target)`, `readFile(join(dir, name))`, `createReadStream(f)`), a
   directory enumeration whose directory is computed, a `find` form outside the
   supported subset (`-maxdepth`, `-path`, `-regex`, `-exec`, `-prune`, boolean
-  operators, or no `-name` at all), a shell glob carrying `[]`/`{}`/`+` syntax, a
+  operators, or no `-name` at all), a command-wrapper form outside the modelled
+  subset (an unsupported `command`/`env`/`time` option, a computed `env`
+  assignment, a non-literal `sh -c` program, a wrapper chain or `-c` nesting past
+  its bound), a shell glob carrying `[]`/`{}`/`+` syntax, a
   shell glob rooted in the repository that expands to nothing, a relative
   specifier that resolves to no tracked file, a local `uses: ./…` with no tracked
   action manifest, or a closure that hit its node/depth bound. Each is recorded
@@ -232,7 +237,7 @@ and simultaneously mistakes quoted data for an invocation. The tokenizer
 recognises an executable command position at: start of script, a newline, `;`,
 `;;`, `&&`, `||`, `|`, `&`, `(`, `)` (which is also how a `case` arm introduces
 its command list), a standalone `{` or `}`, after any of the control keywords
-`if` / `then` / `elif` / `else` / `while` / `until` / `do` / `time` / `!`, and
+`if` / `then` / `elif` / `else` / `while` / `until` / `do` / `!`, and
 after a `VAR=value` assignment prefix. It tracks single quotes, double quotes,
 backslash escapes and `$(…)` / backtick command substitutions (which execute,
 and are tokenized recursively, even inside double quotes).
@@ -246,12 +251,43 @@ Two consequences:
   literal asterisk, not a glob — but a quoted *path* is still a real dependency,
   because `node "scripts/x.mjs"` really runs that file.
 
-Shell structure outside this model — a here-document, a process substitution
-(`<(…)`), an unterminated substitution — emits `DEPENDENCY_UNRESOLVABLE` rather
-than being ignored. Unmodelled glob syntax on an executed word is likewise
-recorded, including the `./`-relative forms `./scripts/{alpha,beta}.mjs` and
-`./scripts/[ab].mjs`; an ordinary `scripts/*.mjs` still expands
-deterministically and raises no row.
+#### Command wrappers are unwrapped, never skipped
+
+A wrapper is a command whose *arguments* are themselves a command. Reading only
+the head word made `command find …`, `env LC_ALL=C find …` and
+`bash -c "find …"` resolve to nothing at all — no dependency **and** no
+unresolvable row, the one outcome this contract forbids. The rule is uniform: a
+wrapper is either unwrapped deterministically or recorded as
+`DEPENDENCY_UNRESOLVABLE`.
+
+| Wrapper | Modelled | Outside the model |
+| --- | --- | --- |
+| `command` | bare, and `command -p` | any other option, including `command -v` (which does not execute the wrapped command) |
+| `env` | any number of deterministic `NAME=value` assignments, then the wrapped command | any flag (`env -i`, `env -u X`), an assignment whose value is a `$VAR` or a `$(…)` |
+| `exec`, `nohup`, `builtin` | bare | any option |
+| `time` | bare, and `time -p` | any other option. `time` is a **wrapper**, not a control keyword: `time -p find …` would otherwise put `-p` in command position and hide the `find` |
+| `sh`/`bash`/`dash`/`ksh`/`zsh` `-c` | a **literal** program string, parsed recursively as a nested shell program (bounded to four levels, so a nesting cycle terminates in a recorded row) | a computed program (`bash -c "$CMD"`), or any option before `-c` (`bash -euo pipefail -c …`) |
+
+`bash script.sh` is not a `-c` invocation and is unaffected: the script path is a
+path-shaped word and is followed as an EXEC edge exactly as before. Wrappers
+chain (`env FOO=x command find …`) up to four levels; a deeper chain is
+recorded. A wrapped command name that is quoted or dynamic (`command 'find' …`,
+`command $TOOL …`) is recorded rather than guessed at.
+
+#### Unsupported structure is lexical, not textual
+
+A here-document (`<<`) and a process substitution (`<(…)`, `>(…)`) are
+**operators**, so they are detected where the shell would *execute* them — in
+the tokenizer's scan, which never sees the interior of `'…'` or `"…"` or a
+backslash-escaped character. So `echo '<< is documentation text'`,
+`echo "<(not executable)"` and `echo \<\<` are data: no dependency and no
+unresolvable row. A real here-document, a real `<(…)`/`>(…)` and an unterminated
+substitution still emit `DEPENDENCY_UNRESOLVABLE`, and a `find` that really is
+executed inside a `<(…)` or a `"$(…)"` is still analysed.
+
+Unmodelled glob syntax on an executed word is likewise recorded, including the
+`./`-relative forms `./scripts/{alpha,beta}.mjs` and `./scripts/[ab].mjs`; an
+ordinary `scripts/*.mjs` still expands deterministically and raises no row.
 
 **Deliberately not modelled.** This is not a JavaScript interpreter and not a
 speculative universal parser. Each executed file is run through a bounded
@@ -405,11 +441,25 @@ behaviour. What each group pins:
 | `R3 LOW: …` | quoted, double-quoted and escaped `find` text creates no row; a real `$(find …)` still executes; a quoted path is still a dependency; a quoted `*` is a literal |
 | `R3 metrics: …` | the count vocabulary above, against a hand-checkable fixture and the live file |
 
+Section **F3** does the same for the R4 review:
+
+| group | obligation |
+| --- | --- |
+| `R4 MEDIUM: a wrapped find behind <wrapper>` (16 wrappers × 4) | `command`, `command -p`, `env` with one/several/quoted assignments, `bash -c`, `sh -c`, a nested `-c`, `exec`, `nohup`, `time`, `time -p`, `builtin`, a wrapper chain, a wrapper in an `if` head and inside `$(…)` each resolve the direct *and* the nested match, over-match nothing, and raise **zero** unresolvable rows |
+| `R4 MEDIUM: <unsupported wrapper form>` (18 forms × 2) | unsupported `command`/`env`/`time` options, `command -v`, a computed `env` assignment, a dynamic or substituted `-c` program, options before `-c`, a missing `-c` argument, a quoted or dynamic wrapped command name, a wrapper around an unsupported `find`, and both bounds (wrapper chain depth, `-c` nesting depth) are each recorded, never silently dropped |
+| `R4 MEDIUM: a glob inside a `-c` program string …` | the program string is parsed as a shell program, so its glob expands into real EXEC edges instead of vanishing as quoted data |
+| `R4 LOW: <quoted operator>` (10 forms × 2) | single-quoted, double-quoted and escaped `<<` / `<(` / `>(` text, a quoted here-doc marker and operator text in a comment raise **no** here-document or process-substitution row — and no unresolvable row at all |
+| `R4 LOW: <real operator>` | a real here-document, a real `<(…)`/`>(…)` and a real `$(…)` inside double quotes are still recorded or still analysed, so the false-positive fix bought no false negative |
+
 The fully-synchronised mutation suite (section **G**) additionally carries four
-short-circuit-laundering workflows. Each derives `UNMODELED`, is never
-`BLOCKING`, and **still fails the audit** after the snapshot has been
-regenerated to agree with it perfectly — which is the property that makes the
-contract un-synchronisable out of a fail-closed state.
+short-circuit-laundering workflows and the R4 wrapper probes. Each derives
+`UNMODELED` (or, for the wrapper probes, exposes a previously hidden EXEC edge
+that fails closed as `DEPENDENCY_UNREADABLE`), and **still fails the audit**
+after the snapshot has been regenerated to agree with it perfectly — which is
+the property that makes the contract un-synchronisable out of a fail-closed
+state. An unsupported wrapper form likewise carries its
+`DEPENDENCY_UNRESOLVABLE` fact into the synchronised snapshot, so it can never
+present a clean bill of health.
 
 ## Not wired into CI by this task
 
