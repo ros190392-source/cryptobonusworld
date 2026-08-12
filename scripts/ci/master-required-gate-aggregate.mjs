@@ -20,11 +20,50 @@
 //   * a blocker job result is missing, empty, or outside the closed vocabulary
 //   * a blocker published FAIL
 //   * a blocker's NOT_APPLICABLE is not backed by the classifier's own decision
-//   * a blocker's evidence digest does not match the classifier's digest
+//   * the classifier's OWN digest claim does not reproduce from the canonical
+//     decision and this run's identity (see "NO TRUSTED DIGEST" below)
+//   * a blocker's evidence digest does not match the digest the aggregator
+//     INDEPENDENTLY RECOMPUTED
+//   * this run's identity (PR head SHA + run id + run attempt) is missing, empty
+//     or does not reproduce the digest that was claimed
 //   * a blocker declared in the registry has no result at all (a `needs` entry or
 //     a whole job was removed)
 //   * a result arrives for a gate the registry does not declare
 //   * the materiality/applicability contract is internally inconsistent
+//
+// NO TRUSTED DIGEST — the aggregator RECOMPUTES, it never believes.
+//
+// The applicability digest is the evidence token that binds every blocker's
+// published outcome to one exact classification of one exact change set in one
+// exact run. An aggregator that merely checks "the classifier's digest is
+// non-empty, and the blockers echoed the same string" verifies nothing about
+// WHAT that string is: any value at all, forged and echoed consistently by the
+// upstream jobs, satisfies a same-value comparison. The evidence chain is then
+// self-referential — it proves the claims agree with each other, not that they
+// agree with reality.
+//
+// So this script derives the expected digest ITSELF, from canonical inputs, with
+// the SAME pure deterministic function the producer used
+// (`applicabilityDigest` in scripts/ci/master-required-gate-gates.mjs — imported,
+// never re-implemented here, so the two can never drift):
+//
+//   canonical decision  the applicability JSON the classifier published
+//                       (gates, reasons, changedPaths, material, materialReason,
+//                       canonicalized against the closed registry)
+//   run identity        THIS run's PR head SHA + run id + run attempt, resolved
+//                       by the aggregator from its OWN environment
+//
+// The classifier's digest, the validator's digest and every blocker's evidence
+// digest are then CLAIMS, compared against the recomputed value. None of them is
+// authority. A forged digest fails because it cannot be reproduced; a digest from
+// a stale head, an earlier run, or an earlier re-run attempt fails because this
+// run's identity does not reproduce it; a decision tampered with after it was
+// digested fails because the recomputation moves and the claim does not.
+//
+// "The upstream validator already recomputes it" is deliberately NOT relied on.
+// The validator runs inside the job whose output is under suspicion; the final
+// aggregator is the one job whose conclusion becomes the required context, so it
+// must bind the evidence itself.
 //
 // NO IMPLICIT "SKIPPED = PASS". This is the single most important rule in the
 // file. GitHub reports `skipped` for an upstream failure, for a cancelled run,
@@ -38,17 +77,34 @@
 // when dependency installation is what broke — so this script depends on node
 // builtins only.
 
+import { RUN_IDENTITY_ENV, resolveRunIdentity } from './master-required-gate-classify.mjs';
 import {
   ACCEPTED_GATE_OUTCOMES,
   APPLICABILITY_VALUES,
   GATES,
   GATE_IDS,
   GATE_OUTCOMES,
+  applicabilityDigest,
   checkApplicabilityMaterialityConsistency,
 } from './master-required-gate-gates.mjs';
 
 // The ONLY job result that means "this job ran to completion successfully".
 export const REQUIRED_JOB_RESULT = 'success';
+
+// The run-identity fields that are part of the digest contract, paired with the
+// environment variable each one is resolved from. Derived from the classifier's
+// own RUN_IDENTITY_ENV so the aggregator can never bind to a different identity
+// than the producer digested.
+export const IDENTITY_FIELDS = Object.freeze([
+  Object.freeze(['headSha', RUN_IDENTITY_ENV[0]]),
+  Object.freeze(['runId', RUN_IDENTITY_ENV[1]]),
+  Object.freeze(['runAttempt', RUN_IDENTITY_ENV[2]]),
+]);
+
+// A sha-256 hex digest and nothing else. A digest claim that is not even shaped
+// like the function's output is named as such rather than merely failing the
+// comparison, so the log says "forged", not "stale".
+const DIGEST_PATTERN = /^[0-9a-f]{64}$/;
 
 function isPlainObject(value) {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -62,11 +118,14 @@ function isPlainObject(value) {
  * @param {string|undefined} input.classifyResult `needs.classify.result`
  * @param {string|undefined} input.material `needs.classify.outputs.material`
  * @param {string|undefined} input.applicabilityRaw `needs.classify.outputs.applicability`
- * @param {string|undefined} input.digest `needs.classify.outputs.digest`
+ * @param {string|undefined} input.digest `needs.classify.outputs.digest` — a CLAIM, never authority
  * @param {Record<string, {jobResult: string|undefined, result: string|undefined, evidence: string|undefined}>} input.gates
- * @returns {{ok: boolean, errors: string[], summary: {gateId: string, jobResult: string, result: string}[]}}
+ * @param {{headSha: string, runId: string, runAttempt: string}|null|undefined} input.identity THIS
+ *   run's execution identity, resolved by the AGGREGATOR from its own environment
+ * @returns {{ok: boolean, errors: string[], expectedDigest: string|null,
+ *   summary: {gateId: string, jobResult: string, result: string}[]}}
  */
-export function aggregate({ classifyResult, material, applicabilityRaw, digest, gates }) {
+export function aggregate({ classifyResult, material, applicabilityRaw, digest, gates, identity }) {
   const errors = [];
   const summary = [];
 
@@ -80,6 +139,30 @@ export function aggregate({ classifyResult, material, applicabilityRaw, digest, 
       `classifier job result is ${JSON.stringify(classifyResult)}, not ${JSON.stringify(REQUIRED_JOB_RESULT)} — ` +
         'a failed, cancelled, skipped or missing classifier can never be treated as a pass',
     );
+  }
+
+  // --- 1b. THIS run's execution identity --------------------------------------
+  // Part of the digest contract, and therefore checked before anything is
+  // compared: without a complete identity the aggregator cannot reproduce the
+  // canonical digest, and an unreproducible digest is never accepted.
+  let boundIdentity = null;
+  if (!isPlainObject(identity)) {
+    errors.push(
+      `gate run identity is missing (received ${JSON.stringify(identity)}) — the aggregator cannot ` +
+        'independently recompute the canonical applicability digest and must fail closed',
+    );
+  } else {
+    const incomplete = [];
+    for (const [field, envName] of IDENTITY_FIELDS) {
+      if (typeof identity[field] !== 'string' || identity[field].length === 0) {
+        incomplete.push(`${field} (${envName})=${JSON.stringify(identity[field])}`);
+      }
+    }
+    if (incomplete.length > 0) {
+      errors.push(`gate run identity is incomplete: ${incomplete.join(', ')}`);
+    } else {
+      boundIdentity = identity;
+    }
   }
 
   // --- 2. the classifier decision --------------------------------------------
@@ -126,8 +209,38 @@ export function aggregate({ classifyResult, material, applicabilityRaw, digest, 
       );
     }
   }
+  // --- 2b. INDEPENDENT RECOMPUTATION OF THE CANONICAL DIGEST -------------------
+  // The one place the evidence chain is anchored to something nobody upstream
+  // could choose. `applicabilityDigest` is the producer's own pure function,
+  // imported rather than reimplemented, and it is fed CANONICAL inputs only: the
+  // decision the classifier published, and the identity THIS job resolved from
+  // its own environment. Everything downstream compares against this value.
+  const expectedDigest =
+    decision !== null && boundIdentity !== null ? applicabilityDigest(decision, boundIdentity) : null;
+
   if (typeof digest !== 'string' || digest.length === 0) {
     errors.push(`classifier applicability digest is missing (received ${JSON.stringify(digest)})`);
+  } else if (!DIGEST_PATTERN.test(digest)) {
+    errors.push(
+      `classifier applicability digest ${JSON.stringify(digest)} is not a sha-256 hex digest — no run of the ` +
+        'canonical digest function can ever produce it',
+    );
+  }
+  if (expectedDigest === null) {
+    errors.push(
+      'the aggregator could not independently recompute the canonical applicability digest (the decision or ' +
+        'this run\'s identity is unusable) — an unverifiable evidence chain is never accepted',
+    );
+  } else if (digest !== expectedDigest) {
+    // The CLASSIFIER's own claim is checked against the recomputation exactly
+    // like a blocker's is. It is a claim, not authority.
+    errors.push(
+      `classifier applicability digest ${JSON.stringify(digest)} does not match the digest the aggregator ` +
+        `independently recomputed from the canonical decision and this run's identity ` +
+        `(headSha=${JSON.stringify(boundIdentity.headSha)} runId=${JSON.stringify(boundIdentity.runId)} ` +
+        `runAttempt=${JSON.stringify(boundIdentity.runAttempt)}): expected ${JSON.stringify(expectedDigest)} — ` +
+        'the decision, the run identity or the digest itself was forged, tampered with or is stale',
+    );
   }
 
   // --- 3. no result may arrive for a gate the registry does not declare -------
@@ -208,13 +321,18 @@ export function aggregate({ classifyResult, material, applicabilityRaw, digest, 
       );
       continue;
     }
-    // The evidence must come from THIS run's validated classifier decision. A
-    // digest mismatch means the blocker acted on a decision the aggregator is not
-    // looking at — stale, re-run, or hand-edited.
-    if (evidence.digest !== digest) {
+    // The evidence must come from THIS run's canonical classifier decision, and
+    // it is checked against the digest the AGGREGATOR RECOMPUTED — never against
+    // the digest the classifier or the blocker supplied. Comparing two supplied
+    // claims to each other only proves they agree; comparing each to the
+    // recomputation proves both describe the decision and the run identity this
+    // job independently derived. A mismatch means the blocker acted on a decision
+    // the aggregator is not looking at — forged, stale, re-run, or hand-edited.
+    if (evidence.digest !== expectedDigest) {
       errors.push(
-        `blocker ${gateId} evidence digest ${JSON.stringify(evidence.digest)} does not match the classifier ` +
-          `digest ${JSON.stringify(digest)} — its applicability came from a different decision`,
+        `blocker ${gateId} evidence digest ${JSON.stringify(evidence.digest)} does not match the canonical ` +
+          `applicability digest the aggregator independently recomputed ${JSON.stringify(expectedDigest)} — ` +
+          'its applicability came from a different decision, a different run, or from no real decision at all',
       );
     }
 
@@ -247,7 +365,7 @@ export function aggregate({ classifyResult, material, applicabilityRaw, digest, 
     }
   }
 
-  return { ok: errors.length === 0, errors, summary };
+  return { ok: errors.length === 0, errors, expectedDigest, summary };
 }
 
 function main() {
@@ -261,23 +379,38 @@ function main() {
     };
   }
 
+  // THIS job's own environment, never a value handed down the DAG. A missing or
+  // empty identity variable throws, and the throw becomes a named aggregation
+  // error rather than an unverified pass.
+  const identityErrors = [];
+  let identity = null;
+  try {
+    identity = resolveRunIdentity();
+  } catch (error) {
+    identityErrors.push(String(error.message));
+  }
+
   const outcome = aggregate({
     classifyResult: process.env.CLASSIFY_JOB_RESULT,
     material: process.env.CLASSIFIER_MATERIAL,
     applicabilityRaw: process.env.APPLICABILITY_JSON,
     digest: process.env.APPLICABILITY_DIGEST,
     gates,
+    identity,
   });
+  const errors = [...identityErrors, ...outcome.errors];
 
   console.log('CBW MASTER REQUIRED GATE — aggregation');
   console.log(` classifier job result: ${process.env.CLASSIFY_JOB_RESULT}`);
+  console.log(` claimed applicability digest: ${process.env.APPLICABILITY_DIGEST}`);
+  console.log(` independently recomputed digest: ${outcome.expectedDigest}`);
   for (const row of outcome.summary) {
     console.log(` blocker ${row.gateId}: job=${row.jobResult} result=${row.result}`);
   }
 
-  if (!outcome.ok) {
+  if (errors.length > 0) {
     console.error('CBW MASTER REQUIRED GATE: FAIL — failing closed');
-    for (const error of outcome.errors) console.error(` - ${error}`);
+    for (const error of errors) console.error(` - ${error}`);
     process.exit(1);
   }
 

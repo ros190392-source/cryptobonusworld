@@ -326,8 +326,16 @@ jobs:
         with:
           node-version: '20'
 
+      # The aggregator does NOT trust the digest it is handed. It recomputes the
+      # canonical applicability digest itself, from the decision above plus THIS
+      # run's identity (HEAD_SHA + the ambient GITHUB_RUN_ID / GITHUB_RUN_ATTEMPT),
+      # and every digest claim — the classifier's included — is compared against
+      # that recomputation. HEAD_SHA is therefore bound here exactly as it is for
+      # the producers: to the PR head sha, so a decision digested for a different
+      # head cannot be replayed into this run.
       - name: Aggregate blocker outcomes (fail-closed)
         env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           CLASSIFY_JOB_RESULT: ${{ needs.classify.result }}
           CLASSIFIER_MATERIAL: ${{ needs.classify.outputs.material }}
           APPLICABILITY_JSON: ${{ needs.classify.outputs.applicability }}

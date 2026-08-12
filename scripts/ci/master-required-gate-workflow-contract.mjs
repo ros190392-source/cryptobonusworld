@@ -715,6 +715,23 @@ export function auditProducerConsumerContract({
     aggregatorEnv.APPLICABILITY_DIGEST === `\${{ needs.${CLASSIFY_JOB_ID}.outputs.digest }}`,
     `actual=${JSON.stringify(aggregatorEnv.APPLICABILITY_DIGEST)}`,
   );
+  // H1. The aggregator RECOMPUTES the canonical digest instead of trusting the
+  // one it is handed, and the run identity is part of that digest contract. Its
+  // HEAD_SHA must therefore be bound to the PR head sha exactly as the producers'
+  // are: bound to anything else (or to nothing, which resolves to the empty
+  // string) and the recomputation could never reproduce a legitimate digest, or —
+  // worse, if it were bound to a value an upstream job supplies — could be made
+  // to reproduce a forged one.
+  check(
+    'the aggregator binds HEAD_SHA to the PR head sha (run identity is part of the digest contract)',
+    aggregatorEnv.HEAD_SHA === HEAD_SHA_EXPR,
+    `actual=${JSON.stringify(aggregatorEnv.HEAD_SHA)}`,
+  );
+  check(
+    'the aggregator run identity is never taken from an upstream job output',
+    !/needs\./.test(String(aggregatorEnv.HEAD_SHA ?? '')),
+    `actual=${JSON.stringify(aggregatorEnv.HEAD_SHA)}`,
+  );
   for (const gateId of GATE_IDS) {
     const gate = GATES[gateId];
     check(
@@ -1102,9 +1119,59 @@ export function auditProducerConsumerContract({
     'the aggregator requires PASS to be backed by an APPLICABLE decision',
     /result === 'PASS' && decided !== 'APPLICABLE'/.test(aggregateText),
   );
+  // --- H1: the aggregator recomputes, it never believes ----------------------
+  // Each of these guards one link of the chain that makes the evidence token
+  // mean something. Together they say: the expected digest is derived HERE, by
+  // the producer's own function, from the canonical decision and an identity this
+  // job resolved itself — and every claim, the classifier's included, is checked
+  // against that derivation.
   check(
-    'the aggregator requires the blocker evidence digest to match the classifier digest',
-    /evidence\.digest !== digest/.test(aggregateText),
+    'the aggregator imports the canonical digest function rather than reimplementing hashing',
+    /import \{[\s\S]*?\bapplicabilityDigest\b[\s\S]*?\} from '\.\/master-required-gate-gates\.mjs'/.test(
+      aggregateText,
+    ) && !/createHash/.test(aggregateText),
+  );
+  check(
+    'the aggregator INDEPENDENTLY recomputes the canonical applicability digest',
+    /const expectedDigest =\s*\n?\s*decision !== null && boundIdentity !== null \? applicabilityDigest\(decision, boundIdentity\) : null;/.test(
+      aggregateText,
+    ),
+  );
+  check(
+    'the aggregator resolves THIS run identity from its own environment',
+    /resolveRunIdentity\(\)/.test(aggregateText) &&
+      /import \{[\s\S]*?\bresolveRunIdentity\b[\s\S]*?\} from '\.\/master-required-gate-classify\.mjs'/.test(
+        aggregateText,
+      ),
+  );
+  check(
+    'the aggregator fails closed when the run identity is missing or incomplete',
+    /gate run identity is missing/.test(aggregateText) && /gate run identity is incomplete/.test(aggregateText),
+  );
+  check(
+    'the aggregator fails closed when it cannot recompute the canonical digest',
+    /if \(expectedDigest === null\) \{/.test(aggregateText) &&
+      /could not independently recompute the canonical applicability digest/.test(aggregateText),
+  );
+  check(
+    'the aggregator treats the CLASSIFIER digest as a claim checked against its own recomputation',
+    // Anchored on the classifier branch specifically: a bare
+    // /digest !== expectedDigest/ is also satisfied by the per-blocker check, so
+    // deleting the classifier's own verification would go unnoticed.
+    /\} else if \(digest !== expectedDigest\) \{/.test(aggregateText),
+  );
+  check(
+    'the aggregator requires the blocker evidence digest to match its RECOMPUTED digest',
+    /evidence\.digest !== expectedDigest/.test(aggregateText),
+  );
+  check(
+    'the aggregator never compares blocker evidence against the supplied digest alone',
+    !/evidence\.digest !== digest\b/.test(aggregateText),
+  );
+  check(
+    'the aggregator rejects a digest claim that is not even a sha-256 hex digest',
+    /DIGEST_PATTERN = \/\^\[0-9a-f\]\{64\}\$\//.test(aggregateText) &&
+      /!DIGEST_PATTERN\.test\(digest\)/.test(aggregateText),
   );
   // The AGGREGATION LOOP specifically, not merely the identifier: `GATE_IDS` is
   // iterated in main() too, so an identifier search stays satisfied after the

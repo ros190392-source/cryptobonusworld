@@ -26,6 +26,7 @@ import {
   auditProducerConsumerContract,
   extractCallExpressions,
 } from './master-required-gate-workflow-contract.mjs';
+import { applicabilityDigest } from './master-required-gate-gates.mjs';
 
 const ROOT = resolve(process.cwd());
 const WORKFLOW = resolve(ROOT, '.github/workflows/cbw-master-required-gate.yml');
@@ -889,10 +890,142 @@ const DAG_MUTATIONS = [
   },
   {
     id: 'S3-22',
-    killedBy: /requires the blocker evidence digest to match the classifier digest/,
+    killedBy: /requires the blocker evidence digest to match its RECOMPUTED digest/,
     label: 'stop checking the blocker evidence digest (a stale decision would be laundered through)',
     apply: () => ({
-      aggregateSource: replaceOnce('ignore digest', baseAggregate, 'evidence.digest !== digest', 'false'),
+      aggregateSource: replaceOnce('ignore digest', baseAggregate, 'evidence.digest !== expectedDigest', 'false'),
+    }),
+  },
+  // --- H1: the independent recomputation, mutated every way it could be lost --
+  {
+    id: 'S3-22a',
+    killedBy: /INDEPENDENTLY recomputes the canonical applicability digest/,
+    label: 'delete the aggregator\'s independent recomputation and trust the supplied digest instead',
+    apply: () => ({
+      aggregateSource: replaceOnce(
+        'trust the supplied digest',
+        baseAggregate,
+        'decision !== null && boundIdentity !== null ? applicabilityDigest(decision, boundIdentity) : null;',
+        'digest ?? null;',
+      ),
+    }),
+  },
+  {
+    id: 'S3-22b',
+    killedBy: /INDEPENDENTLY recomputes the canonical applicability digest/,
+    label: 'disable the recomputation entirely (expectedDigest becomes a constant)',
+    apply: () => ({
+      aggregateSource: replaceOnce(
+        'constant expected digest',
+        baseAggregate,
+        'decision !== null && boundIdentity !== null ? applicabilityDigest(decision, boundIdentity) : null;',
+        'null;',
+      ),
+    }),
+  },
+  {
+    id: 'S3-22c',
+    killedBy: /treats the CLASSIFIER digest as a claim checked against its own recomputation/,
+    label: 'let the classifier\'s own digest claim go unverified against the recomputation',
+    apply: () => ({
+      aggregateSource: replaceOnce(
+        'unverified classifier digest',
+        baseAggregate,
+        '} else if (digest !== expectedDigest) {',
+        '} else if (false) {',
+      ),
+    }),
+  },
+  {
+    id: 'S3-22d',
+    killedBy: /never compares blocker evidence against the supplied digest alone/,
+    label: 'repoint the blocker evidence check back at the SUPPLIED digest (the original H1 defect)',
+    apply: () => ({
+      aggregateSource: replaceOnce(
+        'compare claim to claim',
+        baseAggregate,
+        'evidence.digest !== expectedDigest',
+        'evidence.digest !== digest',
+      ),
+    }),
+  },
+  {
+    id: 'S3-22e',
+    killedBy: /fails closed when it cannot recompute the canonical digest/,
+    label: 'accept an evidence chain the aggregator could not verify at all',
+    apply: () => ({
+      aggregateSource: replaceOnce(
+        'accept unverifiable chain',
+        baseAggregate,
+        '  if (expectedDigest === null) {',
+        '  if (false) {',
+      ),
+    }),
+  },
+  {
+    id: 'S3-22f',
+    killedBy: /fails closed when the run identity is missing or incomplete/,
+    label: 'stop requiring a complete run identity (the digest stops being bound to this execution)',
+    apply: () => ({
+      aggregateSource: replaceOnce(
+        'drop identity binding',
+        baseAggregate,
+        'gate run identity is incomplete',
+        'gate run identity is fine',
+      ),
+    }),
+  },
+  {
+    id: 'S3-22g',
+    killedBy: /resolves THIS run identity from its own environment/,
+    label: 'take the aggregator run identity from somewhere other than its own environment',
+    apply: () => ({
+      aggregateSource: replaceOnce(
+        'unresolve identity',
+        baseAggregate,
+        '    identity = resolveRunIdentity();',
+        '    identity = JSON.parse(process.env.SUPPLIED_IDENTITY ?? "null");',
+      ),
+    }),
+  },
+  {
+    id: 'S3-22h',
+    killedBy: /rejects a digest claim that is not even a sha-256 hex digest/,
+    label: 'accept a digest claim of any shape at all',
+    apply: () => ({
+      aggregateSource: replaceOnce(
+        'any digest shape',
+        baseAggregate,
+        '!DIGEST_PATTERN.test(digest)',
+        'false',
+      ),
+    }),
+  },
+  {
+    id: 'S3-22i',
+    killedBy: /imports the canonical digest function rather than reimplementing hashing/,
+    label: 'reimplement the hashing inside the aggregator instead of using the canonical function',
+    apply: () => ({
+      aggregateSource: replaceOnce(
+        'duplicate hashing',
+        baseAggregate,
+        "import { RUN_IDENTITY_ENV, resolveRunIdentity } from './master-required-gate-classify.mjs';",
+        "import { createHash } from 'node:crypto';\n" +
+          "import { RUN_IDENTITY_ENV, resolveRunIdentity } from './master-required-gate-classify.mjs';",
+      ),
+    }),
+  },
+  {
+    id: 'S3-22j',
+    killedBy: /binds HEAD_SHA to the PR head sha \(run identity is part of the digest contract\)/,
+    label: 'unbind the aggregator HEAD_SHA from the PR head sha',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'aggregator head sha',
+        baseWorkflow,
+        '          HEAD_SHA: ${{ github.event.pull_request.head.sha }}\n          CLASSIFY_JOB_RESULT:',
+        '          CLASSIFY_JOB_RESULT:',
+      ),
     }),
   },
   {
@@ -1893,9 +2026,11 @@ try {
   // aggregator exits non-zero" could be an artefact of the harness rather than a
   // property of its logic.
   const GATES_MODULE_URL = JSON.stringify(pathToFileURL(GATES_SCRIPT).href);
+  const CLASSIFY_MODULE_URL = JSON.stringify(pathToFileURL(CLASSIFY_SCRIPT).href);
   const asRunnableAggregator = (source) =>
     mutate('aggregator harness accommodation', source, [
       ["from './master-required-gate-gates.mjs'", `from ${GATES_MODULE_URL}`],
+      ["from './master-required-gate-classify.mjs'", `from ${CLASSIFY_MODULE_URL}`],
       ["process.argv[1]?.endsWith('master-required-gate-aggregate.mjs')", 'true'],
     ]);
 
@@ -1909,9 +2044,22 @@ try {
     material: 'true',
     materialReason: 'material-path-changed',
   };
-  const APP_DIGEST = 'deadbeef'.repeat(8);
+  // The run identity the aggregator resolves from its OWN environment, and the
+  // digest that — and only that — reproduces from this decision under it.
+  //
+  // H1 HISTORY, kept explicit because it is the whole point of this block: this
+  // constant used to be `'deadbeef'.repeat(8)`, an arbitrary value that is the
+  // digest of nothing, echoed verbatim by both blockers. The aggregator accepted
+  // it, because it only ever compared the claims to each other. The suite's own
+  // happy path was therefore the exploit. It is now a REAL recomputation, and the
+  // forged variants below are asserted to be rejected.
+  const AGG_IDENTITY = Object.freeze({ headSha: 'ab'.repeat(20), runId: '778899', runAttempt: '1' });
+  const APP_DIGEST = applicabilityDigest(APP_DECISION, AGG_IDENTITY);
   const aggregatorEnv = (overrides = {}) => ({
     ...process.env,
+    HEAD_SHA: AGG_IDENTITY.headSha,
+    GITHUB_RUN_ID: AGG_IDENTITY.runId,
+    GITHUB_RUN_ATTEMPT: AGG_IDENTITY.runAttempt,
     CLASSIFY_JOB_RESULT: 'success',
     CLASSIFIER_MATERIAL: 'true',
     APPLICABILITY_JSON: JSON.stringify(APP_DECISION),
@@ -1974,7 +2122,71 @@ try {
           digest: 'c0ffee00'.repeat(8),
         }),
       },
-      /does not match the classifier digest/,
+      /does not match the canonical applicability digest the aggregator independently recomputed/,
+    ],
+    // --- H1: forged and stale evidence chains, end to end --------------------
+    [
+      'a FORGED non-hash digest echoed consistently by the whole chain (Codex exploit)',
+      {
+        APPLICABILITY_DIGEST: 'forged-applicability-digest',
+        GATE_GLOBAL_HEADER_INTERACTION_EVIDENCE: JSON.stringify({
+          gateId: 'global-header-interaction',
+          applicability: 'APPLICABLE',
+          digest: 'forged-applicability-digest',
+        }),
+        GATE_PUBLIC_SEO_METADATA_EVIDENCE: JSON.stringify({
+          gateId: 'public-seo-metadata',
+          applicability: 'APPLICABLE',
+          digest: 'forged-applicability-digest',
+        }),
+      },
+      /not a sha-256 hex digest|independently recomputed/,
+    ],
+    [
+      'a FORGED sha-256-shaped digest echoed consistently by the whole chain',
+      {
+        APPLICABILITY_DIGEST: 'a'.repeat(64),
+        GATE_GLOBAL_HEADER_INTERACTION_EVIDENCE: JSON.stringify({
+          gateId: 'global-header-interaction',
+          applicability: 'APPLICABLE',
+          digest: 'a'.repeat(64),
+        }),
+        GATE_PUBLIC_SEO_METADATA_EVIDENCE: JSON.stringify({
+          gateId: 'public-seo-metadata',
+          applicability: 'APPLICABLE',
+          digest: 'a'.repeat(64),
+        }),
+      },
+      /independently recomputed/,
+    ],
+    [
+      'a FORGED classifier digest alone',
+      { APPLICABILITY_DIGEST: 'a'.repeat(64) },
+      /independently recomputed/,
+    ],
+    [
+      'a STALE head sha (the digest belongs to another PR head)',
+      { HEAD_SHA: 'cd'.repeat(20) },
+      /independently recomputed/,
+    ],
+    ['a STALE run id (the digest belongs to another run)', { GITHUB_RUN_ID: '424242' }, /independently recomputed/],
+    [
+      'a STALE run attempt (the digest belongs to an earlier attempt)',
+      { GITHUB_RUN_ATTEMPT: '2' },
+      /independently recomputed/,
+    ],
+    ['a MISSING head sha (no resolvable run identity)', { HEAD_SHA: '' }, /HEAD_SHA is missing or empty/],
+    ['a MISSING run id', { GITHUB_RUN_ID: '' }, /GITHUB_RUN_ID is missing or empty/],
+    ['a MISSING run attempt', { GITHUB_RUN_ATTEMPT: '' }, /GITHUB_RUN_ATTEMPT is missing or empty/],
+    [
+      'a TAMPERED decision replayed under the digest it had before the edit',
+      {
+        APPLICABILITY_JSON: JSON.stringify({
+          ...APP_DECISION,
+          changedPaths: ['src/pages/index.astro', 'src/pages/injected.astro'],
+        }),
+      },
+      /independently recomputed/,
     ],
     [
       'an UNJUSTIFIED NOT_APPLICABLE',
@@ -2041,6 +2253,88 @@ try {
     'the "skipped is never a pass" rule is LOAD-BEARING: the real aggregator REJECTS the same input',
     realSkippedRun.status !== 0,
     `exit=${realSkippedRun.status}`,
+  );
+
+  // B10b. H1 — THE INDEPENDENT RECOMPUTATION IS LOAD-BEARING.
+  //
+  // The static mutants above prove the CONTRACT would notice the recomputation
+  // being deleted. This proves the runtime property, and — critically — proves it
+  // is the recomputation doing the work: an aggregator with the recomputation
+  // removed, restored to exactly the pre-fix behaviour (trust the supplied
+  // digest, compare the blockers to that same supplied value), ACCEPTS the forged
+  // chain the real one rejects. This IS the Codex exploit, executed.
+  const FORGED = 'forged-applicability-digest';
+  const forgedChain = {
+    APPLICABILITY_DIGEST: FORGED,
+    GATE_GLOBAL_HEADER_INTERACTION_EVIDENCE: JSON.stringify({
+      gateId: 'global-header-interaction',
+      applicability: 'APPLICABLE',
+      digest: FORGED,
+    }),
+    GATE_PUBLIC_SEO_METADATA_EVIDENCE: JSON.stringify({
+      gateId: 'public-seo-metadata',
+      applicability: 'APPLICABLE',
+      digest: FORGED,
+    }),
+  };
+  const trustingAggregatorPath = join(sandbox, 'trusting-aggregator.mjs');
+  writeFileSync(
+    trustingAggregatorPath,
+    asRunnableAggregator(
+      mutate('trust the supplied digest (pre-H1 aggregator)', baseAggregate, [
+        [
+          'decision !== null && boundIdentity !== null ? applicabilityDigest(decision, boundIdentity) : null;',
+          'digest ?? null;',
+        ],
+        ['} else if (!DIGEST_PATTERN.test(digest)) {', '} else if (false) {'],
+      ]),
+    ),
+    'utf8',
+  );
+  const trustingForgedRun = runAggregator(trustingAggregatorPath, forgedChain);
+  const realForgedRun = runAggregator(AGGREGATE_SCRIPT, forgedChain);
+  check(
+    'H1 EXPLOIT REPRODUCED: an aggregator that TRUSTS the supplied digest accepts a forged chain',
+    trustingForgedRun.status === 0,
+    `exit=${trustingForgedRun.status} ${(trustingForgedRun.stderr ?? '').slice(0, 240)}`,
+  );
+  check(
+    'H1 FIXED: the real aggregator REJECTS the exact same forged chain',
+    realForgedRun.status !== 0,
+    `exit=${realForgedRun.status}`,
+  );
+  // The same softened aggregator must still accept the HONEST chain — otherwise
+  // "the trusting one accepts the forgery" would be uninformative.
+  check(
+    'H1: the softened aggregator is a real aggregator (it still accepts the honest chain)',
+    runAggregator(trustingAggregatorPath).status === 0,
+  );
+  // Stale identity, behaviourally: same forgery-free chain, wrong execution.
+  for (const [label, override] of [
+    ['head sha', { HEAD_SHA: 'cd'.repeat(20) }],
+    ['run id', { GITHUB_RUN_ID: '424242' }],
+    ['run attempt', { GITHUB_RUN_ATTEMPT: '2' }],
+  ]) {
+    const trustingStale = runAggregator(trustingAggregatorPath, override);
+    const realStale = runAggregator(AGGREGATE_SCRIPT, override);
+    check(
+      `H1: a stale ${label} slips past an aggregator that does not recompute`,
+      trustingStale.status === 0,
+      `exit=${trustingStale.status}`,
+    );
+    check(
+      `H1: the real aggregator REJECTS a stale ${label}`,
+      realStale.status !== 0,
+      `exit=${realStale.status}`,
+    );
+  }
+  // And the aggregator must print the value it derived, so a human reading a red
+  // check can see the two digests side by side.
+  const honestRun = runAggregator(AGGREGATE_SCRIPT);
+  check(
+    'H1: the aggregator logs the digest it independently recomputed',
+    new RegExp(`independently recomputed digest: ${APP_DIGEST}`).test(honestRun.stdout ?? ''),
+    (honestRun.stdout ?? '').slice(0, 400),
   );
 
   // B11. THE RESULT EMITTER, BEHAVIOURALLY. A blocker whose applicability output

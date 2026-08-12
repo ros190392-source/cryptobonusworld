@@ -1726,6 +1726,7 @@ const agg = (overrides = {}) =>
     applicabilityRaw: JSON.stringify(goodDecision),
     digest: goodDigest,
     gates: passingGates,
+    identity: APP_IDENTITY,
     ...overrides,
   });
 
@@ -1755,6 +1756,7 @@ const mixed = aggregate({
   applicabilityRaw: JSON.stringify(mixedProduced.decision),
   digest: mixedProduced.digest,
   gates: mixedGates,
+  identity: APP_IDENTITY,
 });
 check('AGGREGATOR: PASS + validated NOT_APPLICABLE is GREEN', mixed.ok === true, mixed.errors.join(' | '));
 
@@ -1765,6 +1767,7 @@ const inertAggregate = aggregate({
   material: inertProduced.decision.material,
   applicabilityRaw: JSON.stringify(inertProduced.decision),
   digest: inertProduced.digest,
+  identity: APP_IDENTITY,
   gates: Object.fromEntries(
     GATE_IDS.map((gateId) => [
       gateId,
@@ -1870,6 +1873,65 @@ const AGGREGATOR_FAILURES = [
   ],
   ['a result arrived for an unregistered gate', { gates: { ...passingGates, 'made-up-gate': passingGates[FIRST] } }],
 ];
+
+// --- 18b. THE AGGREGATOR RECOMPUTES THE DIGEST — IT NEVER BELIEVES ONE -------
+//
+// H1. An aggregator that only checks "the digest is non-empty, and the blockers
+// echoed the same string" verifies nothing about what the string IS: any value,
+// forged and echoed consistently by the upstream jobs, satisfies a same-value
+// comparison. Every case below is a chain that is internally CONSISTENT — the
+// classifier's claim and both blockers' evidence agree with each other — and
+// must still fail, because it does not reproduce from the canonical decision and
+// this run's identity.
+const gatesEchoing = (echoed) =>
+  Object.fromEntries(
+    GATE_IDS.map((gateId) => [
+      gateId,
+      { jobResult: 'success', result: 'PASS', evidence: evidenceFor(gateId, 'APPLICABLE', echoed) },
+    ]),
+  );
+// The exact shape Codex demonstrated: an arbitrary non-hash digest, echoed
+// verbatim by every blocker. Before independent recomputation this aggregated to
+// ok:true.
+const FORGED_NON_HASH = 'forged-applicability-digest';
+// The same attack wearing the right costume — a well-formed sha-256 hex string
+// that simply is not the digest of anything.
+const FORGED_HASH_SHAPED = 'a'.repeat(64);
+const tamperedDecision = { ...goodDecision, changedPaths: ['src/pages/index.astro', 'src/pages/injected.astro'] };
+const identityOf = (patch) => ({ identity: { ...APP_IDENTITY, ...patch } });
+
+AGGREGATOR_FAILURES.push(
+  // THE EXPLOIT, both costumes.
+  [
+    'a FORGED non-hash digest is echoed consistently by every blocker (Codex exploit)',
+    { digest: FORGED_NON_HASH, gates: gatesEchoing(FORGED_NON_HASH) },
+  ],
+  [
+    'a FORGED sha-256-shaped digest is echoed consistently by every blocker',
+    { digest: FORGED_HASH_SHAPED, gates: gatesEchoing(FORGED_HASH_SHAPED) },
+  ],
+  // Each side forged on its own.
+  ['the CLASSIFIER digest alone is forged', { digest: FORGED_HASH_SHAPED }],
+  ['a BLOCKER evidence digest alone is forged', withFirst({ evidence: evidenceFor(FIRST, 'APPLICABLE', FORGED_HASH_SHAPED) })],
+  // Run identity: the digest is real, but it belongs to another execution.
+  ['the run identity names a STALE head sha', identityOf({ headSha: 'cd'.repeat(20) })],
+  ['the run identity names a STALE run id', identityOf({ runId: '424242' })],
+  ['the run identity names a STALE run attempt', identityOf({ runAttempt: '2' })],
+  ['the run identity is missing entirely', { identity: undefined }],
+  ['the run identity is not an object', { identity: 'ab'.repeat(20) }],
+  ['the run identity has an empty head sha', identityOf({ headSha: '' })],
+  ['the run identity has an empty run id', identityOf({ runId: '' })],
+  ['the run identity has an empty run attempt', identityOf({ runAttempt: '' })],
+  // The decision was edited after it was digested.
+  [
+    'the applicability decision was TAMPERED with after it was digested',
+    { applicabilityRaw: JSON.stringify(tamperedDecision) },
+  ],
+  [
+    'the applicability decision was tampered with AND the whole chain re-echoed the old digest',
+    { applicabilityRaw: JSON.stringify(tamperedDecision), gates: gatesEchoing(goodDigest) },
+  ],
+);
 for (const [label, overrides] of AGGREGATOR_FAILURES) {
   const outcome = agg(overrides);
   check(`AGGREGATOR fails closed when ${label}`, outcome.ok === false);
@@ -1884,7 +1946,37 @@ check(
     applicabilityRaw: undefined,
     digest: undefined,
     gates: {},
+    identity: undefined,
   }).ok === false,
+);
+
+// The recomputation is not merely present — it is the value everything is judged
+// against, and it is the PRODUCER's own function producing it.
+const exploit = agg({ digest: FORGED_NON_HASH, gates: gatesEchoing(FORGED_NON_HASH) });
+check(
+  'AGGREGATOR names the forged digest as unreproducible, not merely mismatched',
+  exploit.errors.some((error) => /independently recomputed|not a sha-256 hex digest/.test(error)),
+  exploit.errors.join(' | '),
+);
+check(
+  'AGGREGATOR reports the digest it recomputed for itself',
+  agg().expectedDigest === applicabilityDigest(goodDecision, APP_IDENTITY),
+);
+check(
+  'AGGREGATOR recomputes the SAME digest the producer emitted (the honest path is not accidentally broken)',
+  agg().expectedDigest === goodDigest && agg().ok === true,
+);
+check(
+  'AGGREGATOR publishes no recomputed digest when it could not derive one',
+  agg({ identity: undefined }).expectedDigest === null,
+);
+// A stale identity must move the recomputation — otherwise "stale head sha
+// fails" would be true for some other reason and the binding would be vacuous.
+check(
+  'AGGREGATOR: a different run identity produces a DIFFERENT canonical digest',
+  applicabilityDigest(goodDecision, { ...APP_IDENTITY, headSha: 'cd'.repeat(20) }) !== goodDigest &&
+    applicabilityDigest(goodDecision, { ...APP_IDENTITY, runId: '424242' }) !== goodDigest &&
+    applicabilityDigest(goodDecision, { ...APP_IDENTITY, runAttempt: '2' }) !== goodDigest,
 );
 
 // --- 19. specialized path-filtered workflows are NOT queried externally -------

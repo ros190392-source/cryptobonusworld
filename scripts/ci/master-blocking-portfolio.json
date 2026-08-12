@@ -419,7 +419,7 @@
       "migrationState": "MIGRATED_UNIFIED_SHADOW",
       "stage2MigrationCandidate": false,
       "stage2MigrationCandidateReason": "already executed inside the unified gate; the legacy workflow is retained UNCHANGED as an independently reporting shadow, and retirement is a separate later decision",
-      "notes": "Global Header Interaction hard gate. Its matrix is already executed inside the unified gate for MATERIAL changes; this path-filtered workflow still reports independently and is left untouched. S2-03: this workflow is LEFT UNCHANGED and still reports independently. Its blocking behaviour is now ALSO executed inside the unified required gate (cbw-master-required-gate.yml#global-header-interaction), proved command-for-command equivalent by scripts/ci/master-required-gate-parity-test.mjs. Shadow state only: no retirement, no enforcement authority, no branch-protection change. S2-03: this workflow is LEFT UNCHANGED and still reports independently. Its blocking behaviour is now ALSO executed inside the unified required gate (cbw-master-required-gate.yml#global-header-interaction), proved command-for-command equivalent by scripts/ci/master-required-gate-parity-test.mjs. Shadow state only: no retirement, no enforcement authority, no branch-protection change."
+      "notes": "Global Header Interaction hard gate. S2-03: this path-filtered workflow is LEFT UNCHANGED and still reports independently. Its blocking behaviour is now ALSO executed inside the unified required gate, by the unified blocker job cbw-master-required-gate.yml#global-header-interaction, proved command-for-command equivalent by scripts/ci/master-required-gate-parity-test.mjs. Shadow state only: no retirement, no enforcement authority, no branch-protection change."
     },
     {
       "id": "go-transition",
@@ -2525,7 +2525,7 @@
       "migrationState": "UNIFIED_GATE_HOST",
       "stage2MigrationCandidate": false,
       "stage2MigrationCandidateReason": "not external to the unified gate (UNIFIED_GATE_HOST)",
-      "notes": "S2-01 deliverable. The ONE always-reporting required context for master. Executes the material hard-gate work itself; it is not an aggregator over other workflows."
+      "notes": "S2-01 deliverable, restructured by S2-03. The ONE always-reporting required context for master. As of S2-03 this job is the FINAL AGGREGATOR of a bounded in-workflow DAG (classify -> unified blocker jobs -> this job, `if: always()`); the migrated material work is executed by the unified blocker jobs inside this same workflow, not by this job. It is NOT an aggregator over external workflows: it never queries another workflow's status, check runs or conclusions, and its verdict is derived solely from the results, published outcomes and recomputed applicability evidence of the jobs it directly depends on. It succeeds only when every registered blocker is provably PASS or provably, evidentially NOT_APPLICABLE; skipped is never a pass. The legacy path-filtered workflows remain in place, unchanged, in shadow/reporting state. This state grants NO enforcement or protection authority: no branch protection is enabled, no ruleset is created, and enforcementReady remains false."
     },
     {
       "id": "noindex-product-preview",
@@ -4067,7 +4067,7 @@
       "migrationState": "MIGRATED_UNIFIED_SHADOW",
       "stage2MigrationCandidate": false,
       "stage2MigrationCandidateReason": "already executed inside the unified gate; the legacy workflow is retained UNCHANGED as an independently reporting shadow, and retirement is a separate later decision",
-      "notes": "Public SEO Metadata hard gate. S2-03: this workflow is LEFT UNCHANGED and still reports independently. Its blocking behaviour is now ALSO executed inside the unified required gate (cbw-master-required-gate.yml#public-seo-metadata), proved command-for-command equivalent by scripts/ci/master-required-gate-parity-test.mjs. Shadow state only: no retirement, no enforcement authority, no branch-protection change. S2-03: this workflow is LEFT UNCHANGED and still reports independently. Its blocking behaviour is now ALSO executed inside the unified required gate (cbw-master-required-gate.yml#public-seo-metadata), proved command-for-command equivalent by scripts/ci/master-required-gate-parity-test.mjs. Shadow state only: no retirement, no enforcement authority, no branch-protection change."
+      "notes": "Public SEO Metadata hard gate. S2-03: this path-filtered workflow is LEFT UNCHANGED and still reports independently. Its blocking behaviour is now ALSO executed inside the unified required gate, by the unified blocker job cbw-master-required-gate.yml#public-seo-metadata, proved command-for-command equivalent by scripts/ci/master-required-gate-parity-test.mjs. Shadow state only: no retirement, no enforcement authority, no branch-protection change."
     },
     {
       "id": "ranking-first-ui-advisory",
