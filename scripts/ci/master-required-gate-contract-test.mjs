@@ -1308,11 +1308,25 @@ for (const gateId of GATE_IDS) {
       !entry.includes('*') && !entry.endsWith('/'),
       entry,
     );
-    check(
-      `gate "${gateId}" inert entry "${entry}" is a real tracked file`,
-      existsSync(resolve(ROOT, entry)),
-      entry,
-    );
+    // EXISTENCE IS ASSERTED ONLY FOR THE GATE-SPECIFIC ENTRIES.
+    //
+    // The inherited S2-01 allowlist entries are NAMES, not required files: the
+    // classifier's model is "this exact path, if it ever appears in a diff, is
+    // inert", and several of those governance documents are deliberately not
+    // tracked. Requiring them to exist would make this contract fail on a clean
+    // checkout while proving nothing — inertness is proved by the dependency
+    // closure check below, not by a file being present.
+    //
+    // The gate-specific entries are different: each names the OTHER gate's
+    // exclusive workflow file or script, and a stale name there would silently
+    // widen this gate's inert set to a path nobody reviewed.
+    if (!UNIVERSALLY_INERT_PATHS.includes(entry)) {
+      check(
+        `gate "${gateId}" gate-specific inert entry "${entry}" is a real file`,
+        existsSync(resolve(ROOT, entry)),
+        entry,
+      );
+    }
   }
   // The S2-01 allowlist is a SUBSET of every gate's inert set — that is what makes
   // "material=false implies every gate NOT_APPLICABLE" a theorem rather than a
