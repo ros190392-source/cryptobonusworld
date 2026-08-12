@@ -32,7 +32,10 @@
 import { readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import {
+  AUTHORITY_RULE,
+  BLOCKING_AUTHORITY_CLASSIFICATIONS,
   CLASSIFICATIONS,
+  ENFORCEMENT_BLOCKING_GAP_CODES,
   FAIL_CLOSED_GAP_CODES,
   GAP_CODES,
   MIGRATION_STATES,
@@ -47,6 +50,8 @@ import {
   derivePullRequestTrigger,
   deriveStage2Candidacy,
   evaluateContinueOnError,
+  evaluateEnforcementReadiness,
+  participatesInBlockingAuthority,
   evaluateGithubExpression,
   evaluateJobIfForPullRequest,
   extractCommands,
@@ -124,21 +129,86 @@ function probeFacts(text, { workflowFile = 'probe.yml', jobId = 'probe' } = {}) 
 // ============================================================================
 
 check('workflow inventory is non-empty', files.length > 0);
+// R6: the two contracts are SEPARATE. A truthfully recorded unresolved
+// dependency is integrity DATA; it disqualifies ENFORCEMENT READINESS instead.
 check(
-  'R5 M3: DEPENDENCY_UNRESOLVABLE is a fail-closed modelling-gap code',
-  FAIL_CLOSED_GAP_CODES.includes('DEPENDENCY_UNRESOLVABLE'),
+  'R6 SEPARATION: DEPENDENCY_UNRESOLVABLE is NOT an integrity fail-closed code',
+  !FAIL_CLOSED_GAP_CODES.includes('DEPENDENCY_UNRESOLVABLE'),
   JSON.stringify(FAIL_CLOSED_GAP_CODES),
 );
+check(
+  'R6 SEPARATION: DEPENDENCY_UNRESOLVABLE IS an enforcement-blocking code',
+  ENFORCEMENT_BLOCKING_GAP_CODES.includes('DEPENDENCY_UNRESOLVABLE'),
+  JSON.stringify(ENFORCEMENT_BLOCKING_GAP_CODES),
+);
+check(
+  'R6 SEPARATION: unprovable SEMANTICS remain integrity fail-closed codes',
+  ['UNMODELED_TRIGGER', 'UNMODELED_JOB_IF', 'UNMODELED_CONTINUE_ON_ERROR', 'DEPENDENCY_UNREADABLE'].every((code) =>
+    FAIL_CLOSED_GAP_CODES.includes(code),
+  ),
+  JSON.stringify(FAIL_CLOSED_GAP_CODES),
+);
+check(
+  'R6 AUTHORITY RULE: integrity success never implies enforcement authority',
+  AUTHORITY_RULE.integrityImpliesEnforcementAuthority === false && /confers no branch-protection/.test(AUTHORITY_RULE.statement),
+  JSON.stringify(AUTHORITY_RULE),
+);
+
 const live = run();
 const liveFailures = live.filter((result) => !result.ok);
-const liveDependencyGapFailures = liveFailures.filter((result) =>
-  /raises no fail-closed modelling gap$/.test(result.label),
-);
-const liveSnapshotFailures = liveFailures.filter((result) => !liveDependencyGapFailures.includes(result));
+// DISCOVERY A: the current truthful baseline is integrity PASS.
 check(
-  'the live repository agrees with the stored blocking portfolio apart from deliberately fail-closed dependency debt',
-  liveSnapshotFailures.length === 0,
-  liveSnapshotFailures.map((result) => `${result.label}${result.detail ? `: ${result.detail}` : ''}`).join(' | '),
+  'R6 DISCOVERY A: the live repository passes PORTFOLIO INTEGRITY with no failure at all',
+  liveFailures.length === 0,
+  liveFailures.map((result) => `${result.label}${result.detail ? `: ${result.detail}` : ''}`).join(' | '),
+);
+const livePortfolio = JSON.parse(portfolioText);
+const liveReadiness = evaluateEnforcementReadiness(livePortfolio);
+// DISCOVERY A: ... and enforcement readiness FAILS on that same baseline.
+check(
+  'R6 DISCOVERY A: the same truthful baseline is NOT enforcement-ready',
+  liveReadiness.enforcementReady === false &&
+    liveReadiness.unresolvedBlockingRows > 0 &&
+    liveReadiness.affectedBlockingEntries > 0,
+  JSON.stringify({
+    enforcementReady: liveReadiness.enforcementReady,
+    unresolvedBlockingRows: liveReadiness.unresolvedBlockingRows,
+    affectedBlockingEntries: liveReadiness.affectedBlockingEntries,
+  }),
+);
+check(
+  'R6 DISCOVERY A: readiness reports the exact blocking rows, entries and reason/origin summaries',
+  liveReadiness.rows.length === liveReadiness.unresolvedBlockingRows &&
+    new Set(liveReadiness.rows.map((row) => row.entryId)).size === liveReadiness.affectedBlockingEntries &&
+    liveReadiness.reasonSummary.reduce((total, bucket) => total + bucket.rows, 0) === liveReadiness.unresolvedBlockingRows &&
+    liveReadiness.originSummary.reduce((total, bucket) => total + bucket.rows, 0) === liveReadiness.unresolvedBlockingRows &&
+    liveReadiness.blockers.length > 0,
+  JSON.stringify({
+    rows: liveReadiness.rows.length,
+    reasonRows: liveReadiness.reasonSummary.reduce((total, bucket) => total + bucket.rows, 0),
+    originRows: liveReadiness.originSummary.reduce((total, bucket) => total + bucket.rows, 0),
+  }),
+);
+check(
+  'R6 DISCOVERY A: every unresolved row is partitioned into exactly one of blocking / non-blocking authority',
+  liveReadiness.unresolvedBlockingRows + liveReadiness.outsideBlockingAuthority.unresolvedRows ===
+    summarizeUnresolvedDependencies(livePortfolio).unresolvedRows,
+  JSON.stringify({
+    blocking: liveReadiness.unresolvedBlockingRows,
+    outside: liveReadiness.outsideBlockingAuthority.unresolvedRows,
+    total: summarizeUnresolvedDependencies(livePortfolio).unresolvedRows,
+  }),
+);
+check(
+  'R6 DISCOVERY A: every entry carrying blocking authority is BLOCKING or UNMODELED',
+  livePortfolio.entries
+    .filter((entry) => participatesInBlockingAuthority(entry).participates)
+    .every((entry) => BLOCKING_AUTHORITY_CLASSIFICATIONS.includes(entry.classification)),
+  JSON.stringify(
+    livePortfolio.entries
+      .filter((entry) => participatesInBlockingAuthority(entry).participates)
+      .map((entry) => entry.classification),
+  ),
 );
 
 const { entries: derived, parseErrors } = deriveInventory({ files, packageScripts, repoFiles, readFile });
@@ -1576,19 +1646,38 @@ check(
 const derivedWithUnresolvedDependencies = derived.filter((entry) =>
   entry.knownGaps.some((gapEntry) => gapEntry.code === 'DEPENDENCY_UNRESOLVABLE'),
 );
+// R6 replaces the R5 assertion that every live carrier FAILED the audit. The
+// obligation is now split: integrity demands the carrier be recorded FAITHFULLY
+// (so no fact can vanish), and readiness demands every carrier that holds
+// blocking authority be listed as a blocker.
 check(
-  'R5 M3: every live DEPENDENCY_UNRESOLVABLE carrier is blocked independently of snapshot synchronisation',
-  liveDependencyGapFailures.length === derivedWithUnresolvedDependencies.length &&
-    derivedWithUnresolvedDependencies.every((entry) =>
-      liveDependencyGapFailures.some(
-        (failure) =>
-          failure.label ===
-          `discovered job ${entry.workflowFile}#${entry.jobId} raises no fail-closed modelling gap`,
-      ),
+  'R6 DISCOVERY A: every live DEPENDENCY_UNRESOLVABLE carrier is recorded faithfully in the snapshot',
+  derivedWithUnresolvedDependencies.every((entry) => {
+    const stored = livePortfolio.entries.find(
+      (candidate) => candidate.workflowFile === entry.workflowFile && candidate.jobId === entry.jobId,
+    );
+    const unresolvedOf = (source) =>
+      (source?.knownGaps ?? [])
+        .filter((gapEntry) => gapEntry.code === 'DEPENDENCY_UNRESOLVABLE')
+        .map((gapEntry) => gapEntry.detail)
+        .sort();
+    return JSON.stringify(unresolvedOf(stored)) === JSON.stringify(unresolvedOf(entry));
+  }),
+  JSON.stringify({ carrierCount: derivedWithUnresolvedDependencies.length }),
+);
+check(
+  'R6 DISCOVERY A: every live carrier holding BLOCKING authority is an enforcement-readiness blocker',
+  derivedWithUnresolvedDependencies
+    .filter((entry) => BLOCKING_AUTHORITY_CLASSIFICATIONS.includes(entry.classification))
+    .every((entry) =>
+      liveReadiness.rows.some((row) => row.workflowFile === entry.workflowFile && row.jobId === entry.jobId),
     ),
   JSON.stringify({
-    failureCount: liveDependencyGapFailures.length,
-    carrierCount: derivedWithUnresolvedDependencies.length,
+    carriers: derivedWithUnresolvedDependencies.length,
+    blockingCarriers: derivedWithUnresolvedDependencies.filter((entry) =>
+      BLOCKING_AUTHORITY_CLASSIFICATIONS.includes(entry.classification),
+    ).length,
+    affected: liveReadiness.affectedBlockingEntries,
   }),
 );
 
@@ -1663,6 +1752,98 @@ for (const [label, run] of R5_LITERAL_C_FIND_PROBES) {
     'R5 M2: a literal path-qualified executable normalises only by its modelled basename',
     qualified?.pathQualified === true && qualified?.rawName === '/usr/bin/find',
     JSON.stringify(qualified ?? null),
+  );
+}
+
+// --- R6 M2: path-qualified executables use a CLOSED EXACT-PATH allowlist -----
+// The R5 model normalised any absolute path whose BASENAME matched a modelled
+// tool, so `/custom/bash` and `/evil/find` were silently treated as the shell
+// and the finder this engine models — dependency facts invented for programs it
+// has never seen. Only the exact literal paths in the allowlist may be modelled;
+// every other path is DEPENDENCY_UNRESOLVABLE and resolves NO dependency.
+{
+  const identityOf = (source) => {
+    const { commands, unmodeled } = tokenizeShell(source);
+    return { command: commands[0] ?? null, unmodeled };
+  };
+
+  // Modelled: exact allowlisted paths.
+  const R6_MODELED_PATHS = [
+    ['/bin/bash', 'bash', `/bin/bash -c "find src/data -name '*.ts'"`],
+    ['/usr/bin/bash', 'bash', `/usr/bin/bash -c "find src/data -name '*.ts'"`],
+    ['/bin/sh', 'sh', `/bin/sh -c "find src/data -name '*.ts'"`],
+    ['/usr/bin/sh', 'sh', `/usr/bin/sh -c "find src/data -name '*.ts'"`],
+    ['/bin/find', 'find', `/bin/find src/data -name '*.ts'`],
+    ['/usr/bin/find', 'find', `/usr/bin/find src/data -name '*.ts'`],
+    ['/usr/bin/env', 'env', `/usr/bin/env find src/data -name '*.ts'`],
+    ['/bin/env', 'env', `/bin/env find src/data -name '*.ts'`],
+  ];
+  for (const [path, expected, source] of R6_MODELED_PATHS) {
+    const { command, unmodeled } = identityOf(source);
+    check(
+      `R6 M2: allowlisted \`${path}\` is modelled as \`${expected}\` with its raw spelling preserved`,
+      command?.name === expected && command?.pathQualified === true && command?.rawName === path && unmodeled.length === 0,
+      JSON.stringify({ command, unmodeled }),
+    );
+  }
+
+  // NOT modelled: an arbitrary path whose basename merely imitates a modelled
+  // tool. Each must be unresolved AND must resolve no dependency at all.
+  const R6_UNRESOLVED_PATHS = [
+    ['/custom/bash', `/custom/bash -c "find src/data -name '*.ts'"`],
+    ['/evil/find', `/evil/find src/data -name '*.ts'`],
+    ['/custom/env', `/custom/env find src/data -name '*.ts'`],
+    ['/usr/local/bin/bash', `/usr/local/bin/bash -c "find src/data -name '*.ts'"`],
+    ['/opt/homebrew/bin/find', `/opt/homebrew/bin/find src/data -name '*.ts'`],
+    ['/bin/../custom/bash', `/bin/../custom/bash -c "find src/data -name '*.ts'"`],
+    ['/usr/bin/./find', `/usr/bin/./find src/data -name '*.ts'`],
+  ];
+  for (const [path, source] of R6_UNRESOLVED_PATHS) {
+    const { command, unmodeled } = identityOf(source);
+    check(
+      `R6 M2: arbitrary \`${path}\` is NEVER modelled by basename`,
+      command?.name === null &&
+        command?.dependencyScan === false &&
+        unmodeled.some((detail) => detail.includes(path)),
+      JSON.stringify({ command, unmodeled }),
+    );
+    const closure = r3Closure(source);
+    check(
+      `R6 M2: arbitrary \`${path}\` records DEPENDENCY_UNRESOLVABLE and invents no dependency`,
+      closure.unresolvable.some((detail) => /path-qualified executable is outside the supported model/.test(detail)) &&
+        closure.readInputs.length === 0 &&
+        closure.executed.length === 0,
+      JSON.stringify(closure),
+    );
+  }
+
+  // A path computed at run time can never be checked against any allowlist.
+  {
+    const { command, unmodeled } = identityOf(`$CBW_TOOL src/data -name '*.ts'`);
+    check(
+      'R6 M2: a dynamically computed executable path is unresolved',
+      command?.name === null && command?.dependencyScan === false && unmodeled.length > 0,
+      JSON.stringify({ command, unmodeled }),
+    );
+    const substituted = identityOf(`$(which find) src/data -name '*.ts'`);
+    check(
+      'R6 M2: a command-substituted executable path is unresolved',
+      substituted.command?.name === null || substituted.unmodeled.length > 0,
+      JSON.stringify(substituted),
+    );
+  }
+
+  // The allowlist is a CLOSED, machine-readable contract of exact paths.
+  check(
+    'R6 M2: the path-qualified allowlist is a closed set of exact literal paths',
+    Array.isArray(SUPPORTED_SHELL_MODEL.pathQualifiedCommandPaths) &&
+      SUPPORTED_SHELL_MODEL.pathQualifiedCommandPaths.every((path) => /^\/(bin|usr\/bin)\/[a-z]+$/.test(path)) &&
+      ['/bin/bash', '/usr/bin/bash', '/bin/sh', '/usr/bin/sh', '/usr/bin/env', '/bin/find', '/usr/bin/find'].every(
+        (path) => SUPPORTED_SHELL_MODEL.pathQualifiedCommandPaths.includes(path),
+      ) &&
+      !SUPPORTED_SHELL_MODEL.pathQualifiedCommandPaths.some((path) => /custom|evil|local|opt/.test(path)) &&
+      SUPPORTED_SHELL_MODEL.pathQualifiedCommandBasenames === undefined,
+    JSON.stringify(SUPPORTED_SHELL_MODEL.pathQualifiedCommandPaths),
   );
 }
 
@@ -2438,28 +2619,37 @@ function fullySynced(mutate, { repoFiles: probeRepoFiles = repoFiles, readFile: 
   const mutated = files.map((file) => ({ ...file }));
   mutate(mutated);
   const overrides = { repoFiles: probeRepoFiles, readFile: probeReadFile };
+  const portfolio = syncedPortfolio(mutated, overrides);
   return {
     files: mutated,
-    results: run({ files: mutated, portfolioText: JSON.stringify(syncedPortfolio(mutated, overrides)), ...overrides }),
+    portfolio,
+    // R6: a synchronised snapshot is evaluated against BOTH contracts, because
+    // the whole point of the split is that they can disagree — a truthful
+    // snapshot of an unresolved dependency is integrity-valid and
+    // enforcement-DISQUALIFYING at the same time.
+    results: run({ files: mutated, portfolioText: JSON.stringify(portfolio), ...overrides }),
+    readiness: evaluateEnforcementReadiness(portfolio),
     derived: deriveInventory({ files: mutated, packageScripts, ...overrides }).entries,
   };
 }
 
-// Control: synchronisation removes every snapshot mismatch but MUST NOT remove
-// the repository's fail-closed dependency-model failures.
+// Control: synchronisation removes every snapshot mismatch, and on the truthful
+// baseline that means integrity is CLEAN — while enforcement readiness is not.
 {
   const control = fullySynced(() => {});
-  const nonDependencyFailures = control.results.filter(
-    (result) => !result.ok && !/raises no fail-closed modelling gap$/.test(result.label),
+  const controlFailures = control.results.filter((result) => !result.ok);
+  check(
+    'control: a fully synchronised snapshot has no INTEGRITY failure at all',
+    controlFailures.length === 0,
+    controlFailures.map((result) => `${result.label}: ${result.detail}`).join(' | '),
   );
   check(
-    'control: a fully synchronised snapshot has no mismatch/structural failure',
-    nonDependencyFailures.length === 0,
-    nonDependencyFailures.map((result) => `${result.label}: ${result.detail}`).join(' | '),
-  );
-  check(
-    'R5 M3 control: snapshot synchronisation does not clear live DEPENDENCY_UNRESOLVABLE failures',
-    control.results.some((result) => !result.ok && /raises no fail-closed modelling gap$/.test(result.label)),
+    'R6 control: integrity cleanliness does NOT make the portfolio enforcement-ready',
+    control.readiness.enforcementReady === false && control.readiness.unresolvedBlockingRows > 0,
+    JSON.stringify({
+      enforcementReady: control.readiness.enforcementReady,
+      unresolvedBlockingRows: control.readiness.unresolvedBlockingRows,
+    }),
   );
 }
 
@@ -2948,36 +3138,243 @@ for (const [index, [label, command]] of R4_UNSUPPORTED_WRAPPER_SYNC_PROBES.entri
   );
 }
 
-// --- R5 M3/L2: unresolved execution models are absolute audit failures -------
-// At previous head e2dfd68903653aaa0eb57c462cae6aae91485ef5 these probes
-// could be copied into a fully synchronised snapshot and the audit would pass.
-// The snapshot below is intentionally regenerated from each mutation; the only
-// acceptable result is still the target job's fail-closed audit failure.
-const R5_FAIL_CLOSED_SYNC_PROBES = [
+// --- R6 DISCOVERY C/F: a NEW unsupported dependency in a BLOCKING job --------
+// R5 made every unresolved dependency an absolute audit failure. R6 splits the
+// obligation, and each probe below proves BOTH halves at once on the SAME
+// mutation: the workflow is a blocking PR gate, so a truthfully synchronised
+// snapshot is INTEGRITY-VALID (recording the unresolved fact is a true
+// statement), while ENFORCEMENT READINESS must fail because that unresolved
+// dependency sits inside blocking authority. Integrity is never allowed to
+// launder the debt, and readiness is never allowed to ignore it.
+const R6_BLOCKING_UNRESOLVED_SYNC_PROBES = [
   ['`env -i find`', "env -i find src/data -name '*.ts'"],
   ['a dynamic `bash -c` program', 'bash -c "$CBW_COMMAND"'],
   ['the unsupported `sudo` wrapper', "sudo find src/data -name '*.ts'"],
   ['unsupported process substitution', "diff <(find src/data -name '*.ts') scripts/beta.mjs"],
+  // DISCOVERY F: the R6 M2 defect itself, carried end to end through a real
+  // blocking workflow entry rather than only through the tokenizer.
+  ['an arbitrary `/custom/bash` executable', `/custom/bash -c "find src/data -name '*.ts'"`],
+  ['an arbitrary `/evil/find` executable', `/evil/find src/data -name '*.ts'`],
 ];
-for (const [index, [label, command]] of R5_FAIL_CLOSED_SYNC_PROBES.entries()) {
-  const jobId = `r5-fail-closed-${index}`;
-  const path = `.github/workflows/cbw-r5-fail-closed-${index}.yml`;
+for (const [index, [label, command]] of R6_BLOCKING_UNRESOLVED_SYNC_PROBES.entries()) {
+  const jobId = `r6-blocking-unresolved-${index}`;
+  const path = `.github/workflows/cbw-r6-blocking-unresolved-${index}.yml`;
   const probe = fullySynced((mutated) => mutated.push({ path, text: r4WrapperWorkflow(jobId, command) }));
-  const entry = probe.derived.find((candidate) => candidate.workflowFile === path.split('/').pop());
+  const workflowFile = path.split('/').pop();
+  const entry = probe.derived.find((candidate) => candidate.workflowFile === workflowFile);
   check(
-    `R5 M3: ${label} emits DEPENDENCY_UNRESOLVABLE`,
+    `R6 DISCOVERY C: ${label} emits DEPENDENCY_UNRESOLVABLE`,
     (entry?.knownGaps ?? []).some((gapEntry) => gapEntry.code === 'DEPENDENCY_UNRESOLVABLE'),
     JSON.stringify(entry?.knownGaps ?? null),
   );
   check(
-    `R5 M3: ${label} fails the audit after full snapshot synchronisation`,
-    probe.results.some(
-      (result) =>
-        !result.ok &&
-        result.label === `discovered job ${entry?.workflowFile}#${entry?.jobId} raises no fail-closed modelling gap`,
-    ),
-    JSON.stringify(probe.results.filter((result) => !result.ok)),
+    `R6 DISCOVERY C: ${label} lands in a BLOCKING entry (the probe is not vacuous)`,
+    entry?.classification === 'BLOCKING',
+    String(entry?.classification),
   );
+  check(
+    `R6 DISCOVERY C: ${label} PASSES integrity once the snapshot records it truthfully`,
+    probe.results.every((result) => result.ok),
+    JSON.stringify(probe.results.filter((result) => !result.ok).map((result) => `${result.label}: ${result.detail}`)),
+  );
+  check(
+    `R6 DISCOVERY C: ${label} makes enforcement readiness FAIL on that same truthful snapshot`,
+    probe.readiness.enforcementReady === false &&
+      probe.readiness.rows.some((row) => row.workflowFile === workflowFile && row.jobId === jobId),
+    JSON.stringify({
+      enforcementReady: probe.readiness.enforcementReady,
+      rows: probe.readiness.rows.filter((row) => row.workflowFile === workflowFile).length,
+    }),
+  );
+}
+
+// --- R6 DISCOVERY B: an unresolved row may never silently disappear ----------
+// Integrity treats unresolved facts as DATA, so this is the check that keeps
+// that from becoming a loophole: delete, reword or invent one row on an
+// otherwise perfectly synchronised snapshot and integrity must FAIL by name.
+{
+  const workflowFile = 'cbw-r6-integrity-fidelity.yml';
+  const jobId = 'r6-integrity-fidelity';
+  const path = `.github/workflows/${workflowFile}`;
+  const command = "env -i find src/data -name '*.ts'";
+  const mutateFiles = (mutated) => mutated.push({ path, text: r4WrapperWorkflow(jobId, command) });
+  const baseline = fullySynced(mutateFiles);
+  check(
+    'R6 DISCOVERY B baseline: the synchronised snapshot passes integrity before mutation',
+    baseline.results.every((result) => result.ok),
+    JSON.stringify(baseline.results.filter((result) => !result.ok).map((result) => result.label)),
+  );
+
+  const mutateSnapshot = (mutate) => {
+    const mutatedFiles = files.map((file) => ({ ...file }));
+    mutateFiles(mutatedFiles);
+    const portfolio = syncedPortfolio(mutatedFiles);
+    const target = portfolio.entries.find(
+      (candidate) => candidate.workflowFile === workflowFile && candidate.jobId === jobId,
+    );
+    mutate(target);
+    return run({ files: mutatedFiles, portfolioText: JSON.stringify(portfolio) });
+  };
+
+  expectFailure(
+    'R6 DISCOVERY B: DELETING an unresolved row from the snapshot fails integrity',
+    mutateSnapshot((target) => {
+      target.knownGaps = target.knownGaps.filter((gapEntry) => gapEntry.code !== 'DEPENDENCY_UNRESOLVABLE');
+    }),
+    /records every live unresolved dependency fact/,
+  );
+  expectFailure(
+    'R6 DISCOVERY B: REWORDING an unresolved row fails integrity',
+    mutateSnapshot((target) => {
+      const gapEntry = target.knownGaps.find((candidate) => candidate.code === 'DEPENDENCY_UNRESOLVABLE');
+      gapEntry.detail = `${gapEntry.detail} (reworded)`;
+    }),
+    /records every live unresolved dependency fact/,
+  );
+  expectFailure(
+    'R6 DISCOVERY B: INVENTING an unresolved row the derivation never produced fails integrity',
+    mutateSnapshot((target) => {
+      target.knownGaps.push({ code: 'DEPENDENCY_UNRESOLVABLE', detail: 'invented.mjs :: invented reason' });
+    }),
+    /records no unresolved dependency fact the derivation does not produce/,
+  );
+  expectFailure(
+    'R6 DISCOVERY B: DUPLICATING an unresolved row changes the recorded row count and fails integrity',
+    mutateSnapshot((target) => {
+      const gapEntry = target.knownGaps.find((candidate) => candidate.code === 'DEPENDENCY_UNRESOLVABLE');
+      target.knownGaps.push({ ...gapEntry });
+    }),
+    /unresolved dependency row COUNT matches the derivation/,
+  );
+}
+
+// --- R6 DISCOVERY D/E: readiness scope is exact -------------------------------
+// D: a synthetic BLOCKING entry with NO unresolved dependency is enforcement-
+//    ready, which proves the readiness verdict is capable of passing and is not
+//    a constant `false`.
+// E: an ADVISORY entry's unresolved dependencies are reported as OUTSIDE
+//    blocking authority and never veto blocking-enforcement readiness.
+{
+  const blockingEntry = (overrides = {}) => ({
+    id: 'synthetic-blocking',
+    workflowFile: 'cbw-synthetic.yml',
+    jobId: 'synthetic',
+    checkContext: 'Synthetic gate',
+    classification: 'BLOCKING',
+    migrationState: 'LEGACY_EXTERNAL',
+    stage2MigrationCandidate: true,
+    knownGaps: [],
+    ...overrides,
+  });
+
+  const resolved = evaluateEnforcementReadiness({ entries: [blockingEntry()] });
+  check(
+    'R6 DISCOVERY D: a synthetic BLOCKING entry with every dependency resolved IS enforcement-ready',
+    resolved.enforcementReady === true &&
+      resolved.unresolvedBlockingRows === 0 &&
+      resolved.affectedBlockingEntries === 0 &&
+      resolved.blockingAuthorityEntries === 1 &&
+      resolved.blockers.length === 0,
+    JSON.stringify(resolved),
+  );
+
+  const stillCarryingNonBlockingGaps = evaluateEnforcementReadiness({
+    entries: [
+      blockingEntry({
+        knownGaps: [
+          { code: 'TRIGGER_GAP_SCRIPT', detail: 'scripts/alpha.mjs' },
+          { code: 'PATH_FILTERED_NOT_ALWAYS_REPORTING', detail: 'path filter' },
+        ],
+      }),
+    ],
+  });
+  check(
+    'R6 DISCOVERY D: only ENFORCEMENT_BLOCKING_GAP_CODES can block readiness',
+    stillCarryingNonBlockingGaps.enforcementReady === true,
+    JSON.stringify(stillCarryingNonBlockingGaps.blockers),
+  );
+
+  const oneUnresolved = evaluateEnforcementReadiness({
+    entries: [
+      blockingEntry({
+        knownGaps: [{ code: 'DEPENDENCY_UNRESOLVABLE', detail: 'scripts/alpha.mjs :: computed input' }],
+      }),
+    ],
+  });
+  check(
+    'R6 DISCOVERY D: one unresolved row inside blocking authority is enough to fail readiness',
+    oneUnresolved.enforcementReady === false &&
+      oneUnresolved.unresolvedBlockingRows === 1 &&
+      oneUnresolved.affectedBlockingEntries === 1 &&
+      oneUnresolved.reasonSummary[0]?.reason === 'computed input' &&
+      oneUnresolved.originSummary[0]?.origin === 'scripts/alpha.mjs',
+    JSON.stringify(oneUnresolved),
+  );
+
+  const ADVISORY_ONLY_CLASSIFICATIONS = ['ADVISORY', 'NON_PR', 'CONDITIONAL_PRODUCTION_ONLY'];
+  for (const classification of ADVISORY_ONLY_CLASSIFICATIONS) {
+    const readiness = evaluateEnforcementReadiness({
+      entries: [
+        blockingEntry(),
+        {
+          id: `synthetic-${classification.toLowerCase()}`,
+          workflowFile: 'cbw-synthetic-other.yml',
+          jobId: 'other',
+          checkContext: 'Other',
+          classification,
+          migrationState: classification === 'ADVISORY' ? 'LEGACY_EXTERNAL' : 'NOT_APPLICABLE',
+          stage2MigrationCandidate: false,
+          knownGaps: [{ code: 'DEPENDENCY_UNRESOLVABLE', detail: 'scripts/other.mjs :: computed input' }],
+        },
+      ],
+    });
+    check(
+      `R6 DISCOVERY E: an unresolved dependency in a ${classification} entry does NOT fail blocking-enforcement readiness`,
+      readiness.enforcementReady === true &&
+        readiness.unresolvedBlockingRows === 0 &&
+        readiness.outsideBlockingAuthority.unresolvedRows === 1 &&
+        readiness.outsideBlockingAuthority.byClassification[classification] === 1,
+      JSON.stringify(readiness),
+    );
+    check(
+      `R6 DISCOVERY E: a ${classification} entry holds no blocking authority`,
+      participatesInBlockingAuthority({ classification }).participates === false,
+      JSON.stringify(participatesInBlockingAuthority({ classification })),
+    );
+  }
+
+  // An UNMODELED entry can never be shown to sit outside blocking authority, so
+  // readiness fails closed on it rather than quietly excusing it.
+  const unmodeled = evaluateEnforcementReadiness({
+    entries: [
+      blockingEntry({
+        id: 'synthetic-unmodeled',
+        classification: 'UNMODELED',
+        stage2MigrationCandidate: false,
+        knownGaps: [{ code: 'DEPENDENCY_UNRESOLVABLE', detail: 'scripts/alpha.mjs :: computed input' }],
+      }),
+    ],
+  });
+  check(
+    'R6 DISCOVERY E: an UNMODELED entry fails closed INTO blocking authority',
+    unmodeled.enforcementReady === false && unmodeled.unresolvedBlockingRows === 1,
+    JSON.stringify(unmodeled),
+  );
+
+  // Fail closed on a portfolio that cannot be read at all.
+  for (const [label, value] of [
+    ['null', null],
+    ['a non-object', 42],
+    ['an object with no entries array', {}],
+    ['an empty portfolio', { entries: [] }],
+  ]) {
+    const readiness = evaluateEnforcementReadiness(value);
+    check(
+      `R6 readiness fails closed on ${label}`,
+      readiness.enforcementReady === false && readiness.blockers.length > 0,
+      JSON.stringify(readiness),
+    );
+  }
 }
 
 const R5_INVALID_WRAPPER_CONTEXT_PROBES = [
@@ -2997,14 +3394,11 @@ for (const [index, [label, command]] of R5_INVALID_WRAPPER_CONTEXT_PROBES.entrie
     JSON.stringify(entry?.dependencies ?? null),
   );
   check(
-    `R5 L2: ${label} is unresolved and fail closed after synchronisation`,
+    `R5 L2/R6: ${label} is recorded unresolved and disqualifies enforcement readiness after synchronisation`,
     (entry?.knownGaps ?? []).some((gapEntry) => gapEntry.code === 'DEPENDENCY_UNRESOLVABLE') &&
-      probe.results.some(
-        (result) =>
-          !result.ok &&
-          result.label === `discovered job ${entry?.workflowFile}#${entry?.jobId} raises no fail-closed modelling gap`,
-      ),
-    JSON.stringify(entry?.knownGaps ?? null),
+      probe.readiness.enforcementReady === false &&
+      probe.readiness.rows.some((row) => row.workflowFile === entry?.workflowFile && row.jobId === entry?.jobId),
+    JSON.stringify({ gaps: entry?.knownGaps ?? null, blockers: probe.readiness.blockers }),
   );
 }
 
@@ -3018,8 +3412,27 @@ for (const [index, [label, command]] of R5_INVALID_WRAPPER_CONTEXT_PROBES.entrie
     'R5 BOUNDARY: the supported shell subset is a closed machine-readable contract',
     JSON.stringify(SUPPORTED_SHELL_MODEL.wrappers) === JSON.stringify(['command', 'exec', 'nohup', 'time', 'env']) &&
       JSON.stringify(SUPPORTED_SHELL_MODEL.shellCCommands) === JSON.stringify(['sh', 'bash', 'dash', 'ksh', 'zsh']) &&
-      JSON.stringify(SUPPORTED_SHELL_MODEL.pathQualifiedCommandBasenames) ===
-        JSON.stringify(['find', 'env', 'nohup', 'sh', 'bash', 'dash', 'ksh', 'zsh']) &&
+      JSON.stringify(SUPPORTED_SHELL_MODEL.pathQualifiedCommandPaths) ===
+        JSON.stringify(
+          [
+            '/bin/bash',
+            '/bin/dash',
+            '/bin/env',
+            '/bin/find',
+            '/bin/ksh',
+            '/bin/nohup',
+            '/bin/sh',
+            '/bin/zsh',
+            '/usr/bin/bash',
+            '/usr/bin/dash',
+            '/usr/bin/env',
+            '/usr/bin/find',
+            '/usr/bin/ksh',
+            '/usr/bin/nohup',
+            '/usr/bin/sh',
+            '/usr/bin/zsh',
+          ].sort(),
+        ) &&
       SUPPORTED_SHELL_MODEL.unsupportedPolicy === 'DEPENDENCY_UNRESOLVABLE',
     JSON.stringify(SUPPORTED_SHELL_MODEL),
   );

@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "scripts": {
     "ci:master-portfolio:validate": "node scripts/ci/master-blocking-portfolio-validator.mjs",
+    "ci:master-portfolio:readiness": "node scripts/ci/master-blocking-portfolio-readiness.mjs",
     "ci:master-portfolio:discovery": "node scripts/ci/master-blocking-portfolio-discovery-test.mjs",
     "ai-ops:validate": "node scripts/ai-ops/validate-ai-ops-foundation.mjs",
     "ai-ops:validate:contract": "node scripts/ai-ops/validate-task-contract.mjs",

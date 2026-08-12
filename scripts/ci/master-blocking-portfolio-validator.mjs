@@ -1,6 +1,26 @@
 #!/usr/bin/env node
-// Deterministic validator for the master blocking-portfolio contract
-// (issue #366, Stage 2 / S2-02).
+// Deterministic PORTFOLIO INTEGRITY validator for the master blocking-portfolio
+// contract (issue #366, Stage 2 / S2-02).
+//
+// SCOPE — INTEGRITY ONLY. This command answers ONE question: is the stored
+// snapshot a TRUE and internally coherent statement about the workflows in this
+// repository today? It does NOT answer whether the portfolio may be used as
+// blocking enforcement authority. That is a separate, deliberately separate
+// command:
+//
+//     npm run ci:master-portfolio:readiness
+//     scripts/ci/master-blocking-portfolio-readiness.mjs
+//
+// A faithfully recorded DEPENDENCY_UNRESOLVABLE fact is DATA for integrity: it
+// is a true statement that part of a job's dependency surface lies outside the
+// bounded model, so its mere existence does not fail this audit. Its FIDELITY is
+// enforced instead — a row that silently disappears, is reworded, is dropped or
+// is invented fails integrity — and it disqualifies enforcement readiness.
+//
+// Expected baseline today: integrity PASS, enforcement readiness NOT_READY.
+//
+// AUTHORITY RULE: a passing integrity audit confers NO branch-protection, merge
+// or deploy authority. The PASS path prints that rule alongside the result.
 //
 // Proves, offline and without invoking GitHub, that
 // scripts/ci/master-blocking-portfolio.json is a TRUE statement about the
@@ -31,7 +51,12 @@
 import { readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { auditPortfolio, summarizeUnresolvedDependencies } from './master-blocking-portfolio-contract.mjs';
+import {
+  AUTHORITY_RULE,
+  auditPortfolio,
+  evaluateEnforcementReadiness,
+  summarizeUnresolvedDependencies,
+} from './master-blocking-portfolio-contract.mjs';
 
 const ROOT = resolve(process.cwd());
 export const PORTFOLIO_PATH = 'scripts/ci/master-blocking-portfolio.json';
@@ -121,10 +146,25 @@ if (invokedDirectly) {
   // number quoted in a report or a PR body can always be regenerated with one
   // command instead of being restated as prose. See
   // `summarizeUnresolvedDependencies` for the exact definition of each term.
-  const metrics = summarizeUnresolvedDependencies(JSON.parse(readFileSync(resolve(ROOT, PORTFOLIO_PATH), 'utf8')));
+  const portfolio = JSON.parse(readFileSync(resolve(ROOT, PORTFOLIO_PATH), 'utf8'));
+  const metrics = summarizeUnresolvedDependencies(portfolio);
   console.log(
     `CBW MASTER BLOCKING PORTFOLIO METRICS: unresolvedRows=${metrics.unresolvedRows} ` +
       `distinctOriginReasonFacts=${metrics.distinctOriginReasonFacts} ` +
       `distinctReasons=${metrics.distinctReasons} distinctOrigins=${metrics.distinctOrigins}`,
   );
+  // THE AUTHORITY RULE, PRINTED BY THE SUCCESS PATH ITSELF. A passing integrity
+  // audit is an inventory-truth result and nothing more, so this line is emitted
+  // next to every PASS: no reader, and no automation scraping this output, can
+  // quote integrity success as enforcement authority. Readiness is evaluated by
+  // a SEPARATE command (`npm run ci:master-portfolio:readiness`).
+  const readiness = evaluateEnforcementReadiness(portfolio);
+  console.log(
+    `CBW MASTER BLOCKING PORTFOLIO AUTHORITY: integrityValid=true ` +
+      `enforcementReady=${readiness.enforcementReady} enforcementAuthority=` +
+      `${readiness.enforcementReady ? 'ELIGIBLE' : 'NONE'} ` +
+      `unresolvedBlockingRows=${readiness.unresolvedBlockingRows} ` +
+      `affectedBlockingEntries=${readiness.affectedBlockingEntries}`,
+  );
+  console.log(`CBW MASTER BLOCKING PORTFOLIO AUTHORITY RULE: ${AUTHORITY_RULE.statement}`);
 }

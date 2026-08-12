@@ -116,15 +116,57 @@ export const GAP_CODES = Object.freeze([
   'DEPENDENCY_UNREADABLE',
 ]);
 
-// Gap codes that mean "this engine could not prove semantics". Any of them on
-// any discovered job is an unconditional audit failure.
+// TWO SEPARATE CONTRACTS LIVE IN THIS FILE. Conflating them is the defect the
+// R6 review named, so the boundary is stated here once, in code:
+//
+//   INTEGRITY (auditPortfolio)  — "is the snapshot a TRUE statement about the
+//       repository as it is today?" A gap the engine has faithfully RECORDED is
+//       DATA for this question. Truthfully recording "I cannot resolve this
+//       dependency" is a correct statement about repository truth, not a
+//       contradiction of it, so it must not fail integrity merely by existing.
+//
+//   ENFORCEMENT READINESS (evaluateEnforcementReadiness) — "may this portfolio
+//       be used as blocking enforcement authority?" There, an unresolved
+//       dependency inside blocking authority IS disqualifying, because the
+//       enforcement decision would rest on a dependency surface nobody has
+//       proven.
+//
+// Integrity PASS therefore NEVER implies enforcement authority. See
+// AUTHORITY_RULE below.
+
+// Gap codes that mean "this engine could not prove SEMANTICS" — what the job is
+// (does it run on PRs, can it fail one). Any of them on any discovered job is an
+// unconditional INTEGRITY failure, because the snapshot cannot describe a job
+// whose meaning was never established, and synchronising the snapshot to an
+// unprovable value must never buy a pass.
+//
+// DEPENDENCY_UNRESOLVABLE is deliberately NOT in this list. It does not make the
+// job's semantics unprovable; it states, truthfully, that part of the job's
+// dependency surface is outside the bounded model. Integrity holds it to a
+// FIDELITY standard instead (the recorded facts must match the live derivation
+// exactly — see the unresolved-dependency fidelity checks in `auditPortfolio`),
+// and ENFORCEMENT READINESS is where it disqualifies.
+//
+// DEPENDENCY_UNREADABLE stays fail-closed: an executed file the engine could not
+// READ is a hole in the derivation itself, so no snapshot claim about that job's
+// dependencies can be called true.
 export const FAIL_CLOSED_GAP_CODES = Object.freeze([
   'UNMODELED_TRIGGER',
   'UNMODELED_JOB_IF',
   'UNMODELED_CONTINUE_ON_ERROR',
-  'DEPENDENCY_UNRESOLVABLE',
   'DEPENDENCY_UNREADABLE',
 ]);
+
+// Gap codes that disqualify an entry from BLOCKING ENFORCEMENT AUTHORITY without
+// making the snapshot untruthful.
+export const ENFORCEMENT_BLOCKING_GAP_CODES = Object.freeze(['DEPENDENCY_UNRESOLVABLE']);
+
+// The one-line authority statement every consumer of this contract must honour.
+export const AUTHORITY_RULE = Object.freeze({
+  statement:
+    'Portfolio integrity is an inventory-truth result ONLY. A passing integrity audit confers no branch-protection, merge or deploy authority; enforcement authority requires a separate PASSING enforcement-readiness evaluation, which is required only at later migration/protection-activation stages.',
+  integrityImpliesEnforcementAuthority: false,
+});
 
 // Config files that every `npm`-running job materially depends on but that no
 // path filter in this repository currently lists. Enumerated here so the audit
@@ -917,9 +959,39 @@ const ARGV_WRAPPERS = Object.freeze({
 // Shells whose `-c` argument is a nested shell PROGRAM (a literal one is parsed
 // recursively; a computed one is reported).
 const SHELL_C_COMMANDS = Object.freeze(['sh', 'bash', 'dash', 'ksh', 'zsh']);
-// A path-qualified executable is normalised only when its exact basename is in
-// this closed set. Arbitrary absolute tools remain outside the dependency model.
-const PATH_QUALIFIED_COMMAND_BASENAMES = Object.freeze(['find', 'env', 'nohup', ...SHELL_C_COMMANDS]);
+// A path-qualified executable is normalised only when its EXACT literal path is
+// a key of this closed map. A basename test would be a trust hole: `/custom/bash`
+// and `/evil/find` are not the shell and the finder this engine models, they are
+// arbitrary programs that merely borrowed a familiar file name, and modelling
+// them would invent dependency facts (or, worse, silently resolve none) for code
+// the engine has never seen.
+//
+// The set is derived deliberately, not generated: it is exactly the two
+// directories in which a POSIX/FHS system installs the tools this engine models
+// (`/bin` and `/usr/bin`, which are the same directory on a merged-/usr system)
+// crossed with the modelled executables themselves — the sh-family shells whose
+// `-c` program is parsed recursively, plus `env`, `find` and `nohup`. Any other
+// location (`/usr/local/bin`, `/opt/homebrew/bin`, a relative `./bin/bash`, a
+// path with a `.` or `..` segment) is a different installation this engine has
+// not audited, so it stays outside the model and fails closed.
+const PATH_QUALIFIED_COMMAND_PATHS = Object.freeze({
+  '/bin/sh': 'sh',
+  '/usr/bin/sh': 'sh',
+  '/bin/bash': 'bash',
+  '/usr/bin/bash': 'bash',
+  '/bin/dash': 'dash',
+  '/usr/bin/dash': 'dash',
+  '/bin/ksh': 'ksh',
+  '/usr/bin/ksh': 'ksh',
+  '/bin/zsh': 'zsh',
+  '/usr/bin/zsh': 'zsh',
+  '/bin/env': 'env',
+  '/usr/bin/env': 'env',
+  '/bin/find': 'find',
+  '/usr/bin/find': 'find',
+  '/bin/nohup': 'nohup',
+  '/usr/bin/nohup': 'nohup',
+});
 // These names only have the wrapper semantics modelled here when the shell
 // itself resolves them. `env command ...` and `nohup command ...` ask an
 // external program to execute a shell-only builtin and are therefore invalid in
@@ -939,7 +1011,7 @@ export const SUPPORTED_SHELL_MODEL = Object.freeze({
   commandKeywords: SHELL_COMMAND_KEYWORDS,
   wrappers: Object.freeze(['command', 'exec', 'nohup', 'time', 'env']),
   shellCCommands: SHELL_C_COMMANDS,
-  pathQualifiedCommandBasenames: PATH_QUALIFIED_COMMAND_BASENAMES,
+  pathQualifiedCommandPaths: Object.freeze(Object.keys(PATH_QUALIFIED_COMMAND_PATHS).sort()),
   findOptions: FIND_SUPPORTED_OPTIONS,
   unsupportedPolicy: 'DEPENDENCY_UNRESOLVABLE',
 });
@@ -960,12 +1032,18 @@ function commandIdentityOf(candidate) {
     return { name: null, reason: 'command name is computed at run time' };
   }
   const value = candidate.value;
+  // A RELATIVE path in command position (`./bin/bash`, `bin/bash`) keeps its
+  // whole spelling as the command name. That name is in neither this allowlist
+  // nor any wrapper/shell list, so it is treated as an ordinary unknown command
+  // and can never borrow modelled semantics from its basename either.
   if (!value.startsWith('/')) return { name: value, pathQualified: false };
-  const basename = value.slice(value.lastIndexOf('/') + 1);
-  if (!PATH_QUALIFIED_COMMAND_BASENAMES.includes(basename)) {
-    return { name: null, reason: `absolute executable path is outside the supported model (${value})` };
+  // EXACT literal match only. The basename is deliberately never consulted, so
+  // `/custom/bash`, `/evil/find` and `/custom/env` resolve to nothing and are
+  // reported as unresolved instead of being modelled as the tools they imitate.
+  if (!Object.prototype.hasOwnProperty.call(PATH_QUALIFIED_COMMAND_PATHS, value)) {
+    return { name: null, reason: `path-qualified executable is outside the supported model (${value})` };
   }
-  return { name: basename, pathQualified: true };
+  return { name: PATH_QUALIFIED_COMMAND_PATHS[value], pathQualified: true };
 }
 
 // Skip opaque here-document DATA without pretending to interpret it. The
@@ -2705,7 +2783,6 @@ export function deriveStage2Candidacy(entry, migrationState) {
 //
 // @param {{entries: {knownGaps?: {code: string, detail: string}[]}[]}} portfolio
 export function summarizeUnresolvedDependencies(portfolio) {
-  const FACT_SEPARATOR = ' :: ';
   let unresolvedRows = 0;
   const facts = new Set();
   const reasons = new Set();
@@ -2716,14 +2793,9 @@ export function summarizeUnresolvedDependencies(portfolio) {
       const detail = String(gap.detail ?? '');
       unresolvedRows += 1;
       facts.add(detail);
-      const index = detail.indexOf(FACT_SEPARATOR);
-      if (index === -1) {
-        origins.add('');
-        reasons.add(detail);
-        continue;
-      }
-      origins.add(detail.slice(0, index));
-      reasons.add(detail.slice(index + FACT_SEPARATOR.length));
+      const { origin, reason } = splitUnresolvedFact(detail);
+      origins.add(origin);
+      reasons.add(reason);
     }
   }
   return {
@@ -2731,6 +2803,204 @@ export function summarizeUnresolvedDependencies(portfolio) {
     distinctOriginReasonFacts: facts.size,
     distinctReasons: reasons.size,
     distinctOrigins: origins.size,
+  };
+}
+
+// --- enforcement readiness ----------------------------------------------------
+//
+// A SEPARATE, DETERMINISTIC QUESTION from integrity: may this portfolio be used
+// as blocking enforcement authority?
+//
+// WHICH ENTRIES CARRY BLOCKING AUTHORITY — the definition is exact, and it is
+// the whole reason an advisory job's unresolved dependency does not veto
+// enforcement:
+//
+//   BLOCKING                       participates. The job can fail a pull request
+//                                  to master today, so an enforcement decision
+//                                  would rest on its dependency surface. Stage-2
+//                                  migration candidates are a strict subset of
+//                                  this set (candidacy requires BLOCKING) and
+//                                  are reported separately for visibility.
+//   UNMODELED                      participates, fail closed. Its semantics were
+//                                  never proven, so it cannot be shown to sit
+//                                  OUTSIDE blocking authority. (Integrity already
+//                                  fails on this state; readiness does not
+//                                  quietly disagree.)
+//   ADVISORY                       does NOT participate. `continue-on-error`
+//                                  means it cannot fail a PR, so it holds no
+//                                  blocking authority and its unresolved
+//                                  dependencies cannot corrupt one.
+//   NON_PR                         does NOT participate. It never runs on a PR
+//                                  to master at all.
+//   CONDITIONAL_PRODUCTION_ONLY    does NOT participate. Its `if` is provably
+//                                  false for pull requests.
+//
+// An advisory/non-PR entry that LATER becomes blocking is not a loophole: its
+// classification is re-derived from the YAML by the integrity audit, so the day
+// it can fail a PR it enters this set automatically.
+export const BLOCKING_AUTHORITY_CLASSIFICATIONS = Object.freeze(['BLOCKING', 'UNMODELED']);
+
+/**
+ * Does this entry participate in blocking enforcement authority?
+ * @returns {{participates: boolean, reason: string}}
+ */
+export function participatesInBlockingAuthority(entry) {
+  const classification = entry?.classification;
+  if (classification === 'BLOCKING') {
+    return {
+      participates: true,
+      reason:
+        entry?.stage2MigrationCandidate === true
+          ? 'blocking-capable and a stage-2 migration candidate'
+          : 'blocking-capable: it can fail a pull request to master today',
+    };
+  }
+  if (classification === 'UNMODELED') {
+    return {
+      participates: true,
+      reason: 'semantics are unprovable, so it cannot be shown to sit outside blocking authority',
+    };
+  }
+  return {
+    participates: false,
+    reason: `holds no blocking authority (${String(classification)})`,
+  };
+}
+
+const FACT_SEPARATOR = ' :: ';
+
+/** Split a `<origin> :: <reason>` gap detail at its FIRST separator. */
+function splitUnresolvedFact(detail) {
+  const text = String(detail ?? '');
+  const index = text.indexOf(FACT_SEPARATOR);
+  if (index === -1) return { origin: '', reason: text };
+  return { origin: text.slice(0, index), reason: text.slice(index + FACT_SEPARATOR.length) };
+}
+
+function summarizeBy(rows, key) {
+  const buckets = new Map();
+  for (const row of rows) {
+    const value = row[key];
+    if (!buckets.has(value)) buckets.set(value, { [key]: value, rows: 0, entries: new Set() });
+    const bucket = buckets.get(value);
+    bucket.rows += 1;
+    bucket.entries.add(row.entryId);
+  }
+  return [...buckets.values()]
+    .map((bucket) => ({ ...bucket, entries: bucket.entries.size }))
+    .sort((a, b) => b.rows - a.rows || String(a[key]).localeCompare(String(b[key])));
+}
+
+/**
+ * Deterministic enforcement-readiness evaluation over a portfolio snapshot.
+ *
+ * This function makes NO claim about integrity. It answers only whether the
+ * portfolio may become blocking enforcement authority, and it fails closed on a
+ * malformed or empty portfolio.
+ *
+ * @param {{entries?: object[]}} portfolio
+ */
+export function evaluateEnforcementReadiness(portfolio) {
+  const blockers = [];
+  const entries = Array.isArray(portfolio?.entries) ? portfolio.entries : null;
+  if (entries === null) {
+    return {
+      enforcementReady: false,
+      integrityImpliesEnforcementAuthority: false,
+      blockingAuthorityEntries: 0,
+      stage2MigrationCandidates: 0,
+      unresolvedBlockingRows: 0,
+      affectedBlockingEntries: 0,
+      rows: [],
+      affected: [],
+      reasonSummary: [],
+      originSummary: [],
+      outsideBlockingAuthority: { unresolvedRows: 0, entries: 0, byClassification: {} },
+      blockers: ['portfolio declares no entries array — readiness fails closed'],
+    };
+  }
+
+  const rows = [];
+  const outsideRows = [];
+  const blockingEntries = [];
+  let stage2MigrationCandidates = 0;
+
+  for (const entry of entries) {
+    const authority = participatesInBlockingAuthority(entry);
+    if (authority.participates) {
+      blockingEntries.push(entry);
+      if (entry?.stage2MigrationCandidate === true) stage2MigrationCandidates += 1;
+    }
+    for (const gap of Array.isArray(entry?.knownGaps) ? entry.knownGaps : []) {
+      if (!ENFORCEMENT_BLOCKING_GAP_CODES.includes(gap?.code)) continue;
+      const { origin, reason } = splitUnresolvedFact(gap?.detail);
+      const row = {
+        entryId: String(entry?.id ?? ''),
+        workflowFile: String(entry?.workflowFile ?? ''),
+        jobId: String(entry?.jobId ?? ''),
+        checkContext: String(entry?.checkContext ?? ''),
+        classification: String(entry?.classification ?? ''),
+        migrationState: String(entry?.migrationState ?? ''),
+        stage2MigrationCandidate: entry?.stage2MigrationCandidate === true,
+        authorityReason: authority.reason,
+        code: gap.code,
+        origin,
+        reason,
+        detail: String(gap?.detail ?? ''),
+      };
+      if (authority.participates) rows.push(row);
+      else outsideRows.push(row);
+    }
+  }
+
+  const affectedIds = new Set(rows.map((row) => row.entryId));
+  const affected = blockingEntries
+    .filter((entry) => affectedIds.has(String(entry?.id ?? '')))
+    .map((entry) => ({
+      entryId: String(entry?.id ?? ''),
+      workflowFile: String(entry?.workflowFile ?? ''),
+      jobId: String(entry?.jobId ?? ''),
+      checkContext: String(entry?.checkContext ?? ''),
+      classification: String(entry?.classification ?? ''),
+      migrationState: String(entry?.migrationState ?? ''),
+      stage2MigrationCandidate: entry?.stage2MigrationCandidate === true,
+      unresolvedRows: rows.filter((row) => row.entryId === String(entry?.id ?? '')).length,
+    }))
+    .sort((a, b) => b.unresolvedRows - a.unresolvedRows || a.entryId.localeCompare(b.entryId));
+
+  if (entries.length === 0) blockers.push('portfolio is empty — readiness fails closed');
+  if (rows.length > 0) {
+    blockers.push(
+      `${rows.length} unresolved dependency row(s) remain inside blocking authority across ${affected.length} entry(ies)`,
+    );
+  }
+
+  const outsideByClassification = {};
+  for (const row of outsideRows) {
+    outsideByClassification[row.classification] = (outsideByClassification[row.classification] ?? 0) + 1;
+  }
+
+  return {
+    enforcementReady: blockers.length === 0,
+    // Stated in the RESULT, not just the docs: readiness is the only thing that
+    // can confer enforcement authority, and integrity never does.
+    integrityImpliesEnforcementAuthority: false,
+    blockingAuthorityEntries: blockingEntries.length,
+    stage2MigrationCandidates,
+    unresolvedBlockingRows: rows.length,
+    affectedBlockingEntries: affected.length,
+    rows: rows.sort(
+      (a, b) => a.entryId.localeCompare(b.entryId) || a.detail.localeCompare(b.detail),
+    ),
+    affected,
+    reasonSummary: summarizeBy(rows, 'reason'),
+    originSummary: summarizeBy(rows, 'origin'),
+    outsideBlockingAuthority: {
+      unresolvedRows: outsideRows.length,
+      entries: new Set(outsideRows.map((row) => row.entryId)).size,
+      byClassification: outsideByClassification,
+    },
+    blockers,
   };
 }
 
@@ -3011,6 +3281,39 @@ export function auditPortfolio({ portfolioText, files, packageScripts, exists, r
         `stored=${stable(entry[field])} actual=${stable(match[field])}`,
       );
     }
+
+    // --- 5b. UNRESOLVED-DEPENDENCY FIDELITY ---------------------------------
+    // Unresolved dependency facts are DATA for integrity, never a free pass.
+    // They are exactly the rows enforcement readiness consumes, so a row that
+    // silently disappears, is reworded, or is invented would corrupt the
+    // readiness verdict while the snapshot still "matched". The comparison is a
+    // sorted MULTISET, so a duplicated row is drift too, and it is asserted
+    // separately from the whole-`knownGaps` comparison above so the failure
+    // names this specific corruption instead of dumping an entire gap array.
+    const unresolvedOf = (source) =>
+      (Array.isArray(source?.knownGaps) ? source.knownGaps : [])
+        .filter((gapEntry) => gapEntry?.code === 'DEPENDENCY_UNRESOLVABLE')
+        .map((gapEntry) => String(gapEntry.detail ?? ''))
+        .sort();
+    const storedUnresolved = unresolvedOf(entry);
+    const derivedUnresolved = unresolvedOf(match);
+    const missingUnresolved = derivedUnresolved.filter((detail) => !storedUnresolved.includes(detail));
+    const inventedUnresolved = storedUnresolved.filter((detail) => !derivedUnresolved.includes(detail));
+    check(
+      `portfolio entry ${entry.id} records every live unresolved dependency fact (none silently dropped or reworded)`,
+      missingUnresolved.length === 0,
+      missingUnresolved.join(' | '),
+    );
+    check(
+      `portfolio entry ${entry.id} records no unresolved dependency fact the derivation does not produce`,
+      inventedUnresolved.length === 0,
+      inventedUnresolved.join(' | '),
+    );
+    check(
+      `portfolio entry ${entry.id} unresolved dependency row COUNT matches the derivation`,
+      storedUnresolved.length === derivedUnresolved.length,
+      `stored=${storedUnresolved.length} derived=${derivedUnresolved.length}`,
+    );
 
     // --- 6. migrationState / candidacy consistency ---------------------------
     if (match.classification === 'NON_PR' || match.classification === 'CONDITIONAL_PRODUCTION_ONLY') {

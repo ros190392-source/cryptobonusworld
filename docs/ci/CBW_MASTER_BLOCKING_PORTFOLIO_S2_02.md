@@ -5,6 +5,11 @@ No gate logic is migrated, no branch protection is changed, no ruleset is create
 no workflow is weakened, no path filter is removed, and no product / research /
 commercial authority is altered by this artifact.
 
+**Integrity: expected PASS. Enforcement readiness: expected NOT_READY.**
+S2-02 is **not** enforcement-ready and nothing here may be cited as
+branch-protection, merge or deploy authority. See
+[Two contracts, two commands](#two-contracts-two-commands-integrity-vs-enforcement-readiness).
+
 ## What this is
 
 S2-01 delivered exactly one stable, always-reporting required context for product
@@ -17,8 +22,88 @@ of them could legitimately be named directly in branch protection.
 |---|---|
 | [`scripts/ci/master-blocking-portfolio.json`](../../scripts/ci/master-blocking-portfolio.json) | The canonical contract. One entry per GitHub Actions **job**, not per workflow file. |
 | [`scripts/ci/master-blocking-portfolio-contract.mjs`](../../scripts/ci/master-blocking-portfolio-contract.mjs) | Pure, text-in derivation + audit engine. No I/O, so it can be fed mutated inventories. |
-| [`scripts/ci/master-blocking-portfolio-validator.mjs`](../../scripts/ci/master-blocking-portfolio-validator.mjs) | `npm run ci:master-portfolio:validate` — re-proves the contract against the real workflow YAML. |
+| [`scripts/ci/master-blocking-portfolio-validator.mjs`](../../scripts/ci/master-blocking-portfolio-validator.mjs) | `npm run ci:master-portfolio:validate` — **PORTFOLIO INTEGRITY**. Re-proves the contract against the real workflow YAML. |
+| [`scripts/ci/master-blocking-portfolio-readiness.mjs`](../../scripts/ci/master-blocking-portfolio-readiness.mjs) | `npm run ci:master-portfolio:readiness` — **ENFORCEMENT READINESS**. May this portfolio become blocking enforcement authority? |
 | [`scripts/ci/master-blocking-portfolio-discovery-test.mjs`](../../scripts/ci/master-blocking-portfolio-discovery-test.mjs) | `npm run ci:master-portfolio:discovery` — live coverage check **plus** mutation probes that prove the audit can fail. |
+
+## Two contracts, two commands: INTEGRITY vs ENFORCEMENT READINESS
+
+These are different questions and must never be conflated. Answering "is the
+inventory truthful?" with "yes" is not, and never becomes, permission to enforce
+anything.
+
+| | **Portfolio integrity** | **Enforcement readiness** |
+| --- | --- | --- |
+| Command | `npm run ci:master-portfolio:validate` | `npm run ci:master-portfolio:readiness` |
+| Question | Is `master-blocking-portfolio.json` a **true and internally coherent** statement about the workflows in this repository today? | May this portfolio be used as **blocking enforcement authority**? |
+| Passes when | schema valid · supported `schemaVersion` · inventory complete · every current workflow/job represented · classifications match repository truth · trigger/path semantics match · dependency facts match · unresolved facts **faithfully recorded** · stored snapshot equals live derivation · no unexpected drift | **no** `DEPENDENCY_UNRESOLVABLE` row remains inside blocking authority |
+| `DEPENDENCY_UNRESOLVABLE` | **DATA.** A truthful "I cannot resolve this" is a correct statement about repository truth, so its existence does not fail integrity. | **DISQUALIFYING**, for every entry that carries blocking authority. |
+| **Baseline today** | **expected PASS** | **expected NOT_READY** |
+
+**S2-02 is NOT enforcement-ready, and this document does not claim it is.** The
+readiness command exits non-zero today. That non-zero exit is the *correct*
+result on the current baseline — it is not a build failure, not a contract
+failure, and must be reported separately from the validation suite.
+
+### The authority rule
+
+```
+integrityValid   = true
+enforcementReady = false
+```
+
+A passing integrity audit confers **no** branch-protection, merge or deploy
+authority. The rule is not only prose: `AUTHORITY_RULE` is exported from
+`master-blocking-portfolio-contract.mjs`, the integrity validator prints it on
+its own success path next to a machine-readable
+`integrityValid=… enforcementReady=… enforcementAuthority=…` line, and
+`evaluateEnforcementReadiness` returns
+`integrityImpliesEnforcementAuthority: false` in every result. Enforcement
+authority is required only at later migration / protection-activation stages,
+and is conferred only by a **passing readiness** evaluation.
+
+### What integrity still fails on
+
+Treating unresolved facts as data is not a loophole. Integrity fails if an
+unresolved fact is **dropped**, **reworded**, **duplicated** or **invented**, if
+a live unresolved fact is **missing** from the snapshot, or if live semantics the
+engine cannot prove are not represented — the fidelity of the recorded set is
+compared as a sorted multiset against the live derivation, entry by entry, with
+its own named assertions. `UNMODELED_TRIGGER`, `UNMODELED_JOB_IF`,
+`UNMODELED_CONTINUE_ON_ERROR` and `DEPENDENCY_UNREADABLE` remain absolute
+integrity failures that no snapshot synchronisation can clear.
+
+### Which entries carry blocking authority
+
+Readiness scope is exact, and it is why an advisory job's unresolved dependency
+cannot veto enforcement:
+
+| classification | carries blocking authority? | why |
+| --- | --- | --- |
+| `BLOCKING` | **yes** | it can fail a pull request to master today, so enforcement would rest on its dependency surface. Stage-2 migration candidates are a strict subset (candidacy requires `BLOCKING`) and are counted separately. |
+| `UNMODELED` | **yes**, fail closed | its semantics were never proven, so it cannot be shown to sit *outside* blocking authority |
+| `ADVISORY` | no | `continue-on-error` means it cannot fail a PR |
+| `NON_PR` | no | it never runs on a PR to master |
+| `CONDITIONAL_PRODUCTION_ONLY` | no | its `if` is provably false for pull requests |
+
+An advisory/non-PR entry that later becomes blocking is not a loophole: its
+classification is re-derived from the YAML on every integrity run, so the day it
+can fail a PR it enters the authority set automatically.
+
+### Current baseline numbers
+
+Regenerate with the two commands; they are printed, never restated as prose.
+
+| metric | value |
+| --- | --- |
+| integrity result | **PASS** (2 766 / 2 766 checks) |
+| enforcement readiness | **NOT_READY** |
+| unresolved rows, whole portfolio | 225 |
+| unresolved rows **inside blocking authority** | **74** |
+| affected **BLOCKING entries** | **15** |
+| entries carrying blocking authority | 15 |
+| of which stage-2 migration candidates | 13 |
+| unresolved rows outside blocking authority | 151 (`ADVISORY` 92, `NON_PR` 39, `CONDITIONAL_PRODUCTION_ONLY` 20) |
 
 ## Classification is semantic, never filename-based
 
@@ -204,8 +289,12 @@ stops — a file read as text is not itself executed):
 **Fail closed — recorded, never silently omitted:**
 
 * `DEPENDENCY_UNREADABLE` — an EXEC target that cannot be read. This is an
-  **audit failure**.
-* `DEPENDENCY_UNRESOLVABLE` — **any executed dependency form the bounded
+  **integrity failure**: the derivation itself has a hole, so no snapshot claim
+  about that job's dependencies can be called true.
+* `DEPENDENCY_UNRESOLVABLE` — a recorded **fact**, not an integrity failure (it
+  is a true statement that a form lies outside the bounded model), held to a
+  fidelity standard by integrity and **disqualifying for enforcement readiness**
+  wherever it sits inside blocking authority. It covers **any executed dependency form the bounded
   extractor cannot deterministically resolve**, recorded against the exact
   originating script with its reason. That is: a dynamic
   `import(pathExpr)`/`require(x)`, an interpolated module specifier
@@ -267,6 +356,33 @@ wrapper is either unwrapped deterministically or recorded as
 | `exec`, `nohup`, `builtin` | bare | any option |
 | `time` | bare, and `time -p` | any other option. `time` is a **wrapper**, not a control keyword: `time -p find …` would otherwise put `-p` in command position and hide the `find` |
 | `sh`/`bash`/`dash`/`ksh`/`zsh` `-c` | a **literal** program string, parsed recursively as a nested shell program (bounded to four levels, so a nesting cycle terminates in a recorded row) | a computed program (`bash -c "$CMD"`), or any option before `-c` (`bash -euo pipefail -c …`) |
+
+#### Path-qualified executables use a closed EXACT-PATH allowlist
+
+A modelled wrapper name is only modelled when the shell would really resolve it
+to the tool this engine understands. Trusting an absolute path by its
+**basename** was a trust hole: `/custom/bash`, `/evil/find` and `/custom/env` are
+arbitrary programs that merely borrowed a familiar file name, and modelling them
+would invent dependency facts for code the engine has never seen.
+
+So a path-qualified executable is normalised **only** when its exact literal path
+is one of the sixteen allowlisted paths — the two directories a POSIX/FHS system
+installs these tools in (`/bin`, `/usr/bin`) crossed with the modelled
+executables (`sh`, `bash`, `dash`, `ksh`, `zsh`, `env`, `find`, `nohup`):
+
+```
+/bin/sh    /bin/bash    /bin/dash    /bin/ksh    /bin/zsh    /bin/env    /bin/find    /bin/nohup
+/usr/bin/sh /usr/bin/bash /usr/bin/dash /usr/bin/ksh /usr/bin/zsh /usr/bin/env /usr/bin/find /usr/bin/nohup
+```
+
+The set is published machine-readably as
+`SUPPORTED_SHELL_MODEL.pathQualifiedCommandPaths`. Every other absolute path —
+`/usr/local/bin/bash`, `/opt/homebrew/bin/find`, `/bin/../custom/bash`,
+`/usr/bin/./find`, or any path computed at run time — is
+`DEPENDENCY_UNRESOLVABLE`, resolves **no** dependency, and is never modelled
+because a basename matched. A *relative* path in command position
+(`./bin/bash`) keeps its whole spelling as the command name, which matches no
+wrapper or shell list, so it cannot borrow modelled semantics either.
 
 `bash script.sh` is not a `-c` invocation and is unaffected: the script path is a
 path-shaped word and is followed as an EXEC edge exactly as before. Wrappers
@@ -400,9 +516,13 @@ validator re-derives the whole gap set and fails if the snapshot disagrees.
 * `NO_BRANCH_FILTER`
 * `MISLEADING_ADVISORY_FILENAME`, `MISLEADING_NON_BLOCKING_JOB_NAME`
 * `UNMODELED_TRIGGER`, `UNMODELED_JOB_IF`, `UNMODELED_CONTINUE_ON_ERROR` —
-  fail-closed modelling gaps. Each one makes the audit FAIL; none of them can be
-  synchronised away.
-* `DEPENDENCY_UNRESOLVABLE` (recorded fact), `DEPENDENCY_UNREADABLE` (audit failure)
+  fail-closed modelling gaps. Each one makes the **integrity** audit FAIL; none
+  of them can be synchronised away.
+* `DEPENDENCY_UNREADABLE` — fail-closed **integrity** failure.
+* `DEPENDENCY_UNRESOLVABLE` — recorded fact. Integrity holds it to a fidelity
+  standard (it may not be dropped, reworded, duplicated or invented); it
+  disqualifies **enforcement readiness** inside blocking authority. This is the
+  only gap code in `ENFORCEMENT_BLOCKING_GAP_CODES`.
 
 The dominant finding: **most** product path-filtered PR gates run `npm ci` and
 `npm run build`, yet **no** workflow in the repository lists `package.json`,
@@ -454,17 +574,33 @@ Section **F3** does the same for the R4 review:
 The fully-synchronised mutation suite (section **G**) additionally carries four
 short-circuit-laundering workflows and the R4 wrapper probes. Each derives
 `UNMODELED` (or, for the wrapper probes, exposes a previously hidden EXEC edge
-that fails closed as `DEPENDENCY_UNREADABLE`), and **still fails the audit**
-after the snapshot has been regenerated to agree with it perfectly — which is
-the property that makes the contract un-synchronisable out of a fail-closed
-state. An unsupported wrapper form likewise carries its
+that fails closed as `DEPENDENCY_UNREADABLE`), and **still fails the integrity
+audit** after the snapshot has been regenerated to agree with it perfectly —
+which is the property that makes the contract un-synchronisable out of a
+fail-closed state. An unsupported wrapper form likewise carries its
 `DEPENDENCY_UNRESOLVABLE` fact into the synchronised snapshot, so it can never
-present a clean bill of health.
+present a clean bill of health: integrity accepts the truthful record, and
+**readiness rejects it**.
+
+## R6 regression coverage — the two contracts, proved separately
+
+| group | obligation |
+| --- | --- |
+| `R6 SEPARATION` | `DEPENDENCY_UNRESOLVABLE` is **not** an integrity fail-closed code and **is** the enforcement-blocking code; the four unprovable-semantics codes stay integrity fail-closed; `AUTHORITY_RULE` denies that integrity implies authority |
+| `R6 DISCOVERY A` | the current truthful baseline: integrity PASSES with **zero** failures, and the same baseline is **NOT** enforcement-ready with a non-zero blocking row/entry count. Every unresolved row is partitioned into exactly one of blocking / non-blocking authority, and every live carrier is recorded faithfully |
+| `R6 DISCOVERY B` | deleting, rewording, inventing or duplicating an unresolved row on an otherwise perfectly synchronised snapshot each fails **integrity**, by name |
+| `R6 DISCOVERY C` | six new unsupported blocking dependencies (`env -i find`, a dynamic `bash -c`, `sudo`, process substitution, `/custom/bash`, `/evil/find`) each land in a `BLOCKING` entry, **pass integrity** once truthfully recorded, and each make **readiness FAIL** on that same snapshot |
+| `R6 DISCOVERY D` | a synthetic `BLOCKING` entry with every dependency resolved **is** enforcement-ready — the verdict is capable of passing, not a constant `false`; a single unresolved row is enough to fail it; non-enforcement gap codes never block it |
+| `R6 DISCOVERY E` | an unresolved dependency in an `ADVISORY` / `NON_PR` / `CONDITIONAL_PRODUCTION_ONLY` entry is reported as *outside* blocking authority and does **not** fail blocking-enforcement readiness; an `UNMODELED` entry fails closed *into* authority; a null/malformed/empty portfolio fails closed |
+| `R6 DISCOVERY F` | an arbitrary `/custom/bash`-style executable truthfully records unresolved, keeps integrity passing when the snapshot matches, and fails readiness when it sits in a blocking entry |
+| `R6 M2` | eight allowlisted exact paths are modelled with their raw spelling preserved; seven arbitrary paths (`/custom/bash`, `/evil/find`, `/custom/env`, `/usr/local/bin/bash`, `/opt/homebrew/bin/find`, `/bin/../custom/bash`, `/usr/bin/./find`) are **never** modelled by basename, record `DEPENDENCY_UNRESOLVABLE` and invent no dependency; a dynamic and a command-substituted path are unresolved; the allowlist is a closed machine-readable set of exact literal paths |
 
 ## Not wired into CI by this task
 
-The validator and discovery test are deliberately **not** added to any workflow
-here. Adding an enforcement step to `cbw-master-required-gate.yml` is a change to
-the gate itself and belongs to the migration stage, not to the inventory stage.
-They run locally via the two `npm` scripts above and in the S2-02 PR validation
-evidence. Wiring them is the first candidate follow-up.
+The validator, the readiness command and the discovery test are deliberately
+**not** added to any workflow here. Adding an enforcement step to
+`cbw-master-required-gate.yml` is a change to the gate itself and belongs to the
+migration stage, not to the inventory stage. They run locally via the three
+`npm` scripts above and in the S2-02 PR validation evidence. Wiring them is the
+first candidate follow-up — and the readiness command in particular must not be
+wired as a blocking step while it legitimately reports `NOT_READY`.
