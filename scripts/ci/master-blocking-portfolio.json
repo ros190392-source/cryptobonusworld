@@ -1,8 +1,8 @@
 {
   "schemaVersion": 2,
   "issue": 366,
-  "stage": "S2-02",
-  "description": "Machine-readable blocking-portfolio contract for every GitHub Actions job that can run on a pull request targeting product branch master. INVENTORY AND CONTRACT ONLY: no gate logic is migrated, no branch protection is changed and no workflow is weakened by this artifact. Every derivable field is re-proved against the workflow YAML by scripts/ci/master-blocking-portfolio-validator.mjs.",
+  "stage": "S2-03",
+  "description": "Machine-readable blocking-portfolio contract for every GitHub Actions job that can run on a pull request targeting product branch master. INVENTORY AND CONTRACT ONLY: no branch protection is changed, no ruleset is created and no workflow is weakened by this artifact. S2-03 records the first two unified-gate migrations (Global Header Interaction and Public SEO Metadata) as MIGRATED_UNIFIED_SHADOW: their blocking behaviour is now ALSO executed inside the unified required gate, proved command-for-command equivalent by scripts/ci/master-required-gate-parity-test.mjs, while the legacy path-filtered workflows are left UNCHANGED and keep reporting independently. That state is a shadow period, not a retirement and not enforcement authority; overall enforcementReady remains false. Every derivable field is re-proved against the workflow YAML by scripts/ci/master-blocking-portfolio-validator.mjs.",
   "classifications": [
     "BLOCKING",
     "ADVISORY",
@@ -12,6 +12,8 @@
   ],
   "migrationStates": [
     "LEGACY_EXTERNAL",
+    "MIGRATED_UNIFIED_SHADOW",
+    "UNIFIED_GATE_COMPONENT",
     "UNIFIED_GATE_HOST",
     "NOT_APPLICABLE"
   ],
@@ -32,13 +34,13 @@
     "DEPENDENCY_UNREADABLE"
   ],
   "totals": {
-    "BLOCKING": 15,
+    "BLOCKING": 18,
     "ADVISORY": 7,
     "CONDITIONAL_PRODUCTION_ONLY": 1,
     "NON_PR": 3,
     "UNMODELED": 0,
-    "total": 26,
-    "directRequiredSafe": 2
+    "total": 29,
+    "directRequiredSafe": 5
   },
   "entries": [
     {
@@ -414,10 +416,10 @@
           "detail": "tsconfig.json"
         }
       ],
-      "migrationState": "LEGACY_EXTERNAL",
-      "stage2MigrationCandidate": true,
-      "stage2MigrationCandidateReason": "blocking-capable, still external to the unified gate, and not directly requirable because it is path-filtered",
-      "notes": "Global Header Interaction hard gate. Its matrix is already executed inside the unified gate for MATERIAL changes; this path-filtered workflow still reports independently and is left untouched."
+      "migrationState": "MIGRATED_UNIFIED_SHADOW",
+      "stage2MigrationCandidate": false,
+      "stage2MigrationCandidateReason": "already executed inside the unified gate; the legacy workflow is retained UNCHANGED as an independently reporting shadow, and retirement is a separate later decision",
+      "notes": "Global Header Interaction hard gate. S2-03: this path-filtered workflow is LEFT UNCHANGED and still reports independently. Its blocking behaviour is now ALSO executed inside the unified required gate, by the unified blocker job cbw-master-required-gate.yml#global-header-interaction, proved command-for-command equivalent by scripts/ci/master-required-gate-parity-test.mjs. Shadow state only: no retirement, no enforcement authority, no branch-protection change."
     },
     {
       "id": "go-transition",
@@ -2012,11 +2014,11 @@
       "notes": "Genuinely advisory: job-level continue-on-error. Research-adjacent; no product authority."
     },
     {
-      "id": "master-required-gate",
+      "id": "master-gate-classify",
       "workflowFile": "cbw-master-required-gate.yml",
       "workflowName": "CBW Master Required Gate",
-      "jobId": "master-required-gate",
-      "checkContext": "Master required gate",
+      "jobId": "classify",
+      "checkContext": "Master gate classification",
       "classification": "BLOCKING",
       "directRequiredSafe": true,
       "pathFiltered": false,
@@ -2032,40 +2034,247 @@
         "totalSteps": 11,
         "softenedSteps": 0,
         "failableSteps": 11,
-        "timeoutMinutes": 45
+        "timeoutMinutes": 20
       },
       "commands": [
         "npm ci",
         "node scripts/ci/master-required-gate-contract-test.mjs",
         "node scripts/ci/master-required-gate-classifier-fixture-test.mjs",
         "node scripts/ci/master-required-gate-mutation-test.mjs",
+        "node scripts/ci/master-required-gate-parity-test.mjs",
         "node scripts/ci/master-required-gate-classify.mjs --emit-github-output",
         "node scripts/ci/master-required-gate-validate-output.mjs",
+        "node scripts/ci/master-required-gate-applicability.mjs --emit-github-output",
+        "node scripts/ci/master-required-gate-validate-applicability.mjs"
+      ],
+      "dependencies": {
+        "npmScripts": [],
+        "executed": [
+          "scripts/ci/master-blocking-portfolio-contract.mjs",
+          "scripts/ci/master-required-gate-aggregate.mjs",
+          "scripts/ci/master-required-gate-allowlist-drift.mjs",
+          "scripts/ci/master-required-gate-applicability.mjs",
+          "scripts/ci/master-required-gate-classifier-fixture-test.mjs",
+          "scripts/ci/master-required-gate-classify.mjs",
+          "scripts/ci/master-required-gate-contract-test.mjs",
+          "scripts/ci/master-required-gate-gate-result.mjs",
+          "scripts/ci/master-required-gate-gates.mjs",
+          "scripts/ci/master-required-gate-mutation-test.mjs",
+          "scripts/ci/master-required-gate-parity-test.mjs",
+          "scripts/ci/master-required-gate-validate-applicability.mjs",
+          "scripts/ci/master-required-gate-validate-output.mjs",
+          "scripts/ci/master-required-gate-workflow-contract.mjs"
+        ],
+        "readInputs": [
+          ".github/workflows/cbw-contact-utility.yml",
+          ".github/workflows/cbw-exchange-preview-family.yml",
+          ".github/workflows/cbw-global-header-interaction.yml",
+          ".github/workflows/cbw-go-transition.yml",
+          ".github/workflows/cbw-header-context-advisory.yml",
+          ".github/workflows/cbw-marketprofile-candidate-review-advisory.yml",
+          ".github/workflows/cbw-marketprofile-pipeline-advisory.yml",
+          ".github/workflows/cbw-marketprofile-promotion-gate-advisory.yml",
+          ".github/workflows/cbw-master-required-gate.yml",
+          ".github/workflows/cbw-noindex-product-preview-advisory.yml",
+          ".github/workflows/cbw-portal-contracts-advisory.yml",
+          ".github/workflows/cbw-pr-advisory-gate.yml",
+          ".github/workflows/cbw-production-safe-batch-autodeploy.yml",
+          ".github/workflows/cbw-public-asset-client-weight.yml",
+          ".github/workflows/cbw-public-first-screen-budget.yml",
+          ".github/workflows/cbw-public-navigation-boundary.yml",
+          ".github/workflows/cbw-public-seo-metadata.yml",
+          ".github/workflows/cbw-ranking-first-ui-advisory.yml",
+          ".github/workflows/cbw-redirect-family.yml",
+          ".github/workflows/cbw-research-marketprofile-bridge-advisory.yml",
+          ".github/workflows/cbw-route-inventory-artifact.yml",
+          ".github/workflows/cbw-structural-accessibility.yml",
+          ".github/workflows/critical-alerts.yml",
+          ".github/workflows/production-monitor.yml",
+          ".github/workflows/telegram-reports.yml",
+          "package.json",
+          "scripts/ui/global-header-interaction-browser-smoke.mjs",
+          "server/votes/server.mjs"
+        ],
+        "localActions": [],
+        "sharedConfig": [
+          "package-lock.json",
+          "package.json"
+        ]
+      },
+      "triggerCoverage": {
+        "modeled": true,
+        "unmodeledReason": null,
+        "hasPullRequest": true,
+        "pathFiltered": false,
+        "paths": [],
+        "pathsIgnore": [],
+        "branches": [
+          "master"
+        ],
+        "branchesIgnore": [],
+        "types": [],
+        "targetsMaster": true,
+        "selfTriggersOnOwnWorkflowFile": true,
+        "coveredInputs": [
+          ".github/workflows/cbw-contact-utility.yml",
+          ".github/workflows/cbw-exchange-preview-family.yml",
+          ".github/workflows/cbw-global-header-interaction.yml",
+          ".github/workflows/cbw-go-transition.yml",
+          ".github/workflows/cbw-header-context-advisory.yml",
+          ".github/workflows/cbw-marketprofile-candidate-review-advisory.yml",
+          ".github/workflows/cbw-marketprofile-pipeline-advisory.yml",
+          ".github/workflows/cbw-marketprofile-promotion-gate-advisory.yml",
+          ".github/workflows/cbw-master-required-gate.yml",
+          ".github/workflows/cbw-noindex-product-preview-advisory.yml",
+          ".github/workflows/cbw-portal-contracts-advisory.yml",
+          ".github/workflows/cbw-pr-advisory-gate.yml",
+          ".github/workflows/cbw-production-safe-batch-autodeploy.yml",
+          ".github/workflows/cbw-public-asset-client-weight.yml",
+          ".github/workflows/cbw-public-first-screen-budget.yml",
+          ".github/workflows/cbw-public-navigation-boundary.yml",
+          ".github/workflows/cbw-public-seo-metadata.yml",
+          ".github/workflows/cbw-ranking-first-ui-advisory.yml",
+          ".github/workflows/cbw-redirect-family.yml",
+          ".github/workflows/cbw-research-marketprofile-bridge-advisory.yml",
+          ".github/workflows/cbw-route-inventory-artifact.yml",
+          ".github/workflows/cbw-structural-accessibility.yml",
+          ".github/workflows/critical-alerts.yml",
+          ".github/workflows/production-monitor.yml",
+          ".github/workflows/telegram-reports.yml",
+          "package-lock.json",
+          "package.json",
+          "package.json",
+          "scripts/ci/master-blocking-portfolio-contract.mjs",
+          "scripts/ci/master-required-gate-aggregate.mjs",
+          "scripts/ci/master-required-gate-allowlist-drift.mjs",
+          "scripts/ci/master-required-gate-applicability.mjs",
+          "scripts/ci/master-required-gate-classifier-fixture-test.mjs",
+          "scripts/ci/master-required-gate-classify.mjs",
+          "scripts/ci/master-required-gate-contract-test.mjs",
+          "scripts/ci/master-required-gate-gate-result.mjs",
+          "scripts/ci/master-required-gate-gates.mjs",
+          "scripts/ci/master-required-gate-mutation-test.mjs",
+          "scripts/ci/master-required-gate-parity-test.mjs",
+          "scripts/ci/master-required-gate-validate-applicability.mjs",
+          "scripts/ci/master-required-gate-validate-output.mjs",
+          "scripts/ci/master-required-gate-workflow-contract.mjs",
+          "scripts/ui/global-header-interaction-browser-smoke.mjs",
+          "server/votes/server.mjs"
+        ],
+        "uncoveredInputs": [],
+        "unresolvableInputs": []
+      },
+      "knownGaps": [
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ci/master-blocking-portfolio-contract.mjs :: computed readFile(…) input is not statically resolvable: readFile(manifestPath)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ci/master-blocking-portfolio-contract.mjs :: computed readFile(…) input is not statically resolvable: readFile(path)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ci/master-required-gate-applicability.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(outputFile, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ci/master-required-gate-classify.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(outputFile, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ci/master-required-gate-contract-test.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(full, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ci/master-required-gate-contract-test.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(path, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ci/master-required-gate-contract-test.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(resolve(ROOT, gate.legacyWorkflow), \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ci/master-required-gate-contract-test.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(resolve(ROOT, path), \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ci/master-required-gate-mutation-test.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(emitterOutput, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ci/master-required-gate-mutation-test.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(mutantOutput, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ci/master-required-gate-mutation-test.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(outputFile, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ci/master-required-gate-mutation-test.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(sidecarPath, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ci/master-required-gate-parity-test.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(resolve(ROOT, path), \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ci/master-required-gate-validate-applicability.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(sidecarPath, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ci/master-required-gate-validate-output.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(sidecarPath, \"utf8\")"
+        }
+      ],
+      "migrationState": "UNIFIED_GATE_COMPONENT",
+      "stage2MigrationCandidate": false,
+      "stage2MigrationCandidateReason": "a component job of the unified gate, not an external check that could be migrated into it",
+      "notes": "S2-03 DAG root. Runs the gate self-proving suites unconditionally, then produces the validated materiality and per-blocker applicability classifications every downstream job consumes. Not an independently meaningful check context: branch protection names only \"Master required gate\"."
+    },
+    {
+      "id": "master-gate-blocker-global-header-interaction",
+      "workflowFile": "cbw-master-required-gate.yml",
+      "workflowName": "CBW Master Required Gate",
+      "jobId": "global-header-interaction",
+      "checkContext": "Global header interaction (unified blocker)",
+      "classification": "BLOCKING",
+      "directRequiredSafe": true,
+      "pathFiltered": false,
+      "blockingSemantics": {
+        "canFailPullRequest": true,
+        "semanticsProvable": true,
+        "jobContinueOnError": false,
+        "jobContinueOnErrorState": "MODELED",
+        "jobContinueOnErrorSource": null,
+        "jobIf": null,
+        "jobIfPullRequestState": "RUNNABLE",
+        "needs": [
+          "classify"
+        ],
+        "totalSteps": 7,
+        "softenedSteps": 0,
+        "failableSteps": 7,
+        "timeoutMinutes": 45
+      },
+      "commands": [
+        "npm ci",
         "npm run build",
         "node scripts/ui/global-header-interaction-browser-smoke.mjs",
-        "node scripts/seo/site-indexability-inventory.mjs"
+        "node scripts/seo/site-indexability-inventory.mjs",
+        "node scripts/ci/master-required-gate-gate-result.mjs"
       ],
       "dependencies": {
         "npmScripts": [
           "build"
         ],
         "executed": [
-          "scripts/ci/master-required-gate-allowlist-drift.mjs",
-          "scripts/ci/master-required-gate-classifier-fixture-test.mjs",
           "scripts/ci/master-required-gate-classify.mjs",
-          "scripts/ci/master-required-gate-contract-test.mjs",
-          "scripts/ci/master-required-gate-mutation-test.mjs",
-          "scripts/ci/master-required-gate-validate-output.mjs",
-          "scripts/ci/master-required-gate-workflow-contract.mjs",
+          "scripts/ci/master-required-gate-gate-result.mjs",
+          "scripts/ci/master-required-gate-gates.mjs",
           "scripts/seo/site-indexability-inventory.mjs",
           "scripts/ui/global-header-interaction-browser-smoke.mjs"
         ],
-        "readInputs": [
-          ".github/workflows/cbw-global-header-interaction.yml",
-          ".github/workflows/cbw-master-required-gate.yml",
-          "package.json",
-          "server/votes/server.mjs"
-        ],
+        "readInputs": [],
         "localActions": [],
         "sharedConfig": [
           "astro.config.mjs",
@@ -2089,22 +2298,14 @@
         "targetsMaster": true,
         "selfTriggersOnOwnWorkflowFile": true,
         "coveredInputs": [
-          ".github/workflows/cbw-global-header-interaction.yml",
-          ".github/workflows/cbw-master-required-gate.yml",
           "astro.config.mjs",
           "package-lock.json",
           "package.json",
-          "package.json",
-          "scripts/ci/master-required-gate-allowlist-drift.mjs",
-          "scripts/ci/master-required-gate-classifier-fixture-test.mjs",
           "scripts/ci/master-required-gate-classify.mjs",
-          "scripts/ci/master-required-gate-contract-test.mjs",
-          "scripts/ci/master-required-gate-mutation-test.mjs",
-          "scripts/ci/master-required-gate-validate-output.mjs",
-          "scripts/ci/master-required-gate-workflow-contract.mjs",
+          "scripts/ci/master-required-gate-gate-result.mjs",
+          "scripts/ci/master-required-gate-gates.mjs",
           "scripts/seo/site-indexability-inventory.mjs",
           "scripts/ui/global-header-interaction-browser-smoke.mjs",
-          "server/votes/server.mjs",
           "tsconfig.json"
         ],
         "uncoveredInputs": [],
@@ -2114,30 +2315,6 @@
         {
           "code": "DEPENDENCY_UNRESOLVABLE",
           "detail": "scripts/ci/master-required-gate-classify.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(outputFile, \"utf8\")"
-        },
-        {
-          "code": "DEPENDENCY_UNRESOLVABLE",
-          "detail": "scripts/ci/master-required-gate-contract-test.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(full, \"utf8\")"
-        },
-        {
-          "code": "DEPENDENCY_UNRESOLVABLE",
-          "detail": "scripts/ci/master-required-gate-contract-test.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(path, \"utf8\")"
-        },
-        {
-          "code": "DEPENDENCY_UNRESOLVABLE",
-          "detail": "scripts/ci/master-required-gate-mutation-test.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(mutantOutput, \"utf8\")"
-        },
-        {
-          "code": "DEPENDENCY_UNRESOLVABLE",
-          "detail": "scripts/ci/master-required-gate-mutation-test.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(outputFile, \"utf8\")"
-        },
-        {
-          "code": "DEPENDENCY_UNRESOLVABLE",
-          "detail": "scripts/ci/master-required-gate-mutation-test.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(sidecarPath, \"utf8\")"
-        },
-        {
-          "code": "DEPENDENCY_UNRESOLVABLE",
-          "detail": "scripts/ci/master-required-gate-validate-output.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(sidecarPath, \"utf8\")"
         },
         {
           "code": "DEPENDENCY_UNRESOLVABLE",
@@ -2160,10 +2337,195 @@
           "detail": "scripts/ui/global-header-interaction-browser-smoke.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file,\"utf8\")"
         }
       ],
+      "migrationState": "UNIFIED_GATE_COMPONENT",
+      "stage2MigrationCandidate": false,
+      "stage2MigrationCandidateReason": "a component job of the unified gate, not an external check that could be migrated into it",
+      "notes": "S2-03 unified execution of the Global Header Interaction hard gate. Command-for-command equivalent to cbw-global-header-interaction.yml#global-header-interaction, proved by scripts/ci/master-required-gate-parity-test.mjs. Always instantiates and publishes PASS or evidence-backed NOT_APPLICABLE; never relies on a GitHub `skipped` conclusion."
+    },
+    {
+      "id": "master-gate-blocker-public-seo-metadata",
+      "workflowFile": "cbw-master-required-gate.yml",
+      "workflowName": "CBW Master Required Gate",
+      "jobId": "public-seo-metadata",
+      "checkContext": "Public SEO metadata (unified blocker)",
+      "classification": "BLOCKING",
+      "directRequiredSafe": true,
+      "pathFiltered": false,
+      "blockingSemantics": {
+        "canFailPullRequest": true,
+        "semanticsProvable": true,
+        "jobContinueOnError": false,
+        "jobContinueOnErrorState": "MODELED",
+        "jobContinueOnErrorSource": null,
+        "jobIf": null,
+        "jobIfPullRequestState": "RUNNABLE",
+        "needs": [
+          "classify"
+        ],
+        "totalSteps": 7,
+        "softenedSteps": 0,
+        "failableSteps": 7,
+        "timeoutMinutes": 30
+      },
+      "commands": [
+        "npm ci",
+        "npm run build",
+        "node scripts/seo/public-seo-metadata-schema-test.mjs",
+        "node scripts/seo/site-indexability-inventory.mjs",
+        "node scripts/ci/master-required-gate-gate-result.mjs"
+      ],
+      "dependencies": {
+        "npmScripts": [
+          "build"
+        ],
+        "executed": [
+          "scripts/ci/master-required-gate-classify.mjs",
+          "scripts/ci/master-required-gate-gate-result.mjs",
+          "scripts/ci/master-required-gate-gates.mjs",
+          "scripts/seo/public-seo-metadata-schema-test.mjs",
+          "scripts/seo/site-indexability-inventory.mjs"
+        ],
+        "readInputs": [],
+        "localActions": [],
+        "sharedConfig": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "tsconfig.json"
+        ]
+      },
+      "triggerCoverage": {
+        "modeled": true,
+        "unmodeledReason": null,
+        "hasPullRequest": true,
+        "pathFiltered": false,
+        "paths": [],
+        "pathsIgnore": [],
+        "branches": [
+          "master"
+        ],
+        "branchesIgnore": [],
+        "types": [],
+        "targetsMaster": true,
+        "selfTriggersOnOwnWorkflowFile": true,
+        "coveredInputs": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "scripts/ci/master-required-gate-classify.mjs",
+          "scripts/ci/master-required-gate-gate-result.mjs",
+          "scripts/ci/master-required-gate-gates.mjs",
+          "scripts/seo/public-seo-metadata-schema-test.mjs",
+          "scripts/seo/site-indexability-inventory.mjs",
+          "tsconfig.json"
+        ],
+        "uncoveredInputs": [],
+        "unresolvableInputs": []
+      },
+      "knownGaps": [
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ci/master-required-gate-classify.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(outputFile, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/seo/public-seo-metadata-schema-test.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir,{withFileTypes:true})"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/seo/public-seo-metadata-schema-test.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file,\"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/seo/public-seo-metadata-schema-test.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(path,\"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/seo/site-indexability-inventory.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir, { withFileTypes: true })"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/seo/site-indexability-inventory.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file, \"utf8\")"
+        }
+      ],
+      "migrationState": "UNIFIED_GATE_COMPONENT",
+      "stage2MigrationCandidate": false,
+      "stage2MigrationCandidateReason": "a component job of the unified gate, not an external check that could be migrated into it",
+      "notes": "S2-03 unified execution of the Public SEO Metadata hard gate. Command-for-command equivalent to cbw-public-seo-metadata.yml#public-seo-metadata, proved by scripts/ci/master-required-gate-parity-test.mjs. Always instantiates and publishes PASS or evidence-backed NOT_APPLICABLE."
+    },
+    {
+      "id": "master-required-gate",
+      "workflowFile": "cbw-master-required-gate.yml",
+      "workflowName": "CBW Master Required Gate",
+      "jobId": "master-required-gate",
+      "checkContext": "Master required gate",
+      "classification": "BLOCKING",
+      "directRequiredSafe": true,
+      "pathFiltered": false,
+      "blockingSemantics": {
+        "canFailPullRequest": true,
+        "semanticsProvable": true,
+        "jobContinueOnError": false,
+        "jobContinueOnErrorState": "MODELED",
+        "jobContinueOnErrorSource": null,
+        "jobIf": "always()",
+        "jobIfPullRequestState": "RUNNABLE",
+        "needs": [
+          "classify",
+          "global-header-interaction",
+          "public-seo-metadata"
+        ],
+        "totalSteps": 3,
+        "softenedSteps": 0,
+        "failableSteps": 3,
+        "timeoutMinutes": 10
+      },
+      "commands": [
+        "node scripts/ci/master-required-gate-aggregate.mjs"
+      ],
+      "dependencies": {
+        "npmScripts": [],
+        "executed": [
+          "scripts/ci/master-required-gate-aggregate.mjs",
+          "scripts/ci/master-required-gate-classify.mjs",
+          "scripts/ci/master-required-gate-gates.mjs"
+        ],
+        "readInputs": [],
+        "localActions": [],
+        "sharedConfig": []
+      },
+      "triggerCoverage": {
+        "modeled": true,
+        "unmodeledReason": null,
+        "hasPullRequest": true,
+        "pathFiltered": false,
+        "paths": [],
+        "pathsIgnore": [],
+        "branches": [
+          "master"
+        ],
+        "branchesIgnore": [],
+        "types": [],
+        "targetsMaster": true,
+        "selfTriggersOnOwnWorkflowFile": true,
+        "coveredInputs": [
+          "scripts/ci/master-required-gate-aggregate.mjs",
+          "scripts/ci/master-required-gate-classify.mjs",
+          "scripts/ci/master-required-gate-gates.mjs"
+        ],
+        "uncoveredInputs": [],
+        "unresolvableInputs": []
+      },
+      "knownGaps": [
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ci/master-required-gate-classify.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(outputFile, \"utf8\")"
+        }
+      ],
       "migrationState": "UNIFIED_GATE_HOST",
       "stage2MigrationCandidate": false,
       "stage2MigrationCandidateReason": "not external to the unified gate (UNIFIED_GATE_HOST)",
-      "notes": "S2-01 deliverable. The ONE always-reporting required context for master. Executes the material hard-gate work itself; it is not an aggregator over other workflows."
+      "notes": "S2-01 deliverable, restructured by S2-03. The ONE always-reporting required context for master. As of S2-03 this job is the FINAL AGGREGATOR of a bounded in-workflow DAG (classify -> unified blocker jobs -> this job, `if: always()`); the migrated material work is executed by the unified blocker jobs inside this same workflow, not by this job. It is NOT an aggregator over external workflows: it never queries another workflow's status, check runs or conclusions, and its verdict is derived solely from the results, published outcomes and recomputed applicability evidence of the jobs it directly depends on. It succeeds only when every registered blocker is provably PASS or provably, evidentially NOT_APPLICABLE; skipped is never a pass. The legacy path-filtered workflows remain in place, unchanged, in shadow/reporting state. This state grants NO enforcement or protection authority: no branch protection is enabled, no ruleset is created, and enforcementReady remains false."
     },
     {
       "id": "noindex-product-preview",
@@ -3702,10 +4064,10 @@
           "detail": "tsconfig.json"
         }
       ],
-      "migrationState": "LEGACY_EXTERNAL",
-      "stage2MigrationCandidate": true,
-      "stage2MigrationCandidateReason": "blocking-capable, still external to the unified gate, and not directly requirable because it is path-filtered",
-      "notes": "Public SEO Metadata hard gate."
+      "migrationState": "MIGRATED_UNIFIED_SHADOW",
+      "stage2MigrationCandidate": false,
+      "stage2MigrationCandidateReason": "already executed inside the unified gate; the legacy workflow is retained UNCHANGED as an independently reporting shadow, and retirement is a separate later decision",
+      "notes": "Public SEO Metadata hard gate. S2-03: this path-filtered workflow is LEFT UNCHANGED and still reports independently. Its blocking behaviour is now ALSO executed inside the unified required gate, by the unified blocker job cbw-master-required-gate.yml#public-seo-metadata, proved command-for-command equivalent by scripts/ci/master-required-gate-parity-test.mjs. Shadow state only: no retirement, no enforcement authority, no branch-protection change."
     },
     {
       "id": "ranking-first-ui-advisory",

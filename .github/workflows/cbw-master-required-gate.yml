@@ -3,42 +3,63 @@ name: CBW Master Required Gate
 # Single stable, ALWAYS-REPORTING required check context for product branch
 # `master` (issue #366).
 #
-# Design contract — enforced by scripts/ci/master-required-gate-contract-test.mjs:
-#   * NO `paths` / `paths-ignore` filter. The workflow triggers on every
-#     pull_request targeting master, so the check context is always reported
-#     and branch protection can never deadlock on
-#     "Expected — Waiting for status to be reported".
-#   * Exactly ONE job, whose stable check context is "Master required gate".
-#   * The job is never `continue-on-error` and carries no job-level `if`.
-#   * The classification PRODUCER is bound by contract: exactly one step with
-#     the stable id `classify`, running the exact classifier command with
-#     BASE_SHA/HEAD_SHA wired to the exact PR base/head SHAs. An UNCONDITIONAL
-#     "Validate classifier output" step immediately follows it and fails the
-#     gate closed unless the output is exactly `true`/`false`, because a
-#     missing step output silently evaluates false and would skip every heavy
-#     step while still reporting SUCCESS. The producer/validator sidecar lives in
-#     RUNNER_TEMP with NO process-global temp fallback, and carries this run's
-#     identity (PR head SHA + run id + run attempt) so a stale file cannot stand
+# STAGE 2 / S2-03 — MATRIX FOUNDATION. The single-job gate delivered by S2-01 is
+# now a bounded multi-job DAG:
+#
+#     classify
+#        |-> global-header-interaction ---|
+#        |-> public-seo-metadata ---------|--> Master required gate  (if: always())
+#
+# The visible check context of the FINAL job is exactly "Master required gate"
+# and nothing else in this repository may claim that name. Branch protection —
+# when it is eventually enabled, which is NOT this stage — names that one string.
+# It must never name a path-filtered child workflow, because a workflow that does
+# not run on every PR deadlocks a required status on
+# "Expected — Waiting for status to be reported".
+#
+# THIS WORKFLOW OWNS ITS OWN EXECUTION AND ITS OWN OUTCOMES. It never queries the
+# status of another workflow. The specialized path-filtered workflows
+# (.github/workflows/cbw-global-header-interaction.yml,
+#  .github/workflows/cbw-public-seo-metadata.yml) are deliberately left UNCHANGED
+# and continue to report independently; this stage proves unified execution
+# parity before legacy retirement is even considered. Nothing here deletes,
+# disables or weakens them.
+#
+# Design contract — enforced by scripts/ci/master-required-gate-contract-test.mjs
+# and exercised against deliberate mutations by
+# scripts/ci/master-required-gate-mutation-test.mjs:
+#   * NO `paths` / `paths-ignore` filter, so the context is always reported.
+#   * Exactly ONE job whose visible name is "Master required gate", and that job
+#     is the FINAL aggregator. It carries `if: always()`, depends on the
+#     classifier AND on every registered blocker, and is never
+#     `continue-on-error`.
+#   * The aggregator succeeds ONLY when every expected blocker is provably PASS or
+#     provably, evidentially NOT_APPLICABLE. A skipped blocker is NEVER accepted
+#     as a pass: `skipped` is what GitHub also reports for an upstream failure, a
+#     cancelled run, and an `if` that silently resolved to the empty string.
+#   * The classification PRODUCERS are bound by contract. `classify` emits
+#     materiality; `applicability` emits the per-blocker decision. Each is
+#     followed IMMEDIATELY by an UNCONDITIONAL validator step that fails the job
+#     closed on a missing, malformed, contradictory or stale output, because a
+#     missing step output silently evaluates false and would skip real blocking
+#     work while still reporting SUCCESS. Both producers write a sidecar into
+#     RUNNER_TEMP with NO process-global temp fallback, stamped with this run's
+#     identity (PR head SHA + run id + run attempt), so a stale file cannot stand
 #     in for a producer that never executed.
-#   * This is NOT an aggregator over other workflows. It executes the material
-#     hard-gate work itself, so a path-filtered child workflow that never ran
-#     can never be mistaken for PASS.
-#   * Change classification is fail-closed by construction: a path is
-#     non-material ONLY if it is listed verbatim in NON_MATERIAL_PATHS
-#     (scripts/ci/master-required-gate-classify.mjs). Every other path —
-#     including unknown/new paths — is MATERIAL, as is an unresolvable or empty
-#     change set. Rename detection is disabled when resolving changed paths so
-#     a material source renamed to a non-material destination cannot hide. The
-#     bounded allowlist is re-proved inert on every run: no workflow trigger may
-#     intersect it, and no tracked source/scripts/config/package/workflow file
-#     may reference those exact filenames.
+#   * Change classification stays fail-closed by construction: a path is
+#     non-material ONLY if listed verbatim in NON_MATERIAL_PATHS, and irrelevant
+#     to a blocker ONLY if listed verbatim in that blocker's `irrelevantPaths`
+#     (scripts/ci/master-required-gate-gates.mjs). Everything else — including
+#     every unknown/new path — is MATERIAL and RELEVANT, as is an unresolvable or
+#     empty change set. Rename detection is disabled so a material source renamed
+#     to a non-material destination cannot hide.
 #   * Read-only permissions; never deploys and never writes repository contents.
 #
-# Material changes run the full production build plus the complete Global
-# Header Interaction matrix (46 Product System routes). The pre-existing
-# path-filtered workflow .github/workflows/cbw-global-header-interaction.yml is
-# left untouched and continues to report independently; this gate does not
-# reduce its coverage.
+# PERFORMANCE. Both blockers install and build independently. That duplication is
+# deliberate for S2-03: correctness first. Cross-job artifact reuse is a future
+# optimisation and is not introduced here, because it would add a failure mode
+# (a stale or partial artifact silently satisfying a gate) that this stage exists
+# to rule out.
 
 on:
   pull_request:
@@ -53,10 +74,20 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  master-required-gate:
-    name: Master required gate
+  # --- 1. classification -------------------------------------------------------
+  # Runs the gate's own self-proving suites unconditionally, then produces the two
+  # validated classification statements every downstream job depends on.
+  classify:
+    name: Master gate classification
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 20
+    outputs:
+      material: ${{ steps.classify.outputs.material }}
+      reason: ${{ steps.classify.outputs.reason }}
+      applicability: ${{ steps.applicability.outputs.applicability }}
+      digest: ${{ steps.applicability.outputs.digest }}
+      gate_global_header_interaction: ${{ steps.applicability.outputs.gate_global_header_interaction }}
+      gate_public_seo_metadata: ${{ steps.applicability.outputs.gate_public_seo_metadata }}
     steps:
       - name: Checkout exact PR head
         uses: actions/checkout@v4
@@ -82,6 +113,9 @@ jobs:
       - name: Producer/output mutation suite
         run: node scripts/ci/master-required-gate-mutation-test.mjs
 
+      - name: Legacy/unified parity suite
+        run: node scripts/ci/master-required-gate-parity-test.mjs
+
       - name: Classify changed files (fail-closed)
         id: classify
         env:
@@ -89,17 +123,12 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: node scripts/ci/master-required-gate-classify.mjs --emit-github-output
 
-      # UNCONDITIONAL — no `if`. `steps.classify.outputs.material` resolves to
-      # the empty string if the producer above is deleted or its id renamed, and
-      # `'' == 'true'` is false, so every heavy step below would SKIP while this
-      # job still reported SUCCESS. This step fails the gate closed unless the
-      # producer emitted an exactly-valid output that matches its own sidecar.
-      #
-      # HEAD_SHA (with the runner-provided GITHUB_RUN_ID / GITHUB_RUN_ATTEMPT)
-      # identifies THIS gate run. The producer stamps the same identity into its
-      # sidecar, so a sidecar left in RUNNER_TEMP by an earlier run, an earlier
-      # re-run attempt or a different PR head is rejected as STALE instead of
-      # standing in for a producer that never executed.
+      # UNCONDITIONAL — no `if`. `steps.classify.outputs.material` resolves to the
+      # empty string if the producer above is deleted or its id renamed, and
+      # `'' == 'true'` is false, so every downstream consumer would treat the
+      # change set as non-material while this job still reported SUCCESS. This
+      # step fails the gate closed unless the producer emitted an exactly-valid
+      # output that matches its own run-identity-stamped sidecar.
       - name: Validate classifier output
         id: validate
         env:
@@ -108,15 +137,213 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: node scripts/ci/master-required-gate-validate-output.mjs
 
-      - name: Production build
+      - name: Decide blocker applicability (fail-closed)
+        id: applicability
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: node scripts/ci/master-required-gate-applicability.mjs --emit-github-output
+
+      # UNCONDITIONAL — the same fail-open shape one level up. A deleted or
+      # renamed applicability producer makes every
+      # `needs.classify.outputs.gate_* == 'APPLICABLE'` expression false, which
+      # would skip every blocker's real work under a SUCCESS conclusion. This step
+      # rejects a missing, malformed, contradictory or stale decision, and proves
+      # the decision is consistent with the materiality classification above.
+      - name: Validate blocker applicability
+        id: validate-applicability
+        env:
+          APPLICABILITY_JSON: ${{ steps.applicability.outputs.applicability }}
+          APPLICABILITY_DIGEST: ${{ steps.applicability.outputs.digest }}
+          GATE_GLOBAL_HEADER_INTERACTION_APPLICABILITY: ${{ steps.applicability.outputs.gate_global_header_interaction }}
+          GATE_PUBLIC_SEO_METADATA_APPLICABILITY: ${{ steps.applicability.outputs.gate_public_seo_metadata }}
+          CLASSIFIER_MATERIAL: ${{ steps.classify.outputs.material }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: node scripts/ci/master-required-gate-validate-applicability.mjs
+
+  # --- 2a. blocker: Global Header Interaction ----------------------------------
+  # Migrated from .github/workflows/cbw-global-header-interaction.yml, which stays
+  # in place and keeps reporting independently. The command sequence here is
+  # proved command-for-command equivalent to the legacy job by
+  # scripts/ci/master-required-gate-parity-test.mjs.
+  #
+  # NO job-level `if`. The job ALWAYS instantiates so it can publish a
+  # deterministic outcome; irrelevance is expressed as a published, evidence-
+  # backed NOT_APPLICABLE, never as a GitHub `skipped` conclusion.
+  global-header-interaction:
+    name: Global header interaction (unified blocker)
+    needs: classify
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    outputs:
+      result: ${{ steps.gate-result.outputs.result }}
+      evidence: ${{ steps.gate-result.outputs.evidence }}
+    steps:
+      - name: Checkout exact PR head for the global header blocker
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Set up Node 20 for the global header blocker
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies for the global header blocker
+        id: install
+        if: needs.classify.outputs.gate_global_header_interaction == 'APPLICABLE'
+        run: npm ci
+
+      - name: Production build for the global header blocker
         id: build
-        if: steps.classify.outputs.material == 'true'
+        if: needs.classify.outputs.gate_global_header_interaction == 'APPLICABLE'
         run: npm run build
 
       - name: Global header interaction matrix
-        if: steps.classify.outputs.material == 'true'
+        id: smoke
+        if: needs.classify.outputs.gate_global_header_interaction == 'APPLICABLE'
         run: node scripts/ui/global-header-interaction-browser-smoke.mjs
 
-      - name: Indexability inventory
-        if: steps.classify.outputs.material == 'true'
+      # The legacy job guards this step with `always() && steps.build.outcome ==
+      # 'success'` so the inventory still runs (and can still fail the job) when
+      # the interaction matrix above failed. That exact condition is preserved
+      # here, conjoined with applicability, so the unified job's red/green
+      # behaviour is identical to the legacy job's in every reachable state
+      # rather than merely equivalent in the common one.
+      - name: Indexability inventory for the global header blocker
+        id: indexability
+        if: always() && needs.classify.outputs.gate_global_header_interaction == 'APPLICABLE' && steps.build.outcome == 'success'
         run: node scripts/seo/site-indexability-inventory.mjs
+
+      # UNCONDITIONAL. Converts what this job ACTUALLY did into the closed outcome
+      # vocabulary. It refuses to publish PASS unless every blocking step above
+      # reported `success`, and refuses to publish NOT_APPLICABLE unless every one
+      # reported `skipped` — so a job cannot claim work it skipped, and cannot
+      # claim irrelevance while having run.
+      - name: Publish global header blocker result
+        id: gate-result
+        env:
+          GATE_ID: global-header-interaction
+          GATE_APPLICABILITY: ${{ needs.classify.outputs.gate_global_header_interaction }}
+          APPLICABILITY_DIGEST: ${{ needs.classify.outputs.digest }}
+          STEP_OUTCOMES: >-
+            [{"name":"npm ci","outcome":"${{ steps.install.outcome }}"},
+            {"name":"npm run build","outcome":"${{ steps.build.outcome }}"},
+            {"name":"node scripts/ui/global-header-interaction-browser-smoke.mjs","outcome":"${{ steps.smoke.outcome }}"},
+            {"name":"node scripts/seo/site-indexability-inventory.mjs","outcome":"${{ steps.indexability.outcome }}"}]
+        run: node scripts/ci/master-required-gate-gate-result.mjs
+
+  # --- 2b. blocker: Public SEO Metadata ----------------------------------------
+  # Migrated from .github/workflows/cbw-public-seo-metadata.yml, which stays in
+  # place and keeps reporting independently.
+  public-seo-metadata:
+    name: Public SEO metadata (unified blocker)
+    needs: classify
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      result: ${{ steps.gate-result.outputs.result }}
+      evidence: ${{ steps.gate-result.outputs.evidence }}
+    steps:
+      - name: Checkout exact PR head for the public SEO blocker
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Set up Node 20 for the public SEO blocker
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies for the public SEO blocker
+        id: install
+        if: needs.classify.outputs.gate_public_seo_metadata == 'APPLICABLE'
+        run: npm ci
+
+      - name: Production build for the public SEO blocker
+        id: build
+        if: needs.classify.outputs.gate_public_seo_metadata == 'APPLICABLE'
+        run: npm run build
+
+      - name: Public SEO metadata and schema
+        id: schema
+        if: needs.classify.outputs.gate_public_seo_metadata == 'APPLICABLE'
+        run: node scripts/seo/public-seo-metadata-schema-test.mjs
+
+      # Same legacy condition preserved verbatim, conjoined with applicability.
+      - name: Indexability inventory for the public SEO blocker
+        id: indexability
+        if: always() && needs.classify.outputs.gate_public_seo_metadata == 'APPLICABLE' && steps.build.outcome == 'success'
+        run: node scripts/seo/site-indexability-inventory.mjs
+
+      - name: Publish public SEO blocker result
+        id: gate-result
+        env:
+          GATE_ID: public-seo-metadata
+          GATE_APPLICABILITY: ${{ needs.classify.outputs.gate_public_seo_metadata }}
+          APPLICABILITY_DIGEST: ${{ needs.classify.outputs.digest }}
+          STEP_OUTCOMES: >-
+            [{"name":"npm ci","outcome":"${{ steps.install.outcome }}"},
+            {"name":"npm run build","outcome":"${{ steps.build.outcome }}"},
+            {"name":"node scripts/seo/public-seo-metadata-schema-test.mjs","outcome":"${{ steps.schema.outcome }}"},
+            {"name":"node scripts/seo/site-indexability-inventory.mjs","outcome":"${{ steps.indexability.outcome }}"}]
+        run: node scripts/ci/master-required-gate-gate-result.mjs
+
+  # --- 3. THE STABLE REQUIRED CONTEXT ------------------------------------------
+  # `if: always()` is what makes this context ALWAYS REPORTING. Without it the job
+  # would be skipped whenever any upstream job failed or was skipped, and a
+  # skipped job reports no conclusion at all — branch protection would sit on
+  # "Expected — Waiting for status to be reported" forever.
+  #
+  # Reporting always is only safe because the aggregation below is fail-closed:
+  # it does NOT infer success from silence. Every expected blocker must be proved
+  # PASS or proved evidentially NOT_APPLICABLE; a failed, cancelled, skipped,
+  # missing or unrecognized result is a FAILURE.
+  #
+  # This job deliberately does not `npm ci`: it must be able to report even when
+  # dependency installation is what broke, so the aggregator depends on node
+  # builtins only.
+  master-required-gate:
+    name: Master required gate
+    needs:
+      - classify
+      - global-header-interaction
+      - public-seo-metadata
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact PR head for aggregation
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Set up Node 20 for aggregation
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # The aggregator does NOT trust the digest it is handed. It recomputes the
+      # canonical applicability digest itself, from the decision above plus THIS
+      # run's identity (HEAD_SHA + the ambient GITHUB_RUN_ID / GITHUB_RUN_ATTEMPT),
+      # and every digest claim — the classifier's included — is compared against
+      # that recomputation. HEAD_SHA is therefore bound here exactly as it is for
+      # the producers: to the PR head sha, so a decision digested for a different
+      # head cannot be replayed into this run.
+      - name: Aggregate blocker outcomes (fail-closed)
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          CLASSIFY_JOB_RESULT: ${{ needs.classify.result }}
+          CLASSIFIER_MATERIAL: ${{ needs.classify.outputs.material }}
+          APPLICABILITY_JSON: ${{ needs.classify.outputs.applicability }}
+          APPLICABILITY_DIGEST: ${{ needs.classify.outputs.digest }}
+          GATE_GLOBAL_HEADER_INTERACTION_JOB_RESULT: ${{ needs.global-header-interaction.result }}
+          GATE_GLOBAL_HEADER_INTERACTION_RESULT: ${{ needs.global-header-interaction.outputs.result }}
+          GATE_GLOBAL_HEADER_INTERACTION_EVIDENCE: ${{ needs.global-header-interaction.outputs.evidence }}
+          GATE_PUBLIC_SEO_METADATA_JOB_RESULT: ${{ needs.public-seo-metadata.result }}
+          GATE_PUBLIC_SEO_METADATA_RESULT: ${{ needs.public-seo-metadata.outputs.result }}
+          GATE_PUBLIC_SEO_METADATA_EVIDENCE: ${{ needs.public-seo-metadata.outputs.evidence }}
+        run: node scripts/ci/master-required-gate-aggregate.mjs

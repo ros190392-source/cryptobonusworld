@@ -88,7 +88,25 @@ export const MIGRATION_STATES = Object.freeze([
   // Every legacy check starts here. It reports independently of the unified
   // required gate and has not been migrated into it.
   'LEGACY_EXTERNAL',
-  // The single S2-01 unified gate itself. Not "migrated" — it is the target.
+  // S2-03. The legacy workflow's blocking behaviour is now ALSO executed inside
+  // the unified gate, proved command-for-command equivalent by
+  // scripts/ci/master-required-gate-parity-test.mjs, while the legacy workflow
+  // itself is left completely UNCHANGED and keeps reporting independently.
+  //
+  // This is deliberately NOT "migrated and done". Nothing about this state
+  // retires the legacy check, grants it enforcement authority, or licenses
+  // deleting it: the shadow period exists so unified execution parity can be
+  // observed on real pull requests BEFORE retirement is even considered. An
+  // entry in this state is no longer a stage-2 MIGRATION candidate (its
+  // enforcement is now reachable through the unified gate's stable context) but
+  // it is still a live, blocking, independently reporting check.
+  'MIGRATED_UNIFIED_SHADOW',
+  // A component job INSIDE the unified gate workflow that is not the final
+  // stable context — the classifier and the per-blocker jobs. It is not an
+  // external check that could be migrated; it is part of the migration target.
+  'UNIFIED_GATE_COMPONENT',
+  // The single job whose visible check context is the stable required context.
+  // Not "migrated" — it is the target.
   'UNIFIED_GATE_HOST',
   // Cannot participate in a PR-required portfolio at all (never runs on PRs).
   'NOT_APPLICABLE',
@@ -2755,9 +2773,18 @@ export function deriveStage2Candidacy(entry, migrationState) {
     ? 'blocking-capable, still external to the unified gate, and not directly requirable because it is path-filtered'
     : entry.classification !== 'BLOCKING'
       ? `not blocking-capable (${entry.classification})`
-      : migrationState !== 'LEGACY_EXTERNAL'
-        ? `not external to the unified gate (${migrationState})`
-        : 'already always-reporting, so it can be required directly without migration';
+      : // S2-03 states get their own accurate reasons. Falling through to
+        // "not external to the unified gate" would be a false statement about a
+        // shadow entry, which IS still external and still reporting — it simply
+        // is not a MIGRATION candidate any more, because its blocking work is
+        // already executed inside the unified gate's stable context.
+        migrationState === 'MIGRATED_UNIFIED_SHADOW'
+        ? 'already executed inside the unified gate; the legacy workflow is retained UNCHANGED as an independently reporting shadow, and retirement is a separate later decision'
+        : migrationState === 'UNIFIED_GATE_COMPONENT'
+          ? 'a component job of the unified gate, not an external check that could be migrated into it'
+          : migrationState !== 'LEGACY_EXTERNAL'
+            ? `not external to the unified gate (${migrationState})`
+            : 'already always-reporting, so it can be required directly without migration';
   return { candidate, reason };
 }
 

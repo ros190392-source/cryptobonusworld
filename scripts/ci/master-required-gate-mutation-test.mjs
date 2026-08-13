@@ -26,11 +26,17 @@ import {
   auditProducerConsumerContract,
   extractCallExpressions,
 } from './master-required-gate-workflow-contract.mjs';
+import { applicabilityDigest } from './master-required-gate-gates.mjs';
 
 const ROOT = resolve(process.cwd());
 const WORKFLOW = resolve(ROOT, '.github/workflows/cbw-master-required-gate.yml');
 const CLASSIFY_SCRIPT = resolve(ROOT, 'scripts/ci/master-required-gate-classify.mjs');
 const VALIDATE_SCRIPT = resolve(ROOT, 'scripts/ci/master-required-gate-validate-output.mjs');
+const GATES_SCRIPT = resolve(ROOT, 'scripts/ci/master-required-gate-gates.mjs');
+const APPLICABILITY_SCRIPT = resolve(ROOT, 'scripts/ci/master-required-gate-applicability.mjs');
+const VALIDATE_APPLICABILITY_SCRIPT = resolve(ROOT, 'scripts/ci/master-required-gate-validate-applicability.mjs');
+const GATE_RESULT_SCRIPT = resolve(ROOT, 'scripts/ci/master-required-gate-gate-result.mjs');
+const AGGREGATE_SCRIPT = resolve(ROOT, 'scripts/ci/master-required-gate-aggregate.mjs');
 const SIDECAR_NAME = 'cbw-master-required-gate-classification.json';
 
 let checks = 0;
@@ -52,12 +58,22 @@ const normalizeEol = (text) => text.replace(/\r\n/g, '\n');
 const baseWorkflow = normalizeEol(readFileSync(WORKFLOW, 'utf8'));
 const baseClassifier = normalizeEol(readFileSync(CLASSIFY_SCRIPT, 'utf8'));
 const baseValidator = normalizeEol(readFileSync(VALIDATE_SCRIPT, 'utf8'));
+const baseGates = normalizeEol(readFileSync(GATES_SCRIPT, 'utf8'));
+const baseApplicability = normalizeEol(readFileSync(APPLICABILITY_SCRIPT, 'utf8'));
+const baseApplicabilityValidator = normalizeEol(readFileSync(VALIDATE_APPLICABILITY_SCRIPT, 'utf8'));
+const baseGateResult = normalizeEol(readFileSync(GATE_RESULT_SCRIPT, 'utf8'));
+const baseAggregate = normalizeEol(readFileSync(AGGREGATE_SCRIPT, 'utf8'));
 
 const audit = (overrides = {}) =>
   auditProducerConsumerContract({
     workflowText: baseWorkflow,
     classifierSource: baseClassifier,
     validatorSource: baseValidator,
+    gatesSource: baseGates,
+    applicabilitySource: baseApplicability,
+    applicabilityValidatorSource: baseApplicabilityValidator,
+    gateResultSource: baseGateResult,
+    aggregateSource: baseAggregate,
     ...overrides,
   });
 
@@ -171,7 +187,7 @@ const MUTANT_SOURCES = Object.freeze({
   emptyRunnerTempCwd: mutate('empty RUNNER_TEMP resolves against cwd', baseClassifier, [
     [
       "  if (runnerTemp.length === 0) {\n    throw new Error('master-required-gate: RUNNER_TEMP is empty');\n  }",
-      '  if (runnerTemp.length === 0) {\n    return join(process.cwd(), SIDECAR_BASENAME);\n  }',
+      '  if (runnerTemp.length === 0) {\n    return process.cwd();\n  }',
     ],
   ]),
   // MEDIUM 1: the exact reviewed bypass — one variable serving as both the
@@ -340,30 +356,24 @@ const MUTATIONS = [
   {
     id: 11,
     killedBy: /targets an existing step id/,
-    label: 'repoint a heavy consumer at a nonexistent step id',
+    label: 'repoint a classification consumer at a nonexistent step id',
     apply: () => ({
       workflowText: requireChanged(
         'consumer -> bad id',
         baseWorkflow,
-        baseWorkflow.replaceAll(
-          "if: steps.classify.outputs.material == 'true'",
-          "if: steps.classifyX.outputs.material == 'true'",
-        ),
+        baseWorkflow.replaceAll('${{ steps.classify.outputs.material }}', '${{ steps.classifyX.outputs.material }}'),
       ),
     }),
   },
   {
     id: '11b',
     killedBy: /names an emitted output/,
-    label: 'repoint a heavy consumer at a nonexistent output name',
+    label: 'repoint a classification consumer at a nonexistent output name',
     apply: () => ({
       workflowText: requireChanged(
         'consumer -> bad output',
         baseWorkflow,
-        baseWorkflow.replaceAll(
-          "if: steps.classify.outputs.material == 'true'",
-          "if: steps.classify.outputs.materialX == 'true'",
-        ),
+        baseWorkflow.replaceAll('${{ steps.classify.outputs.material }}', '${{ steps.classify.outputs.materialX }}'),
       ),
     }),
   },
@@ -638,6 +648,569 @@ const MUTATIONS = [
     }),
   },
 ];
+
+// --- A2. S2-03 DAG / aggregator mutations -----------------------------------
+//
+// Every one of these is a way to silently remove blocking coverage from the
+// matrix while the stable required context still reports SUCCESS. They are the
+// S2-03 equivalents of "delete the producer and stay green", and each declares
+// the assertion that must be the one to kill it.
+const replaceOnce = (label, source, from, to) => requireChanged(label, source, source.replace(from, to));
+
+const DAG_MUTATIONS = [
+  {
+    id: 'S3-1',
+    killedBy: /the final job carries `if: always\(\)`/,
+    label: 'remove `if: always()` from the final aggregator (the context stops reporting)',
+    apply: () => ({ workflowText: replaceOnce('drop always()', baseWorkflow, '    if: always()\n', '') }),
+  },
+  {
+    id: 'S3-2',
+    killedBy: /the final job carries `if: always\(\)`/,
+    label: 'soften the aggregator condition to `success()`',
+    // Anchored at line start: an unanchored '    if: always()' also matches the
+    // tail of the 8-space-indented `        if: always() && …` step condition,
+    // which would mutate a completely different rule and "kill" this mutant for
+    // the wrong reason.
+    apply: () => ({
+      workflowText: replaceOnce('always -> success', baseWorkflow, /^ {4}if: always\(\)$/m, '    if: success()'),
+    }),
+  },
+  {
+    id: 'S3-3',
+    killedBy: /depends on the classifier AND on every registered blocker/,
+    label: 'drop a `needs` edge from the aggregator (a blocker stops being aggregated)',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'drop needs edge',
+        baseWorkflow,
+        '      - global-header-interaction\n      - public-seo-metadata\n',
+        '      - public-seo-metadata\n',
+      ),
+    }),
+  },
+  {
+    id: 'S3-4',
+    killedBy: /exactly one job carries the stable check context/,
+    label: 'rename the final job so the stable required context disappears',
+    apply: () => ({
+      workflowText: replaceOnce('rename context', baseWorkflow, '    name: Master required gate\n', '    name: Master gate\n'),
+    }),
+  },
+  {
+    id: 'S3-5',
+    killedBy: /declares EXACTLY the expected DAG jobs/,
+    label: 'rename the final JOB ID (branch protection would follow a different job)',
+    apply: () => ({
+      workflowText: replaceOnce('rename final job id', baseWorkflow, '\n  master-required-gate:\n', '\n  master-gate-final:\n'),
+    }),
+  },
+  {
+    id: 'S3-6',
+    killedBy: /publishes its result output bound to the emitter step/,
+    label: 'delete a blocker result output (the aggregator would see nothing)',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'drop result output',
+        baseWorkflow,
+        '      result: ${{ steps.gate-result.outputs.result }}\n',
+        '',
+      ),
+    }),
+  },
+  {
+    id: 'S3-7',
+    killedBy: /runs the result emitter exactly once/,
+    label: 'delete a blocker result emitter step entirely',
+    apply: () => ({ workflowText: removeStep(baseWorkflow, 'Publish global header blocker result') }),
+  },
+  {
+    id: 'S3-8',
+    killedBy: /carries NO job-level `if`/,
+    label: 'give a blocker a job-level `if` so an irrelevant change SKIPS it',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'blocker job-level if',
+        baseWorkflow,
+        '  global-header-interaction:\n    name:',
+        "  global-header-interaction:\n    if: needs.classify.outputs.gate_global_header_interaction == 'APPLICABLE'\n    name:",
+      ),
+    }),
+  },
+  {
+    id: 'S3-9',
+    killedBy: /exactly one step carries the applicability producer id/,
+    label: 'delete the applicability producer step',
+    apply: () => ({ workflowText: removeStep(baseWorkflow, 'Decide blocker applicability (fail-closed)') }),
+  },
+  {
+    id: 'S3-10',
+    killedBy: /applicability validator step is UNCONDITIONAL/,
+    label: 'make the applicability validator conditional on the very output it validates',
+    apply: () => ({
+      workflowText: insertAfterStepName(
+        baseWorkflow,
+        'Validate blocker applicability',
+        "        if: steps.applicability.outputs.digest != ''",
+      ),
+    }),
+  },
+  {
+    id: 'S3-11',
+    killedBy: /runs "node scripts\/seo\/site-indexability-inventory\.mjs" exactly once/,
+    label: 'delete the indexability inventory from a blocker (silent coverage reduction)',
+    apply: () => ({ workflowText: removeStep(baseWorkflow, 'Indexability inventory for the public SEO blocker') }),
+  },
+  {
+    id: 'S3-12',
+    killedBy: /is gated on the exact derived condition/,
+    label: 'repoint a blocking step at a nonexistent classifier output',
+    apply: () => ({
+      workflowText: requireChanged(
+        'repoint blocker condition',
+        baseWorkflow,
+        baseWorkflow.replaceAll(
+          "needs.classify.outputs.gate_global_header_interaction == 'APPLICABLE'",
+          "needs.classify.outputs.gate_global_header == 'APPLICABLE'",
+        ),
+      ),
+    }),
+  },
+  {
+    id: 'S3-13',
+    killedBy: /result emitter observes EXACTLY the declared blocking steps/,
+    label: 'drop one step outcome from a result emitter (a deleted step would go unnoticed)',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'drop an observed outcome',
+        baseWorkflow,
+        '            {"name":"node scripts/seo/site-indexability-inventory.mjs","outcome":"${{ steps.indexability.outcome }}"}]\n        run: node scripts/ci/master-required-gate-gate-result.mjs\n\n  # --- 2b.',
+        '            {"name":"node scripts/seo/site-indexability-inventory.mjs","outcome":"success"}]\n        run: node scripts/ci/master-required-gate-gate-result.mjs\n\n  # --- 2b.',
+      ),
+    }),
+  },
+  {
+    id: 'S3-14',
+    killedBy: /receives the classifier JOB RESULT/,
+    label: 'unwire the aggregator from the classifier JOB RESULT (a failed classifier becomes invisible)',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'drop CLASSIFY_JOB_RESULT',
+        baseWorkflow,
+        '          CLASSIFY_JOB_RESULT: ${{ needs.classify.result }}\n',
+        '',
+      ),
+    }),
+  },
+  {
+    id: 'S3-15',
+    killedBy: /receives blocker "global-header-interaction" JOB RESULT/,
+    label: 'unwire the aggregator from a blocker JOB RESULT',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'drop blocker job result',
+        baseWorkflow,
+        '          GATE_GLOBAL_HEADER_INTERACTION_JOB_RESULT: ${{ needs.global-header-interaction.result }}\n',
+        '',
+      ),
+    }),
+  },
+  {
+    id: 'S3-16',
+    killedBy: /receives blocker "public-seo-metadata" evidence/,
+    label: 'unwire the aggregator from a blocker evidence output',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'drop blocker evidence',
+        baseWorkflow,
+        '          GATE_PUBLIC_SEO_METADATA_EVIDENCE: ${{ needs.public-seo-metadata.outputs.evidence }}\n',
+        '',
+      ),
+    }),
+  },
+  {
+    id: 'S3-17',
+    killedBy: /the aggregator accepts only PASS and NOT_APPLICABLE/,
+    label: 'widen the accepted result vocabulary to include FAIL',
+    apply: () => ({
+      aggregateSource: replaceOnce(
+        'widen vocabulary',
+        baseAggregate,
+        'ACCEPTED_GATE_OUTCOMES.includes(result)',
+        'GATE_OUTCOMES.includes(result)',
+      ),
+    }),
+  },
+  {
+    id: 'S3-18',
+    killedBy: /rejects a blocker job that did not succeed/,
+    label: 'let the aggregator accept a skipped/cancelled/failed blocker job',
+    apply: () => ({
+      aggregateSource: replaceOnce('accept any job result', baseAggregate, 'jobResult !== REQUIRED_JOB_RESULT', 'false'),
+    }),
+  },
+  {
+    id: 'S3-19',
+    killedBy: /never treats `skipped` as a pass/,
+    label: 'make the aggregator treat GitHub `skipped` as a pass',
+    apply: () => ({
+      aggregateSource: replaceOnce(
+        'skipped => pass',
+        baseAggregate,
+        "          `${JSON.stringify(REQUIRED_JOB_RESULT)} — failed, cancelled and skipped are all rejected; a blocker ` +",
+        "          `${JSON.stringify(REQUIRED_JOB_RESULT)} — but a skipped blocker is fine; a blocker ` +",
+      ),
+    }),
+  },
+  {
+    id: 'S3-20',
+    killedBy: /rejects a classifier job that did not succeed/,
+    label: 'let the aggregator ignore a failed classifier job',
+    apply: () => ({
+      aggregateSource: replaceOnce(
+        'ignore classifier failure',
+        baseAggregate,
+        'classifyResult !== REQUIRED_JOB_RESULT',
+        'false',
+      ),
+    }),
+  },
+  {
+    id: 'S3-21',
+    killedBy: /fails when an expected blocker produced no result at all/,
+    label: 'let a missing blocker result pass unnoticed',
+    apply: () => ({
+      aggregateSource: replaceOnce(
+        'ignore missing blocker',
+        baseAggregate,
+        'produced NO result at all',
+        'is optional',
+      ),
+    }),
+  },
+  {
+    id: 'S3-22',
+    killedBy: /requires the blocker evidence digest to match its RECOMPUTED digest/,
+    label: 'stop checking the blocker evidence digest (a stale decision would be laundered through)',
+    apply: () => ({
+      aggregateSource: replaceOnce('ignore digest', baseAggregate, 'evidence.digest !== expectedDigest', 'false'),
+    }),
+  },
+  // --- H1: the independent recomputation, mutated every way it could be lost --
+  {
+    id: 'S3-22a',
+    killedBy: /INDEPENDENTLY recomputes the canonical applicability digest/,
+    label: 'delete the aggregator\'s independent recomputation and trust the supplied digest instead',
+    apply: () => ({
+      aggregateSource: replaceOnce(
+        'trust the supplied digest',
+        baseAggregate,
+        'decision !== null && boundIdentity !== null ? applicabilityDigest(decision, boundIdentity) : null;',
+        'digest ?? null;',
+      ),
+    }),
+  },
+  {
+    id: 'S3-22b',
+    killedBy: /INDEPENDENTLY recomputes the canonical applicability digest/,
+    label: 'disable the recomputation entirely (expectedDigest becomes a constant)',
+    apply: () => ({
+      aggregateSource: replaceOnce(
+        'constant expected digest',
+        baseAggregate,
+        'decision !== null && boundIdentity !== null ? applicabilityDigest(decision, boundIdentity) : null;',
+        'null;',
+      ),
+    }),
+  },
+  {
+    id: 'S3-22c',
+    killedBy: /treats the CLASSIFIER digest as a claim checked against its own recomputation/,
+    label: 'let the classifier\'s own digest claim go unverified against the recomputation',
+    apply: () => ({
+      aggregateSource: replaceOnce(
+        'unverified classifier digest',
+        baseAggregate,
+        '} else if (digest !== expectedDigest) {',
+        '} else if (false) {',
+      ),
+    }),
+  },
+  {
+    id: 'S3-22d',
+    killedBy: /never compares blocker evidence against the supplied digest alone/,
+    label: 'repoint the blocker evidence check back at the SUPPLIED digest (the original H1 defect)',
+    apply: () => ({
+      aggregateSource: replaceOnce(
+        'compare claim to claim',
+        baseAggregate,
+        'evidence.digest !== expectedDigest',
+        'evidence.digest !== digest',
+      ),
+    }),
+  },
+  {
+    id: 'S3-22e',
+    killedBy: /fails closed when it cannot recompute the canonical digest/,
+    label: 'accept an evidence chain the aggregator could not verify at all',
+    apply: () => ({
+      aggregateSource: replaceOnce(
+        'accept unverifiable chain',
+        baseAggregate,
+        '  if (expectedDigest === null) {',
+        '  if (false) {',
+      ),
+    }),
+  },
+  {
+    id: 'S3-22f',
+    killedBy: /fails closed when the run identity is missing or incomplete/,
+    label: 'stop requiring a complete run identity (the digest stops being bound to this execution)',
+    apply: () => ({
+      aggregateSource: replaceOnce(
+        'drop identity binding',
+        baseAggregate,
+        'gate run identity is incomplete',
+        'gate run identity is fine',
+      ),
+    }),
+  },
+  {
+    id: 'S3-22g',
+    killedBy: /resolves THIS run identity from its own environment/,
+    label: 'take the aggregator run identity from somewhere other than its own environment',
+    apply: () => ({
+      aggregateSource: replaceOnce(
+        'unresolve identity',
+        baseAggregate,
+        '    identity = resolveRunIdentity();',
+        '    identity = JSON.parse(process.env.SUPPLIED_IDENTITY ?? "null");',
+      ),
+    }),
+  },
+  {
+    id: 'S3-22h',
+    killedBy: /rejects a digest claim that is not even a sha-256 hex digest/,
+    label: 'accept a digest claim of any shape at all',
+    apply: () => ({
+      aggregateSource: replaceOnce(
+        'any digest shape',
+        baseAggregate,
+        '!DIGEST_PATTERN.test(digest)',
+        'false',
+      ),
+    }),
+  },
+  {
+    id: 'S3-22i',
+    killedBy: /imports the canonical digest function rather than reimplementing hashing/,
+    label: 'reimplement the hashing inside the aggregator instead of using the canonical function',
+    apply: () => ({
+      aggregateSource: replaceOnce(
+        'duplicate hashing',
+        baseAggregate,
+        "import { RUN_IDENTITY_ENV, resolveRunIdentity } from './master-required-gate-classify.mjs';",
+        "import { createHash } from 'node:crypto';\n" +
+          "import { RUN_IDENTITY_ENV, resolveRunIdentity } from './master-required-gate-classify.mjs';",
+      ),
+    }),
+  },
+  {
+    id: 'S3-22j',
+    killedBy: /binds HEAD_SHA to the PR head sha \(run identity is part of the digest contract\)/,
+    label: 'unbind the aggregator HEAD_SHA from the PR head sha',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'aggregator head sha',
+        baseWorkflow,
+        '          HEAD_SHA: ${{ github.event.pull_request.head.sha }}\n          CLASSIFY_JOB_RESULT:',
+        '          CLASSIFY_JOB_RESULT:',
+      ),
+    }),
+  },
+  {
+    id: 'S3-23',
+    killedBy: /requires NOT_APPLICABLE to be backed by the classifier decision/,
+    label: 'accept an unjustified NOT_APPLICABLE',
+    apply: () => ({
+      aggregateSource: replaceOnce(
+        'unjustified NOT_APPLICABLE',
+        baseAggregate,
+        "result === 'NOT_APPLICABLE' && decided !== 'NOT_APPLICABLE'",
+        'false',
+      ),
+    }),
+  },
+  {
+    id: 'S3-24',
+    killedBy: /requires PASS to be backed by an APPLICABLE decision/,
+    label: 'accept a PASS from a gate the classifier never made applicable',
+    apply: () => ({
+      aggregateSource: replaceOnce(
+        'unjustified PASS',
+        baseAggregate,
+        "result === 'PASS' && decided !== 'APPLICABLE'",
+        'false',
+      ),
+    }),
+  },
+  {
+    id: 'S3-25',
+    killedBy: /iterates the closed registry/,
+    label: 'aggregate whatever results arrive instead of the closed registry',
+    apply: () => ({
+      aggregateSource: replaceOnce(
+        'iterate observed gates',
+        baseAggregate,
+        '  for (const gateId of GATE_IDS) {\n    const observed = gates?.[gateId];',
+        '  for (const gateId of Object.keys(gates ?? {})) {\n    const observed = gates?.[gateId];',
+      ),
+    }),
+  },
+  {
+    id: 'S3-26',
+    killedBy: /requires literal `success` for every step of an APPLICABLE gate/,
+    label: 'let a blocker publish PASS on skipped work',
+    apply: () => ({
+      gateResultSource: replaceOnce(
+        'accept skipped as success',
+        baseGateResult,
+        "REQUIRED_OUTCOME_WHEN_APPLICABLE = 'success'",
+        "REQUIRED_OUTCOME_WHEN_APPLICABLE = 'skipped'",
+      ),
+    }),
+  },
+  {
+    id: 'S3-27',
+    killedBy: /proves the job ran every declared blocking command/,
+    label: 'stop proving the blocker ran every declared blocking command',
+    apply: () => ({
+      gateResultSource: replaceOnce('drop arity proof', baseGateResult, 'stepOutcomes.length !== declared', 'false'),
+    }),
+  },
+  {
+    id: 'S3-28',
+    killedBy: /rejects an applicability outside the closed vocabulary/,
+    label: 'let a blocker read an empty applicability as NOT_APPLICABLE',
+    apply: () => ({
+      gateResultSource: replaceOnce(
+        'widen applicability',
+        baseGateResult,
+        'APPLICABILITY_VALUES.includes(applicability)',
+        'true',
+      ),
+    }),
+  },
+  {
+    id: 'S3-29',
+    killedBy: /recomputes the evidence digest rather than trusting it/,
+    label: 'let the applicability validator trust the digest it was handed',
+    apply: () => ({
+      applicabilityValidatorSource: replaceOnce(
+        'trust digest',
+        baseApplicabilityValidator,
+        'applicabilityDigest(parsed, expectedIdentity)',
+        'digest',
+      ),
+    }),
+  },
+  {
+    id: 'S3-30',
+    killedBy: /rejects a STALE sidecar/,
+    label: 'let the applicability validator accept a STALE sidecar',
+    apply: () => ({
+      applicabilityValidatorSource: requireChanged(
+        'accept stale',
+        baseApplicabilityValidator,
+        baseApplicabilityValidator.replaceAll('sidecar is STALE', 'sidecar is fine'),
+      ),
+    }),
+  },
+  {
+    id: 'S3-31',
+    killedBy: /performs exactly ONE writeFileSync to applicabilityResultFilePath/,
+    label: 'remove the applicability producer sidecar write',
+    apply: () => ({
+      applicabilitySource: requireChanged(
+        'drop applicability sidecar write',
+        baseApplicability,
+        baseApplicability.replaceAll('applicabilityResultFilePath()', 'undefined'),
+      ),
+    }),
+  },
+  {
+    id: 'S3-32',
+    killedBy: /applicability model treats an unnormalizable path as RELEVANT/,
+    label: 'let a malformed path count as inert (fail-open applicability)',
+    apply: () => ({
+      gatesSource: replaceOnce(
+        'malformed path inert',
+        baseGates,
+        'normalized === null || !inert.has(normalized)',
+        '!inert.has(normalized)',
+      ),
+    }),
+  },
+  {
+    id: 'S3-33',
+    killedBy: /pins reason -> applicability as the single source of truth/,
+    label: 'flip a fail-closed applicability reason to imply NOT_APPLICABLE',
+    apply: () => ({
+      gatesSource: replaceOnce(
+        'flip applicability reason',
+        baseGates,
+        "'unresolved-or-empty-change-set': 'APPLICABLE'",
+        "'unresolved-or-empty-change-set': 'NOT_APPLICABLE'",
+      ),
+    }),
+  },
+  {
+    id: 'S3-34',
+    killedBy: /applicability model treats an unresolved or empty change set as APPLICABLE/,
+    label: 'let an unresolved change set skip every blocker',
+    apply: () => ({
+      gatesSource: replaceOnce(
+        'unresolved => skip',
+        baseGates,
+        '  if (!Array.isArray(paths) || paths.length === 0) {\n    return { applicability: \'APPLICABLE\', reason: \'unresolved-or-empty-change-set\', relevant: [] };\n  }',
+        '  if (!Array.isArray(paths)) {\n    return { applicability: \'NOT_APPLICABLE\', reason: \'only-gate-irrelevant-paths\', relevant: [] };\n  }',
+      ),
+    }),
+  },
+  {
+    id: 'S3-35',
+    killedBy: /derives its universally-inert paths from the S2-01 allowlist/,
+    label: 'hand-maintain the universally-inert set instead of deriving it',
+    apply: () => ({
+      gatesSource: replaceOnce(
+        'hand-maintain inert set',
+        baseGates,
+        'export const UNIVERSALLY_INERT_PATHS = Object.freeze([...NON_MATERIAL_PATHS]);',
+        "export const UNIVERSALLY_INERT_PATHS = Object.freeze(['README.md', 'AUDIT_REPORT.md']);",
+      ),
+    }),
+  },
+  {
+    id: 'S3-36',
+    killedBy: /self-proving suite "node scripts\/ci\/master-required-gate-parity-test\.mjs" runs exactly once/,
+    label: 'remove the legacy/unified parity suite from the gate',
+    apply: () => ({ workflowText: removeStep(baseWorkflow, 'Legacy/unified parity suite') }),
+  },
+  {
+    id: 'S3-37',
+    killedBy: /the final job never runs `npm ci`/,
+    label: 'make the aggregator depend on a successful `npm ci`',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'aggregator npm ci',
+        baseWorkflow,
+        '      - name: Aggregate blocker outcomes (fail-closed)',
+        '      - name: Install for aggregation\n        run: npm ci\n\n      - name: Aggregate blocker outcomes (fail-closed)',
+      ),
+    }),
+  },
+];
+MUTATIONS.push(...DAG_MUTATIONS);
 
 for (const mutation of MUTATIONS) {
   let caught = [];
@@ -1443,6 +2016,396 @@ try {
     );
   }
   clearSidecar();
+
+  // B10. THE S2-03 AGGREGATOR, BEHAVIOURALLY.
+  //
+  // The static mutations above prove the CONTRACT binds "a skipped blocker is
+  // never a pass". This block proves the property is real at runtime and that the
+  // rule is load-bearing: a deliberately softened aggregator ACCEPTS the exact
+  // input the real one rejects. Without the softened counterpart, "the real
+  // aggregator exits non-zero" could be an artefact of the harness rather than a
+  // property of its logic.
+  const GATES_MODULE_URL = JSON.stringify(pathToFileURL(GATES_SCRIPT).href);
+  const CLASSIFY_MODULE_URL = JSON.stringify(pathToFileURL(CLASSIFY_SCRIPT).href);
+  const asRunnableAggregator = (source) =>
+    mutate('aggregator harness accommodation', source, [
+      ["from './master-required-gate-gates.mjs'", `from ${GATES_MODULE_URL}`],
+      ["from './master-required-gate-classify.mjs'", `from ${CLASSIFY_MODULE_URL}`],
+      ["process.argv[1]?.endsWith('master-required-gate-aggregate.mjs')", 'true'],
+    ]);
+
+  const APP_DECISION = {
+    gates: { 'global-header-interaction': 'APPLICABLE', 'public-seo-metadata': 'APPLICABLE' },
+    reasons: {
+      'global-header-interaction': 'relevant-path-changed',
+      'public-seo-metadata': 'relevant-path-changed',
+    },
+    changedPaths: ['src/pages/index.astro'],
+    material: 'true',
+    materialReason: 'material-path-changed',
+  };
+  // The run identity the aggregator resolves from its OWN environment, and the
+  // digest that — and only that — reproduces from this decision under it.
+  //
+  // H1 HISTORY, kept explicit because it is the whole point of this block: this
+  // constant used to be `'deadbeef'.repeat(8)`, an arbitrary value that is the
+  // digest of nothing, echoed verbatim by both blockers. The aggregator accepted
+  // it, because it only ever compared the claims to each other. The suite's own
+  // happy path was therefore the exploit. It is now a REAL recomputation, and the
+  // forged variants below are asserted to be rejected.
+  const AGG_IDENTITY = Object.freeze({ headSha: 'ab'.repeat(20), runId: '778899', runAttempt: '1' });
+  const APP_DIGEST = applicabilityDigest(APP_DECISION, AGG_IDENTITY);
+  const aggregatorEnv = (overrides = {}) => ({
+    ...process.env,
+    HEAD_SHA: AGG_IDENTITY.headSha,
+    GITHUB_RUN_ID: AGG_IDENTITY.runId,
+    GITHUB_RUN_ATTEMPT: AGG_IDENTITY.runAttempt,
+    CLASSIFY_JOB_RESULT: 'success',
+    CLASSIFIER_MATERIAL: 'true',
+    APPLICABILITY_JSON: JSON.stringify(APP_DECISION),
+    APPLICABILITY_DIGEST: APP_DIGEST,
+    GATE_GLOBAL_HEADER_INTERACTION_JOB_RESULT: 'success',
+    GATE_GLOBAL_HEADER_INTERACTION_RESULT: 'PASS',
+    GATE_GLOBAL_HEADER_INTERACTION_EVIDENCE: JSON.stringify({
+      gateId: 'global-header-interaction',
+      applicability: 'APPLICABLE',
+      digest: APP_DIGEST,
+    }),
+    GATE_PUBLIC_SEO_METADATA_JOB_RESULT: 'success',
+    GATE_PUBLIC_SEO_METADATA_RESULT: 'PASS',
+    GATE_PUBLIC_SEO_METADATA_EVIDENCE: JSON.stringify({
+      gateId: 'public-seo-metadata',
+      applicability: 'APPLICABLE',
+      digest: APP_DIGEST,
+    }),
+    ...overrides,
+  });
+  const runAggregator = (scriptPath, overrides = {}) =>
+    spawnSync(process.execPath, [scriptPath], { env: aggregatorEnv(overrides), encoding: 'utf8', cwd: ROOT });
+
+  check(
+    'RUNTIME: the aggregator PASSES when both blockers proved PASS',
+    runAggregator(AGGREGATE_SCRIPT).status === 0,
+    runAggregator(AGGREGATE_SCRIPT).stderr ?? '',
+  );
+
+  const AGGREGATOR_RUNTIME_REJECTIONS = [
+    [
+      'a SKIPPED blocker job',
+      {
+        GATE_GLOBAL_HEADER_INTERACTION_JOB_RESULT: 'skipped',
+        GATE_GLOBAL_HEADER_INTERACTION_RESULT: '',
+        GATE_GLOBAL_HEADER_INTERACTION_EVIDENCE: '',
+      },
+      /job result is "skipped"/,
+    ],
+    [
+      'a CANCELLED blocker job',
+      { GATE_PUBLIC_SEO_METADATA_JOB_RESULT: 'cancelled' },
+      /job result is "cancelled"/,
+    ],
+    ['a FAILED blocker job', { GATE_PUBLIC_SEO_METADATA_JOB_RESULT: 'failure' }, /job result is "failure"/],
+    ['a FAILED classifier job', { CLASSIFY_JOB_RESULT: 'failure' }, /classifier job result is "failure"/],
+    ['a CANCELLED classifier job', { CLASSIFY_JOB_RESULT: 'cancelled' }, /classifier job result is "cancelled"/],
+    ['a SKIPPED classifier job', { CLASSIFY_JOB_RESULT: 'skipped' }, /classifier job result is "skipped"/],
+    ['a MISSING blocker result output', { GATE_PUBLIC_SEO_METADATA_RESULT: '' }, /published NO result/],
+    ['an UNKNOWN blocker result', { GATE_PUBLIC_SEO_METADATA_RESULT: 'GREEN' }, /outside the closed outcome vocabulary/],
+    ['a blocker publishing FAIL', { GATE_PUBLIC_SEO_METADATA_RESULT: 'FAIL' }, /accepts only/],
+    ['an INVALID classifier decision', { APPLICABILITY_JSON: '{' }, /not valid JSON/],
+    ['a MISSING classifier decision', { APPLICABILITY_JSON: '' }, /applicability output is missing/],
+    [
+      'a STALE blocker evidence digest',
+      {
+        GATE_PUBLIC_SEO_METADATA_EVIDENCE: JSON.stringify({
+          gateId: 'public-seo-metadata',
+          applicability: 'APPLICABLE',
+          digest: 'c0ffee00'.repeat(8),
+        }),
+      },
+      /does not match the canonical applicability digest the aggregator independently recomputed/,
+    ],
+    // --- H1: forged and stale evidence chains, end to end --------------------
+    [
+      'a FORGED non-hash digest echoed consistently by the whole chain (Codex exploit)',
+      {
+        APPLICABILITY_DIGEST: 'forged-applicability-digest',
+        GATE_GLOBAL_HEADER_INTERACTION_EVIDENCE: JSON.stringify({
+          gateId: 'global-header-interaction',
+          applicability: 'APPLICABLE',
+          digest: 'forged-applicability-digest',
+        }),
+        GATE_PUBLIC_SEO_METADATA_EVIDENCE: JSON.stringify({
+          gateId: 'public-seo-metadata',
+          applicability: 'APPLICABLE',
+          digest: 'forged-applicability-digest',
+        }),
+      },
+      /not a sha-256 hex digest|independently recomputed/,
+    ],
+    [
+      'a FORGED sha-256-shaped digest echoed consistently by the whole chain',
+      {
+        APPLICABILITY_DIGEST: 'a'.repeat(64),
+        GATE_GLOBAL_HEADER_INTERACTION_EVIDENCE: JSON.stringify({
+          gateId: 'global-header-interaction',
+          applicability: 'APPLICABLE',
+          digest: 'a'.repeat(64),
+        }),
+        GATE_PUBLIC_SEO_METADATA_EVIDENCE: JSON.stringify({
+          gateId: 'public-seo-metadata',
+          applicability: 'APPLICABLE',
+          digest: 'a'.repeat(64),
+        }),
+      },
+      /independently recomputed/,
+    ],
+    [
+      'a FORGED classifier digest alone',
+      { APPLICABILITY_DIGEST: 'a'.repeat(64) },
+      /independently recomputed/,
+    ],
+    [
+      'a STALE head sha (the digest belongs to another PR head)',
+      { HEAD_SHA: 'cd'.repeat(20) },
+      /independently recomputed/,
+    ],
+    ['a STALE run id (the digest belongs to another run)', { GITHUB_RUN_ID: '424242' }, /independently recomputed/],
+    [
+      'a STALE run attempt (the digest belongs to an earlier attempt)',
+      { GITHUB_RUN_ATTEMPT: '2' },
+      /independently recomputed/,
+    ],
+    ['a MISSING head sha (no resolvable run identity)', { HEAD_SHA: '' }, /HEAD_SHA is missing or empty/],
+    ['a MISSING run id', { GITHUB_RUN_ID: '' }, /GITHUB_RUN_ID is missing or empty/],
+    ['a MISSING run attempt', { GITHUB_RUN_ATTEMPT: '' }, /GITHUB_RUN_ATTEMPT is missing or empty/],
+    [
+      'a TAMPERED decision replayed under the digest it had before the edit',
+      {
+        APPLICABILITY_JSON: JSON.stringify({
+          ...APP_DECISION,
+          changedPaths: ['src/pages/index.astro', 'src/pages/injected.astro'],
+        }),
+      },
+      /independently recomputed/,
+    ],
+    [
+      'an UNJUSTIFIED NOT_APPLICABLE',
+      {
+        GATE_PUBLIC_SEO_METADATA_RESULT: 'NOT_APPLICABLE',
+        GATE_PUBLIC_SEO_METADATA_EVIDENCE: JSON.stringify({
+          gateId: 'public-seo-metadata',
+          applicability: 'NOT_APPLICABLE',
+          digest: APP_DIGEST,
+        }),
+      },
+      /must be justified by exact changed-file classification|the classifier decided/,
+    ],
+  ];
+  for (const [label, overrides, expected] of AGGREGATOR_RUNTIME_REJECTIONS) {
+    const run = runAggregator(AGGREGATE_SCRIPT, overrides);
+    check(`RUNTIME: the aggregator FAILS CLOSED on ${label}`, run.status !== 0, `exit=${run.status}`);
+    check(
+      `RUNTIME: the aggregator names ${label} as the reason`,
+      expected.test(`${run.stdout ?? ''}${run.stderr ?? ''}`),
+      (run.stderr ?? '').slice(0, 240),
+    );
+  }
+
+  // The rule is load-bearing, not decorative.
+  const softenedAggregatorPath = join(sandbox, 'softened-aggregator.mjs');
+  writeFileSync(
+    softenedAggregatorPath,
+    asRunnableAggregator(
+      mutate('accept any blocker job result', baseAggregate, [
+        ['jobResult !== REQUIRED_JOB_RESULT', 'false'],
+        [
+          "    if (typeof result !== 'string' || result.length === 0) {",
+          "    if (false) {",
+        ],
+        ['if (!GATE_OUTCOMES.includes(result)) {', 'if (false) {'],
+        ['if (!ACCEPTED_GATE_OUTCOMES.includes(result)) {', 'if (false) {'],
+        // Synthesize the evidence the vanished blocker never published — the
+        // shape a "just make it green" softening would actually take.
+        [
+          "      evidence = JSON.parse(observed.evidence ?? 'null');",
+          '      evidence = { gateId, applicability: decision?.gates?.[gateId], digest };',
+        ],
+      ]),
+    ),
+    'utf8',
+  );
+  const softenedRun = runAggregator(softenedAggregatorPath, {
+    GATE_GLOBAL_HEADER_INTERACTION_JOB_RESULT: 'skipped',
+    GATE_GLOBAL_HEADER_INTERACTION_RESULT: '',
+    GATE_GLOBAL_HEADER_INTERACTION_EVIDENCE: '',
+  });
+  const realSkippedRun = runAggregator(AGGREGATE_SCRIPT, {
+    GATE_GLOBAL_HEADER_INTERACTION_JOB_RESULT: 'skipped',
+    GATE_GLOBAL_HEADER_INTERACTION_RESULT: '',
+    GATE_GLOBAL_HEADER_INTERACTION_EVIDENCE: '',
+  });
+  check(
+    'the "skipped is never a pass" rule is LOAD-BEARING: a softened aggregator ACCEPTS a skipped blocker',
+    softenedRun.status === 0,
+    `exit=${softenedRun.status} ${(softenedRun.stderr ?? '').slice(0, 240)}`,
+  );
+  check(
+    'the "skipped is never a pass" rule is LOAD-BEARING: the real aggregator REJECTS the same input',
+    realSkippedRun.status !== 0,
+    `exit=${realSkippedRun.status}`,
+  );
+
+  // B10b. H1 — THE INDEPENDENT RECOMPUTATION IS LOAD-BEARING.
+  //
+  // The static mutants above prove the CONTRACT would notice the recomputation
+  // being deleted. This proves the runtime property, and — critically — proves it
+  // is the recomputation doing the work: an aggregator with the recomputation
+  // removed, restored to exactly the pre-fix behaviour (trust the supplied
+  // digest, compare the blockers to that same supplied value), ACCEPTS the forged
+  // chain the real one rejects. This IS the Codex exploit, executed.
+  const FORGED = 'forged-applicability-digest';
+  const forgedChain = {
+    APPLICABILITY_DIGEST: FORGED,
+    GATE_GLOBAL_HEADER_INTERACTION_EVIDENCE: JSON.stringify({
+      gateId: 'global-header-interaction',
+      applicability: 'APPLICABLE',
+      digest: FORGED,
+    }),
+    GATE_PUBLIC_SEO_METADATA_EVIDENCE: JSON.stringify({
+      gateId: 'public-seo-metadata',
+      applicability: 'APPLICABLE',
+      digest: FORGED,
+    }),
+  };
+  const trustingAggregatorPath = join(sandbox, 'trusting-aggregator.mjs');
+  writeFileSync(
+    trustingAggregatorPath,
+    asRunnableAggregator(
+      mutate('trust the supplied digest (pre-H1 aggregator)', baseAggregate, [
+        [
+          'decision !== null && boundIdentity !== null ? applicabilityDigest(decision, boundIdentity) : null;',
+          'digest ?? null;',
+        ],
+        ['} else if (!DIGEST_PATTERN.test(digest)) {', '} else if (false) {'],
+      ]),
+    ),
+    'utf8',
+  );
+  const trustingForgedRun = runAggregator(trustingAggregatorPath, forgedChain);
+  const realForgedRun = runAggregator(AGGREGATE_SCRIPT, forgedChain);
+  check(
+    'H1 EXPLOIT REPRODUCED: an aggregator that TRUSTS the supplied digest accepts a forged chain',
+    trustingForgedRun.status === 0,
+    `exit=${trustingForgedRun.status} ${(trustingForgedRun.stderr ?? '').slice(0, 240)}`,
+  );
+  check(
+    'H1 FIXED: the real aggregator REJECTS the exact same forged chain',
+    realForgedRun.status !== 0,
+    `exit=${realForgedRun.status}`,
+  );
+  // The same softened aggregator must still accept the HONEST chain — otherwise
+  // "the trusting one accepts the forgery" would be uninformative.
+  check(
+    'H1: the softened aggregator is a real aggregator (it still accepts the honest chain)',
+    runAggregator(trustingAggregatorPath).status === 0,
+  );
+  // Stale identity, behaviourally: same forgery-free chain, wrong execution.
+  for (const [label, override] of [
+    ['head sha', { HEAD_SHA: 'cd'.repeat(20) }],
+    ['run id', { GITHUB_RUN_ID: '424242' }],
+    ['run attempt', { GITHUB_RUN_ATTEMPT: '2' }],
+  ]) {
+    const trustingStale = runAggregator(trustingAggregatorPath, override);
+    const realStale = runAggregator(AGGREGATE_SCRIPT, override);
+    check(
+      `H1: a stale ${label} slips past an aggregator that does not recompute`,
+      trustingStale.status === 0,
+      `exit=${trustingStale.status}`,
+    );
+    check(
+      `H1: the real aggregator REJECTS a stale ${label}`,
+      realStale.status !== 0,
+      `exit=${realStale.status}`,
+    );
+  }
+  // And the aggregator must print the value it derived, so a human reading a red
+  // check can see the two digests side by side.
+  const honestRun = runAggregator(AGGREGATE_SCRIPT);
+  check(
+    'H1: the aggregator logs the digest it independently recomputed',
+    new RegExp(`independently recomputed digest: ${APP_DIGEST}`).test(honestRun.stdout ?? ''),
+    (honestRun.stdout ?? '').slice(0, 400),
+  );
+
+  // B11. THE RESULT EMITTER, BEHAVIOURALLY. A blocker whose applicability output
+  // resolved to the empty string (deleted/renamed classifier output) must not be
+  // able to publish anything the aggregator would accept.
+  const emitterOutput = join(sandbox, 'gate-result-output.txt');
+  const runEmitter = (overrides = {}) => {
+    writeFileSync(emitterOutput, '', 'utf8');
+    const env = {
+      ...process.env,
+      GITHUB_OUTPUT: emitterOutput,
+      GATE_ID: 'global-header-interaction',
+      GATE_APPLICABILITY: 'APPLICABLE',
+      APPLICABILITY_DIGEST: APP_DIGEST,
+      STEP_OUTCOMES: JSON.stringify([
+        { name: 'npm ci', outcome: 'success' },
+        { name: 'npm run build', outcome: 'success' },
+        { name: 'node scripts/ui/global-header-interaction-browser-smoke.mjs', outcome: 'success' },
+        { name: 'node scripts/seo/site-indexability-inventory.mjs', outcome: 'success' },
+      ]),
+      ...overrides,
+    };
+    const run = spawnSync(process.execPath, [GATE_RESULT_SCRIPT], { env, encoding: 'utf8', cwd: ROOT });
+    return { run, output: readFileSync(emitterOutput, 'utf8') };
+  };
+  const emitterHappy = runEmitter();
+  check(
+    'RUNTIME: the result emitter publishes PASS for a fully-executed applicable gate',
+    emitterHappy.run.status === 0 && /^result=PASS$/m.test(emitterHappy.output),
+    `${emitterHappy.run.status} ${emitterHappy.output}`,
+  );
+  const emitterSkippedAll = runEmitter({
+    GATE_APPLICABILITY: 'NOT_APPLICABLE',
+    STEP_OUTCOMES: JSON.stringify([
+      { name: 'npm ci', outcome: 'skipped' },
+      { name: 'npm run build', outcome: 'skipped' },
+      { name: 'node scripts/ui/global-header-interaction-browser-smoke.mjs', outcome: 'skipped' },
+      { name: 'node scripts/seo/site-indexability-inventory.mjs', outcome: 'skipped' },
+    ]),
+  });
+  check(
+    'RUNTIME: the result emitter publishes NOT_APPLICABLE for a fully-skipped inapplicable gate',
+    emitterSkippedAll.run.status === 0 && /^result=NOT_APPLICABLE$/m.test(emitterSkippedAll.output),
+    `${emitterSkippedAll.run.status} ${emitterSkippedAll.output}`,
+  );
+  const EMITTER_RUNTIME_REJECTIONS = [
+    ['an EMPTY applicability (deleted/renamed classifier output)', { GATE_APPLICABILITY: '' }],
+    ['an out-of-vocabulary applicability', { GATE_APPLICABILITY: 'skipped' }],
+    ['a MISSING evidence digest', { APPLICABILITY_DIGEST: '' }],
+    ['malformed step outcomes', { STEP_OUTCOMES: '{' }],
+    [
+      'an APPLICABLE gate whose work was SKIPPED',
+      {
+        STEP_OUTCOMES: JSON.stringify([
+          { name: 'npm ci', outcome: 'skipped' },
+          { name: 'npm run build', outcome: 'skipped' },
+          { name: 'node scripts/ui/global-header-interaction-browser-smoke.mjs', outcome: 'skipped' },
+          { name: 'node scripts/seo/site-indexability-inventory.mjs', outcome: 'skipped' },
+        ]),
+      },
+    ],
+  ];
+  for (const [label, overrides] of EMITTER_RUNTIME_REJECTIONS) {
+    const { run, output } = runEmitter(overrides);
+    check(`RUNTIME: the result emitter FAILS CLOSED on ${label}`, run.status !== 0, `exit=${run.status}`);
+    check(
+      `RUNTIME: the result emitter publishes FAIL (never silence) on ${label}`,
+      /^result=FAIL$/m.test(output),
+      output,
+    );
+  }
 } finally {
   rmSync(sandbox, { recursive: true, force: true });
 }
