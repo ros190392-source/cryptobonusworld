@@ -1,12 +1,21 @@
 #!/usr/bin/env node
-// Stage-2 (S2-03) BLOCKER REGISTRY and per-gate APPLICABILITY model for the
-// unified master required gate (issue #366).
+// Stage-2 (S2-03 / S2-04) BLOCKER REGISTRY and per-gate APPLICABILITY model for
+// the unified master required gate (issue #366).
 //
 // WHAT THIS FILE IS. S2-01/S2-02 delivered ONE always-reporting required check
 // context ("Master required gate") that executed the material work in a single
-// job. S2-03 turns that single job into a bounded DAG:
+// job. S2-03 turned that single job into a bounded DAG, and S2-04 BATCH 01
+// widened it from two blockers to four:
 //
-//     classify -> { global-header-interaction, public-seo-metadata } -> Master required gate
+//     classify -> { global-header-interaction, public-first-screen-budget,
+//                   public-navigation, public-seo-metadata }
+//              -> Master required gate
+//
+// S2-04 added NO new mechanism. Every trust property below is the S2-03 one,
+// reached by registering two more gates in the same closed registry; the only
+// structural change is that the per-gate inert set is now DERIVED from the
+// registry (see deriveIrrelevantPaths) instead of hand-listed, because
+// hand-listing cross-gate exclusivity is quadratic and therefore forgettable.
 //
 // Every blocker job in that DAG is declared HERE, once, in a closed registry.
 // The workflow, the contract test, the mutation suite and the aggregator all read
@@ -37,13 +46,13 @@
 //   * a malformed / traversing / absolute path                      -> RELEVANT
 //
 // So NOT_APPLICABLE is only ever reached when EVERY changed file is provably
-// inert for that gate. Both gates run a full `astro build`, so their inert sets
+// inert for that gate. Every gate runs a full `astro build`, so their inert sets
 // are necessarily tiny: the four root governance documents already proven inert
 // by the S2-01 allowlist (and re-proved inert on every run by the dependency
-// drift scanner), plus the OTHER gate's exclusive legacy workflow file and
-// exclusive gate script. Nothing else is claimed to be inert, and the contract
-// test re-proves on every run that each inert entry really is outside this
-// gate's S2-02 dependency closure.
+// drift scanner), plus the exclusive legacy workflow file and exclusive gate
+// script of every OTHER registered gate. Nothing else is claimed to be inert,
+// and the contract test re-proves on every run that each inert entry really is
+// outside this gate's S2-02 dependency closure.
 //
 // This file has NO main(). It is pure so the contract test, the mutation suite,
 // the producer, the per-gate result emitter and the aggregator can all drive it
@@ -124,12 +133,15 @@ export function stepConditionExpression(gateId, condition) {
 }
 
 /**
- * The closed blocker registry.
+ * The closed blocker registry, BEFORE the derived fields are attached.
  *
- * `irrelevantPaths` — EXACT repo-relative paths only. No prefixes and no globs:
- * a prefix would let a future file dropped into that directory inherit inert
- * status without anyone deciding it is inert, which is the same fail-open failure
- * in a different shape (the identical rule the S2-01 allowlist follows).
+ * `gateScript` — the ONE hard-gate script that is exclusive to this gate: the
+ * script the legacy workflow exists to run, which nothing else in the DAG
+ * executes or reads. Together with `legacyWorkflow` it forms this gate's
+ * EXCLUSIVE SURFACE (see `gateExclusiveSurface` below), which is the only thing
+ * any OTHER gate is permitted to treat as inert. The shared indexability
+ * inventory is deliberately NOT a gateScript anywhere: two gates run it, so it
+ * is exclusive to neither and can never become inert for either.
  *
  * `steps` — the exact blocking step sequence this gate must execute when it IS
  * applicable, with the step id each one carries (the ids are load-bearing: the
@@ -139,7 +151,7 @@ export function stepConditionExpression(gateId, condition) {
  * command-for-command equivalent to the legacy path-filtered workflow, and that
  * the unified job really runs it.
  */
-export const GATES = Object.freeze({
+const GATE_DEFINITIONS = Object.freeze({
   'global-header-interaction': Object.freeze({
     id: 'global-header-interaction',
     jobId: 'global-header-interaction',
@@ -151,6 +163,7 @@ export const GATES = Object.freeze({
     evidenceEnv: 'GATE_GLOBAL_HEADER_INTERACTION_EVIDENCE',
     legacyWorkflow: '.github/workflows/cbw-global-header-interaction.yml',
     legacyJobId: 'global-header-interaction',
+    gateScript: 'scripts/ui/global-header-interaction-browser-smoke.mjs',
     steps: Object.freeze([
       Object.freeze({ id: 'install', command: 'npm ci', condition: 'applicability', legacyIf: null }),
       Object.freeze({ id: 'build', command: 'npm run build', condition: 'applicability', legacyIf: null }),
@@ -167,13 +180,51 @@ export const GATES = Object.freeze({
         legacyIf: "always() && steps.build.outcome == 'success'",
       }),
     ]),
-    irrelevantPaths: Object.freeze([
-      ...UNIVERSALLY_INERT_PATHS,
-      // The OTHER gate's exclusive surface. Neither file is read, imported or
-      // executed by anything this gate runs (proved live by the contract test
-      // against the S2-02 dependency closure).
-      '.github/workflows/cbw-public-seo-metadata.yml',
-      'scripts/seo/public-seo-metadata-schema-test.mjs',
+  }),
+  'public-first-screen-budget': Object.freeze({
+    id: 'public-first-screen-budget',
+    jobId: 'public-first-screen-budget',
+    jobName: 'Public first-screen budget (unified blocker)',
+    outputName: 'gate_public_first_screen_budget',
+    applicabilityEnv: 'GATE_PUBLIC_FIRST_SCREEN_BUDGET_APPLICABILITY',
+    resultEnv: 'GATE_PUBLIC_FIRST_SCREEN_BUDGET_RESULT',
+    jobResultEnv: 'GATE_PUBLIC_FIRST_SCREEN_BUDGET_JOB_RESULT',
+    evidenceEnv: 'GATE_PUBLIC_FIRST_SCREEN_BUDGET_EVIDENCE',
+    legacyWorkflow: '.github/workflows/cbw-public-first-screen-budget.yml',
+    legacyJobId: 'public-first-screen-budget',
+    gateScript: 'scripts/ui/public-first-screen-budget-browser-smoke.mjs',
+    steps: Object.freeze([
+      Object.freeze({ id: 'install', command: 'npm ci', condition: 'applicability', legacyIf: null }),
+      Object.freeze({ id: 'build', command: 'npm run build', condition: 'applicability', legacyIf: null }),
+      Object.freeze({
+        id: 'first-screen',
+        command: 'node scripts/ui/public-first-screen-budget-browser-smoke.mjs',
+        condition: 'applicability',
+        legacyIf: null,
+      }),
+    ]),
+  }),
+  'public-navigation': Object.freeze({
+    id: 'public-navigation',
+    jobId: 'public-navigation',
+    jobName: 'Public navigation boundary (unified blocker)',
+    outputName: 'gate_public_navigation',
+    applicabilityEnv: 'GATE_PUBLIC_NAVIGATION_APPLICABILITY',
+    resultEnv: 'GATE_PUBLIC_NAVIGATION_RESULT',
+    jobResultEnv: 'GATE_PUBLIC_NAVIGATION_JOB_RESULT',
+    evidenceEnv: 'GATE_PUBLIC_NAVIGATION_EVIDENCE',
+    legacyWorkflow: '.github/workflows/cbw-public-navigation-boundary.yml',
+    legacyJobId: 'public-navigation',
+    gateScript: 'scripts/seo/public-navigation-boundary-test.mjs',
+    steps: Object.freeze([
+      Object.freeze({ id: 'install', command: 'npm ci', condition: 'applicability', legacyIf: null }),
+      Object.freeze({ id: 'build', command: 'npm run build', condition: 'applicability', legacyIf: null }),
+      Object.freeze({
+        id: 'navigation',
+        command: 'node scripts/seo/public-navigation-boundary-test.mjs',
+        condition: 'applicability',
+        legacyIf: null,
+      }),
     ]),
   }),
   'public-seo-metadata': Object.freeze({
@@ -187,6 +238,7 @@ export const GATES = Object.freeze({
     evidenceEnv: 'GATE_PUBLIC_SEO_METADATA_EVIDENCE',
     legacyWorkflow: '.github/workflows/cbw-public-seo-metadata.yml',
     legacyJobId: 'public-seo-metadata',
+    gateScript: 'scripts/seo/public-seo-metadata-schema-test.mjs',
     steps: Object.freeze([
       Object.freeze({ id: 'install', command: 'npm ci', condition: 'applicability', legacyIf: null }),
       Object.freeze({ id: 'build', command: 'npm run build', condition: 'applicability', legacyIf: null }),
@@ -203,13 +255,66 @@ export const GATES = Object.freeze({
         legacyIf: "always() && steps.build.outcome == 'success'",
       }),
     ]),
-    irrelevantPaths: Object.freeze([
-      ...UNIVERSALLY_INERT_PATHS,
-      '.github/workflows/cbw-global-header-interaction.yml',
-      'scripts/ui/global-header-interaction-browser-smoke.mjs',
-    ]),
   }),
 });
+
+/**
+ * The EXCLUSIVE SURFACE of one gate: the two files that exist solely to serve it.
+ * Nothing else may ever be claimed exclusive, because "exclusive" is precisely
+ * what licenses another gate to skip work on it.
+ */
+export function gateExclusiveSurface(gateId) {
+  const gate = GATE_DEFINITIONS[gateId];
+  if (!gate) return [];
+  return [gate.legacyWorkflow, gate.gateScript];
+}
+
+/**
+ * The inert set of one gate, DERIVED, never hand-listed.
+ *
+ * S2-03 spelled the cross-gate entries out by hand, which was tractable for two
+ * gates and quadratic in maintenance for four: a fifth gate would have required
+ * an author to remember to add its two exclusive files to every existing gate,
+ * and forgetting would have been silent (it fails safe — more work runs — but it
+ * also means the inert model stops describing reality). Deriving it removes the
+ * bookkeeping entirely: a gate's inert set is the S2-01 non-material allowlist
+ * plus the exclusive surface of every OTHER registered gate, and nothing else.
+ *
+ * Two properties this preserves by construction:
+ *   * a gate is NEVER inert on its own workflow file or its own gate script,
+ *     because its own surface is excluded from the union;
+ *   * a file that two gates share (the indexability inventory) is exclusive to
+ *     neither and therefore appears in no inert set at all.
+ *
+ * The claim is still not taken on trust. The contract test re-derives every
+ * gate's LIVE S2-02 dependency closure — legacy job and unified job both — and
+ * fails if any entry here appears in it, or if any real dependency is missing
+ * from the relevant side.
+ */
+function deriveIrrelevantPaths(gateId) {
+  const foreign = Object.keys(GATE_DEFINITIONS)
+    .filter((otherId) => otherId !== gateId)
+    .flatMap((otherId) => gateExclusiveSurface(otherId))
+    .sort();
+  return Object.freeze([...UNIVERSALLY_INERT_PATHS, ...foreign]);
+}
+
+/**
+ * The closed blocker registry.
+ *
+ * `irrelevantPaths` — EXACT repo-relative paths only. No prefixes and no globs:
+ * a prefix would let a future file dropped into that directory inherit inert
+ * status without anyone deciding it is inert, which is the same fail-open failure
+ * in a different shape (the identical rule the S2-01 allowlist follows).
+ */
+export const GATES = Object.freeze(
+  Object.fromEntries(
+    Object.entries(GATE_DEFINITIONS).map(([gateId, gate]) => [
+      gateId,
+      Object.freeze({ ...gate, irrelevantPaths: deriveIrrelevantPaths(gateId) }),
+    ]),
+  ),
+);
 
 // Stable, sorted, closed. Every consumer iterates THIS, so a gate that exists in
 // the workflow but not here (or here but not in the workflow) is a contract

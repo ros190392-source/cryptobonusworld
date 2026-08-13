@@ -23,16 +23,20 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import {
+  EXPECTED_STAGE2_CANDIDATES,
   auditProducerConsumerContract,
+  auditRegistryPortfolioAlignment,
   extractCallExpressions,
 } from './master-required-gate-workflow-contract.mjs';
-import { applicabilityDigest } from './master-required-gate-gates.mjs';
+import { GATES, GATE_IDS, applicabilityDigest } from './master-required-gate-gates.mjs';
+import { evaluateEnforcementReadiness } from './master-blocking-portfolio-contract.mjs';
 
 const ROOT = resolve(process.cwd());
 const WORKFLOW = resolve(ROOT, '.github/workflows/cbw-master-required-gate.yml');
 const CLASSIFY_SCRIPT = resolve(ROOT, 'scripts/ci/master-required-gate-classify.mjs');
 const VALIDATE_SCRIPT = resolve(ROOT, 'scripts/ci/master-required-gate-validate-output.mjs');
 const GATES_SCRIPT = resolve(ROOT, 'scripts/ci/master-required-gate-gates.mjs');
+const PORTFOLIO_PATH = resolve(ROOT, 'scripts/ci/master-blocking-portfolio.json');
 const APPLICABILITY_SCRIPT = resolve(ROOT, 'scripts/ci/master-required-gate-applicability.mjs');
 const VALIDATE_APPLICABILITY_SCRIPT = resolve(ROOT, 'scripts/ci/master-required-gate-validate-applicability.mjs');
 const GATE_RESULT_SCRIPT = resolve(ROOT, 'scripts/ci/master-required-gate-gate-result.mjs');
@@ -102,6 +106,26 @@ function removeStep(text, stepName) {
   while (end < lines.length && !/^ {6}(- name:|#)/.test(lines[end])) end += 1;
   lines.splice(start, end - start);
   return lines.join('\n');
+}
+
+// Removes an entire job block: from its `  <job-id>:` line up to the next
+// top-level job or the next job-level comment banner. Deleting a whole blocker
+// is the mutation that matters most for a widening DAG — it is the shape a
+// "temporarily disable this gate" change actually takes.
+function removeJob(text, jobId) {
+  const lines = text.split('\n');
+  const start = lines.findIndex((line) => line === `  ${jobId}:`);
+  if (start === -1) throw new Error(`mutation setup failed: job "${jobId}" not found`);
+  // Walk back over the comment banner that introduces the job, so the removal
+  // does not leave a header describing a job that no longer exists.
+  let from = start;
+  while (from > 0 && /^ {2}#/.test(lines[from - 1])) from -= 1;
+  let end = start + 1;
+  while (end < lines.length && !/^ {2}(#|[A-Za-z0-9_-]+:)/.test(lines[end])) end += 1;
+  lines.splice(from, end - from);
+  const mutated = lines.join('\n');
+  if (mutated === text) throw new Error(`mutation setup failed (no-op): remove job "${jobId}"`);
+  return mutated;
 }
 
 function insertAfterStepName(text, stepName, insertedLine) {
@@ -684,8 +708,8 @@ const DAG_MUTATIONS = [
       workflowText: replaceOnce(
         'drop needs edge',
         baseWorkflow,
-        '      - global-header-interaction\n      - public-seo-metadata\n',
-        '      - public-seo-metadata\n',
+        '      - global-header-interaction\n      - public-first-screen-budget\n',
+        '      - global-header-interaction\n',
       ),
     }),
   },
@@ -1210,7 +1234,501 @@ const DAG_MUTATIONS = [
     }),
   },
 ];
-MUTATIONS.push(...DAG_MUTATIONS);
+
+// =============================================================================
+// S2-04 BATCH 01 — the two blockers added to the DAG are bound just as tightly
+// =============================================================================
+//
+// Widening a DAG is exactly the moment invariants quietly stop applying to the
+// new members: the suite stays green because it still proves everything it used
+// to prove, about the jobs it used to prove it about. Every mutation below is an
+// S3 mutation RE-AIMED at Public Navigation Boundary or Public First Screen
+// Budget, so "the new jobs are as bound as the old ones" is demonstrated rather
+// than assumed. They are additions, not replacements — the S3 mutations above
+// still run against their original targets.
+const S2_04_MUTATIONS = [
+  {
+    id: 'S4-1',
+    killedBy: /declares EXACTLY the expected DAG jobs/,
+    label: 'delete the Public Navigation blocker job entirely',
+    apply: () => ({ workflowText: removeJob(baseWorkflow, 'public-navigation') }),
+  },
+  {
+    id: 'S4-2',
+    killedBy: /declares EXACTLY the expected DAG jobs/,
+    label: 'delete the Public First Screen Budget blocker job entirely',
+    apply: () => ({ workflowText: removeJob(baseWorkflow, 'public-first-screen-budget') }),
+  },
+  {
+    id: 'S4-3',
+    killedBy: /declares EXACTLY the expected DAG jobs/,
+    label: 'rename the Public Navigation blocker job without updating the registry',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'rename navigation job',
+        baseWorkflow,
+        '\n  public-navigation:\n',
+        '\n  public-nav:\n',
+      ),
+    }),
+  },
+  {
+    id: 'S4-4',
+    killedBy: /declares EXACTLY the expected DAG jobs/,
+    label: 'rename the First Screen Budget blocker job without updating the registry',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'rename first screen job',
+        baseWorkflow,
+        '\n  public-first-screen-budget:\n',
+        '\n  public-first-screen:\n',
+      ),
+    }),
+  },
+  {
+    id: 'S4-5',
+    killedBy: /the final job has a `needs` edge on blocker "public-navigation"/,
+    label: 'drop the aggregator `needs` edge on Public Navigation (it stops being aggregated)',
+    apply: () => ({
+      workflowText: replaceOnce('drop navigation needs', baseWorkflow, '      - public-navigation\n', ''),
+    }),
+  },
+  {
+    id: 'S4-6',
+    killedBy: /the final job has a `needs` edge on blocker "public-first-screen-budget"/,
+    label: 'drop the aggregator `needs` edge on First Screen Budget (it stops being aggregated)',
+    apply: () => ({
+      workflowText: replaceOnce('drop first screen needs', baseWorkflow, '      - public-first-screen-budget\n', ''),
+    }),
+  },
+  {
+    id: 'S4-7',
+    killedBy: /carries NO job-level `if`/,
+    label: 'give Public Navigation a job-level `if` so an irrelevant change SKIPS it',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'navigation job-level if',
+        baseWorkflow,
+        '  public-navigation:\n    name:',
+        "  public-navigation:\n    if: needs.classify.outputs.gate_public_navigation == 'APPLICABLE'\n    name:",
+      ),
+    }),
+  },
+  {
+    id: 'S4-8',
+    killedBy: /carries NO job-level `if`/,
+    label: 'give First Screen Budget a job-level `if` so an irrelevant change SKIPS it',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'first screen job-level if',
+        baseWorkflow,
+        '  public-first-screen-budget:\n    name:',
+        "  public-first-screen-budget:\n    if: needs.classify.outputs.gate_public_first_screen_budget == 'APPLICABLE'\n    name:",
+      ),
+    }),
+  },
+  {
+    id: 'S4-9',
+    killedBy: /runs "node scripts\/seo\/public-navigation-boundary-test\.mjs" exactly once/,
+    label: 'delete the navigation boundary hard-gate step (silent coverage reduction)',
+    apply: () => ({ workflowText: removeStep(baseWorkflow, 'Public navigation boundary') }),
+  },
+  {
+    id: 'S4-10',
+    killedBy: /runs "node scripts\/ui\/public-first-screen-budget-browser-smoke\.mjs" exactly once/,
+    label: 'delete the first-screen Chromium matrix step (silent coverage reduction)',
+    apply: () => ({ workflowText: removeStep(baseWorkflow, 'Public first-screen Chromium matrix') }),
+  },
+  {
+    id: 'S4-11',
+    killedBy: /"public-navigation" runs "npm run build" exactly once/,
+    label: 'drop the production build from Public Navigation (its gate script would run against a stale tree)',
+    apply: () => ({ workflowText: removeStep(baseWorkflow, 'Production build for the public navigation blocker') }),
+  },
+  {
+    id: 'S4-12',
+    killedBy: /"public-first-screen-budget" runs "npm run build" exactly once/,
+    label: 'drop the production build from First Screen Budget',
+    apply: () => ({ workflowText: removeStep(baseWorkflow, 'Production build for the first-screen budget blocker') }),
+  },
+  {
+    id: 'S4-13',
+    killedBy: /is gated on the exact derived condition/,
+    label: 'repoint a Public Navigation step at a nonexistent classifier output',
+    apply: () => ({
+      workflowText: requireChanged(
+        'repoint navigation condition',
+        baseWorkflow,
+        baseWorkflow.replaceAll(
+          "needs.classify.outputs.gate_public_navigation == 'APPLICABLE'",
+          "needs.classify.outputs.gate_navigation == 'APPLICABLE'",
+        ),
+      ),
+    }),
+  },
+  {
+    id: 'S4-14',
+    killedBy: /is gated on the exact derived condition/,
+    label: 'repoint a First Screen Budget step at a nonexistent classifier output',
+    apply: () => ({
+      workflowText: requireChanged(
+        'repoint first screen condition',
+        baseWorkflow,
+        baseWorkflow.replaceAll(
+          "needs.classify.outputs.gate_public_first_screen_budget == 'APPLICABLE'",
+          "needs.classify.outputs.gate_first_screen == 'APPLICABLE'",
+        ),
+      ),
+    }),
+  },
+  {
+    id: 'S4-15',
+    killedBy: /receives blocker "public-navigation" JOB RESULT/,
+    label: 'unwire the aggregator from the Public Navigation JOB RESULT',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'drop navigation job result',
+        baseWorkflow,
+        '          GATE_PUBLIC_NAVIGATION_JOB_RESULT: ${{ needs.public-navigation.result }}\n',
+        '',
+      ),
+    }),
+  },
+  {
+    id: 'S4-16',
+    killedBy: /receives blocker "public-first-screen-budget" published result/,
+    label: 'unwire the aggregator from the First Screen Budget published result',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'drop first screen result',
+        baseWorkflow,
+        '          GATE_PUBLIC_FIRST_SCREEN_BUDGET_RESULT: ${{ needs.public-first-screen-budget.outputs.result }}\n',
+        '',
+      ),
+    }),
+  },
+  {
+    id: 'S4-17',
+    killedBy: /receives blocker "public-navigation" evidence/,
+    label: 'unwire the aggregator from the Public Navigation evidence (the digest chain goes unchecked)',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'drop navigation evidence',
+        baseWorkflow,
+        '          GATE_PUBLIC_NAVIGATION_EVIDENCE: ${{ needs.public-navigation.outputs.evidence }}\n',
+        '',
+      ),
+    }),
+  },
+  {
+    id: 'S4-18',
+    killedBy: /receives blocker "public-first-screen-budget" evidence/,
+    label: 'unwire the aggregator from the First Screen Budget evidence',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'drop first screen evidence',
+        baseWorkflow,
+        '          GATE_PUBLIC_FIRST_SCREEN_BUDGET_EVIDENCE: ${{ needs.public-first-screen-budget.outputs.evidence }}\n',
+        '',
+      ),
+    }),
+  },
+  {
+    id: 'S4-19',
+    killedBy: /result emitter observes EXACTLY the declared blocking steps/,
+    label: 'hard-code a step outcome in the Public Navigation emitter (a deleted step would go unnoticed)',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'hardcode navigation outcome',
+        baseWorkflow,
+        '{"name":"node scripts/seo/public-navigation-boundary-test.mjs","outcome":"${{ steps.navigation.outcome }}"}]',
+        '{"name":"node scripts/seo/public-navigation-boundary-test.mjs","outcome":"success"}]',
+      ),
+    }),
+  },
+  {
+    id: 'S4-20',
+    killedBy: /result emitter observes EXACTLY the declared blocking steps/,
+    label: 'hard-code a step outcome in the First Screen Budget emitter',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'hardcode first screen outcome',
+        baseWorkflow,
+        '{"name":"node scripts/ui/public-first-screen-budget-browser-smoke.mjs","outcome":"${{ steps.first-screen.outcome }}"}]',
+        '{"name":"node scripts/ui/public-first-screen-budget-browser-smoke.mjs","outcome":"success"}]',
+      ),
+    }),
+  },
+  {
+    id: 'S4-21',
+    killedBy: /"public-navigation" publishes its result output bound to the emitter step/,
+    label: 'delete the Public Navigation result output (the aggregator would see nothing)',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'drop navigation result output',
+        baseWorkflow,
+        '  public-navigation:\n    name: Public navigation boundary (unified blocker)\n' +
+          '    needs: classify\n    runs-on: ubuntu-latest\n    timeout-minutes: 30\n    outputs:\n' +
+          '      result: ${{ steps.gate-result.outputs.result }}\n',
+        '  public-navigation:\n    name: Public navigation boundary (unified blocker)\n' +
+          '    needs: classify\n    runs-on: ubuntu-latest\n    timeout-minutes: 30\n    outputs:\n',
+      ),
+    }),
+  },
+  {
+    id: 'S4-22',
+    killedBy: /"public-first-screen-budget" runs the result emitter exactly once/,
+    label: 'delete the First Screen Budget result emitter step',
+    apply: () => ({ workflowText: removeStep(baseWorkflow, 'Publish first-screen budget blocker result') }),
+  },
+  {
+    id: 'S4-23',
+    killedBy: /"public-navigation" result emitter is UNCONDITIONAL/,
+    label: 'make the Public Navigation emitter conditional (an irrelevant change would publish nothing)',
+    apply: () => ({
+      workflowText: insertAfterStepName(
+        baseWorkflow,
+        'Publish public navigation blocker result',
+        "        if: needs.classify.outputs.gate_public_navigation == 'APPLICABLE'",
+      ),
+    }),
+  },
+  {
+    id: 'S4-24',
+    killedBy: /"public-navigation" result emitter declares its own gate id/,
+    label: 'make the Public Navigation emitter publish under ANOTHER gate\'s id',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'swap navigation gate id',
+        baseWorkflow,
+        '          GATE_ID: public-navigation\n',
+        '          GATE_ID: public-seo-metadata\n',
+      ),
+    }),
+  },
+  {
+    id: 'S4-25',
+    killedBy: /"public-first-screen-budget" result emitter carries the classifier evidence digest/,
+    label: 'strip the evidence digest from the First Screen Budget emitter (its outcome becomes unbindable)',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'drop first screen digest',
+        baseWorkflow,
+        '          GATE_APPLICABILITY: ${{ needs.classify.outputs.gate_public_first_screen_budget }}\n' +
+          '          APPLICABILITY_DIGEST: ${{ needs.classify.outputs.digest }}\n',
+        '          GATE_APPLICABILITY: ${{ needs.classify.outputs.gate_public_first_screen_budget }}\n',
+      ),
+    }),
+  },
+  {
+    id: 'S4-26',
+    killedBy: /"public-navigation" checks out the EXACT PR head sha/,
+    label: 'check out the merge ref instead of the exact PR head in Public Navigation',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'navigation loose checkout',
+        baseWorkflow,
+        '      - name: Checkout exact PR head for the public navigation blocker\n' +
+          '        uses: actions/checkout@v4\n        with:\n' +
+          '          ref: ${{ github.event.pull_request.head.sha }}\n',
+        '      - name: Checkout exact PR head for the public navigation blocker\n' +
+          '        uses: actions/checkout@v4\n        with:\n' +
+          '          ref: ${{ github.ref }}\n',
+      ),
+    }),
+  },
+  {
+    id: 'S4-27',
+    killedBy: /classifier job publishes output "gate_public_navigation" bound to its producer step/,
+    label: 'delete the Public Navigation applicability output from the classifier job',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'drop navigation classify output',
+        baseWorkflow,
+        '      gate_public_navigation: ${{ steps.applicability.outputs.gate_public_navigation }}\n',
+        '',
+      ),
+    }),
+  },
+  {
+    id: 'S4-28',
+    killedBy: /re-checks the per-gate convenience output for "public-first-screen-budget"/,
+    label: 'stop re-validating the First Screen Budget applicability output',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'drop first screen validation',
+        baseWorkflow,
+        '          GATE_PUBLIC_FIRST_SCREEN_BUDGET_APPLICABILITY: ${{ steps.applicability.outputs.gate_public_first_screen_budget }}\n',
+        '',
+      ),
+    }),
+  },
+  // --- the DERIVED inert set is itself a trust boundary ----------------------
+  //
+  // S2-04 replaced four hand-written cross-gate inert entries with a derivation.
+  // A derivation is only an improvement while it is CORRECT, so the two ways it
+  // could silently go fail-open are mutated directly.
+  {
+    id: 'S4-29',
+    killedBy: /derived inert set EXCLUDES the gate's own exclusive surface/,
+    label: 'let a gate treat its OWN exclusive surface as inert (it would skip its own change)',
+    apply: () => ({
+      gatesSource: replaceOnce(
+        'self-inert',
+        baseGates,
+        '    .filter((otherId) => otherId !== gateId)\n',
+        '',
+      ),
+    }),
+  },
+  {
+    id: 'S4-30',
+    killedBy: /derived inert set is exactly the allowlist plus FOREIGN exclusive surfaces/,
+    label: 'add the SHARED indexability inventory to every inert set (two gates would skip a real dependency)',
+    apply: () => ({
+      gatesSource: replaceOnce(
+        'shared script inert',
+        baseGates,
+        '  return Object.freeze([...UNIVERSALLY_INERT_PATHS, ...foreign]);',
+        "  return Object.freeze([...UNIVERSALLY_INERT_PATHS, ...foreign, 'scripts/seo/site-indexability-inventory.mjs']);",
+      ),
+    }),
+  },
+];
+
+MUTATIONS.push(...DAG_MUTATIONS, ...S2_04_MUTATIONS);
+
+// =============================================================================
+// REGISTRY <-> PORTFOLIO ALIGNMENT, MUTATED
+// =============================================================================
+//
+// These rules are what stop the migration bookkeeping from drifting away from
+// what the workflow actually executes — and bookkeeping rules are exactly the
+// kind that get written once and never exercised. Each mutation below corrupts
+// the portfolio in a way a careless S2-05 could plausibly produce, and asserts
+// the alignment audit rejects it FOR THE INTENDED REASON. The real portfolio is
+// never touched: every mutant is a deep copy.
+{
+  const realPortfolio = JSON.parse(readFileSync(PORTFOLIO_PATH, 'utf8'));
+  const realReadiness = evaluateEnforcementReadiness(realPortfolio);
+  const alignmentAudit = (portfolio, readiness = evaluateEnforcementReadiness(portfolio)) =>
+    auditRegistryPortfolioAlignment({
+      portfolio,
+      readiness,
+      expectedStage2Candidates: EXPECTED_STAGE2_CANDIDATES,
+    });
+  const clone = () => JSON.parse(JSON.stringify(realPortfolio));
+  const entryById = (portfolio, id) => portfolio.entries.find((entry) => entry.id === id);
+
+  const baselineAlignment = alignmentAudit(realPortfolio, realReadiness).filter((entry) => !entry.ok);
+  check(
+    'CONTROL: the real portfolio is ALIGNED with the gate registry',
+    baselineAlignment.length === 0,
+    baselineAlignment.map((entry) => entry.label).join(' | '),
+  );
+
+  const PORTFOLIO_MUTATIONS = [
+    {
+      id: 'P-1',
+      killedBy: /records legacy "cbw-public-navigation-boundary\.yml" as MIGRATED_UNIFIED_SHADOW/,
+      label: 'migrate Public Navigation in the workflow but leave its portfolio entry LEGACY_EXTERNAL',
+      apply: () => {
+        const portfolio = clone();
+        entryById(portfolio, 'public-navigation-boundary').migrationState = 'LEGACY_EXTERNAL';
+        return portfolio;
+      },
+    },
+    {
+      id: 'P-2',
+      killedBy: /records legacy "cbw-public-first-screen-budget\.yml" as MIGRATED_UNIFIED_SHADOW/,
+      label: 'leave the First Screen Budget portfolio entry LEGACY_EXTERNAL after migrating it',
+      apply: () => {
+        const portfolio = clone();
+        entryById(portfolio, 'public-first-screen-budget').migrationState = 'LEGACY_EXTERNAL';
+        return portfolio;
+      },
+    },
+    {
+      id: 'P-3',
+      killedBy: /portfolio components are EXACTLY the classifier plus one job per registered gate/,
+      label: 'delete a unified blocker entry from the portfolio (the DAG grows unrecorded)',
+      apply: () => {
+        const portfolio = clone();
+        portfolio.entries = portfolio.entries.filter(
+          (entry) => entry.id !== 'master-gate-blocker-public-navigation',
+        );
+        return portfolio;
+      },
+    },
+    {
+      id: 'P-4',
+      killedBy: /records unified blocker "public-first-screen-budget" as UNIFIED_GATE_COMPONENT/,
+      label: 'mis-state a unified blocker as an external legacy check',
+      apply: () => {
+        const portfolio = clone();
+        entryById(portfolio, 'master-gate-blocker-public-first-screen-budget').migrationState = 'LEGACY_EXTERNAL';
+        return portfolio;
+      },
+    },
+    {
+      id: 'P-5',
+      killedBy: /stage-2 migration candidates are exactly 9/,
+      label: 'let the stage-2 candidate count drift (enforcement scope changes unannounced)',
+      apply: () => {
+        const portfolio = clone();
+        // The shape a quiet retirement takes: a still-blocking legacy workflow
+        // reclassified so it stops counting as outstanding work.
+        const victim = portfolio.entries.find(
+          (entry) => entry.migrationState === 'LEGACY_EXTERNAL' && entry.stage2MigrationCandidate === true,
+        );
+        victim.stage2MigrationCandidate = false;
+        return portfolio;
+      },
+    },
+    {
+      id: 'P-6',
+      killedBy: /legacy "cbw-public-navigation-boundary\.yml" is still BLOCKING/,
+      label: 'downgrade a migrated legacy workflow to advisory (a silent weakening)',
+      apply: () => {
+        const portfolio = clone();
+        entryById(portfolio, 'public-navigation-boundary').classification = 'ADVISORY';
+        return portfolio;
+      },
+    },
+    {
+      id: 'P-7',
+      killedBy: /portfolio declares exactly one unified gate host/,
+      label: 'claim a second unified gate host (the stable required context becomes ambiguous)',
+      apply: () => {
+        const portfolio = clone();
+        entryById(portfolio, 'master-gate-blocker-public-navigation').migrationState = 'UNIFIED_GATE_HOST';
+        return portfolio;
+      },
+    },
+    {
+      id: 'P-8',
+      killedBy: /enforcement readiness remains false at this stage/,
+      label: 'declare enforcement readiness at a stage that confers no authority',
+      apply: () => clone(),
+      readiness: { ...realReadiness, enforcementReady: true },
+    },
+  ];
+
+  for (const mutation of PORTFOLIO_MUTATIONS) {
+    const mutant = mutation.apply();
+    const caught = alignmentAudit(mutant, mutation.readiness).filter((entry) => !entry.ok);
+    check(
+      `PORTFOLIO MUTATION ${mutation.id} (${mutation.label}) is CAUGHT`,
+      caught.length > 0,
+      'mutant survived — the registry/portfolio alignment does not bind this property',
+    );
+    check(
+      `PORTFOLIO MUTATION ${mutation.id} is caught for its INTENDED reason`,
+      caught.some((entry) => mutation.killedBy.test(entry.label)),
+      caught.map((entry) => entry.label).join(' | ').slice(0, 240),
+    );
+  }
+}
 
 for (const mutation of MUTATIONS) {
   let caught = [];
@@ -2034,12 +2552,15 @@ try {
       ["process.argv[1]?.endsWith('master-required-gate-aggregate.mjs')", 'true'],
     ]);
 
+  // Derived from the CLOSED REGISTRY, never hand-listed. When S2-04 added two
+  // blockers, a hand-listed decision here would have kept describing a two-gate
+  // world: the aggregator iterates GATE_IDS, so the happy path would simply have
+  // failed, and the tempting fix — adding the two names by hand — leaves the same
+  // trap set for the next gate. Deriving it means every runtime rejection case
+  // below is automatically exercised against every registered blocker.
   const APP_DECISION = {
-    gates: { 'global-header-interaction': 'APPLICABLE', 'public-seo-metadata': 'APPLICABLE' },
-    reasons: {
-      'global-header-interaction': 'relevant-path-changed',
-      'public-seo-metadata': 'relevant-path-changed',
-    },
+    gates: Object.fromEntries(GATE_IDS.map((gateId) => [gateId, 'APPLICABLE'])),
+    reasons: Object.fromEntries(GATE_IDS.map((gateId) => [gateId, 'relevant-path-changed'])),
     changedPaths: ['src/pages/index.astro'],
     material: 'true',
     materialReason: 'material-path-changed',
@@ -2064,22 +2585,31 @@ try {
     CLASSIFIER_MATERIAL: 'true',
     APPLICABILITY_JSON: JSON.stringify(APP_DECISION),
     APPLICABILITY_DIGEST: APP_DIGEST,
-    GATE_GLOBAL_HEADER_INTERACTION_JOB_RESULT: 'success',
-    GATE_GLOBAL_HEADER_INTERACTION_RESULT: 'PASS',
-    GATE_GLOBAL_HEADER_INTERACTION_EVIDENCE: JSON.stringify({
-      gateId: 'global-header-interaction',
-      applicability: 'APPLICABLE',
-      digest: APP_DIGEST,
-    }),
-    GATE_PUBLIC_SEO_METADATA_JOB_RESULT: 'success',
-    GATE_PUBLIC_SEO_METADATA_RESULT: 'PASS',
-    GATE_PUBLIC_SEO_METADATA_EVIDENCE: JSON.stringify({
-      gateId: 'public-seo-metadata',
-      applicability: 'APPLICABLE',
-      digest: APP_DIGEST,
-    }),
+    // One passing blocker per registered gate, built from the registry's own env
+    // var names so a renamed or added gate cannot leave a hole here.
+    ...Object.fromEntries(
+      GATE_IDS.flatMap((gateId) => [
+        [GATES[gateId].jobResultEnv, 'success'],
+        [GATES[gateId].resultEnv, 'PASS'],
+        [
+          GATES[gateId].evidenceEnv,
+          JSON.stringify({ gateId, applicability: 'APPLICABLE', digest: APP_DIGEST }),
+        ],
+      ]),
+    ),
     ...overrides,
   });
+  // A forged/stale evidence chain is only a meaningful test if EVERY blocker
+  // echoes it consistently — a chain that disagrees with itself is caught by a
+  // weaker rule. Built per gate so the "whole chain agrees" exploit really does
+  // cover the whole chain.
+  const chainEchoing = (digest) =>
+    Object.fromEntries(
+      GATE_IDS.map((gateId) => [
+        GATES[gateId].evidenceEnv,
+        JSON.stringify({ gateId, applicability: 'APPLICABLE', digest }),
+      ]),
+    );
   const runAggregator = (scriptPath, overrides = {}) =>
     spawnSync(process.execPath, [scriptPath], { env: aggregatorEnv(overrides), encoding: 'utf8', cwd: ROOT });
 
@@ -2129,16 +2659,7 @@ try {
       'a FORGED non-hash digest echoed consistently by the whole chain (Codex exploit)',
       {
         APPLICABILITY_DIGEST: 'forged-applicability-digest',
-        GATE_GLOBAL_HEADER_INTERACTION_EVIDENCE: JSON.stringify({
-          gateId: 'global-header-interaction',
-          applicability: 'APPLICABLE',
-          digest: 'forged-applicability-digest',
-        }),
-        GATE_PUBLIC_SEO_METADATA_EVIDENCE: JSON.stringify({
-          gateId: 'public-seo-metadata',
-          applicability: 'APPLICABLE',
-          digest: 'forged-applicability-digest',
-        }),
+        ...chainEchoing('forged-applicability-digest'),
       },
       /not a sha-256 hex digest|independently recomputed/,
     ],
@@ -2146,16 +2667,7 @@ try {
       'a FORGED sha-256-shaped digest echoed consistently by the whole chain',
       {
         APPLICABILITY_DIGEST: 'a'.repeat(64),
-        GATE_GLOBAL_HEADER_INTERACTION_EVIDENCE: JSON.stringify({
-          gateId: 'global-header-interaction',
-          applicability: 'APPLICABLE',
-          digest: 'a'.repeat(64),
-        }),
-        GATE_PUBLIC_SEO_METADATA_EVIDENCE: JSON.stringify({
-          gateId: 'public-seo-metadata',
-          applicability: 'APPLICABLE',
-          digest: 'a'.repeat(64),
-        }),
+        ...chainEchoing('a'.repeat(64)),
       },
       /independently recomputed/,
     ],
@@ -2201,6 +2713,64 @@ try {
       /must be justified by exact changed-file classification|the classifier decided/,
     ],
   ];
+
+  // EVERY REGISTERED BLOCKER, INDIVIDUALLY. The cases above single out one or two
+  // gates by name, which proves the aggregator's rules exist but not that they
+  // reach every member of the DAG — precisely the coverage that silently fails to
+  // extend when the DAG widens. These are generated per gate, so registering a
+  // blocker without binding it is impossible to do quietly.
+  for (const gateId of GATE_IDS) {
+    const gate = GATES[gateId];
+    AGGREGATOR_RUNTIME_REJECTIONS.push(
+      [
+        `a SKIPPED "${gateId}" blocker job`,
+        { [gate.jobResultEnv]: 'skipped', [gate.resultEnv]: '', [gate.evidenceEnv]: '' },
+        /job result is "skipped"/,
+      ],
+      [
+        `a CANCELLED "${gateId}" blocker job`,
+        { [gate.jobResultEnv]: 'cancelled' },
+        /job result is "cancelled"/,
+      ],
+      [`a FAILED "${gateId}" blocker job`, { [gate.jobResultEnv]: 'failure' }, /job result is "failure"/],
+      [`a MISSING "${gateId}" result output`, { [gate.resultEnv]: '' }, /published NO result/],
+      [
+        `an UNKNOWN "${gateId}" result value`,
+        { [gate.resultEnv]: 'GREEN' },
+        /outside the closed outcome vocabulary/,
+      ],
+      [`a "${gateId}" blocker publishing FAIL`, { [gate.resultEnv]: 'FAIL' }, /accepts only/],
+      [
+        `MALFORMED "${gateId}" evidence`,
+        { [gate.evidenceEnv]: '{not json' },
+        /evidence is not valid JSON|evidence/,
+      ],
+      [
+        `a FORGED "${gateId}" evidence digest`,
+        {
+          [gate.evidenceEnv]: JSON.stringify({
+            gateId,
+            applicability: 'APPLICABLE',
+            digest: 'b'.repeat(64),
+          }),
+        },
+        /independently recomputed/,
+      ],
+      [
+        `an UNJUSTIFIED NOT_APPLICABLE from "${gateId}"`,
+        {
+          [gate.resultEnv]: 'NOT_APPLICABLE',
+          [gate.evidenceEnv]: JSON.stringify({
+            gateId,
+            applicability: 'NOT_APPLICABLE',
+            digest: APP_DIGEST,
+          }),
+        },
+        /must be justified by exact changed-file classification|the classifier decided/,
+      ],
+    );
+  }
+
   for (const [label, overrides, expected] of AGGREGATOR_RUNTIME_REJECTIONS) {
     const run = runAggregator(AGGREGATE_SCRIPT, overrides);
     check(`RUNTIME: the aggregator FAILS CLOSED on ${label}`, run.status !== 0, `exit=${run.status}`);
@@ -2264,19 +2834,11 @@ try {
   // digest, compare the blockers to that same supplied value), ACCEPTS the forged
   // chain the real one rejects. This IS the Codex exploit, executed.
   const FORGED = 'forged-applicability-digest';
-  const forgedChain = {
-    APPLICABILITY_DIGEST: FORGED,
-    GATE_GLOBAL_HEADER_INTERACTION_EVIDENCE: JSON.stringify({
-      gateId: 'global-header-interaction',
-      applicability: 'APPLICABLE',
-      digest: FORGED,
-    }),
-    GATE_PUBLIC_SEO_METADATA_EVIDENCE: JSON.stringify({
-      gateId: 'public-seo-metadata',
-      applicability: 'APPLICABLE',
-      digest: FORGED,
-    }),
-  };
+  // EVERY blocker echoes the forgery, derived from the registry. A chain that
+  // only forged the gates someone remembered would be rejected by the ordinary
+  // digest-mismatch rule, and this block would then "pass" while demonstrating
+  // nothing about the recomputation.
+  const forgedChain = { APPLICABILITY_DIGEST: FORGED, ...chainEchoing(FORGED) };
   const trustingAggregatorPath = join(sandbox, 'trusting-aggregator.mjs');
   writeFileSync(
     trustingAggregatorPath,

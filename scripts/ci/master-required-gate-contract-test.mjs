@@ -40,11 +40,16 @@ import {
   VALID_REASONS,
 } from './master-required-gate-classify.mjs';
 import { validateClassifierOutput } from './master-required-gate-validate-output.mjs';
-import { auditProducerConsumerContract } from './master-required-gate-workflow-contract.mjs';
+import {
+  EXPECTED_STAGE2_CANDIDATES,
+  auditProducerConsumerContract,
+  auditRegistryPortfolioAlignment,
+} from './master-required-gate-workflow-contract.mjs';
 import {
   ACCEPTED_GATE_OUTCOMES,
   APPLICABILITY_REASONS,
   APPLICABILITY_VALUES,
+  CLASSIFY_JOB_ID,
   FINAL_CHECK_CONTEXT,
   FINAL_JOB_ID,
   GATES,
@@ -57,13 +62,18 @@ import {
   classifyAllGates,
   classifyGateApplicability,
   gateCommands,
+  gateExclusiveSurface,
   isConsistentApplicability,
 } from './master-required-gate-gates.mjs';
 import { computeApplicability } from './master-required-gate-applicability.mjs';
 import { validateApplicabilityOutput } from './master-required-gate-validate-applicability.mjs';
 import { evaluateGateResult } from './master-required-gate-gate-result.mjs';
 import { aggregate } from './master-required-gate-aggregate.mjs';
-import { deriveJobFacts, parseWorkflow } from './master-blocking-portfolio-contract.mjs';
+import {
+  deriveJobFacts,
+  evaluateEnforcementReadiness,
+  parseWorkflow,
+} from './master-blocking-portfolio-contract.mjs';
 import {
   auditAllowlistDependencyDrift,
   auditTypeCoverage,
@@ -75,9 +85,7 @@ import {
 const ROOT = resolve(process.cwd());
 const WORKFLOW_DIR = resolve(ROOT, '.github/workflows');
 const REQUIRED_WORKFLOW = resolve(WORKFLOW_DIR, 'cbw-master-required-gate.yml');
-const HEADER_WORKFLOW = resolve(WORKFLOW_DIR, 'cbw-global-header-interaction.yml');
 const REQUIRED_CONTEXT = FINAL_CHECK_CONTEXT;
-const HEADER_GATE_SCRIPT = 'scripts/ui/global-header-interaction-browser-smoke.mjs';
 const CLASSIFY_SCRIPT = 'scripts/ci/master-required-gate-classify.mjs';
 const VALIDATE_SCRIPT = 'scripts/ci/master-required-gate-validate-output.mjs';
 const GATES_SCRIPT = 'scripts/ci/master-required-gate-gates.mjs';
@@ -230,25 +238,35 @@ for (const id of jobIds) {
 // stable context through the aggregator, which rejects any blocker job result
 // other than `success`. Both halves are asserted: the step really runs inside the
 // unified DAG, and the aggregator really refuses to pass without it.
-const headerJob = required?.jobs?.[GATES['global-header-interaction'].jobId];
-const headerSteps = headerJob?.steps ?? [];
-const headerStep = headerSteps.find((step) => String(step.run ?? '').includes(HEADER_GATE_SCRIPT));
-check('the unified DAG runs the header hard-gate script itself', Boolean(headerStep));
-check(
-  'header hard-gate step failure propagates to its blocker job',
-  headerStep?.['continue-on-error'] !== true && !/\|\|/.test(String(headerStep?.run ?? '')),
-);
-// The gate script itself must fail-closed on a failed check.
-const headerScriptSource = readFileSync(resolve(ROOT, HEADER_GATE_SCRIPT), 'utf8');
-check(
-  'header hard-gate script sets a non-zero exit code on failure',
-  /process\.exitCode\s*=\s*1/.test(headerScriptSource),
-);
-check(
-  'the header blocker runs the production build before the header matrix',
-  headerSteps.findIndex((step) => String(step.run ?? '').includes('npm run build')) <
-    headerSteps.findIndex((step) => String(step.run ?? '').includes(HEADER_GATE_SCRIPT)),
-);
+// Driven off the registry rather than written once per gate: a gate registered
+// without a real, fail-closed hard-gate script inside the unified DAG is a
+// contract failure, not something a later author has to remember to assert.
+for (const gateId of GATE_IDS) {
+  const gate = GATES[gateId];
+  const blockerJob = required?.jobs?.[gate.jobId];
+  const blockerSteps = blockerJob?.steps ?? [];
+  const gateScriptStep = blockerSteps.find((step) => String(step.run ?? '').includes(gate.gateScript));
+  check(`the unified DAG runs the "${gateId}" hard-gate script itself`, Boolean(gateScriptStep));
+  check(
+    `"${gateId}" hard-gate step failure propagates to its blocker job`,
+    gateScriptStep?.['continue-on-error'] !== true && !/\|\|/.test(String(gateScriptStep?.run ?? '')),
+  );
+  // The gate script itself must fail-closed on a failed check. A script that
+  // reports a problem on stdout and exits 0 turns the whole blocker green.
+  check(`"${gateId}" hard-gate script exists on disk`, existsSync(resolve(ROOT, gate.gateScript)), gate.gateScript);
+  const gateScriptSource = existsSync(resolve(ROOT, gate.gateScript))
+    ? readFileSync(resolve(ROOT, gate.gateScript), 'utf8')
+    : '';
+  check(
+    `"${gateId}" hard-gate script sets a non-zero exit code on failure`,
+    /process\.exitCode\s*=\s*1/.test(gateScriptSource) || /process\.exit\(1\)/.test(gateScriptSource),
+  );
+  check(
+    `the "${gateId}" blocker runs the production build before its hard-gate script`,
+    blockerSteps.findIndex((step) => String(step.run ?? '').includes('npm run build')) <
+      blockerSteps.findIndex((step) => String(step.run ?? '').includes(gate.gateScript)),
+  );
+}
 check(
   'the required workflow executes the blocking work ITSELF and never queries another workflow status',
   !readFileSync(REQUIRED_WORKFLOW, 'utf8').includes('workflow_run') &&
@@ -542,18 +560,25 @@ for (const path of ['server/votes/server.mjs', 'server/votes/backup.sh', 'server
   check(`Codex-named runtime file "${path}" is in the live scan selection`, scannedPaths.includes(path));
 }
 
-// 4c. Every path filter of the header hard gate is MATERIAL here (superset).
-const header = loadWorkflow(HEADER_WORKFLOW);
-const headerPaths = (header?.on ?? header?.true)?.pull_request?.paths ?? [];
-check('header hard gate still declares its path filter', headerPaths.length > 0);
-for (const pattern of headerPaths) {
-  // Representative concrete path for each header trigger pattern.
-  const probe = pattern.endsWith('/**') ? `${pattern.slice(0, -2)}__probe__.astro` : pattern;
-  check(
-    `header trigger "${pattern}" is MATERIAL for the required gate`,
-    isMaterialPath(probe),
-    probe,
-  );
+// 4c. Every path filter of EVERY migrated hard gate is MATERIAL here. The
+// required gate's materiality allowlist must be a strict superset of every
+// legacy trigger surface it now executes: a legacy trigger that classified
+// non-material would let the unified gate skip work the legacy gate would have
+// run, which is precisely the coverage loss migration must not introduce.
+for (const gateId of GATE_IDS) {
+  const legacyDocForMateriality = loadWorkflow(resolve(ROOT, GATES[gateId].legacyWorkflow));
+  const legacyTriggerPaths =
+    (legacyDocForMateriality?.on ?? legacyDocForMateriality?.true)?.pull_request?.paths ?? [];
+  check(`legacy hard gate "${gateId}" still declares its path filter`, legacyTriggerPaths.length > 0);
+  for (const pattern of legacyTriggerPaths) {
+    // Representative concrete path for each trigger pattern.
+    const probe = pattern.endsWith('/**') ? `${pattern.slice(0, -2)}__probe__.astro` : pattern;
+    check(
+      `"${gateId}" legacy trigger "${pattern}" is MATERIAL for the required gate`,
+      isMaterialPath(probe),
+      probe,
+    );
+  }
 }
 
 // 4d. Explicitly named fail-open regressions from independent review. Each of
@@ -1244,10 +1269,20 @@ try {
 // =============================================================================
 
 // --- 14. the applicability vocabulary is closed and pinned -------------------
-check('exactly two gates are migrated in S2-03', GATE_IDS.length === 2, GATE_IDS.join(','));
+// The registry is CLOSED and its membership is pinned. S2-04 batch 01 widened it
+// from the two S2-03 gates to four; pinning the exact list is what makes "a gate
+// was silently added" and "a gate was silently dropped" both contract failures
+// rather than a quiet change in how much the required context proves.
+check('exactly four gates are migrated as of S2-04 batch 01', GATE_IDS.length === 4, GATE_IDS.join(','));
 check(
-  'the migrated gates are the two named by the stage',
-  JSON.stringify([...GATE_IDS]) === JSON.stringify(['global-header-interaction', 'public-seo-metadata']),
+  'the migrated gates are exactly the four named by the stages',
+  JSON.stringify([...GATE_IDS]) ===
+    JSON.stringify([
+      'global-header-interaction',
+      'public-first-screen-budget',
+      'public-navigation',
+      'public-seo-metadata',
+    ]),
   GATE_IDS.join(','),
 );
 check(
@@ -1297,10 +1332,25 @@ for (const bad of [undefined, null, '', 'applicable', 'APPLICABLE ', 'SKIPPED', 
 // inert set. Everything else — including every unknown path — is relevant.
 for (const gateId of GATE_IDS) {
   const gate = GATES[gateId];
+  // The inert set is not merely BOUNDED, it is EXACTLY the derivation: the
+  // S2-01 non-material allowlist plus the exclusive surface of every OTHER
+  // registered gate, and not one entry more. A size bound was the S2-03 shape
+  // and it is a magic number that has to be edited every time a gate is
+  // registered; pinning the exact set instead means an entry smuggled in by hand
+  // fails here, and growth that follows from registering a gate does not.
+  const expectedInert = [
+    ...UNIVERSALLY_INERT_PATHS,
+    ...GATE_IDS.filter((otherId) => otherId !== gateId).flatMap((otherId) => gateExclusiveSurface(otherId)),
+  ].sort();
   check(
-    `gate "${gateId}" inert set is bounded (<= 8 entries)`,
-    gate.irrelevantPaths.length <= 8,
-    String(gate.irrelevantPaths.length),
+    `gate "${gateId}" inert set is EXACTLY the derived set (allowlist + other gates' exclusive surfaces)`,
+    JSON.stringify([...gate.irrelevantPaths].sort()) === JSON.stringify(expectedInert),
+    `actual=${JSON.stringify([...gate.irrelevantPaths].sort())} expected=${JSON.stringify(expectedInert)}`,
+  );
+  check(
+    `gate "${gateId}" inert set contains no duplicate entries`,
+    new Set(gate.irrelevantPaths).size === gate.irrelevantPaths.length,
+    JSON.stringify(gate.irrelevantPaths),
   );
   for (const entry of gate.irrelevantPaths) {
     check(
@@ -1480,26 +1530,50 @@ check(
   'a source change makes EVERY gate APPLICABLE',
   GATE_IDS.every((gateId) => applicabilityOf(['src/pages/index.astro']).gates[gateId] === 'APPLICABLE'),
 );
-// The per-gate distinction really exists: the other gate's exclusive script is
-// inert here and relevant there.
-const seoOnly = applicabilityOf(['scripts/seo/public-seo-metadata-schema-test.mjs']);
-check(
-  'a public-SEO-only change leaves the global header blocker NOT_APPLICABLE',
-  seoOnly.gates['global-header-interaction'] === 'NOT_APPLICABLE',
-);
-check(
-  'a public-SEO-only change keeps the public SEO blocker APPLICABLE',
-  seoOnly.gates['public-seo-metadata'] === 'APPLICABLE',
-);
-const headerOnly = applicabilityOf(['scripts/ui/global-header-interaction-browser-smoke.mjs']);
-check(
-  'a global-header-only change keeps the global header blocker APPLICABLE',
-  headerOnly.gates['global-header-interaction'] === 'APPLICABLE',
-);
-check(
-  'a global-header-only change leaves the public SEO blocker NOT_APPLICABLE',
-  headerOnly.gates['public-seo-metadata'] === 'NOT_APPLICABLE',
-);
+// The per-gate distinction really exists, for EVERY pair of registered gates and
+// in both directions: a gate's own exclusive surface keeps it APPLICABLE, and
+// leaves every other gate NOT_APPLICABLE. Written as an all-pairs loop rather
+// than as one hand-picked pair, so a fifth gate is covered the day it registers
+// and cannot quietly acquire an inert entry that is load-bearing for it.
+for (const gateId of GATE_IDS) {
+  for (const ownPath of gateExclusiveSurface(gateId)) {
+    const decision = applicabilityOf([ownPath]);
+    check(
+      `a change to "${ownPath}" keeps its own blocker "${gateId}" APPLICABLE`,
+      decision.gates[gateId] === 'APPLICABLE',
+      String(decision.gates[gateId]),
+    );
+    for (const otherId of GATE_IDS) {
+      if (otherId === gateId) continue;
+      check(
+        `a change to "${ownPath}" leaves the unrelated blocker "${otherId}" NOT_APPLICABLE`,
+        decision.gates[otherId] === 'NOT_APPLICABLE',
+        String(decision.gates[otherId]),
+      );
+    }
+  }
+}
+// A gate is NEVER inert on its OWN surface. This is the property the derived
+// inert set exists to guarantee, so it is asserted directly rather than inferred
+// from the pairwise results above.
+for (const gateId of GATE_IDS) {
+  for (const ownPath of gateExclusiveSurface(gateId)) {
+    check(
+      `gate "${gateId}" never lists its own surface "${ownPath}" as inert`,
+      !GATES[gateId].irrelevantPaths.includes(ownPath),
+    );
+  }
+}
+// The shared indexability inventory is exclusive to NOBODY, so it must be inert
+// for nobody — the failure mode a naive "other gates' scripts are inert" rule
+// would introduce the moment two gates share a script.
+const SHARED_SCRIPT = 'scripts/seo/site-indexability-inventory.mjs';
+for (const gateId of GATE_IDS) {
+  check(
+    `the shared indexability inventory is NOT inert for gate "${gateId}"`,
+    !GATES[gateId].irrelevantPaths.includes(SHARED_SCRIPT),
+  );
+}
 for (const paths of [null, [], ['README.md'], ['src/pages/index.astro'], ['unknown.mjs'], [...NON_MATERIAL_PATHS]]) {
   check(
     `materiality/applicability are consistent for ${JSON.stringify(paths)}`,
@@ -1733,32 +1807,49 @@ const agg = (overrides = {}) =>
 // 8. PASS + PASS => GREEN.
 check('AGGREGATOR: PASS + PASS is GREEN', agg().ok === true, agg().errors.join(' | '));
 
-// 9. PASS + validated NOT_APPLICABLE => GREEN.
-const mixedProduced = computeApplicability({
-  paths: ['scripts/seo/public-seo-metadata-schema-test.mjs'],
-  identity: APP_IDENTITY,
-});
-const mixedGates = {
-  'global-header-interaction': {
-    jobResult: 'success',
-    result: 'NOT_APPLICABLE',
-    evidence: evidenceFor('global-header-interaction', 'NOT_APPLICABLE', mixedProduced.digest),
-  },
-  'public-seo-metadata': {
-    jobResult: 'success',
-    result: 'PASS',
-    evidence: evidenceFor('public-seo-metadata', 'APPLICABLE', mixedProduced.digest),
-  },
-};
-const mixed = aggregate({
-  classifyResult: 'success',
-  material: mixedProduced.decision.material,
-  applicabilityRaw: JSON.stringify(mixedProduced.decision),
-  digest: mixedProduced.digest,
-  gates: mixedGates,
-  identity: APP_IDENTITY,
-});
-check('AGGREGATOR: PASS + validated NOT_APPLICABLE is GREEN', mixed.ok === true, mixed.errors.join(' | '));
+// 9. A MIXED verdict is GREEN — one gate really running while every other gate
+// is evidentially NOT_APPLICABLE. Driven once per gate off its own exclusive
+// surface, so the mixed case is proved for each registered gate in turn rather
+// than for one hand-picked example, and each gate's published outcome is the one
+// the real decision entitles it to.
+for (const applicableGateId of GATE_IDS) {
+  const mixedProduced = computeApplicability({
+    paths: [GATES[applicableGateId].gateScript],
+    identity: APP_IDENTITY,
+  });
+  const mixedGates = Object.fromEntries(
+    GATE_IDS.map((gateId) => {
+      const decided = mixedProduced.decision.gates[gateId];
+      return [
+        gateId,
+        {
+          jobResult: 'success',
+          result: decided === 'APPLICABLE' ? 'PASS' : 'NOT_APPLICABLE',
+          evidence: evidenceFor(gateId, decided, mixedProduced.digest),
+        },
+      ];
+    }),
+  );
+  const mixed = aggregate({
+    classifyResult: 'success',
+    material: mixedProduced.decision.material,
+    applicabilityRaw: JSON.stringify(mixedProduced.decision),
+    digest: mixedProduced.digest,
+    gates: mixedGates,
+    identity: APP_IDENTITY,
+  });
+  check(
+    `AGGREGATOR: "${applicableGateId}" PASS + every other gate validated NOT_APPLICABLE is GREEN`,
+    mixed.ok === true,
+    mixed.errors.join(' | '),
+  );
+  check(
+    `AGGREGATOR: the mixed "${applicableGateId}" case really exercised BOTH accepted outcomes`,
+    mixedProduced.decision.gates[applicableGateId] === 'APPLICABLE' &&
+      GATE_IDS.some((gateId) => mixedProduced.decision.gates[gateId] === 'NOT_APPLICABLE'),
+    JSON.stringify(mixedProduced.decision.gates),
+  );
+}
 
 // Every gate NOT_APPLICABLE, on an allowlisted-only diff.
 const inertProduced = computeApplicability({ paths: [...NON_MATERIAL_PATHS], identity: APP_IDENTITY });
@@ -2013,11 +2104,48 @@ for (const gateId of GATE_IDS) {
     legacyDoc?.jobs?.[gate.legacyJobId]?.['continue-on-error'] !== true,
   );
   // Command parity, restated here so a reader of the contract test sees it too.
+  // "Full" means EXACTLY the legacy job's own run sequence, read off the legacy
+  // YAML here rather than compared against a hard-coded arity — a fixed count
+  // silently mis-states the obligation for any gate whose legacy job runs a
+  // different number of steps, and quietly stops being a parity claim at all.
+  const legacyRunCommands = (legacyDoc?.jobs?.[gate.legacyJobId]?.steps ?? [])
+    .filter((step) => typeof step?.run === 'string')
+    .map((step) => String(step.run).trim());
   check(
     `unified blocker "${gateId}" declares the full legacy command sequence`,
-    gateCommands(gateId).length === 4,
-    JSON.stringify(gateCommands(gateId)),
+    JSON.stringify(gateCommands(gateId)) === JSON.stringify(legacyRunCommands),
+    `unified=${JSON.stringify(gateCommands(gateId))} legacy=${JSON.stringify(legacyRunCommands)}`,
   );
+  check(
+    `unified blocker "${gateId}" drops no legacy command`,
+    legacyRunCommands.length > 0 && legacyRunCommands.every((command) => gateCommands(gateId).includes(command)),
+    JSON.stringify(legacyRunCommands),
+  );
+}
+
+// =============================================================================
+// 18. THE REGISTRY AND THE PORTFOLIO DESCRIBE THE SAME WORLD
+// =============================================================================
+//
+// scripts/ci/master-blocking-portfolio.json is the repository's statement about
+// which checks hold blocking authority and how far migration has got. The gate
+// registry is the statement about which blockers the unified gate executes.
+// Nothing previously required the two to agree, so a gate could be migrated in
+// the workflow while the portfolio still described it as LEGACY_EXTERNAL — and
+// every suite would stay green while the enforcement-readiness verdict was
+// computed from a stale picture of reality.
+//
+// The portfolio's own validator proves each entry matches the YAML. THIS proves
+// the entries EXIST and carry the migration states the registry implies.
+// The rules live in the shared pure auditor so the mutation suite can drive them
+// with deliberately corrupted portfolios and prove each one is load-bearing.
+const portfolio = JSON.parse(readFileSync(resolve(ROOT, 'scripts/ci/master-blocking-portfolio.json'), 'utf8'));
+for (const result of auditRegistryPortfolioAlignment({
+  portfolio,
+  readiness: evaluateEnforcementReadiness(portfolio),
+  expectedStage2Candidates: EXPECTED_STAGE2_CANDIDATES,
+})) {
+  check(result.label, result.ok, result.detail);
 }
 
 if (failures.length) {

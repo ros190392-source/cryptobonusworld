@@ -3,12 +3,15 @@ name: CBW Master Required Gate
 # Single stable, ALWAYS-REPORTING required check context for product branch
 # `master` (issue #366).
 #
-# STAGE 2 / S2-03 — MATRIX FOUNDATION. The single-job gate delivered by S2-01 is
-# now a bounded multi-job DAG:
+# STAGE 2 / S2-04 BATCH 01. The single-job gate delivered by S2-01 became a
+# bounded multi-job DAG in S2-03; this stage widens that DAG from two blockers to
+# four, adding NO new mechanism:
 #
 #     classify
-#        |-> global-header-interaction ---|
-#        |-> public-seo-metadata ---------|--> Master required gate  (if: always())
+#        |-> global-header-interaction ----|
+#        |-> public-first-screen-budget ---|
+#        |-> public-navigation ------------|
+#        |-> public-seo-metadata ----------|--> Master required gate (if: always())
 #
 # The visible check context of the FINAL job is exactly "Master required gate"
 # and nothing else in this repository may claim that name. Branch protection —
@@ -20,10 +23,12 @@ name: CBW Master Required Gate
 # THIS WORKFLOW OWNS ITS OWN EXECUTION AND ITS OWN OUTCOMES. It never queries the
 # status of another workflow. The specialized path-filtered workflows
 # (.github/workflows/cbw-global-header-interaction.yml,
-#  .github/workflows/cbw-public-seo-metadata.yml) are deliberately left UNCHANGED
-# and continue to report independently; this stage proves unified execution
-# parity before legacy retirement is even considered. Nothing here deletes,
-# disables or weakens them.
+#  .github/workflows/cbw-public-seo-metadata.yml,
+#  .github/workflows/cbw-public-navigation-boundary.yml,
+#  .github/workflows/cbw-public-first-screen-budget.yml) are deliberately left
+# UNCHANGED — byte-identical — and continue to report independently; this stage
+# proves unified execution parity before legacy retirement is even considered.
+# Nothing here deletes, disables or weakens them.
 #
 # Design contract — enforced by scripts/ci/master-required-gate-contract-test.mjs
 # and exercised against deliberate mutations by
@@ -55,8 +60,8 @@ name: CBW Master Required Gate
 #     to a non-material destination cannot hide.
 #   * Read-only permissions; never deploys and never writes repository contents.
 #
-# PERFORMANCE. Both blockers install and build independently. That duplication is
-# deliberate for S2-03: correctness first. Cross-job artifact reuse is a future
+# PERFORMANCE. Every blocker installs and builds independently. That duplication
+# is deliberate: correctness first. Cross-job artifact reuse is a future
 # optimisation and is not introduced here, because it would add a failure mode
 # (a stale or partial artifact silently satisfying a gate) that this stage exists
 # to rule out.
@@ -87,6 +92,8 @@ jobs:
       applicability: ${{ steps.applicability.outputs.applicability }}
       digest: ${{ steps.applicability.outputs.digest }}
       gate_global_header_interaction: ${{ steps.applicability.outputs.gate_global_header_interaction }}
+      gate_public_first_screen_budget: ${{ steps.applicability.outputs.gate_public_first_screen_budget }}
+      gate_public_navigation: ${{ steps.applicability.outputs.gate_public_navigation }}
       gate_public_seo_metadata: ${{ steps.applicability.outputs.gate_public_seo_metadata }}
     steps:
       - name: Checkout exact PR head
@@ -156,6 +163,8 @@ jobs:
           APPLICABILITY_JSON: ${{ steps.applicability.outputs.applicability }}
           APPLICABILITY_DIGEST: ${{ steps.applicability.outputs.digest }}
           GATE_GLOBAL_HEADER_INTERACTION_APPLICABILITY: ${{ steps.applicability.outputs.gate_global_header_interaction }}
+          GATE_PUBLIC_FIRST_SCREEN_BUDGET_APPLICABILITY: ${{ steps.applicability.outputs.gate_public_first_screen_budget }}
+          GATE_PUBLIC_NAVIGATION_APPLICABILITY: ${{ steps.applicability.outputs.gate_public_navigation }}
           GATE_PUBLIC_SEO_METADATA_APPLICABILITY: ${{ steps.applicability.outputs.gate_public_seo_metadata }}
           CLASSIFIER_MATERIAL: ${{ steps.classify.outputs.material }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
@@ -291,6 +300,110 @@ jobs:
             {"name":"node scripts/seo/site-indexability-inventory.mjs","outcome":"${{ steps.indexability.outcome }}"}]
         run: node scripts/ci/master-required-gate-gate-result.mjs
 
+  # --- 2c. blocker: Public Navigation Boundary ---------------------------------
+  # Migrated by S2-04 from .github/workflows/cbw-public-navigation-boundary.yml,
+  # which stays BYTE-IDENTICAL and keeps reporting independently. The legacy job
+  # has no `if`-guarded step, so this blocker's sequence is three plain steps
+  # gated purely on applicability; the parity suite proves the red/green
+  # behaviour matches over the full failure cross-product.
+  public-navigation:
+    name: Public navigation boundary (unified blocker)
+    needs: classify
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      result: ${{ steps.gate-result.outputs.result }}
+      evidence: ${{ steps.gate-result.outputs.evidence }}
+    steps:
+      - name: Checkout exact PR head for the public navigation blocker
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Set up Node 20 for the public navigation blocker
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies for the public navigation blocker
+        id: install
+        if: needs.classify.outputs.gate_public_navigation == 'APPLICABLE'
+        run: npm ci
+
+      - name: Production build for the public navigation blocker
+        id: build
+        if: needs.classify.outputs.gate_public_navigation == 'APPLICABLE'
+        run: npm run build
+
+      - name: Public navigation boundary
+        id: navigation
+        if: needs.classify.outputs.gate_public_navigation == 'APPLICABLE'
+        run: node scripts/seo/public-navigation-boundary-test.mjs
+
+      - name: Publish public navigation blocker result
+        id: gate-result
+        env:
+          GATE_ID: public-navigation
+          GATE_APPLICABILITY: ${{ needs.classify.outputs.gate_public_navigation }}
+          APPLICABILITY_DIGEST: ${{ needs.classify.outputs.digest }}
+          STEP_OUTCOMES: >-
+            [{"name":"npm ci","outcome":"${{ steps.install.outcome }}"},
+            {"name":"npm run build","outcome":"${{ steps.build.outcome }}"},
+            {"name":"node scripts/seo/public-navigation-boundary-test.mjs","outcome":"${{ steps.navigation.outcome }}"}]
+        run: node scripts/ci/master-required-gate-gate-result.mjs
+
+  # --- 2d. blocker: Public First Screen Budget ---------------------------------
+  # Migrated by S2-04 from
+  # .github/workflows/cbw-public-first-screen-budget.yml, which stays
+  # BYTE-IDENTICAL and keeps reporting independently.
+  public-first-screen-budget:
+    name: Public first-screen budget (unified blocker)
+    needs: classify
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    outputs:
+      result: ${{ steps.gate-result.outputs.result }}
+      evidence: ${{ steps.gate-result.outputs.evidence }}
+    steps:
+      - name: Checkout exact PR head for the first-screen budget blocker
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Set up Node 20 for the first-screen budget blocker
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies for the first-screen budget blocker
+        id: install
+        if: needs.classify.outputs.gate_public_first_screen_budget == 'APPLICABLE'
+        run: npm ci
+
+      - name: Production build for the first-screen budget blocker
+        id: build
+        if: needs.classify.outputs.gate_public_first_screen_budget == 'APPLICABLE'
+        run: npm run build
+
+      - name: Public first-screen Chromium matrix
+        id: first-screen
+        if: needs.classify.outputs.gate_public_first_screen_budget == 'APPLICABLE'
+        run: node scripts/ui/public-first-screen-budget-browser-smoke.mjs
+
+      - name: Publish first-screen budget blocker result
+        id: gate-result
+        env:
+          GATE_ID: public-first-screen-budget
+          GATE_APPLICABILITY: ${{ needs.classify.outputs.gate_public_first_screen_budget }}
+          APPLICABILITY_DIGEST: ${{ needs.classify.outputs.digest }}
+          STEP_OUTCOMES: >-
+            [{"name":"npm ci","outcome":"${{ steps.install.outcome }}"},
+            {"name":"npm run build","outcome":"${{ steps.build.outcome }}"},
+            {"name":"node scripts/ui/public-first-screen-budget-browser-smoke.mjs","outcome":"${{ steps.first-screen.outcome }}"}]
+        run: node scripts/ci/master-required-gate-gate-result.mjs
+
   # --- 3. THE STABLE REQUIRED CONTEXT ------------------------------------------
   # `if: always()` is what makes this context ALWAYS REPORTING. Without it the job
   # would be skipped whenever any upstream job failed or was skipped, and a
@@ -310,6 +423,8 @@ jobs:
     needs:
       - classify
       - global-header-interaction
+      - public-first-screen-budget
+      - public-navigation
       - public-seo-metadata
     if: always()
     runs-on: ubuntu-latest
@@ -343,6 +458,12 @@ jobs:
           GATE_GLOBAL_HEADER_INTERACTION_JOB_RESULT: ${{ needs.global-header-interaction.result }}
           GATE_GLOBAL_HEADER_INTERACTION_RESULT: ${{ needs.global-header-interaction.outputs.result }}
           GATE_GLOBAL_HEADER_INTERACTION_EVIDENCE: ${{ needs.global-header-interaction.outputs.evidence }}
+          GATE_PUBLIC_FIRST_SCREEN_BUDGET_JOB_RESULT: ${{ needs.public-first-screen-budget.result }}
+          GATE_PUBLIC_FIRST_SCREEN_BUDGET_RESULT: ${{ needs.public-first-screen-budget.outputs.result }}
+          GATE_PUBLIC_FIRST_SCREEN_BUDGET_EVIDENCE: ${{ needs.public-first-screen-budget.outputs.evidence }}
+          GATE_PUBLIC_NAVIGATION_JOB_RESULT: ${{ needs.public-navigation.result }}
+          GATE_PUBLIC_NAVIGATION_RESULT: ${{ needs.public-navigation.outputs.result }}
+          GATE_PUBLIC_NAVIGATION_EVIDENCE: ${{ needs.public-navigation.outputs.evidence }}
           GATE_PUBLIC_SEO_METADATA_JOB_RESULT: ${{ needs.public-seo-metadata.result }}
           GATE_PUBLIC_SEO_METADATA_RESULT: ${{ needs.public-seo-metadata.outputs.result }}
           GATE_PUBLIC_SEO_METADATA_EVIDENCE: ${{ needs.public-seo-metadata.outputs.evidence }}

@@ -54,6 +54,12 @@ export const APPLICABILITY_OUTPUT_EXPR = '${{ steps.applicability.outputs.applic
 export const APPLICABILITY_DIGEST_EXPR = '${{ steps.applicability.outputs.digest }}';
 export const FINAL_JOB_IF = 'always()';
 
+// Stage-2 migration candidates remaining after S2-04 batch 01: S2-03 left 11,
+// and migrating Public Navigation Boundary and Public First Screen Budget out of
+// LEGACY_EXTERNAL removes two. See auditRegistryPortfolioAlignment for why this
+// is a pinned literal rather than a re-derivation.
+export const EXPECTED_STAGE2_CANDIDATES = 9;
+
 // The two self-proving suites plus the parity proof that must run on EVERY gate
 // run, unconditionally, before any classification is trusted.
 export const UNCONDITIONAL_SUITE_COMMANDS = Object.freeze([
@@ -989,6 +995,29 @@ export function auditProducerConsumerContract({
     'the applicability model treats an unnormalizable path as RELEVANT',
     /normalized === null \|\| !inert\.has\(normalized\)/.test(gatesText),
   );
+  // --- the DERIVED inert set (S2-04) -----------------------------------------
+  // S2-03 hand-listed each gate's cross-gate inert entries; S2-04 derives them.
+  // The derivation is a trust boundary in its own right, and it has exactly two
+  // fail-open shapes, both bound here:
+  //
+  //   1. failing to exclude the gate ITSELF from the union, which would make a
+  //      gate inert on its own workflow file and its own hard-gate script — it
+  //      would skip precisely the change it exists to check;
+  //   2. adding anything to the union beyond the allowlist and the foreign
+  //      exclusive surfaces, which is how a SHARED dependency (the indexability
+  //      inventory) could be smuggled into every inert set at once.
+  check(
+    "the derived inert set EXCLUDES the gate's own exclusive surface",
+    /\.filter\(\(otherId\) => otherId !== gateId\)/.test(gatesText),
+  );
+  check(
+    'the derived inert set is exactly the allowlist plus FOREIGN exclusive surfaces, and nothing else',
+    /return Object\.freeze\(\[\.\.\.UNIVERSALLY_INERT_PATHS, \.\.\.foreign\]\);/.test(gatesText),
+  );
+  check(
+    'a gate exclusive surface is exactly its legacy workflow and its own gate script',
+    /return \[gate\.legacyWorkflow, gate\.gateScript\];/.test(gatesText),
+  );
   check(
     'the accepted outcome vocabulary excludes FAIL',
     JSON.stringify([...ACCEPTED_GATE_OUTCOMES]) === JSON.stringify(['PASS', 'NOT_APPLICABLE']),
@@ -1188,6 +1217,140 @@ export function auditProducerConsumerContract({
   check(
     'the aggregator exits non-zero when aggregation fails',
     /process\.exit\(1\)/.test(aggregateText),
+  );
+
+  return results;
+}
+
+// =============================================================================
+// REGISTRY <-> PORTFOLIO ALIGNMENT
+// =============================================================================
+//
+// Two independent statements about the same world:
+//
+//   * the gate registry says which blockers the unified required gate EXECUTES;
+//   * scripts/ci/master-blocking-portfolio.json says which checks hold blocking
+//     authority and how far migration has got.
+//
+// Nothing used to require them to agree. A gate migrated in the workflow while
+// its portfolio entry still read LEGACY_EXTERNAL left every suite green and the
+// enforcement-readiness verdict computed from a stale picture — which is exactly
+// the input a later branch-protection decision would rest on.
+//
+// Pure and parameterised for the same reason the workflow audit is: the mutation
+// suite drives it with deliberately corrupted portfolios and proves each rule is
+// load-bearing. `readiness` is INJECTED rather than computed here so this module
+// keeps depending on node builtins only.
+//
+// @param {object} input
+// @param {object} input.portfolio parsed portfolio snapshot
+// @param {{stage2MigrationCandidates: number, enforcementReady: boolean,
+//   integrityImpliesEnforcementAuthority: boolean}} input.readiness
+// @param {number} input.expectedStage2Candidates
+// @returns {{label: string, ok: boolean, detail: string}[]}
+export function auditRegistryPortfolioAlignment({ portfolio, readiness, expectedStage2Candidates }) {
+  const results = [];
+  const check = (label, ok, detail = '') => results.push({ label, ok: Boolean(ok), detail: String(detail) });
+
+  const entries = Array.isArray(portfolio?.entries) ? portfolio.entries : [];
+  check('portfolio declares entries to align against', entries.length > 0);
+  const byKey = new Map(entries.map((entry) => [`${entry?.workflowFile}#${entry?.jobId}`, entry]));
+  const UNIFIED_WORKFLOW_FILE = 'cbw-master-required-gate.yml';
+
+  for (const gateId of GATE_IDS) {
+    const gate = GATES[gateId];
+
+    // (a) the unified blocker job is a registered UNIFIED_GATE_COMPONENT.
+    const component = byKey.get(`${UNIFIED_WORKFLOW_FILE}#${gate.jobId}`);
+    check(`portfolio has an entry for the unified blocker job "${gate.jobId}"`, Boolean(component));
+    check(
+      `portfolio records unified blocker "${gate.jobId}" as UNIFIED_GATE_COMPONENT`,
+      component?.migrationState === 'UNIFIED_GATE_COMPONENT',
+      String(component?.migrationState),
+    );
+    check(
+      `portfolio records unified blocker "${gate.jobId}" as BLOCKING`,
+      component?.classification === 'BLOCKING',
+      String(component?.classification),
+    );
+    check(
+      `unified blocker "${gate.jobId}" is not counted as a stage-2 migration candidate`,
+      component?.stage2MigrationCandidate === false,
+      String(component?.stage2MigrationCandidate),
+    );
+
+    // (b) the LEGACY workflow is recorded as a migrated SHADOW — still present,
+    //     still blocking, still reporting, and explicitly NOT retired.
+    const legacyFile = gate.legacyWorkflow.split('/').pop();
+    const legacy = byKey.get(`${legacyFile}#${gate.legacyJobId}`);
+    check(`portfolio has an entry for the legacy job "${legacyFile}#${gate.legacyJobId}"`, Boolean(legacy));
+    check(
+      `portfolio records legacy "${legacyFile}" as MIGRATED_UNIFIED_SHADOW`,
+      legacy?.migrationState === 'MIGRATED_UNIFIED_SHADOW',
+      String(legacy?.migrationState),
+    );
+    check(
+      `legacy "${legacyFile}" is still BLOCKING (this stage retires nothing)`,
+      legacy?.classification === 'BLOCKING',
+      String(legacy?.classification),
+    );
+    check(
+      `legacy "${legacyFile}" is no longer a stage-2 migration candidate`,
+      legacy?.stage2MigrationCandidate === false,
+      String(legacy?.stage2MigrationCandidate),
+    );
+  }
+
+  // (c) exactly one UNIFIED_GATE_HOST, and it is the stable required context.
+  const hosts = entries.filter((entry) => entry?.migrationState === 'UNIFIED_GATE_HOST');
+  check('portfolio declares exactly one unified gate host', hosts.length === 1, String(hosts.length));
+  check(
+    'the unified gate host is the job carrying the stable required context',
+    hosts.length === 1 && hosts[0]?.jobId === FINAL_JOB_ID && hosts[0]?.checkContext === FINAL_CHECK_CONTEXT,
+    `${hosts[0]?.jobId}/${hosts[0]?.checkContext}`,
+  );
+
+  // (d) the components of the unified gate are EXACTLY its blocker jobs plus the
+  //     classifier — the whole DAG except the aggregator, which is the host.
+  //     Comparing the id SET rather than a count is what makes an extra
+  //     component job (a new, unaggregated job inside the required workflow) a
+  //     failure too, instead of something a count could absorb by coincidence.
+  const components = entries.filter((entry) => entry?.migrationState === 'UNIFIED_GATE_COMPONENT');
+  check(
+    'the portfolio components are EXACTLY the classifier plus one job per registered gate',
+    JSON.stringify(components.map((entry) => entry.jobId).sort()) ===
+      JSON.stringify([CLASSIFY_JOB_ID, ...GATE_IDS.map((gateId) => GATES[gateId].jobId)].sort()),
+    components.map((entry) => entry.jobId).join(','),
+  );
+  const shadows = entries.filter((entry) => entry?.migrationState === 'MIGRATED_UNIFIED_SHADOW');
+  check(
+    'the portfolio declares exactly one MIGRATED_UNIFIED_SHADOW per registered gate',
+    shadows.length === GATE_IDS.length,
+    `${shadows.length} shadows for ${GATE_IDS.length} gates`,
+  );
+
+  // (e) THE CANDIDATE COUNT IS PINNED.
+  //
+  // A pinned literal, deliberately. The count cannot be re-derived here as a
+  // cross-check, because it is derived from exactly the fields being checked —
+  // that comparison would be a tautology that passes no matter what happens.
+  // What a pinned number DOES catch is the thing that actually goes wrong: a
+  // gate migrated in the workflow while its portfolio entry is left
+  // LEGACY_EXTERNAL (the count never drops), or a legacy workflow quietly
+  // retired to shrink the backlog (it drops too far). Both are changes in
+  // enforcement scope, and both must be a deliberate edit with a reviewer
+  // looking at it.
+  check(
+    `stage-2 migration candidates are exactly ${expectedStage2Candidates}`,
+    readiness?.stage2MigrationCandidates === expectedStage2Candidates,
+    `actual=${readiness?.stage2MigrationCandidates}`,
+  );
+  // This stage does NOT confer enforcement authority, and the contract says so
+  // rather than leaving it to a PR body.
+  check('enforcement readiness remains false at this stage', readiness?.enforcementReady === false);
+  check(
+    'a passing integrity audit still implies NO enforcement authority',
+    readiness?.integrityImpliesEnforcementAuthority === false,
   );
 
   return results;
