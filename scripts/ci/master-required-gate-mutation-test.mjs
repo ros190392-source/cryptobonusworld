@@ -686,7 +686,13 @@ const DAG_MUTATIONS = [
     id: 'S3-1',
     killedBy: /the final job carries `if: always\(\)`/,
     label: 'remove `if: always()` from the final aggregator (the context stops reporting)',
-    apply: () => ({ workflowText: replaceOnce('drop always()', baseWorkflow, '    if: always()\n', '') }),
+    // Anchored at line start for the same reason as S3-2 below, and now doubly
+    // so: since S2-04 R1 every blocker emitter also carries an 8-space-indented
+    // `if: always()`, and an unanchored substring match would have silently
+    // mutated the FIRST emitter instead of the aggregator.
+    apply: () => ({
+      workflowText: replaceOnce('drop always()', baseWorkflow, /^ {4}if: always\(\)\n/m, ''),
+    }),
   },
   {
     id: 'S3-2',
@@ -1483,13 +1489,15 @@ const S2_04_MUTATIONS = [
   },
   {
     id: 'S4-23',
-    killedBy: /"public-navigation" result emitter is UNCONDITIONAL/,
-    label: 'make the Public Navigation emitter conditional (an irrelevant change would publish nothing)',
+    killedBy: /"public-navigation" result emitter condition is EXACTLY `always\(\)`/,
+    label: 'condition the Public Navigation emitter on applicability (an irrelevant change would publish nothing)',
     apply: () => ({
-      workflowText: insertAfterStepName(
+      workflowText: replaceOnce(
+        'navigation emitter conditional',
         baseWorkflow,
-        'Publish public navigation blocker result',
-        "        if: needs.classify.outputs.gate_public_navigation == 'APPLICABLE'",
+        '      - name: Publish public navigation blocker result\n        id: gate-result\n        if: always()\n',
+        '      - name: Publish public navigation blocker result\n        id: gate-result\n' +
+          "        if: needs.classify.outputs.gate_public_navigation == 'APPLICABLE'\n",
       ),
     }),
   },
@@ -1596,7 +1604,195 @@ const S2_04_MUTATIONS = [
   },
 ];
 
-MUTATIONS.push(...DAG_MUTATIONS, ...S2_04_MUTATIONS);
+// =============================================================================
+// S2-04 R1 / M1 — THE EMITTER MUST ALWAYS RUN, FOR EVERY REGISTERED BLOCKER
+// =============================================================================
+//
+// The reviewed MEDIUM was generic: no blocker's emitter carried `if: always()`,
+// so a failed build or a failed hard-gate script SKIPPED the step that publishes
+// the blocker's outcome. The mutants below are therefore GENERATED FROM THE
+// REGISTRY, one set per gate — a fix applied to the two new blockers and not the
+// two older ones would leave half of these red, and a fifth gate registered
+// without an always-running emitter is caught the moment it is added.
+//
+// The emitter step name is not derivable from the registry (it is prose), so it
+// is located by the step's unique `id: gate-result` line inside the gate's own
+// job block, which IS derivable.
+const EMITTER_MUTANTS = [];
+for (const gateId of GATE_IDS) {
+  const gate = GATES[gateId];
+  // The emitter block of THIS gate: everything from its job id to its `if`.
+  const jobStart = baseWorkflow.indexOf(`\n  ${gate.jobId}:\n`);
+  if (jobStart === -1) throw new Error(`mutation setup failed: job "${gate.jobId}" not found`);
+  const emitterAt = baseWorkflow.indexOf('        id: gate-result\n        if: always()\n', jobStart);
+  if (emitterAt === -1) throw new Error(`mutation setup failed: emitter of "${gateId}" not found`);
+  const nameLineStart = baseWorkflow.lastIndexOf('      - name: ', emitterAt);
+  const EMITTER_BLOCK = baseWorkflow.slice(nameLineStart, emitterAt + '        id: gate-result\n        if: always()\n'.length);
+
+  EMITTER_MUTANTS.push(
+    {
+      id: `M1-${gateId}-no-if`,
+      killedBy: new RegExp(`"${gateId}" result emitter carries an explicit \`if\``),
+      label: `remove \`if: always()\` from the "${gateId}" emitter (implicit success() skips it after a failure)`,
+      apply: () => ({
+        workflowText: replaceOnce(
+          `${gateId} emitter loses always()`,
+          baseWorkflow,
+          EMITTER_BLOCK,
+          EMITTER_BLOCK.replace('        if: always()\n', ''),
+        ),
+      }),
+    },
+    {
+      id: `M1-${gateId}-success`,
+      killedBy: new RegExp(`"${gateId}" result emitter is NOT conditioned on success`),
+      label: `replace the "${gateId}" emitter condition with \`if: success()\``,
+      apply: () => ({
+        workflowText: replaceOnce(
+          `${gateId} emitter success()`,
+          baseWorkflow,
+          EMITTER_BLOCK,
+          EMITTER_BLOCK.replace('if: always()', 'if: success()'),
+        ),
+      }),
+    },
+    {
+      id: `M1-${gateId}-not-cancelled`,
+      killedBy: new RegExp(`"${gateId}" result emitter condition is EXACTLY \`always\\(\\)\``),
+      label: `weaken the "${gateId}" emitter condition to \`!cancelled()\``,
+      apply: () => ({
+        workflowText: replaceOnce(
+          `${gateId} emitter !cancelled()`,
+          baseWorkflow,
+          EMITTER_BLOCK,
+          EMITTER_BLOCK.replace('if: always()', 'if: "!cancelled()"'),
+        ),
+      }),
+    },
+    {
+      id: `M1-${gateId}-continue-on-error`,
+      killedBy: new RegExp(`"${gateId}" result emitter is not continue-on-error`),
+      label: `let the "${gateId}" emitter continue-on-error (a published FAIL would stop failing the job)`,
+      apply: () => ({
+        workflowText: replaceOnce(
+          `${gateId} emitter continue-on-error`,
+          baseWorkflow,
+          EMITTER_BLOCK,
+          `${EMITTER_BLOCK}        continue-on-error: true\n`,
+        ),
+      }),
+    },
+    {
+      id: `M1-${gateId}-delete-emitter`,
+      killedBy: new RegExp(`"${gateId}" runs the result emitter exactly once`),
+      label: `delete the "${gateId}" result emitter step entirely`,
+      apply: () => ({
+        workflowText: requireChanged(
+          `${gateId} emitter deleted`,
+          baseWorkflow,
+          baseWorkflow.replace(
+            new RegExp(
+              `${EMITTER_BLOCK.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?:.*\\n)*?        run: node scripts/ci/master-required-gate-gate-result\\.mjs\\n`,
+            ),
+            '',
+          ),
+        ),
+      }),
+    },
+    {
+      id: `M1-${gateId}-delete-result-output`,
+      killedBy: new RegExp(`"${gateId}" publishes its result output bound to the emitter step`),
+      label: `delete the "${gateId}" job \`result\` output (the emitter would publish into nothing)`,
+      apply: () => {
+        const outputsBlock =
+          `  ${gate.jobId}:\n    name: ${gate.jobName}\n`;
+        const at = baseWorkflow.indexOf(outputsBlock);
+        if (at === -1) throw new Error(`mutation setup failed: job header of "${gateId}" not found`);
+        const resultLine = '      result: ${{ steps.gate-result.outputs.result }}\n';
+        const lineAt = baseWorkflow.indexOf(resultLine, at);
+        if (lineAt === -1) throw new Error(`mutation setup failed: result output of "${gateId}" not found`);
+        return {
+          workflowText: baseWorkflow.slice(0, lineAt) + baseWorkflow.slice(lineAt + resultLine.length),
+        };
+      },
+    },
+  );
+}
+
+// The emitter SCRIPT itself: the same defect relocated from the workflow into the
+// code. `if: always()` guarantees the step instantiates; these guarantee that,
+// having instantiated, it publishes the evaluated result rather than a constant
+// or nothing at all.
+const EMITTER_SOURCE_MUTANTS = [
+  {
+    id: 'M1-src-hardcode-pass',
+    killedBy: /result emitter publishes the EVALUATED result, not a constant|does not hard-code PASS/,
+    label: 'hard-code PASS in the result emitter',
+    apply: () => ({
+      gateResultSource: replaceOnce(
+        'hardcode PASS',
+        baseGateResult,
+        '`result=${evaluation.result}\\n',
+        '`result=PASS\\n',
+      ),
+    }),
+  },
+  {
+    id: 'M1-src-hardcode-na',
+    killedBy: /result emitter publishes the EVALUATED result, not a constant|does not hard-code NOT_APPLICABLE/,
+    label: 'hard-code NOT_APPLICABLE in the result emitter',
+    apply: () => ({
+      gateResultSource: replaceOnce(
+        'hardcode NOT_APPLICABLE',
+        baseGateResult,
+        '`result=${evaluation.result}\\n',
+        '`result=NOT_APPLICABLE\\n',
+      ),
+    }),
+  },
+  {
+    id: 'M1-src-silent-on-fail',
+    killedBy: /publishes UNCONDITIONALLY \(the write is not behind any branch\)/,
+    label: 'stop publishing FAIL after a failed blocking step (publish only on the happy path)',
+    apply: () => ({
+      gateResultSource: replaceOnce(
+        'publish only when not FAIL',
+        baseGateResult,
+        '  appendFileSync(\n',
+        "  if (evaluation.result !== 'FAIL')\n    appendFileSync(\n",
+      ),
+    }),
+  },
+  {
+    id: 'M1-src-no-write',
+    killedBy: /performs exactly one output write/,
+    label: 'delete the emitter output write entirely (an implicit/missing result)',
+    apply: () => ({
+      gateResultSource: mutate('delete the emitter write', baseGateResult, [
+        [
+          '  appendFileSync(\n    outputFile,\n    `result=${evaluation.result}\\n' +
+            'evidence=${JSON.stringify({ gateId, applicability, digest })}\\n`,\n  );\n',
+          '',
+        ],
+      ]),
+    }),
+  },
+  {
+    id: 'M1-src-suppress-exit',
+    killedBy: /result emitter exits non-zero on FAIL/,
+    label: 'make the emitter swallow its own FAIL (publication as failure suppression)',
+    apply: () => ({
+      gateResultSource: replaceOnce(
+        'suppress the failing exit',
+        baseGateResult,
+        "  if (errors.length > 0 || evaluation.result === 'FAIL') {\n    console.error(",
+        "  if (false) {\n    console.error(",
+      ),
+    }),
+  },
+];
+
+MUTATIONS.push(...DAG_MUTATIONS, ...S2_04_MUTATIONS, ...EMITTER_MUTANTS, ...EMITTER_SOURCE_MUTANTS);
 
 // =============================================================================
 // REGISTRY <-> PORTFOLIO ALIGNMENT, MUTATED
@@ -2714,62 +2910,195 @@ try {
     ],
   ];
 
-  // EVERY REGISTERED BLOCKER, INDIVIDUALLY. The cases above single out one or two
-  // gates by name, which proves the aggregator's rules exist but not that they
-  // reach every member of the DAG — precisely the coverage that silently fails to
-  // extend when the DAG widens. These are generated per gate, so registering a
-  // blocker without binding it is impossible to do quietly.
+  // ==========================================================================
+  // THE COMPLETE PER-GATE REJECTION MATRIX (S2-04 R1 / L1)
+  // ==========================================================================
+  //
+  // The cases above single out one or two gates by name, which proves the
+  // aggregator's rules EXIST but not that they reach every member of the DAG —
+  // precisely the coverage that silently fails to extend when the DAG widens.
+  // Round 1 review found the remainder still global: a stale head SHA, a forged
+  // classifier digest, a tampered decision and an unjustified PASS were each
+  // proved once, for the whole run, so a gate-specific exception could have
+  // hidden behind another failing gate.
+  //
+  // Every case below is therefore GENERATED PER GATE and, wherever the case has a
+  // per-gate rendering at all, MUTATES ONLY THAT GATE'S evidence or result while
+  // every other blocker stays honest. Each one additionally asserts that the
+  // aggregator NAMES THAT GATE in its rejection, so a rejection produced by
+  // collateral damage elsewhere cannot be mistaken for coverage of this gate.
+  //
+  // The three chain-level cases (a forged classifier digest, and a forgery echoed
+  // consistently by the whole chain) cannot be confined to one gate by
+  // construction — the classifier claim is one value for the whole run. They are
+  // still generated per gate, and what is asserted per gate is that THIS gate's
+  // own evidence is independently rejected under them: no blocker rides a forged
+  // classifier claim, and none is exempted from the recomputation.
+  const decisionWith = (gateId, applicability) => ({
+    ...APP_DECISION,
+    gates: { ...APP_DECISION.gates, [gateId]: applicability },
+    reasons: {
+      ...APP_DECISION.reasons,
+      [gateId]: applicability === 'NOT_APPLICABLE' ? 'only-gate-irrelevant-paths' : 'relevant-path-changed',
+    },
+  });
+  // An honest chain for an ALTERNATIVE decision: every gate echoes the digest that
+  // decision really produces, so the only anomaly left is the one the case names.
+  const honestChainFor = (decision) => {
+    const digest = applicabilityDigest(decision, AGG_IDENTITY);
+    return {
+      digest,
+      env: {
+        APPLICABILITY_JSON: JSON.stringify(decision),
+        APPLICABILITY_DIGEST: digest,
+        ...Object.fromEntries(
+          GATE_IDS.flatMap((id) => [
+            [GATES[id].resultEnv, decision.gates[id] === 'APPLICABLE' ? 'PASS' : 'NOT_APPLICABLE'],
+            [
+              GATES[id].evidenceEnv,
+              JSON.stringify({ gateId: id, applicability: decision.gates[id], digest }),
+            ],
+          ]),
+        ),
+      },
+    };
+  };
+  // A digest that is REAL — produced by the canonical function — but for a
+  // different execution. This is what "stale" actually looks like, as opposed to
+  // "forged": the value is well-formed and reproducible, just not from THIS run.
+  const digestUnder = (identityOverrides) =>
+    applicabilityDigest(APP_DECISION, { ...AGG_IDENTITY, ...identityOverrides });
+
+  // The closed list of rejection KINDS. Named, so the coverage assertions below
+  // can prove the cross-product is complete rather than merely large.
+  const PER_GATE_REJECTION_KINDS = Object.freeze([
+    'skipped-job',
+    'cancelled-job',
+    'failed-job',
+    'missing-result',
+    'unknown-result',
+    'explicit-FAIL',
+    'malformed-evidence',
+    'forged-classifier-digest',
+    'forged-blocker-digest',
+    'matching-forged-digest-chain',
+    'stale-head-sha',
+    'stale-run-id',
+    'stale-run-attempt',
+    'missing-identity',
+    'tampered-applicability-decision',
+    'unjustified-NOT_APPLICABLE',
+    'unjustified-PASS',
+  ]);
+
+  const perGateCases = [];
   for (const gateId of GATE_IDS) {
     const gate = GATES[gateId];
-    AGGREGATOR_RUNTIME_REJECTIONS.push(
-      [
-        `a SKIPPED "${gateId}" blocker job`,
-        { [gate.jobResultEnv]: 'skipped', [gate.resultEnv]: '', [gate.evidenceEnv]: '' },
-        /job result is "skipped"/,
-      ],
-      [
-        `a CANCELLED "${gateId}" blocker job`,
-        { [gate.jobResultEnv]: 'cancelled' },
-        /job result is "cancelled"/,
-      ],
-      [`a FAILED "${gateId}" blocker job`, { [gate.jobResultEnv]: 'failure' }, /job result is "failure"/],
-      [`a MISSING "${gateId}" result output`, { [gate.resultEnv]: '' }, /published NO result/],
-      [
-        `an UNKNOWN "${gateId}" result value`,
-        { [gate.resultEnv]: 'GREEN' },
-        /outside the closed outcome vocabulary/,
-      ],
-      [`a "${gateId}" blocker publishing FAIL`, { [gate.resultEnv]: 'FAIL' }, /accepts only/],
-      [
-        `MALFORMED "${gateId}" evidence`,
-        { [gate.evidenceEnv]: '{not json' },
-        /evidence is not valid JSON|evidence/,
-      ],
-      [
-        `a FORGED "${gateId}" evidence digest`,
+    const evidenceOf = (overrides) => JSON.stringify({ gateId, applicability: 'APPLICABLE', ...overrides });
+    // The unjustified-PASS case needs a decision in which THIS gate — and only
+    // this gate — is NOT_APPLICABLE, with every other blocker still honest under
+    // the digest that decision really produces.
+    const inertHere = honestChainFor(decisionWith(gateId, 'NOT_APPLICABLE'));
+    const FORGED_CHAIN_DIGEST = 'f'.repeat(64);
+
+    const cases = {
+      'skipped-job': [{ [gate.jobResultEnv]: 'skipped', [gate.resultEnv]: '', [gate.evidenceEnv]: '' }, /job result is "skipped"/],
+      'cancelled-job': [{ [gate.jobResultEnv]: 'cancelled' }, /job result is "cancelled"/],
+      'failed-job': [{ [gate.jobResultEnv]: 'failure' }, /job result is "failure"/],
+      'missing-result': [{ [gate.resultEnv]: '' }, /published NO result/],
+      'unknown-result': [{ [gate.resultEnv]: 'GREEN' }, /outside the closed outcome vocabulary/],
+      'explicit-FAIL': [{ [gate.resultEnv]: 'FAIL' }, /accepts only/],
+      'malformed-evidence': [{ [gate.evidenceEnv]: '{not json' }, /evidence is not valid JSON/],
+      // Chain-level, asserted per gate: the classifier claim is forged and THIS
+      // gate is the one blocker that echoes it. Every other blocker stays honest,
+      // so the rejection naming this gate is this gate's own.
+      'forged-classifier-digest': [
         {
-          [gate.evidenceEnv]: JSON.stringify({
-            gateId,
-            applicability: 'APPLICABLE',
-            digest: 'b'.repeat(64),
-          }),
+          APPLICABILITY_DIGEST: FORGED_CHAIN_DIGEST,
+          [gate.evidenceEnv]: evidenceOf({ digest: FORGED_CHAIN_DIGEST }),
         },
         /independently recomputed/,
       ],
-      [
-        `an UNJUSTIFIED NOT_APPLICABLE from "${gateId}"`,
+      'forged-blocker-digest': [{ [gate.evidenceEnv]: evidenceOf({ digest: 'b'.repeat(64) }) }, /independently recomputed/],
+      // The whole chain agrees with itself — the exploit the H1 recomputation
+      // closed. Generated per gate so no blocker is exempt from it.
+      'matching-forged-digest-chain': [
+        { APPLICABILITY_DIGEST: FORGED_CHAIN_DIGEST, ...chainEchoing(FORGED_CHAIN_DIGEST) },
+        /independently recomputed/,
+      ],
+      'stale-head-sha': [
+        { [gate.evidenceEnv]: evidenceOf({ digest: digestUnder({ headSha: 'cd'.repeat(20) }) }) },
+        /independently recomputed/,
+      ],
+      'stale-run-id': [
+        { [gate.evidenceEnv]: evidenceOf({ digest: digestUnder({ runId: '424242' }) }) },
+        /independently recomputed/,
+      ],
+      'stale-run-attempt': [
+        { [gate.evidenceEnv]: evidenceOf({ digest: digestUnder({ runAttempt: '2' }) }) },
+        /independently recomputed/,
+      ],
+      // No identity in the evidence at all: the blocker published an outcome it
+      // cannot bind to any run.
+      'missing-identity': [{ [gate.evidenceEnv]: JSON.stringify({ gateId, applicability: 'APPLICABLE' }) }, /independently recomputed/],
+      // The applicability this blocker claims to have run under is not the one the
+      // classifier decided for it.
+      'tampered-applicability-decision': [
+        { [gate.evidenceEnv]: evidenceOf({ applicability: 'NOT_APPLICABLE', digest: APP_DIGEST }) },
+        /ran under applicability/,
+      ],
+      'unjustified-NOT_APPLICABLE': [
         {
           [gate.resultEnv]: 'NOT_APPLICABLE',
-          [gate.evidenceEnv]: JSON.stringify({
-            gateId,
-            applicability: 'NOT_APPLICABLE',
-            digest: APP_DIGEST,
-          }),
+          [gate.evidenceEnv]: evidenceOf({ applicability: 'NOT_APPLICABLE', digest: APP_DIGEST }),
         },
         /must be justified by exact changed-file classification|the classifier decided/,
       ],
+      // The classifier proved this ONE gate irrelevant; the gate claims to have
+      // passed blocking work it never ran. Everything else in the chain is honest
+      // under the alternative decision's own digest.
+      'unjustified-PASS': [
+        { ...inertHere.env, [gate.resultEnv]: 'PASS' },
+        /published PASS but the classifier decided/,
+      ],
+    };
+
+    for (const kind of PER_GATE_REJECTION_KINDS) {
+      const [overrides, expected] = cases[kind];
+      perGateCases.push({ gateId, kind, overrides, expected });
+    }
+  }
+
+  // COVERAGE OF THE GENERATED LOOP ITSELF. A generated matrix is only evidence if
+  // it provably covers the registry; a loop that silently omitted a gate would
+  // look exactly as green as one that did not.
+  check(
+    'PER-GATE MATRIX: the cross-product is complete',
+    perGateCases.length === GATE_IDS.length * PER_GATE_REJECTION_KINDS.length,
+    `${perGateCases.length} != ${GATE_IDS.length} x ${PER_GATE_REJECTION_KINDS.length}`,
+  );
+  check(
+    'PER-GATE MATRIX: every REGISTERED gate appears',
+    JSON.stringify([...new Set(perGateCases.map((entry) => entry.gateId))].sort()) === JSON.stringify([...GATE_IDS]),
+    [...new Set(perGateCases.map((entry) => entry.gateId))].sort().join(','),
+  );
+  for (const gateId of GATE_IDS) {
+    const kinds = perGateCases.filter((entry) => entry.gateId === gateId).map((entry) => entry.kind).sort();
+    check(
+      `PER-GATE MATRIX: "${gateId}" is exercised by EVERY rejection kind`,
+      JSON.stringify(kinds) === JSON.stringify([...PER_GATE_REJECTION_KINDS].sort()),
+      kinds.join(','),
     );
   }
+  // The matrix must be derived from the registry, not from a list someone
+  // maintains. Proved by construction: a hand-written pair — the S2-03 world —
+  // provably fails to describe the registry as it stands today.
+  const HAND_LISTED_S2_03_GATES = ['global-header-interaction', 'public-seo-metadata'];
+  check(
+    'PER-GATE MATRIX: a hand-listed gate set would OMIT registered blockers (which is why this one is derived)',
+    GATE_IDS.some((gateId) => !HAND_LISTED_S2_03_GATES.includes(gateId)),
+    GATE_IDS.join(','),
+  );
 
   for (const [label, overrides, expected] of AGGREGATOR_RUNTIME_REJECTIONS) {
     const run = runAggregator(AGGREGATE_SCRIPT, overrides);
@@ -2778,6 +3107,60 @@ try {
       `RUNTIME: the aggregator names ${label} as the reason`,
       expected.test(`${run.stdout ?? ''}${run.stderr ?? ''}`),
       (run.stderr ?? '').slice(0, 240),
+    );
+  }
+
+  // THE PER-GATE MATRIX, EXECUTED. Three assertions per cell: the aggregator
+  // fails, it fails for the stated reason, and it names THIS gate — the last one
+  // being what makes the cell about this gate rather than about the run.
+  for (const { gateId, kind, overrides, expected } of perGateCases) {
+    const run = runAggregator(AGGREGATE_SCRIPT, overrides);
+    const output = `${run.stdout ?? ''}${run.stderr ?? ''}`;
+    check(`PER-GATE: "${gateId}" / ${kind} FAILS the required gate`, run.status !== 0, `exit=${run.status}`);
+    check(
+      `PER-GATE: "${gateId}" / ${kind} fails for its OWN stated reason`,
+      expected.test(output),
+      (run.stderr ?? '').slice(0, 240),
+    );
+    check(
+      `PER-GATE: "${gateId}" / ${kind} names the gate itself (no hiding behind another blocker)`,
+      new RegExp(`blocker ${gateId} `).test(output),
+      (run.stderr ?? '').slice(0, 240),
+    );
+  }
+
+  // AND THE LOOP CANNOT SILENTLY OMIT A GATE. For each registered blocker, an
+  // aggregator carrying a hard-coded exemption for exactly that gate is built and
+  // proved to ACCEPT the input the real aggregator rejects. That is the mutation
+  // the per-gate matrix exists to kill: a rule that reaches three of four gates.
+  for (const gateId of GATE_IDS) {
+    const gate = GATES[gateId];
+    const exemptPath = join(sandbox, `aggregator-exempting-${gateId}.mjs`);
+    writeFileSync(
+      exemptPath,
+      asRunnableAggregator(
+        mutate(`exempt ${gateId} from aggregation`, baseAggregate, [
+          [
+            '  for (const gateId of GATE_IDS) {\n    const observed = gates?.[gateId];',
+            `  for (const gateId of GATE_IDS) {\n    if (gateId === ${JSON.stringify(gateId)}) continue;\n    const observed = gates?.[gateId];`,
+          ],
+        ]),
+      ),
+      'utf8',
+    );
+    const tainted = { [gate.resultEnv]: 'FAIL' };
+    check(
+      `PER-GATE: an aggregator exempting "${gateId}" ACCEPTS that gate's FAIL (the mutation is real)`,
+      runAggregator(exemptPath, tainted).status === 0,
+      (runAggregator(exemptPath, tainted).stderr ?? '').slice(0, 240),
+    );
+    check(
+      `PER-GATE: the exempting aggregator is still a real aggregator (it accepts the honest chain)`,
+      runAggregator(exemptPath).status === 0,
+    );
+    check(
+      `PER-GATE: the REAL aggregator REJECTS the same "${gateId}" FAIL`,
+      runAggregator(AGGREGATE_SCRIPT, tainted).status !== 0,
     );
   }
 

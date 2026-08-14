@@ -123,6 +123,11 @@ jobs:
       - name: Legacy/unified parity suite
         run: node scripts/ci/master-required-gate-parity-test.mjs
 
+      # Workflow-level proof that every blocker's result emitter really does
+      # instantiate and publish after a failed build or a failed gate script.
+      - name: Blocker result emitter behaviour suite
+        run: node scripts/ci/master-required-gate-emitter-behaviour-test.mjs
+
       - name: Classify changed files (fail-closed)
         id: classify
         env:
@@ -225,13 +230,29 @@ jobs:
         if: always() && needs.classify.outputs.gate_global_header_interaction == 'APPLICABLE' && steps.build.outcome == 'success'
         run: node scripts/seo/site-indexability-inventory.mjs
 
-      # UNCONDITIONAL. Converts what this job ACTUALLY did into the closed outcome
-      # vocabulary. It refuses to publish PASS unless every blocking step above
-      # reported `success`, and refuses to publish NOT_APPLICABLE unless every one
-      # reported `skipped` — so a job cannot claim work it skipped, and cannot
-      # claim irrelevance while having run.
+      # `if: always()` — LOAD-BEARING, and the ONLY correct condition here.
+      #
+      # A step with no `if` carries GitHub's implicit `if: success()`, so it is
+      # SKIPPED once any earlier step in the job has failed. That is precisely the
+      # state this emitter exists to describe: a failed build or a failed hard-gate
+      # script would have skipped the emitter, the job would have published NO
+      # result at all, and the closed-result contract ("every blocker publishes
+      # exactly one of PASS / NOT_APPLICABLE / FAIL") would be violated in the one
+      # case it matters most. `always()` makes the emitter instantiate after
+      # failure, cancellation and skip alike.
+      #
+      # This does NOT soften the job. The emitter EXITS NON-ZERO when it publishes
+      # FAIL, so a failed blocking step still makes this blocker job red; the
+      # emitter is evidence publication, never failure suppression.
+      #
+      # Converts what this job ACTUALLY did into the closed outcome vocabulary. It
+      # refuses to publish PASS unless every blocking step above reported
+      # `success`, and refuses to publish NOT_APPLICABLE unless every one reported
+      # `skipped` — so a job cannot claim work it skipped, and cannot claim
+      # irrelevance while having run.
       - name: Publish global header blocker result
         id: gate-result
+        if: always()
         env:
           GATE_ID: global-header-interaction
           GATE_APPLICABILITY: ${{ needs.classify.outputs.gate_global_header_interaction }}
@@ -287,8 +308,12 @@ jobs:
         if: always() && needs.classify.outputs.gate_public_seo_metadata == 'APPLICABLE' && steps.build.outcome == 'success'
         run: node scripts/seo/site-indexability-inventory.mjs
 
+      # `if: always()` for the reason spelled out on the global-header emitter: an
+      # emitter carrying GitHub's implicit `success()` is skipped after a failed
+      # build or gate script and publishes nothing at all.
       - name: Publish public SEO blocker result
         id: gate-result
+        if: always()
         env:
           GATE_ID: public-seo-metadata
           GATE_APPLICABILITY: ${{ needs.classify.outputs.gate_public_seo_metadata }}
@@ -341,8 +366,10 @@ jobs:
         if: needs.classify.outputs.gate_public_navigation == 'APPLICABLE'
         run: node scripts/seo/public-navigation-boundary-test.mjs
 
+      # `if: always()` — see the global-header emitter for the full rationale.
       - name: Publish public navigation blocker result
         id: gate-result
+        if: always()
         env:
           GATE_ID: public-navigation
           GATE_APPLICABILITY: ${{ needs.classify.outputs.gate_public_navigation }}
@@ -392,8 +419,10 @@ jobs:
         if: needs.classify.outputs.gate_public_first_screen_budget == 'APPLICABLE'
         run: node scripts/ui/public-first-screen-budget-browser-smoke.mjs
 
+      # `if: always()` — see the global-header emitter for the full rationale.
       - name: Publish first-screen budget blocker result
         id: gate-result
+        if: always()
         env:
           GATE_ID: public-first-screen-budget
           GATE_APPLICABILITY: ${{ needs.classify.outputs.gate_public_first_screen_budget }}

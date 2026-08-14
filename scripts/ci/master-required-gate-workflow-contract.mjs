@@ -45,6 +45,15 @@ export const APPLICABILITY_COMMAND =
 export const VALIDATE_APPLICABILITY_COMMAND =
   'node scripts/ci/master-required-gate-validate-applicability.mjs';
 export const GATE_RESULT_COMMAND = 'node scripts/ci/master-required-gate-gate-result.mjs';
+// The EXACT and ONLY condition a blocker result emitter may carry.
+//
+// Not "no `if`" — that was the reviewed MEDIUM. A step without an `if` carries
+// GitHub's implicit `if: success()` and is therefore SKIPPED once anything
+// earlier in the job has failed, which is exactly the state the emitter exists to
+// publish. A skipped emitter publishes nothing, and "nothing" is not a member of
+// the closed result vocabulary. `always()` is required verbatim: `success()`,
+// `!cancelled()`, an applicability expression and an absent `if` are all rejected.
+export const GATE_RESULT_STEP_IF = 'always()';
 export const AGGREGATE_COMMAND = 'node scripts/ci/master-required-gate-aggregate.mjs';
 export const BASE_SHA_EXPR = '${{ github.event.pull_request.base.sha }}';
 export const HEAD_SHA_EXPR = '${{ github.event.pull_request.head.sha }}';
@@ -67,6 +76,12 @@ export const UNCONDITIONAL_SUITE_COMMANDS = Object.freeze([
   'node scripts/ci/master-required-gate-classifier-fixture-test.mjs',
   'node scripts/ci/master-required-gate-mutation-test.mjs',
   'node scripts/ci/master-required-gate-parity-test.mjs',
+  // S2-04 R1 (M1): the workflow-level emitter behaviour harness. The parity suite
+  // drives `evaluateGateResult()` directly, which proves the FUNCTION is right and
+  // says nothing about whether the STEP that calls it runs. This suite executes
+  // the real emitter under a simulation of GitHub's documented step semantics,
+  // read from the real workflow file.
+  'node scripts/ci/master-required-gate-emitter-behaviour-test.mjs',
 ]);
 
 // Extracts every top-level `fnName(...)` call expression from JS source text,
@@ -586,9 +601,25 @@ export function auditProducerConsumerContract({
       previousIndex = index;
     }
 
-    // The UNCONDITIONAL result emitter, last.
+    // The ALWAYS-RUNNING result emitter, last.
+    //
+    // EXISTS, exactly ONCE, under the bound id, carrying EXACTLY `if: always()`,
+    // never continue-on-error, and bound to the job outputs the aggregator reads.
+    // Together these are the published closed-result contract: this job publishes
+    // exactly one of PASS / NOT_APPLICABLE / FAIL in every reachable state,
+    // including the states where its own blocking work failed.
     const emitters = jobSteps.filter((step) => runOf(step) === GATE_RESULT_COMMAND);
     check(`blocker "${gateId}" runs the result emitter exactly once`, emitters.length === 1, `found ${emitters.length}`);
+    check(
+      `blocker "${gateId}" result emitter EXISTS`,
+      emitters.length >= 1,
+      'a blocker with no emitter publishes an absent result, which resolves to the empty string',
+    );
+    check(
+      `blocker "${gateId}" result emitter is UNIQUE (no second emitter can overwrite the first)`,
+      emitters.length <= 1,
+      `found ${emitters.length}`,
+    );
     const emitter = emitters[0];
     const emitterIndex = jobSteps.indexOf(emitter);
     check(
@@ -596,10 +627,39 @@ export function auditProducerConsumerContract({
       emitter?.id === GATE_RESULT_STEP_ID,
       `actual=${JSON.stringify(emitter?.id)}`,
     );
+    // THE M1 INVARIANT. An emitter with no `if` inherits `success()` and is
+    // skipped after a failed build or a failed gate script — the exact case where
+    // a published FAIL is most load-bearing. Only the literal `always()` is
+    // accepted; every softer or absent condition is a contract failure.
     check(
-      `blocker "${gateId}" result emitter is UNCONDITIONAL`,
-      Boolean(emitter) && !hasIf(emitter),
+      `blocker "${gateId}" result emitter carries an explicit \`if\``,
+      Boolean(emitter) && hasIf(emitter),
+      'an absent `if` is GitHub\'s implicit `success()`, which skips the emitter after a failed blocking step',
+    );
+    check(
+      `blocker "${gateId}" result emitter condition is EXACTLY \`${GATE_RESULT_STEP_IF}\``,
+      String(emitter?.if ?? '').trim() === GATE_RESULT_STEP_IF,
       `if=${JSON.stringify(emitter?.if)}`,
+    );
+    check(
+      `blocker "${gateId}" result emitter is NOT conditioned on success`,
+      !/\bsuccess\s*\(/.test(String(emitter?.if ?? '')),
+      `if=${JSON.stringify(emitter?.if)}`,
+    );
+    check(
+      `blocker "${gateId}" result emitter is NOT conditioned on applicability`,
+      !String(emitter?.if ?? '').includes(`needs.${CLASSIFY_JOB_ID}.outputs.`),
+      `if=${JSON.stringify(emitter?.if)}`,
+    );
+    check(
+      `blocker "${gateId}" result emitter is not continue-on-error (a published FAIL must still fail the job)`,
+      emitter?.['continue-on-error'] !== true,
+      `continue-on-error=${JSON.stringify(emitter?.['continue-on-error'])}`,
+    );
+    check(
+      `blocker "${gateId}" result emitter runs the registered emitter command`,
+      runOf(emitter) === GATE_RESULT_COMMAND,
+      `actual=${JSON.stringify(runOf(emitter))}`,
     );
     check(
       `blocker "${gateId}" result emitter is the LAST step`,
@@ -662,13 +722,23 @@ export function auditProducerConsumerContract({
     );
 
     // Nothing else in the blocker job may be conditional on anything but the
-    // derived applicability conditions.
+    // derived applicability conditions. The result emitter is the ONE step allowed
+    // to carry the bare `always()`, and it is REQUIRED to — an ordinary blocking
+    // step that quietly acquired `always()` would keep running after a failure it
+    // should have stopped for, so the exemption is granted to that one step by id
+    // rather than to the expression.
     const allowedConditions = new Set(gate.steps.map((step) => stepConditionExpression(gateId, step.condition)));
     for (const step of jobSteps) {
       if (!hasIf(step)) continue;
+      if (step === emitter) continue;
       check(
         `blocker "${gateId}" conditional step "${step?.name ?? runOf(step)}" uses only a derived applicability condition`,
         allowedConditions.has(String(step.if).trim()),
+        `actual=${JSON.stringify(step.if)}`,
+      );
+      check(
+        `blocker "${gateId}" non-emitter step "${step?.name ?? runOf(step)}" does not claim the bare \`always()\``,
+        String(step.if).trim() !== GATE_RESULT_STEP_IF,
         `actual=${JSON.stringify(step.if)}`,
       );
     }
@@ -1109,6 +1179,59 @@ export function auditProducerConsumerContract({
   check(
     'the result emitter requires the evidence digest',
     /evidence digest is missing/.test(gateResultText),
+  );
+  // --- the emitter's own PUBLICATION contract (M1) -----------------------------
+  // `if: always()` in the workflow only guarantees the step INSTANTIATES. These
+  // assertions bind what it must then do: publish the EVALUATED result — never a
+  // constant, never conditionally, and always BEFORE it exits non-zero.
+  const emitterWrites = extractCallExpressions(gateResultText, 'appendFileSync');
+  check(
+    'the result emitter performs exactly one output write',
+    emitterWrites.length === 1,
+    `found ${emitterWrites.length}`,
+  );
+  check(
+    'the result emitter publishes the EVALUATED result, not a constant',
+    /result=\$\{evaluation\.result\}/.test(emitterWrites[0] ?? ''),
+    (emitterWrites[0] ?? '').slice(0, 200),
+  );
+  check(
+    'the result emitter does not hard-code PASS',
+    !/result=PASS/.test(gateResultText),
+  );
+  check(
+    'the result emitter does not hard-code NOT_APPLICABLE',
+    !/result=NOT_APPLICABLE/.test(gateResultText),
+  );
+  // The write must not sit behind a condition, and must not sit after the exit.
+  // A publication that only happens on the happy path is exactly the "skipped
+  // emitter" defect relocated from the workflow into the script.
+  const firstWrite = emitterWrites[0] ?? null;
+  const writeIndex = firstWrite === null ? -1 : gateResultText.indexOf(firstWrite);
+  const failExitIndex = gateResultText.indexOf("if (errors.length > 0 || evaluation.result === 'FAIL')");
+  // The write must be the very next statement after the GITHUB_OUTPUT guard, with
+  // nothing but comments between. `if (evaluation.result !== 'FAIL') appendFileSync(…)`
+  // is the workflow defect relocated into the script — it publishes on the happy
+  // path and goes silent exactly when the evidence matters — and it is the shape
+  // this assertion exists to reject.
+  check(
+    'the result emitter publishes UNCONDITIONALLY (the write is not behind any branch)',
+    /GITHUB_OUTPUT is not set[\s\S]{0,200}?process\.exit\(1\);\n\s*\}\n(?:\s*\/\/[^\n]*\n)*\s*appendFileSync\(/.test(
+      gateResultText,
+    ),
+  );
+  check(
+    'the result emitter still publishes FAIL: the write precedes the failing exit',
+    writeIndex !== -1 && failExitIndex !== -1 && writeIndex < failExitIndex,
+    `write=${writeIndex} exit=${failExitIndex}`,
+  );
+  check(
+    'the result emitter exits non-zero on FAIL (publication is not failure suppression)',
+    /evaluation\.result === 'FAIL'[\s\S]{0,400}process\.exit\(1\)/.test(gateResultText),
+  );
+  check(
+    'the result emitter fails closed when GITHUB_OUTPUT is unavailable',
+    /GITHUB_OUTPUT is not set/.test(gateResultText) && /if \(!outputFile\)/.test(gateResultText),
   );
 
   const aggregateText = String(aggregateSource);

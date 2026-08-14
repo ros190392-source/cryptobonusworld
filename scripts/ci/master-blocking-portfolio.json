@@ -2031,9 +2031,9 @@
         "jobIf": null,
         "jobIfPullRequestState": "RUNNABLE",
         "needs": [],
-        "totalSteps": 11,
+        "totalSteps": 12,
         "softenedSteps": 0,
-        "failableSteps": 11,
+        "failableSteps": 12,
         "timeoutMinutes": 20
       },
       "commands": [
@@ -2042,6 +2042,7 @@
         "node scripts/ci/master-required-gate-classifier-fixture-test.mjs",
         "node scripts/ci/master-required-gate-mutation-test.mjs",
         "node scripts/ci/master-required-gate-parity-test.mjs",
+        "node scripts/ci/master-required-gate-emitter-behaviour-test.mjs",
         "node scripts/ci/master-required-gate-classify.mjs --emit-github-output",
         "node scripts/ci/master-required-gate-validate-output.mjs",
         "node scripts/ci/master-required-gate-applicability.mjs --emit-github-output",
