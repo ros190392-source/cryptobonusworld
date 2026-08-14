@@ -2058,6 +2058,7 @@
           "scripts/ci/master-required-gate-classifier-fixture-test.mjs",
           "scripts/ci/master-required-gate-classify.mjs",
           "scripts/ci/master-required-gate-contract-test.mjs",
+          "scripts/ci/master-required-gate-emitter-behaviour-test.mjs",
           "scripts/ci/master-required-gate-gate-result.mjs",
           "scripts/ci/master-required-gate-gates.mjs",
           "scripts/ci/master-required-gate-mutation-test.mjs",
@@ -2154,6 +2155,7 @@
           "scripts/ci/master-required-gate-classifier-fixture-test.mjs",
           "scripts/ci/master-required-gate-classify.mjs",
           "scripts/ci/master-required-gate-contract-test.mjs",
+          "scripts/ci/master-required-gate-emitter-behaviour-test.mjs",
           "scripts/ci/master-required-gate-gate-result.mjs",
           "scripts/ci/master-required-gate-gates.mjs",
           "scripts/ci/master-required-gate-mutation-test.mjs",
@@ -2203,6 +2205,10 @@
         {
           "code": "DEPENDENCY_UNRESOLVABLE",
           "detail": "scripts/ci/master-required-gate-contract-test.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(resolve(ROOT, path), \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ci/master-required-gate-emitter-behaviour-test.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(outputFile, \"utf8\")"
         },
         {
           "code": "DEPENDENCY_UNRESOLVABLE",

@@ -143,16 +143,32 @@ const needsOf = (job) => (job?.needs ? (Array.isArray(job.needs) ? job.needs : [
  * override exactly one of them; a MISSING source is treated as an empty string
  * and every rule about it therefore fails, which is the fail-closed direction.
  */
-export function auditProducerConsumerContract({
-  workflowText,
-  classifierSource,
-  validatorSource,
-  gatesSource = '',
-  applicabilitySource = '',
-  applicabilityValidatorSource = '',
-  gateResultSource = '',
-  aggregateSource = '',
-}) {
+export function auditProducerConsumerContract(sources) {
+  // NEWLINE-AGNOSTIC BY CONSTRUCTION (S2-04 R2 / 4).
+  //
+  // Several rules below are TEXT-level: they assert that one statement follows
+  // another in a source file with nothing but comments between. Written against
+  // `\n`, every one of them silently changes meaning on a CRLF checkout — Windows
+  // with `core.autocrlf=true`, or any runner that normalises on the way in — and
+  // the failure is not a false pass but a false FAIL, which is worse for a gate
+  // that must give the same verdict everywhere. The same applies to the parsed
+  // YAML: a CRLF `run:` block scalar carries `\r` into every command string.
+  //
+  // Both are fixed at the boundary rather than by sprinkling `\r?` through the
+  // rules, so no future assertion has to remember. Nothing on disk is rewritten —
+  // this is an in-memory view for the duration of the audit.
+  const lf = (text) => String(text ?? '').replace(/\r\n/g, '\n');
+  const {
+    workflowText,
+    classifierSource,
+    validatorSource,
+    gatesSource = '',
+    applicabilitySource = '',
+    applicabilityValidatorSource = '',
+    gateResultSource = '',
+    aggregateSource = '',
+  } = Object.fromEntries(Object.entries(sources ?? {}).map(([key, value]) => [key, lf(value)]));
+
   const results = [];
   const check = (label, ok, detail = '') => results.push({ label, ok: Boolean(ok), detail });
 
@@ -651,9 +667,25 @@ export function auditProducerConsumerContract({
       !String(emitter?.if ?? '').includes(`needs.${CLASSIFY_JOB_ID}.outputs.`),
       `if=${JSON.stringify(emitter?.if)}`,
     );
+    // FAIL-CLOSED, NOT "NOT LITERALLY TRUE" (S2-04 R2 / 3).
+    //
+    // `continue-on-error: true` is only the most obvious way to neutralise a
+    // published FAIL. `continue-on-error: ${{ true }}` parses as a STRING, so a
+    // `!== true` rule accepts it while GitHub evaluates it as truthy and lets the
+    // job go green with FAIL published — the exact evidence-destroying state this
+    // contract exists to forbid. So does `${{ github.event_name == 'push' }}`, and
+    // so does any other expression whose value is not knowable from the file.
+    //
+    // The rule is therefore ABSENCE, not falsity: a unified blocker emitter may
+    // carry NO `continue-on-error` key at all, in any form. There is no legitimate
+    // use for one on this step — its whole purpose is to fail the job when it
+    // publishes FAIL — so nothing is lost by forbidding the field outright, and a
+    // value this contract cannot evaluate can never be admitted by accident.
+    // Scoped to the emitter: ordinary steps and advisory jobs elsewhere in the
+    // repository keep their normal semantics.
     check(
-      `blocker "${gateId}" result emitter is not continue-on-error (a published FAIL must still fail the job)`,
-      emitter?.['continue-on-error'] !== true,
+      `blocker "${gateId}" result emitter declares NO continue-on-error at all (a published FAIL must still fail the job)`,
+      Boolean(emitter) && !Object.prototype.hasOwnProperty.call(emitter, 'continue-on-error'),
       `continue-on-error=${JSON.stringify(emitter?.['continue-on-error'])}`,
     );
     check(

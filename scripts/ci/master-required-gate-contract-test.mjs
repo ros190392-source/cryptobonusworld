@@ -753,7 +753,7 @@ check(
 // Every assertion below is exercised against deliberate mutations by
 // scripts/ci/master-required-gate-mutation-test.mjs.
 const validatorSource = readFileSync(resolve(ROOT, VALIDATE_SCRIPT), 'utf8');
-for (const result of auditProducerConsumerContract({
+const CONTRACT_SOURCES = {
   workflowText: readFileSync(REQUIRED_WORKFLOW, 'utf8'),
   classifierSource: readFileSync(resolve(ROOT, CLASSIFY_SCRIPT), 'utf8'),
   validatorSource,
@@ -762,9 +762,53 @@ for (const result of auditProducerConsumerContract({
   applicabilityValidatorSource: readFileSync(resolve(ROOT, VALIDATE_APPLICABILITY_SCRIPT), 'utf8'),
   gateResultSource: readFileSync(resolve(ROOT, GATE_RESULT_SCRIPT), 'utf8'),
   aggregateSource: readFileSync(resolve(ROOT, AGGREGATE_SCRIPT), 'utf8'),
-})) {
+};
+const contractResults = auditProducerConsumerContract(CONTRACT_SOURCES);
+for (const result of contractResults) {
   check(result.label, result.ok, result.detail);
 }
+
+// --- 10b. THE SAME CONTRACT, ON A CRLF CHECKOUT (S2-04 R2 / 4) ----------------
+//
+// The contract must give the SAME verdict on every platform. Some of its rules
+// are text-level — "this statement follows that one, with nothing but comments
+// between" — and a rule written against `\n` silently stops matching when the
+// working tree is checked out with CRLF line endings (Windows with
+// `core.autocrlf=true`, and any runner configured the same way). The failure
+// mode is a FALSE FAIL on a byte-for-byte identical tree, which for a required
+// gate is a platform-dependent verdict.
+//
+// So the whole audit is re-run against a CRLF COPY of every source, held in
+// memory only — nothing in the repository is rewritten or normalised — and the
+// two verdicts are required to be IDENTICAL, label for label and outcome for
+// outcome. Whatever the real line endings on this machine happen to be, one of
+// the two runs is the CRLF one.
+const toCrlf = (text) => String(text).replace(/\r\n/g, '\n').replace(/\n/g, '\r\n');
+const crlfSources = Object.fromEntries(
+  Object.entries(CONTRACT_SOURCES).map(([key, value]) => [key, toCrlf(value)]),
+);
+check(
+  'the CRLF fixture really is CRLF (the regression below is not vacuous)',
+  crlfSources.workflowText.includes('\r\n') &&
+    !/[^\r]\n/.test(crlfSources.workflowText) &&
+    crlfSources.gateResultSource.includes('\r\n'),
+);
+const crlfResults = auditProducerConsumerContract(crlfSources);
+check(
+  'the producer/consumer contract yields the SAME verdict on a CRLF checkout',
+  JSON.stringify(crlfResults.map((result) => [result.label, result.ok])) ===
+    JSON.stringify(contractResults.map((result) => [result.label, result.ok])),
+  crlfResults
+    .filter((result, index) => result.ok !== contractResults[index]?.ok)
+    .map((result) => result.label)
+    .join(' | ')
+    .slice(0, 400),
+);
+check(
+  'the producer/consumer contract PASSES on a CRLF checkout (no platform-dependent failure)',
+  crlfResults.every((result) => result.ok),
+  crlfResults.filter((result) => !result.ok).map((result) => result.label).join(' | ').slice(0, 400),
+);
 for (const script of [
   VALIDATE_SCRIPT,
   GATES_SCRIPT,

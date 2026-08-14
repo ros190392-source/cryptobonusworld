@@ -1669,19 +1669,32 @@ for (const gateId of GATE_IDS) {
         ),
       }),
     },
-    {
-      id: `M1-${gateId}-continue-on-error`,
-      killedBy: new RegExp(`"${gateId}" result emitter is not continue-on-error`),
-      label: `let the "${gateId}" emitter continue-on-error (a published FAIL would stop failing the job)`,
+    // THE continue-on-error FAMILY (S2-04 R2 / 3). One mutant per FORM the field
+    // can take, because the R1 rule (`!== true`) killed only the first of them:
+    // the expression form parses as a STRING, and GitHub still evaluates it as
+    // truthy at runtime. The contract now forbids the KEY, so all three die on the
+    // same assertion — including `false`, which is harmless in itself and is
+    // rejected anyway so that no value this contract cannot evaluate is ever one
+    // edit away from being admitted.
+    ...[
+      ['literal', 'true', 'let the emitter continue-on-error with the literal boolean'],
+      ['expression', '${{ true }}', 'let the emitter continue-on-error via an EXPRESSION that evaluates truthy'],
+      ['expression-context', "${{ github.event_name == 'pull_request' }}", 'let the emitter continue-on-error via a context expression'],
+      ['quoted', "'true'", 'let the emitter continue-on-error via a quoted truthy string'],
+      ['false', 'false', 'give the emitter an explicit continue-on-error: false (the field must be ABSENT)'],
+    ].map(([form, value, what]) => ({
+      id: `M1-${gateId}-continue-on-error-${form}`,
+      killedBy: new RegExp(`"${gateId}" result emitter declares NO continue-on-error at all`),
+      label: `${what} on "${gateId}" (a published FAIL would stop failing the job)`,
       apply: () => ({
         workflowText: replaceOnce(
-          `${gateId} emitter continue-on-error`,
+          `${gateId} emitter continue-on-error ${form}`,
           baseWorkflow,
           EMITTER_BLOCK,
-          `${EMITTER_BLOCK}        continue-on-error: true\n`,
+          `${EMITTER_BLOCK}        continue-on-error: ${value}\n`,
         ),
       }),
-    },
+    })),
     {
       id: `M1-${gateId}-delete-emitter`,
       killedBy: new RegExp(`"${gateId}" runs the result emitter exactly once`),
@@ -3020,10 +3033,33 @@ try {
         /independently recomputed/,
       ],
       'forged-blocker-digest': [{ [gate.evidenceEnv]: evidenceOf({ digest: 'b'.repeat(64) }) }, /independently recomputed/],
-      // The whole chain agrees with itself — the exploit the H1 recomputation
-      // closed. Generated per gate so no blocker is exempt from it.
+      // THE SELF-CONSISTENT FORGED CHAIN, ISOLATED TO THIS ONE GATE (S2-04 R2 / 1).
+      //
+      // R1 rendered this case with `chainEchoing()`, which forged the classifier
+      // claim and every blocker at once: all four gates were invalid in every
+      // cell, so a rule that reached only three of them would still have produced
+      // a rejection naming the fourth — via the fourth's own echoed forgery, not
+      // via any rule specific to it. The case was global wearing a per-gate label.
+      //
+      // It is now confined. The classifier's decision and digest stay HONEST, and
+      // the other three blockers keep echoing the canonical digest, so they are
+      // fully valid. Only THIS gate publishes a forged chain — and it is forged in
+      // the shape that matters: `digest` is a genuine output of the canonical
+      // digest function over a DIFFERENT decision (this gate flipped to
+      // NOT_APPLICABLE), and `applicability` is the value that alternative
+      // decision assigns. The gate's own classifier↔blocker chain therefore MATCHES
+      // ITSELF perfectly — an aggregator that verified the blocker's evidence
+      // against the blocker's own claimed decision would accept it. Only the
+      // independent recomputation from the CANONICAL decision catches it.
       'matching-forged-digest-chain': [
-        { APPLICABILITY_DIGEST: FORGED_CHAIN_DIGEST, ...chainEchoing(FORGED_CHAIN_DIGEST) },
+        {
+          [gate.resultEnv]: 'NOT_APPLICABLE',
+          [gate.evidenceEnv]: JSON.stringify({
+            gateId,
+            applicability: 'NOT_APPLICABLE',
+            digest: applicabilityDigest(decisionWith(gateId, 'NOT_APPLICABLE'), AGG_IDENTITY),
+          }),
+        },
         /independently recomputed/,
       ],
       'stale-head-sha': [
@@ -3133,9 +3169,11 @@ try {
   // aggregator carrying a hard-coded exemption for exactly that gate is built and
   // proved to ACCEPT the input the real aggregator rejects. That is the mutation
   // the per-gate matrix exists to kill: a rule that reaches three of four gates.
+  const exemptingAggregators = new Map();
   for (const gateId of GATE_IDS) {
     const gate = GATES[gateId];
     const exemptPath = join(sandbox, `aggregator-exempting-${gateId}.mjs`);
+    exemptingAggregators.set(gateId, exemptPath);
     writeFileSync(
       exemptPath,
       asRunnableAggregator(
@@ -3161,6 +3199,91 @@ try {
     check(
       `PER-GATE: the REAL aggregator REJECTS the same "${gateId}" FAIL`,
       runAggregator(AGGREGATE_SCRIPT, tainted).status !== 0,
+    );
+  }
+
+  // ==========================================================================
+  // THE ISOLATED FORGED-CHAIN CASE, PROVED ISOLATED (S2-04 R2 / 1)
+  // ==========================================================================
+  //
+  // "matching-forged-digest-chain" is only per-gate coverage if the other three
+  // blockers are demonstrably VALID while it runs. A case in which every gate is
+  // invalid passes its own per-gate assertion for the wrong reason — the
+  // rejection naming this gate could be produced by any rule at all. So for each
+  // registered blocker three things are bound explicitly:
+  //
+  //   (a) the case perturbs THIS gate's environment and nothing else;
+  //   (b) the aggregator's rejection names THIS gate and no other blocker;
+  //   (c) restoring THIS gate's honest values — and changing nothing else —
+  //       makes the entire chain PASS, which is only possible if the other three
+  //       blockers were valid throughout;
+  //
+  // and then (d) the case is proved gate-specific by mutation: an aggregator
+  // carrying a hard-coded exemption for exactly this gate ACCEPTS the very input
+  // the real one rejects, so a rule that reached three gates out of four could
+  // not leave this suite green.
+  for (const gateId of GATE_IDS) {
+    const gate = GATES[gateId];
+    const isolated = perGateCases.find(
+      (entry) => entry.gateId === gateId && entry.kind === 'matching-forged-digest-chain',
+    );
+    const others = GATE_IDS.filter((id) => id !== gateId);
+    const perturbed = Object.keys(isolated.overrides).sort();
+
+    // (a) STRUCTURAL: only this gate's env vars are touched. The classifier's
+    // decision and digest are untouched, so the recomputation anchor is honest.
+    check(
+      `ISOLATED FORGED CHAIN: "${gateId}" perturbs ONLY its own environment`,
+      JSON.stringify(perturbed) === JSON.stringify([gate.evidenceEnv, gate.resultEnv].sort()),
+      perturbed.join(','),
+    );
+    const env = aggregatorEnv(isolated.overrides);
+    check(
+      `ISOLATED FORGED CHAIN: "${gateId}" leaves the classifier claim honest`,
+      env.APPLICABILITY_DIGEST === APP_DIGEST && env.APPLICABILITY_JSON === JSON.stringify(APP_DECISION),
+      env.APPLICABILITY_DIGEST,
+    );
+    // (b) THE OTHER THREE BLOCKERS ARE VALID BEFORE AGGREGATION — asserted on the
+    // exact environment this case runs under, not on the honest baseline.
+    for (const otherId of others) {
+      const other = GATES[otherId];
+      check(
+        `ISOLATED FORGED CHAIN: while "${gateId}" is forged, "${otherId}" is still an honest PASS`,
+        env[other.jobResultEnv] === 'success' &&
+          env[other.resultEnv] === 'PASS' &&
+          env[other.evidenceEnv] ===
+            JSON.stringify({ gateId: otherId, applicability: 'APPLICABLE', digest: APP_DIGEST }),
+        `${env[other.resultEnv]} ${env[other.evidenceEnv]}`,
+      );
+    }
+    const run = runAggregator(AGGREGATE_SCRIPT, isolated.overrides);
+    const output = `${run.stdout ?? ''}${run.stderr ?? ''}`;
+    const errorLines = output.split('\n').filter((line) => line.trim().startsWith('- '));
+    check(`ISOLATED FORGED CHAIN: "${gateId}" is REJECTED`, run.status !== 0, `exit=${run.status}`);
+    for (const otherId of others) {
+      check(
+        `ISOLATED FORGED CHAIN: rejecting "${gateId}" names NO other blocker ("${otherId}" is clean)`,
+        !errorLines.some((line) => line.includes(`blocker ${otherId} `)),
+        errorLines.filter((line) => line.includes(`blocker ${otherId} `)).join(' | ').slice(0, 240),
+      );
+    }
+    // (c) …and the ONLY thing wrong with the chain is this gate.
+    const restored = runAggregator(AGGREGATE_SCRIPT, {
+      ...isolated.overrides,
+      [gate.resultEnv]: 'PASS',
+      [gate.evidenceEnv]: JSON.stringify({ gateId, applicability: 'APPLICABLE', digest: APP_DIGEST }),
+    });
+    check(
+      `ISOLATED FORGED CHAIN: restoring ONLY "${gateId}" makes the whole chain PASS (the rest was valid)`,
+      restored.status === 0,
+      `exit=${restored.status} ${(restored.stderr ?? '').slice(0, 240)}`,
+    );
+    // (d) MUTATION: the case cannot survive this gate being dropped.
+    const exempt = runAggregator(exemptingAggregators.get(gateId), isolated.overrides);
+    check(
+      `ISOLATED FORGED CHAIN: an aggregator OMITTING "${gateId}" ACCEPTS its forged chain (the case is gate-specific)`,
+      exempt.status === 0,
+      `exit=${exempt.status} ${(exempt.stderr ?? '').slice(0, 240)}`,
     );
   }
 

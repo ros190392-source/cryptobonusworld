@@ -213,17 +213,50 @@ const DECISION = {
 };
 const DIGEST = applicabilityDigest(DECISION, IDENTITY);
 
-const classifyNeeds = (applicabilityByGate) => ({
+/**
+ * A CANONICAL decision in which exactly one gate is inert (S2-04 R2 / 5).
+ *
+ * The R1 harness produced "NOT_APPLICABLE" by overriding the classifier's
+ * per-gate CONVENIENCE OUTPUT alone, while the applicability JSON, the digest and
+ * every reason still said APPLICABLE. That scenario is not a state the real
+ * workflow can reach: the convenience outputs are projections of the decision,
+ * and the digest is computed over it. It proved the emitter reacts to one string,
+ * not that an honest inert run is coherent end to end — and the very same shape,
+ * reached deliberately, is a TAMPERING case that must be REJECTED. A scenario
+ * that is indistinguishable from the attack it is supposed to be the opposite of
+ * proves nothing about either.
+ *
+ * So the decision itself moves, the reason moves with it, and the digest is
+ * recomputed from the result. Every downstream value — the convenience outputs
+ * the step conditions read, the evidence the emitter publishes, the decision the
+ * aggregator recomputes against — derives from this one object.
+ */
+const decisionWith = (gateId, applicability) => ({
+  ...DECISION,
+  gates: { ...DECISION.gates, [gateId]: applicability },
+  reasons: {
+    ...DECISION.reasons,
+    [gateId]: applicability === 'NOT_APPLICABLE' ? 'only-gate-irrelevant-paths' : 'relevant-path-changed',
+  },
+});
+
+/**
+ * The classifier job's outputs, PROJECTED from a decision.
+ *
+ * `outputOverrides` exists for exactly one purpose: the negative case, which
+ * tampers with a convenience output while leaving the decision and digest honest.
+ * Every honest scenario passes none.
+ */
+const classifyNeedsFor = (decision, digest, outputOverrides = {}) => ({
   classify: {
     result: 'success',
     outputs: {
       material: 'true',
       reason: 'material-path-changed',
-      applicability: JSON.stringify(DECISION),
-      digest: DIGEST,
-      ...Object.fromEntries(
-        GATE_IDS.map((gateId) => [GATES[gateId].outputName, applicabilityByGate[gateId] ?? 'APPLICABLE']),
-      ),
+      applicability: JSON.stringify(decision),
+      digest,
+      ...Object.fromEntries(GATE_IDS.map((gateId) => [GATES[gateId].outputName, decision.gates[gateId]])),
+      ...outputOverrides,
     },
   },
 });
@@ -240,14 +273,20 @@ const GITHUB_CTX = Object.freeze({ headSha: IDENTITY.headSha, baseSha: 'cd'.repe
 function simulateBlocker({
   workflowText = baseWorkflowText,
   gateId,
-  applicability = 'APPLICABLE',
+  decision = DECISION,
+  digest = null,
+  outputOverrides = {},
   failing = new Set(),
   emitterScript = GATE_RESULT_SCRIPT,
 }) {
   const workflow = loadWorkflow(workflowText);
   const job = workflow?.jobs?.[GATES[gateId].jobId];
   if (!job) throw new Error(`emitter-behaviour: blocker job for "${gateId}" is missing from the workflow`);
-  const needs = classifyNeeds(Object.fromEntries(GATE_IDS.map((id) => [id, id === gateId ? applicability : 'APPLICABLE'])));
+  // The digest is RECOMPUTED from the decision under test unless the caller is
+  // deliberately supplying a mismatched one, so an honest scenario cannot drift
+  // from its own evidence.
+  const boundDigest = digest ?? applicabilityDigest(decision, IDENTITY);
+  const needs = classifyNeedsFor(decision, boundDigest, outputOverrides);
   const outputFile = join(sandbox, `github-output-${gateId}.txt`);
   writeFileSync(outputFile, '', 'utf8');
   let emitterRan = false;
@@ -294,7 +333,7 @@ function simulateBlocker({
  * production — an emitter is the last step, and a `continue-on-error` slipped
  * onto it would produce exactly it — so it is worth binding explicitly.
  */
-function runAggregator(perGate, { forceJobResult = null } = {}) {
+function runAggregator(perGate, { forceJobResult = null, decision = DECISION, digest = null } = {}) {
   const env = {
     ...process.env,
     HEAD_SHA: IDENTITY.headSha,
@@ -302,8 +341,11 @@ function runAggregator(perGate, { forceJobResult = null } = {}) {
     GITHUB_RUN_ATTEMPT: IDENTITY.runAttempt,
     CLASSIFY_JOB_RESULT: 'success',
     CLASSIFIER_MATERIAL: 'true',
-    APPLICABILITY_JSON: JSON.stringify(DECISION),
-    APPLICABILITY_DIGEST: DIGEST,
+    // The aggregator is handed the SAME canonical decision the blockers ran
+    // under, and the digest that decision really produces — it recomputes it
+    // independently anyway, so anything else would fail for the wrong reason.
+    APPLICABILITY_JSON: JSON.stringify(decision),
+    APPLICABILITY_DIGEST: digest ?? applicabilityDigest(decision, IDENTITY),
   };
   for (const gateId of GATE_IDS) {
     const gate = GATES[gateId];
@@ -341,6 +383,7 @@ try {
   // --- 1..5. THE PER-GATE BEHAVIOURAL MATRIX --------------------------------
   const successRuns = {};
   const buildFailureRuns = {};
+  const inertRuns = {};
   for (const gateId of GATE_IDS) {
     const gate = GATES[gateId];
     const gateStepId = gate.steps.find((step) => step.command === `node ${gate.gateScript}`)?.id;
@@ -354,8 +397,30 @@ try {
     check(`"${gateId}": honest success — the job is GREEN`, ok.conclusion === 'success', JSON.stringify(ok.outcomes));
     check(`"${gateId}": honest success — the emitter exits 0`, ok.emitterExit === 0, String(ok.emitterExit));
 
-    // 2. HONEST NOT_APPLICABLE.
-    const inert = simulateBlocker({ gateId, applicability: 'NOT_APPLICABLE' });
+    // 2. HONEST NOT_APPLICABLE — coherent from the decision down (S2-04 R2 / 5).
+    //
+    // The classifier decision itself marks THIS gate inert, with the reason that
+    // justifies it; the digest is recomputed from that decision; the convenience
+    // outputs the step conditions read are projections of it; the blocking steps
+    // are therefore skipped by the workflow's own conditions; and the evidence the
+    // emitter publishes carries that same applicability and that same digest.
+    // Nothing here is asserted into existence — the only input is the decision.
+    const inertDecision = decisionWith(gateId, 'NOT_APPLICABLE');
+    const inertDigest = applicabilityDigest(inertDecision, IDENTITY);
+    const inert = simulateBlocker({ gateId, decision: inertDecision });
+    inertRuns[gateId] = inert;
+    check(
+      `"${gateId}": honest NOT_APPLICABLE — the CANONICAL DECISION is what marks the gate inert`,
+      inertDecision.gates[gateId] === 'NOT_APPLICABLE' &&
+        inertDecision.reasons[gateId] === 'only-gate-irrelevant-paths' &&
+        GATE_IDS.filter((id) => id !== gateId).every((id) => inertDecision.gates[id] === 'APPLICABLE'),
+      JSON.stringify(inertDecision.gates),
+    );
+    check(
+      `"${gateId}": honest NOT_APPLICABLE — the digest is RECOMPUTED from that decision`,
+      inertDigest === applicabilityDigest(inertDecision, IDENTITY) && inertDigest !== DIGEST,
+      inertDigest,
+    );
     check(`"${gateId}": honest NOT_APPLICABLE — the emitter runs`, inert.emitterRan);
     check(
       `"${gateId}": honest NOT_APPLICABLE — publishes NOT_APPLICABLE`,
@@ -371,6 +436,16 @@ try {
       `"${gateId}": honest NOT_APPLICABLE — the job is GREEN`,
       inert.conclusion === 'success',
       JSON.stringify(inert.outcomes),
+    );
+    // The EVIDENCE CHAIN matches the decision: the emitter published the exact
+    // applicability the classifier decided, bound to the exact digest of it.
+    const inertEvidence = JSON.parse(inert.outputs.evidence || 'null');
+    check(
+      `"${gateId}": honest NOT_APPLICABLE — the published evidence matches the decision and its digest`,
+      inertEvidence?.gateId === gateId &&
+        inertEvidence?.applicability === 'NOT_APPLICABLE' &&
+        inertEvidence?.digest === inertDigest,
+      JSON.stringify(inertEvidence),
     );
 
     // 3/4/5. FAILURE OF EACH BLOCKING STEP — the emitter must still instantiate.
@@ -439,6 +514,70 @@ try {
       `AGGREGATOR: it names "${gateId}" as the reason`,
       new RegExp(`blocker ${gateId} `).test(`${aggregated.stdout ?? ''}${aggregated.stderr ?? ''}`),
       (aggregated.stderr ?? '').slice(0, 300),
+    );
+  }
+
+  // --- 6b. THE HONEST INERT CHAIN IS ACCEPTED (S2-04 R2 / 5) -----------------
+  //
+  // One gate is inert BY THE CLASSIFIER'S OWN DECISION; the other three are
+  // honest APPLICABLE runs of that SAME decision, so the whole chain shares one
+  // digest. The aggregator — which recomputes that digest from the decision and
+  // this run's identity — must accept it. This is what makes NOT_APPLICABLE an
+  // evidential outcome rather than an asserted one, and it is the assertion the
+  // R1 harness could not make, because its inert scenario was not reproducible
+  // from any decision.
+  for (const gateId of GATE_IDS) {
+    const inertDecision = decisionWith(gateId, 'NOT_APPLICABLE');
+    const chain = { [gateId]: inertRuns[gateId] };
+    for (const otherId of GATE_IDS) {
+      if (otherId === gateId) continue;
+      chain[otherId] = simulateBlocker({ gateId: otherId, decision: inertDecision });
+      check(
+        `INERT CHAIN ("${gateId}"): the other blocker "${otherId}" is an honest PASS under the same decision`,
+        chain[otherId].publishedResult === 'PASS' && chain[otherId].conclusion === 'success',
+        chain[otherId].publishedResult,
+      );
+    }
+    const accepted = runAggregator(chain, { decision: inertDecision });
+    check(
+      `INERT CHAIN ("${gateId}"): the aggregator ACCEPTS an honest NOT_APPLICABLE backed by the decision`,
+      accepted.status === 0,
+      `${accepted.status} ${(accepted.stderr ?? '').slice(0, 300)}`,
+    );
+
+    // THE NEGATIVE. The decision and the digest stay APPLICABLE and honest; only
+    // the convenience output this gate's steps read is tampered with. That is
+    // precisely the shape the R1 "honest NOT_APPLICABLE" scenario had, so it is
+    // stated here as what it really is: an attack, which must be REJECTED. The
+    // blocker still goes green and still publishes NOT_APPLICABLE — nothing in
+    // the job can tell — and the aggregator refuses it because the classifier's
+    // canonical decision never said so.
+    const tampered = simulateBlocker({
+      gateId,
+      decision: DECISION,
+      outputOverrides: { [GATES[gateId].outputName]: 'NOT_APPLICABLE' },
+    });
+    check(
+      `TAMPERED NOT_APPLICABLE ("${gateId}"): the blocker publishes NOT_APPLICABLE and goes GREEN`,
+      tampered.publishedResult === 'NOT_APPLICABLE' && tampered.conclusion === 'success',
+      `${tampered.publishedResult} ${tampered.conclusion}`,
+    );
+    check(
+      `TAMPERED NOT_APPLICABLE ("${gateId}"): the canonical decision still says APPLICABLE`,
+      DECISION.gates[gateId] === 'APPLICABLE',
+    );
+    const rejected = runAggregator({ ...successRuns, [gateId]: tampered });
+    check(
+      `TAMPERED NOT_APPLICABLE ("${gateId}"): the aggregator REJECTS it`,
+      rejected.status !== 0,
+      String(rejected.status),
+    );
+    check(
+      `TAMPERED NOT_APPLICABLE ("${gateId}"): rejected for the RIGHT reason (the classifier decided otherwise)`,
+      new RegExp(`blocker ${gateId} published NOT_APPLICABLE but the classifier decided`).test(
+        `${rejected.stdout ?? ''}${rejected.stderr ?? ''}`,
+      ),
+      (rejected.stderr ?? '').slice(0, 300),
     );
   }
 
