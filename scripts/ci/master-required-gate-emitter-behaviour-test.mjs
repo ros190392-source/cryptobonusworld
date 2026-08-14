@@ -35,7 +35,9 @@
 //
 // WHAT IS PROVED, per registered blocker:
 //   1. honest success                => emitter runs => PASS  => aggregator PASSES
-//   2. honest NOT_APPLICABLE         => emitter runs => NOT_APPLICABLE
+//   2. honest NOT_APPLICABLE — where the decision is produced by the REAL
+//      classifier over a REAL change set (the other gates' exclusive surfaces),
+//      never hand-edited     => emitter runs => NOT_APPLICABLE
 //   3. BUILD failure                 => emitter STILL runs => FAIL => job RED
 //   4. GATE-SCRIPT failure           => emitter STILL runs => FAIL => job RED
 //   5. install failure               => emitter STILL runs => FAIL => job RED
@@ -60,7 +62,14 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import yaml from 'js-yaml';
-import { GATES, GATE_IDS, applicabilityDigest } from './master-required-gate-gates.mjs';
+import {
+  GATES,
+  GATE_IDS,
+  applicabilityDigest,
+  canonicalizeDecision,
+  gateExclusiveSurface,
+} from './master-required-gate-gates.mjs';
+import { computeApplicability } from './master-required-gate-applicability.mjs';
 import { GATE_RESULT_COMMAND } from './master-required-gate-workflow-contract.mjs';
 
 const ROOT = resolve(process.cwd());
@@ -200,38 +209,73 @@ const sandbox = mkdtempSync(join(tmpdir(), 'cbw-emitter-behaviour-'));
 const loadWorkflow = (text) => yaml.load(text, { schema: yaml.CORE_SCHEMA });
 const baseWorkflowText = readFileSync(WORKFLOW, 'utf8').replace(/\r\n/g, '\n');
 
-// This run's canonical identity and the ONE digest that reproduces from it. The
-// aggregator recomputes this value independently, so using anything else here
-// would make every aggregator assertion below fail for the wrong reason.
+// This run's canonical identity. Every digest below is the one the aggregator
+// independently recomputes under it, so using anything else here would make
+// every aggregator assertion below fail for the wrong reason.
 const IDENTITY = Object.freeze({ headSha: 'ab'.repeat(20), runId: '991144', runAttempt: '1' });
-const DECISION = {
-  gates: Object.fromEntries(GATE_IDS.map((gateId) => [gateId, 'APPLICABLE'])),
-  reasons: Object.fromEntries(GATE_IDS.map((gateId) => [gateId, 'relevant-path-changed'])),
-  changedPaths: ['src/pages/index.astro'],
-  material: 'true',
-  materialReason: 'material-path-changed',
-};
-const DIGEST = applicabilityDigest(DECISION, IDENTITY);
+
+// The baseline change set — one real public page — put through the REAL producer
+// computation: the exact classifyChangedPaths + classifyAllGates pipeline the
+// classify job executes. Nothing in this suite ever writes a `gates`/`reasons`
+// map by hand; every honest decision is an OUTPUT of this pipeline over a
+// concrete change set.
+const BASELINE_PATHS = Object.freeze(['src/pages/index.astro']);
+const { decision: DECISION, digest: DIGEST } = computeApplicability({
+  paths: [...BASELINE_PATHS],
+  identity: IDENTITY,
+});
 
 /**
- * A CANONICAL decision in which exactly one gate is inert (S2-04 R2 / 5).
+ * TRUE iff a decision is a state the REAL classifier can produce: recomputing
+ * the whole decision from the decision's OWN changedPaths reproduces it exactly
+ * (canonical form, which covers gates, reasons, paths and materiality).
  *
- * The R1 harness produced "NOT_APPLICABLE" by overriding the classifier's
- * per-gate CONVENIENCE OUTPUT alone, while the applicability JSON, the digest and
- * every reason still said APPLICABLE. That scenario is not a state the real
- * workflow can reach: the convenience outputs are projections of the decision,
- * and the digest is computed over it. It proved the emitter reacts to one string,
- * not that an honest inert run is coherent end to end — and the very same shape,
- * reached deliberately, is a TAMPERING case that must be REJECTED. A scenario
- * that is indistinguishable from the attack it is supposed to be the opposite of
- * proves nothing about either.
- *
- * So the decision itself moves, the reason moves with it, and the digest is
- * recomputed from the result. Every downstream value — the convenience outputs
- * the step conditions read, the evidence the emitter publishes, the decision the
- * aggregator recomputes against — derives from this one object.
+ * This predicate is load-bearing (S2-04 R3). The aggregator recomputes the
+ * digest OVER the decision it is handed — it cannot re-derive the decision from
+ * the diff, so a hand-edited decision with a self-consistent digest sails
+ * through the runtime chain end to end. Classifier-reachability is therefore
+ * exactly the property only this suite can assert, and every honest fixture
+ * below is required to pass it.
  */
-const decisionWith = (gateId, applicability) => ({
+const isClassifierReachable = (decision) =>
+  Array.isArray(decision?.changedPaths) &&
+  canonicalizeDecision(
+    computeApplicability({ paths: [...decision.changedPaths], identity: IDENTITY }).decision,
+    IDENTITY,
+  ) === canonicalizeDecision(decision, IDENTITY);
+
+/**
+ * The REAL inert fixture of one gate (S2-04 R3).
+ *
+ * R2 produced the "honest NOT_APPLICABLE" decision by hand-editing the baseline
+ * decision: one gate flipped, the reason moved with it, the digest recomputed —
+ * internally coherent, but with changedPaths still naming the baseline page, for
+ * which the live classifier returns APPLICABLE for every gate. The fixture was
+ * digest-consistent yet NOT classifier-reachable, so the positive case proved
+ * the chain accepts a decision no classifier run can emit.
+ *
+ * The fixture is now DERIVED from the registry's own exclusivity model instead:
+ * the change set is the EXCLUSIVE SURFACE (legacy workflow + gate script) of
+ * every OTHER registered gate. By construction of deriveIrrelevantPaths those
+ * paths are precisely the selected gate's cross-gate inert set — and each one is
+ * relevant to the gate that owns it — so the REAL classifier, unedited, marks
+ * the selected gate NOT_APPLICABLE and every other gate APPLICABLE. The
+ * decision, its digest and everything downstream are outputs of
+ * computeApplicability over that change set; nothing edits the decision.
+ */
+const inertFixtureFor = (gateId) => {
+  const paths = GATE_IDS.filter((otherId) => otherId !== gateId)
+    .flatMap((otherId) => gateExclusiveSurface(otherId))
+    .sort();
+  const { decision, digest } = computeApplicability({ paths, identity: IDENTITY });
+  return { paths, decision, digest };
+};
+
+// The R2 shape, RETAINED ONLY AS A KNOWN-BAD MUTANT for the fixture-mutation
+// coverage below: a hand-edited decision that flips one gate while changedPaths
+// still names the baseline page. No honest scenario uses it; section 6c proves
+// isClassifierReachable() rejects exactly this shape while the runtime cannot.
+const handEditedDecisionWith = (gateId, applicability) => ({
   ...DECISION,
   gates: { ...DECISION.gates, [gateId]: applicability },
   reasons: {
@@ -251,8 +295,8 @@ const classifyNeedsFor = (decision, digest, outputOverrides = {}) => ({
   classify: {
     result: 'success',
     outputs: {
-      material: 'true',
-      reason: 'material-path-changed',
+      material: decision.material,
+      reason: decision.materialReason,
       applicability: JSON.stringify(decision),
       digest,
       ...Object.fromEntries(GATE_IDS.map((gateId) => [GATES[gateId].outputName, decision.gates[gateId]])),
@@ -340,7 +384,7 @@ function runAggregator(perGate, { forceJobResult = null, decision = DECISION, di
     GITHUB_RUN_ID: IDENTITY.runId,
     GITHUB_RUN_ATTEMPT: IDENTITY.runAttempt,
     CLASSIFY_JOB_RESULT: 'success',
-    CLASSIFIER_MATERIAL: 'true',
+    CLASSIFIER_MATERIAL: decision.material,
     // The aggregator is handed the SAME canonical decision the blockers ran
     // under, and the digest that decision really produces — it recomputes it
     // independently anyway, so anything else would fail for the wrong reason.
@@ -380,10 +424,25 @@ try {
   }
   check('the step-semantics evaluator THROWS on an unmodelled condition (never defaults)', threw);
 
+  // --- 0b. the baseline decision is a REAL classifier state ------------------
+  check(
+    'BASELINE: the real classifier marks every registered gate APPLICABLE for the baseline page change',
+    GATE_IDS.every(
+      (gateId) => DECISION.gates[gateId] === 'APPLICABLE' && DECISION.reasons[gateId] === 'relevant-path-changed',
+    ),
+    JSON.stringify(DECISION.gates),
+  );
+  check(
+    'BASELINE: the baseline decision is classifier-reachable from its own changedPaths',
+    isClassifierReachable(DECISION),
+    JSON.stringify(DECISION.changedPaths),
+  );
+
   // --- 1..5. THE PER-GATE BEHAVIOURAL MATRIX --------------------------------
   const successRuns = {};
   const buildFailureRuns = {};
   const inertRuns = {};
+  const inertFixtures = {};
   for (const gateId of GATE_IDS) {
     const gate = GATES[gateId];
     const gateStepId = gate.steps.find((step) => step.command === `node ${gate.gateScript}`)?.id;
@@ -397,27 +456,68 @@ try {
     check(`"${gateId}": honest success — the job is GREEN`, ok.conclusion === 'success', JSON.stringify(ok.outcomes));
     check(`"${gateId}": honest success — the emitter exits 0`, ok.emitterExit === 0, String(ok.emitterExit));
 
-    // 2. HONEST NOT_APPLICABLE — coherent from the decision down (S2-04 R2 / 5).
+    // 2. HONEST NOT_APPLICABLE — produced by the REAL classifier (S2-04 R3).
     //
-    // The classifier decision itself marks THIS gate inert, with the reason that
-    // justifies it; the digest is recomputed from that decision; the convenience
-    // outputs the step conditions read are projections of it; the blocking steps
-    // are therefore skipped by the workflow's own conditions; and the evidence the
-    // emitter publishes carries that same applicability and that same digest.
-    // Nothing here is asserted into existence — the only input is the decision.
-    const inertDecision = decisionWith(gateId, 'NOT_APPLICABLE');
-    const inertDigest = applicabilityDigest(inertDecision, IDENTITY);
+    // The change set is the exclusive surface of every OTHER registered gate;
+    // the decision over it is computed by the real producer pipeline, which
+    // marks THIS gate inert with the reason that justifies it; the digest is the
+    // producer's own digest of that decision; the convenience outputs the step
+    // conditions read are projections of it; the blocking steps are therefore
+    // skipped by the workflow's own conditions; and the evidence the emitter
+    // publishes carries that same applicability and that same digest. Nothing
+    // here is asserted into existence — the only input is the change set.
+    const inertFixture = inertFixtureFor(gateId);
+    inertFixtures[gateId] = inertFixture;
+    const { paths: inertPaths, decision: inertDecision, digest: inertDigest } = inertFixture;
     const inert = simulateBlocker({ gateId, decision: inertDecision });
     inertRuns[gateId] = inert;
+    // NON-VACUITY of the fixture itself, before anything downstream is trusted.
     check(
-      `"${gateId}": honest NOT_APPLICABLE — the CANONICAL DECISION is what marks the gate inert`,
+      `"${gateId}": honest NOT_APPLICABLE — the change set is non-empty and holds ONLY other gates' exclusive surfaces`,
+      inertPaths.length > 0 &&
+        inertPaths.every((path) =>
+          GATE_IDS.some((otherId) => otherId !== gateId && gateExclusiveSurface(otherId).includes(path)),
+        ),
+      JSON.stringify(inertPaths),
+    );
+    check(
+      `"${gateId}": honest NOT_APPLICABLE — the gate's OWN workflow and script are NOT in the change set`,
+      gateExclusiveSurface(gateId).every((own) => !inertPaths.includes(own)),
+      JSON.stringify({ own: gateExclusiveSurface(gateId), paths: inertPaths }),
+    );
+    check(
+      `"${gateId}": honest NOT_APPLICABLE — the REAL classifier itself marks this gate inert`,
       inertDecision.gates[gateId] === 'NOT_APPLICABLE' &&
-        inertDecision.reasons[gateId] === 'only-gate-irrelevant-paths' &&
-        GATE_IDS.filter((id) => id !== gateId).every((id) => inertDecision.gates[id] === 'APPLICABLE'),
+        inertDecision.reasons[gateId] === 'only-gate-irrelevant-paths',
+      JSON.stringify({ gates: inertDecision.gates, reasons: inertDecision.reasons }),
+    );
+    check(
+      `"${gateId}": honest NOT_APPLICABLE — every OTHER registered gate stays APPLICABLE on its own changed surface`,
+      GATE_IDS.filter((id) => id !== gateId).every(
+        (id) => inertDecision.gates[id] === 'APPLICABLE' && inertDecision.reasons[id] === 'relevant-path-changed',
+      ),
       JSON.stringify(inertDecision.gates),
     );
     check(
-      `"${gateId}": honest NOT_APPLICABLE — the digest is RECOMPUTED from that decision`,
+      `"${gateId}": honest NOT_APPLICABLE — the decision is CLASSIFIER-REACHABLE from its own changedPaths`,
+      isClassifierReachable(inertDecision),
+      JSON.stringify(inertDecision.changedPaths),
+    );
+    // The path choice is load-bearing: adding this gate's own surface to the
+    // SAME change set flips the real classifier back to APPLICABLE, so a fixture
+    // that touched the gate's own files could never have produced the inert
+    // decision above.
+    const flipped = computeApplicability({
+      paths: [...inertPaths, ...gateExclusiveSurface(gateId)],
+      identity: IDENTITY,
+    }).decision;
+    check(
+      `"${gateId}": honest NOT_APPLICABLE — adding the gate's OWN surface flips the real classifier to APPLICABLE`,
+      flipped.gates[gateId] === 'APPLICABLE' && flipped.reasons[gateId] === 'relevant-path-changed',
+      JSON.stringify(flipped.gates),
+    );
+    check(
+      `"${gateId}": honest NOT_APPLICABLE — the digest is the producer's own digest of that decision`,
       inertDigest === applicabilityDigest(inertDecision, IDENTITY) && inertDigest !== DIGEST,
       inertDigest,
     );
@@ -517,17 +617,17 @@ try {
     );
   }
 
-  // --- 6b. THE HONEST INERT CHAIN IS ACCEPTED (S2-04 R2 / 5) -----------------
+  // --- 6b. THE HONEST INERT CHAIN IS ACCEPTED (S2-04 R2 / 5, R3) -------------
   //
-  // One gate is inert BY THE CLASSIFIER'S OWN DECISION; the other three are
-  // honest APPLICABLE runs of that SAME decision, so the whole chain shares one
-  // digest. The aggregator — which recomputes that digest from the decision and
-  // this run's identity — must accept it. This is what makes NOT_APPLICABLE an
-  // evidential outcome rather than an asserted one, and it is the assertion the
-  // R1 harness could not make, because its inert scenario was not reproducible
-  // from any decision.
+  // One gate is inert BY THE REAL CLASSIFIER'S OWN DECISION over a real change
+  // set; the other three are honest APPLICABLE runs of that SAME decision, so
+  // the whole chain shares one digest. The aggregator — which recomputes that
+  // digest from the decision and this run's identity — must accept it. This is
+  // what makes NOT_APPLICABLE an evidential outcome rather than an asserted one,
+  // and since R3 the decision is additionally classifier-reachable, so the
+  // accepted chain is one the production classify job can actually emit.
   for (const gateId of GATE_IDS) {
-    const inertDecision = decisionWith(gateId, 'NOT_APPLICABLE');
+    const { decision: inertDecision } = inertFixtures[gateId];
     const chain = { [gateId]: inertRuns[gateId] };
     for (const otherId of GATE_IDS) {
       if (otherId === gateId) continue;
@@ -580,6 +680,82 @@ try {
       (rejected.stderr ?? '').slice(0, 300),
     );
   }
+
+  // --- 6c. POSITIVE-FIXTURE MUTATION COVERAGE (S2-04 R3) ---------------------
+  //
+  // The R2 positive fixture was a hand-edited decision, and nothing failed. This
+  // section makes every forbidden shortcut in the positive chain's construction
+  // SEMANTICALLY observable, so the suite regresses loudly rather than silently:
+  //
+  //   * hand-editing decision.gates / bypassing classifyAllGates(): the exact R2
+  //     shape fails the reachability predicate every honest fixture must pass;
+  //   * recomputing a digest over the invented decision: the digest is
+  //     self-consistent and the whole RUNTIME chain accepts it end to end, which
+  //     is precisely why digest consistency is not evidence and reachability
+  //     must be asserted in this suite;
+  //   * choosing a path that really makes the gate APPLICABLE: the real
+  //     classifier says so, and the positive assertions above would fail;
+  //   * an empty change set: the classifier fails closed to APPLICABLE, so a
+  //     degenerate fixture can never fabricate NOT_APPLICABLE;
+  //   * omitting a registered gate: the coverage bookkeeping counts fixtures
+  //     against the registry.
+  for (const gateId of GATE_IDS) {
+    const handEdited = handEditedDecisionWith(gateId, 'NOT_APPLICABLE');
+    check(
+      `FIXTURE MUTANT ("${gateId}"): the R2 hand-edited decision is NOT classifier-reachable`,
+      !isClassifierReachable(handEdited),
+      JSON.stringify(handEdited.changedPaths),
+    );
+    check(
+      `FIXTURE MUTANT ("${gateId}"): the live classifier disagrees with the hand-edited gate value`,
+      computeApplicability({ paths: [...handEdited.changedPaths], identity: IDENTITY }).decision.gates[gateId] ===
+        'APPLICABLE',
+    );
+    // The runtime chain CANNOT catch the hand-edit: the blockers project their
+    // conditions from the decision they are handed, the digest is recomputed
+    // over that same decision, and the aggregator accepts the lot. Green here is
+    // the proof that the reachability assertions above are load-bearing.
+    const handEditedChain = {};
+    for (const runId of GATE_IDS) handEditedChain[runId] = simulateBlocker({ gateId: runId, decision: handEdited });
+    check(
+      `FIXTURE MUTANT ("${gateId}"): the runtime chain ACCEPTS the hand-edited decision — only reachability tells it apart`,
+      handEditedChain[gateId].publishedResult === 'NOT_APPLICABLE' &&
+        runAggregator(handEditedChain, { decision: handEdited }).status === 0,
+      handEditedChain[gateId].publishedResult,
+    );
+    // A fixture that touches the selected gate's own surface cannot produce the
+    // positive scenario at all — the real classifier calls the gate APPLICABLE.
+    const ownSurface = computeApplicability({
+      paths: [...gateExclusiveSurface(gateId)],
+      identity: IDENTITY,
+    }).decision;
+    check(
+      `FIXTURE MUTANT ("${gateId}"): a change set of the gate's OWN surface classifies APPLICABLE`,
+      ownSurface.gates[gateId] === 'APPLICABLE' && ownSurface.reasons[gateId] === 'relevant-path-changed',
+      JSON.stringify(ownSurface.gates),
+    );
+  }
+  // An EMPTY change set fails closed to APPLICABLE for every gate, so no
+  // degenerate fixture can fabricate NOT_APPLICABLE.
+  const emptyChangeSet = computeApplicability({ paths: [], identity: IDENTITY }).decision;
+  check(
+    'FIXTURE MUTANT (empty change set): the classifier fails closed to APPLICABLE for every registered gate',
+    GATE_IDS.every(
+      (gateId) =>
+        emptyChangeSet.gates[gateId] === 'APPLICABLE' &&
+        emptyChangeSet.reasons[gateId] === 'unresolved-or-empty-change-set',
+    ),
+    JSON.stringify(emptyChangeSet.gates),
+  );
+  // Omission coverage: one REAL classifier-produced inert fixture and one
+  // executed inert run per registered gate, no more and no fewer.
+  check(
+    'FIXTURE COVERAGE: every registered gate has a classifier-produced inert fixture and an executed inert run',
+    Object.keys(inertFixtures).sort().join(',') === [...GATE_IDS].join(',') &&
+      Object.keys(inertRuns).sort().join(',') === [...GATE_IDS].join(',') &&
+      GATE_IDS.every((gateId) => isClassifierReachable(inertFixtures[gateId].decision)),
+    `fixtures=${Object.keys(inertFixtures).sort().join(',')} runs=${Object.keys(inertRuns).sort().join(',')}`,
+  );
 
   // ==========================================================================
   // 3. MUTATION COVERAGE — every mutation must be BEHAVIOURALLY observable
