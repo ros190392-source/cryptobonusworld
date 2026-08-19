@@ -459,11 +459,46 @@ export function allSteps(job) {
 // blocking work, so the unknown case is the SAFE case.
 
 /**
- * The ONLY commands a reporting step may invoke. Both are here because their
- * entire semantic effect is producing text on stdout. Nothing else qualifies —
- * not `cat`, not `tee`, not `:`.
+ * The ONLY command a reporting step may invoke.
+ *
+ * `echo` alone, and the singular is the point. `echo` is a shell builtin whose
+ * ENTIRE effect is bytes on stdout: it cannot assign a variable, export one,
+ * open a file, or change any state the next command can observe. That makes the
+ * policy STATELESS — every line can be judged on its own, because no line can
+ * change what a later line means.
+ *
+ * `printf` used to be here and was REMOVED, because it breaks exactly that
+ * property. Bash's builtin `printf` takes `-v NAME`, which assigns to a shell
+ * variable instead of printing:
+ *
+ *     printf -v GITHUB_STEP_SUMMARY /tmp/not-summary >> "$GITHUB_STEP_SUMMARY"
+ *     echo "payload" >> "$GITHUB_STEP_SUMMARY"
+ *
+ * Both lines pass a per-line "command is allowlisted, redirect names the
+ * approved target" test, yet the SECOND redirect expands a variable the FIRST
+ * line rewrote — the payload lands in an attacker-chosen file while the body
+ * reads as summary-only. No amount of option parsing fixes this safely: it
+ * would mean modelling `printf`'s full option grammar and then trusting that
+ * model, when the only thing the real legacy summary step ever needed was
+ * `echo`. Under-accepting costs a summary step its exclusion and nothing more;
+ * over-accepting is how blocking work disappears. So `printf` stays out, and
+ * any body containing it remains BLOCKING work.
  */
-const SUMMARY_ONLY_COMMANDS = new Set(['echo', 'printf']);
+const SUMMARY_ONLY_COMMANDS = new Set(['echo']);
+
+/**
+ * Words that could carry state or option semantics, rejected wherever they
+ * appear — command position or argument position, and regardless of the command
+ * they sit next to.
+ *
+ * `NAME=value` is a shell assignment (`GITHUB_STEP_SUMMARY=/tmp/x`, or the
+ * prefix form `GITHUB_STEP_SUMMARY=/tmp/x echo hi`), and a leading `-` is an
+ * option, which is how `printf -v` smuggled an assignment past a
+ * command-name-only allowlist. Neither has any business in prose destined for a
+ * markdown summary — every argument in the real legacy step is a quoted string
+ * — so both are refused structurally rather than reasoned about per command.
+ */
+const STATE_MUTATING_WORD = /^(?:-|[A-Za-z_][A-Za-z0-9_]*=)/;
 
 /**
  * The ONLY redirection destinations, as EXACT source spellings, because quoting
@@ -567,13 +602,13 @@ function isSummaryRedirect(tokens) {
 }
 
 /**
- * Is this `run:` body PURE SUMMARY TEXT — nothing but `echo`/`printf` whose only
+ * Is this `run:` body PURE SUMMARY TEXT — nothing but `echo` whose only
  * destination is $GITHUB_STEP_SUMMARY?
  *
  * Accepts exactly two shapes, both of which must actually reach the summary:
  *
  *   1. `echo …  >> "$GITHUB_STEP_SUMMARY"` — a per-command redirect.
- *   2. `{ … } >> "$GITHUB_STEP_SUMMARY"` — a brace group of bare `echo`/`printf`
+ *   2. `{ … } >> "$GITHUB_STEP_SUMMARY"` — a brace group of bare `echo`
  *      commands whose SINGLE redirect is the group's. This is the shape the real
  *      legacy Exchange Preview Family `Summary` step uses.
  *
@@ -610,9 +645,16 @@ export function isSummaryOnlyReportingBody(body) {
     }
     const tokens = tokenizeSummaryOnlyLine(line);
     if (tokens === null || tokens.length === 0) return false;
-    // THE ALLOWLIST. `python`, `bash`, `git`, `./script`, `chmod`, `export` and
-    // every other executable fail here by not being on it — no denylist needed.
+    // THE ALLOWLIST. `python`, `bash`, `git`, `./script`, `chmod`, `export`,
+    // `printf` and every other executable fail here by not being on it — no
+    // denylist needed. `GITHUB_STEP_SUMMARY=/tmp/x` fails here too: an
+    // assignment word is not `echo`.
     if (tokens[0].operator || !SUMMARY_ONLY_COMMANDS.has(tokens[0].raw)) return false;
+    // NO WORD may look like an option or an assignment, anywhere in the line.
+    // This is what makes the policy stateless: with `printf` gone there is no
+    // allowlisted command that CAN mutate state, and this refuses the shapes
+    // that would carry state even if one ever reappeared.
+    if (tokens.some((token) => !token.operator && STATE_MUTATING_WORD.test(token.raw))) return false;
     const operatorAt = tokens.findIndex((token) => token.operator);
     if (operatorAt === -1) {
       // No redirect of its own: legitimate ONLY inside a group that redirects to
@@ -658,7 +700,7 @@ export function isSummaryOnlyReportingBody(body) {
  *   2. `if: always()` EXACTLY — it therefore never changes WHICH steps run. A
  *      narrower condition would make it observable in the failure cross-product.
  *   3. Its body is PROVABLY SUMMARY-ONLY under `isSummaryOnlyReportingBody` — a
- *      positive allowlist of `echo`/`printf` writing only to
+ *      positive allowlist of `echo` writing only to
  *      $GITHUB_STEP_SUMMARY. Not "it mentions the summary and is not npm": that
  *      is a denylist, and every executable absent from a denylist (python, bash,
  *      pwsh, git, curl, ./script, chmod, …) is a hole.

@@ -4039,6 +4039,110 @@ const SUMMARY_BODY_ADVERSARIES = Object.freeze([
   ['a TRUNCATING redirect, which destroys other steps\' summary output', 'echo "ok" > "$GITHUB_STEP_SUMMARY"\n'],
   ['a heredoc (deliberately unmodelled, therefore fail-closed)', 'cat <<\'EOF\' >> "$GITHUB_STEP_SUMMARY"\nhi\nEOF\n'],
   ['a herestring into tee', 'tee -a "$GITHUB_STEP_SUMMARY" <<< "hi"\n'],
+  // --- MEDIUM 3: STATE MUTATION and TARGET IDENTITY -------------------------
+  // R1 allowlisted `printf` alongside `echo`, and that made the policy
+  // STATEFUL: bash's builtin `printf -v NAME` ASSIGNS to a shell variable
+  // instead of printing, so one line could rewrite $GITHUB_STEP_SUMMARY and the
+  // NEXT line's redirect would expand the rewritten value — the body reads as
+  // summary-only while the payload lands in an attacker-chosen file. `printf`
+  // is now refused OUTRIGHT, with no option grammar modelled at all, because
+  // modelling one is precisely what went wrong. The plain, optionless `printf`
+  // forms below are here to prove the removal is TOTAL rather than
+  // option-shaped. No word anywhere may look like an option or an assignment,
+  // and the redirect target must be the literal approved spelling — a prefix,
+  // a suffix, an indirection or a substitution is a DIFFERENT file.
+  [
+    "the stateful `printf -v` bypass \u2014 it rewrites $GITHUB_STEP_SUMMARY, then writes the payload",
+    "printf -v GITHUB_STEP_SUMMARY /tmp/not-summary >> \"$GITHUB_STEP_SUMMARY\"\necho \"payload\" >> \"$GITHUB_STEP_SUMMARY\"\n",
+  ],
+  [
+    "`printf -v` alone, with no later write at all",
+    "printf -v GITHUB_STEP_SUMMARY /tmp/not-summary >> \"$GITHUB_STEP_SUMMARY\"\n",
+  ],
+  [
+    "`printf --help`, an option-like first argument",
+    "printf --help >> \"$GITHUB_STEP_SUMMARY\"\n",
+  ],
+  [
+    "`printf -`, a bare option-like argument",
+    "printf - >> \"$GITHUB_STEP_SUMMARY\"\n",
+  ],
+  [
+    "`printf -v` mutating some OTHER variable",
+    "printf -v OUT hi >> \"$GITHUB_STEP_SUMMARY\"\n",
+  ],
+  [
+    "`printf` mutating a variable and mixing with a later echo inside one brace group",
+    "{\n  printf -v GITHUB_STEP_SUMMARY /tmp/not-summary\n  echo \"payload\"\n} >> \"$GITHUB_STEP_SUMMARY\"\n",
+  ],
+  [
+    "plain `printf` with a format string and no options at all",
+    "printf '%s\\n' \"### Report\" >> \"$GITHUB_STEP_SUMMARY\"\n",
+  ],
+  [
+    "plain `printf` inside the brace-group form",
+    "{\n  printf '%s\\n' \"### Report\"\n} >> \"$GITHUB_STEP_SUMMARY\"\n",
+  ],
+  [
+    "`printf` followed by a later echo",
+    "printf '%s\\n' \"hi\" >> \"$GITHUB_STEP_SUMMARY\"\necho \"ok\" >> \"$GITHUB_STEP_SUMMARY\"\n",
+  ],
+  [
+    "an echo followed by a later `printf`",
+    "echo \"ok\" >> \"$GITHUB_STEP_SUMMARY\"\nprintf '%s\\n' \"hi\" >> \"$GITHUB_STEP_SUMMARY\"\n",
+  ],
+  [
+    "a bare reassignment of the summary target before a valid-looking write",
+    "GITHUB_STEP_SUMMARY=/tmp/x\necho \"payload\" >> \"$GITHUB_STEP_SUMMARY\"\n",
+  ],
+  [
+    "an `export` reassignment of the summary target",
+    "export GITHUB_STEP_SUMMARY=/tmp/x\necho \"payload\" >> \"$GITHUB_STEP_SUMMARY\"\n",
+  ],
+  [
+    "a per-command assignment PREFIX on an otherwise valid echo",
+    "GITHUB_STEP_SUMMARY=/tmp/x echo \"payload\" >> \"$GITHUB_STEP_SUMMARY\"\n",
+  ],
+  [
+    "a `readonly` declaration of the summary target",
+    "readonly GITHUB_STEP_SUMMARY=/tmp/x\necho \"payload\" >> \"$GITHUB_STEP_SUMMARY\"\n",
+  ],
+  [
+    "a `declare` declaration of the summary target",
+    "declare GITHUB_STEP_SUMMARY=/tmp/x\necho \"payload\" >> \"$GITHUB_STEP_SUMMARY\"\n",
+  ],
+  [
+    "a `typeset` declaration of the summary target",
+    "typeset GITHUB_STEP_SUMMARY=/tmp/x\necho \"payload\" >> \"$GITHUB_STEP_SUMMARY\"\n",
+  ],
+  [
+    "a `local` declaration of the summary target",
+    "local GITHUB_STEP_SUMMARY=/tmp/x\necho \"payload\" >> \"$GITHUB_STEP_SUMMARY\"\n",
+  ],
+  [
+    "a `set` builtin invocation before a summary write",
+    "set -x\necho \"payload\" >> \"$GITHUB_STEP_SUMMARY\"\n",
+  ],
+  [
+    "`unset` of the summary target before a summary write",
+    "unset GITHUB_STEP_SUMMARY\necho \"payload\" >> \"$GITHUB_STEP_SUMMARY\"\n",
+  ],
+  [
+    "an option-like argument to the allowlisted echo",
+    "echo -v GITHUB_STEP_SUMMARY /tmp/x >> \"$GITHUB_STEP_SUMMARY\"\n",
+  ],
+  [
+    "a target derived by parameter default expansion",
+    "echo \"payload\" >> \"${GITHUB_STEP_SUMMARY:-/tmp/x}\"\n",
+  ],
+  [
+    "a target that merely has the approved name as a PREFIX",
+    "echo \"payload\" >> \"$GITHUB_STEP_SUMMARY_BACKUP\"\n",
+  ],
+  [
+    "a target suffixed onto the approved variable",
+    "echo \"payload\" >> \"${GITHUB_STEP_SUMMARY}.bak\"\n",
+  ],
 ]);
 for (const [label, body] of SUMMARY_BODY_ADVERSARIES) {
   check(
@@ -4056,11 +4160,39 @@ for (const [label, body] of SUMMARY_BODY_ADVERSARIES) {
     `blocking=${legacyBlockingSteps(job).length} run=${runSteps(job).length}`,
   );
 }
+// Target-identity adversaries that never NAME the approved variable at all, so
+// the pre-fix denylist would have rejected them for a different reason and no
+// "genuinely adversarial against the old rule" claim can honestly be made. They
+// are carried anyway: the redirect target must be the LITERAL approved
+// spelling, and a derived or indirect one is a different file.
+const SUMMARY_TARGET_ADVERSARIES = Object.freeze([
+  [
+    "an INDIRECT target variable",
+    "echo \"payload\" >> \"$SUMMARY_FILE\"\n",
+  ],
+  [
+    "an indirect expansion of the target name",
+    "echo \"payload\" >> \"${!TARGET}\"\n",
+  ],
+  [
+    "a target DERIVED by command substitution",
+    "echo \"payload\" >> \"$(mktemp)\"\n",
+  ],
+]);
+for (const [label, body] of SUMMARY_TARGET_ADVERSARIES) {
+  check(`REPORTING/M3: the summary-only ALLOWLIST rejects ${label}`, !isSummaryOnlyReportingBody(body), body.slice(0, 80));
+  const job = { steps: [...legacyExchangeSteps.slice(0, -1), { name: 'Summary', if: 'always()', run: body }] };
+  check(
+    `REPORTING/M3: a terminal step NAMED "Summary" writing to ${label} stays BLOCKING work`,
+    terminalReportingStep(job) === null && legacyBlockingSteps(job).length === runSteps(job).length,
+    `blocking=${legacyBlockingSteps(job).length} run=${runSteps(job).length}`,
+  );
+}
+
 // The shapes that MUST still qualify, so the allowlist is not vacuously strict.
 const SUMMARY_BODY_ACCEPTED = Object.freeze([
   ['the real legacy brace-group form', String(realSummaryStep?.run ?? '')],
   ['a single echo with a per-command redirect', 'echo "### Report" >> "$GITHUB_STEP_SUMMARY"\n'],
-  ['printf with a per-command redirect', 'printf \'%s\\n\' "### Report" >> "$GITHUB_STEP_SUMMARY"\n'],
   ['the braced form of the variable', 'echo "ok" >> "${GITHUB_STEP_SUMMARY}"\n'],
   ['an unquoted target', 'echo "ok" >> $GITHUB_STEP_SUMMARY\n'],
   ['a comment line among the summary writes', '# render the table\necho "ok" >> "$GITHUB_STEP_SUMMARY"\n'],
@@ -4068,6 +4200,88 @@ const SUMMARY_BODY_ACCEPTED = Object.freeze([
 for (const [label, body] of SUMMARY_BODY_ACCEPTED) {
   check(`REPORTING/M2: the allowlist still ACCEPTS ${label}`, isSummaryOnlyReportingBody(body), body.slice(0, 80));
 }
+
+// --- MEDIUM 3, DEDICATED: the stateful `printf` bypass ----------------------
+//
+// Codex R1 reproduced this body against the R1 policy and got bodyAccepted=true,
+// stepExcluded=true. Line 1 passed as "an allowlisted command redirected at the
+// approved target" while its REAL effect was `printf -v` assigning to the shell
+// variable; line 2 then expanded the rewritten value, so the payload went to
+// /tmp/not-summary and the step was dropped from the parity comparison anyway.
+//
+// This block pins the CURRENT behaviour through the real predicates. The
+// old-versus-new half of the proof is the R1-restoration mutant further down,
+// which must ACCEPT this exact body — so the two together say "it used to
+// qualify, it no longer does" as evidence rather than as narration.
+const STATEFUL_PRINTF_BYPASS =
+  'printf -v GITHUB_STEP_SUMMARY /tmp/not-summary >> "$GITHUB_STEP_SUMMARY"\n'
+  + 'echo "payload" >> "$GITHUB_STEP_SUMMARY"\n';
+const statefulPrintfStep = { name: 'Summary', if: 'always()', run: STATEFUL_PRINTF_BYPASS };
+const statefulPrintfJob = { steps: [...legacyExchangeSteps.slice(0, -1), statefulPrintfStep] };
+check(
+  'REPORTING/M3: the stateful `printf -v` body defeats the pre-fix denylist too (it is adversarial at every layer)',
+  oldPredicateWouldAccept(STATEFUL_PRINTF_BYPASS),
+);
+check(
+  'REPORTING/M3: every line of the bypass would pass a command-name-only reading — the danger is the STATE, not the name',
+  STATEFUL_PRINTF_BYPASS.split('\n').filter((line) => line.trim() !== '')
+    .every((line) => /^(echo|printf)\b/.test(line.trim())),
+);
+check(
+  'REPORTING/M3: the stateful `printf -v` bypass body is NOT summary-only',
+  isSummaryOnlyReportingBody(STATEFUL_PRINTF_BYPASS) === false,
+);
+check(
+  'REPORTING/M3: …so the terminal step carrying it is NOT excluded (terminalReportingStep returns null)',
+  terminalReportingStep(statefulPrintfJob) === null,
+  JSON.stringify(terminalReportingStep(statefulPrintfJob)?.name ?? null),
+);
+check(
+  'REPORTING/M3: …and it stays in the blocking set, BY IDENTITY, where command parity must reproduce it',
+  legacyBlockingSteps(statefulPrintfJob).includes(statefulPrintfStep)
+    && legacyBlockingSteps(statefulPrintfJob).length === runSteps(statefulPrintfJob).length,
+  `blocking=${legacyBlockingSteps(statefulPrintfJob).length} run=${runSteps(statefulPrintfJob).length}`,
+);
+check(
+  'REPORTING/M3: the blocking command sequence therefore ends with the bypass body itself',
+  String(legacyBlockingSteps(statefulPrintfJob).slice(-1)[0]?.run) === STATEFUL_PRINTF_BYPASS,
+);
+// The same shape with the mutation expressed as a plain assignment rather than
+// through `printf`, so the property proved is "no state mutation", not "no
+// printf".
+const ASSIGNMENT_BYPASS = 'GITHUB_STEP_SUMMARY=/tmp/x\necho "payload" >> "$GITHUB_STEP_SUMMARY"\n';
+const assignmentStep = { name: 'Summary', if: 'always()', run: ASSIGNMENT_BYPASS };
+const assignmentJob = { steps: [...legacyExchangeSteps.slice(0, -1), assignmentStep] };
+check(
+  'REPORTING/M3: a bare $GITHUB_STEP_SUMMARY reassignment before a valid-looking write is NOT summary-only',
+  isSummaryOnlyReportingBody(ASSIGNMENT_BYPASS) === false,
+);
+check(
+  'REPORTING/M3: …and that step stays blocking work as well',
+  terminalReportingStep(assignmentJob) === null
+    && legacyBlockingSteps(assignmentJob).includes(assignmentStep),
+);
+// `printf` is gone TOTALLY, not narrowed: no form of it qualifies, with or
+// without options, alone or beside an echo, per-command or inside the group.
+const EVERY_PRINTF_FORM = Object.freeze([
+  'printf "hi" >> "$GITHUB_STEP_SUMMARY"\n',
+  'printf \'%s\\n\' "hi" >> "$GITHUB_STEP_SUMMARY"\n',
+  'printf -v X hi >> "$GITHUB_STEP_SUMMARY"\n',
+  'printf --help >> "$GITHUB_STEP_SUMMARY"\n',
+  '{\n  printf "hi"\n} >> "$GITHUB_STEP_SUMMARY"\n',
+  '{\n  echo "ok"\n  printf "hi"\n} >> "$GITHUB_STEP_SUMMARY"\n',
+  'echo "ok" >> "$GITHUB_STEP_SUMMARY"\nprintf "hi" >> "$GITHUB_STEP_SUMMARY"\n',
+]);
+check(
+  'REPORTING/M3: EVERY `printf` form is blocking — support was removed, not narrowed',
+  EVERY_PRINTF_FORM.every((body) => isSummaryOnlyReportingBody(body) === false),
+  JSON.stringify(EVERY_PRINTF_FORM.filter((body) => isSummaryOnlyReportingBody(body))),
+);
+check(
+  'REPORTING/M3: the allowlist contains exactly one command, and it is `echo`',
+  EVERY_PRINTF_FORM.length === 7
+    && isSummaryOnlyReportingBody('echo "ok" >> "$GITHUB_STEP_SUMMARY"\n') === true,
+);
 
 // --- step-shaped near misses, preserved from the pre-fix suite ---------------
 const asSummaryStep = (overrides) => ({
@@ -4156,11 +4370,18 @@ try {
       ifSuccess: asSummaryStep({ if: 'success()' }),
       shellPwsh: asSummaryStep({ shell: 'pwsh' }),
       runPlusUses: asSummaryStep({ uses: 'actions/upload-artifact@v4' }),
+      // The reviewed MEDIUM 3, carried as a JOB so the mutant is judged through
+      // the real `terminalReportingStep` path rather than the body helper alone.
+      statefulPrintfBypass: statefulPrintfJob,
+      assignmentBypass: assignmentJob,
     },
     bodies: {
       gitStatus: 'git status >> "$GITHUB_STEP_SUMMARY"\n',
       otherFile: 'echo "secret" >> /tmp/exfil.txt\n',
       commandSubstitution: 'echo "$(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"\n',
+      plainPrintf: 'printf \'%s\\n\' "### Report" >> "$GITHUB_STEP_SUMMARY"\n',
+      echoOptionWord: 'echo -v GITHUB_STEP_SUMMARY /tmp/x >> "$GITHUB_STEP_SUMMARY"\n',
+      exportAssignment: 'export GITHUB_STEP_SUMMARY=/tmp/x\necho "payload" >> "$GITHUB_STEP_SUMMARY"\n',
     },
   };
   const fixturesFile = join(reportingSandbox, 'fixtures.json');
@@ -4198,7 +4419,11 @@ try {
   // mutant as caught. Both failure modes die here.
   const control = probeRegistry('the real, unmutated registry', asRunnableGates(baseGates));
   check('REPORTING/MUTANT CONTROL: the real registry qualifies the real legacy Summary', control.realSummary === true);
-  for (const key of ['usesAfterSummary', 'ifSuccess', 'shellPwsh', 'runPlusUses', 'gitStatus', 'otherFile', 'commandSubstitution']) {
+  for (const key of [
+    'usesAfterSummary', 'ifSuccess', 'shellPwsh', 'runPlusUses',
+    'gitStatus', 'otherFile', 'commandSubstitution',
+    'statefulPrintfBypass', 'assignmentBypass', 'plainPrintf', 'echoOptionWord', 'exportAssignment',
+  ]) {
     check(`REPORTING/MUTANT CONTROL: the real registry REJECTS fixture "${key}"`, control[key] === false, String(control[key]));
   }
   const PREDICATE_MUTANTS = Object.freeze([
@@ -4259,6 +4484,46 @@ try {
       adversary: '`echo "$(git rev-parse HEAD)"`',
     },
     {
+      // THE REVIEWED MEDIUM 3, restored exactly. Both defences are removed
+      // together because that IS the R1 policy: `printf` allowlisted, and no
+      // inspection of any word beyond the command name. The mutant must accept
+      // the stateful bypass — that is what "it used to qualify" means as
+      // evidence, and this check fails the moment R1 is reintroduced.
+      label: 'the R1 summary-only policy restored (printf allowlisted, no option/assignment word guard)',
+      replacements: [
+        ["const SUMMARY_ONLY_COMMANDS = new Set(['echo']);", "const SUMMARY_ONLY_COMMANDS = new Set(['echo', 'printf']);"],
+        [
+          '    if (tokens.some((token) => !token.operator && STATE_MUTATING_WORD.test(token.raw))) return false;',
+          '    if (false) return false;',
+        ],
+      ],
+      fixture: 'statefulPrintfBypass',
+      adversary: 'the stateful `printf -v GITHUB_STEP_SUMMARY …` bypass',
+    },
+    {
+      // Re-adding `printf` LOOSELY, on its own. Even with the word guard still
+      // in place this widens the accepted grammar, and the fixture proves it.
+      label: '`printf` re-added to the command allowlist',
+      replacements: [
+        ["const SUMMARY_ONLY_COMMANDS = new Set(['echo']);", "const SUMMARY_ONLY_COMMANDS = new Set(['echo', 'printf']);"],
+      ],
+      fixture: 'plainPrintf',
+      adversary: 'a plain `printf` summary write',
+    },
+    {
+      // The option/assignment word guard on its own. It is the layer that keeps
+      // option grammar from broadening acceptance at all.
+      label: 'the option/assignment word guard removed',
+      replacements: [
+        [
+          '    if (tokens.some((token) => !token.operator && STATE_MUTATING_WORD.test(token.raw))) return false;',
+          '    if (false) return false;',
+        ],
+      ],
+      fixture: 'echoOptionWord',
+      adversary: 'an option-like word in an otherwise allowlisted command',
+    },
+    {
       label: 'the `uses:`-alongside-`run:` guard removed',
       replacements: [
         [
@@ -4293,10 +4558,23 @@ try {
       `REPORTING/MUTANT: the real registry rejects the very fixture "${mutantSpec.label}" admits`,
       control[mutantSpec.fixture] === false,
     );
+    // DEFENCE IN DEPTH: reassigning $GITHUB_STEP_SUMMARY must stay rejected no
+    // matter WHICH single rule was softened. A body that mutates the target and
+    // then writes to it may never qualify through any one-rule regression.
+    check(
+      `REPORTING/MUTANT: softening "${mutantSpec.label}" still does NOT admit a bare $GITHUB_STEP_SUMMARY reassignment`,
+      verdicts.assignmentBypass === false,
+      String(verdicts.assignmentBypass),
+    );
+    check(
+      `REPORTING/MUTANT: softening "${mutantSpec.label}" still does NOT admit an \`export\` reassignment`,
+      verdicts.exportAssignment === false,
+      String(verdicts.exportAssignment),
+    );
   }
   check(
     'REPORTING/MUTANT: every predicate rule was mutated individually (plus the unmutated control)',
-    mutantIndex === PREDICATE_MUTANTS.length + 1 && PREDICATE_MUTANTS.length >= 7,
+    mutantIndex === PREDICATE_MUTANTS.length + 1 && PREDICATE_MUTANTS.length >= 10,
     `${mutantIndex} probes / ${PREDICATE_MUTANTS.length} mutants`,
   );
 } finally {

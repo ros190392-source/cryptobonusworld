@@ -205,8 +205,11 @@ for (const gateId of GATE_IDS) {
     );
     // The load-bearing one. NOT "it is not npm/node" — that is a denylist, and
     // python, bash, pwsh, git, curl, ./script and chmod are all absent from it.
-    // This is the positive policy: the body is nothing but echo/printf whose
-    // only destination is the step summary.
+    // This is the positive policy: the body is nothing but `echo` — the one
+    // command that cannot mutate state — whose only destination is the step
+    // summary. `printf` is deliberately NOT allowed: `printf -v NAME` assigns
+    // to a shell variable, which would let a later redirect expand a rewritten
+    // $GITHUB_STEP_SUMMARY and land the payload elsewhere.
     check(
       `"${gateId}": the excluded reporting step's body is PROVABLY SUMMARY-ONLY (positive allowlist, not an executable denylist)`,
       isSummaryOnlyReportingBody(String(reportingStep.run)),
