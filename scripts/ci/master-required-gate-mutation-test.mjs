@@ -28,7 +28,16 @@ import {
   auditRegistryPortfolioAlignment,
   extractCallExpressions,
 } from './master-required-gate-workflow-contract.mjs';
-import { GATES, GATE_IDS, applicabilityDigest } from './master-required-gate-gates.mjs';
+import yaml from 'js-yaml';
+import {
+  GATES,
+  GATE_IDS,
+  applicabilityDigest,
+  isSummaryOnlyReportingBody,
+  legacyBlockingSteps,
+  runSteps,
+  terminalReportingStep,
+} from './master-required-gate-gates.mjs';
 import { evaluateEnforcementReadiness } from './master-blocking-portfolio-contract.mjs';
 
 const ROOT = resolve(process.cwd());
@@ -3830,6 +3839,468 @@ try {
   }
 } finally {
   rmSync(sandbox, { recursive: true, force: true });
+}
+
+// =============================================================================
+// S2-04 R1 / MEDIUM 1 + MEDIUM 2 — THE REPORTING-STEP EXCLUSION IS EARNED
+// =============================================================================
+//
+// Batch 02 introduced the first exclusion from command parity: a legacy job's
+// terminal `Summary` step is not reproduced by the unified blocker. An exclusion
+// is a hole in the parity proof, so the predicate that grants it is the single
+// most attackable surface this batch added, and R1 review found it porous in two
+// independent ways:
+//
+//   MEDIUM 1 — terminality was computed over RUN steps only. `Summary` followed
+//   by `uses: actions/upload-artifact` therefore read as terminal: the summary
+//   was the last RUN step while a real action executed after it. The exclusion
+//   would have been concealing work that genuinely ran.
+//
+//   MEDIUM 2 — the body test was a DENYLIST ("mentions the summary, is not
+//   npm/node/npx/yarn/pnpm"). Every executable absent from those five names —
+//   python, python3, bash, sh, pwsh, powershell, git, curl, wget, ./script,
+//   chmod, cp, mv, rm — sailed straight through, as did command substitution,
+//   pipelines and writes to other files.
+//
+// Both are now structural properties, and this section attacks them the only way
+// that constitutes evidence: with a corpus that DEFEATS THE OLD PREDICATE. Every
+// body below references $GITHUB_STEP_SUMMARY and contains none of the five
+// denied names, so the pre-fix predicate would have excluded each one from
+// parity. That is asserted case by case, so "positive allowlist, not executable
+// denylist" is demonstrated rather than claimed.
+//
+// Nothing here is keyed to the name "Summary" — the corpus is built by mutating
+// the REAL legacy job structurally, and a rename is separately proved not to
+// change any verdict.
+
+const LEGACY_EXCHANGE_WORKFLOW = resolve(ROOT, '.github/workflows/cbw-exchange-preview-family.yml');
+const legacyExchangeDoc = yaml.load(readFileSync(LEGACY_EXCHANGE_WORKFLOW, 'utf8'), { schema: yaml.CORE_SCHEMA });
+const legacyExchangeJob = legacyExchangeDoc?.jobs?.['exchange-preview-family'];
+const legacyExchangeSteps = Array.isArray(legacyExchangeJob?.steps) ? legacyExchangeJob.steps : [];
+const realSummaryStep = legacyExchangeSteps[legacyExchangeSteps.length - 1];
+
+// The pre-fix rule, restated here EXACTLY as it stood, so the corpus below can be
+// proved adversarial against it instead of merely asserted to be.
+const OLD_DENYLIST = /(^|[\s;&|(`])(npm|node|npx|yarn|pnpm)([\s;&|)`]|$)/;
+const oldPredicateWouldAccept = (body) =>
+  String(body).includes('GITHUB_STEP_SUMMARY') && !OLD_DENYLIST.test(String(body));
+
+// --- the REAL legacy Summary, and WHY it qualifies ---------------------------
+check(
+  'REPORTING: the real legacy Exchange Preview Family job was parsed and ends in a step',
+  Boolean(realSummaryStep) && typeof realSummaryStep?.run === 'string',
+  JSON.stringify(realSummaryStep?.name ?? null),
+);
+check(
+  'REPORTING: the real legacy Summary is the job\'s LAST ACTUAL step (nothing of any shape follows it)',
+  legacyExchangeSteps.indexOf(realSummaryStep) === legacyExchangeSteps.length - 1,
+);
+check(
+  'REPORTING: the real legacy Summary qualifies under the STRICT predicate',
+  terminalReportingStep(legacyExchangeJob) === realSummaryStep,
+  JSON.stringify(terminalReportingStep(legacyExchangeJob)?.name ?? null),
+);
+check(
+  'REPORTING: it qualifies because its BODY is provably summary-only — `{ echo … } >> "$GITHUB_STEP_SUMMARY"`',
+  isSummaryOnlyReportingBody(String(realSummaryStep?.run ?? '')),
+  String(realSummaryStep?.run ?? '').slice(0, 120),
+);
+check(
+  'REPORTING: excluding it leaves the four real legacy commands intact',
+  JSON.stringify(legacyBlockingSteps(legacyExchangeJob).map((step) => String(step.run).trim()))
+    === JSON.stringify([
+      'npm ci',
+      'npm run build',
+      'node scripts/ui/exchange-preview-family-browser-smoke.mjs',
+      'node scripts/seo/site-indexability-inventory.mjs',
+    ]),
+  JSON.stringify(legacyBlockingSteps(legacyExchangeJob).map((step) => String(step.run).trim())),
+);
+// NOT NAME-BASED. The same step called something else still qualifies, and a
+// step called "Summary" that does real work does not (proved further down).
+const renamedSummaryJob = {
+  steps: [...legacyExchangeSteps.slice(0, -1), { ...realSummaryStep, name: 'Post-run reporting block' }],
+};
+check(
+  'REPORTING: renaming the step away from "Summary" does not change the verdict — the property is STRUCTURAL',
+  terminalReportingStep(renamedSummaryJob)?.name === 'Post-run reporting block',
+);
+
+// --- MEDIUM 1: terminality is judged over the COMPLETE step array ------------
+const withTrailingStep = (extra) => ({ steps: [...legacyExchangeSteps, extra] });
+const TERMINALITY_ADVERSARIES = Object.freeze([
+  ['a `uses:` action is appended after it', { name: 'Upload artifact', uses: 'actions/upload-artifact@v4' }],
+  [
+    'an `if: always()` `uses:` action is appended after it',
+    { name: 'Always upload', if: 'always()', uses: 'actions/upload-artifact@v4' },
+  ],
+  [
+    'a composite `uses:` action with inputs is appended after it',
+    { name: 'Publish', uses: './.github/actions/publish', with: { target: 'production' } },
+  ],
+  ['another `run:` step is appended after it', { name: 'Cleanup', run: 'rm -rf dist' }],
+  [
+    'an `if: always()` `run:` step is appended after it',
+    { name: 'Cleanup', if: 'always()', run: 'rm -rf dist' },
+  ],
+  ['a shell-less step with neither `run:` nor `uses:` is appended after it', { name: 'Bare step' }],
+  ['a step carrying only `with:` is appended after it', { name: 'Odd step', with: { anything: 'here' } }],
+]);
+for (const [label, extra] of TERMINALITY_ADVERSARIES) {
+  const job = withTrailingStep(extra);
+  check(
+    `REPORTING/M1: NOTHING is excluded when ${label}`,
+    terminalReportingStep(job) === null,
+    JSON.stringify(terminalReportingStep(job)?.name ?? null),
+  );
+  check(
+    `REPORTING/M1: command parity therefore KEEPS the Summary as blocking work when ${label}`,
+    legacyBlockingSteps(job).includes(realSummaryStep),
+  );
+  // Says exactly what is true of THIS case rather than one blurred claim over
+  // both halves of the corpus. A NON-run trailing step leaves the Summary as the
+  // last RUN step, which is precisely the state the pre-fix rule mistook for
+  // terminality — those are the cases that reproduce the reviewed MEDIUM 1. A
+  // trailing RUN step does not reproduce it, and is carried anyway because it is
+  // the case a positional `slice(0, -1)` gets wrong.
+  if (typeof extra.run === 'string') {
+    check(
+      `REPORTING/M1: when ${label}, the Summary is no longer the last RUN step either`,
+      runSteps(job)[runSteps(job).length - 1] !== realSummaryStep,
+    );
+  } else {
+    check(
+      `REPORTING/M1: when ${label}, the Summary IS still the last RUN step — this case reproduces the reviewed MEDIUM 1 exactly`,
+      runSteps(job)[runSteps(job).length - 1] === realSummaryStep,
+    );
+  }
+}
+// The positive control for identity-based removal: with a SECOND qualifying
+// summary appended, the excluded step is the new last one and the ORIGINAL
+// Summary becomes blocking work again. A positional `slice(0, -1)` cannot
+// express this.
+const doubleSummaryJob = withTrailingStep({
+  name: 'Second summary',
+  if: 'always()',
+  run: 'echo "more" >> "$GITHUB_STEP_SUMMARY"\n',
+});
+check(
+  'REPORTING/M1: with a second qualifying summary appended, the EXCLUDED step is the new last one',
+  terminalReportingStep(doubleSummaryJob)?.name === 'Second summary',
+);
+check(
+  'REPORTING/M1: …and the original Summary returns to the blocking sequence (removal is by IDENTITY)',
+  legacyBlockingSteps(doubleSummaryJob).includes(realSummaryStep),
+);
+
+// --- MEDIUM 2: the body policy is a POSITIVE ALLOWLIST -----------------------
+// Every entry writes to $GITHUB_STEP_SUMMARY and avoids npm/node/npx/yarn/pnpm,
+// so every entry defeats the pre-fix denylist. All must be rejected.
+const SUMMARY_BODY_ADVERSARIES = Object.freeze([
+  ['python invoking a repository script', 'python scripts/check.py >> "$GITHUB_STEP_SUMMARY"\n'],
+  ['python3 invoking a repository script', 'python3 scripts/check.py >> "$GITHUB_STEP_SUMMARY"\n'],
+  ['bash invoking a repository script', 'bash scripts/check.sh >> "$GITHUB_STEP_SUMMARY"\n'],
+  ['sh invoking a repository script', 'sh scripts/check.sh >> "$GITHUB_STEP_SUMMARY"\n'],
+  ['pwsh invoking a repository script', 'pwsh -File scripts/check.ps1 >> "$GITHUB_STEP_SUMMARY"\n'],
+  ['powershell invoking a command', 'powershell -Command Get-Date >> "$GITHUB_STEP_SUMMARY"\n'],
+  ['git', 'git status >> "$GITHUB_STEP_SUMMARY"\n'],
+  ['curl', 'curl -s https://example.invalid/x >> "$GITHUB_STEP_SUMMARY"\n'],
+  ['wget', 'wget -qO- https://example.invalid/x >> "$GITHUB_STEP_SUMMARY"\n'],
+  ['a bare ./script invocation', './scripts/check.sh >> "$GITHUB_STEP_SUMMARY"\n'],
+  ['chmod alongside a summary write', 'chmod +x scripts/check.sh\necho "ok" >> "$GITHUB_STEP_SUMMARY"\n'],
+  ['cp alongside a summary write', 'cp dist/index.html /tmp/x\necho "ok" >> "$GITHUB_STEP_SUMMARY"\n'],
+  ['mv alongside a summary write', 'mv dist/index.html /tmp/x\necho "ok" >> "$GITHUB_STEP_SUMMARY"\n'],
+  ['rm alongside a summary write', 'rm -rf dist\necho "ok" >> "$GITHUB_STEP_SUMMARY"\n'],
+  ['cat, which produces text but reads the filesystem', 'cat REPORT.md >> "$GITHUB_STEP_SUMMARY"\n'],
+  ['eval', 'eval "$CMD" >> "$GITHUB_STEP_SUMMARY"\n'],
+  ['command substitution invoking an executable', 'echo "$(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"\n'],
+  ['backtick command substitution', 'echo "`id`" >> "$GITHUB_STEP_SUMMARY"\n'],
+  ['a pipeline into a non-summary command', 'echo "hi" | tee -a "$GITHUB_STEP_SUMMARY"\n'],
+  ['a subshell invoking an executable', '( ./scripts/check.sh ) >> "$GITHUB_STEP_SUMMARY"\n'],
+  ['a background job alongside a summary write', './scripts/x.sh &\necho "ok" >> "$GITHUB_STEP_SUMMARY"\n'],
+  [
+    'two commands on one line where the second has side effects',
+    'echo "ok" >> "$GITHUB_STEP_SUMMARY"; rm -rf dist\n',
+  ],
+  [
+    'a summary write followed by an executable invocation',
+    'echo "ok" >> "$GITHUB_STEP_SUMMARY"\n./scripts/deploy.sh\n',
+  ],
+  ['a write to another file', 'echo "ok" >> "$GITHUB_STEP_SUMMARY"\necho "secret" >> /tmp/exfil.txt\n'],
+  ['environment mutation via export', 'export PATH=/evil:$PATH\necho "ok" >> "$GITHUB_STEP_SUMMARY"\n'],
+  [
+    'a brace group whose members are not all summary text',
+    '{\n  echo "ok"\n  chmod +x scripts/check.sh\n} >> "$GITHUB_STEP_SUMMARY"\n',
+  ],
+  [
+    'a single-quoted target, which is a FILE literally named $GITHUB_STEP_SUMMARY',
+    "echo \"ok\" >> '$GITHUB_STEP_SUMMARY'\n",
+  ],
+  ['a TRUNCATING redirect, which destroys other steps\' summary output', 'echo "ok" > "$GITHUB_STEP_SUMMARY"\n'],
+  ['a heredoc (deliberately unmodelled, therefore fail-closed)', 'cat <<\'EOF\' >> "$GITHUB_STEP_SUMMARY"\nhi\nEOF\n'],
+  ['a herestring into tee', 'tee -a "$GITHUB_STEP_SUMMARY" <<< "hi"\n'],
+]);
+for (const [label, body] of SUMMARY_BODY_ADVERSARIES) {
+  check(
+    `REPORTING/M2: the pre-fix DENYLIST would have accepted ${label} (this case is genuinely adversarial)`,
+    oldPredicateWouldAccept(body),
+    body.slice(0, 80),
+  );
+  check(`REPORTING/M2: the summary-only ALLOWLIST rejects ${label}`, !isSummaryOnlyReportingBody(body), body.slice(0, 80));
+  // …and rejection is not academic: the step stays in the blocking sequence,
+  // where command parity will demand the unified blocker reproduce it.
+  const job = { steps: [...legacyExchangeSteps.slice(0, -1), { name: 'Summary', if: 'always()', run: body }] };
+  check(
+    `REPORTING/M2: a terminal step NAMED "Summary" that ${label} stays BLOCKING work`,
+    terminalReportingStep(job) === null && legacyBlockingSteps(job).length === runSteps(job).length,
+    `blocking=${legacyBlockingSteps(job).length} run=${runSteps(job).length}`,
+  );
+}
+// The shapes that MUST still qualify, so the allowlist is not vacuously strict.
+const SUMMARY_BODY_ACCEPTED = Object.freeze([
+  ['the real legacy brace-group form', String(realSummaryStep?.run ?? '')],
+  ['a single echo with a per-command redirect', 'echo "### Report" >> "$GITHUB_STEP_SUMMARY"\n'],
+  ['printf with a per-command redirect', 'printf \'%s\\n\' "### Report" >> "$GITHUB_STEP_SUMMARY"\n'],
+  ['the braced form of the variable', 'echo "ok" >> "${GITHUB_STEP_SUMMARY}"\n'],
+  ['an unquoted target', 'echo "ok" >> $GITHUB_STEP_SUMMARY\n'],
+  ['a comment line among the summary writes', '# render the table\necho "ok" >> "$GITHUB_STEP_SUMMARY"\n'],
+]);
+for (const [label, body] of SUMMARY_BODY_ACCEPTED) {
+  check(`REPORTING/M2: the allowlist still ACCEPTS ${label}`, isSummaryOnlyReportingBody(body), body.slice(0, 80));
+}
+
+// --- step-shaped near misses, preserved from the pre-fix suite ---------------
+const asSummaryStep = (overrides) => ({
+  steps: [...legacyExchangeSteps.slice(0, -1), { ...realSummaryStep, ...overrides }],
+});
+const STEP_SHAPE_ADVERSARIES = Object.freeze([
+  ['`if: success()` instead of `always()`', { if: 'success()' }],
+  ['no `if:` at all', { if: undefined }],
+  ['a narrower `always() && …` condition', { if: "always() && steps.build.outcome == 'success'" }],
+  ['a body that never names $GITHUB_STEP_SUMMARY', { run: 'echo "ok" >> notes.txt\n' }],
+  ['`shell: pwsh`, whose body is not sh at all', { shell: 'pwsh' }],
+  ['`shell: python`, whose body is not sh at all', { shell: 'python' }],
+  ['a `uses:` key alongside `run:`', { uses: 'actions/upload-artifact@v4' }],
+]);
+for (const [label, overrides] of STEP_SHAPE_ADVERSARIES) {
+  const job = asSummaryStep(overrides);
+  check(`REPORTING: a reporting step with ${label} does NOT qualify`, terminalReportingStep(job) === null);
+}
+check(
+  'REPORTING: a job whose reporting step DISAPPEARS excludes nothing',
+  terminalReportingStep({ steps: legacyExchangeSteps.slice(0, -1) }) === null,
+);
+
+// --- the registry pin is still load-bearing ----------------------------------
+check(
+  'REPORTING/PIN: the registry still pins the excluded step BY NAME',
+  GATES['exchange-preview-family'].legacyReportingStep === 'Summary',
+  JSON.stringify(GATES['exchange-preview-family'].legacyReportingStep),
+);
+for (const wrong of [null, 'Report', 'summary', 'Summary ']) {
+  check(
+    `REPORTING/PIN: a registry declaring ${JSON.stringify(wrong)} would NOT match the legacy job`,
+    (terminalReportingStep(legacyExchangeJob)?.name ?? null) !== wrong,
+  );
+}
+// Exactly ONE gate may declare a reporting step at this stage; every other gate
+// must declare null, so a future exclusion cannot appear without a registry edit
+// that a reviewer sees. The per-gate comparison against each legacy YAML is the
+// PARITY suite's job (it already loads every legacy workflow, in both
+// directions) and is deliberately not duplicated here.
+check(
+  'REPORTING/PIN: exactly one registered gate declares a terminal reporting step',
+  GATE_IDS.filter((id) => GATES[id].legacyReportingStep !== null).length === 1,
+  JSON.stringify(GATE_IDS.map((id) => [id, GATES[id].legacyReportingStep])),
+);
+check(
+  'REPORTING/PIN: …and it is the Exchange Preview Family gate',
+  GATE_IDS.find((id) => GATES[id].legacyReportingStep !== null) === 'exchange-preview-family',
+);
+
+// --- EVERY predicate is load-bearing: soften one, and an adversary gets in ----
+//
+// The corpus above proves the CURRENT predicate rejects the right things. That
+// is only evidence if each rule is doing work, so each one is removed in turn
+// from a sandbox copy of the registry and the corresponding adversary must then
+// be ACCEPTED. A mutant that changes nothing would be reported as caught by a
+// weaker suite; here `mutate` aborts on a no-op edit, and each mutant is
+// additionally required to still accept the real legacy Summary — so a mutation
+// that simply broke the module cannot masquerade as a caught one.
+const reportingSandbox = mkdtempSync(join(tmpdir(), 'cbw-reporting-mutants-'));
+try {
+  // A sandbox copy cannot resolve its sibling by relative path; rewriting the
+  // specifier restores nothing the mutation removed.
+  const asRunnableGates = (source) =>
+    mutate('gates harness accommodation', source, [
+      [
+        "from './master-required-gate-classify.mjs'",
+        `from ${JSON.stringify(pathToFileURL(CLASSIFY_SCRIPT).href)}`,
+      ],
+    ]);
+  // Mutants are exercised in a SUBPROCESS against a fixed fixture battery, the
+  // same shape the behavioural family above uses. Two reasons, both deliberate:
+  // a softened registry never enters this process (so it cannot contaminate the
+  // real predicate the checks above depend on), and the suite keeps its
+  // statically-resolvable dependency surface — a dynamic `import()` here would
+  // add an unresolved-dependency fact to the blocking portfolio for a test
+  // convenience, which is precisely the kind of drift the portfolio exists to
+  // surface.
+  const usesAfterSummaryJob = withTrailingStep({ name: 'Upload artifact', uses: 'actions/upload-artifact@v4' });
+  // Every fixture is JSON — no closures — so the probe evaluates the SAME inputs
+  // against the real registry and against each mutant.
+  const PROBE_FIXTURES = {
+    jobs: {
+      realSummary: legacyExchangeJob,
+      usesAfterSummary: usesAfterSummaryJob,
+      ifSuccess: asSummaryStep({ if: 'success()' }),
+      shellPwsh: asSummaryStep({ shell: 'pwsh' }),
+      runPlusUses: asSummaryStep({ uses: 'actions/upload-artifact@v4' }),
+    },
+    bodies: {
+      gitStatus: 'git status >> "$GITHUB_STEP_SUMMARY"\n',
+      otherFile: 'echo "secret" >> /tmp/exfil.txt\n',
+      commandSubstitution: 'echo "$(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"\n',
+    },
+  };
+  const fixturesFile = join(reportingSandbox, 'fixtures.json');
+  writeFileSync(fixturesFile, JSON.stringify(PROBE_FIXTURES));
+
+  let mutantIndex = 0;
+  // Probes the given registry source and returns one boolean per fixture:
+  // true = "this registry QUALIFIES it as an excludable reporting step".
+  const probeRegistry = (label, source) => {
+    const index = (mutantIndex += 1);
+    const registryFile = join(reportingSandbox, `gates-${index}.mjs`);
+    const probeFile = join(reportingSandbox, `probe-${index}.mjs`);
+    writeFileSync(registryFile, source);
+    writeFileSync(
+      probeFile,
+      [
+        `import { terminalReportingStep, isSummaryOnlyReportingBody } from ${JSON.stringify(pathToFileURL(registryFile).href)};`,
+        "import { readFileSync } from 'node:fs';",
+        "const fixtures = JSON.parse(readFileSync(process.argv[2], 'utf8'));",
+        'const verdicts = {};',
+        'for (const [key, job] of Object.entries(fixtures.jobs)) verdicts[key] = terminalReportingStep(job) !== null;',
+        'for (const [key, body] of Object.entries(fixtures.bodies)) verdicts[key] = isSummaryOnlyReportingBody(body) === true;',
+        'process.stdout.write(JSON.stringify(verdicts));',
+        '',
+      ].join('\n'),
+    );
+    const run = spawnSync(process.execPath, [probeFile, fixturesFile], { encoding: 'utf8', cwd: ROOT });
+    check(`REPORTING/MUTANT: the probe for "${label}" executed`, run.status === 0, `${run.status} ${run.stderr}`);
+    return run.status === 0 ? JSON.parse(run.stdout) : {};
+  };
+
+  // CONTROL — the REAL registry, through the SAME probe. Without this, a probe
+  // that silently returned false for everything would report every mutant as
+  // uncaught, and a probe that returned true for everything would report every
+  // mutant as caught. Both failure modes die here.
+  const control = probeRegistry('the real, unmutated registry', asRunnableGates(baseGates));
+  check('REPORTING/MUTANT CONTROL: the real registry qualifies the real legacy Summary', control.realSummary === true);
+  for (const key of ['usesAfterSummary', 'ifSuccess', 'shellPwsh', 'runPlusUses', 'gitStatus', 'otherFile', 'commandSubstitution']) {
+    check(`REPORTING/MUTANT CONTROL: the real registry REJECTS fixture "${key}"`, control[key] === false, String(control[key]));
+  }
+  const PREDICATE_MUTANTS = Object.freeze([
+    {
+      label: 'terminality computed over RUN steps only (the exact reviewed MEDIUM 1)',
+      replacements: [['  const steps = allSteps(job);', '  const steps = runSteps(job);']],
+      // The adversary the real predicate rejects and this mutant must let in.
+      fixture: 'usesAfterSummary',
+      adversary: 'Summary followed by a `uses:` action',
+    },
+    {
+      label: 'the command allowlist removed (the exact reviewed MEDIUM 2)',
+      replacements: [
+        [
+          '    if (tokens[0].operator || !SUMMARY_ONLY_COMMANDS.has(tokens[0].raw)) return false;',
+          '    if (tokens[0].operator) return false;',
+        ],
+      ],
+      fixture: 'gitStatus',
+      adversary: '`git status >> "$GITHUB_STEP_SUMMARY"`',
+    },
+    {
+      label: 'the redirect TARGET restriction removed',
+      replacements: [
+        ['&& !tokens[1].operator && SUMMARY_REDIRECT_TARGETS.has(tokens[1].raw);', '&& !tokens[1].operator;'],
+      ],
+      fixture: 'otherFile',
+      adversary: 'an echo redirected to an arbitrary file',
+    },
+    {
+      label: 'the `if: always()` requirement removed',
+      replacements: [
+        ["  if (String(last.if ?? '').trim() !== 'always()') return null;", '  if (false) return null;'],
+      ],
+      fixture: 'ifSuccess',
+      adversary: 'a reporting step guarded by `if: success()`',
+    },
+    {
+      label: 'the shell guard removed',
+      replacements: [
+        [
+          "  if (shell !== undefined && shell !== null && !SUMMARY_ONLY_SHELLS.has(String(shell).trim())) return null;",
+          '  if (false) return null;',
+        ],
+      ],
+      fixture: 'shellPwsh',
+      adversary: 'a `shell: pwsh` body validated as if it were sh',
+    },
+    {
+      label: 'command substitution permitted inside double quotes',
+      replacements: [
+        [
+          "        if (inner === '$' && line[index + 1] === '(') { rejected = true; break; }",
+          '        if (false) { rejected = true; break; }',
+        ],
+      ],
+      fixture: 'commandSubstitution',
+      adversary: '`echo "$(git rev-parse HEAD)"`',
+    },
+    {
+      label: 'the `uses:`-alongside-`run:` guard removed',
+      replacements: [
+        [
+          "  if (Object.prototype.hasOwnProperty.call(last, 'uses')) return null;",
+          '  if (false) return null;',
+        ],
+      ],
+      fixture: 'runPlusUses',
+      adversary: 'a step carrying both `run:` and `uses:`',
+    },
+  ]);
+  for (const mutantSpec of PREDICATE_MUTANTS) {
+    // `mutate` aborts the whole suite on a no-op edit, so a mutant that was
+    // never actually softened cannot be reported as caught.
+    const verdicts = probeRegistry(
+      mutantSpec.label,
+      asRunnableGates(mutate(mutantSpec.label, baseGates, mutantSpec.replacements)),
+    );
+    check(
+      `REPORTING/MUTANT: removing "${mutantSpec.label}" lets ${mutantSpec.adversary} through — the rule is LOAD-BEARING`,
+      verdicts[mutantSpec.fixture] === true,
+      `fixture=${mutantSpec.fixture} verdict=${String(verdicts[mutantSpec.fixture])}`,
+    );
+    check(
+      `REPORTING/MUTANT: …and the "${mutantSpec.label}" mutant still accepts the real legacy Summary (softened, not broken)`,
+      verdicts.realSummary === true,
+      String(verdicts.realSummary),
+    );
+    // The control proved the REAL registry rejects this same fixture, so the
+    // difference is attributable to the removed rule and nothing else.
+    check(
+      `REPORTING/MUTANT: the real registry rejects the very fixture "${mutantSpec.label}" admits`,
+      control[mutantSpec.fixture] === false,
+    );
+  }
+  check(
+    'REPORTING/MUTANT: every predicate rule was mutated individually (plus the unmutated control)',
+    mutantIndex === PREDICATE_MUTANTS.length + 1 && PREDICATE_MUTANTS.length >= 7,
+    `${mutantIndex} probes / ${PREDICATE_MUTANTS.length} mutants`,
+  );
+} finally {
+  rmSync(reportingSandbox, { recursive: true, force: true });
 }
 
 if (failures.length) {

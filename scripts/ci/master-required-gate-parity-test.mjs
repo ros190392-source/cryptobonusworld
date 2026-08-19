@@ -46,6 +46,7 @@ import {
   GATES,
   GATE_IDS,
   gateCommands,
+  isSummaryOnlyReportingBody,
   legacyBlockingSteps,
   runSteps,
   terminalReportingStep,
@@ -150,11 +151,16 @@ for (const gateId of GATE_IDS) {
   //   * a gate declaring `legacyReportingStep: null` fails if a qualifying step
   //     appears — nothing can be quietly dropped from the blocking sequence;
   //   * a gate declaring a name fails if the step is missing, renamed, or stops
-  //     qualifying (non-terminal, not `always()`, or running a real command).
+  //     qualifying — because a step of ANY shape was appended after it, because
+  //     its `if:` narrowed, or because its body stopped being provably
+  //     summary-only.
   //
-  // The predicate itself is fail-closed: a step that fails any of its four
-  // structural tests is NOT recognised as reporting, stays in the blocking set,
-  // and makes the command-parity assertion below fail loudly.
+  // The predicate itself is fail-closed in both dimensions review flagged:
+  // terminality is judged against the COMPLETE step array (so `Summary` followed
+  // by `uses: actions/…` does not qualify), and the body must satisfy a POSITIVE
+  // summary-only allowlist rather than merely avoid a handful of denied
+  // executables. A step that fails any test is NOT recognised as reporting,
+  // stays in the blocking set, and makes command parity below fail loudly.
   const reportingStep = terminalReportingStep(legacyJob);
   const declaredReporting = gate.legacyReportingStep ?? null;
   check(
@@ -167,9 +173,25 @@ for (const gateId of GATE_IDS) {
   if (declaredReporting !== null && reportingStep) {
     // Spelled out one property at a time so a reader can see WHY this step is
     // excluded, instead of trusting a single composite predicate.
+    //
+    // TERMINALITY is asserted against the job's COMPLETE step array, not the
+    // run-step projection. Against run steps alone, a `Summary` step followed by
+    // `uses: actions/upload-artifact` would read as terminal while a real action
+    // ran after it — the exclusion would be concealing work.
+    const everyStep = Array.isArray(legacyJob?.steps) ? legacyJob.steps : [];
     const allRunSteps = runSteps(legacyJob);
     check(
-      `"${gateId}": the excluded reporting step is TERMINAL (no later step can observe it)`,
+      `"${gateId}": the excluded reporting step is the job's LAST ACTUAL step (counting \`uses:\` steps, not just \`run:\`)`,
+      everyStep[everyStep.length - 1] === reportingStep,
+      `lastActual=${JSON.stringify(everyStep[everyStep.length - 1]?.name ?? null)}`,
+    );
+    check(
+      `"${gateId}": no step of ANY shape follows the excluded reporting step`,
+      everyStep.indexOf(reportingStep) === everyStep.length - 1,
+      `index=${everyStep.indexOf(reportingStep)} of ${everyStep.length}`,
+    );
+    check(
+      `"${gateId}": the excluded reporting step is also the last RUN step`,
       allRunSteps[allRunSteps.length - 1] === reportingStep,
     );
     check(
@@ -178,19 +200,39 @@ for (const gateId of GATE_IDS) {
       JSON.stringify(reportingStep.if ?? null),
     );
     check(
-      `"${gateId}": the excluded reporting step only writes to \$GITHUB_STEP_SUMMARY`,
+      `"${gateId}": the excluded reporting step still names \$GITHUB_STEP_SUMMARY at all`,
       String(reportingStep.run).includes('GITHUB_STEP_SUMMARY'),
     );
+    // The load-bearing one. NOT "it is not npm/node" — that is a denylist, and
+    // python, bash, pwsh, git, curl, ./script and chmod are all absent from it.
+    // This is the positive policy: the body is nothing but echo/printf whose
+    // only destination is the step summary.
     check(
-      `"${gateId}": the excluded reporting step invokes NO repository command`,
-      !/(^|[\s;&|(`])(npm|node|npx|yarn|pnpm)([\s;&|)`]|$)/.test(String(reportingStep.run)),
-      String(reportingStep.run).slice(0, 120),
+      `"${gateId}": the excluded reporting step's body is PROVABLY SUMMARY-ONLY (positive allowlist, not an executable denylist)`,
+      isSummaryOnlyReportingBody(String(reportingStep.run)),
+      String(reportingStep.run).slice(0, 160),
+    );
+    check(
+      `"${gateId}": the excluded reporting step runs under a shell the summary-only policy can read`,
+      reportingStep.shell === undefined || ['bash', 'sh'].includes(String(reportingStep.shell).trim()),
+      JSON.stringify(reportingStep.shell ?? null),
+    );
+    check(
+      `"${gateId}": the excluded reporting step is a \`run:\` step and carries no \`uses:\``,
+      typeof reportingStep.run === 'string'
+        && !Object.prototype.hasOwnProperty.call(reportingStep, 'uses'),
     );
     // …and it must not be the only thing standing between the job and a pass:
     // the blocking sequence has to survive its removal with real work in it.
     check(
       `"${gateId}": excluding it leaves a non-empty blocking sequence`,
       legacyBlockingSteps(legacyJob).length > 0,
+    );
+    check(
+      `"${gateId}": the excluded step is removed by IDENTITY — it is the ONE step missing from the blocking sequence`,
+      !legacyBlockingSteps(legacyJob).includes(reportingStep)
+        && legacyBlockingSteps(legacyJob).length === allRunSteps.length - 1,
+      `blocking=${legacyBlockingSteps(legacyJob).length} run=${allRunSteps.length}`,
     );
   }
 

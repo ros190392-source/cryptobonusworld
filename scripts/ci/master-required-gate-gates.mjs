@@ -163,8 +163,9 @@ export function stepConditionExpression(gateId, condition) {
  * reporting step, or null when it has none. Declaring it is what makes the
  * parity suite's exclusion auditable in both directions: a gate declaring null
  * fails if such a step appears, and a gate declaring a name fails if the step
- * vanishes, is renamed, stops being terminal, stops being `if: always()`, or
- * starts invoking a real command. See `terminalReportingStep`.
+ * vanishes, is renamed, stops being the job's LAST ACTUAL step (a `uses:` step
+ * appended after it is enough), stops being `if: always()`, or stops being
+ * provably summary-only. See `terminalReportingStep`.
  *
  * `steps` — the exact blocking step sequence this gate must execute when it IS
  * applicable, with the step id each one carries (the ids are load-bearing: the
@@ -430,7 +431,204 @@ export function gateCommands(gateId) {
 
 /** Every step of a job that executes a shell command. `uses:` steps are infrastructure. */
 export function runSteps(job) {
-  return (Array.isArray(job?.steps) ? job.steps : []).filter((step) => typeof step?.run === 'string');
+  return allSteps(job).filter((step) => typeof step?.run === 'string');
+}
+
+/**
+ * Every step of a job, WHATEVER its shape — `run:`, `uses:`, or any other
+ * legitimate step form. Terminality is judged against THIS, never against the
+ * run-step projection: see `terminalReportingStep`.
+ */
+export function allSteps(job) {
+  return Array.isArray(job?.steps) ? job.steps : [];
+}
+
+// ---------------------------------------------------------------------------
+// SUMMARY-ONLY SHELL POLICY
+// ---------------------------------------------------------------------------
+//
+// The question this answers is narrow and adversarial: does this `run:` body do
+// NOTHING except put text into the GitHub step summary?
+//
+// It is stated as a POSITIVE ALLOWLIST, and that shape is the whole point. A
+// denylist of dangerous executables ("not npm, not node") is unbounded — python,
+// python3, bash, sh, pwsh, powershell, git, curl, wget, ./script, chmod, cp, mv,
+// rm, and every executable nobody thought of — and each name missing from it is
+// a silent hole through which real work hides behind a reporting name. An
+// allowlist inverts the default: anything not recognised as pure summary text is
+// blocking work, so the unknown case is the SAFE case.
+
+/**
+ * The ONLY commands a reporting step may invoke. Both are here because their
+ * entire semantic effect is producing text on stdout. Nothing else qualifies —
+ * not `cat`, not `tee`, not `:`.
+ */
+const SUMMARY_ONLY_COMMANDS = new Set(['echo', 'printf']);
+
+/**
+ * The ONLY redirection destinations, as EXACT source spellings, because quoting
+ * changes the meaning. `'$GITHUB_STEP_SUMMARY'` is deliberately absent: single
+ * quotes suppress expansion, so it appends to a workspace file literally named
+ * `$GITHUB_STEP_SUMMARY` — a side effect on the checkout, not a summary write.
+ */
+const SUMMARY_REDIRECT_TARGETS = new Set([
+  '"$GITHUB_STEP_SUMMARY"',
+  '"${GITHUB_STEP_SUMMARY}"',
+  '$GITHUB_STEP_SUMMARY',
+  '${GITHUB_STEP_SUMMARY}',
+]);
+
+/**
+ * The shells this validator is written for. A `run:` body under `shell: python`
+ * or `shell: pwsh` is not shell at all, so validating it with a POSIX-sh reader
+ * would be reading a different language and reaching a confident wrong answer.
+ */
+const SUMMARY_ONLY_SHELLS = new Set(['bash', 'sh']);
+
+/**
+ * Tokenize ONE line of the conservative shell subset this policy accepts.
+ *
+ * Returns `null` — meaning "not obviously summary-only, treat the step as
+ * blocking" — the moment it meets anything outside that subset. It is not a
+ * general shell parser and does not try to be: every construct it does not
+ * model is a REJECTION, never a guess.
+ *
+ * Rejected outright (unquoted): command substitution (`` ` `` and `$(`),
+ * pipelines and lists (`|`, `&`, `;`), subshells (`(`, `)`), input redirection
+ * and heredocs (`<`, `<<`), truncating redirection (`>`), and backslash
+ * escapes. Only `>>` survives, and only pointing at the step summary.
+ *
+ * @param {string} line one already-trimmed logical line
+ * @returns {{raw: string, operator: boolean}[]|null} tokens, or null to reject
+ */
+function tokenizeSummaryOnlyLine(line) {
+  const tokens = [];
+  let index = 0;
+  while (index < line.length) {
+    const char = line[index];
+    if (char === ' ' || char === '\t') {
+      index += 1;
+      continue;
+    }
+    // A `#` at a word boundary starts a comment; the rest of the line is prose.
+    if (char === '#') return tokens;
+    if (char === '>') {
+      // `>>` and nothing else. `>` truncates, `>>>` is not sh — both rejected.
+      if (line[index + 1] !== '>' || line[index + 2] === '>') return null;
+      tokens.push({ raw: '>>', operator: true });
+      index += 2;
+      continue;
+    }
+    let raw = '';
+    let quote = null;
+    let rejected = false;
+    while (index < line.length) {
+      const inner = line[index];
+      if (quote === "'") {
+        // Single quotes suppress EVERY special meaning, so the contents need no
+        // inspection at all — this is why `echo '> table |---|'` is fine.
+        raw += inner;
+        index += 1;
+        if (inner === "'") quote = null;
+        continue;
+      }
+      if (quote === '"') {
+        if (inner === '`') { rejected = true; break; }
+        if (inner === '$' && line[index + 1] === '(') { rejected = true; break; }
+        if (inner === '\\') { rejected = true; break; }
+        raw += inner;
+        index += 1;
+        if (inner === '"') quote = null;
+        continue;
+      }
+      if (inner === ' ' || inner === '\t') break;
+      if (inner === '>' || inner === '<') break;
+      if (inner === '`' || inner === ';' || inner === '&' || inner === '|'
+        || inner === '(' || inner === ')' || inner === '\\') { rejected = true; break; }
+      if (inner === '$' && line[index + 1] === '(') { rejected = true; break; }
+      if (inner === "'" || inner === '"') { quote = inner; raw += inner; index += 1; continue; }
+      raw += inner;
+      index += 1;
+    }
+    // An unterminated quote means the line does not stand alone, `<` means input
+    // redirection or a heredoc, and an empty word means we stopped on an
+    // operator we do not model. All three are rejections.
+    if (rejected || quote !== null || raw === '') return null;
+    tokens.push({ raw, operator: false });
+  }
+  return tokens;
+}
+
+/** Exactly `>> <the step summary>`, with nothing before or after it. */
+function isSummaryRedirect(tokens) {
+  return tokens.length === 2
+    && tokens[0].operator && tokens[0].raw === '>>'
+    && !tokens[1].operator && SUMMARY_REDIRECT_TARGETS.has(tokens[1].raw);
+}
+
+/**
+ * Is this `run:` body PURE SUMMARY TEXT — nothing but `echo`/`printf` whose only
+ * destination is $GITHUB_STEP_SUMMARY?
+ *
+ * Accepts exactly two shapes, both of which must actually reach the summary:
+ *
+ *   1. `echo …  >> "$GITHUB_STEP_SUMMARY"` — a per-command redirect.
+ *   2. `{ … } >> "$GITHUB_STEP_SUMMARY"` — a brace group of bare `echo`/`printf`
+ *      commands whose SINGLE redirect is the group's. This is the shape the real
+ *      legacy Exchange Preview Family `Summary` step uses.
+ *
+ * Heredocs are NOT accepted. That is a deliberate fail-closed omission rather
+ * than an oversight: recognising one correctly means modelling delimiter
+ * quoting and expansion, and a summary step that starts using one simply stays
+ * in the blocking set, where parity reports it loudly. Under-accepting can only
+ * add work to the parity proof; over-accepting is how blocking work disappears.
+ *
+ * @param {unknown} body the step's `run:` text
+ * @returns {boolean} true ONLY when the body is provably summary-only
+ */
+export function isSummaryOnlyReportingBody(body) {
+  if (typeof body !== 'string' || body.length === 0) return false;
+  if (body.includes('\0')) return false;
+  let inGroup = false;
+  let wroteToSummary = false;
+  let ranSummaryCommand = false;
+  for (const rawLine of body.split('\n')) {
+    const line = rawLine.replace(/\r$/, '').trim();
+    if (line === '' || line.startsWith('#')) continue;
+    if (line === '{') {
+      if (inGroup) return false; // nesting is not modelled
+      inGroup = true;
+      continue;
+    }
+    if (line.startsWith('}')) {
+      if (!inGroup) return false;
+      const closing = tokenizeSummaryOnlyLine(line.slice(1));
+      if (closing === null || !isSummaryRedirect(closing)) return false;
+      inGroup = false;
+      wroteToSummary = true;
+      continue;
+    }
+    const tokens = tokenizeSummaryOnlyLine(line);
+    if (tokens === null || tokens.length === 0) return false;
+    // THE ALLOWLIST. `python`, `bash`, `git`, `./script`, `chmod`, `export` and
+    // every other executable fail here by not being on it — no denylist needed.
+    if (tokens[0].operator || !SUMMARY_ONLY_COMMANDS.has(tokens[0].raw)) return false;
+    const operatorAt = tokens.findIndex((token) => token.operator);
+    if (operatorAt === -1) {
+      // No redirect of its own: legitimate ONLY inside a group that redirects to
+      // the summary. Outside one, the text goes to the log, not the summary.
+      if (!inGroup) return false;
+    } else {
+      // A redirect inside a group would fight the group's own — reject rather
+      // than reason about which one wins.
+      if (inGroup) return false;
+      if (!isSummaryRedirect(tokens.slice(operatorAt))) return false;
+      wroteToSummary = true;
+    }
+    ranSummaryCommand = true;
+  }
+  if (inGroup) return false; // unterminated group
+  return ranSummaryCommand && wroteToSummary;
 }
 
 /**
@@ -450,28 +648,40 @@ export function runSteps(job) {
  * demand the unified job reproduce it, loudly. The predicate is fail-CLOSED: the
  * default answer is "this is blocking work".
  *
- *   1. TERMINAL — it is the last run step, so no later step can observe it and
- *      it cannot gate anything.
+ *   1. TERMINAL — it is the last ACTUAL step of the job, so no later step can
+ *      observe it and it cannot gate anything. Terminality is judged against the
+ *      COMPLETE step array, never against the run-step projection. Filtering to
+ *      run steps first would let `Summary` followed by `uses: actions/…`
+ *      qualify: the summary would be the last RUN step while a real action
+ *      executed after it — the exclusion would then be hiding a step that DOES
+ *      work, which is the precise failure this predicate exists to prevent.
  *   2. `if: always()` EXACTLY — it therefore never changes WHICH steps run. A
  *      narrower condition would make it observable in the failure cross-product.
- *   3. It writes to $GITHUB_STEP_SUMMARY — it reports rather than verifies.
- *   4. It invokes NO repository command. Any `npm` or `node` token means real
- *      work is hiding behind a reporting name, and the step stays blocking.
+ *   3. Its body is PROVABLY SUMMARY-ONLY under `isSummaryOnlyReportingBody` — a
+ *      positive allowlist of `echo`/`printf` writing only to
+ *      $GITHUB_STEP_SUMMARY. Not "it mentions the summary and is not npm": that
+ *      is a denylist, and every executable absent from a denylist (python, bash,
+ *      pwsh, git, curl, ./script, chmod, …) is a hole.
+ *   4. It runs under a shell this policy can actually read. `shell: python` or
+ *      `shell: pwsh` means the body is not sh, so a sh reader's verdict on it
+ *      would be confident and meaningless.
  *
  * @param {object} job the parsed legacy job
  * @returns {object|null} the step, or null when the job has no such step
  */
 export function terminalReportingStep(job) {
-  const steps = runSteps(job);
+  const steps = allSteps(job);
   const last = steps[steps.length - 1];
-  if (!last) return null;
+  if (!last || typeof last !== 'object') return null;
+  // The last ACTUAL step must be the reporting step itself. A `uses:` step, or
+  // any other step shape, occupying the final slot means the job does not end in
+  // reporting and NOTHING may be excluded from it.
+  if (typeof last.run !== 'string') return null;
+  if (Object.prototype.hasOwnProperty.call(last, 'uses')) return null;
   if (String(last.if ?? '').trim() !== 'always()') return null;
-  const body = String(last.run);
-  if (!body.includes('GITHUB_STEP_SUMMARY')) return null;
-  // Token-boundary match so a summary line mentioning the word "node" in prose
-  // is not mistaken for an invocation, while a real `npm ci` / `node script.mjs`
-  // always is.
-  if (/(^|[\s;&|(`])(npm|node|npx|yarn|pnpm)([\s;&|)`]|$)/.test(body)) return null;
+  const shell = last.shell;
+  if (shell !== undefined && shell !== null && !SUMMARY_ONLY_SHELLS.has(String(shell).trim())) return null;
+  if (!isSummaryOnlyReportingBody(last.run)) return null;
   return last;
 }
 
@@ -483,7 +693,10 @@ export function terminalReportingStep(job) {
 export function legacyBlockingSteps(job) {
   const steps = runSteps(job);
   const reporting = terminalReportingStep(job);
-  return reporting ? steps.slice(0, -1) : steps;
+  // Removed BY IDENTITY, not by position. `slice(0, -1)` silently drops whatever
+  // happens to sit last in the run-step projection, which is a different step
+  // from the proven one the moment the job's shape changes.
+  return reporting === null ? steps : steps.filter((step) => step !== reporting);
 }
 
 // The stable visible check context of the final aggregator. Branch protection
