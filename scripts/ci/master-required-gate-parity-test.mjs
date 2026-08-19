@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // LEGACY <-> UNIFIED PARITY PROOF for every migrated blocker (issue #366):
-// Global Header Interaction and Public SEO Metadata (S2-03), plus Public
-// Navigation Boundary and Public First Screen Budget (S2-04 batch 01).
+// Global Header Interaction and Public SEO Metadata (S2-03), Public Navigation
+// Boundary and Public First Screen Budget (S2-04 batch 01), plus Contact Utility
+// and Exchange Preview Family (S2-04 batch 02).
 //
 // The unified required gate executes each of them while the specialized
 // path-filtered workflows stay in place, BYTE-IDENTICAL, and keep reporting
@@ -14,11 +15,14 @@
 //      No reduction in commands, in the build requirement, in the browser smoke
 //      matrix, in the SEO schema test, or in the indexability inventory.
 //
-//   2. CONDITION PARITY — every legacy step `if` is reproduced. The legacy
-//      workflows guard the indexability inventory with
-//      `always() && steps.build.outcome == 'success'` so it still runs, and can
-//      still fail the job, when the step before it failed. Dropping that would
-//      have been a silent narrowing.
+//   2. CONDITION PARITY — every legacy step `if` is reproduced, PER GATE, read
+//      off that gate's own legacy YAML. The gates genuinely disagree: four of
+//      them guard the indexability inventory with `always() && steps.build
+//      .outcome == 'success'` so it still runs when the step before it failed,
+//      while cbw-contact-utility.yml leaves it unguarded so a failed smoke skips
+//      it. Dropping the guard where it exists would be a silent narrowing;
+//      inventing it where it does not would be a silent widening. Both are
+//      caught here because the expectation is derived, never assumed.
 //
 //   3. RED/GREEN PARITY — the two jobs are SIMULATED over the complete
 //      cross-product of per-step success/failure and proved to reach the same
@@ -38,7 +42,15 @@
 import { readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import yaml from 'js-yaml';
-import { GATES, GATE_IDS, gateCommands } from './master-required-gate-gates.mjs';
+import {
+  GATES,
+  GATE_IDS,
+  gateCommands,
+  isSummaryOnlyReportingBody,
+  legacyBlockingSteps,
+  runSteps,
+  terminalReportingStep,
+} from './master-required-gate-gates.mjs';
 import { evaluateGateResult } from './master-required-gate-gate-result.mjs';
 
 const ROOT = resolve(process.cwd());
@@ -62,11 +74,11 @@ function loadWorkflow(path) {
 
 const unified = loadWorkflow(UNIFIED_WORKFLOW);
 
-// Only steps that execute a command count as blocking work. `uses:` steps
-// (checkout, setup-node) are infrastructure and are asserted separately by the
-// workflow contract.
-const runSteps = (job) =>
-  (Array.isArray(job?.steps) ? job.steps : []).filter((step) => typeof step?.run === 'string');
+// `runSteps` / `legacyBlockingSteps` / `terminalReportingStep` are imported from
+// the registry rather than restated here: the workflow contract applies the same
+// rule, and two copies of "what counts as blocking work" is exactly the kind of
+// drift this suite exists to catch. `uses:` steps (checkout, setup-node) are
+// infrastructure and are asserted separately by the workflow contract.
 
 /**
  * Deterministic simulation of a GitHub Actions job over one failure-injection
@@ -128,8 +140,107 @@ for (const gateId of GATE_IDS) {
     );
   }
 
+  // --- 0b. the terminal reporting step, if the registry declares one ---------
+  //
+  // S2-04 batch 02 migrated the first legacy job that ends in a non-blocking
+  // reporting step (`cbw-exchange-preview-family.yml`'s `Summary`, which renders
+  // a table into $GITHUB_STEP_SUMMARY and runs no repository command). Excluding
+  // it from command parity is only legitimate if the exclusion is EARNED, so
+  // both directions are proved here before the comparison below uses it:
+  //
+  //   * a gate declaring `legacyReportingStep: null` fails if a qualifying step
+  //     appears — nothing can be quietly dropped from the blocking sequence;
+  //   * a gate declaring a name fails if the step is missing, renamed, or stops
+  //     qualifying — because a step of ANY shape was appended after it, because
+  //     its `if:` narrowed, or because its body stopped being provably
+  //     summary-only.
+  //
+  // The predicate itself is fail-closed in both dimensions review flagged:
+  // terminality is judged against the COMPLETE step array (so `Summary` followed
+  // by `uses: actions/…` does not qualify), and the body must satisfy a POSITIVE
+  // summary-only allowlist rather than merely avoid a handful of denied
+  // executables. A step that fails any test is NOT recognised as reporting,
+  // stays in the blocking set, and makes command parity below fail loudly.
+  const reportingStep = terminalReportingStep(legacyJob);
+  const declaredReporting = gate.legacyReportingStep ?? null;
+  check(
+    declaredReporting === null
+      ? `"${gateId}": the legacy job has NO terminal non-blocking reporting step, as the registry declares`
+      : `"${gateId}": the legacy job's declared terminal reporting step "${declaredReporting}" is present and still qualifies`,
+    (reportingStep === null ? null : String(reportingStep.name ?? '')) === declaredReporting,
+    `registry=${JSON.stringify(declaredReporting)} legacy=${JSON.stringify(reportingStep?.name ?? null)}`,
+  );
+  if (declaredReporting !== null && reportingStep) {
+    // Spelled out one property at a time so a reader can see WHY this step is
+    // excluded, instead of trusting a single composite predicate.
+    //
+    // TERMINALITY is asserted against the job's COMPLETE step array, not the
+    // run-step projection. Against run steps alone, a `Summary` step followed by
+    // `uses: actions/upload-artifact` would read as terminal while a real action
+    // ran after it — the exclusion would be concealing work.
+    const everyStep = Array.isArray(legacyJob?.steps) ? legacyJob.steps : [];
+    const allRunSteps = runSteps(legacyJob);
+    check(
+      `"${gateId}": the excluded reporting step is the job's LAST ACTUAL step (counting \`uses:\` steps, not just \`run:\`)`,
+      everyStep[everyStep.length - 1] === reportingStep,
+      `lastActual=${JSON.stringify(everyStep[everyStep.length - 1]?.name ?? null)}`,
+    );
+    check(
+      `"${gateId}": no step of ANY shape follows the excluded reporting step`,
+      everyStep.indexOf(reportingStep) === everyStep.length - 1,
+      `index=${everyStep.indexOf(reportingStep)} of ${everyStep.length}`,
+    );
+    check(
+      `"${gateId}": the excluded reporting step is also the last RUN step`,
+      allRunSteps[allRunSteps.length - 1] === reportingStep,
+    );
+    check(
+      `"${gateId}": the excluded reporting step is exactly \`if: always()\` (it never changes what runs)`,
+      String(reportingStep.if ?? '').trim() === 'always()',
+      JSON.stringify(reportingStep.if ?? null),
+    );
+    check(
+      `"${gateId}": the excluded reporting step still names \$GITHUB_STEP_SUMMARY at all`,
+      String(reportingStep.run).includes('GITHUB_STEP_SUMMARY'),
+    );
+    // The load-bearing one. NOT "it is not npm/node" — that is a denylist, and
+    // python, bash, pwsh, git, curl, ./script and chmod are all absent from it.
+    // This is the positive policy: the body is nothing but `echo` — the one
+    // command that cannot mutate state — whose only destination is the step
+    // summary. `printf` is deliberately NOT allowed: `printf -v NAME` assigns
+    // to a shell variable, which would let a later redirect expand a rewritten
+    // $GITHUB_STEP_SUMMARY and land the payload elsewhere.
+    check(
+      `"${gateId}": the excluded reporting step's body is PROVABLY SUMMARY-ONLY (positive allowlist, not an executable denylist)`,
+      isSummaryOnlyReportingBody(String(reportingStep.run)),
+      String(reportingStep.run).slice(0, 160),
+    );
+    check(
+      `"${gateId}": the excluded reporting step runs under a shell the summary-only policy can read`,
+      reportingStep.shell === undefined || ['bash', 'sh'].includes(String(reportingStep.shell).trim()),
+      JSON.stringify(reportingStep.shell ?? null),
+    );
+    check(
+      `"${gateId}": the excluded reporting step is a \`run:\` step and carries no \`uses:\``,
+      typeof reportingStep.run === 'string'
+        && !Object.prototype.hasOwnProperty.call(reportingStep, 'uses'),
+    );
+    // …and it must not be the only thing standing between the job and a pass:
+    // the blocking sequence has to survive its removal with real work in it.
+    check(
+      `"${gateId}": excluding it leaves a non-empty blocking sequence`,
+      legacyBlockingSteps(legacyJob).length > 0,
+    );
+    check(
+      `"${gateId}": the excluded step is removed by IDENTITY — it is the ONE step missing from the blocking sequence`,
+      !legacyBlockingSteps(legacyJob).includes(reportingStep)
+        && legacyBlockingSteps(legacyJob).length === allRunSteps.length - 1,
+      `blocking=${legacyBlockingSteps(legacyJob).length} run=${allRunSteps.length}`,
+    );
+  }
+
   // --- 1. COMMAND PARITY -----------------------------------------------------
-  const legacyCommands = runSteps(legacyJob).map((step) => String(step.run).trim());
+  const legacyCommands = legacyBlockingSteps(legacyJob).map((step) => String(step.run).trim());
   const registryCommands = gateCommands(gateId);
   const unifiedJob = unified?.jobs?.[gate.jobId];
   check(`unified blocker job "${gate.jobId}" exists`, Boolean(unifiedJob));
@@ -199,7 +310,9 @@ for (const gateId of GATE_IDS) {
   }
 
   // --- 2. CONDITION PARITY ---------------------------------------------------
-  const legacyRunSteps = runSteps(legacyJob);
+  // Indexed against the BLOCKING steps, so a legacy job that ends in a proven
+  // reporting step lines up with the registry's step list exactly.
+  const legacyRunSteps = legacyBlockingSteps(legacyJob);
   for (const [index, declared] of gate.steps.entries()) {
     const legacyStep = legacyRunSteps[index];
     const legacyIf = Object.prototype.hasOwnProperty.call(legacyStep ?? {}, 'if')

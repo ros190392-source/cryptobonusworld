@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "issue": 366,
   "stage": "S2-04",
-  "description": "Machine-readable blocking-portfolio contract for every GitHub Actions job that can run on a pull request targeting product branch master. INVENTORY AND CONTRACT ONLY: no branch protection is changed, no ruleset is created and no workflow is weakened by this artifact. S2-03 recorded the first two unified-gate migrations (Global Header Interaction and Public SEO Metadata) and S2-04 batch 01 adds two more (Public Navigation Boundary and Public First Screen Budget), all four as MIGRATED_UNIFIED_SHADOW: their blocking behaviour is now ALSO executed inside the unified required gate, proved command-for-command equivalent by scripts/ci/master-required-gate-parity-test.mjs, while the legacy path-filtered workflows are left BYTE-IDENTICAL and keep reporting independently. That state is a shadow period, not a retirement and not enforcement authority; overall enforcementReady remains false and enforcementAuthority remains NONE. Every derivable field is re-proved against the workflow YAML by scripts/ci/master-blocking-portfolio-validator.mjs.",
+  "description": "Machine-readable blocking-portfolio contract for every GitHub Actions job that can run on a pull request targeting product branch master. INVENTORY AND CONTRACT ONLY: no branch protection is changed, no ruleset is created and no workflow is weakened by this artifact. S2-03 recorded the first two unified-gate migrations (Global Header Interaction and Public SEO Metadata), S2-04 batch 01 added two more (Public Navigation Boundary and Public First Screen Budget) and S2-04 batch 02 adds two more (Contact Utility and Exchange Preview Family), all six as MIGRATED_UNIFIED_SHADOW: their blocking behaviour is now ALSO executed inside the unified required gate, proved command-for-command equivalent by scripts/ci/master-required-gate-parity-test.mjs, while the legacy path-filtered workflows are left BYTE-IDENTICAL and keep reporting independently. That state is a shadow period, not a retirement and not enforcement authority; overall enforcementReady remains false and enforcementAuthority remains NONE. Every derivable field is re-proved against the workflow YAML by scripts/ci/master-blocking-portfolio-validator.mjs.",
   "classifications": [
     "BLOCKING",
     "ADVISORY",
@@ -34,13 +34,13 @@
     "DEPENDENCY_UNREADABLE"
   ],
   "totals": {
-    "BLOCKING": 20,
+    "BLOCKING": 22,
     "ADVISORY": 7,
     "CONDITIONAL_PRODUCTION_ONLY": 1,
     "NON_PR": 3,
     "UNMODELED": 0,
-    "total": 31,
-    "directRequiredSafe": 7
+    "total": 33,
+    "directRequiredSafe": 9
   },
   "entries": [
     {
@@ -157,10 +157,10 @@
           "detail": "tsconfig.json"
         }
       ],
-      "migrationState": "LEGACY_EXTERNAL",
-      "stage2MigrationCandidate": true,
-      "stage2MigrationCandidateReason": "blocking-capable, still external to the unified gate, and not directly requirable because it is path-filtered",
-      "notes": "Contact Utility hard gate. Narrowest path filter in the portfolio (a single page file plus its own script)."
+      "migrationState": "MIGRATED_UNIFIED_SHADOW",
+      "stage2MigrationCandidate": false,
+      "stage2MigrationCandidateReason": "already executed inside the unified gate; the legacy workflow is retained UNCHANGED as an independently reporting shadow, and retirement is a separate later decision",
+      "notes": "Contact Utility hard gate. Narrowest path filter in the portfolio (a single page file plus its own script). S2-04 batch 02: this path-filtered workflow is LEFT BYTE-IDENTICAL and still reports independently. Its blocking behaviour is now ALSO executed inside the unified required gate, by the unified blocker job cbw-master-required-gate.yml#contact-utility, proved command-for-command equivalent by scripts/ci/master-required-gate-parity-test.mjs. Shadow state only: no retirement, no enforcement authority, no branch-protection change."
     },
     {
       "id": "exchange-preview-family",
@@ -282,10 +282,10 @@
           "detail": "tsconfig.json"
         }
       ],
-      "migrationState": "LEGACY_EXTERNAL",
-      "stage2MigrationCandidate": true,
-      "stage2MigrationCandidateReason": "blocking-capable, still external to the unified gate, and not directly requirable because it is path-filtered",
-      "notes": "Exchange Preview Family hard gate. Owner-preview only; it never authorizes publication, indexing, ranking or affiliate actions."
+      "migrationState": "MIGRATED_UNIFIED_SHADOW",
+      "stage2MigrationCandidate": false,
+      "stage2MigrationCandidateReason": "already executed inside the unified gate; the legacy workflow is retained UNCHANGED as an independently reporting shadow, and retirement is a separate later decision",
+      "notes": "Exchange Preview Family hard gate. Owner-preview only; it never authorizes publication, indexing, ranking or affiliate actions, and unified execution changes none of that. S2-04 batch 02: this path-filtered workflow is LEFT BYTE-IDENTICAL and still reports independently. Its blocking behaviour is now ALSO executed inside the unified required gate, by the unified blocker job cbw-master-required-gate.yml#exchange-preview-family, proved command-for-command equivalent by scripts/ci/master-required-gate-parity-test.mjs. Shadow state only: no retirement, no enforcement authority, no branch-protection change."
     },
     {
       "id": "global-header-interaction",
@@ -2673,6 +2673,216 @@
       "notes": "S2-04 batch 01 unified execution of the Public First Screen Budget hard gate (Chromium matrix). Command-for-command equivalent to cbw-public-first-screen-budget.yml#public-first-screen-budget, proved by scripts/ci/master-required-gate-parity-test.mjs, which also proves published-outcome parity over the full failure cross-product. Always instantiates and publishes PASS or evidence-backed NOT_APPLICABLE."
     },
     {
+      "id": "master-gate-blocker-contact-utility",
+      "workflowFile": "cbw-master-required-gate.yml",
+      "workflowName": "CBW Master Required Gate",
+      "jobId": "contact-utility",
+      "checkContext": "Contact utility (unified blocker)",
+      "classification": "BLOCKING",
+      "directRequiredSafe": true,
+      "pathFiltered": false,
+      "blockingSemantics": {
+        "canFailPullRequest": true,
+        "semanticsProvable": true,
+        "jobContinueOnError": false,
+        "jobContinueOnErrorState": "MODELED",
+        "jobContinueOnErrorSource": null,
+        "jobIf": null,
+        "jobIfPullRequestState": "RUNNABLE",
+        "needs": [
+          "classify"
+        ],
+        "totalSteps": 7,
+        "softenedSteps": 0,
+        "failableSteps": 7,
+        "timeoutMinutes": 30
+      },
+      "commands": [
+        "npm ci",
+        "npm run build",
+        "node scripts/ui/contact-utility-browser-smoke.mjs",
+        "node scripts/seo/site-indexability-inventory.mjs",
+        "node scripts/ci/master-required-gate-gate-result.mjs"
+      ],
+      "dependencies": {
+        "npmScripts": [
+          "build"
+        ],
+        "executed": [
+          "scripts/ci/master-required-gate-classify.mjs",
+          "scripts/ci/master-required-gate-gate-result.mjs",
+          "scripts/ci/master-required-gate-gates.mjs",
+          "scripts/seo/site-indexability-inventory.mjs",
+          "scripts/ui/contact-utility-browser-smoke.mjs"
+        ],
+        "readInputs": [],
+        "localActions": [],
+        "sharedConfig": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "tsconfig.json"
+        ]
+      },
+      "triggerCoverage": {
+        "modeled": true,
+        "unmodeledReason": null,
+        "hasPullRequest": true,
+        "pathFiltered": false,
+        "paths": [],
+        "pathsIgnore": [],
+        "branches": [
+          "master"
+        ],
+        "branchesIgnore": [],
+        "types": [],
+        "targetsMaster": true,
+        "selfTriggersOnOwnWorkflowFile": true,
+        "coveredInputs": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "scripts/ci/master-required-gate-classify.mjs",
+          "scripts/ci/master-required-gate-gate-result.mjs",
+          "scripts/ci/master-required-gate-gates.mjs",
+          "scripts/seo/site-indexability-inventory.mjs",
+          "scripts/ui/contact-utility-browser-smoke.mjs",
+          "tsconfig.json"
+        ],
+        "uncoveredInputs": [],
+        "unresolvableInputs": []
+      },
+      "knownGaps": [
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ci/master-required-gate-classify.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(outputFile, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/seo/site-indexability-inventory.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir, { withFileTypes: true })"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/seo/site-indexability-inventory.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ui/contact-utility-browser-smoke.mjs :: computed createReadStream(…) input is not statically resolvable: createReadStream(file)"
+        }
+      ],
+      "migrationState": "UNIFIED_GATE_COMPONENT",
+      "stage2MigrationCandidate": false,
+      "stage2MigrationCandidateReason": "a component job of the unified gate, not an external check that could be migrated into it",
+      "notes": "S2-04 batch 02 unified execution of the Contact Utility hard gate. Command-for-command equivalent to cbw-contact-utility.yml#contact-utility, proved by scripts/ci/master-required-gate-parity-test.mjs, which also proves published-outcome parity over the full failure cross-product. The only unified blocker whose indexability inventory is gated on applicability ALONE: the legacy job leaves that step unguarded, so a failed Chromium smoke skips it, and the unified job reproduces that rather than normalising it to the always()-and-build-succeeded shape the other indexability steps use. Always instantiates and publishes PASS or evidence-backed NOT_APPLICABLE."
+    },
+    {
+      "id": "master-gate-blocker-exchange-preview-family",
+      "workflowFile": "cbw-master-required-gate.yml",
+      "workflowName": "CBW Master Required Gate",
+      "jobId": "exchange-preview-family",
+      "checkContext": "Exchange preview family (unified blocker)",
+      "classification": "BLOCKING",
+      "directRequiredSafe": true,
+      "pathFiltered": false,
+      "blockingSemantics": {
+        "canFailPullRequest": true,
+        "semanticsProvable": true,
+        "jobContinueOnError": false,
+        "jobContinueOnErrorState": "MODELED",
+        "jobContinueOnErrorSource": null,
+        "jobIf": null,
+        "jobIfPullRequestState": "RUNNABLE",
+        "needs": [
+          "classify"
+        ],
+        "totalSteps": 7,
+        "softenedSteps": 0,
+        "failableSteps": 7,
+        "timeoutMinutes": 40
+      },
+      "commands": [
+        "npm ci",
+        "npm run build",
+        "node scripts/ui/exchange-preview-family-browser-smoke.mjs",
+        "node scripts/seo/site-indexability-inventory.mjs",
+        "node scripts/ci/master-required-gate-gate-result.mjs"
+      ],
+      "dependencies": {
+        "npmScripts": [
+          "build"
+        ],
+        "executed": [
+          "scripts/ci/master-required-gate-classify.mjs",
+          "scripts/ci/master-required-gate-gate-result.mjs",
+          "scripts/ci/master-required-gate-gates.mjs",
+          "scripts/seo/site-indexability-inventory.mjs",
+          "scripts/ui/exchange-preview-family-browser-smoke.mjs"
+        ],
+        "readInputs": [],
+        "localActions": [],
+        "sharedConfig": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "tsconfig.json"
+        ]
+      },
+      "triggerCoverage": {
+        "modeled": true,
+        "unmodeledReason": null,
+        "hasPullRequest": true,
+        "pathFiltered": false,
+        "paths": [],
+        "pathsIgnore": [],
+        "branches": [
+          "master"
+        ],
+        "branchesIgnore": [],
+        "types": [],
+        "targetsMaster": true,
+        "selfTriggersOnOwnWorkflowFile": true,
+        "coveredInputs": [
+          "astro.config.mjs",
+          "package-lock.json",
+          "package.json",
+          "scripts/ci/master-required-gate-classify.mjs",
+          "scripts/ci/master-required-gate-gate-result.mjs",
+          "scripts/ci/master-required-gate-gates.mjs",
+          "scripts/seo/site-indexability-inventory.mjs",
+          "scripts/ui/exchange-preview-family-browser-smoke.mjs",
+          "tsconfig.json"
+        ],
+        "uncoveredInputs": [],
+        "unresolvableInputs": []
+      },
+      "knownGaps": [
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ci/master-required-gate-classify.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(outputFile, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/seo/site-indexability-inventory.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(dir, { withFileTypes: true })"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/seo/site-indexability-inventory.mjs :: computed readFileSync(…) input is not statically resolvable: readFileSync(file, \"utf8\")"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ui/exchange-preview-family-browser-smoke.mjs :: computed createReadStream(…) input is not statically resolvable: createReadStream(file)"
+        },
+        {
+          "code": "DEPENDENCY_UNRESOLVABLE",
+          "detail": "scripts/ui/exchange-preview-family-browser-smoke.mjs :: computed readdirSync(…) input is not statically resolvable: readdirSync(PREVIEW_ROOT, { withFileTypes:true })"
+        }
+      ],
+      "migrationState": "UNIFIED_GATE_COMPONENT",
+      "stage2MigrationCandidate": false,
+      "stage2MigrationCandidateReason": "a component job of the unified gate, not an external check that could be migrated into it",
+      "notes": "S2-04 batch 02 unified execution of the Exchange Preview Family hard gate. Command-for-command equivalent to cbw-exchange-preview-family.yml#exchange-preview-family, proved by scripts/ci/master-required-gate-parity-test.mjs, which also proves published-outcome parity over the full failure cross-product. The legacy job ends in a terminal non-blocking Summary step that writes only to $GITHUB_STEP_SUMMARY and runs no repository command; the parity suite proves it non-blocking property by property before excluding it, and the unified counterpart is the result emitter. OWNER-PREVIEW ONLY: running inside the required context grants no publication, indexing, ranking or affiliate authority. Always instantiates and publishes PASS or evidence-backed NOT_APPLICABLE."
+    },
+    {
       "id": "master-required-gate",
       "workflowFile": "cbw-master-required-gate.yml",
       "workflowName": "CBW Master Required Gate",
@@ -2691,6 +2901,8 @@
         "jobIfPullRequestState": "RUNNABLE",
         "needs": [
           "classify",
+          "contact-utility",
+          "exchange-preview-family",
           "global-header-interaction",
           "public-first-screen-budget",
           "public-navigation",

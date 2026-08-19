@@ -4,18 +4,32 @@
 //
 // WHAT THIS FILE IS. S2-01/S2-02 delivered ONE always-reporting required check
 // context ("Master required gate") that executed the material work in a single
-// job. S2-03 turned that single job into a bounded DAG, and S2-04 BATCH 01
-// widened it from two blockers to four:
+// job. S2-03 turned that single job into a bounded DAG, S2-04 BATCH 01 widened
+// it from two blockers to four, and S2-04 BATCH 02 widens it to six:
 //
-//     classify -> { global-header-interaction, public-first-screen-budget,
+//     classify -> { contact-utility, exchange-preview-family,
+//                   global-header-interaction, public-first-screen-budget,
 //                   public-navigation, public-seo-metadata }
 //              -> Master required gate
 //
 // S2-04 added NO new mechanism. Every trust property below is the S2-03 one,
-// reached by registering two more gates in the same closed registry; the only
-// structural change is that the per-gate inert set is now DERIVED from the
-// registry (see deriveIrrelevantPaths) instead of hand-listed, because
+// reached by registering more gates in the same closed registry; the only
+// structural change batch 01 made is that the per-gate inert set is DERIVED from
+// the registry (see deriveIrrelevantPaths) instead of hand-listed, because
 // hand-listing cross-gate exclusivity is quadratic and therefore forgettable.
+// Batch 02 adds no structural change at all: two registry rows, and every
+// consumer — workflow, contract test, mutation suite, parity proof, emitter
+// behaviour suite and aggregator — picks them up by iterating GATE_IDS.
+//
+// BATCH 02 IS THE FIRST STAGE IN WHICH THE REGISTERED GATES DISAGREE ABOUT THE
+// INDEXABILITY STEP'S CONDITION, and that disagreement is faithfully recorded
+// rather than normalised away. `cbw-exchange-preview-family.yml` guards the
+// inventory with `always() && steps.build.outcome == 'success'` (so it still
+// runs after a failed browser smoke), while `cbw-contact-utility.yml` leaves it
+// unguarded (so a failed smoke skips it). Normalising the two into one shape
+// would have SILENTLY CHANGED the red/green behaviour of one of them; each
+// gate's `steps[].condition` therefore mirrors its OWN legacy job, and the
+// parity suite re-derives both from the legacy YAML on every run.
 //
 // Every blocker job in that DAG is declared HERE, once, in a closed registry.
 // The workflow, the contract test, the mutation suite and the aggregator all read
@@ -140,8 +154,18 @@ export function stepConditionExpression(gateId, condition) {
  * executes or reads. Together with `legacyWorkflow` it forms this gate's
  * EXCLUSIVE SURFACE (see `gateExclusiveSurface` below), which is the only thing
  * any OTHER gate is permitted to treat as inert. The shared indexability
- * inventory is deliberately NOT a gateScript anywhere: two gates run it, so it
- * is exclusive to neither and can never become inert for either.
+ * inventory is deliberately NOT a gateScript anywhere: FOUR gates run it
+ * (global-header-interaction, public-seo-metadata, contact-utility and
+ * exchange-preview-family), so it is exclusive to none of them and can never
+ * become inert for any of them.
+ *
+ * `legacyReportingStep` — the NAME of this legacy job's terminal non-blocking
+ * reporting step, or null when it has none. Declaring it is what makes the
+ * parity suite's exclusion auditable in both directions: a gate declaring null
+ * fails if such a step appears, and a gate declaring a name fails if the step
+ * vanishes, is renamed, stops being the job's LAST ACTUAL step (a `uses:` step
+ * appended after it is enough), stops being `if: always()`, or stops being
+ * provably summary-only. See `terminalReportingStep`.
  *
  * `steps` — the exact blocking step sequence this gate must execute when it IS
  * applicable, with the step id each one carries (the ids are load-bearing: the
@@ -152,6 +176,79 @@ export function stepConditionExpression(gateId, condition) {
  * the unified job really runs it.
  */
 const GATE_DEFINITIONS = Object.freeze({
+  // S2-04 BATCH 02. The legacy job leaves the indexability inventory UNGUARDED,
+  // so it carries GitHub's implicit `success()` and a failed Chromium smoke
+  // skips it. `condition: 'applicability'` reproduces exactly that; giving it
+  // the `applicability-after-build` shape the other indexability steps use
+  // would have made the inventory run in a state the legacy job never runs it
+  // in, which is a behaviour change wearing the costume of consistency.
+  'contact-utility': Object.freeze({
+    id: 'contact-utility',
+    jobId: 'contact-utility',
+    jobName: 'Contact utility (unified blocker)',
+    outputName: 'gate_contact_utility',
+    applicabilityEnv: 'GATE_CONTACT_UTILITY_APPLICABILITY',
+    resultEnv: 'GATE_CONTACT_UTILITY_RESULT',
+    jobResultEnv: 'GATE_CONTACT_UTILITY_JOB_RESULT',
+    evidenceEnv: 'GATE_CONTACT_UTILITY_EVIDENCE',
+    legacyWorkflow: '.github/workflows/cbw-contact-utility.yml',
+    legacyJobId: 'contact-utility',
+    legacyReportingStep: null,
+    gateScript: 'scripts/ui/contact-utility-browser-smoke.mjs',
+    steps: Object.freeze([
+      Object.freeze({ id: 'install', command: 'npm ci', condition: 'applicability', legacyIf: null }),
+      Object.freeze({ id: 'build', command: 'npm run build', condition: 'applicability', legacyIf: null }),
+      Object.freeze({
+        id: 'contact',
+        command: 'node scripts/ui/contact-utility-browser-smoke.mjs',
+        condition: 'applicability',
+        legacyIf: null,
+      }),
+      Object.freeze({
+        id: 'indexability',
+        command: 'node scripts/seo/site-indexability-inventory.mjs',
+        condition: 'applicability',
+        legacyIf: null,
+      }),
+    ]),
+  }),
+  // S2-04 BATCH 02. OWNER-PREVIEW ONLY. Registering this gate as a blocker grants
+  // it no publication, indexing, ranking or affiliate authority; it proves the
+  // owner's preview routes still render and still stay out of the index, which is
+  // the same thing the legacy gate proved and nothing more. The legacy job DOES
+  // guard the inventory with `always() && steps.build.outcome == 'success'`, so
+  // this gate's indexability step is `applicability-after-build` — the opposite
+  // of contact-utility's, because the legacy jobs genuinely differ.
+  'exchange-preview-family': Object.freeze({
+    id: 'exchange-preview-family',
+    jobId: 'exchange-preview-family',
+    jobName: 'Exchange preview family (unified blocker)',
+    outputName: 'gate_exchange_preview_family',
+    applicabilityEnv: 'GATE_EXCHANGE_PREVIEW_FAMILY_APPLICABILITY',
+    resultEnv: 'GATE_EXCHANGE_PREVIEW_FAMILY_RESULT',
+    jobResultEnv: 'GATE_EXCHANGE_PREVIEW_FAMILY_JOB_RESULT',
+    evidenceEnv: 'GATE_EXCHANGE_PREVIEW_FAMILY_EVIDENCE',
+    legacyWorkflow: '.github/workflows/cbw-exchange-preview-family.yml',
+    legacyJobId: 'exchange-preview-family',
+    legacyReportingStep: 'Summary',
+    gateScript: 'scripts/ui/exchange-preview-family-browser-smoke.mjs',
+    steps: Object.freeze([
+      Object.freeze({ id: 'install', command: 'npm ci', condition: 'applicability', legacyIf: null }),
+      Object.freeze({ id: 'build', command: 'npm run build', condition: 'applicability', legacyIf: null }),
+      Object.freeze({
+        id: 'browser',
+        command: 'node scripts/ui/exchange-preview-family-browser-smoke.mjs',
+        condition: 'applicability',
+        legacyIf: null,
+      }),
+      Object.freeze({
+        id: 'indexability',
+        command: 'node scripts/seo/site-indexability-inventory.mjs',
+        condition: 'applicability-after-build',
+        legacyIf: "always() && steps.build.outcome == 'success'",
+      }),
+    ]),
+  }),
   'global-header-interaction': Object.freeze({
     id: 'global-header-interaction',
     jobId: 'global-header-interaction',
@@ -163,6 +260,7 @@ const GATE_DEFINITIONS = Object.freeze({
     evidenceEnv: 'GATE_GLOBAL_HEADER_INTERACTION_EVIDENCE',
     legacyWorkflow: '.github/workflows/cbw-global-header-interaction.yml',
     legacyJobId: 'global-header-interaction',
+    legacyReportingStep: null,
     gateScript: 'scripts/ui/global-header-interaction-browser-smoke.mjs',
     steps: Object.freeze([
       Object.freeze({ id: 'install', command: 'npm ci', condition: 'applicability', legacyIf: null }),
@@ -192,6 +290,7 @@ const GATE_DEFINITIONS = Object.freeze({
     evidenceEnv: 'GATE_PUBLIC_FIRST_SCREEN_BUDGET_EVIDENCE',
     legacyWorkflow: '.github/workflows/cbw-public-first-screen-budget.yml',
     legacyJobId: 'public-first-screen-budget',
+    legacyReportingStep: null,
     gateScript: 'scripts/ui/public-first-screen-budget-browser-smoke.mjs',
     steps: Object.freeze([
       Object.freeze({ id: 'install', command: 'npm ci', condition: 'applicability', legacyIf: null }),
@@ -215,6 +314,7 @@ const GATE_DEFINITIONS = Object.freeze({
     evidenceEnv: 'GATE_PUBLIC_NAVIGATION_EVIDENCE',
     legacyWorkflow: '.github/workflows/cbw-public-navigation-boundary.yml',
     legacyJobId: 'public-navigation',
+    legacyReportingStep: null,
     gateScript: 'scripts/seo/public-navigation-boundary-test.mjs',
     steps: Object.freeze([
       Object.freeze({ id: 'install', command: 'npm ci', condition: 'applicability', legacyIf: null }),
@@ -238,6 +338,7 @@ const GATE_DEFINITIONS = Object.freeze({
     evidenceEnv: 'GATE_PUBLIC_SEO_METADATA_EVIDENCE',
     legacyWorkflow: '.github/workflows/cbw-public-seo-metadata.yml',
     legacyJobId: 'public-seo-metadata',
+    legacyReportingStep: null,
     gateScript: 'scripts/seo/public-seo-metadata-schema-test.mjs',
     steps: Object.freeze([
       Object.freeze({ id: 'install', command: 'npm ci', condition: 'applicability', legacyIf: null }),
@@ -326,6 +427,318 @@ export const GATE_IDS = Object.freeze(Object.keys(GATES).sort());
 // (the parity proof, the result emitter's arity check) read this.
 export function gateCommands(gateId) {
   return GATES[gateId].steps.map((step) => step.command);
+}
+
+/** Every step of a job that executes a shell command. `uses:` steps are infrastructure. */
+export function runSteps(job) {
+  return allSteps(job).filter((step) => typeof step?.run === 'string');
+}
+
+/**
+ * Every step of a job, WHATEVER its shape — `run:`, `uses:`, or any other
+ * legitimate step form. Terminality is judged against THIS, never against the
+ * run-step projection: see `terminalReportingStep`.
+ */
+export function allSteps(job) {
+  return Array.isArray(job?.steps) ? job.steps : [];
+}
+
+// ---------------------------------------------------------------------------
+// SUMMARY-ONLY SHELL POLICY
+// ---------------------------------------------------------------------------
+//
+// The question this answers is narrow and adversarial: does this `run:` body do
+// NOTHING except put text into the GitHub step summary?
+//
+// It is stated as a POSITIVE ALLOWLIST, and that shape is the whole point. A
+// denylist of dangerous executables ("not npm, not node") is unbounded — python,
+// python3, bash, sh, pwsh, powershell, git, curl, wget, ./script, chmod, cp, mv,
+// rm, and every executable nobody thought of — and each name missing from it is
+// a silent hole through which real work hides behind a reporting name. An
+// allowlist inverts the default: anything not recognised as pure summary text is
+// blocking work, so the unknown case is the SAFE case.
+
+/**
+ * The ONLY command a reporting step may invoke.
+ *
+ * `echo` alone, and the singular is the point. `echo` is a shell builtin whose
+ * ENTIRE effect is bytes on stdout: it cannot assign a variable, export one,
+ * open a file, or change any state the next command can observe. That makes the
+ * policy STATELESS — every line can be judged on its own, because no line can
+ * change what a later line means.
+ *
+ * `printf` used to be here and was REMOVED, because it breaks exactly that
+ * property. Bash's builtin `printf` takes `-v NAME`, which assigns to a shell
+ * variable instead of printing:
+ *
+ *     printf -v GITHUB_STEP_SUMMARY /tmp/not-summary >> "$GITHUB_STEP_SUMMARY"
+ *     echo "payload" >> "$GITHUB_STEP_SUMMARY"
+ *
+ * Both lines pass a per-line "command is allowlisted, redirect names the
+ * approved target" test, yet the SECOND redirect expands a variable the FIRST
+ * line rewrote — the payload lands in an attacker-chosen file while the body
+ * reads as summary-only. No amount of option parsing fixes this safely: it
+ * would mean modelling `printf`'s full option grammar and then trusting that
+ * model, when the only thing the real legacy summary step ever needed was
+ * `echo`. Under-accepting costs a summary step its exclusion and nothing more;
+ * over-accepting is how blocking work disappears. So `printf` stays out, and
+ * any body containing it remains BLOCKING work.
+ */
+const SUMMARY_ONLY_COMMANDS = new Set(['echo']);
+
+/**
+ * Words that could carry state or option semantics, rejected wherever they
+ * appear — command position or argument position, and regardless of the command
+ * they sit next to.
+ *
+ * `NAME=value` is a shell assignment (`GITHUB_STEP_SUMMARY=/tmp/x`, or the
+ * prefix form `GITHUB_STEP_SUMMARY=/tmp/x echo hi`), and a leading `-` is an
+ * option, which is how `printf -v` smuggled an assignment past a
+ * command-name-only allowlist. Neither has any business in prose destined for a
+ * markdown summary — every argument in the real legacy step is a quoted string
+ * — so both are refused structurally rather than reasoned about per command.
+ */
+const STATE_MUTATING_WORD = /^(?:-|[A-Za-z_][A-Za-z0-9_]*=)/;
+
+/**
+ * The ONLY redirection destinations, as EXACT source spellings, because quoting
+ * changes the meaning. `'$GITHUB_STEP_SUMMARY'` is deliberately absent: single
+ * quotes suppress expansion, so it appends to a workspace file literally named
+ * `$GITHUB_STEP_SUMMARY` — a side effect on the checkout, not a summary write.
+ */
+const SUMMARY_REDIRECT_TARGETS = new Set([
+  '"$GITHUB_STEP_SUMMARY"',
+  '"${GITHUB_STEP_SUMMARY}"',
+  '$GITHUB_STEP_SUMMARY',
+  '${GITHUB_STEP_SUMMARY}',
+]);
+
+/**
+ * The shells this validator is written for. A `run:` body under `shell: python`
+ * or `shell: pwsh` is not shell at all, so validating it with a POSIX-sh reader
+ * would be reading a different language and reaching a confident wrong answer.
+ */
+const SUMMARY_ONLY_SHELLS = new Set(['bash', 'sh']);
+
+/**
+ * Tokenize ONE line of the conservative shell subset this policy accepts.
+ *
+ * Returns `null` — meaning "not obviously summary-only, treat the step as
+ * blocking" — the moment it meets anything outside that subset. It is not a
+ * general shell parser and does not try to be: every construct it does not
+ * model is a REJECTION, never a guess.
+ *
+ * Rejected outright (unquoted): command substitution (`` ` `` and `$(`),
+ * pipelines and lists (`|`, `&`, `;`), subshells (`(`, `)`), input redirection
+ * and heredocs (`<`, `<<`), truncating redirection (`>`), and backslash
+ * escapes. Only `>>` survives, and only pointing at the step summary.
+ *
+ * @param {string} line one already-trimmed logical line
+ * @returns {{raw: string, operator: boolean}[]|null} tokens, or null to reject
+ */
+function tokenizeSummaryOnlyLine(line) {
+  const tokens = [];
+  let index = 0;
+  while (index < line.length) {
+    const char = line[index];
+    if (char === ' ' || char === '\t') {
+      index += 1;
+      continue;
+    }
+    // A `#` at a word boundary starts a comment; the rest of the line is prose.
+    if (char === '#') return tokens;
+    if (char === '>') {
+      // `>>` and nothing else. `>` truncates, `>>>` is not sh — both rejected.
+      if (line[index + 1] !== '>' || line[index + 2] === '>') return null;
+      tokens.push({ raw: '>>', operator: true });
+      index += 2;
+      continue;
+    }
+    let raw = '';
+    let quote = null;
+    let rejected = false;
+    while (index < line.length) {
+      const inner = line[index];
+      if (quote === "'") {
+        // Single quotes suppress EVERY special meaning, so the contents need no
+        // inspection at all — this is why `echo '> table |---|'` is fine.
+        raw += inner;
+        index += 1;
+        if (inner === "'") quote = null;
+        continue;
+      }
+      if (quote === '"') {
+        if (inner === '`') { rejected = true; break; }
+        if (inner === '$' && line[index + 1] === '(') { rejected = true; break; }
+        if (inner === '\\') { rejected = true; break; }
+        raw += inner;
+        index += 1;
+        if (inner === '"') quote = null;
+        continue;
+      }
+      if (inner === ' ' || inner === '\t') break;
+      if (inner === '>' || inner === '<') break;
+      if (inner === '`' || inner === ';' || inner === '&' || inner === '|'
+        || inner === '(' || inner === ')' || inner === '\\') { rejected = true; break; }
+      if (inner === '$' && line[index + 1] === '(') { rejected = true; break; }
+      if (inner === "'" || inner === '"') { quote = inner; raw += inner; index += 1; continue; }
+      raw += inner;
+      index += 1;
+    }
+    // An unterminated quote means the line does not stand alone, `<` means input
+    // redirection or a heredoc, and an empty word means we stopped on an
+    // operator we do not model. All three are rejections.
+    if (rejected || quote !== null || raw === '') return null;
+    tokens.push({ raw, operator: false });
+  }
+  return tokens;
+}
+
+/** Exactly `>> <the step summary>`, with nothing before or after it. */
+function isSummaryRedirect(tokens) {
+  return tokens.length === 2
+    && tokens[0].operator && tokens[0].raw === '>>'
+    && !tokens[1].operator && SUMMARY_REDIRECT_TARGETS.has(tokens[1].raw);
+}
+
+/**
+ * Is this `run:` body PURE SUMMARY TEXT — nothing but `echo` whose only
+ * destination is $GITHUB_STEP_SUMMARY?
+ *
+ * Accepts exactly two shapes, both of which must actually reach the summary:
+ *
+ *   1. `echo …  >> "$GITHUB_STEP_SUMMARY"` — a per-command redirect.
+ *   2. `{ … } >> "$GITHUB_STEP_SUMMARY"` — a brace group of bare `echo`
+ *      commands whose SINGLE redirect is the group's. This is the shape the real
+ *      legacy Exchange Preview Family `Summary` step uses.
+ *
+ * Heredocs are NOT accepted. That is a deliberate fail-closed omission rather
+ * than an oversight: recognising one correctly means modelling delimiter
+ * quoting and expansion, and a summary step that starts using one simply stays
+ * in the blocking set, where parity reports it loudly. Under-accepting can only
+ * add work to the parity proof; over-accepting is how blocking work disappears.
+ *
+ * @param {unknown} body the step's `run:` text
+ * @returns {boolean} true ONLY when the body is provably summary-only
+ */
+export function isSummaryOnlyReportingBody(body) {
+  if (typeof body !== 'string' || body.length === 0) return false;
+  if (body.includes('\0')) return false;
+  let inGroup = false;
+  let wroteToSummary = false;
+  let ranSummaryCommand = false;
+  for (const rawLine of body.split('\n')) {
+    const line = rawLine.replace(/\r$/, '').trim();
+    if (line === '' || line.startsWith('#')) continue;
+    if (line === '{') {
+      if (inGroup) return false; // nesting is not modelled
+      inGroup = true;
+      continue;
+    }
+    if (line.startsWith('}')) {
+      if (!inGroup) return false;
+      const closing = tokenizeSummaryOnlyLine(line.slice(1));
+      if (closing === null || !isSummaryRedirect(closing)) return false;
+      inGroup = false;
+      wroteToSummary = true;
+      continue;
+    }
+    const tokens = tokenizeSummaryOnlyLine(line);
+    if (tokens === null || tokens.length === 0) return false;
+    // THE ALLOWLIST. `python`, `bash`, `git`, `./script`, `chmod`, `export`,
+    // `printf` and every other executable fail here by not being on it — no
+    // denylist needed. `GITHUB_STEP_SUMMARY=/tmp/x` fails here too: an
+    // assignment word is not `echo`.
+    if (tokens[0].operator || !SUMMARY_ONLY_COMMANDS.has(tokens[0].raw)) return false;
+    // NO WORD may look like an option or an assignment, anywhere in the line.
+    // This is what makes the policy stateless: with `printf` gone there is no
+    // allowlisted command that CAN mutate state, and this refuses the shapes
+    // that would carry state even if one ever reappeared.
+    if (tokens.some((token) => !token.operator && STATE_MUTATING_WORD.test(token.raw))) return false;
+    const operatorAt = tokens.findIndex((token) => token.operator);
+    if (operatorAt === -1) {
+      // No redirect of its own: legitimate ONLY inside a group that redirects to
+      // the summary. Outside one, the text goes to the log, not the summary.
+      if (!inGroup) return false;
+    } else {
+      // A redirect inside a group would fight the group's own — reject rather
+      // than reason about which one wins.
+      if (inGroup) return false;
+      if (!isSummaryRedirect(tokens.slice(operatorAt))) return false;
+      wroteToSummary = true;
+    }
+    ranSummaryCommand = true;
+  }
+  if (inGroup) return false; // unterminated group
+  return ranSummaryCommand && wroteToSummary;
+}
+
+/**
+ * Is this legacy step a TERMINAL NON-BLOCKING REPORTING step?
+ *
+ * S2-04 batch 02 is the first stage to migrate a legacy job that ends in one.
+ * `cbw-exchange-preview-family.yml` closes with a `Summary` step that renders a
+ * markdown table into $GITHUB_STEP_SUMMARY. It executes no repository command,
+ * so demanding the unified blocker reproduce it would be demanding parity on
+ * PROSE — and the unified job's counterpart is the result emitter, which is
+ * already excluded from the parity comparison on exactly the same grounds.
+ *
+ * The danger in excluding anything from a parity proof is obvious: "it's only a
+ * summary" is precisely how real blocking work gets dropped. So exclusion is
+ * never asserted, it is EARNED. A step qualifies only when ALL FOUR hold, and
+ * anything that fails even one stays in the blocking set — where parity will
+ * demand the unified job reproduce it, loudly. The predicate is fail-CLOSED: the
+ * default answer is "this is blocking work".
+ *
+ *   1. TERMINAL — it is the last ACTUAL step of the job, so no later step can
+ *      observe it and it cannot gate anything. Terminality is judged against the
+ *      COMPLETE step array, never against the run-step projection. Filtering to
+ *      run steps first would let `Summary` followed by `uses: actions/…`
+ *      qualify: the summary would be the last RUN step while a real action
+ *      executed after it — the exclusion would then be hiding a step that DOES
+ *      work, which is the precise failure this predicate exists to prevent.
+ *   2. `if: always()` EXACTLY — it therefore never changes WHICH steps run. A
+ *      narrower condition would make it observable in the failure cross-product.
+ *   3. Its body is PROVABLY SUMMARY-ONLY under `isSummaryOnlyReportingBody` — a
+ *      positive allowlist of `echo` writing only to
+ *      $GITHUB_STEP_SUMMARY. Not "it mentions the summary and is not npm": that
+ *      is a denylist, and every executable absent from a denylist (python, bash,
+ *      pwsh, git, curl, ./script, chmod, …) is a hole.
+ *   4. It runs under a shell this policy can actually read. `shell: python` or
+ *      `shell: pwsh` means the body is not sh, so a sh reader's verdict on it
+ *      would be confident and meaningless.
+ *
+ * @param {object} job the parsed legacy job
+ * @returns {object|null} the step, or null when the job has no such step
+ */
+export function terminalReportingStep(job) {
+  const steps = allSteps(job);
+  const last = steps[steps.length - 1];
+  if (!last || typeof last !== 'object') return null;
+  // The last ACTUAL step must be the reporting step itself. A `uses:` step, or
+  // any other step shape, occupying the final slot means the job does not end in
+  // reporting and NOTHING may be excluded from it.
+  if (typeof last.run !== 'string') return null;
+  if (Object.prototype.hasOwnProperty.call(last, 'uses')) return null;
+  if (String(last.if ?? '').trim() !== 'always()') return null;
+  const shell = last.shell;
+  if (shell !== undefined && shell !== null && !SUMMARY_ONLY_SHELLS.has(String(shell).trim())) return null;
+  if (!isSummaryOnlyReportingBody(last.run)) return null;
+  return last;
+}
+
+/**
+ * The BLOCKING run steps of a legacy job: every run step except a proven
+ * terminal reporting step. This is the sequence the unified blocker must
+ * reproduce command-for-command.
+ */
+export function legacyBlockingSteps(job) {
+  const steps = runSteps(job);
+  const reporting = terminalReportingStep(job);
+  // Removed BY IDENTITY, not by position. `slice(0, -1)` silently drops whatever
+  // happens to sit last in the run-step projection, which is a different step
+  // from the proven one the moment the job's shape changes.
+  return reporting === null ? steps : steps.filter((step) => step !== reporting);
 }
 
 // The stable visible check context of the final aggregator. Branch protection

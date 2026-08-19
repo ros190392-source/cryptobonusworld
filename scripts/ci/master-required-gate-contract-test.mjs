@@ -64,6 +64,7 @@ import {
   gateCommands,
   gateExclusiveSurface,
   isConsistentApplicability,
+  legacyBlockingSteps,
 } from './master-required-gate-gates.mjs';
 import { computeApplicability } from './master-required-gate-applicability.mjs';
 import { validateApplicabilityOutput } from './master-required-gate-validate-applicability.mjs';
@@ -1314,14 +1315,17 @@ try {
 
 // --- 14. the applicability vocabulary is closed and pinned -------------------
 // The registry is CLOSED and its membership is pinned. S2-04 batch 01 widened it
-// from the two S2-03 gates to four; pinning the exact list is what makes "a gate
-// was silently added" and "a gate was silently dropped" both contract failures
-// rather than a quiet change in how much the required context proves.
-check('exactly four gates are migrated as of S2-04 batch 01', GATE_IDS.length === 4, GATE_IDS.join(','));
+// from the two S2-03 gates to four, and batch 02 widens it to six; pinning the
+// exact list is what makes "a gate was silently added" and "a gate was silently
+// dropped" both contract failures rather than a quiet change in how much the
+// required context proves.
+check('exactly six gates are migrated as of S2-04 batch 02', GATE_IDS.length === 6, GATE_IDS.join(','));
 check(
-  'the migrated gates are exactly the four named by the stages',
+  'the migrated gates are exactly the six named by the stages',
   JSON.stringify([...GATE_IDS]) ===
     JSON.stringify([
+      'contact-utility',
+      'exchange-preview-family',
       'global-header-interaction',
       'public-first-screen-budget',
       'public-navigation',
@@ -2148,12 +2152,17 @@ for (const gateId of GATE_IDS) {
     legacyDoc?.jobs?.[gate.legacyJobId]?.['continue-on-error'] !== true,
   );
   // Command parity, restated here so a reader of the contract test sees it too.
-  // "Full" means EXACTLY the legacy job's own run sequence, read off the legacy
-  // YAML here rather than compared against a hard-coded arity — a fixed count
-  // silently mis-states the obligation for any gate whose legacy job runs a
+  // "Full" means EXACTLY the legacy job's own BLOCKING run sequence, read off the
+  // legacy YAML here rather than compared against a hard-coded arity — a fixed
+  // count silently mis-states the obligation for any gate whose legacy job runs a
   // different number of steps, and quietly stops being a parity claim at all.
-  const legacyRunCommands = (legacyDoc?.jobs?.[gate.legacyJobId]?.steps ?? [])
-    .filter((step) => typeof step?.run === 'string')
+  //
+  // `legacyBlockingSteps` drops a PROVEN terminal reporting step (see
+  // `terminalReportingStep` in the registry) and nothing else. The rule lives in
+  // the registry so this test and the parity suite cannot drift about what counts
+  // as blocking work, and the parity suite separately proves, property by
+  // property, that the one step it excludes really is non-blocking.
+  const legacyRunCommands = legacyBlockingSteps(legacyDoc?.jobs?.[gate.legacyJobId])
     .map((step) => String(step.run).trim());
   check(
     `unified blocker "${gateId}" declares the full legacy command sequence`,

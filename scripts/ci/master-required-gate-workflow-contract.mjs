@@ -63,11 +63,15 @@ export const APPLICABILITY_OUTPUT_EXPR = '${{ steps.applicability.outputs.applic
 export const APPLICABILITY_DIGEST_EXPR = '${{ steps.applicability.outputs.digest }}';
 export const FINAL_JOB_IF = 'always()';
 
-// Stage-2 migration candidates remaining after S2-04 batch 01: S2-03 left 11,
-// and migrating Public Navigation Boundary and Public First Screen Budget out of
-// LEGACY_EXTERNAL removes two. See auditRegistryPortfolioAlignment for why this
-// is a pinned literal rather than a re-derivation.
-export const EXPECTED_STAGE2_CANDIDATES = 9;
+// Stage-2 migration candidates remaining after S2-04 batch 02: S2-03 left 11,
+// batch 01 migrated Public Navigation Boundary and Public First Screen Budget out
+// of LEGACY_EXTERNAL to leave 9, and batch 02 migrates Contact Utility and
+// Exchange Preview Family to leave 7. The count falls ONLY because two more
+// legacy gates are now executed inside the unified context — no legacy workflow
+// was retired, reclassified or weakened to produce it. See
+// auditRegistryPortfolioAlignment for why this is a pinned literal rather than a
+// re-derivation.
+export const EXPECTED_STAGE2_CANDIDATES = 7;
 
 // The two self-proving suites plus the parity proof that must run on EVERY gate
 // run, unconditionally, before any classification is trusted.

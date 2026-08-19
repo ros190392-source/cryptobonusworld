@@ -28,7 +28,16 @@ import {
   auditRegistryPortfolioAlignment,
   extractCallExpressions,
 } from './master-required-gate-workflow-contract.mjs';
-import { GATES, GATE_IDS, applicabilityDigest } from './master-required-gate-gates.mjs';
+import yaml from 'js-yaml';
+import {
+  GATES,
+  GATE_IDS,
+  applicabilityDigest,
+  isSummaryOnlyReportingBody,
+  legacyBlockingSteps,
+  runSteps,
+  terminalReportingStep,
+} from './master-required-gate-gates.mjs';
 import { evaluateEnforcementReadiness } from './master-blocking-portfolio-contract.mjs';
 
 const ROOT = resolve(process.cwd());
@@ -97,13 +106,25 @@ check(
 
 // --- workflow text mutation helpers -----------------------------------------
 // Removes a step block: from its `- name:` line up to the next step or comment
-// block at the same indentation.
+// block at the same indentation — OR to the end of the enclosing job, whichever
+// comes first.
+//
+// The job boundary is load-bearing. Without it, removing the LAST step of a job
+// runs on past the job's end and swallows the following job's banner and header
+// too, so the mutant no longer tests what its label claims: it deletes an emitter
+// AND dismantles a neighbouring job, and gets "killed" by whichever complaint
+// happens to surface first. That made the mutation's kill a coincidence of job
+// ORDER — S2-04 batch 02 inserted two jobs after the first-screen budget blocker
+// and immediately exposed it. Stopping at any non-empty line indented less than
+// a step body keeps every step mutation aimed at exactly one step.
 function removeStep(text, stepName) {
   const lines = text.split('\n');
   const start = lines.findIndex((line) => line.trim() === `- name: ${stepName}`);
   if (start === -1) throw new Error(`mutation setup failed: step "${stepName}" not found`);
+  const endsBlock = (line) =>
+    /^ {6}(- name:|#)/.test(line) || (line.trim() !== '' && /^ {0,5}\S/.test(line));
   let end = start + 1;
-  while (end < lines.length && !/^ {6}(- name:|#)/.test(lines[end])) end += 1;
+  while (end < lines.length && !endsBlock(lines[end])) end += 1;
   lines.splice(start, end - start);
   return lines.join('\n');
 }
@@ -1605,6 +1626,342 @@ const S2_04_MUTATIONS = [
 ];
 
 // =============================================================================
+// S2-04 BATCH 02 — Contact Utility and Exchange Preview Family, bound identically
+// =============================================================================
+//
+// The same argument as batch 01, one widening later: a suite that keeps proving
+// everything it used to prove, about the jobs it used to prove it about, goes
+// green while the newest members of the DAG are the least constrained. Every
+// mutation below is an S3/S4 mutation RE-AIMED at one of the two blockers this
+// batch adds. They are additions, not replacements.
+//
+// Two of them are specific to this batch and have no batch-01 analogue, because
+// batch 02 is the first stage in which the registered gates DISAGREE about a
+// step condition. `cbw-contact-utility.yml` leaves the indexability inventory
+// unguarded; `cbw-exchange-preview-family.yml` guards it with `always() &&
+// steps.build.outcome == 'success'`. B2-25 and B2-26 mutate each gate's step
+// into the OTHER gate's shape — the exact edit a well-meaning "make these
+// consistent" cleanup would produce — and prove both directions are rejected.
+// Without them, "the conditions are per-gate" would be a comment rather than a
+// constraint.
+const S2_04_BATCH_02_MUTATIONS = [
+  {
+    id: 'B2-1',
+    killedBy: /declares EXACTLY the expected DAG jobs/,
+    label: 'delete the Contact Utility blocker job entirely',
+    apply: () => ({ workflowText: removeJob(baseWorkflow, 'contact-utility') }),
+  },
+  {
+    id: 'B2-2',
+    killedBy: /declares EXACTLY the expected DAG jobs/,
+    label: 'delete the Exchange Preview Family blocker job entirely',
+    apply: () => ({ workflowText: removeJob(baseWorkflow, 'exchange-preview-family') }),
+  },
+  {
+    id: 'B2-3',
+    killedBy: /declares EXACTLY the expected DAG jobs/,
+    label: 'rename the Contact Utility blocker job without updating the registry',
+    apply: () => ({
+      workflowText: replaceOnce('rename contact job', baseWorkflow, '\n  contact-utility:\n', '\n  contact-util:\n'),
+    }),
+  },
+  {
+    id: 'B2-4',
+    killedBy: /declares EXACTLY the expected DAG jobs/,
+    label: 'rename the Exchange Preview Family blocker job without updating the registry',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'rename exchange preview job',
+        baseWorkflow,
+        '\n  exchange-preview-family:\n',
+        '\n  exchange-preview:\n',
+      ),
+    }),
+  },
+  {
+    id: 'B2-5',
+    killedBy: /the final job has a `needs` edge on blocker "contact-utility"/,
+    label: 'drop the aggregator `needs` edge on Contact Utility (it stops being aggregated)',
+    apply: () => ({
+      workflowText: replaceOnce('drop contact needs', baseWorkflow, '      - contact-utility\n', ''),
+    }),
+  },
+  {
+    id: 'B2-6',
+    killedBy: /the final job has a `needs` edge on blocker "exchange-preview-family"/,
+    label: 'drop the aggregator `needs` edge on Exchange Preview Family (it stops being aggregated)',
+    apply: () => ({
+      workflowText: replaceOnce('drop exchange preview needs', baseWorkflow, '      - exchange-preview-family\n', ''),
+    }),
+  },
+  {
+    id: 'B2-7',
+    killedBy: /carries NO job-level `if`/,
+    label: 'give Contact Utility a job-level `if` so an irrelevant change SKIPS it',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'contact job-level if',
+        baseWorkflow,
+        '  contact-utility:\n    name:',
+        "  contact-utility:\n    if: needs.classify.outputs.gate_contact_utility == 'APPLICABLE'\n    name:",
+      ),
+    }),
+  },
+  {
+    id: 'B2-8',
+    killedBy: /carries NO job-level `if`/,
+    label: 'give Exchange Preview Family a job-level `if` so an irrelevant change SKIPS it',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'exchange preview job-level if',
+        baseWorkflow,
+        '  exchange-preview-family:\n    name:',
+        "  exchange-preview-family:\n    if: needs.classify.outputs.gate_exchange_preview_family == 'APPLICABLE'\n    name:",
+      ),
+    }),
+  },
+  {
+    id: 'B2-9',
+    killedBy: /runs "node scripts\/ui\/contact-utility-browser-smoke\.mjs" exactly once/,
+    label: 'delete the Contact Utility Chromium step (silent coverage reduction)',
+    apply: () => ({ workflowText: removeStep(baseWorkflow, 'Contact utility Chromium') }),
+  },
+  {
+    id: 'B2-10',
+    killedBy: /runs "node scripts\/ui\/exchange-preview-family-browser-smoke\.mjs" exactly once/,
+    label: 'delete the Exchange Preview Family Chromium step (silent coverage reduction)',
+    apply: () => ({ workflowText: removeStep(baseWorkflow, 'Exchange preview family Chromium') }),
+  },
+  {
+    id: 'B2-11',
+    killedBy: /"contact-utility" runs "npm run build" exactly once/,
+    label: 'drop the production build from Contact Utility (its gate script would run against a stale tree)',
+    apply: () => ({ workflowText: removeStep(baseWorkflow, 'Production build for the contact utility blocker') }),
+  },
+  {
+    id: 'B2-12',
+    killedBy: /"exchange-preview-family" runs "npm run build" exactly once/,
+    label: 'drop the production build from Exchange Preview Family',
+    apply: () => ({ workflowText: removeStep(baseWorkflow, 'Production build for the exchange preview blocker') }),
+  },
+  {
+    id: 'B2-13',
+    killedBy: /runs "node scripts\/seo\/site-indexability-inventory\.mjs" exactly once/,
+    label: 'delete the Contact Utility indexability inventory (a legacy obligation silently dropped)',
+    apply: () => ({ workflowText: removeStep(baseWorkflow, 'Indexability inventory for the contact utility blocker') }),
+  },
+  {
+    id: 'B2-14',
+    killedBy: /runs "node scripts\/seo\/site-indexability-inventory\.mjs" exactly once/,
+    label: 'delete the Exchange Preview Family indexability inventory (a legacy obligation silently dropped)',
+    apply: () => ({ workflowText: removeStep(baseWorkflow, 'Indexability inventory for the exchange preview blocker') }),
+  },
+  {
+    id: 'B2-15',
+    killedBy: /is gated on the exact derived condition/,
+    label: 'repoint a Contact Utility step at a nonexistent classifier output',
+    apply: () => ({
+      workflowText: requireChanged(
+        'repoint contact condition',
+        baseWorkflow,
+        baseWorkflow.replaceAll(
+          "needs.classify.outputs.gate_contact_utility == 'APPLICABLE'",
+          "needs.classify.outputs.gate_contact == 'APPLICABLE'",
+        ),
+      ),
+    }),
+  },
+  {
+    id: 'B2-16',
+    killedBy: /is gated on the exact derived condition/,
+    label: 'repoint an Exchange Preview Family step at a nonexistent classifier output',
+    apply: () => ({
+      workflowText: requireChanged(
+        'repoint exchange preview condition',
+        baseWorkflow,
+        baseWorkflow.replaceAll(
+          "needs.classify.outputs.gate_exchange_preview_family == 'APPLICABLE'",
+          "needs.classify.outputs.gate_exchange_preview == 'APPLICABLE'",
+        ),
+      ),
+    }),
+  },
+  {
+    id: 'B2-17',
+    killedBy: /receives blocker "contact-utility" JOB RESULT/,
+    label: 'stop passing the Contact Utility JOB result to the aggregator',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'drop contact job result',
+        baseWorkflow,
+        '          GATE_CONTACT_UTILITY_JOB_RESULT: ${{ needs.contact-utility.result }}\n',
+        '',
+      ),
+    }),
+  },
+  {
+    id: 'B2-18',
+    killedBy: /receives blocker "exchange-preview-family" JOB RESULT/,
+    label: 'stop passing the Exchange Preview Family JOB result to the aggregator',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'drop exchange preview job result',
+        baseWorkflow,
+        '          GATE_EXCHANGE_PREVIEW_FAMILY_JOB_RESULT: ${{ needs.exchange-preview-family.result }}\n',
+        '',
+      ),
+    }),
+  },
+  {
+    id: 'B2-19',
+    killedBy: /receives blocker "contact-utility" evidence/,
+    label: 'stop passing the Contact Utility evidence to the aggregator',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'drop contact evidence',
+        baseWorkflow,
+        '          GATE_CONTACT_UTILITY_EVIDENCE: ${{ needs.contact-utility.outputs.evidence }}\n',
+        '',
+      ),
+    }),
+  },
+  {
+    id: 'B2-20',
+    killedBy: /receives blocker "exchange-preview-family" evidence/,
+    label: 'stop passing the Exchange Preview Family evidence to the aggregator',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'drop exchange preview evidence',
+        baseWorkflow,
+        '          GATE_EXCHANGE_PREVIEW_FAMILY_EVIDENCE: ${{ needs.exchange-preview-family.outputs.evidence }}\n',
+        '',
+      ),
+    }),
+  },
+  {
+    id: 'B2-21',
+    killedBy: /"contact-utility" result emitter declares its own gate id/,
+    label: "make the Contact Utility emitter publish under ANOTHER gate's id",
+    apply: () => ({
+      workflowText: replaceOnce(
+        'swap contact gate id',
+        baseWorkflow,
+        '          GATE_ID: contact-utility\n',
+        '          GATE_ID: exchange-preview-family\n',
+      ),
+    }),
+  },
+  {
+    id: 'B2-22',
+    killedBy: /"exchange-preview-family" result emitter declares its own gate id/,
+    label: "make the Exchange Preview Family emitter publish under ANOTHER gate's id",
+    apply: () => ({
+      workflowText: replaceOnce(
+        'swap exchange preview gate id',
+        baseWorkflow,
+        '          GATE_ID: exchange-preview-family\n',
+        '          GATE_ID: contact-utility\n',
+      ),
+    }),
+  },
+  {
+    id: 'B2-23',
+    killedBy: /classifier job publishes output "gate_contact_utility" bound to its producer step/,
+    label: 'delete the Contact Utility classifier output (every gated step silently evaluates false)',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'drop contact classifier output',
+        baseWorkflow,
+        '      gate_contact_utility: ${{ steps.applicability.outputs.gate_contact_utility }}\n',
+        '',
+      ),
+    }),
+  },
+  {
+    id: 'B2-24',
+    killedBy: /classifier job publishes output "gate_exchange_preview_family" bound to its producer step/,
+    label: 'delete the Exchange Preview Family classifier output (every gated step silently evaluates false)',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'drop exchange preview classifier output',
+        baseWorkflow,
+        '      gate_exchange_preview_family: ${{ steps.applicability.outputs.gate_exchange_preview_family }}\n',
+        '',
+      ),
+    }),
+  },
+  // --- the two batch-02-specific condition mutants ---------------------------
+  {
+    id: 'B2-25',
+    killedBy: /is gated on the exact derived condition/,
+    label:
+      "normalise Contact Utility's indexability step to the after-build shape (it would run in a state the LEGACY job never runs it in)",
+    apply: () => ({
+      workflowText: replaceOnce(
+        'contact indexability after-build',
+        baseWorkflow,
+        "      - name: Indexability inventory for the contact utility blocker\n        id: indexability\n" +
+          "        if: needs.classify.outputs.gate_contact_utility == 'APPLICABLE'\n",
+        "      - name: Indexability inventory for the contact utility blocker\n        id: indexability\n" +
+          "        if: always() && needs.classify.outputs.gate_contact_utility == 'APPLICABLE' && steps.build.outcome == 'success'\n",
+      ),
+    }),
+  },
+  {
+    id: 'B2-26',
+    killedBy: /is gated on the exact derived condition/,
+    label:
+      "strip the after-build guard from Exchange Preview Family's indexability step (the LEGACY job runs it after a failed smoke; this would not)",
+    apply: () => ({
+      workflowText: replaceOnce(
+        'exchange preview indexability plain',
+        baseWorkflow,
+        "        if: always() && needs.classify.outputs.gate_exchange_preview_family == 'APPLICABLE' && steps.build.outcome == 'success'\n",
+        "        if: needs.classify.outputs.gate_exchange_preview_family == 'APPLICABLE'\n",
+      ),
+    }),
+  },
+  {
+    id: 'B2-27',
+    killedBy: /"contact-utility" checks out the EXACT PR head sha/,
+    label: 'let the Contact Utility blocker check out the merge ref instead of the exact PR head',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'contact checkout drift',
+        baseWorkflow,
+        '      - name: Checkout exact PR head for the contact utility blocker\n        uses: actions/checkout@v4\n        with:\n          ref: ${{ github.event.pull_request.head.sha }}\n',
+        '      - name: Checkout exact PR head for the contact utility blocker\n        uses: actions/checkout@v4\n        with:\n          ref: ${{ github.ref }}\n',
+      ),
+    }),
+  },
+  {
+    id: 'B2-28',
+    killedBy: /"exchange-preview-family" checks out the EXACT PR head sha/,
+    label: 'let the Exchange Preview Family blocker check out the merge ref instead of the exact PR head',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'exchange preview checkout drift',
+        baseWorkflow,
+        '      - name: Checkout exact PR head for the exchange preview blocker\n        uses: actions/checkout@v4\n        with:\n          ref: ${{ github.event.pull_request.head.sha }}\n',
+        '      - name: Checkout exact PR head for the exchange preview blocker\n        uses: actions/checkout@v4\n        with:\n          ref: ${{ github.ref }}\n',
+      ),
+    }),
+  },
+  {
+    id: 'B2-29',
+    killedBy: /"contact-utility" runs the result emitter exactly once/,
+    label: 'delete the Contact Utility result emitter step',
+    apply: () => ({ workflowText: removeStep(baseWorkflow, 'Publish contact utility blocker result') }),
+  },
+  {
+    id: 'B2-30',
+    killedBy: /"exchange-preview-family" runs the result emitter exactly once/,
+    label: 'delete the Exchange Preview Family result emitter step',
+    apply: () => ({ workflowText: removeStep(baseWorkflow, 'Publish exchange preview blocker result') }),
+  },
+];
+
+// =============================================================================
 // S2-04 R1 / M1 — THE EMITTER MUST ALWAYS RUN, FOR EVERY REGISTERED BLOCKER
 // =============================================================================
 //
@@ -1805,7 +2162,13 @@ const EMITTER_SOURCE_MUTANTS = [
   },
 ];
 
-MUTATIONS.push(...DAG_MUTATIONS, ...S2_04_MUTATIONS, ...EMITTER_MUTANTS, ...EMITTER_SOURCE_MUTANTS);
+MUTATIONS.push(
+  ...DAG_MUTATIONS,
+  ...S2_04_MUTATIONS,
+  ...S2_04_BATCH_02_MUTATIONS,
+  ...EMITTER_MUTANTS,
+  ...EMITTER_SOURCE_MUTANTS,
+);
 
 // =============================================================================
 // REGISTRY <-> PORTFOLIO ALIGNMENT, MUTATED
@@ -1881,7 +2244,7 @@ MUTATIONS.push(...DAG_MUTATIONS, ...S2_04_MUTATIONS, ...EMITTER_MUTANTS, ...EMIT
     },
     {
       id: 'P-5',
-      killedBy: /stage-2 migration candidates are exactly 9/,
+      killedBy: /stage-2 migration candidates are exactly 7/,
       label: 'let the stage-2 candidate count drift (enforcement scope changes unannounced)',
       apply: () => {
         const portfolio = clone();
@@ -3476,6 +3839,746 @@ try {
   }
 } finally {
   rmSync(sandbox, { recursive: true, force: true });
+}
+
+// =============================================================================
+// S2-04 R1 / MEDIUM 1 + MEDIUM 2 — THE REPORTING-STEP EXCLUSION IS EARNED
+// =============================================================================
+//
+// Batch 02 introduced the first exclusion from command parity: a legacy job's
+// terminal `Summary` step is not reproduced by the unified blocker. An exclusion
+// is a hole in the parity proof, so the predicate that grants it is the single
+// most attackable surface this batch added, and R1 review found it porous in two
+// independent ways:
+//
+//   MEDIUM 1 — terminality was computed over RUN steps only. `Summary` followed
+//   by `uses: actions/upload-artifact` therefore read as terminal: the summary
+//   was the last RUN step while a real action executed after it. The exclusion
+//   would have been concealing work that genuinely ran.
+//
+//   MEDIUM 2 — the body test was a DENYLIST ("mentions the summary, is not
+//   npm/node/npx/yarn/pnpm"). Every executable absent from those five names —
+//   python, python3, bash, sh, pwsh, powershell, git, curl, wget, ./script,
+//   chmod, cp, mv, rm — sailed straight through, as did command substitution,
+//   pipelines and writes to other files.
+//
+// Both are now structural properties, and this section attacks them the only way
+// that constitutes evidence: with a corpus that DEFEATS THE OLD PREDICATE. Every
+// body below references $GITHUB_STEP_SUMMARY and contains none of the five
+// denied names, so the pre-fix predicate would have excluded each one from
+// parity. That is asserted case by case, so "positive allowlist, not executable
+// denylist" is demonstrated rather than claimed.
+//
+// Nothing here is keyed to the name "Summary" — the corpus is built by mutating
+// the REAL legacy job structurally, and a rename is separately proved not to
+// change any verdict.
+
+const LEGACY_EXCHANGE_WORKFLOW = resolve(ROOT, '.github/workflows/cbw-exchange-preview-family.yml');
+const legacyExchangeDoc = yaml.load(readFileSync(LEGACY_EXCHANGE_WORKFLOW, 'utf8'), { schema: yaml.CORE_SCHEMA });
+const legacyExchangeJob = legacyExchangeDoc?.jobs?.['exchange-preview-family'];
+const legacyExchangeSteps = Array.isArray(legacyExchangeJob?.steps) ? legacyExchangeJob.steps : [];
+const realSummaryStep = legacyExchangeSteps[legacyExchangeSteps.length - 1];
+
+// The pre-fix rule, restated here EXACTLY as it stood, so the corpus below can be
+// proved adversarial against it instead of merely asserted to be.
+const OLD_DENYLIST = /(^|[\s;&|(`])(npm|node|npx|yarn|pnpm)([\s;&|)`]|$)/;
+const oldPredicateWouldAccept = (body) =>
+  String(body).includes('GITHUB_STEP_SUMMARY') && !OLD_DENYLIST.test(String(body));
+
+// --- the REAL legacy Summary, and WHY it qualifies ---------------------------
+check(
+  'REPORTING: the real legacy Exchange Preview Family job was parsed and ends in a step',
+  Boolean(realSummaryStep) && typeof realSummaryStep?.run === 'string',
+  JSON.stringify(realSummaryStep?.name ?? null),
+);
+check(
+  'REPORTING: the real legacy Summary is the job\'s LAST ACTUAL step (nothing of any shape follows it)',
+  legacyExchangeSteps.indexOf(realSummaryStep) === legacyExchangeSteps.length - 1,
+);
+check(
+  'REPORTING: the real legacy Summary qualifies under the STRICT predicate',
+  terminalReportingStep(legacyExchangeJob) === realSummaryStep,
+  JSON.stringify(terminalReportingStep(legacyExchangeJob)?.name ?? null),
+);
+check(
+  'REPORTING: it qualifies because its BODY is provably summary-only — `{ echo … } >> "$GITHUB_STEP_SUMMARY"`',
+  isSummaryOnlyReportingBody(String(realSummaryStep?.run ?? '')),
+  String(realSummaryStep?.run ?? '').slice(0, 120),
+);
+check(
+  'REPORTING: excluding it leaves the four real legacy commands intact',
+  JSON.stringify(legacyBlockingSteps(legacyExchangeJob).map((step) => String(step.run).trim()))
+    === JSON.stringify([
+      'npm ci',
+      'npm run build',
+      'node scripts/ui/exchange-preview-family-browser-smoke.mjs',
+      'node scripts/seo/site-indexability-inventory.mjs',
+    ]),
+  JSON.stringify(legacyBlockingSteps(legacyExchangeJob).map((step) => String(step.run).trim())),
+);
+// NOT NAME-BASED. The same step called something else still qualifies, and a
+// step called "Summary" that does real work does not (proved further down).
+const renamedSummaryJob = {
+  steps: [...legacyExchangeSteps.slice(0, -1), { ...realSummaryStep, name: 'Post-run reporting block' }],
+};
+check(
+  'REPORTING: renaming the step away from "Summary" does not change the verdict — the property is STRUCTURAL',
+  terminalReportingStep(renamedSummaryJob)?.name === 'Post-run reporting block',
+);
+
+// --- MEDIUM 1: terminality is judged over the COMPLETE step array ------------
+const withTrailingStep = (extra) => ({ steps: [...legacyExchangeSteps, extra] });
+const TERMINALITY_ADVERSARIES = Object.freeze([
+  ['a `uses:` action is appended after it', { name: 'Upload artifact', uses: 'actions/upload-artifact@v4' }],
+  [
+    'an `if: always()` `uses:` action is appended after it',
+    { name: 'Always upload', if: 'always()', uses: 'actions/upload-artifact@v4' },
+  ],
+  [
+    'a composite `uses:` action with inputs is appended after it',
+    { name: 'Publish', uses: './.github/actions/publish', with: { target: 'production' } },
+  ],
+  ['another `run:` step is appended after it', { name: 'Cleanup', run: 'rm -rf dist' }],
+  [
+    'an `if: always()` `run:` step is appended after it',
+    { name: 'Cleanup', if: 'always()', run: 'rm -rf dist' },
+  ],
+  ['a shell-less step with neither `run:` nor `uses:` is appended after it', { name: 'Bare step' }],
+  ['a step carrying only `with:` is appended after it', { name: 'Odd step', with: { anything: 'here' } }],
+]);
+for (const [label, extra] of TERMINALITY_ADVERSARIES) {
+  const job = withTrailingStep(extra);
+  check(
+    `REPORTING/M1: NOTHING is excluded when ${label}`,
+    terminalReportingStep(job) === null,
+    JSON.stringify(terminalReportingStep(job)?.name ?? null),
+  );
+  check(
+    `REPORTING/M1: command parity therefore KEEPS the Summary as blocking work when ${label}`,
+    legacyBlockingSteps(job).includes(realSummaryStep),
+  );
+  // Says exactly what is true of THIS case rather than one blurred claim over
+  // both halves of the corpus. A NON-run trailing step leaves the Summary as the
+  // last RUN step, which is precisely the state the pre-fix rule mistook for
+  // terminality — those are the cases that reproduce the reviewed MEDIUM 1. A
+  // trailing RUN step does not reproduce it, and is carried anyway because it is
+  // the case a positional `slice(0, -1)` gets wrong.
+  if (typeof extra.run === 'string') {
+    check(
+      `REPORTING/M1: when ${label}, the Summary is no longer the last RUN step either`,
+      runSteps(job)[runSteps(job).length - 1] !== realSummaryStep,
+    );
+  } else {
+    check(
+      `REPORTING/M1: when ${label}, the Summary IS still the last RUN step — this case reproduces the reviewed MEDIUM 1 exactly`,
+      runSteps(job)[runSteps(job).length - 1] === realSummaryStep,
+    );
+  }
+}
+// The positive control for identity-based removal: with a SECOND qualifying
+// summary appended, the excluded step is the new last one and the ORIGINAL
+// Summary becomes blocking work again. A positional `slice(0, -1)` cannot
+// express this.
+const doubleSummaryJob = withTrailingStep({
+  name: 'Second summary',
+  if: 'always()',
+  run: 'echo "more" >> "$GITHUB_STEP_SUMMARY"\n',
+});
+check(
+  'REPORTING/M1: with a second qualifying summary appended, the EXCLUDED step is the new last one',
+  terminalReportingStep(doubleSummaryJob)?.name === 'Second summary',
+);
+check(
+  'REPORTING/M1: …and the original Summary returns to the blocking sequence (removal is by IDENTITY)',
+  legacyBlockingSteps(doubleSummaryJob).includes(realSummaryStep),
+);
+
+// --- MEDIUM 2: the body policy is a POSITIVE ALLOWLIST -----------------------
+// Every entry writes to $GITHUB_STEP_SUMMARY and avoids npm/node/npx/yarn/pnpm,
+// so every entry defeats the pre-fix denylist. All must be rejected.
+const SUMMARY_BODY_ADVERSARIES = Object.freeze([
+  ['python invoking a repository script', 'python scripts/check.py >> "$GITHUB_STEP_SUMMARY"\n'],
+  ['python3 invoking a repository script', 'python3 scripts/check.py >> "$GITHUB_STEP_SUMMARY"\n'],
+  ['bash invoking a repository script', 'bash scripts/check.sh >> "$GITHUB_STEP_SUMMARY"\n'],
+  ['sh invoking a repository script', 'sh scripts/check.sh >> "$GITHUB_STEP_SUMMARY"\n'],
+  ['pwsh invoking a repository script', 'pwsh -File scripts/check.ps1 >> "$GITHUB_STEP_SUMMARY"\n'],
+  ['powershell invoking a command', 'powershell -Command Get-Date >> "$GITHUB_STEP_SUMMARY"\n'],
+  ['git', 'git status >> "$GITHUB_STEP_SUMMARY"\n'],
+  ['curl', 'curl -s https://example.invalid/x >> "$GITHUB_STEP_SUMMARY"\n'],
+  ['wget', 'wget -qO- https://example.invalid/x >> "$GITHUB_STEP_SUMMARY"\n'],
+  ['a bare ./script invocation', './scripts/check.sh >> "$GITHUB_STEP_SUMMARY"\n'],
+  ['chmod alongside a summary write', 'chmod +x scripts/check.sh\necho "ok" >> "$GITHUB_STEP_SUMMARY"\n'],
+  ['cp alongside a summary write', 'cp dist/index.html /tmp/x\necho "ok" >> "$GITHUB_STEP_SUMMARY"\n'],
+  ['mv alongside a summary write', 'mv dist/index.html /tmp/x\necho "ok" >> "$GITHUB_STEP_SUMMARY"\n'],
+  ['rm alongside a summary write', 'rm -rf dist\necho "ok" >> "$GITHUB_STEP_SUMMARY"\n'],
+  ['cat, which produces text but reads the filesystem', 'cat REPORT.md >> "$GITHUB_STEP_SUMMARY"\n'],
+  ['eval', 'eval "$CMD" >> "$GITHUB_STEP_SUMMARY"\n'],
+  ['command substitution invoking an executable', 'echo "$(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"\n'],
+  ['backtick command substitution', 'echo "`id`" >> "$GITHUB_STEP_SUMMARY"\n'],
+  ['a pipeline into a non-summary command', 'echo "hi" | tee -a "$GITHUB_STEP_SUMMARY"\n'],
+  ['a subshell invoking an executable', '( ./scripts/check.sh ) >> "$GITHUB_STEP_SUMMARY"\n'],
+  ['a background job alongside a summary write', './scripts/x.sh &\necho "ok" >> "$GITHUB_STEP_SUMMARY"\n'],
+  [
+    'two commands on one line where the second has side effects',
+    'echo "ok" >> "$GITHUB_STEP_SUMMARY"; rm -rf dist\n',
+  ],
+  [
+    'a summary write followed by an executable invocation',
+    'echo "ok" >> "$GITHUB_STEP_SUMMARY"\n./scripts/deploy.sh\n',
+  ],
+  ['a write to another file', 'echo "ok" >> "$GITHUB_STEP_SUMMARY"\necho "secret" >> /tmp/exfil.txt\n'],
+  ['environment mutation via export', 'export PATH=/evil:$PATH\necho "ok" >> "$GITHUB_STEP_SUMMARY"\n'],
+  [
+    'a brace group whose members are not all summary text',
+    '{\n  echo "ok"\n  chmod +x scripts/check.sh\n} >> "$GITHUB_STEP_SUMMARY"\n',
+  ],
+  [
+    'a single-quoted target, which is a FILE literally named $GITHUB_STEP_SUMMARY',
+    "echo \"ok\" >> '$GITHUB_STEP_SUMMARY'\n",
+  ],
+  ['a TRUNCATING redirect, which destroys other steps\' summary output', 'echo "ok" > "$GITHUB_STEP_SUMMARY"\n'],
+  ['a heredoc (deliberately unmodelled, therefore fail-closed)', 'cat <<\'EOF\' >> "$GITHUB_STEP_SUMMARY"\nhi\nEOF\n'],
+  ['a herestring into tee', 'tee -a "$GITHUB_STEP_SUMMARY" <<< "hi"\n'],
+  // --- MEDIUM 3: STATE MUTATION and TARGET IDENTITY -------------------------
+  // R1 allowlisted `printf` alongside `echo`, and that made the policy
+  // STATEFUL: bash's builtin `printf -v NAME` ASSIGNS to a shell variable
+  // instead of printing, so one line could rewrite $GITHUB_STEP_SUMMARY and the
+  // NEXT line's redirect would expand the rewritten value — the body reads as
+  // summary-only while the payload lands in an attacker-chosen file. `printf`
+  // is now refused OUTRIGHT, with no option grammar modelled at all, because
+  // modelling one is precisely what went wrong. The plain, optionless `printf`
+  // forms below are here to prove the removal is TOTAL rather than
+  // option-shaped. No word anywhere may look like an option or an assignment,
+  // and the redirect target must be the literal approved spelling — a prefix,
+  // a suffix, an indirection or a substitution is a DIFFERENT file.
+  [
+    "the stateful `printf -v` bypass \u2014 it rewrites $GITHUB_STEP_SUMMARY, then writes the payload",
+    "printf -v GITHUB_STEP_SUMMARY /tmp/not-summary >> \"$GITHUB_STEP_SUMMARY\"\necho \"payload\" >> \"$GITHUB_STEP_SUMMARY\"\n",
+  ],
+  [
+    "`printf -v` alone, with no later write at all",
+    "printf -v GITHUB_STEP_SUMMARY /tmp/not-summary >> \"$GITHUB_STEP_SUMMARY\"\n",
+  ],
+  [
+    "`printf --help`, an option-like first argument",
+    "printf --help >> \"$GITHUB_STEP_SUMMARY\"\n",
+  ],
+  [
+    "`printf -`, a bare option-like argument",
+    "printf - >> \"$GITHUB_STEP_SUMMARY\"\n",
+  ],
+  [
+    "`printf -v` mutating some OTHER variable",
+    "printf -v OUT hi >> \"$GITHUB_STEP_SUMMARY\"\n",
+  ],
+  [
+    "`printf` mutating a variable and mixing with a later echo inside one brace group",
+    "{\n  printf -v GITHUB_STEP_SUMMARY /tmp/not-summary\n  echo \"payload\"\n} >> \"$GITHUB_STEP_SUMMARY\"\n",
+  ],
+  [
+    "plain `printf` with a format string and no options at all",
+    "printf '%s\\n' \"### Report\" >> \"$GITHUB_STEP_SUMMARY\"\n",
+  ],
+  [
+    "plain `printf` inside the brace-group form",
+    "{\n  printf '%s\\n' \"### Report\"\n} >> \"$GITHUB_STEP_SUMMARY\"\n",
+  ],
+  [
+    "`printf` followed by a later echo",
+    "printf '%s\\n' \"hi\" >> \"$GITHUB_STEP_SUMMARY\"\necho \"ok\" >> \"$GITHUB_STEP_SUMMARY\"\n",
+  ],
+  [
+    "an echo followed by a later `printf`",
+    "echo \"ok\" >> \"$GITHUB_STEP_SUMMARY\"\nprintf '%s\\n' \"hi\" >> \"$GITHUB_STEP_SUMMARY\"\n",
+  ],
+  [
+    "a bare reassignment of the summary target before a valid-looking write",
+    "GITHUB_STEP_SUMMARY=/tmp/x\necho \"payload\" >> \"$GITHUB_STEP_SUMMARY\"\n",
+  ],
+  [
+    "an `export` reassignment of the summary target",
+    "export GITHUB_STEP_SUMMARY=/tmp/x\necho \"payload\" >> \"$GITHUB_STEP_SUMMARY\"\n",
+  ],
+  [
+    "a per-command assignment PREFIX on an otherwise valid echo",
+    "GITHUB_STEP_SUMMARY=/tmp/x echo \"payload\" >> \"$GITHUB_STEP_SUMMARY\"\n",
+  ],
+  [
+    "a `readonly` declaration of the summary target",
+    "readonly GITHUB_STEP_SUMMARY=/tmp/x\necho \"payload\" >> \"$GITHUB_STEP_SUMMARY\"\n",
+  ],
+  [
+    "a `declare` declaration of the summary target",
+    "declare GITHUB_STEP_SUMMARY=/tmp/x\necho \"payload\" >> \"$GITHUB_STEP_SUMMARY\"\n",
+  ],
+  [
+    "a `typeset` declaration of the summary target",
+    "typeset GITHUB_STEP_SUMMARY=/tmp/x\necho \"payload\" >> \"$GITHUB_STEP_SUMMARY\"\n",
+  ],
+  [
+    "a `local` declaration of the summary target",
+    "local GITHUB_STEP_SUMMARY=/tmp/x\necho \"payload\" >> \"$GITHUB_STEP_SUMMARY\"\n",
+  ],
+  [
+    "a `set` builtin invocation before a summary write",
+    "set -x\necho \"payload\" >> \"$GITHUB_STEP_SUMMARY\"\n",
+  ],
+  [
+    "`unset` of the summary target before a summary write",
+    "unset GITHUB_STEP_SUMMARY\necho \"payload\" >> \"$GITHUB_STEP_SUMMARY\"\n",
+  ],
+  [
+    "an option-like argument to the allowlisted echo",
+    "echo -v GITHUB_STEP_SUMMARY /tmp/x >> \"$GITHUB_STEP_SUMMARY\"\n",
+  ],
+  [
+    "a target derived by parameter default expansion",
+    "echo \"payload\" >> \"${GITHUB_STEP_SUMMARY:-/tmp/x}\"\n",
+  ],
+  [
+    "a target that merely has the approved name as a PREFIX",
+    "echo \"payload\" >> \"$GITHUB_STEP_SUMMARY_BACKUP\"\n",
+  ],
+  [
+    "a target suffixed onto the approved variable",
+    "echo \"payload\" >> \"${GITHUB_STEP_SUMMARY}.bak\"\n",
+  ],
+]);
+for (const [label, body] of SUMMARY_BODY_ADVERSARIES) {
+  check(
+    `REPORTING/M2: the pre-fix DENYLIST would have accepted ${label} (this case is genuinely adversarial)`,
+    oldPredicateWouldAccept(body),
+    body.slice(0, 80),
+  );
+  check(`REPORTING/M2: the summary-only ALLOWLIST rejects ${label}`, !isSummaryOnlyReportingBody(body), body.slice(0, 80));
+  // …and rejection is not academic: the step stays in the blocking sequence,
+  // where command parity will demand the unified blocker reproduce it.
+  const job = { steps: [...legacyExchangeSteps.slice(0, -1), { name: 'Summary', if: 'always()', run: body }] };
+  check(
+    `REPORTING/M2: a terminal step NAMED "Summary" that ${label} stays BLOCKING work`,
+    terminalReportingStep(job) === null && legacyBlockingSteps(job).length === runSteps(job).length,
+    `blocking=${legacyBlockingSteps(job).length} run=${runSteps(job).length}`,
+  );
+}
+// Target-identity adversaries that never NAME the approved variable at all, so
+// the pre-fix denylist would have rejected them for a different reason and no
+// "genuinely adversarial against the old rule" claim can honestly be made. They
+// are carried anyway: the redirect target must be the LITERAL approved
+// spelling, and a derived or indirect one is a different file.
+const SUMMARY_TARGET_ADVERSARIES = Object.freeze([
+  [
+    "an INDIRECT target variable",
+    "echo \"payload\" >> \"$SUMMARY_FILE\"\n",
+  ],
+  [
+    "an indirect expansion of the target name",
+    "echo \"payload\" >> \"${!TARGET}\"\n",
+  ],
+  [
+    "a target DERIVED by command substitution",
+    "echo \"payload\" >> \"$(mktemp)\"\n",
+  ],
+]);
+for (const [label, body] of SUMMARY_TARGET_ADVERSARIES) {
+  check(`REPORTING/M3: the summary-only ALLOWLIST rejects ${label}`, !isSummaryOnlyReportingBody(body), body.slice(0, 80));
+  const job = { steps: [...legacyExchangeSteps.slice(0, -1), { name: 'Summary', if: 'always()', run: body }] };
+  check(
+    `REPORTING/M3: a terminal step NAMED "Summary" writing to ${label} stays BLOCKING work`,
+    terminalReportingStep(job) === null && legacyBlockingSteps(job).length === runSteps(job).length,
+    `blocking=${legacyBlockingSteps(job).length} run=${runSteps(job).length}`,
+  );
+}
+
+// The shapes that MUST still qualify, so the allowlist is not vacuously strict.
+const SUMMARY_BODY_ACCEPTED = Object.freeze([
+  ['the real legacy brace-group form', String(realSummaryStep?.run ?? '')],
+  ['a single echo with a per-command redirect', 'echo "### Report" >> "$GITHUB_STEP_SUMMARY"\n'],
+  ['the braced form of the variable', 'echo "ok" >> "${GITHUB_STEP_SUMMARY}"\n'],
+  ['an unquoted target', 'echo "ok" >> $GITHUB_STEP_SUMMARY\n'],
+  ['a comment line among the summary writes', '# render the table\necho "ok" >> "$GITHUB_STEP_SUMMARY"\n'],
+]);
+for (const [label, body] of SUMMARY_BODY_ACCEPTED) {
+  check(`REPORTING/M2: the allowlist still ACCEPTS ${label}`, isSummaryOnlyReportingBody(body), body.slice(0, 80));
+}
+
+// --- MEDIUM 3, DEDICATED: the stateful `printf` bypass ----------------------
+//
+// Codex R1 reproduced this body against the R1 policy and got bodyAccepted=true,
+// stepExcluded=true. Line 1 passed as "an allowlisted command redirected at the
+// approved target" while its REAL effect was `printf -v` assigning to the shell
+// variable; line 2 then expanded the rewritten value, so the payload went to
+// /tmp/not-summary and the step was dropped from the parity comparison anyway.
+//
+// This block pins the CURRENT behaviour through the real predicates. The
+// old-versus-new half of the proof is the R1-restoration mutant further down,
+// which must ACCEPT this exact body — so the two together say "it used to
+// qualify, it no longer does" as evidence rather than as narration.
+const STATEFUL_PRINTF_BYPASS =
+  'printf -v GITHUB_STEP_SUMMARY /tmp/not-summary >> "$GITHUB_STEP_SUMMARY"\n'
+  + 'echo "payload" >> "$GITHUB_STEP_SUMMARY"\n';
+const statefulPrintfStep = { name: 'Summary', if: 'always()', run: STATEFUL_PRINTF_BYPASS };
+const statefulPrintfJob = { steps: [...legacyExchangeSteps.slice(0, -1), statefulPrintfStep] };
+check(
+  'REPORTING/M3: the stateful `printf -v` body defeats the pre-fix denylist too (it is adversarial at every layer)',
+  oldPredicateWouldAccept(STATEFUL_PRINTF_BYPASS),
+);
+check(
+  'REPORTING/M3: every line of the bypass would pass a command-name-only reading — the danger is the STATE, not the name',
+  STATEFUL_PRINTF_BYPASS.split('\n').filter((line) => line.trim() !== '')
+    .every((line) => /^(echo|printf)\b/.test(line.trim())),
+);
+check(
+  'REPORTING/M3: the stateful `printf -v` bypass body is NOT summary-only',
+  isSummaryOnlyReportingBody(STATEFUL_PRINTF_BYPASS) === false,
+);
+check(
+  'REPORTING/M3: …so the terminal step carrying it is NOT excluded (terminalReportingStep returns null)',
+  terminalReportingStep(statefulPrintfJob) === null,
+  JSON.stringify(terminalReportingStep(statefulPrintfJob)?.name ?? null),
+);
+check(
+  'REPORTING/M3: …and it stays in the blocking set, BY IDENTITY, where command parity must reproduce it',
+  legacyBlockingSteps(statefulPrintfJob).includes(statefulPrintfStep)
+    && legacyBlockingSteps(statefulPrintfJob).length === runSteps(statefulPrintfJob).length,
+  `blocking=${legacyBlockingSteps(statefulPrintfJob).length} run=${runSteps(statefulPrintfJob).length}`,
+);
+check(
+  'REPORTING/M3: the blocking command sequence therefore ends with the bypass body itself',
+  String(legacyBlockingSteps(statefulPrintfJob).slice(-1)[0]?.run) === STATEFUL_PRINTF_BYPASS,
+);
+// The same shape with the mutation expressed as a plain assignment rather than
+// through `printf`, so the property proved is "no state mutation", not "no
+// printf".
+const ASSIGNMENT_BYPASS = 'GITHUB_STEP_SUMMARY=/tmp/x\necho "payload" >> "$GITHUB_STEP_SUMMARY"\n';
+const assignmentStep = { name: 'Summary', if: 'always()', run: ASSIGNMENT_BYPASS };
+const assignmentJob = { steps: [...legacyExchangeSteps.slice(0, -1), assignmentStep] };
+check(
+  'REPORTING/M3: a bare $GITHUB_STEP_SUMMARY reassignment before a valid-looking write is NOT summary-only',
+  isSummaryOnlyReportingBody(ASSIGNMENT_BYPASS) === false,
+);
+check(
+  'REPORTING/M3: …and that step stays blocking work as well',
+  terminalReportingStep(assignmentJob) === null
+    && legacyBlockingSteps(assignmentJob).includes(assignmentStep),
+);
+// `printf` is gone TOTALLY, not narrowed: no form of it qualifies, with or
+// without options, alone or beside an echo, per-command or inside the group.
+const EVERY_PRINTF_FORM = Object.freeze([
+  'printf "hi" >> "$GITHUB_STEP_SUMMARY"\n',
+  'printf \'%s\\n\' "hi" >> "$GITHUB_STEP_SUMMARY"\n',
+  'printf -v X hi >> "$GITHUB_STEP_SUMMARY"\n',
+  'printf --help >> "$GITHUB_STEP_SUMMARY"\n',
+  '{\n  printf "hi"\n} >> "$GITHUB_STEP_SUMMARY"\n',
+  '{\n  echo "ok"\n  printf "hi"\n} >> "$GITHUB_STEP_SUMMARY"\n',
+  'echo "ok" >> "$GITHUB_STEP_SUMMARY"\nprintf "hi" >> "$GITHUB_STEP_SUMMARY"\n',
+]);
+check(
+  'REPORTING/M3: EVERY `printf` form is blocking — support was removed, not narrowed',
+  EVERY_PRINTF_FORM.every((body) => isSummaryOnlyReportingBody(body) === false),
+  JSON.stringify(EVERY_PRINTF_FORM.filter((body) => isSummaryOnlyReportingBody(body))),
+);
+check(
+  'REPORTING/M3: the allowlist contains exactly one command, and it is `echo`',
+  EVERY_PRINTF_FORM.length === 7
+    && isSummaryOnlyReportingBody('echo "ok" >> "$GITHUB_STEP_SUMMARY"\n') === true,
+);
+
+// --- step-shaped near misses, preserved from the pre-fix suite ---------------
+const asSummaryStep = (overrides) => ({
+  steps: [...legacyExchangeSteps.slice(0, -1), { ...realSummaryStep, ...overrides }],
+});
+const STEP_SHAPE_ADVERSARIES = Object.freeze([
+  ['`if: success()` instead of `always()`', { if: 'success()' }],
+  ['no `if:` at all', { if: undefined }],
+  ['a narrower `always() && …` condition', { if: "always() && steps.build.outcome == 'success'" }],
+  ['a body that never names $GITHUB_STEP_SUMMARY', { run: 'echo "ok" >> notes.txt\n' }],
+  ['`shell: pwsh`, whose body is not sh at all', { shell: 'pwsh' }],
+  ['`shell: python`, whose body is not sh at all', { shell: 'python' }],
+  ['a `uses:` key alongside `run:`', { uses: 'actions/upload-artifact@v4' }],
+]);
+for (const [label, overrides] of STEP_SHAPE_ADVERSARIES) {
+  const job = asSummaryStep(overrides);
+  check(`REPORTING: a reporting step with ${label} does NOT qualify`, terminalReportingStep(job) === null);
+}
+check(
+  'REPORTING: a job whose reporting step DISAPPEARS excludes nothing',
+  terminalReportingStep({ steps: legacyExchangeSteps.slice(0, -1) }) === null,
+);
+
+// --- the registry pin is still load-bearing ----------------------------------
+check(
+  'REPORTING/PIN: the registry still pins the excluded step BY NAME',
+  GATES['exchange-preview-family'].legacyReportingStep === 'Summary',
+  JSON.stringify(GATES['exchange-preview-family'].legacyReportingStep),
+);
+for (const wrong of [null, 'Report', 'summary', 'Summary ']) {
+  check(
+    `REPORTING/PIN: a registry declaring ${JSON.stringify(wrong)} would NOT match the legacy job`,
+    (terminalReportingStep(legacyExchangeJob)?.name ?? null) !== wrong,
+  );
+}
+// Exactly ONE gate may declare a reporting step at this stage; every other gate
+// must declare null, so a future exclusion cannot appear without a registry edit
+// that a reviewer sees. The per-gate comparison against each legacy YAML is the
+// PARITY suite's job (it already loads every legacy workflow, in both
+// directions) and is deliberately not duplicated here.
+check(
+  'REPORTING/PIN: exactly one registered gate declares a terminal reporting step',
+  GATE_IDS.filter((id) => GATES[id].legacyReportingStep !== null).length === 1,
+  JSON.stringify(GATE_IDS.map((id) => [id, GATES[id].legacyReportingStep])),
+);
+check(
+  'REPORTING/PIN: …and it is the Exchange Preview Family gate',
+  GATE_IDS.find((id) => GATES[id].legacyReportingStep !== null) === 'exchange-preview-family',
+);
+
+// --- EVERY predicate is load-bearing: soften one, and an adversary gets in ----
+//
+// The corpus above proves the CURRENT predicate rejects the right things. That
+// is only evidence if each rule is doing work, so each one is removed in turn
+// from a sandbox copy of the registry and the corresponding adversary must then
+// be ACCEPTED. A mutant that changes nothing would be reported as caught by a
+// weaker suite; here `mutate` aborts on a no-op edit, and each mutant is
+// additionally required to still accept the real legacy Summary — so a mutation
+// that simply broke the module cannot masquerade as a caught one.
+const reportingSandbox = mkdtempSync(join(tmpdir(), 'cbw-reporting-mutants-'));
+try {
+  // A sandbox copy cannot resolve its sibling by relative path; rewriting the
+  // specifier restores nothing the mutation removed.
+  const asRunnableGates = (source) =>
+    mutate('gates harness accommodation', source, [
+      [
+        "from './master-required-gate-classify.mjs'",
+        `from ${JSON.stringify(pathToFileURL(CLASSIFY_SCRIPT).href)}`,
+      ],
+    ]);
+  // Mutants are exercised in a SUBPROCESS against a fixed fixture battery, the
+  // same shape the behavioural family above uses. Two reasons, both deliberate:
+  // a softened registry never enters this process (so it cannot contaminate the
+  // real predicate the checks above depend on), and the suite keeps its
+  // statically-resolvable dependency surface — a dynamic `import()` here would
+  // add an unresolved-dependency fact to the blocking portfolio for a test
+  // convenience, which is precisely the kind of drift the portfolio exists to
+  // surface.
+  const usesAfterSummaryJob = withTrailingStep({ name: 'Upload artifact', uses: 'actions/upload-artifact@v4' });
+  // Every fixture is JSON — no closures — so the probe evaluates the SAME inputs
+  // against the real registry and against each mutant.
+  const PROBE_FIXTURES = {
+    jobs: {
+      realSummary: legacyExchangeJob,
+      usesAfterSummary: usesAfterSummaryJob,
+      ifSuccess: asSummaryStep({ if: 'success()' }),
+      shellPwsh: asSummaryStep({ shell: 'pwsh' }),
+      runPlusUses: asSummaryStep({ uses: 'actions/upload-artifact@v4' }),
+      // The reviewed MEDIUM 3, carried as a JOB so the mutant is judged through
+      // the real `terminalReportingStep` path rather than the body helper alone.
+      statefulPrintfBypass: statefulPrintfJob,
+      assignmentBypass: assignmentJob,
+    },
+    bodies: {
+      gitStatus: 'git status >> "$GITHUB_STEP_SUMMARY"\n',
+      otherFile: 'echo "secret" >> /tmp/exfil.txt\n',
+      commandSubstitution: 'echo "$(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"\n',
+      plainPrintf: 'printf \'%s\\n\' "### Report" >> "$GITHUB_STEP_SUMMARY"\n',
+      echoOptionWord: 'echo -v GITHUB_STEP_SUMMARY /tmp/x >> "$GITHUB_STEP_SUMMARY"\n',
+      exportAssignment: 'export GITHUB_STEP_SUMMARY=/tmp/x\necho "payload" >> "$GITHUB_STEP_SUMMARY"\n',
+    },
+  };
+  const fixturesFile = join(reportingSandbox, 'fixtures.json');
+  writeFileSync(fixturesFile, JSON.stringify(PROBE_FIXTURES));
+
+  let mutantIndex = 0;
+  // Probes the given registry source and returns one boolean per fixture:
+  // true = "this registry QUALIFIES it as an excludable reporting step".
+  const probeRegistry = (label, source) => {
+    const index = (mutantIndex += 1);
+    const registryFile = join(reportingSandbox, `gates-${index}.mjs`);
+    const probeFile = join(reportingSandbox, `probe-${index}.mjs`);
+    writeFileSync(registryFile, source);
+    writeFileSync(
+      probeFile,
+      [
+        `import { terminalReportingStep, isSummaryOnlyReportingBody } from ${JSON.stringify(pathToFileURL(registryFile).href)};`,
+        "import { readFileSync } from 'node:fs';",
+        "const fixtures = JSON.parse(readFileSync(process.argv[2], 'utf8'));",
+        'const verdicts = {};',
+        'for (const [key, job] of Object.entries(fixtures.jobs)) verdicts[key] = terminalReportingStep(job) !== null;',
+        'for (const [key, body] of Object.entries(fixtures.bodies)) verdicts[key] = isSummaryOnlyReportingBody(body) === true;',
+        'process.stdout.write(JSON.stringify(verdicts));',
+        '',
+      ].join('\n'),
+    );
+    const run = spawnSync(process.execPath, [probeFile, fixturesFile], { encoding: 'utf8', cwd: ROOT });
+    check(`REPORTING/MUTANT: the probe for "${label}" executed`, run.status === 0, `${run.status} ${run.stderr}`);
+    return run.status === 0 ? JSON.parse(run.stdout) : {};
+  };
+
+  // CONTROL — the REAL registry, through the SAME probe. Without this, a probe
+  // that silently returned false for everything would report every mutant as
+  // uncaught, and a probe that returned true for everything would report every
+  // mutant as caught. Both failure modes die here.
+  const control = probeRegistry('the real, unmutated registry', asRunnableGates(baseGates));
+  check('REPORTING/MUTANT CONTROL: the real registry qualifies the real legacy Summary', control.realSummary === true);
+  for (const key of [
+    'usesAfterSummary', 'ifSuccess', 'shellPwsh', 'runPlusUses',
+    'gitStatus', 'otherFile', 'commandSubstitution',
+    'statefulPrintfBypass', 'assignmentBypass', 'plainPrintf', 'echoOptionWord', 'exportAssignment',
+  ]) {
+    check(`REPORTING/MUTANT CONTROL: the real registry REJECTS fixture "${key}"`, control[key] === false, String(control[key]));
+  }
+  const PREDICATE_MUTANTS = Object.freeze([
+    {
+      label: 'terminality computed over RUN steps only (the exact reviewed MEDIUM 1)',
+      replacements: [['  const steps = allSteps(job);', '  const steps = runSteps(job);']],
+      // The adversary the real predicate rejects and this mutant must let in.
+      fixture: 'usesAfterSummary',
+      adversary: 'Summary followed by a `uses:` action',
+    },
+    {
+      label: 'the command allowlist removed (the exact reviewed MEDIUM 2)',
+      replacements: [
+        [
+          '    if (tokens[0].operator || !SUMMARY_ONLY_COMMANDS.has(tokens[0].raw)) return false;',
+          '    if (tokens[0].operator) return false;',
+        ],
+      ],
+      fixture: 'gitStatus',
+      adversary: '`git status >> "$GITHUB_STEP_SUMMARY"`',
+    },
+    {
+      label: 'the redirect TARGET restriction removed',
+      replacements: [
+        ['&& !tokens[1].operator && SUMMARY_REDIRECT_TARGETS.has(tokens[1].raw);', '&& !tokens[1].operator;'],
+      ],
+      fixture: 'otherFile',
+      adversary: 'an echo redirected to an arbitrary file',
+    },
+    {
+      label: 'the `if: always()` requirement removed',
+      replacements: [
+        ["  if (String(last.if ?? '').trim() !== 'always()') return null;", '  if (false) return null;'],
+      ],
+      fixture: 'ifSuccess',
+      adversary: 'a reporting step guarded by `if: success()`',
+    },
+    {
+      label: 'the shell guard removed',
+      replacements: [
+        [
+          "  if (shell !== undefined && shell !== null && !SUMMARY_ONLY_SHELLS.has(String(shell).trim())) return null;",
+          '  if (false) return null;',
+        ],
+      ],
+      fixture: 'shellPwsh',
+      adversary: 'a `shell: pwsh` body validated as if it were sh',
+    },
+    {
+      label: 'command substitution permitted inside double quotes',
+      replacements: [
+        [
+          "        if (inner === '$' && line[index + 1] === '(') { rejected = true; break; }",
+          '        if (false) { rejected = true; break; }',
+        ],
+      ],
+      fixture: 'commandSubstitution',
+      adversary: '`echo "$(git rev-parse HEAD)"`',
+    },
+    {
+      // THE REVIEWED MEDIUM 3, restored exactly. Both defences are removed
+      // together because that IS the R1 policy: `printf` allowlisted, and no
+      // inspection of any word beyond the command name. The mutant must accept
+      // the stateful bypass — that is what "it used to qualify" means as
+      // evidence, and this check fails the moment R1 is reintroduced.
+      label: 'the R1 summary-only policy restored (printf allowlisted, no option/assignment word guard)',
+      replacements: [
+        ["const SUMMARY_ONLY_COMMANDS = new Set(['echo']);", "const SUMMARY_ONLY_COMMANDS = new Set(['echo', 'printf']);"],
+        [
+          '    if (tokens.some((token) => !token.operator && STATE_MUTATING_WORD.test(token.raw))) return false;',
+          '    if (false) return false;',
+        ],
+      ],
+      fixture: 'statefulPrintfBypass',
+      adversary: 'the stateful `printf -v GITHUB_STEP_SUMMARY …` bypass',
+    },
+    {
+      // Re-adding `printf` LOOSELY, on its own. Even with the word guard still
+      // in place this widens the accepted grammar, and the fixture proves it.
+      label: '`printf` re-added to the command allowlist',
+      replacements: [
+        ["const SUMMARY_ONLY_COMMANDS = new Set(['echo']);", "const SUMMARY_ONLY_COMMANDS = new Set(['echo', 'printf']);"],
+      ],
+      fixture: 'plainPrintf',
+      adversary: 'a plain `printf` summary write',
+    },
+    {
+      // The option/assignment word guard on its own. It is the layer that keeps
+      // option grammar from broadening acceptance at all.
+      label: 'the option/assignment word guard removed',
+      replacements: [
+        [
+          '    if (tokens.some((token) => !token.operator && STATE_MUTATING_WORD.test(token.raw))) return false;',
+          '    if (false) return false;',
+        ],
+      ],
+      fixture: 'echoOptionWord',
+      adversary: 'an option-like word in an otherwise allowlisted command',
+    },
+    {
+      label: 'the `uses:`-alongside-`run:` guard removed',
+      replacements: [
+        [
+          "  if (Object.prototype.hasOwnProperty.call(last, 'uses')) return null;",
+          '  if (false) return null;',
+        ],
+      ],
+      fixture: 'runPlusUses',
+      adversary: 'a step carrying both `run:` and `uses:`',
+    },
+  ]);
+  for (const mutantSpec of PREDICATE_MUTANTS) {
+    // `mutate` aborts the whole suite on a no-op edit, so a mutant that was
+    // never actually softened cannot be reported as caught.
+    const verdicts = probeRegistry(
+      mutantSpec.label,
+      asRunnableGates(mutate(mutantSpec.label, baseGates, mutantSpec.replacements)),
+    );
+    check(
+      `REPORTING/MUTANT: removing "${mutantSpec.label}" lets ${mutantSpec.adversary} through — the rule is LOAD-BEARING`,
+      verdicts[mutantSpec.fixture] === true,
+      `fixture=${mutantSpec.fixture} verdict=${String(verdicts[mutantSpec.fixture])}`,
+    );
+    check(
+      `REPORTING/MUTANT: …and the "${mutantSpec.label}" mutant still accepts the real legacy Summary (softened, not broken)`,
+      verdicts.realSummary === true,
+      String(verdicts.realSummary),
+    );
+    // The control proved the REAL registry rejects this same fixture, so the
+    // difference is attributable to the removed rule and nothing else.
+    check(
+      `REPORTING/MUTANT: the real registry rejects the very fixture "${mutantSpec.label}" admits`,
+      control[mutantSpec.fixture] === false,
+    );
+    // DEFENCE IN DEPTH: reassigning $GITHUB_STEP_SUMMARY must stay rejected no
+    // matter WHICH single rule was softened. A body that mutates the target and
+    // then writes to it may never qualify through any one-rule regression.
+    check(
+      `REPORTING/MUTANT: softening "${mutantSpec.label}" still does NOT admit a bare $GITHUB_STEP_SUMMARY reassignment`,
+      verdicts.assignmentBypass === false,
+      String(verdicts.assignmentBypass),
+    );
+    check(
+      `REPORTING/MUTANT: softening "${mutantSpec.label}" still does NOT admit an \`export\` reassignment`,
+      verdicts.exportAssignment === false,
+      String(verdicts.exportAssignment),
+    );
+  }
+  check(
+    'REPORTING/MUTANT: every predicate rule was mutated individually (plus the unmutated control)',
+    mutantIndex === PREDICATE_MUTANTS.length + 1 && PREDICATE_MUTANTS.length >= 10,
+    `${mutantIndex} probes / ${PREDICATE_MUTANTS.length} mutants`,
+  );
+} finally {
+  rmSync(reportingSandbox, { recursive: true, force: true });
 }
 
 if (failures.length) {
