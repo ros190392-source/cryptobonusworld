@@ -3,11 +3,13 @@ name: CBW Master Required Gate
 # Single stable, ALWAYS-REPORTING required check context for product branch
 # `master` (issue #366).
 #
-# STAGE 2 / S2-04 BATCH 01. The single-job gate delivered by S2-01 became a
-# bounded multi-job DAG in S2-03; this stage widens that DAG from two blockers to
-# four, adding NO new mechanism:
+# STAGE 2 / S2-04 BATCH 02. The single-job gate delivered by S2-01 became a
+# bounded multi-job DAG in S2-03; batch 01 widened that DAG from two blockers to
+# four, and this batch widens it to six, adding NO new mechanism:
 #
 #     classify
+#        |-> contact-utility --------------|
+#        |-> exchange-preview-family ------|
 #        |-> global-header-interaction ----|
 #        |-> public-first-screen-budget ---|
 #        |-> public-navigation ------------|
@@ -25,10 +27,17 @@ name: CBW Master Required Gate
 # (.github/workflows/cbw-global-header-interaction.yml,
 #  .github/workflows/cbw-public-seo-metadata.yml,
 #  .github/workflows/cbw-public-navigation-boundary.yml,
-#  .github/workflows/cbw-public-first-screen-budget.yml) are deliberately left
+#  .github/workflows/cbw-public-first-screen-budget.yml,
+#  .github/workflows/cbw-contact-utility.yml,
+#  .github/workflows/cbw-exchange-preview-family.yml) are deliberately left
 # UNCHANGED — byte-identical — and continue to report independently; this stage
 # proves unified execution parity before legacy retirement is even considered.
 # Nothing here deletes, disables or weakens them.
+#
+# THE EXCHANGE PREVIEW FAMILY BLOCKER IS OWNER-PREVIEW ONLY. Executing it inside
+# the required context grants it no publication, indexing, ranking or affiliate
+# authority; it proves the owner's preview routes still render and still stay out
+# of the index, exactly as the legacy gate did.
 #
 # Design contract — enforced by scripts/ci/master-required-gate-contract-test.mjs
 # and exercised against deliberate mutations by
@@ -91,6 +100,8 @@ jobs:
       reason: ${{ steps.classify.outputs.reason }}
       applicability: ${{ steps.applicability.outputs.applicability }}
       digest: ${{ steps.applicability.outputs.digest }}
+      gate_contact_utility: ${{ steps.applicability.outputs.gate_contact_utility }}
+      gate_exchange_preview_family: ${{ steps.applicability.outputs.gate_exchange_preview_family }}
       gate_global_header_interaction: ${{ steps.applicability.outputs.gate_global_header_interaction }}
       gate_public_first_screen_budget: ${{ steps.applicability.outputs.gate_public_first_screen_budget }}
       gate_public_navigation: ${{ steps.applicability.outputs.gate_public_navigation }}
@@ -167,6 +178,8 @@ jobs:
         env:
           APPLICABILITY_JSON: ${{ steps.applicability.outputs.applicability }}
           APPLICABILITY_DIGEST: ${{ steps.applicability.outputs.digest }}
+          GATE_CONTACT_UTILITY_APPLICABILITY: ${{ steps.applicability.outputs.gate_contact_utility }}
+          GATE_EXCHANGE_PREVIEW_FAMILY_APPLICABILITY: ${{ steps.applicability.outputs.gate_exchange_preview_family }}
           GATE_GLOBAL_HEADER_INTERACTION_APPLICABILITY: ${{ steps.applicability.outputs.gate_global_header_interaction }}
           GATE_PUBLIC_FIRST_SCREEN_BUDGET_APPLICABILITY: ${{ steps.applicability.outputs.gate_public_first_screen_budget }}
           GATE_PUBLIC_NAVIGATION_APPLICABILITY: ${{ steps.applicability.outputs.gate_public_navigation }}
@@ -433,6 +446,149 @@ jobs:
             {"name":"node scripts/ui/public-first-screen-budget-browser-smoke.mjs","outcome":"${{ steps.first-screen.outcome }}"}]
         run: node scripts/ci/master-required-gate-gate-result.mjs
 
+  # --- 2e. blocker: Contact Utility --------------------------------------------
+  # Migrated by S2-04 batch 02 from .github/workflows/cbw-contact-utility.yml,
+  # which stays BYTE-IDENTICAL and keeps reporting independently.
+  #
+  # NOTE THE INDEXABILITY CONDITION. Unlike every other indexability step in this
+  # workflow, this one is gated on applicability ALONE. The legacy job leaves the
+  # inventory unguarded, so it carries GitHub's implicit `success()` and a failed
+  # Chromium smoke skips it. Copying the `always() && steps.build.outcome ==
+  # 'success'` shape used by the global-header, public-SEO and exchange-preview
+  # blockers would have made this step run in a state the legacy job never runs
+  # it in. The parity suite reads both conditions off the legacy YAML and proves
+  # the red/green behaviour matches over the full failure cross-product.
+  contact-utility:
+    name: Contact utility (unified blocker)
+    needs: classify
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      result: ${{ steps.gate-result.outputs.result }}
+      evidence: ${{ steps.gate-result.outputs.evidence }}
+    steps:
+      - name: Checkout exact PR head for the contact utility blocker
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Set up Node 20 for the contact utility blocker
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies for the contact utility blocker
+        id: install
+        if: needs.classify.outputs.gate_contact_utility == 'APPLICABLE'
+        run: npm ci
+
+      - name: Production build for the contact utility blocker
+        id: build
+        if: needs.classify.outputs.gate_contact_utility == 'APPLICABLE'
+        run: npm run build
+
+      - name: Contact utility Chromium
+        id: contact
+        if: needs.classify.outputs.gate_contact_utility == 'APPLICABLE'
+        run: node scripts/ui/contact-utility-browser-smoke.mjs
+
+      # UNGUARDED IN THE LEGACY JOB, therefore unguarded here. See the block
+      # comment on this job.
+      - name: Indexability inventory for the contact utility blocker
+        id: indexability
+        if: needs.classify.outputs.gate_contact_utility == 'APPLICABLE'
+        run: node scripts/seo/site-indexability-inventory.mjs
+
+      # `if: always()` — see the global-header emitter for the full rationale.
+      - name: Publish contact utility blocker result
+        id: gate-result
+        if: always()
+        env:
+          GATE_ID: contact-utility
+          GATE_APPLICABILITY: ${{ needs.classify.outputs.gate_contact_utility }}
+          APPLICABILITY_DIGEST: ${{ needs.classify.outputs.digest }}
+          STEP_OUTCOMES: >-
+            [{"name":"npm ci","outcome":"${{ steps.install.outcome }}"},
+            {"name":"npm run build","outcome":"${{ steps.build.outcome }}"},
+            {"name":"node scripts/ui/contact-utility-browser-smoke.mjs","outcome":"${{ steps.contact.outcome }}"},
+            {"name":"node scripts/seo/site-indexability-inventory.mjs","outcome":"${{ steps.indexability.outcome }}"}]
+        run: node scripts/ci/master-required-gate-gate-result.mjs
+
+  # --- 2f. blocker: Exchange Preview Family ------------------------------------
+  # Migrated by S2-04 batch 02 from
+  # .github/workflows/cbw-exchange-preview-family.yml, which stays BYTE-IDENTICAL
+  # and keeps reporting independently.
+  #
+  # OWNER-PREVIEW ONLY. Running this gate inside the required context authorizes
+  # nothing: no publication, no indexing, no ranking, no affiliate action. It
+  # proves the owner's preview routes still render and still stay out of the
+  # index, which is exactly what the legacy gate proved.
+  #
+  # The legacy job's terminal `Summary` step writes a table into
+  # $GITHUB_STEP_SUMMARY and executes no repository command. It is REPORTING, not
+  # blocking work, and its unified counterpart is the result emitter below, so it
+  # has no place in the blocking sequence. The parity suite does not take that on
+  # trust: it proves the step is genuinely non-blocking (terminal, `if: always()`,
+  # step-summary-only, running no npm/node command) before excluding it.
+  exchange-preview-family:
+    name: Exchange preview family (unified blocker)
+    needs: classify
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    outputs:
+      result: ${{ steps.gate-result.outputs.result }}
+      evidence: ${{ steps.gate-result.outputs.evidence }}
+    steps:
+      - name: Checkout exact PR head for the exchange preview blocker
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Set up Node 20 for the exchange preview blocker
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies for the exchange preview blocker
+        id: install
+        if: needs.classify.outputs.gate_exchange_preview_family == 'APPLICABLE'
+        run: npm ci
+
+      - name: Production build for the exchange preview blocker
+        id: build
+        if: needs.classify.outputs.gate_exchange_preview_family == 'APPLICABLE'
+        run: npm run build
+
+      - name: Exchange preview family Chromium
+        id: browser
+        if: needs.classify.outputs.gate_exchange_preview_family == 'APPLICABLE'
+        run: node scripts/ui/exchange-preview-family-browser-smoke.mjs
+
+      # The legacy condition preserved verbatim, conjoined with applicability, so
+      # the inventory still runs — and can still fail the job — after a failed
+      # Chromium smoke, exactly as it does in the legacy job.
+      - name: Indexability inventory for the exchange preview blocker
+        id: indexability
+        if: always() && needs.classify.outputs.gate_exchange_preview_family == 'APPLICABLE' && steps.build.outcome == 'success'
+        run: node scripts/seo/site-indexability-inventory.mjs
+
+      # `if: always()` — see the global-header emitter for the full rationale.
+      - name: Publish exchange preview blocker result
+        id: gate-result
+        if: always()
+        env:
+          GATE_ID: exchange-preview-family
+          GATE_APPLICABILITY: ${{ needs.classify.outputs.gate_exchange_preview_family }}
+          APPLICABILITY_DIGEST: ${{ needs.classify.outputs.digest }}
+          STEP_OUTCOMES: >-
+            [{"name":"npm ci","outcome":"${{ steps.install.outcome }}"},
+            {"name":"npm run build","outcome":"${{ steps.build.outcome }}"},
+            {"name":"node scripts/ui/exchange-preview-family-browser-smoke.mjs","outcome":"${{ steps.browser.outcome }}"},
+            {"name":"node scripts/seo/site-indexability-inventory.mjs","outcome":"${{ steps.indexability.outcome }}"}]
+        run: node scripts/ci/master-required-gate-gate-result.mjs
+
   # --- 3. THE STABLE REQUIRED CONTEXT ------------------------------------------
   # `if: always()` is what makes this context ALWAYS REPORTING. Without it the job
   # would be skipped whenever any upstream job failed or was skipped, and a
@@ -451,6 +607,8 @@ jobs:
     name: Master required gate
     needs:
       - classify
+      - contact-utility
+      - exchange-preview-family
       - global-header-interaction
       - public-first-screen-budget
       - public-navigation
@@ -484,6 +642,12 @@ jobs:
           CLASSIFIER_MATERIAL: ${{ needs.classify.outputs.material }}
           APPLICABILITY_JSON: ${{ needs.classify.outputs.applicability }}
           APPLICABILITY_DIGEST: ${{ needs.classify.outputs.digest }}
+          GATE_CONTACT_UTILITY_JOB_RESULT: ${{ needs.contact-utility.result }}
+          GATE_CONTACT_UTILITY_RESULT: ${{ needs.contact-utility.outputs.result }}
+          GATE_CONTACT_UTILITY_EVIDENCE: ${{ needs.contact-utility.outputs.evidence }}
+          GATE_EXCHANGE_PREVIEW_FAMILY_JOB_RESULT: ${{ needs.exchange-preview-family.result }}
+          GATE_EXCHANGE_PREVIEW_FAMILY_RESULT: ${{ needs.exchange-preview-family.outputs.result }}
+          GATE_EXCHANGE_PREVIEW_FAMILY_EVIDENCE: ${{ needs.exchange-preview-family.outputs.evidence }}
           GATE_GLOBAL_HEADER_INTERACTION_JOB_RESULT: ${{ needs.global-header-interaction.result }}
           GATE_GLOBAL_HEADER_INTERACTION_RESULT: ${{ needs.global-header-interaction.outputs.result }}
           GATE_GLOBAL_HEADER_INTERACTION_EVIDENCE: ${{ needs.global-header-interaction.outputs.evidence }}

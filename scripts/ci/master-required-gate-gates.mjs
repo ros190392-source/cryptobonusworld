@@ -4,18 +4,32 @@
 //
 // WHAT THIS FILE IS. S2-01/S2-02 delivered ONE always-reporting required check
 // context ("Master required gate") that executed the material work in a single
-// job. S2-03 turned that single job into a bounded DAG, and S2-04 BATCH 01
-// widened it from two blockers to four:
+// job. S2-03 turned that single job into a bounded DAG, S2-04 BATCH 01 widened
+// it from two blockers to four, and S2-04 BATCH 02 widens it to six:
 //
-//     classify -> { global-header-interaction, public-first-screen-budget,
+//     classify -> { contact-utility, exchange-preview-family,
+//                   global-header-interaction, public-first-screen-budget,
 //                   public-navigation, public-seo-metadata }
 //              -> Master required gate
 //
 // S2-04 added NO new mechanism. Every trust property below is the S2-03 one,
-// reached by registering two more gates in the same closed registry; the only
-// structural change is that the per-gate inert set is now DERIVED from the
-// registry (see deriveIrrelevantPaths) instead of hand-listed, because
+// reached by registering more gates in the same closed registry; the only
+// structural change batch 01 made is that the per-gate inert set is DERIVED from
+// the registry (see deriveIrrelevantPaths) instead of hand-listed, because
 // hand-listing cross-gate exclusivity is quadratic and therefore forgettable.
+// Batch 02 adds no structural change at all: two registry rows, and every
+// consumer — workflow, contract test, mutation suite, parity proof, emitter
+// behaviour suite and aggregator — picks them up by iterating GATE_IDS.
+//
+// BATCH 02 IS THE FIRST STAGE IN WHICH THE REGISTERED GATES DISAGREE ABOUT THE
+// INDEXABILITY STEP'S CONDITION, and that disagreement is faithfully recorded
+// rather than normalised away. `cbw-exchange-preview-family.yml` guards the
+// inventory with `always() && steps.build.outcome == 'success'` (so it still
+// runs after a failed browser smoke), while `cbw-contact-utility.yml` leaves it
+// unguarded (so a failed smoke skips it). Normalising the two into one shape
+// would have SILENTLY CHANGED the red/green behaviour of one of them; each
+// gate's `steps[].condition` therefore mirrors its OWN legacy job, and the
+// parity suite re-derives both from the legacy YAML on every run.
 //
 // Every blocker job in that DAG is declared HERE, once, in a closed registry.
 // The workflow, the contract test, the mutation suite and the aggregator all read
@@ -140,8 +154,17 @@ export function stepConditionExpression(gateId, condition) {
  * executes or reads. Together with `legacyWorkflow` it forms this gate's
  * EXCLUSIVE SURFACE (see `gateExclusiveSurface` below), which is the only thing
  * any OTHER gate is permitted to treat as inert. The shared indexability
- * inventory is deliberately NOT a gateScript anywhere: two gates run it, so it
- * is exclusive to neither and can never become inert for either.
+ * inventory is deliberately NOT a gateScript anywhere: FOUR gates run it
+ * (global-header-interaction, public-seo-metadata, contact-utility and
+ * exchange-preview-family), so it is exclusive to none of them and can never
+ * become inert for any of them.
+ *
+ * `legacyReportingStep` — the NAME of this legacy job's terminal non-blocking
+ * reporting step, or null when it has none. Declaring it is what makes the
+ * parity suite's exclusion auditable in both directions: a gate declaring null
+ * fails if such a step appears, and a gate declaring a name fails if the step
+ * vanishes, is renamed, stops being terminal, stops being `if: always()`, or
+ * starts invoking a real command. See `terminalReportingStep`.
  *
  * `steps` — the exact blocking step sequence this gate must execute when it IS
  * applicable, with the step id each one carries (the ids are load-bearing: the
@@ -152,6 +175,79 @@ export function stepConditionExpression(gateId, condition) {
  * the unified job really runs it.
  */
 const GATE_DEFINITIONS = Object.freeze({
+  // S2-04 BATCH 02. The legacy job leaves the indexability inventory UNGUARDED,
+  // so it carries GitHub's implicit `success()` and a failed Chromium smoke
+  // skips it. `condition: 'applicability'` reproduces exactly that; giving it
+  // the `applicability-after-build` shape the other indexability steps use
+  // would have made the inventory run in a state the legacy job never runs it
+  // in, which is a behaviour change wearing the costume of consistency.
+  'contact-utility': Object.freeze({
+    id: 'contact-utility',
+    jobId: 'contact-utility',
+    jobName: 'Contact utility (unified blocker)',
+    outputName: 'gate_contact_utility',
+    applicabilityEnv: 'GATE_CONTACT_UTILITY_APPLICABILITY',
+    resultEnv: 'GATE_CONTACT_UTILITY_RESULT',
+    jobResultEnv: 'GATE_CONTACT_UTILITY_JOB_RESULT',
+    evidenceEnv: 'GATE_CONTACT_UTILITY_EVIDENCE',
+    legacyWorkflow: '.github/workflows/cbw-contact-utility.yml',
+    legacyJobId: 'contact-utility',
+    legacyReportingStep: null,
+    gateScript: 'scripts/ui/contact-utility-browser-smoke.mjs',
+    steps: Object.freeze([
+      Object.freeze({ id: 'install', command: 'npm ci', condition: 'applicability', legacyIf: null }),
+      Object.freeze({ id: 'build', command: 'npm run build', condition: 'applicability', legacyIf: null }),
+      Object.freeze({
+        id: 'contact',
+        command: 'node scripts/ui/contact-utility-browser-smoke.mjs',
+        condition: 'applicability',
+        legacyIf: null,
+      }),
+      Object.freeze({
+        id: 'indexability',
+        command: 'node scripts/seo/site-indexability-inventory.mjs',
+        condition: 'applicability',
+        legacyIf: null,
+      }),
+    ]),
+  }),
+  // S2-04 BATCH 02. OWNER-PREVIEW ONLY. Registering this gate as a blocker grants
+  // it no publication, indexing, ranking or affiliate authority; it proves the
+  // owner's preview routes still render and still stay out of the index, which is
+  // the same thing the legacy gate proved and nothing more. The legacy job DOES
+  // guard the inventory with `always() && steps.build.outcome == 'success'`, so
+  // this gate's indexability step is `applicability-after-build` — the opposite
+  // of contact-utility's, because the legacy jobs genuinely differ.
+  'exchange-preview-family': Object.freeze({
+    id: 'exchange-preview-family',
+    jobId: 'exchange-preview-family',
+    jobName: 'Exchange preview family (unified blocker)',
+    outputName: 'gate_exchange_preview_family',
+    applicabilityEnv: 'GATE_EXCHANGE_PREVIEW_FAMILY_APPLICABILITY',
+    resultEnv: 'GATE_EXCHANGE_PREVIEW_FAMILY_RESULT',
+    jobResultEnv: 'GATE_EXCHANGE_PREVIEW_FAMILY_JOB_RESULT',
+    evidenceEnv: 'GATE_EXCHANGE_PREVIEW_FAMILY_EVIDENCE',
+    legacyWorkflow: '.github/workflows/cbw-exchange-preview-family.yml',
+    legacyJobId: 'exchange-preview-family',
+    legacyReportingStep: 'Summary',
+    gateScript: 'scripts/ui/exchange-preview-family-browser-smoke.mjs',
+    steps: Object.freeze([
+      Object.freeze({ id: 'install', command: 'npm ci', condition: 'applicability', legacyIf: null }),
+      Object.freeze({ id: 'build', command: 'npm run build', condition: 'applicability', legacyIf: null }),
+      Object.freeze({
+        id: 'browser',
+        command: 'node scripts/ui/exchange-preview-family-browser-smoke.mjs',
+        condition: 'applicability',
+        legacyIf: null,
+      }),
+      Object.freeze({
+        id: 'indexability',
+        command: 'node scripts/seo/site-indexability-inventory.mjs',
+        condition: 'applicability-after-build',
+        legacyIf: "always() && steps.build.outcome == 'success'",
+      }),
+    ]),
+  }),
   'global-header-interaction': Object.freeze({
     id: 'global-header-interaction',
     jobId: 'global-header-interaction',
@@ -163,6 +259,7 @@ const GATE_DEFINITIONS = Object.freeze({
     evidenceEnv: 'GATE_GLOBAL_HEADER_INTERACTION_EVIDENCE',
     legacyWorkflow: '.github/workflows/cbw-global-header-interaction.yml',
     legacyJobId: 'global-header-interaction',
+    legacyReportingStep: null,
     gateScript: 'scripts/ui/global-header-interaction-browser-smoke.mjs',
     steps: Object.freeze([
       Object.freeze({ id: 'install', command: 'npm ci', condition: 'applicability', legacyIf: null }),
@@ -192,6 +289,7 @@ const GATE_DEFINITIONS = Object.freeze({
     evidenceEnv: 'GATE_PUBLIC_FIRST_SCREEN_BUDGET_EVIDENCE',
     legacyWorkflow: '.github/workflows/cbw-public-first-screen-budget.yml',
     legacyJobId: 'public-first-screen-budget',
+    legacyReportingStep: null,
     gateScript: 'scripts/ui/public-first-screen-budget-browser-smoke.mjs',
     steps: Object.freeze([
       Object.freeze({ id: 'install', command: 'npm ci', condition: 'applicability', legacyIf: null }),
@@ -215,6 +313,7 @@ const GATE_DEFINITIONS = Object.freeze({
     evidenceEnv: 'GATE_PUBLIC_NAVIGATION_EVIDENCE',
     legacyWorkflow: '.github/workflows/cbw-public-navigation-boundary.yml',
     legacyJobId: 'public-navigation',
+    legacyReportingStep: null,
     gateScript: 'scripts/seo/public-navigation-boundary-test.mjs',
     steps: Object.freeze([
       Object.freeze({ id: 'install', command: 'npm ci', condition: 'applicability', legacyIf: null }),
@@ -238,6 +337,7 @@ const GATE_DEFINITIONS = Object.freeze({
     evidenceEnv: 'GATE_PUBLIC_SEO_METADATA_EVIDENCE',
     legacyWorkflow: '.github/workflows/cbw-public-seo-metadata.yml',
     legacyJobId: 'public-seo-metadata',
+    legacyReportingStep: null,
     gateScript: 'scripts/seo/public-seo-metadata-schema-test.mjs',
     steps: Object.freeze([
       Object.freeze({ id: 'install', command: 'npm ci', condition: 'applicability', legacyIf: null }),
@@ -326,6 +426,64 @@ export const GATE_IDS = Object.freeze(Object.keys(GATES).sort());
 // (the parity proof, the result emitter's arity check) read this.
 export function gateCommands(gateId) {
   return GATES[gateId].steps.map((step) => step.command);
+}
+
+/** Every step of a job that executes a shell command. `uses:` steps are infrastructure. */
+export function runSteps(job) {
+  return (Array.isArray(job?.steps) ? job.steps : []).filter((step) => typeof step?.run === 'string');
+}
+
+/**
+ * Is this legacy step a TERMINAL NON-BLOCKING REPORTING step?
+ *
+ * S2-04 batch 02 is the first stage to migrate a legacy job that ends in one.
+ * `cbw-exchange-preview-family.yml` closes with a `Summary` step that renders a
+ * markdown table into $GITHUB_STEP_SUMMARY. It executes no repository command,
+ * so demanding the unified blocker reproduce it would be demanding parity on
+ * PROSE — and the unified job's counterpart is the result emitter, which is
+ * already excluded from the parity comparison on exactly the same grounds.
+ *
+ * The danger in excluding anything from a parity proof is obvious: "it's only a
+ * summary" is precisely how real blocking work gets dropped. So exclusion is
+ * never asserted, it is EARNED. A step qualifies only when ALL FOUR hold, and
+ * anything that fails even one stays in the blocking set — where parity will
+ * demand the unified job reproduce it, loudly. The predicate is fail-CLOSED: the
+ * default answer is "this is blocking work".
+ *
+ *   1. TERMINAL — it is the last run step, so no later step can observe it and
+ *      it cannot gate anything.
+ *   2. `if: always()` EXACTLY — it therefore never changes WHICH steps run. A
+ *      narrower condition would make it observable in the failure cross-product.
+ *   3. It writes to $GITHUB_STEP_SUMMARY — it reports rather than verifies.
+ *   4. It invokes NO repository command. Any `npm` or `node` token means real
+ *      work is hiding behind a reporting name, and the step stays blocking.
+ *
+ * @param {object} job the parsed legacy job
+ * @returns {object|null} the step, or null when the job has no such step
+ */
+export function terminalReportingStep(job) {
+  const steps = runSteps(job);
+  const last = steps[steps.length - 1];
+  if (!last) return null;
+  if (String(last.if ?? '').trim() !== 'always()') return null;
+  const body = String(last.run);
+  if (!body.includes('GITHUB_STEP_SUMMARY')) return null;
+  // Token-boundary match so a summary line mentioning the word "node" in prose
+  // is not mistaken for an invocation, while a real `npm ci` / `node script.mjs`
+  // always is.
+  if (/(^|[\s;&|(`])(npm|node|npx|yarn|pnpm)([\s;&|)`]|$)/.test(body)) return null;
+  return last;
+}
+
+/**
+ * The BLOCKING run steps of a legacy job: every run step except a proven
+ * terminal reporting step. This is the sequence the unified blocker must
+ * reproduce command-for-command.
+ */
+export function legacyBlockingSteps(job) {
+  const steps = runSteps(job);
+  const reporting = terminalReportingStep(job);
+  return reporting ? steps.slice(0, -1) : steps;
 }
 
 // The stable visible check context of the final aggregator. Branch protection

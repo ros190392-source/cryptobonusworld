@@ -97,13 +97,25 @@ check(
 
 // --- workflow text mutation helpers -----------------------------------------
 // Removes a step block: from its `- name:` line up to the next step or comment
-// block at the same indentation.
+// block at the same indentation — OR to the end of the enclosing job, whichever
+// comes first.
+//
+// The job boundary is load-bearing. Without it, removing the LAST step of a job
+// runs on past the job's end and swallows the following job's banner and header
+// too, so the mutant no longer tests what its label claims: it deletes an emitter
+// AND dismantles a neighbouring job, and gets "killed" by whichever complaint
+// happens to surface first. That made the mutation's kill a coincidence of job
+// ORDER — S2-04 batch 02 inserted two jobs after the first-screen budget blocker
+// and immediately exposed it. Stopping at any non-empty line indented less than
+// a step body keeps every step mutation aimed at exactly one step.
 function removeStep(text, stepName) {
   const lines = text.split('\n');
   const start = lines.findIndex((line) => line.trim() === `- name: ${stepName}`);
   if (start === -1) throw new Error(`mutation setup failed: step "${stepName}" not found`);
+  const endsBlock = (line) =>
+    /^ {6}(- name:|#)/.test(line) || (line.trim() !== '' && /^ {0,5}\S/.test(line));
   let end = start + 1;
-  while (end < lines.length && !/^ {6}(- name:|#)/.test(lines[end])) end += 1;
+  while (end < lines.length && !endsBlock(lines[end])) end += 1;
   lines.splice(start, end - start);
   return lines.join('\n');
 }
@@ -1605,6 +1617,342 @@ const S2_04_MUTATIONS = [
 ];
 
 // =============================================================================
+// S2-04 BATCH 02 — Contact Utility and Exchange Preview Family, bound identically
+// =============================================================================
+//
+// The same argument as batch 01, one widening later: a suite that keeps proving
+// everything it used to prove, about the jobs it used to prove it about, goes
+// green while the newest members of the DAG are the least constrained. Every
+// mutation below is an S3/S4 mutation RE-AIMED at one of the two blockers this
+// batch adds. They are additions, not replacements.
+//
+// Two of them are specific to this batch and have no batch-01 analogue, because
+// batch 02 is the first stage in which the registered gates DISAGREE about a
+// step condition. `cbw-contact-utility.yml` leaves the indexability inventory
+// unguarded; `cbw-exchange-preview-family.yml` guards it with `always() &&
+// steps.build.outcome == 'success'`. B2-25 and B2-26 mutate each gate's step
+// into the OTHER gate's shape — the exact edit a well-meaning "make these
+// consistent" cleanup would produce — and prove both directions are rejected.
+// Without them, "the conditions are per-gate" would be a comment rather than a
+// constraint.
+const S2_04_BATCH_02_MUTATIONS = [
+  {
+    id: 'B2-1',
+    killedBy: /declares EXACTLY the expected DAG jobs/,
+    label: 'delete the Contact Utility blocker job entirely',
+    apply: () => ({ workflowText: removeJob(baseWorkflow, 'contact-utility') }),
+  },
+  {
+    id: 'B2-2',
+    killedBy: /declares EXACTLY the expected DAG jobs/,
+    label: 'delete the Exchange Preview Family blocker job entirely',
+    apply: () => ({ workflowText: removeJob(baseWorkflow, 'exchange-preview-family') }),
+  },
+  {
+    id: 'B2-3',
+    killedBy: /declares EXACTLY the expected DAG jobs/,
+    label: 'rename the Contact Utility blocker job without updating the registry',
+    apply: () => ({
+      workflowText: replaceOnce('rename contact job', baseWorkflow, '\n  contact-utility:\n', '\n  contact-util:\n'),
+    }),
+  },
+  {
+    id: 'B2-4',
+    killedBy: /declares EXACTLY the expected DAG jobs/,
+    label: 'rename the Exchange Preview Family blocker job without updating the registry',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'rename exchange preview job',
+        baseWorkflow,
+        '\n  exchange-preview-family:\n',
+        '\n  exchange-preview:\n',
+      ),
+    }),
+  },
+  {
+    id: 'B2-5',
+    killedBy: /the final job has a `needs` edge on blocker "contact-utility"/,
+    label: 'drop the aggregator `needs` edge on Contact Utility (it stops being aggregated)',
+    apply: () => ({
+      workflowText: replaceOnce('drop contact needs', baseWorkflow, '      - contact-utility\n', ''),
+    }),
+  },
+  {
+    id: 'B2-6',
+    killedBy: /the final job has a `needs` edge on blocker "exchange-preview-family"/,
+    label: 'drop the aggregator `needs` edge on Exchange Preview Family (it stops being aggregated)',
+    apply: () => ({
+      workflowText: replaceOnce('drop exchange preview needs', baseWorkflow, '      - exchange-preview-family\n', ''),
+    }),
+  },
+  {
+    id: 'B2-7',
+    killedBy: /carries NO job-level `if`/,
+    label: 'give Contact Utility a job-level `if` so an irrelevant change SKIPS it',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'contact job-level if',
+        baseWorkflow,
+        '  contact-utility:\n    name:',
+        "  contact-utility:\n    if: needs.classify.outputs.gate_contact_utility == 'APPLICABLE'\n    name:",
+      ),
+    }),
+  },
+  {
+    id: 'B2-8',
+    killedBy: /carries NO job-level `if`/,
+    label: 'give Exchange Preview Family a job-level `if` so an irrelevant change SKIPS it',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'exchange preview job-level if',
+        baseWorkflow,
+        '  exchange-preview-family:\n    name:',
+        "  exchange-preview-family:\n    if: needs.classify.outputs.gate_exchange_preview_family == 'APPLICABLE'\n    name:",
+      ),
+    }),
+  },
+  {
+    id: 'B2-9',
+    killedBy: /runs "node scripts\/ui\/contact-utility-browser-smoke\.mjs" exactly once/,
+    label: 'delete the Contact Utility Chromium step (silent coverage reduction)',
+    apply: () => ({ workflowText: removeStep(baseWorkflow, 'Contact utility Chromium') }),
+  },
+  {
+    id: 'B2-10',
+    killedBy: /runs "node scripts\/ui\/exchange-preview-family-browser-smoke\.mjs" exactly once/,
+    label: 'delete the Exchange Preview Family Chromium step (silent coverage reduction)',
+    apply: () => ({ workflowText: removeStep(baseWorkflow, 'Exchange preview family Chromium') }),
+  },
+  {
+    id: 'B2-11',
+    killedBy: /"contact-utility" runs "npm run build" exactly once/,
+    label: 'drop the production build from Contact Utility (its gate script would run against a stale tree)',
+    apply: () => ({ workflowText: removeStep(baseWorkflow, 'Production build for the contact utility blocker') }),
+  },
+  {
+    id: 'B2-12',
+    killedBy: /"exchange-preview-family" runs "npm run build" exactly once/,
+    label: 'drop the production build from Exchange Preview Family',
+    apply: () => ({ workflowText: removeStep(baseWorkflow, 'Production build for the exchange preview blocker') }),
+  },
+  {
+    id: 'B2-13',
+    killedBy: /runs "node scripts\/seo\/site-indexability-inventory\.mjs" exactly once/,
+    label: 'delete the Contact Utility indexability inventory (a legacy obligation silently dropped)',
+    apply: () => ({ workflowText: removeStep(baseWorkflow, 'Indexability inventory for the contact utility blocker') }),
+  },
+  {
+    id: 'B2-14',
+    killedBy: /runs "node scripts\/seo\/site-indexability-inventory\.mjs" exactly once/,
+    label: 'delete the Exchange Preview Family indexability inventory (a legacy obligation silently dropped)',
+    apply: () => ({ workflowText: removeStep(baseWorkflow, 'Indexability inventory for the exchange preview blocker') }),
+  },
+  {
+    id: 'B2-15',
+    killedBy: /is gated on the exact derived condition/,
+    label: 'repoint a Contact Utility step at a nonexistent classifier output',
+    apply: () => ({
+      workflowText: requireChanged(
+        'repoint contact condition',
+        baseWorkflow,
+        baseWorkflow.replaceAll(
+          "needs.classify.outputs.gate_contact_utility == 'APPLICABLE'",
+          "needs.classify.outputs.gate_contact == 'APPLICABLE'",
+        ),
+      ),
+    }),
+  },
+  {
+    id: 'B2-16',
+    killedBy: /is gated on the exact derived condition/,
+    label: 'repoint an Exchange Preview Family step at a nonexistent classifier output',
+    apply: () => ({
+      workflowText: requireChanged(
+        'repoint exchange preview condition',
+        baseWorkflow,
+        baseWorkflow.replaceAll(
+          "needs.classify.outputs.gate_exchange_preview_family == 'APPLICABLE'",
+          "needs.classify.outputs.gate_exchange_preview == 'APPLICABLE'",
+        ),
+      ),
+    }),
+  },
+  {
+    id: 'B2-17',
+    killedBy: /receives blocker "contact-utility" JOB RESULT/,
+    label: 'stop passing the Contact Utility JOB result to the aggregator',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'drop contact job result',
+        baseWorkflow,
+        '          GATE_CONTACT_UTILITY_JOB_RESULT: ${{ needs.contact-utility.result }}\n',
+        '',
+      ),
+    }),
+  },
+  {
+    id: 'B2-18',
+    killedBy: /receives blocker "exchange-preview-family" JOB RESULT/,
+    label: 'stop passing the Exchange Preview Family JOB result to the aggregator',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'drop exchange preview job result',
+        baseWorkflow,
+        '          GATE_EXCHANGE_PREVIEW_FAMILY_JOB_RESULT: ${{ needs.exchange-preview-family.result }}\n',
+        '',
+      ),
+    }),
+  },
+  {
+    id: 'B2-19',
+    killedBy: /receives blocker "contact-utility" evidence/,
+    label: 'stop passing the Contact Utility evidence to the aggregator',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'drop contact evidence',
+        baseWorkflow,
+        '          GATE_CONTACT_UTILITY_EVIDENCE: ${{ needs.contact-utility.outputs.evidence }}\n',
+        '',
+      ),
+    }),
+  },
+  {
+    id: 'B2-20',
+    killedBy: /receives blocker "exchange-preview-family" evidence/,
+    label: 'stop passing the Exchange Preview Family evidence to the aggregator',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'drop exchange preview evidence',
+        baseWorkflow,
+        '          GATE_EXCHANGE_PREVIEW_FAMILY_EVIDENCE: ${{ needs.exchange-preview-family.outputs.evidence }}\n',
+        '',
+      ),
+    }),
+  },
+  {
+    id: 'B2-21',
+    killedBy: /"contact-utility" result emitter declares its own gate id/,
+    label: "make the Contact Utility emitter publish under ANOTHER gate's id",
+    apply: () => ({
+      workflowText: replaceOnce(
+        'swap contact gate id',
+        baseWorkflow,
+        '          GATE_ID: contact-utility\n',
+        '          GATE_ID: exchange-preview-family\n',
+      ),
+    }),
+  },
+  {
+    id: 'B2-22',
+    killedBy: /"exchange-preview-family" result emitter declares its own gate id/,
+    label: "make the Exchange Preview Family emitter publish under ANOTHER gate's id",
+    apply: () => ({
+      workflowText: replaceOnce(
+        'swap exchange preview gate id',
+        baseWorkflow,
+        '          GATE_ID: exchange-preview-family\n',
+        '          GATE_ID: contact-utility\n',
+      ),
+    }),
+  },
+  {
+    id: 'B2-23',
+    killedBy: /classifier job publishes output "gate_contact_utility" bound to its producer step/,
+    label: 'delete the Contact Utility classifier output (every gated step silently evaluates false)',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'drop contact classifier output',
+        baseWorkflow,
+        '      gate_contact_utility: ${{ steps.applicability.outputs.gate_contact_utility }}\n',
+        '',
+      ),
+    }),
+  },
+  {
+    id: 'B2-24',
+    killedBy: /classifier job publishes output "gate_exchange_preview_family" bound to its producer step/,
+    label: 'delete the Exchange Preview Family classifier output (every gated step silently evaluates false)',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'drop exchange preview classifier output',
+        baseWorkflow,
+        '      gate_exchange_preview_family: ${{ steps.applicability.outputs.gate_exchange_preview_family }}\n',
+        '',
+      ),
+    }),
+  },
+  // --- the two batch-02-specific condition mutants ---------------------------
+  {
+    id: 'B2-25',
+    killedBy: /is gated on the exact derived condition/,
+    label:
+      "normalise Contact Utility's indexability step to the after-build shape (it would run in a state the LEGACY job never runs it in)",
+    apply: () => ({
+      workflowText: replaceOnce(
+        'contact indexability after-build',
+        baseWorkflow,
+        "      - name: Indexability inventory for the contact utility blocker\n        id: indexability\n" +
+          "        if: needs.classify.outputs.gate_contact_utility == 'APPLICABLE'\n",
+        "      - name: Indexability inventory for the contact utility blocker\n        id: indexability\n" +
+          "        if: always() && needs.classify.outputs.gate_contact_utility == 'APPLICABLE' && steps.build.outcome == 'success'\n",
+      ),
+    }),
+  },
+  {
+    id: 'B2-26',
+    killedBy: /is gated on the exact derived condition/,
+    label:
+      "strip the after-build guard from Exchange Preview Family's indexability step (the LEGACY job runs it after a failed smoke; this would not)",
+    apply: () => ({
+      workflowText: replaceOnce(
+        'exchange preview indexability plain',
+        baseWorkflow,
+        "        if: always() && needs.classify.outputs.gate_exchange_preview_family == 'APPLICABLE' && steps.build.outcome == 'success'\n",
+        "        if: needs.classify.outputs.gate_exchange_preview_family == 'APPLICABLE'\n",
+      ),
+    }),
+  },
+  {
+    id: 'B2-27',
+    killedBy: /"contact-utility" checks out the EXACT PR head sha/,
+    label: 'let the Contact Utility blocker check out the merge ref instead of the exact PR head',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'contact checkout drift',
+        baseWorkflow,
+        '      - name: Checkout exact PR head for the contact utility blocker\n        uses: actions/checkout@v4\n        with:\n          ref: ${{ github.event.pull_request.head.sha }}\n',
+        '      - name: Checkout exact PR head for the contact utility blocker\n        uses: actions/checkout@v4\n        with:\n          ref: ${{ github.ref }}\n',
+      ),
+    }),
+  },
+  {
+    id: 'B2-28',
+    killedBy: /"exchange-preview-family" checks out the EXACT PR head sha/,
+    label: 'let the Exchange Preview Family blocker check out the merge ref instead of the exact PR head',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'exchange preview checkout drift',
+        baseWorkflow,
+        '      - name: Checkout exact PR head for the exchange preview blocker\n        uses: actions/checkout@v4\n        with:\n          ref: ${{ github.event.pull_request.head.sha }}\n',
+        '      - name: Checkout exact PR head for the exchange preview blocker\n        uses: actions/checkout@v4\n        with:\n          ref: ${{ github.ref }}\n',
+      ),
+    }),
+  },
+  {
+    id: 'B2-29',
+    killedBy: /"contact-utility" runs the result emitter exactly once/,
+    label: 'delete the Contact Utility result emitter step',
+    apply: () => ({ workflowText: removeStep(baseWorkflow, 'Publish contact utility blocker result') }),
+  },
+  {
+    id: 'B2-30',
+    killedBy: /"exchange-preview-family" runs the result emitter exactly once/,
+    label: 'delete the Exchange Preview Family result emitter step',
+    apply: () => ({ workflowText: removeStep(baseWorkflow, 'Publish exchange preview blocker result') }),
+  },
+];
+
+// =============================================================================
 // S2-04 R1 / M1 — THE EMITTER MUST ALWAYS RUN, FOR EVERY REGISTERED BLOCKER
 // =============================================================================
 //
@@ -1805,7 +2153,13 @@ const EMITTER_SOURCE_MUTANTS = [
   },
 ];
 
-MUTATIONS.push(...DAG_MUTATIONS, ...S2_04_MUTATIONS, ...EMITTER_MUTANTS, ...EMITTER_SOURCE_MUTANTS);
+MUTATIONS.push(
+  ...DAG_MUTATIONS,
+  ...S2_04_MUTATIONS,
+  ...S2_04_BATCH_02_MUTATIONS,
+  ...EMITTER_MUTANTS,
+  ...EMITTER_SOURCE_MUTANTS,
+);
 
 // =============================================================================
 // REGISTRY <-> PORTFOLIO ALIGNMENT, MUTATED
@@ -1881,7 +2235,7 @@ MUTATIONS.push(...DAG_MUTATIONS, ...S2_04_MUTATIONS, ...EMITTER_MUTANTS, ...EMIT
     },
     {
       id: 'P-5',
-      killedBy: /stage-2 migration candidates are exactly 9/,
+      killedBy: /stage-2 migration candidates are exactly 7/,
       label: 'let the stage-2 candidate count drift (enforcement scope changes unannounced)',
       apply: () => {
         const portfolio = clone();
