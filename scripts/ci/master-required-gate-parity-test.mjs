@@ -1,12 +1,13 @@
 #!/usr/bin/env node
-// LEGACY <-> UNIFIED PARITY PROOF for the two blockers migrated in S2-03
-// (issue #366).
+// LEGACY <-> UNIFIED PARITY PROOF for every migrated blocker (issue #366):
+// Global Header Interaction and Public SEO Metadata (S2-03), plus Public
+// Navigation Boundary and Public First Screen Budget (S2-04 batch 01).
 //
-// S2-03 executes Global Header Interaction and Public SEO Metadata inside the
-// unified required gate while the specialized path-filtered workflows stay in
-// place and keep reporting independently. That is only a safe arrangement if the
-// unified execution is genuinely EQUIVALENT to the legacy one. "Equivalent" is
-// not a claim to be asserted in a PR body; it is proved here, on three axes:
+// The unified required gate executes each of them while the specialized
+// path-filtered workflows stay in place, BYTE-IDENTICAL, and keep reporting
+// independently. That is only a safe arrangement if the unified execution is
+// genuinely EQUIVALENT to the legacy one. "Equivalent" is not a claim to be
+// asserted in a PR body; it is proved here, on four axes:
 //
 //   1. COMMAND PARITY — the unified blocker runs exactly the legacy command
 //      sequence, in the legacy order, with nothing dropped and nothing softened.
@@ -24,6 +25,12 @@
 //      conclusion in every reachable state. This is the axis that actually
 //      matters for blocking authority, and it is the one prose cannot establish.
 //
+//   4. PUBLISHED-OUTCOME PARITY — a job conclusion is not what the aggregator
+//      reads; the PUBLISHED outcome is. Each simulated run is therefore fed to
+//      the real result emitter, and the published PASS / FAIL / NOT_APPLICABLE
+//      is asserted. This is what rules out a job that goes red while still
+//      publishing PASS, and a job that skipped everything while publishing one.
+//
 // It also proves the legacy workflows were NOT weakened by this stage: each is
 // still present, still blocking, still triggered on pull_request to master, and
 // still carries its own path filter.
@@ -32,9 +39,15 @@ import { readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import yaml from 'js-yaml';
 import { GATES, GATE_IDS, gateCommands } from './master-required-gate-gates.mjs';
+import { evaluateGateResult } from './master-required-gate-gate-result.mjs';
 
 const ROOT = resolve(process.cwd());
 const UNIFIED_WORKFLOW = '.github/workflows/cbw-master-required-gate.yml';
+// Any well-formed digest works here: this suite proves OUTCOME parity, and the
+// digest's authenticity is the aggregator's job (proved by the contract test and
+// the mutation suite against a forged chain). It is supplied only because the
+// emitter refuses to publish anything at all without one.
+const PARITY_DIGEST = '0'.repeat(64);
 
 let checks = 0;
 const failures = [];
@@ -147,15 +160,43 @@ for (const gateId of GATE_IDS) {
   // than inferring them from a sequence comparison.
   check(`"${gateId}": the production build requirement is preserved`, unifiedCommands.includes('npm run build'));
   check(`"${gateId}": clean dependency installation is preserved`, unifiedCommands.includes('npm ci'));
+  // The indexability inventory is an obligation of the gates whose LEGACY job
+  // runs it, and of exactly those. Asserting it unconditionally would be a false
+  // requirement for a gate that never had it (and asserting nothing would let it
+  // be dropped from a gate that did), so the obligation is READ OFF the legacy
+  // workflow rather than assumed either way.
+  const INDEXABILITY = 'node scripts/seo/site-indexability-inventory.mjs';
   check(
-    `"${gateId}": the indexability inventory is preserved`,
-    unifiedCommands.includes('node scripts/seo/site-indexability-inventory.mjs'),
+    legacyCommands.includes(INDEXABILITY)
+      ? `"${gateId}": the indexability inventory is preserved`
+      : `"${gateId}": no indexability inventory is invented where the legacy job has none`,
+    unifiedCommands.includes(INDEXABILITY) === legacyCommands.includes(INDEXABILITY),
+    `legacy=${legacyCommands.includes(INDEXABILITY)} unified=${unifiedCommands.includes(INDEXABILITY)}`,
+  );
+  // The gate's OWN hard-gate script — named by the registry, not guessed from
+  // the command shape — must be run by both sides.
+  const gateScriptCommand = `node ${gate.gateScript}`;
+  check(
+    `"${gateId}": the legacy job runs the registry's declared hard-gate script`,
+    legacyCommands.includes(gateScriptCommand),
+    `${gateScriptCommand} not in ${legacyCommands.join(' | ')}`,
   );
   check(
-    `"${gateId}": the gate's own hard-gate script is preserved`,
-    unifiedCommands.some((command) => command.startsWith('node scripts/') && !command.includes('site-indexability')),
-    unifiedCommands.join(' | '),
+    `"${gateId}": the unified blocker runs the same hard-gate script`,
+    unifiedCommands.includes(gateScriptCommand),
+    `${gateScriptCommand} not in ${unifiedCommands.join(' | ')}`,
   );
+  // A gate script is EXCLUSIVE to its gate. That exclusivity is what licenses
+  // every other gate to treat it as inert, so it is proved here rather than
+  // assumed by the registry that derives the inert sets from it.
+  for (const otherId of GATE_IDS) {
+    if (otherId === gateId) continue;
+    check(
+      `"${gateId}": its hard-gate script is not run by blocker "${otherId}"`,
+      !gateCommands(otherId).includes(gateScriptCommand),
+      gateCommands(otherId).join(' | '),
+    );
+  }
 
   // --- 2. CONDITION PARITY ---------------------------------------------------
   const legacyRunSteps = runSteps(legacyJob);
@@ -237,6 +278,71 @@ for (const gateId of GATE_IDS) {
     );
   }
 
+  // --- 3b. the PUBLISHED OUTCOME, not merely the job conclusion ---------------
+  //
+  // Red/green parity above compares GitHub job conclusions. What the aggregator
+  // actually consumes is the outcome this job PUBLISHES, so the simulation is
+  // fed to the real emitter — no reimplementation — and the published value is
+  // asserted for every failure vector. A job that went red while still
+  // publishing PASS would satisfy every check above and none of these.
+  const publish = (run, applicability) =>
+    evaluateGateResult({
+      gateId,
+      applicability,
+      digest: PARITY_DIGEST,
+      stepOutcomes: gate.steps.map((step) => ({ key: step.id, name: step.command, outcome: run.outcomes[step.id] })),
+    }).result;
+
+  check(
+    `"${gateId}": a fully successful APPLICABLE sequence publishes PASS`,
+    publish(allGreen, 'APPLICABLE') === 'PASS',
+    publish(allGreen, 'APPLICABLE'),
+  );
+  for (const key of keys) {
+    const single = simulate(unifiedSimSteps, { conditionOf: unifiedCondition, failing: new Set([key]) });
+    check(
+      `"${gateId}": a failure in blocking step "${key}" publishes FAIL`,
+      publish(single, 'APPLICABLE') === 'FAIL',
+      publish(single, 'APPLICABLE'),
+    );
+  }
+  // BUILD FAILURE PROPAGATION, stated on its own because it is the one step
+  // whose failure also changes what runs after it. In the legacy job a failed
+  // build means the hard-gate script never executes; the unified job must reach
+  // the same place — the gate script does NOT run, and the blocker is FAIL, not
+  // a NOT_APPLICABLE or a vacuous PASS.
+  const buildFailed = simulate(unifiedSimSteps, { conditionOf: unifiedCondition, failing: new Set(['build']) });
+  const legacyBuildFailed = simulate(legacySimSteps, { conditionOf: legacyCondition, failing: new Set(['build']) });
+  const gateStepId = gate.steps.find((step) => step.command === `node ${gate.gateScript}`)?.id;
+  check(`"${gateId}": the registry's hard-gate script has a declared step id`, Boolean(gateStepId), gate.gateScript);
+  check(
+    `"${gateId}": a failed build stops the hard-gate script in the LEGACY job`,
+    legacyBuildFailed.outcomes[gateStepId] === 'skipped',
+    JSON.stringify(legacyBuildFailed.outcomes),
+  );
+  check(
+    `"${gateId}": a failed build stops the hard-gate script in the UNIFIED job too`,
+    buildFailed.outcomes[gateStepId] === 'skipped',
+    JSON.stringify(buildFailed.outcomes),
+  );
+  check(
+    `"${gateId}": a failed build publishes FAIL (never a vacuous PASS or NOT_APPLICABLE)`,
+    publish(buildFailed, 'APPLICABLE') === 'FAIL',
+    publish(buildFailed, 'APPLICABLE'),
+  );
+  // GATE SCRIPT FAILURE — the whole point of the gate.
+  const scriptFailed = simulate(unifiedSimSteps, { conditionOf: unifiedCondition, failing: new Set([gateStepId]) });
+  check(
+    `"${gateId}": a hard-gate script failure makes the unified blocker RED`,
+    scriptFailed.conclusion === 'failure',
+    JSON.stringify(scriptFailed.outcomes),
+  );
+  check(
+    `"${gateId}": a hard-gate script failure publishes FAIL`,
+    publish(scriptFailed, 'APPLICABLE') === 'FAIL',
+    publish(scriptFailed, 'APPLICABLE'),
+  );
+
   // --- 4. NOT_APPLICABLE has no legacy analogue and must skip everything ------
   const notApplicable = simulate(unifiedSimSteps, {
     conditionOf: () => false,
@@ -246,6 +352,24 @@ for (const gateId of GATE_IDS) {
     `"${gateId}": under NOT_APPLICABLE every blocking step is skipped`,
     keys.every((key) => notApplicable.outcomes[key] === 'skipped'),
     JSON.stringify(notApplicable.outcomes),
+  );
+  check(
+    `"${gateId}": a NOT_APPLICABLE job that skipped everything publishes NOT_APPLICABLE`,
+    publish(notApplicable, 'NOT_APPLICABLE') === 'NOT_APPLICABLE',
+    publish(notApplicable, 'NOT_APPLICABLE'),
+  );
+  // …and the two halves cannot be mixed. A job that RAN its work cannot claim
+  // irrelevance, and a job that skipped its work cannot claim a pass. Without
+  // both directions, NOT_APPLICABLE would be a way to publish green for free.
+  check(
+    `"${gateId}": a job that RAN its work cannot publish NOT_APPLICABLE`,
+    publish(allGreen, 'NOT_APPLICABLE') === 'FAIL',
+    publish(allGreen, 'NOT_APPLICABLE'),
+  );
+  check(
+    `"${gateId}": a job that SKIPPED its work cannot publish PASS`,
+    publish(notApplicable, 'APPLICABLE') === 'FAIL',
+    publish(notApplicable, 'APPLICABLE'),
   );
 }
 

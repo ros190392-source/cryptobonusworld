@@ -23,16 +23,20 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import {
+  EXPECTED_STAGE2_CANDIDATES,
   auditProducerConsumerContract,
+  auditRegistryPortfolioAlignment,
   extractCallExpressions,
 } from './master-required-gate-workflow-contract.mjs';
-import { applicabilityDigest } from './master-required-gate-gates.mjs';
+import { GATES, GATE_IDS, applicabilityDigest } from './master-required-gate-gates.mjs';
+import { evaluateEnforcementReadiness } from './master-blocking-portfolio-contract.mjs';
 
 const ROOT = resolve(process.cwd());
 const WORKFLOW = resolve(ROOT, '.github/workflows/cbw-master-required-gate.yml');
 const CLASSIFY_SCRIPT = resolve(ROOT, 'scripts/ci/master-required-gate-classify.mjs');
 const VALIDATE_SCRIPT = resolve(ROOT, 'scripts/ci/master-required-gate-validate-output.mjs');
 const GATES_SCRIPT = resolve(ROOT, 'scripts/ci/master-required-gate-gates.mjs');
+const PORTFOLIO_PATH = resolve(ROOT, 'scripts/ci/master-blocking-portfolio.json');
 const APPLICABILITY_SCRIPT = resolve(ROOT, 'scripts/ci/master-required-gate-applicability.mjs');
 const VALIDATE_APPLICABILITY_SCRIPT = resolve(ROOT, 'scripts/ci/master-required-gate-validate-applicability.mjs');
 const GATE_RESULT_SCRIPT = resolve(ROOT, 'scripts/ci/master-required-gate-gate-result.mjs');
@@ -102,6 +106,26 @@ function removeStep(text, stepName) {
   while (end < lines.length && !/^ {6}(- name:|#)/.test(lines[end])) end += 1;
   lines.splice(start, end - start);
   return lines.join('\n');
+}
+
+// Removes an entire job block: from its `  <job-id>:` line up to the next
+// top-level job or the next job-level comment banner. Deleting a whole blocker
+// is the mutation that matters most for a widening DAG — it is the shape a
+// "temporarily disable this gate" change actually takes.
+function removeJob(text, jobId) {
+  const lines = text.split('\n');
+  const start = lines.findIndex((line) => line === `  ${jobId}:`);
+  if (start === -1) throw new Error(`mutation setup failed: job "${jobId}" not found`);
+  // Walk back over the comment banner that introduces the job, so the removal
+  // does not leave a header describing a job that no longer exists.
+  let from = start;
+  while (from > 0 && /^ {2}#/.test(lines[from - 1])) from -= 1;
+  let end = start + 1;
+  while (end < lines.length && !/^ {2}(#|[A-Za-z0-9_-]+:)/.test(lines[end])) end += 1;
+  lines.splice(from, end - from);
+  const mutated = lines.join('\n');
+  if (mutated === text) throw new Error(`mutation setup failed (no-op): remove job "${jobId}"`);
+  return mutated;
 }
 
 function insertAfterStepName(text, stepName, insertedLine) {
@@ -662,7 +686,13 @@ const DAG_MUTATIONS = [
     id: 'S3-1',
     killedBy: /the final job carries `if: always\(\)`/,
     label: 'remove `if: always()` from the final aggregator (the context stops reporting)',
-    apply: () => ({ workflowText: replaceOnce('drop always()', baseWorkflow, '    if: always()\n', '') }),
+    // Anchored at line start for the same reason as S3-2 below, and now doubly
+    // so: since S2-04 R1 every blocker emitter also carries an 8-space-indented
+    // `if: always()`, and an unanchored substring match would have silently
+    // mutated the FIRST emitter instead of the aggregator.
+    apply: () => ({
+      workflowText: replaceOnce('drop always()', baseWorkflow, /^ {4}if: always\(\)\n/m, ''),
+    }),
   },
   {
     id: 'S3-2',
@@ -684,8 +714,8 @@ const DAG_MUTATIONS = [
       workflowText: replaceOnce(
         'drop needs edge',
         baseWorkflow,
-        '      - global-header-interaction\n      - public-seo-metadata\n',
-        '      - public-seo-metadata\n',
+        '      - global-header-interaction\n      - public-first-screen-budget\n',
+        '      - global-header-interaction\n',
       ),
     }),
   },
@@ -1210,7 +1240,704 @@ const DAG_MUTATIONS = [
     }),
   },
 ];
-MUTATIONS.push(...DAG_MUTATIONS);
+
+// =============================================================================
+// S2-04 BATCH 01 — the two blockers added to the DAG are bound just as tightly
+// =============================================================================
+//
+// Widening a DAG is exactly the moment invariants quietly stop applying to the
+// new members: the suite stays green because it still proves everything it used
+// to prove, about the jobs it used to prove it about. Every mutation below is an
+// S3 mutation RE-AIMED at Public Navigation Boundary or Public First Screen
+// Budget, so "the new jobs are as bound as the old ones" is demonstrated rather
+// than assumed. They are additions, not replacements — the S3 mutations above
+// still run against their original targets.
+const S2_04_MUTATIONS = [
+  {
+    id: 'S4-1',
+    killedBy: /declares EXACTLY the expected DAG jobs/,
+    label: 'delete the Public Navigation blocker job entirely',
+    apply: () => ({ workflowText: removeJob(baseWorkflow, 'public-navigation') }),
+  },
+  {
+    id: 'S4-2',
+    killedBy: /declares EXACTLY the expected DAG jobs/,
+    label: 'delete the Public First Screen Budget blocker job entirely',
+    apply: () => ({ workflowText: removeJob(baseWorkflow, 'public-first-screen-budget') }),
+  },
+  {
+    id: 'S4-3',
+    killedBy: /declares EXACTLY the expected DAG jobs/,
+    label: 'rename the Public Navigation blocker job without updating the registry',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'rename navigation job',
+        baseWorkflow,
+        '\n  public-navigation:\n',
+        '\n  public-nav:\n',
+      ),
+    }),
+  },
+  {
+    id: 'S4-4',
+    killedBy: /declares EXACTLY the expected DAG jobs/,
+    label: 'rename the First Screen Budget blocker job without updating the registry',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'rename first screen job',
+        baseWorkflow,
+        '\n  public-first-screen-budget:\n',
+        '\n  public-first-screen:\n',
+      ),
+    }),
+  },
+  {
+    id: 'S4-5',
+    killedBy: /the final job has a `needs` edge on blocker "public-navigation"/,
+    label: 'drop the aggregator `needs` edge on Public Navigation (it stops being aggregated)',
+    apply: () => ({
+      workflowText: replaceOnce('drop navigation needs', baseWorkflow, '      - public-navigation\n', ''),
+    }),
+  },
+  {
+    id: 'S4-6',
+    killedBy: /the final job has a `needs` edge on blocker "public-first-screen-budget"/,
+    label: 'drop the aggregator `needs` edge on First Screen Budget (it stops being aggregated)',
+    apply: () => ({
+      workflowText: replaceOnce('drop first screen needs', baseWorkflow, '      - public-first-screen-budget\n', ''),
+    }),
+  },
+  {
+    id: 'S4-7',
+    killedBy: /carries NO job-level `if`/,
+    label: 'give Public Navigation a job-level `if` so an irrelevant change SKIPS it',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'navigation job-level if',
+        baseWorkflow,
+        '  public-navigation:\n    name:',
+        "  public-navigation:\n    if: needs.classify.outputs.gate_public_navigation == 'APPLICABLE'\n    name:",
+      ),
+    }),
+  },
+  {
+    id: 'S4-8',
+    killedBy: /carries NO job-level `if`/,
+    label: 'give First Screen Budget a job-level `if` so an irrelevant change SKIPS it',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'first screen job-level if',
+        baseWorkflow,
+        '  public-first-screen-budget:\n    name:',
+        "  public-first-screen-budget:\n    if: needs.classify.outputs.gate_public_first_screen_budget == 'APPLICABLE'\n    name:",
+      ),
+    }),
+  },
+  {
+    id: 'S4-9',
+    killedBy: /runs "node scripts\/seo\/public-navigation-boundary-test\.mjs" exactly once/,
+    label: 'delete the navigation boundary hard-gate step (silent coverage reduction)',
+    apply: () => ({ workflowText: removeStep(baseWorkflow, 'Public navigation boundary') }),
+  },
+  {
+    id: 'S4-10',
+    killedBy: /runs "node scripts\/ui\/public-first-screen-budget-browser-smoke\.mjs" exactly once/,
+    label: 'delete the first-screen Chromium matrix step (silent coverage reduction)',
+    apply: () => ({ workflowText: removeStep(baseWorkflow, 'Public first-screen Chromium matrix') }),
+  },
+  {
+    id: 'S4-11',
+    killedBy: /"public-navigation" runs "npm run build" exactly once/,
+    label: 'drop the production build from Public Navigation (its gate script would run against a stale tree)',
+    apply: () => ({ workflowText: removeStep(baseWorkflow, 'Production build for the public navigation blocker') }),
+  },
+  {
+    id: 'S4-12',
+    killedBy: /"public-first-screen-budget" runs "npm run build" exactly once/,
+    label: 'drop the production build from First Screen Budget',
+    apply: () => ({ workflowText: removeStep(baseWorkflow, 'Production build for the first-screen budget blocker') }),
+  },
+  {
+    id: 'S4-13',
+    killedBy: /is gated on the exact derived condition/,
+    label: 'repoint a Public Navigation step at a nonexistent classifier output',
+    apply: () => ({
+      workflowText: requireChanged(
+        'repoint navigation condition',
+        baseWorkflow,
+        baseWorkflow.replaceAll(
+          "needs.classify.outputs.gate_public_navigation == 'APPLICABLE'",
+          "needs.classify.outputs.gate_navigation == 'APPLICABLE'",
+        ),
+      ),
+    }),
+  },
+  {
+    id: 'S4-14',
+    killedBy: /is gated on the exact derived condition/,
+    label: 'repoint a First Screen Budget step at a nonexistent classifier output',
+    apply: () => ({
+      workflowText: requireChanged(
+        'repoint first screen condition',
+        baseWorkflow,
+        baseWorkflow.replaceAll(
+          "needs.classify.outputs.gate_public_first_screen_budget == 'APPLICABLE'",
+          "needs.classify.outputs.gate_first_screen == 'APPLICABLE'",
+        ),
+      ),
+    }),
+  },
+  {
+    id: 'S4-15',
+    killedBy: /receives blocker "public-navigation" JOB RESULT/,
+    label: 'unwire the aggregator from the Public Navigation JOB RESULT',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'drop navigation job result',
+        baseWorkflow,
+        '          GATE_PUBLIC_NAVIGATION_JOB_RESULT: ${{ needs.public-navigation.result }}\n',
+        '',
+      ),
+    }),
+  },
+  {
+    id: 'S4-16',
+    killedBy: /receives blocker "public-first-screen-budget" published result/,
+    label: 'unwire the aggregator from the First Screen Budget published result',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'drop first screen result',
+        baseWorkflow,
+        '          GATE_PUBLIC_FIRST_SCREEN_BUDGET_RESULT: ${{ needs.public-first-screen-budget.outputs.result }}\n',
+        '',
+      ),
+    }),
+  },
+  {
+    id: 'S4-17',
+    killedBy: /receives blocker "public-navigation" evidence/,
+    label: 'unwire the aggregator from the Public Navigation evidence (the digest chain goes unchecked)',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'drop navigation evidence',
+        baseWorkflow,
+        '          GATE_PUBLIC_NAVIGATION_EVIDENCE: ${{ needs.public-navigation.outputs.evidence }}\n',
+        '',
+      ),
+    }),
+  },
+  {
+    id: 'S4-18',
+    killedBy: /receives blocker "public-first-screen-budget" evidence/,
+    label: 'unwire the aggregator from the First Screen Budget evidence',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'drop first screen evidence',
+        baseWorkflow,
+        '          GATE_PUBLIC_FIRST_SCREEN_BUDGET_EVIDENCE: ${{ needs.public-first-screen-budget.outputs.evidence }}\n',
+        '',
+      ),
+    }),
+  },
+  {
+    id: 'S4-19',
+    killedBy: /result emitter observes EXACTLY the declared blocking steps/,
+    label: 'hard-code a step outcome in the Public Navigation emitter (a deleted step would go unnoticed)',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'hardcode navigation outcome',
+        baseWorkflow,
+        '{"name":"node scripts/seo/public-navigation-boundary-test.mjs","outcome":"${{ steps.navigation.outcome }}"}]',
+        '{"name":"node scripts/seo/public-navigation-boundary-test.mjs","outcome":"success"}]',
+      ),
+    }),
+  },
+  {
+    id: 'S4-20',
+    killedBy: /result emitter observes EXACTLY the declared blocking steps/,
+    label: 'hard-code a step outcome in the First Screen Budget emitter',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'hardcode first screen outcome',
+        baseWorkflow,
+        '{"name":"node scripts/ui/public-first-screen-budget-browser-smoke.mjs","outcome":"${{ steps.first-screen.outcome }}"}]',
+        '{"name":"node scripts/ui/public-first-screen-budget-browser-smoke.mjs","outcome":"success"}]',
+      ),
+    }),
+  },
+  {
+    id: 'S4-21',
+    killedBy: /"public-navigation" publishes its result output bound to the emitter step/,
+    label: 'delete the Public Navigation result output (the aggregator would see nothing)',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'drop navigation result output',
+        baseWorkflow,
+        '  public-navigation:\n    name: Public navigation boundary (unified blocker)\n' +
+          '    needs: classify\n    runs-on: ubuntu-latest\n    timeout-minutes: 30\n    outputs:\n' +
+          '      result: ${{ steps.gate-result.outputs.result }}\n',
+        '  public-navigation:\n    name: Public navigation boundary (unified blocker)\n' +
+          '    needs: classify\n    runs-on: ubuntu-latest\n    timeout-minutes: 30\n    outputs:\n',
+      ),
+    }),
+  },
+  {
+    id: 'S4-22',
+    killedBy: /"public-first-screen-budget" runs the result emitter exactly once/,
+    label: 'delete the First Screen Budget result emitter step',
+    apply: () => ({ workflowText: removeStep(baseWorkflow, 'Publish first-screen budget blocker result') }),
+  },
+  {
+    id: 'S4-23',
+    killedBy: /"public-navigation" result emitter condition is EXACTLY `always\(\)`/,
+    label: 'condition the Public Navigation emitter on applicability (an irrelevant change would publish nothing)',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'navigation emitter conditional',
+        baseWorkflow,
+        '      - name: Publish public navigation blocker result\n        id: gate-result\n        if: always()\n',
+        '      - name: Publish public navigation blocker result\n        id: gate-result\n' +
+          "        if: needs.classify.outputs.gate_public_navigation == 'APPLICABLE'\n",
+      ),
+    }),
+  },
+  {
+    id: 'S4-24',
+    killedBy: /"public-navigation" result emitter declares its own gate id/,
+    label: 'make the Public Navigation emitter publish under ANOTHER gate\'s id',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'swap navigation gate id',
+        baseWorkflow,
+        '          GATE_ID: public-navigation\n',
+        '          GATE_ID: public-seo-metadata\n',
+      ),
+    }),
+  },
+  {
+    id: 'S4-25',
+    killedBy: /"public-first-screen-budget" result emitter carries the classifier evidence digest/,
+    label: 'strip the evidence digest from the First Screen Budget emitter (its outcome becomes unbindable)',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'drop first screen digest',
+        baseWorkflow,
+        '          GATE_APPLICABILITY: ${{ needs.classify.outputs.gate_public_first_screen_budget }}\n' +
+          '          APPLICABILITY_DIGEST: ${{ needs.classify.outputs.digest }}\n',
+        '          GATE_APPLICABILITY: ${{ needs.classify.outputs.gate_public_first_screen_budget }}\n',
+      ),
+    }),
+  },
+  {
+    id: 'S4-26',
+    killedBy: /"public-navigation" checks out the EXACT PR head sha/,
+    label: 'check out the merge ref instead of the exact PR head in Public Navigation',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'navigation loose checkout',
+        baseWorkflow,
+        '      - name: Checkout exact PR head for the public navigation blocker\n' +
+          '        uses: actions/checkout@v4\n        with:\n' +
+          '          ref: ${{ github.event.pull_request.head.sha }}\n',
+        '      - name: Checkout exact PR head for the public navigation blocker\n' +
+          '        uses: actions/checkout@v4\n        with:\n' +
+          '          ref: ${{ github.ref }}\n',
+      ),
+    }),
+  },
+  {
+    id: 'S4-27',
+    killedBy: /classifier job publishes output "gate_public_navigation" bound to its producer step/,
+    label: 'delete the Public Navigation applicability output from the classifier job',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'drop navigation classify output',
+        baseWorkflow,
+        '      gate_public_navigation: ${{ steps.applicability.outputs.gate_public_navigation }}\n',
+        '',
+      ),
+    }),
+  },
+  {
+    id: 'S4-28',
+    killedBy: /re-checks the per-gate convenience output for "public-first-screen-budget"/,
+    label: 'stop re-validating the First Screen Budget applicability output',
+    apply: () => ({
+      workflowText: replaceOnce(
+        'drop first screen validation',
+        baseWorkflow,
+        '          GATE_PUBLIC_FIRST_SCREEN_BUDGET_APPLICABILITY: ${{ steps.applicability.outputs.gate_public_first_screen_budget }}\n',
+        '',
+      ),
+    }),
+  },
+  // --- the DERIVED inert set is itself a trust boundary ----------------------
+  //
+  // S2-04 replaced four hand-written cross-gate inert entries with a derivation.
+  // A derivation is only an improvement while it is CORRECT, so the two ways it
+  // could silently go fail-open are mutated directly.
+  {
+    id: 'S4-29',
+    killedBy: /derived inert set EXCLUDES the gate's own exclusive surface/,
+    label: 'let a gate treat its OWN exclusive surface as inert (it would skip its own change)',
+    apply: () => ({
+      gatesSource: replaceOnce(
+        'self-inert',
+        baseGates,
+        '    .filter((otherId) => otherId !== gateId)\n',
+        '',
+      ),
+    }),
+  },
+  {
+    id: 'S4-30',
+    killedBy: /derived inert set is exactly the allowlist plus FOREIGN exclusive surfaces/,
+    label: 'add the SHARED indexability inventory to every inert set (two gates would skip a real dependency)',
+    apply: () => ({
+      gatesSource: replaceOnce(
+        'shared script inert',
+        baseGates,
+        '  return Object.freeze([...UNIVERSALLY_INERT_PATHS, ...foreign]);',
+        "  return Object.freeze([...UNIVERSALLY_INERT_PATHS, ...foreign, 'scripts/seo/site-indexability-inventory.mjs']);",
+      ),
+    }),
+  },
+];
+
+// =============================================================================
+// S2-04 R1 / M1 — THE EMITTER MUST ALWAYS RUN, FOR EVERY REGISTERED BLOCKER
+// =============================================================================
+//
+// The reviewed MEDIUM was generic: no blocker's emitter carried `if: always()`,
+// so a failed build or a failed hard-gate script SKIPPED the step that publishes
+// the blocker's outcome. The mutants below are therefore GENERATED FROM THE
+// REGISTRY, one set per gate — a fix applied to the two new blockers and not the
+// two older ones would leave half of these red, and a fifth gate registered
+// without an always-running emitter is caught the moment it is added.
+//
+// The emitter step name is not derivable from the registry (it is prose), so it
+// is located by the step's unique `id: gate-result` line inside the gate's own
+// job block, which IS derivable.
+const EMITTER_MUTANTS = [];
+for (const gateId of GATE_IDS) {
+  const gate = GATES[gateId];
+  // The emitter block of THIS gate: everything from its job id to its `if`.
+  const jobStart = baseWorkflow.indexOf(`\n  ${gate.jobId}:\n`);
+  if (jobStart === -1) throw new Error(`mutation setup failed: job "${gate.jobId}" not found`);
+  const emitterAt = baseWorkflow.indexOf('        id: gate-result\n        if: always()\n', jobStart);
+  if (emitterAt === -1) throw new Error(`mutation setup failed: emitter of "${gateId}" not found`);
+  const nameLineStart = baseWorkflow.lastIndexOf('      - name: ', emitterAt);
+  const EMITTER_BLOCK = baseWorkflow.slice(nameLineStart, emitterAt + '        id: gate-result\n        if: always()\n'.length);
+
+  EMITTER_MUTANTS.push(
+    {
+      id: `M1-${gateId}-no-if`,
+      killedBy: new RegExp(`"${gateId}" result emitter carries an explicit \`if\``),
+      label: `remove \`if: always()\` from the "${gateId}" emitter (implicit success() skips it after a failure)`,
+      apply: () => ({
+        workflowText: replaceOnce(
+          `${gateId} emitter loses always()`,
+          baseWorkflow,
+          EMITTER_BLOCK,
+          EMITTER_BLOCK.replace('        if: always()\n', ''),
+        ),
+      }),
+    },
+    {
+      id: `M1-${gateId}-success`,
+      killedBy: new RegExp(`"${gateId}" result emitter is NOT conditioned on success`),
+      label: `replace the "${gateId}" emitter condition with \`if: success()\``,
+      apply: () => ({
+        workflowText: replaceOnce(
+          `${gateId} emitter success()`,
+          baseWorkflow,
+          EMITTER_BLOCK,
+          EMITTER_BLOCK.replace('if: always()', 'if: success()'),
+        ),
+      }),
+    },
+    {
+      id: `M1-${gateId}-not-cancelled`,
+      killedBy: new RegExp(`"${gateId}" result emitter condition is EXACTLY \`always\\(\\)\``),
+      label: `weaken the "${gateId}" emitter condition to \`!cancelled()\``,
+      apply: () => ({
+        workflowText: replaceOnce(
+          `${gateId} emitter !cancelled()`,
+          baseWorkflow,
+          EMITTER_BLOCK,
+          EMITTER_BLOCK.replace('if: always()', 'if: "!cancelled()"'),
+        ),
+      }),
+    },
+    // THE continue-on-error FAMILY (S2-04 R2 / 3). One mutant per FORM the field
+    // can take, because the R1 rule (`!== true`) killed only the first of them:
+    // the expression form parses as a STRING, and GitHub still evaluates it as
+    // truthy at runtime. The contract now forbids the KEY, so all three die on the
+    // same assertion — including `false`, which is harmless in itself and is
+    // rejected anyway so that no value this contract cannot evaluate is ever one
+    // edit away from being admitted.
+    ...[
+      ['literal', 'true', 'let the emitter continue-on-error with the literal boolean'],
+      ['expression', '${{ true }}', 'let the emitter continue-on-error via an EXPRESSION that evaluates truthy'],
+      ['expression-context', "${{ github.event_name == 'pull_request' }}", 'let the emitter continue-on-error via a context expression'],
+      ['quoted', "'true'", 'let the emitter continue-on-error via a quoted truthy string'],
+      ['false', 'false', 'give the emitter an explicit continue-on-error: false (the field must be ABSENT)'],
+    ].map(([form, value, what]) => ({
+      id: `M1-${gateId}-continue-on-error-${form}`,
+      killedBy: new RegExp(`"${gateId}" result emitter declares NO continue-on-error at all`),
+      label: `${what} on "${gateId}" (a published FAIL would stop failing the job)`,
+      apply: () => ({
+        workflowText: replaceOnce(
+          `${gateId} emitter continue-on-error ${form}`,
+          baseWorkflow,
+          EMITTER_BLOCK,
+          `${EMITTER_BLOCK}        continue-on-error: ${value}\n`,
+        ),
+      }),
+    })),
+    {
+      id: `M1-${gateId}-delete-emitter`,
+      killedBy: new RegExp(`"${gateId}" runs the result emitter exactly once`),
+      label: `delete the "${gateId}" result emitter step entirely`,
+      apply: () => ({
+        workflowText: requireChanged(
+          `${gateId} emitter deleted`,
+          baseWorkflow,
+          baseWorkflow.replace(
+            new RegExp(
+              `${EMITTER_BLOCK.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?:.*\\n)*?        run: node scripts/ci/master-required-gate-gate-result\\.mjs\\n`,
+            ),
+            '',
+          ),
+        ),
+      }),
+    },
+    {
+      id: `M1-${gateId}-delete-result-output`,
+      killedBy: new RegExp(`"${gateId}" publishes its result output bound to the emitter step`),
+      label: `delete the "${gateId}" job \`result\` output (the emitter would publish into nothing)`,
+      apply: () => {
+        const outputsBlock =
+          `  ${gate.jobId}:\n    name: ${gate.jobName}\n`;
+        const at = baseWorkflow.indexOf(outputsBlock);
+        if (at === -1) throw new Error(`mutation setup failed: job header of "${gateId}" not found`);
+        const resultLine = '      result: ${{ steps.gate-result.outputs.result }}\n';
+        const lineAt = baseWorkflow.indexOf(resultLine, at);
+        if (lineAt === -1) throw new Error(`mutation setup failed: result output of "${gateId}" not found`);
+        return {
+          workflowText: baseWorkflow.slice(0, lineAt) + baseWorkflow.slice(lineAt + resultLine.length),
+        };
+      },
+    },
+  );
+}
+
+// The emitter SCRIPT itself: the same defect relocated from the workflow into the
+// code. `if: always()` guarantees the step instantiates; these guarantee that,
+// having instantiated, it publishes the evaluated result rather than a constant
+// or nothing at all.
+const EMITTER_SOURCE_MUTANTS = [
+  {
+    id: 'M1-src-hardcode-pass',
+    killedBy: /result emitter publishes the EVALUATED result, not a constant|does not hard-code PASS/,
+    label: 'hard-code PASS in the result emitter',
+    apply: () => ({
+      gateResultSource: replaceOnce(
+        'hardcode PASS',
+        baseGateResult,
+        '`result=${evaluation.result}\\n',
+        '`result=PASS\\n',
+      ),
+    }),
+  },
+  {
+    id: 'M1-src-hardcode-na',
+    killedBy: /result emitter publishes the EVALUATED result, not a constant|does not hard-code NOT_APPLICABLE/,
+    label: 'hard-code NOT_APPLICABLE in the result emitter',
+    apply: () => ({
+      gateResultSource: replaceOnce(
+        'hardcode NOT_APPLICABLE',
+        baseGateResult,
+        '`result=${evaluation.result}\\n',
+        '`result=NOT_APPLICABLE\\n',
+      ),
+    }),
+  },
+  {
+    id: 'M1-src-silent-on-fail',
+    killedBy: /publishes UNCONDITIONALLY \(the write is not behind any branch\)/,
+    label: 'stop publishing FAIL after a failed blocking step (publish only on the happy path)',
+    apply: () => ({
+      gateResultSource: replaceOnce(
+        'publish only when not FAIL',
+        baseGateResult,
+        '  appendFileSync(\n',
+        "  if (evaluation.result !== 'FAIL')\n    appendFileSync(\n",
+      ),
+    }),
+  },
+  {
+    id: 'M1-src-no-write',
+    killedBy: /performs exactly one output write/,
+    label: 'delete the emitter output write entirely (an implicit/missing result)',
+    apply: () => ({
+      gateResultSource: mutate('delete the emitter write', baseGateResult, [
+        [
+          '  appendFileSync(\n    outputFile,\n    `result=${evaluation.result}\\n' +
+            'evidence=${JSON.stringify({ gateId, applicability, digest })}\\n`,\n  );\n',
+          '',
+        ],
+      ]),
+    }),
+  },
+  {
+    id: 'M1-src-suppress-exit',
+    killedBy: /result emitter exits non-zero on FAIL/,
+    label: 'make the emitter swallow its own FAIL (publication as failure suppression)',
+    apply: () => ({
+      gateResultSource: replaceOnce(
+        'suppress the failing exit',
+        baseGateResult,
+        "  if (errors.length > 0 || evaluation.result === 'FAIL') {\n    console.error(",
+        "  if (false) {\n    console.error(",
+      ),
+    }),
+  },
+];
+
+MUTATIONS.push(...DAG_MUTATIONS, ...S2_04_MUTATIONS, ...EMITTER_MUTANTS, ...EMITTER_SOURCE_MUTANTS);
+
+// =============================================================================
+// REGISTRY <-> PORTFOLIO ALIGNMENT, MUTATED
+// =============================================================================
+//
+// These rules are what stop the migration bookkeeping from drifting away from
+// what the workflow actually executes — and bookkeeping rules are exactly the
+// kind that get written once and never exercised. Each mutation below corrupts
+// the portfolio in a way a careless S2-05 could plausibly produce, and asserts
+// the alignment audit rejects it FOR THE INTENDED REASON. The real portfolio is
+// never touched: every mutant is a deep copy.
+{
+  const realPortfolio = JSON.parse(readFileSync(PORTFOLIO_PATH, 'utf8'));
+  const realReadiness = evaluateEnforcementReadiness(realPortfolio);
+  const alignmentAudit = (portfolio, readiness = evaluateEnforcementReadiness(portfolio)) =>
+    auditRegistryPortfolioAlignment({
+      portfolio,
+      readiness,
+      expectedStage2Candidates: EXPECTED_STAGE2_CANDIDATES,
+    });
+  const clone = () => JSON.parse(JSON.stringify(realPortfolio));
+  const entryById = (portfolio, id) => portfolio.entries.find((entry) => entry.id === id);
+
+  const baselineAlignment = alignmentAudit(realPortfolio, realReadiness).filter((entry) => !entry.ok);
+  check(
+    'CONTROL: the real portfolio is ALIGNED with the gate registry',
+    baselineAlignment.length === 0,
+    baselineAlignment.map((entry) => entry.label).join(' | '),
+  );
+
+  const PORTFOLIO_MUTATIONS = [
+    {
+      id: 'P-1',
+      killedBy: /records legacy "cbw-public-navigation-boundary\.yml" as MIGRATED_UNIFIED_SHADOW/,
+      label: 'migrate Public Navigation in the workflow but leave its portfolio entry LEGACY_EXTERNAL',
+      apply: () => {
+        const portfolio = clone();
+        entryById(portfolio, 'public-navigation-boundary').migrationState = 'LEGACY_EXTERNAL';
+        return portfolio;
+      },
+    },
+    {
+      id: 'P-2',
+      killedBy: /records legacy "cbw-public-first-screen-budget\.yml" as MIGRATED_UNIFIED_SHADOW/,
+      label: 'leave the First Screen Budget portfolio entry LEGACY_EXTERNAL after migrating it',
+      apply: () => {
+        const portfolio = clone();
+        entryById(portfolio, 'public-first-screen-budget').migrationState = 'LEGACY_EXTERNAL';
+        return portfolio;
+      },
+    },
+    {
+      id: 'P-3',
+      killedBy: /portfolio components are EXACTLY the classifier plus one job per registered gate/,
+      label: 'delete a unified blocker entry from the portfolio (the DAG grows unrecorded)',
+      apply: () => {
+        const portfolio = clone();
+        portfolio.entries = portfolio.entries.filter(
+          (entry) => entry.id !== 'master-gate-blocker-public-navigation',
+        );
+        return portfolio;
+      },
+    },
+    {
+      id: 'P-4',
+      killedBy: /records unified blocker "public-first-screen-budget" as UNIFIED_GATE_COMPONENT/,
+      label: 'mis-state a unified blocker as an external legacy check',
+      apply: () => {
+        const portfolio = clone();
+        entryById(portfolio, 'master-gate-blocker-public-first-screen-budget').migrationState = 'LEGACY_EXTERNAL';
+        return portfolio;
+      },
+    },
+    {
+      id: 'P-5',
+      killedBy: /stage-2 migration candidates are exactly 9/,
+      label: 'let the stage-2 candidate count drift (enforcement scope changes unannounced)',
+      apply: () => {
+        const portfolio = clone();
+        // The shape a quiet retirement takes: a still-blocking legacy workflow
+        // reclassified so it stops counting as outstanding work.
+        const victim = portfolio.entries.find(
+          (entry) => entry.migrationState === 'LEGACY_EXTERNAL' && entry.stage2MigrationCandidate === true,
+        );
+        victim.stage2MigrationCandidate = false;
+        return portfolio;
+      },
+    },
+    {
+      id: 'P-6',
+      killedBy: /legacy "cbw-public-navigation-boundary\.yml" is still BLOCKING/,
+      label: 'downgrade a migrated legacy workflow to advisory (a silent weakening)',
+      apply: () => {
+        const portfolio = clone();
+        entryById(portfolio, 'public-navigation-boundary').classification = 'ADVISORY';
+        return portfolio;
+      },
+    },
+    {
+      id: 'P-7',
+      killedBy: /portfolio declares exactly one unified gate host/,
+      label: 'claim a second unified gate host (the stable required context becomes ambiguous)',
+      apply: () => {
+        const portfolio = clone();
+        entryById(portfolio, 'master-gate-blocker-public-navigation').migrationState = 'UNIFIED_GATE_HOST';
+        return portfolio;
+      },
+    },
+    {
+      id: 'P-8',
+      killedBy: /enforcement readiness remains false at this stage/,
+      label: 'declare enforcement readiness at a stage that confers no authority',
+      apply: () => clone(),
+      readiness: { ...realReadiness, enforcementReady: true },
+    },
+  ];
+
+  for (const mutation of PORTFOLIO_MUTATIONS) {
+    const mutant = mutation.apply();
+    const caught = alignmentAudit(mutant, mutation.readiness).filter((entry) => !entry.ok);
+    check(
+      `PORTFOLIO MUTATION ${mutation.id} (${mutation.label}) is CAUGHT`,
+      caught.length > 0,
+      'mutant survived — the registry/portfolio alignment does not bind this property',
+    );
+    check(
+      `PORTFOLIO MUTATION ${mutation.id} is caught for its INTENDED reason`,
+      caught.some((entry) => mutation.killedBy.test(entry.label)),
+      caught.map((entry) => entry.label).join(' | ').slice(0, 240),
+    );
+  }
+}
 
 for (const mutation of MUTATIONS) {
   let caught = [];
@@ -2034,12 +2761,15 @@ try {
       ["process.argv[1]?.endsWith('master-required-gate-aggregate.mjs')", 'true'],
     ]);
 
+  // Derived from the CLOSED REGISTRY, never hand-listed. When S2-04 added two
+  // blockers, a hand-listed decision here would have kept describing a two-gate
+  // world: the aggregator iterates GATE_IDS, so the happy path would simply have
+  // failed, and the tempting fix — adding the two names by hand — leaves the same
+  // trap set for the next gate. Deriving it means every runtime rejection case
+  // below is automatically exercised against every registered blocker.
   const APP_DECISION = {
-    gates: { 'global-header-interaction': 'APPLICABLE', 'public-seo-metadata': 'APPLICABLE' },
-    reasons: {
-      'global-header-interaction': 'relevant-path-changed',
-      'public-seo-metadata': 'relevant-path-changed',
-    },
+    gates: Object.fromEntries(GATE_IDS.map((gateId) => [gateId, 'APPLICABLE'])),
+    reasons: Object.fromEntries(GATE_IDS.map((gateId) => [gateId, 'relevant-path-changed'])),
     changedPaths: ['src/pages/index.astro'],
     material: 'true',
     materialReason: 'material-path-changed',
@@ -2064,22 +2794,31 @@ try {
     CLASSIFIER_MATERIAL: 'true',
     APPLICABILITY_JSON: JSON.stringify(APP_DECISION),
     APPLICABILITY_DIGEST: APP_DIGEST,
-    GATE_GLOBAL_HEADER_INTERACTION_JOB_RESULT: 'success',
-    GATE_GLOBAL_HEADER_INTERACTION_RESULT: 'PASS',
-    GATE_GLOBAL_HEADER_INTERACTION_EVIDENCE: JSON.stringify({
-      gateId: 'global-header-interaction',
-      applicability: 'APPLICABLE',
-      digest: APP_DIGEST,
-    }),
-    GATE_PUBLIC_SEO_METADATA_JOB_RESULT: 'success',
-    GATE_PUBLIC_SEO_METADATA_RESULT: 'PASS',
-    GATE_PUBLIC_SEO_METADATA_EVIDENCE: JSON.stringify({
-      gateId: 'public-seo-metadata',
-      applicability: 'APPLICABLE',
-      digest: APP_DIGEST,
-    }),
+    // One passing blocker per registered gate, built from the registry's own env
+    // var names so a renamed or added gate cannot leave a hole here.
+    ...Object.fromEntries(
+      GATE_IDS.flatMap((gateId) => [
+        [GATES[gateId].jobResultEnv, 'success'],
+        [GATES[gateId].resultEnv, 'PASS'],
+        [
+          GATES[gateId].evidenceEnv,
+          JSON.stringify({ gateId, applicability: 'APPLICABLE', digest: APP_DIGEST }),
+        ],
+      ]),
+    ),
     ...overrides,
   });
+  // A forged/stale evidence chain is only a meaningful test if EVERY blocker
+  // echoes it consistently — a chain that disagrees with itself is caught by a
+  // weaker rule. Built per gate so the "whole chain agrees" exploit really does
+  // cover the whole chain.
+  const chainEchoing = (digest) =>
+    Object.fromEntries(
+      GATE_IDS.map((gateId) => [
+        GATES[gateId].evidenceEnv,
+        JSON.stringify({ gateId, applicability: 'APPLICABLE', digest }),
+      ]),
+    );
   const runAggregator = (scriptPath, overrides = {}) =>
     spawnSync(process.execPath, [scriptPath], { env: aggregatorEnv(overrides), encoding: 'utf8', cwd: ROOT });
 
@@ -2129,16 +2868,7 @@ try {
       'a FORGED non-hash digest echoed consistently by the whole chain (Codex exploit)',
       {
         APPLICABILITY_DIGEST: 'forged-applicability-digest',
-        GATE_GLOBAL_HEADER_INTERACTION_EVIDENCE: JSON.stringify({
-          gateId: 'global-header-interaction',
-          applicability: 'APPLICABLE',
-          digest: 'forged-applicability-digest',
-        }),
-        GATE_PUBLIC_SEO_METADATA_EVIDENCE: JSON.stringify({
-          gateId: 'public-seo-metadata',
-          applicability: 'APPLICABLE',
-          digest: 'forged-applicability-digest',
-        }),
+        ...chainEchoing('forged-applicability-digest'),
       },
       /not a sha-256 hex digest|independently recomputed/,
     ],
@@ -2146,16 +2876,7 @@ try {
       'a FORGED sha-256-shaped digest echoed consistently by the whole chain',
       {
         APPLICABILITY_DIGEST: 'a'.repeat(64),
-        GATE_GLOBAL_HEADER_INTERACTION_EVIDENCE: JSON.stringify({
-          gateId: 'global-header-interaction',
-          applicability: 'APPLICABLE',
-          digest: 'a'.repeat(64),
-        }),
-        GATE_PUBLIC_SEO_METADATA_EVIDENCE: JSON.stringify({
-          gateId: 'public-seo-metadata',
-          applicability: 'APPLICABLE',
-          digest: 'a'.repeat(64),
-        }),
+        ...chainEchoing('a'.repeat(64)),
       },
       /independently recomputed/,
     ],
@@ -2201,6 +2922,220 @@ try {
       /must be justified by exact changed-file classification|the classifier decided/,
     ],
   ];
+
+  // ==========================================================================
+  // THE COMPLETE PER-GATE REJECTION MATRIX (S2-04 R1 / L1)
+  // ==========================================================================
+  //
+  // The cases above single out one or two gates by name, which proves the
+  // aggregator's rules EXIST but not that they reach every member of the DAG —
+  // precisely the coverage that silently fails to extend when the DAG widens.
+  // Round 1 review found the remainder still global: a stale head SHA, a forged
+  // classifier digest, a tampered decision and an unjustified PASS were each
+  // proved once, for the whole run, so a gate-specific exception could have
+  // hidden behind another failing gate.
+  //
+  // Every case below is therefore GENERATED PER GATE and, wherever the case has a
+  // per-gate rendering at all, MUTATES ONLY THAT GATE'S evidence or result while
+  // every other blocker stays honest. Each one additionally asserts that the
+  // aggregator NAMES THAT GATE in its rejection, so a rejection produced by
+  // collateral damage elsewhere cannot be mistaken for coverage of this gate.
+  //
+  // The three chain-level cases (a forged classifier digest, and a forgery echoed
+  // consistently by the whole chain) cannot be confined to one gate by
+  // construction — the classifier claim is one value for the whole run. They are
+  // still generated per gate, and what is asserted per gate is that THIS gate's
+  // own evidence is independently rejected under them: no blocker rides a forged
+  // classifier claim, and none is exempted from the recomputation.
+  const decisionWith = (gateId, applicability) => ({
+    ...APP_DECISION,
+    gates: { ...APP_DECISION.gates, [gateId]: applicability },
+    reasons: {
+      ...APP_DECISION.reasons,
+      [gateId]: applicability === 'NOT_APPLICABLE' ? 'only-gate-irrelevant-paths' : 'relevant-path-changed',
+    },
+  });
+  // An honest chain for an ALTERNATIVE decision: every gate echoes the digest that
+  // decision really produces, so the only anomaly left is the one the case names.
+  const honestChainFor = (decision) => {
+    const digest = applicabilityDigest(decision, AGG_IDENTITY);
+    return {
+      digest,
+      env: {
+        APPLICABILITY_JSON: JSON.stringify(decision),
+        APPLICABILITY_DIGEST: digest,
+        ...Object.fromEntries(
+          GATE_IDS.flatMap((id) => [
+            [GATES[id].resultEnv, decision.gates[id] === 'APPLICABLE' ? 'PASS' : 'NOT_APPLICABLE'],
+            [
+              GATES[id].evidenceEnv,
+              JSON.stringify({ gateId: id, applicability: decision.gates[id], digest }),
+            ],
+          ]),
+        ),
+      },
+    };
+  };
+  // A digest that is REAL — produced by the canonical function — but for a
+  // different execution. This is what "stale" actually looks like, as opposed to
+  // "forged": the value is well-formed and reproducible, just not from THIS run.
+  const digestUnder = (identityOverrides) =>
+    applicabilityDigest(APP_DECISION, { ...AGG_IDENTITY, ...identityOverrides });
+
+  // The closed list of rejection KINDS. Named, so the coverage assertions below
+  // can prove the cross-product is complete rather than merely large.
+  const PER_GATE_REJECTION_KINDS = Object.freeze([
+    'skipped-job',
+    'cancelled-job',
+    'failed-job',
+    'missing-result',
+    'unknown-result',
+    'explicit-FAIL',
+    'malformed-evidence',
+    'forged-classifier-digest',
+    'forged-blocker-digest',
+    'matching-forged-digest-chain',
+    'stale-head-sha',
+    'stale-run-id',
+    'stale-run-attempt',
+    'missing-identity',
+    'tampered-applicability-decision',
+    'unjustified-NOT_APPLICABLE',
+    'unjustified-PASS',
+  ]);
+
+  const perGateCases = [];
+  for (const gateId of GATE_IDS) {
+    const gate = GATES[gateId];
+    const evidenceOf = (overrides) => JSON.stringify({ gateId, applicability: 'APPLICABLE', ...overrides });
+    // The unjustified-PASS case needs a decision in which THIS gate — and only
+    // this gate — is NOT_APPLICABLE, with every other blocker still honest under
+    // the digest that decision really produces.
+    const inertHere = honestChainFor(decisionWith(gateId, 'NOT_APPLICABLE'));
+    const FORGED_CHAIN_DIGEST = 'f'.repeat(64);
+
+    const cases = {
+      'skipped-job': [{ [gate.jobResultEnv]: 'skipped', [gate.resultEnv]: '', [gate.evidenceEnv]: '' }, /job result is "skipped"/],
+      'cancelled-job': [{ [gate.jobResultEnv]: 'cancelled' }, /job result is "cancelled"/],
+      'failed-job': [{ [gate.jobResultEnv]: 'failure' }, /job result is "failure"/],
+      'missing-result': [{ [gate.resultEnv]: '' }, /published NO result/],
+      'unknown-result': [{ [gate.resultEnv]: 'GREEN' }, /outside the closed outcome vocabulary/],
+      'explicit-FAIL': [{ [gate.resultEnv]: 'FAIL' }, /accepts only/],
+      'malformed-evidence': [{ [gate.evidenceEnv]: '{not json' }, /evidence is not valid JSON/],
+      // Chain-level, asserted per gate: the classifier claim is forged and THIS
+      // gate is the one blocker that echoes it. Every other blocker stays honest,
+      // so the rejection naming this gate is this gate's own.
+      'forged-classifier-digest': [
+        {
+          APPLICABILITY_DIGEST: FORGED_CHAIN_DIGEST,
+          [gate.evidenceEnv]: evidenceOf({ digest: FORGED_CHAIN_DIGEST }),
+        },
+        /independently recomputed/,
+      ],
+      'forged-blocker-digest': [{ [gate.evidenceEnv]: evidenceOf({ digest: 'b'.repeat(64) }) }, /independently recomputed/],
+      // THE SELF-CONSISTENT FORGED CHAIN, ISOLATED TO THIS ONE GATE (S2-04 R2 / 1).
+      //
+      // R1 rendered this case with `chainEchoing()`, which forged the classifier
+      // claim and every blocker at once: all four gates were invalid in every
+      // cell, so a rule that reached only three of them would still have produced
+      // a rejection naming the fourth — via the fourth's own echoed forgery, not
+      // via any rule specific to it. The case was global wearing a per-gate label.
+      //
+      // It is now confined. The classifier's decision and digest stay HONEST, and
+      // the other three blockers keep echoing the canonical digest, so they are
+      // fully valid. Only THIS gate publishes a forged chain — and it is forged in
+      // the shape that matters: `digest` is a genuine output of the canonical
+      // digest function over a DIFFERENT decision (this gate flipped to
+      // NOT_APPLICABLE), and `applicability` is the value that alternative
+      // decision assigns. The gate's own classifier↔blocker chain therefore MATCHES
+      // ITSELF perfectly — an aggregator that verified the blocker's evidence
+      // against the blocker's own claimed decision would accept it. Only the
+      // independent recomputation from the CANONICAL decision catches it.
+      'matching-forged-digest-chain': [
+        {
+          [gate.resultEnv]: 'NOT_APPLICABLE',
+          [gate.evidenceEnv]: JSON.stringify({
+            gateId,
+            applicability: 'NOT_APPLICABLE',
+            digest: applicabilityDigest(decisionWith(gateId, 'NOT_APPLICABLE'), AGG_IDENTITY),
+          }),
+        },
+        /independently recomputed/,
+      ],
+      'stale-head-sha': [
+        { [gate.evidenceEnv]: evidenceOf({ digest: digestUnder({ headSha: 'cd'.repeat(20) }) }) },
+        /independently recomputed/,
+      ],
+      'stale-run-id': [
+        { [gate.evidenceEnv]: evidenceOf({ digest: digestUnder({ runId: '424242' }) }) },
+        /independently recomputed/,
+      ],
+      'stale-run-attempt': [
+        { [gate.evidenceEnv]: evidenceOf({ digest: digestUnder({ runAttempt: '2' }) }) },
+        /independently recomputed/,
+      ],
+      // No identity in the evidence at all: the blocker published an outcome it
+      // cannot bind to any run.
+      'missing-identity': [{ [gate.evidenceEnv]: JSON.stringify({ gateId, applicability: 'APPLICABLE' }) }, /independently recomputed/],
+      // The applicability this blocker claims to have run under is not the one the
+      // classifier decided for it.
+      'tampered-applicability-decision': [
+        { [gate.evidenceEnv]: evidenceOf({ applicability: 'NOT_APPLICABLE', digest: APP_DIGEST }) },
+        /ran under applicability/,
+      ],
+      'unjustified-NOT_APPLICABLE': [
+        {
+          [gate.resultEnv]: 'NOT_APPLICABLE',
+          [gate.evidenceEnv]: evidenceOf({ applicability: 'NOT_APPLICABLE', digest: APP_DIGEST }),
+        },
+        /must be justified by exact changed-file classification|the classifier decided/,
+      ],
+      // The classifier proved this ONE gate irrelevant; the gate claims to have
+      // passed blocking work it never ran. Everything else in the chain is honest
+      // under the alternative decision's own digest.
+      'unjustified-PASS': [
+        { ...inertHere.env, [gate.resultEnv]: 'PASS' },
+        /published PASS but the classifier decided/,
+      ],
+    };
+
+    for (const kind of PER_GATE_REJECTION_KINDS) {
+      const [overrides, expected] = cases[kind];
+      perGateCases.push({ gateId, kind, overrides, expected });
+    }
+  }
+
+  // COVERAGE OF THE GENERATED LOOP ITSELF. A generated matrix is only evidence if
+  // it provably covers the registry; a loop that silently omitted a gate would
+  // look exactly as green as one that did not.
+  check(
+    'PER-GATE MATRIX: the cross-product is complete',
+    perGateCases.length === GATE_IDS.length * PER_GATE_REJECTION_KINDS.length,
+    `${perGateCases.length} != ${GATE_IDS.length} x ${PER_GATE_REJECTION_KINDS.length}`,
+  );
+  check(
+    'PER-GATE MATRIX: every REGISTERED gate appears',
+    JSON.stringify([...new Set(perGateCases.map((entry) => entry.gateId))].sort()) === JSON.stringify([...GATE_IDS]),
+    [...new Set(perGateCases.map((entry) => entry.gateId))].sort().join(','),
+  );
+  for (const gateId of GATE_IDS) {
+    const kinds = perGateCases.filter((entry) => entry.gateId === gateId).map((entry) => entry.kind).sort();
+    check(
+      `PER-GATE MATRIX: "${gateId}" is exercised by EVERY rejection kind`,
+      JSON.stringify(kinds) === JSON.stringify([...PER_GATE_REJECTION_KINDS].sort()),
+      kinds.join(','),
+    );
+  }
+  // The matrix must be derived from the registry, not from a list someone
+  // maintains. Proved by construction: a hand-written pair — the S2-03 world —
+  // provably fails to describe the registry as it stands today.
+  const HAND_LISTED_S2_03_GATES = ['global-header-interaction', 'public-seo-metadata'];
+  check(
+    'PER-GATE MATRIX: a hand-listed gate set would OMIT registered blockers (which is why this one is derived)',
+    GATE_IDS.some((gateId) => !HAND_LISTED_S2_03_GATES.includes(gateId)),
+    GATE_IDS.join(','),
+  );
+
   for (const [label, overrides, expected] of AGGREGATOR_RUNTIME_REJECTIONS) {
     const run = runAggregator(AGGREGATE_SCRIPT, overrides);
     check(`RUNTIME: the aggregator FAILS CLOSED on ${label}`, run.status !== 0, `exit=${run.status}`);
@@ -2208,6 +3143,147 @@ try {
       `RUNTIME: the aggregator names ${label} as the reason`,
       expected.test(`${run.stdout ?? ''}${run.stderr ?? ''}`),
       (run.stderr ?? '').slice(0, 240),
+    );
+  }
+
+  // THE PER-GATE MATRIX, EXECUTED. Three assertions per cell: the aggregator
+  // fails, it fails for the stated reason, and it names THIS gate — the last one
+  // being what makes the cell about this gate rather than about the run.
+  for (const { gateId, kind, overrides, expected } of perGateCases) {
+    const run = runAggregator(AGGREGATE_SCRIPT, overrides);
+    const output = `${run.stdout ?? ''}${run.stderr ?? ''}`;
+    check(`PER-GATE: "${gateId}" / ${kind} FAILS the required gate`, run.status !== 0, `exit=${run.status}`);
+    check(
+      `PER-GATE: "${gateId}" / ${kind} fails for its OWN stated reason`,
+      expected.test(output),
+      (run.stderr ?? '').slice(0, 240),
+    );
+    check(
+      `PER-GATE: "${gateId}" / ${kind} names the gate itself (no hiding behind another blocker)`,
+      new RegExp(`blocker ${gateId} `).test(output),
+      (run.stderr ?? '').slice(0, 240),
+    );
+  }
+
+  // AND THE LOOP CANNOT SILENTLY OMIT A GATE. For each registered blocker, an
+  // aggregator carrying a hard-coded exemption for exactly that gate is built and
+  // proved to ACCEPT the input the real aggregator rejects. That is the mutation
+  // the per-gate matrix exists to kill: a rule that reaches three of four gates.
+  const exemptingAggregators = new Map();
+  for (const gateId of GATE_IDS) {
+    const gate = GATES[gateId];
+    const exemptPath = join(sandbox, `aggregator-exempting-${gateId}.mjs`);
+    exemptingAggregators.set(gateId, exemptPath);
+    writeFileSync(
+      exemptPath,
+      asRunnableAggregator(
+        mutate(`exempt ${gateId} from aggregation`, baseAggregate, [
+          [
+            '  for (const gateId of GATE_IDS) {\n    const observed = gates?.[gateId];',
+            `  for (const gateId of GATE_IDS) {\n    if (gateId === ${JSON.stringify(gateId)}) continue;\n    const observed = gates?.[gateId];`,
+          ],
+        ]),
+      ),
+      'utf8',
+    );
+    const tainted = { [gate.resultEnv]: 'FAIL' };
+    check(
+      `PER-GATE: an aggregator exempting "${gateId}" ACCEPTS that gate's FAIL (the mutation is real)`,
+      runAggregator(exemptPath, tainted).status === 0,
+      (runAggregator(exemptPath, tainted).stderr ?? '').slice(0, 240),
+    );
+    check(
+      `PER-GATE: the exempting aggregator is still a real aggregator (it accepts the honest chain)`,
+      runAggregator(exemptPath).status === 0,
+    );
+    check(
+      `PER-GATE: the REAL aggregator REJECTS the same "${gateId}" FAIL`,
+      runAggregator(AGGREGATE_SCRIPT, tainted).status !== 0,
+    );
+  }
+
+  // ==========================================================================
+  // THE ISOLATED FORGED-CHAIN CASE, PROVED ISOLATED (S2-04 R2 / 1)
+  // ==========================================================================
+  //
+  // "matching-forged-digest-chain" is only per-gate coverage if the other three
+  // blockers are demonstrably VALID while it runs. A case in which every gate is
+  // invalid passes its own per-gate assertion for the wrong reason — the
+  // rejection naming this gate could be produced by any rule at all. So for each
+  // registered blocker three things are bound explicitly:
+  //
+  //   (a) the case perturbs THIS gate's environment and nothing else;
+  //   (b) the aggregator's rejection names THIS gate and no other blocker;
+  //   (c) restoring THIS gate's honest values — and changing nothing else —
+  //       makes the entire chain PASS, which is only possible if the other three
+  //       blockers were valid throughout;
+  //
+  // and then (d) the case is proved gate-specific by mutation: an aggregator
+  // carrying a hard-coded exemption for exactly this gate ACCEPTS the very input
+  // the real one rejects, so a rule that reached three gates out of four could
+  // not leave this suite green.
+  for (const gateId of GATE_IDS) {
+    const gate = GATES[gateId];
+    const isolated = perGateCases.find(
+      (entry) => entry.gateId === gateId && entry.kind === 'matching-forged-digest-chain',
+    );
+    const others = GATE_IDS.filter((id) => id !== gateId);
+    const perturbed = Object.keys(isolated.overrides).sort();
+
+    // (a) STRUCTURAL: only this gate's env vars are touched. The classifier's
+    // decision and digest are untouched, so the recomputation anchor is honest.
+    check(
+      `ISOLATED FORGED CHAIN: "${gateId}" perturbs ONLY its own environment`,
+      JSON.stringify(perturbed) === JSON.stringify([gate.evidenceEnv, gate.resultEnv].sort()),
+      perturbed.join(','),
+    );
+    const env = aggregatorEnv(isolated.overrides);
+    check(
+      `ISOLATED FORGED CHAIN: "${gateId}" leaves the classifier claim honest`,
+      env.APPLICABILITY_DIGEST === APP_DIGEST && env.APPLICABILITY_JSON === JSON.stringify(APP_DECISION),
+      env.APPLICABILITY_DIGEST,
+    );
+    // (b) THE OTHER THREE BLOCKERS ARE VALID BEFORE AGGREGATION — asserted on the
+    // exact environment this case runs under, not on the honest baseline.
+    for (const otherId of others) {
+      const other = GATES[otherId];
+      check(
+        `ISOLATED FORGED CHAIN: while "${gateId}" is forged, "${otherId}" is still an honest PASS`,
+        env[other.jobResultEnv] === 'success' &&
+          env[other.resultEnv] === 'PASS' &&
+          env[other.evidenceEnv] ===
+            JSON.stringify({ gateId: otherId, applicability: 'APPLICABLE', digest: APP_DIGEST }),
+        `${env[other.resultEnv]} ${env[other.evidenceEnv]}`,
+      );
+    }
+    const run = runAggregator(AGGREGATE_SCRIPT, isolated.overrides);
+    const output = `${run.stdout ?? ''}${run.stderr ?? ''}`;
+    const errorLines = output.split('\n').filter((line) => line.trim().startsWith('- '));
+    check(`ISOLATED FORGED CHAIN: "${gateId}" is REJECTED`, run.status !== 0, `exit=${run.status}`);
+    for (const otherId of others) {
+      check(
+        `ISOLATED FORGED CHAIN: rejecting "${gateId}" names NO other blocker ("${otherId}" is clean)`,
+        !errorLines.some((line) => line.includes(`blocker ${otherId} `)),
+        errorLines.filter((line) => line.includes(`blocker ${otherId} `)).join(' | ').slice(0, 240),
+      );
+    }
+    // (c) …and the ONLY thing wrong with the chain is this gate.
+    const restored = runAggregator(AGGREGATE_SCRIPT, {
+      ...isolated.overrides,
+      [gate.resultEnv]: 'PASS',
+      [gate.evidenceEnv]: JSON.stringify({ gateId, applicability: 'APPLICABLE', digest: APP_DIGEST }),
+    });
+    check(
+      `ISOLATED FORGED CHAIN: restoring ONLY "${gateId}" makes the whole chain PASS (the rest was valid)`,
+      restored.status === 0,
+      `exit=${restored.status} ${(restored.stderr ?? '').slice(0, 240)}`,
+    );
+    // (d) MUTATION: the case cannot survive this gate being dropped.
+    const exempt = runAggregator(exemptingAggregators.get(gateId), isolated.overrides);
+    check(
+      `ISOLATED FORGED CHAIN: an aggregator OMITTING "${gateId}" ACCEPTS its forged chain (the case is gate-specific)`,
+      exempt.status === 0,
+      `exit=${exempt.status} ${(exempt.stderr ?? '').slice(0, 240)}`,
     );
   }
 
@@ -2264,19 +3340,11 @@ try {
   // digest, compare the blockers to that same supplied value), ACCEPTS the forged
   // chain the real one rejects. This IS the Codex exploit, executed.
   const FORGED = 'forged-applicability-digest';
-  const forgedChain = {
-    APPLICABILITY_DIGEST: FORGED,
-    GATE_GLOBAL_HEADER_INTERACTION_EVIDENCE: JSON.stringify({
-      gateId: 'global-header-interaction',
-      applicability: 'APPLICABLE',
-      digest: FORGED,
-    }),
-    GATE_PUBLIC_SEO_METADATA_EVIDENCE: JSON.stringify({
-      gateId: 'public-seo-metadata',
-      applicability: 'APPLICABLE',
-      digest: FORGED,
-    }),
-  };
+  // EVERY blocker echoes the forgery, derived from the registry. A chain that
+  // only forged the gates someone remembered would be rejected by the ordinary
+  // digest-mismatch rule, and this block would then "pass" while demonstrating
+  // nothing about the recomputation.
+  const forgedChain = { APPLICABILITY_DIGEST: FORGED, ...chainEchoing(FORGED) };
   const trustingAggregatorPath = join(sandbox, 'trusting-aggregator.mjs');
   writeFileSync(
     trustingAggregatorPath,

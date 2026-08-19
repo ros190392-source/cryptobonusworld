@@ -45,6 +45,15 @@ export const APPLICABILITY_COMMAND =
 export const VALIDATE_APPLICABILITY_COMMAND =
   'node scripts/ci/master-required-gate-validate-applicability.mjs';
 export const GATE_RESULT_COMMAND = 'node scripts/ci/master-required-gate-gate-result.mjs';
+// The EXACT and ONLY condition a blocker result emitter may carry.
+//
+// Not "no `if`" — that was the reviewed MEDIUM. A step without an `if` carries
+// GitHub's implicit `if: success()` and is therefore SKIPPED once anything
+// earlier in the job has failed, which is exactly the state the emitter exists to
+// publish. A skipped emitter publishes nothing, and "nothing" is not a member of
+// the closed result vocabulary. `always()` is required verbatim: `success()`,
+// `!cancelled()`, an applicability expression and an absent `if` are all rejected.
+export const GATE_RESULT_STEP_IF = 'always()';
 export const AGGREGATE_COMMAND = 'node scripts/ci/master-required-gate-aggregate.mjs';
 export const BASE_SHA_EXPR = '${{ github.event.pull_request.base.sha }}';
 export const HEAD_SHA_EXPR = '${{ github.event.pull_request.head.sha }}';
@@ -54,6 +63,12 @@ export const APPLICABILITY_OUTPUT_EXPR = '${{ steps.applicability.outputs.applic
 export const APPLICABILITY_DIGEST_EXPR = '${{ steps.applicability.outputs.digest }}';
 export const FINAL_JOB_IF = 'always()';
 
+// Stage-2 migration candidates remaining after S2-04 batch 01: S2-03 left 11,
+// and migrating Public Navigation Boundary and Public First Screen Budget out of
+// LEGACY_EXTERNAL removes two. See auditRegistryPortfolioAlignment for why this
+// is a pinned literal rather than a re-derivation.
+export const EXPECTED_STAGE2_CANDIDATES = 9;
+
 // The two self-proving suites plus the parity proof that must run on EVERY gate
 // run, unconditionally, before any classification is trusted.
 export const UNCONDITIONAL_SUITE_COMMANDS = Object.freeze([
@@ -61,6 +76,12 @@ export const UNCONDITIONAL_SUITE_COMMANDS = Object.freeze([
   'node scripts/ci/master-required-gate-classifier-fixture-test.mjs',
   'node scripts/ci/master-required-gate-mutation-test.mjs',
   'node scripts/ci/master-required-gate-parity-test.mjs',
+  // S2-04 R1 (M1): the workflow-level emitter behaviour harness. The parity suite
+  // drives `evaluateGateResult()` directly, which proves the FUNCTION is right and
+  // says nothing about whether the STEP that calls it runs. This suite executes
+  // the real emitter under a simulation of GitHub's documented step semantics,
+  // read from the real workflow file.
+  'node scripts/ci/master-required-gate-emitter-behaviour-test.mjs',
 ]);
 
 // Extracts every top-level `fnName(...)` call expression from JS source text,
@@ -122,16 +143,32 @@ const needsOf = (job) => (job?.needs ? (Array.isArray(job.needs) ? job.needs : [
  * override exactly one of them; a MISSING source is treated as an empty string
  * and every rule about it therefore fails, which is the fail-closed direction.
  */
-export function auditProducerConsumerContract({
-  workflowText,
-  classifierSource,
-  validatorSource,
-  gatesSource = '',
-  applicabilitySource = '',
-  applicabilityValidatorSource = '',
-  gateResultSource = '',
-  aggregateSource = '',
-}) {
+export function auditProducerConsumerContract(sources) {
+  // NEWLINE-AGNOSTIC BY CONSTRUCTION (S2-04 R2 / 4).
+  //
+  // Several rules below are TEXT-level: they assert that one statement follows
+  // another in a source file with nothing but comments between. Written against
+  // `\n`, every one of them silently changes meaning on a CRLF checkout — Windows
+  // with `core.autocrlf=true`, or any runner that normalises on the way in — and
+  // the failure is not a false pass but a false FAIL, which is worse for a gate
+  // that must give the same verdict everywhere. The same applies to the parsed
+  // YAML: a CRLF `run:` block scalar carries `\r` into every command string.
+  //
+  // Both are fixed at the boundary rather than by sprinkling `\r?` through the
+  // rules, so no future assertion has to remember. Nothing on disk is rewritten —
+  // this is an in-memory view for the duration of the audit.
+  const lf = (text) => String(text ?? '').replace(/\r\n/g, '\n');
+  const {
+    workflowText,
+    classifierSource,
+    validatorSource,
+    gatesSource = '',
+    applicabilitySource = '',
+    applicabilityValidatorSource = '',
+    gateResultSource = '',
+    aggregateSource = '',
+  } = Object.fromEntries(Object.entries(sources ?? {}).map(([key, value]) => [key, lf(value)]));
+
   const results = [];
   const check = (label, ok, detail = '') => results.push({ label, ok: Boolean(ok), detail });
 
@@ -580,9 +617,25 @@ export function auditProducerConsumerContract({
       previousIndex = index;
     }
 
-    // The UNCONDITIONAL result emitter, last.
+    // The ALWAYS-RUNNING result emitter, last.
+    //
+    // EXISTS, exactly ONCE, under the bound id, carrying EXACTLY `if: always()`,
+    // never continue-on-error, and bound to the job outputs the aggregator reads.
+    // Together these are the published closed-result contract: this job publishes
+    // exactly one of PASS / NOT_APPLICABLE / FAIL in every reachable state,
+    // including the states where its own blocking work failed.
     const emitters = jobSteps.filter((step) => runOf(step) === GATE_RESULT_COMMAND);
     check(`blocker "${gateId}" runs the result emitter exactly once`, emitters.length === 1, `found ${emitters.length}`);
+    check(
+      `blocker "${gateId}" result emitter EXISTS`,
+      emitters.length >= 1,
+      'a blocker with no emitter publishes an absent result, which resolves to the empty string',
+    );
+    check(
+      `blocker "${gateId}" result emitter is UNIQUE (no second emitter can overwrite the first)`,
+      emitters.length <= 1,
+      `found ${emitters.length}`,
+    );
     const emitter = emitters[0];
     const emitterIndex = jobSteps.indexOf(emitter);
     check(
@@ -590,10 +643,55 @@ export function auditProducerConsumerContract({
       emitter?.id === GATE_RESULT_STEP_ID,
       `actual=${JSON.stringify(emitter?.id)}`,
     );
+    // THE M1 INVARIANT. An emitter with no `if` inherits `success()` and is
+    // skipped after a failed build or a failed gate script — the exact case where
+    // a published FAIL is most load-bearing. Only the literal `always()` is
+    // accepted; every softer or absent condition is a contract failure.
     check(
-      `blocker "${gateId}" result emitter is UNCONDITIONAL`,
-      Boolean(emitter) && !hasIf(emitter),
+      `blocker "${gateId}" result emitter carries an explicit \`if\``,
+      Boolean(emitter) && hasIf(emitter),
+      'an absent `if` is GitHub\'s implicit `success()`, which skips the emitter after a failed blocking step',
+    );
+    check(
+      `blocker "${gateId}" result emitter condition is EXACTLY \`${GATE_RESULT_STEP_IF}\``,
+      String(emitter?.if ?? '').trim() === GATE_RESULT_STEP_IF,
       `if=${JSON.stringify(emitter?.if)}`,
+    );
+    check(
+      `blocker "${gateId}" result emitter is NOT conditioned on success`,
+      !/\bsuccess\s*\(/.test(String(emitter?.if ?? '')),
+      `if=${JSON.stringify(emitter?.if)}`,
+    );
+    check(
+      `blocker "${gateId}" result emitter is NOT conditioned on applicability`,
+      !String(emitter?.if ?? '').includes(`needs.${CLASSIFY_JOB_ID}.outputs.`),
+      `if=${JSON.stringify(emitter?.if)}`,
+    );
+    // FAIL-CLOSED, NOT "NOT LITERALLY TRUE" (S2-04 R2 / 3).
+    //
+    // `continue-on-error: true` is only the most obvious way to neutralise a
+    // published FAIL. `continue-on-error: ${{ true }}` parses as a STRING, so a
+    // `!== true` rule accepts it while GitHub evaluates it as truthy and lets the
+    // job go green with FAIL published — the exact evidence-destroying state this
+    // contract exists to forbid. So does `${{ github.event_name == 'push' }}`, and
+    // so does any other expression whose value is not knowable from the file.
+    //
+    // The rule is therefore ABSENCE, not falsity: a unified blocker emitter may
+    // carry NO `continue-on-error` key at all, in any form. There is no legitimate
+    // use for one on this step — its whole purpose is to fail the job when it
+    // publishes FAIL — so nothing is lost by forbidding the field outright, and a
+    // value this contract cannot evaluate can never be admitted by accident.
+    // Scoped to the emitter: ordinary steps and advisory jobs elsewhere in the
+    // repository keep their normal semantics.
+    check(
+      `blocker "${gateId}" result emitter declares NO continue-on-error at all (a published FAIL must still fail the job)`,
+      Boolean(emitter) && !Object.prototype.hasOwnProperty.call(emitter, 'continue-on-error'),
+      `continue-on-error=${JSON.stringify(emitter?.['continue-on-error'])}`,
+    );
+    check(
+      `blocker "${gateId}" result emitter runs the registered emitter command`,
+      runOf(emitter) === GATE_RESULT_COMMAND,
+      `actual=${JSON.stringify(runOf(emitter))}`,
     );
     check(
       `blocker "${gateId}" result emitter is the LAST step`,
@@ -656,13 +754,23 @@ export function auditProducerConsumerContract({
     );
 
     // Nothing else in the blocker job may be conditional on anything but the
-    // derived applicability conditions.
+    // derived applicability conditions. The result emitter is the ONE step allowed
+    // to carry the bare `always()`, and it is REQUIRED to — an ordinary blocking
+    // step that quietly acquired `always()` would keep running after a failure it
+    // should have stopped for, so the exemption is granted to that one step by id
+    // rather than to the expression.
     const allowedConditions = new Set(gate.steps.map((step) => stepConditionExpression(gateId, step.condition)));
     for (const step of jobSteps) {
       if (!hasIf(step)) continue;
+      if (step === emitter) continue;
       check(
         `blocker "${gateId}" conditional step "${step?.name ?? runOf(step)}" uses only a derived applicability condition`,
         allowedConditions.has(String(step.if).trim()),
+        `actual=${JSON.stringify(step.if)}`,
+      );
+      check(
+        `blocker "${gateId}" non-emitter step "${step?.name ?? runOf(step)}" does not claim the bare \`always()\``,
+        String(step.if).trim() !== GATE_RESULT_STEP_IF,
         `actual=${JSON.stringify(step.if)}`,
       );
     }
@@ -989,6 +1097,29 @@ export function auditProducerConsumerContract({
     'the applicability model treats an unnormalizable path as RELEVANT',
     /normalized === null \|\| !inert\.has\(normalized\)/.test(gatesText),
   );
+  // --- the DERIVED inert set (S2-04) -----------------------------------------
+  // S2-03 hand-listed each gate's cross-gate inert entries; S2-04 derives them.
+  // The derivation is a trust boundary in its own right, and it has exactly two
+  // fail-open shapes, both bound here:
+  //
+  //   1. failing to exclude the gate ITSELF from the union, which would make a
+  //      gate inert on its own workflow file and its own hard-gate script — it
+  //      would skip precisely the change it exists to check;
+  //   2. adding anything to the union beyond the allowlist and the foreign
+  //      exclusive surfaces, which is how a SHARED dependency (the indexability
+  //      inventory) could be smuggled into every inert set at once.
+  check(
+    "the derived inert set EXCLUDES the gate's own exclusive surface",
+    /\.filter\(\(otherId\) => otherId !== gateId\)/.test(gatesText),
+  );
+  check(
+    'the derived inert set is exactly the allowlist plus FOREIGN exclusive surfaces, and nothing else',
+    /return Object\.freeze\(\[\.\.\.UNIVERSALLY_INERT_PATHS, \.\.\.foreign\]\);/.test(gatesText),
+  );
+  check(
+    'a gate exclusive surface is exactly its legacy workflow and its own gate script',
+    /return \[gate\.legacyWorkflow, gate\.gateScript\];/.test(gatesText),
+  );
   check(
     'the accepted outcome vocabulary excludes FAIL',
     JSON.stringify([...ACCEPTED_GATE_OUTCOMES]) === JSON.stringify(['PASS', 'NOT_APPLICABLE']),
@@ -1080,6 +1211,59 @@ export function auditProducerConsumerContract({
   check(
     'the result emitter requires the evidence digest',
     /evidence digest is missing/.test(gateResultText),
+  );
+  // --- the emitter's own PUBLICATION contract (M1) -----------------------------
+  // `if: always()` in the workflow only guarantees the step INSTANTIATES. These
+  // assertions bind what it must then do: publish the EVALUATED result — never a
+  // constant, never conditionally, and always BEFORE it exits non-zero.
+  const emitterWrites = extractCallExpressions(gateResultText, 'appendFileSync');
+  check(
+    'the result emitter performs exactly one output write',
+    emitterWrites.length === 1,
+    `found ${emitterWrites.length}`,
+  );
+  check(
+    'the result emitter publishes the EVALUATED result, not a constant',
+    /result=\$\{evaluation\.result\}/.test(emitterWrites[0] ?? ''),
+    (emitterWrites[0] ?? '').slice(0, 200),
+  );
+  check(
+    'the result emitter does not hard-code PASS',
+    !/result=PASS/.test(gateResultText),
+  );
+  check(
+    'the result emitter does not hard-code NOT_APPLICABLE',
+    !/result=NOT_APPLICABLE/.test(gateResultText),
+  );
+  // The write must not sit behind a condition, and must not sit after the exit.
+  // A publication that only happens on the happy path is exactly the "skipped
+  // emitter" defect relocated from the workflow into the script.
+  const firstWrite = emitterWrites[0] ?? null;
+  const writeIndex = firstWrite === null ? -1 : gateResultText.indexOf(firstWrite);
+  const failExitIndex = gateResultText.indexOf("if (errors.length > 0 || evaluation.result === 'FAIL')");
+  // The write must be the very next statement after the GITHUB_OUTPUT guard, with
+  // nothing but comments between. `if (evaluation.result !== 'FAIL') appendFileSync(…)`
+  // is the workflow defect relocated into the script — it publishes on the happy
+  // path and goes silent exactly when the evidence matters — and it is the shape
+  // this assertion exists to reject.
+  check(
+    'the result emitter publishes UNCONDITIONALLY (the write is not behind any branch)',
+    /GITHUB_OUTPUT is not set[\s\S]{0,200}?process\.exit\(1\);\n\s*\}\n(?:\s*\/\/[^\n]*\n)*\s*appendFileSync\(/.test(
+      gateResultText,
+    ),
+  );
+  check(
+    'the result emitter still publishes FAIL: the write precedes the failing exit',
+    writeIndex !== -1 && failExitIndex !== -1 && writeIndex < failExitIndex,
+    `write=${writeIndex} exit=${failExitIndex}`,
+  );
+  check(
+    'the result emitter exits non-zero on FAIL (publication is not failure suppression)',
+    /evaluation\.result === 'FAIL'[\s\S]{0,400}process\.exit\(1\)/.test(gateResultText),
+  );
+  check(
+    'the result emitter fails closed when GITHUB_OUTPUT is unavailable',
+    /GITHUB_OUTPUT is not set/.test(gateResultText) && /if \(!outputFile\)/.test(gateResultText),
   );
 
   const aggregateText = String(aggregateSource);
@@ -1188,6 +1372,140 @@ export function auditProducerConsumerContract({
   check(
     'the aggregator exits non-zero when aggregation fails',
     /process\.exit\(1\)/.test(aggregateText),
+  );
+
+  return results;
+}
+
+// =============================================================================
+// REGISTRY <-> PORTFOLIO ALIGNMENT
+// =============================================================================
+//
+// Two independent statements about the same world:
+//
+//   * the gate registry says which blockers the unified required gate EXECUTES;
+//   * scripts/ci/master-blocking-portfolio.json says which checks hold blocking
+//     authority and how far migration has got.
+//
+// Nothing used to require them to agree. A gate migrated in the workflow while
+// its portfolio entry still read LEGACY_EXTERNAL left every suite green and the
+// enforcement-readiness verdict computed from a stale picture — which is exactly
+// the input a later branch-protection decision would rest on.
+//
+// Pure and parameterised for the same reason the workflow audit is: the mutation
+// suite drives it with deliberately corrupted portfolios and proves each rule is
+// load-bearing. `readiness` is INJECTED rather than computed here so this module
+// keeps depending on node builtins only.
+//
+// @param {object} input
+// @param {object} input.portfolio parsed portfolio snapshot
+// @param {{stage2MigrationCandidates: number, enforcementReady: boolean,
+//   integrityImpliesEnforcementAuthority: boolean}} input.readiness
+// @param {number} input.expectedStage2Candidates
+// @returns {{label: string, ok: boolean, detail: string}[]}
+export function auditRegistryPortfolioAlignment({ portfolio, readiness, expectedStage2Candidates }) {
+  const results = [];
+  const check = (label, ok, detail = '') => results.push({ label, ok: Boolean(ok), detail: String(detail) });
+
+  const entries = Array.isArray(portfolio?.entries) ? portfolio.entries : [];
+  check('portfolio declares entries to align against', entries.length > 0);
+  const byKey = new Map(entries.map((entry) => [`${entry?.workflowFile}#${entry?.jobId}`, entry]));
+  const UNIFIED_WORKFLOW_FILE = 'cbw-master-required-gate.yml';
+
+  for (const gateId of GATE_IDS) {
+    const gate = GATES[gateId];
+
+    // (a) the unified blocker job is a registered UNIFIED_GATE_COMPONENT.
+    const component = byKey.get(`${UNIFIED_WORKFLOW_FILE}#${gate.jobId}`);
+    check(`portfolio has an entry for the unified blocker job "${gate.jobId}"`, Boolean(component));
+    check(
+      `portfolio records unified blocker "${gate.jobId}" as UNIFIED_GATE_COMPONENT`,
+      component?.migrationState === 'UNIFIED_GATE_COMPONENT',
+      String(component?.migrationState),
+    );
+    check(
+      `portfolio records unified blocker "${gate.jobId}" as BLOCKING`,
+      component?.classification === 'BLOCKING',
+      String(component?.classification),
+    );
+    check(
+      `unified blocker "${gate.jobId}" is not counted as a stage-2 migration candidate`,
+      component?.stage2MigrationCandidate === false,
+      String(component?.stage2MigrationCandidate),
+    );
+
+    // (b) the LEGACY workflow is recorded as a migrated SHADOW — still present,
+    //     still blocking, still reporting, and explicitly NOT retired.
+    const legacyFile = gate.legacyWorkflow.split('/').pop();
+    const legacy = byKey.get(`${legacyFile}#${gate.legacyJobId}`);
+    check(`portfolio has an entry for the legacy job "${legacyFile}#${gate.legacyJobId}"`, Boolean(legacy));
+    check(
+      `portfolio records legacy "${legacyFile}" as MIGRATED_UNIFIED_SHADOW`,
+      legacy?.migrationState === 'MIGRATED_UNIFIED_SHADOW',
+      String(legacy?.migrationState),
+    );
+    check(
+      `legacy "${legacyFile}" is still BLOCKING (this stage retires nothing)`,
+      legacy?.classification === 'BLOCKING',
+      String(legacy?.classification),
+    );
+    check(
+      `legacy "${legacyFile}" is no longer a stage-2 migration candidate`,
+      legacy?.stage2MigrationCandidate === false,
+      String(legacy?.stage2MigrationCandidate),
+    );
+  }
+
+  // (c) exactly one UNIFIED_GATE_HOST, and it is the stable required context.
+  const hosts = entries.filter((entry) => entry?.migrationState === 'UNIFIED_GATE_HOST');
+  check('portfolio declares exactly one unified gate host', hosts.length === 1, String(hosts.length));
+  check(
+    'the unified gate host is the job carrying the stable required context',
+    hosts.length === 1 && hosts[0]?.jobId === FINAL_JOB_ID && hosts[0]?.checkContext === FINAL_CHECK_CONTEXT,
+    `${hosts[0]?.jobId}/${hosts[0]?.checkContext}`,
+  );
+
+  // (d) the components of the unified gate are EXACTLY its blocker jobs plus the
+  //     classifier — the whole DAG except the aggregator, which is the host.
+  //     Comparing the id SET rather than a count is what makes an extra
+  //     component job (a new, unaggregated job inside the required workflow) a
+  //     failure too, instead of something a count could absorb by coincidence.
+  const components = entries.filter((entry) => entry?.migrationState === 'UNIFIED_GATE_COMPONENT');
+  check(
+    'the portfolio components are EXACTLY the classifier plus one job per registered gate',
+    JSON.stringify(components.map((entry) => entry.jobId).sort()) ===
+      JSON.stringify([CLASSIFY_JOB_ID, ...GATE_IDS.map((gateId) => GATES[gateId].jobId)].sort()),
+    components.map((entry) => entry.jobId).join(','),
+  );
+  const shadows = entries.filter((entry) => entry?.migrationState === 'MIGRATED_UNIFIED_SHADOW');
+  check(
+    'the portfolio declares exactly one MIGRATED_UNIFIED_SHADOW per registered gate',
+    shadows.length === GATE_IDS.length,
+    `${shadows.length} shadows for ${GATE_IDS.length} gates`,
+  );
+
+  // (e) THE CANDIDATE COUNT IS PINNED.
+  //
+  // A pinned literal, deliberately. The count cannot be re-derived here as a
+  // cross-check, because it is derived from exactly the fields being checked —
+  // that comparison would be a tautology that passes no matter what happens.
+  // What a pinned number DOES catch is the thing that actually goes wrong: a
+  // gate migrated in the workflow while its portfolio entry is left
+  // LEGACY_EXTERNAL (the count never drops), or a legacy workflow quietly
+  // retired to shrink the backlog (it drops too far). Both are changes in
+  // enforcement scope, and both must be a deliberate edit with a reviewer
+  // looking at it.
+  check(
+    `stage-2 migration candidates are exactly ${expectedStage2Candidates}`,
+    readiness?.stage2MigrationCandidates === expectedStage2Candidates,
+    `actual=${readiness?.stage2MigrationCandidates}`,
+  );
+  // This stage does NOT confer enforcement authority, and the contract says so
+  // rather than leaving it to a PR body.
+  check('enforcement readiness remains false at this stage', readiness?.enforcementReady === false);
+  check(
+    'a passing integrity audit still implies NO enforcement authority',
+    readiness?.integrityImpliesEnforcementAuthority === false,
   );
 
   return results;
